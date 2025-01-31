@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/chrisharing/Desktop/CCS_complex_coupled_systems",
+      "program": "/Users/chrisharing/Desktop/CCS_complex_coupled_systems/build/Debug/outDebug"
+    }
+  ]
+}

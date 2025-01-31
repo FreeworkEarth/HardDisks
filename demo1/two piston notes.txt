@@ -1,0 +1,40 @@
+five simulation modes
+
+1 - quasistatic, pistons move slowly (compared to speed of sound)
+    left piston moves in, compressing gas, then right piston moves out, expansion.
+    gas stays near equilibrium throughout.
+    kinetic energy (temperature) nearly the same after as before, nearly no dissipation (maybe 1%).
+
+2 - left piston moves in quickly, gas is out of equilibrium.  right piston is moved out slowly.
+    more kinetic energy added to gas (piston does more work), cannot be extracted by right piston.
+    large dissipation.
+
+3 - left piston moves in quickly, right piston moves out quickly after a long delay.
+    (time enough for gas to return to equilibrium)
+    even larger dissipation than case 2 (more than double).
+
+4 - left piston moves in quickly, right piston moves out quickly,
+    delay equal to time of compression wave to travel across chamber.
+    wave is "caught" by right piston, energy extracted.
+    dissipation less than half of case 3, less even than case 2 (slow moving right piston).
+
+5 - left piston moves in quickly, right piston moves out quickly,
+    delay too short, wave cannot be "caught" by right piston.
+    dissipation again high, similar to case 3.
+
+how to run -
+
+'f' goes to full screen.
+number keys set mode.
+hitting space bar sets off simulation.
+'n' will reset current mode, or hit number again to reset pistons.
+'esc' to exit program.
+
+display -
+KE  - current kinetic energy
+KE0 - initial kinetic energy
+KE1 - energy after compression by left piston
+KE2 - energy after expansion by moving right piston
+
+mechanical energy dissipated due to heating of the gas is KE2 - KE0
+
