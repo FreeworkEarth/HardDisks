@@ -7,10 +7,16 @@
 #include <stdlib.h>		// for exit()
 #include <math.h>
 #include <string.h>
+#include <SDL2/SDL.h>
 #include "glgraph.h"
 #include "rstuff.h"
 #include "myrand4.h"
+#include "globals.h"
+
+
 #define FULLSCR 1			// open program in full screen
+
+
 
 unsigned long int _seed = SEED;
 
@@ -74,242 +80,245 @@ struct bump{
 };
 struct bump bumps[MAXBUMPS];
 
-void Display()
+
+
+
+// Function definitions
+void cleanup() {
+    // Add your cleanup code here
+    // For example, freeing allocated memory, closing files, etc.
+    printf("Cleanup function called.\n");
+}
+
+void Display(SDL_Window* _window, SDL_Renderer* _renderer)
 {
 #if FULLSCR
-static int fadecount=0;
+    static int fadecount = 0;
 #endif
-long i;
+    long i;
 
-// initialize
-if(ncount == 0)
-	{
-	xpist1 = XW1;
-//	xpist2 = XW2 - .2;
-	xpist2 = rlo;
-//	xpist1 = 0.0;
-//	xpist2 = 2.0;
-	initgauss(nrad1,nrad2,RAD1,0);
-	reseteng();
-//	pdelay = .27;	// KE 1250
-	pdelay = .25;
-//	pdelay = .50;
-	pdelay = 2.00;	// KE 1650 3032
-	pdelay = .26;
-//	pdelay = 0;
-//	lvel = 2;
-	lvel = 1;
-	rvel = 1;
-	KE0 = kengy();	// record initial KE
-	KE1 = KE2 = 0;
-//	dt1 = (lhi-llo)/lvel;
-//	printf("dt1 %f\n",dt1);
-	pdelay = dt1 + 0.0;
-	pdelay = dt1 + .30;		// 1020
-	pdelay = dt1 + .20;		//  888
-	pdelay = dt1 + .18;		//  800
-	pdelay = dt1 + .16;		//  700
-	pdelay = dt1 + .14;		//  600
-	pdelay = dt1 + .12;		//  480
-	pdelay = dt1 + .10;		//  400
-	pdelay = dt1 + .08;		//  350
-	pdelay = dt1 + .06;		//  300
-	pdelay = dt1 + .04;		//  320
-	pdelay = dt1 + .02;		//  400
-	pdelay = dt1 + .00;		//  450
-//	pdelay = 0;				//  1100
-//	pdelay = -.10;			//  1100
-//	pdelay = -.40;			//  1100
-	pdelay = dt1 + .30;
-	
-	switch(modectl)
-		{
-		case 1:
-			lvel = .1;
-			rvel = .1;
-			dt1 = (lhi-llo)/lvel;
-			printf("dt1 %f\n",dt1);
-			pdelay = dt1 + .30;
-			break;
-		case 2:
-			lvel = 2;
-			rvel = .1;
-			dt1 = (lhi-llo)/lvel;
-			printf("dt1 %f\n",dt1);
-			pdelay = dt1 + .30;
-		break;
-		case 3:
-			lvel = 2;
-			rvel = 2;
-			dt1 = (lhi-llo)/lvel;
-			printf("dt1 %f\n",dt1);
-			pdelay = dt1 + 1;
-		break;
-		case 4:
-			lvel = 2;
-			rvel = 2;
-			dt1 = (lhi-llo)/lvel;
-			printf("dt1 %f\n",dt1);
-			pdelay = dt1 + .06;		// 1580
-			pdelay = dt1 + .05;		// 1780
-			pdelay = dt1 + .07;		// 1350
-			pdelay = dt1 + .08;		// 1150
-			pdelay = dt1 + .085;		// 1350
-			pdelay = dt1 + .08;
-		break;
-		case 5:
-			lvel = 2;
-			rvel = 2;
-			dt1 = (lhi-llo)/lvel;
-			printf("dt1 %f\n",dt1);
-			pdelay = 0;				// 1350
-		break;
+    // initialize
+    if (ncount == 0)
+    {
+        xpist1 = XW1;
+        xpist2 = rlo;
+        initgauss(nrad1, nrad2, RAD1, 0);
+        reseteng();
+        pdelay = 0.26;
+        lvel = 1;
+        rvel = 1;
+        KE0 = kengy();
+        KE1 = KE2 = 0;
+        pdelay = dt1 + 0.00;
 
-		}
-	// speed things up...
-	keyslowctl = 2;
-	}
+        switch (modectl)
+        {
+        case 1:
+            lvel = 0.1;
+            rvel = 0.1;
+            dt1 = (lhi - llo) / lvel;
+            printf("dt1 %f\n", dt1);
+            pdelay = dt1 + 0.30;
+            break;
+        case 2:
+            lvel = 2;
+            rvel = 0.1;
+            dt1 = (lhi - llo) / lvel;
+            printf("dt1 %f\n", dt1);
+            pdelay = dt1 + 0.30;
+            break;
+        case 3:
+            lvel = 2;
+            rvel = 2;
+            dt1 = (lhi - llo) / lvel;
+            printf("dt1 %f\n", dt1);
+            pdelay = dt1 + 1;
+            break;
+        case 4:
+            lvel = 2;
+            rvel = 2;
+            dt1 = (lhi - llo) / lvel;
+            printf("dt1 %f\n", dt1);
+            pdelay = dt1 + 0.08;
+            break;
+        case 5:
+            lvel = 2;
+            rvel = 2;
+            dt1 = (lhi - llo) / lvel;
+            printf("dt1 %f\n", dt1);
+            pdelay = 0;
+            break;
+        }
+        keyslowctl = 2;
+    }
 
-for(i=0;i<slowctl;i++)
-	{
+    for (i = 0; i < slowctl; i++)
+    {
 #if CBNDYS
-	updateCB(X,Y,VX,VY,DELT);
+        updateCB(X, Y, VX, VY, DELT);
 #else
-	update4b(X,Y,VX,VY,DELT);
+        update4b(X, Y, VX, VY, DELT);
 #endif
-	bumpnum = 0;			// this counts all collisions each time step
+        bumpnum = 0;
 
-#if 1						// set to 0 for brute force collision detection
-	if(!(ncount%NSORT))		// sort disks into cells, neighborhood list...
-		{
-		sortcells();
+        if (!(ncount % NSORT))
+        {
+            sortcells();
 #if CBNDYS
-		mkdisknbrlistCB();
+            mkdisknbrlistCB();
 #else
-		mkdisknbrlist();
+            mkdisknbrlist();
 #endif
-		}
+        }
 #if CBNDYS
-	bouncecheckCB();		// neighborhood version, uses DiskNbrs[]
+        bouncecheckCB();
 #else
-	bouncecheckd();			// neighborhood version, uses DiskNbrs[]
-#endif
-	
-#else
-//	bouncechecka(X,Y);		// checks each and every disk pair
-	bouncecheckaa(X,Y);		// circular boundary conditions, y direction
+        bouncecheckd();
 #endif
 
-#if !CBNDYS
-//	bigbox2(X,Y);			// regular big box
-	bigbox4(X,Y);			// piston big box
-#endif
-	dobumpsa(X,Y);			// this does the "bumps" found above
-	++ncount;
-	total_time = ncount * DELT;
-	pproto();
-	
-	if(histctl==1) ldiskhist(Histo1);		// accumulate histogram
-	if(histctl==2) ldiskhist(Histo2);		// single time step histogram
-	if(histctl==3) ldspeedhist(Histo1);		// accumulate velocity histogram
-//	if(histctl==4) ldwallhist(Histowall);	// accumulate wall profile histogram
+        bigbox4(X, Y);
+        dobumpsa(X, Y);
+        ++ncount;
+        total_time = ncount * DELT;
+        pproto();
+
+        if (histctl == 1) ldiskhist(Histo1);
+        if (histctl == 2) ldiskhist(Histo2);
+        if (histctl == 3) ldspeedhist(Histo1);
 
 #if FCTL
-	if(ncount > NTRANS)
-		{
-		if(!(ncount%DATAINT))				// load histogram every DATAINT steps...
-			{
-			ldwallhist(Histowall);	// accumulate wall profile histogram
-			++datacnt;
-			if(datacnt >= DATACNT)
-				{
-				writedata();		// total histogram entries, NSPHERES * DATACNT
-				exit(0);
-				}
-			}
-		}
+        if (ncount > NTRANS)
+        {
+            if (!(ncount % DATAINT))
+            {
+                ldwallhist(Histowall);
+                ++datacnt;
+                if (datacnt >= DATACNT)
+                {
+                    writedata();
+                    exit(0);
+                }
+            }
+        }
 #endif
-	}
+    }
 
-display();
-if(!(ncount%keyslowctl)) slowctl = keyslowctl;		// keep slowctl on even number boundaries
+    display();
+    if (!(ncount % keyslowctl)) slowctl = keyslowctl;
 
 #if FULLSCR
-if(!fadecount++)	// hack! to get around glut cursor bug
-		glutFullScreen();
-if(fadecount == 4)	// seems to work...
-	fadein();
+    if (!fadecount++)
+        SDL_SetWindowFullscreen(_window, SDL_WINDOW_FULLSCREEN);
+    if (fadecount == 4)
+        fadein();
 #endif
-			
-glutSwapBuffers();
-glutPostRedisplay();	// maybe slightly faster after glutSwapBuffers()
-++gl_framecount;
+
+    SDL_RenderPresent(_renderer);
 }
 
-void cleanup()
+
+
+
+
+
+
+
+int main(int argc, char* argv[])
 {
-printf("cleanup!\n");
+    long i;
+    char* mypath = (char *)argv[0]; // for loadpath()
+    loadpath(mypath, "data/");
+
+    #if(FLOATRES == 32)
+    printf("reals are floats\n");
+    #elif (FLOATRES == 80)
+    printf("reals are long doubles\n");
+    #else
+    printf("reals are doubles\n");
+    #endif
+
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
+        fprintf(stderr, "Could not initialize SDL: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    SDL_Window* _window = SDL_CreateWindow("Simulation", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
+    if (!_window)
+    {
+        fprintf(stderr, "Could not create window: %s\n", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
+    SDL_Renderer* _renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED);
+    if (!_renderer)
+    {
+        fprintf(stderr, "Could not create renderer: %s\n", SDL_GetError());
+        SDL_DestroyWindow(_window);
+        SDL_Quit();
+        return 1;
+    }
+
+    #if FULLSCR
+    SDL_SetWindowFullscreen(_window, SDL_WINDOW_FULLSCREEN);
+    atexit(restorecolor);
+    atexit(cleanup);
+    fadeout(); // fade to black for smooth screen change...
+    #endif
+
+    scale(MFAC * -2, MFAC * 2, MFAC * -1, MFAC * 1);
+    nrad1 = 800; nrad2 = 0;
+    rad1 = RAD1; rad2 = RAD2;
+    dx = .4;
+    xpist1 = XW1;
+    xpist2 = XW2 - dx;
+    vpist1 = 0;
+    llo = XW1;
+    lhi = XW1 + dx;
+    rlo = XW2 - dx;
+    rhi = XW2;
+    initgauss(nrad1, nrad2, RAD1, 0);
+    rowl = ceil((XW2 - XW1) / LS);
+    nrows = (YW2 - YW1) / LS;
+    ncells = rowl * nrows;
+    printf("rowl %ld  nrows %ld  ncells %ld\n", rowl, nrows, ncells);
+    for (i = 0; i < NENTS; i++) Histo[i] = Histo1[i] = Histo2[i] = Histowall[i] = 0;
+
+    #if FCTL
+    initfile();
+    writeheader();
+    #endif
+
+    while (1)
+    {
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_QUIT)
+            {
+                SDL_DestroyRenderer(_renderer);
+                SDL_DestroyWindow(_window);
+                SDL_Quit();
+                return 0;
+            }
+        }
+
+        Display(_window, _renderer);
+    }
+
+    return 0;
 }
 
-int main (int argc, const char * argv[])  
-{
-long i;
 
-mypath = (char *)argv[0];	// for loadpath()
-loadpath(mypath,"data/");
 
-#if(FLOATRES == 32)
-printf("reals are floats\n");
-#elif (FLOATRES == 80)
-printf("reals are long doubles\n");
-#else
-printf("reals are doubles\n");
-#endif
 
-glutInit(&argc, (char**) argv);
-prefposition(120,64);		// menu bar seems to be 44 pixels...
-initgraph("piston!");
 
-#if FULLSCR
-gl_fullscreen = 1;		// fullscreen hack in Display()
-atexit(restorecolor);
-atexit(cleanup);
-fadeout();				// fade to black for smooth screen change...
-#endif
 
-//scale(-2,2,-1,1);
-scale(MFAC*-2,MFAC*2,MFAC*-1,MFAC*1);
-//nrad1 = 1000; nrad2 = 0;
-nrad1 = 800; nrad2 = 0;
-rad1 = RAD1; rad2 = RAD2;
-//xpist1 = 0.0;				// necessary, for first time through...
-dx = .4;
-xpist1 = XW1;
-xpist2 = XW2 - dx;
-vpist1 = 0;
-llo = XW1;
-lhi = XW1 + dx;
-rlo = XW2 - dx;
-rhi = XW2;
-//lvel = 1;
-//initspheres9(nrad1,nrad2,seed);		// random throughout right side
-//nrad1 = 2;
-initgauss(nrad1,nrad2,RAD1,0);
-rowl = ceil((XW2 - XW1)/LS);			// compiler smart enough to put in ceill()?
-nrows = (YW2 - YW1)/LS;
-ncells = rowl * nrows;
-printf("rowl %ld  nrows %ld  ncells %ld\n",rowl,nrows,ncells);
-for(i=0;i<NENTS;i++) Histo[i] =  Histo1[i] = Histo2[i] = Histowall[i] = 0;
-//ndone = 
-#if FCTL
-initfile();
-writeheader();
-#endif
 
-glutMainLoop( );
 
-return 0;
-}
+   
+
 
 void loadpath(char *arg, char *name)
 {

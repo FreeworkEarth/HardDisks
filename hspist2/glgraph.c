@@ -3,157 +3,203 @@
 #include <math.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include <OpenGL/OpenGL.h>	// for CG stuff
-#include <QuickDraw.h>  // For legacy QuickDraw functions
-#include <GLUT/glut.h>
+//#include <OpenGL/OpenGL.h>	// for CG stuff
+//#include <QuickDraw.h>  // For legacy QuickDraw functions
 #include <unistd.h>			// sleep()
-#include <Carbon/Carbon.h>	// for Delay(), ExitToShell()
+//#include <Carbon/Carbon.h>	// for Delay(), ExitToShell()
 //#include <QuickTime/QuickTime.h>
 #include "glgraph.h"
 #include "rstuff.h"
-#if 0						// defined in Carbon.h
-struct Rect {
-   short    top;
-   short    left;
-   short    bottom;
-   short    right;
-};
-typedef struct Rect Rect;
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <GL/glew.h>
+#include "globals.h"
 
-// does the same as above, except that "Rect" not entered in the structure namespace
-typedef struct {
-   short    top;
-   short    left;
-   short    bottom;
-   short    right;
-} Rect;
-#endif
+
+// Global variables
+long labelLength = 0;
+long labelX = 0, labelY = 0;
+gl_Pat labelPat;
+long labelTXSIZE = 24;
+TTF_Font *font = NULL;
+SDL_Color labelColor = {0, 0, 255, 255}; // default label color
+SDL_Color labelBack = {255, 255, 255, 255}; // default label background color
+SDL_Texture *labelTexture = NULL;
+SDL_Rect labelRect;
+int initlabelflag = 0;
+int labelVDisp = 0;
+char labelStr[256];
+
 
 int gl_wind;
 int gl_pen = 0;
 int gl_fullscreen = 0;
-float gl_xhold,gl_yhold,gl_zhold;
-int gl_xsize=640,gl_ysize=480;
-//int gl_ix = 640, gl_iy = 480;		// default screen size
+float gl_xhold, gl_yhold, gl_zhold;
+int gl_xsize = 640, gl_ysize = 480;
 int gl_ix = 960, gl_iy = 480;
-int gl_left = 320, gl_top = 54;		// default screen position
-
-long	gl_scrnsize,gl_mode,gl_dbl,gl_BPL,gl_SPL;
-float	gl_oleft=0,gl_oright=1,gl_obottom=0,gl_otop=1,gl_oznear= -1,gl_ozfar=1;	// ortho() default
-float	gl_oxfact,gl_oyfact;
-long	gl_ixhold,gl_iyhold;
-char	*gl_DBPtr,*gl_DBPtr1=0,*gl_DBPtr2=0,*gl_DBmaxPtr,*gl_DBminPtr;
-long	gl_ixminclip,gl_ixmaxclip,gl_iyminclip,gl_iymaxclip;
-long	gl_iwx1,gl_iwx2,gl_iwy1,gl_iwy2;
+int gl_left = 320, gl_top = 54;
+long gl_scrnsize, gl_mode, gl_dbl, gl_BPL, gl_SPL;
+float gl_oleft = 0, gl_oright = 1, gl_obottom = 0, gl_otop = 1, gl_oznear = -1, gl_ozfar = 1;
+float gl_oxfact, gl_oyfact;
+long gl_ixhold, gl_iyhold;
+char *gl_DBPtr, *gl_DBPtr1 = 0, *gl_DBPtr2 = 0, *gl_DBmaxPtr, *gl_DBminPtr;
+long gl_ixminclip, gl_ixmaxclip, gl_iyminclip, gl_iymaxclip;
+long gl_iwx1, gl_iwx2, gl_iwy1, gl_iwy2;
 unsigned long gl_color;
-//struct	gl_Pat
-//	{
-//	long rowl,nrows,rowbytes;
-//	char *data;
-//	};
-gl_Pat gl_DestPat;	// either the screen or an off-screen buffer
-
-int gl_keys[512];					// for recording key presses
+gl_Pat gl_DestPat;
+int gl_keys[512];
 int gl_shift = 0;
 int gl_ctl = 0;
 int gl_opt = 0;
-int gl_count = 10;					// to enable single key presses
-int gl_print  = 0;
-float gl_delt = .5;					// adjust rate of parameter change
-int gl_flip = 0;					// mirror reversal flag
-float gl_xpos=0,gl_ypos=0,gl_zpos=0;
-float gl_xrot=0,gl_yrot=0,gl_zrot=0;
-float gl_fovy=60;					// field of view for gluPerspective()
-float gl_zset;						// z axis camera position
+int gl_count = 10;
+int gl_print = 0;
+float gl_delt = .5;
+int gl_flip = 0;
+float gl_xpos = 0, gl_ypos = 0, gl_zpos = 0;
+float gl_xrot = 0, gl_yrot = 0, gl_zrot = 0;
+float gl_fovy = 60;
+float gl_zset;
 float gl_amp = -80;
 long gl_lines = 79;
 int gl_bwctl = 1;
 int gl_overlay = 0;
 long gl_sync = 0;
 int gl_framecount = 0;
-int gl_vframerate = 0;				// video frame rate flag
-int gl_timer = 0;					// timer interval (msec)
-struct timeval gl_tm,gl_tm1;		// for fps calculations
-int gl_imx,gl_imy;					// raw mouse coordinates
-int gl_butnum;						// mouse button number
-int gl_butstate;					// mouse button state
-float gl_mousex,gl_mousey;			// scaled mouse coordinates (0, 1)
+int gl_vframerate = 0;
+int gl_timer = 0;
+struct timeval gl_tm, gl_tm1;
+int gl_imx, gl_imy;
+int gl_butnum;
+int gl_butstate;
+float gl_mousex, gl_mousey;
+
 void printhelp();
 typedef struct tagVideoWindow VideoWindow;
 VideoWindow* videoNewWindow();
 extern int firstex;
-extern Rect vidRect;
+extern SDL_Rect vidRect;
 extern void videoDisplay();
-extern void initvid(int,int);
+extern void initvid(int, int);
 extern unsigned short Vout[SIZEX * SIZEY];
 extern void *Vptr;
 
-void initgraph(char *cname)
-{
-float theta,pi = 3.1416;
 
-printhelp();
 
-//initvid(SIZEX, SIZEY);	// initialize digitizer
-//initvid(352,288);		// acceptable isight resolution setting
-//initvid(0, 0);		// sets vidRect to maximum available from digitizer
-//gl_ix = vidRect.right; gl_iy = vidRect.bottom;	// default is 640 x 480
 
-glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
-glutInitWindowSize(gl_ix, gl_iy);
-glutInitWindowPosition(gl_left, gl_top);
-gl_wind = glutCreateWindow(cname);
 
-glMatrixMode(GL_PROJECTION);
-glLoadIdentity();
-gluPerspective(gl_fovy, (float)gl_ix/(float)gl_iy, .1f, 10000.0f);
-glScalef(1,-1,1);
-theta = (gl_fovy / 360.0) * pi;				// half angle
-gl_zset = (.5 * gl_iy) / tan(theta);
-glTranslatef(-gl_ix/2, -gl_iy/2 , -gl_zset);	// window scaled to (gl_ix, gl_iy)
 
-glShadeModel(GL_FLAT);					
-glClearColor(0.0f, 0.0f, 0.0f, 1.0f);		// black window background
-	
-glutDisplayFunc (videoDisplay);
-//glutIdleFunc(videoDisplay);
 
-glutSetCursor(GLUT_CURSOR_NONE);
-glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
-//glutReshapeFunc(ReSize);
-glutKeyboardFunc(keyCB);
-glutKeyboardUpFunc(keyUpCB);
-glutSpecialFunc(&specialKeyPressed);
-glutSpecialUpFunc(&specialKeyUp);
-glutMouseFunc (clickCB);
-glutMotionFunc (mouseCB);
-//glutPassiveMotionFunc (mouseCB);
+void initgraph(char *cname) {
+    float theta, pi = 3.1416;
 
-videoNewWindow();		// create texture, video-in destination, start video
+    printhelp();
 
-// set graphics target here, 0 to malloc memory locally
-gl_DBPtr1 = (char *)Vout;		// user array
-//gl_DBPtr1 = (char *)Vptr;		// gworld memory
-//gl_DBPtr1 = 0;				// malloc
+    // Initialize SDL
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        fprintf(stderr, "Could not initialize SDL: %s\n", SDL_GetError());
+        exit(1);
+    }
 
-gl_BPL = 4 * gl_ix;		// 4 bytes per pixel!  (for this version)
-gl_SPL = gl_BPL/4;
+    // Create SDL window
+    SDL_Window *_window = SDL_CreateWindow(cname, gl_left, gl_top, gl_ix, gl_iy, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    if (!_window) {
+        fprintf(stderr, "Could not create window: %s\n", SDL_GetError());
+        SDL_Quit();
+        exit(1);
+    }
 
-target(1);				// set gl_DBPtr to gl_DBPtr1
+    // Create OpenGL context
+    SDL_GLContext glContext = SDL_GL_CreateContext(_window);
+    if (!glContext) {
+        fprintf(stderr, "Could not create OpenGL context: %s\n", SDL_GetError());
+        SDL_DestroyWindow(_window);
+        SDL_Quit();
+        exit(1);
+    }
 
-gl_ixminclip = 0;
-gl_ixmaxclip = gl_ix-1;
-gl_iyminclip = 0;
-gl_iymaxclip = gl_iy-1;
+    // Initialize GLEW
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK) {
+        fprintf(stderr, "Could not initialize GLEW\n");
+        SDL_GL_DeleteContext(glContext);
+        SDL_DestroyWindow(_window);
+        SDL_Quit();
+        exit(1);
+    }
 
-gl_DestPat.rowl = gl_ix;
-gl_DestPat.nrows = gl_iy;
-gl_DestPat.rowbytes = gl_BPL;
-gl_DestPat.data = gl_DBPtr;
+    // Settings/set up OpenGL
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
 
-scale(0,1,0,1);		// default scaling
-wind(0,gl_ix-1,0,gl_iy-1);
+    // Manually create perspective projection matrix
+    float fovy = gl_fovy;
+    float aspect = (float)gl_ix / (float)gl_iy;
+    float zNear = 0.1f;
+    float zFar = 10000.0f;
+    float f = 1.0f / tan(fovy * pi / 360.0f);
+    float perspective[16] = {
+        f / aspect, 0, 0, 0,
+        0, f, 0, 0,
+        0, 0, (zFar + zNear) / (zNear - zFar), -1,
+        0, 0, (2 * zFar * zNear) / (zNear - zFar), 0
+    };
+    glLoadMatrixf(perspective);
+
+    glScalef(1, -1, 1);
+    theta = (gl_fovy / 360.0) * pi;
+    gl_zset = (.5 * gl_iy) / tan(theta);
+    glTranslatef(-gl_ix / 2, -gl_iy / 2, -gl_zset);
+
+    glShadeModel(GL_FLAT);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Set up SDL event handling
+    SDL_Event event;
+    int running = 1;
+    while (running) {
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+                case SDL_QUIT:
+                    running = 0;
+                    break;
+                case SDL_KEYDOWN:
+                    // Handle key press
+                    break;
+                case SDL_KEYUP:
+                    // Handle key release
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    // Handle mouse button press
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    // Handle mouse button release
+                    break;
+                case SDL_MOUSEMOTION:
+                    // Handle mouse motion
+                    break;
+            }
+        }
+
+        // Render frame
+        videoDisplay();
+
+        // Swap buffers
+        SDL_GL_SwapWindow(_window);
+    }
+
+    // Clean up
+    SDL_GL_DeleteContext(glContext);
+    SDL_DestroyWindow(_window);
+    SDL_Quit();
 }
+
+
+
+
+
+
+
+
 
 void prefsize(long ix,long iy)
 {
@@ -427,6 +473,9 @@ void clear(void)
 {
 	gl_setbuf(gl_DBPtr,gl_color);
 }
+
+
+
 
 /*  32  */
 //#define macro_dotati(x,y) *(gl_DBPtr + y*gl_BPL + x) = gl_color
@@ -1014,7 +1063,7 @@ if(gl_DBPtr == NULL)
 		{
 		printf("trouble with target %ld malloc...\n",bufnum);
 		sleep(5);
-		ExitToShell();
+		exit(0);
 		}
 	else
 		printf("malloced %ld bytes for buffer %ld\n",n,bufnum);
@@ -1363,6 +1412,7 @@ for(j=0;j<nrows;j++)
         }
 }
 
+/*
 CGrafPtr		screenCGP;			// reset this stuff after label buffer is used
 GDHandle		screenGDH;			// or SetDepth() crashes screen...
 int	initlabelflag = 0;	// so that initlabel() isn't called twice...
@@ -1382,344 +1432,299 @@ RGBColor			qdblack = {0,0,0}, qdyellow = {0xffff,0xffff,0x0000};
 RGBColor			qdmagenta = {0xffff,0x0000,0xffff}, qdred = {0xffff,0x0000,0x0000};
 RGBColor			qdcyan = {0x0000,0xffff,0xffff}, qdgreen = {0x0000,0xffff,0x0000};
 RGBColor			qdblue = {0x0000,0x0000,0xffff}, qdwhite = {0xffff,0xffff,0xffff};
+*/
 
-void initlabel()
-{//long n;
-PixMapHandle pmh;
-FontInfo theFont;
+void initlabel() {
+    if (!initlabelflag) {
+        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+            printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+            return;
+        }
 
-if(!initlabelflag)
-	{
-	TextSize(labelTXSIZE);
-	TextFont(TXFONT);
-	//TextFace(bold);
-	GetFontInfo(&theFont);
-	/* this is a guess for the vertical displacement which seems to work  */
-	labelVDisp = theFont.descent - theFont.leading;
-	GetGWorld(&screenCGP,&screenGDH);
-	SetRect(&labelR1, 0, 0, TXMAX, TXSIZE+theFont.leading);
-	/*	Make the offscreen buffer for the labels...	*/
-	NewGWorld (&labelGW, 0, &labelR1, nil, nil, 0);
-//	QTNewGWorld (&labelGW, k422YpCbCr8CodecType, &labelR1, nil, nil, 0);
-//	QTNewGWorld (&labelGW, k32ARGBPixelFormat, &labelR1, nil, nil, 0);	// backwards colors
-//	QTNewGWorld (&labelGW, k32BGRAPixelFormat, &labelR1, nil, nil, 0);
-	SetGWorld (labelGW, nil);
-	TextSize(labelTXSIZE);
-	TextFont(TXFONT);
-	//TextFace(bold);
-	RGBForeColor(&labelColor);
-	RGBBackColor(&labelBack);
-//	n = (*labelGW).device;
-//	pmh = (*labelGW).portPixMap;
-	pmh = GetPortPixMap(labelGW);
-	LockPixels(pmh);
-	labelPat.rowbytes = (**pmh).rowBytes;
-	labelPat.rowbytes &= 0x7fff;
-	labelPat.data = GetPixBaseAddr(pmh);
-	labelPat.nrows = labelTXSIZE+theFont.leading;
-	EraseRect(&labelR1);
-	int initlabelflag = 1;
-//	printf("initlabel!\n");
-	}
+        if (TTF_Init() == -1) {
+            printf("TTF_Init: %s\n", TTF_GetError());
+            return;
+        }
+
+        _window = SDL_CreateWindow("Label Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN);
+        if (_window == NULL) {
+            printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+            return;
+        }
+
+        _renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED);
+        if (_renderer == NULL) {
+            printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+            return;
+        }
+
+        font = TTF_OpenFont("path/to/font.ttf", labelTXSIZE);
+        if (font == NULL) {
+            printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
+            return;
+        }
+
+        TTF_SizeText(font, "A", NULL, &labelVDisp);
+        labelVDisp = TTF_FontDescent(font) - TTF_FontAscent(font);
+
+        initlabelflag = 1;
+    }
 }
+
+
+
+
+
 
 // change label size, can only reduce from original TXSIZE
-void labelsz(long size)
-{
-FontInfo theFont;
 
-if(size == labelTXSIZE) return;
-if(size > TXSIZE) size = TXSIZE;
-labelTXSIZE = size;
-TextSize(size);
-GetFontInfo(&theFont);
-/* this is a guess for the vertical displacement which seems to work  */
-labelVDisp = theFont.descent - theFont.leading;
-labelPat.nrows = labelTXSIZE+theFont.leading;
-SetRect(&labelR1, 0, 0, TXMAX, size+theFont.leading);
-EraseRect(&labelR1);
+void labelsz(int size) {
+    if (size == labelTXSIZE) return;
+    labelTXSIZE = size;
+    TTF_CloseFont(font);
+    font = TTF_OpenFont("path/to/font.ttf", labelTXSIZE);
+    TTF_SizeText(font, "A", NULL, &labelVDisp);
+    labelVDisp = TTF_FontDescent(font) - TTF_FontAscent(font);
 }
+
+
 
 // draw number string to label buffer, copy to active buffer...
 // if xpos is -1, add to pre-existing stuff in label buffer.
-void drawnum(long n,long xpos,long ypos)
-{
-unsigned char theString[255];
+void drawnum(long n, int xpos, int ypos) {
+    if (!initlabelflag) initlabel();
 
-if(!initlabelflag)
-	initlabel();
+    char theString[255];
+    snprintf(theString, sizeof(theString), "%ld", n);
 
-if(xpos != -1)
-	{
-	EraseRect(&labelR1);
-	MoveTo(0,labelTXSIZE-labelVDisp);
-	labelLength = 0;
-	labelX = xpos;
-	labelY = ypos;
-	}
-	
-NumToString(n,theString);
-DrawString(theString);
-labelLength += StringWidth(theString);
-labelPat.rowl = labelLength;
-copyPata(labelPat,gl_DestPat,labelX,labelY-labelTXSIZE);
+    SDL_Surface *textSurface = TTF_RenderText_Solid(font, theString, labelColor);
+    labelTexture = SDL_CreateTextureFromSurface(_renderer, textSurface);
+    labelRect = (SDL_Rect){xpos, ypos, textSurface->w, textSurface->h};
+    SDL_FreeSurface(textSurface);
+
+    SDL_RenderCopy(_renderer, labelTexture, NULL, &labelRect);
+    SDL_DestroyTexture(labelTexture);
 }
+
 
 // had to write this as calling c2pstr twice on same string
 // gives scrambled results
-#include <string.h>
-const unsigned char *myCtoP(char *str);
-const unsigned char *myCtoP(char *str)
-{
-long i,n;
 
-n = strlen(str);
-labelStr[0] = n;
-for(i=0;i<n;i++)
-	labelStr[i+1] = str[i];
-return (const unsigned char *)labelStr;
+const unsigned char *myCtoP(char *str) {
+    long i, n;
+    n = strlen(str);
+    labelStr[0] = n;
+    for (i = 0; i < n; i++) {
+        labelStr[i + 1] = str[i];
+    }
+    return (const unsigned char *)labelStr;
 }
+
 
 // draws the string str to the label buffer,
 // copies to active buffer at (xpos,ypos).
 // if xpos is -1, add to pre-existing stuff in label buffer.
-void label(char *cname,long xpos,long ypos)
-{
-const unsigned char *txt;
+void label(char *cname, int xpos, int ypos) {
+    if (!initlabelflag) initlabel();
 
-if(!initlabelflag)
-	initlabel();
+    const unsigned char *txt = myCtoP(cname);
+    SDL_Surface *textSurface = TTF_RenderText_Solid(font, (const char *)txt, labelColor);
+    labelTexture = SDL_CreateTextureFromSurface(_renderer, textSurface);
+    labelRect = (SDL_Rect){xpos, ypos, textSurface->w, textSurface->h};
+    SDL_FreeSurface(textSurface);
 
-txt = myCtoP(cname);
-if(xpos != -1)
-	{
-	EraseRect(&labelR1);
-	MoveTo(0,labelTXSIZE-labelVDisp);
-	labelLength = 0;
-	labelX = xpos;
-	labelY = ypos;
-	}
-
-DrawString(txt);
-labelLength += StringWidth(txt);
-labelPat.rowl = labelLength;
-copyPata(labelPat,gl_DestPat,labelX,labelY-labelTXSIZE);
+    SDL_RenderCopy(_renderer, labelTexture, NULL, &labelRect);
+    SDL_DestroyTexture(labelTexture);
 }
 
-void labela(char *cname,long xpos,long ypos)
-{
-const unsigned char *txt;
 
-if(!initlabelflag)
-	initlabel();
+// draws the string str to the label buffer,
+void labela(char *cname, int xpos, int ypos) {
+    if (!initlabelflag) initlabel();
 
-txt = myCtoP(cname);
-labelLength = StringWidth(txt);
-labelPat.rowl = labelLength;
-labelX = xpos;
-labelY = ypos;
+    const unsigned char *txt = myCtoP(cname);
+    SDL_Surface *textSurface = TTF_RenderText_Solid(font, (const char *)txt, labelColor);
+    labelTexture = SDL_CreateTextureFromSurface(_renderer, textSurface);
+    labelRect = (SDL_Rect){xpos, ypos, textSurface->w, textSurface->h};
+    SDL_FreeSurface(textSurface);
 
-copyPatb(labelPat,gl_DestPat,labelX,labelY-labelTXSIZE);
-MoveTo(0,labelTXSIZE-labelVDisp);
-DrawString(txt);
-copyPata(labelPat,gl_DestPat,labelX,labelY-labelTXSIZE);
+    SDL_RenderCopy(_renderer, labelTexture, NULL, &labelRect);
+    SDL_DestroyTexture(labelTexture);
 }
+
 // version of label() that accepts position in scaled units.
 // if x and y are -1111.0, add to pre-existing stuff in label buffer.
-void labelf(char *cname,float x,float y)
-{
-register long ix,iy;
- 
-x -= gl_oleft;
-x *= gl_oxfact;
-ix = x;
-y -= gl_otop;
-y *= gl_oyfact;
-iy = y;
-if((x == -1111.0) && (y == -1111.0))
-	ix = -1;
-label(cname,ix,iy);
+
+void labelf(char *cname, float x, float y) {
+    int ix = (int)(x * 640); // Assuming 640 is the width of the window
+    int iy = (int)(y * 480); // Assuming 480 is the height of the window
+    label(cname, ix, iy);
 }
 
-// version of labela() that accepts position in scaled units.
-void labelaf(char *cname,float x,float y)
-{
-register long ix,iy;
- 
-x -= gl_oleft;
-x *= gl_oxfact;
-ix = x;
-y -= gl_otop;
-y *= gl_oyfact;
-iy = y;
-labela(cname,ix,iy);
+
+void labelaf(char *cname, float x, float y) {
+    int ix = (int)(x * 640); // Assuming 640 is the width of the window
+    int iy = (int)(y * 480); // Assuming 480 is the height of the window
+    labela(cname, ix, iy);
 }
 
 // version of drawnum() that accepts position in scaled units.
 // if x and y are -1111.0, add to pre-existing stuff in label buffer.
-void drawnumf(long n,float x,float y)
-{
-register long ix,iy;
- 
-x -= gl_oleft;
-x *= gl_oxfact;
-ix = x;
-y -= gl_otop;
-y *= gl_oyfact;
-iy = y;
-if((x == -1111.0) && (y == -1111.0))
-	ix = -1;
-drawnum(n,ix,iy);
+void drawnumf(long n, float x, float y) {
+    int ix = (int)(x * 640); // Assuming 640 is the width of the window
+    int iy = (int)(y * 480); // Assuming 480 is the height of the window
+    drawnum(n, ix, iy);
 }
 
-void labelcolor(long value)
-{
-RGBColor newcol;
 
-if(!initlabelflag) initlabel();
 
-switch(value)
-	{
-	case BLACK:
-		RGBForeColor(&qdblack);
-		break;
-	case WHITE:
-		RGBForeColor(&qdwhite);
-		break;
-	case RED:
-		RGBForeColor(&qdred);
-		break;
-	case GREEN:
-		RGBForeColor(&qdgreen);
-		break;
-	case BLUE:
-		RGBForeColor(&qdblue);
-		break;
-	case YELLOW:
-		RGBForeColor(&qdyellow);
-		break;
-	case MAGENTA:
-		RGBForeColor(&qdmagenta);
-		break;
-	case CYAN:
-		RGBForeColor(&qdcyan);
-		break;
-	default:
-		newcol.red = (value & 0x00ff0000) >> 8;
-		newcol.green = (value & 0x0000ff00);
-		newcol.blue = (value & 0x000000ff) << 8;
-		RGBForeColor(&newcol);
-		break;
-	}
+
+void labelcolor(long value) {
+    if (!initlabelflag) initlabel();
+
+    switch (value) {
+        case 0: // BLACK
+            labelColor = (SDL_Color){0, 0, 0, 255};
+            break;
+        case 1: // WHITE
+            labelColor = (SDL_Color){255, 255, 255, 255};
+            break;
+        case 2: // RED
+            labelColor = (SDL_Color){255, 0, 0, 255};
+            break;
+        case 3: // GREEN
+            labelColor = (SDL_Color){0, 255, 0, 255};
+            break;
+        case 4: // BLUE
+            labelColor = (SDL_Color){0, 0, 255, 255};
+            break;
+        case 5: // YELLOW
+            labelColor = (SDL_Color){255, 255, 0, 255};
+            break;
+        case 6: // MAGENTA
+            labelColor = (SDL_Color){255, 0, 255, 255};
+            break;
+        case 7: // CYAN
+            labelColor = (SDL_Color){0, 255, 255, 255};
+            break;
+        default:
+            labelColor = (SDL_Color){(value & 0xFF0000) >> 16, (value & 0x00FF00) >> 8, (value & 0x0000FF), 255};
+            break;
+    }
 }
 
 // set label background color
-void labelback(long value)
-{
-RGBColor newcol;
 
-if(!initlabelflag) initlabel();
+void labelback(long value) {
+    if (!initlabelflag) initlabel();
 
-switch(value)
-	{
-	case BLACK:
-		RGBBackColor(&qdblack);
-		break;
-	case WHITE:
-		RGBBackColor(&qdwhite);
-		break;
-	case RED:
-		RGBBackColor(&qdred);
-		break;
-	case GREEN:
-		RGBBackColor(&qdgreen);
-		break;
-	case BLUE:
-		RGBBackColor(&qdblue);
-		break;
-	case YELLOW:
-		RGBBackColor(&qdyellow);
-		break;
-	case MAGENTA:
-		RGBBackColor(&qdmagenta);
-		break;
-	case CYAN:
-		RGBBackColor(&qdcyan);
-		break;
-	default:
-		newcol.red = (value & 0x00ff0000) >> 8;
-		newcol.green = (value & 0x0000ff00);
-		newcol.blue = (value & 0x000000ff) << 8;
-		RGBBackColor(&newcol);
-		break;
-	}
+    switch (value) {
+        case 0: // BLACK
+            labelBack = (SDL_Color){0, 0, 0, 255};
+            break;
+        case 1: // WHITE
+            labelBack = (SDL_Color){255, 255, 255, 255};
+            break;
+        case 2: // RED
+            labelBack = (SDL_Color){255, 0, 0, 255};
+            break;
+        case 3: // GREEN
+            labelBack = (SDL_Color){0, 255, 0, 255};
+            break;
+        case 4: // BLUE
+            labelBack = (SDL_Color){0, 0, 255, 255};
+            break;
+        case 5: // YELLOW
+            labelBack = (SDL_Color){255, 255, 0, 255};
+            break;
+        case 6: // MAGENTA
+            labelBack = (SDL_Color){255, 0, 255, 255};
+            break;
+        case 7: // CYAN
+            labelBack = (SDL_Color){0, 255, 255, 255};
+            break;
+        default:
+            labelBack = (SDL_Color){(value & 0xFF0000) >> 16, (value & 0x00FF00) >> 8, (value & 0x0000FF), 255};
+            break;
+    }
 }
 
 // prints formatted string into the label buffer
 // use like printf(), except precede strings with \n
 // to clear the buffer...
 #include <stdarg.h>
-void Printf(char *format,...)
-	{
-	char c,Cbuf[128],Cbuf1[128];
-	int i,j;
-	va_list args;
-	const unsigned char *txt;
+void Printf(char *format, ...) {
+    char c, Cbuf[128], Cbuf1[128];
+    int i, j;
+    va_list args;
+    SDL_Surface *textSurface;
+    SDL_Texture *textTexture;
+    SDL_Color textColor = {255, 255, 255, 255}; // White color
 
-	if(!initlabelflag)
-		initlabel();
+    if (!initlabelflag)
+        initlabel();
 
-	va_start(args,format);
-	vsprintf(Cbuf,format,args);
-	
-	i=j=0;
-	while((c = Cbuf[i++]) != '\0')
-		{
-		if(c == '\n')
-			{
-			EraseRect(&labelR1);
-			MoveTo(0,labelTXSIZE-labelVDisp);
-			labelLength = 0;
-			}
-		else if(c == '\r')
-			{
-			MoveTo(0,labelTXSIZE-labelVDisp);
-			labelLength = 0;
-			}
-		else
-			{
-			Cbuf1[j] = c;
-			++j;
-			}
-		}
-	Cbuf1[j] = '\0';
-	//DrawString(c2pstr(Cbuf1));
-	txt = myCtoP(Cbuf1);
-	DrawString(txt);
-	labelLength += StringWidth(txt);
+    va_start(args, format);
+    vsprintf(Cbuf, format, args);
+    va_end(args);
 
-	}
+    i = j = 0;
+    while ((c = Cbuf[i++]) != '\0') {
+        if (c == '\n' || c == '\r') {
+            SDL_RenderClear(_renderer);
+            SDL_RenderPresent(_renderer);
+            labelLength = 0;
+        } else {
+            Cbuf1[j] = c;
+            ++j;
+        }
+    }
+    Cbuf1[j] = '\0';
+
+    textSurface = TTF_RenderText_Solid(font, Cbuf1, textColor);
+    if (textSurface == NULL) {
+        printf("Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError());
+        return;
+    }
+
+    textTexture = SDL_CreateTextureFromSurface(_renderer, textSurface);
+    if (textTexture == NULL) {
+        printf("Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError());
+        SDL_FreeSurface(textSurface);
+        return;
+    }
+
+    SDL_FreeSurface(textSurface);
+
+    SDL_Rect renderQuad = {0, labelTXSIZE - labelVDisp, textSurface->w, textSurface->h};
+    SDL_RenderCopy(_renderer, textTexture, NULL, &renderQuad);
+    SDL_RenderPresent(_renderer);
+
+    labelLength += textSurface->w;
+    SDL_DestroyTexture(textTexture);
+}
+
+
+
 
 // write label buffer to desired position on screen.
-void labit(long xpos,long ypos)
-{
-labelX = xpos;
-labelY = ypos;
-labelPat.rowl = labelLength;
-copyPata(labelPat,gl_DestPat,labelX,labelY-labelTXSIZE);
+void labit(long xpos, long ypos) {
+    labelX = xpos;
+    labelY = ypos;
+    labelPat.rowl = labelLength;
+    copyPata(labelPat, gl_DestPat, labelX, labelY - labelTXSIZE);
 }
 
 // write label buffer to desired position on screen,
 // scaled units.
-void labitf(float x, float y)
-{
-register long ix,iy;
- 
-x -= gl_oleft;
-x *= gl_oxfact;
-ix = x;
-y -= gl_otop;
-y *= gl_oyfact;
-iy = y;
-labit(ix,iy);
+void labitf(float x, float y) {
+    long ix, iy;
+
+    x -= gl_oleft;
+    x *= gl_oxfact;
+    ix = (long)x;
+    y -= gl_otop;
+    y *= gl_oyfact;
+    iy = (long)y;
+    labit(ix, iy);
 }

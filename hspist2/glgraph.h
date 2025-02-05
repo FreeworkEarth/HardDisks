@@ -1,4 +1,8 @@
 // glgraph.h
+#include <SDL2/SDL.h>
+#include "globals.h"
+
+
 
 #define CLIP 1		// CLIP 0 runs faster, but can crash if writing off screen...
 #define DEFAULTX	640	// default window x size (pixels)
@@ -124,11 +128,18 @@ void linef(float,float,float,float);
 void copyPat(gl_Pat,gl_Pat,long,long);
 void copyPata(gl_Pat,gl_Pat,long,long);
 void initlabel(void);
-void labelsz(long size);
-void drawnum(long n,long xpos,long ypos);
+
+void labelsz(int size);
+void drawnum(long n, int xpos, int ypos);
+void label(char *cname, int xpos, int ypos);
+void labela(char *cname, int xpos, int ypos);
+
+// OLD
+//void labelsz(long size);
+//void drawnum(long n,long xpos,long ypos);
 void drawnumf(long n,float x,float y);
-void label(char *cname,long xpos,long ypos);
-void labela(char *cname,long xpos,long ypos);
+//void label(char *cname,long xpos,long ypos);
+//void labela(char *cname,long xpos,long ypos);
 void labelf(char *cname,float x,float y);
 void labelaf(char *cname,float x,float y);
 void labelcolor(long value);
@@ -136,10 +147,17 @@ void Printf(char *format,...);
 void labit(long x,long y);
 void labitf(float x, float y);
 
-void keyCB(unsigned char key, int x, int y);
+
+
+
+extern int gl_keys[512]; // for recording key presses
+
+void keyCB(SDL_Event event);
+void specialKeyPressed(SDL_Keycode key);
+void specialKeyUp(SDL_Keycode key);
+
 void keyUpCB(unsigned char key, int x, int y);
-void specialKeyPressed(int key, int x, int y);
-void specialKeyUp(int key, int x, int y);
+
 void clickCB(int button, int state, int x, int y);
 void mouseCB(int x, int y);
 void updatekeys();

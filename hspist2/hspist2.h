@@ -1,3 +1,7 @@
+#include <SDL2/SDL.h>
+#include "globals.h"
+
+
 // vbase, basic video manipulation program
 // digitizer dimensions for isight, (320 x 240), (352 x 288), (640 x 480)
 // digitizer dimensions for sony camcorder, (720 x 480)
@@ -53,8 +57,31 @@
 #define NSTROKES 10000000	// number piston strokes in data run
 #define VPIST 0.1			// piston velocity
 
+
+
+// Function prototypes
+//void initgauss(int, int, int, int);
+void reseteng();
+double kengy();
+void sortcells();
+void mkdisknbrlist();
+void mkdisknbrlistCB();
+void bouncecheckd();
+void bouncecheckCB();
+void bouncecheckaa(double*, double*);
+void bigbox4(double*, double*);
+void dobumpsa(double*, double*);
+void pproto();
+//void ldiskhist(int);
+//void ldspeedhist(int);
+//void ldwallhist(int);
+void writedata();
+void fadein();
+
+
 // prototypes..
-void Display();
+// In hspist2.h
+void Display(SDL_Window* window, SDL_Renderer* renderer);
 void display();
 void fadeout();
 void fadein();
