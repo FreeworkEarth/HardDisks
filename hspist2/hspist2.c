@@ -3,7 +3,6 @@
 // hspist_wall.c - collect data on wall density profile
 // hspist_mb.c - collect maxwell-boltzmann statistics, reverse statistics
 // rob shaw
-#include <GL/freeglut.h>
 #include <stdio.h>
 #include <stdlib.h>		// for exit()
 #include <math.h>
