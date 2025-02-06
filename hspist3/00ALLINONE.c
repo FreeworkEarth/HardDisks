@@ -105,9 +105,9 @@ void SDL_RenderFillCircle(SDL_Renderer* renderer, int centerX, int centerY, int 
 // Function to render pistons
 void render_pistons() {
     SDL_SetRenderDrawColor(_renderer, 0, 255, 0, 255);
-    SDL_Rect left_piston = { (int)piston_left_x - 10, 0, 20, MAX_Y };
+    SDL_Rect left_piston = { (int)piston_left_x - 10, 0, 10, MAX_Y };
     SDL_RenderFillRect(_renderer, &left_piston);
-    SDL_Rect right_piston = { (int)piston_right_x - 10, 0, 20, MAX_Y };
+    SDL_Rect right_piston = { (int)piston_right_x - 10, 0, 10, MAX_Y };
     SDL_RenderFillRect(_renderer, &right_piston);
 }
 
@@ -124,6 +124,8 @@ float kinetic_energy() {
     return ke_total;
 }
 
+
+
 float potential_energy() {
     float pe_total = 0.0;
     for (int i = 0; i < NUM_PARTICLES; i++) {
@@ -133,6 +135,8 @@ float potential_energy() {
     }
     return pe_total;
 }
+
+
 
 float total_free_energy() {
     float ke = kinetic_energy();
@@ -169,6 +173,8 @@ void initSDL() {
 
 
 
+
+
 // Function to initialize and correct missing definitions
 void initialize_simulation() {
     for (int i = 0; i < NUM_PARTICLES; i++) {
@@ -179,6 +185,8 @@ void initialize_simulation() {
         Radius[i] = PARTICLE_RADIUS;
     }
 }
+
+
 
 
 
