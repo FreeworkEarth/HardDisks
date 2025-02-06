@@ -1,26 +1,19 @@
 {
-    "version": 4,
-    "configurations": [
-        {
-            "name": "Mac (ARM)",
-            "includePath": [
-                "/opt/homebrew/Cellar/freeglut/3.6.0/include",  // FreeGLUT header path
-                "${workspaceFolder}/**"  // Include your project source files
-            ],
-            "defines": [],
-            "macFrameworkPath": [
-                "/System/Library/Frameworks",  // System frameworks
-                "/opt/homebrew/Cellar/freeglut/3.6.0/lib"  // FreeGLUT library path
-            ],
-            "compilerPath": "/usr/bin/clang",  // Path to clang compiler
-            "intelliSenseMode": "macos-clang-arm64",  // Correct IntelliSense mode for ARM architecture
-            "browse": {
-                "path": [
-                    "${workspaceFolder}/**",
-                    "/opt/homebrew/Cellar/freeglut/3.6.0/include"
-                ],
-                "limitSymbolsToIncludedHeaders": true
-            }
-        }
-    ]
+  "configurations": [
+    {
+      "name": "macos-clang-arm64",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "/opt/homebrew/include/SDL2",
+        "/opt/homebrew/include",
+        "/opt/homebrew/include/GL"
+      ],
+      "compilerPath": "/usr/bin/clang",
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "macos-clang-arm64",
+      "compilerArgs": []
+    }
+  ],
+  "version": 4
 }

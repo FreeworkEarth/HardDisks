@@ -7,9 +7,9 @@ TG = hspist2
 
 # Debug flags or optimization flags
 DBG = -O3
-CFLAGS = $(DBG) -Wmost -Wno-deprecated-declarations -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -D_THREAD_SAFE
-LIBS =  -lGL -L/opt/homebrew/lib -lSDL2 -L/opt/homebrew/opt/mesa/lib -lSDL2_ttf -lGLEW -framework CoreGraphics
-LDFLAGS += -L/opt/homebrew/opt/mesa/lib
+CFLAGS = $(DBG) -fsanitize=address -g -Wmost -Wno-deprecated-declarations -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -D_THREAD_SAFE
+LIBS =  -lGL -L/opt/homebrew/lib -lSDL2 -L/opt/homebrew/opt/mesa/lib -lSDL2_ttf -lGLEW -framework CoreGraphics -fsanitize=address
+LDFLAGS += -L/opt/homebrew/opt/mesa/lib -fsanitize=address
 # Object files
 OBJ = $(TG).o gaussrand.o glgraph.o kbd.o vWindow.o fades.o globals.o
 
