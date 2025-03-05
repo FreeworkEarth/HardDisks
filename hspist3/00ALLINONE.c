@@ -789,7 +789,29 @@ void draw_simulation_boundary() {
 }
 
 
+void draw_coordinate_system(SDL_Renderer *renderer) {
+    // Set color to red
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 
+    // Define start point (origin)
+    int origin_x = 20;
+    int origin_y = 20;
+    
+    // Define arrow length
+    int axis_length = 50;
+
+    // Draw X-axis (right)
+    SDL_RenderDrawLine(renderer, origin_x, origin_y, origin_x + axis_length, origin_y);
+    SDL_RenderDrawLine(renderer, origin_x + axis_length, origin_y, origin_x + axis_length - 5, origin_y - 5); // Arrow tip
+    SDL_RenderDrawLine(renderer, origin_x + axis_length, origin_y, origin_x + axis_length - 5, origin_y + 5);
+
+    // Draw Y-axis (down)
+    SDL_RenderDrawLine(renderer, origin_x, origin_y, origin_x, origin_y + axis_length);
+    SDL_RenderDrawLine(renderer, origin_x, origin_y + axis_length, origin_x - 5, origin_y + axis_length - 5); // Arrow tip
+    SDL_RenderDrawLine(renderer, origin_x, origin_y + axis_length, origin_x + 5, origin_y + axis_length - 5);
+
+    // (Optional) Add text labels: "X" and "Y" using SDL_ttf or simple rectangle markers
+}
 
 
 
@@ -840,6 +862,7 @@ void simulation_loop() {
 
         // DRAWING AND RENDERING
         draw_clear_screen();
+        draw_coordinate_system(_renderer);
         draw_simulation_boundary();
         render_velocity_histograms();
         render_particles();
