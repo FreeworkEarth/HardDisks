@@ -6,8 +6,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": ".",
-      "program": "build/Debug/outDebug"
+      "cwd": "/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3",
+      "program": "/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/build/Debug/outDebug"
     }
   ]
 }
