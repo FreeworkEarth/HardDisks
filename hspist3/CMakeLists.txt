@@ -1,8 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
 project(hspist3 LANGUAGES C CXX)
+file(GLOB KISSFFT_SOURCES "kissfft/*.c")
+
+add_executable(hspist3 ${SOURCES} ${KISSFFT_SOURCES})
 
 # Add the GLFW include directory
 include_directories("/opt/homebrew/Cellar/glfw/3.4/include")
+include_directories("kissfft")
 
 # Add the GLFW library directory
 link_directories("/opt/homebrew/Cellar/glfw/3.4/lib")

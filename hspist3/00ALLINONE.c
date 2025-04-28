@@ -3,6 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <SDL2/SDL_ttf.h>
+#include "kissfft/kiss_fft.h"
+#include "kissfft/kiss_fftr.h"
 
 /*1.	Particle Simulation:
 	•	Position and Velocity: Each particle has a position (X, Y) and velocity (VX, VY), which updates at each simulation step.
@@ -28,36 +33,166 @@ It includes control parameters for adjusting the simulation and tracking energy 
 */
 
 
-// Constants and Definitions
-#define PARTICLE_RADIUS 10  // Particle radius (used for collision detection and rendering)
-#define NUM_PARTICLES 30  // Total number of particles in the simulation
-#define NUM_BINS 100 
+
+
+//////////// SIMULATION SETTINGS ////////////
+// Global simulation flags
+
+bool enable_speed_of_sound_experiments = false;  
+#define MOLECULAR_MODE 0       // 1 = normalized units; 0 = real units
+#define EXPERIMENT_MODE 0       // 1 = tuned dt/substep values for better experiments
+
+// PARTICLE PARAMETERS
+#define NUM_PARTICLES 100      // total number of particles
+#define PARTICLE_RADIUS 1      // normalized radius = 1 (works in both modes!)
+#define DIAMETER (2 * PARTICLE_RADIUS)
+#define METERS_PER_PIXEL 1e-9f // pixel size for mapping to meters (important for real mode)
+
+// --- Physical constants ---
+#if MOLECULAR_MODE
+    #define PARTICLE_MASS 1.0f
+    #define K_B 1.0f
+    #define TEMPERATURE 1.0f
+
+#else
+    #define PARTICLE_MASS 1.67e-27f      // kg (proton mass)
+    #define K_B 1.38e-23f                // J/K
+    #define TEMPERATURE 300.0f           // Kelvin
+#endif
+
+// --- Time step and substeps ---
+#if MOLECULAR_MODE
+    #if EXPERIMENT_MODE
+        #define FIXED_DT 1e-14f
+        #define SUBSTEPS 10
+        #define WALL_HOLD_STEPS 10000
+
+    #else
+        #define FIXED_DT 1e-14f
+        #define SUBSTEPS 5
+        #define WALL_HOLD_STEPS 5000
+
+    #endif
+#else
+    #if EXPERIMENT_MODE
+        #define FIXED_DT 2e-4f
+        #define SUBSTEPS 20
+        #define WALL_HOLD_STEPS 10000
+
+    #else
+        #define FIXED_DT 1.6e-3f
+        #define SUBSTEPS 10
+        #define WALL_HOLD_STEPS 5000
+
+    #endif
+#endif
+
+
+
+
+// WALL PARAMETERS
+#define WALL_MASS_FACTOR 20                               // choose factor relative to PARTICLE_MASS
+
+float wall_mass_runtime = PARTICLE_MASS * WALL_MASS_FACTOR;
+#define WALL_MASS (wall_mass_runtime)
+#define WALL_THICKNESS (PARTICLE_RADIUS)                  // simple for now
+bool wall_hold_enabled = true;         // Enable or disable hold wall mode
+bool wall_is_released = false;          // Has the user released the wall?
+int wall_hold_steps = WALL_HOLD_STEPS;             // Hold the wall for this many steps
+int steps_elapsed = 0;    
+
+
+// --- Derived Time Scale τ ---
+float TAU_time_scale_factor_to_molecular = 1.0f;           // default (molecular mode)
+void initialize_time_scale() {
+#if !MOLECULAR_MODE
+    TAU_time_scale_factor_to_molecular = sqrtf((PARTICLE_MASS * powf(PARTICLE_RADIUS * METERS_PER_PIXEL, 2)) / (K_B * TEMPERATURE));
+#endif
+}
+
+
+
+/// SIMULATION WINDOW PARAMETERS
+
+// Set these in main or before simulation starts
+float L0_UNITS = 25.0f;             // Box half-length in diameters (paper uses 7.5, 10, ...)
+float HEIGHT_UNITS = 10.0f;
+float PIXELS_PER_DIAMETER = 20.0f;
+
+int SIM_WIDTH, SIM_HEIGHT;
+int XW1 = 50;
+int XW2, YW1 = 0, YW2;
+int MAX_X, MAX_Y;
+int HIST_WIDTH, HIST_HEIGHT;
+
+void initialize_simulation_dimensions() {
+    SIM_WIDTH = (int)(2 * L0_UNITS * PIXELS_PER_DIAMETER);
+    SIM_HEIGHT = (int)(HEIGHT_UNITS * PIXELS_PER_DIAMETER);
+
+    XW2 = XW1 + SIM_WIDTH;
+    YW2 = YW1 + SIM_HEIGHT;
+
+    MAX_X = XW2 + 100;  // Add padding
+    MAX_Y = YW2 + 100;
+
+    HIST_WIDTH = MAX_X - SIM_WIDTH;
+    HIST_HEIGHT = MAX_Y - SIM_HEIGHT;
+}
+
+
+// Global variables for pistons
+float piston_left_x = 0;
+float piston_right_x;
+float vx_piston_left = 0; // Slow movement for piston velocity
+float vx_piston_right = 0; // Slow movement for piston velocity
+
+// Wall parameters
+float wall_x_old;
+float wall_x;
+float vx_wall = 0.0;  // Velocity of the wall
+int wall_enabled = 0;  // 0 = Wall is disabled, 1 = Wall is enabled
+
+void initialize_simulation_parameters() {
+    piston_right_x = MAX_X;
+
+    // Initialize wall in the center of the box
+    wall_x = (XW1 + XW2) / 2.0f;
+
+    wall_x_old = wall_x;
+    vx_wall = 0.0f;
+
+    piston_left_x = 0.0f;
+    vx_piston_left = 0.0f;
+    vx_piston_right = 0.0f;
+}
+
+
+
+ // VARIABLES TO AVOID TUNNELING die to time step and stationary particles
+float X_old[NUM_PARTICLES];  // Previous x-position
+int left_count = 0;
+int right_count = 0;
+
+
+
+// SIMULATION PARAMETERS
+#define MIN_SPATIAL_WINDOW (MAX_X/10 * MAX_Y/10)/ NUM_PARTICLES// Prevent too small window
+#define NUM_BINS 100 // NUM bins for histogram
 #define MAX_VELOCITY 10000.0
-#define K_B 1.38e-23
-#define TEMPERATURE 300   // in K Adjust as needed
-
-#define MAX_X 800  // Maximum width of the simulation window (in pixels)
-#define MAX_Y 600  // Maximum height of the simulation window (in pixels)
-#define SIM_SCALE 0.85  // Scaling factor for simulation area
-#define XW1 50  // X-coordinate left boundary for the simulation region
-#define XW2 ((int)(MAX_X * SIM_SCALE )) // X-coordinate right boundary for the simulation region
-#define YW1 0  // Y-coordinate top boundary for the simulation region
-#define YW2 ((int)(MAX_Y * SIM_SCALE))  // Y-coordinate bottom boundary for the simulation region
-#define SIM_WIDTH   (XW2 - XW1)  // Simulation width
-#define SIM_HEIGHT  (YW2 - YW1)  // Simulation height
-#define HIST_HEIGHT  (MAX_Y - SIM_HEIGHT)  // Vx histogram space
-#define HIST_WIDTH   (MAX_X - SIM_WIDTH)   // Vy histogram space
-
 #define SEED 42  // Seed for random number generation (ensures repeatable randomness)
-#define MASS 1.67e-27    // Mass of particle (e.g., hydrogen atom) in kg
-#define SCALE_Vxy 0.08  // Mass of particle (e.g., hydrogen atom) in kg
-const float FIXED_DT = 0.0016f;  // 16ms per physics update (matches 60 FPS)
-
+#define SCALE_Vxy  1 // Mass of particle (e.g., hydrogen atom) in kg
 #define Scale_Energy 1e27/1000
+
+
+
+
+
 
 // Particle states
 float X[NUM_PARTICLES];
 float Y[NUM_PARTICLES];
+float X_old[NUM_PARTICLES];    // previous X positions
+
 float Vx[NUM_PARTICLES];
 float Vy[NUM_PARTICLES];
 float Radius[NUM_PARTICLES];
@@ -65,22 +200,53 @@ float Radius[NUM_PARTICLES];
 int velocity_histogram[NUM_BINS] = {0};
 int position_histogram[NUM_BINS * NUM_BINS] = {0};
 int energy_histogram[NUM_BINS] = {0};
-int simulation_started = 0;  // Flag to track simulation start
 
 
 // Global Variables
 SDL_Window* _window = NULL;
 SDL_Renderer* _renderer = NULL;
-float piston_left_x = 0;
-float piston_right_x = MAX_X;
-float vx_piston_left = 0; // Slow movement for piston velocity
-float vx_piston_right = 0; // Slow movement for piston velocity
+TTF_Font *font = NULL;
+
+// Global variables for simulation control
+int simulation_started = 0;  // Flag to track simulation start
+// Global flag to pause the simulation
+bool paused = false;
+
+
+
+
+//FFT
+#define FFT_SIZE 256
+bool live_fft = false;  // Flag to enable/disable live FFT
+float wall_x_samples[FFT_SIZE];
+float energy_samples[FFT_SIZE];
+kiss_fft_scalar in_wall[FFT_SIZE];
+kiss_fft_scalar in_energy[FFT_SIZE];
+kiss_fft_cpx out_wall[FFT_SIZE/2 + 1];
+kiss_fft_cpx out_energy[FFT_SIZE/2 + 1];
+float wall_fft_magnitude[FFT_SIZE/2 + 1];
+float energy_fft_magnitude[FFT_SIZE/2 + 1];
+int sample_index = 0;
+
+kiss_fftr_cfg fft_cfg;  // <== global config
 
 
 
 
 
-
+///////////  SIMULALTION INFO ////////////
+void print_simulation_info() {
+    printf("\n========== Simulation Info ==========\n");
+    printf("Mode: %s\n", MOLECULAR_MODE ? "MOLECULAR (Normalized units)" : "MACROSCOPIC (Real units)");
+    printf("Experiment Mode: %s\n", EXPERIMENT_MODE ? "ON (fine dt/substeps)" : "OFF (default dt)");
+    printf("Fixed Time Step (dt): %.2e\n", FIXED_DT);
+    printf("TAU scaling factor: %.4f\n", TAU_time_scale_factor_to_molecular);
+    printf("Wall hold mode: %s\n", wall_hold_enabled ? "Enabled" : "Disabled");
+    printf("Wall hold steps: %d\n", wall_hold_steps);
+    printf("Target total simulation time: %.1f\n", 3000.0f);
+    printf("Calculated steps to reach target: %d\n", (int)(3000.0f / (FIXED_DT / (MOLECULAR_MODE ? 1.0f : TAU_time_scale_factor_to_molecular))));
+    printf("======================================\n\n");
+}
 
 //////////////// SDL INITIALIZATION //////////////////////
 // Function to Initialize SDL
@@ -104,8 +270,6 @@ void initSDL() {
 
 
 //////// INITIALIZATION FUNCTIONS /////////
-
-
 // Function to generate Maxwell-Boltzmann distributed velocity 1D (v_x is normal distributed!!!!!)
 // vx or vy 
 // f(v_x) = \sqrt{\frac{m}{2\pi k_B T}}  \exp\left(-\frac{m v_x^2}{2 k_B T}\right)
@@ -117,7 +281,7 @@ void initSDL() {
 // complete speed v
 // f(v) \propto v^2 \exp\left(-\frac{mv^2}{2k_BT}\right)
 float maxwell_boltzmann_velocity(float temperature) {
-    float sigma = sqrt(K_B * temperature / MASS);  // Standard deviation (velocity scale)
+    float sigma = sqrt(K_B * temperature / PARTICLE_MASS);  // Standard deviation (velocity scale)
     printf("sigma = %f\n", sigma);
     float u1, u2, z;
 
@@ -149,7 +313,7 @@ float maxwell_boltzmann_velocity(float temperature) {
 // f(v) = \left(\frac{m}{2\pi k_B T}\right)^{3/2} 4\pi v^2 \exp\left(-\frac{m v^2}{2 k_B T}\right)
 // Function to generate speed v sampled from the Maxwell-Boltzmann distribution
 float maxwell_boltzmann_speed3D(float temperature) {
-    float sigma = sqrt(K_B * temperature / MASS);  // Compute sigma
+    float sigma = sqrt(K_B * temperature / PARTICLE_MASS);  // Compute sigma
     printf("sigma = %f\n", sigma);
 
     float u1, u2, u3, z1, z2, z3;
@@ -187,22 +351,42 @@ float maxwell_boltzmann_speed3D(float temperature) {
 
 
 
-
-// ONLY 2D - Function to initialize and correct missing definitions
 void initialize_simulation() {
+    int left_particles = NUM_PARTICLES / 2;
+    int right_particles = NUM_PARTICLES - left_particles;
+
+    float wall_buffer = WALL_THICKNESS + PARTICLE_RADIUS*2;
+
     for (int i = 0; i < NUM_PARTICLES; i++) {
-        // TODO:check overlapping conditions
-        X[i] = rand() % (MAX_X / 2);  // Left part
-        Y[i] = rand() % MAX_Y;
+        int valid_position = 0;
+        // Randomly assign particles to left or right side of the wall
+        while (!valid_position) {
+            if (i < left_particles) {
+                // Prevent left particles from spawning too close to the wall
+                X[i] = ((float)rand() / RAND_MAX) * (wall_x - wall_buffer - XW1) + XW1 + PARTICLE_RADIUS;
+            } else {
+                // Prevent right particles from spawning too close to the wall
+                X[i] = ((float)rand() / RAND_MAX) * (XW2 - wall_x - wall_buffer) + wall_x + wall_buffer;
+            }
+
+            Y[i] = ((float)rand() / RAND_MAX) * (YW2 - YW1 - 2 * PARTICLE_RADIUS) + YW1 + PARTICLE_RADIUS;
+
+            valid_position = 1;  // You could later add overlap checks here too
+        }
+        if (X[i] > wall_x - wall_buffer && X[i] < wall_x + wall_buffer) {
+        printf("⚠️ Particle %d is too close to wall! x = %f\n", i, X[i]);
+        }
+
         Vx[i] = maxwell_boltzmann_velocity(TEMPERATURE);
         Vy[i] = maxwell_boltzmann_velocity(TEMPERATURE);
-        
-        //Vx[i] = (rand() % 2 == 0 ? 1 : -1) * (rand() % 5);
-        //Vy[i] = (rand() % 2 == 0 ? 1 : -1) * (rand() % 5);  // Added Vy (vertical velocity)#
-        printf("Random Vx = %f, Vy = %f\n", Vx[i], Vy[i]);
+
         Radius[i] = PARTICLE_RADIUS;
+
+        printf("Particle %d initialized: X = %f, Y = %f, Vx = %f, Vy = %f\n", i, X[i], Y[i], Vx[i], Vy[i]);
     }
 }
+
+
 
 
 
@@ -243,8 +427,9 @@ void move_left_piston(float dt) {
     }
 }
 
+
 void move_right_piston(float dt) {
-    float right_box_edge = 800 - 20; // Adjusted for piston width
+    float right_box_edge = MAX_X - 20; // Adjusted for piston width
     float left_limit = piston_left_x + 20; // Ensure pistons don't overlap
 
     piston_right_x += vx_piston_right * dt;
@@ -278,8 +463,7 @@ void update_pistons(float dt) {
 
 
 
-//////////////////// PARTICLE FUNCTIONS --  ////////////////////
-
+//////////////////// PARTICLE FUNCTIONS --  ///////////////////////////
 // Function to render particles using drawpoint (optimized) 
 void SDL_RenderFillCircle(SDL_Renderer* renderer, int centerX, int centerY, int radius) {
     for (int w = 0; w < radius * 2; w++) {
@@ -323,128 +507,278 @@ void handle_boundary_collision(int i) {
     }
 }
 
+
+
+
+
 void handle_piston_collisions(int i) {
     // Check collision with the left piston
     if (X[i] - Radius[i] <= piston_left_x) {  
-        float relative_velocity = Vx[i] - vx_piston_left * SCALE_Vxy;
+        float relative_velocity = Vx[i] - vx_piston_left ;
         
         if (relative_velocity < 0) {  // Only if the particle is moving toward the piston
-            Vx[i] = -Vx[i] + 2 * vx_piston_left * SCALE_Vxy;
+            Vx[i] = -Vx[i] + 2 * vx_piston_left ;
         } else {
             Vx[i] = -Vx[i];  // Simple reflection if moving away
         }
-
-        X[i] = piston_left_x + Radius[i];  // Prevent overlap
+        
+        X[i] = piston_left_x + Radius[i] + Vx[i] * FIXED_DT;  // Adjust for timestep
     }
 
     // Check collision with the right piston
     if (X[i] + Radius[i] >= piston_right_x) {  
-        float relative_velocity = Vx[i] - vx_piston_right * SCALE_Vxy;
+        float relative_velocity = Vx[i] - vx_piston_right ;
 
         if (relative_velocity > 0) {  // Only if the piston moves into the particle
-            Vx[i] = -Vx[i] + 2 * vx_piston_right * SCALE_Vxy;
+            Vx[i] = -Vx[i] + 2 * vx_piston_right ;
         } else {
             Vx[i] = -Vx[i];  // Simple reflection if moving away
         }
 
-        X[i] = piston_right_x - Radius[i];  // Prevent overlap
+        X[i] = piston_right_x - Radius[i] + Vx[i] * FIXED_DT;  // Adjust for timestep
     }
 }
 
 
 
 
-///// ELASTIC COLLISION BETWEEN PARTICLES -- HARD SPHERES ////////
-// Update particle positions and handle collisions (boundary and inter-particle)
-/* 
-basic equations elastic collision:
-\mathbf{v_1{\prime}} = \mathbf{v_1} - \frac{2 m_2}{m_1 + m_2} \cdot \frac{(\mathbf{v_1} - \mathbf{v_2}) \cdot (\mathbf{r_1} - \mathbf{r_2})}{|\mathbf{r_1} - \mathbf{r_2}|^2} (\mathbf{r_1} - \mathbf{r_2})
-\mathbf{v_2{\prime}} = \mathbf{v_2} - \frac{2 m_1}{m_1 + m_2} \cdot \frac{(\mathbf{v_2} - \mathbf{v_1}) \cdot (\mathbf{r_2} - \mathbf{r_1})}{|\mathbf{r_2} - \mathbf{r_1}|^2} (\mathbf{r_2} - \mathbf{r_1})
-*/
-void update_particles(float dt) {
-    // Loop through each particle
-    for (int i = 0; i < NUM_PARTICLES; i++) {
-        /*
-        •	X[i]  and  Y[i]  are the x and y coordinates of particle  i .
-	    •	Vx[i]  and  Vy[i]  are the velocities in the  x  and  y  directions.
-	    •	SCALE_Vxy is a factor that adjusts the velocity magnitude for the visualisation. */
-        // Update the position of the particle based on its velocity
-        X[i] += Vx[i] * dt * SCALE_Vxy;
-        Y[i] += Vy[i] * dt * SCALE_Vxy;
-
-    
-           
-        // Debugging: Print velocity and position
-        printf("Particle %d: Vx = %.2f, Vy = %.2f, X = %.2f, Y = %.2f\n", i, Vx[i], Vy[i], X[i], Y[i]);
-    
-        // Handle boundary collisions - direct reflection at a wall
-        handle_piston_collisions(i);
-        handle_boundary_collision(i);
+//////// WALL FUNCTIONS /////////
 
 
-        // Check for collisions BETWEEN the current particle i  and all other particles j
-        for (int j = i + 1; j < NUM_PARTICLES; j++) {
 
-            // distance between particles i and j
-            float dx = X[i] - X[j];  // X-distance between particles
-            float dy = Y[i] - Y[j];  // Y-distance between particles
-            float dist = sqrt(dx * dx + dy * dy);  // Euclidean distance between particles i and j
-            float min_dist = PARTICLE_RADIUS * 2;  // Minimum distance before particles collide (twice the radius)
 
-            // If particles are closer than the minimum distance, they are colliding
-            if (dist < min_dist) {
+void draw_wall() {
+    if (!wall_enabled) return;  // Don't draw if the wall is disabled
+    SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);  // White color
+    SDL_Rect wall_rect = { (wall_x - (WALL_THICKNESS/2)), 0, WALL_THICKNESS, SIM_HEIGHT };  // Thin vertical wall
+    SDL_RenderFillRect(_renderer, &wall_rect);
+}
 
-                // normal vector between the two particles (unit vector in the direction!!!! of collision)
-                // 	•	The unit vector (nx, ny) represents the collision direction is normalized--> :n_x^2 + n_y^2 = 1
-                float nx = dx / dist;  // Normal X-component
-                float ny = dy / dist;  // Normal Y-component
 
-                // relative velocity between the particles along the normal direction:  v_{\text{rel}, n} = (\mathbf{v}_i - \mathbf{v}_j) \cdot \mathbf{n}
-                /*	•	 v_{\text{rel}, n}  is the relative velocity along the normal.
-	                •	 \mathbf{n} = (n_x, n_y)  is the normal direction.
-                */
-                float relVelX = Vx[i] - Vx[j];  // Relative velocity in the X direction to the Collision Axis
-                float relVelY = Vy[i] - Vy[j];  // Relative velocity in the Y direction to the Collision Axis
-                float v_rel_dotProduct = (relVelX * nx + relVelY * ny);  //, compute its projection onto the collision normal: Dot product of the relative velocity and normal vector
+// Function to update wall position and velocity
+void update_wall(float dt) {
+    steps_elapsed++;
 
-                // If the particles are moving towards each other (negative dot product)
-                if (v_rel_dotProduct < 0) {
-                    // Assume equal mass for both particles for homogenous gas (can be adjusted if necessary)
-                    float mass_i = MASS;  // Mass of particle i
-                    float mass_j = MASS;  // Mass of particle j
+    // === Wall Hold Phase ===
+    if (wall_hold_enabled && !wall_is_released) {
+        vx_wall = 0.0f;
+        wall_x = (XW1 + XW2) / 2.0f;  // Center wall between boundaries
 
-                    /* 
-                    elastic collision, we use the impulse equation with impulse magnitude J  --- NOT momentum P
-                         J_impulse = \frac{2 v_{\text{rel}, n}}{m_1 + m_2} : with J = immpulse magnitude.
-                        impulse (change in velocity due to collision) is calculated using the relative velocity along the normal direction and the masses of the particles.
-                         formula comes from conservation of momentum and kinetic energy in an elastic collision.
-                    */
-                    float J_impulse = 2 * v_rel_dotProduct / (mass_i + mass_j);  // Impulse formula for elastic collision
+        // Auto-release after a certain number of steps
+        if (steps_elapsed >= wall_hold_steps) {
+            wall_is_released = true;
+            printf("🔔 Wall released automatically after %d steps.\n", steps_elapsed);
+        }
+        return;  // Exit early, skip wall motion update
+    }
 
-                    // Update velocities for both particles based on impulse and normal direction
-                    /*
-                        \mathbf{v}_i{\prime} = \mathbf{v}_i - J m_2 \mathbf{n}
-                        \mathbf{v}_j{\prime} = \mathbf{v}_j + J m_1 \mathbf{n}
-                            •	 \mathbf{v}_i{\prime}  and  \mathbf{v}_j{\prime}  are the new velocities after the collision.
-                            •	This follows from Newton’s third law, where equal and opposite forces act on the particles.
-                    */
-                    Vx[i] -= J_impulse * mass_j * nx ;  // Update velocity of particle i in X direction
-                    Vy[i] -= J_impulse * mass_j * ny ;  // Update velocity of particle i in Y direction
-                    Vx[j] += J_impulse * mass_i * nx ;  // Update velocity of particle j in X direction
-                    Vy[j] += J_impulse * mass_i * ny ;  // Update velocity of particle j in Y direction
+    // === Normal Wall Motion Phase ===
+    wall_x_old = wall_x;  // Store previous wall position
+    wall_x += vx_wall * dt;  // Move wall based on current velocity
 
-                    // Push particles apart to avoid overlap (separate them by half the overlap distance)
-                        /*
-                        X[i] = X[i] + \frac{n_x \cdot \text{overlap}}{2}
-                        X[j] = X[j] - \frac{n_x \cdot \text{overlap}}{2}
-                            •	This separates the particles along the normal direction.
-                            •	Dividing by 2 ensures that both particles move equally apart.
-                        */
-                    float overlap = min_dist - dist;  // Calculate the amount of overlap
-                    X[i] += nx * overlap / 2;  // Push particle i apart along the normal
-                    Y[i] += ny * overlap / 2;  // Push particle i apart along the normal
-                    X[j] -= nx * overlap / 2;  // Push particle j apart along the normal
-                    Y[j] -= ny * overlap / 2;  // Push particle j apart along the normal
+    // === Enforce Wall Boundaries ===
+    if (wall_x < XW1 + 10) {
+        wall_x = XW1 + 10;
+        vx_wall = 0.0f;  // Stop wall if hitting left boundary
+    }
+    if (wall_x > XW2 - 10) {
+        wall_x = XW2 - 10;
+        vx_wall = 0.0f;  // Stop wall if hitting right boundary
+    }
+
+    printf("wall_x = %f, wall_enabled = %d\n", wall_x, wall_enabled);
+}
+
+
+
+
+void handle_left_to_right_collision(int i) {
+    float v_particle = Vx[i];
+    float v_wall = vx_wall;
+    float rel_vel = v_particle - v_wall;
+
+    float wall_left = wall_x - WALL_THICKNESS/2;
+
+    if (X[i] + Radius[i] >= wall_left && rel_vel > 0) {
+        float new_v_particle = ((PARTICLE_MASS - WALL_MASS) * v_particle + 2 * WALL_MASS * v_wall) / (PARTICLE_MASS + WALL_MASS);
+        float new_v_wall = ((WALL_MASS - PARTICLE_MASS) * v_wall + 2 * PARTICLE_MASS * v_particle) / (PARTICLE_MASS + WALL_MASS);
+
+        Vx[i] = new_v_particle;
+        vx_wall = new_v_wall;
+        X_old[i] = X[i];
+        X[i] = wall_left - Radius[i] - 0.01f;
+    }
+}
+
+void handle_right_to_left_collision(int i) {
+    float v_particle = Vx[i];
+    float v_wall = vx_wall;
+    float rel_vel = v_particle - v_wall;
+
+    float wall_right = wall_x + WALL_THICKNESS/2;
+
+    if (X[i] - Radius[i] <= wall_right && rel_vel < 0) {
+        float new_v_particle = ((PARTICLE_MASS - WALL_MASS) * v_particle + 2 * WALL_MASS * v_wall) / (PARTICLE_MASS + WALL_MASS);
+        float new_v_wall = ((WALL_MASS - PARTICLE_MASS) * v_wall + 2 * PARTICLE_MASS * v_particle) / (PARTICLE_MASS + WALL_MASS);
+
+        Vx[i] = new_v_particle;
+        vx_wall = new_v_wall;
+        
+        X_old[i] = X[i];
+        X[i] = wall_right + Radius[i] + 0.01f;
+    }
+}
+
+
+void check_wall_collisions(int i) {
+    if (!wall_enabled) return;
+
+    float wall_left_now = wall_x - WALL_THICKNESS / 2;
+    float wall_right_now = wall_x + WALL_THICKNESS / 2;
+    float wall_left_old = wall_x_old - WALL_THICKNESS / 2;
+    float wall_right_old = wall_x_old + WALL_THICKNESS / 2;
+
+    float particle_x = X[i];
+    float particle_r = Radius[i];
+
+    // --- Predictive check: Did wall move across particle's X in this frame? ---
+    bool wall_swept_across_left = (particle_x + particle_r >= wall_left_now && particle_x + particle_r <= wall_left_old && vx_wall < 0);
+    bool wall_swept_across_right = (particle_x - particle_r <= wall_right_now && particle_x - particle_r >= wall_right_old && vx_wall > 0);
+
+    if (wall_swept_across_left) {
+        handle_left_to_right_collision(i);
+        return;
+    }
+
+    if (wall_swept_across_right) {
+        handle_right_to_left_collision(i);
+        return;
+    }
+
+    // Original checks (based on particle movement)
+    float prev_left_edge = X_old[i] - Radius[i];
+    float prev_right_edge = X_old[i] + Radius[i];
+    float curr_left_edge = X[i] - Radius[i];
+    float curr_right_edge = X[i] + Radius[i];
+
+    if (prev_right_edge < wall_left_now && curr_right_edge >= wall_left_now && Vx[i] > 0) {
+        handle_left_to_right_collision(i);
+        return;
+    }
+
+    if (prev_left_edge > wall_right_now && curr_left_edge <= wall_right_now && Vx[i] < 0) {
+        handle_right_to_left_collision(i);
+        return;
+    }
+
+    // Fallback if stuck inside wall
+    if (curr_right_edge >= wall_left_now && curr_left_edge < wall_right_now) {
+        if (Vx[i] > 0) {
+            handle_left_to_right_collision(i);
+        } else if (Vx[i] < 0) {
+            handle_right_to_left_collision(i);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+////////// PARTICLE COLLISION FUNCTIONS ///////////
+
+
+
+bool swept_particle_collision_index(int i, int j, float dt, float *collision_time) {
+    float dx = X[j] - X[i];
+    float dy = Y[j] - Y[i];
+    float dvx = Vx[j] - Vx[i];
+    float dvy = Vy[j] - Vy[i];
+
+    float radius_sum = 2 * PARTICLE_RADIUS;
+    float r2 = radius_sum * radius_sum;
+
+    float A = dvx * dvx + dvy * dvy;
+    float B = 2 * (dx * dvx + dy * dvy);
+    float C = dx * dx + dy * dy - r2;
+
+    float discriminant = B * B - 4 * A * C;
+
+    if (A == 0.0f || discriminant < 0.0f) return false;
+
+    float sqrt_discriminant = sqrtf(discriminant);
+    float t1 = (-B - sqrt_discriminant) / (2 * A);
+    float t2 = (-B + sqrt_discriminant) / (2 * A);
+
+    if (t1 >= 0.0f && t1 <= dt) {
+        *collision_time = t1;
+        return true;
+    } else if (t2 >= 0.0f && t2 <= dt) {
+        *collision_time = t2;
+        return true;
+    }
+
+    return false;
+}
+
+void resolve_particle_collision_index(int i, int j) {
+    float dx = X[j] - X[i];
+    float dy = Y[j] - Y[i];
+    float dist2 = dx * dx + dy * dy;
+    if (dist2 == 0.0f) return;
+
+    float dvx = Vx[j] - Vx[i];
+    float dvy = Vy[j] - Vy[i];
+
+    float dot = (dvx * dx + dvy * dy) / dist2;
+
+    float fx = dot * dx;
+    float fy = dot * dy;
+
+    Vx[i] += fx;
+    Vy[i] += fy;
+    Vx[j] -= fx;
+    Vy[j] -= fy;
+}
+
+
+
+
+void update_particles_with_collisions_indexed(float dt) {
+    float sub_dt = dt / SUBSTEPS;
+
+    for (int step = 0; step < SUBSTEPS; step++) {
+        // Move all particles
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            X[i] += Vx[i] * sub_dt;
+            Y[i] += Vy[i] * sub_dt;
+        }
+
+        // Handle particle-particle collisions
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            for (int j = i + 1; j < NUM_PARTICLES; j++) {
+                float collision_time;
+
+                if (swept_particle_collision_index(i, j, sub_dt, &collision_time)) {
+                    // Rewind
+                    float t = collision_time;
+                    X[i] -= Vx[i] * (sub_dt - t);
+                    Y[i] -= Vy[i] * (sub_dt - t);
+                    X[j] -= Vx[j] * (sub_dt - t);
+                    Y[j] -= Vy[j] * (sub_dt - t);
+
+                    // Resolve
+                    resolve_particle_collision_index(i, j);
+
+                    // Move forward
+                    X[i] += Vx[i] * (sub_dt - t);
+                    Y[i] += Vy[i] * (sub_dt - t);
+                    X[j] += Vx[j] * (sub_dt - t);
+                    Y[j] += Vy[j] * (sub_dt - t);
                 }
             }
         }
@@ -452,6 +786,663 @@ void update_particles(float dt) {
 }
 
 
+
+
+
+
+
+
+void detect_and_fix_tunnel(float *X, float *X_old, float *Vx, int *Side_old, int *Side_new, int num_particles, float wall_x, float wall_thickness) {
+
+/*
+Tunneling occurs when a particle moves so far in one timestep that it completely skips over the wall or another object. To avoid it:
+
+\Delta x_{\text{particle}} = v \cdot \Delta t < \text{wall thickness}
+
+So if you want to reduce tunneling, make sure:
+\Delta t < \frac{\text{wall thickness}}{\text{max particle speed}}
+*/
+
+    float wall_left = wall_x - wall_thickness / 2;
+    float wall_right = wall_x + wall_thickness / 2;
+    for (int i = 0; i < num_particles; i++) {
+        if (Side_old[i] == -1 && Side_new[i] == 1) {
+            printf("\u26d4\ufe0f Particle %d tunneled LEFT \u279e RIGHT. Reverting position.\n", i);
+            X[i] = X_old[i];
+            Vx[i] *= -1;
+        } else if (Side_old[i] == 1 && Side_new[i] == -1) {
+            printf("\u26d4\ufe0f Particle %d tunneled RIGHT \u279e LEFT. Reverting position.\n", i);
+            X[i] = X_old[i];
+            Vx[i] *= -1;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+void update_particles_substep(float dt) {
+    int Side_old[NUM_PARTICLES];
+    int Side_new[NUM_PARTICLES];
+    left_count = 0;
+    right_count = 0;
+
+    for (int i = 0; i < NUM_PARTICLES; i++) {
+        X_old[i] = X[i];
+
+        float wall_left = wall_x - WALL_THICKNESS / 2;
+        float wall_right = wall_x + WALL_THICKNESS / 2;
+
+        if (wall_enabled) {
+            Side_old[i] = (X_old[i] < wall_left) ? -1 : (X_old[i] > wall_right) ? 1 : 0;
+        }
+
+        X[i] += Vx[i] * dt;
+        Y[i] += Vy[i] * dt;
+
+        if (wall_enabled) {
+            Side_new[i] = (X[i] < wall_left) ? -1 : (X[i] > wall_right) ? 1 : 0;
+        }
+
+        if (wall_enabled) {
+            if (X[i] < wall_left) left_count++;
+            else if (X[i] > wall_right) right_count++;
+        } else {
+            right_count++;
+        }
+
+        bool was_left = X_old[i] + Radius[i] < wall_left;
+        bool now_right = X[i] - Radius[i] > wall_right;
+        bool was_right = X_old[i] - Radius[i] > wall_right;
+        bool now_left = X[i] + Radius[i] < wall_left;
+
+        if ((was_left && now_right) || (was_right && now_left)) {
+            printf("\u26a0\ufe0f Particle %d tunneled in substep! Reverting position.\n", i);
+            X[i] = X_old[i];
+            Vx[i] *= -1;
+            paused = true;
+            return;
+        }
+
+        check_wall_collisions(i);
+        handle_piston_collisions(i);
+        handle_boundary_collision(i);
+
+        for (int j = i + 1; j < NUM_PARTICLES; j++) {
+            float dx = X[i] - X[j];
+            float dy = Y[i] - Y[j];
+            float dist = sqrtf(dx * dx + dy * dy);
+            float min_dist = PARTICLE_RADIUS * 2;
+
+            if (dist < min_dist) {
+                float nx = dx / dist;
+                float ny = dy / dist;
+                float relVelX = Vx[i] - Vx[j];
+                float relVelY = Vy[i] - Vy[j];
+                float v_rel_dot = relVelX * nx + relVelY * ny;
+
+                if (v_rel_dot < 0) {
+                    float J = 2 * v_rel_dot / (PARTICLE_MASS + PARTICLE_MASS);
+
+                    Vx[i] -= J * PARTICLE_MASS * nx;
+                    Vy[i] -= J * PARTICLE_MASS * ny;
+                    Vx[j] += J * PARTICLE_MASS * nx;
+                    Vy[j] += J * PARTICLE_MASS * ny;
+
+                    float overlap = min_dist - dist;
+                    X[i] += nx * overlap / 2;
+                    Y[i] += ny * overlap / 2;
+                    X[j] -= nx * overlap / 2;
+                    Y[j] -= ny * overlap / 2;
+                }
+            }
+        }
+    }
+
+    if (wall_enabled && (left_count != right_count)) {
+        detect_and_fix_tunnel(X, X_old, Vx, Side_old, Side_new, NUM_PARTICLES, wall_x, WALL_THICKNESS);
+        paused = true;
+    }
+}
+
+
+
+
+
+
+void update_particles(float dt) {
+    int substeps = 4;
+    float sub_dt = dt / substeps;
+    for (int s = 0; s < substeps; s++) {
+        if (!paused) {
+            update_particles_substep(sub_dt);
+        } else {
+            break;
+        }
+    }
+}
+
+
+
+
+/// SECOND TRY no sub or time stepping
+
+
+
+
+
+// Function to update particles with a fixed time step no substep
+void update_particles2(float dt) {
+    left_count = 0;
+    right_count = 0;
+    int Side_old[NUM_PARTICLES];
+    int Side_new[NUM_PARTICLES];
+
+    for (int i = 0; i < NUM_PARTICLES; i++) {
+        X_old[i] = X[i];
+
+        // Count before position update
+        if (wall_enabled) {
+            if (X[i] < wall_x - WALL_THICKNESS / 2) {
+                left_count++;
+            } else if (X[i] > wall_x + WALL_THICKNESS / 2) {
+                right_count++;
+            }
+        } else {
+            right_count++;  // All to the right if no wall
+        }
+
+        // Track side before update
+        if (wall_enabled) {
+            if (X_old[i] < wall_x - WALL_THICKNESS / 2)
+                Side_old[i] = -1;
+            else if (X_old[i] > wall_x + WALL_THICKNESS / 2)
+                Side_old[i] = 1;
+            else
+                Side_old[i] = 0;
+        }
+
+        // Update positions
+        X[i] += Vx[i] * dt;
+        Y[i] += Vy[i] * dt;
+
+        // Track side after update
+        if (wall_enabled) {
+            if (X[i] < wall_x - WALL_THICKNESS / 2)
+                Side_new[i] = -1;
+            else if (X[i] > wall_x + WALL_THICKNESS / 2)
+                Side_new[i] = 1;
+            else
+                Side_new[i] = 0;
+
+            // Tunnel detection based on position and radius
+            float wall_left = wall_x - WALL_THICKNESS / 2;
+            float wall_right = wall_x + WALL_THICKNESS / 2;
+
+            bool was_left = X_old[i] + Radius[i] < wall_left;
+            bool now_right = X[i] - Radius[i] > wall_right;
+            bool was_right = X_old[i] - Radius[i] > wall_right;
+            bool now_left = X[i] + Radius[i] < wall_left;
+
+            if ((was_left && now_right) || (was_right && now_left)) {
+                printf("⚠️ Particle %d tunneled through the wall! Reverting position.\n", i);
+                X[i] = X_old[i];
+                Vx[i] *= -1;
+                //paused = true;
+                return;
+            }
+        }
+
+        // Boundary and wall handling
+        check_wall_collisions(i);
+        handle_piston_collisions(i);
+        handle_boundary_collision(i);
+
+        // Inter-particle collisions
+        for (int j = i + 1; j < NUM_PARTICLES; j++) {
+            float dx = X[i] - X[j];
+            float dy = Y[i] - Y[j];
+            float dist = sqrt(dx * dx + dy * dy);
+            float min_dist = PARTICLE_RADIUS * 2;
+
+            if (dist < min_dist) {
+                float nx = dx / dist;
+                float ny = dy / dist;
+                float relVelX = Vx[i] - Vx[j];
+                float relVelY = Vy[i] - Vy[j];
+                float v_rel_dotProduct = (relVelX * nx + relVelY * ny);
+
+                if (v_rel_dotProduct < 0) {
+                    float J_impulse = 2 * v_rel_dotProduct / (PARTICLE_MASS + PARTICLE_MASS);
+
+                    Vx[i] -= J_impulse * PARTICLE_MASS * nx;
+                    Vy[i] -= J_impulse * PARTICLE_MASS * ny;
+                    Vx[j] += J_impulse * PARTICLE_MASS * nx;
+                    Vy[j] += J_impulse * PARTICLE_MASS * ny;
+
+                    float overlap = min_dist - dist;
+                    X[i] += nx * overlap / 2;
+                    Y[i] += ny * overlap / 2;
+                    X[j] -= nx * overlap / 2;
+                    Y[j] -= ny * overlap / 2;
+                }
+            }
+        }
+    }
+
+    // Redundant tunnel fix — optional if inline check already pauses
+    if (wall_enabled && (left_count != right_count)) {
+        detect_and_fix_tunnel(X, X_old, Vx, Side_old, Side_new, NUM_PARTICLES, wall_x, WALL_THICKNESS);
+        //paused = true;
+    }
+}
+
+// third with substepping 
+void update_particles_with_substepping1(float dt) {
+    // Define substeps
+    float sub_dt = dt / SUBSTEPS; // Time step per substep
+
+    // Variables for tracking state before and after movement
+    int Side_old[NUM_PARTICLES];
+    int Side_new[NUM_PARTICLES];
+
+    // Track how many particles are on each side of the wall (reset only once per timestep)
+    left_count = 0;
+    right_count = 0;
+
+    // Count particles' initial positions before any substeps
+    if (wall_enabled) {
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            if (X[i] < wall_x - WALL_THICKNESS / 2) {
+                left_count++;
+            } else if (X[i] > wall_x + WALL_THICKNESS / 2) {
+                right_count++;
+            }
+        }
+    } else {
+        right_count = NUM_PARTICLES;  // All particles are to the right if no wall
+    }
+
+    for (int step = 0; step < SUBSTEPS; step++) {
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            X_old[i] = X[i];  // Save current positions
+
+            // Track side before update
+            if (wall_enabled) {
+                if (X_old[i] < wall_x - WALL_THICKNESS / 2)
+                    Side_old[i] = -1;
+                else if (X_old[i] > wall_x + WALL_THICKNESS / 2)
+                    Side_old[i] = 1;
+                else
+                    Side_old[i] = 0;
+            }
+
+            // Move particle in this substep
+            X[i] += Vx[i] * sub_dt;
+            Y[i] += Vy[i] * sub_dt;
+
+            // Track side after update
+            if (wall_enabled) {
+                if (X[i] < wall_x - WALL_THICKNESS / 2)
+                    Side_new[i] = -1;
+                else if (X[i] > wall_x + WALL_THICKNESS / 2)
+                    Side_new[i] = 1;
+                else
+                    Side_new[i] = 0;
+
+                // Tunnel detection for wall
+                float wall_left = wall_x - WALL_THICKNESS / 2;
+                float wall_right = wall_x + WALL_THICKNESS / 2;
+
+                bool was_left = X_old[i] + Radius[i] < wall_left;
+                bool now_right = X[i] - Radius[i] > wall_right;
+                bool was_right = X_old[i] - Radius[i] > wall_right;
+                bool now_left = X[i] + Radius[i] < wall_left;
+
+                if ((was_left && now_right) || (was_right && now_left)) {
+                    printf("⚠️ Particle %d tunneled through the wall! Reverting position.\n", i);
+                    X[i] = X_old[i];  // Revert position to last valid state
+                    Vx[i] *= -1;  // Reverse velocity
+                    return; // Optional: Stop execution for this timestep
+                }
+            }
+
+            // Boundary and wall handling (collision with walls or boundaries)
+            check_wall_collisions(i);
+            handle_piston_collisions(i);
+            handle_boundary_collision(i);
+
+            // Particle-particle collisions
+            for (int j = i + 1; j < NUM_PARTICLES; j++) {
+                float dx = X[i] - X[j];
+                float dy = Y[i] - Y[j];
+                float dist = sqrt(dx * dx + dy * dy);
+                float min_dist = PARTICLE_RADIUS * 2;
+
+                if (dist < min_dist) {
+                    // Normalized direction
+                    float nx = dx / dist;
+                    float ny = dy / dist;
+
+                    // Relative velocity
+                    float relVelX = Vx[i] - Vx[j];
+                    float relVelY = Vy[i] - Vy[j];
+
+                    // Dot product for collision response
+                    float v_rel_dotProduct = (relVelX * nx + relVelY * ny);
+
+                    if (v_rel_dotProduct < 0) {
+                        float J_impulse = 2 * v_rel_dotProduct / (PARTICLE_MASS + PARTICLE_MASS);
+
+                        // Apply impulse to velocities
+                        Vx[i] -= J_impulse * PARTICLE_MASS * nx;
+                        Vy[i] -= J_impulse * PARTICLE_MASS * ny;
+                        Vx[j] += J_impulse * PARTICLE_MASS * nx;
+                        Vy[j] += J_impulse * PARTICLE_MASS * ny;
+
+                        // Apply overlap correction
+                        float overlap = min_dist - dist;
+                        X[i] += nx * overlap / 2;
+                        Y[i] += ny * overlap / 2;
+                        X[j] -= nx * overlap / 2;
+                        Y[j] -= ny * overlap / 2;
+                    }
+                }
+            }
+        }
+    }
+
+    // Tunnel fix for edge cases (optional, as done at the end of substeps)
+    if (wall_enabled && (left_count != right_count)) {
+        detect_and_fix_tunnel(X, X_old, Vx, Side_old, Side_new, NUM_PARTICLES, wall_x, WALL_THICKNESS);
+    }
+}
+
+
+
+
+
+//// 4th with substepping and variable time step
+
+void update_particles_with_substepping2(float dt) {
+    // Define substeps
+    float sub_dt = dt / SUBSTEPS; // Time step per substep
+
+    // Variables for tracking state before and after movement
+    int Side_old[NUM_PARTICLES];
+    int Side_new[NUM_PARTICLES];
+
+    // Track how many particles are on each side of the wall
+    left_count = 0;
+    right_count = 0;
+
+    if (wall_enabled) {
+        // Count particles' initial positions before any substeps
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            if (X[i] < wall_x - WALL_THICKNESS / 2) {
+                left_count++;
+            } else if (X[i] > wall_x + WALL_THICKNESS / 2) {
+                right_count++;
+            }
+        }
+    } else {
+        right_count = NUM_PARTICLES;  // All particles are to the right if no wall
+    }
+
+    // Loop over substeps
+    for (int step = 0; step < SUBSTEPS; step++) {
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            X_old[i] = X[i];  // Save current positions
+
+            // Track side before update
+            if (wall_enabled) {
+                if (X_old[i] < wall_x - WALL_THICKNESS / 2)
+                    Side_old[i] = -1;
+                else if (X_old[i] > wall_x + WALL_THICKNESS / 2)
+                    Side_old[i] = 1;
+                else
+                    Side_old[i] = 0;
+            }
+
+            // Calculate adaptive time step based on velocity (simplified for X direction)
+            float velocity = fabs(Vx[i]); // You can use the max velocity in the x or y direction
+            float max_move = velocity * sub_dt; // Max distance the particle can move in one substep
+
+            // Safety factor to avoid too large movements in one substep
+            if (max_move > WALL_THICKNESS) {
+                sub_dt = WALL_THICKNESS / velocity;  // Adjust time step to prevent tunneling
+            }
+
+            // Move particle in this substep
+            X[i] += Vx[i] * sub_dt;
+            Y[i] += Vy[i] * sub_dt;
+
+            // Track side after update
+            if (wall_enabled) {
+                if (X[i] < wall_x - WALL_THICKNESS / 2)
+                    Side_new[i] = -1;
+                else if (X[i] > wall_x + WALL_THICKNESS / 2)
+                    Side_new[i] = 1;
+                else
+                    Side_new[i] = 0;
+
+                // Continuous collision detection (check if particle crosses the wall during the substep)
+                float wall_left = wall_x - WALL_THICKNESS / 2;
+                float wall_right = wall_x + WALL_THICKNESS / 2;
+
+                bool was_left = X_old[i] + Radius[i] < wall_left;
+                bool now_right = X[i] - Radius[i] > wall_right;
+                bool was_right = X_old[i] - Radius[i] > wall_right;
+                bool now_left = X[i] + Radius[i] < wall_left;
+
+                if ((was_left && now_right) || (was_right && now_left)) {
+                    // Revert position if tunneling occurs
+                    printf("⚠️ Particle %d tunneled through the wall! Reverting position.\n", i);
+                    X[i] = X_old[i];  // Revert position to last valid state
+                    Vx[i] *= -1;  // Reverse velocity
+                    return; // Optional: Stop execution for this timestep
+                }
+            }
+
+            // Boundary and wall handling (collision with walls or boundaries)
+            check_wall_collisions(i);
+            handle_piston_collisions(i);
+            handle_boundary_collision(i);
+
+            // Particle-particle collisions
+            for (int j = i + 1; j < NUM_PARTICLES; j++) {
+                float dx = X[i] - X[j];
+                float dy = Y[i] - Y[j];
+                float dist = sqrt(dx * dx + dy * dy);
+                float min_dist = PARTICLE_RADIUS * 2;
+
+                if (dist < min_dist) {
+                    // Normalized direction
+                    float nx = dx / dist;
+                    float ny = dy / dist;
+
+                    // Relative velocity
+                    float relVelX = Vx[i] - Vx[j];
+                    float relVelY = Vy[i] - Vy[j];
+
+                    // Dot product for collision response
+                    float v_rel_dotProduct = (relVelX * nx + relVelY * ny);
+
+                    if (v_rel_dotProduct < 0) {
+                        float J_impulse = 2 * v_rel_dotProduct / (PARTICLE_MASS + PARTICLE_MASS);
+
+                        // Apply impulse to velocities
+                        Vx[i] -= J_impulse * PARTICLE_MASS * nx;
+                        Vy[i] -= J_impulse * PARTICLE_MASS * ny;
+                        Vx[j] += J_impulse * PARTICLE_MASS * nx;
+                        Vy[j] += J_impulse * PARTICLE_MASS * ny;
+
+                        // Apply overlap correction
+                        float overlap = min_dist - dist;
+                        X[i] += nx * overlap / 2;
+                        Y[i] += ny * overlap / 2;
+                        X[j] -= nx * overlap / 2;
+                        Y[j] -= ny * overlap / 2;
+                    }
+                }
+            }
+        }
+    }
+
+    // Tunnel fix for edge cases (optional, as done at the end of substeps)
+    if (wall_enabled && (left_count != right_count)) {
+        detect_and_fix_tunnel(X, X_old, Vx, Side_old, Side_new, NUM_PARTICLES, wall_x, WALL_THICKNESS);
+    }
+}
+
+
+
+
+
+//// 5th with substepping and variable time step including window reducing comp complexity
+void update_particles_with_substepping(float dt,int* out_left, int* out_right) {
+    // Define substeps
+    float sub_dt = dt / SUBSTEPS; // Base time step per substep
+
+    // Variables for tracking state before and after movement
+    int Side_old[NUM_PARTICLES];
+    int Side_new[NUM_PARTICLES];
+
+    // Track how many particles are on each side of the wall
+    left_count = 0;
+    right_count = 0;
+
+    if (wall_enabled) {
+        // Count particles' initial positions before any substeps
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            if (X[i] < wall_x - WALL_THICKNESS / 2) {
+                left_count++;
+            } else if (X[i] > wall_x + WALL_THICKNESS / 2) {
+                right_count++;
+            }
+        }
+    } else {
+        right_count = NUM_PARTICLES;  // All particles are to the right if no wall
+    }
+
+    // Loop over substeps
+    for (int step = 0; step < SUBSTEPS; step++) {
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            X_old[i] = X[i];  // Save current positions
+
+            // Track side before update
+            if (wall_enabled) {
+                if (X_old[i] < wall_x - WALL_THICKNESS / 2)
+                    Side_old[i] = -1;
+                else if (X_old[i] > wall_x + WALL_THICKNESS / 2)
+                    Side_old[i] = 1;
+                else
+                    Side_old[i] = 0;
+            }
+
+            // --- VELOCITY-BASED SPATIAL WINDOW FOR COLLISIONS ---
+            float velocity = sqrt(Vx[i] * Vx[i] + Vy[i] * Vy[i]);  // Magnitude of velocity
+            float spatial_window = velocity * sub_dt;              // Effective influence range
+            if (spatial_window < MIN_SPATIAL_WINDOW) spatial_window = MIN_SPATIAL_WINDOW;
+
+            // --- ADAPTIVE TIMESTEP TO PREVENT TUNNELING ---
+            float max_move = fabs(Vx[i]) * sub_dt;
+            if (max_move > WALL_THICKNESS) {
+                sub_dt = WALL_THICKNESS / fabs(Vx[i]);
+            }
+
+            // Move particle
+            X[i] += Vx[i] * sub_dt;
+            Y[i] += Vy[i] * sub_dt;
+
+            // Track side after update
+            if (wall_enabled) {
+                if (X[i] < wall_x - WALL_THICKNESS / 2)
+                    Side_new[i] = -1;
+                else if (X[i] > wall_x + WALL_THICKNESS / 2)
+                    Side_new[i] = 1;
+                else
+                    Side_new[i] = 0;
+
+                // Tunnel detection logic
+                float wall_left = wall_x - WALL_THICKNESS / 2;
+                float wall_right = wall_x + WALL_THICKNESS / 2;
+
+                bool was_left = X_old[i] + Radius[i] < wall_left;
+                bool now_right = X[i] - Radius[i] > wall_right;
+                bool was_right = X_old[i] - Radius[i] > wall_right;
+                bool now_left = X[i] + Radius[i] < wall_left;
+
+                if ((was_left && now_right) || (was_right && now_left)) {
+                    printf("⚠️ Particle %d tunneled through the wall! Reverting position.\n", i);
+                    X[i] = X_old[i];
+                    Vx[i] *= -1;
+                    return;
+                }
+
+                // Return the final counts
+                if (out_left) *out_left = left_count;
+                if (out_right) *out_right = right_count;
+            }
+
+            // Boundary + wall
+            check_wall_collisions(i);
+            handle_piston_collisions(i);
+            handle_boundary_collision(i);
+
+            // Particle-particle collisions with spatial window filtering
+            for (int j = i + 1; j < NUM_PARTICLES; j++) {
+                float dx = X[i] - X[j];
+                float dy = Y[i] - Y[j];
+                float dist_sq = dx * dx + dy * dy;
+
+                // Skip if particles are outside each other's influence radius
+                if (dist_sq > spatial_window * spatial_window) continue;
+
+                float dist = sqrt(dist_sq);
+                float min_dist = PARTICLE_RADIUS * 2;
+
+                if (dist < min_dist) {
+                    // Normalized direction
+                    float nx = dx / dist;
+                    float ny = dy / dist;
+
+                    // Relative velocity
+                    float relVelX = Vx[i] - Vx[j];
+                    float relVelY = Vy[i] - Vy[j];
+                    float v_rel_dot = relVelX * nx + relVelY * ny;
+
+                    if (v_rel_dot < 0) {
+                        float J_impulse = 2 * v_rel_dot / (PARTICLE_MASS + PARTICLE_MASS);
+
+                        Vx[i] -= J_impulse * PARTICLE_MASS * nx;
+                        Vy[i] -= J_impulse * PARTICLE_MASS * ny;
+                        Vx[j] += J_impulse * PARTICLE_MASS * nx;
+                        Vy[j] += J_impulse * PARTICLE_MASS * ny;
+
+                        float overlap = min_dist - dist;
+                        X[i] += nx * overlap / 2;
+                        Y[i] += ny * overlap / 2;
+                        X[j] -= nx * overlap / 2;
+                        Y[j] -= ny * overlap / 2;
+                    }
+                }
+            }
+        }
+    }
+
+    // Final check for wall tunnel
+    if (wall_enabled && (left_count != right_count)) {
+        detect_and_fix_tunnel(X, X_old, Vx, Side_old, Side_new, NUM_PARTICLES, wall_x, WALL_THICKNESS);
+    }
+}
 
 
 
@@ -466,7 +1457,7 @@ void update_particles(float dt) {
 double kinetic_energy() {
     double ke_total = 0.0;
     for (int i = 0; i < NUM_PARTICLES; i++) {
-        double particle_ke = 0.5 * MASS * (Vx[i] * Vx[i] + Vy[i] * Vy[i]);  // In Joules
+        double particle_ke = 0.5 * PARTICLE_MASS * (Vx[i] * Vx[i] + Vy[i] * Vy[i]);  // In Joules
         ke_total += particle_ke;
     }
     return ke_total;
@@ -525,7 +1516,7 @@ double entropy_kinetic() {
         
         // Using the Maxwell-Boltzmann distribution entropy formula
         if (speed_square > 0) {
-            double f_v = exp(-speed_square / (2 * K_B * TEMPERATURE / MASS));
+            double f_v = exp(-speed_square / (2 * K_B * TEMPERATURE / PARTICLE_MASS));
             S_kinetic -= f_v * log(f_v);
         }
     }
@@ -649,15 +1640,41 @@ void log_energy(FILE *fptr) {
 
 
 ////////// KEYBOARD INPUT HANDLING //////////
+// Keyboard input handling
 void keysSimulation(SDL_Event e) {
-    if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
-        simulation_started = 1;  // Start the simulation
+    if (e.type == SDL_KEYDOWN) {
+        switch (e.key.keysym.sym) {
+
+            case SDLK_SPACE:
+                simulation_started = 1;
+                break;
+            
+            case SDLK_q:
+                exit(0);
+                break;
+
+            case SDLK_w:  // Toggle wall with 'w' or 'W'
+                wall_enabled = !wall_enabled;
+                printf("Wall %s\n", wall_enabled ? "Enabled" : "Disabled");
+                break;
+
+            case SDLK_r:  // 🔥 Release wall manually
+            if (wall_hold_enabled && !wall_is_released) {
+                wall_is_released = true;
+                printf("🔔 Wall manually released by key 'r'.\n");}
+                break;
+
+            case SDLK_p:  // Pause/unpause simulation
+            paused = !paused;
+            printf("Simulation %s\n", paused ? "Paused" : "Running");
+            break;
+        }
     }
 }
 
 /// Constants for acceleration INIT piston
 const float acceleration = 25;  // Increased acceleration
-const float max_velocity = 500.0;   // Increased max speed
+const float max_velocity = 1000000.0;   // Increased max speed
 const float deceleration = 25;
 
 
@@ -815,22 +1832,165 @@ void draw_coordinate_system(SDL_Renderer *renderer) {
 
 
 
+// draw text
+void draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text, int x, int y, SDL_Color color) {
+    SDL_Surface *text_surface = TTF_RenderText_Blended(font, text, color);
+    SDL_Texture *text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+    SDL_Rect dst = { x, y, text_surface->w, text_surface->h };
+    SDL_RenderCopy(renderer, text_texture, NULL, &dst);
+    SDL_FreeSurface(text_surface);
+    SDL_DestroyTexture(text_texture);
+}
 
-///////////////////// SIMULATION FUNCTIONS //////////////////////
+
+
+
+// FFT BARS
+void render_fft_histogram_bottom(SDL_Renderer* renderer, float* fft_data, int fft_len) {
+    // Normalize FFT data
+    float max_val = 1.0f;
+    for (int i = 0; i < fft_len; ++i) {
+        if (fft_data[i] > max_val) max_val = fft_data[i];
+    }
+
+    // FFT bars drawn like Vx histogram, but different color (e.g. red)
+    for (int i = 0; i < fft_len; ++i) {
+        float normalized = fft_data[i] / max_val;
+        int height = (int)(normalized * HIST_HEIGHT);
+
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 200); // Red with some transparency
+        SDL_Rect rect = {
+            XW1 + i * (SIM_WIDTH / fft_len),
+            YW1 + SIM_HEIGHT + (HIST_HEIGHT - height),
+            SIM_WIDTH / fft_len,
+            height
+        };
+        SDL_RenderFillRect(renderer, &rect);
+    }
+}
+
+
+
+
+
+////////////////////////  EXPERIMENT FUNCTIONS //////////////////////////////////
+void run_speed_of_sound_experiments() {
+    system("mkdir -p experiments_speed_of_sound/mode0_real_units");
+    system("mkdir -p experiments_speed_of_sound/mode1_normalized_units");
+    system("rm -f experiments_speed_of_sound/mode0_real_units/*.csv");
+    system("rm -f experiments_speed_of_sound/mode1_normalized_units/*.csv");
+    wall_enabled = true;
+
+    /// PARAMETER VARIATIONS
+    float lengths[] = {7.5f, 10.0f, 15.0f};  // Box lengths
+    int wall_mass_factors[] = {20, 100, 500};  // Wall mass relative to particle mass
+    int num_repeats = 1;
+
+    float total_simulation_time = 3000.0f;  // target time after wall release
+    int num_steps = (int)(total_simulation_time / (FIXED_DT / (MOLECULAR_MODE ? 1.0f : TAU_time_scale_factor_to_molecular)));
+    printf("Running each experiment for %d steps after wall release\n", num_steps);
+
+    for (int l = 0; l < sizeof(lengths) / sizeof(lengths[0]); ++l) {
+        for (int m = 0; m < sizeof(wall_mass_factors) / sizeof(wall_mass_factors[0]); ++m) {
+            for (int r = 0; r < num_repeats; ++r) {
+                float L0 = lengths[l];
+                float wall_mass = PARTICLE_MASS * wall_mass_factors[m];
+                wall_mass_runtime = wall_mass;
+
+                // --- Initialize wall hold behavior ---
+                wall_hold_enabled = true;
+                wall_is_released = false;
+                steps_elapsed = 0;
+
+                wall_x = L0 * PIXELS_PER_DIAMETER;
+                wall_x_old = wall_x;
+                vx_wall = 0.0f;
+
+                initialize_simulation();
+
+                #if MOLECULAR_MODE
+                    const char* mode_folder = "experiments_speed_of_sound/mode1_normalized_units/";
+                #else
+                    const char* mode_folder = "experiments_speed_of_sound/mode0_real_units/";
+                #endif
+
+                char filename[512];
+                int L0_int = (int)(L0 * 10);  // e.g., 7.5 → 75
+                sprintf(filename, "%swall_x_positions_L0_%d_wallmassfactor_%d_run%d.csv",
+                        mode_folder, L0_int, wall_mass_factors[m], r);
+
+                FILE *wall_log = fopen(filename, "w");
+                fprintf(wall_log, "Time, Wall_X, Left_Count, Right_Count\n");
+                printf("Running: L0 = %.1f, M = %d * PARTICLE_MASS, run = %d\n", L0, wall_mass_factors[m], r);
+
+                int left_particles = 0;
+                int right_particles = 0;
+
+                int recorded_steps = 0;   // This counts only after release
+
+                while (recorded_steps < num_steps) {
+                    update_particles_with_substepping(FIXED_DT, &left_particles, &right_particles);
+                    update_wall(FIXED_DT);
+                    check_wall_collisions(FIXED_DT);
+
+                    // Only log after the wall is released
+                    if (wall_is_released) {
+                        fprintf(wall_log, "%f, %.10e, %d, %d\n",
+                                recorded_steps * FIXED_DT,
+                                wall_x * METERS_PER_PIXEL,
+                                left_particles,
+                                right_particles);
+                        recorded_steps++;
+                    }
+
+                    if (fabs(vx_wall) < 1e-12 && recorded_steps > 100) {
+                        printf("⚠️ Wall not moving — exiting early.\n");
+                        break;
+                    }
+                }
+
+                fclose(wall_log);
+                printf("✅ Finished run %d\n\n", r);
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+///////////////////// VISUAL SIMULATION FUNCTIONS //////////////////////
 
 void simulation_loop() {
     int running = 1;
+    if(live_fft == true){
+        fft_cfg = kiss_fftr_alloc(FFT_SIZE, 0, NULL, NULL); // forward FFT
+    }
+
+    
+
     SDL_Event e;
     FILE *logFile = fopen("energy_log.csv", "w");
     if (!logFile) {
         printf("Error: Unable to open log file!\n");
         return;
     }
+
     fprintf(logFile, "Kinetic Energy, Temperature, Entropy, Total Free Energy\n");
+
+    FILE *wall_log = fopen("wall_position.csv", "w");
+    fprintf(wall_log, "Time, Wall_X\n");
+    // 🔥 INIT Wall Hold Behavior for visual mode
+    wall_hold_enabled = true;  // or false if you don't want wall hold in visual
+    wall_is_released = false;
+    steps_elapsed = 0;
 
     Uint32 last_time = SDL_GetTicks();
     float accumulator = 0.0f;
-
+    
     while (running) {
         Uint32 current_time = SDL_GetTicks();
         float frame_time = (current_time - last_time) / 1000.0f;  // Convert ms to seconds
@@ -850,11 +2010,44 @@ void simulation_loop() {
             keysPiston(e);
         }
 
+        int left_particles = 0;
+        int right_particles = 0;
+
         // Process physics updates at fixed intervals
         while (accumulator >= FIXED_DT) {
-            if (simulation_started == 1) {
-                update_particles(FIXED_DT);
+            if (simulation_started == 1 && !paused) {
+                //update_particles_with_collisions_indexed(FIXED_DT);
+                update_particles_with_substepping(FIXED_DT, &left_particles, &right_particles);
+                //update_particles_with_substepping_time_windowed_collisions(FIXED_DT);   
+                //update_particles(FIXED_DT);
                 update_pistons(FIXED_DT);
+                //check_wall_collisions();  // Ensure wall-particle collisions
+                update_wall(FIXED_DT);  // Move the wall
+                check_wall_collisions(FIXED_DT);  // Optional but necessary if wall should affect particles
+
+                // LIVE FFT 
+                if (live_fft == true){
+                    // Fill buffers
+                    in_wall[sample_index] = wall_x;
+                    in_energy[sample_index] = kinetic_energy();
+
+                    sample_index = (sample_index + 1) % FFT_SIZE;
+
+                    // Once buffer full
+                    if (sample_index == 0) {
+                        kiss_fftr(fft_cfg, in_wall, out_wall);
+                        kiss_fftr(fft_cfg, in_energy, out_energy);
+
+                        for (int i = 0; i < FFT_SIZE/2 + 1; i++) {
+                            wall_fft_magnitude[i] = sqrtf(out_wall[i].r * out_wall[i].r + out_wall[i].i * out_wall[i].i);
+                            energy_fft_magnitude[i] = sqrtf(out_energy[i].r * out_energy[i].r + out_energy[i].i * out_energy[i].i);
+                        }
+                    }
+                 }
+
+                // Log wall position
+                //fprintf(wall_log, "%f, %f\n", current_time / 1000.0, wall_x); // saved in pixels
+                fprintf(wall_log, "%f, %.10e\n", current_time / 1000.0, wall_x * METERS_PER_PIXEL); // in meters no pixels
                 log_energy(logFile);
             }
             accumulator -= FIXED_DT;
@@ -867,34 +2060,81 @@ void simulation_loop() {
         render_velocity_histograms();
         render_particles();
         render_pistons();
+        render_fft_histogram_bottom(_renderer, wall_fft_magnitude, NUM_BINS);
+        //draw_fft_bars(_renderer, energy_fft_magnitude, FFT_SIZE / 2 + 1);
 
+        if (wall_enabled) {  // Check if wall should be drawn
+            draw_wall();
+        }
+        // Draw text for counter of particles on each side of the wall
+        SDL_Color red = {255, 0, 0, 255};
+        SDL_Color blue = {0, 0, 255, 255};
+
+        char buffer[64];
+
+        // Left counter (top-left corner near simulation region)
+        sprintf(buffer, "Left: %d", left_count);
+        draw_text(_renderer, font, buffer, XW1 + 5, YW1 + 10, red);
+
+        // Right counter (top-right corner near simulation region)
+        sprintf(buffer, "Right: %d", right_count);
+        draw_text(_renderer, font, buffer, XW2 - 100, YW1 + 10, blue);
+
+        if (wall_hold_enabled && !wall_is_released) {
+            SDL_Color yellow = {255, 255, 0, 255};
+            char buffer[64];
+            sprintf(buffer, "Wall held: %d steps left", wall_hold_steps - steps_elapsed);
+            draw_text(_renderer, font, buffer, XW1 + 5, YW1 + 50, yellow);
+        }
         SDL_RenderPresent(_renderer);
-        SDL_Delay(0.01);  // Reduce lag while keeping real-time updates
+        SDL_Delay(10);  // Reduce lag while keeping real-time updates
     }
 
     fclose(logFile);
+    fclose(wall_log);
+
 }
 
 
 
 
 
-
-
 /////////////// MAIN FUNCTION /////////////
-
-
 // Main Function
 int main(int argc, char* argv[]) {
+
+    initialize_simulation_dimensions();     // sets SIM_WIDTH, SIM_HEIGHT, XW2 etc.
+    initialize_time_scale();
+    initialize_simulation_parameters();     // sets wall and piston regarding simulation dimensions
+    print_simulation_info();  // Print simulation parameters
+
     initSDL();
+    TTF_Init();
+    //kiss_fftr_cfg fft_cfg = kiss_fftr_alloc(FFT_SIZE, 0, NULL, NULL);
+
+    font = TTF_OpenFont("Roboto-Regular.ttf", 18);
+    if (!font) {
+        printf("Failed to load font: %s\n", TTF_GetError());
+        return 1;
+    }
+
     initialize_simulation();
     // Print the first few velocities for testing
     for (int i = 0; i < 10; i++) {
         printf("Particle %d: Vx = %f, Vy = %f\n", i, Vx[i], Vy[i]);
+        
     }
-    simulation_loop();
+   // printf("wall_x = %f, wall_enabled = %d\n", wall_x, wall_enabled);
+    if (enable_speed_of_sound_experiments) {
+        run_speed_of_sound_experiments();
+    } else {
+        simulation_loop();  // your SDL interactive version
+    }
     SDL_DestroyRenderer(_renderer);
     SDL_DestroyWindow(_window);
+    //free(fft_cfg);
+    TTF_CloseFont(font);
+    TTF_Quit();
     SDL_Quit();
     return 0;
 }
