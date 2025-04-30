@@ -8,6 +8,8 @@ from scipy.fft import fft, fftfreq
 from scipy.signal import find_peaks
 from scipy.signal import savgol_filter
 from scipy.signal import welch
+from scipy.signal import butter, filtfilt
+
 from scipy.optimize import root_scalar
 from matplotlib.cm import viridis
 from mpl_toolkits.mplot3d import Axes3D
@@ -22,33 +24,57 @@ import os
 import glob
 
 ## source venv/bin/activate
+
 ### --- Configurable flags ---
-enable_batch_processing =False
-     # Set to False to analyze one file only
+## SIMULATION MODE
+reduced_units = 1  # 1 = reduced units 0: physical corect molecular units
+enable_batch_processing = True  # Set to False to analyze one file only
+enable_padding_higherFFT_res = True  # Set to False to disable zero padding
+
+enable_bandpass_filter = False  # Set to False to disable bandpass filtering from 0.001 to 0.1 Hz
+# Define your desired frequency range
+lowcut = 0.001  # Hz
+highcut = 1  # Hz
+
 show_plots = False                  # Set to False to disable plot display
 FFT_mode = "windowed_hanning_SCIPY"       # Options: "raw", "centered", "windowed_hanning","windowed_hanning_SCIPY", "welchs_smoothing_on_windowed_signal_hanning"
 # --- Choose which peak you want to return ---
-
 peak_selection_mode = "raw_near_smoothed_lowfreq"  # Options: 'smoothed_max', 'raw_max', 'raw_near_smoothed_lowfreq'← your default
 
+choose_specific_file = 1 # 0 = process wall_positions.csv from vidual simualation, 1 = choose specific file from experiments
+single_plot_filename = "wall_x_positions_L0_150_wallmassfactor_200_run0.csv"  # Leave as None to plot all
+
+
 # Constants from simulation in C
-radius = 1
-N = 50  # per side
-A = 10
-K = np.pi/2
-pi = np.pi
-k_B = 1.380649e-23  # Boltzmann constant
-T = 300  # Temperature in Kelvin
-mass_particle = 1.67e-27  # Example mass (adjust as appropriate)
-n_value = 1  # Assuming fundamental mode for closed tube
+
+if reduced_units == 1:
+    # Constants for reduced units
+    folder_path = os.path.abspath("experiments_speed_of_sound/mode1_normalized_units/")
+    radius = 1
+    N = 50  # per side
+    A = 10
+    pi = np.pi
+    k_B = 1  # Boltzmann constant
+    T = 1  # Temperature in Kelvin
+    mass_particle = 1 # Example mass (adjust as appropriate)
+    n_value = 1  # Assuming fundamental mode for closed tube
+else:
+    # Constants for physical units
+    folder_path = os.path.abspath("experiments_speed_of_sound/mode0_real_units/")
+    radius = 1
+    N = 50  # per side
+    A = 10
+    K = np.pi/2
+    pi = np.pi
+    k_B = 1.380649e-23  # Boltzmann constant
+    T = 300  # Temperature in Kelvin
+    mass_particle = 1.67e-27  # Example mass (adjust as appropriate)
+    n_value = 1  # Assuming fundamental mode for closed tube
 
 
 
 print(os.getcwd())  # this is where the script expects to find the folder
 # Check what files exist in the expected folder path
-
-folder_path = os.path.abspath("experiments_speed_of_sound/mode0_real_units/")
-single_plot_filename = "wall_x_positions_L0_75_wallmassfactor_100_run0.csv"  # Leave as None to plot all
 
 assert os.path.isdir(folder_path), f"❌ Folder path does not exist: {folder_path}"
 plot_title = "Peak Frequency Shift vs Wall Mass and Box Length" 
@@ -102,6 +128,12 @@ def estimate_sigma_from_dominant_freq(signal, dt, min_sigma=1.0, max_sigma=10.0,
     pos_mask = freqs > 0
     freqs = freqs[pos_mask]
     power = power[pos_mask]
+    
+    # Guard clause: Empty check
+    if len(power) == 0 or len(freqs) == 0:
+        print("❌ No positive frequencies or power values after filtering.")
+        return min_sigma, None  # fallback sigma
+
 
     # Dominant frequency
     dominant_freq = freqs[np.argmax(power)]
@@ -115,6 +147,9 @@ def estimate_sigma_from_dominant_freq(signal, dt, min_sigma=1.0, max_sigma=10.0,
 
     return sigma, dominant_freq
     
+    
+
+
 
 def estimate_sigma_from_spectral_centroid(signal, dt, min_sigma=1.0, max_sigma=10.0, freq_floor=0.01, freq_ceiling=2.0):
     """
@@ -603,62 +638,135 @@ print(f"✅ Found root K: {K_root:.6f}")
 #plot_transcendental(wall_mass_factor, N)
 
 
+# --- Function to find the first non-zero index in an array ---
+def find_first_nonzero_index(arr, threshold=1e-10):
+    """Find the first index where displacement becomes nonzero beyond threshold."""
+    for idx, value in enumerate(arr):
+        if abs(value) > threshold:
+            return idx
+    return None  # if all zero
+
+
+
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=2):
+    nyq = 0.5 * fs  # Nyquist frequency
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype='band')
+    filtered_data = filtfilt(b, a, data)  # zero-phase filter
+    return filtered_data
+
+
+
+
 # --- Process a single file ---
 def process_file(filepath):
     df = pd.read_csv(filepath)
     df.columns = df.columns.str.strip()
 
-    if 'Time' not in df.columns or 'Wall_X' not in df.columns:
-        print(f"❌ Skipping {filepath} — missing columns")
-        return None
+    print("First 10 rows of the DataFrame:")
+    print(df.head(10))
+    print("Data type of Displacement(σ) column:", df['Displacement(σ)'].dtype)
+    # Enforce numeric parsing
+    df['Displacement(σ)'] = pd.to_numeric(df['Displacement(σ)'], errors='coerce')
+    # Remove bad rows
+    df = df[df['Displacement(σ)'].notna()]
+    print("Data type of Displacement(σ) column:", df['Displacement(σ)'].dtype)
 
-    time = df['Time'].values
-    wall_x = df['Wall_X'].values
+
+    df_filtered = df[df['Time'] != 0.0]
+    time = df_filtered['Time'].values
+    wall_x = df_filtered['Wall_X'].values
+    displacement = df_filtered['Displacement(σ)'].values
+
+    # --- NEW: Automatically detect first nonzero movement ---
+    start_idx = find_first_nonzero_index(displacement, threshold=1e-5)
+
+    if start_idx is None:
+        print("⚠️ No movement detected at all. Skipping file:", filepath)
+        return
+
+    # Trim the time and displacement arrays
+    time = time[start_idx:]
+    wall_x = wall_x[start_idx:]
+    displacement = displacement[start_idx:]
+    print(f"✅ Trimmed first {start_idx} samples where displacement was flat.")
+
+
     dt = np.mean(np.diff(time))
+    fs = 1 / dt
 
-    # center wall position to remove DC offset
-    wall_x_centered = wall_x - np.mean(wall_x)
 
-    # --- Plot: Wall X Position ---
+    # center displaceemtn position to remove DC offset
+    displacement_centered = displacement - np.mean(displacement)
+
+
+        # --- Plot: Wall X Position ---
     fig, ax = plt.subplots(figsize=(12, 4))
-    ax.plot(time, wall_x, label="Wall X Position", color='royalblue')
+    ax.plot(time, displacement, label="Wall X Displacement (centered) over time", color='royalblue')
     ax.set_xlabel("Time [s]")
-    ax.set_ylabel("Position [units]")
-    ax.set_title("Wall X Position Over Time")
+    ax.set_ylabel("Displacement [units sigma]")
+    ax.set_title("Wall X Displacement Over Time")
     ax.grid(True)
     ax.legend()
     plt.tight_layout()
-
     if enable_batch_processing and not show_plots:
         plt.close(fig)  # Don’t show intermediate plots
     else:
         plt.show()
 
+    # Apply bandpass filter if enabled
+    if enable_bandpass_filter:
+        displacement_filtered = butter_bandpass_filter(displacement_centered, lowcut, highcut, fs)
+        plt.figure(figsize=(10, 3))
+        plt.plot(displacement_centered, label='Before Filter')
+        plt.plot(displacement_filtered, label='After Filter')
+        plt.legend()
+        plt.title("Bandpass Filter Effect")
+        plt.grid(True)
+        plt.show()
+    else:
+        displacement_filtered = displacement_centered
 
-    ###### FFT ANALYSIS ######
+    fft_input_signal = displacement_filtered  # this one is centered & optionally filtered
+
+
+    if enable_padding_higherFFT_res:
+        # --- NEW: Zero padding to 4x length --- FINER FFFT RESOLUTION
+        N_original = len(fft_input_signal)
+        N_padded = 4 * N_original  # 4x zero padding
+        fft_input_signal = np.pad(fft_input_signal, (0, N_padded - len(fft_input_signal)), mode='constant')
+    else:
+        fft_input_signal = displacement_filtered
+
+
+
+
+
+    ###### FFT ANALYSIS ON DISPLACEMENT ######
     if FFT_mode == "raw":
-        # ON RAW SIGNAL
-        fft_result = np.fft.fft(wall_x)
-        freqs = np.fft.fftfreq(len(wall_x), d=dt)
-        amplitude = np.abs(fft_result) / len(wall_x)
+        # ON RAW SIGNAL 
+        fft_result = np.fft.fft(fft_input_signal)
+        freqs = np.fft.fftfreq(len(fft_input_signal), d=dt)
+        amplitude = np.abs(fft_result) / len(fft_input_signal)
         
     elif FFT_mode == "centered":
-        # --- FFT: Wall X Position CENTERED ---
-        fft_result = np.fft.fft(wall_x_centered)
-        freqs = np.fft.fftfreq(len(wall_x_centered), d=dt)
-        amplitude = np.abs(fft_result) / len(wall_x_centered)
+        # --- FFT: DISPLACEMENT  CENTERED ---
+        fft_result = np.fft.fft(fft_input_signal)
+        freqs = np.fft.fftfreq(len(fft_input_signal), d=dt)
+        amplitude = np.abs(fft_result) / len(fft_input_signal)
 
     elif FFT_mode == "windowed_hanning":
         # ON WINDOWED SIGNAL
-        window = np.hanning(len(wall_x))  # Or any other window
-        windowed_signal = wall_x * window
+        window = np.hanning(len(fft_input_signal))  # Or any other window
+        windowed_signal = fft_input_signal * window
         fft_result = np.fft.fft(windowed_signal)
-        freqs = np.fft.fftfreq(len(wall_x), d=dt)
-        amplitude = np.abs(fft_result) / len(wall_x)
+        freqs = np.fft.fftfreq(len(fft_input_signal), d=dt)
+        amplitude = np.abs(fft_result) / len(fft_input_signal)
 
     elif FFT_mode == "windowed_hanning_SCIPY":
-        window = np.hanning(len(wall_x_centered))
-        windowed_signal = wall_x_centered * window
+        window = np.hanning(len(fft_input_signal))
+        windowed_signal = fft_input_signal * window
         fft_result = fft(windowed_signal)
         freqs = fftfreq(len(windowed_signal), d=dt)
         amplitude = np.abs(fft_result) / len(windowed_signal)
@@ -666,7 +774,14 @@ def process_file(filepath):
     
     elif FFT_mode == "welchs_smoothing_on_windowed_signal_hanning":
         ####### WELCHS smoothing 
-        freqs, power = welch(wall_x, fs=1/dt, window='hann', nperseg=1024)
+        freqs, power = welch(
+            fft_input_signal,
+            fs=1/dt,
+            window='hann',
+            nperseg=2048,  # Try increasing this
+            noverlap=1024,  # Half overlap
+            nfft=8192       # Force higher FFT length (zero-padded)
+)
         amplitude = np.sqrt(power)  # Convert power to amplitude
 
 
@@ -717,17 +832,24 @@ def process_file(filepath):
     window_length_savgol = 20
     polyorder_savgol = 10
     smoothed_amplitude = savgol_filter(positive_amplitude, window_length=window_length_savgol, polyorder=polyorder_savgol)
-    smootthing_sigma_ampl, dominant_freq = estimate_sigma_from_dominant_freq(wall_x, dt)
-    smootthing_sigma_ampl, centroid = estimate_sigma_from_spectral_centroid(wall_x, dt, min_sigma=1.0, max_sigma=10.0, freq_floor=0.01, freq_ceiling=2.0)
+    # --- Estimate smoothing sigmas correctly ---
+    smootthing_sigma_ampl_from_freq, dominant_freq = estimate_sigma_from_dominant_freq(positive_freqs, positive_amplitude)
+    smootthing_sigma_ampl, centroid = estimate_sigma_from_spectral_centroid(positive_freqs, positive_amplitude, min_sigma=1.0, max_sigma=10.0, freq_floor=0.01, freq_ceiling=2.0)
     print(f"Estimated smoothing sigma for amplitude: {smootthing_sigma_ampl:.2f}")
+
+    if smootthing_sigma_ampl is None:
+        smootthing_sigma_ampl = smootthing_sigma_ampl_from_freq
+    
+
 
 
 
     ########### PLOTS #############
-
     L0, wall_mass_factor, run = extract_params_from_filename(filepath)
     if L0 is None:
         print(f"⚠️ Could not extract parameters from {filepath}")
+
+    ####################################################    
     # --- Plot: Wall X Velocity ---
     # --- Plot: Original Amplitude Spectrum with Smart Annotated Peaks ---
     fig, ax = plt.subplots(figsize=(12, 5))
@@ -736,10 +858,11 @@ def process_file(filepath):
     # Plot smoothed Savgol amplitude for visual reference
     ax.plot(positive_freqs, smoothed_amplitude, label=f"Smoothed FFT SavgolFilter (window={window_length_savgol},polyorder={polyorder_savgol})", color='black', alpha=0.5)
     # Add spectral centroid line
-    ax.axvline(centroid, color='orange', linestyle='--', linewidth=2, label=f"Spectral Centroid: {centroid:.2f} Hz")
-    #Shaded area around the centroid ± 0.1 Hz
-    band_width = 0.1
-    ax.axvspan(centroid - band_width, centroid + band_width, color='grey', alpha=0.1, label="Centroid Region ±0.1 Hz")
+    if centroid is not None:
+        ax.axvline(centroid, color='orange', linestyle='--', linewidth=2, label=f"Spectral Centroid: {centroid:.2f} Hz")
+        #Shaded area around the centroid ± 0.1 Hz
+        band_width = 0.1
+        ax.axvspan(centroid - band_width, centroid + band_width, color='grey', alpha=0.1, label="Centroid Region ±0.1 Hz")
 
     annotate_peaks_smart(
         positive_freqs,
@@ -749,7 +872,7 @@ def process_file(filepath):
         label_prefix="Amp Peak",
         yscale='log',
         min_freq=0.001,         # Ignores below 0.5 Hz
-        smooth_sigma=smootthing_sigma_ampl,       # Smoothing strength
+        smooth_sigma=1,       # Smoothing strength
         prominence = None,  # <<< manually override,       # Tweak depending on your signal
         color='green',
         show_smoothed_curve=True,      # ← enable internal smoothed FFT curve
@@ -758,7 +881,7 @@ def process_file(filepath):
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel("Amplitude")
     ax.set_title(f"Wall X Amplitude Spectrum with Smart Peak Annotation with Boxlength/2:{L0} and Wall mass factor to particle mass:{wall_mass_factor} (run {run})")
-    ax.set_xlim(0, 10)
+    ax.set_xlim(0, 0.5)
     ax.set_ylim(auto=True)  # Let matplotlib handle it
     ax.set_xscale('linear')
     ax.set_yscale('linear')
@@ -793,6 +916,12 @@ def process_file(filepath):
 
     
 
+
+
+
+
+
+    ####################################################
     #################### --- Plot: Power Spectrum with Peak Detection ---
     smoothed_power = savgol_filter(positive_power, window_length=window_length_savgol, polyorder=polyorder_savgol)
 
@@ -806,7 +935,7 @@ def process_file(filepath):
     ## PEAK FIND POWER
 
     #  Focus only on 2–3 Hz region
-    band_min, band_max = 2.0, 3.0
+    band_min, band_max = 0.0, 1.0
     band_mask = (positive_freqs >= band_min) & (positive_freqs <= band_max)
     diagnostic_freqs = positive_freqs[band_mask]
     diagnostic_power = positive_power[band_mask]
@@ -831,7 +960,7 @@ def process_file(filepath):
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel("Power")
     ax.set_title("Wall X Power Spectrum with Smart Peak Detection")
-    ax.set_xlim(0, 10)
+    ax.set_xlim(0, 0.1)
     ax.set_ylim(auto=True)
     ax.set_xscale('linear')
     ax.set_yscale('linear')  # ← let matplotlib do the log transform
@@ -845,8 +974,19 @@ def process_file(filepath):
         plt.show()
 
     if highest_peak_power:
+        FUNDAMENTAL_RESONANCE_FREQUENCY = highest_peak_power[0]
+        FUNDAMENTAL_RESONANCE_FREQUENCY_AMPLITUDE = highest_peak_power[1]
         print(f"Highest Power Spectrum Peak: {highest_peak_power[0]:.4f} Hz, Power: {highest_peak_power[1]:.2e}")
+    
+    # --- Plot: Velocity Spectrum ---
 
+
+
+
+
+
+
+    ####################################################
     # --- Plot: Velocity FFT ---
     # --- savgol smoothing Smooth Amplitude for Peak Finding Only ---
     window_length_savgol = 20
@@ -881,7 +1021,7 @@ def process_file(filepath):
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel("Amplitude")
     ax.set_title("Velocity FFT with Smart Peak Detection")
-    ax.set_xlim(0, 5)
+    ax.set_xlim(0, 0.5)
     ax.set_ylim(auto=True)  # Let matplotlib handle it
     ax.set_xscale('linear')
     ax.set_yscale('log')
@@ -915,8 +1055,8 @@ def process_file(filepath):
     # --- Return the highest peak frequency and amplitude ---
     
     # 🛡️ Safe check
-    if highest_peak_position is not None:
-        return highest_peak_position[0], highest_peak_position[1]  # freq, amp
+    if highest_peak_power is not None:
+        return FUNDAMENTAL_RESONANCE_FREQUENCY, FUNDAMENTAL_RESONANCE_FREQUENCY_AMPLITUDE  # freq, amp
     else:
         return None
 
@@ -957,6 +1097,239 @@ def main():
             # Compute eta
             eta_vals = [np.pi * radius**2 * N / (4 * A * L0) for L0 in L0_vals]
             
+
+
+
+
+            ######## PLOTS   ###########################             
+            # # 3D Plot: Peak Frequency vs L0 and M
+
+            L0_vals_arr = np.array(L0_vals)
+            M_vals_arr = np.array(M_vals)
+            freqs_arr = np.array(freqs)
+
+            # Create grid
+            L0_unique = np.unique(L0_vals_arr)
+            M_unique = np.unique(M_vals_arr)
+            L0_grid, M_grid = np.meshgrid(L0_unique, M_unique)
+
+            # Fill Z grid with matching frequencies
+            Z = np.empty_like(L0_grid, dtype=float)
+            Z[:] = np.nan
+
+            for i, L0 in enumerate(L0_unique):
+                for j, M in enumerate(M_unique):
+                    # Find index matching this (L0, M)
+                    matches = [(k, f) for k, (l, m, f) in enumerate(zip(L0_vals, M_vals, freqs)) if l == L0 and m == M]
+                    if matches:
+                        Z[j, i] = matches[0][1]  # take first match
+
+            # Plot
+            fig = plt.figure(figsize=(12, 8))
+            ax = fig.add_subplot(111, projection='3d')
+            surf = ax.plot_surface(L0_grid, M_grid, Z, cmap=cm.viridis, edgecolor='k', linewidth=0.5, alpha=0.9)
+
+            ax.set_xlabel("Box Length L0")
+            ax.set_ylabel("Wall Mass Factor M")
+            ax.set_zlabel("Peak Frequency [Hz]")
+            ax.set_title("3D Surface of Peak Frequencies from Power Spectrum")
+            fig.colorbar(surf, shrink=0.5, aspect=10, label="Frequency")
+
+            plt.tight_layout()
+            plt.show()
+
+
+
+            # Marker setup
+            unique_L0s = sorted(set(L0_vals))
+            marker_styles = ['o', 's', '^', 'D', 'v', 'P', 'X', '*', 'H', '8']
+            L0_to_marker = {L0: marker_styles[i % len(marker_styles)] for i, L0 in enumerate(unique_L0s)}
+
+            vmin = min(M_vals)
+            vmax = max(M_vals)
+
+            plt.figure(figsize=(12, 6))
+            for i in range(len(freqs)):
+                marker = L0_to_marker[L0_vals[i]]
+                plt.scatter(freqs[i], amps[i], marker=marker, c=[M_vals[i]],
+                            cmap='viridis', s=70, edgecolors='k', alpha=0.9,
+                            vmin=vmin, vmax=vmax)
+                plt.annotate(f"L0={L0_vals[i]}, M={M_vals[i]}\nη={eta_vals[i]:.3f}",
+                            (freqs[i], amps[i]), fontsize=8, alpha=0.7)
+
+            cbar = plt.colorbar()
+            cbar.set_label("Wall Mass Factor")
+
+            # Legend for L0 values
+            legend_elements = [plt.Line2D([0], [0], marker=L0_to_marker[L0], color='w',
+                                        markerfacecolor='gray', markeredgecolor='k',
+                                        markersize=8, label=f"L0={L0}")
+                            for L0 in unique_L0s]
+            plt.legend(handles=legend_elements, title="Box Length (L0)", loc='upper right', fontsize=8)
+
+            plt.title(plot_title)
+            plt.xlabel("Peak Frequency [Hz]")
+            plt.ylabel("Amplitude")
+            plt.yscale("log")
+            plt.xlim(0, max(freqs) * 1.05)
+            plt.grid(True, alpha=0.3)
+            plt.tight_layout()
+            plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+                        
+                        
+                        
+            print("\n📈 Estimating Speed of Sound from Line Fit (per L0, only M = 200, 500, 1000):")
+
+            included_M_vals = {200, 500, 1000}
+            colors = plt.cm.viridis(np.linspace(0, 1, len(unique_L0s)))
+            fitted_results = []
+
+            plt.figure(figsize=(12, 6))
+
+            for idx_L0, L0 in enumerate(unique_L0s):
+                x_vals, y_vals = [], []
+                color = colors[idx_L0]
+
+                for i in range(len(freqs)):
+                    if L0_vals[i] == L0 and M_vals[i] in included_M_vals:
+                        wall_mass_factor = M_vals[i]
+                        freq = freqs[i]
+                        K_root = find_transcendental_root(wall_mass_factor=wall_mass_factor, N=50)
+                        x = K_root / (2 * np.pi * (L0 - 1))
+                        x_vals.append(x)
+                        y_vals.append(freq)
+
+                        # Label individual points
+                        plt.scatter(x, freq, color=color, edgecolor='k', s=70, alpha=0.9)
+                        plt.annotate(f"K/2π(L0−1)={x:.3f}\nM={wall_mass_factor}",
+                                    (x, freq), fontsize=8, alpha=0.7)
+
+                if len(x_vals) < 2:
+                    print(f"⚠️ Not enough points for L0={L0} — skipping fit.")
+                    continue
+
+                # Linear fit: freq = c_s * x
+                x_vals = np.array(x_vals)
+                y_vals = np.array(y_vals)
+                slope, _ = np.polyfit(x_vals, y_vals, 1)
+                c_s_fitted = slope
+
+                # Save for table
+                eta = np.pi * radius**2 * N / (4 * A * L0)
+                def theoretical_cs(a_val):
+                    numerator = (1 + eta + 3 * a_val * eta**2 - a_val * eta**3)
+                    denominator = (1 - eta)**3
+                    return np.sqrt((2 * k_B * T / mass_particle) * (numerator / denominator))
+
+                cs_SPT = theoretical_cs(0.0)
+                cs_Henderson = theoretical_cs(0.125)
+                fitted_results.append((L0, eta, c_s_fitted, cs_SPT, cs_Henderson))
+
+                # Plot fit line
+                x_line = np.linspace(min(x_vals)*0.9, max(x_vals)*1.1, 100)
+                y_line = slope * x_line
+                plt.plot(x_line, y_line, linestyle='--', color=color,
+                        label=f"L0={L0}, $c_s$={c_s_fitted:.2f}")
+
+                # Draw triangle illustrating slope
+                x0, x1 = x_vals[0], x_vals[-1]
+                y0, y1 = slope * x0, slope * x1
+                dx = x1 - x0
+                dy = y1 - y0
+                triangle_scale = 0.2  # Shrink triangle for visual clarity
+
+                plt.plot([x0, x0 + dx*triangle_scale], [y0, y0], color=color, lw=1.5)
+                plt.plot([x0 + dx*triangle_scale, x0 + dx*triangle_scale], [y0, y0 + dy*triangle_scale], color=color, lw=1.5)
+                plt.plot([x0, x0 + dx*triangle_scale], [y0, y0 + dy*triangle_scale], color=color, lw=1.5, linestyle=":")
+
+            # Final plot setup
+            plt.xlabel(r"$\frac{K}{2\pi(L_0 - 1)}$")
+            plt.ylabel("Peak Frequency [Hz]")
+            plt.title("Fundamental Frequency vs Theoretical K-term (Fitted per $L_0$)")
+            plt.grid(True, alpha=0.3)
+            plt.legend(title="Box Length & Fitted $c_s$", fontsize=9)
+            plt.tight_layout()
+            plt.show()
+
+            # === Output Table of Speed of Sound per L0 ===
+            print("\n📊 Table: Speed of Sound per L0 (from slope fits):")
+            fitted_df = pd.DataFrame(
+                fitted_results,
+                columns=["L0", "η", "c_s_fitted", "c_s_SPT", "c_s_Henderson"]
+            )
+            print(fitted_df.to_string(index=False, float_format="{:.4f}".format))
+
+
+
+
+
+
+
+
+
+
+
+            #  === GET Speed of sound by SLOPE!!! of PLOT and interpolate Peak Frequency(y-axis) vs K/2π(L0 - 1) (x_axis) ===:
+            vmin = min(M_vals)
+            vmax = max(M_vals) 
+
+            #### PLOT and interpolate for slPeak Frequency vs K/2π(L0 - 1) ===
+            plt.figure(figsize=(12, 6))
+            for i in range(len(freqs)):
+
+                marker = L0_to_marker[L0_vals[i]]
+                wall_mass_factor = M_vals[i]
+
+                K_root = find_transcendental_root(wall_mass_factor=wall_mass_factor, N=50)
+                K = K_root
+
+                #plot_transcendental(wall_mass_factor, N)
+                print(f"K root for wall_mass_factor={wall_mass_factor}: {K_root:.6f}")
+
+                x_values = [K / (2 * np.pi * (L0 - 1)) for L0 in L0_vals]
+                plt.scatter(x_values[i], freqs[i], label=None, marker=marker, c=[M_vals[i]],
+                            cmap='viridis', s=70, edgecolors='k', alpha=0.9,
+                            vmin=vmin, vmax=vmax)
+                plt.annotate(f"L0={L0_vals[i]}, M={M_vals[i]}\nη={eta_vals[i]:.3f}",
+                            (x_values[i], freqs[i]), fontsize=8, alpha=0.7)
+
+            cbar = plt.colorbar()
+            cbar.set_label("Wall Mass Factor")
+            # Legend for L0 marker styles
+            legend_elements = [plt.Line2D([0], [0], marker=L0_to_marker[L0], color='w',
+                                        markerfacecolor='gray', markeredgecolor='k',
+                                        markersize=8, label=f"L0={L0}")
+                            for L0 in unique_L0s]
+            plt.legend(handles=legend_elements, title="Box Length (L0)", loc='upper right', fontsize=8)
+
+            plt.xlabel(r"$\frac{K}{2\pi(L_0 - 1)}$")
+            plt.ylabel("Peak Frequency [Hz]")
+            plt.title("Fundamental Frequency vs Theoretical K-term")
+            ax.set_xlim(0, 0.03)
+            ax.set_ylim(auto=True)  # Let matplotlib handle it
+            plt.grid(True, alpha=0.3)
+            plt.tight_layout()
+            plt.show()
+
+
+
+
+
+
+
+
 
 
 
@@ -1006,128 +1379,6 @@ def main():
             )
             print(speed_df.to_string(index=False, float_format="{:.3f}".format))
 
-
-
-
-
-            ######## PLOTS   ###########################             
-            # # 3D Plot: Peak Frequency vs L0 and M
-
-            L0_vals_arr = np.array(L0_vals)
-            M_vals_arr = np.array(M_vals)
-            freqs_arr = np.array(freqs)
-
-            # Create grid
-            L0_unique = np.unique(L0_vals_arr)
-            M_unique = np.unique(M_vals_arr)
-            L0_grid, M_grid = np.meshgrid(L0_unique, M_unique)
-
-            # Fill Z grid with matching frequencies
-            Z = np.empty_like(L0_grid, dtype=float)
-            Z[:] = np.nan
-
-            for i, L0 in enumerate(L0_unique):
-                for j, M in enumerate(M_unique):
-                    # Find index matching this (L0, M)
-                    matches = [(k, f) for k, (l, m, f) in enumerate(zip(L0_vals, M_vals, freqs)) if l == L0 and m == M]
-                    if matches:
-                        Z[j, i] = matches[0][1]  # take first match
-
-            # Plot
-            fig = plt.figure(figsize=(12, 8))
-            ax = fig.add_subplot(111, projection='3d')
-            surf = ax.plot_surface(L0_grid, M_grid, Z, cmap=cm.viridis, edgecolor='k', linewidth=0.5, alpha=0.9)
-
-            ax.set_xlabel("Box Length L0")
-            ax.set_ylabel("Wall Mass Factor M")
-            ax.set_zlabel("Peak Frequency [Hz]")
-            ax.set_title("3D Surface of Peak Frequencies")
-            fig.colorbar(surf, shrink=0.5, aspect=10, label="Frequency")
-
-            plt.tight_layout()
-            plt.show()
-
-
-
-            # Marker setup
-            unique_L0s = sorted(set(L0_vals))
-            marker_styles = ['o', 's', '^', 'D', 'v', 'P', 'X', '*', 'H', '8']
-            L0_to_marker = {L0: marker_styles[i % len(marker_styles)] for i, L0 in enumerate(unique_L0s)}
-
-            vmin = min(M_vals)
-            vmax = max(M_vals)
-
-            plt.figure(figsize=(12, 6))
-            for i in range(len(freqs)):
-                marker = L0_to_marker[L0_vals[i]]
-                plt.scatter(freqs[i], amps[i], marker=marker, c=[M_vals[i]],
-                            cmap='viridis', s=70, edgecolors='k', alpha=0.9,
-                            vmin=vmin, vmax=vmax)
-                plt.annotate(f"L0={L0_vals[i]}, M={M_vals[i]}\nη={eta_vals[i]:.3f}",
-                            (freqs[i], amps[i]), fontsize=8, alpha=0.7)
-
-            cbar = plt.colorbar()
-            cbar.set_label("Wall Mass Factor")
-
-            # Legend for L0 values
-            legend_elements = [plt.Line2D([0], [0], marker=L0_to_marker[L0], color='w',
-                                        markerfacecolor='gray', markeredgecolor='k',
-                                        markersize=8, label=f"L0={L0}")
-                            for L0 in unique_L0s]
-            plt.legend(handles=legend_elements, title="Box Length (L0)", loc='upper right', fontsize=8)
-
-            plt.title(plot_title)
-            plt.xlabel("Peak Frequency [Hz]")
-            plt.ylabel("Amplitude")
-            plt.yscale("log")
-            plt.xlim(0, max(freqs) * 1.05)
-            plt.grid(True, alpha=0.3)
-            plt.tight_layout()
-            plt.show()
-
-
-
-
-
-            #  === GET Speed of sound by SLOPE!!! of PLOT and interpolate Peak Frequency(y-axis) vs K/2π(L0 - 1) (x_axis) ===:
-
-            vmin = min(M_vals)
-            vmax = max(M_vals) 
-
-            #### PLOT and interpolate for slPeak Frequency vs K/2π(L0 - 1) ===
-            plt.figure(figsize=(12, 6))
-            for i in range(len(freqs)):
-
-                marker = L0_to_marker[L0_vals[i]]
-                wall_mass_factor = M_vals[i]
-                K_root = find_transcendental_root(wall_mass_factor=wall_mass_factor, N=50)
-                K = K_root
-
-                #plot_transcendental(wall_mass_factor, N)
-                print(f"K root for wall_mass_factor={wall_mass_factor}: {K_root:.6f}")
-
-                x_values = [K / (2 * np.pi * (L0 - 1)) for L0 in L0_vals]
-                plt.scatter(x_values[i], freqs[i], label=None, marker=marker, c=[M_vals[i]],
-                            cmap='viridis', s=70, edgecolors='k', alpha=0.9,
-                            vmin=vmin, vmax=vmax)
-                plt.annotate(f"L0={L0_vals[i]}, M={M_vals[i]}\nη={eta_vals[i]:.3f}",
-                            (x_values[i], freqs[i]), fontsize=8, alpha=0.7)
-
-            cbar = plt.colorbar()
-            cbar.set_label("Wall Mass Factor")
-            # Legend for L0 marker styles
-            legend_elements = [plt.Line2D([0], [0], marker=L0_to_marker[L0], color='w',
-                                        markerfacecolor='gray', markeredgecolor='k',
-                                        markersize=8, label=f"L0={L0}")
-                            for L0 in unique_L0s]
-            plt.legend(handles=legend_elements, title="Box Length (L0)", loc='upper right', fontsize=8)
-
-            plt.xlabel(r"$\frac{K}{2\pi(L_0 - 1)}$")
-            plt.ylabel("Peak Frequency [Hz]")
-            plt.title("Fundamental Frequency vs Theoretical K-term")
-            plt.grid(True, alpha=0.3)
-            plt.tight_layout()
-            plt.show()
 
 
 
@@ -1265,9 +1516,14 @@ def main():
     else:
         print("🔬 Batch mode disabled — analyzing single file:")
         # --- Process a single file ---
-        process_file("wall_position.csv")  # You can modify this to any filename
+        if choose_specific_file == 0:
+            process_file("wall_position.csv")  # You can modify this to any filename
+        else:
+            process_file(os.path.join(folder_path, single_plot_filename))
+        #process_file("wall_position.csv")  # You can modify this to any filename
         #process_file(os.path.join(folder_path, single_plot_filename))  # You can modify this to any filename
         
+
 
 
 
