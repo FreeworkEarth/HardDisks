@@ -9,6 +9,8 @@ from scipy.signal import find_peaks
 from scipy.signal import savgol_filter
 from scipy.signal import welch
 from scipy.signal import butter, filtfilt
+from scipy.stats import linregress
+
 
 from scipy.optimize import root_scalar
 from matplotlib.cm import viridis
@@ -22,6 +24,9 @@ from statistics import mean, stdev
 import re
 import os
 import glob
+
+##### # --- Numba JIT compilation ---
+from numba import njit
 
 ## source venv/bin/activate
 
@@ -37,19 +42,21 @@ lowcut = 0.001  # Hz
 highcut = 1  # Hz
 
 show_plots = False                  # Set to False to disable plot display
-FFT_mode = "windowed_hanning_SCIPY"       # Options: "raw", "centered", "windowed_hanning","windowed_hanning_SCIPY", "welchs_smoothing_on_windowed_signal_hanning"
+save_figs = True                # Set to True to print files pdf and png
+
+
+FFT_mode = "numerical_recipes_c"       # Options: "raw" , "numerical_recipes_c", "centered", "windowed_hanning","windowed_hanning_SCIPY", "welchs_smoothing_on_windowed_signal_hanning"
 # --- Choose which peak you want to return ---
 peak_selection_mode = "raw_near_smoothed_lowfreq"  # Options: 'smoothed_max', 'raw_max', 'raw_near_smoothed_lowfreq'← your default
 
 choose_specific_file = 1 # 0 = process wall_positions.csv from vidual simualation, 1 = choose specific file from experiments
-single_plot_filename = "wall_x_positions_L0_150_wallmassfactor_200_run0.csv"  # Leave as None to plot all
+single_plot_filename = "wall_x_positions_L0_200_wallmassfactor_200_run0.csv"  # Leave as None to plot all
 
 
 # Constants from simulation in C
-
 if reduced_units == 1:
     # Constants for reduced units
-    folder_path = os.path.abspath("experiments_speed_of_sound/mode1_normalized_units/")
+    folder_path = os.path.abspath("experiments_speed_of_sound/mode1_normalized_units/mode1_normalized_units_1particle_1_pixel_1_1_factor/")
     radius = 1
     N = 50  # per side
     A = 10
@@ -143,7 +150,7 @@ def estimate_sigma_from_dominant_freq(signal, dt, min_sigma=1.0, max_sigma=10.0,
     sigma = min_sigma + (max_sigma - min_sigma) * norm_freq
 
     print(f"🎯 Dominant frequency of wall signal: {dominant_freq:.4f} Hz")
-    print(f"📏 Estimated smoothing sigma: {sigma:.2f}")
+    print(f"📏 Estimated smoothing sigma: {sigma:.4f}")
 
     return sigma, dominant_freq
     
@@ -225,7 +232,7 @@ def estimate_sigma_from_spectral_centroid(signal, dt, min_sigma=1.0, max_sigma=1
     sigma = min_sigma + (max_sigma - min_sigma) * norm_freq
 
     print(f"🎯 Spectral centroid of wall signal: {spectral_centroid:.4f} Hz")
-    print(f"📏 Estimated smoothing sigma: {sigma:.2f}")
+    print(f"📏 Estimated smoothing sigma: {sigma:.4f}")
 
     return sigma, spectral_centroid
 
@@ -237,8 +244,7 @@ def annotate_peaks_smart1(freqs, amplitudes, ax, label_prefix="Peak",
                          show_smoothed_curve=True, smoothed_color='red'):
     """
     Detects top N peaks using smoothed signal, then refines location from raw signal.
-    Shows:
-    - Smoothed peak
+    Shows: 
     - Raw value at smoothed peak
     - Refined raw peak in a window
     - Global raw peak
@@ -255,8 +261,8 @@ def annotate_peaks_smart1(freqs, amplitudes, ax, label_prefix="Peak",
     smoothed_amp = smoothed_full[valid_idx]
 
     print(f"🔬 Searching in frequency range {freqs[0]:.4f} to {freqs[-1]:.4f}")
-    print(f"🔬 Max smoothed amplitude: {np.max(smoothed_amp):.2e}")
-    print(f"🔬 Median: {np.median(smoothed_amp):.2e}, Std: {np.std(smoothed_amp):.2e}")
+    print(f"🔬 Max smoothed amplitude: {np.max(smoothed_amp):.4e}")
+    print(f"🔬 Median: {np.median(smoothed_amp):.4e}, Std: {np.std(smoothed_amp):.4e}")
 
     # === Plot smoothed curve ===
     if show_smoothed_curve:
@@ -272,7 +278,7 @@ def annotate_peaks_smart1(freqs, amplitudes, ax, label_prefix="Peak",
     else:
         base_prominence = prominence
 
-    print(f"🔍 Prominence base: {base_prominence:.2e}")
+    print(f"🔍 Prominence base: {base_prominence:.4e}")
 
     # === Peak search ===
     for scale in [1.0, 1.5, 2.0, 3.0, 5.0]:
@@ -296,17 +302,17 @@ def annotate_peaks_smart1(freqs, amplitudes, ax, label_prefix="Peak",
         fallback_freq = freqs[fallback_idx]
         fallback_amp = amplitudes_full[np.argmin(np.abs(freqs_full - fallback_freq))]
 
-        ax.plot(fallback_freq, fallback_amp, 'o', color='cyan', label=f"Fallback Peak @ {fallback_freq:.2f} Hz")
-        ax.annotate(f"{fallback_freq:.2f} Hz\nFallback", 
+        ax.plot(fallback_freq, fallback_amp, 'o', color='cyan', label=f"Fallback Peak @ {fallback_freq:.4f} Hz")
+        ax.annotate(f"{fallback_freq:.4f} Hz\nFallback", 
                     xy=(fallback_freq, fallback_amp), 
                     xytext=(5, 5), textcoords='offset points', fontsize=8, color='cyan')
 
-        print(f"📍 Fallback peak: {fallback_freq:.3f} Hz, Raw Amp: {fallback_amp:.2e}")
+        print(f"📍 Fallback peak: {fallback_freq:.4f} Hz, Raw Amp: {fallback_amp:.4e}")
         
         return fallback_freq, fallback_amp
         
 
-    print(f"✅ Found {len(peaks)} peaks (prominence: {prom:.2e})")
+    print(f"✅ Found {len(peaks)} peaks (prominence: {prom:.4e})")
 
     prominences = properties["prominences"]
     top_peaks = np.argsort(prominences)[::-1][:max_peaks]
@@ -333,19 +339,19 @@ def annotate_peaks_smart1(freqs, amplitudes, ax, label_prefix="Peak",
             raw_peak_amp = amplitudes_full[np.argmin(np.abs(freqs_full - freq))]
 
         # Plot peaks
-        ax.plot(freq, amp_smoothed, 'o', color='red', label=f"Smoothed Peak @ {freq:.2f} Hz")
-        ax.plot(raw_peak_freq, raw_peak_amp, 'o', color='blue', label=f"Refined Raw Peak @ {raw_peak_freq:.2f} Hz")
+        ax.plot(freq, amp_smoothed, 'o', color='red', label=f"Smoothed Peak @ {freq:.4f} Hz")
+        ax.plot(raw_peak_freq, raw_peak_amp, 'o', color='blue', label=f"Refined Raw Peak @ {raw_peak_freq:.4f} Hz")
         ax.axvline(freq, linestyle='--', color='gray', alpha=0.5)
 
-        ax.annotate(f"{freq:.2f} Hz\nSmoothed: {amp_smoothed:.2e}",
+        ax.annotate(f"{freq:.4f} Hz\nSmoothed: {amp_smoothed:.4e}",
                     xy=(freq, amp_smoothed), xytext=(5, 10),
                     textcoords='offset points', fontsize=8, color='red')
 
-        ax.annotate(f"{raw_peak_freq:.2f} Hz\nRaw: {raw_peak_amp:.2e}",
+        ax.annotate(f"{raw_peak_freq:.4f} Hz\nRaw: {raw_peak_amp:.4e}",
                     xy=(raw_peak_freq, raw_peak_amp), xytext=(5, -15),
                     textcoords='offset points', fontsize=8, color='blue')
 
-        print(f"📍 Peak {i+1} — Smoothed @ {freq:.3f} Hz, Raw refined @ {raw_peak_freq:.3f} Hz")
+        print(f"📍 Peak {i+1} — Smoothed @ {freq:.4f} Hz, Raw refined @ {raw_peak_freq:.4f} Hz")
 
         if raw_peak_amp > highest_amp:
             highest_amp = raw_peak_amp
@@ -355,8 +361,8 @@ def annotate_peaks_smart1(freqs, amplitudes, ax, label_prefix="Peak",
     raw_peak_idx = np.argmax(amplitudes_full)
     raw_peak_freq = freqs_full[raw_peak_idx]
     raw_peak_amp = amplitudes_full[raw_peak_idx]
-    ax.plot(raw_peak_freq, raw_peak_amp, 'X', color='blue', markersize=8, label=f"Raw Highest Peak @ {raw_peak_freq:.2f} Hz")
-    ax.annotate(f"{raw_peak_freq:.2f} Hz\n{raw_peak_amp:.2e}",
+    ax.plot(raw_peak_freq, raw_peak_amp, 'X', color='blue', markersize=8, label=f"Raw Highest Peak @ {raw_peak_freq:.4f} Hz")
+    ax.annotate(f"{raw_peak_freq:.4f} Hz\n{raw_peak_amp:.4e}",
                 xy=(raw_peak_freq, raw_peak_amp),
                 xytext=(5, -10), textcoords='offset points',
                 fontsize=8, color='blue')
@@ -370,7 +376,7 @@ def annotate_peaks_smart1(freqs, amplitudes, ax, label_prefix="Peak",
     ax.legend(unique.values(), unique.keys(), fontsize=9)
 
     if highest_peak:
-        print(f"📍 ANNOTATE_PEAKS_SMART - Highest Smoothed Peak @ {highest_peak[0]:.3f} Hz — Raw: {highest_peak[1]:.2e}")
+        print(f"📍 ANNOTATE_PEAKS_SMART - Highest Smoothed Peak @ {highest_peak[0]:.4f} Hz — Raw: {highest_peak[1]:.4e}")
         return highest_peak
     else:
         print("⚠️ INSIDE ANNOTATE_PEAKS_SMART - No highest peak found.")
@@ -403,7 +409,7 @@ def annotate_peaks_smart(freqs, amplitudes, ax, label_prefix="Peak",
     smoothed_amp = gaussian_filter1d(amplitudes, sigma=smooth_sigma)
 
     print(f"🔬 Searching from {freqs[0]:.4f} Hz to {freqs[-1]:.4f} Hz")
-    print(f"🔬 Max smoothed: {np.max(smoothed_amp):.2e}, Median: {np.median(smoothed_amp):.2e}, Std: {np.std(smoothed_amp):.2e}")
+    print(f"🔬 Max smoothed: {np.max(smoothed_amp):.4e}, Median: {np.median(smoothed_amp):.4e}, Std: {np.std(smoothed_amp):.4e}")
 
     if show_smoothed_curve:
         ax.plot(freqs, smoothed_amp, label=f"Smoothed FFT (σ={smooth_sigma})",
@@ -418,7 +424,7 @@ def annotate_peaks_smart(freqs, amplitudes, ax, label_prefix="Peak",
     else:
         base_prominence = prominence
 
-    print(f"🔍 Prominence base: {base_prominence:.2e}")
+    print(f"🔍 Prominence base: {base_prominence:.4e}")
 
     peaks, properties = find_peaks(smoothed_amp, prominence=base_prominence)
     if len(peaks) == 0:
@@ -430,8 +436,8 @@ def annotate_peaks_smart(freqs, amplitudes, ax, label_prefix="Peak",
                 fallback_freq = freqs[idx]
                 raw_idx = np.argmin(np.abs(freqs_full - fallback_freq))
                 fallback_amp = amplitudes_full[raw_idx]
-                ax.plot(fallback_freq, fallback_amp, 'o', color='cyan', label=f"Fallback Peak @ {fallback_freq:.2f} Hz")
-                ax.annotate(f"{fallback_freq:.2f} Hz\nFallback", (fallback_freq, fallback_amp),
+                ax.plot(fallback_freq, fallback_amp, 'o', color='cyan', label=f"Fallback Peak @ {fallback_freq:.4f} Hz")
+                ax.annotate(f"{fallback_freq:.4f} Hz\nFallback", (fallback_freq, fallback_amp),
                             textcoords='offset points', xytext=(5, 5), fontsize=8, color='cyan')
                 return fallback_freq, fallback_amp
             else:
@@ -463,13 +469,13 @@ def annotate_peaks_smart(freqs, amplitudes, ax, label_prefix="Peak",
             a_refined = amplitudes_full[np.argmin(np.abs(freqs_full - f_smooth))]
 
         # Plot both
-        ax.plot(f_smooth, a_smooth, 'o', color='red', label=f"Smoothed Peak @ {f_smooth:.2f} Hz")
-        ax.plot(f_refined, a_refined, 'o', color='blue', label=f"Refined Raw Peak @ {f_refined:.2f} Hz")
+        ax.plot(f_smooth, a_smooth, 'o', color='red', label=f"Smoothed Peak @ {f_smooth:.4f} Hz")
+        ax.plot(f_refined, a_refined, 'o', color='blue', label=f"Refined Raw Peak @ {f_refined:.4f} Hz")
         ax.axvline(f_smooth, linestyle='--', color='gray', alpha=0.4)
 
-        ax.annotate(f"{f_smooth:.2f} Hz\nS: {a_smooth:.2e}", (f_smooth, a_smooth),
+        ax.annotate(f"{f_smooth:.4f} Hz\nS: {a_smooth:.4e}", (f_smooth, a_smooth),
                     textcoords='offset points', xytext=(5, 10), fontsize=8, color='red')
-        ax.annotate(f"{f_refined:.2f} Hz\nR: {a_refined:.2e}", (f_refined, a_refined),
+        ax.annotate(f"{f_refined:.4f} Hz\nR: {a_refined:.4e}", (f_refined, a_refined),
                     textcoords='offset points', xytext=(5, -15), fontsize=8, color='blue')
 
         refined_peaks.append((f_refined, a_refined))
@@ -478,8 +484,8 @@ def annotate_peaks_smart(freqs, amplitudes, ax, label_prefix="Peak",
     global_idx = np.argmax(amplitudes_full)
     global_freq = freqs_full[global_idx]
     global_amp = amplitudes_full[global_idx]
-    ax.plot(global_freq, global_amp, 'X', color='navy', markersize=8, label=f"Raw Global Peak @ {global_freq:.2f} Hz")
-    ax.annotate(f"{global_freq:.2f} Hz\n{global_amp:.2e}",
+    ax.plot(global_freq, global_amp, 'X', color='navy', markersize=8, label=f"Raw Global Peak @ {global_freq:.4f} Hz")
+    ax.annotate(f"{global_freq:.4f} Hz\n{global_amp:.4e}",
                 (global_freq, global_amp),
                 textcoords='offset points', xytext=(5, -10), fontsize=8, color='navy')
 
@@ -658,10 +664,125 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=2):
 
 
 
+@njit
+def four1(data, nn, isign):
+    n = nn << 1
+    j = 0
+    for i in range(0, n, 2):
+        if j > i:
+            data[i], data[j] = data[j], data[i]
+            data[i+1], data[j+1] = data[j+1], data[i+1]
+        m = n >> 1
+        while m >= 2 and j >= m:
+            j -= m
+            m >>= 1
+        j += m
+
+    mmax = 2
+    while n > mmax:
+        istep = mmax << 1
+        theta = isign * (2.0 * np.pi / mmax)
+        wtemp = np.sin(0.5 * theta)
+        wpr = -2.0 * wtemp * wtemp
+        wpi = np.sin(theta)
+        wr = 1.0
+        wi = 0.0
+
+        for m in range(0, mmax, 2):
+            for i in range(m, n, istep):
+                j = i + mmax
+                tempr = wr * data[j] - wi * data[j+1]
+                tempi = wr * data[j+1] + wi * data[j]
+                data[j] = data[i] - tempr
+                data[j+1] = data[i+1] - tempi
+                data[i] += tempr
+                data[i+1] += tempi
+            wr_temp = wr
+            wr = wr * wpr - wi * wpi + wr
+            wi = wi * wpr + wr_temp * wpi + wi
+        mmax = istep
+    return data
+
+
+@njit
+def manual_freq_axis(N, dt):
+    freqs = np.zeros(N)
+    for i in range(N):
+        if i <= N // 2:
+            freqs[i] = i / (N * dt)
+        else:
+            freqs[i] = -(N - i) / (N * dt)
+    return freqs
+
+
+
+# PLOT SPEED OF SOUND on Packing fraction
+def plot_cs_eta():
+    data = {
+        "L0":   [7.5, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 50.0],
+        "eta":  [0.524, 0.393, 0.262, 0.196, 0.157, 0.131, 0.112, 0.079],
+        "cs_fit": [7.04, 4.13, 2.54, 2.59, 2.08, 1.24, 1.45, 1.52],
+        "SPT":    [5.31, 3.53, 2.51, 2.15, 1.97, 1.86, 1.78, 1.66],
+        "Hend":   [5.46, 3.59, 2.53, 2.16, 1.97, 1.86, 1.79, 1.66],
+        "Roman":  [5.99, 3.78, 2.61, 2.20, 2.10, 1.89, 1.81, None],
+        "err":    [0.09, 0.08, 0.03, 0.02, 0.02, 0.02, 0.02, None],
+    }
+
+    # Create DataFrame
+    df = pd.DataFrame(data)
+
+    # Plot
+    plt.figure(figsize=(8, 5))
+    plt.errorbar(df["eta"], df["cs_fit"], yerr=df["err"], fmt='o-', label=r'$c_s^\mathrm{fit}$', capsize=4)
+    plt.plot(df["eta"], df["SPT"], 's--', label='SPT')
+    plt.plot(df["eta"], df["Hend"], 'd--', label="Henderson")
+    plt.plot(df["eta"][:-1], df["Roman"][:-1], '^--', label="Roman et al. (2002)")  # Exclude None
+
+    # Formatting
+    plt.xlabel(r"Packing fraction $\eta$")
+    plt.ylabel(r"Speed of sound $c_s$")
+    plt.title(r"Speed of sound $c_s$ vs. packing fraction $\eta$")
+    plt.grid(True, linestyle=':')
+    plt.legend()
+    plt.tight_layout()
+    filename = "FINAL speed_of_sound_on_packing_fracture"
+    pdf_path = os.path.join(filename + ".pdf")
+    #png_path = os.path.join(filepath_save, filename + ".png")
+    if save_figs == True:                # Set to True to print files pdf and png
+        plt.savefig(pdf_path, dpi=300)
+        #plt.savefig(png_path, dpi=300)
+    
+    
+    
+    plt.show()
+
+    """ 
+      if filepath.endswith(".csv"):
+        filepath_save = os.path.dirname(filepath)
+    else:
+        filepath_save = filepath  # assume it's already a directory
+    filename = "FINAL speed_of_sound_on_packing_fracture"
+    pdf_path = os.path.join(filepath_save, filename + ".pdf")
+    png_path = os.path.join(filepath_save, filename + ".png")
+    if save_figs == True:                # Set to True to print files pdf and png
+        plt.savefig(pdf_path, dpi=300)
+        plt.savefig(png_path, dpi=300)
+    """
+  
+   
+################################################################################### 
 
 # --- Process a single file ---
 def process_file(filepath):
     df = pd.read_csv(filepath)
+    # If 'filepath' accidentally includes a filename, get its directory
+  # Ensure we have a valid directory to save into
+    if filepath.endswith(".csv"):
+        filepath_save = os.path.dirname(filepath)
+    else:
+        filepath_save = filepath  # assume it's already a directory
+
+
     df.columns = df.columns.str.strip()
 
     print("First 10 rows of the DataFrame:")
@@ -685,6 +806,12 @@ def process_file(filepath):
     if start_idx is None:
         print("⚠️ No movement detected at all. Skipping file:", filepath)
         return
+
+    ##### PARAMETER EXTRACTION
+    L0, wall_mass_factor, run = extract_params_from_filename(filepath)
+    if L0 is None:
+        print(f"⚠️ Could not extract parameters from {filepath}")
+
 
     # Trim the time and displacement arrays
     time = time[start_idx:]
@@ -710,10 +837,21 @@ def process_file(filepath):
     ax.grid(True)
     ax.legend()
     plt.tight_layout()
+
+    filename = f"divider_x_displacement_with_boxlength_{L0}_and_wallfactor_{wall_mass_factor}"
+    pdf_path = os.path.join(filepath_save, filename + ".pdf")
+    png_path = os.path.join(filepath_save, filename + ".png")
+
+    if save_figs == True:                # Set to True to print files pdf and png
+        plt.savefig(pdf_path, dpi=300)
+        plt.savefig(png_path, dpi=300)
+    
     if enable_batch_processing and not show_plots:
         plt.close(fig)  # Don’t show intermediate plots
     else:
         plt.show()
+       
+           
 
     # Apply bandpass filter if enabled
     if enable_bandpass_filter:
@@ -781,9 +919,39 @@ def process_file(filepath):
             nperseg=2048,  # Try increasing this
             noverlap=1024,  # Half overlap
             nfft=8192       # Force higher FFT length (zero-padded)
-)
-        amplitude = np.sqrt(power)  # Convert power to amplitude
+        )
 
+
+    elif FFT_mode == "numerical_recipes_c":
+        def next_power_of_two(n):
+            return 1 << (n - 1).bit_length()
+
+        original_N = len(fft_input_signal)
+        if not np.log2(original_N).is_integer():
+            new_N = next_power_of_two(original_N)
+            padding = new_N - original_N
+            fft_input_signal = np.pad(fft_input_signal, (0, padding), mode='constant')
+            print(f"⚠️ Input padded from {original_N} to {new_N} for NR FFT")
+        else:
+            new_N = original_N
+
+        N = new_N  # final length (power of 2)
+        dt = np.mean(np.diff(time))  # make sure dt is consistent
+        data = np.zeros(2 * N)
+        data[::2] = fft_input_signal
+        data[1::2] = 0.0
+
+        # Apply NR FFT
+        four1(data, N, isign=1)
+
+        # Recover FFT
+        re = data[::2]
+        im = data[1::2]
+        fft_result = re + 1j * im
+        power = np.abs(fft_result)**2 / N
+        amplitude = np.abs(fft_result) / N
+        freqs = manual_freq_axis(N, dt)
+    
 
     #### POWER SPECTRUM
     power = amplitude**2
@@ -835,7 +1003,7 @@ def process_file(filepath):
     # --- Estimate smoothing sigmas correctly ---
     smootthing_sigma_ampl_from_freq, dominant_freq = estimate_sigma_from_dominant_freq(positive_freqs, positive_amplitude)
     smootthing_sigma_ampl, centroid = estimate_sigma_from_spectral_centroid(positive_freqs, positive_amplitude, min_sigma=1.0, max_sigma=10.0, freq_floor=0.01, freq_ceiling=2.0)
-    print(f"Estimated smoothing sigma for amplitude: {smootthing_sigma_ampl:.2f}")
+    print(f"Estimated smoothing sigma for amplitude: {smootthing_sigma_ampl:.4f}")
 
     if smootthing_sigma_ampl is None:
         smootthing_sigma_ampl = smootthing_sigma_ampl_from_freq
@@ -845,10 +1013,7 @@ def process_file(filepath):
 
 
     ########### PLOTS #############
-    L0, wall_mass_factor, run = extract_params_from_filename(filepath)
-    if L0 is None:
-        print(f"⚠️ Could not extract parameters from {filepath}")
-
+ 
     ####################################################    
     # --- Plot: Wall X Velocity ---
     # --- Plot: Original Amplitude Spectrum with Smart Annotated Peaks ---
@@ -859,7 +1024,7 @@ def process_file(filepath):
     ax.plot(positive_freqs, smoothed_amplitude, label=f"Smoothed FFT SavgolFilter (window={window_length_savgol},polyorder={polyorder_savgol})", color='black', alpha=0.5)
     # Add spectral centroid line
     if centroid is not None:
-        ax.axvline(centroid, color='orange', linestyle='--', linewidth=2, label=f"Spectral Centroid: {centroid:.2f} Hz")
+        ax.axvline(centroid, color='orange', linestyle='--', linewidth=2, label=f"Spectral Centroid: {centroid:.4f} Hz")
         #Shaded area around the centroid ± 0.1 Hz
         band_width = 0.1
         ax.axvspan(centroid - band_width, centroid + band_width, color='grey', alpha=0.1, label="Centroid Region ±0.1 Hz")
@@ -912,7 +1077,7 @@ def process_file(filepath):
         smoothed_color='red',         # ← customize color if you want)
     )
     if highest_peak_position:
-        print(f"Highest Peak Frequency: {highest_peak_position[0]} Hz, Amplitude: {highest_peak_position[1]:.2e}")
+        print(f"Highest Peak Frequency: {highest_peak_position[0]} Hz, Amplitude: {highest_peak_position[1]:.4e}")
 
     
 
@@ -928,7 +1093,7 @@ def process_file(filepath):
     fig, ax = plt.subplots(figsize=(12, 5))
     ax.plot(positive_freqs, positive_power, label="Power Spectrum", color='purple')
     ax.plot(positive_freqs, smoothed_power, label="Smoothed Power Spectrum", color='black', alpha=0.5)
-    ax.axvline(centroid, color='orange', linestyle='--', linewidth=2, label=f"Spectral Centroid: {centroid:.2f} Hz")
+    ax.axvline(centroid, color='orange', linestyle='--', linewidth=2, label=f"Spectral Centroid: {centroid:.4f} Hz")
     ax.axvspan(centroid - band_width, centroid + band_width, color='grey', alpha=0.1, label="Centroid Region ±0.1 Hz")
     
 
@@ -960,13 +1125,20 @@ def process_file(filepath):
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel("Power")
     ax.set_title("Wall X Power Spectrum with Smart Peak Detection")
-    ax.set_xlim(0, 0.1)
+    ax.set_xlim(0, 0.03)
     ax.set_ylim(auto=True)
     ax.set_xscale('linear')
     ax.set_yscale('linear')  # ← let matplotlib do the log transform
     ax.grid(True)
     ax.legend()
     plt.tight_layout()
+    filename = f"Power_Freq_Spectrum_with_boxlength_{L0}_and_wallfactor_{wall_mass_factor}"
+    pdf_path = os.path.join(filepath_save, filename + ".pdf")
+    png_path = os.path.join(filepath_save, filename + ".png")
+
+    if save_figs == True:                # Set to True to print files pdf and png
+        plt.savefig(pdf_path, dpi=300)
+        plt.savefig(png_path, dpi=300)
 
     if enable_batch_processing and not show_plots:
         plt.close(fig)
@@ -976,7 +1148,7 @@ def process_file(filepath):
     if highest_peak_power:
         FUNDAMENTAL_RESONANCE_FREQUENCY = highest_peak_power[0]
         FUNDAMENTAL_RESONANCE_FREQUENCY_AMPLITUDE = highest_peak_power[1]
-        print(f"Highest Power Spectrum Peak: {highest_peak_power[0]:.4f} Hz, Power: {highest_peak_power[1]:.2e}")
+        print(f"Highest Power Spectrum Peak: {highest_peak_power[0]:.4f} Hz, Power: {highest_peak_power[1]:.4e}")
     
     # --- Plot: Velocity Spectrum ---
 
@@ -1000,7 +1172,7 @@ def process_file(filepath):
     # Plot smoothed Savgol amplitude for visual reference
     ax.plot(positive_freqs_vel, smoothed_velocity, label=f"Smoothed FFT SavgolFilter (window={window_length_savgol},polyorder={polyorder_savgol})", color='black', alpha=0.5)
     # Add spectral centroid line
-    ax.axvline(centroid, color='orange', linestyle='--', linewidth=2, label=f"Spectral Centroid: {centroid:.2f} Hz")
+    ax.axvline(centroid, color='orange', linestyle='--', linewidth=2, label=f"Spectral Centroid: {centroid:.4f} Hz")
     #Shaded area around the centroid ± 0.1 Hz
     band_width = 0.1
     ax.axvspan(centroid - band_width, centroid + band_width, color='grey', alpha=0.1, label="Centroid Region ±0.1 Hz")
@@ -1048,7 +1220,7 @@ def process_file(filepath):
         smoothed_color='red'          # ← customize color if you want
     )
     if highest_peak_vel:
-        print(f"Highest Peak Vel Frequency: {highest_peak_vel[0]} Hz, Amplitude: {highest_peak_vel[1]:.2e}")
+        print(f"Highest Peak Vel Frequency: {highest_peak_vel[0]} Hz, Amplitude: {highest_peak_vel[1]:.4e}")
 
 
 
@@ -1067,8 +1239,14 @@ def process_file(filepath):
 
 
 
+
 #### MAIN 
 def main():
+
+    plot_cs_eta()
+    
+
+
     if enable_batch_processing:
         filepaths = sorted(glob.glob(os.path.join(folder_path, "*.csv")))
         print("📂 Files found:", filepaths)
@@ -1084,7 +1262,7 @@ def main():
             if peak:
                 freq, amp = peak
                 results.append((L0, wall_mass_factor, freq, amp))
-                print(f"✅ {path} → L0={L0}, M={wall_mass_factor}, freq={freq:.4f} Hz, amp={amp:.2e}")
+                print(f"✅ {path} → L0={L0}, M={wall_mass_factor}, freq={freq:.4f} Hz, amp={amp:.4e}")
             else:
                 print(f"❌ No peak found for {path}")
 
@@ -1098,31 +1276,45 @@ def main():
             eta_vals = [np.pi * radius**2 * N / (4 * A * L0) for L0 in L0_vals]
             
 
+            print(set(M_vals))
+            print([type(m) for m in M_vals[:5]])
 
-
+            
 
             ######## PLOTS   ###########################             
             # # 3D Plot: Peak Frequency vs L0 and M
 
-            L0_vals_arr = np.array(L0_vals)
-            M_vals_arr = np.array(M_vals)
-            freqs_arr = np.array(freqs)
+            # Include only selected M values
+            included_M_vals_3D = {20, 50, 100, 200, 300, 500, 750, 1000}
+            # Filter data to include only selected M values
+            filtered_data = [(l, m, f) for l, m, f in zip(L0_vals, M_vals, freqs) if m in included_M_vals_3D]
+            L0_filtered, M_filtered, freqs_filtered = zip(*filtered_data)
 
-            # Create grid
+
+            # Convert to arrays
+            L0_vals_arr = np.array(L0_filtered)
+            M_vals_arr = np.array(M_filtered)
+            freqs_arr = np.array(freqs_filtered)
+
+            print("Included M values:", included_M_vals_3D)
+            print("Unique M in filtered data:", sorted(set(M_vals_arr)))
+
+            # Unique values for grid
             L0_unique = np.unique(L0_vals_arr)
             M_unique = np.unique(M_vals_arr)
+
+            # Create meshgrid
             L0_grid, M_grid = np.meshgrid(L0_unique, M_unique)
 
-            # Fill Z grid with matching frequencies
+            # Fill Z grid
             Z = np.empty_like(L0_grid, dtype=float)
             Z[:] = np.nan
 
             for i, L0 in enumerate(L0_unique):
                 for j, M in enumerate(M_unique):
-                    # Find index matching this (L0, M)
-                    matches = [(k, f) for k, (l, m, f) in enumerate(zip(L0_vals, M_vals, freqs)) if l == L0 and m == M]
+                    matches = [(f) for l, m, f in filtered_data if l == L0 and m == M]
                     if matches:
-                        Z[j, i] = matches[0][1]  # take first match
+                        Z[j, i] = matches[0]  # first match
 
             # Plot
             fig = plt.figure(figsize=(12, 8))
@@ -1136,14 +1328,147 @@ def main():
             fig.colorbar(surf, shrink=0.5, aspect=10, label="Frequency")
 
             plt.tight_layout()
+            # Save filenames
+            filename = f"3D Plot Power Spectrum over Wallmassfactor and Length"
+            if save_figs:
+                pdf_path = os.path.join(folder_path, filename + ".pdf")
+                png_path = os.path.join(folder_path, filename + ".png")
+                plt.savefig(pdf_path, dpi=300)
+                plt.savefig(png_path, dpi=300)
+         
             plt.show()
 
 
+ 
 
-            # Marker setup
+            # Marker setup ALL PLOTS
             unique_L0s = sorted(set(L0_vals))
             marker_styles = ['o', 's', '^', 'D', 'v', 'P', 'X', '*', 'H', '8']
             L0_to_marker = {L0: marker_styles[i % len(marker_styles)] for i, L0 in enumerate(unique_L0s)}
+
+
+
+            ##### PLOT PAPER ROMAN,2002 + SPEED OF SOUND
+            print("\n📈 Estimating Speed of Sound from Line Fit (per L0, only M = 200, 500, 1000):")
+            # Roman 2002 paper values manually entered
+            paper_values = {
+                7.5:  (5.99, 0.09),
+                10.0: (3.78, 0.08),
+                15.0: (2.61, 0.03),
+                20.0: (2.20, 0.02),
+                25.0: (2.10, 0.02),
+                30.0: (1.89, 0.02),
+                35.0: (1.81, 0.02),
+            }
+
+            included_M_vals = { 200, 300, 500, 1000, 5000}
+            colors = plt.cm.viridis(np.linspace(0, 1, len(unique_L0s)))
+            fitted_results = []
+
+            fig, ax = plt.subplots(figsize=(12, 6))
+
+            for idx_L0, L0 in enumerate(unique_L0s):
+                x_vals, y_vals = [], []
+                color = colors[idx_L0]
+
+                for i in range(len(freqs)):
+                    if L0_vals[i] == L0 and M_vals[i] in included_M_vals:
+                        wall_mass_factor = M_vals[i]
+                        freq = freqs[i]
+                        K_root = find_transcendental_root(wall_mass_factor=wall_mass_factor, N=50)
+                        x = K_root / (2 * np.pi * (L0 - 1))
+                        x_vals.append(x)
+                        y_vals.append(freq)
+
+                        ax.scatter(x, freq, color=color, edgecolor='k', s=70, alpha=0.9)
+                        ax.annotate(f"M={wall_mass_factor}",
+                                    (x, freq), fontsize=8, alpha=0.7)
+
+                if len(x_vals) < 2:
+                    print(f"⚠️ Not enough points for L0={L0} — skipping fit.")
+                    continue
+
+                x_vals = np.array(x_vals)
+                y_vals = np.array(y_vals)
+
+                # Linear regression (fit slope + intercept)
+                result = linregress(x_vals, y_vals)
+                c_s_fitted = result.slope
+                intercept = result.intercept
+
+                eta = np.pi * radius**2 * N / (4 * A * L0)
+
+                def theoretical_cs(a_val):
+                    numerator = (1 + eta + 3 * a_val * eta**2 - a_val * eta**3)
+                    denominator = (1 - eta)**3
+                    return np.sqrt((2 * k_B * T / mass_particle) * (numerator / denominator))
+
+                cs_SPT = theoretical_cs(0.0)
+                cs_Henderson = theoretical_cs(0.125)
+                paper_val, paper_err = paper_values.get(L0, (np.nan, np.nan))
+
+                fitted_results.append((L0, eta, c_s_fitted, cs_SPT, cs_Henderson, paper_val, paper_err))
+
+                # Plot fit line
+                x_line = np.linspace(min(x_vals)*0.9, max(x_vals)*1.1, 100)
+                y_line = c_s_fitted * x_line + intercept
+                ax.plot(x_line, y_line, linestyle='--', color=color,
+                        label=fr"L₀={L0:.1f} (η={eta:.3f}), $c_s$={c_s_fitted:.2f}, "
+                            fr"SPT={cs_SPT:.2f}, Henderson={cs_Henderson:.2f}, Roman,2002: {paper_val:.2f}±{paper_err:.2f}")
+
+                # Triangle to show slope
+                x0, x1 = x_vals[0], x_vals[-1]
+                y0, y1 = c_s_fitted * x0 + intercept, c_s_fitted * x1 + intercept
+                dx, dy = x1 - x0, y1 - y0
+                scale = 0.2
+
+                x_triangle = x0 + dx * scale
+                y_triangle = y0 + dy * scale
+
+                ax.plot([x0, x0 + dx*scale], [y0, y0], color=color, lw=1.5)
+                ax.plot([x0 + dx*scale, x0 + dx*scale], [y0, y_triangle], color=color, lw=1.5)
+                ax.plot([x0, x0 + dx*scale], [y0, y_triangle], color=color, lw=1.5, linestyle=":")
+
+                # Add slope label
+                ax.annotate(fr"$c_s$ = {c_s_fitted:.2f}", (x_triangle, y_triangle + 0.005),
+                            fontsize=9, color=color, ha='center')
+
+            # Final plot touches
+            ax.set_xlabel(r"$\frac{K}{2\pi(L_0 - 1)}$")
+            ax.set_ylabel("Peak Frequency [Hz]")
+            ax.set_title("Fundamental Frequency vs Theoretical K-term (Fitted per $L_0$)")
+            plt.xscale("log")
+            plt.yscale("log")
+            ax.grid(True, alpha=0.3)
+            ax.legend(title="Box Length, η and Speed of Sound", fontsize=8)
+            plt.tight_layout()
+
+            filename = f"Speed_of_Sound_with slope by freq over K 2piL01"
+            pdf_path = os.path.join(folder_path, filename + ".pdf")
+            png_path = os.path.join(folder_path, filename + ".png")
+            plt.savefig(pdf_path, dpi=300)
+            plt.savefig(png_path, dpi=300)
+            plt.show()
+
+            # Output final table
+            print("\n📊 Table: Speed of Sound per L0 (from slope fits):")
+            summary_df = pd.DataFrame(
+                fitted_results,
+                columns=["L0", "η", "c_s_fitted", "c_s_SPT", "c_s_Henderson", "c_s_Roman2002", "±"]
+            )
+            print(summary_df.to_string(index=False, float_format="{:.4f}".format))
+
+
+
+
+
+
+
+
+
+
+            #  === PLOT: Peak Frequency vs Amplitude with color-coded Wall Mass Factor ===
+        
 
             vmin = min(M_vals)
             vmax = max(M_vals)
@@ -1154,7 +1479,7 @@ def main():
                 plt.scatter(freqs[i], amps[i], marker=marker, c=[M_vals[i]],
                             cmap='viridis', s=70, edgecolors='k', alpha=0.9,
                             vmin=vmin, vmax=vmax)
-                plt.annotate(f"L0={L0_vals[i]}, M={M_vals[i]}\nη={eta_vals[i]:.3f}",
+                plt.annotate(f"L0={L0_vals[i]}, M={M_vals[i]}\nη={eta_vals[i]:.4f}",
                             (freqs[i], amps[i]), fontsize=8, alpha=0.7)
 
             cbar = plt.colorbar()
@@ -1175,109 +1500,6 @@ def main():
             plt.grid(True, alpha=0.3)
             plt.tight_layout()
             plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-                        
-                        
-                        
-            print("\n📈 Estimating Speed of Sound from Line Fit (per L0, only M = 200, 500, 1000):")
-
-            included_M_vals = {200, 500, 1000}
-            colors = plt.cm.viridis(np.linspace(0, 1, len(unique_L0s)))
-            fitted_results = []
-
-            plt.figure(figsize=(12, 6))
-
-            for idx_L0, L0 in enumerate(unique_L0s):
-                x_vals, y_vals = [], []
-                color = colors[idx_L0]
-
-                for i in range(len(freqs)):
-                    if L0_vals[i] == L0 and M_vals[i] in included_M_vals:
-                        wall_mass_factor = M_vals[i]
-                        freq = freqs[i]
-                        K_root = find_transcendental_root(wall_mass_factor=wall_mass_factor, N=50)
-                        x = K_root / (2 * np.pi * (L0 - 1))
-                        x_vals.append(x)
-                        y_vals.append(freq)
-
-                        # Label individual points
-                        plt.scatter(x, freq, color=color, edgecolor='k', s=70, alpha=0.9)
-                        plt.annotate(f"K/2π(L0−1)={x:.3f}\nM={wall_mass_factor}",
-                                    (x, freq), fontsize=8, alpha=0.7)
-
-                if len(x_vals) < 2:
-                    print(f"⚠️ Not enough points for L0={L0} — skipping fit.")
-                    continue
-
-                # Linear fit: freq = c_s * x
-                x_vals = np.array(x_vals)
-                y_vals = np.array(y_vals)
-                slope, _ = np.polyfit(x_vals, y_vals, 1)
-                c_s_fitted = slope
-
-                # Save for table
-                eta = np.pi * radius**2 * N / (4 * A * L0)
-                def theoretical_cs(a_val):
-                    numerator = (1 + eta + 3 * a_val * eta**2 - a_val * eta**3)
-                    denominator = (1 - eta)**3
-                    return np.sqrt((2 * k_B * T / mass_particle) * (numerator / denominator))
-
-                cs_SPT = theoretical_cs(0.0)
-                cs_Henderson = theoretical_cs(0.125)
-                fitted_results.append((L0, eta, c_s_fitted, cs_SPT, cs_Henderson))
-
-                # Plot fit line
-                x_line = np.linspace(min(x_vals)*0.9, max(x_vals)*1.1, 100)
-                y_line = slope * x_line
-                plt.plot(x_line, y_line, linestyle='--', color=color,
-                        label=f"L0={L0}, $c_s$={c_s_fitted:.2f}")
-
-                # Draw triangle illustrating slope
-                x0, x1 = x_vals[0], x_vals[-1]
-                y0, y1 = slope * x0, slope * x1
-                dx = x1 - x0
-                dy = y1 - y0
-                triangle_scale = 0.2  # Shrink triangle for visual clarity
-
-                plt.plot([x0, x0 + dx*triangle_scale], [y0, y0], color=color, lw=1.5)
-                plt.plot([x0 + dx*triangle_scale, x0 + dx*triangle_scale], [y0, y0 + dy*triangle_scale], color=color, lw=1.5)
-                plt.plot([x0, x0 + dx*triangle_scale], [y0, y0 + dy*triangle_scale], color=color, lw=1.5, linestyle=":")
-
-            # Final plot setup
-            plt.xlabel(r"$\frac{K}{2\pi(L_0 - 1)}$")
-            plt.ylabel("Peak Frequency [Hz]")
-            plt.title("Fundamental Frequency vs Theoretical K-term (Fitted per $L_0$)")
-            plt.grid(True, alpha=0.3)
-            plt.legend(title="Box Length & Fitted $c_s$", fontsize=9)
-            plt.tight_layout()
-            plt.show()
-
-            # === Output Table of Speed of Sound per L0 ===
-            print("\n📊 Table: Speed of Sound per L0 (from slope fits):")
-            fitted_df = pd.DataFrame(
-                fitted_results,
-                columns=["L0", "η", "c_s_fitted", "c_s_SPT", "c_s_Henderson"]
-            )
-            print(fitted_df.to_string(index=False, float_format="{:.4f}".format))
-
-
-
-
-
-
-
-
 
 
 

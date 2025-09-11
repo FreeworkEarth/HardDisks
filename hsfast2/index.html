@@ -1,0 +1,45 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+    </head>
+    <body>
+		<script type='text/javascript'>
+		var presetn;
+			
+		function processUser()	// extracts the preset number from the URL string
+		  	{
+		    var parameters = location.search.substring(1).split("&");
+		    //var temp = parameters[0].split("=");
+			//presetn = temp[1];
+			console.log("parameters ",parameters);
+			console.log("location ",location);
+			presetn = parameters[0];
+			}
+
+		var Module = {
+			onRuntimeInitialized: function() {
+				console.log("runtime initialized.");
+				processUser();
+				if(presetn != undefined)
+					Module._preset(presetn);
+				}
+  			};
+		fetch('index.wasm')
+            .then(response =>
+              response.arrayBuffer()
+            ).then(buffer => {
+              Module.canvas = document.getElementById("canvas");
+              Module.wasmBinary = buffer;
+              var script = document.createElement('script');
+              script.src = "index.js";
+              script.onload = function() {
+                console.log("Emscripten boilerplate loaded.")
+              }
+              document.body.appendChild(script);
+            });
+
+        </script>
+        <canvas id="canvas" style="width:100%; height:100%"></canvas>
+    </body>
+</html>
+

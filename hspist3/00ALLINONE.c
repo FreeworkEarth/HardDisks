@@ -55,12 +55,16 @@ HERE: MOLECULAR MODE
 //////////// SIMULATION SETTINGS ////////////
 // Global simulation flags
 #define MOLECULAR_MODE 1       // 1 = reduced units; 0 = real units
-#define EXPERIMENT_MODE 1      // 1 = tuned dt/substep values for better experiments
+#define EXPERIMENT_MODE 0      // 1 = tuned dt/substep values for better experiments
 // --- Simulation time ---
 /* So your TIME_UNITS_SIMULATION = 3000 works in BOTH modes!
 	•	In molecular mode, it means 3000 units of normalized time.
 	•	In real mode, it means 3000 seconds (if you scale τ properly). */
-#define TIME_UNITS_SIMULATION 300
+#define TIME_UNITS_SIMULATION 500
+#define SUBSTEPPING 0 // BOOL
+#define INIT_SCALING 0 // BOOL
+#define INIT_SCALING_WALL_RELEASE_STABLE 0 // BOOL
+
 // PARTICLE PARAMETERS
 #define NUM_PARTICLES 100      // total number of particles
 bool log_packing_fraction = 1; // 1 = log packing fraction, 0 = don't log
@@ -73,6 +77,7 @@ bool log_packing_fraction = 1; // 1 = log packing fraction, 0 = don't log
 #else
     bool enable_speed_of_sound_experiments = false;
 #endif
+
 
 
 // --- Physical constants ---
@@ -107,11 +112,11 @@ bool log_packing_fraction = 1; // 1 = log packing fraction, 0 = don't log
 
     #else
         #define FIXED_DT 0.0016f  // in normalized time units They don’t state the exact dt, but normalized simulations use dt = 10^{-3} often.
-        #define PIXELS_PER_SIGMA 100.0f      // rendering scaleq
-        #define TEMPERATURE 100.0f
-        #define SUBSTEPS 20
+        #define PIXELS_PER_SIGMA 40.0f      // rendering scaleq
+        #define TEMPERATURE 1.0f            //SET to 0 if want to ssimulte traversing wave
+        #define SUBSTEPS 10
         #define WALL_HOLD_STEPS 10000
-        #define PARTICLE_SCALE_PARAM 1.0 // scaling factor for particle size
+        #define PARTICLE_SCALE_PARAM 0.01f // scaling factor for particle size
 
 
     #endif
@@ -146,10 +151,10 @@ bool wall_position_is_managed_externally = false;
 
 
 // WALL PARAMETERS
-#define WALL_MASS_FACTOR 200                               // choose factor relative to PARTICLE_MASS
+#define WALL_MASS_FACTOR 200                              // choose factor relative to PARTICLE_MASS
 /// SIMULATION  PARAMETERS
 // Set these in main or before simulation starts
-float L0_UNITS = 7.50f;       // 20 × radius = 10 × diameter Box half lenght paper 7.5 until 35
+float L0_UNITS = 20.0f;       // 20 × radius = 10 × diameter Box half lenght paper 7.5 until 35
 float HEIGHT_UNITS = 10.0f;   // 10 × radius = 5 × diameter
 #define SIGMA_UNIT 1.0f             // radius = σ = 1
 
@@ -246,7 +251,7 @@ int right_count = 0;
 
 // SIMULATION PARAMETERS
 #define MIN_SPATIAL_WINDOW (MAX_X/10 * MAX_Y/10)/ NUM_PARTICLES// Prevent too small window
-#define NUM_BINS 100 // NUM bins for histogram
+#define NUM_BINS 400 // NUM bins for histogram
 #define MAX_VELOCITY 10000.0
 #define SEED 42  // Seed for random number generation (ensures repeatable randomness)
 #define SCALE_Vxy  1 // Mass of particle (e.g., hydrogen atom) in kg
@@ -262,6 +267,7 @@ float X[NUM_PARTICLES];
 float Y[NUM_PARTICLES];
 float X_old[NUM_PARTICLES];    // previous X positions
 
+float V_init[NUM_PARTICLES];   // initial velocity
 float Vx[NUM_PARTICLES];
 float Vy[NUM_PARTICLES];
 float Radius[NUM_PARTICLES];
@@ -338,18 +344,100 @@ void initSDL() {
 
 
 
-//////// INITIALIZATION FUNCTIONS /////////
-// Function to generate Maxwell-Boltzmann distributed velocity 1D (v_x is normal distributed!!!!!)
-// vx or vy 
-// f(v_x) = \sqrt{\frac{m}{2\pi k_B T}}  \exp\left(-\frac{m v_x^2}{2 k_B T}\right)
-//  •	Mean:  \mu = 0  (because velocity components are symmetrically distributed around zero)
-//	•	Standard deviation: \sigma = \sqrt{\frac{k_B T}{m}}
-// ---> f(v_x) = \frac{1}{\sqrt{2\pi \sigma^2}} \exp\left(-\frac{v_x^2}{2\sigma^2}\right)
-//Since  v_x  follows a normal distribution, we need to sample from a Gaussian (normal) distribution with mean  0  and standard deviation  \sigma .
-//The Box-Muller transform allows to generate 1 normally distributed numbers from two uniform random numbers  u_1  and  u_2 , which are sampled from the uniform distribution  U(0,1) .
-// complete speed v
-// f(v) \propto v^2 \exp\left(-\frac{mv^2}{2k_BT}\right)
-float maxwell_boltzmann_velocity(float temperature) {
+
+
+////// INITIALIZATION FUNCTIONS //////
+// Each component of velocity (v_x, v_y) in thermal equilibrium is Gaussian:
+/* Function to generate Maxwell-Boltzmann distributed velocity 2D (v_x ,y, z are normal distributed separately!!!!!)
+
+
+// f(v_x) = sqrt(m / (2π k_B T)) * exp(-m v_x^2 / (2 k_B T))
+// Mean = 0, StdDev = sqrt(k_B T / m)
+
+// This explains why histograms of v_x and v_y are symmetric and Gaussian.
+
+// Speed v = sqrt(v_x^2 + v_y^2) in 2D follows a Rayleigh distribution:
+
+// f(v) = (m v / k_B T) * exp(-m v^2 / (2 k_B T))
+// Not symmetric: peaks at v > 0, long tail
+
+// In 3D, speed follows the Maxwell-Boltzmann distribution:
+
+// f(v) ∝ v^2 * exp(-m v^2 / (2 k_B T))
+
+// Box-Muller transform can generate Gaussian (normal) random numbers for v_x, v_y
+
+*/
+
+////////////////// no drift due to statistical sampling from distribution == only thermal , kinetic energy
+void remove_drift() {
+    float vx_sum = 0.0f, vy_sum = 0.0f;
+
+    for (int i = 0; i < NUM_PARTICLES; i++) {
+        vx_sum += Vx[i];
+        vy_sum += Vy[i];
+    }
+
+    float vx_mean = vx_sum / NUM_PARTICLES;
+    float vy_mean = vy_sum / NUM_PARTICLES;
+
+
+    for (int i = 0; i < NUM_PARTICLES; i++) {
+        Vx[i] -= vx_mean;
+        Vy[i] -= vy_mean;
+    }
+
+    printf("✅ Drift removed: mean Vx = %.4f, mean Vy = %.4f\n", vx_mean, vy_mean);
+}
+
+
+
+
+
+
+
+///////////////////////////   ENERGY CALCULATIONS   ///////////////////////
+double kinetic_energy() {
+    double ke_total = 0.0;
+    for (int i = 0; i < NUM_PARTICLES; i++) {
+        double particle_ke = 0.5 * PARTICLE_MASS * (Vx[i] * Vx[i] + Vy[i] * Vy[i]);  // In Joules
+        ke_total += particle_ke;
+    }
+    return ke_total;
+
+}
+
+float compute_measured_temperature_from_ke() {
+    // USES RELATION:
+    // T = \frac{2}{d \cdot N k_B} \sum \frac{1}{2}mv^2 = \frac{E_{\text{kin}}}{N k_B} \quad \text{(for 2D)}
+    double ke_total = kinetic_energy();  // reuse existing function
+    return (float)(ke_total / (NUM_PARTICLES * K_B));
+}
+
+
+
+// Returns a 2D Maxwell-Boltzmann distributed velocity vector (vx, vy)
+void maxwell_boltzmann_2D(float temperature, float *vx, float *vy) {
+    float sigma = sqrt(K_B * temperature / PARTICLE_MASS);
+    float u1, u2, z0, z1;
+
+    do {
+        u1 = (float)rand() / RAND_MAX;
+        u2 = (float)rand() / RAND_MAX;
+    } while (u1 <= 1e-10f); // prevent log(0)
+
+    z0 = sqrtf(-2.0f * logf(u1)) * cosf(2.0f * M_PI * u2);
+    z1 = sqrtf(-2.0f * logf(u1)) * sinf(2.0f * M_PI * u2);
+
+    *vx = sigma * z0;
+    *vy = sigma * z1;
+}
+
+
+
+
+// Function to generate Maxwell-Boltzmann distributed velocity in 1D
+float maxwell_boltzmann_velocity_gaussians(float temperature) {
     float sigma = sqrt(K_B * temperature / PARTICLE_MASS);  // Standard deviation (velocity scale)
     printf("sigma = %f\n", sigma);
     float u1, u2, z;
@@ -373,8 +461,60 @@ float maxwell_boltzmann_velocity(float temperature) {
 	•	Maxwell-Boltzmann Distribution:
         Reif, F. (1965). Fundamentals of Statistical and Thermal Physics. McGraw-Hill.
     */
-
 }
+
+
+
+
+
+
+// NEW: Generate one Gaussian velocity sample
+/*
+*/
+float sample_gaussian_velocity(float temperature) {
+    float sigma = sqrt(K_B * temperature / PARTICLE_MASS);
+    float u1, u2, z;
+
+    do {
+        u1 = (float)rand() / RAND_MAX;
+        u2 = (float)rand() / RAND_MAX;
+        z = sqrtf(-2.0f * logf(u1)) * cosf(2.0f * M_PI * u2);
+    } while (isnan(z));
+
+    return sigma * z;
+}
+
+
+
+
+void maxwell_boltzmann_velocity_ARRAY_ALL(float temperature) {
+    float sigma = sqrt(K_B * temperature / PARTICLE_MASS);
+
+    for (int i = 0; i < NUM_PARTICLES; i += 2) {
+        float u1 = (float)rand() / RAND_MAX;
+        float u2 = (float)rand() / RAND_MAX;
+
+        float z0 = sqrt(-2.0f * log(u1)) * cos(2.0f * M_PI * u2);
+        float z1 = sqrt(-2.0f * log(u1)) * sin(2.0f * M_PI * u2);
+
+        Vx[i] = sigma * z0;
+        Vy[i] = sigma * z1;
+
+        // If odd number of particles:
+        if (i + 1 < NUM_PARTICLES) {
+            float u3 = (float)rand() / RAND_MAX;
+            float u4 = (float)rand() / RAND_MAX;
+            float z2 = sqrt(-2.0f * log(u3)) * cos(2.0f * M_PI * u4);
+            float z3 = sqrt(-2.0f * log(u3)) * sin(2.0f * M_PI * u4);
+            Vx[i + 1] = sigma * z2;
+            Vy[i + 1] = sigma * z3;
+        }
+    }
+}
+
+
+
+
 
 
   
@@ -439,6 +579,8 @@ void initialize_simulation_random() {
 
             Y[i] = ((float)rand() / RAND_MAX) * (YW2 - YW1 - 2 * PARTICLE_RADIUS) + YW1 + PARTICLE_RADIUS;
 
+
+
             valid_position = 1;  // Assume OK first
             for (int j = 0; j < i; j++) { // Check against all already placed particles
                 float dx = X[i] - X[j];
@@ -460,9 +602,10 @@ void initialize_simulation_random() {
         if (X[i] > wall_x - wall_buffer && X[i] < wall_x + wall_buffer) {
             printf("⚠️ Particle %d is too close to wall! x = %f\n", i, X[i]);
         }
+        
 
-        Vx[i] = maxwell_boltzmann_velocity(TEMPERATURE);
-        Vy[i] = maxwell_boltzmann_velocity(TEMPERATURE);
+        Vx[i] = maxwell_boltzmann_velocity_gaussians(TEMPERATURE);
+        Vy[i] = maxwell_boltzmann_velocity_gaussians(TEMPERATURE);
 
         Radius[i] = PARTICLE_RADIUS;
 
@@ -511,8 +654,8 @@ void initialize_simulation_honeycomb() {
 
             X[idx] = x;
             Y[idx] = y;
-            Vx[idx] = maxwell_boltzmann_velocity(TEMPERATURE);
-            Vy[idx] = maxwell_boltzmann_velocity(TEMPERATURE);
+            Vx[idx] = maxwell_boltzmann_velocity_gaussians(TEMPERATURE);
+            Vy[idx] = maxwell_boltzmann_velocity_gaussians(TEMPERATURE);
             Radius[idx] = PARTICLE_RADIUS;
 
             printf("✅ Particle %d (LEFT) placed at (%.2f, %.2f)\n", idx, x, y);
@@ -530,8 +673,8 @@ void initialize_simulation_honeycomb() {
 
             X[idx] = x;
             Y[idx] = y;
-            Vx[idx] = maxwell_boltzmann_velocity(TEMPERATURE);
-            Vy[idx] = maxwell_boltzmann_velocity(TEMPERATURE);
+            Vx[idx] = maxwell_boltzmann_velocity_gaussians(TEMPERATURE);
+            Vy[idx] = maxwell_boltzmann_velocity_gaussians(TEMPERATURE);
             Radius[idx] = PARTICLE_RADIUS;
 
             printf("✅ Particle %d (RIGHT) placed at (%.2f, %.2f)\n", idx, x, y);
@@ -561,10 +704,10 @@ void initialize_simulation() {
     int particles_left = NUM_PARTICLES / 2;
     int particles_right = NUM_PARTICLES - particles_left;
 
-    int num_rows_left = (int)sqrtf(particles_left);
+    int num_rows_left = (int)sqrt(particles_left);
     int num_cols_left = (particles_left + num_rows_left - 1) / num_rows_left;
 
-    int num_rows_right = (int)sqrtf(particles_right);
+    int num_rows_right = (int)sqrt(particles_right);
     int num_cols_right = (particles_right + num_rows_right - 1) / num_rows_right;
 
     float spacing_left_x = left_width / num_cols_left;
@@ -581,8 +724,12 @@ void initialize_simulation() {
             if (idx >= particles_left) break;
             X[idx] = XW1 + margin + col * spacing_left_x;
             Y[idx] = YW1 + margin + row * spacing_left_y;
-            Vx[idx] = maxwell_boltzmann_velocity(TEMPERATURE);
-            Vy[idx] = maxwell_boltzmann_velocity(TEMPERATURE);
+
+            float vx, vy;
+            maxwell_boltzmann_2D(TEMPERATURE, &vx, &vy);
+            Vx[idx] = vx;
+            Vy[idx] = vy;
+            V_init[idx] = sqrtf(vx * vx + vy * vy);  // Optional: store the speed if needed
             Radius[idx] = PARTICLE_RADIUS;
             idx++;
         }
@@ -594,8 +741,11 @@ void initialize_simulation() {
             if (idx >= NUM_PARTICLES) break;
             X[idx] = XW2 - margin - col * spacing_right_x;
             Y[idx] = YW1 + margin + row * spacing_right_y;
-            Vx[idx] = maxwell_boltzmann_velocity(TEMPERATURE);
-            Vy[idx] = maxwell_boltzmann_velocity(TEMPERATURE);
+            float vx, vy;
+            maxwell_boltzmann_2D(TEMPERATURE, &vx, &vy);
+            Vx[idx] = vx;
+            Vy[idx] = vy;
+            V_init[idx] = sqrtf(vx * vx + vy * vy);  // Optional: store the speed if needed
             Radius[idx] = PARTICLE_RADIUS;
             idx++;
         }
@@ -603,6 +753,19 @@ void initialize_simulation() {
 
     printf("✅ Particles placed with buffer. Wall_x = %.3f\n", wall_x);
     fflush(stdout);
+    // After initializing all Vx, Vy:
+    double actual_ke = kinetic_energy();  // sum of 0.5*m*v^2
+    double target_ke = NUM_PARTICLES * K_B * TEMPERATURE;
+    double scale = sqrt(target_ke / actual_ke);  // to adjust v_i → v_i * scale
+    printf("✅ Scaling factor for velocities: %.4f\n", scale);
+
+    for (int i = 0; i < NUM_PARTICLES; i++) {
+        Vx[i] *= scale;
+        Vy[i] *= scale;
+}
+
+
+
 }
 
 
@@ -614,7 +777,7 @@ void initialize_simulation() {
 
 // Function to render pistons
 void render_pistons() {
-    SDL_SetRenderDrawColor(_renderer, 0, 255, 0, 0);
+    SDL_SetRenderDrawColor(_renderer, 0, 255, 0, 150);
     SDL_Rect left_piston = { (int)piston_left_x , 0, 5, YW2 };
     SDL_RenderFillRect(_renderer, &left_piston);
     SDL_Rect right_piston = { (int)piston_right_x , 0, 5, YW2 };
@@ -992,7 +1155,6 @@ void detect_and_fix_tunnel(float *X, float *X_old, float *Vx, int *Side_old, int
         if ((was_left && now_right) || (was_right && now_left)) {
             printf("❌ FATAL: Particle %d tunneled through wall at step %d. X_old = %.4f → X = %.4f\n", i, steps_elapsed, X_old[i], X[i]);
             fprintf(tunnel_log, "%d, %d, %.6f, %.6f, %.6f\n", steps_elapsed, i, X[i], wall_x, Vx[i]);
-            fclose(tunnel_log);
             exit(1);  // 💣 Hard kill if simulation reaches unphysical state
         }
     }
@@ -1014,7 +1176,9 @@ void update_particles_with_substepping(float dt, int* out_left, int* out_right) 
         exit(1);
     }
 
-    float sub_dt = dt / SUBSTEPS;
+    float sub_dt = dt;
+    //printf("🚨 sub_dt  %f\n", sub_dt );
+
     int Side_old[NUM_PARTICLES];
     int Side_new[NUM_PARTICLES];
 
@@ -1042,21 +1206,51 @@ void update_particles_with_substepping(float dt, int* out_left, int* out_right) 
                     Side_old[i] = 0;
             }
 
+
             float velocity = sqrt(Vx[i] * Vx[i] + Vy[i] * Vy[i]);
             float spatial_window = fmaxf(velocity * sub_dt, MIN_SPATIAL_WINDOW);
 
+            /////// SUBSTEPPING VARIABLES //////////
             float max_move = fabs(Vx[i]) * sub_dt;
-            if (max_move > WALL_THICKNESS) {
-                float new_sub_dt = WALL_THICKNESS / fmaxf(fabs(Vx[i]), 1e-5f);
-                if (new_sub_dt < 1e-6f) {
-                    printf("🚨 sub_dt too small! Skipping particle %d\n", i);
-                    continue;
-                }
-                sub_dt = new_sub_dt;
-            }
+            const float SLOW_THRESHOLD = 0.1f;// * PARTICLE_RADIUS / FIXED_DT;
+            const float WALL_BUFFER = 1.20f * PARTICLE_RADIUS;
+            const int EXTRA_STEPS_FACTOR = 4;
+            float wall__CHECK_left = wall_x - WALL_THICKNESS / 2 - WALL_BUFFER;
+            float wall_CHECK_right = wall_x + WALL_THICKNESS / 2 + WALL_BUFFER;
 
+            #if SUBSTEPPING 
+            /////// SUBSTEPPING FAST MOVING PARTICLES //////////
+                if (max_move > WALL_THICKNESS) {
+                    //float new_sub_dt = WALL_THICKNESS / fmaxf(fabs(Vx[i]), 1e-5f);
+                    float new_sub_dt = FIXED_DT/(SUBSTEPS);
+
+
+                    printf("🚨 NEW FAST!!! sub_dt  %f with speed %f \n", new_sub_dt, velocity );
+
+
+                    if (new_sub_dt < 1e-6f) {
+                        printf("🚨 sub_dt too small! Skipping particle %d\n", i);
+                        continue;
+                    }
+                    sub_dt = new_sub_dt;
+
+                }
+                /////// SUBSTEPPING SLOW MOVING PARTICLES //////////
+
+                else if (velocity < SLOW_THRESHOLD && X[i] > wall__CHECK_left && X[i] < wall_CHECK_right) {
+                        //float new_sub_dt = WALL_THICKNESS / fmin(fabs(Vx[i]), 1e-5f);
+                        float new_sub_dt = FIXED_DT/(SUBSTEPS);
+
+                        printf("🚨 NEWWWW SLOW sub_dt  %f with speed %f \n", new_sub_dt, velocity );
+                        sub_dt = new_sub_dt;
+
+                }
+            #endif
+    
             X[i] += Vx[i] * sub_dt;
             Y[i] += Vy[i] * sub_dt;
+
+
 
             if (wall_enabled) {
                 if (X[i] < wall_x - WALL_THICKNESS / 2)
@@ -1138,19 +1332,6 @@ void update_particles_with_substepping(float dt, int* out_left, int* out_right) 
 
 
 
-
-
-
-///////////////////////////   ENERGY CALCULATIONS   ///////////////////////
-double kinetic_energy() {
-    double ke_total = 0.0;
-    for (int i = 0; i < NUM_PARTICLES; i++) {
-        double particle_ke = 0.5 * PARTICLE_MASS * (Vx[i] * Vx[i] + Vy[i] * Vy[i]);  // In Joules
-        ke_total += particle_ke;
-    }
-    return ke_total;
-}
-
 // Expected kinetic energy for ideal gas: (3/2) N k_B T
 double kinetic_energy_expected() {
     return (3.0 / 2.0) * NUM_PARTICLES * K_B * TEMPERATURE;  // In Joules
@@ -1189,6 +1370,9 @@ void compute_velocity_histogram() {
         if (bin >= 0 && bin < NUM_BINS) velocity_histogram[bin]++;
     }
 }
+
+
+
 
 
 ///////////////////////////   ENTROPY CALCULATION   ///////////////////////
@@ -1439,43 +1623,150 @@ void keysPiston(SDL_Event e) {
 /////////  HISTO AND SIMULATION RENDERING /////////
 // Function to handle particle- piston collisions
 
+void draw_maxwell_boltzmann_curve(float temperature, int max_count) {
+    float sigma = sqrt(K_B * temperature / PARTICLE_MASS);
+    float norm_factor = NUM_PARTICLES * (SIM_WIDTH / NUM_BINS);
+
+    for (int i = 0; i < NUM_BINS; i++) {
+        float v = MAX_VELOCITY * i / NUM_BINS;
+        float f_v = (v * v) * expf(-PARTICLE_MASS * v * v / (2.0f * K_B * temperature));
+        float f_scaled = f_v * norm_factor;
+
+        int height = (int)((f_scaled * HIST_HEIGHT) / max_count);
+
+        SDL_SetRenderDrawColor(_renderer, 255, 255, 0, 255); // Yellow curve
+        SDL_RenderDrawPoint(_renderer, XW1 + i * (SIM_WIDTH / NUM_BINS), YW1 + SIM_HEIGHT + (HIST_HEIGHT - height));
+    }
+}
+
+
+void draw_thick_line_vertical(SDL_Renderer *renderer, int x, int y1, int y2, int thickness) {
+    if (y1 > y2) {
+        int temp = y1;
+        y1 = y2;
+        y2 = temp;
+    }
+    SDL_Rect rect = {x - thickness / 2, y1, thickness, y2 - y1 + 1};
+    SDL_RenderFillRect(renderer, &rect);
+}
 
 void render_velocity_histograms() {
-    int binsX[NUM_BINS] = {0}; // Histogram for Vx
-    int binsY[NUM_BINS] = {0}; // Histogram for Vy
+    SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
 
-    // Calculate velocity bins
+    float measured_T = compute_measured_temperature_from_ke();
+    float sigma = sqrtf(K_B * measured_T / PARTICLE_MASS);
+
+    float center_x = XW1 + L0_UNITS * PIXELS_PER_SIGMA;
+    int bin_width = SIM_WIDTH / NUM_BINS;
+
+    // === Histogram bins ===
+    int binsX[NUM_BINS] = {0};
+    int binsY[NUM_BINS] = {0};
+    int binsSpeed[NUM_BINS] = {0};
+
+    int max_binX = 1, max_binY = 1, max_binSpeed = 1;
+
     for (int i = 0; i < NUM_PARTICLES; i++) {
+        // vx, vy, v
         int binX = (int)((Vx[i] + MAX_VELOCITY) / (2 * MAX_VELOCITY) * NUM_BINS);
         int binY = (int)((Vy[i] + MAX_VELOCITY) / (2 * MAX_VELOCITY) * NUM_BINS);
-        
+        float speed = sqrtf(Vx[i] * Vx[i] + Vy[i] * Vy[i]);
+        int binV = (int)(speed / MAX_VELOCITY * NUM_BINS);
+
         if (binX >= 0 && binX < NUM_BINS) binsX[binX]++;
         if (binY >= 0 && binY < NUM_BINS) binsY[binY]++;
+        if (binV >= 0 && binV < NUM_BINS) binsSpeed[binV]++;
     }
 
-    // Find max bin count for normalization
-    int max_binX = 1, max_binY = 1;
     for (int i = 0; i < NUM_BINS; i++) {
         if (binsX[i] > max_binX) max_binX = binsX[i];
         if (binsY[i] > max_binY) max_binY = binsY[i];
+        if (binsSpeed[i] > max_binSpeed) max_binSpeed = binsSpeed[i];
     }
 
-    // Render Vx histogram at the bottom
+    // === Vx Histogram (white, bottom, centered at XW1 + L0) ===
     for (int i = 0; i < NUM_BINS; i++) {
         int height = (binsX[i] * HIST_HEIGHT) / max_binX;
-        SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255); // White bars
-        SDL_Rect rect = {XW1 + i * (SIM_WIDTH / NUM_BINS), YW1 + SIM_HEIGHT + (HIST_HEIGHT - height), SIM_WIDTH / NUM_BINS, height};
+        SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 150);
+        SDL_Rect rect = {
+            (int)(center_x + (i - NUM_BINS / 2) * bin_width),
+            YW1 + SIM_HEIGHT + (HIST_HEIGHT - height),
+            bin_width,
+            height
+        };
         SDL_RenderFillRect(_renderer, &rect);
     }
 
-    // Render Vy histogram on the right
+    // === Speed Histogram (yellow, bottom, same center) ===
     for (int i = 0; i < NUM_BINS; i++) {
-        int width = (binsY[i] * HIST_WIDTH) / max_binY;
-        SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255); // White bars
-        SDL_Rect rect = {XW1 + SIM_WIDTH, YW1 + i * (SIM_HEIGHT / NUM_BINS), width, SIM_HEIGHT / NUM_BINS};
+        int height = (binsSpeed[i] * HIST_HEIGHT) / max_binSpeed;
+        SDL_SetRenderDrawColor(_renderer, 255, 255, 0, 255);
+        SDL_Rect rect = {
+            (int)(center_x + (i - NUM_BINS / 2) * bin_width),
+            YW1 + SIM_HEIGHT + (HIST_HEIGHT - height),
+            bin_width,
+            height
+        }; 
         SDL_RenderFillRect(_renderer, &rect);
     }
+
+    // === Vy Histogram (light blue, right) ===
+    for (int i = 0; i < NUM_BINS; i++) {
+        int width = (binsY[i] * HIST_WIDTH) / max_binY;
+        SDL_SetRenderDrawColor(_renderer, 100, 200, 255, 180);
+        SDL_Rect rect = {
+            XW1 + SIM_WIDTH - HIST_WIDTH,
+            YW1 + i * (SIM_HEIGHT / NUM_BINS),
+            width,
+            SIM_HEIGHT / NUM_BINS
+        };
+        SDL_RenderFillRect(_renderer, &rect);
+    }
+
+    // === Overlay Maxwell-Boltzmann curve for v (yellow: live, red: init) ===
+    float normalization = NUM_PARTICLES * bin_width * 50.0f;  // 250 is a scaling factor for visibility
+
+
+
+    for (int i = 1; i < NUM_BINS; i++) {
+        float v1 = ((float)(i - 1) / NUM_BINS) * MAX_VELOCITY;
+        float v2 = ((float)i / NUM_BINS) * MAX_VELOCITY;
+
+        float f1 = (PARTICLE_MASS * v1 / (K_B * measured_T)) * expf(-PARTICLE_MASS * v1 * v1 / (2 * K_B * measured_T));
+        float f2 = (PARTICLE_MASS * v2 / (K_B * measured_T)) * expf(-PARTICLE_MASS * v2 * v2 / (2 * K_B * measured_T));
+
+        int x1 = center_x + (i - 1 - NUM_BINS / 2) * bin_width;
+        int x2 = center_x + (i - NUM_BINS / 2) * bin_width;
+
+        int y1 = YW1 + SIM_HEIGHT + HIST_HEIGHT - (int)(f1 * normalization);
+        int y2 = YW1 + SIM_HEIGHT + HIST_HEIGHT - (int)(f2 * normalization);
+
+        SDL_SetRenderDrawColor(_renderer, 255, 255, 0, 255);
+        draw_thick_line_vertical(_renderer, x1, y1, y2, 2); // e.g., thickness = 2
+    }
+
+    // --- Initial MB curve (red)
+    float sigma0 = sqrtf(K_B * TEMPERATURE / PARTICLE_MASS);
+    for (int i = 1; i < NUM_BINS; i++) {
+        float v1 = ((float)(i - 1) / NUM_BINS) * MAX_VELOCITY;
+        float v2 = ((float)i / NUM_BINS) * MAX_VELOCITY;
+
+        float f1 = (PARTICLE_MASS * v1 / (K_B * TEMPERATURE)) * expf(-PARTICLE_MASS * v1 * v1 / (2 * K_B * TEMPERATURE));
+        float f2 = (PARTICLE_MASS * v2 / (K_B * TEMPERATURE)) * expf(-PARTICLE_MASS * v2 * v2 / (2 * K_B * TEMPERATURE));
+
+        int x1 = center_x + (i - 1 - NUM_BINS / 2) * bin_width;
+        int x2 = center_x + (i - NUM_BINS / 2) * bin_width;
+
+        int y1 = YW1 + SIM_HEIGHT + HIST_HEIGHT - (int)(f1 * normalization);
+        int y2 = YW1 + SIM_HEIGHT + HIST_HEIGHT - (int)(f2 * normalization);
+
+        SDL_SetRenderDrawColor(_renderer, 255, 0, 0, 120);
+        draw_thick_line_vertical(_renderer, x1, y1, y2, 2); // e.g., thickness = 2
+    }
 }
+
+
+
 
 
 
@@ -1600,8 +1891,8 @@ void run_speed_of_sound_experiments() {
     double simulation_time = 0.0;
 
 
-    float lengths[] = {7.5f, 10.0f, 15.0f};  // Add more lengths if needed
-    int wall_mass_factors[] = {20, 50, 200, 500, 1000 };  // Add more mass factors if needed
+    float lengths[] = {7.5f, 10.0f, 15.0f};//, 20.0f, 25.0f, 30.0f, 35.0f, 50.0f};  // Add more lengths if needed
+    int wall_mass_factors[] = {20, 50, 100, 200, 500,1000}; //{20, 50, 100, 200, 300, 500, 750, 1000, 5000};  // Add more mass factors if needed
     int num_repeats = 1;
 
     printf("Running each experiment for %d steps after wall release\n", num_steps);
@@ -1866,6 +2157,10 @@ void simulation_loop() {
         }
 
         render_velocity_histograms();  // ← this draws vx and vy histograms
+        float T_measured = compute_measured_temperature_from_ke();
+        char temp_label[128];
+        sprintf(temp_label, "T_measured: %.2f", T_measured);
+        draw_text(_renderer, font, temp_label, XW1 + 5, YW1 + HEIGHT_UNITS*PIXELS_PER_SIGMA, yellow);
 
         SDL_RenderPresent(_renderer);
         SDL_Delay(5);  // throttle FPS
@@ -1897,7 +2192,7 @@ int main(int argc, char* argv[]) {
     initSDL();
     TTF_Init();
     //kiss_fftr_cfg fft_cfg = kiss_fftr_alloc(FFT_SIZE, 0, NULL, NULL);
-    initialize_simulation();
+    //initialize_simulation();
     
     font = TTF_OpenFont("Roboto-Regular.ttf", 18);
     if (!font) {
@@ -2085,6 +2380,7 @@ void simulation_loop_old() {
 
 
         // RENDERING
+        SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
         draw_clear_screen();
         draw_coordinate_system(_renderer);
         draw_simulation_boundary();
@@ -2112,6 +2408,8 @@ void simulation_loop_old() {
             sprintf(buffer, "Wall held: %d steps left", wall_hold_steps - steps_elapsed);
             draw_text(_renderer, font, buffer, XW1 + 5, YW1 + 50, yellow);
         }
+
+
 
         SDL_RenderPresent(_renderer);
         SDL_Delay(10);  // throttle FPS

@@ -1,0 +1,23 @@
+to produce native code
+% make
+
+to produce wasm code
+% make em
+
+to run locally,
+% http-server
+then, in a browser,
+> localhost:8080
+(or whatever port http-server reported when it started up)
+
+files needed to be uploaded to a server
+index.wasm - the webassembly code
+index.js - javascript interface to webassembly code
+index.html - loads the above, not produced by compiler
+index.data - the font
+
+checking compressibility of .wasm code, for possible streaming
+% tar czvf index.wasm.tgz index.wasm
+index.wasm      -   1182896
+index.wasm.tgz  -    401814
+
