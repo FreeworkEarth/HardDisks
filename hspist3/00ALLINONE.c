@@ -61,7 +61,7 @@ HERE: MOLECULAR MODE
 	•	In molecular mode, it means 3000 units of normalized time.
 	•	In real mode, it means 3000 seconds (if you scale τ properly). */
 #define TIME_UNITS_SIMULATION 500
-#define SUBSTEPPING 0 // BOOL
+#define SUBSTEPPING 1 // BOOL
 #define INIT_SCALING 0 // BOOL
 #define INIT_SCALING_WALL_RELEASE_STABLE 0 // BOOL
 
@@ -104,7 +104,7 @@ bool log_packing_fraction = 1; // 1 = log packing fraction, 0 = don't log
         #define FIXED_DT 0.001f  // in normalized time units They don’t state the exact dt, but normalized simulations use dt = 10^{-3} often.
         #define PIXELS_PER_SIGMA 1.0f      // rendering scale
         #define TEMPERATURE 1.0f
-        #define SUBSTEPS 20
+        #define SUBSTEPS 20 // default, can be changed externally
         #define WALL_HOLD_STEPS 10000
         #define PARTICLE_SCALE_PARAM 1.0f // scaling factor for particle size to make more space for particles
 
@@ -114,7 +114,7 @@ bool log_packing_fraction = 1; // 1 = log packing fraction, 0 = don't log
         #define FIXED_DT 0.0016f  // in normalized time units They don’t state the exact dt, but normalized simulations use dt = 10^{-3} often.
         #define PIXELS_PER_SIGMA 40.0f      // rendering scaleq
         #define TEMPERATURE 1.0f            //SET to 0 if want to ssimulte traversing wave
-        #define SUBSTEPS 10
+        #define SUBSTEPS 10 // default, can be changed externally
         #define WALL_HOLD_STEPS 10000
         #define PARTICLE_SCALE_PARAM 0.01f // scaling factor for particle size
 
@@ -123,7 +123,7 @@ bool log_packing_fraction = 1; // 1 = log packing fraction, 0 = don't log
 #else
     #if EXPERIMENT_MODE
         #define FIXED_DT 2e-4f
-        #define SUBSTEPS 20
+        #define SUBSTEPS 20 // default, can be changed externally
         #define WALL_HOLD_STEPS 10000
         #define PIXELS_PER_SIGMA 1.0f      // rendering scale
         #define PARTICLE_SCALE_PARAM 1.0f // scaling factor for particle size
@@ -131,7 +131,7 @@ bool log_packing_fraction = 1; // 1 = log packing fraction, 0 = don't log
 
     #else
         #define FIXED_DT 1.6e-3f
-        #define SUBSTEPS 10
+        #define SUBSTEPS 10 // default, can be changed externally
         #define WALL_HOLD_STEPS 5000
         #define PIXELS_PER_SIGMA 20.0f      // rendering scale
         #define PARTICLE_SCALE_PARAM 1.0f // scaling factor for particle size
@@ -151,13 +151,18 @@ bool wall_position_is_managed_externally = false;
 
 
 // WALL PARAMETERS
-#define WALL_MASS_FACTOR 200                              // choose factor relative to PARTICLE_MASS
+#define WALL_MASS_FACTOR 50                              // choose factor relative to PARTICLE_MASS
 /// SIMULATION  PARAMETERS
 // Set these in main or before simulation starts
 float L0_UNITS = 20.0f;       // 20 × radius = 10 × diameter Box half lenght paper 7.5 until 35
 float HEIGHT_UNITS = 10.0f;   // 10 × radius = 5 × diameter
 #define SIGMA_UNIT 1.0f             // radius = σ = 1
 
+// --- GLOBAL TIMERS & WALL STATE ---
+// Remove any earlier duplicate of wall_release_time and simulation_time.
+double simulation_time = 0.0;         // advances only inside main loop
+double wall_release_time = -1.0;      // < 0 means "not yet released"
+// ...existing code...
 
 
 // /////////   THICKNESSS
@@ -175,7 +180,7 @@ bool wall_hold_enabled = true;         // Enable or disable hold wall mode
 bool wall_is_released = false;          // Has the user released the wall?
 int wall_hold_steps = WALL_HOLD_STEPS;             // Hold the wall for this many steps
 int steps_elapsed = 0;    
-double wall_release_time = 0.0;  // remove this if already declared globally
+static float wall_impulse_x_accum = 0.f;
 
 
 
@@ -240,10 +245,7 @@ void initialize_simulation_parameters() {
 }
 
 // Global:
-FILE *tunnel_log = NULL;
-
  // VARIABLES TO AVOID TUNNELING die to time step and stationary particles
-float X_old[NUM_PARTICLES];  // Previous x-position
 int left_count = 0;
 int right_count = 0;
 
@@ -304,6 +306,8 @@ float energy_fft_magnitude[FFT_SIZE/2 + 1];
 int sample_index = 0;
 
 kiss_fftr_cfg fft_cfg;  // <== global config
+
+
 
 
 
@@ -893,34 +897,29 @@ void handle_boundary_collision(int i) {
 
 
 
-void handle_piston_collisions(int i) {
-    // Check collision with the left piston
-    if (X[i] - Radius[i] <= piston_left_x) {  
-        float relative_velocity = Vx[i] - vx_piston_left ;
-        
-        if (relative_velocity < 0) {  // Only if the particle is moving toward the piston
-            Vx[i] = -Vx[i] + 2 * vx_piston_left ;
-        } else {
-            Vx[i] = -Vx[i];  // Simple reflection if moving away
+void handle_piston_collisions(int i, float sub_dt) {
+    const float eps = 1e-6f;
+
+    // Left piston (infinite mass moving at vx_piston_left)
+    if (X[i] - Radius[i] <= piston_left_x) {
+        float vrel = Vx[i] - vx_piston_left;
+        if (vrel < 0.f) {
+            // reflect in piston frame: v' = 2*Vp - v
+            Vx[i] = 2.f * vx_piston_left - Vx[i];
         }
-        
-        X[i] = piston_left_x + Radius[i] + Vx[i] * FIXED_DT;  // Adjust for timestep
+        // place just outside, do NOT advance by dt here
+        X[i] = piston_left_x + Radius[i] + eps;
     }
 
-    // Check collision with the right piston
-    if (X[i] + Radius[i] >= piston_right_x) {  
-        float relative_velocity = Vx[i] - vx_piston_right ;
-
-        if (relative_velocity > 0) {  // Only if the piston moves into the particle
-            Vx[i] = -Vx[i] + 2 * vx_piston_right ;
-        } else {
-            Vx[i] = -Vx[i];  // Simple reflection if moving away
+    // Right piston
+    if (X[i] + Radius[i] >= piston_right_x) {
+        float vrel = Vx[i] - vx_piston_right;
+        if (vrel > 0.f) {
+            Vx[i] = 2.f * vx_piston_right - Vx[i];
         }
-
-        X[i] = piston_right_x - Radius[i] + Vx[i] * FIXED_DT;  // Adjust for timestep
+        X[i] = piston_right_x - Radius[i] - eps;
     }
 }
-
 
 
 
@@ -988,351 +987,254 @@ void update_wall(float dt, float L0) {
 }
 
 
+// =====================================================================
+// Continuous Collision Detection (CCD) for a moving vertical slab wall.
+/*  *
+ * Discrete collision detection (DCD) only checks positions at the ends of
+ * fixed time steps (Δt). If a fast object (or a thin/moving barrier) passes
+ * through another object *between* those checks, DCD can miss the contact and
+ * you see tunneling or “teleporting.”
+ *
+ * CCD fixes this by solving, within each step, for the exact time-of-impact
+ * (TOI) assuming linear motion during Δt. We:
+ *   1) Predict motion over Δt.
+ *   2) Solve analytically for the first t_hit ∈ [0, Δt] when the shapes first touch.
+ *   3) Advance to t_hit, resolve the collision (e.g., elastic reflection in the
+ *      colliding frame), then advance the *remaining* time (Δt - t_hit).
+ *   4) Repeat if there could be a second hit in the same Δt (rare).
+ *
+ * Why we use it here:
+ * - The center wall and pistons can move and/or be thin.
+ * - Particles can be fast relative to Δt.
+ * - A piston can push a particle “inside” the wall slab within one substep.
+ *   CCD prevents pops and tunneling by resolving the hit exactly when it happens.
+ */
+// Handles BOTH faces (left & right) of the wall with thickness,
+// computes precise time-of-impact within dt, reflects in wall frame,
+// advances remaining time, repeats (up to 2 hits per substep).
+// =====================================================================
 
 
-void handle_left_to_right_collision(int i) {
-    printf("💥 L→R Collision with particle %d | v_particle = %.4f, v_wall = %.4f → new_v_wall = %.4f\n",i, Vx[i], vx_wall, ((WALL_MASS - PARTICLE_MASS) * vx_wall + 2 * PARTICLE_MASS * Vx[i]) / (PARTICLE_MASS + WALL_MASS));
-    float v_particle = Vx[i];
-    float v_wall = vx_wall;
-    float rel_vel = v_particle - v_wall;
+// =====================================================================
+// Robust CCD vs moving slab (thickness) using Minkowski sum (inflate by R).
+// - Works even when particle and wall move in the SAME direction (grazing).
+// - Uses relative motion in wall frame: x_p(t)=xs+vxs*t, slab L(t)=L0+vwx*t, R(t)=R0+vwx*t
+// - Inflate slab by +R: L'(t)=L(t)-R, R'(t)=R(t)+R, test point xs against [L',R']
+// - Finite-mass elastic exchange along x updates BOTH vxs and vx_wall
+// - Handles start-inside deterministically and adds small eps push-outs
+// =====================================================================
 
-    float wall_left = wall_x - WALL_THICKNESS/2;
+static void ccd_wall_step(int i, float dt,
+                          const float wall_x0,     // frozen pose (center) at substep start
+                          const float wall_vx0,    // frozen velocity for this substep
+                          const int   prev_side,   // -1 (left), 0 (inside), +1 (right)
+                          float *wall_impulse_x_accum)
+{
+    if (!wall_enabled || dt <= 0.f) return;
 
-    if (X[i] + Radius[i] >= wall_left && rel_vel > 0) {
-        float new_v_particle = ((PARTICLE_MASS - WALL_MASS) * v_particle + 2 * WALL_MASS * v_wall) / (PARTICLE_MASS + WALL_MASS);
-        float new_v_wall = ((WALL_MASS - PARTICLE_MASS) * v_wall + 2 * PARTICLE_MASS * v_particle) / (PARTICLE_MASS + WALL_MASS);
+    // Particle state
+    float xs  = X[i],  ys  = Y[i];
+    float vxs = Vx[i], vys = Vy[i];
+    const float R = Radius[i];
 
-        Vx[i] = new_v_particle;
-        vx_wall = new_v_wall;
-        X_old[i] = X[i];
-        X[i] = wall_left - Radius[i] - 0.01f;
-    }
-}
+    // Wall faces at t=0 (pose frozen this substep)
+    const float wL0 = wall_x0 - 0.5f * WALL_THICKNESS;
+    const float wR0 = wall_x0 + 0.5f * WALL_THICKNESS;
+    const float vwx = wall_vx0;
 
+    // Inflate by particle radius
+    const float L0p = wL0 - R;
+    const float R0p = wR0 + R;
 
+    // Tolerances & hysteresis
+    const float eps_pos = fmaxf(1e-6f, 1e-4f * fmaxf(R, 1.f));
+    const float eps_t   = 1e-12f;
+    const float v_hys   = 1e-6f; // co-moving band
 
-void handle_right_to_left_collision(int i) {
-    printf("💥 R→L Collision with particle %d | v_particle = %.4f, v_wall = %.4f → new_v_wall = %.4f\n",i, Vx[i], vx_wall, ((WALL_MASS - PARTICLE_MASS) * vx_wall + 2 * PARTICLE_MASS * Vx[i]) / (PARTICLE_MASS + WALL_MASS));    float v_particle = Vx[i];
-    float v_wall = vx_wall;
-    float rel_vel = v_particle - v_wall;
+    float t_remain = dt;
 
-    float wall_right = wall_x + WALL_THICKNESS/2;
+    for (int iter = 0; iter < 6 && t_remain > eps_t; ++iter) {
+        const float vrel = vxs - vwx;
+        const bool inside = (xs > L0p - eps_pos) && (xs < R0p + eps_pos);
 
-    if (X[i] - Radius[i] <= wall_right && rel_vel < 0) {
-        float new_v_particle = ((PARTICLE_MASS - WALL_MASS) * v_particle + 2 * WALL_MASS * v_wall) / (PARTICLE_MASS + WALL_MASS);
-        float new_v_wall = ((WALL_MASS - PARTICLE_MASS) * v_wall + 2 * PARTICLE_MASS * v_particle) / (PARTICLE_MASS + WALL_MASS);
-
-        Vx[i] = new_v_particle;
-        vx_wall = new_v_wall;
-        
-        X_old[i] = X[i];
-        X[i] = wall_right + Radius[i] + 0.01f;
-    }
-}
-
-
-
-
-
-void check_wall_collisions(int i) {
-    if (!wall_enabled) return;
-
-    float wall_left_now = wall_x - WALL_THICKNESS / 2;
-    float wall_right_now = wall_x + WALL_THICKNESS / 2;
-    float wall_left_old = wall_x_old - WALL_THICKNESS / 2;
-    float wall_right_old = wall_x_old + WALL_THICKNESS / 2;
-
-    float particle_x = X[i];
-    float particle_r = Radius[i];
-
-    // --- Predictive check: Did wall move across particle's X in this frame? ---
-    bool wall_swept_across_left = (particle_x + particle_r >= wall_left_now && particle_x + particle_r <= wall_left_old && vx_wall < 0);
-    bool wall_swept_across_right = (particle_x - particle_r <= wall_right_now && particle_x - particle_r >= wall_right_old && vx_wall > 0);
-
-    if (wall_swept_across_left) {
-        handle_left_to_right_collision(i);
-        return;
-    }
-
-    if (wall_swept_across_right) {
-        handle_right_to_left_collision(i);
-        return;
-    }
-
-    // Original checks (based on particle movement)
-    float prev_left_edge = X_old[i] - Radius[i];
-    float prev_right_edge = X_old[i] + Radius[i];
-    float curr_left_edge = X[i] - Radius[i];
-    float curr_right_edge = X[i] + Radius[i];
-
-    if (prev_right_edge < wall_left_now && curr_right_edge >= wall_left_now && Vx[i] > 0) {
-        handle_left_to_right_collision(i);
-        return;
-    }
-
-    if (prev_left_edge > wall_right_now && curr_left_edge <= wall_right_now && Vx[i] < 0) {
-        handle_right_to_left_collision(i);
-        return;
-    }
-
-    // Fallback if stuck inside wall
-    if (curr_right_edge >= wall_left_now && curr_left_edge < wall_right_now) {
-        if (Vx[i] > 0) {
-            handle_left_to_right_collision(i);
-        } else if (Vx[i] < 0) {
-            handle_right_to_left_collision(i);
+        // A) Co-moving band: no resolution; eject if inside and free fly
+        if (fabsf(vrel) < v_hys) {
+            if (inside) {
+                int face = (prev_side != 0) ? prev_side
+                          : (fabsf(xs - L0p) <= fabsf(R0p - xs) ? -1 : +1);
+                xs = (face == -1) ? (L0p - eps_pos) : (R0p + eps_pos);
+            }
+            xs += vxs * t_remain;
+            ys += vys * t_remain;
+            t_remain = 0.f;
+            break;
         }
-    }
-}
 
+        // B) Start-inside (not co-moving): eject and bounce once (finite mass wall in x)
+        if (inside) {
+            int face = (prev_side != 0) ? prev_side
+                      : (fabsf(xs - L0p) <= fabsf(R0p - xs) ? -1 : +1);
 
+            const float m = (float)PARTICLE_MASS;
+            const float M = (float)WALL_MASS;
+            const float u1 = vxs;  // pre-impact particle x-vel
+            const float u2 = vwx;  // frozen wall x-vel
 
+            const float v1 = ((m - M)*u1 + 2.f*M*u2) / (m + M);
+            vxs = v1;
 
+            // impulse on particle Δp = m*(v1 - u1), equal/opposite to wall
+            if (wall_impulse_x_accum) {
+                float Jp = m * (v1 - u1);
+                *wall_impulse_x_accum -= Jp;
+            }
 
-
-
-
-
-
-
-
-
-////////// PARTICLE COLLISION FUNCTIONS ///////////
-
-
-
-
-/////////// TUNNELING DETECTION AND FIXING /////////////
-/*
-Why does one-particle tunneling matter?
-
-Let’s quantify it:
-
-1. Momentum imbalance
-
-A single particle crossing through the wall introduces a net change in momentum to the wall:
-\Delta p = 2m \cdot v
-If a particle tunnels from right to left, it gives the wall a kick leftward. The wall then keeps oscillating around a new center (shifted).
-
-2. In hard-disk systems (mass = 1, velocities ~1):
-
-Each particle’s impulse can be ≈ 1–3 units of momentum.
-If your wall mass is M = 50, one event gives:
-\Delta v_\text{wall} \approx \frac{2}{50} = 0.04
-Even that small kick can slowly accumulate displacement or bias the FFT.
-
-3. In energy spectrum:
-	•	This doesn’t ruin the frequency of oscillation,
-	•	But it skews the baseline, shifts the wall’s equilibrium, and masks symmetry-based phenomena (like reflection symmetry or balanced fluctuations).
-    
-Tunneling occurs when a particle moves so far in one timestep that it completely skips over the wall or another object. To avoid it:
-
-\Delta x_{\text{particle}} = v \cdot \Delta t < \text{wall thickness}
-
-So if you want to reduce tunneling, make sure:
-\Delta t < \frac{\text{wall thickness}}{\text{max particle speed}}
-*/
-
-
-
-
-void detect_and_fix_tunnel(float *X, float *X_old, float *Vx, int *Side_old, int *Side_new, int num_particles, float wall_x, float wall_thickness) {
-    float wall_left = wall_x - wall_thickness / 2;
-    float wall_right = wall_x + wall_thickness / 2;
-
-    FILE *tunnel_log = fopen("tunnel_events.csv", "a");  // Append mode to avoid overwriting
-    if (!tunnel_log) {
-        printf("Error opening tunnel_events.csv!\n");
-        return;
-    }
-
-    for (int i = 0; i < num_particles; i++) {
-        bool was_left = X_old[i] + Radius[i] < wall_left;
-        bool now_right = X[i] - Radius[i] > wall_right;
-        bool was_right = X_old[i] - Radius[i] > wall_right;
-        bool now_left = X[i] + Radius[i] < wall_left;
-
-        if ((was_left && now_right) || (was_right && now_left)) {
-            printf("❌ FATAL: Particle %d tunneled through wall at step %d. X_old = %.4f → X = %.4f\n", i, steps_elapsed, X_old[i], X[i]);
-            fprintf(tunnel_log, "%d, %d, %.6f, %.6f, %.6f\n", steps_elapsed, i, X[i], wall_x, Vx[i]);
-            exit(1);  // 💣 Hard kill if simulation reaches unphysical state
+            xs = (face == -1) ? (L0p - eps_pos) : (R0p + eps_pos);
+            xs += vxs * (1e-9f);
+            continue;
         }
+
+        // C) Start-outside: compute earliest valid TOI with either face
+        float thit = INFINITY; int face = 0;
+
+        if (vrel > 0.f) {
+            float tL = (L0p - xs) / vrel; // to left face
+            if (tL >= -eps_t && tL <= t_remain + eps_t) { thit = tL; face = -1; }
+        }
+        if (vrel < 0.f) {
+            float tR = (R0p - xs) / vrel; // to right face (vrel < 0)
+            if (tR >= -eps_t && tR <= t_remain + eps_t && tR < thit) { thit = tR; face = +1; }
+        }
+
+        if (face == 0 || !isfinite(thit) || thit > t_remain - eps_t) {
+            // no impact within remainder: free flight
+            xs += vxs * t_remain;
+            ys += vys * t_remain;
+            t_remain = 0.f;
+            break;
+        }
+
+        // Advance to impact
+        xs += vxs * thit;
+        ys += vys * thit;
+
+        // Elastic exchange along x against finite-mass wall (kinematic this substep)
+        {
+            const float m = (float)PARTICLE_MASS;
+            const float M = (float)WALL_MASS;
+            const float u1 = vxs, u2 = vwx;
+            const float v1 = ((m - M)*u1 + 2.f*M*u2) / (m + M);
+            if (wall_impulse_x_accum) {
+                float Jp = m * (v1 - u1);
+                *wall_impulse_x_accum -= Jp;  // opposite on wall
+            }
+            vxs = v1;
+        }
+
+        // Place just outside the impacting face + tiny nudge
+        xs = (face == -1) ? (L0p - eps_pos) : (R0p + eps_pos);
+        xs += vxs * (1e-9f);
+
+        t_remain -= thit;
     }
 
-    fclose(tunnel_log);
+    // Commit
+    X[i]  = xs;  Y[i]  = ys;
+    Vx[i] = vxs; Vy[i] = vys;
 }
+
+
 
 
 
 
 void update_particles_with_substepping(float dt, int* out_left, int* out_right) {
+    if (dt <= 0.0f) return;
     
-    if (dt <= 0.0f || dt > 1.0f) {
-        printf("❌ INVALID dt: %f\n", dt);
-        exit(1);
-    }
-    if (NUM_PARTICLES <= 0 || NUM_PARTICLES > 1000000) {
-        printf("❌ NUM_PARTICLES looks wrong: %d\n", NUM_PARTICLES);
-        exit(1);
-    }
-
-    float sub_dt = dt;
-    //printf("🚨 sub_dt  %f\n", sub_dt );
+    #if SUBSTEPPING
+        float sub_dt = dt / SUBSTEPS;
+    #endif
 
     int Side_old[NUM_PARTICLES];
     int Side_new[NUM_PARTICLES];
+    left_count = right_count = 0;
 
-    left_count = 0;
-    right_count = 0;
-
-    for (int i = 0; i < NUM_PARTICLES; i++) {
-        if (X[i] < wall_x - WALL_THICKNESS / 2) {
-            left_count++;
-        } else if (X[i] > wall_x + WALL_THICKNESS / 2) {
-            right_count++;
-        }
-    }
-
-    for (int step = 0; step < SUBSTEPS; step++) {
+    for (int step = 0; step < (int) SUBSTEPS; ++step) {
         for (int i = 0; i < NUM_PARTICLES; i++) {
             X_old[i] = X[i];
 
+            // classify side (optional)
             if (wall_enabled) {
-                if (X_old[i] < wall_x - WALL_THICKNESS / 2)
-                    Side_old[i] = -1;
-                else if (X_old[i] > wall_x + WALL_THICKNESS / 2)
-                    Side_old[i] = 1;
-                else
-                    Side_old[i] = 0;
+                if (X_old[i] < wall_x - WALL_THICKNESS / 2)      Side_old[i] = -1;
+                else if (X_old[i] > wall_x + WALL_THICKNESS / 2) Side_old[i] =  1;
+                else                                             Side_old[i] =  0;
             }
 
+            const float w_x0_sub = wall_x_old;   // frozen pose for this fixed step
+            const float w_vx_sub = vx_wall;      // frozen vel for this substep
+            int prev_side = Side_old[i];         // -1 left, 0 inside, +1 right
 
-            float velocity = sqrt(Vx[i] * Vx[i] + Vy[i] * Vy[i]);
-            float spatial_window = fmaxf(velocity * sub_dt, MIN_SPATIAL_WINDOW);
+            ccd_wall_step(i, sub_dt, w_x0_sub, w_vx_sub, prev_side, &wall_impulse_x_accum);
 
-            /////// SUBSTEPPING VARIABLES //////////
-            float max_move = fabs(Vx[i]) * sub_dt;
-            const float SLOW_THRESHOLD = 0.1f;// * PARTICLE_RADIUS / FIXED_DT;
-            const float WALL_BUFFER = 1.20f * PARTICLE_RADIUS;
-            const int EXTRA_STEPS_FACTOR = 4;
-            float wall__CHECK_left = wall_x - WALL_THICKNESS / 2 - WALL_BUFFER;
-            float wall_CHECK_right = wall_x + WALL_THICKNESS / 2 + WALL_BUFFER;
-
-            #if SUBSTEPPING 
-            /////// SUBSTEPPING FAST MOVING PARTICLES //////////
-                if (max_move > WALL_THICKNESS) {
-                    //float new_sub_dt = WALL_THICKNESS / fmaxf(fabs(Vx[i]), 1e-5f);
-                    float new_sub_dt = FIXED_DT/(SUBSTEPS);
-
-
-                    printf("🚨 NEW FAST!!! sub_dt  %f with speed %f \n", new_sub_dt, velocity );
-
-
-                    if (new_sub_dt < 1e-6f) {
-                        printf("🚨 sub_dt too small! Skipping particle %d\n", i);
-                        continue;
-                    }
-                    sub_dt = new_sub_dt;
-
-                }
-                /////// SUBSTEPPING SLOW MOVING PARTICLES //////////
-
-                else if (velocity < SLOW_THRESHOLD && X[i] > wall__CHECK_left && X[i] < wall_CHECK_right) {
-                        //float new_sub_dt = WALL_THICKNESS / fmin(fabs(Vx[i]), 1e-5f);
-                        float new_sub_dt = FIXED_DT/(SUBSTEPS);
-
-                        printf("🚨 NEWWWW SLOW sub_dt  %f with speed %f \n", new_sub_dt, velocity );
-                        sub_dt = new_sub_dt;
-
-                }
-            #endif
-    
-            X[i] += Vx[i] * sub_dt;
-            Y[i] += Vy[i] * sub_dt;
-
-
-
-            if (wall_enabled) {
-                if (X[i] < wall_x - WALL_THICKNESS / 2)
-                    Side_new[i] = -1;
-                else if (X[i] > wall_x + WALL_THICKNESS / 2)
-                    Side_new[i] = 1;
-                else
-                    Side_new[i] = 0;
-
-                float wall_left = wall_x - WALL_THICKNESS / 2;
-                float wall_right = wall_x + WALL_THICKNESS / 2;
-
-                bool was_left = X_old[i] + Radius[i] < wall_left;
-                bool now_right = X[i] - Radius[i] > wall_right;
-                bool was_right = X_old[i] - Radius[i] > wall_right;
-                bool now_left = X[i] + Radius[i] < wall_left;
-
-                if ((was_left && now_right) || (was_right && now_left)) {
-                    printf("⚠️ Tunnel: Particle %d crossed wall at step %d. Reverting.\n", i, steps_elapsed);
-                    fprintf(tunnel_log, "%d, %d, %.6f, %.6f, %.6f\n", steps_elapsed, i, X[i], wall_x, Vx[i]);
-                    X[i] = X_old[i];
-                    Vx[i] *= -1;
-                    continue;
-                }
-            }
-
-            check_wall_collisions(i);
-            handle_piston_collisions(i);
+            // pistons & boundaries
+            handle_piston_collisions(i, sub_dt);
             handle_boundary_collision(i);
 
+           // simple pair collisions (equal mass, perfectly elastic)
             for (int j = i + 1; j < NUM_PARTICLES; j++) {
                 float dx = X[i] - X[j];
                 float dy = Y[i] - Y[j];
-                float dist_sq = dx * dx + dy * dy;
+                float dist2 = dx*dx + dy*dy;
+                float min_d = 2.f * PARTICLE_RADIUS;
 
-                if (dist_sq > spatial_window * spatial_window) continue;
-
-                float dist = sqrtf(dist_sq);
-                float min_dist = PARTICLE_RADIUS * 2;
-
-                if (dist < min_dist) {
+                if (dist2 < min_d * min_d && dist2 > 0.f) {
+                    float dist = sqrtf(dist2);
                     float nx = dx / dist;
                     float ny = dy / dist;
-                    float relVelX = Vx[i] - Vx[j];
-                    float relVelY = Vy[i] - Vy[j];
-                    float v_rel_dot = relVelX * nx + relVelY * ny;
 
-                    if (v_rel_dot < 0) {
-                        float J = 2 * v_rel_dot / (2 * PARTICLE_MASS);
+                    // relative vel along normal
+                    float relx = Vx[i] - Vx[j];
+                    float rely = Vy[i] - Vy[j];
+                    float vn = relx * nx + rely * ny;
+                    if (vn < 0.f) {
+                        // equal masses, e=1 → subtract/add vn along n
+                        Vx[i] -= vn * nx;
+                        Vy[i] -= vn * ny;
+                        Vx[j] += vn * nx;
+                        Vy[j] += vn * ny;
 
-                        Vx[i] -= J * PARTICLE_MASS * nx;
-                        Vy[i] -= J * PARTICLE_MASS * ny;
-                        Vx[j] += J * PARTICLE_MASS * nx;
-                        Vy[j] += J * PARTICLE_MASS * ny;
-
-                        float overlap = min_dist - dist;
-                        X[i] += nx * overlap / 2;
-                        Y[i] += ny * overlap / 2;
-                        X[j] -= nx * overlap / 2;
-                        Y[j] -= ny * overlap / 2;
+                        // positional correction (split overlap)
+                        float overlap = min_d - dist;
+                        float push = 0.5f * overlap + 1e-6f; // tiny bias to avoid recontact
+                        X[i] += nx * push;  Y[i] += ny * push;
+                        X[j] -= nx * push;  Y[j] -= ny * push;
                     }
                 }
             }
         }
     }
 
-    if (wall_enabled && (left_count != right_count)) {
-        detect_and_fix_tunnel(X, X_old, Vx, Side_old, Side_new, NUM_PARTICLES, wall_x, WALL_THICKNESS);
+    if (wall_enabled) {
+        left_count = right_count = 0;
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            if (X[i] < wall_x - WALL_THICKNESS / 2) left_count++;
+            else if (X[i] > wall_x + WALL_THICKNESS / 2) right_count++;
+        }
     }
 
-    if (out_left) *out_left = left_count;
+    if (out_left)  *out_left  = left_count;
     if (out_right) *out_right = right_count;
-
-    fclose(tunnel_log);
 }
 
 
 
+////////////////////////////   ENERGY CALCULATION   ///////////////////////
 
 
 
 // Expected kinetic energy for ideal gas: (3/2) N k_B T
+
+// --> only applies if no interactions of particles
 double kinetic_energy_expected() {
     return (3.0 / 2.0) * NUM_PARTICLES * K_B * TEMPERATURE;  // In Joules
 }
@@ -1340,6 +1242,13 @@ double kinetic_energy_expected() {
 double average_kinetic_energy_per_particle() {
     return kinetic_energy() / NUM_PARTICLES;
 }
+
+double kinetic_energy_total_system() {
+    double ke_particles = kinetic_energy(); // existing function (particles only)
+    double ke_wall = 0.5 * WALL_MASS * vx_wall * vx_wall;
+    return ke_particles + ke_wall;
+}
+
 
 
 
@@ -1474,11 +1383,15 @@ double total_free_energy(double T, double S) {
 
 
 
+//////LOGGING ////////
+// Function to log energy and temperature to a file
+
+
 void log_energy(FILE *fptr) {
-    float ke = kinetic_energy();
-    float ke_expected = kinetic_energy_expected();
-    float avg_ke_pp = average_kinetic_energy_per_particle();
-    float T = temperature();
+    double ke_particles = kinetic_energy();
+    double ke_wall = 0.5 * WALL_MASS * vx_wall * vx_wall;
+    double ke_total = ke_particles + ke_wall;
+    double T = temperature(); // still based on particle KE (as you have)
 
 
     // Compute kinetic and position entropy
@@ -1492,6 +1405,7 @@ void log_energy(FILE *fptr) {
     printf("Total Entropy: %e J/K\n", S_total);
     */
 
+
     compute_velocity_histogram();
     float S_v = entropy();
 
@@ -1501,8 +1415,9 @@ void log_energy(FILE *fptr) {
 
     float F = total_free_energy(T, S_total);
 
-    fprintf(fptr, "Kinetic Energy: %.8e J, Temperature: %.8e K, Entropy velocities: %.8e J/K, Total Free Energy: %.8e J\n", ke, T, S_v, F);
-    // Print the calculated values to the console
+    fprintf(fptr,
+      "KE_particles: %.8e, KE_wall: %.8e, KE_total: %.8e, T: %.8e, S_v: %.8e, F: %.8e\n",
+      ke_particles, ke_wall, ke_total, T, S_v, F);    // Print the calculated values to the console
     //printf("Kinetic Energy: %.6e J, Kinetic Energy expected: %.6e , AVG Kinetic Energy per particle: %.6e, Temperature: %.6e K, Entropy velocity: %.6e J/K, Entropy position: %.6e J/K, Total Free Energy: %.6e J\n", ke,ke_expected, avg_ke_pp, T, S_v, S_p, F);
 }
 
@@ -1545,6 +1460,7 @@ void keysSimulation(SDL_Event e) {
         }
     }
 }
+
 
 /// Constants for acceleration INIT piston
 const float acceleration = 25;  // Increased acceleration
@@ -1880,19 +1796,22 @@ void log_packing_fractions(FILE *log, const char *label) {
 
 
 
+
+
+
+/// SPEED OF SOUND EXPERIMENTS
+
 void run_speed_of_sound_experiments() {
     system("mkdir -p experiments_speed_of_sound/mode0_real_units");
     system("mkdir -p experiments_speed_of_sound/mode1_normalized_units");
     system("rm -f experiments_speed_of_sound/mode0_real_units/*.csv");
     system("rm -f experiments_speed_of_sound/mode1_normalized_units/*.csv");
 
-    wall_enabled = true;
-    wall_position_is_managed_externally = true;
-    double simulation_time = 0.0;
+    wall_enabled = 1;                        // ensure wall exists for CCD
+    wall_position_is_managed_externally = 1; // you control center via L0
 
-
-    float lengths[] = {7.5f, 10.0f, 15.0f};//, 20.0f, 25.0f, 30.0f, 35.0f, 50.0f};  // Add more lengths if needed
-    int wall_mass_factors[] = {20, 50, 100, 200, 500,1000}; //{20, 50, 100, 200, 300, 500, 750, 1000, 5000};  // Add more mass factors if needed
+    float lengths[] = {7.5f, 10.0f, 15.0f};
+    int wall_mass_factors[] = {20, 50, 100, 200, 500, 1000};
     int num_repeats = 1;
 
     printf("Running each experiment for %d steps after wall release\n", num_steps);
@@ -1900,27 +1819,27 @@ void run_speed_of_sound_experiments() {
         printf("⚠️ WARNING: Simulation time is very long! Consider reducing the number of steps.\n");
     } else if (num_steps < 1000) {
         printf("⚠️ WARNING: Simulation time is very short, SET EMERGENCY STEPS!\n");
-        num_steps = 200000 / FIXED_DT;
+        num_steps = (int)(200000 / FIXED_DT);
     }
 
-    for (int l = 0; l < sizeof(lengths) / sizeof(lengths[0]); ++l) {
-        for (int m = 0; m < sizeof(wall_mass_factors) / sizeof(wall_mass_factors[0]); ++m) {
+    for (int l = 0; l < (int)(sizeof(lengths)/sizeof(lengths[0])); ++l) {
+        for (int m = 0; m < (int)(sizeof(wall_mass_factors)/sizeof(wall_mass_factors[0])); ++m) {
             for (int r = 0; r < num_repeats; ++r) {
 
                 float L0 = lengths[l];
-                float wall_mass = PARTICLE_MASS * wall_mass_factors[m];
-                wall_mass_runtime = wall_mass;
+                wall_mass_runtime = PARTICLE_MASS * wall_mass_factors[m];
                 L0_UNITS = L0;
                 initialize_simulation_dimensions();
 
-
-                wall_x = XW1 + (L0 * PIXELS_PER_SIGMA);
-                wall_x_old = wall_x;
-                vx_wall = 0.0f;
+                // center wall at L0 (in pixels)
+                wall_x     = XW1 + (L0 * PIXELS_PER_SIGMA);
+                wall_x_old = wall_x;   // ← important for the first CCD step
+                vx_wall    = 0.0f;
 
                 wall_hold_enabled = true;
-                wall_is_released = false;
-                steps_elapsed = 0;
+                wall_is_released  = false;
+                steps_elapsed     = 0;
+                simulation_time   = 0.0;
 
                 initialize_simulation();
 
@@ -1935,11 +1854,7 @@ void run_speed_of_sound_experiments() {
                 sprintf(filename, "%swall_x_positions_L0_%d_wallmassfactor_%d_run%d.csv",
                         mode_folder, L0_int, wall_mass_factors[m], r);
                 FILE *wall_log = fopen(filename, "w");
-
-                if (!wall_log) {
-                    printf("❌ Could not open log file.\n");
-                    continue;
-                }
+                if (!wall_log) { printf("❌ Could not open log file.\n"); continue; }
 
                 if (log_packing_fraction) {
                     log_packing_fractions(wall_log, "main");
@@ -1947,33 +1862,45 @@ void run_speed_of_sound_experiments() {
                     fprintf(wall_log, "Time, Wall_X, Displacement(σ), Left_Count, Right_Count\n");
                 }
 
-                printf("🔬 Running: L0 = %.1f, M = %d * PARTICLE_MASS, run = %d\n", L0, wall_mass_factors[m], r);
+                printf("🔬 Running: L0 = %.1f, M = %d*m, run = %d\n", L0, wall_mass_factors[m], r);
                 printf("🔍 Initial wall_x = %.3f, vx_wall = %.6f\n", wall_x, vx_wall);
 
-                int left_particles = 0;
-                int right_particles = 0;
+                int left_particles = 0, right_particles = 0;
                 int recorded_steps = 0;
-                
 
                 while (recorded_steps < num_steps) {
-                    steps_elapsed++;
-                    simulation_time += FIXED_DT;  // ✅ Needed for accurate time
+                    // --- START OF STEP ---
+                    wall_x_old = wall_x;   // ← CCD uses wall pose from start of step
+                    steps_elapsed++;       // ← tick BEFORE update_wall so hold/release can trigger
 
+                    // physics
+                    wall_impulse_x_accum = 0.f; // (re)start accumulator for this step
+                    update_particles_with_substepping(FIXED_DT, &left_particles, &right_particles);
+
+                    // 🔹 integrate wall velocity from accumulated impulses
+                    if (wall_is_released) {
+                        vx_wall += wall_impulse_x_accum / WALL_MASS;   // Δv = J / M
+                    }
+                    // (optional) clear accumulator here if you prefer step-scoped use
+                    // wall_impulse_x_accum = 0.f;
+
+                    update_pistons(FIXED_DT);
+                    update_wall(FIXED_DT, L0_UNITS);
+
+                    // time bookkeeping
+                    simulation_time += FIXED_DT;
+
+                    // release check using true sim time
                     if (steps_elapsed == wall_hold_steps && !wall_is_released) {
-                        wall_release_time = simulation_time;  // NOT steps_elapsed * FIXED_DT;
-                        wall_is_released = true;
-                        recorded_steps = 0;
+                        wall_release_time = simulation_time;
+                        wall_is_released  = true;
+                        recorded_steps    = 0;
                         printf("🔔 Wall released at step %d (t = %.3f)\n", steps_elapsed, wall_release_time);
                     }
 
-                    update_particles_with_substepping(FIXED_DT, &left_particles, &right_particles);
-                    update_wall(FIXED_DT, L0);
-
                     if (!wall_is_released) continue;
 
-                    float time_after_release = simulation_time - wall_release_time;
-
-                    
+                    float time_after_release = (float)(simulation_time - wall_release_time);
                     float wall_x_sigma = wall_x / PIXELS_PER_SIGMA;
                     float disp = wall_x_sigma - (XW1 + XW2) / (2.0f * PIXELS_PER_SIGMA);
 
@@ -1981,26 +1908,26 @@ void run_speed_of_sound_experiments() {
                         fprintf(wall_log, "%.3f, %.3f, %.3f, %d, %d\n",
                                 time_after_release, wall_x_sigma, disp, left_particles, right_particles);
                     } else {
-                        float particle_area_unitless = M_PI * PARTICLE_RADIUS_UNIT * PARTICLE_RADIUS_UNIT;
-                        float particle_area_actual = M_PI * PARTICLE_RADIUS * PARTICLE_RADIUS;
+                        float particle_area_unitless = (float)(M_PI * PARTICLE_RADIUS_UNIT * PARTICLE_RADIUS_UNIT);
+                        float particle_area_actual   = (float)(M_PI * PARTICLE_RADIUS * PARTICLE_RADIUS);
+                        float box_area_unitless      = 2.0f * L0_UNITS * HEIGHT_UNITS;
+                        float box_area_scaled        = 2.0f * (L0_UNITS * PIXELS_PER_SIGMA) * (HEIGHT_UNITS * PIXELS_PER_SIGMA);
+                        float wall_area              = 0.5f * WALL_THICKNESS * (HEIGHT_UNITS * PIXELS_PER_SIGMA);
+                        float wall_buffer_area       = 2.0f * wall_area;
 
-                        float box_area_unitless = 2.0f * L0_UNITS * HEIGHT_UNITS;
-                        float box_area_scaled = 2.0f * (L0_UNITS * PIXELS_PER_SIGMA) * (HEIGHT_UNITS * PIXELS_PER_SIGMA);
-                        float wall_area = 0.5f * WALL_THICKNESS * (HEIGHT_UNITS * PIXELS_PER_SIGMA);
-                        float wall_buffer_area = 2.0f * wall_area;
-
-                        float packing_unitless = NUM_PARTICLES * particle_area_unitless / box_area_unitless;
-                        float packing_actual_bound = NUM_PARTICLES * particle_area_actual / box_area_scaled;
-                        float packing_actual_excl_wall = NUM_PARTICLES * particle_area_actual / (box_area_scaled - wall_buffer_area);
+                        float packing_unitless       = NUM_PARTICLES * particle_area_unitless / box_area_unitless;
+                        float packing_actual_bound   = NUM_PARTICLES * particle_area_actual / box_area_scaled;
+                        float packing_actual_excl    = NUM_PARTICLES * particle_area_actual / (box_area_scaled - wall_buffer_area);
 
                         fprintf(wall_log, "%.3f, %.3f, %.3f, %d, %d, %.6f, %.6f, %.6f\n",
                                 time_after_release, wall_x_sigma, disp,
                                 left_particles, right_particles,
-                                packing_unitless, packing_actual_bound, packing_actual_excl_wall);
+                                packing_unitless, packing_actual_bound, packing_actual_excl);
                     }
 
                     recorded_steps++;
 
+                    // bail-out if wall didn't get any motion for a long time
                     if (fabs(vx_wall) < 1e-15 && recorded_steps > wall_hold_steps * 10) {
                         printf("⚠️ Wall not moving — exiting early.\n");
                         break;
@@ -2020,9 +1947,10 @@ void run_speed_of_sound_experiments() {
 
 
 
+
+
 ///////////////////// VISUAL SIMULATION FUNCTIONS //////////////////////
 void simulation_loop() {
-
     initialize_simulation();
 
     int running = 1;
@@ -2034,97 +1962,121 @@ void simulation_loop() {
 
     FILE *logFile = fopen("energy_log.csv", "w");
     FILE *wall_log = fopen("wall_position.csv", "w");
+    if (!logFile || !wall_log) { printf("❌ Failed to open log files.\n"); exit(1); }
 
     if (log_packing_fraction) {
         log_packing_fractions(wall_log, "main");
     } else {
         fprintf(wall_log, "Time, Wall_X, Displacement(σ), Left_Count, Right_Count\n");
     }
-
-
-    if (!logFile || !wall_log) {
-        printf("❌ Failed to open log files.\n");
-        exit(1);
-    }
-
-    fprintf(logFile, "Kinetic Energy, Temperature, Entropy, Total Free Energy\n");
-
-    steps_elapsed = 0;
-    wall_hold_enabled = true;
-    wall_is_released = false;
+    fprintf(logFile, "KE_particles,KE_wall,KE_total,T,S_v,F\n");
+    
+    // initial sim state
+    steps_elapsed        = 0;
+    wall_hold_enabled    = true;
+    wall_is_released     = false;
+    wall_enabled         = 1;               // ensure wall is drawn/active
+    wall_x_old           = wall_x;          // first CCD step sees correct "old" pose
 
     Uint32 last_time = SDL_GetTicks();
     float accumulator = 0.0f;
-
-    double simulation_time = 0.0;
 
     while (running) {
         Uint32 current_time = SDL_GetTicks();
         float frame_time = (current_time - last_time) / 1000.0f;
         last_time = current_time;
-
         if (frame_time > 0.1f) frame_time = 0.1f;
         accumulator += frame_time;
 
-        // --- Handle SDL events ---
+        // events
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) running = 0;
             keysSimulation(e);
             keysPiston(e);
         }
 
-        int left_particles = 0;
-        int right_particles = 0;
+        int left_particles = 0, right_particles = 0;
 
         while (accumulator >= FIXED_DT) {
             if (simulation_started && !paused) {
-                printf("🌀 Physics update: steps_elapsed = %d\n", steps_elapsed);
-                fflush(stdout);
+                // --- START OF STEP ---
+                wall_x_old = wall_x;
+                steps_elapsed++;
 
+                // reset accumulator at the *start* of the step
+                wall_impulse_x_accum = 0.f;
+
+                // particles (this fills wall_impulse_x_accum via ccd_wall_step)
                 update_particles_with_substepping(FIXED_DT, &left_particles, &right_particles);
-                update_pistons(FIXED_DT);  // 💡 this is why the piston appears but doesn't move!
+
+                // convert accumulated impulse to wall Δv once per step (after all substeps)
+                if (wall_is_released) {
+                    vx_wall += wall_impulse_x_accum / WALL_MASS;   // ← crucial
+                }
+
+                // optional: zero it here if you prefer step-scoped
+                // wall_impulse_x_accum = 0.f;
+
+                update_pistons(FIXED_DT);
                 update_wall(FIXED_DT, L0_UNITS);
 
                 simulation_time += FIXED_DT;
-                steps_elapsed++;
 
+                // inside the fixed-step block, after simulation_time += FIXED_DT
+                if ((steps_elapsed % 100) == 0) {
+                    log_energy(logFile);
+                    fflush(logFile);
+                }
+
+                if ((steps_elapsed % 500) == 0) {
+                double ke_p = kinetic_energy();
+                double ke_w = 0.5 * WALL_MASS * vx_wall * vx_wall;
+                printf("[ENERGY] step=%d  KE_p=%.6e  KE_w=%.6e  KE_tot=%.6e  vx_wall=%.6g\n",
+                    steps_elapsed, ke_p, ke_w, ke_p + ke_w, vx_wall);
+}
+
+                if ((steps_elapsed % 1000) == 0) {
+                    printf("KE=%.9f  vx_wall=%.6g  J_accum=%.6g\n",
+                        kinetic_energy(), vx_wall, wall_impulse_x_accum);
+                }
+
+                // establish release time once
                 if (wall_is_released && wall_release_time < 0.0) {
                     wall_release_time = simulation_time;
                     printf("✅ Wall released at t = %.3f\n", wall_release_time);
                 }
 
-                // Log wall if released
+                // logging after release
                 if (wall_is_released) {
-                    if (log_packing_fraction == 0) {
-                        double time_after_release = simulation_time - wall_release_time;
-                        double wall_x_sigma = wall_x / PIXELS_PER_SIGMA;
-                        double disp = wall_x_sigma - (XW1 + XW2) / (2.0 * PIXELS_PER_SIGMA);
-                        fprintf(wall_log, "%.3f, %.3f, %.3f, %d, %d\n", time_after_release, wall_x_sigma, disp, left_particles, right_particles);
-                    }
-                    else {
-                        double time_after_release = simulation_time - wall_release_time;
-                        double wall_x_sigma = wall_x / PIXELS_PER_SIGMA;
-                        double disp = wall_x_sigma - (XW1 + XW2) / (2.0 * PIXELS_PER_SIGMA);
+                    double time_after_release = simulation_time - wall_release_time;
+                    double wall_x_sigma = wall_x / PIXELS_PER_SIGMA;
+                    double disp = wall_x_sigma - (XW1 + XW2) / (2.0 * PIXELS_PER_SIGMA);
 
-                        float particle_area_unitless = M_PI * PARTICLE_RADIUS_UNIT * PARTICLE_RADIUS_UNIT;
-                        float particle_area_actual = M_PI * PARTICLE_RADIUS * PARTICLE_RADIUS;
+                    if (!log_packing_fraction) {
+                        fprintf(wall_log, "%.3f, %.3f, %.3f, %d, %d\n",
+                                time_after_release, wall_x_sigma, disp,
+                                left_particles, right_particles);
+                    } else {
+                        float particle_area_unitless = (float)(M_PI * PARTICLE_RADIUS_UNIT * PARTICLE_RADIUS_UNIT);
+                        float particle_area_actual   = (float)(M_PI * PARTICLE_RADIUS * PARTICLE_RADIUS);
+                        float box_area_unitless      = 2.0f * L0_UNITS * HEIGHT_UNITS;
 
-                        float box_area_unitless = 2.0f * L0_UNITS * HEIGHT_UNITS;
+                        float L0_scaled      = L0_UNITS * PIXELS_PER_SIGMA;
+                        float height_scaled  = HEIGHT_UNITS * PIXELS_PER_SIGMA;
+                        float box_area_scaled= 2.0f * L0_scaled * height_scaled;
+                        float wall_area      = 0.5f * WALL_THICKNESS * height_scaled;
+                        float wall_buffer_area = 2.0f * wall_area;
 
-                        float L0_scaled = L0_UNITS * PIXELS_PER_SIGMA;
-                        float height_scaled = HEIGHT_UNITS * PIXELS_PER_SIGMA;
-                        float box_area_scaled = 2.0f * L0_scaled * height_scaled;
-                        float wall_area = 0.5 * WALL_THICKNESS * height_scaled;
-                        float wall_buffer_area = 2.0f * wall_area;  // Wall buffer area (on both sides of the wall)
-
-                        float packing_unitless = NUM_PARTICLES * particle_area_unitless / box_area_unitless;
+                        float packing_unitless     = NUM_PARTICLES * particle_area_unitless / box_area_unitless;
                         float packing_actual_bound = NUM_PARTICLES * particle_area_actual / box_area_scaled;
-                        float packing_actual_excl_wall = NUM_PARTICLES * particle_area_actual / (box_area_scaled - wall_buffer_area);
+                        float packing_actual_excl  = NUM_PARTICLES * particle_area_actual / (box_area_scaled - wall_buffer_area);
 
-                        fprintf(wall_log, "%.3f, %.3f, %.3f, %d, %d, %.6f, %.6f, %.6f\n", time_after_release, wall_x_sigma, disp, left_particles, right_particles, packing_unitless, packing_actual_bound, packing_actual_excl_wall);
-
+                        fprintf(wall_log, "%.3f, %.3f, %.3f, %d, %d, %.6f, %.6f, %.6f\n",
+                                time_after_release, wall_x_sigma, disp,
+                                left_particles, right_particles,
+                                packing_unitless, packing_actual_bound, packing_actual_excl);
                     }
-                }   
+                }
             }
             accumulator -= FIXED_DT;
         }
@@ -2135,10 +2087,7 @@ void simulation_loop() {
         draw_simulation_boundary();
         render_particles();
         render_pistons();
-
-        if (wall_enabled) {
-            draw_wall();  // ← check added already
-        }
+        if (wall_enabled) draw_wall();
 
         SDL_Color red = {255, 0, 0, 255};
         SDL_Color blue = {0, 0, 255, 255};
@@ -2147,7 +2096,6 @@ void simulation_loop() {
         char buffer[64];
         sprintf(buffer, "Left: %d", left_particles);
         draw_text(_renderer, font, buffer, XW1 + 5, YW1 + 10, red);
-
         sprintf(buffer, "Right: %d", right_particles);
         draw_text(_renderer, font, buffer, XW2 - 100, YW1 + 10, blue);
 
@@ -2156,20 +2104,19 @@ void simulation_loop() {
             draw_text(_renderer, font, buffer, XW1 + 5, YW1 + 50, yellow);
         }
 
-        render_velocity_histograms();  // ← this draws vx and vy histograms
+        render_velocity_histograms();
         float T_measured = compute_measured_temperature_from_ke();
         char temp_label[128];
         sprintf(temp_label, "T_measured: %.2f", T_measured);
         draw_text(_renderer, font, temp_label, XW1 + 5, YW1 + HEIGHT_UNITS*PIXELS_PER_SIGMA, yellow);
 
         SDL_RenderPresent(_renderer);
-        SDL_Delay(5);  // throttle FPS
+        SDL_Delay(5);
     }
 
     fclose(logFile);
     fclose(wall_log);
 }
-
 
 
 
@@ -2208,12 +2155,6 @@ int main(int argc, char* argv[]) {
         simulation_loop();  // your SDL interactive version
     }
     
-    tunnel_log = fopen("tunnel_events.csv", "w");
-        if (!tunnel_log) {
-            printf("❌ Failed to open tunnel log!\n");
-            exit(1);
-        }
-        fprintf(tunnel_log, "Step, Particle, X, Wall_X, Vx\n");
 
     // Print the first few velocities for testing
     for (int i = 0; i < 10; i++) {
@@ -2286,8 +2227,6 @@ void simulation_loop_old() {
     Uint32 last_time = SDL_GetTicks();
     float accumulator = 0.0f;
 
-    double simulation_time = 0.0;        // ← Total simulation time always increasing
-    double wall_release_time = -1.0;     // ← Marks when wall released
     double time_after_release = 0.0;     // ← This is what we log
 
     while (running) {
