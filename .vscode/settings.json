@@ -58,6 +58,7 @@
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
   "files.associations": {
     "gaussrand.h": "c",
-    "complex": "c"
+    "complex": "c",
+    "sdl_ttf.h": "c"
   }
 }
