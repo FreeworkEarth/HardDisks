@@ -1,0 +1,1 @@
+// gcc boxtest.c macsdl2.c SDL_FontCache.c -o boxtest -I/opt/homebrew/include -L/opt/homebrew/lib -lSDL2 -lSDL2_ttf -D_THREAD_SAFE

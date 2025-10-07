@@ -42,7 +42,7 @@ static unsigned int _R1 = 1103515245, _R2 = 12345;
 #define ANGFACT 2.0*3.1415926536/4294967296.0
 /*  return floats between 0 and 1  */
 #define f_rand()	\
-	RFACT*_seed;		\
+	(RFACT*_seed);		\
 	myrand()
 /*  return floats between -1 and 1  */
 #define f1_rand()	\
@@ -50,5 +50,5 @@ static unsigned int _R1 = 1103515245, _R2 = 12345;
 	myrand()
 /*  return floats between 0 and 2pi  */
 #define ang_rand()	\
-	ANGFACT*_seed;		\
+	(ANGFACT*_seed);		\
 	myrand()

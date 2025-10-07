@@ -36,8 +36,8 @@ THE SOFTWARE.
 //#include "SDL.h"
 #include <SDL2/SDL.h>
 //#include "SDL_ttf.h"
-//#include <SDL2/SDL_ttf.h>
-#include "/usr/local/include/SDL2/SDL_ttf.h"
+#include <SDL2/SDL_ttf.h>
+//#include "/usr/local/include/SDL2/SDL_ttf.h"
 
 #ifdef FC_USE_SDL_GPU
     #include "SDL_gpu.h"
