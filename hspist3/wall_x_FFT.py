@@ -32,8 +32,8 @@ from numba import njit
 
 ### --- Configurable flags ---
 ## SIMULATION MODE
-reduced_units = 1  # 1 = reduced units 0: physical corect molecular units
-enable_batch_processing = True  # Set to False to analyze one file only
+reduced_units = 0  # 1 = reduced units 0: physical corect molecular units
+enable_batch_processing = False  # Set to False to analyze one file only
 enable_padding_higherFFT_res = True  # Set to False to disable zero padding
 
 enable_bandpass_filter = False  # Set to False to disable bandpass filtering from 0.001 to 0.1 Hz
@@ -49,7 +49,7 @@ FFT_mode = "numerical_recipes_c"       # Options: "raw" , "numerical_recipes_c",
 # --- Choose which peak you want to return ---
 peak_selection_mode = "raw_near_smoothed_lowfreq"  # Options: 'smoothed_max', 'raw_max', 'raw_near_smoothed_lowfreq'← your default
 
-choose_specific_file = 1 # 0 = process wall_positions.csv from vidual simualation, 1 = choose specific file from experiments
+choose_specific_file = 0 # 0 = process wall_positions.csv from vidual simualation, 1 = choose specific file from experiments
 single_plot_filename = "wall_x_positions_L0_200_wallmassfactor_200_run0.csv"  # Leave as None to plot all
 
 
@@ -81,18 +81,21 @@ else:
 
 
 print(os.getcwd())  # this is where the script expects to find the folder
-# Check what files exist in the expected folder path
+# Check what files exist in the expected folder path when the folder is actually required
 
-assert os.path.isdir(folder_path), f"❌ Folder path does not exist: {folder_path}"
 plot_title = "Peak Frequency Shift vs Wall Mass and Box Length" 
 
-# Show what folder we are looking in
-print("🔍 Current working directory:", os.getcwd())
-print("🔍 Full search path:", os.path.join(folder_path, "*.csv"))
+if enable_batch_processing or choose_specific_file == 1:
+    assert os.path.isdir(folder_path), f"❌ Folder path does not exist: {folder_path}"
+    # Show what folder we are looking in
+    print("🔍 Current working directory:", os.getcwd())
+    print("🔍 Full search path:", os.path.join(folder_path, "*.csv"))
 
-# Debug what files it actually sees
-filepaths = sorted(glob.glob(os.path.join(folder_path, "*.csv")))
-print(f"📂 Files found: {filepaths}")
+    # Debug what files it actually sees
+    filepaths = sorted(glob.glob(os.path.join(folder_path, "*.csv")))
+    print(f"📂 Files found: {filepaths}")
+else:
+    print("📂 Single-file mode: skipping batch folder lookup.")
 
 ### --- Storage for results ---
 results = []
@@ -1125,7 +1128,7 @@ def process_file(filepath):
     ax.set_xlabel("Frequency [Hz]")
     ax.set_ylabel("Power")
     ax.set_title("Wall X Power Spectrum with Smart Peak Detection")
-    ax.set_xlim(0, 0.03)
+    ax.set_xlim(0, 0.2)
     ax.set_ylim(auto=True)
     ax.set_xscale('linear')
     ax.set_yscale('linear')  # ← let matplotlib do the log transform

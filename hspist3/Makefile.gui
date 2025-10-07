@@ -1,0 +1,53 @@
+# Makefile for GUI Configuration Tool
+# Can be compiled with Emscripten for web deployment
+
+CC = gcc
+CFLAGS = -Wall -Wextra -std=c99
+LIBS = -lSDL2 -lSDL2_ttf
+TARGET = gui_config
+TARGET_ADVANCED = gui_advanced
+
+# Detect platform
+PLATFORM := $(shell uname)
+
+# SDL2 paths
+ifeq ($(PLATFORM),Darwin)
+    CFLAGS += -I/opt/homebrew/include/SDL2 -I/opt/homebrew/include
+    LIBS += -L/opt/homebrew/lib
+else
+    CFLAGS += $(shell pkg-config --cflags sdl2 SDL2_ttf)
+    LIBS += $(shell pkg-config --libs sdl2 SDL2_ttf)
+endif
+
+.PHONY: all clean web
+
+all: $(TARGET) $(TARGET_ADVANCED)
+
+$(TARGET): gui_config.c
+	$(CC) $(CFLAGS) -o $(TARGET) gui_config.c $(LIBS)
+
+$(TARGET_ADVANCED): gui_advanced.c
+	$(CC) $(CFLAGS) -o $(TARGET_ADVANCED) gui_advanced.c $(LIBS)
+
+clean:
+	rm -f $(TARGET) $(TARGET_ADVANCED)
+
+# Web compilation with Emscripten
+web: gui_config.c
+	emcc gui_config.c -o gui_config.html -s USE_SDL=2 -s USE_SDL_TTF=2 -s WASM=1 -O2
+
+run: $(TARGET)
+	./$(TARGET)
+
+run-advanced: $(TARGET_ADVANCED)
+	./$(TARGET_ADVANCED)
+
+.PHONY: help
+help:
+	@echo "Available targets:"
+	@echo "  all           - Build both GUI configuration tools"
+	@echo "  run           - Build and run the basic GUI"
+	@echo "  run-advanced  - Build and run the advanced GUI (matches Python GUI)"
+	@echo "  web           - Compile basic GUI for web with Emscripten"
+	@echo "  clean         - Remove built files"
+	@echo "  help          - Show this help"

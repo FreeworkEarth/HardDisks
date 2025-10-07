@@ -1,0 +1,21 @@
+It helps somewhat to understand the code if we understand the underlying hardware.
+
+Modern machines have a CPU, and a GPU, each has its own memory.
+The GPU controls the screen which we see.
+
+At the moment, my code uses SDL to write to a piece of CPU memory,
+using calls such as pendn(), move(), penup(), circ() etc.
+After everything is drawn, this memory is copied down to GPU memory,
+often called a "texture", with the call drawtexture(). Finally, this "texture"
+is copied to framebuffer memory, which actually shows up on the screen,
+with the call drawbuffer().
+
+The call initdisks() sets initial conditions, update() advances the dynamics,
+display() displays.
+
+s - changes speed, by varying the number of updates per display
+n - changes the number of disks
+o - prints timing information to the console
+x - exits the simulation
+
+Hope this helps a little!

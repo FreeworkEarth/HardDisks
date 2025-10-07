@@ -1,5 +1,22 @@
 
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.markers as mmarkers
+from scipy.signal import spectrogram
+from scipy.ndimage import gaussian_filter1d
+from scipy.fft import fft, fftfreq
+from scipy.signal import find_peaks
+from scipy.signal import savgol_filter
+from scipy.signal import welch
+from scipy.signal import butter, filtfilt
+from scipy.stats import linregress
 
+
+from scipy.optimize import root_scalar
+from matplotlib.cm import viridis
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
 
 #### SINGLE FILE FFT ANALYSIS ####
 # --- Load the data ---
@@ -35,7 +52,7 @@ wall_x_centered = wall_x - np.mean(wall_x)
 
 
 
-
+q
 
 ##################################################
 
@@ -496,4 +513,3 @@ annotate_spectrogram_peaks(f_spec, power_avg_windowed, ax, n_peaks=3, color='whi
 plt.tight_layout()
 plt.show()
 
-"""
