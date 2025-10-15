@@ -1,0 +1,208 @@
+# LAMMPS: Final Correct Configuration
+# Target: frequency ~0.06 Hz (matching your C simulation)
+# Wall: vertical line of particles, x-motion only
+# Particles: exactly 50 left + 50 right
+
+units           lj
+dimension       2
+atom_style      molecular
+atom_modify     map yes
+boundary        f f p
+
+neighbor        0.5 bin
+neigh_modify    delay 0 every 1 check yes
+
+# Increase communication cutoff for rigid body
+comm_modify     cutoff 6.0
+
+# ============================================================================
+# PARAMETERS TO MATCH YOUR C CODE
+# ============================================================================
+
+variable        L0 equal 7.5            # SMALLER box → freq ~0.06 Hz (was 10)
+variable        H equal 10.0
+variable        T equal 1.0             # T=1 as you requested
+variable        dt equal 0.00005        # Smaller dt for stability at T=1
+
+variable        pmass equal 1.0
+variable        sigma equal 1.0
+variable        K_B equal 1.0
+variable        wall_particle_mass equal 1.0
+variable        num_wall_particles equal 20
+variable        M_total equal 20.0      # LIGHTER wall → freq ~0.06 Hz (was 200)
+
+# For frequency ~0.06: need smaller L0 and lighter wall
+# freq ∝ sqrt(pressure/(wall_mass * L0))
+
+variable        hold_steps equal 100000   # 5 time units
+variable        run_steps equal 6000000   # 300 time units
+variable        thermo_freq equal 10000
+variable        dump_freq equal 10000
+
+# ============================================================================
+# CREATE BOX
+# ============================================================================
+
+region          box block -${L0} ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+create_box      2 box
+
+# ============================================================================
+# CREATE EXACTLY 50+50 PARTICLES
+# ============================================================================
+
+# Use lattice for approximately 50 per side
+lattice         sq 1.05
+
+region          left_fill block -$(v_L0-0.5) -0.6 -$(v_H/2-0.5) $(v_H/2-0.5) -0.5 0.5
+create_atoms    1 region left_fill
+
+variable        n_left_initial equal count(all)
+
+region          right_fill block 0.6 $(v_L0-0.5) -$(v_H/2-0.5) $(v_H/2-0.5) -0.5 0.5
+create_atoms    1 region right_fill
+
+variable        n_total equal count(all)
+print           "Created $(count(all)) gas particles"
+
+# Adjust to exactly 100
+if              "${n_total} > 100" then &
+    "group extras id > 100" &
+    "delete_atoms group extras" &
+    "print 'Trimmed to 100 particles'"
+
+set             type 1 mol 0
+mass            1 ${pmass}
+group           particles type 1
+
+# ============================================================================
+# CREATE WALL LINE (20 particles forming vertical line)
+# ============================================================================
+
+variable        dy_wall equal ${H}/${num_wall_particles}
+variable        y_start equal -$(v_H/2)+v_dy_wall/2
+
+variable        iwall loop ${num_wall_particles}
+label           create_wall_loop
+variable        y_pos equal v_y_start+(${iwall}-1)*v_dy_wall
+create_atoms    2 single 0.0 ${y_pos} 0.0
+next            iwall
+jump            SELF create_wall_loop
+
+group           wall_atoms type 2
+set             type 2 mol 1
+mass            2 ${wall_particle_mass}
+
+print           "SETUP: $(count(particles)) gas + $(count(wall_atoms)) wall = $(count(all)) total"
+
+# ============================================================================
+# RIGID WALL - X-MOTION ONLY
+# ============================================================================
+
+# Rigid body from molecule 1
+fix             rigid_wall wall_atoms rigid/small molecule
+
+# CRITICAL: Lock y-motion (wall can only move in x)
+fix             wall_lock_y wall_atoms setforce NULL 0.0 0.0
+
+# ============================================================================
+# POTENTIALS
+# ============================================================================
+
+pair_style      lj/cut 1.122462
+pair_modify     shift yes
+
+# Softer for stability at T=1
+pair_coeff      1 1 0.3 ${sigma} 1.122462
+pair_coeff      1 2 0.3 ${sigma} 1.122462
+pair_coeff      2 2 0.3 ${sigma} 1.122462
+
+# ============================================================================
+# BOUNDARY WALLS (not applied to rigid wall_atoms)
+# ============================================================================
+
+fix             walls_y particles wall/reflect yhi EDGE ylo EDGE
+fix             walls_x particles wall/reflect xhi EDGE xlo EDGE
+
+# ============================================================================
+# INITIALIZATION
+# ============================================================================
+
+velocity        particles create ${T} 87654 dist gaussian
+velocity        particles scale ${T}
+velocity        wall_atoms set 0.0 0.0 0.0
+
+timestep        ${dt}
+
+fix             nve_p particles nve
+
+# ============================================================================
+# COMPUTES
+# ============================================================================
+
+compute         temp_p particles temp
+compute         ke_p particles ke
+compute         wall_com wall_atoms com
+
+variable        wall_x equal c_wall_com[1]
+variable        time_lj equal step*dt
+
+region          left_side block -${L0} 0.0 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_side block 0.0 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+
+group           left_p dynamic particles region left_side every 1000
+group           right_p dynamic particles region right_side every 1000
+
+variable        n_left equal count(left_p)
+variable        n_right equal count(right_p)
+
+# ============================================================================
+# OUTPUT
+# ============================================================================
+
+thermo_style    custom step v_time_lj temp c_temp_p c_ke_p v_wall_x v_n_left v_n_right atoms
+
+thermo          ${thermo_freq}
+
+# OVITO visualization: type 1 (blue gas), type 2 (wall line - will show as different color)
+dump            traj all custom ${dump_freq} traj_final.lammpstrj &
+                id mol type x y z vx vy vz
+
+dump_modify     traj sort id
+
+# High-frequency wall logging (every 0.05 time units)
+fix             wall_log all print 1000 &
+                "${time_lj} ${wall_x} ${n_left} ${n_right}" &
+                file wall_final.dat screen no &
+                title "# Time WallX NLeft NRight"
+
+# ============================================================================
+# RUN
+# ============================================================================
+
+print           "=========================================="
+print           "FINAL CONFIGURATION (matching C code):"
+print           "  Box: L0 = ${L0} (smaller for freq~0.06)"
+print           "  Particles: $(count(particles))"
+print           "  Wall: $(count(wall_atoms)) atoms in line"
+print           "  Wall mass: ${M_total} (lighter for freq~0.06)"
+print           "  T = ${T}, dt = ${dt}"
+print           "  Target frequency: ~0.06 Hz"
+print           "=========================================="
+
+print           "Phase 1: Equilibration..."
+fix             hold wall_atoms setforce 0.0 NULL NULL
+run             ${hold_steps}
+unfix           hold
+
+print           "Phase 2: Free oscillation (300 time units)..."
+run             ${run_steps}
+
+write_data      final.data
+
+print           ""
+print           "=========================================="
+print           "COMPLETE!"
+print           "  Wall = vertical line of $(count(wall_atoms)) blue atoms"
+print           "  Motion: X-DIRECTION ONLY"
+print           "  Analyze wall_final.dat for frequency"
+print           "=========================================="

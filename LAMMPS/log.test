@@ -1,0 +1,124 @@
+LAMMPS (22 Jul 2025 - Update 1)
+# LAMMPS input script: Speed of Sound Experiment
+# Measures oscillation frequency of released divider wall
+# Replicates: hspist3 experiments_speed_of_sound
+# ============================================================================
+
+units           lj
+dimension       2
+atom_style      atomic
+boundary        p f p
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+
+# ============================================================================
+# EXPERIMENT PARAMETERS
+# ============================================================================
+
+variable        L0 equal 7.5            # Smaller box for faster oscillations
+variable        H equal 10.0
+variable        N equal 200             # Particles per side
+variable        T equal 1.0
+variable        dt equal 0.00005        # Smaller timestep for accuracy
+
+variable        sigma equal 1.0
+variable        pmass equal 1.0
+variable        wmass equal 20.0        # Lighter wall = higher frequency
+
+# No spring for this experiment - free oscillation
+variable        x_eq equal 0.0
+
+# Simulation control
+variable        hold_steps equal 50000  # Equilibration with wall fixed
+variable        run_steps equal 500000  # Measure oscillations
+variable        thermo_freq equal 100
+variable        dump_freq equal 200
+
+# ============================================================================
+# SIMULATION BOX
+# ============================================================================
+
+region          box block -${L0} ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+region          box block -7.5 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+region          box block -7.5 7.5 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          box block -7.5 7.5 -5 $(v_H/2) -0.5 0.5
+region          box block -7.5 7.5 -5 5 -0.5 0.5
+create_box      2 box
+Created orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  1 by 1 by 1 MPI processor grid
+
+# ============================================================================
+# CREATE PARTICLES
+# ============================================================================
+
+# Equal particles on both sides of divider
+region          left_region block -${L0} -0.6 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          left_region block -7.5 -0.6 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          left_region block -7.5 -0.6 -5 $(v_H/2) -0.5 0.5
+region          left_region block -7.5 -0.6 -5 5 -0.5 0.5
+region          right_region block 0.6 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_region block 0.6 7.5 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_region block 0.6 7.5 -5 $(v_H/2) -0.5 0.5
+region          right_region block 0.6 7.5 -5 5 -0.5 0.5
+
+create_atoms    1 random $N 12345 left_region
+create_atoms    1 random 200 12345 left_region
+Created 200 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+create_atoms    1 random $N 67890 right_region
+create_atoms    1 random 200 67890 right_region
+Created 200 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+
+# Set particle mass
+mass            1 ${pmass}
+mass            1 1
+
+# ============================================================================
+# CREATE WALL
+# ============================================================================
+
+create_atoms    2 single 0.0 0.0 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+mass            2 ${wmass}
+mass            2 20
+
+group           particles type 1
+400 atoms in group particles
+group           wall_atom type 2
+1 atoms in group wall_atom
+
+velocity        wall_atom set 0.0 0.0 0.0
+fix             wall_fix_yz wall_atom setforce NULL 0.0 0.0
+
+# ============================================================================
+# POTENTIALS (WCA for hard disks)
+# ============================================================================
+
+pair_style      lj/cut 1.122462048
+pair_modify     shift yes
+
+# Particle-particle interactions (sigma=1.0, epsilon=1.0)
+pair_coeff      1 1 1.0 ${sigma} 1.122462048
+pair_coeff      1 1 1.0 1 1.122462048
+
+# Particle-wall interactions (contact at 0.5 + 0.5 = 1.0)
+pair_coeff      1 2 1.0 1.0 1.122462048
+
+# Wall-wall (no interaction)
+pair_coeff      2 2 0.0 1.0 1.122462048
+
+# ============================================================================
+# WALLS
+# ============================================================================
+
+fix             wall_top particles wall/reflect yhi EDGE
+fix             wall_bottom particles wall/reflect ylo EDGE
+fix             wall_left particles wall/reflect xlo EDGE
+ERROR: Cannot use fix wall/reflect in periodic dimension x (src/fix_wall_reflect.cpp:103)
+Last input line: fix wall_left particles wall/reflect xlo EDGE

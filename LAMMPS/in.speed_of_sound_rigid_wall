@@ -1,0 +1,178 @@
+# LAMMPS: Speed of Sound with Rigid Wall Divider
+# Wall is a vertical line of particles moving together as a rigid body
+
+units           lj
+dimension       2
+atom_style      atomic
+atom_modify     map yes
+boundary        f f p
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+
+# ============================================================================
+# PARAMETERS
+# ============================================================================
+
+variable        L0 equal 10.0           # Half box width
+variable        H equal 10.0            # Box height
+variable        T equal 0.5             # Temperature
+variable        dt equal 0.0001         # Timestep
+
+variable        pmass equal 1.0
+variable        wall_particle_mass equal 1.0
+variable        num_wall_particles equal 20  # Number of particles in wall
+
+# Simulation control
+variable        hold_steps equal 20000
+variable        run_steps equal 200000
+variable        thermo_freq equal 100
+variable        dump_freq equal 500
+
+# ============================================================================
+# BOX
+# ============================================================================
+
+region          box block -${L0} ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+create_box      2 box
+
+# ============================================================================
+# CREATE GAS PARTICLES
+# ============================================================================
+
+lattice         sq 0.8
+region          left_fill block -$(v_L0-0.5) -0.6 -$(v_H/2-0.5) $(v_H/2-0.5) -0.5 0.5
+region          right_fill block 0.6 $(v_L0-0.5) -$(v_H/2-0.5) $(v_H/2-0.5) -0.5 0.5
+
+create_atoms    1 region left_fill
+create_atoms    1 region right_fill
+
+mass            1 ${pmass}
+
+# ============================================================================
+# CREATE WALL as LINE OF PARTICLES (type 2)
+# ============================================================================
+
+# Create vertical line of wall particles at x=0
+variable        wall_spacing equal ${H}/${num_wall_particles}
+variable        wall_y_start equal -$(v_H/2)+v_wall_spacing/2
+
+variable        i loop ${num_wall_particles}
+label           wall_loop
+variable        y_pos equal v_wall_y_start+($i-1)*v_wall_spacing
+create_atoms    2 single 0.0 ${y_pos} 0.0
+next            i
+jump            SELF wall_loop
+
+mass            2 ${wall_particle_mass}
+
+group           particles type 1
+group           wall_atoms type 2
+
+print           "Created $(count(particles)) gas particles and $(count(wall_atoms)) wall particles"
+
+# ============================================================================
+# MAKE WALL RIGID
+# ============================================================================
+
+# Use fix rigid to make wall particles move together as one body
+fix             rigid_wall wall_atoms rigid single
+
+# Constrain wall rigid body to move only in x direction
+# The rigid fix integrates motion, so we modify the group
+fix             wall_y wall_atoms setforce NULL 0.0 NULL
+
+# ============================================================================
+# POTENTIALS
+# ============================================================================
+
+pair_style      lj/cut 1.122462
+pair_modify     shift yes
+
+# Particle-particle
+pair_coeff      1 1 0.5 1.0 1.122462
+
+# Particle-wall (wall particles are same size as gas particles)
+pair_coeff      1 2 0.5 1.0 1.122462
+
+# Wall-wall (same type, prevent overlap within wall)
+pair_coeff      2 2 0.5 1.0 1.122462
+
+# ============================================================================
+# BOUNDARY WALLS
+# ============================================================================
+
+fix             walls_y particles wall/reflect yhi EDGE ylo EDGE
+fix             walls_x particles wall/reflect xhi EDGE xlo EDGE
+
+# ============================================================================
+# INITIALIZATION
+# ============================================================================
+
+velocity        particles create ${T} 4928459 dist gaussian
+velocity        particles scale ${T}
+velocity        wall_atoms set 0.0 0.0 0.0
+
+timestep        ${dt}
+
+fix             nve_p particles nve
+
+# ============================================================================
+# COMPUTES
+# ============================================================================
+
+compute         temp_p particles temp
+compute         ke_p particles ke
+compute         ke_w wall_atoms ke
+
+# Wall center of mass position
+compute         wall_com wall_atoms com
+
+variable        wall_x equal c_wall_com[1]
+variable        wall_vx equal vcm(wall_atoms,x)
+variable        ke_total equal c_ke_p+c_ke_w
+
+region          left_side block -${L0} 0.0 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_side block 0.0 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+
+group           left_p dynamic particles region left_side every 100
+group           right_p dynamic particles region right_side every 100
+
+variable        n_left equal count(left_p)
+variable        n_right equal count(right_p)
+
+# ============================================================================
+# OUTPUT
+# ============================================================================
+
+thermo_style    custom step temp c_temp_p c_ke_p c_ke_w v_ke_total &
+                v_wall_x v_wall_vx v_n_left v_n_right atoms
+
+thermo          ${thermo_freq}
+
+# Dump with custom colors for visualization
+dump            traj all custom ${dump_freq} traj_rigid_wall.lammpstrj &
+                id type x y z vx vy vz
+
+dump_modify     traj sort id
+
+# High-frequency wall logging
+fix             wall_log all print 20 &
+                "$(step) ${wall_x} ${wall_vx} ${n_left} ${n_right}" &
+                file wall_oscillation_rigid.dat screen no &
+                title "# Step WallX WallVx NLeft NRight"
+
+# ============================================================================
+# RUN
+# ============================================================================
+
+print           "Phase 1: Equilibration with wall fixed..."
+fix             freeze_wall wall_atoms setforce 0.0 NULL NULL
+run             ${hold_steps}
+unfix           freeze_wall
+
+print           "Phase 2: Measuring oscillations..."
+run             ${run_steps}
+
+write_data      final_rigid_wall.data
+print           "Complete! Wall is now a visible rigid line in OVITO."

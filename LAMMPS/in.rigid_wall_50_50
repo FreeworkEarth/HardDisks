@@ -1,0 +1,241 @@
+# LAMMPS: Rigid Wall Line + Exactly 50+50 Particles
+# Wall is a vertical line of atoms, moves ONLY in x-direction
+# Exactly 50 particles left + 50 particles right
+
+units           lj
+dimension       2
+atom_style      atomic
+atom_modify     map yes
+boundary        f f p
+
+neighbor        0.5 bin
+neigh_modify    delay 0 every 1 check yes
+
+# ============================================================================
+# PARAMETERS
+# ============================================================================
+
+variable        L0 equal 10.0           # Half box width
+variable        H equal 10.0            # Box height
+variable        T equal 0.5             # Temperature
+variable        dt equal 0.0001         # Timestep
+
+variable        pmass equal 1.0
+variable        wall_particle_mass equal 1.0
+variable        num_wall_particles equal 20  # Wall particles
+
+# Total wall mass = 20 particles × 1 mass = 20 (close to M=20 that was stable)
+
+variable        hold_steps equal 50000
+variable        run_steps equal 3000000
+
+variable        thermo_freq equal 10000
+variable        dump_freq equal 10000
+
+# ============================================================================
+# CREATE BOX
+# ============================================================================
+
+region          box block -${L0} ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+create_box      2 box
+
+# ============================================================================
+# CREATE EXACTLY 50 PARTICLES ON EACH SIDE - GRID PLACEMENT
+# ============================================================================
+
+# For exactly 50 particles: use 10x5 grid on each side
+# Left chamber: 10 columns × 5 rows = 50 particles
+variable        dx_left equal 1.8        # Spacing in x
+variable        dy_left equal 1.8        # Spacing in y
+variable        x0_left equal -9.0       # Starting x position
+variable        y0_left equal -4.5       # Starting y position
+
+# Create 50 particles on left using nested loops
+variable        i loop 10
+variable        j loop 5
+label           loop_left
+variable        x_pos equal v_x0_left+($i-1)*v_dx_left
+variable        y_pos equal v_y0_left+($j-1)*v_dy_left
+create_atoms    1 single ${x_pos} ${y_pos} 0.0
+next            j
+jump            SELF loop_left
+next            i
+if              "$i <= 10" then "jump SELF loop_left"
+
+# Count left particles
+variable        n_left_created equal count(all)
+print           "Created ${n_left_created} particles on LEFT"
+
+# Right chamber: 10 columns × 5 rows = 50 particles
+variable        dx_right equal 1.8
+variable        dy_right equal 1.8
+variable        x0_right equal 1.0
+variable        y0_right equal -4.5
+
+# Create 50 particles on right
+variable        i delete
+variable        j delete
+variable        i loop 10
+variable        j loop 5
+label           loop_right
+variable        x_pos equal v_x0_right+($i-1)*v_dx_right
+variable        y_pos equal v_y0_right+($j-1)*v_dy_right
+create_atoms    1 single ${x_pos} ${y_pos} 0.0
+next            j
+jump            SELF loop_right
+next            i
+if              "$i <= 10" then "jump SELF loop_right"
+
+variable        n_total_gas equal count(all)
+variable        n_right_created equal v_n_total_gas-v_n_left_created
+print           "Created ${n_right_created} particles on RIGHT"
+print           "TOTAL GAS PARTICLES: ${n_total_gas}"
+
+mass            1 ${pmass}
+
+# ============================================================================
+# CREATE WALL AS VERTICAL LINE OF PARTICLES (type 2)
+# ============================================================================
+
+# Create wall particles from y=-H/2 to y=+H/2 at x=0
+variable        wall_spacing equal ${H}/${num_wall_particles}
+variable        wall_y_start equal -$(v_H/2-v_wall_spacing/2)
+
+variable        k loop ${num_wall_particles}
+label           wall_loop
+variable        y_wall equal v_wall_y_start+($k-1)*v_wall_spacing
+create_atoms    2 single 0.0 ${y_wall} 0.0
+next            k
+jump            SELF wall_loop
+
+mass            2 ${wall_particle_mass}
+
+group           particles type 1
+group           wall_atoms type 2
+
+print           "WALL: Created $(count(wall_atoms)) wall particles"
+print           "TOTAL: $(count(particles)) gas + $(count(wall_atoms)) wall = $(count(all)) atoms"
+
+# ============================================================================
+# MAKE WALL RIGID - MOVES ONLY IN X DIRECTION
+# ============================================================================
+
+# Use fix rigid/small for the wall atoms (better for small rigid bodies)
+fix             rigid_wall wall_atoms rigid/small molecule
+
+# CRITICAL: Force wall to move ONLY in x-direction
+# Set y and z forces to zero for all wall atoms
+fix             wall_y_constraint wall_atoms setforce NULL 0.0 0.0
+
+# ============================================================================
+# POTENTIALS
+# ============================================================================
+
+pair_style      lj/cut 1.122462
+pair_modify     shift yes
+
+# Soft potentials for stability
+pair_coeff      1 1 0.5 1.0 1.122462  # gas-gas
+pair_coeff      1 2 0.5 1.0 1.122462  # gas-wall
+pair_coeff      2 2 0.5 1.0 1.122462  # wall-wall (within wall line)
+
+# ============================================================================
+# BOUNDARY WALLS
+# ============================================================================
+
+fix             walls_y particles wall/reflect yhi EDGE ylo EDGE
+fix             walls_x particles wall/reflect xhi EDGE xlo EDGE
+
+# ============================================================================
+# INITIALIZATION - 2D MAXWELL-BOLTZMANN
+# ============================================================================
+
+velocity        particles create ${T} 87654 dist gaussian
+velocity        particles scale ${T}
+velocity        wall_atoms set 0.0 0.0 0.0
+
+timestep        ${dt}
+
+fix             nve_p particles nve
+
+# ============================================================================
+# COMPUTES
+# ============================================================================
+
+compute         temp_p particles temp
+compute         ke_p particles ke
+
+# Wall center of mass
+compute         wall_com wall_atoms com
+compute         wall_vcm wall_atoms vcm
+
+# Wall kinetic energy
+variable        wall_vx_cm equal c_wall_vcm[1]
+variable        wall_mass_total equal v_num_wall_particles*v_wall_particle_mass
+variable        ke_wall equal 0.5*v_wall_mass_total*v_wall_vx_cm*v_wall_vx_cm
+
+variable        wall_x equal c_wall_com[1]
+variable        ke_total equal c_ke_p+v_ke_wall
+variable        time_lj equal step*dt
+
+region          left_side block -${L0} 0.0 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_side block 0.0 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+
+group           left_p dynamic particles region left_side every 1000
+group           right_p dynamic particles region right_side every 1000
+
+variable        n_left equal count(left_p)
+variable        n_right equal count(right_p)
+
+# ============================================================================
+# OUTPUT
+# ============================================================================
+
+thermo_style    custom step v_time_lj temp c_temp_p c_ke_p v_ke_wall v_ke_total &
+                v_wall_x v_wall_vx_cm v_n_left v_n_right atoms
+
+thermo          ${thermo_freq}
+
+# Dump with type coloring for OVITO (type 1=blue gas, type 2=red wall)
+dump            traj all custom ${dump_freq} traj_rigid_50_50.lammpstrj &
+                id type x y z vx vy vz
+
+dump_modify     traj sort id
+
+# Wall logging
+fix             wall_log all print 1000 &
+                "$(step) ${time_lj} ${wall_x} ${wall_vx_cm} ${n_left} ${n_right}" &
+                file wall_rigid_50_50.dat screen no &
+                title "# Step Time(LJ) WallX WallVx NLeft NRight"
+
+# ============================================================================
+# RUN
+# ============================================================================
+
+print           "========================================================"
+print           "RIGID WALL CONFIGURATION:"
+print           "  Gas particles: $(count(particles)) (target: 100)"
+print           "  Wall particles: $(count(wall_atoms)) (vertical line)"
+print           "  Wall constraint: x-motion only (y and z locked)"
+print           "  Total wall mass: ${wall_mass_total}"
+print           "========================================================"
+
+print           "Phase 1: Equilibration with wall held..."
+fix             hold wall_atoms setforce 0.0 NULL NULL
+run             ${hold_steps}
+unfix           hold
+
+print           ""
+print           "Phase 2: Wall free to oscillate (x-direction only)..."
+run             ${run_steps}
+
+write_data      final_rigid_50_50.data
+
+print           ""
+print           "========================================================"
+print           "COMPLETE!"
+print           "  Time: ${time_lj} LJ units"
+print           "  Gas: $(count(particles)) particles"
+print           "  Left: ${n_left}, Right: ${n_right}"
+print           "  Wall: $(count(wall_atoms)) particles (rigid line)"
+print           "========================================================"

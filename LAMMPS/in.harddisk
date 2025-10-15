@@ -1,0 +1,245 @@
+# LAMMPS input script for 2D Hard Disk Gas with Movable Wall
+# Replicates hspist3 simulation physics
+# Author: Converted from C implementation
+# Date: 2025-10-07
+
+# ============================================================================
+# INITIALIZATION
+# ============================================================================
+
+units           lj              # Reduced units (sigma=1, epsilon=1, mass=1)
+dimension       2               # 2D simulation
+atom_style      atomic
+atom_modify     map yes         # Enable atom indexing for variable access
+boundary        f f p           # Periodic in x,z; fixed walls in y
+
+# Neighbor list settings
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+
+# ============================================================================
+# SIMULATION PARAMETERS (matching hspist3/constants.h)
+# ============================================================================
+
+variable        L0 equal 20.0           # Half box width (in sigma units)
+variable        H equal 10.0            # Box height (in sigma units)
+variable        N equal 400             # Number of particles
+variable        T equal 1.0             # Target temperature (in kB units)
+variable        dt equal 0.000125       # Timestep (FIXED_DT/SUBSTEPS = 0.001/8)
+
+variable        sigma equal 1.0         # Particle diameter
+variable        r equal 0.5             # Particle radius
+variable        pmass equal 1.0         # Particle mass
+variable        wmass equal 200.0       # Wall mass (200x particle mass)
+
+# Spring parameters (for energy measurement mode)
+variable        k_spring equal 1000.0   # Spring constant
+variable        x_eq equal 0.0          # Equilibrium position of wall
+
+# Simulation control
+variable        nsteps equal 1000000    # Total timesteps
+variable        thermo_freq equal 1000  # Thermodynamic output frequency
+variable        dump_freq equal 500     # Trajectory dump frequency
+
+# ============================================================================
+# SIMULATION BOX
+# ============================================================================
+
+# Create box: -L0 to +L0 in x, -H/2 to +H/2 in y
+region          box block -${L0} ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+create_box      2 box               # Type 1: particles, Type 2: wall
+
+# ============================================================================
+# CREATE PARTICLES
+# ============================================================================
+
+# Create particles in the box (avoid center region for divider wall)
+region          left_region block -${L0} -0.6 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_region block 0.6 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+
+create_atoms    1 random $N 12345 left_region
+create_atoms    1 random $N 67890 right_region
+
+# Set particle properties
+mass            1 ${pmass}
+
+# ============================================================================
+# CREATE MOVABLE DIVIDER WALL
+# ============================================================================
+
+# Create single atom at center to represent the wall
+create_atoms    2 single 0.0 0.0 0.0
+
+mass            2 ${wmass}
+
+group           particles type 1
+group           wall_atom type 2
+
+# Prevent wall motion in y and z
+velocity        wall_atom set 0.0 0.0 0.0
+fix             wall_fix_yz wall_atom setforce NULL 0.0 0.0
+
+# ============================================================================
+# INTERACTION POTENTIALS
+# ============================================================================
+
+# Hard disk potential: Weeks-Chandler-Andersen (purely repulsive LJ)
+# WCA: r_cut = 2^(1/6) * sigma (minimum of LJ potential)
+# For hard disks, use stiff repulsion
+
+pair_style      lj/cut 1.122462048      # 2^(1/6) = 1.122462...
+pair_modify     shift yes
+
+# Particle-particle interactions (type 1-1)
+pair_coeff      1 1 1.0 ${sigma} 1.122462048
+
+# Particle-wall interactions (type 1-2)
+# Wall has diameter 1.0, particles have diameter 1.0
+# Contact distance = 0.5 + 0.5 = 1.0
+pair_coeff      1 2 1.0 1.0 1.122462048
+
+# Wall-wall (no interaction needed)
+pair_coeff      2 2 0.0 1.0 1.122462048
+
+# ============================================================================
+# REFLECTING WALLS AT BOX BOUNDARIES
+# ============================================================================
+
+# Top and bottom walls (y-direction)
+fix             wall_top particles wall/reflect yhi EDGE
+fix             wall_bottom particles wall/reflect ylo EDGE
+
+# Left and right walls (x-direction) - particles reflect off box edges
+fix             wall_left particles wall/reflect xlo EDGE
+fix             wall_right particles wall/reflect xhi EDGE
+
+# ============================================================================
+# SPRING ON DIVIDER WALL
+# ============================================================================
+
+# Apply harmonic spring force to wall atom: F = -k * (x - x_eq)
+fix             spring_wall wall_atom spring tether ${k_spring} ${x_eq} 0.0 0.0 0.0
+
+# ============================================================================
+# TEMPERATURE INITIALIZATION
+# ============================================================================
+
+# Initialize velocities from Maxwell-Boltzmann distribution at temperature T
+velocity        particles create ${T} 4928459 mom yes rot yes dist gaussian
+
+# Rescale to exact temperature
+velocity        particles scale ${T}
+
+# ============================================================================
+# TIME INTEGRATION
+# ============================================================================
+
+timestep        ${dt}
+
+# NVE integration for particles (energy conserving)
+fix             nve_particles particles nve
+
+# NVE integration for wall
+fix             nve_wall wall_atom nve
+
+# Optional: Temperature control (comment out for NVE)
+# fix           nvt_particles particles nvt temp ${T} ${T} $(100.0*v_dt)
+
+# ============================================================================
+# COMPUTE PROPERTIES
+# ============================================================================
+
+# Temperature (from particle velocities only, excluding wall)
+compute         temp_particles particles temp
+
+# Kinetic energies
+compute         ke_particles particles ke
+compute         ke_wall wall_atom ke
+
+# Potential energy (from pair interactions)
+compute         pe_all all pe
+
+# Per-atom kinetic energy
+compute         ke_atom particles ke/atom
+
+# Wall position and velocity
+variable        wall_x equal x[$(count(particles)+1)]
+variable        wall_vx equal vx[$(count(particles)+1)]
+variable        wall_disp equal v_wall_x-v_x_eq
+
+# Spring energy: E = 0.5 * k * (x - x_eq)^2
+variable        spring_pe equal 0.5*v_k_spring*v_wall_disp*v_wall_disp
+
+# Total kinetic energy (particles + wall)
+variable        ke_total equal c_ke_particles+c_ke_wall
+
+# Total energy (KE + PE + spring)
+variable        etotal equal v_ke_total+c_pe_all+v_spring_pe
+
+# Particle counts on left and right of wall
+region          left_side block -${L0} 0.0 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_side block 0.0 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+
+group           left_particles dynamic particles region left_side every 100
+group           right_particles dynamic particles region right_side every 100
+
+variable        n_left equal count(left_particles)
+variable        n_right equal count(right_particles)
+
+# Packing fraction: phi = N * pi * r^2 / Area
+variable        area equal 2*v_L0*v_H
+variable        packing equal count(particles)*PI*v_r*v_r/v_area
+
+# ============================================================================
+# OUTPUT
+# ============================================================================
+
+# Thermodynamic output
+thermo_style    custom step temp c_temp_particles press &
+                c_ke_particles c_ke_wall v_ke_total c_pe_all v_spring_pe v_etotal &
+                v_wall_x v_wall_vx v_wall_disp &
+                v_n_left v_n_right v_packing
+
+thermo          ${thermo_freq}
+
+# ============================================================================
+# TRAJECTORY OUTPUT (for OVITO visualization)
+# ============================================================================
+
+# Dump all atoms in LAMMPS format (readable by OVITO)
+dump            traj_dump all atom ${dump_freq} traj.lammpstrj
+
+# Enhanced dump with velocities and forces for detailed analysis
+dump            detailed_dump all custom ${dump_freq} traj_detailed.lammpstrj &
+                id type x y z vx vy vz fx fy fz diameter
+
+# Custom dump for wall position tracking
+fix             wall_log all print ${thermo_freq} &
+                "$(step) ${wall_x} ${wall_disp} ${n_left} ${n_right} ${packing}" &
+                file wall_position.dat screen no &
+                title "# Step WallX Displacement(sigma) NLeft NRight PackingFraction"
+
+# Energy log
+fix             energy_log all print ${thermo_freq} &
+                "${c_ke_particles} ${c_ke_wall} ${ke_total} ${temp} ${spring_pe} ${etotal}" &
+                file energy.dat screen no &
+                title "# KE_particles KE_wall KE_total Temp SpringPE TotalE"
+
+# ============================================================================
+# RUN SIMULATION
+# ============================================================================
+
+# Run with wall initially held fixed (first 10000 steps)
+fix             hold_wall wall_atom setforce 0.0 NULL NULL
+run             10000
+unfix           hold_wall
+
+# Run with wall free to oscillate
+run             ${nsteps}
+
+# ============================================================================
+# FINALIZE
+# ============================================================================
+
+write_data      final_state.data
+print           "Simulation complete. Trajectories saved for OVITO visualization."

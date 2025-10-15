@@ -1,0 +1,1765 @@
+LAMMPS (22 Jul 2025 - Update 1)
+# LAMMPS: Final Balanced Configuration
+# - Wall line (blue): 20 particles, x-motion only
+# - Gas: 50 left + 50 right (balanced!)
+# - Oscillation: -2 to +2 (not -4 to +4)
+# - Time: 3000 time units
+
+units           lj
+dimension       2
+atom_style      molecular
+atom_modify     map yes
+boundary        f f p
+
+neighbor        0.5 bin
+neigh_modify    delay 0 every 1 check yes
+comm_modify     cutoff 6.0
+
+# ============================================================================
+# PARAMETERS - Balanced & Stable
+# ============================================================================
+
+variable        L0 equal 7.5
+variable        H equal 10.0
+variable        T equal 0.4             # Lower T → smaller amplitude
+variable        dt equal 0.0001         # Larger dt for speed
+
+variable        pmass equal 1.0
+variable        sigma equal 1.0
+variable        wall_particle_mass equal 2.5  # Heavier wall → smaller amplitude
+variable        num_wall_particles equal 20
+
+# For 3000 time units with dt=0.0001: 3000/0.0001 = 30,000,000 steps
+variable        hold_steps equal 100000      # 10 time units equilibration
+variable        run_steps equal 30000000     # 3000 time units
+variable        thermo_freq equal 100000     # Print every 10 time units
+variable        dump_freq equal 100000       # Save every 10 time units
+
+# ============================================================================
+# CREATE BOX
+# ============================================================================
+
+region          box block -${L0} ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+region          box block -7.5 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+region          box block -7.5 7.5 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          box block -7.5 7.5 -5 $(v_H/2) -0.5 0.5
+region          box block -7.5 7.5 -5 5 -0.5 0.5
+create_box      2 box
+Created orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  1 by 1 by 1 MPI processor grid
+
+# ============================================================================
+# CREATE EXACTLY 50 LEFT + 50 RIGHT (BALANCED!)
+# ============================================================================
+
+# Method: Create 50 particles manually on each side using grid
+# Left: 10 columns × 5 rows = 50 particles
+variable        ncol equal 10
+variable        nrow equal 5
+variable        dx_left equal 1.2
+variable        dy_left equal 1.8
+variable        x0_left equal -6.5      # Start position
+variable        y0_left equal -4.5
+
+# Create left particles in grid
+variable        i loop ${ncol}
+variable        i loop 10
+label           loop_left_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(1-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(1-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -6.5 ${y_left} 0.0
+        create_atoms 1 single -6.5 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(1-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(2-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -6.5 ${y_left} 0.0
+        create_atoms 1 single -6.5 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(1-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(3-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -6.5 ${y_left} 0.0
+        create_atoms 1 single -6.5 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(1-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(4-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -6.5 ${y_left} 0.0
+        create_atoms 1 single -6.5 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(1-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(5-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -6.5 ${y_left} 0.0
+        create_atoms 1 single -6.5 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+    variable    j delete
+next            i
+jump            SELF loop_left_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(2-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(1-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -5.3 ${y_left} 0.0
+        create_atoms 1 single -5.3 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(2-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(2-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -5.3 ${y_left} 0.0
+        create_atoms 1 single -5.3 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(2-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(3-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -5.3 ${y_left} 0.0
+        create_atoms 1 single -5.3 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(2-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(4-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -5.3 ${y_left} 0.0
+        create_atoms 1 single -5.3 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(2-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(5-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -5.3 ${y_left} 0.0
+        create_atoms 1 single -5.3 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+    variable    j delete
+next            i
+jump            SELF loop_left_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(3-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(1-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -4.1 ${y_left} 0.0
+        create_atoms 1 single -4.1 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(3-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(2-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -4.1 ${y_left} 0.0
+        create_atoms 1 single -4.1 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(3-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(3-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -4.1 ${y_left} 0.0
+        create_atoms 1 single -4.1 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(3-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(4-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -4.1 ${y_left} 0.0
+        create_atoms 1 single -4.1 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(3-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(5-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -4.1 ${y_left} 0.0
+        create_atoms 1 single -4.1 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+    variable    j delete
+next            i
+jump            SELF loop_left_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(4-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(1-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -2.9 ${y_left} 0.0
+        create_atoms 1 single -2.9 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(4-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(2-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -2.9 ${y_left} 0.0
+        create_atoms 1 single -2.9 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(4-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(3-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -2.9 ${y_left} 0.0
+        create_atoms 1 single -2.9 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(4-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(4-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -2.9 ${y_left} 0.0
+        create_atoms 1 single -2.9 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(4-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(5-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -2.9 ${y_left} 0.0
+        create_atoms 1 single -2.9 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+    variable    j delete
+next            i
+jump            SELF loop_left_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(5-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(1-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -1.7 ${y_left} 0.0
+        create_atoms 1 single -1.7 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(5-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(2-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -1.7 ${y_left} 0.0
+        create_atoms 1 single -1.7 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(5-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(3-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -1.7 ${y_left} 0.0
+        create_atoms 1 single -1.7 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(5-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(4-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -1.7 ${y_left} 0.0
+        create_atoms 1 single -1.7 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(5-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(5-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -1.7 ${y_left} 0.0
+        create_atoms 1 single -1.7 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+    variable    j delete
+next            i
+jump            SELF loop_left_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(6-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(1-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -0.5 ${y_left} 0.0
+        create_atoms 1 single -0.5 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(6-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(2-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -0.5 ${y_left} 0.0
+        create_atoms 1 single -0.5 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(6-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(3-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -0.5 ${y_left} 0.0
+        create_atoms 1 single -0.5 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(6-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(4-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -0.5 ${y_left} 0.0
+        create_atoms 1 single -0.5 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(6-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(5-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single -0.5 ${y_left} 0.0
+        create_atoms 1 single -0.5 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+    variable    j delete
+next            i
+jump            SELF loop_left_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(7-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(1-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 0.699999999999999 ${y_left} 0.0
+        create_atoms 1 single 0.699999999999999 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(7-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(2-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 0.699999999999999 ${y_left} 0.0
+        create_atoms 1 single 0.699999999999999 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(7-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(3-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 0.699999999999999 ${y_left} 0.0
+        create_atoms 1 single 0.699999999999999 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(7-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(4-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 0.699999999999999 ${y_left} 0.0
+        create_atoms 1 single 0.699999999999999 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(7-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(5-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 0.699999999999999 ${y_left} 0.0
+        create_atoms 1 single 0.699999999999999 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+    variable    j delete
+next            i
+jump            SELF loop_left_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(8-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(1-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 1.9 ${y_left} 0.0
+        create_atoms 1 single 1.9 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(8-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(2-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 1.9 ${y_left} 0.0
+        create_atoms 1 single 1.9 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(8-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(3-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 1.9 ${y_left} 0.0
+        create_atoms 1 single 1.9 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(8-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(4-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 1.9 ${y_left} 0.0
+        create_atoms 1 single 1.9 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(8-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(5-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 1.9 ${y_left} 0.0
+        create_atoms 1 single 1.9 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+    variable    j delete
+next            i
+jump            SELF loop_left_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(9-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(1-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 3.1 ${y_left} 0.0
+        create_atoms 1 single 3.1 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(9-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(2-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 3.1 ${y_left} 0.0
+        create_atoms 1 single 3.1 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(9-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(3-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 3.1 ${y_left} 0.0
+        create_atoms 1 single 3.1 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(9-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(4-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 3.1 ${y_left} 0.0
+        create_atoms 1 single 3.1 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(9-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(5-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 3.1 ${y_left} 0.0
+        create_atoms 1 single 3.1 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+    variable    j delete
+next            i
+jump            SELF loop_left_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(10-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(1-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 4.3 ${y_left} 0.0
+        create_atoms 1 single 4.3 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(10-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(2-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 4.3 ${y_left} 0.0
+        create_atoms 1 single 4.3 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(10-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(3-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 4.3 ${y_left} 0.0
+        create_atoms 1 single 4.3 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(10-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(4-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 4.3 ${y_left} 0.0
+        create_atoms 1 single 4.3 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable x_left equal v_x0_left+(10-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        variable y_left equal v_y0_left+(5-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+        create_atoms 1 single 4.3 ${y_left} 0.0
+        create_atoms 1 single 4.3 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_left_j
+    variable    j delete
+next            i
+jump            SELF loop_left_i
+
+variable        n_left_created equal count(all)
+
+# Right: 10 columns × 5 rows = 50 particles
+variable        dx_right equal 1.2
+variable        dy_right equal 1.8
+variable        x0_right equal 0.7
+variable        y0_right equal -4.5
+
+# Create right particles in grid
+variable        i delete
+variable        i loop ${ncol}
+variable        i loop 10
+label           loop_right_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(1-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(1-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 0.7 ${y_right} 0.0
+        create_atoms 1 single 0.7 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(1-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(2-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 0.7 ${y_right} 0.0
+        create_atoms 1 single 0.7 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(1-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(3-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 0.7 ${y_right} 0.0
+        create_atoms 1 single 0.7 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(1-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(4-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 0.7 ${y_right} 0.0
+        create_atoms 1 single 0.7 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(1-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(5-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 0.7 ${y_right} 0.0
+        create_atoms 1 single 0.7 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+    variable    j delete
+next            i
+jump            SELF loop_right_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(2-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(1-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 1.9 ${y_right} 0.0
+        create_atoms 1 single 1.9 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(2-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(2-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 1.9 ${y_right} 0.0
+        create_atoms 1 single 1.9 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(2-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(3-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 1.9 ${y_right} 0.0
+        create_atoms 1 single 1.9 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(2-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(4-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 1.9 ${y_right} 0.0
+        create_atoms 1 single 1.9 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(2-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(5-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 1.9 ${y_right} 0.0
+        create_atoms 1 single 1.9 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+    variable    j delete
+next            i
+jump            SELF loop_right_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(3-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(1-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 3.1 ${y_right} 0.0
+        create_atoms 1 single 3.1 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(3-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(2-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 3.1 ${y_right} 0.0
+        create_atoms 1 single 3.1 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(3-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(3-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 3.1 ${y_right} 0.0
+        create_atoms 1 single 3.1 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(3-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(4-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 3.1 ${y_right} 0.0
+        create_atoms 1 single 3.1 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(3-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(5-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 3.1 ${y_right} 0.0
+        create_atoms 1 single 3.1 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+    variable    j delete
+next            i
+jump            SELF loop_right_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(4-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(1-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 4.3 ${y_right} 0.0
+        create_atoms 1 single 4.3 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(4-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(2-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 4.3 ${y_right} 0.0
+        create_atoms 1 single 4.3 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(4-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(3-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 4.3 ${y_right} 0.0
+        create_atoms 1 single 4.3 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(4-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(4-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 4.3 ${y_right} 0.0
+        create_atoms 1 single 4.3 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(4-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(5-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 4.3 ${y_right} 0.0
+        create_atoms 1 single 4.3 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+    variable    j delete
+next            i
+jump            SELF loop_right_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(5-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(1-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 5.5 ${y_right} 0.0
+        create_atoms 1 single 5.5 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(5-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(2-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 5.5 ${y_right} 0.0
+        create_atoms 1 single 5.5 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(5-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(3-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 5.5 ${y_right} 0.0
+        create_atoms 1 single 5.5 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(5-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(4-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 5.5 ${y_right} 0.0
+        create_atoms 1 single 5.5 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(5-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(5-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 5.5 ${y_right} 0.0
+        create_atoms 1 single 5.5 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+    variable    j delete
+next            i
+jump            SELF loop_right_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(6-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(1-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 6.7 ${y_right} 0.0
+        create_atoms 1 single 6.7 -4.5 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(6-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(2-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 6.7 ${y_right} 0.0
+        create_atoms 1 single 6.7 -2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(6-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(3-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 6.7 ${y_right} 0.0
+        create_atoms 1 single 6.7 -0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(6-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(4-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 6.7 ${y_right} 0.0
+        create_atoms 1 single 6.7 0.9 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(6-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(5-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 6.7 ${y_right} 0.0
+        create_atoms 1 single 6.7 2.7 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+    variable    j delete
+next            i
+jump            SELF loop_right_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(7-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(1-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 7.9 ${y_right} 0.0
+        create_atoms 1 single 7.9 -4.5 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(7-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(2-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 7.9 ${y_right} 0.0
+        create_atoms 1 single 7.9 -2.7 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(7-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(3-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 7.9 ${y_right} 0.0
+        create_atoms 1 single 7.9 -0.9 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(7-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(4-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 7.9 ${y_right} 0.0
+        create_atoms 1 single 7.9 0.9 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(7-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(5-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 7.9 ${y_right} 0.0
+        create_atoms 1 single 7.9 2.7 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+    variable    j delete
+next            i
+jump            SELF loop_right_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(8-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(1-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 9.1 ${y_right} 0.0
+        create_atoms 1 single 9.1 -4.5 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(8-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(2-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 9.1 ${y_right} 0.0
+        create_atoms 1 single 9.1 -2.7 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(8-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(3-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 9.1 ${y_right} 0.0
+        create_atoms 1 single 9.1 -0.9 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(8-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(4-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 9.1 ${y_right} 0.0
+        create_atoms 1 single 9.1 0.9 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(8-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(5-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 9.1 ${y_right} 0.0
+        create_atoms 1 single 9.1 2.7 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+    variable    j delete
+next            i
+jump            SELF loop_right_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(9-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(1-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 10.3 ${y_right} 0.0
+        create_atoms 1 single 10.3 -4.5 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(9-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(2-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 10.3 ${y_right} 0.0
+        create_atoms 1 single 10.3 -2.7 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(9-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(3-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 10.3 ${y_right} 0.0
+        create_atoms 1 single 10.3 -0.9 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(9-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(4-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 10.3 ${y_right} 0.0
+        create_atoms 1 single 10.3 0.9 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(9-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(5-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 10.3 ${y_right} 0.0
+        create_atoms 1 single 10.3 2.7 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+    variable    j delete
+next            i
+jump            SELF loop_right_i
+    variable    j loop ${nrow}
+    variable    j loop 5
+    label       loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(10-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(1-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 11.5 ${y_right} 0.0
+        create_atoms 1 single 11.5 -4.5 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(10-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(2-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 11.5 ${y_right} 0.0
+        create_atoms 1 single 11.5 -2.7 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(10-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(3-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 11.5 ${y_right} 0.0
+        create_atoms 1 single 11.5 -0.9 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(10-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(4-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 11.5 ${y_right} 0.0
+        create_atoms 1 single 11.5 0.9 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable x_right equal v_x0_right+(10-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        variable y_right equal v_y0_right+(5-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+        create_atoms 1 single 11.5 ${y_right} 0.0
+        create_atoms 1 single 11.5 2.7 0.0
+Created 0 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+    next        j
+    jump        SELF loop_right_j
+    variable    j delete
+next            i
+jump            SELF loop_right_i
+
+variable        n_right_created equal count(all)-v_n_left_created
+
+print           "GAS PARTICLES: ${n_left_created} left + ${n_right_created} right = $(count(all)) total"
+GAS PARTICLES: 80 left + 0 right = 80 total
+
+set             type 1 mol 0
+Setting atom values ...
+  80 settings made for mol
+mass            1 ${pmass}
+mass            1 1
+group           particles type 1
+80 atoms in group particles
+
+# ============================================================================
+# CREATE WALL LINE (20 particles at x=0)
+# ============================================================================
+
+variable        dy_wall equal ${H}/${num_wall_particles}
+variable        dy_wall equal 10/${num_wall_particles}
+variable        dy_wall equal 10/20
+variable        y_start equal -$(v_H/2)+v_dy_wall/2
+variable        y_start equal -5+v_dy_wall/2
+
+variable        k loop ${num_wall_particles}
+variable        k loop 20
+label           wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(1-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 -4.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(2-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 -4.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(3-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 -3.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(4-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 -3.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(5-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 -2.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(6-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 -2.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(7-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 -1.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(8-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 -1.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(9-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 -0.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(10-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 -0.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(11-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 0.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(12-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 0.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(13-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 1.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(14-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 1.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(15-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 2.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(16-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 2.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(17-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 3.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(18-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 3.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(19-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 4.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    variable    y_wall equal v_y_start+(20-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+    create_atoms 2 single 0.0 4.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            k
+jump            SELF wall_loop
+
+group           wall_atoms type 2
+20 atoms in group wall_atoms
+set             type 2 mol 1
+Setting atom values ...
+  20 settings made for mol
+mass            2 ${wall_particle_mass}
+mass            2 2.5
+
+print           "WALL: $(count(wall_atoms)) particles in vertical line"
+WALL: 20 particles in vertical line
+print           "TOTAL SYSTEM: $(count(all)) atoms"
+TOTAL SYSTEM: 100 atoms
+
+# ============================================================================
+# RIGID WALL - X-MOTION ONLY
+# ============================================================================
+
+fix             rigid_wall wall_atoms rigid/small molecule
+Fix rigid/small setup ...
+  create bodies CPU = 0.000 seconds
+  1 rigid bodies with 20 atoms
+  5 = max distance from body owner to body atom
+fix             wall_lock_y wall_atoms setforce NULL 0.0 0.0
+
+# ============================================================================
+# POTENTIALS
+# ============================================================================
+
+pair_style      lj/cut 1.122462
+pair_modify     shift yes
+
+# Very soft for long-term stability
+pair_coeff      1 1 0.2 ${sigma} 1.122462
+pair_coeff      1 1 0.2 1 1.122462
+pair_coeff      1 2 0.2 ${sigma} 1.122462
+pair_coeff      1 2 0.2 1 1.122462
+pair_coeff      2 2 0.2 ${sigma} 1.122462
+pair_coeff      2 2 0.2 1 1.122462
+
+# ============================================================================
+# BOUNDARY WALLS
+# ============================================================================
+
+fix             walls_y particles wall/reflect yhi EDGE ylo EDGE
+fix             walls_x particles wall/reflect xhi EDGE xlo EDGE
+
+# ============================================================================
+# INITIALIZATION
+# ============================================================================
+
+velocity        particles create ${T} 87654 dist gaussian
+velocity        particles create 0.4 87654 dist gaussian
+WARNING: Cannot count rigid body degrees-of-freedom before bodies are fully initialized (src/RIGID/fix_rigid_small.cpp:1132)
+velocity        particles scale ${T}
+velocity        particles scale 0.4
+WARNING: Cannot count rigid body degrees-of-freedom before bodies are fully initialized (src/RIGID/fix_rigid_small.cpp:1132)
+velocity        wall_atoms set 0.0 0.0 0.0
+
+timestep        ${dt}
+timestep        0.0001
+fix             nve_p particles nve
+
+# ============================================================================
+# COMPUTES
+# ============================================================================
+
+compute         temp_p particles temp
+compute         ke_p particles ke
+compute         wall_com wall_atoms com
+
+variable        wall_x equal c_wall_com[1]
+variable        time_lj equal step*dt
+
+region          left_side block -${L0} 0.0 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          left_side block -7.5 0.0 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          left_side block -7.5 0.0 -5 $(v_H/2) -0.5 0.5
+region          left_side block -7.5 0.0 -5 5 -0.5 0.5
+region          right_side block 0.0 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_side block 0.0 7.5 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_side block 0.0 7.5 -5 $(v_H/2) -0.5 0.5
+region          right_side block 0.0 7.5 -5 5 -0.5 0.5
+
+group           left_p dynamic particles region left_side every 10000
+dynamic group left_p defined
+group           right_p dynamic particles region right_side every 10000
+dynamic group right_p defined
+
+variable        n_left equal count(left_p)
+variable        n_right equal count(right_p)
+
+# ============================================================================
+# OUTPUT
+# ============================================================================
+
+thermo_style    custom step v_time_lj temp c_temp_p c_ke_p v_wall_x v_n_left v_n_right atoms
+
+thermo          ${thermo_freq}
+thermo          100000
+
+dump            traj all custom ${dump_freq} traj_3000.lammpstrj                 id mol type x y z vx vy vz
+dump            traj all custom 100000 traj_3000.lammpstrj                 id mol type x y z vx vy vz
+
+dump_modify     traj sort id
+
+# High-frequency wall logging (every 1 time unit)
+fix             wall_log all print 10000                 "${time_lj} ${wall_x} ${n_left} ${n_right}"                 file wall_3000.dat screen no                 title "# Time WallX NLeft NRight"
+
+# ============================================================================
+# RUN
+# ============================================================================
+
+print           "=============================================="
+==============================================
+print           "FINAL BALANCED CONFIGURATION:"
+FINAL BALANCED CONFIGURATION:
+print           "  Gas: $(count(particles)) particles"
+  Gas: 80 particles
+print           "  Wall: $(count(wall_atoms)) particles (blue line)"
+  Wall: 20 particles (blue line)
+print           "  Wall mass/particle: ${wall_particle_mass}"
+  Wall mass/particle: 2.5
+print           "  T = ${T} (lower → smaller amplitude)"
+WARNING: Detected non-ASCII characters in input. Will try to continue by replacing with ASCII equivalents where known. (src/input.cpp:478)
+  T = 0.4 (lower �� smaller amplitude)
+print           "  Total time: 3000 LJ units"
+  Total time: 3000 LJ units
+print           "  Target amplitude: ±2 sigma"
+  Target amplitude: �2 sigma
+print           "=============================================="
+==============================================
+
+print           "Phase 1: Equilibration (10 time units)..."
+Phase 1: Equilibration (10 time units)...
+fix             hold wall_atoms setforce 0.0 NULL NULL
+run             ${hold_steps}
+run             100000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+WARNING: Should not use reflecting walls with rigid bodies (src/fix_wall_reflect.cpp:182)
+WARNING: Should not use reflecting walls with rigid bodies (src/fix_wall_reflect.cpp:182)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.622462
+  ghost atom cutoff = 6
+  binsize = 0.811231, bins = 19 13 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 10.9 | 10.9 | 10.9 Mbytes
+   Step       v_time_lj         Temp         c_temp_p        c_ke_p        v_wall_x       v_n_left      v_n_right       Atoms   
+         0   0              0.39254658     0.4            0.316          0              30             50                   100 
+ERROR on proc 0: Non-numeric atom coords - simulation unstable
+For more information see https://docs.lammps.org/err0006 (src/OPENMP/domain_omp.cpp:58)

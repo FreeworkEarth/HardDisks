@@ -1,0 +1,9 @@
+PAPER FORMAT ANALYSIS - LAMMPS 2D HARD DISK GAS
+============================================================
+
+Simulation time: 302.0 LJ units
+Particles: ~144 (73 left, 71 right)
+
+Peak frequency: 0.003311 Hz (ω/2π)
+Period: 302.00 LJ time units
+Speed of sound: 0.4161 σ/τ

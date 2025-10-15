@@ -3,6 +3,8 @@
 # -----------------------------
 TG              ?= 00ALLINONE
 KISSFFT_SRCS    := kissfft/kiss_fft.c kissfft/kiss_fftr.c
+# Optional EDMD core (event-driven hard disks)
+EDMD_SRCS       := edmd_core/edmd.c
 
 # Compiler
 CC              ?= cc
@@ -51,8 +53,8 @@ release: CFLAGS=$(CFLAGS_RELEASE)
 release: $(TG)
 
 # Link rule (libs at the end)
-$(TG): $(TG).c $(KISSFFT_SRCS)
-	$(CC) $(LDFLAGS) -o $@ $(TG).c $(KISSFFT_SRCS) $(CFLAGS) $(LIBS)
+$(TG): $(TG).c $(KISSFFT_SRCS) $(EDMD_SRCS)
+	$(CC) $(LDFLAGS) -o $@ $(TG).c $(KISSFFT_SRCS) $(EDMD_SRCS) $(CFLAGS) $(LIBS)
 
 # Clean up the build
 clean:

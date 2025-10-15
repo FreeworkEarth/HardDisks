@@ -1,0 +1,205 @@
+# LAMMPS: EXACT Paper Parameters
+# 50 left + 50 right particles
+# Box: L0=20, H=10, T=1, m=1, sigma=1, wall_mass=200, K_B=1
+# 2D Maxwell-Boltzmann velocity distribution
+
+units           lj
+dimension       2
+atom_style      atomic
+atom_modify     map yes
+boundary        f f p
+
+neighbor        0.5 bin
+neigh_modify    delay 0 every 1 check yes
+
+# ============================================================================
+# EXACT PAPER PARAMETERS
+# ============================================================================
+
+variable        L0 equal 20.0           # Half box length (total length = 40)
+variable        H equal 10.0            # Box height
+variable        sigma equal 1.0         # Particle diameter
+variable        m equal 1.0             # Particle mass
+variable        T equal 1.0             # Temperature
+variable        K_B equal 1.0           # Boltzmann constant
+variable        M equal 200.0           # Wall mass = 200 * m
+
+variable        dt equal 0.0001         # Timestep
+
+# Run for 300 time units
+variable        hold_steps equal 50000    # 5 time units equilibration
+variable        run_steps equal 3000000   # 300 time units measurement
+
+variable        thermo_freq equal 10000
+variable        dump_freq equal 10000
+
+# ============================================================================
+# CREATE BOX
+# ============================================================================
+
+region          box block -${L0} ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+create_box      2 box
+
+# ============================================================================
+# CREATE EXACTLY 50 PARTICLES PER SIDE
+# Use lattice placement with precise spacing to get exactly 50
+# ============================================================================
+
+# For 50 particles in ~19 x 9 region: sqrt(50) ≈ 7 particles per dimension
+# Spacing: 19/7 ≈ 2.7 in x, 9/7 ≈ 1.3 in y
+# Use rectangular lattice
+
+lattice         custom 1.0 a1 2.7 0.0 0.0 a2 0.0 1.3 0.0 basis 0.0 0.0 0.0
+
+# Left chamber (avoid wall region at x=0)
+region          left_chamber block -$(v_L0-0.5) -0.7 -$(v_H/2-0.3) $(v_H/2-0.3) -0.5 0.5
+create_atoms    1 region left_chamber
+
+# Count left particles
+variable        n_left_created equal count(all)
+print           "Created ${n_left_created} particles in left chamber"
+
+# Right chamber
+region          right_chamber block 0.7 $(v_L0-0.5) -$(v_H/2-0.3) $(v_H/2-0.3) -0.5 0.5
+create_atoms    1 region right_chamber
+
+variable        n_total_created equal count(all)
+variable        n_right_created equal v_n_total_created-v_n_left_created
+print           "Created ${n_right_created} particles in right chamber"
+print           "Total gas particles: ${n_total_created}"
+
+# Adjust if not exactly 100 (delete extras or warn)
+if              "${n_total_created} > 100" then &
+    "print 'WARNING: Have ${n_total_created} particles, need 100. Deleting extras...'" &
+    "group extras id > 100" &
+    "delete_atoms group extras" &
+    "print 'After deletion: $(count(all)) particles'"
+
+if              "${n_total_created} < 100" then &
+    "print 'WARNING: Only ${n_total_created} particles, need 100!'"
+
+mass            1 ${m}
+
+# ============================================================================
+# CREATE WALL (mass = 200)
+# ============================================================================
+
+create_atoms    2 single 0.0 0.0 0.0
+mass            2 ${M}
+
+group           particles type 1
+group           wall_atom type 2
+
+print           "FINAL: $(count(particles)) gas + $(count(wall_atom)) wall = $(count(all)) total atoms"
+
+# ============================================================================
+# POTENTIAL (WCA - hard sphere approximation)
+# ============================================================================
+
+pair_style      lj/cut 1.122462
+pair_modify     shift yes
+
+# Epsilon = 1.0 for true WCA (but soften slightly for stability)
+pair_coeff      1 1 0.5 ${sigma} 1.122462
+pair_coeff      1 2 0.5 ${sigma} 1.122462
+pair_coeff      2 2 0.0 ${sigma} 1.122462
+
+# ============================================================================
+# BOUNDARY WALLS
+# ============================================================================
+
+fix             walls_y particles wall/reflect yhi EDGE ylo EDGE
+fix             walls_x particles wall/reflect xhi EDGE xlo EDGE
+
+# ============================================================================
+# INITIALIZATION - 2D Maxwell-Boltzmann Distribution
+# ============================================================================
+
+# Create velocities from Gaussian (Box-Muller gives M-B distribution)
+# sigma_v = sqrt(K_B * T / m) = sqrt(1*1/1) = 1
+velocity        particles create ${T} 87654 dist gaussian
+velocity        particles scale ${T}
+
+velocity        wall_atom set 0.0 0.0 0.0
+
+timestep        ${dt}
+
+fix             wall_yz wall_atom setforce NULL 0.0 0.0
+fix             nve_p particles nve
+fix             nve_w wall_atom nve
+
+# ============================================================================
+# COMPUTES
+# ============================================================================
+
+compute         temp_p particles temp
+compute         ke_p particles ke
+compute         ke_w wall_atom ke
+
+variable        wall_x equal x[$(count(particles)+1)]
+variable        wall_vx equal vx[$(count(particles)+1)]
+variable        ke_total equal c_ke_p+c_ke_w
+variable        time_lj equal step*dt
+
+region          left_side block -${L0} 0.0 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_side block 0.0 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+
+group           left_p dynamic particles region left_side every 1000
+group           right_p dynamic particles region right_side every 1000
+
+variable        n_left equal count(left_p)
+variable        n_right equal count(right_p)
+
+# ============================================================================
+# OUTPUT
+# ============================================================================
+
+thermo_style    custom step v_time_lj temp c_temp_p c_ke_p c_ke_w v_ke_total &
+                v_wall_x v_wall_vx v_n_left v_n_right atoms
+
+thermo          ${thermo_freq}
+
+dump            traj all custom ${dump_freq} traj_exact.lammpstrj &
+                id type x y z vx vy vz
+
+dump_modify     traj sort id
+
+# Wall logging every 0.1 time units
+fix             wall_log all print 1000 &
+                "$(step) ${time_lj} ${wall_x} ${wall_vx} ${n_left} ${n_right}" &
+                file wall_exact.dat screen no &
+                title "# Step Time(LJ) WallX WallVx NLeft NRight"
+
+# ============================================================================
+# RUN
+# ============================================================================
+
+print           "========================================================"
+print           "EXACT PAPER PARAMETERS:"
+print           "  Box: L0 = ${L0} sigma, H = ${H} sigma"
+print           "  Particles: $(count(particles)) (target: 100)"
+print           "  Particle: mass = ${m}, diameter = ${sigma}"
+print           "  Wall: mass = ${M} (= 200 × particle mass)"
+print           "  Temperature: T = ${T}"
+print           "  Boltzmann constant: K_B = ${K_B}"
+print           "  2D Maxwell-Boltzmann velocity distribution"
+print           "========================================================"
+
+print           "Phase 1: Equilibration (5 time units) with wall held..."
+fix             hold wall_atom setforce 0.0 NULL NULL
+run             ${hold_steps}
+unfix           hold
+
+print           ""
+print           "Phase 2: Free oscillation (300 time units)..."
+run             ${run_steps}
+
+write_data      final_exact.data
+
+print           ""
+print           "========================================================"
+print           "SIMULATION COMPLETE!"
+print           "  Total time: ${time_lj} LJ units"
+print           "  Particles: $(count(particles))"
+print           "  Left: ${n_left}, Right: ${n_right}"
+print           "========================================================"

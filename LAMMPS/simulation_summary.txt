@@ -1,0 +1,21 @@
+============================================================
+LAMMPS 2D HARD DISK SIMULATION - ANALYSIS SUMMARY
+============================================================
+
+Simulation Parameters:
+  Total steps: 220000
+  Time span: 22.00 LJ time units
+  Data points: 11002
+
+Wall Dynamics:
+  Mean position: 1.4332 ± 1.0760 σ
+  Mean velocity: 0.134213 ± 0.0940 σ/τ
+
+Oscillation Analysis:
+  Frequency: 0.045446 (ω/2π)
+  Period: 22.0040 LJ time units
+  Measured c_s: 5.7109 σ/τ
+
+Particle Distribution:
+  Mean left: 72.5
+  Mean right: 71.5

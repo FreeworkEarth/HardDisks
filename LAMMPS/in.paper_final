@@ -1,0 +1,174 @@
+# LAMMPS: Final Paper Configuration
+# EXACTLY 50+50 particles, 300 time units
+# Ultra-stable parameters
+
+units           lj
+dimension       2
+atom_style      atomic
+atom_modify     map yes
+boundary        f f p
+
+neighbor        0.5 bin
+neigh_modify    delay 0 every 1 check yes
+
+# ============================================================================
+# PARAMETERS - ULTRA CONSERVATIVE FOR STABILITY
+# ============================================================================
+
+variable        L0 equal 20.0           # Very large box
+variable        H equal 10.0
+variable        T equal 0.2             # Very low temperature
+variable        dt equal 0.0001         # Moderate timestep
+
+variable        pmass equal 1.0
+variable        wmass equal 100.0       # Very heavy wall
+
+# 300 time units
+variable        hold_steps equal 50000    # 5 time units hold
+variable        run_steps equal 3000000   # 300 time units run
+
+variable        thermo_freq equal 10000
+variable        dump_freq equal 10000
+
+# ============================================================================
+# CREATE BOX
+# ============================================================================
+
+region          box block -${L0} ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+create_box      2 box
+
+# ============================================================================
+# CREATE EXACTLY 50 PARTICLES PER SIDE - RANDOM PLACEMENT
+# ============================================================================
+
+# Left chamber: exactly 50 particles
+region          left_chamber block -$(v_L0-1) -1.0 -$(v_H/2-0.5) $(v_H/2-0.5) -0.5 0.5
+create_atoms    1 random 50 12345 left_chamber
+
+# Right chamber: exactly 50 particles
+region          right_chamber block 1.0 $(v_L0-1) -$(v_H/2-0.5) $(v_H/2-0.5) -0.5 0.5
+create_atoms    1 random 50 67890 right_chamber
+
+mass            1 ${pmass}
+
+# ============================================================================
+# CREATE WALL
+# ============================================================================
+
+create_atoms    2 single 0.0 0.0 0.0
+mass            2 ${wmass}
+
+group           particles type 1
+group           wall_atom type 2
+
+print           "CREATED: $(count(particles)) particles + $(count(wall_atom)) wall = $(count(all)) total"
+
+# ============================================================================
+# VERY SOFT POTENTIAL
+# ============================================================================
+
+pair_style      lj/cut 1.122462
+pair_modify     shift yes
+
+# Ultra-soft for maximum stability
+pair_coeff      1 1 0.1 1.0 1.122462
+pair_coeff      1 2 0.1 1.0 1.122462
+pair_coeff      2 2 0.0 1.0 1.122462
+
+# ============================================================================
+# WALLS
+# ============================================================================
+
+fix             walls_y particles wall/reflect yhi EDGE ylo EDGE
+fix             walls_x particles wall/reflect xhi EDGE xlo EDGE
+
+# ============================================================================
+# INITIALIZATION
+# ============================================================================
+
+velocity        particles create ${T} 4928459 dist gaussian
+velocity        particles scale ${T}
+velocity        wall_atom set 0.0 0.0 0.0
+
+timestep        ${dt}
+
+fix             wall_yz wall_atom setforce NULL 0.0 0.0
+fix             nve_p particles nve
+fix             nve_w wall_atom nve
+
+# ============================================================================
+# COMPUTES
+# ============================================================================
+
+compute         temp_p particles temp
+compute         ke_p particles ke
+compute         ke_w wall_atom ke
+
+variable        wall_x equal x[101]
+variable        wall_vx equal vx[101]
+variable        ke_total equal c_ke_p+c_ke_w
+
+region          left_side block -${L0} 0.0 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_side block 0.0 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+
+group           left_p dynamic particles region left_side every 1000
+group           right_p dynamic particles region right_side every 1000
+
+variable        n_left equal count(left_p)
+variable        n_right equal count(right_p)
+variable        time_units equal step*dt
+
+# ============================================================================
+# OUTPUT
+# ============================================================================
+
+thermo_style    custom step v_time_units temp c_temp_p c_ke_p c_ke_w v_ke_total &
+                v_wall_x v_wall_vx v_n_left v_n_right atoms
+
+thermo          ${thermo_freq}
+
+dump            traj all custom ${dump_freq} traj_paper_final.lammpstrj &
+                id type x y z vx vy vz
+
+dump_modify     traj sort id
+
+# Wall logging every 0.1 time units
+fix             wall_log all print 1000 &
+                "$(step) ${time_units} ${wall_x} ${wall_vx} ${n_left} ${n_right}" &
+                file wall_paper_final.dat screen no &
+                title "# Step Time(LJ) WallX WallVx NLeft NRight"
+
+# ============================================================================
+# RUN
+# ============================================================================
+
+print           "================================================"
+print           "PAPER CONFIGURATION FINAL"
+print           "  Particles: $(count(particles)) (target: 100)"
+print           "  Box: ${L0} x ${H} sigma"
+print           "  T = ${T}, dt = ${dt}"
+print           "  Wall mass = ${wmass}"
+print           "  Total time: 305 LJ units"
+print           "================================================"
+
+print           "Phase 1: Equilibration (5 LJ units)..."
+fix             hold wall_atom setforce 0.0 NULL NULL
+run             ${hold_steps}
+unfix           hold
+
+print           ""
+print           "Phase 2: Free oscillation (300 LJ units)..."
+print           "  Estimated runtime: ~10 minutes"
+print           ""
+
+run             ${run_steps}
+
+write_data      final_paper.data
+
+print           ""
+print           "================================================"
+print           "SIMULATION COMPLETE!"
+print           "  Final time: ${time_units} LJ units"
+print           "  Particles: $(count(particles))"
+print           "  Distribution: ${n_left} left, ${n_right} right"
+print           "================================================"

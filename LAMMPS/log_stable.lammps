@@ -1,0 +1,447 @@
+LAMMPS (22 Jul 2025 - Update 1)
+# LAMMPS: Simple Stable Version
+# Wall line, balanced particles, 3000 time units
+
+units           lj
+dimension       2
+atom_style      molecular
+atom_modify     map yes
+boundary        f f p
+
+neighbor        0.5 bin
+neigh_modify    delay 0 every 1 check yes
+comm_modify     cutoff 6.0
+
+# ============================================================================
+# PARAMETERS
+# ============================================================================
+
+variable        L0 equal 7.5
+variable        H equal 10.0
+variable        T equal 0.3             # Very low for stability
+variable        dt equal 0.0001
+
+variable        pmass equal 1.0
+variable        wall_particle_mass equal 5.0  # Heavy → small amplitude
+variable        num_wall_particles equal 20
+
+variable        hold_steps equal 100000      # 10 time units
+variable        run_steps equal 30000000     # 3000 time units
+variable        thermo_freq equal 100000
+variable        dump_freq equal 100000
+
+# ============================================================================
+# CREATE BOX AND PARTICLES
+# ============================================================================
+
+region          box block -${L0} ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+region          box block -7.5 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+region          box block -7.5 7.5 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          box block -7.5 7.5 -5 $(v_H/2) -0.5 0.5
+region          box block -7.5 7.5 -5 5 -0.5 0.5
+create_box      2 box
+Created orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  1 by 1 by 1 MPI processor grid
+
+# Use lattice - simple and stable
+lattice         sq 1.1
+Lattice spacing in x,y,z = 0.95346259 0.95346259 0.95346259
+region          left_fill block -$(v_L0-0.5) -0.6 -$(v_H/2-0.5) $(v_H/2-0.5) -0.5 0.5
+region          left_fill block -7 -0.6 -$(v_H/2-0.5) $(v_H/2-0.5) -0.5 0.5
+region          left_fill block -7 -0.6 -4.5 $(v_H/2-0.5) -0.5 0.5
+region          left_fill block -7 -0.6 -4.5 4.5 -0.5 0.5
+create_atoms    1 region left_fill
+Created 63 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+region          right_fill block 0.6 $(v_L0-0.5) -$(v_H/2-0.5) $(v_H/2-0.5) -0.5 0.5
+region          right_fill block 0.6 7 -$(v_H/2-0.5) $(v_H/2-0.5) -0.5 0.5
+region          right_fill block 0.6 7 -4.5 $(v_H/2-0.5) -0.5 0.5
+region          right_fill block 0.6 7 -4.5 4.5 -0.5 0.5
+create_atoms    1 region right_fill
+Created 63 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+
+# Trim to 100 total
+variable        ntot equal count(all)
+if              "${ntot} > 100" then "group extras id > 100" "delete_atoms group extras"
+group extras id > 100
+26 atoms in group extras
+delete_atoms group extras
+WARNING: Ignoring 'compress yes' for molecular system (src/delete_atoms.cpp:141)
+Deleted 26 atoms, new total = 100
+
+set             type 1 mol 0
+Setting atom values ...
+  100 settings made for mol
+mass            1 ${pmass}
+mass            1 1
+group           particles type 1
+100 atoms in group particles
+
+print           "GAS: $(count(particles)) particles"
+GAS: 100 particles
+
+# ============================================================================
+# CREATE WALL LINE
+# ============================================================================
+
+variable        dy_wall equal ${H}/${num_wall_particles}
+variable        dy_wall equal 10/${num_wall_particles}
+variable        dy_wall equal 10/20
+variable        y_start equal -$(v_H/2)+v_dy_wall/2
+variable        y_start equal -5+v_dy_wall/2
+
+variable        i loop ${num_wall_particles}
+variable        i loop 20
+label           make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(1-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 -4.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(2-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 -4.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(3-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 -3.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(4-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 -3.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(5-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 -2.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(6-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 -2.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(7-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 -1.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(8-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 -1.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(9-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 -0.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(10-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 -0.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(11-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 0.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(12-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 0.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(13-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 1.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(14-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 1.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(15-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 2.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(16-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 2.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(17-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 3.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(18-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 3.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(19-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 4.25 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+    variable    yw equal v_y_start+(${i}-1)*v_dy_wall
+    variable    yw equal v_y_start+(20-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${yw} 0.0
+    create_atoms 2 single 0.0 4.75 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+next            i
+jump            SELF make_wall
+
+group           wall_atoms type 2
+20 atoms in group wall_atoms
+set             type 2 mol 1
+Setting atom values ...
+  20 settings made for mol
+mass            2 ${wall_particle_mass}
+mass            2 5
+
+print           "WALL: $(count(wall_atoms)) particles"
+WALL: 20 particles
+print           "TOTAL: $(count(all)) atoms"
+TOTAL: 120 atoms
+
+# ============================================================================
+# RIGID WALL
+# ============================================================================
+
+fix             rigid_wall wall_atoms rigid/small molecule
+Fix rigid/small setup ...
+  create bodies CPU = 0.000 seconds
+  1 rigid bodies with 20 atoms
+  4.7673129 = max distance from body owner to body atom
+fix             wall_y_lock wall_atoms setforce NULL 0.0 0.0
+
+# ============================================================================
+# POTENTIALS
+# ============================================================================
+
+pair_style      lj/cut 1.122462
+pair_modify     shift yes
+pair_coeff      * * 0.15 1.0 1.122462  # Very soft
+
+# ============================================================================
+# WALLS
+# ============================================================================
+
+fix             walls_y particles wall/reflect yhi EDGE ylo EDGE
+fix             walls_x particles wall/reflect xhi EDGE xlo EDGE
+
+# ============================================================================
+# INIT
+# ============================================================================
+
+velocity        particles create ${T} 87654 dist gaussian
+velocity        particles create 0.3 87654 dist gaussian
+WARNING: Cannot count rigid body degrees-of-freedom before bodies are fully initialized (src/RIGID/fix_rigid_small.cpp:1132)
+velocity        particles scale ${T}
+velocity        particles scale 0.3
+WARNING: Cannot count rigid body degrees-of-freedom before bodies are fully initialized (src/RIGID/fix_rigid_small.cpp:1132)
+velocity        wall_atoms set 0.0 0.0 0.0
+
+timestep        ${dt}
+timestep        0.0001
+fix             nve_p particles nve
+
+# ============================================================================
+# COMPUTES
+# ============================================================================
+
+compute         temp_p particles temp
+compute         ke_p particles ke
+compute         wall_com wall_atoms com
+
+variable        wall_x equal c_wall_com[1]
+variable        time_lj equal step*dt
+
+region          left_side block -${L0} 0.0 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          left_side block -7.5 0.0 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          left_side block -7.5 0.0 -5 $(v_H/2) -0.5 0.5
+region          left_side block -7.5 0.0 -5 5 -0.5 0.5
+region          right_side block 0.0 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_side block 0.0 7.5 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_side block 0.0 7.5 -5 $(v_H/2) -0.5 0.5
+region          right_side block 0.0 7.5 -5 5 -0.5 0.5
+
+group           left_p dynamic particles region left_side every 10000
+dynamic group left_p defined
+group           right_p dynamic particles region right_side every 10000
+dynamic group right_p defined
+
+variable        n_left equal count(left_p)
+variable        n_right equal count(right_p)
+
+# ============================================================================
+# OUTPUT
+# ============================================================================
+
+thermo_style    custom step v_time_lj temp c_temp_p v_wall_x v_n_left v_n_right atoms
+thermo          ${thermo_freq}
+thermo          100000
+
+dump            traj all custom ${dump_freq} traj_stable.lammpstrj id mol type x y z
+dump            traj all custom 100000 traj_stable.lammpstrj id mol type x y z
+dump_modify     traj sort id
+
+fix             wall_log all print 10000 "${time_lj} ${wall_x} ${n_left} ${n_right}"                 file wall_stable.dat screen no title "# Time WallX NLeft NRight"
+
+# ============================================================================
+# RUN
+# ============================================================================
+
+print           "STABLE CONFIG: $(count(particles)) gas + $(count(wall_atoms)) wall, 3000 time units"
+STABLE CONFIG: 100 gas + 20 wall, 3000 time units
+
+fix             hold wall_atoms setforce 0.0 NULL NULL
+run             ${hold_steps}
+run             100000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+WARNING: Should not use reflecting walls with rigid bodies (src/fix_wall_reflect.cpp:182)
+WARNING: Should not use reflecting walls with rigid bodies (src/fix_wall_reflect.cpp:182)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.622462
+  ghost atom cutoff = 6
+  binsize = 0.811231, bins = 19 13 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 10.9 | 10.9 | 10.9 Mbytes
+   Step       v_time_lj         Temp         c_temp_p       v_wall_x       v_n_left      v_n_right       Atoms   
+         0   0              0.29552239     0.3            0              63             37                   120 
+    100000   10             0.82674343     0.83926984     0.00014424557  53             30                   120 
+Loop time of 0.304431 on 1 procs for 100000 steps with 120 atoms
+
+Performance: 2838081.536 tau/day, 328481.659 timesteps/s, 39.418 Matom-step/s
+99.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.10067    | 0.10067    | 0.10067    |   0.0 | 33.07
+Bond    | 0.0023079  | 0.0023079  | 0.0023079  |   0.0 |  0.76
+Neigh   | 0.0011453  | 0.0011453  | 0.0011453  |   0.0 |  0.38
+Comm    | 0.0050599  | 0.0050599  | 0.0050599  |   0.0 |  1.66
+Output  | 8.5583e-05 | 8.5583e-05 | 8.5583e-05 |   0.0 |  0.03
+Modify  | 0.17642    | 0.17642    | 0.17642    |   0.0 | 57.95
+Other   |            | 0.01874    |            |       |  6.16
+
+Nlocal:            120 ave         120 max         120 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:            319 ave         319 max         319 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 319
+Ave neighs/atom = 2.6583333
+Ave special neighs/atom = 0
+Neighbor list builds = 114
+Dangerous builds = 0
+unfix           hold
+
+print           "Running 3000 time units (~30 min)..."
+Running 3000 time units (~30 min)...
+run             ${run_steps}
+run             30000000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+WARNING: Should not use reflecting walls with rigid bodies (src/fix_wall_reflect.cpp:182)
+WARNING: Should not use reflecting walls with rigid bodies (src/fix_wall_reflect.cpp:182)
+Per MPI rank memory allocation (min/avg/max) = 12.17 | 12.17 | 12.17 Mbytes
+   Step       v_time_lj         Temp         c_temp_p       v_wall_x       v_n_left      v_n_right       Atoms   
+    100000   10             0.82674343     0.83926984     0.00014424557  53             30                   120 
+ERROR: Lost atoms: original 120 current 0
+For more information see https://docs.lammps.org/err0008 (src/thermo.cpp:526)

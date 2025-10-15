@@ -1,0 +1,231 @@
+# LAMMPS: Final Balanced Configuration
+# - Wall line (blue): 20 particles, x-motion only
+# - Gas: 50 left + 50 right (balanced!)
+# - Oscillation: -2 to +2 (not -4 to +4)
+# - Time: 3000 time units
+
+units           lj
+dimension       2
+atom_style      molecular
+atom_modify     map yes
+boundary        f f p
+
+neighbor        0.5 bin
+neigh_modify    delay 0 every 1 check yes
+comm_modify     cutoff 6.0
+
+# ============================================================================
+# PARAMETERS - Balanced & Stable
+# ============================================================================
+
+variable        L0 equal 7.5
+variable        H equal 10.0
+variable        T equal 0.4             # Lower T → smaller amplitude
+variable        dt equal 0.0001         # Larger dt for speed
+
+variable        pmass equal 1.0
+variable        sigma equal 1.0
+variable        wall_particle_mass equal 2.5  # Heavier wall → smaller amplitude
+variable        num_wall_particles equal 20
+
+# For 3000 time units with dt=0.0001: 3000/0.0001 = 30,000,000 steps
+variable        hold_steps equal 100000      # 10 time units equilibration
+variable        run_steps equal 30000000     # 3000 time units
+variable        thermo_freq equal 100000     # Print every 10 time units
+variable        dump_freq equal 100000       # Save every 10 time units
+
+# ============================================================================
+# CREATE BOX
+# ============================================================================
+
+region          box block -${L0} ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+create_box      2 box
+
+# ============================================================================
+# CREATE EXACTLY 50 LEFT + 50 RIGHT (BALANCED!)
+# ============================================================================
+
+# Method: Create 50 particles manually on each side using grid
+# Left: 10 columns × 5 rows = 50 particles
+variable        ncol equal 10
+variable        nrow equal 5
+variable        dx_left equal 1.2
+variable        dy_left equal 1.8
+variable        x0_left equal -6.5      # Start position
+variable        y0_left equal -4.5
+
+# Create left particles in grid
+variable        i loop ${ncol}
+label           loop_left_i
+    variable    j loop ${nrow}
+    label       loop_left_j
+        variable x_left equal v_x0_left+(${i}-1)*v_dx_left
+        variable y_left equal v_y0_left+(${j}-1)*v_dy_left
+        create_atoms 1 single ${x_left} ${y_left} 0.0
+    next        j
+    jump        SELF loop_left_j
+    variable    j delete
+next            i
+jump            SELF loop_left_i
+
+variable        n_left_created equal count(all)
+
+# Right: 10 columns × 5 rows = 50 particles
+variable        dx_right equal 1.2
+variable        dy_right equal 1.8
+variable        x0_right equal 0.7
+variable        y0_right equal -4.5
+
+# Create right particles in grid
+variable        i delete
+variable        i loop ${ncol}
+label           loop_right_i
+    variable    j loop ${nrow}
+    label       loop_right_j
+        variable x_right equal v_x0_right+(${i}-1)*v_dx_right
+        variable y_right equal v_y0_right+(${j}-1)*v_dy_right
+        create_atoms 1 single ${x_right} ${y_right} 0.0
+    next        j
+    jump        SELF loop_right_j
+    variable    j delete
+next            i
+jump            SELF loop_right_i
+
+variable        n_right_created equal count(all)-v_n_left_created
+
+print           "GAS PARTICLES: ${n_left_created} left + ${n_right_created} right = $(count(all)) total"
+
+set             type 1 mol 0
+mass            1 ${pmass}
+group           particles type 1
+
+# ============================================================================
+# CREATE WALL LINE (20 particles at x=0)
+# ============================================================================
+
+variable        dy_wall equal ${H}/${num_wall_particles}
+variable        y_start equal -$(v_H/2)+v_dy_wall/2
+
+variable        k loop ${num_wall_particles}
+label           wall_loop
+    variable    y_wall equal v_y_start+(${k}-1)*v_dy_wall
+    create_atoms 2 single 0.0 ${y_wall} 0.0
+next            k
+jump            SELF wall_loop
+
+group           wall_atoms type 2
+set             type 2 mol 1
+mass            2 ${wall_particle_mass}
+
+print           "WALL: $(count(wall_atoms)) particles in vertical line"
+print           "TOTAL SYSTEM: $(count(all)) atoms"
+
+# ============================================================================
+# RIGID WALL - X-MOTION ONLY
+# ============================================================================
+
+fix             rigid_wall wall_atoms rigid/small molecule
+fix             wall_lock_y wall_atoms setforce NULL 0.0 0.0
+
+# ============================================================================
+# POTENTIALS
+# ============================================================================
+
+pair_style      lj/cut 1.122462
+pair_modify     shift yes
+
+# Very soft for long-term stability
+pair_coeff      1 1 0.2 ${sigma} 1.122462
+pair_coeff      1 2 0.2 ${sigma} 1.122462
+pair_coeff      2 2 0.2 ${sigma} 1.122462
+
+# ============================================================================
+# BOUNDARY WALLS
+# ============================================================================
+
+fix             walls_y particles wall/reflect yhi EDGE ylo EDGE
+fix             walls_x particles wall/reflect xhi EDGE xlo EDGE
+
+# ============================================================================
+# INITIALIZATION
+# ============================================================================
+
+velocity        particles create ${T} 87654 dist gaussian
+velocity        particles scale ${T}
+velocity        wall_atoms set 0.0 0.0 0.0
+
+timestep        ${dt}
+fix             nve_p particles nve
+
+# ============================================================================
+# COMPUTES
+# ============================================================================
+
+compute         temp_p particles temp
+compute         ke_p particles ke
+compute         wall_com wall_atoms com
+
+variable        wall_x equal c_wall_com[1]
+variable        time_lj equal step*dt
+
+region          left_side block -${L0} 0.0 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_side block 0.0 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+
+group           left_p dynamic particles region left_side every 10000
+group           right_p dynamic particles region right_side every 10000
+
+variable        n_left equal count(left_p)
+variable        n_right equal count(right_p)
+
+# ============================================================================
+# OUTPUT
+# ============================================================================
+
+thermo_style    custom step v_time_lj temp c_temp_p c_ke_p v_wall_x v_n_left v_n_right atoms
+
+thermo          ${thermo_freq}
+
+dump            traj all custom ${dump_freq} traj_3000.lammpstrj &
+                id mol type x y z vx vy vz
+
+dump_modify     traj sort id
+
+# High-frequency wall logging (every 1 time unit)
+fix             wall_log all print 10000 &
+                "${time_lj} ${wall_x} ${n_left} ${n_right}" &
+                file wall_3000.dat screen no &
+                title "# Time WallX NLeft NRight"
+
+# ============================================================================
+# RUN
+# ============================================================================
+
+print           "=============================================="
+print           "FINAL BALANCED CONFIGURATION:"
+print           "  Gas: $(count(particles)) particles"
+print           "  Wall: $(count(wall_atoms)) particles (blue line)"
+print           "  Wall mass/particle: ${wall_particle_mass}"
+print           "  T = ${T} (lower → smaller amplitude)"
+print           "  Total time: 3000 LJ units"
+print           "  Target amplitude: ±2 sigma"
+print           "=============================================="
+
+print           "Phase 1: Equilibration (10 time units)..."
+fix             hold wall_atoms setforce 0.0 NULL NULL
+run             ${hold_steps}
+unfix           hold
+
+print           ""
+print           "Phase 2: Free oscillation (3000 time units)..."
+print           "This will take ~30 minutes..."
+run             ${run_steps}
+
+write_data      final_3000.data
+
+print           ""
+print           "=============================================="
+print           "COMPLETE!"
+print           "  Wall oscillation should be -2 to +2 sigma"
+print           "  View: ovito traj_3000.lammpstrj"
+print           "  Analyze: wall_3000.dat"
+print           "=============================================="

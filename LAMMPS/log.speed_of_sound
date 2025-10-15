@@ -1,0 +1,212 @@
+LAMMPS (22 Jul 2025 - Update 1)
+# LAMMPS input script: Speed of Sound Experiment
+# Measures oscillation frequency of released divider wall
+# Replicates: hspist3 experiments_speed_of_sound
+# ============================================================================
+
+units           lj
+dimension       2
+atom_style      atomic
+boundary        f f p
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+
+# ============================================================================
+# EXPERIMENT PARAMETERS
+# ============================================================================
+
+variable        L0 equal 7.5            # Smaller box for faster oscillations
+variable        H equal 10.0
+variable        N equal 200             # Particles per side
+variable        T equal 1.0
+variable        dt equal 0.00005        # Smaller timestep for accuracy
+
+variable        sigma equal 1.0
+variable        pmass equal 1.0
+variable        wmass equal 20.0        # Lighter wall = higher frequency
+
+# No spring for this experiment - free oscillation
+variable        x_eq equal 0.0
+
+# Simulation control
+variable        hold_steps equal 50000  # Equilibration with wall fixed
+variable        run_steps equal 500000  # Measure oscillations
+variable        thermo_freq equal 100
+variable        dump_freq equal 200
+
+# ============================================================================
+# SIMULATION BOX
+# ============================================================================
+
+region          box block -${L0} ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+region          box block -7.5 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+region          box block -7.5 7.5 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          box block -7.5 7.5 -5 $(v_H/2) -0.5 0.5
+region          box block -7.5 7.5 -5 5 -0.5 0.5
+create_box      2 box
+Created orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  1 by 1 by 1 MPI processor grid
+
+# ============================================================================
+# CREATE PARTICLES
+# ============================================================================
+
+# Equal particles on both sides of divider
+region          left_region block -${L0} -0.6 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          left_region block -7.5 -0.6 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          left_region block -7.5 -0.6 -5 $(v_H/2) -0.5 0.5
+region          left_region block -7.5 -0.6 -5 5 -0.5 0.5
+region          right_region block 0.6 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_region block 0.6 7.5 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_region block 0.6 7.5 -5 $(v_H/2) -0.5 0.5
+region          right_region block 0.6 7.5 -5 5 -0.5 0.5
+
+create_atoms    1 random $N 12345 left_region
+create_atoms    1 random 200 12345 left_region
+Created 200 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+create_atoms    1 random $N 67890 right_region
+create_atoms    1 random 200 67890 right_region
+Created 200 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+
+# Set particle mass
+mass            1 ${pmass}
+mass            1 1
+
+# ============================================================================
+# CREATE WALL
+# ============================================================================
+
+create_atoms    2 single 0.0 0.0 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-7.5 -5 -0.5) to (7.5 5 0.5)
+  create_atoms CPU = 0.000 seconds
+mass            2 ${wmass}
+mass            2 20
+
+group           particles type 1
+400 atoms in group particles
+group           wall_atom type 2
+1 atoms in group wall_atom
+
+velocity        wall_atom set 0.0 0.0 0.0
+fix             wall_fix_yz wall_atom setforce NULL 0.0 0.0
+
+# ============================================================================
+# POTENTIALS (WCA for hard disks)
+# ============================================================================
+
+pair_style      lj/cut 1.122462048
+pair_modify     shift yes
+
+# Particle-particle interactions (sigma=1.0, epsilon=1.0)
+pair_coeff      1 1 1.0 ${sigma} 1.122462048
+pair_coeff      1 1 1.0 1 1.122462048
+
+# Particle-wall interactions (contact at 0.5 + 0.5 = 1.0)
+pair_coeff      1 2 1.0 1.0 1.122462048
+
+# Wall-wall (no interaction)
+pair_coeff      2 2 0.0 1.0 1.122462048
+
+# ============================================================================
+# WALLS
+# ============================================================================
+
+fix             wall_top particles wall/reflect yhi EDGE
+fix             wall_bottom particles wall/reflect ylo EDGE
+fix             wall_left particles wall/reflect xlo EDGE
+fix             wall_right particles wall/reflect xhi EDGE
+
+# ============================================================================
+# INITIALIZATION
+# ============================================================================
+
+velocity        particles create ${T} 4928459 mom yes rot yes dist gaussian
+velocity        particles create 1 4928459 mom yes rot yes dist gaussian
+velocity        particles scale ${T}
+velocity        particles scale 1
+
+timestep        ${dt}
+timestep        5e-05
+
+fix             nve_particles particles nve
+fix             nve_wall wall_atom nve
+
+# ============================================================================
+# COMPUTES
+# ============================================================================
+
+compute         temp_particles particles temp
+compute         ke_particles particles ke
+compute         ke_wall wall_atom ke
+
+variable        wall_x equal x[$(count(particles)+1)]
+variable        wall_x equal x[401]
+variable        wall_vx equal vx[$(count(particles)+1)]
+variable        wall_vx equal vx[401]
+variable        wall_disp equal v_wall_x-v_x_eq
+
+variable        ke_total equal c_ke_particles+c_ke_wall
+
+region          left_side block -${L0} 0.0 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          left_side block -7.5 0.0 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          left_side block -7.5 0.0 -5 $(v_H/2) -0.5 0.5
+region          left_side block -7.5 0.0 -5 5 -0.5 0.5
+region          right_side block 0.0 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_side block 0.0 7.5 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_side block 0.0 7.5 -5 $(v_H/2) -0.5 0.5
+region          right_side block 0.0 7.5 -5 5 -0.5 0.5
+
+group           left_particles dynamic particles region left_side every 100
+dynamic group left_particles defined
+group           right_particles dynamic particles region right_side every 100
+dynamic group right_particles defined
+
+variable        n_left equal count(left_particles)
+variable        n_right equal count(right_particles)
+
+# ============================================================================
+# OUTPUT
+# ============================================================================
+
+thermo_style    custom step temp c_temp_particles                 c_ke_particles c_ke_wall v_ke_total                 v_wall_x v_wall_vx v_wall_disp                 v_n_left v_n_right
+
+thermo          ${thermo_freq}
+thermo          100
+
+dump            traj all atom ${dump_freq} traj_speed_of_sound.lammpstrj
+dump            traj all atom 200 traj_speed_of_sound.lammpstrj
+
+# High-frequency wall position logging for frequency analysis
+fix             wall_log all print 10                 "$(step) ${wall_x} ${wall_vx} ${n_left} ${n_right}"                 file wall_oscillation.dat screen no                 title "# Step WallX WallVx NLeft NRight"
+
+# ============================================================================
+# RUN EXPERIMENT
+# ============================================================================
+
+# Phase 1: Equilibrate with wall held fixed
+print           "Phase 1: Equilibration with wall fixed (${hold_steps} steps)..."
+Phase 1: Equilibration with wall fixed (50000 steps)...
+fix             hold_wall wall_atom setforce 0.0 NULL NULL
+run             ${hold_steps}
+run             50000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.422462
+  ghost atom cutoff = 1.422462
+  binsize = 0.71123102, bins = 22 15 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d
+      bin: standard
+ERROR: Indexed per-atom vector in variable formula without atom map (src/variable.cpp:5093)
+Last input line: run ${hold_steps}

@@ -1,0 +1,173 @@
+# LAMMPS input script: Energy Transfer Experiment
+# Left chamber empty → Right chamber full → Energy transfer via spring-loaded wall
+# Replicates: hspist3 experiment=energy_transfer
+# ============================================================================
+
+units           lj
+dimension       2
+atom_style      atomic
+atom_modify     map yes         # Enable atom indexing for variable access
+boundary        f f p
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+
+# ============================================================================
+# EXPERIMENT PARAMETERS
+# ============================================================================
+
+variable        L0 equal 20.0
+variable        H equal 10.0
+variable        N_right equal 400       # All particles on right side
+variable        T equal 1.0
+variable        dt equal 0.000125
+
+variable        sigma equal 1.0
+variable        r equal 0.5
+variable        pmass equal 1.0
+variable        wmass equal 200.0
+
+# Strong spring to measure energy transfer
+variable        k_spring equal 1000.0
+variable        x_eq equal -10.0        # Wall starts at left, pulled by spring
+
+variable        nsteps equal 2000000
+variable        thermo_freq equal 1000
+variable        dump_freq equal 1000
+
+# ============================================================================
+# SIMULATION BOX
+# ============================================================================
+
+region          box block -${L0} ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+create_box      2 box
+
+# ============================================================================
+# CREATE PARTICLES (all on right side)
+# ============================================================================
+
+region          right_region block 0.6 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+create_atoms    1 random ${N_right} 67890 right_region
+
+mass            1 ${pmass}
+
+# ============================================================================
+# CREATE WALL (starts at left position)
+# ============================================================================
+
+create_atoms    2 single -10.0 0.0 0.0
+mass            2 ${wmass}
+
+group           particles type 1
+group           wall_atom type 2
+
+velocity        wall_atom set 0.0 0.0 0.0
+fix             wall_fix_yz wall_atom setforce NULL 0.0 0.0
+
+# ============================================================================
+# POTENTIALS
+# ============================================================================
+
+pair_style      lj/cut 1.122462048
+pair_modify     shift yes
+
+pair_coeff      1 1 1.0 ${sigma} 1.122462048
+pair_coeff      1 2 1.0 1.0 1.122462048
+pair_coeff      2 2 0.0 1.0 1.122462048
+
+# ============================================================================
+# WALLS
+# ============================================================================
+
+fix             wall_top particles wall/reflect yhi EDGE
+fix             wall_bottom particles wall/reflect ylo EDGE
+fix             wall_left particles wall/reflect xlo EDGE
+fix             wall_right particles wall/reflect xhi EDGE
+
+# ============================================================================
+# SPRING ON WALL
+# ============================================================================
+
+# Spring pulls wall toward equilibrium at x_eq
+fix             spring_wall wall_atom spring tether ${k_spring} ${x_eq} 0.0 0.0 0.0
+
+# ============================================================================
+# INITIALIZATION
+# ============================================================================
+
+velocity        particles create ${T} 4928459 mom yes rot yes dist gaussian
+velocity        particles scale ${T}
+
+timestep        ${dt}
+
+fix             nve_particles particles nve
+fix             nve_wall wall_atom nve
+
+# ============================================================================
+# COMPUTES
+# ============================================================================
+
+compute         temp_particles particles temp
+compute         ke_particles particles ke
+compute         ke_wall wall_atom ke
+compute         pe_all all pe
+
+variable        wall_x equal x[$(count(particles)+1)]
+variable        wall_vx equal vx[$(count(particles)+1)]
+variable        wall_disp equal v_wall_x-v_x_eq
+
+variable        spring_pe equal 0.5*v_k_spring*v_wall_disp*v_wall_disp
+variable        ke_total equal c_ke_particles+c_ke_wall
+variable        etotal equal v_ke_total+c_pe_all+v_spring_pe
+
+region          left_side block -${L0} 0.0 -$(v_H/2) $(v_H/2) -0.5 0.5
+region          right_side block 0.0 ${L0} -$(v_H/2) $(v_H/2) -0.5 0.5
+
+group           left_particles dynamic particles region left_side every 100
+group           right_particles dynamic particles region right_side every 100
+
+variable        n_left equal count(left_particles)
+variable        n_right equal count(right_particles)
+
+# Temperature in each chamber
+compute         temp_left left_particles temp
+compute         temp_right right_particles temp
+
+# Energy in each chamber
+compute         ke_left left_particles ke
+compute         ke_right right_particles ke
+
+# ============================================================================
+# OUTPUT
+# ============================================================================
+
+thermo_style    custom step temp c_temp_particles &
+                c_ke_particles c_ke_wall v_ke_total c_pe_all v_spring_pe v_etotal &
+                v_wall_x v_wall_vx v_wall_disp &
+                v_n_left v_n_right &
+                c_temp_left c_temp_right c_ke_left c_ke_right
+
+thermo          ${thermo_freq}
+
+dump            traj all atom ${dump_freq} traj_energy_transfer.lammpstrj
+
+fix             wall_log all print ${thermo_freq} &
+                "$(step) ${wall_x} ${wall_disp} ${n_left} ${n_right}" &
+                file wall_energy_transfer.dat screen no &
+                title "# Step WallX Displacement NLeft NRight"
+
+fix             energy_log all print ${thermo_freq} &
+                "${c_ke_particles} ${c_ke_wall} ${ke_total} ${temp} ${spring_pe} ${etotal} ${c_ke_left} ${c_ke_right}" &
+                file energy_transfer.dat screen no &
+                title "# KE_particles KE_wall KE_total Temp SpringPE TotalE KE_left KE_right"
+
+# ============================================================================
+# RUN EXPERIMENT
+# ============================================================================
+
+print           "Energy transfer experiment: Left empty, right full, spring-loaded wall"
+run             ${nsteps}
+
+write_data      final_energy_transfer.data
+print           "Energy transfer experiment complete."
+print           "Track energy flow: KE_right → SpringPE → KE_left in energy_transfer.dat"

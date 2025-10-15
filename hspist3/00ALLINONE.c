@@ -6,9 +6,11 @@
 #include <stdbool.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <float.h>
 #include <SDL2/SDL_ttf.h>
 #include "kissfft/kiss_fft.h"
 #include "kissfft/kiss_fftr.h"
+#include "edmd_core/edmd.h"
 
 
 
@@ -142,12 +144,12 @@ bool log_packing_fraction = 1; // 1 = log packing fraction, 0 = don't log
 
 
     #else
-        #define FIXED_DT 0.0016f  // in normalized time units They don’t state the exact dt, but normalized simulations use dt = 10^{-3} often.
+        #define FIXED_DT 0.001f  // in normalized time units They don’t state the exact dt, but normalized simulations use dt = 10^{-3} often.
         #define PIXELS_PER_SIGMA 40.0f      // rendering scaleq
-        #define TEMPERATURE 1.0f            //SET to 0 if want to ssimulte traversing wave
+        #define TEMPERATURE 1.0f            // default target temperature (reduced units)
         #define SUBSTEPS 8   // default, can be changed externally
         #define WALL_HOLD_STEPS 10000
-        #define PARTICLE_SCALE_PARAM .20f // scaling factor for particle size
+        #define PARTICLE_SCALE_PARAM 1.0f // scaling factor for particle size
 
 
 
@@ -174,8 +176,10 @@ bool log_packing_fraction = 1; // 1 = log packing fraction, 0 = don't log
 #endif
 
 
+// Runtime-controllable particle size scaling (defaults to compile-time PARAM)
+static float particle_scale_runtime = PARTICLE_SCALE_PARAM;
 #define DIAMETER (2 * PARTICLE_RADIUS_UNIT)
-#define PARTICLE_RADIUS (PARTICLE_RADIUS_UNIT * PIXELS_PER_SIGMA * PARTICLE_SCALE_PARAM) // in meters
+#define PARTICLE_RADIUS (PARTICLE_RADIUS_UNIT * PIXELS_PER_SIGMA * particle_scale_runtime)
 
 int num_steps = TIME_UNITS_SIMULATION / FIXED_DT;  // = 3,000,000 with 3000 units and 0.001 dt
 bool wall_position_is_managed_externally = false;
@@ -209,10 +213,10 @@ double wall_release_time = -1.0;      // < 0 means "not yet released"
 
 // Near your other runtime globals:
 #if EXPERIMENT_MODE
-    static float wall_thickness_runtime = 1.0f;
-
+    static float wall_thickness_runtime = 1.0f;   // fixed thin wall in experiment mode
 #else
-    static float wall_thickness_runtime = 2.0f * PARTICLE_RADIUS; // default
+    // Note: depends on runtime particle radius; set default later in initialize_simulation_parameters()
+    static float wall_thickness_runtime = 0.0f;   // will default to 2R at init if not overridden
 #endif
 
 // Helper accessors:
@@ -242,7 +246,7 @@ void initialize_time_scale() {
 #if MOLECULAR_MODE
     TAU_time_scale_factor_to_molecular = 1.0; // normalized units
 #else
-    TAU_time_scale_factor_to_molecular = sqrtf((PARTICLE_MASS * powf(PARTICLE_RADIUS * METERS_PER_PIXEL, 2)) / (K_B * TEMPERATURE));
+    TAU_time_scale_factor_to_molecular = sqrtf((PARTICLE_MASS * powf(PARTICLE_RADIUS * METERS_PER_PIXEL, 2)) / (kBT_effective()));
     printf("✅ [Time Scale] Calculated TAU = %.15e seconds\n", TAU_time_scale_factor_to_molecular);
 #endif
 }
@@ -338,6 +342,12 @@ static float  cli_override_L0_units = -1.0f;
 static float  cli_override_height_units = -1.0f;
 static float  cli_override_wall_mass_factor = -1.0f;
 static float  cli_override_wall_thickness_sigma = -1.0f;
+static float  cli_override_temperature = -1.0f;  // --temperature=VALUE (reduced units)
+// Particle size CLI
+static int    cli_particle_radius_set = 0;     // 1 if user set --particle-radius (sigma units)
+static float  cli_particle_radius_sigma = 0.0f;
+static int    cli_particle_diameter_set = 0;   // 1 if user set --particle-diameter (sigma units)
+static float  cli_particle_diameter_sigma = 0.0f;
 static bool   cli_force_no_experiments = false;
 static bool   cli_enable_energy_measurement = false;
 static int    cli_override_particles = -1;   // --particles=N
@@ -346,6 +356,18 @@ typedef enum { SEEDING_GRID=0, SEEDING_HONEYCOMB=1, SEEDING_RANDOM=2 } seeding_m
 static seeding_mode_t cli_seeding_mode = SEEDING_GRID; // default grid for reproducibility
 static bool cli_left_empty = false;          // seed zero particles in leftmost segment
 static bool cli_no_pp_collisions = false;    // disable particle-particle collisions
+static bool cli_distribute_area = false;     // distribute particles by segment area
+// Spring CLI overrides
+static int   cli_spring_k_set = 0;          // 1 if user set --spring-k
+static float cli_spring_k = 0.0f;
+static int   cli_spring_eq_set = 0;         // 1 if user set --spring-eq (sigma units)
+static float cli_spring_eq_sigma = 0.0f;     // in sigma units from left boundary
+// Calibrate work: approximate placement of rightmost wall to match target
+static int   cli_calibrate_work_set = 0;
+static float cli_calib_target = 0.0f;        // target work (code units)
+static float cli_calib_tol = 0.0f;           // not used in approx, reserved
+static float cli_calib_min_sigma = 0.0f;     // min pos (sigma units)
+static float cli_calib_max_sigma = 0.0f;     // max pos (sigma units)
 // Particles per-segment specification
 static float *cli_particles_box_fractions = NULL; // existing fractions list
 static size_t cli_particles_box_fractions_count = 0;
@@ -407,6 +429,9 @@ static float cli_wall_masses[5] = {200.0f, 200.0f, 200.0f, 200.0f, 200.0f}; // d
 static int   cli_num_walls = 1;  // default number of walls
 static float cli_wall_positions[5] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f}; // wall positions
 static PistonProtocol cli_protocol = PROTOCOL_SIGMOIDAL; // default protocol
+// Optional: per-segment temperature overrides
+static float *cli_temperature_segments = NULL;        // from --temperature list
+static size_t cli_temperature_segments_count = 0;
 
 static void parse_cli_options(int argc, char **argv);
 static void print_cli_usage(const char *exe_name);
@@ -433,6 +458,13 @@ void initialize_simulation_parameters() {
     wall_is_released = false;
     wall_hold_enabled = true;
     wall_impulse_x_accum = 0.0f;
+    // Set a sane default wall thickness if not explicitly provided (e.g., via CLI)
+    // Default to 2×particle radius in pixels to avoid tunneling
+#if !EXPERIMENT_MODE
+    if (wall_thickness_runtime <= 0.0f) {
+        wall_thickness_runtime = 2.0f * PARTICLE_RADIUS;
+    }
+#endif
     if (all_wall_positions) {
         all_wall_positions[primary_wall_index] = wall_x;
     }
@@ -481,6 +513,164 @@ TTF_Font *font = NULL;
 // Global variables for simulation control
 int simulation_started = 0;  // Flag to track simulation start
 
+// Forward declarations for helpers referenced in temperature tools
+static int segment_index_for_position(double px);
+double kinetic_energy(void);
+
+// Runtime temperature control (defaults to compile-time TEMPERATURE)
+static float temperature_runtime = TEMPERATURE;
+static float fixed_dt_runtime = FIXED_DT; // dt actually used by the integrator
+static float time_scale_runtime = 1.0f;   // scales real-time → sim-time in interactive mode
+// Integrator / simulation mode
+typedef enum { MODE_TIME=0, MODE_RK4=1, MODE_EDMD=2, MODE_EDMD_HYBRID=3 } sim_mode_t;
+static sim_mode_t sim_mode = MODE_TIME;
+// EDMD state (optional)
+static EDMD* g_edmd = NULL;
+static int   cli_force_kbt_one = 0; // --kbt1: force K_B*T == 1 (reduced units)
+
+static inline float kB_effective(void) {
+    // If user forces K_B*T=1, adjust k_B at runtime so k_B*T stays 1
+    if (cli_force_kbt_one) {
+        float T = (temperature_runtime > 1e-12f) ? temperature_runtime : 1.0f;
+        return 1.0f / T;
+    }
+    return (float)K_B;
+}
+static inline float kBT_effective(void) {
+    return kB_effective() * temperature_runtime;
+}
+
+// Particle color-coding mode
+typedef enum { COLORCODE_NONE=0, COLORCODE_TEMPERATURE=1, COLORCODE_VELOCITY=2 } ColorCodeMode;
+static ColorCodeMode colorcode_mode = COLORCODE_NONE; // set via --colourcode / --colorcode
+
+// Recompute runtime dt to preserve v·dt/σ when temperature changes (speed_of_sound experiment)
+static inline void update_dt_runtime_for_temperature(void) {
+    // Default: keep compile-time dt
+    fixed_dt_runtime = FIXED_DT;
+    // Scale dt with 1/sqrt(T) only for speed_of_sound preset and when not forcing kB*T=1
+    if (cli_experiment_preset == EXPERIMENT_PRESET_SPEED_OF_SOUND && !cli_force_kbt_one) {
+        float T = fmaxf(temperature_runtime, 1e-12f);
+        fixed_dt_runtime = FIXED_DT / sqrtf(T);
+    }
+}
+
+/* Recompute per-segment counts, KE, and temperature from current arrays. */
+static void recompute_segment_stats_counts_and_temperature(void) {
+    if (!(segment_count > 0 && segment_count <= MAX_DIVIDER_CAPACITY + 1)) return;
+    int n = particles_active > 0 ? particles_active : 0;
+    if (!segment_counts) return;
+    memset(segment_counts, 0, (size_t)segment_count * sizeof(int));
+    if (segment_ke) memset(segment_ke, 0, (size_t)segment_count * sizeof(double));
+    if (segment_temperature) memset(segment_temperature, 0, (size_t)segment_count * sizeof(double));
+    for (int i = 0; i < n; ++i) {
+        int seg = segment_index_for_position(X[i]);
+        if (seg < 0) seg = 0; if (seg >= segment_count) seg = segment_count - 1;
+        segment_counts[seg]++;
+        if (segment_ke) {
+            double ke = 0.5 * PARTICLE_MASS * (Vx[i] * Vx[i] + Vy[i] * Vy[i]);
+            segment_ke[seg] += ke;
+        }
+    }
+    if (segment_temperature && segment_ke) {
+        for (int seg = 0; seg < segment_count; ++seg) {
+            if (segment_counts[seg] > 0) {
+                segment_temperature[seg] = segment_ke[seg] / (segment_counts[seg] * K_B);
+            } else {
+                segment_temperature[seg] = 0.0;
+            }
+        }
+    }
+}
+static inline void rescale_all_velocities_to_temperature(float T_new) {
+    int n = particles_active > 0 ? particles_active : 0;
+    if (n <= 0) return;
+    double ke_now = kinetic_energy();
+    if (ke_now <= 0.0) return;
+    double ke_target = (double)n * (double)kB_effective() * (double)T_new;
+    double scale = sqrt(ke_target / ke_now);
+    for (int i = 0; i < n; ++i) { Vx[i] *= scale; Vy[i] *= scale; }
+    temperature_runtime = T_new;
+}
+
+static inline void remove_drift_segment(int seg_idx) {
+    if (!segment_count || seg_idx < 0 || seg_idx >= segment_count) return;
+    int n = particles_active > 0 ? particles_active : 0;
+    double sx = 0.0, sy = 0.0; int c = 0;
+    for (int i = 0; i < n; ++i) {
+        int s = segment_index_for_position(X[i]);
+        if (s == seg_idx) { sx += Vx[i]; sy += Vy[i]; c++; }
+    }
+    if (c <= 0) return;
+    double mx = sx / c, my = sy / c;
+    for (int i = 0; i < n; ++i) {
+        int s = segment_index_for_position(X[i]);
+        if (s == seg_idx) { Vx[i] -= mx; Vy[i] -= my; }
+    }
+}
+
+static inline void equalize_temperature_per_segment(float T_target) {
+    if (segment_count <= 0) return;
+    int n = particles_active > 0 ? particles_active : 0;
+    for (int seg = 0; seg < segment_count; ++seg) {
+        // compute seg KE and count
+        double ke_seg = 0.0; int c = 0;
+        for (int i = 0; i < n; ++i) {
+            int s = segment_index_for_position(X[i]);
+            if (s == seg) { ke_seg += 0.5 * PARTICLE_MASS * (Vx[i]*Vx[i] + Vy[i]*Vy[i]); c++; }
+        }
+        if (c <= 0 || ke_seg <= 0.0) continue;
+        double T_seg = ke_seg / (c * K_B);
+        if (T_seg > 0.0) {
+            double scale = sqrt((double)T_target / T_seg);
+            for (int i = 0; i < n; ++i) {
+                int s = segment_index_for_position(X[i]);
+                if (s == seg) { Vx[i] *= scale; Vy[i] *= scale; }
+            }
+        }
+        remove_drift_segment(seg);
+    }
+}
+
+// Apply per-segment temperatures (left→right). If temps_count < segment_count,
+// remaining segments keep current temperature. Uses kB_effective at runtime.
+static void apply_segment_temperatures(const float* temps, size_t temps_count) {
+    if (!temps || temps_count == 0) return;
+    if (segment_count <= 0) return;
+    int n = particles_active > 0 ? particles_active : 0;
+    if (n <= 0) return;
+
+    // Accumulate KE and counts per segment
+    double* ke = (double*)malloc((size_t)segment_count * sizeof(double));
+    int* cnt   = (int*)malloc((size_t)segment_count * sizeof(int));
+    if (!ke || !cnt) { if (ke) free(ke); if (cnt) free(cnt); return; }
+    for (int s = 0; s < segment_count; ++s) { ke[s] = 0.0; cnt[s] = 0; }
+    for (int i = 0; i < n; ++i) {
+        int s = segment_index_for_position(X[i]);
+        if (s < 0) s = 0; if (s >= segment_count) s = segment_count - 1;
+        double v2 = (double)Vx[i]*(double)Vx[i] + (double)Vy[i]*(double)Vy[i];
+        ke[s] += 0.5 * (double)PARTICLE_MASS * v2;
+        cnt[s] += 1;
+    }
+
+    // Compute scale per segment and apply
+    for (int s = 0; s < segment_count; ++s) {
+        float T_target = (s < (int)temps_count) ? temps[s] : temperature_runtime;
+        if (cnt[s] > 0 && ke[s] > 0.0 && T_target > 0.0f) {
+            double kB = (double)kB_effective();
+            double ke_target = (double)cnt[s] * kB * (double)T_target;
+            double scale = sqrt(ke_target / ke[s]);
+            for (int i = 0; i < n; ++i) {
+                int seg_i = segment_index_for_position(X[i]);
+                if (seg_i < 0) seg_i = 0; if (seg_i >= segment_count) seg_i = segment_count - 1;
+                if (seg_i == s) { Vx[i] = (float)((double)Vx[i] * scale); Vy[i] = (float)((double)Vy[i] * scale); }
+            }
+            remove_drift_segment(s);
+        }
+    }
+    free(ke); free(cnt);
+}
+
 // Energy measurement system
 typedef struct {
     float spring_constant;           // Spring constant for leftmost wall
@@ -512,9 +702,11 @@ static inline void start_piston_push_tracking(void) {
     piston_push_tracking  = true;
     piston_work_baseline  = piston_work_left + piston_work_right;
     piston_work_delta_max = 0.0;
-    // Auto-enable energy measurement if available and not yet active
+    // Only initialize energy measurement if explicitly requested or in energy_transfer preset
     if (!energy_measurement.spring_enabled && num_internal_walls > 0) {
-        initialize_energy_measurement();
+        if (cli_enable_energy_measurement || cli_experiment_preset == EXPERIMENT_PRESET_ENERGY_TRANSFER) {
+            initialize_energy_measurement();
+        }
     }
 }
 // Global flag to pause the simulation
@@ -931,19 +1123,30 @@ static void print_cli_usage(const char *exe_name) {
     printf("  --wall-positions=x1,x2,...  Wall positions from left to right (sigma units)\n");
     printf("  --wall-mass-factors=m1,m2,... Wall mass factors from left to right (default 200 each)\n");
     printf("  --seeding=MODE              Seeding mode: grid (default), honeycomb, random\n");
+    printf("  --distribute=area           Distribute particles ∝ segment area (width×height)\n");
     printf("  --protocol=NAME             Piston protocol: step, sigmoidal, linear, sinusoidal, optimal\n");
+    printf("  --spring-k=value            Spring constant for energy measurement (code units)\n");
+    printf("  --spring-eq=value          Spring equilibrium position (sigma units from left)\n");
+    printf("  --calibrate-work=target,tol,min,max  Approximate place rightmost wall to match target piston work\n");
     printf("  --repeats=N                 Number of repeats per experiment configuration\n");
     printf("  --steps=N                   Steps to simulate after wall release (default derived from TIME_UNITS_SIMULATION)\n");
     printf("  --l0=value                  Set initial half-length for interactive mode\n");
     printf("  --height=value              Set box height (in sigma units) for interactive mode\n");
     printf("  --wall-mass-factor=value    Set wall mass factor for interactive mode (M_wall = factor * m_particle)\n");
     printf("  --wall-thickness=value      Set wall thickness in sigma units\n");
+    printf("  --particle-radius=value     Set particle radius in σ units (default 0.5)\n");
+    printf("  --particle-diameter=value   Set particle diameter in σ units\n");
     printf("  --particles=N               Total active particles (<= MAX buffer)\n");
     printf("  --phi-max=value             Max packing fraction cap for seeding (default 0.78)\n");
     printf("  --particles-boxes=a,b,...   Target counts per segment (left→right)\n");
     printf("  --particles-box-left=n      Shorthand: left count for 2 boxes\n");
     printf("  --particles-box-right=n     Shorthand: right count for 2 boxes\n");
     printf("  --energy-measurement        Enable spring-based energy measurement\n");
+    printf("  --colourcode=mode           Particle coloring: none (default), temperature, velocity\n");
+    printf("  --colorcode=mode            Alias of --colourcode\n");
+    printf("  --timescale=value           Speed multiplier for interactive run (default 1.0)\n");
+    printf("  --kbt1                      Force k_B*T = 1 (reduced units); adjusts k_B at runtime\n");
+    printf("  --mode=NAME                 time (default) | rk4 | edmd | edmd-hybrid\n");
     printf("  --help                      Show this help message and exit\n");
 }
 
@@ -957,7 +1160,6 @@ static void parse_cli_options(int argc, char **argv) {
             exit(EXIT_SUCCESS);
         } else if (strcmp(arg, "--experiments") == 0) {
             enable_speed_of_sound_experiments = true;
-            cli_force_no_experiments = false;
         } else if (strcmp(arg, "--no-experiments") == 0) {
             cli_force_no_experiments = true;
         } else if (strcmp(arg, "--show-simulation") == 0) {
@@ -968,8 +1170,15 @@ static void parse_cli_options(int argc, char **argv) {
             cli_left_empty = true;
         } else if (strcmp(arg, "--no-pp-collisions") == 0) {
             cli_no_pp_collisions = true;
+        } else if (strncmp(arg, "--distribute", 12) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            if (strcmp(value, "area") == 0) cli_distribute_area = 1; else if (strcmp(value, "equal") == 0) cli_distribute_area = 0; else {
+                fprintf(stderr, "Unknown distribute mode '%s'. Use: area or equal\n", value); exit(EXIT_FAILURE);
+            }
         } else if (strcmp(arg, "--energy-measurement") == 0) {
             cli_enable_energy_measurement = true;
+        } else if (strcmp(arg, "--kbt1") == 0) {
+            cli_force_kbt_one = 1;
         } else if (strncmp(arg, "--experiment", 12) == 0) {
             const char *value_raw = cli_option_value(arg, argc, argv, &i);
             const char *variant_str = NULL;
@@ -995,7 +1204,6 @@ static void parse_cli_options(int argc, char **argv) {
             if (strcmp(preset_name, "2wall_exp_with_1_wall") == 0) {
                 cli_experiment_preset = EXPERIMENT_PRESET_OFFCENTER_SINGLE;
                 enable_speed_of_sound_experiments = true;
-                cli_force_no_experiments = false;
             } else if (strcmp(preset_name, "2wall_exp_with_2_wall") == 0) {
                 preset_two_wall_active_walls = 2;
                 if (variant_str && *variant_str) {
@@ -1011,39 +1219,33 @@ static void parse_cli_options(int argc, char **argv) {
                 }
                 cli_experiment_preset = EXPERIMENT_PRESET_TWO_WALLS;
                 enable_speed_of_sound_experiments = true;
-                cli_force_no_experiments = false;
             } else if (strcmp(preset_name, "wall_mid") == 0) {
                 cli_experiment_preset = EXPERIMENT_PRESET_WALL_MID;
                 enable_speed_of_sound_experiments = true;
-                cli_force_no_experiments = false;
             } else if (strcmp(preset_name, "speed_of_sound") == 0) {
                 cli_experiment_preset = EXPERIMENT_PRESET_SPEED_OF_SOUND;
                 enable_speed_of_sound_experiments = true;
-                cli_force_no_experiments = false;
-            } else if (strcmp(preset_name, "energy_transfer") == 0) {
-                cli_experiment_preset = EXPERIMENT_PRESET_ENERGY_TRANSFER;
-                enable_speed_of_sound_experiments = true;
-                cli_force_no_experiments = false;
-            } else if (strcmp(preset_name, "multi_wall") == 0) {
+        } else if (strcmp(preset_name, "energy_transfer") == 0) {
+            cli_experiment_preset = EXPERIMENT_PRESET_ENERGY_TRANSFER;
+            enable_speed_of_sound_experiments = true;
+            // Default behavior for energy transfer: left box empty and enable spring energy measurement
+            cli_left_empty = true;
+            cli_enable_energy_measurement = true;
+        } else if (strcmp(preset_name, "multi_wall") == 0) {
                 cli_experiment_preset = EXPERIMENT_PRESET_MULTI_WALL_SYSTEM;
                 enable_speed_of_sound_experiments = true;
-                cli_force_no_experiments = false;
             } else if (strcmp(preset_name, "szilard_engine") == 0) {
                 cli_experiment_preset = EXPERIMENT_PRESET_SZILARD_ENGINE;
                 enable_speed_of_sound_experiments = true;
-                cli_force_no_experiments = false;
             } else if (strcmp(preset_name, "atp_synthase") == 0) {
                 cli_experiment_preset = EXPERIMENT_PRESET_ATP_SYNTHASE_ANALOG;
                 enable_speed_of_sound_experiments = true;
-                cli_force_no_experiments = false;
             } else if (strcmp(preset_name, "protocol_optimization") == 0) {
                 cli_experiment_preset = EXPERIMENT_PRESET_PROTOCOL_OPTIMIZATION;
                 enable_speed_of_sound_experiments = true;
-                cli_force_no_experiments = false;
             } else if (strcmp(preset_name, "dynamic_ib") == 0) {
                 cli_experiment_preset = EXPERIMENT_PRESET_DYNAMIC_IB;
                 enable_speed_of_sound_experiments = true;
-                cli_force_no_experiments = false;
             } else {
                 fprintf(stderr, "Unknown experiment preset '%s'.\n", value_raw);
                 print_cli_usage(argv[0]);
@@ -1127,6 +1329,24 @@ static void parse_cli_options(int argc, char **argv) {
                 fprintf(stderr, "Unknown seeding mode '%s'. Use: grid, honeycomb, random\n", value);
                 exit(EXIT_FAILURE);
             }
+        } else if (strncmp(arg, "--spring-k", 10) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            errno = 0; char *endptr = NULL; float v = strtof(value, &endptr);
+            if (errno != 0 || endptr == value) { fprintf(stderr, "Invalid spring-k '%s'.\n", value); exit(EXIT_FAILURE);} 
+            cli_spring_k_set = 1; cli_spring_k = v;
+        } else if (strncmp(arg, "--spring-eq", 11) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            errno = 0; char *endptr = NULL; float v = strtof(value, &endptr);
+            if (errno != 0 || endptr == value) { fprintf(stderr, "Invalid spring-eq '%s'.\n", value); exit(EXIT_FAILURE);} 
+            cli_spring_eq_set = 1; cli_spring_eq_sigma = v;
+        } else if (strncmp(arg, "--calibrate-work", 16) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            // Parse target,tol,min,max
+            float list[4]; size_t n = 0; char *copy = cli_strdup(value); char *tok = strtok(copy, ",");
+            while (tok && n < 4) { list[n++] = strtof(tok, NULL); tok = strtok(NULL, ","); }
+            free(copy);
+            if (n != 4) { fprintf(stderr, "--calibrate-work expects 4 values: target,tol,min,max\n"); exit(EXIT_FAILURE);} 
+            cli_calibrate_work_set = 1; cli_calib_target = list[0]; cli_calib_tol = list[1]; cli_calib_min_sigma = list[2]; cli_calib_max_sigma = list[3];
         } else if (strncmp(arg, "--protocol", strlen("--protocol")) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
             if (strcmp(value, "step") == 0) cli_protocol = PROTOCOL_STEP;
@@ -1138,6 +1358,24 @@ static void parse_cli_options(int argc, char **argv) {
                 fprintf(stderr, "Unknown protocol '%s'. Use: step, sigmoidal, linear, sinusoidal, optimal\n", value);
                 exit(EXIT_FAILURE);
             }
+        } else if (strncmp(arg, "--particle-radius", strlen("--particle-radius")) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            errno = 0; char *endptr = NULL; float v = strtof(value, &endptr);
+            if (errno != 0 || endptr == value || *endptr != '\0' || v <= 0.0f) {
+                fprintf(stderr, "Invalid particle radius '%s' (σ units).\n", value);
+                exit(EXIT_FAILURE);
+            }
+            cli_particle_radius_set = 1;
+            cli_particle_radius_sigma = v;
+        } else if (strncmp(arg, "--particle-diameter", strlen("--particle-diameter")) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            errno = 0; char *endptr = NULL; float v = strtof(value, &endptr);
+            if (errno != 0 || endptr == value || *endptr != '\0' || v <= 0.0f) {
+                fprintf(stderr, "Invalid particle diameter '%s' (σ units).\n", value);
+                exit(EXIT_FAILURE);
+            }
+            cli_particle_diameter_set = 1;
+            cli_particle_diameter_sigma = v;
         } else if (strncmp(arg, "--particles-boxes", strlen("--particles-boxes")) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
             cli_parse_float_list(value, &cli_particles_box_fractions, &cli_particles_box_fractions_count);
@@ -1253,6 +1491,41 @@ static void parse_cli_options(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
             cli_override_wall_thickness_sigma = v;
+        } else if (strncmp(arg, "--temperature", 13) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            if (strchr(value, ',') != NULL) {
+                // parse per-segment list
+                cli_parse_float_list(value, &cli_temperature_segments, &cli_temperature_segments_count);
+                cli_override_temperature = -1.0f; // ignore single override in favor of list
+            } else {
+                errno = 0; char *endptr = NULL; float v = strtof(value, &endptr);
+                if (errno != 0 || endptr == value || *endptr != '\0' || v <= 0.0f) {
+                    fprintf(stderr, "Invalid temperature '%s'.\n", value);
+                    exit(EXIT_FAILURE);
+                }
+                cli_override_temperature = v;
+            }
+        } else if (strncmp(arg, "--timescale", 11) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            errno = 0; char *endptr = NULL; float v = strtof(value, &endptr);
+            if (errno != 0 || endptr == value || *endptr != '\0' || v <= 0.0f) {
+                fprintf(stderr, "Invalid timescale '%s'.\n", value);
+                exit(EXIT_FAILURE);
+            }
+            time_scale_runtime = v;
+        } else if (strncmp(arg, "--mode", 6) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            if (strcmp(value, "time") == 0) sim_mode = MODE_TIME;
+            else if (strcmp(value, "rk4") == 0) sim_mode = MODE_RK4;
+            else if (strcmp(value, "edmd") == 0) sim_mode = MODE_EDMD;
+            else if (strcmp(value, "edmd-hybrid") == 0) sim_mode = MODE_EDMD_HYBRID;
+            else { fprintf(stderr, "Unknown mode '%s'. Use: time, rk4, edmd\n", value); exit(EXIT_FAILURE);} 
+        } else if (strncmp(arg, "--colourcode", 12) == 0 || strncmp(arg, "--colorcode", 11) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            if (strcmp(value, "none") == 0) colorcode_mode = COLORCODE_NONE;
+            else if (strcmp(value, "temperature") == 0) colorcode_mode = COLORCODE_TEMPERATURE;
+            else if (strcmp(value, "velocity") == 0) colorcode_mode = COLORCODE_VELOCITY;
+            else { fprintf(stderr, "Unknown colourcode '%s'. Use: none | temperature | velocity\n", value); exit(EXIT_FAILURE);} 
         } else {
             fprintf(stderr, "Unknown option '%s'.\n", arg);
             print_cli_usage(argv[0]);
@@ -1354,6 +1627,58 @@ static void parse_cli_options(int argc, char **argv) {
         }
     }
 
+    // Optional: approximate calibration to match target piston work by placing the rightmost wall
+    // Assumptions: 2 internal walls → 3 segments; we place the last internal wall so that
+    // initial rightmost width w satisfies W_target ≈ N_right * kT * (Δx/w). Here Δx ≈ 0.2 * box_width.
+    if (cli_calibrate_work_set && cli_requested_walls >= 2) {
+        // Estimate stroke in sigma units (uses same 20% travel used by 't' hotkey)
+        float box_width_px = (float)SIM_WIDTH;
+        float stroke_px = 0.20f * box_width_px;
+        float stroke_sigma = stroke_px / PIXELS_PER_SIGMA;
+
+        // Determine how many particles intended for rightmost box
+        int segments = cli_requested_walls + 1;
+        int Nreq = (cli_override_particles > 0) ? cli_override_particles : NUM_PARTICLES;
+        int N_right = 0;
+        if (preset_custom_absolute_counts && (int)cli_particles_box_counts_count == segments) {
+            N_right = cli_particles_box_counts[segments - 1];
+        } else if (preset_custom_fractions) {
+            float frac_sum = 0.0f; for (int s = 0; s < segments; ++s) frac_sum += preset_segment_fraction[s];
+            float frac_right = (segments - 1 < MAX_DIVIDER_CAPACITY + 1) ? preset_segment_fraction[segments - 1] : 0.0f;
+            if (frac_sum <= 0.0f) frac_sum = 1.0f;
+            N_right = (int)llround((frac_right / frac_sum) * Nreq);
+        } else if (cli_left_empty && segments == 3) {
+            // If left-empty and no explicit fractions, split equally over 2 and 3
+            N_right = Nreq / 2;
+        } else {
+            // Fallback: assume equal share among segments
+            N_right = Nreq / segments;
+        }
+
+        if (N_right < 1) N_right = 1;
+        float kBT = kBT_effective();
+        float target = cli_calib_target;
+        if (target <= 0.0f) target = 1.0f; // guard
+
+        // w_needed = N_right * kT * Δx / W_target
+        float w_needed_sigma = (N_right * kBT * stroke_sigma) / target;
+        // Clamp resulting wall position within [min,max]
+        float pos_sigma = (2.0f * L0_UNITS) - w_needed_sigma;
+        if (cli_calib_min_sigma < cli_calib_max_sigma) {
+            if (pos_sigma < cli_calib_min_sigma) pos_sigma = cli_calib_min_sigma;
+            if (pos_sigma > cli_calib_max_sigma) pos_sigma = cli_calib_max_sigma;
+        }
+        // Program as a fraction for the last wall
+        float frac = pos_sigma / fmaxf(1e-6f, 2.0f * L0_UNITS);
+        if (frac < 0.0f) frac = 0.0f; if (frac > 1.0f) frac = 1.0f;
+        preset_custom_positions = true;
+        preset_wall_count = cli_requested_walls;
+        preset_wall_fraction[cli_requested_walls - 1] = frac;
+        // Note: we leave earlier walls as user-defined or defaults
+        printf("[CAL] Approx calibrated last wall to %.3f σ (frac=%.4f) for target W=%.3g with N_right=%d\n",
+               pos_sigma, frac, (double)target, N_right);
+    }
+
     if (cli_override_num_steps > 0) {
         num_steps = cli_override_num_steps;
     }
@@ -1373,6 +1698,20 @@ static void parse_cli_options(int argc, char **argv) {
     }
     if (cli_override_wall_thickness_sigma > 0.0f) {
         set_wall_thickness_sigma(cli_override_wall_thickness_sigma);
+    }
+    if (cli_override_temperature > 0.0f) {
+        temperature_runtime = cli_override_temperature;
+    }
+    // Apply particle size overrides (sigma units)
+    if (cli_particle_radius_set) {
+        // PARTICLE_RADIUS = PARTICLE_RADIUS_UNIT * PIXELS_PER_SIGMA * particle_scale_runtime
+        // We want: PARTICLE_RADIUS = cli_particle_radius_sigma * PIXELS_PER_SIGMA
+        // => particle_scale_runtime = cli_particle_radius_sigma / PARTICLE_RADIUS_UNIT
+        particle_scale_runtime = cli_particle_radius_sigma / PARTICLE_RADIUS_UNIT;
+    } else if (cli_particle_diameter_set) {
+        // diameter provided → radius = diameter/2
+        float r_sigma = 0.5f * cli_particle_diameter_sigma;
+        particle_scale_runtime = r_sigma / PARTICLE_RADIUS_UNIT;
     }
     if (cli_force_no_experiments) {
         enable_speed_of_sound_experiments = false;
@@ -1427,20 +1766,31 @@ void print_simulation_info() {
     printf("Mode: %s\n", MOLECULAR_MODE ? "MOLECULAR (Normalized units)" : "MACROSCOPIC (Real units)");
     printf("Experiment Mode: %s\n", EXPERIMENT_MODE ? "ON (fine dt/substeps)" : "OFF (default dt)");
     printf("Fixed Time Step (dt): %.2e\n", FIXED_DT);
+    printf("Runtime Time Step (dt_runtime): %.2e\n", fixed_dt_runtime);
     printf("TAU scaling factor: %.4f\n", TAU_time_scale_factor_to_molecular);
     // Dimensionless tau for frequency normalization (tau = sqrt(m*sigma^2/(kB*T))) in reduced units
     const double sigma_unit = (double)DIAMETER; // in reduced units, DIAMETER = 1 when PARTICLE_RADIUS_UNIT=0.5
-    const double tau_dimless = sqrt((double)PARTICLE_MASS * sigma_unit * sigma_unit / ((double)K_B * (double)TEMPERATURE));
+    const double tau_dimless = sqrt((double)PARTICLE_MASS * sigma_unit * sigma_unit / ((double)kBT_effective()));
     printf("Tau (dimensionless, for f* = f·tau): %.6f\n", tau_dimless);
+    // Runtime thermodynamic parameters
+    printf("Temperature (runtime): %.3f\n", (double)temperature_runtime);
+    printf("k_B (effective): %.6f\n", (double)kB_effective());
+    printf("k_B*T (effective): %.6f\n", (double)kBT_effective());
+    printf("k_B*T=1 mode: %s\n", cli_force_kbt_one ? "ON" : "OFF");
+    printf("Time scale (interactive): %.2f×\n", (double)time_scale_runtime);
     // Effective length (half-length minus one diameter)
     const double L0_sigma = (double)L0_UNITS;
     const double L_eff = L0_sigma - 1.0; // σ = 1 in reduced units
     printf("L0 (half-length): %.3f σ,  L_eff = L0 − 1 = %.3f σ\n", L0_sigma, L_eff);
+    // Particle size summary
+    const double r_sigma = (double)(PARTICLE_RADIUS) / (double)PIXELS_PER_SIGMA;
+    const double d_sigma = 2.0 * r_sigma;
+    printf("Particle radius: %.3f σ (diameter: %.3f σ)\n", r_sigma, d_sigma);
     printf("Wall hold mode: %s\n", wall_hold_enabled ? "Enabled" : "Disabled");
     printf("Wall hold steps: %d\n", wall_hold_steps);
     printf("Internal walls: %d\n", num_internal_walls);
     printf("Target total simulation time: %.1f\n", 3000.0f);
-    printf("Calculated steps to reach target: %d\n", (int)(3000.0f / (FIXED_DT / (MOLECULAR_MODE ? 1.0f : TAU_time_scale_factor_to_molecular))));
+    printf("Calculated steps to reach target: %d\n", (int)(3000.0f / (fixed_dt_runtime / (MOLECULAR_MODE ? 1.0f : TAU_time_scale_factor_to_molecular))));
     printf("======================================\n\n");
 }
 
@@ -1533,14 +1883,14 @@ float compute_measured_temperature_from_ke() {
     // T = E_kin / (N k_B) in 2D (with our conventions)
     double ke_total = kinetic_energy();
     int n = particles_active > 0 ? particles_active : 1;
-    return (float)(ke_total / (n * K_B));
+    return (float)(ke_total / (n * kB_effective()));
 }
 
 
 
 // Returns a 2D Maxwell-Boltzmann distributed velocity vector (vx, vy)
 void maxwell_boltzmann_2D(float temperature, float *vx, float *vy) {
-    float sigma = sqrt(K_B * temperature / PARTICLE_MASS);
+    float sigma = sqrt(kB_effective() * temperature / PARTICLE_MASS);
     float u1, u2, z0, z1;
 
     do {
@@ -1560,7 +1910,7 @@ void maxwell_boltzmann_2D(float temperature, float *vx, float *vy) {
 
 // Function to generate Maxwell-Boltzmann distributed velocity in 1D
 float maxwell_boltzmann_velocity_gaussians(float temperature) {
-    float sigma = sqrt(K_B * temperature / PARTICLE_MASS);  // Standard deviation (velocity scale)
+    float sigma = sqrt(kB_effective() * temperature / PARTICLE_MASS);  // Standard deviation (velocity scale)
     float u1, u2, z;
 
     // Box-Muller transform: Generate Gaussian-distributed value
@@ -1592,7 +1942,7 @@ float maxwell_boltzmann_velocity_gaussians(float temperature) {
 /*
 */
 float sample_gaussian_velocity(float temperature) {
-    float sigma = sqrt(K_B * temperature / PARTICLE_MASS);
+    float sigma = sqrt(kB_effective() * temperature / PARTICLE_MASS);
     float u1, u2, z;
 
     do {
@@ -1608,7 +1958,7 @@ float sample_gaussian_velocity(float temperature) {
 
 
 void maxwell_boltzmann_velocity_ARRAY_ALL(float temperature) {
-    float sigma = sqrt(K_B * temperature / PARTICLE_MASS);
+    float sigma = sqrt(kB_effective() * temperature / PARTICLE_MASS);
 
     int n = particles_active > 0 ? particles_active : 0;
     for (int i = 0; i < n; i += 2) {
@@ -1643,7 +1993,7 @@ void maxwell_boltzmann_velocity_ARRAY_ALL(float temperature) {
 // f(v) = \left(\frac{m}{2\pi k_B T}\right)^{3/2} 4\pi v^2 \exp\left(-\frac{m v^2}{2 k_B T}\right)
 // Function to generate speed v sampled from the Maxwell-Boltzmann distribution
 float maxwell_boltzmann_speed3D(float temperature) {
-    float sigma = sqrt(K_B * temperature / PARTICLE_MASS);  // Compute sigma
+    float sigma = sqrt(kB_effective() * temperature / PARTICLE_MASS);  // Compute sigma
 
     float u1, u2, u3, z1, z2, z3;
 
@@ -1803,8 +2153,8 @@ void initialize_simulation_random() {
                 }
             }
 
-            Vx[index] = maxwell_boltzmann_velocity_gaussians(TEMPERATURE);
-            Vy[index] = maxwell_boltzmann_velocity_gaussians(TEMPERATURE);
+            Vx[index] = maxwell_boltzmann_velocity_gaussians(temperature_runtime);
+            Vy[index] = maxwell_boltzmann_velocity_gaussians(temperature_runtime);
             Radius[index] = PARTICLE_RADIUS;
         }
     }
@@ -1824,6 +2174,8 @@ void initialize_simulation_random() {
             segment_counts[seg]++;
         }
     }
+    // Equalize temperature across segments at initialization
+    equalize_temperature_per_segment(temperature_runtime);
 }
 
 
@@ -1905,6 +2257,23 @@ void initialize_simulation_segmented_grid() {
         }
         int last = Nreq - assigned; if (last < 0) last = 0;
         target_counts[segments - 1] = (last > caps[segments - 1]) ? caps[segments - 1] : last;
+    } else if (!applied_absolute_two_box && !applied_absolute_multi && cli_distribute_area) {
+        // area-proportional distribution across segments
+        float weights[MAX_DIVIDER_CAPACITY + 1]; float wsum = 0.0f;
+        for (int s = 0; s < segments; ++s) {
+            float w = fmaxf(0.0f, (seg_right[s] - seg_left[s]) - 2.0f * PARTICLE_RADIUS);
+            float a = w * height_eff; if (a < 0.0f) a = 0.0f; weights[s] = a; wsum += a;
+        }
+        if (wsum <= 0.0f) wsum = 1.0f;
+        int sum = 0;
+        for (int s = 0; s < segments; ++s) {
+            int c = (int)llround((weights[s] / wsum) * Nreq); if (c > caps[s]) c = caps[s]; if (c < 0) c = 0;
+            target_counts[s] = c; sum += c;
+        }
+        int leftover = Nreq - sum;
+        for (int s = 0; s < segments && leftover > 0; ++s) {
+            int room = caps[s] - target_counts[s]; int add = room < leftover ? room : leftover; target_counts[s] += add; leftover -= add;
+        }
     } else if (!applied_absolute_two_box && !applied_absolute_multi) {
         int base = (segments > 0) ? (Nreq / segments) : 0;
         int remainder = (segments > 0) ? (Nreq % segments) : 0;
@@ -1985,8 +2354,8 @@ void initialize_simulation_segmented_grid() {
                 float cy = top        + (r + 0.5f) * dy;
                 X[index] = cx;
                 Y[index] = cy;
-                Vx[index] = maxwell_boltzmann_velocity_gaussians(TEMPERATURE);
-                Vy[index] = maxwell_boltzmann_velocity_gaussians(TEMPERATURE);
+                Vx[index] = maxwell_boltzmann_velocity_gaussians(temperature_runtime);
+                Vy[index] = maxwell_boltzmann_velocity_gaussians(temperature_runtime);
                 Radius[index] = PARTICLE_RADIUS;
                 index++; placed++;
             }
@@ -1995,7 +2364,7 @@ void initialize_simulation_segmented_grid() {
 
     // Velocity rescale to match target temperature exactly
     double actual_ke = kinetic_energy();
-    double target_ke = particles_active * K_B * TEMPERATURE;
+    double target_ke = particles_active * K_B * temperature_runtime;
     if (actual_ke > 0.0) {
         double scale = sqrt(target_ke / actual_ke);
         for (int i = 0; i < particles_active; ++i) {
@@ -2013,6 +2382,8 @@ void initialize_simulation_segmented_grid() {
             segment_counts[seg]++;
         }
     }
+    // Equalize temperature across segments at initialization
+    equalize_temperature_per_segment(temperature_runtime);
 }
 
 /// place particles on grid honeycomb, works
@@ -2085,8 +2456,8 @@ void initialize_simulation_honeycomb() {
 
             X[idx] = x;
             Y[idx] = y;
-            Vx[idx] = maxwell_boltzmann_velocity_gaussians(TEMPERATURE);
-            Vy[idx] = maxwell_boltzmann_velocity_gaussians(TEMPERATURE);
+            Vx[idx] = maxwell_boltzmann_velocity_gaussians(temperature_runtime);
+            Vy[idx] = maxwell_boltzmann_velocity_gaussians(temperature_runtime);
             Radius[idx] = PARTICLE_RADIUS;
 
             printf("✅ Particle %d (LEFT) placed at (%.2f, %.2f)\n", idx, x, y);
@@ -2104,8 +2475,8 @@ void initialize_simulation_honeycomb() {
 
             X[idx] = x;
             Y[idx] = y;
-            Vx[idx] = maxwell_boltzmann_velocity_gaussians(TEMPERATURE);
-            Vy[idx] = maxwell_boltzmann_velocity_gaussians(TEMPERATURE);
+            Vx[idx] = maxwell_boltzmann_velocity_gaussians(temperature_runtime);
+            Vy[idx] = maxwell_boltzmann_velocity_gaussians(temperature_runtime);
             Radius[idx] = PARTICLE_RADIUS;
 
             printf("✅ Particle %d (RIGHT) placed at (%.2f, %.2f)\n", idx, x, y);
@@ -2134,6 +2505,8 @@ void initialize_simulation_honeycomb() {
     for (int i = 0; i < 10; i++) {
         printf("Particle %2d: Vx = %.6f, Vy = %.6f\n", i, Vx[i], Vy[i]);    
     }
+    // Equalize temperature across segments at initialization
+    equalize_temperature_per_segment(temperature_runtime);
 }
 
 
@@ -2208,7 +2581,14 @@ void initialize_simulation(void) {
             exit(1);
         }
         particles_active = requested_total;
-        if (cli_left_empty) {
+        if (cli_distribute_area && !preset_custom_fractions && !preset_custom_absolute_counts) {
+            // area-proportional split across left/right
+            float wL = fmaxf(0.0f, left_eff);
+            float wR = fmaxf(0.0f, right_eff);
+            float sumw = wL + wR; if (sumw <= 0.0f) sumw = 1.0f;
+            particles_left = (int)llround((wL / sumw) * particles_active);
+            if (particles_left > cap_left) particles_left = cap_left;
+        } else if (cli_left_empty) {
             particles_left = 0;
             particles_right = particles_active;
             if (particles_right > cap_right) {
@@ -2251,7 +2631,7 @@ void initialize_simulation(void) {
             Y[idx] = YW1 + margin + row * spacing_left_y;
 
             float vx, vy;
-            maxwell_boltzmann_2D(TEMPERATURE, &vx, &vy);
+            maxwell_boltzmann_2D(temperature_runtime, &vx, &vy);
             Vx[idx] = vx;
             Vy[idx] = vy;
             V_init[idx] = sqrtf(vx * vx + vy * vy);  // Optional: store the speed if needed
@@ -2267,7 +2647,7 @@ void initialize_simulation(void) {
             X[idx] = XW2 - margin - col * spacing_right_x;
             Y[idx] = YW1 + margin + row * spacing_right_y;
             float vx, vy;
-            maxwell_boltzmann_2D(TEMPERATURE, &vx, &vy);
+            maxwell_boltzmann_2D(temperature_runtime, &vx, &vy);
             Vx[idx] = vx;
             Vy[idx] = vy;
             V_init[idx] = sqrtf(vx * vx + vy * vy);  // Optional: store the speed if needed
@@ -2280,7 +2660,7 @@ void initialize_simulation(void) {
     fflush(stdout);
     // After initializing all Vx, Vy:
     double actual_ke = kinetic_energy();  // sum of 0.5*m*v^2
-    double target_ke = particles_active * K_B * TEMPERATURE;
+    double target_ke = particles_active * K_B * temperature_runtime;
     double scale = sqrt(target_ke / actual_ke);  // to adjust v_i → v_i * scale
     printf("✅ Scaling factor for velocities: %.4f\n", scale);
 
@@ -2301,6 +2681,12 @@ void initialize_simulation(void) {
             if (seg < 0) seg = 0; if (seg >= segment_count) seg = segment_count - 1;
             segment_counts[seg]++;
         }
+    }
+    // Equalize initial temperature per segment to a global target, then apply
+    // per-segment overrides if provided.
+    equalize_temperature_per_segment(temperature_runtime);
+    if (cli_temperature_segments && cli_temperature_segments_count > 0) {
+        apply_segment_temperatures(cli_temperature_segments, cli_temperature_segments_count);
     }
 
 
@@ -2458,9 +2844,34 @@ void apply_piston_protocol(float dt) {
 
 // Energy measurement functions
 void initialize_energy_measurement() {
+    // Hard gate: only allow spring if explicitly requested, or via energy_transfer preset
+    if (!(cli_enable_energy_measurement || cli_experiment_preset == EXPERIMENT_PRESET_ENERGY_TRANSFER)) {
+        return;
+    }
     if (num_internal_walls > 0) {
-        // Set equilibrium position to the leftmost wall's initial position
-        energy_measurement.equilibrium_position = all_wall_positions[0];
+        // Default equilibrium: leftmost internal wall position (pixels)
+        float eq = 0.0f;
+        if (cli_spring_eq_set) {
+            // User override in σ units from left boundary
+            eq = XW1 + cli_spring_eq_sigma * PIXELS_PER_SIGMA;
+        } else {
+            // Find leftmost among all current internal wall positions (including primary moved wall)
+            float min_pos = wall_x;
+            if (all_wall_positions) {
+                // Ensure we use the latest positions
+                // Note: primary wall is tracked by wall_x; others in extra_wall_positions
+                min_pos = wall_x;
+                for (int w = 0; w < num_internal_walls; ++w) {
+                    float wx = all_wall_positions[w];
+                    if (wx < min_pos) min_pos = wx;
+                }
+            }
+            eq = min_pos;
+        }
+        if (cli_spring_k_set) {
+            energy_measurement.spring_constant = cli_spring_k;
+        }
+        energy_measurement.equilibrium_position = eq;
         energy_measurement.spring_enabled = true;
         energy_measurement.spring_force = 0.0f;
         energy_measurement.spring_energy = 0.0f;
@@ -2549,15 +2960,67 @@ void SDL_RenderFillCircle(SDL_Renderer* renderer, int centerX, int centerY, int 
     }
 }
 
-// Function to render particles
-void render_particles() {
-    SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);  // White color for particles
+// Helper: blue(0) -> purple(0.5) -> red(1) gradient
+static inline void set_draw_color_blue_purple_red(float a01) {
+    if (a01 < 0.0f) a01 = 0.0f; if (a01 > 1.0f) a01 = 1.0f;
+    Uint8 r = (Uint8)(255.0f * a01);
+    Uint8 g = 0;
+    Uint8 b = (Uint8)(255.0f * (1.0f - a01));
+    SDL_SetRenderDrawColor(_renderer, r, g, b, 255);
+}
 
-    for (int i = 0; i < particles_active; i++) {
+// Function to render particles with optional color coding
+void render_particles() {
+    int n = particles_active > 0 ? particles_active : 0;
+    if (n <= 0) return;
+
+    // Defaults: white color
+    SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);
+
+    float vmin = FLT_MAX, vmax = 0.0f;
+    if (colorcode_mode == COLORCODE_VELOCITY) {
+        for (int i = 0; i < n; ++i) {
+            float vx = (float)Vx[i], vy = (float)Vy[i];
+            float s = sqrtf(vx*vx + vy*vy);
+            if (s > vmax) vmax = s;
+            if (s < vmin) vmin = s;
+        }
+        if (!(vmax > vmin)) { vmin = 0.0f; vmax = 1.0f; }
+    }
+
+    // For temperature, compute min/max across segments (non-empty)
+    double Tmin = 0.0, Tmax = 1.0; int haveT = 0;
+    if (colorcode_mode == COLORCODE_TEMPERATURE && segment_count > 0 && segment_temperature) {
+        for (int s = 0; s < segment_count; ++s) {
+            if (!segment_counts || segment_counts[s] <= 0) continue;
+            double T = segment_temperature[s];
+            if (!haveT) { Tmin = Tmax = T; haveT = 1; }
+            else { if (T < Tmin) Tmin = T; if (T > Tmax) Tmax = T; }
+        }
+        if (!haveT || fabs(Tmax - Tmin) < 1e-20) { Tmin = 0.0; Tmax = 1.0; }
+    }
+
+    for (int i = 0; i < n; i++) {
+        if (colorcode_mode == COLORCODE_NONE) {
+            SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);
+        } else if (colorcode_mode == COLORCODE_VELOCITY) {
+            float vx = (float)Vx[i], vy = (float)Vy[i];
+            float s = sqrtf(vx*vx + vy*vy);
+            float denom = (vmax - vmin);
+            float a = denom > 1e-20f ? (s - vmin) / denom : 0.0f;
+            set_draw_color_blue_purple_red(a);
+        } else if (colorcode_mode == COLORCODE_TEMPERATURE) {
+            int seg = segment_index_for_position(X[i]);
+            if (seg < 0) seg = 0; if (seg >= segment_count) seg = segment_count - 1;
+            double T = (segment_temperature && seg >= 0) ? segment_temperature[seg] : 0.0;
+            double a = (T - Tmin) / (Tmax - Tmin);
+            if (a < 0.0) a = 0.0; if (a > 1.0) a = 1.0;
+            set_draw_color_blue_purple_red((float)a);
+        }
+
         int pixel_x = (int)(X[i]);
         int pixel_y = (int)(Y[i]);
-        int radius_pixels = (int)(PARTICLE_RADIUS);// * PIXELS_PER_SIGMA);  // 👈 SCALE properly to screen
-
+        int radius_pixels = (int)(PARTICLE_RADIUS);
         SDL_RenderFillCircle(_renderer, pixel_x, pixel_y, radius_pixels);
     }
 }
@@ -3300,6 +3763,94 @@ void update_particles_with_substepping(float dt, int* out_left, int* out_right) 
 }
 
 
+/*
+ * Hybrid face correction pass (for EDMD-hybrid mode)
+ * --------------------------------------------------
+ * After EDMD advances particle–particle (AB) collisions to t+dt ignoring
+ * boundaries, correct any particle that ended beyond container walls,
+ * inside/intersecting the divider slab, or overlapping pistons. For the
+ * divider, apply finite-mass 1D elastic exchange along x to update both the
+ * particle Vx and the wall velocity `vx_wall` (unless the wall is locked).
+ * For container walls/pistons/extra walls, treat as infinite-mass mirrors.
+ *
+ * This pass does not advance time; it only adjusts positions/velocities at
+ * the end of the step to eliminate tunneling and reflect impulses.
+ */
+static void hybrid_faces_correction_pass(float dt) {
+    (void)dt; /* reserved for future use (e.g., diagnostics) */
+    const float eps = 1e-6f;
+    int n_active = particles_active > 0 ? particles_active : 0;
+
+    for (int i = 0; i < n_active; ++i) {
+        /* Pistons (infinite mass) */
+        handle_piston_collisions(i, dt);
+
+        /* Primary divider slab: finite/infinite mass depending on state */
+        if (wall_enabled && WALL_THICKNESS > 0.0f) {
+            float L = wall_x - 0.5f * WALL_THICKNESS;
+            float R = wall_x + 0.5f * WALL_THICKNESS;
+            float Ri = Radius[i] > 0.0f ? Radius[i] : PARTICLE_RADIUS;
+            /* inside or overlapping slab interval? */
+            if ((X[i] + Ri) > L && (X[i] - Ri) < R) {
+                /* choose nearest face to push out */
+                float dL = (X[i] + Ri) - L;
+                float dR = R - (X[i] - Ri);
+                int hit_left_face = (dL <= dR) ? 1 : 0;
+                double u1 = Vx[i];
+                double u2 = vx_wall;
+                int locked_wall = (wall_hold_enabled && !wall_is_released);
+                double v1, v2;
+                if (locked_wall || WALL_MASS <= 0.0f) {
+                    /* infinite-mass mirror in wall frame */
+                    v1 = 2.0 * u2 - u1;
+                    v2 = u2;
+                } else {
+                    double m = (double)PARTICLE_MASS;
+                    double M = (double)WALL_MASS;
+                    v1 = ((m - M) * u1 + 2.0 * M * u2) / (m + M);
+                    v2 = ((M - m) * u2 + 2.0 * m * u1) / (m + M);
+                }
+                /* impulse accounting (opposite on wall) */
+                double Jp = (double)PARTICLE_MASS * (v1 - u1);
+                wall_impulse_x_accum -= (float)Jp;
+                Vx[i] = (float)v1;
+                vx_wall = (float)v2;
+
+                if (hit_left_face) {
+                    X[i] = L - Ri - eps;
+                } else {
+                    X[i] = R + Ri + eps;
+                }
+            }
+        }
+
+        /* Extra divider walls (treated as infinite mass mirrors) */
+        if (extra_wall_count > 0 && extra_wall_positions) {
+            for (int w = 0; w < extra_wall_count; ++w) {
+                float wx = extra_wall_positions[w];
+                float Lw = wx - 0.5f * WALL_THICKNESS;
+                float Rw = wx + 0.5f * WALL_THICKNESS;
+                float Ri = Radius[i] > 0.0f ? Radius[i] : PARTICLE_RADIUS;
+                if ((X[i] + Ri) > Lw && (X[i] - Ri) < Rw) {
+                    float dL = (X[i] + Ri) - Lw;
+                    float dR = Rw - (X[i] - Ri);
+                    int hit_left = (dL <= dR) ? 1 : 0;
+                    /* infinite mass mirror with wall's instantaneous vx (if provided) */
+                    double u1 = Vx[i];
+                    double u2 = (extra_wall_velocity ? extra_wall_velocity[w] : 0.0f);
+                    double v1 = 2.0 * u2 - u1;
+                    Vx[i] = (float)v1;
+                    if (hit_left) X[i] = Lw - Ri - eps; else X[i] = Rw + Ri + eps;
+                }
+            }
+        }
+
+        /* Container boundaries (static infinite mass) */
+        handle_boundary_collision(i);
+    }
+}
+
+
 
 ////////////////////////////   ENERGY CALCULATION   ///////////////////////
 
@@ -3330,7 +3881,7 @@ double kinetic_energy_total_system() {
 //T = \frac{2}{d N k_B} \sum_{i=1}^{N} \frac{1}{2} m v_i^2
 double temperature() {
     int n = particles_active > 0 ? particles_active : 1;
-    return (2.0 / 2.0) * kinetic_energy() / (n * K_B);  // In Kelvin
+    return (2.0 / 2.0) * kinetic_energy() / (n * kB_effective());  // In reduced units
 }
 
 
@@ -3550,6 +4101,42 @@ void keysSimulation(SDL_Event e) {
                 printf("🔄 Resetting simulation.\n");
                 reset_simulation_state();
                 break;
+
+            // Temperature controls (GUI): '[' to decrease, ']' to increase, '\\' to reset to 1.0
+            case SDLK_LEFTBRACKET: { // decrease by 5%
+                float T_new = fmaxf(0.01f, temperature_runtime * 0.95f);
+                rescale_all_velocities_to_temperature(T_new);
+                equalize_temperature_per_segment(temperature_runtime);
+                update_dt_runtime_for_temperature();
+                printf("🌡️ Temperature set to %.4f (−5%%)\n", temperature_runtime);
+            } break;
+            case SDLK_RIGHTBRACKET: { // increase by 5%
+                float T_new = temperature_runtime * 1.05f;
+                rescale_all_velocities_to_temperature(T_new);
+                equalize_temperature_per_segment(temperature_runtime);
+                update_dt_runtime_for_temperature();
+                printf("🌡️ Temperature set to %.4f (+5%%)\n", temperature_runtime);
+            } break;
+            case SDLK_BACKSLASH: { // reset to 1.0
+                rescale_all_velocities_to_temperature(1.0f);
+                equalize_temperature_per_segment(temperature_runtime);
+                update_dt_runtime_for_temperature();
+                printf("🌡️ Temperature reset to 1.0000\n");
+            } break;
+
+            // Time scale controls: '-' halves, '=' doubles, '0' resets
+            case SDLK_MINUS:
+                time_scale_runtime = fmaxf(0.1f, time_scale_runtime * 0.5f);
+                printf("Time scale set to %.2fx\n", (double)time_scale_runtime);
+                break;
+            case SDLK_EQUALS:
+                time_scale_runtime = fminf(100.0f, time_scale_runtime * 2.0f);
+                printf("Time scale set to %.2fx\n", (double)time_scale_runtime);
+                break;
+            case SDLK_0:
+                time_scale_runtime = 1.0f;
+                printf("Time scale reset to 1.00x\n");
+                break;
         }
     }
 }
@@ -3617,8 +4204,10 @@ void keysPiston(SDL_Event e) {
             piston_step_active = true;
             simulation_started = 1;
             
-            // Initialize energy measurement
-            initialize_energy_measurement();
+            // Initialize energy measurement only if requested or in energy_transfer experiment
+            if (cli_enable_energy_measurement || cli_experiment_preset == EXPERIMENT_PRESET_ENERGY_TRANSFER) {
+                initialize_energy_measurement();
+            }
             // Start piston push energy tracking
             start_piston_push_tracking();
             
@@ -3667,12 +4256,12 @@ void keysPiston(SDL_Event e) {
 // Function to handle particle- piston collisions
 
 void draw_maxwell_boltzmann_curve(float temperature, int max_count) {
-    float sigma = sqrt(K_B * temperature / PARTICLE_MASS);
+    float sigma = sqrt(kB_effective() * temperature / PARTICLE_MASS);
     float norm_factor = NUM_PARTICLES * (SIM_WIDTH / NUM_BINS);
 
     for (int i = 0; i < NUM_BINS; i++) {
         float v = MAX_VELOCITY * i / NUM_BINS;
-        float f_v = (v * v) * expf(-PARTICLE_MASS * v * v / (2.0f * K_B * temperature));
+        float f_v = (v * v) * expf(-PARTICLE_MASS * v * v / (2.0f * kB_effective() * temperature));
         float f_scaled = f_v * norm_factor;
 
         int height = (int)((f_scaled * HIST_HEIGHT) / max_count);
@@ -3697,7 +4286,7 @@ void render_velocity_histograms() {
     SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
 
     float measured_T = compute_measured_temperature_from_ke();
-    float sigma = sqrtf(K_B * measured_T / PARTICLE_MASS);
+    float sigma = sqrtf(kB_effective() * measured_T / PARTICLE_MASS);
 
     float center_x = XW1 + L0_UNITS * PIXELS_PER_SIGMA;
     int bin_width = SIM_WIDTH / NUM_BINS;
@@ -3776,8 +4365,8 @@ void render_velocity_histograms() {
         float v1 = ((float)(i - 1) / NUM_BINS) * MAX_VELOCITY;
         float v2 = ((float)i / NUM_BINS) * MAX_VELOCITY;
 
-        float f1 = (PARTICLE_MASS * v1 / (K_B * measured_T)) * expf(-PARTICLE_MASS * v1 * v1 / (2 * K_B * measured_T));
-        float f2 = (PARTICLE_MASS * v2 / (K_B * measured_T)) * expf(-PARTICLE_MASS * v2 * v2 / (2 * K_B * measured_T));
+        float f1 = (PARTICLE_MASS * v1 / (kB_effective() * measured_T)) * expf(-PARTICLE_MASS * v1 * v1 / (2 * kB_effective() * measured_T));
+        float f2 = (PARTICLE_MASS * v2 / (kB_effective() * measured_T)) * expf(-PARTICLE_MASS * v2 * v2 / (2 * kB_effective() * measured_T));
 
         int x1 = center_x + (i - 1 - NUM_BINS / 2) * bin_width;
         int x2 = center_x + (i - NUM_BINS / 2) * bin_width;
@@ -3790,13 +4379,13 @@ void render_velocity_histograms() {
     }
 
     // --- Initial MB curve (red)
-    float sigma0 = sqrtf(K_B * TEMPERATURE / PARTICLE_MASS);
+    float sigma0 = sqrtf(kB_effective() * temperature_runtime / PARTICLE_MASS);
     for (int i = 1; i < NUM_BINS; i++) {
         float v1 = ((float)(i - 1) / NUM_BINS) * MAX_VELOCITY;
         float v2 = ((float)i / NUM_BINS) * MAX_VELOCITY;
 
-        float f1 = (PARTICLE_MASS * v1 / (K_B * TEMPERATURE)) * expf(-PARTICLE_MASS * v1 * v1 / (2 * K_B * TEMPERATURE));
-        float f2 = (PARTICLE_MASS * v2 / (K_B * TEMPERATURE)) * expf(-PARTICLE_MASS * v2 * v2 / (2 * K_B * TEMPERATURE));
+        float f1 = (PARTICLE_MASS * v1 / (kB_effective() * temperature_runtime)) * expf(-PARTICLE_MASS * v1 * v1 / (2 * kB_effective() * temperature_runtime));
+        float f2 = (PARTICLE_MASS * v2 / (kB_effective() * temperature_runtime)) * expf(-PARTICLE_MASS * v2 * v2 / (2 * kB_effective() * temperature_runtime));
 
         int x1 = center_x + (i - 1 - NUM_BINS / 2) * bin_width;
         int x2 = center_x + (i - NUM_BINS / 2) * bin_width;
@@ -3889,6 +4478,15 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
     snprintf(line3, sizeof(line3), "KE_wall: %.6e", KEw);
     snprintf(line4, sizeof(line4), "");
     snprintf(line5, sizeof(line5), "T_wall: %.3f", Tw);
+    // Runtime clocks HUD: simulation time, dt, substeps, interactive time scale
+    char line_clock[256];
+    snprintf(line_clock, sizeof(line_clock), "time: %.3f  dt: %.2e  sub: %d  x%.2f",
+             (double)simulation_time, (double)fixed_dt_runtime, SUBSTEPS, (double)time_scale_runtime);
+    // Runtime thermo HUD: T, kB_eff, kBT, kBT1 mode
+    char line_thermo[256];
+    snprintf(line_thermo, sizeof(line_thermo), "T: %.3f  kB: %.6f  kBT: %.6f  kBT1:%s",
+             (double)temperature_runtime, (double)kB_effective(), (double)kBT_effective(),
+             cli_force_kbt_one ? "ON" : "OFF");
     char line6[256];
     if (piston_push_tracking) {
         double Wp_now = piston_work_left + piston_work_right;
@@ -3904,6 +4502,8 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
     int y = YW1 + SIM_HEIGHT + 5;  // just below the simulation area
 
     draw_text(r, f, line0, x, y, white);  y += 20;
+    draw_text(r, f, line_clock, x, y, white); y += 20;
+    draw_text(r, f, line_thermo, x, y, white); y += 20;
     if (num_internal_walls > 0) {
         double delta_sigma = leftmost_wall_current_delta / PIXELS_PER_SIGMA;
         char line_delta[128];
@@ -4074,7 +4674,7 @@ void run_speed_of_sound_experiments() {
         printf("⚠️ WARNING: Simulation time is very long! Consider reducing the number of steps.\n");
     } else if (num_steps < 1000) {
         printf("⚠️ WARNING: Simulation time is very short, SET EMERGENCY STEPS!\n");
-        num_steps = (int)(200000 / FIXED_DT);
+        num_steps = (int)(200000 / fmaxf(fixed_dt_runtime, 1e-9f));
     }
 
     for (size_t l = 0; l < lengths_count; ++l) {
@@ -4133,20 +4733,22 @@ void run_speed_of_sound_experiments() {
 
                     // physics
                     wall_impulse_x_accum = 0.f; // (re)start accumulator for this step
-                    update_particles_with_substepping(FIXED_DT, &left_particles, &right_particles);
+                    update_particles_with_substepping(fixed_dt_runtime, &left_particles, &right_particles);
 
                     // wall velocity already updated inside ccd_wall_step; accumulator is purely diagnostic now.
                     // (optional) clear accumulator here if you prefer step-scoped use
                     // wall_impulse_x_accum = 0.f;
 
-                    update_pistons(FIXED_DT);
-                    update_wall(FIXED_DT, L0_UNITS);
-                    update_extra_walls(FIXED_DT, L0_UNITS);
+                    if (sim_mode != MODE_EDMD) update_pistons(fixed_dt_runtime);
+                    if (sim_mode != MODE_EDMD) {
+                        update_wall(fixed_dt_runtime, L0_UNITS);
+                        update_extra_walls(fixed_dt_runtime, L0_UNITS);
+                    }
                     sync_all_wall_positions();
                     update_wall_metrics();
 
                     // time bookkeeping
-                    simulation_time += FIXED_DT;
+                    simulation_time += fixed_dt_runtime;
 
                     // release check using true sim time
                     if (steps_elapsed == wall_hold_steps && !wall_is_released) {
@@ -4221,6 +4823,88 @@ void run_speed_of_sound_experiments() {
     }
 }
 
+/*
+ * run_energy_transfer_experiment
+ * -------------------------------
+ * Runs a single or repeated interactive-like batch with the spring-based
+ * energy measurement enabled. Logs wall position and spring metrics over time
+ * into experiments_energy_transfer. Honors multi-wall setups; primary wall is
+ * the one coupled to the spring.
+ */
+static void run_energy_transfer_experiment(void) {
+    system("mkdir -p experiments_energy_transfer");
+
+    if (!energy_measurement.spring_enabled) {
+        energy_measurement.spring_enabled = true;
+        initialize_energy_measurement();
+    }
+
+    wall_enabled = 1;
+    wall_position_is_managed_externally = 0;
+
+    int left_particles = 0, right_particles = 0;
+
+    char filename[512];
+    snprintf(filename, sizeof(filename), "experiments_energy_transfer/energy_transfer_trace.csv");
+    FILE *elog = fopen(filename, "w");
+    if (!elog) { printf("❌ Could not open energy transfer log file.\n"); return; }
+    fprintf(elog, "Time,Wall_X,SpringF,SpringE,EnergyTransferred,Left_Count,Right_Count\n");
+
+    // Reset sim
+    initialize_simulation_dimensions();
+    initialize_simulation_parameters();
+    initialize_simulation();
+    steps_elapsed = 0;
+    wall_is_released = false;
+    simulation_time = 0.0f;
+    wall_x_old = wall_x;
+    missed_collision_events = 0; worst_penetration_observed = 0.0;
+
+    int recorded_steps = 0;
+    int target_steps = num_steps > 0 ? num_steps : (int)(3000.0f / fmaxf(fixed_dt_runtime, 1e-9f));
+
+    while (recorded_steps < target_steps) {
+        wall_x_old = wall_x;
+        steps_elapsed++;
+
+        wall_impulse_x_accum = 0.f;
+        update_particles_with_substepping(fixed_dt_runtime, &left_particles, &right_particles);
+
+        if (sim_mode != MODE_EDMD) update_pistons(fixed_dt_runtime);
+        if (sim_mode != MODE_EDMD) {
+            update_wall(fixed_dt_runtime, L0_UNITS);
+            update_extra_walls(fixed_dt_runtime, L0_UNITS);
+        }
+        sync_all_wall_positions();
+        update_wall_metrics();
+        update_energy_measurement(fixed_dt_runtime);
+
+        simulation_time += fixed_dt_runtime;
+
+        if (steps_elapsed == wall_hold_steps && !wall_is_released) {
+            wall_release_time = simulation_time;
+            wall_is_released  = true;
+            recorded_steps    = 0;
+            printf("🔔 Wall released at step %d (t = %.3f)\n", steps_elapsed, wall_release_time);
+        }
+
+        if (!wall_is_released) continue;
+
+        double t = simulation_time - wall_release_time;
+        fprintf(elog, "%.6f, %.6f, %.6e, %.6e, %.6e, %d, %d\n",
+                t,
+                (double)wall_x,
+                (double)energy_measurement.spring_force,
+                (double)energy_measurement.spring_energy,
+                (double)energy_measurement.energy_transferred,
+                left_particles, right_particles);
+        recorded_steps++;
+    }
+
+    fclose(elog);
+    printf("✅ Energy transfer experiment done. Output → experiments_energy_transfer/energy_transfer_trace.csv\n");
+}
+
 
 
 
@@ -4242,6 +4926,52 @@ void run_speed_of_sound_experiments() {
  */
 void simulation_loop() {
     initialize_simulation();
+    // If EDMD or hybrid mode selected, initialize EDMD state from current particle arrays
+    if (sim_mode == MODE_EDMD || sim_mode == MODE_EDMD_HYBRID) {
+        if (g_edmd) { edmd_destroy(g_edmd); g_edmd = NULL; }
+        EDMD_Params prm = {0};
+        prm.boxW = (double)(XW2 - XW1);
+        prm.boxH = (double)(YW2 - YW1);
+        prm.radius = (double)PARTICLE_RADIUS;
+        prm.N = particles_active;
+        prm.cell_size = 0.0; // auto
+        /* divider/pistons parameters are unused in PP-only mode but safe to fill */
+        prm.has_divider = (num_internal_walls > 0 ? 1 : 0);
+        prm.divider_x = (double)(wall_x - XW1);
+        prm.divider_thickness = (double)WALL_THICKNESS;
+        prm.divider_mass = (double)(WALL_MASS / PARTICLE_MASS);
+        prm.divider_vx = (double)vx_wall;
+        int hasL = 1; int hasR = 1;
+        double xL = (double)((piston_left_x + 5.0f) - XW1);
+        double xR = (double)(piston_right_x - XW1);
+        double vxL = (double)vx_piston_left;
+        double vxR = (double)vx_piston_right;
+        double mL = 0.0; double mR = 0.0;
+        g_edmd = edmd_create(&prm);
+        if (!g_edmd) { fprintf(stderr, "EDMD create failed.\n"); exit(1);} 
+        edmd_config_pistons(g_edmd, hasL, xL, vxL, mL, hasR, xR, vxR, mR);
+        // load current positions/velocities into EDMD state
+        EDMD_Particle* P = (EDMD_Particle*)edmd_particles(g_edmd);
+        for (int i=0;i<particles_active;i++) {
+            double R = (double)PARTICLE_RADIUS;
+            double bx = (double)(X[i] - XW1);
+            double by = (double)(Y[i] - YW1);
+            if (bx < R) bx = R; if (bx > prm.boxW - R) bx = prm.boxW - R;
+            if (by < R) by = R; if (by > prm.boxH - R) by = prm.boxH - R;
+            P[i].x = bx;
+            P[i].y = by;
+            P[i].vx = (double)Vx[i];
+            P[i].vy = (double)Vy[i];
+            P[i].coll_count = 0;
+        }
+        if (sim_mode == MODE_EDMD) {
+            edmd_reschedule_all(g_edmd);
+            printf("[EDMD] initialized: N=%d box=(%.1f,%.1f) R=%.3f\n", prm.N, prm.boxW, prm.boxH, prm.radius);
+        } else {
+            edmd_reschedule_all_pp_only(g_edmd);
+            printf("[EDMD-HYBRID] initialized (PP-only): N=%d box=(%.1f,%.1f) R=%.3f\n", prm.N, prm.boxW, prm.boxH, prm.radius);
+        }
+    }
 
     int running = 1;
     if (live_fft) {
@@ -4278,7 +5008,7 @@ void simulation_loop() {
         float frame_time = (current_time - last_time) / 1000.0f;
         last_time = current_time;
         if (frame_time > 0.1f) frame_time = 0.1f;
-        accumulator += frame_time;
+        accumulator += frame_time * time_scale_runtime;
 
         // events
         while (SDL_PollEvent(&e)) {
@@ -4289,7 +5019,7 @@ void simulation_loop() {
 
         int left_particles = 0, right_particles = 0;
 
-        while (accumulator >= FIXED_DT) {
+        while (accumulator >= fixed_dt_runtime) {
             if (simulation_started && !paused) {
                 // --- START OF STEP ---
                 wall_x_old = wall_x;
@@ -4298,20 +5028,87 @@ void simulation_loop() {
                 // reset accumulator at the *start* of the step
                 wall_impulse_x_accum = 0.f;
 
-                // particles (this fills wall_impulse_x_accum via ccd_wall_step)
-                update_particles_with_substepping(FIXED_DT, &left_particles, &right_particles);
+                if (sim_mode == MODE_EDMD) {
+                    // advance EDMD to next time
+                    // Keep pistons in sync with interactive controls; if velocities changed, update
+                    static double prev_vxL = 0.0, prev_vxR = 0.0;
+                    // Apply protocol-driven velocities (do not move positions here; EDMD owns positions)
+                    apply_piston_protocol(fixed_dt_runtime);
+                    if (vx_piston_left != prev_vxL || vx_piston_right != prev_vxR) {
+                        const EDMD_Params* epc = edmd_params(g_edmd);
+                        edmd_config_pistons(g_edmd,
+                            1, epc->pistonL_x, (double)vx_piston_left, epc->pistonL_mass,
+                            1, epc->pistonR_x, (double)vx_piston_right, epc->pistonR_mass);
+                        edmd_reschedule_all(g_edmd);
+                        prev_vxL = vx_piston_left; prev_vxR = vx_piston_right;
+                    }
+                    double t0 = edmd_time(g_edmd);
+                    edmd_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
+                    // copy back for rendering/diagnostics
+                    const EDMD_Particle* P = edmd_particles(g_edmd);
+                    for (int i=0;i<particles_active;i++) {
+                        X[i] = (double)XW1 + (double)P[i].x;
+                        Y[i] = (double)YW1 + (double)P[i].y;
+                        Vx[i] = (double)P[i].vx;
+                        Vy[i] = (double)P[i].vy;
+                    }
+                    const EDMD_Params* ep = edmd_params(g_edmd);
+                    wall_x = (double)XW1 + ep->divider_x;
+                    vx_wall = ep->divider_vx;
+                    // Sync piston face positions for visualization (assume left piston width=5)
+                    piston_left_x  = (float)(XW1 + ep->pistonL_x - 5.0);
+                    piston_right_x = (float)(XW1 + ep->pistonR_x);
+                    /* rebuild per-segment stats */
+                    recompute_segment_stats_counts_and_temperature();
+                } else if (sim_mode == MODE_EDMD_HYBRID) {
+                    /* PP-only EDMD, followed by CCD-style face correction */
+                    /* Keep pistons synced (EDMD ignores faces, but velocities affect UI) */
+                    {
+                        /* optional: if velocities changed, no EDMD reschedule needed in PP-only */
+                    }
+                    /* Advance PP-only to t+dt */
+                    double t0 = edmd_time(g_edmd);
+                    edmd_advance_pp_only_to(g_edmd, t0 + (double)fixed_dt_runtime);
+                    /* Copy particle state back for rendering + face correction */
+                    const EDMD_Particle* P = edmd_particles(g_edmd);
+                    for (int i=0;i<particles_active;i++) {
+                        X[i] = (double)XW1 + (double)P[i].x;
+                        Y[i] = (double)YW1 + (double)P[i].y;
+                        Vx[i] = (double)P[i].vx;
+                        Vy[i] = (double)P[i].vy;
+                    }
+                    /* Correct against faces (container/divider/pistons) and update wall vx */
+                    hybrid_faces_correction_pass(fixed_dt_runtime);
+                    /* Write corrected state back into EDMD and reschedule AB for next step */
+                    EDMD_Particle* Pw = (EDMD_Particle*)edmd_particles(g_edmd);
+                    for (int i=0;i<particles_active;i++) {
+                        Pw[i].x = (double)(X[i] - XW1);
+                        Pw[i].y = (double)(Y[i] - YW1);
+                        Pw[i].vx = (double)Vx[i];
+                        Pw[i].vy = (double)Vy[i];
+                        /* coll_count left as-is to keep event invalidation; full reschedule will rebuild */
+                    }
+                    edmd_reschedule_all_pp_only(g_edmd);
+                    /* HUD: counts + KE + T */
+                    recompute_segment_stats_counts_and_temperature();
+                } else {
+                    // time-driven (Euler ballistic with CCD)
+                    update_particles_with_substepping(fixed_dt_runtime, &left_particles, &right_particles);
+                }
 
                 // wall velocity is already updated inside ccd_wall_step (impulses applied immediately).
                 // wall_impulse_x_accum is kept for diagnostics only.
 
-                update_pistons(FIXED_DT);
-                update_wall(FIXED_DT, L0_UNITS);
-                update_extra_walls(FIXED_DT, L0_UNITS);
+                if (sim_mode != MODE_EDMD) update_pistons(fixed_dt_runtime);
+                if (sim_mode != MODE_EDMD) {
+                    update_wall(fixed_dt_runtime, L0_UNITS);
+                    update_extra_walls(fixed_dt_runtime, L0_UNITS);
+                }
                 sync_all_wall_positions();
                 update_wall_metrics();
-                update_energy_measurement(FIXED_DT);
+                update_energy_measurement(fixed_dt_runtime);
 
-                simulation_time += FIXED_DT;
+                simulation_time += fixed_dt_runtime;
 
                 // Update piston push energy tracking (interactive mode)
                 if (piston_push_tracking) {
@@ -4352,7 +5149,7 @@ void simulation_loop() {
                     }
                 }
 
-                // inside the fixed-step block, after simulation_time += FIXED_DT
+                // inside the fixed-step block, after simulation_time += fixed_dt_runtime
                 if ((steps_elapsed % 100) == 0) {
                     log_energy(logFile);
                     fflush(logFile);
@@ -4408,7 +5205,7 @@ void simulation_loop() {
                     }
                 }
             }
-            accumulator -= FIXED_DT;
+            accumulator -= fixed_dt_runtime;
         }
 
         // === RENDERING ===
@@ -4511,8 +5308,12 @@ int main(int argc, char* argv[]) {
     initialize_simulation_dimensions();     // sets SIM_WIDTH, SIM_HEIGHT, XW2 etc.
     initialize_time_scale();
     initialize_simulation_parameters();     // sets wall and piston regarding simulation dimensions
-    // Enable energy measurement at startup so HUD shows values immediately
-    initialize_energy_measurement();
+    // Set dt runtime based on preset and temperature
+    update_dt_runtime_for_temperature();
+    // Initialize energy measurement only if explicitly enabled or via preset
+    if (energy_measurement.spring_enabled) {
+        initialize_energy_measurement();
+    }
     print_simulation_info();  // Print simulation parameters
 
     initSDL();
@@ -4528,10 +5329,12 @@ int main(int argc, char* argv[]) {
 
   
    // printf("wall_x = %f, wall_enabled = %d\n", wall_x, wall_enabled);
-    if (enable_speed_of_sound_experiments) {
+    if (!cli_force_no_experiments && cli_experiment_preset == EXPERIMENT_PRESET_ENERGY_TRANSFER) {
+        run_energy_transfer_experiment();
+    } else if (enable_speed_of_sound_experiments && !cli_force_no_experiments) {
         run_speed_of_sound_experiments();
     } else {
-        simulation_loop();  // your SDL interactive version
+        simulation_loop();  // SDL interactive
     }
     
 
@@ -4565,178 +5368,4 @@ int main(int argc, char* argv[]) {
 
 /////////////////////////////////////
 
-
-void simulation_loop_old() {
-    
-
-    int running = 1;
-    if (live_fft == true) {
-        fft_cfg = kiss_fftr_alloc(FFT_SIZE, 0, NULL, NULL); // forward FFT
-    }
-
-    SDL_Event e;
-
-    FILE *logFile = fopen("energy_log.csv", "w");
-    if (!logFile) {
-        printf("Error: Unable to open log file!\n");
-        return;
-    }
-    fprintf(logFile, "Kinetic Energy, Temperature, Entropy, Total Free Energy\n");
-
-
-    FILE *wall_log = fopen("wall_position.csv", "w");
-    if (!wall_log) {
-        printf("Error: Unable to open wall position log file!\n");
-        return;
-    }
-
-    float particle_area_unitless = M_PI * PARTICLE_RADIUS_UNIT * PARTICLE_RADIUS_UNIT;
-    float particle_area_actual = M_PI * PARTICLE_RADIUS * PARTICLE_RADIUS;
-    float box_area = 2.0f * L0_UNITS * HEIGHT_UNITS;
-
-    float packing_unit = NUM_PARTICLES * particle_area_unitless / box_area;
-    float packing_actual = NUM_PARTICLES * particle_area_actual / box_area;
-
-    fprintf(wall_log, "# PackingFraction_UNIT = %.6f\n", packing_unit);
-    fprintf(wall_log, "# PackingFraction_ACTUAL = %.6f\n", packing_actual);
-    fprintf(wall_log, "Time, Wall_X, Displacement(σ), Left_Count, Right_Count, Packing_UNITLESS, Packing_ACTUAL_BOUND, Packing_ACTUAL_WITH_WALL\n");
-    //fprintf(wall_log, "Time, Wall_X, Displacement(σ), Left_Count, Right_Count\n");
-
-    wall_hold_enabled = true;  
-    wall_is_released = false;
-    steps_elapsed = 0;
-
-    Uint32 last_time = SDL_GetTicks();
-    float accumulator = 0.0f;
-
-    double time_after_release = 0.0;     // ← This is what we log
-
-    while (running) {
-        Uint32 current_time = SDL_GetTicks();
-        float frame_time = (current_time - last_time) / 1000.0f;
-        last_time = current_time;
-
-        if (frame_time > 0.1f) frame_time = 0.1f;  
-        accumulator += frame_time;
-
-        // Poll events
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                running = 0;
-            }
-            keysSimulation(e);
-            keysPiston(e);
-        }
-
-
-
-
-        int left_particles = 0;
-        int right_particles = 0;
-
-        // PHYSICS UPDATES
-        while (accumulator >= FIXED_DT) {
-            if (simulation_started == 1 && !paused) {
-                update_particles_with_substepping(FIXED_DT, &left_particles, &right_particles);
-                update_pistons(FIXED_DT);
-                update_wall(FIXED_DT, L0_UNITS);
-                //check_wall_collisions(FIXED_DT);
-
-                simulation_time += FIXED_DT;  // ✅ advance the true simulation time
-
-                // LIVE FFT
-                if (live_fft == true) {
-                    in_wall[sample_index] = wall_x;
-                    in_energy[sample_index] = kinetic_energy();
-                    sample_index = (sample_index + 1) % FFT_SIZE;
-
-                    if (sample_index == 0) {
-                        kiss_fftr(fft_cfg, in_wall, out_wall);
-                        kiss_fftr(fft_cfg, in_energy, out_energy);
-
-                        for (int i = 0; i < FFT_SIZE/2 + 1; i++) {
-                            wall_fft_magnitude[i] = sqrtf(out_wall[i].r * out_wall[i].r + out_wall[i].i * out_wall[i].i);
-                            energy_fft_magnitude[i] = sqrtf(out_energy[i].r * out_energy[i].r + out_energy[i].i * out_energy[i].i);
-                        }
-                    }
-                }
-
-                // Check if wall was just released
-                if (wall_is_released && wall_release_time < 0.0) {
-                    wall_release_time = simulation_time;
-                    printf("✅ Wall released at t = %.6f s\n", wall_release_time);
-                }
-
-                // LOGGING ONLY AFTER WALL RELEASE
-                if (wall_is_released) {
-                    time_after_release = simulation_time - wall_release_time;
-
-                    // Center of the box in σ units
-                    float wall_x_sigma = wall_x / PIXELS_PER_SIGMA;
-                    float center_sigma = (XW1 + XW2) / 2.0f / PIXELS_PER_SIGMA;
-                    // Displacement in σ units
-                    float displacement_centered = wall_x_sigma - center_sigma;
-                    // Displacement in pixels
-                    float displacement_pixels = wall_x - (L0_UNITS * PIXELS_PER_SIGMA);
-                    float displacement_normalized = displacement_pixels / PIXELS_PER_SIGMA;
-
-                    float wall_x_sigma_centered = (wall_x - XW1) / PIXELS_PER_SIGMA;
-                    float wall_displacement = wall_x_sigma_centered - L0_UNITS;  // ⬅️ Δx from center at L0
-
-                    fprintf(wall_log, "%.6f, %.10e, %.10e, %d, %d, %.6f, %.6f\n",
-                        time_after_release,
-                        wall_x / PIXELS_PER_SIGMA,
-                        displacement_normalized,
-                        left_particles,
-                        right_particles,
-                        packing_unit,
-                        packing_actual);
-
-                // Log energy always if needed
-                log_energy(logFile);
-            }
-            accumulator -= FIXED_DT;
-        }
-
-
-
-        // RENDERING
-        SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
-        draw_clear_screen();
-        draw_coordinate_system(_renderer);
-        draw_simulation_boundary();
-        render_velocity_histograms();
-        render_particles();
-        render_pistons();
-        render_fft_histogram_bottom(_renderer, wall_fft_magnitude, NUM_BINS);
-
-        if (wall_enabled) {
-            draw_wall();
-        }
-
-        SDL_Color red = {255, 0, 0, 255};
-        SDL_Color blue = {0, 0, 255, 255};
-        SDL_Color yellow = {255, 255, 0, 255};
-
-        char buffer[64];
-        snprintf(buffer, sizeof(buffer), "Left: %d", left_count);
-        draw_text(_renderer, font, buffer, XW1 + 5, YW1 + 10, red);
-
-        snprintf(buffer, sizeof(buffer), "Right: %d", right_count);
-        draw_text(_renderer, font, buffer, XW2 - 100, YW1 + 10, blue);
-
-        if (wall_hold_enabled && !wall_is_released) {
-            snprintf(buffer, sizeof(buffer), "Wall held: %d steps left", wall_hold_steps - steps_elapsed);
-            draw_text(_renderer, font, buffer, XW1 + 5, YW1 + 50, yellow);
-        }
-
-
-
-        SDL_RenderPresent(_renderer);
-        SDL_Delay(10);  // throttle FPS
-    }
-
-    fclose(logFile);
-    fclose(wall_log);
-    }
-}
+#include "edmd_core/edmd.h"
