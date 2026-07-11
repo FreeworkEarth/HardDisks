@@ -4,7 +4,11 @@
 TG              ?= 00ALLINONE
 KISSFFT_SRCS    := kissfft/kiss_fft.c kissfft/kiss_fftr.c
 # Optional EDMD core (event-driven hard disks)
-EDMD_SRCS       := edmd_core/edmd.c
+# Default: build both EDMD backends (default + accelerated) so runtime can choose.
+# You can still override, e.g.:
+#   make EDMD_SRCS=edmd_core/edmd.c
+#   make EDMD_SRCS=edmd_core/edmd_accelerated.c
+EDMD_SRCS       ?= edmd_core/edmd.c edmd_core/edmd_accelerated.c
 
 # Compiler
 CC              ?= cc

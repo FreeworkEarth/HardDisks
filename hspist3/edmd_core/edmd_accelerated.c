@@ -1,3 +1,31 @@
+// Accelerated EDMD core: provides the same API as edmd.c, but exported under an
+// `edmd_acc_*` prefix so it can be linked alongside the default core and
+// selected at runtime by the main program.
+#define edmd_create edmd_acc_create
+#define edmd_destroy edmd_acc_destroy
+#define edmd_init_random_gas edmd_acc_init_random_gas
+#define edmd_time edmd_acc_time
+#define edmd_params edmd_acc_params
+#define edmd_particles edmd_acc_particles
+#define edmd_count edmd_acc_count
+#define edmd_advance_to edmd_acc_advance_to
+#define edmd_advance_pp_only_to edmd_acc_advance_pp_only_to
+#define edmd_reschedule_all edmd_acc_reschedule_all
+#define edmd_reschedule_all_pp_only edmd_acc_reschedule_all_pp_only
+#define edmd_config_dividers edmd_acc_config_dividers
+#define edmd_set_divider_motions edmd_acc_set_divider_motions
+#define edmd_config_divider edmd_acc_config_divider
+#define edmd_set_divider_motion edmd_acc_set_divider_motion
+#define edmd_config_pistons edmd_acc_config_pistons
+#define edmd_total_kinetic_energy edmd_acc_total_kinetic_energy
+#define edmd_gas_temperature edmd_acc_gas_temperature
+#define edmd_work_divider edmd_acc_work_divider
+#define edmd_work_divider_i edmd_acc_work_divider_i
+#define edmd_work_pistonL edmd_acc_work_pistonL
+#define edmd_work_pistonR edmd_acc_work_pistonR
+#define edmd_heat_bath edmd_acc_heat_bath
+#define edmd_reset_work edmd_acc_reset_work
+#define edmd_divider_resolve_overlaps edmd_acc_divider_resolve_overlaps
 #include "edmd.h"
 #include <stdlib.h>
 #include <string.h>
@@ -15,8 +43,10 @@ static long g_edmd_avalanche_warning_count = 0;
 
 /* ------------------------ internal types ------------------------ */
 
-/* event kind: AB = particle-particle, WL/WR/WB/WT = walls (left/right/bottom/top) */
-typedef enum { EV_AB=0, EV_WL, EV_WR, EV_WB, EV_WT, EV_DL, EV_DR, EV_PL, EV_PR } EvType;
+/* event kind: AB = particle-particle, WL/WR/WB/WT = walls (left/right/bottom/top)
+ * DL/DR = divider faces, PL/PR = pistons, CC = grid-cell crossing (for neighbor scheduling correctness)
+ */
+typedef enum { EV_AB=0, EV_WL, EV_WR, EV_WB, EV_WT, EV_DL, EV_DR, EV_PL, EV_PR, EV_CC } EvType;
 static const char* ev_name(EvType t){
     switch(t){
         case EV_AB: return "AB";
@@ -28,6 +58,7 @@ static const char* ev_name(EvType t){
         case EV_DR: return "DR";
         case EV_PL: return "PL";
         case EV_PR: return "PR";
+        case EV_CC: return "CC";
         default: return "?";
     }
 }
@@ -272,7 +303,6 @@ static int collide_time_divider_L(const EDMD* S, const EDMD_Particle* A, int d, 
     double L = S->prm.divider_x[d] - 0.5*S->prm.divider_thickness[d];
     if(!(L > 0.0 && L < S->prm.boxW)) return 0;
     if (divider_has_spring(S, d)) {
-        /* Find earliest t>=0 such that (x+R) = (xw(t) - th/2). Wall center xw(t) is harmonic. */
         const double th = S->prm.divider_thickness[d];
         const double x0 = S->prm.divider_x[d];
         const double v0 = S->prm.divider_vx[d];
@@ -281,27 +311,20 @@ static int collide_time_divider_L(const EDMD* S, const EDMD_Particle* A, int d, 
         const double xeq = S->prm.divider_xeq[d];
         const double Rpart = S->prm.radius;
         const double gap = (x0 - 0.5*th) - (A->x + Rpart);
-        if (gap <= 1e-12) return 0; /* not strictly left */
+        if (gap <= 1e-12) return 0;
 
         const double w = sqrt(k / mW);
         if (!(w > 0.0)) return 0;
         const double T = 2.0 * M_PI / w;
         const double amp = hypot((x0 - xeq), (v0 / w));
-        /* f(t) = x_p(t) - (xw(t) - th/2 - R) */
         const double base = (A->x - xeq) + (Rpart + 0.5*th);
         const double v = A->vx;
 
-        /* If v<=0, any crossing must happen early (wall moving left into particle). */
         double t_max;
-        if (v > 0.0) {
-            t_max = (fabs(base) + amp + 1.0) / v + 2.0 * T;
-        } else {
-            if (base + amp < 0.0) return 0;
-            t_max = fmax(2.0 * T, 0.5 * T);
-        }
+        if (v > 0.0) t_max = (fabs(base) + amp + 1.0) / v + 2.0 * T;
+        else { if (base + amp < 0.0) return 0; t_max = fmax(2.0 * T, 0.5 * T); }
         if (!(t_max > 0.0)) return 0;
 
-        /* Coarse scan for first sign change. */
         const double coarse_step = fmin(T / 16.0, fmax(1e-6, 0.25 * gap / (fabs(v) + fabs(v0) + 1e-9)));
         double t0s = 0.0;
         double f0s = base + v * t0s - (x0 - xeq) * cos(w * t0s) - (v0 / w) * sin(w * t0s);
@@ -316,7 +339,6 @@ static int collide_time_divider_L(const EDMD* S, const EDMD_Particle* A, int d, 
         }
         if (!isfinite(ta) || !isfinite(tb) || !(tb > ta)) return 0;
 
-        /* Refine bracket to the first root inside [ta,tb] with a finer scan. */
         const double fine_step = fmin(T / 256.0, fmax(1e-7, (tb - ta) / 64.0));
         double t_prev = ta;
         double f_prev = base + v * t_prev - (x0 - xeq) * cos(w * t_prev) - (v0 / w) * sin(w * t_prev);
@@ -330,7 +352,6 @@ static int collide_time_divider_L(const EDMD* S, const EDMD_Particle* A, int d, 
             if (t_prev >= tb - 1e-15) break;
         }
 
-        /* Bisection (bracketed). */
         double flo = base + v * t_lo - (x0 - xeq) * cos(w * t_lo) - (v0 / w) * sin(w * t_lo);
         double fhi = base + v * t_hi - (x0 - xeq) * cos(w * t_hi) - (v0 / w) * sin(w * t_hi);
         if (!((flo <= 0.0 && fhi >= 0.0) || (flo >= 0.0 && fhi <= 0.0))) return 0;
@@ -360,7 +381,6 @@ static int collide_time_divider_R(const EDMD* S, const EDMD_Particle* A, int d, 
     double Rf = S->prm.divider_x[d] + 0.5*S->prm.divider_thickness[d];
     if(!(Rf > 0.0 && Rf < S->prm.boxW)) return 0;
     if (divider_has_spring(S, d)) {
-        /* Earliest t>=0 such that (x-R) = (xw(t) + th/2). */
         const double th = S->prm.divider_thickness[d];
         const double x0 = S->prm.divider_x[d];
         const double v0 = S->prm.divider_vx[d];
@@ -369,23 +389,18 @@ static int collide_time_divider_R(const EDMD* S, const EDMD_Particle* A, int d, 
         const double xeq = S->prm.divider_xeq[d];
         const double Rpart = S->prm.radius;
         const double gap = (A->x - Rpart) - (x0 + 0.5*th);
-        if (gap <= 1e-12) return 0; /* not strictly right */
+        if (gap <= 1e-12) return 0;
 
         const double w = sqrt(k / mW);
         if (!(w > 0.0)) return 0;
         const double T = 2.0 * M_PI / w;
         const double amp = hypot((x0 - xeq), (v0 / w));
-        /* f(t) = x_p(t) - (xw(t) + th/2 + R) */
         const double base = (A->x - xeq) - (Rpart + 0.5*th);
         const double v = A->vx;
 
         double t_max;
-        if (v < 0.0) {
-            t_max = (fabs(base) + amp + 1.0) / (-v) + 2.0 * T;
-        } else {
-            if (base - amp > 0.0) return 0;
-            t_max = fmax(2.0 * T, 0.5 * T);
-        }
+        if (v < 0.0) t_max = (fabs(base) + amp + 1.0) / (-v) + 2.0 * T;
+        else { if (base - amp > 0.0) return 0; t_max = fmax(2.0 * T, 0.5 * T); }
         if (!(t_max > 0.0)) return 0;
 
         const double coarse_step = fmin(T / 16.0, fmax(1e-6, 0.25 * gap / (fabs(v) + fabs(v0) + 1e-9)));
@@ -480,7 +495,6 @@ static void schedule_pistons(EDMD* S, int i){
 }
 
 static void schedule_ab(EDMD* S, int i, int j){
-    if (!S->prm.pp_collisions_enabled) return; /* ##CHRIS: skip PP if disabled */
     double t;
     if(collide_time_ab(S->P[i].x,S->P[i].y,S->P[i].vx,S->P[i].vy,
                        S->P[j].x,S->P[j].y,S->P[j].vx,S->P[j].vy,
@@ -500,7 +514,6 @@ static void advance_dividers(EDMD* S, double dt){
         if (divider_has_spring(S, d)) {
             harmonic_advance_1d(S->prm.divider_k[d], S->prm.divider_mass[d], S->prm.divider_xeq[d], dt,
                                 &S->prm.divider_x[d], &S->prm.divider_vx[d]);
-            /* Safety clamp: prevent the slab from leaving the box due to numerical/root errors. */
             if (S->prm.divider_x[d] < left_limit) { S->prm.divider_x[d] = left_limit; if (S->prm.divider_vx[d] < 0.0) S->prm.divider_vx[d] = 0.0; }
             if (S->prm.divider_x[d] > right_limit) { S->prm.divider_x[d] = right_limit; if (S->prm.divider_vx[d] > 0.0) S->prm.divider_vx[d] = 0.0; }
         } else {
@@ -511,16 +524,85 @@ static void advance_dividers(EDMD* S, double dt){
     }
 }
 
-/* schedule for one particle i: walls + neighbors from 9-cell stencil */
+static inline void particle_cell_xy(const EDMD* S, int i, int* out_cx, int* out_cy){
+    int cx = (int)floor(S->P[i].x / S->cell_size);
+    int cy = (int)floor(S->P[i].y / S->cell_size);
+    cx = clampi(cx, 0, S->gw - 1);
+    cy = clampi(cy, 0, S->gh - 1);
+    *out_cx = cx; *out_cy = cy;
+}
+
+static void schedule_cell_crossing(EDMD* S, int i){
+    if (S->cell_size <= 0.0) return;
+    const double cs = S->cell_size;
+    const double x = S->P[i].x, y = S->P[i].y;
+    const double vx = S->P[i].vx, vy = S->P[i].vy;
+    const double eps = fmax(1e-9, 1e-9 * cs);
+
+    /* Use a tiny motion-direction bias for the scheduling cell. Without this,
+     * a particle that lands numerically on a grid boundary can repeatedly
+     * schedule another almost-zero-time CC event on the same boundary.
+     */
+    double x_probe = x;
+    double y_probe = y;
+    if (vx > 0.0) x_probe += eps;
+    else if (vx < 0.0) x_probe -= eps;
+    if (vy > 0.0) y_probe += eps;
+    else if (vy < 0.0) y_probe -= eps;
+    x_probe = fmin(fmax(x_probe, 0.0), S->prm.boxW);
+    y_probe = fmin(fmax(y_probe, 0.0), S->prm.boxH);
+
+    int cx = clampi((int)floor(x_probe / cs), 0, S->gw - 1);
+    int cy = clampi((int)floor(y_probe / cs), 0, S->gh - 1);
+
+    double tx = DBL_MAX, ty = DBL_MAX;
+    if (vx > 0.0) {
+        const double xb = (double)(cx + 1) * cs;
+        tx = (xb - x) / vx;
+    } else if (vx < 0.0) {
+        const double xb = (double)(cx) * cs;
+        tx = (xb - x) / vx; /* vx<0 => positive if xb<x */
+    }
+    if (vy > 0.0) {
+        const double yb = (double)(cy + 1) * cs;
+        ty = (yb - y) / vy;
+    } else if (vy < 0.0) {
+        const double yb = (double)(cy) * cs;
+        ty = (yb - y) / vy;
+    }
+
+    double t = (tx < ty) ? tx : ty;
+    if (!(t > eps) || !isfinite(t)) return;
+    heap_push(&S->heap, (Event){ S->t + t, i, -1, S->P[i].coll_count, 0, EV_CC });
+}
+
+static void schedule_ab_neighbors_9cell(EDMD* S, int i){
+    if (!S->grid) return;
+    int cx, cy;
+    particle_cell_xy(S, i, &cx, &cy);
+    for (int dy = -1; dy <= 1; ++dy) {
+        int yy = cy + dy;
+        if (yy < 0 || yy >= S->gh) continue;
+        for (int dx = -1; dx <= 1; ++dx) {
+            int xx = cx + dx;
+            if (xx < 0 || xx >= S->gw) continue;
+            Cell* c = &S->grid[yy * S->gw + xx];
+            for (int k = 0; k < c->count; ++k) {
+                int j = c->idx[k];
+                if (j == i) continue;
+                schedule_ab(S, i, j);
+            }
+        }
+    }
+}
+
+/* schedule for one particle i: walls + divider/pistons + cell crossing + AB (local neighbors) */
 static void schedule_for(EDMD* S, int i){
-    /* Robust: schedule walls and AB with all others. For N up to a few thousands this is fine. */
     schedule_walls(S, i);
     schedule_divider(S, i);
     schedule_pistons(S, i);
-    for (int j = 0; j < S->prm.N; ++j) {
-        if (j == i) continue;
-        schedule_ab(S, i, j);
-    }
+    schedule_cell_crossing(S, i);
+    schedule_ab_neighbors_9cell(S, i);
 }
 
 /* schedule only AB partners for particle i (PP-only mode) */
@@ -535,13 +617,8 @@ static void schedule_for_pponly(EDMD* S, int i){
 static void reschedule_all_internal(EDMD* S){
     S->heap.n = 0;
     grid_build(S);
-    /* schedule walls for all */
-    for (int i = 0; i < S->prm.N; ++i){ schedule_walls(S, i); schedule_divider(S,i); schedule_pistons(S, i);} 
-    /* schedule AB for all pairs (i<j) */
     for (int i = 0; i < S->prm.N; ++i) {
-        for (int j = i+1; j < S->prm.N; ++j) {
-            schedule_ab(S, i, j);
-        }
+        schedule_for(S, i);
     }
 }
 
@@ -962,7 +1039,7 @@ double edmd_advance_to(EDMD* S, double t_target){
     Event e;
     long events_processed = 0;
     long stagnant_events = 0;
-    long type_counts[9] = {0};
+    long type_counts[10] = {0};
     double last_event_t = S->t;
     while(S->t < t_target){
         if(!heap_pop(&S->heap, &e)){
@@ -977,14 +1054,14 @@ double edmd_advance_to(EDMD* S, double t_target){
             break;
         }
         events_processed++;
-        if (e.type >= EV_AB && e.type <= EV_PR) type_counts[(int)e.type]++;
+        if (e.type >= EV_AB && e.type <= EV_CC) type_counts[(int)e.type]++;
         if (fabs(e.t - last_event_t) <= 1e-13) stagnant_events++;
         else { stagnant_events = 0; last_event_t = e.t; }
         if (events_processed > EDMD_ADVANCE_MAX_EVENTS || stagnant_events > EDMD_ADVANCE_MAX_STAGNANT_EVENTS) {
             g_edmd_avalanche_warning_count++;
             if (g_edmd_avalanche_warning_count <= 20 || (g_edmd_avalanche_warning_count % 1000) == 0) {
                 int dominant = 0;
-                for (int k = 1; k <= (int)EV_PR; ++k) {
+                for (int k = 1; k <= (int)EV_CC; ++k) {
                     if (type_counts[k] > type_counts[dominant]) dominant = k;
                 }
                 fprintf(stderr,
@@ -1049,6 +1126,14 @@ double edmd_advance_to(EDMD* S, double t_target){
             grid_build(S);
             schedule_for(S, e.a);
             schedule_for(S, e.b);
+        } else if (e.type==EV_CC) {
+            /* Cell-crossing: no collision, but it is a scheduling epoch.
+             * Increment coll_count so duplicate stale CC events for this particle
+             * do not remain valid and avalanche at the same timestamp.
+             */
+            S->P[e.a].coll_count++;
+            grid_build(S);
+            schedule_for(S, e.a);
         } else {
             resolve_wall(S, e.a, e.type, e.b);
             /* moving boundary velocities may have changed (divider/pistons): rebuild and reschedule all */
@@ -1179,16 +1264,6 @@ void edmd_set_divider_motions(EDMD* S, int count, const double* mass, const doub
     }
 }
 
-void edmd_set_divider_springs(EDMD* S, int count, const double* k, const double* xeq){
-    if (!S) return;
-    int n = clamp_dividers(count);
-    if (n > S->prm.divider_count) n = S->prm.divider_count;
-    for (int i = 0; i < n; ++i) {
-        if (k)   S->prm.divider_k[i] = k[i];
-        if (xeq) S->prm.divider_xeq[i] = xeq[i];
-    }
-}
-
 void edmd_config_divider(EDMD* S, int enabled, double cx, double thickness){
     if (!S) return;
     if (enabled) {
@@ -1202,12 +1277,6 @@ void edmd_set_divider_motion(EDMD* S, double mass, double vx){
     if (!S) return;
     double m = mass, v = vx;
     edmd_set_divider_motions(S, 1, &m, &v);
-}
-
-void edmd_set_divider_spring(EDMD* S, double k, double xeq){
-    if (!S) return;
-    S->prm.divider_k[0] = k;
-    S->prm.divider_xeq[0] = xeq;
 }
 
 void edmd_config_pistons(EDMD* S,
