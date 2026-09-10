@@ -18,6 +18,7 @@
 #include "kissfft/kiss_fftr.h"
 #include "edmd_core/edmd.h"
 #include "edmd_core/edmd_accelerated.h"
+#include "experiment_validation.h"
 
 
 
@@ -199,6 +200,7 @@ bool log_packing_fraction = 1; // 1 = log packing fraction, 0 = don't log
         #define FIXED_DT 0.04f  // in normalized time units They don't state the exact dt, but normalized simulations use dt = 10^{-3} often.
         #define PIXELS_PER_SIGMA 24.0f      // rendering scale (slightly larger for interactive SDL readability)
         #define TEMPERATURE 100.0f            // default target temperature (reduced units)
+        #undef K_B
         #define K_B 1/TEMPERATURE 
 
         #define SUBSTEPS 1   // default, can be changed externally
@@ -424,6 +426,14 @@ static int   *cli_experiment_wall_masses = NULL;
 static size_t cli_experiment_wall_masses_count = 0;
 static int    cli_experiment_repeats = 1;
 static int    cli_override_num_steps = -1;
+/* Speed-of-sound production scheduler.  A positive target replaces one fixed
+   trace length with a per-(L0,M) duration predicted from the fundamental
+   piston mode.  The run still has a predetermined length; noisy online zero
+   crossings never decide when the simulation stops. */
+static int    cli_speed_sound_target_oscillations = 0;
+static double cli_speed_sound_oscillation_safety = 1.50;
+static int    cli_speed_sound_min_steps = 10000;
+static int    cli_speed_sound_max_steps = 10000000;
 static float  cli_override_L0_units = -1.0f;
 static float  cli_override_height_units = -1.0f;
 static float  cli_override_wall_mass_factor = -1.0f;
@@ -447,6 +457,29 @@ static bool   cli_headless = false;          // --no-gui or --headless: run with
 static bool   cli_auto_piston_step = false;  // auto-trigger piston step (same as pressing 't')
 static char  *cli_command_line = NULL;       // argv joined for logging
 static char  *cli_speed_sound_run_dir = NULL; // --speed-sound-run-dir=PATH
+// ##CHRIS: --speed-sound-exact-seed=N forces every speed-of-sound trajectory to use this
+// exact per-run seed instead of speed_sound_run_seed(base, l, m, r). Debug/regression only:
+// the per-run seed is a hash of the GRID INDICES (l,m,r), so a failing trajectory found in a
+// full sweep cannot be reproduced by simply shrinking --lengths/--wall-masses (the indices
+// shift and you get a different seed). This flag makes such a trajectory reproducible in one
+// run. It only changes which seed is handed to srand(); it changes no dynamics.
+// ##CHRIS: --speed-sound-log-stride=N writes only every Nth post-release sample.
+// The traces are wildly oversampled for their purpose: 25 oscillations at low eta
+// produce ~1.3e6 rows, i.e. ~52,000 samples per period, where the FFT needs tens.
+// That costs ~210 MB per trajectory and made a 25-repeat campaign need ~165 GB.
+// Striding changes only what is WRITTEN, never the dynamics or the sampling of the
+// integrator. 0 = auto (target SPEED_SOUND_TARGET_SAMPLES_PER_PERIOD per period),
+// 1 = every sample (default; preserves existing behaviour exactly).
+#define SPEED_SOUND_TARGET_SAMPLES_PER_PERIOD 256
+static int    cli_speed_sound_log_stride = 1;
+static bool   cli_speed_sound_exact_seed_set = false;
+static unsigned int cli_speed_sound_exact_seed = 0;
+// ##CHRIS: --edmd-debug-particles=A,B and --edmd-debug-event-history=N drive the EDMD
+// core's event-history tracer (edmd_debug_set_watch). Pure instrumentation: it watches the
+// surface gap of one pair and dumps the preceding events when that gap first goes negative.
+static int    cli_edmd_debug_particle_a = -1;
+static int    cli_edmd_debug_particle_b = -1;
+static int    cli_edmd_debug_event_history = 0;
 static bool   cli_seed_set = false;
 static unsigned int cli_seed = 1;
 // Energy transfer summary output (optional override)
@@ -1088,6 +1121,15 @@ static EDMD* g_edmd = NULL;
 static int   cli_edmd_acc = 0;          // --edmd-acc: use accelerated EDMD backend (if linked)
 static int   g_edmd_is_acc = 0;         // backend used for current g_edmd instance
 static int   cli_force_kbt_one = 0; // --kbt1: force K_B*T == 1 (reduced units)
+/* ##CHRIS: --seed-drift-order=old|drift-first (default old).
+   "old" is the historical order: rescale each compartment to N_s kT, THEN remove
+   its centre-of-mass velocity -- which takes <1/2 N_s m v_cm^2> = kT back out, so
+   the seeded temperature is 1 - X/50 with X ~ Exp(1) (mean 0.98, sd 0.02, measured
+   over all 7200 route-A runs: 0.9798 +- 0.0195).
+   "drift-first" removes the drift first and rescales afterwards, so each
+   compartment starts at exactly N_s kT with zero net momentum. Default "old" so
+   every existing command reproduces byte-for-byte. */
+static int   cli_seed_drift_first = 0;
 static int   cli_auto_release_wall = 0; // --auto-release: automatically release wall at start
 static int   cli_auto_release_after_hold = 0; // --auto-release-after-hold: release automatically once hold-steps reached (GUI + headless)
 static int   cli_single_test_mode = 0;  // --single-test: headless mode with main dir output
@@ -1185,6 +1227,66 @@ static inline double edmd_backend_work_pistonR(const EDMD* S) {
 }
 static inline double edmd_backend_heat_bath(const EDMD* S) {
     return g_edmd_is_acc ? edmd_acc_heat_bath(S) : edmd_heat_bath(S);
+}
+static inline long edmd_backend_forced_advance_count(const EDMD* S) {
+    return g_edmd_is_acc ? edmd_acc_forced_advance_count(S) : edmd_forced_advance_count(S);
+}
+// ##CHRIS: engine health counters; both stay 0 in a correct run.
+static inline long edmd_backend_clamp_repair_count(const EDMD* S) {
+    return g_edmd_is_acc ? edmd_acc_clamp_repair_count(S) : edmd_clamp_repair_count(S);
+}
+static inline long edmd_backend_overlap_repair_count(const EDMD* S) {
+    return g_edmd_is_acc ? edmd_acc_overlap_repair_count(S) : edmd_overlap_repair_count(S);
+}
+static inline long edmd_backend_wall_overdue_count(const EDMD* S) {
+    return g_edmd_is_acc ? edmd_acc_wall_overdue_count(S) : edmd_wall_overdue_count(S);
+}
+
+/* ##CHRIS: diagnostic only, driver-side, gated by HD_OVERDUE_TRACE=1. Time-stamps
+   every change of the core's wall_overdue counter during a speed-of-sound
+   trajectory and, at t=0, lists any particle whose centre already sits at or past
+   an outer wall face (gap <= 0), the condition under which schedule_walls() counts
+   an overdue wall collision. No dynamics is touched. */
+static int  g_overdue_trace = -1;
+static long g_overdue_last  = 0;
+static void speed_sound_overdue_poll(const EDMD* S, const char* phase, int step){
+    if (g_overdue_trace < 0) g_overdue_trace = (getenv("HD_OVERDUE_TRACE") != NULL);
+    if (!g_overdue_trace || !S) return;
+    const long n = edmd_backend_wall_overdue_count(S);
+    if (n != g_overdue_last) {
+        printf("[OVERDUE-TRACE] phase=%s step=%d t_sigma=%.6f count %ld -> %ld\n",
+               phase, step, edmd_backend_time(S)/(double)PIXELS_PER_SIGMA, g_overdue_last, n);
+        g_overdue_last = n;
+    }
+}
+static void speed_sound_overdue_scan_t0(const EDMD* S){
+    if (g_overdue_trace < 0) g_overdue_trace = (getenv("HD_OVERDUE_TRACE") != NULL);
+    if (!g_overdue_trace || !S) return;
+    const EDMD_Params* ep = edmd_backend_params(S);
+    const EDMD_Particle* P = edmd_backend_particles(S);
+    const double R = ep->radius;
+    const char* wn[4] = {"LEFT","RIGHT","BOTTOM","TOP"};
+    double gmin[4] = {1e300,1e300,1e300,1e300}; int hits=0;
+    for (int i = 0; i < ep->N; ++i) {
+        const double g[4] = { P[i].x - R, ep->boxW - R - P[i].x, P[i].y - R, ep->boxH - R - P[i].y };
+        const double v[4] = { -P[i].vx, P[i].vx, -P[i].vy, P[i].vy };
+        for (int w = 0; w < 4; ++w) {
+            if (g[w] < gmin[w]) gmin[w] = g[w];
+            if (g[w] <= 0.0) {
+                printf("[OVERDUE-TRACE] t0 particle %d at %s wall: gap=%.6g px (%.3g sigma) v_toward=%.4g -> %s\n",
+                       i, wn[w], g[w], g[w]/(double)PIXELS_PER_SIGMA, v[w],
+                       (v[w] > 0.0) ? "moving INTO wall: counted by schedule_walls" : "moving away: not counted");
+                hits++;
+            }
+        }
+    }
+    printf("[OVERDUE-TRACE] t0 scan: count=%ld  min gap px L/R/B/T = %.4g/%.4g/%.4g/%.4g  particles with gap<=0: %d\n",
+           edmd_backend_wall_overdue_count(S), gmin[0], gmin[1], gmin[2], gmin[3], hits);
+    g_overdue_last = edmd_backend_wall_overdue_count(S);
+}
+static inline void edmd_backend_debug_set_watch(int a, int b, int history) {
+    if (g_edmd_is_acc) edmd_acc_debug_set_watch(a, b, history);
+    else               edmd_debug_set_watch(a, b, history);
 }
 
 // --- EDMD diagnostics/repairs (Szilard-focused) ---
@@ -1381,6 +1483,7 @@ static void edmd_enforce_szilard_gate_sides(EDMD* S) {
 #define edmd_work_pistonL            edmd_backend_work_pistonL
 #define edmd_work_pistonR            edmd_backend_work_pistonR
 #define edmd_heat_bath               edmd_backend_heat_bath
+#define edmd_forced_advance_count     edmd_backend_forced_advance_count
 
 // Windowed "efficiency/gain" metric for energy_transfer: measure peak spring response in a fixed
 // window after piston motion ends, baseline-subtracted at piston stop.
@@ -1775,6 +1878,27 @@ static inline void remove_drift_segment(int seg_idx) {
     }
 }
 
+
+/* ##CHRIS: gated KE/momentum audit for the T_i deficit (HD_KE_TRACE=1).
+   Print only. Reports total and per-compartment gas KE and total x-momentum at
+   named points, so the ~2% shortfall between the nominal kT=1 seeding and the
+   first post-release trace row can be located. */
+static void ke_audit(const char* where){
+    static int on = -1;
+    if (on < 0) on = (getenv("HD_KE_TRACE") != NULL);
+    if (!on) return;
+    double ke = 0.0, px = 0.0, kel = 0.0, ker = 0.0;
+    for (int i = 0; i < particles_active; ++i) {
+        const double e = 0.5 * (double)PARTICLE_MASS * ((double)Vx[i]*Vx[i] + (double)Vy[i]*Vy[i]);
+        ke += e; px += (double)PARTICLE_MASS * (double)Vx[i];
+        int sg = segment_index_for_position(X[i]);
+        if (sg <= 0) kel += e; else ker += e;
+    }
+    printf("[KE-AUDIT] %-28s N=%d  KE_tot=%.9g  KE_left=%.9g  KE_right=%.9g  Px=%.9g  kT_mean=%.9g\n",
+           where, particles_active, ke, kel, ker, px, ke / (particles_active > 0 ? particles_active : 1));
+    fflush(stdout);
+}
+
 static inline void equalize_temperature_per_segment(float T_target) {
     if (segment_count <= 0) return;
     int n = particles_active > 0 ? particles_active : 0;
@@ -1786,6 +1910,20 @@ static inline void equalize_temperature_per_segment(float T_target) {
             if (s == seg) { ke_seg += 0.5 * PARTICLE_MASS * (Vx[i]*Vx[i] + Vy[i]*Vy[i]); c++; }
         }
         if (c <= 0 || ke_seg <= 0.0) continue;
+        /* ##CHRIS: drift-first removes the compartment's centre-of-mass velocity
+           BEFORE the rescale, so the rescale lands on exactly N_s kT and stays
+           there. The historical order (default) rescales first and then removes
+           the drift, which takes kT back out per compartment. Recomputing ke_seg
+           after the drift removal is required -- the old value is stale. */
+        if (cli_seed_drift_first) {
+            remove_drift_segment(seg);
+            ke_seg = 0.0;
+            for (int i = 0; i < n; ++i) {
+                int s2 = segment_index_for_position(X[i]);
+                if (s2 == seg) ke_seg += 0.5 * PARTICLE_MASS * (Vx[i]*Vx[i] + Vy[i]*Vy[i]);
+            }
+            if (ke_seg <= 0.0) continue;
+        }
         // Use kB_effective so that with --kbt1 the product kB*T remains invariant
         double T_seg = ke_seg / (c * kB_effective());
         if (T_seg > 0.0) {
@@ -1795,7 +1933,7 @@ static inline void equalize_temperature_per_segment(float T_target) {
                 if (s == seg) { Vx[i] *= scale; Vy[i] *= scale; }
             }
         }
-        remove_drift_segment(seg);
+        if (!cli_seed_drift_first) remove_drift_segment(seg);
     }
 }
 
@@ -2840,9 +2978,20 @@ static void print_cli_usage(const char *exe_name) {
     printf("  --lengths=L0,...            Override experiment half-lengths (sigma units)\n");
     printf("  --wall-masses=f1,...        Override experiment wall-mass factors (multiples of particle mass)\n");
     printf("  --speed-sound-run-dir=PATH  Speed-of-sound: write mode1 CSVs into this exact directory\n");
+    printf("  --speed-sound-exact-seed=N  Speed-of-sound DEBUG: force this exact per-run seed for every\n");
+    printf("                              trajectory, bypassing the (l,m,r) index hash. Use to reproduce a\n");
+    printf("                              specific trajectory from a full sweep in a single run.\n");
+    printf("  --speed-sound-log-stride=N  Speed-of-sound: write only every Nth post-release sample\n");
+    printf("                              ('auto' targets ~%d samples per predicted period;\n", SPEED_SOUND_TARGET_SAMPLES_PER_PERIOD);
+    printf("                               default 1 = every sample). Affects file size only.\n");
+    printf("  --edmd-debug-particles=A,B  EDMD DEBUG: watch the surface gap of this particle pair and\n");
+    printf("                              dump the preceding events when it first goes negative\n");
+    printf("  --edmd-debug-event-history=N  EDMD DEBUG: how many events to keep in that ring buffer\n");
     printf("  --num-walls=N               Number of walls (1-5, default 1)\n");
     printf("  --wall-positions=x1,x2,...  Wall positions from left to right (sigma units)\n");
     printf("  --wall-mass-factors=m1,m2,... Wall mass factors from left to right (default 200 each)\n");
+    printf("  --seed-drift-order=MODE     old (default) | drift-first: order of CM-drift removal\n");
+    printf("                              and per-compartment kT rescale at seeding\n");
     printf("  --seeding=MODE              Seeding mode: grid (default), honeycomb, random\n");
     printf("  --distribute=area           Distribute particles ∝ segment area (width×height)\n");
     printf("  --protocol=NAME             Piston protocol: step, sigmoidal, linear, sinusoidal, optimal\n");
@@ -2865,6 +3014,11 @@ static void print_cli_usage(const char *exe_name) {
     printf("  --calibrate-work=target,tol,min,max  Approximate place rightmost wall to match target piston work\n");
     printf("  --repeats=N                 Number of repeats per experiment configuration\n");
     printf("  --steps=N                   Steps to simulate after wall release (default derived from TIME_UNITS_SIMULATION)\n");
+    printf("  --target-oscillations=N     Speed of sound: plan each (L0,M) trace for N fundamental cycles\n");
+    printf("  --oscillations=N            Alias for --target-oscillations\n");
+    printf("  --oscillation-safety=x      Duration safety multiplier (default 1.50; includes 20%% FFT transient drop)\n");
+    printf("  --oscillation-min-steps=N   Lower clamp for target-oscillation traces (default 10000)\n");
+    printf("  --oscillation-max-steps=N   Upper clamp for target-oscillation traces (default 10000000)\n");
     printf("  --single-test               Run headless (no SDL window) but output to main directory for quick testing\n");
     printf("  --l0=value                  Set initial half-length for interactive mode\n");
     printf("  --height=value              Set box height (in sigma units) for interactive mode\n");
@@ -2989,6 +3143,63 @@ static void parse_cli_options(int argc, char **argv) {
             const char *value = cli_option_value(arg, argc, argv, &i);
             if (cli_speed_sound_run_dir) { free(cli_speed_sound_run_dir); cli_speed_sound_run_dir = NULL; }
             if (value && value[0]) cli_speed_sound_run_dir = strdup(value);
+        } else if (strncmp(arg, "--speed-sound-exact-seed", strlen("--speed-sound-exact-seed")) == 0) {
+            // ##CHRIS: debug/regression override for the derived per-run seed (see globals).
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            errno = 0;
+            char *endptr = NULL;
+            unsigned long v = strtoul(value, &endptr, 10);
+            if (errno != 0 || endptr == value || *endptr != '\0') {
+                fprintf(stderr, "Invalid speed-sound-exact-seed '%s'. Use an unsigned integer.\n", value);
+                exit(EXIT_FAILURE);
+            }
+            cli_speed_sound_exact_seed_set = true;
+            cli_speed_sound_exact_seed = (unsigned int)v;
+        } else if (strncmp(arg, "--speed-sound-log-stride", strlen("--speed-sound-log-stride")) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            if (strcmp(value, "auto") == 0) {
+                cli_speed_sound_log_stride = 0;
+            } else {
+                errno = 0;
+                char *endptr = NULL;
+                long v = strtol(value, &endptr, 10);
+                if (errno != 0 || endptr == value || *endptr != '\0' || v < 0) {
+                    fprintf(stderr, "Invalid speed-sound-log-stride '%s'. Use a non-negative integer or 'auto'.\n", value);
+                    exit(EXIT_FAILURE);
+                }
+                cli_speed_sound_log_stride = (int)v;
+            }
+        } else if (strncmp(arg, "--edmd-debug-particles", strlen("--edmd-debug-particles")) == 0) {
+            // ##CHRIS: watch one particle pair with the EDMD event-history tracer.
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            int a = -1, b = -1;
+            char *endptr = NULL;
+            errno = 0;
+            a = (int)strtol(value, &endptr, 10);
+            if (errno != 0 || endptr == value || *endptr != ',') {
+                fprintf(stderr, "Invalid edmd-debug-particles '%s'. Use A,B (two integers).\n", value);
+                exit(EXIT_FAILURE);
+            }
+            const char *second = endptr + 1;
+            errno = 0;
+            b = (int)strtol(second, &endptr, 10);
+            if (errno != 0 || endptr == second || *endptr != '\0' || a < 0 || b < 0) {
+                fprintf(stderr, "Invalid edmd-debug-particles '%s'. Use A,B (two non-negative integers).\n", value);
+                exit(EXIT_FAILURE);
+            }
+            cli_edmd_debug_particle_a = a;
+            cli_edmd_debug_particle_b = b;
+            if (cli_edmd_debug_event_history <= 0) cli_edmd_debug_event_history = 50;
+        } else if (strncmp(arg, "--edmd-debug-event-history", strlen("--edmd-debug-event-history")) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            errno = 0;
+            char *endptr = NULL;
+            long v = strtol(value, &endptr, 10);
+            if (errno != 0 || endptr == value || *endptr != '\0' || v < 0) {
+                fprintf(stderr, "Invalid edmd-debug-event-history '%s'. Use a non-negative integer.\n", value);
+                exit(EXIT_FAILURE);
+            }
+            cli_edmd_debug_event_history = (int)v;
         } else if (strcmp(arg, "--szilard-no-pp") == 0) {
             cli_szilard_no_pp_during_g = true; /* ##CHRIS: disable PP during G phase only */
         } else if (strcmp(arg, "--dist-log") == 0) {
@@ -3150,6 +3361,11 @@ static void parse_cli_options(int argc, char **argv) {
             int v = (int)atol(value);
             if (v < 0) v = 0;
             cli_simple_box_gui_delay_ms = v;
+        } else if (strncmp(arg, "--seed-drift-order", strlen("--seed-drift-order")) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            if (value && strcmp(value, "drift-first") == 0)      cli_seed_drift_first = 1;
+            else if (value && strcmp(value, "old") == 0)          cli_seed_drift_first = 0;
+            else { fprintf(stderr, "Invalid --seed-drift-order '%s' (use old|drift-first).\n", value ? value : ""); exit(EXIT_FAILURE); }
         } else if (strncmp(arg, "--seed", 6) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
             if (strcmp(value, "time") == 0) {
@@ -3712,6 +3928,49 @@ static void parse_cli_options(int argc, char **argv) {
             }
             cli_experiment_repeats = (int)v;
             enable_speed_of_sound_experiments = true;
+        } else if (strncmp(arg, "--target-oscillations", 21) == 0 ||
+                   strncmp(arg, "--oscillations", 14) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            errno = 0;
+            char *endptr = NULL;
+            long v = strtol(value, &endptr, 10);
+            if (errno != 0 || endptr == value || *endptr != '\0' || v <= 0) {
+                fprintf(stderr, "Invalid target oscillations value '%s'.\n", value);
+                exit(EXIT_FAILURE);
+            }
+            cli_speed_sound_target_oscillations = (int)v;
+            enable_speed_of_sound_experiments = true;
+        } else if (strncmp(arg, "--oscillation-safety", 20) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            errno = 0;
+            char *endptr = NULL;
+            double v = strtod(value, &endptr);
+            if (errno != 0 || endptr == value || *endptr != '\0' ||
+                !isfinite(v) || v < 1.0 || v > 10.0) {
+                fprintf(stderr, "Invalid oscillation safety '%s' (use 1..10).\n", value);
+                exit(EXIT_FAILURE);
+            }
+            cli_speed_sound_oscillation_safety = v;
+        } else if (strncmp(arg, "--oscillation-min-steps", 23) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            errno = 0;
+            char *endptr = NULL;
+            long v = strtol(value, &endptr, 10);
+            if (errno != 0 || endptr == value || *endptr != '\0' || v <= 0) {
+                fprintf(stderr, "Invalid oscillation minimum steps '%s'.\n", value);
+                exit(EXIT_FAILURE);
+            }
+            cli_speed_sound_min_steps = (int)v;
+        } else if (strncmp(arg, "--oscillation-max-steps", 23) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            errno = 0;
+            char *endptr = NULL;
+            long v = strtol(value, &endptr, 10);
+            if (errno != 0 || endptr == value || *endptr != '\0' || v <= 0) {
+                fprintf(stderr, "Invalid oscillation maximum steps '%s'.\n", value);
+                exit(EXIT_FAILURE);
+            }
+            cli_speed_sound_max_steps = (int)v;
         } else if (strncmp(arg, "--steps", 7) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
             errno = 0;
@@ -3972,7 +4231,17 @@ static void parse_cli_options(int argc, char **argv) {
         preset_wall_count = cli_num_walls;
         for (int w = 0; w < cli_num_walls && w < MAX_DIVIDER_CAPACITY; w++) {
             float pos_sigma = cli_wall_positions[w];
-            float span_sigma = 2.0f * L0_UNITS; // total width in sigma units
+            /* ##CHRIS: use the REQUESTED L0, not the global. L0_UNITS is only
+               overwritten from --l0 about 70 lines below (`if (cli_override_L0_units
+               > 0.0f) L0_UNITS = cli_override_L0_units;`), so this block used to
+               divide by the default 20 and then have the fraction applied to the
+               real span: --l0=39.27 --wall-positions=39.27 landed the wall at
+               39.27/40 * 78.54 = 77.07 sigma, and the fail-closed validator aborted
+               the run (initial_wall_position_mismatch). Every reference run used
+               --l0=20, where the bug is invisible -- so this changes nothing for
+               any existing command and makes L0 != 20 work. */
+            float l0_for_span = (cli_override_L0_units > 0.0f) ? cli_override_L0_units : L0_UNITS;
+            float span_sigma = 2.0f * l0_for_span; // total width in sigma units
             float frac = pos_sigma / fmaxf(1e-6f, span_sigma);
             // clamp to [0,1]
             if (frac < 0.0f) frac = 0.0f;
@@ -4755,11 +5024,20 @@ void initialize_simulation_random() {
         }
     }
     // Equalize temperature across segments at initialization
+    ke_audit("2a after global kT rescale");
     equalize_temperature_per_segment(temperature_runtime);
+    ke_audit("2b after per-segment equalize");
 }
 
 
 
+
+static void choose_compartment_grid_shape(int count,
+                                          double width,
+                                          double height,
+                                          double minimum_spacing,
+                                          int *rows_out,
+                                          int *cols_out);
 
 // Deterministic grid seeding for arbitrary number of segments (num_internal_walls+1)
 // Particles are placed on a near-square rectangular lattice per segment, centered with a 1R margin,
@@ -4901,8 +5179,12 @@ void initialize_simulation_segmented_grid() {
     for (int s = 0; s < segments; ++s) {
         int target = target_counts[s];
         if (target <= 0) continue;
-        float left_bound  = seg_left[s]  + margin;
-        float right_bound = seg_right[s] - margin;
+        const float left_face = seg_left[s] +
+            ((s > 0) ? 0.5f * (float)WALL_THICKNESS : 0.0f);
+        const float right_face = seg_right[s] -
+            ((s < segments - 1) ? 0.5f * (float)WALL_THICKNESS : 0.0f);
+        float left_bound  = left_face + margin;
+        float right_bound = right_face - margin;
         // Also respect piston planes if they sit inside this segment.
         if (pistonL_plane > seg_left[s] && pistonL_plane < seg_right[s]) {
             left_bound = fmaxf(left_bound, pistonL_plane + margin);
@@ -4917,27 +5199,25 @@ void initialize_simulation_segmented_grid() {
         if (w <= 0.0f || h <= 0.0f) continue;
 
         const float min_gap = 2.0f * (float)PARTICLE_RADIUS * 1.0005f;
-        const double r_sigma = (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA;
-        const double seg_area_sigma = fmax(1e-12,
-                                           ((double)(seg_right[s] - seg_left[s]) / (double)PIXELS_PER_SIGMA) *
-                                           (double)HEIGHT_UNITS);
-        const double local_eta = (double)target * M_PI * r_sigma * r_sigma / seg_area_sigma;
-
-        int cols = (int)ceil(sqrt((double)target * (double)w / fmax(1.0, (double)h)));
-        if (cols < 1) cols = 1;
-        int rows = (target + cols - 1) / cols;
-        if (rows < 1) rows = 1;
-        float dx = w / (float)cols;
-        float dy = h / (float)rows;
-        const bool rectangular_ok = (dx >= min_gap && dy >= min_gap && local_eta < 0.30);
+        int rows = 1;
+        int cols = 1;
+        choose_compartment_grid_shape(target, w, h, min_gap, &rows, &cols);
+        const float dx = (cols > 1) ? w / (float)(cols - 1) : 0.0f;
+        const float dy = (rows > 1) ? h / (float)(rows - 1) : 0.0f;
+        const bool rectangular_ok =
+            (cols <= 1 || dx >= min_gap) && (rows <= 1 || dy >= min_gap);
 
         int placed = 0;
         if (rectangular_ok) {
             for (int r = 0; r < rows && placed < target; ++r) {
                 for (int c = 0; c < cols && placed < target; ++c) {
                     if (index >= particles_active) break;
-                    const float cx = left_bound + (c + 0.5f) * dx;
-                    const float cy = top + (r + 0.5f) * dy;
+                    const float cx = (cols > 1)
+                        ? left_bound + (float)c * dx
+                        : 0.5f * (left_bound + right_bound);
+                    const float cy = (rows > 1)
+                        ? top + (float)r * dy
+                        : 0.5f * (top + bottom);
                     X[index] = cx;
                     Y[index] = cy;
                     Vx[index] = maxwell_boltzmann_velocity_gaussians(temperature_runtime);
@@ -4955,14 +5235,11 @@ void initialize_simulation_segmented_grid() {
             for (int r = 0; r < max_rows && placed < target; ++r) {
                 const float y = top + (float)r * hex_dy;
                 if (y > bottom + 1e-3f) break;
-                const float offset = (r & 1) ? 0.5f * hex_dx : 0.0f;
-                int row_cols = (hex_dx > 0.0f) ? ((int)floorf((w - offset) / hex_dx) + 1) : 1;
+                const float x0 = left_bound + ((r & 1) ? 0.5f * hex_dx : 0.0f);
+                int row_cols = (hex_dx > 0.0f)
+                    ? ((int)floorf((right_bound - x0) / hex_dx) + 1)
+                    : 1;
                 if (row_cols < 1) continue;
-                const float row_width = (float)(row_cols - 1) * hex_dx;
-                float x0 = left_bound + 0.5f * fmaxf(0.0f, w - row_width);
-                if (r & 1) x0 += 0.25f * hex_dx;
-                while (x0 + row_width > right_bound + 1e-3f && x0 > left_bound) x0 -= 0.25f * hex_dx;
-                if (x0 < left_bound) x0 = left_bound;
                 for (int c = 0; c < row_cols && placed < target; ++c) {
                     const float cx = x0 + (float)c * hex_dx;
                     if (cx < left_bound - 1e-3f || cx > right_bound + 1e-3f) continue;
@@ -5013,7 +5290,9 @@ void initialize_simulation_segmented_grid() {
         }
     }
     // Equalize temperature across segments at initialization
+    ke_audit("2a after global kT rescale");
     equalize_temperature_per_segment(temperature_runtime);
+    ke_audit("2b after per-segment equalize");
 }
 
 /// place particles on grid honeycomb, works
@@ -5140,12 +5419,39 @@ void initialize_simulation_honeycomb() {
         }
     }
     // Equalize temperature across segments at initialization
+    ke_audit("2a after global kT rescale");
     equalize_temperature_per_segment(temperature_runtime);
+    ke_audit("2b after per-segment equalize");
 }
 
 
-
-
+static void choose_compartment_grid_shape(int count,
+                                          double width,
+                                          double height,
+                                          double minimum_spacing,
+                                          int *rows_out,
+                                          int *cols_out) {
+    int best_rows = 1;
+    int best_cols = (count > 0) ? count : 1;
+    double best_score = -1.0;
+    int found_feasible = 0;
+    for (int rows = 1; rows <= ((count > 0) ? count : 1); ++rows) {
+        const int cols = (count > 0) ? ((count + rows - 1) / rows) : 1;
+        const double sx = (cols > 1) ? width / (double)(cols - 1) : 1e30;
+        const double sy = (rows > 1) ? height / (double)(rows - 1) : 1e30;
+        const int feasible = sx >= minimum_spacing && sy >= minimum_spacing;
+        const double score = fmin(sx, sy);
+        if ((feasible && !found_feasible) ||
+            (feasible == found_feasible && score > best_score)) {
+            found_feasible = feasible;
+            best_score = score;
+            best_rows = rows;
+            best_cols = cols;
+        }
+    }
+    *rows_out = best_rows;
+    *cols_out = best_cols;
+}
 
 void initialize_simulation(void) {
     // Choose seeding by CLI, with sensible defaults:
@@ -5172,8 +5478,8 @@ void initialize_simulation(void) {
     // NOTE: positions X/Y are in pixels. DIAMETER is in σ-units (based on PARTICLE_RADIUS_UNIT),
     // so we must derive margins in pixels from PARTICLE_RADIUS instead of using DIAMETER directly.
     const float diameter_px = 2.0f * (float)PARTICLE_RADIUS;
-    const float seed_pad_px = fmaxf(1.0f, 0.10f * diameter_px);   // tiny extra padding beyond geometric R
-    const float margin_px = 1.25f * diameter_px + seed_pad_px;    // keep centers away from boundaries/walls
+    const float seed_pad_px = fmaxf(1e-4f, 1e-5f * diameter_px);
+    const float margin_px = (float)PARTICLE_RADIUS + seed_pad_px;
 
     const float wall_half_thick_px = 0.5f * (float)WALL_THICKNESS;
     const float pistonL_plane = piston_left_x + 5.0f; // matches EDMD pistonL_x convention
@@ -5276,21 +5582,51 @@ void initialize_simulation(void) {
         }
     }
 
-    int num_rows_left = (particles_left > 0) ? (int)sqrt((double)particles_left) : 1;
-    if (num_rows_left < 1) num_rows_left = 1;
-    int num_cols_left = (particles_left > 0) ? ((particles_left + num_rows_left - 1) / num_rows_left) : 1;
-    if (num_cols_left < 1) num_cols_left = 1;
+    int num_rows_left = 1, num_cols_left = 1;
+    int num_rows_right = 1, num_cols_right = 1;
+    choose_compartment_grid_shape(
+        particles_left, left_width, height, diameter_px + seed_pad_px,
+        &num_rows_left, &num_cols_left);
+    choose_compartment_grid_shape(
+        particles_right, right_width, height, diameter_px + seed_pad_px,
+        &num_rows_right, &num_cols_right);
 
-    int num_rows_right = (particles_right > 0) ? (int)sqrt((double)particles_right) : 1;
-    if (num_rows_right < 1) num_rows_right = 1;
-    int num_cols_right = (particles_right > 0) ? ((particles_right + num_rows_right - 1) / num_rows_right) : 1;
-    if (num_cols_right < 1) num_cols_right = 1;
+    const float spacing_left_x = (num_cols_left > 1)
+        ? (left_width / (float)(num_cols_left - 1)) : 0.0f;
+    const float spacing_left_y = (num_rows_left > 1)
+        ? (height / (float)(num_rows_left - 1)) : 0.0f;
 
-    const float spacing_left_x = (num_cols_left > 0) ? (left_width / (float)num_cols_left) : 0.0f;
-    const float spacing_left_y = (num_rows_left > 0) ? (height / (float)num_rows_left) : 0.0f;
+    const float spacing_right_x = (num_cols_right > 1)
+        ? (right_width / (float)(num_cols_right - 1)) : 0.0f;
+    const float spacing_right_y = (num_rows_right > 1)
+        ? (height / (float)(num_rows_right - 1)) : 0.0f;
 
-    const float spacing_right_x = (num_cols_right > 0) ? (right_width / (float)num_cols_right) : 0.0f;
-    const float spacing_right_y = (num_rows_right > 0) ? (height / (float)num_rows_right) : 0.0f;
+    /* The legacy one-divider initializer uses a rectangular lattice.  At high
+       packing fractions (notably the Román eta~=0.65 and 0.70 points), no
+       non-overlapping rectangular shape may exist even though a hexagonal
+       lattice fits comfortably.  choose_compartment_grid_shape() deliberately
+       returns its best candidate when none is feasible; placing that candidate
+       used to create deterministic step-zero overlaps.  Keep the historical
+       rectangular layout whenever it is feasible, but delegate only the
+       infeasible case to the segmented initializer, which already has a
+       checked hexagonal fallback. */
+    const float required_spacing = diameter_px + seed_pad_px;
+    const bool left_rectangular_ok =
+        (particles_left <= 1) ||
+        ((num_cols_left <= 1 || spacing_left_x >= required_spacing) &&
+         (num_rows_left <= 1 || spacing_left_y >= required_spacing));
+    const bool right_rectangular_ok =
+        (particles_right <= 1) ||
+        ((num_cols_right <= 1 || spacing_right_x >= required_spacing) &&
+         (num_rows_right <= 1 || spacing_right_y >= required_spacing));
+    if (!left_rectangular_ok || !right_rectangular_ok) {
+        if (!cli_quiet) {
+            printf("[SEED] Rectangular one-wall lattice cannot fit without overlap; "
+                   "using checked per-compartment hexagonal fallback.\n");
+        }
+        initialize_simulation_segmented_grid();
+        return;
+    }
 
     int idx = 0;
 
@@ -5298,9 +5634,12 @@ void initialize_simulation(void) {
     for (int row = 0; row < num_rows_left; row++) {
         for (int col = 0; col < num_cols_left; col++) {
             if (idx >= particles_left) break;
-            // Center within each grid cell to avoid starting exactly on a wall.
-            X[idx] = left_x_min + (col + 0.5f) * spacing_left_x;
-            Y[idx] = y_min + (row + 0.5f) * spacing_left_y;
+            X[idx] = (num_cols_left > 1)
+                ? left_x_min + col * spacing_left_x
+                : 0.5f * (left_x_min + left_x_max);
+            Y[idx] = (num_rows_left > 1)
+                ? y_min + row * spacing_left_y
+                : 0.5f * (y_min + y_max);
 
             float vx, vy;
             maxwell_boltzmann_2D(temperature_runtime, &vx, &vy);
@@ -5316,8 +5655,12 @@ void initialize_simulation(void) {
     for (int row = 0; row < num_rows_right; row++) {
         for (int col = 0; col < num_cols_right; col++) {
             if (idx >= particles_left + particles_right) break;
-            X[idx] = right_x_min + (col + 0.5f) * spacing_right_x;
-            Y[idx] = y_min + (row + 0.5f) * spacing_right_y;
+            X[idx] = (num_cols_right > 1)
+                ? right_x_min + col * spacing_right_x
+                : 0.5f * (right_x_min + right_x_max);
+            Y[idx] = (num_rows_right > 1)
+                ? y_min + row * spacing_right_y
+                : 0.5f * (y_min + y_max);
             float vx, vy;
             maxwell_boltzmann_2D(temperature_runtime, &vx, &vy);
             Vx[idx] = vx;
@@ -5332,6 +5675,7 @@ void initialize_simulation(void) {
         printf("✅ Particles placed with buffer. Wall_x = %.3f\n", wall_x);
         fflush(stdout);
     }
+    ke_audit("1 after velocity draw");
     // After initializing all Vx, Vy:
     double actual_ke = kinetic_energy();  // sum of 0.5*m*v^2
     double target_ke = particles_active * K_B * temperature_runtime;
@@ -5362,7 +5706,9 @@ void initialize_simulation(void) {
     }
     // Equalize initial temperature per segment to a global target, then apply
     // per-segment overrides if provided.
+    ke_audit("2a after global kT rescale");
     equalize_temperature_per_segment(temperature_runtime);
+    ke_audit("2b after per-segment equalize");
     if (cli_temperature_segments && cli_temperature_segments_count > 0) {
         apply_segment_temperatures(cli_temperature_segments, cli_temperature_segments_count);
     }
@@ -5963,10 +6309,12 @@ static inline void thermal_wall_bounce(double *vx, double *vy,
 static inline void gradual_damping_bounce(double *vx, double *vy,
                                            float gas_temp, float hb_temp) {
     float dV = 0.01f;
-    float dV_sign = (hb_temp - gas_temp) / fabsf(hb_temp - gas_temp);
+    const float temp_delta = hb_temp - gas_temp;
+    const float dV_sign = (fabsf(temp_delta) > 1e-12f)
+                          ? (temp_delta / fabsf(temp_delta)) : 0.0f;
 
     // Add small perturbation (roughbounce effect)
-    float original_mag = sqrtf((*vx) * (*vx) + (*vy) * (*vy));
+    const double original_mag = hypot(*vx, *vy);
     float percent_error = 0.1f;
 
     // Simple gaussian sampling using Box-Muller
@@ -5978,13 +6326,15 @@ static inline void gradual_damping_bounce(double *vx, double *vy,
     *vx += (double)(gaussian * percent_error * original_mag);
     *vy += (double)(gaussian * percent_error * original_mag);
 
-    float new_mag = sqrtf((*vx) * (*vx) + (*vy) * (*vy));
-    float scale = original_mag / new_mag;
-    *vx *= (double)scale;
-    *vy *= (double)scale;
+    const double new_mag = hypot(*vx, *vy);
+    if (new_mag > 1e-15) {
+        const double scale = original_mag / new_mag;
+        *vx *= scale;
+        *vy *= scale;
+    }
 
     // Adjust velocity toward heat bath temperature
-    if (fabsf(*vx) > fabsf(*vy)) {
+    if (fabs(*vx) > fabs(*vy)) {
         *vx += (double)(dV * dV_sign);
     } else {
         *vy += (double)(dV * dV_sign);
@@ -8069,7 +8419,7 @@ void update_particles_with_substepping(float dt, int* out_left, int* out_right,
                     } else {
                         int face = prev_side_local;
                         if (face == 0) {
-                            face = (fabsf(X_old[i] - L0p) <= fabsf(R0p - X_old[i])) ? -1 : +1;
+                            face = (fabs(X_old[i] - L0p) <= fabs(R0p - X_old[i])) ? -1 : +1;
                         }
                         X[i] = (face == -1) ? (L0p - eps) : (R0p + eps);
                     }
@@ -13779,19 +14129,35 @@ static int hud_build_experiment_key_lines(char lines[][256], int max_lines) {
 
     switch (cli_experiment_preset) {
         case EXPERIMENT_PRESET_ENERGY_TRANSFER:
-            if (n < max_lines) snprintf(lines[n++], 256, "Keys: t=run protocol  e=energy  p=pause  q=quit  +/-/0 speed  F2=sliders");
-            if (n < max_lines) snprintf(lines[n++], 256, "Pistons: a/d left  left/right right  s/up stop");
+            if (n < max_lines) snprintf(lines[n++], 256, "Controls");
+            if (n < max_lines) snprintf(lines[n++], 256, "Run: t protocol | p pause | q quit | esc reset");
+            if (n < max_lines) snprintf(lines[n++], 256, "Speed: -/+ /0 time | F2 live | F3 scene");
+            if (n < max_lines) snprintf(lines[n++], 256, "Pistons: a/d left | left/right right | s/up stop");
+            if (n < max_lines) snprintf(lines[n++], 256, "View: v panels | x/y density | f vmax | z exact");
+            if (n < max_lines) snprintf(lines[n++], 256, "Thermo: [/] T | \\ reset T | b HB | k Andersen");
+            if (n < max_lines) snprintf(lines[n++], 256, "Wall: w toggle | r release | e print energy");
             break;
         case EXPERIMENT_PRESET_SZILARD_ENGINE:
-            if (n < max_lines) snprintf(lines[n++], 256, "Szilard: g=separate  h=recombine  o=partial  n=restore");
-            if (n < max_lines) snprintf(lines[n++], 256, "Szilard: e=erase  m=measure  y=view  ;/, gate speed  +/-/0 time  F2");
+            if (n < max_lines) snprintf(lines[n++], 256, "Controls");
+            if (n < max_lines) snprintf(lines[n++], 256, "Szilard: g separate | h correct | j wrong | o partial");
+            if (n < max_lines) snprintf(lines[n++], 256, "Memory: n restore | m measure | e erase | y view");
+            if (n < max_lines) snprintf(lines[n++], 256, "Speed: -/+ /0 time | ;/. faster | ,/' slower");
+            if (n < max_lines) snprintf(lines[n++], 256, "View: F2 live | F3 scene | v panels | x/y/z/l");
+            if (n < max_lines) snprintf(lines[n++], 256, "General: p pause | q quit | esc reset | b HB");
             break;
         case EXPERIMENT_PRESET_PARTICLELIFE:
-            if (n < max_lines) snprintf(lines[n++], 256, "ParticleLife: m=tensor mode  p=pause  q=quit  +/-/0 speed  F2=sliders");
+            if (n < max_lines) snprintf(lines[n++], 256, "Controls");
+            if (n < max_lines) snprintf(lines[n++], 256, "Run: p pause | q quit | esc reset | -/+ /0 time");
+            if (n < max_lines) snprintf(lines[n++], 256, "ParticleLife: m tensor mode");
+            if (n < max_lines) snprintf(lines[n++], 256, "View: F2 live | F3 scene | v panels | y density");
             break;
         default:
-            if (n < max_lines) snprintf(lines[n++], 256, "Keys: t=protocol step  e=energy  p=pause  q=quit  +/-/0 speed  F2=sliders");
-            if (n < max_lines) snprintf(lines[n++], 256, "Pistons: a/d left  left/right right  s/up stop");
+            if (n < max_lines) snprintf(lines[n++], 256, "Controls");
+            if (n < max_lines) snprintf(lines[n++], 256, "Run: t protocol | p pause | q quit | esc reset");
+            if (n < max_lines) snprintf(lines[n++], 256, "Speed: -/+ /0 time | F2 live | F3 scene");
+            if (n < max_lines) snprintf(lines[n++], 256, "Pistons: a/d left | left/right right | s/up stop");
+            if (n < max_lines) snprintf(lines[n++], 256, "View: v panels | x/y density | f vmax | z exact");
+            if (n < max_lines) snprintf(lines[n++], 256, "Thermo: [/] T | \\ reset T | b HB | k Andersen");
             break;
     }
 
@@ -13825,15 +14191,24 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
     snprintf(line_clock, sizeof(line_clock), "time: %.3f  dt: %.2e  sub: %d  x%.2f",
              (double)simulation_time, (double)fixed_dt_runtime, g_last_substeps_used, (double)time_scale_runtime);
     char line_scale[256];
+    char line_eta_target[256];
     const double draw_r_px = fmax((double)PARTICLE_RADIUS, (double)gui_particle_draw_min_px);
+    const double r_sigma_hud = (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA;
+    const double eta_global_hud = live_current_nominal_eta();
+    const double eta_target_hud = (cli_packing_fraction > 0.0f)
+        ? (double)cli_packing_fraction
+        : eta_global_hud;
     snprintf(line_scale, sizeof(line_scale),
              "box: %.1fσ x %.1fσ -> %dpx x %dpx  r: %.4fσ -> %.3fpx draw %.2fpx  scale: %.1f px/σ",
              (double)L0_UNITS * 2.0, (double)HEIGHT_UNITS,
              SIM_WIDTH, SIM_HEIGHT,
-             (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA,
+             r_sigma_hud,
              (double)PARTICLE_RADIUS,
              draw_r_px,
              (double)PIXELS_PER_SIGMA);
+    snprintf(line_eta_target, sizeof(line_eta_target),
+             "eta_target=%.3f  eta_global=%.3f  eta_now below uses moving/compressed box widths",
+             eta_target_hud, eta_global_hud);
     // Runtime thermo HUD: T, kB_eff, kBT, kBT1 mode
     char line_thermo[256];
     snprintf(line_thermo, sizeof(line_thermo), "T: %.3f  kB: %.6f  kBT: %.6f  kBT1:%s",
@@ -13980,7 +14355,8 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
 
     // Prefer a right-side "log panel" when the window is wide enough.
     // This avoids cutting off HUD lines when we also draw distributions below the box.
-    const int panel_x = gui_scene_screen_x((float)XW2) + 10;
+    const int hud_piston_gutter = 34;
+    const int panel_x = gui_scene_screen_x((float)XW2) + hud_piston_gutter;
     int hud_right = MAX_X - 10;
     if (live_controls_visible || live_scene_visible) {
         int ux = MAX_X;
@@ -14009,6 +14385,7 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
 		        // Compact HUD (single column)
 			        draw_text_clipped(r, f, line_clock, x, y, white, panel_w); y += dy;
 			        draw_text_clipped(r, f, line_scale, x, y, white, panel_w); y += dy;
+                    draw_text_clipped(r, f, line_eta_target, x, y, white, panel_w); y += dy;
 			        draw_text_clipped(r, f, line_thermo, x, y, white, panel_w); y += dy;
                 // Restore the "classic" thermo/KE block in the right HUD panel (it used to be in the bottom HUD).
                 draw_text_clipped(r, f, line0, x, y, white, panel_w); y += dy;
@@ -14034,7 +14411,7 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
                         const double area_seg = seg_w_sigma * (double)HEIGHT_UNITS;
                         const double eta_seg = (area_seg > 0.0) ? ((double)segment_counts[seg] * area_particle / area_seg) : 0.0;
                         char seg_line[256];
-                        snprintf(seg_line, sizeof(seg_line), "Box %d: N=%d  KE=%.3e  T=%.2f  eta=%.3f",
+                        snprintf(seg_line, sizeof(seg_line), "Box %d: N=%d  KE=%.3e  T=%.2f  eta_now=%.3f",
                                  seg + 1,
                                  segment_counts[seg],
                                  (double)segment_ke[seg],
@@ -14127,8 +14504,8 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
 	            if (y + dy <= y_max) { draw_text_clipped(r, f, peak_line, x, y, white, panel_w); y += dy; }
 	        }
             {
-                char key_lines[3][256];
-                int key_n = hud_build_experiment_key_lines(key_lines, 3);
+                char key_lines[8][256];
+                int key_n = hud_build_experiment_key_lines(key_lines, 8);
                 for (int i = 0; i < key_n; ++i) {
                     if (y + dy > y_max) break;
                     draw_text_clipped(r, f, key_lines[i], x, y, white, panel_w);
@@ -14155,8 +14532,8 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
     draw_text(r, f, line2, x, y, white);  y += 20;
     draw_text(r, f, line3, x, y, white);  y += 20;
     {
-        char key_lines[3][256];
-        int key_n = hud_build_experiment_key_lines(key_lines, 3);
+        char key_lines[8][256];
+        int key_n = hud_build_experiment_key_lines(key_lines, 8);
         for (int i = 0; i < key_n; ++i) {
             draw_text(r, f, key_lines[i], x, y, white);
             y += 20;
@@ -14221,6 +14598,381 @@ void log_packing_fractions(FILE *log, const char *label) {
 
 
 
+static const char *experiment_sim_mode_name(void);
+
+/* ##CHRIS: -------- bond-orientational order parameter psi_6 --------
+   The speed-of-sound measurement alone cannot say WHICH phase a finite system is
+   in, and the bulk phase boundaries (eta = 0.700/0.716/0.720) are thermodynamic-
+   limit values that a 100-disk box need not obey. psi_6 is the standard
+   discriminator:
+
+       psi_6(j) = (1/N_j) * sum_k exp(6 i theta_jk)      over neighbours k of j
+       psi_6    = (1/N)   * sum_j psi_6(j)
+
+   |psi_6| (global) measures long-range orientational order: ~0 liquid, growing
+   through the hexatic, -> 1 in the solid. The mean of |psi_6(j)| (local) stays
+   fairly large even in a liquid, so the two together separate "locally ordered"
+   from "globally ordered", which is exactly the hexatic question.
+
+   Neighbours are taken within `cutoff` (in sigma), nominally the first minimum of
+   g(r) for hard disks. At low density almost nothing falls inside that shell, so
+   mean_neighbors is reported too: psi_6 is only interpretable when it is ~4-6. */
+/* First minimum of g(r) for dense hard disks sits near 1.4 sigma. */
+#define PSI6_CUTOFF_SIGMA 1.4
+
+typedef struct {
+    double global_abs;     /* |<psi_6>| over all particles: long-range orientational order */
+    double local_mean;     /* <|psi_6(j)|>: local order, stays high even in a liquid */
+    double mean_neighbors; /* sanity: psi_6 is meaningless if this is ~0 */
+    int    n_used;         /* particles with >=1 neighbour */
+} Psi6Result;
+
+static Psi6Result compute_psi6_from_edmd(const EDMD *state, double cutoff_sigma) {
+    Psi6Result out = { NAN, NAN, 0.0, 0 };
+    if (!state) return out;
+    const EDMD_Params *ep = edmd_backend_params(state);
+    const EDMD_Particle *P = edmd_backend_particles(state);
+    if (!ep || !P || ep->N <= 0) return out;
+
+    /* EDMD works in pixels; sigma = 2*radius. */
+    const double sigma = 2.0 * ep->radius;
+    const double cutoff = cutoff_sigma * sigma;
+    const double cutoff2 = cutoff * cutoff;
+
+    double sum_re = 0.0, sum_im = 0.0, sum_local = 0.0, sum_nb = 0.0;
+    int n_used = 0;
+
+    for (int i = 0; i < ep->N; ++i) {
+        double re = 0.0, im = 0.0;
+        int nb = 0;
+        for (int j = 0; j < ep->N; ++j) {
+            if (j == i) continue;
+            const double dx = P[j].x - P[i].x;
+            const double dy = P[j].y - P[i].y;
+            const double d2 = dx * dx + dy * dy;
+            if (d2 > cutoff2 || d2 <= 0.0) continue;
+            const double theta = atan2(dy, dx);
+            re += cos(6.0 * theta);
+            im += sin(6.0 * theta);
+            nb++;
+        }
+        if (nb > 0) {
+            re /= (double)nb;
+            im /= (double)nb;
+            sum_re += re;
+            sum_im += im;
+            sum_local += sqrt(re * re + im * im);
+            sum_nb += (double)nb;
+            n_used++;
+        }
+    }
+    if (n_used <= 0) return out;
+    /* Normalise by N (not n_used): particles with no neighbours genuinely
+       contribute zero orientational order rather than being excluded. */
+    sum_re /= (double)ep->N;
+    sum_im /= (double)ep->N;
+    out.global_abs = sqrt(sum_re * sum_re + sum_im * sum_im);
+    out.local_mean = sum_local / (double)n_used;
+    out.mean_neighbors = sum_nb / (double)n_used;
+    out.n_used = n_used;
+    return out;
+}
+
+/* ##CHRIS: psi_6 sampled ACROSS the measurement window.
+   The hold/end snapshots turned out not to classify the bistable region: psi_6
+   right after equilibration varies a lot between repeats, but by the end of the
+   run they have all ordered similarly, so neither endpoint describes the state the
+   sound measurement actually saw. Averaging over the post-release window does.
+   Cost is negligible: O(N^2) per sample, taken ~PSI6_RUN_SAMPLES times per run. */
+#define PSI6_RUN_SAMPLES 64
+typedef struct {
+    double sum, sumsq, min, max;
+    int    count;
+} Psi6Accum;
+
+static void psi6_accum_init(Psi6Accum *a) {
+    a->sum = 0.0; a->sumsq = 0.0; a->min = INFINITY; a->max = -INFINITY; a->count = 0;
+}
+static void psi6_accum_add(Psi6Accum *a, double v) {
+    if (!isfinite(v)) return;
+    a->sum += v; a->sumsq += v * v;
+    if (v < a->min) a->min = v;
+    if (v > a->max) a->max = v;
+    a->count++;
+}
+static double psi6_accum_mean(const Psi6Accum *a) {
+    return (a->count > 0) ? (a->sum / (double)a->count) : NAN;
+}
+static double psi6_accum_sd(const Psi6Accum *a) {
+    if (a->count < 2) return NAN;
+    const double m = a->sum / (double)a->count;
+    const double var = a->sumsq / (double)a->count - m * m;
+    return (var > 0.0) ? sqrt(var) : 0.0;
+}
+
+/* Append one psi_6 row per trajectory. Separate file so the trace CSV schema,
+   which downstream analysis depends on, is untouched. */
+static void write_speed_sound_psi6(const char *folder,
+                                   float L0, int wall_mass_factor, int repeat,
+                                   unsigned int run_seed, double eta,
+                                   const Psi6Result *hold,
+                                   const Psi6Result *end,
+                                   const Psi6Accum *run) {
+    if (!folder || !hold || !end || !run) return;
+    char path[640];
+    snprintf(path, sizeof(path), "%s/speed_of_sound_psi6.csv", folder);
+    mkdir_p_for_file(path);
+    const char *header =
+        "L0,wall_mass_factor,repeat,seed,eta,"
+        "psi6_global_hold,psi6_local_hold,neighbors_hold,"
+        "psi6_global_end,psi6_local_end,neighbors_end,"
+        "psi6_run_mean,psi6_run_sd,psi6_run_min,psi6_run_max,psi6_run_samples\n";
+    ensure_csv_header_schema(path, header);
+    // ensure_csv_header_schema() only ROTATES a file whose header does not match;
+    // it does not write one. Without this the first row looks like a bad header,
+    // so every subsequent call rotates the file away and only the last row survives.
+    const bool need_header = (access(path, F_OK) != 0);
+    FILE *file = fopen(path, "a");
+    if (!file) return;
+    if (need_header) fputs(header, file);
+    fprintf(file,
+            "%.9g,%d,%d,%u,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,"
+            "%.9g,%.9g,%.9g,%.9g,%d\n",
+            (double)L0, wall_mass_factor, repeat, run_seed, eta,
+            hold->global_abs, hold->local_mean, hold->mean_neighbors,
+            end->global_abs, end->local_mean, end->mean_neighbors,
+            psi6_accum_mean(run), psi6_accum_sd(run),
+            (run->count > 0) ? run->min : NAN,
+            (run->count > 0) ? run->max : NAN,
+            run->count);
+    fclose(file);
+}
+
+static void build_speed_sound_edmd_validation_state(
+    ExperimentValidationState *state,
+    double *x, double *y, double *vx, double *vy,
+    double *wall_position, double *wall_velocity) {
+    const EDMD_Params *ep = edmd_backend_params(g_edmd);
+    const EDMD_Particle *particles = edmd_backend_particles(g_edmd);
+    double particle_ke = 0.0;
+    for (int i = 0; i < particles_active; ++i) {
+        x[i] = particles[i].x;
+        y[i] = particles[i].y;
+        vx[i] = particles[i].vx;
+        vy[i] = particles[i].vy;
+        particle_ke += 0.5 * (double)PARTICLE_MASS *
+                       (vx[i] * vx[i] + vy[i] * vy[i]);
+    }
+    *wall_position = ep->divider_x[0];
+    *wall_velocity = ep->divider_vx[0];
+    memset(state, 0, sizeof(*state));
+    state->particle_count = particles_active;
+    state->x = x;
+    state->y = y;
+    state->vx = vx;
+    state->vy = vy;
+    state->particle_radius = ep->radius;
+    state->x_min_face = 0.0;
+    state->x_max_face = ep->boxW;
+    state->y_min = 0.0;
+    state->y_max = ep->boxH;
+    state->wall_count = 1;
+    state->wall_x = wall_position;
+    state->wall_vx = wall_velocity;
+    state->wall_half_thickness = 0.5 * fabs(ep->divider_thickness[0]);
+    state->kinetic_energy = particle_ke +
+        0.5 * fmax(0.0, ep->divider_mass[0]) *
+        (*wall_velocity) * (*wall_velocity);
+    state->spring_energy = 0.0;
+    state->piston_work_left = 0.0;
+    state->piston_work_right = 0.0;
+    state->forced_advance_events = edmd_backend_forced_advance_count(g_edmd);
+}
+
+static void build_speed_sound_time_validation_state(
+    ExperimentValidationState *state,
+    double *wall_position, double *wall_velocity) {
+    *wall_position = (double)wall_x;
+    *wall_velocity = (double)vx_wall;
+    memset(state, 0, sizeof(*state));
+    state->particle_count = particles_active;
+    state->x = X;
+    state->y = Y;
+    state->vx = Vx;
+    state->vy = Vy;
+    state->particle_radius = (double)PARTICLE_RADIUS;
+    state->x_min_face = (double)XW1;
+    state->x_max_face = (double)XW2;
+    state->y_min = (double)YW1;
+    state->y_max = (double)YW2;
+    state->wall_count = 1;
+    state->wall_x = wall_position;
+    state->wall_vx = wall_velocity;
+    state->wall_half_thickness = 0.5 * fabs((double)WALL_THICKNESS);
+    state->kinetic_energy = kinetic_energy();
+    state->spring_energy = 0.0;
+    state->piston_work_left = 0.0;
+    state->piston_work_right = 0.0;
+    state->forced_advance_events = 0;
+}
+
+static void write_speed_sound_failure(const char *folder,
+                                      const char *trace_path,
+                                      float L0,
+                                      int wall_mass_factor,
+                                      int repeat,
+                                      unsigned int run_seed,
+                                      const ExperimentValidationFailure *failure) {
+    if (!folder || !failure || !failure->failed) return;
+    char path[640];
+    snprintf(path, sizeof(path), "%s/speed_of_sound_failures.csv", folder);
+    mkdir_p_for_file(path);
+    const char *header =
+        "timestamp,experiment,sim_mode,seed,L0,wall_mass_factor,repeat,step,time_sigma,"
+        "phase,reason,detail,particle_a,particle_b,wall_a,wall_b,value,limit,trace_path,command\n";
+    ensure_csv_header_schema(path, header);
+    const bool need_header = (access(path, F_OK) != 0);
+    FILE *file = fopen(path, "a");
+    if (!file) {
+        fprintf(stderr, "FAILED TO WRITE speed-of-sound failure ledger: %s\n", path);
+        return;
+    }
+    if (need_header) fputs(header, file);
+    time_t now = time(NULL);
+    struct tm tm_now;
+    localtime_r(&now, &tm_now);
+    char timestamp[64];
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", &tm_now);
+    fprintf(file, "%s,speed_of_sound,%s,%u,%.9g,%d,%d,%d,%.9g,",
+            timestamp, experiment_sim_mode_name(), run_seed, (double)L0,
+            wall_mass_factor, repeat, failure->step, failure->time_sigma);
+    csv_put_escaped(file, failure->phase);
+    fputc(',', file);
+    csv_put_escaped(file, failure->reason);
+    fputc(',', file);
+    csv_put_escaped(file, failure->detail);
+    fprintf(file, ",%d,%d,%d,%d,%.17g,%.17g,",
+            failure->particle_a, failure->particle_b,
+            failure->wall_a, failure->wall_b,
+            failure->value, failure->limit);
+    csv_put_escaped(file, trace_path ? trace_path : "");
+    fputc(',', file);
+    csv_put_escaped(file, cli_command_line ? cli_command_line : "");
+    fputc('\n', file);
+    fclose(file);
+}
+
+static unsigned int speed_sound_run_seed(unsigned int base_seed,
+                                         size_t length_index,
+                                         size_t mass_index,
+                                         int repeat) {
+    /* SplitMix-style derivation: every parameter tuple has a recorded,
+       reproducible seed instead of silently consuming one global RNG stream. */
+    unsigned long long x = (unsigned long long)base_seed;
+    x += 0x9E3779B97F4A7C15ULL * (unsigned long long)(length_index + 1u);
+    x += 0xBF58476D1CE4E5B9ULL * (unsigned long long)(mass_index + 1u);
+    x += 0x94D049BB133111EBULL * (unsigned long long)(repeat + 1);
+    x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ULL;
+    x = (x ^ (x >> 27)) * 0x94D049BB133111EBULL;
+    x ^= x >> 31;
+    return (unsigned int)(x ^ (x >> 32));
+}
+
+/* Lowest positive solution of cot(K)=alpha*K.  For alpha>0 the
+   fundamental root is in (0,pi/2). */
+static double speed_sound_fundamental_k(double alpha) {
+    double lo = 1e-10;
+    double hi = 0.5 * M_PI - 1e-10;
+    if (!(alpha > 0.0) || !isfinite(alpha)) return NAN;
+    for (int iter = 0; iter < 120; ++iter) {
+        const double mid = 0.5 * (lo + hi);
+        const double value = 1.0 / tan(mid) - alpha * mid;
+        if (value > 0.0) lo = mid;
+        else hi = mid;
+    }
+    return 0.5 * (lo + hi);
+}
+
+/* Román et al. Eq. (26), using Henderson a=1/8, is deliberately
+   used only as a conservative planning estimate.  Frequency extraction
+   remains a measurement and does not force the result onto this curve. */
+static double speed_sound_henderson_frequency_estimate(
+        double eta, double L0_sigma, double diameter_sigma,
+        double wall_mass_factor, int particles_per_side) {
+    const double one_minus_eta = 1.0 - eta;
+    const double L_eff = L0_sigma - diameter_sigma;
+    if (!(eta >= 0.0 && eta < 1.0) || !(L_eff > 0.0) ||
+        !(wall_mass_factor > 0.0) || particles_per_side <= 0 ||
+        !(one_minus_eta > 0.0)) return NAN;
+    const double a = 0.125;
+    const double numerator = 1.0 + eta + 3.0 * a * eta * eta
+                           - a * eta * eta * eta;
+    const double term = numerator /
+        (one_minus_eta * one_minus_eta * one_minus_eta);
+    const double cs = sqrt(fmax(0.0,
+        2.0 * (double)kBT_effective() / (double)PARTICLE_MASS * term));
+    const double alpha = wall_mass_factor /
+        (2.0 * (double)particles_per_side);
+    const double K = speed_sound_fundamental_k(alpha);
+    return (isfinite(K) && K > 0.0)
+        ? cs * K / (2.0 * M_PI * L_eff) : NAN;
+}
+
+static int speed_sound_steps_for_target_cycles(
+        double predicted_frequency, double sample_dt_sigma) {
+    if (cli_speed_sound_target_oscillations <= 0) return num_steps;
+    if (!(predicted_frequency > 0.0) || !isfinite(predicted_frequency) ||
+        !(sample_dt_sigma > 0.0) || !isfinite(sample_dt_sigma)) {
+        return num_steps;
+    }
+    const double duration = cli_speed_sound_oscillation_safety *
+        (double)cli_speed_sound_target_oscillations / predicted_frequency;
+    double raw_steps = ceil(duration / sample_dt_sigma);
+    if (raw_steps < (double)cli_speed_sound_min_steps)
+        raw_steps = (double)cli_speed_sound_min_steps;
+    if (raw_steps > (double)cli_speed_sound_max_steps)
+        raw_steps = (double)cli_speed_sound_max_steps;
+    if (raw_steps > (double)INT_MAX) raw_steps = (double)INT_MAX;
+    return (int)raw_steps;
+}
+
+static int write_speed_sound_batch_status(const char *folder,
+                                          int requested,
+                                          int valid,
+                                          int invalid,
+                                          bool complete) {
+    if (!folder) return 0;
+    char path[640], temporary_path[672];
+    snprintf(path, sizeof(path), "%s/speed_of_sound_batch_status.json", folder);
+    snprintf(temporary_path, sizeof(temporary_path), "%s.tmp", path);
+    FILE *file = fopen(temporary_path, "w");
+    if (!file) {
+        fprintf(stderr, "FAILED TO WRITE speed-of-sound batch status: %s\n", path);
+        return 0;
+    }
+    fprintf(file,
+            "{\n"
+            "  \"complete\": %s,\n"
+            "  \"base_seed\": %u,\n"
+            "  \"requested_runs\": %d,\n"
+            "  \"valid_runs\": %d,\n"
+            "  \"invalid_runs\": %d,\n"
+            "  \"in_progress_runs\": %d,\n"
+            "  \"failure_csv\": \"speed_of_sound_failures.csv\"\n"
+            "}\n",
+            complete ? "true" : "false",
+            cli_seed,
+            requested, valid, invalid,
+            requested - valid - invalid);
+    const int write_failed = ferror(file);
+    const int close_failed = (fclose(file) != 0);
+    if (write_failed || close_failed || rename(temporary_path, path) != 0) {
+        fprintf(stderr, "FAILED TO PUBLISH speed-of-sound batch status: %s\n", path);
+        return 0;
+    }
+    return 1;
+}
+
 /*
  * run_speed_of_sound_experiments
  * -------------------------------
@@ -14264,10 +15016,11 @@ void run_speed_of_sound_experiments() {
     write_speed_of_sound_plot_commands_to_dir(mode1_folder);
 
     #if MOLECULAR_MODE
-        printf("📁 Output folder: %s\n", mode1_folder);
+        const char *mode_folder = mode1_folder;
     #else
-        printf("📁 Output folder: %s\n", mode0_folder);
+        const char *mode_folder = mode0_folder;
     #endif
+    printf("📁 Output folder: %s\n", mode_folder);
 
     wall_enabled = 1;                        // ensure wall exists for CCD
     wall_position_is_managed_externally = 1; // you control center via L0
@@ -14290,8 +15043,30 @@ void run_speed_of_sound_experiments() {
         : sizeof(default_wall_mass_factors) / sizeof(default_wall_mass_factors[0]);
 
     int num_repeats = cli_experiment_repeats > 0 ? cli_experiment_repeats : 1;
+    const int requested_runs = (int)(lengths_count * wall_mass_count * (size_t)num_repeats);
+    int valid_runs = 0;
+    int invalid_runs = 0;
+    if (!write_speed_sound_batch_status(
+            mode_folder, requested_runs, valid_runs, invalid_runs, false)) {
+        exit(2);
+    }
 
-    printf("Running each experiment for %d steps after wall release\n", num_steps);
+    if (cli_speed_sound_target_oscillations > 0) {
+        if (cli_speed_sound_max_steps < cli_speed_sound_min_steps) {
+            fprintf(stderr,
+                    "oscillation max steps (%d) must be >= min steps (%d).\n",
+                    cli_speed_sound_max_steps, cli_speed_sound_min_steps);
+            exit(2);
+        }
+        printf("Planning each experiment for %d fundamental oscillations "
+               "(safety %.3f, clamp %d..%d samples)\n",
+               cli_speed_sound_target_oscillations,
+               cli_speed_sound_oscillation_safety,
+               cli_speed_sound_min_steps,
+               cli_speed_sound_max_steps);
+    } else {
+        printf("Running each experiment for %d steps after wall release\n", num_steps);
+    }
     if (num_steps > 10000000) {
         printf("⚠️ WARNING: Simulation time is very long! Consider reducing the number of steps.\n");
     } else if (num_steps < 1000) {
@@ -14299,15 +15074,51 @@ void run_speed_of_sound_experiments() {
         num_steps = (int)(200000 / fmaxf(fixed_dt_runtime, 1e-9f));
     }
 
+    // ##CHRIS: trace filenames encode L0 as (int)(L0*10), so two requested lengths
+    // that agree to one decimal collide and silently overwrite each other's runs.
+    // With ~0.1 resolution near L0~5.5 the finest resolvable step is deta~0.013,
+    // which is far too coarse to scan the 0.700/0.716/0.720 transition structure.
+    // Refuse to start rather than quietly destroy half the campaign; the fix is to
+    // give each such length its own --speed-sound-run-dir.
+    for (size_t a = 0; a < lengths_count; ++a) {
+        for (size_t b = a + 1; b < lengths_count; ++b) {
+            if ((int)(lengths[a] * 10) == (int)(lengths[b] * 10)) {
+                fprintf(stderr,
+                        "❌ Requested lengths L0=%.4f and L0=%.4f both map to the trace "
+                        "filename index %d, so their CSVs would overwrite each other.\n"
+                        "   Separate them by at least 0.1 in L0, or run each in its own "
+                        "--speed-sound-run-dir.\n",
+                        (double)lengths[a], (double)lengths[b], (int)(lengths[a] * 10));
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+
     for (size_t l = 0; l < lengths_count; ++l) {
         for (size_t m = 0; m < wall_mass_count; ++m) {
             for (int r = 0; r < num_repeats; ++r) {
+
+                // ##CHRIS: --speed-sound-exact-seed bypasses the (l,m,r) index hash so a
+                // trajectory that failed inside a full sweep can be replayed on its own.
+                const unsigned int run_seed =
+                    cli_speed_sound_exact_seed_set
+                        ? cli_speed_sound_exact_seed
+                        : speed_sound_run_seed(cli_seed, l, m, r);
+                srand(run_seed);
 
                 float L0 = lengths[l];
                 int wall_mass_factor = wall_mass_factors[m];
                 wall_mass_runtime = PARTICLE_MASS * wall_mass_factor;
                 L0_UNITS = L0;
                 initialize_simulation_dimensions();
+                // The speed-of-sound setup has fixed outer boundaries and no
+                // active pistons. Re-park them after every L0 resize so the
+                // generic seeder does not accidentally constrain a compartment
+                // using piston coordinates left over from the previous run.
+                piston_left_x = (float)XW1 - 6.0f;
+                piston_right_x = (float)XW2 + 6.0f;
+                vx_piston_left = 0.0f;
+                vx_piston_right = 0.0f;
 
                 // center wall at L0 (in pixels)
                 wall_x     = XW1 + (L0 * PIXELS_PER_SIGMA);
@@ -14321,19 +15132,34 @@ void run_speed_of_sound_experiments() {
 
                 initialize_simulation();
 
-                // Use timestamped folder
-                #if MOLECULAR_MODE
-                    const char* mode_folder = mode1_folder;
-                #else
-                    const char* mode_folder = mode0_folder;
-                #endif
-
-                char filename[512];
+                char filename[640];
+                char partial_filename[640];
+                char invalid_filename[640];
+                /* Keep the legacy filename token for compatibility.  Exact L0
+                   is written in every CSV row and is canonical for analysis. */
                 int L0_int = (int)(L0 * 10);
                 snprintf(filename, sizeof(filename), "%s/wall_x_positions_L0_%d_wallmassfactor_%d_run%d.csv",
                          mode_folder, L0_int, wall_mass_factor, r);
-                FILE *wall_log = fopen(filename, "w");
-                if (!wall_log) { printf("❌ Could not open log file.\n"); continue; }
+                snprintf(partial_filename, sizeof(partial_filename),
+                         "%s/.partial_wall_x_positions_L0_%d_wallmassfactor_%d_run%d.csv",
+                         mode_folder, L0_int, wall_mass_factor, r);
+                snprintf(invalid_filename, sizeof(invalid_filename),
+                         "%s/invalid_wall_x_positions_L0_%d_wallmassfactor_%d_run%d.csv",
+                         mode_folder, L0_int, wall_mass_factor, r);
+
+                ExperimentValidator validator;
+                ExperimentValidationState validation_state;
+                experiment_validator_init(&validator);
+                FILE *wall_log = fopen(partial_filename, "w");
+                double *audit_storage = NULL;
+                double audit_wall_x = NAN;
+                double audit_wall_vx = NAN;
+                if (!wall_log) {
+                    experiment_validator_record_failure(
+                        &validator, "output", "trace_open_failed",
+                        "Could not open the temporary speed-of-sound trace.",
+                        0, 0.0, -1, -1, -1, -1, (double)errno, 0.0);
+                }
 
                 // Keep this CSV schema stable (analysis scripts assume these columns).
                 // Do NOT write substep logs into the same file (it breaks CSV parsing).
@@ -14342,9 +15168,14 @@ void run_speed_of_sound_experiments() {
                 // First 5 columns are consumed by analysis scripts; append metadata after that.
                 // Wall_X is an absolute σ-coordinate in the simulation frame (it is NOT equal to L0 if XW1 != 0).
                 // Displacement(σ) = Wall_X - Center_X(σ), so ~0 means "divider centered".
-                fprintf(wall_log, "Time,Wall_X,Displacement(σ),Left_Count,Right_Count,L0,eta,Center_X(σ)\n");
+                if (wall_log) {
+                    fprintf(wall_log,
+                            "Time,Wall_X,Displacement(σ),Left_Count,Right_Count,L0,eta,Center_X(σ),Seed,"
+                            "Target_Oscillations,Predicted_Frequency,Planned_Steps,Planned_Duration\n");
+                }
 
-                printf("🔬 Running: L0 = %.1f, M = %d*m, run = %d\n", L0, wall_mass_factor, r);
+                printf("🔬 Running: L0 = %.1f, M = %d*m, run = %d, seed = %u\n",
+                       L0, wall_mass_factor, r, run_seed);
                 printf("🔍 Initial wall_x = %.3f, vx_wall = %.6f\n", wall_x, vx_wall);
                 fflush(stdout);
 
@@ -14354,8 +15185,80 @@ void run_speed_of_sound_experiments() {
                 worst_penetration_observed = 0.0;
                 const double center_x_sigma_const = ((double)XW1 + (double)XW2) / (2.0 * (double)PIXELS_PER_SIGMA);
                 const double height_sigma_const = ((double)YW2 - (double)YW1) / (double)PIXELS_PER_SIGMA;
-                const double eta_nominal_const = ((double)particles_active * M_PI * (double)PARTICLE_RADIUS * (double)PARTICLE_RADIUS)
+                const double radius_sigma_const =
+                    (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA;
+                const double eta_nominal_const =
+                    ((double)particles_active * M_PI * radius_sigma_const * radius_sigma_const)
                     / fmax(1e-12, (2.0 * (double)L0_UNITS * height_sigma_const));
+                // ##CHRIS: psi_6 snapshot taken just before wall release; written out
+                // together with the end-of-run value once the trajectory completes.
+                Psi6Result psi6_hold = { NAN, NAN, 0.0, 0 };
+                // ##CHRIS: psi_6 sampled across the post-release measurement window.
+                Psi6Accum psi6_run; psi6_accum_init(&psi6_run);
+                const int particles_per_side_plan = particles_active / 2;
+                const double predicted_frequency =
+                    speed_sound_henderson_frequency_estimate(
+                        eta_nominal_const, (double)L0_UNITS,
+                        2.0 * radius_sigma_const,
+                        (double)wall_mass_factor,
+                        particles_per_side_plan);
+                const double sample_dt_sigma =
+                    (double)fixed_dt_runtime / (double)PIXELS_PER_SIGMA;
+
+                // ##CHRIS: resolve the logging stride for this trajectory. 'auto' keeps
+                // ~SPEED_SOUND_TARGET_SAMPLES_PER_PERIOD written rows per predicted
+                // oscillation, which is far above Nyquist for the piston mode while
+                // cutting the low-eta trace from ~1.3e6 rows to a few thousand.
+                int log_stride = cli_speed_sound_log_stride;
+                if (log_stride == 0) {
+                    const double period_samples =
+                        (predicted_frequency > 0.0 && sample_dt_sigma > 0.0)
+                            ? (1.0 / (predicted_frequency * sample_dt_sigma))
+                            : 0.0;
+                    log_stride = (period_samples > 0.0)
+                        ? (int)floor(period_samples / (double)SPEED_SOUND_TARGET_SAMPLES_PER_PERIOD)
+                        : 1;
+                    if (log_stride < 1) log_stride = 1;
+                }
+                if (log_stride < 1) log_stride = 1;
+
+                const int target_recorded_steps =
+                    speed_sound_steps_for_target_cycles(
+                        predicted_frequency, sample_dt_sigma);
+                int psi6_sample_stride = target_recorded_steps / PSI6_RUN_SAMPLES;
+                if (psi6_sample_stride < 1) psi6_sample_stride = 1;
+                const double planned_duration_sigma =
+                    (double)target_recorded_steps * sample_dt_sigma;
+                if (cli_speed_sound_target_oscillations > 0) {
+                    printf("🕒 target=%d cycles  f_pred=%.8g  samples=%d  T=%.6g sigma-time\n",
+                           cli_speed_sound_target_oscillations,
+                           predicted_frequency,
+                           target_recorded_steps,
+                           planned_duration_sigma);
+                }
+
+                if (!validator.failure.failed && cli_override_particles > 0 &&
+                    particles_active != cli_override_particles) {
+                    char detail[256];
+                    snprintf(detail, sizeof(detail),
+                             "Initialized %d particles; --particles requested %d.",
+                             particles_active, cli_override_particles);
+                    experiment_validator_record_failure(
+                        &validator, "initialization", "requested_particle_count_mismatch",
+                        detail, 0, 0.0, -1, -1, -1, -1,
+                        (double)particles_active, (double)cli_override_particles);
+                }
+                if (!validator.failure.failed && cli_particle_radius_set &&
+                    fabs(radius_sigma_const - (double)cli_particle_radius_sigma) > 1e-6) {
+                    char detail[256];
+                    snprintf(detail, sizeof(detail),
+                             "Initialized radius %.9g sigma; command requested %.9g sigma.",
+                             radius_sigma_const, (double)cli_particle_radius_sigma);
+                    experiment_validator_record_failure(
+                        &validator, "initialization", "particle_radius_mismatch",
+                        detail, 0, 0.0, -1, -1, -1, -1,
+                        radius_sigma_const, (double)cli_particle_radius_sigma);
+                }
 
                 if (sim_mode == MODE_EDMD || sim_mode == MODE_EDMD_HYBRID) {
                     if (sim_mode == MODE_EDMD_HYBRID) {
@@ -14385,52 +15288,152 @@ void run_speed_of_sound_experiments() {
                     prm.kB = (double)kB_effective();
                     prm.pp_collisions_enabled = cli_no_pp_collisions ? 0 : 1;
                     g_edmd = edmd_backend_create(&prm);
-                    if (!g_edmd) { fprintf(stderr, "EDMD create failed.\n"); exit(1); }
-                    // Load state
-                    EDMD_Particle* P = (EDMD_Particle*)edmd_backend_particles(g_edmd);
-                    for (int i=0;i<particles_active;i++) {
-                        double R = (double)PARTICLE_RADIUS;
-                        double bx = (double)(X[i] - XW1);
-                        double by = (double)(Y[i] - YW1);
-                        if (bx < R) bx = R; if (bx > prm.boxW - R) bx = prm.boxW - R;
-                        if (by < R) by = R; if (by > prm.boxH - R) by = prm.boxH - R;
-                        P[i].x = bx;
-                        P[i].y = by;
-                        P[i].vx = (double)Vx[i];
-                        P[i].vy = (double)Vy[i];
-                        P[i].coll_count = 0;
+                    // ##CHRIS: (re)arm the event-history tracer for this trajectory. Called
+                    // per run so the ring buffer and its one-shot latch reset each time.
+                    if (cli_edmd_debug_event_history > 0 &&
+                        cli_edmd_debug_particle_a >= 0 && cli_edmd_debug_particle_b >= 0) {
+                        edmd_backend_debug_set_watch(cli_edmd_debug_particle_a,
+                                                     cli_edmd_debug_particle_b,
+                                                     cli_edmd_debug_event_history);
                     }
-                    edmd_backend_divider_resolve_overlaps(g_edmd);
-                    edmd_backend_reschedule_all(g_edmd);
+                    if (!g_edmd) {
+                        experiment_validator_record_failure(
+                            &validator, "initialization", "edmd_create_failed",
+                            "Could not create the EDMD state.",
+                            0, 0.0, -1, -1, -1, -1, NAN, NAN);
+                    }
+
+                    if (!validator.failure.failed) {
+                        audit_storage = (double *)calloc(
+                            (size_t)particles_active * 4u, sizeof(double));
+                        if (!audit_storage) {
+                            experiment_validator_record_failure(
+                                &validator, "initialization", "audit_allocation_failed",
+                                "Could not allocate speed-of-sound validation buffers.",
+                                0, 0.0, -1, -1, -1, -1,
+                                (double)particles_active, NAN);
+                        }
+                    }
+
+                    if (!validator.failure.failed) {
+                        // Load state. Any invalid overlap is rejected below; scientific
+                        // runs do not use the old push-out repair to hide it.
+                        EDMD_Particle* P = (EDMD_Particle*)edmd_backend_particles(g_edmd);
+                        for (int i = 0; i < particles_active; ++i) {
+                            const double R = (double)PARTICLE_RADIUS;
+                            double bx = (double)(X[i] - XW1);
+                            double by = (double)(Y[i] - YW1);
+                            if (bx < R) bx = R;
+                            if (bx > prm.boxW - R) bx = prm.boxW - R;
+                            if (by < R) by = R;
+                            if (by > prm.boxH - R) by = prm.boxH - R;
+                            P[i].x = bx;
+                            P[i].y = by;
+                            P[i].vx = (double)Vx[i];
+                            P[i].vy = (double)Vy[i];
+                            P[i].coll_count = 0;
+                        }
+                        edmd_backend_reschedule_all(g_edmd);
+
+                        build_speed_sound_edmd_validation_state(
+                            &validation_state,
+                            audit_storage,
+                            audit_storage + particles_active,
+                            audit_storage + 2 * particles_active,
+                            audit_storage + 3 * particles_active,
+                            &audit_wall_x, &audit_wall_vx);
+                        experiment_validator_snapshot(
+                            &validator, &validation_state, "initialization", 0, 0.0);
+                        experiment_validator_check(
+                            &validator, &validation_state, "initialization", 0, 0.0, 1);
+
+                        if (!validator.failure.failed &&
+                            cli_particles_box_counts &&
+                            cli_particles_box_counts_count == 2) {
+                            int initial_left = 0;
+                            for (int i = 0; i < particles_active; ++i) {
+                                if (audit_storage[i] < audit_wall_x) initial_left++;
+                            }
+                            const int initial_right = particles_active - initial_left;
+                            if (initial_left != cli_particles_box_counts[0] ||
+                                initial_right != cli_particles_box_counts[1]) {
+                                char detail[256];
+                                snprintf(detail, sizeof(detail),
+                                         "Initialized compartments are %d,%d; command requested %d,%d.",
+                                         initial_left, initial_right,
+                                         cli_particles_box_counts[0],
+                                         cli_particles_box_counts[1]);
+                                experiment_validator_record_failure(
+                                    &validator, "initialization", "initial_segment_count_mismatch",
+                                    detail, 0, 0.0, -1, -1, -1, -1,
+                                    (double)initial_left,
+                                    (double)cli_particles_box_counts[0]);
+                            }
+                        }
+                    }
 
                     // Hold/equilibrate with the divider fixed for wall_hold_steps "ticks"
                     wall_is_released = false;
                     wall_hold_enabled = true;
-                    for (int s = 0; s < wall_hold_steps; ++s) {
+                    speed_sound_overdue_scan_t0(g_edmd);
+                    for (int s = 0; !validator.failure.failed && s < wall_hold_steps; ++s) {
                         double t0 = edmd_backend_time(g_edmd);
                         edmd_backend_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
+                        speed_sound_overdue_poll(g_edmd, "wall_hold", s + 1);
+                        build_speed_sound_edmd_validation_state(
+                            &validation_state,
+                            audit_storage,
+                            audit_storage + particles_active,
+                            audit_storage + 2 * particles_active,
+                            audit_storage + 3 * particles_active,
+                            &audit_wall_x, &audit_wall_vx);
+                        experiment_validator_check(
+                            &validator, &validation_state, "wall_hold", s + 1,
+                            edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA, 1);
+                    }
+
+                    // ##CHRIS: psi_6 immediately after equilibration, i.e. the ordering of
+                    // the state whose sound speed we are about to measure.
+                    if (!validator.failure.failed) {
+                        psi6_hold = compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
                     }
 
                     // Release: set finite wall mass
-                    {
+                    if (!validator.failure.failed) {
                         const double mass = (double)wall_mass_factor;
                         const double vx = 0.0;
                         edmd_backend_set_divider_motions(g_edmd, 1, &mass, &vx);
                         edmd_backend_reschedule_all(g_edmd);
                     }
-                    wall_release_time = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
-                    wall_is_released = true;
-                    wall_hold_enabled = false;
-                    recorded_steps = 0;
-                    if (!cli_quiet) {
-                        printf("🔔 Wall released (EDMD) at t = %.3f\n", wall_release_time);
+                    if (!validator.failure.failed) {
+                        wall_release_time = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
+                        wall_is_released = true;
+                        wall_hold_enabled = false;
+                        recorded_steps = 0;
+                        if (!cli_quiet) {
+                            printf("🔔 Wall released (EDMD) at t = %.3f\n", wall_release_time);
+                        }
                     }
 
-                    while (recorded_steps < num_steps) {
+                    while (!validator.failure.failed && recorded_steps < target_recorded_steps) {
                         // Advance EDMD to the next sample time (sampling interval = fixed_dt_runtime).
                         double t0 = edmd_backend_time(g_edmd);
                         edmd_backend_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
-                        edmd_backend_divider_resolve_overlaps(g_edmd);
+                        speed_sound_overdue_poll(g_edmd, "post_release", recorded_steps + 1);
+
+                        build_speed_sound_edmd_validation_state(
+                            &validation_state,
+                            audit_storage,
+                            audit_storage + particles_active,
+                            audit_storage + 2 * particles_active,
+                            audit_storage + 3 * particles_active,
+                            &audit_wall_x, &audit_wall_vx);
+                        experiment_validator_check(
+                            &validator, &validation_state, "post_release",
+                            recorded_steps + 1,
+                            edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA,
+                            1);
+                        if (validator.failure.failed) break;
 
                         const EDMD_Params* ep = edmd_backend_params(g_edmd);
                         const EDMD_Particle* Pnow = edmd_backend_particles(g_edmd);
@@ -14448,20 +15451,64 @@ void run_speed_of_sound_experiments() {
                         const double wall_x_sigma = ((double)XW1 + div_x_px) / (double)PIXELS_PER_SIGMA;
                         const double disp = wall_x_sigma - ((double)XW1 + (double)XW2) / (2.0 * (double)PIXELS_PER_SIGMA);
                         const double t_after = t_sigma - wall_release_time;
-                        fprintf(wall_log, "%.6f,%.6f,%.6f,%d,%d,%.6f,%.6f,%.6f\n",
-                                t_after, wall_x_sigma, disp, left_particles, right_particles,
-                                (double)L0_UNITS, eta_nominal_const, center_x_sigma_const);
+                        // ##CHRIS: stride affects only what is written; recorded_steps still
+                        // counts every simulated sample, so run length, validation cadence and
+                        // the completion check are unchanged. Always keep the final sample so
+                        // the recorded time span matches the planned duration.
+                        if (wall_log
+                            && (log_stride <= 1
+                                || (recorded_steps % log_stride) == 0
+                                || recorded_steps == target_recorded_steps - 1)) {
+                            fprintf(wall_log,
+                                    "%.6f,%.6f,%.6f,%d,%d,%.6f,%.6f,%.6f,%u,%d,%.12g,%d,%.12g\n",
+                                    t_after, wall_x_sigma, disp, left_particles, right_particles,
+                                    (double)L0_UNITS, eta_nominal_const, center_x_sigma_const,
+                                    run_seed, cli_speed_sound_target_oscillations,
+                                    predicted_frequency, target_recorded_steps,
+                                    planned_duration_sigma);
+                        }
+
+                        // ##CHRIS: sample psi_6 across the measurement window itself.
+                        if ((recorded_steps % psi6_sample_stride) == 0) {
+                            const Psi6Result pr =
+                                compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
+                            psi6_accum_add(&psi6_run, pr.global_abs);
+                        }
 
                         recorded_steps++;
-
-                        // bail-out if wall didn't get any motion for a long time
-                        if (fabs(ep->divider_vx[0]) < 1e-15 && recorded_steps > wall_hold_steps * 10) {
-                            printf("⚠️ Wall not moving — exiting early.\n");
-                            break;
-                        }
                     }
                 } else {
-                    while (recorded_steps < num_steps) {
+                    build_speed_sound_time_validation_state(
+                        &validation_state, &audit_wall_x, &audit_wall_vx);
+                    experiment_validator_snapshot(
+                        &validator, &validation_state, "initialization", 0, 0.0);
+                    experiment_validator_check(
+                        &validator, &validation_state, "initialization", 0, 0.0, 1);
+                    if (!validator.failure.failed &&
+                        cli_particles_box_counts &&
+                        cli_particles_box_counts_count == 2) {
+                        int initial_left = 0;
+                        for (int i = 0; i < particles_active; ++i) {
+                            if (X[i] < audit_wall_x) initial_left++;
+                        }
+                        const int initial_right = particles_active - initial_left;
+                        if (initial_left != cli_particles_box_counts[0] ||
+                            initial_right != cli_particles_box_counts[1]) {
+                            char detail[256];
+                            snprintf(detail, sizeof(detail),
+                                     "Initialized compartments are %d,%d; command requested %d,%d.",
+                                     initial_left, initial_right,
+                                     cli_particles_box_counts[0],
+                                     cli_particles_box_counts[1]);
+                            experiment_validator_record_failure(
+                                &validator, "initialization", "initial_segment_count_mismatch",
+                                detail, 0, 0.0, -1, -1, -1, -1,
+                                (double)initial_left,
+                                (double)cli_particles_box_counts[0]);
+                        }
+                    }
+
+                    while (!validator.failure.failed && recorded_steps < target_recorded_steps) {
                         // --- START OF STEP ---
                         wall_x_old = wall_x;   // ← CCD uses wall pose from start of step
                         steps_elapsed++;       // ← tick BEFORE update_wall so hold/release can trigger
@@ -14485,6 +15532,14 @@ void run_speed_of_sound_experiments() {
                         // ##CHRIS: time bookkeeping - convert pixel-time to σ-time
                         simulation_time += fixed_dt_runtime / PIXELS_PER_SIGMA;
 
+                        build_speed_sound_time_validation_state(
+                            &validation_state, &audit_wall_x, &audit_wall_vx);
+                        experiment_validator_check(
+                            &validator, &validation_state,
+                            wall_is_released ? "post_release" : "wall_hold",
+                            steps_elapsed, (double)simulation_time, 1);
+                        if (validator.failure.failed) break;
+
                         // release check using true sim time
                         if (steps_elapsed == wall_hold_steps && !wall_is_released) {
                             wall_release_time = simulation_time;
@@ -14501,9 +15556,15 @@ void run_speed_of_sound_experiments() {
                         float wall_x_sigma = wall_x / PIXELS_PER_SIGMA;
                         float disp = wall_x_sigma - (XW1 + XW2) / (2.0f * PIXELS_PER_SIGMA);
 
-                        fprintf(wall_log, "%.6f,%.6f,%.6f,%d,%d,%.6f,%.6f,%.6f\n",
-                                time_after_release, wall_x_sigma, disp, left_particles, right_particles,
-                                (double)L0_UNITS, eta_nominal_const, center_x_sigma_const);
+                        if (wall_log) {
+                            fprintf(wall_log,
+                                    "%.6f,%.6f,%.6f,%d,%d,%.6f,%.6f,%.6f,%u,%d,%.12g,%d,%.12g\n",
+                                    time_after_release, wall_x_sigma, disp, left_particles, right_particles,
+                                    (double)L0_UNITS, eta_nominal_const, center_x_sigma_const,
+                                    run_seed, cli_speed_sound_target_oscillations,
+                                    predicted_frequency, target_recorded_steps,
+                                    planned_duration_sigma);
+                        }
 
                         recorded_steps++;
 
@@ -14529,20 +15590,129 @@ void run_speed_of_sound_experiments() {
                         leftmost_wall_logged = true;
                     }
 
-                    // bail-out if wall didn't get any motion for a long time
-                    if (fabs(vx_wall) < 1e-15 && recorded_steps > wall_hold_steps * 10) {
-                        printf("⚠️ Wall not moving — exiting early.\n");
-                        break;
-                    }
                 }
                 }
 
-                fclose(wall_log);
-                printf("✅ Finished run %d\n\n", r);
+                // ##CHRIS: EDMD engine health. These counters must be zero in a correct run.
+                // They are reported rather than absorbed silently: a non-zero value means the
+                // engine had to repair a state it should never have reached, so the trajectory
+                // deserves scrutiny even though it may pass the overlap validator.
+                // ##CHRIS: psi_6 again at the end, so drift during the measurement is visible.
+                if (g_edmd && (sim_mode == MODE_EDMD || sim_mode == MODE_EDMD_HYBRID)
+                    && !validator.failure.failed) {
+                    const Psi6Result psi6_end = compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
+                    write_speed_sound_psi6(mode_folder, L0, wall_mass_factor, r, run_seed,
+                                           eta_nominal_const, &psi6_hold, &psi6_end,
+                                           &psi6_run);
+                    if (!cli_quiet) {
+                        printf("   psi6: hold=%.4f  end=%.4f  run_mean=%.4f+-%.4f "
+                               "(n=%d, nb=%.2f)\n",
+                               psi6_hold.global_abs, psi6_end.global_abs,
+                               psi6_accum_mean(&psi6_run), psi6_accum_sd(&psi6_run),
+                               psi6_run.count, psi6_end.mean_neighbors);
+                    }
+                }
+
+                if (g_edmd && (sim_mode == MODE_EDMD || sim_mode == MODE_EDMD_HYBRID)) {
+                    const long n_forced  = edmd_backend_forced_advance_count(g_edmd);
+                    const long n_clamp   = edmd_backend_clamp_repair_count(g_edmd);
+                    const long n_overlap = edmd_backend_overlap_repair_count(g_edmd);
+                    const long n_overdue = edmd_backend_wall_overdue_count(g_edmd);
+                    if (n_forced || n_clamp || n_overlap || n_overdue) {
+                        printf("⚠️ [EDMD-HEALTH] L0=%.1f M=%d run=%d seed=%u: "
+                               "forced_advance=%ld wall_clamp_repairs=%ld overlap_repairs=%ld "
+                               "wall_overdue=%ld\n",
+                               (double)L0, wall_mass_factor, r, run_seed,
+                               n_forced, n_clamp, n_overlap, n_overdue);
+                    }
+                }
+
+                if (!validator.failure.failed && recorded_steps != target_recorded_steps) {
+                    experiment_validator_record_failure(
+                        &validator, "completion", "run_incomplete",
+                        "Speed-of-sound run ended before all requested post-release samples were written.",
+                        steps_elapsed, (double)simulation_time,
+                        -1, -1, -1, -1,
+                        (double)recorded_steps, (double)target_recorded_steps);
+                }
+                if (wall_log && ferror(wall_log)) {
+                    experiment_validator_record_failure(
+                        &validator, "output", "trace_write_failed",
+                        "Writing the speed-of-sound trace failed.",
+                        steps_elapsed, (double)simulation_time,
+                        -1, -1, -1, -1, (double)errno, 0.0);
+                }
+                if (wall_log && fclose(wall_log) != 0) {
+                    experiment_validator_record_failure(
+                        &validator, "output", "trace_close_failed",
+                        "Closing/flushing the speed-of-sound trace failed.",
+                        steps_elapsed, (double)simulation_time,
+                        -1, -1, -1, -1, (double)errno, 0.0);
+                }
+
+                if (validator.failure.failed) {
+                    const ExperimentValidationFailure *failure =
+                        experiment_validator_failure(&validator);
+                    if (access(partial_filename, F_OK) == 0 &&
+                        rename(partial_filename, invalid_filename) != 0) {
+                        fprintf(stderr, "Could not preserve invalid trace as %s: %s\n",
+                                invalid_filename, strerror(errno));
+                    }
+                    const char *preserved_trace =
+                        (access(invalid_filename, F_OK) == 0)
+                            ? invalid_filename : partial_filename;
+                    write_speed_sound_failure(
+                        mode_folder, preserved_trace, L0,
+                        wall_mass_factor, r, run_seed, failure);
+                    fprintf(stderr, "INVALID speed-of-sound run L0=%.3g M=%d repeat=%d [%s]: %s\n",
+                            (double)L0, wall_mass_factor, r,
+                            failure->reason, failure->detail);
+                    invalid_runs++;
+                } else if (rename(partial_filename, filename) != 0) {
+                    ExperimentValidator output_validator;
+                    experiment_validator_init(&output_validator);
+                    char detail[256];
+                    snprintf(detail, sizeof(detail),
+                             "Could not publish valid trace: %s", strerror(errno));
+                    experiment_validator_record_failure(
+                        &output_validator, "output", "trace_publish_failed",
+                        detail, steps_elapsed, (double)simulation_time,
+                        -1, -1, -1, -1, (double)errno, 0.0);
+                    write_speed_sound_failure(
+                        mode_folder, partial_filename, L0,
+                        wall_mass_factor, r, run_seed,
+                        experiment_validator_failure(&output_validator));
+                    experiment_validator_destroy(&output_validator);
+                    invalid_runs++;
+                } else {
+                    valid_runs++;
+                    printf("✅ Finished valid run %d\n\n", r);
+                }
+
+                if (!write_speed_sound_batch_status(
+                        mode_folder, requested_runs, valid_runs, invalid_runs, false)) {
+                    free(audit_storage);
+                    experiment_validator_destroy(&validator);
+                    exit(2);
+                }
+
+                free(audit_storage);
+                experiment_validator_destroy(&validator);
                 fflush(stdout);
             }
         }
     }
+
+    const bool batch_complete =
+        (invalid_runs == 0 && valid_runs == requested_runs);
+    if (!write_speed_sound_batch_status(
+            mode_folder, requested_runs, valid_runs, invalid_runs,
+            batch_complete)) {
+        exit(2);
+    }
+    printf("Speed-of-sound batch complete: %d valid, %d invalid, %d requested.\n",
+           valid_runs, invalid_runs, requested_runs);
+    if (invalid_runs > 0 || valid_runs != requested_runs) exit(2);
 }
 
 /*
@@ -14553,9 +15723,155 @@ void run_speed_of_sound_experiments() {
  * into experiments_energy_transfer. Honors multi-wall setups; primary wall is
  * the one coupled to the spring.
  */
+static const char *experiment_sim_mode_name(void) {
+    return (sim_mode == MODE_EDMD) ? "edmd"
+         : (sim_mode == MODE_EDMD_HYBRID) ? "edmd-hybrid"
+         : (sim_mode == MODE_RK4) ? "rk4"
+         : "time";
+}
+
+static void energy_transfer_summary_path(char *path, size_t path_size) {
+    if (cli_energy_transfer_summary_set && cli_energy_transfer_summary_path[0] != '\0') {
+        resolve_cli_output_path(path, path_size, cli_energy_transfer_summary_path);
+    } else {
+        snprintf(path, path_size, "%s/energy_transfer_runs_%dwalls.csv",
+                 g_energy_transfer_dir, num_internal_walls);
+    }
+}
+
+static void experiment_failure_path_from_summary(char *dst, size_t dst_size,
+                                                 const char *summary_path) {
+    const char *extension = summary_path ? strrchr(summary_path, '.') : NULL;
+    if (extension && strcmp(extension, ".csv") == 0) {
+        size_t stem_length = (size_t)(extension - summary_path);
+        if (stem_length >= dst_size) stem_length = dst_size - 1;
+        memcpy(dst, summary_path, stem_length);
+        dst[stem_length] = '\0';
+        snprintf(dst + stem_length, dst_size - stem_length, ".failures.csv");
+    } else {
+        snprintf(dst, dst_size, "%s.failures.csv", summary_path ? summary_path : "experiment");
+    }
+}
+
+static void write_energy_transfer_failure(const char *summary_path,
+                                          const char *trace_path,
+                                          const ExperimentValidationFailure *failure) {
+    if (!failure || !failure->failed) return;
+    char failure_path[640];
+    experiment_failure_path_from_summary(failure_path, sizeof(failure_path), summary_path);
+    mkdir_p_for_file(failure_path);
+    const char *header =
+        "timestamp,experiment,sim_mode,seed,step,time_sigma,phase,reason,detail,"
+        "particle_a,particle_b,wall_a,wall_b,value,limit,trace_path,command\n";
+    ensure_csv_header_schema(failure_path, header);
+    const bool need_header = (access(failure_path, F_OK) != 0);
+    FILE *file = fopen(failure_path, "a");
+    if (!file) {
+        fprintf(stderr, "FAILED TO WRITE experiment failure ledger: %s\n", failure_path);
+        return;
+    }
+    if (need_header) fputs(header, file);
+
+    time_t now = time(NULL);
+    struct tm tm_now;
+    localtime_r(&now, &tm_now);
+    char timestamp[64];
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", &tm_now);
+    fprintf(file, "%s,energy_transfer,%s,%u,%d,%.9g,",
+            timestamp, experiment_sim_mode_name(), cli_seed,
+            failure->step, failure->time_sigma);
+    csv_put_escaped(file, failure->phase);
+    fputc(',', file);
+    csv_put_escaped(file, failure->reason);
+    fputc(',', file);
+    csv_put_escaped(file, failure->detail);
+    fprintf(file, ",%d,%d,%d,%d,%.17g,%.17g,",
+            failure->particle_a, failure->particle_b,
+            failure->wall_a, failure->wall_b,
+            failure->value, failure->limit);
+    csv_put_escaped(file, trace_path ? trace_path : "");
+    fputc(',', file);
+    csv_put_escaped(file, cli_command_line ? cli_command_line : "");
+    fputc('\n', file);
+    fclose(file);
+    fprintf(stderr, "Failure record appended to: %s\n", failure_path);
+}
+
+static void build_energy_transfer_validation_state(ExperimentValidationState *state,
+                                                   double *wall_positions,
+                                                   double *wall_velocities) {
+    sync_all_wall_positions();
+    const EDMD_Params *ep = (g_edmd && sim_mode == MODE_EDMD)
+        ? edmd_params(g_edmd) : NULL;
+    for (int w = 0; w < num_internal_walls; ++w) {
+        if (ep && w < ep->divider_count) {
+            /* Validate against the authoritative double-precision EDMD state.
+               The SDL/global wall arrays are floats and can differ by an ULP,
+               which is larger than the collision solver's contact tolerance. */
+            wall_positions[w] = (double)XW1 + ep->divider_x[w];
+            wall_velocities[w] = ep->divider_vx[w];
+        } else {
+            wall_positions[w] = all_wall_positions ? (double)all_wall_positions[w]
+                                                   : (double)wall_x;
+            if (w == primary_wall_index) {
+                wall_velocities[w] = (double)vx_wall;
+            } else {
+                const int extra = (w < primary_wall_index) ? w : (w - 1);
+                wall_velocities[w] = (extra_wall_velocity &&
+                                      extra >= 0 && extra < extra_wall_count)
+                                     ? (double)extra_wall_velocity[extra] : 0.0;
+            }
+        }
+    }
+    memset(state, 0, sizeof(*state));
+    state->particle_count = particles_active;
+    state->x = X;
+    state->y = Y;
+    state->vx = Vx;
+    state->vy = Vy;
+    state->particle_radius = ep ? ep->radius : (double)PARTICLE_RADIUS;
+    /* Both the static box and piston faces constrain particles. Some presets
+       park a piston slightly outside the static box, so use the stricter face. */
+    state->x_min_face = ep
+        ? fmax((double)XW1, (double)XW1 + ep->pistonL_x)
+        : fmax((double)XW1, (double)piston_left_x + 5.0);
+    state->x_max_face = ep
+        ? fmin((double)XW2, (double)XW1 + ep->pistonR_x)
+        : fmin((double)XW2, (double)piston_right_x);
+    state->y_min = (double)YW1;
+    state->y_max = (double)YW2;
+    state->wall_count = num_internal_walls;
+    state->wall_x = wall_positions;
+    state->wall_vx = wall_velocities;
+    state->wall_half_thickness = (ep && ep->divider_count > 0)
+        ? 0.5 * fabs(ep->divider_thickness[0])
+        : 0.5 * fabs((double)WALL_THICKNESS);
+    state->kinetic_energy = kinetic_energy();
+    state->spring_energy = (double)energy_measurement.spring_energy;
+    state->piston_work_left = piston_work_left;
+    state->piston_work_right = piston_work_right;
+    state->forced_advance_events =
+        (g_edmd && (sim_mode == MODE_EDMD || sim_mode == MODE_EDMD_HYBRID))
+        ? edmd_forced_advance_count(g_edmd) : 0;
+}
+
 static void run_energy_transfer_experiment(void) {
     mkdir_p(g_energy_transfer_dir);
-    write_command_md_to_dir(g_energy_transfer_dir, g_main_argc, g_main_argv);
+    /* ##CHRIS: write the provenance file next to the trace the caller asked for.
+       This used to always target g_energy_transfer_dir ("experiments_energy_transfer"),
+       so ANY energy-transfer run -- including a two-step smoke test writing to /tmp --
+       overwrote the historical 00_COMMAND.md there. Unchanged when
+       --energy-transfer-trace is not given. */
+    {
+        const char *cmd_dir = g_energy_transfer_dir;
+        char trace_dir[512];
+        if (cli_energy_transfer_trace_set && cli_energy_transfer_trace_path[0]) {
+            snprintf(trace_dir, sizeof(trace_dir), "%s", cli_energy_transfer_trace_path);
+            char *slash = strrchr(trace_dir, '/');
+            if (slash) { *slash = '\0'; if (trace_dir[0]) cmd_dir = trace_dir; }
+        }
+        write_command_md_to_dir(cmd_dir, g_main_argc, g_main_argv);
+    }
 
     if (!energy_measurement.eff_enabled) {
         initialize_energy_measurement();
@@ -14566,6 +15882,9 @@ static void run_energy_transfer_experiment(void) {
 
     int left_particles = 0, right_particles = 0;
 
+    char summary_path[512];
+    energy_transfer_summary_path(summary_path, sizeof(summary_path));
+
     char trace_path[512];
     if (cli_energy_transfer_trace_set && cli_energy_transfer_trace_path[0] != '\0') {
         resolve_cli_output_path(trace_path, sizeof(trace_path), cli_energy_transfer_trace_path);
@@ -14574,13 +15893,36 @@ static void run_energy_transfer_experiment(void) {
     }
     mkdir_p_for_file(trace_path);
     FILE *elog = fopen(trace_path, "w");
-    if (!elog) { printf("❌ Could not open energy transfer log file.\n"); return; }
+    if (!elog) {
+        ExperimentValidator setup_validator;
+        experiment_validator_init(&setup_validator);
+        experiment_validator_record_failure(
+            &setup_validator, "output_setup", "trace_open_failed",
+            "Could not create the energy-transfer trace; the run was not started.",
+            0, 0.0, -1, -1, -1, -1, (double)errno, 0.0);
+        write_energy_transfer_failure(
+            summary_path, trace_path,
+            experiment_validator_failure(&setup_validator));
+        experiment_validator_destroy(&setup_validator);
+        fprintf(stderr, "ABORTING: could not open energy transfer trace %s: %s\n",
+                trace_path, strerror(errno));
+        exit(2);
+    }
     // Keep the first 10 columns stable for older scripts; append debug columns for wall/piston kinematics.
     fprintf(elog,
             "Time,Wall_X,SpringF,SpringE,EnergyTransferred,Left_Count,Right_Count,PistonWork,PistonWorkDeltaMax,SpringE_Max,"
             "W0_x_sigma,W0_v,W1_x_sigma,W1_v,W2_x_sigma,W2_v,W3_x_sigma,W3_v,W4_x_sigma,W4_v,"
             "PistonR_x_sigma,PistonR_v,PistonL_x_sigma,PistonL_v,"
-            "PistonStop_t_rel,SpringE_stop,SpringE_peak_win,SpringE_delta_peak_win,SegCounts,SegEtas\n");
+            "PistonStop_t_rel,SpringE_stop,SpringE_peak_win,SpringE_delta_peak_win,SegCounts,SegEtas,"
+            /* ##CHRIS: Paper 2 Level 0. The first law W = dKE_gas + dKE_div + dE_spring + Q
+               could not be closed on the old traces because KE_gas was never logged
+               per sample (only in a --quiet-suppressed stdout line every 1000 steps).
+               These four columns close it. Appended at the end so every existing
+               column index is unchanged. Reduced units: PARTICLE_MASS = 1 and the
+               core's resolve_wall() uses m = 1.0, so energies are in kT with --kbt1;
+               velocities are numerically identical in px- and sigma-units because
+               x_sigma = x_px/PPS and t_sigma = t_px/PPS, so the scale cancels. */
+            "KE_gas_total,KE_gas_left,KE_gas_right,Px_gas\n");
 
     // Reset sim
     initialize_simulation_dimensions();
@@ -14664,6 +16006,7 @@ static void run_energy_transfer_experiment(void) {
         prm.stability_window_percent = (double)stability_window_percent;
         prm.particle_mass = (double)PARTICLE_MASS;
         prm.kB = (double)kB_effective();
+        prm.pp_collisions_enabled = 1;
         // EDMD harmonic spring wall: if we're outputting spring energy, model the primary divider as a
         // true harmonic oscillator inside EDMD (no timestep impulses).
         if (energy_measurement.spring_enabled && prm.divider_count > 0) {
@@ -14683,6 +16026,17 @@ static void run_energy_transfer_experiment(void) {
         double mL = 0.0; double mR = 0.0;
         g_edmd = edmd_create(&prm);
         if (!g_edmd) { fprintf(stderr, "EDMD create failed.\n"); exit(1);} 
+        /* ##CHRIS: Paper 2 Level 0 -- optional per-event piston/divider collision log,
+           energy-transfer mode only, off unless HD_PISTON_EVENTS names a file.
+           Print only; the core writes it inside resolve_wall() without touching the
+           dynamics. PIXELS_PER_SIGMA is passed so the log carries sigma-time. */
+        {
+            const char* ev_path = getenv("HD_PISTON_EVENTS");
+            if (ev_path && *ev_path) {
+                edmd_set_event_log(ev_path, (double)PIXELS_PER_SIGMA);
+                if (!cli_quiet) printf("[EVENTLOG] piston/divider events -> %s\n", ev_path);
+            }
+        }
         edmd_config_pistons(g_edmd, hasL, xL, vxL, mL, hasR, xR, vxR, mR);
         // load current positions/velocities into EDMD state
         EDMD_Particle* P = (EDMD_Particle*)edmd_particles(g_edmd);
@@ -14698,8 +16052,8 @@ static void run_energy_transfer_experiment(void) {
             P[i].vy = (double)Vy[i];
             P[i].coll_count = 0;
         }
-        // Szilard: keep EDMD in a valid (overlap-free) state even if the seeding/clamp left tiny overlaps.
-        edmd_relax_pp_overlaps_szilard(g_edmd);
+        /* Do not repair initialization in scientific runs. The validator below
+           must observe and reject any overlap produced by seeding. */
         if (sim_mode == MODE_EDMD) {
             edmd_reschedule_all(g_edmd);
             edmd_reset_work(g_edmd);
@@ -14725,11 +16079,143 @@ static void run_energy_transfer_experiment(void) {
         }
     }
 
-    // Tunneling detection: snapshot initial segment counts at wall release
-    int *initial_segment_counts = NULL;
-    bool tunneling_detected = false;
+    /* Scientific-run guard. This is always active in the batch experiment,
+       including the hold phase, and records particle identities rather than
+       relying only on aggregate compartment counts. */
+    ExperimentValidator validator;
+    ExperimentValidationState validation_state;
+    double validation_wall_x[MAX_DIVIDER_CAPACITY] = {0.0};
+    double validation_wall_vx[MAX_DIVIDER_CAPACITY] = {0.0};
+    experiment_validator_init(&validator);
+    recompute_segment_stats_counts_and_temperature();
+    build_energy_transfer_validation_state(&validation_state,
+                                           validation_wall_x,
+                                           validation_wall_vx);
+    experiment_validator_snapshot(&validator, &validation_state,
+                                  "initialization", 0, 0.0);
+    experiment_validator_check(&validator, &validation_state,
+                               "initialization", 0, 0.0, 1);
 
-    while (recorded_steps < target_steps) {
+    if (!validator.failure.failed && cli_override_particles > 0 &&
+        particles_active != cli_override_particles) {
+        char detail[256];
+        snprintf(detail, sizeof(detail),
+                 "Initialized %d particles; --particles requested %d. Check that --particles-boxes sums exactly.",
+                 particles_active, cli_override_particles);
+        experiment_validator_record_failure(
+            &validator, "initialization", "requested_particle_count_mismatch",
+            detail, 0, 0.0, -1, -1, -1, -1,
+            (double)particles_active, (double)cli_override_particles);
+    }
+
+    if (!validator.failure.failed && cli_particle_radius_set) {
+        const double actual_radius_sigma =
+            validation_state.particle_radius / (double)PIXELS_PER_SIGMA;
+        const double requested_radius_sigma = (double)cli_particle_radius_sigma;
+        if (fabs(actual_radius_sigma - requested_radius_sigma) > 1e-6) {
+            char detail[256];
+            snprintf(detail, sizeof(detail),
+                     "Initialized radius %.9g sigma; command requested %.9g sigma.",
+                     actual_radius_sigma, requested_radius_sigma);
+            experiment_validator_record_failure(
+                &validator, "initialization", "particle_radius_mismatch",
+                detail, 0, 0.0, -1, -1, -1, -1,
+                actual_radius_sigma, requested_radius_sigma);
+        }
+    }
+
+    if (!validator.failure.failed && cli_num_walls == num_internal_walls &&
+        all_wall_positions) {
+        /* CLI wall positions and the simulation arrays are float-valued. */
+        const double position_tolerance_sigma = 1e-5;
+        for (int wall = 0; wall < num_internal_walls; ++wall) {
+            const double actual_sigma =
+                ((double)all_wall_positions[wall] - (double)XW1) /
+                (double)PIXELS_PER_SIGMA;
+            const double requested_sigma = (double)cli_wall_positions[wall];
+            if (fabs(actual_sigma - requested_sigma) > position_tolerance_sigma) {
+                char detail[256];
+                snprintf(detail, sizeof(detail),
+                         "Wall %d initialized at %.9g sigma; command requested %.9g sigma.",
+                         wall, actual_sigma, requested_sigma);
+                experiment_validator_record_failure(
+                    &validator, "initialization", "initial_wall_position_mismatch",
+                    detail, 0, 0.0, -1, -1, wall, -1,
+                    actual_sigma, requested_sigma);
+                break;
+            }
+        }
+    }
+
+    if (!validator.failure.failed &&
+        cli_particles_box_counts &&
+        cli_particles_box_counts_count == (size_t)segment_count &&
+        segment_counts) {
+        for (int segment = 0; segment < segment_count; ++segment) {
+            if (segment_counts[segment] != cli_particles_box_counts[segment]) {
+                char detail[256];
+                snprintf(detail, sizeof(detail),
+                         "Initialized segment %d with %d particles; command requested %d.",
+                         segment, segment_counts[segment],
+                         cli_particles_box_counts[segment]);
+                experiment_validator_record_failure(
+                    &validator, "initialization", "initial_segment_count_mismatch",
+                    detail, 0, 0.0, -1, -1, -1, -1,
+                    (double)segment_counts[segment],
+                    (double)cli_particles_box_counts[segment]);
+                break;
+            }
+        }
+    }
+
+    if (!validator.failure.failed && cli_packing_fraction_set &&
+        cli_particles_box_counts &&
+        cli_particles_box_counts_count == (size_t)segment_count &&
+        cli_num_walls == num_internal_walls) {
+        double occupied_width_sigma = 0.0;
+        double left_sigma = 0.0;
+        for (int segment = 0; segment < segment_count; ++segment) {
+            const double right_sigma = (segment < num_internal_walls)
+                ? (double)cli_wall_positions[segment]
+                : 2.0 * (double)L0_UNITS;
+            if (cli_particles_box_counts[segment] > 0) {
+                occupied_width_sigma += right_sigma - left_sigma;
+            }
+            left_sigma = right_sigma;
+        }
+        const double radius_sigma =
+            (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA;
+        const double realized_eta = (occupied_width_sigma > 0.0)
+            ? ((double)particles_active * M_PI * radius_sigma * radius_sigma) /
+              (occupied_width_sigma * (double)HEIGHT_UNITS)
+            : NAN;
+        const double eta_tolerance = fmax(1e-7, 1e-5 * fabs((double)cli_packing_fraction));
+        if (!isfinite(realized_eta) ||
+            fabs(realized_eta - (double)cli_packing_fraction) > eta_tolerance) {
+            char detail[256];
+            snprintf(detail, sizeof(detail),
+                     "Realized occupied-region eta is %.9g; command requested %.9g.",
+                     realized_eta, (double)cli_packing_fraction);
+            experiment_validator_record_failure(
+                &validator, "initialization", "packing_fraction_mismatch",
+                detail, 0, 0.0, -1, -1, -1, -1,
+                realized_eta, (double)cli_packing_fraction);
+        }
+    }
+
+    if (!validator.failure.failed && wall_hold_steps <= 0) {
+        wall_release_time = simulation_time;
+        wall_is_released = true;
+        if (extra_wall_hold_enabled && extra_wall_is_released) {
+            for (int j = 0; j < extra_wall_count; ++j) {
+                extra_wall_is_released[j] = true;
+                extra_wall_hold_enabled[j] = false;
+                if (extra_wall_release_time) extra_wall_release_time[j] = simulation_time;
+            }
+        }
+    }
+
+    while (!validator.failure.failed && recorded_steps < target_steps) {
         wall_x_old = wall_x;
         steps_elapsed++;
 
@@ -14744,16 +16230,13 @@ static void run_energy_transfer_experiment(void) {
                 int primary_idx = primary_wall_index;
                 if (primary_idx < 0 || primary_idx >= dcount) primary_idx = 0;
 
-                double div_x[EDMD_MAX_DIVIDERS];
                 double div_vx[EDMD_MAX_DIVIDERS];
                 double div_mass[EDMD_MAX_DIVIDERS];
-                double div_th[EDMD_MAX_DIVIDERS];
                 int extra_idx = 0;
+                bool edmd_configuration_changed = false;
 
                 for (int w = 0; w < dcount; ++w) {
-                    div_x[w] = ep_state->divider_x[w];
                     div_vx[w] = ep_state->divider_vx[w];
-                    div_th[w] = (double)WALL_THICKNESS;
                     double mf = (double)(WALL_MASS / PARTICLE_MASS);
                     if (cli_wall_masses_set && w < (int)(sizeof(cli_wall_masses) / sizeof(cli_wall_masses[0])) && cli_wall_masses[w] > 0.0f) {
                         mf = (double)cli_wall_masses[w];
@@ -14778,6 +16261,10 @@ static void run_energy_transfer_experiment(void) {
                             extra_idx++;
                         }
                     }
+                    if (div_mass[w] != ep_state->divider_mass[w] ||
+                        div_vx[w] != ep_state->divider_vx[w]) {
+                        edmd_configuration_changed = true;
+                    }
                 }
 
                 piston_left_x  = (float)(XW1 + ep_state->pistonL_x - 5.0);
@@ -14786,23 +16273,25 @@ static void run_energy_transfer_experiment(void) {
                 // In pure EDMD mode, the spring wall is handled by the EDMD core (harmonic divider)
                 // when --eff-output=spring is used. Do not apply timestep impulses here.
 
-                edmd_config_dividers(g_edmd, dcount, div_x, div_th);
-                edmd_set_divider_motions(g_edmd, dcount, div_mass, div_vx);
+                if (edmd_configuration_changed) {
+                    edmd_set_divider_motions(g_edmd, dcount, div_mass, div_vx);
+                }
 
-                static double prev_vxL = 0.0, prev_vxR = 0.0;
                 apply_piston_protocol(fixed_dt_runtime);
-                if (vx_piston_left != prev_vxL || vx_piston_right != prev_vxR) {
+                if ((double)vx_piston_left != ep_state->pistonL_vx ||
+                    (double)vx_piston_right != ep_state->pistonR_vx) {
                     const EDMD_Params* epc = edmd_params(g_edmd);
                     edmd_config_pistons(g_edmd,
                         1, epc->pistonL_x, (double)vx_piston_left, epc->pistonL_mass,
                         1, epc->pistonR_x, (double)vx_piston_right, epc->pistonR_mass);
-                    prev_vxL = vx_piston_left; prev_vxR = vx_piston_right;
+                    edmd_configuration_changed = true;
                 }
-                edmd_reschedule_all(g_edmd);
+                if (edmd_configuration_changed) {
+                    edmd_reschedule_all(g_edmd);
+                }
 
                 double t0 = edmd_time(g_edmd);
                 edmd_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
-                edmd_divider_resolve_overlaps(g_edmd);
                 const EDMD_Particle* P = edmd_particles(g_edmd);
                 for (int i=0;i<particles_active;i++) {
                     X[i] = (double)XW1 + (double)P[i].x;
@@ -14893,7 +16382,39 @@ static void run_energy_transfer_experiment(void) {
         // ##CHRIS: Convert pixel-time to σ-time units (TIME mode fix)
         simulation_time += fixed_dt_runtime / PIXELS_PER_SIGMA;
 
+        build_energy_transfer_validation_state(&validation_state,
+                                               validation_wall_x,
+                                               validation_wall_vx);
+        if (!validator.failure.failed && sim_mode == MODE_EDMD &&
+            wall_is_released && cli_wall_masses_set && g_edmd) {
+            const EDMD_Params *mass_state = edmd_params(g_edmd);
+            const int mass_count = mass_state->divider_count;
+            for (int w = 0; w < mass_count &&
+                            w < (int)cli_wall_masses_count; ++w) {
+                const double requested_mass = (double)cli_wall_masses[w];
+                const double actual_mass = mass_state->divider_mass[w];
+                const double mass_tolerance =
+                    fmax(1e-9, 1e-9 * fabs(requested_mass));
+                if (fabs(actual_mass - requested_mass) > mass_tolerance) {
+                    char detail[256];
+                    snprintf(detail, sizeof(detail),
+                             "Released wall %d has mass %.17g; command requested %.17g.",
+                             w, actual_mass, requested_mass);
+                    experiment_validator_record_failure(
+                        &validator, "post_release", "wall_mass_mismatch",
+                        detail, steps_elapsed, (double)simulation_time,
+                        -1, -1, w, -1, actual_mass, requested_mass);
+                    break;
+                }
+            }
+        }
+        experiment_validator_check(&validator, &validation_state,
+                                   wall_is_released ? "post_release" : "wall_hold",
+                                   steps_elapsed, (double)simulation_time, 1);
+        if (validator.failure.failed) break;
+
         if (steps_elapsed == wall_hold_steps && !wall_is_released) {
+            ke_audit("3 end of hold (at release)");
             wall_release_time = simulation_time;
             wall_is_released  = true;
             recorded_steps    = 0;
@@ -14907,44 +16428,9 @@ static void run_energy_transfer_experiment(void) {
                     if (extra_wall_release_time) extra_wall_release_time[j] = simulation_time;
                 }
             }
-            // Snapshot per-segment particle counts at release for tunneling detection
-            if (segment_counts && segment_count > 0 && !initial_segment_counts) {
-                initial_segment_counts = (int*)malloc((size_t)segment_count * sizeof(int));
-                if (initial_segment_counts) {
-                    memcpy(initial_segment_counts, segment_counts, (size_t)segment_count * sizeof(int));
-                    if (!cli_quiet) {
-                        printf("  Tunneling check: initial segment counts [");
-                        for (int s = 0; s < segment_count; s++)
-                            printf("%s%d", s ? ", " : "", initial_segment_counts[s]);
-                        printf("]\n");
-                    }
-                }
-            }
         }
 
         if (!wall_is_released) continue;
-
-        // Tunneling detection: compare current segment counts to initial
-        if (initial_segment_counts && segment_counts && segment_count > 0) {
-            for (int s = 0; s < segment_count; s++) {
-                if (segment_counts[s] != initial_segment_counts[s]) {
-                    fprintf(stderr, "TUNNELING DETECTED at step %d (t=%.6f): "
-                            "segment %d count changed from %d to %d\n",
-                            steps_elapsed, simulation_time,
-                            s, initial_segment_counts[s], segment_counts[s]);
-                    fprintf(stderr, "  Initial: [");
-                    for (int j = 0; j < segment_count; j++)
-                        fprintf(stderr, "%s%d", j ? ", " : "", initial_segment_counts[j]);
-                    fprintf(stderr, "]  Current: [");
-                    for (int j = 0; j < segment_count; j++)
-                        fprintf(stderr, "%s%d", j ? ", " : "", segment_counts[j]);
-                    fprintf(stderr, "]\n");
-                    tunneling_detected = true;
-                    break;
-                }
-            }
-            if (tunneling_detected) break;  // Exit experiment loop
-        }
 
         if (cli_auto_piston_step && !piston_auto_triggered) {
             trigger_piston_step_with_protocol();
@@ -15036,6 +16522,32 @@ static void run_energy_transfer_experiment(void) {
         csv_put_escaped(elog, seg_buf[0] ? seg_buf : NULL);
         fputc(',', elog);
         csv_put_escaped(elog, seg_eta_buf[0] ? seg_eta_buf : NULL);
+        /* ##CHRIS: gas kinetic energy and x-momentum for the Level-0 ledger.
+           X/Vx/Vy were synced from the EDMD backend and
+           recompute_segment_stats_counts_and_temperature() was called earlier in
+           this same block, so segment_ke[] is current. The left/right split uses
+           the same convention as Left_Count/Right_Count above: segment 0 is left,
+           everything else is right. */
+        {
+            double ke_tot = 0.0, ke_left = 0.0, ke_right = 0.0, px_gas = 0.0;
+            for (int i = 0; i < particles_active; ++i) {
+                px_gas += (double)PARTICLE_MASS * (double)Vx[i];
+            }
+            if (segment_ke && segment_count > 0) {
+                for (int sgi = 0; sgi < segment_count; ++sgi) {
+                    ke_tot += segment_ke[sgi];
+                    if (sgi == 0) ke_left += segment_ke[sgi];
+                    else          ke_right += segment_ke[sgi];
+                }
+            } else {
+                for (int i = 0; i < particles_active; ++i) {
+                    ke_tot += 0.5 * (double)PARTICLE_MASS *
+                              ((double)Vx[i] * (double)Vx[i] + (double)Vy[i] * (double)Vy[i]);
+                }
+                ke_left = ke_tot; ke_right = 0.0;
+            }
+            fprintf(elog, ",%.12e,%.12e,%.12e,%.12e", ke_tot, ke_left, ke_right, px_gas);
+        }
         fputc('\n', elog);
         recorded_steps++;
 
@@ -15048,16 +16560,52 @@ static void run_energy_transfer_experiment(void) {
         }
     }
 
-    free(initial_segment_counts);
-    initial_segment_counts = NULL;
-
-    fclose(elog);
-
-    if (tunneling_detected) {
-        fprintf(stderr, "ABORTING: particle teleportation through wall detected. "
-                        "Results for this run are invalid.\n");
-        exit(1);
+    if (!validator.failure.failed) {
+        const bool normal_completion = recorded_steps >= target_steps;
+        const bool window_completion = cli_eff_stop_after_window &&
+                                       energy_measurement.eff_window_done;
+        if (!normal_completion && !window_completion) {
+            experiment_validator_record_failure(
+                &validator, "completion", "run_incomplete",
+                "Experiment loop ended before its requested steps or efficiency window completed.",
+                steps_elapsed, (double)simulation_time,
+                -1, -1, -1, -1, (double)recorded_steps, (double)target_steps);
+        } else if (cli_auto_piston_step && !piston_auto_triggered) {
+            experiment_validator_record_failure(
+                &validator, "completion", "piston_protocol_not_triggered",
+                "Automatic piston protocol was requested but never started.",
+                steps_elapsed, (double)simulation_time,
+                -1, -1, -1, -1, 0.0, 1.0);
+        }
     }
+
+    if (ferror(elog)) {
+        experiment_validator_record_failure(
+            &validator, "output", "trace_write_failed",
+            "Writing the energy-transfer trace failed; partial output may be incomplete.",
+            steps_elapsed, (double)simulation_time,
+            -1, -1, -1, -1, (double)errno, 0.0);
+    }
+
+    if (fclose(elog) != 0) {
+        experiment_validator_record_failure(
+            &validator, "output", "trace_close_failed",
+            "Closing/flushing the energy-transfer trace failed.",
+            steps_elapsed, (double)simulation_time,
+            -1, -1, -1, -1, (double)errno, 0.0);
+    }
+
+    if (validator.failure.failed) {
+        const ExperimentValidationFailure *failure = experiment_validator_failure(&validator);
+        fprintf(stderr, "ABORTING INVALID RUN [%s]: %s\n",
+                failure->reason, failure->detail);
+        fprintf(stderr, "Partial trace preserved at: %s\n", trace_path);
+        write_energy_transfer_failure(summary_path, trace_path, failure);
+        experiment_validator_destroy(&validator);
+        exit(2);
+    }
+
+    experiment_validator_destroy(&validator);
 
     if (!cli_quiet) {
         printf("✅ Energy transfer experiment done. Output → %s\n", trace_path);
@@ -15065,15 +16613,7 @@ static void run_energy_transfer_experiment(void) {
 
 	    // Append per-run summary for quick parameter sweeps.
 	    {
-	        char summary_path[512];
-	        if (cli_energy_transfer_summary_set && cli_energy_transfer_summary_path[0] != '\0') {
-	            resolve_cli_output_path(summary_path, sizeof(summary_path), cli_energy_transfer_summary_path);
-	        } else {
-	            snprintf(summary_path, sizeof(summary_path), "%s/energy_transfer_runs_%dwalls.csv",
-	                     g_energy_transfer_dir, num_internal_walls);
-	        }
-
-		            const char *header =
+	            const char *header =
 		                "timestamp,mode,sim_mode,steps_after_release,wall_hold_steps,dt_sigma,"
 		                "L0,height,particles_total,radius_sigma,eta_input,eta_nominal,"
 		                "eta_particles_region,"
@@ -15273,8 +16813,36 @@ static void run_energy_transfer_experiment(void) {
 		            fprintf(sf, "%.9g,%.9g,%d,", spring_peak_t_rel, spring_peak_dt, spring_peak_near_end);
 		            csv_put_escaped(sf, cli_command_line ? cli_command_line : "");
 		            fprintf(sf, ",%u\n", cli_seed);
-            fclose(sf);
-        }
+	            const int summary_write_failed = ferror(sf);
+	            const int summary_close_failed = (fclose(sf) != 0);
+                if (summary_write_failed || summary_close_failed) {
+                    ExperimentValidator output_validator;
+                    experiment_validator_init(&output_validator);
+                    experiment_validator_record_failure(
+                        &output_validator, "output", "summary_write_failed",
+                        "Appending/flushing the normal summary CSV failed.",
+                        steps_elapsed, (double)simulation_time,
+                        -1, -1, -1, -1, (double)errno, 0.0);
+                    write_energy_transfer_failure(
+                        summary_path, trace_path,
+                        experiment_validator_failure(&output_validator));
+                    experiment_validator_destroy(&output_validator);
+                    exit(2);
+                }
+            } else {
+                ExperimentValidator output_validator;
+                experiment_validator_init(&output_validator);
+                experiment_validator_record_failure(
+                    &output_validator, "output", "summary_open_failed",
+                    "Could not open the normal summary CSV for append.",
+                    steps_elapsed, (double)simulation_time,
+                    -1, -1, -1, -1, (double)errno, 0.0);
+                write_energy_transfer_failure(
+                    summary_path, trace_path,
+                    experiment_validator_failure(&output_validator));
+                experiment_validator_destroy(&output_validator);
+                exit(2);
+            }
     }
 }
 
@@ -18066,7 +19634,7 @@ void simulation_loop() {
                     snprintf(seg_buffer_1, sizeof(seg_buffer_1), "Box %d: N=%d", seg + 1, count);
                 }
                 if (seg_px_w >= 160) {
-                    snprintf(seg_buffer_2, sizeof(seg_buffer_2), "T=%.2f  eta=%.3f", temp_val, eta_seg);
+                    snprintf(seg_buffer_2, sizeof(seg_buffer_2), "T=%.2f  eta_now=%.3f", temp_val, eta_seg);
                 } else {
                     snprintf(seg_buffer_2, sizeof(seg_buffer_2), "T=%.2f", temp_val);
                 }

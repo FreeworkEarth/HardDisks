@@ -1,0 +1,425 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tcolorbox}
+\usepackage[colorlinks=true,linkcolor=NavyBlue,urlcolor=NavyBlue]{hyperref}
+\usepackage{microtype}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+\newcommand{\kT}{k_{\mathrm B}T}
+\newcommand{\ie}{i.e.\ }
+\newcommand{\eg}{e.g.\ }
+\newcommand{\avg}[1]{\left\langle #1 \right\rangle}
+\newcommand{\dd}{\mathrm{d}}
+\newtcolorbox{worked}[1][Worked numbers]{colback=Apricot!12,colframe=BurntOrange!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{why}[1][Why this matters for us]{colback=NavyBlue!6,colframe=NavyBlue!60!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{sanity}[1][Check]{colback=OliveGreen!8,colframe=OliveGreen!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+
+\title{Hand calculations, step by step:\\ from the hard-disk sound speed to dissipation and lost information}
+\author{Cowork note for Chris --- HardDisks / hspist3}
+\date{2026-09-10}
+
+\begin{document}
+\maketitle
+
+\section*{How to use this}
+Every section is one link in the chain we discussed: geometry of route A $\to$ kinetic numbers (mean free path, Knudsen) $\to$ what ``ideal gas'' means for the sound speed $\to$ how $c_s$ is measured with the divider $\to$ the energy ledger of a piston push $\to$ quasi-static work and dissipation $\to$ Jarzynski $\to$ linear response $\to$ nostalgia. Each derivation is written so that you can redo it on paper; the coloured boxes give the numbers to plug in and the checks that catch mistakes.
+
+\textbf{Units used throughout.} Simulation units $\kT = m = \sigma = 1$, where $\sigma = 2r$ is the disk \emph{diameter} ($r = 0.5$). The unit of speed is $\sqrt{\kT/m}$, the unit of time is $\sigma\sqrt{m/\kT}$ (``$\sigma$-time''). The code's pixel time is $24\times$ finer: $t_\sigma = t_{\mathrm{px}}/24$. Packing fraction $\eta = N\pi r^2/A$. Two-dimensional gas, so each particle carries $\avg{\tfrac12 m v^2} = \kT$ (two quadratic degrees of freedom, $\tfrac12\kT$ each).
+
+\tableofcontents
+
+\section{Geometry of route A: why \texorpdfstring{$\eta = 0.02$}{eta = 0.02} is not ``two particles''}
+
+Route A keeps the number of disks fixed and changes the box. Per run: $N = 100$ disks, $50$ per compartment, radius $r = 0.5$, height $H = 10$, two compartments of length $L_0$ each, separated by the divider. The packing fraction is the disk area over the total gas area:
+\begin{equation}
+\eta = \frac{N\pi r^2}{2 L_0 H} = \frac{100\cdot\pi\cdot 0.25}{20\,L_0} = \frac{3.927}{L_0}
+\qquad\Longrightarrow\qquad
+L_0 = \frac{3.927\,\sigma}{\eta}.
+\label{eq:L0}
+\end{equation}
+
+\begin{worked}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+$\eta$ & 0.02 & 0.05 & 0.10 & 0.30 & 0.50 & 0.65\\
+$L_0/\sigma$ (per compartment) & 196 & 79 & 39 & 13.1 & 7.9 & 6.0\\
+disks per compartment & 50 & 50 & 50 & 50 & 50 & 50\\
+\bottomrule
+\end{tabular}
+
+So at $\eta = 0.02$ there are still 50 disks on each side; they simply live in a compartment 196 diameters long. Going toward $\eta \to 0$ along route A means making the box longer, not removing particles.
+\end{worked}
+
+\begin{why}
+Route A is therefore \emph{not} a density sweep at fixed geometry: density and confinement change together. That is why the $c_s(\eta)$ curve from route A validates the \emph{instrument} (the divider-resonance method), while a \emph{bulk} claim needs a family where $N$ grows at fixed $\eta$ and fixed aspect ratio (famA), extrapolated in $1/\sqrt N$.
+\end{why}
+
+\section{Kinetic numbers: mean speed, collision rate, mean free path, Knudsen number}
+
+\subsection{Mean speed in 2D}
+The 2D Maxwell speed distribution is $f(v) = \frac{m}{\kT}\,v\,e^{-mv^2/2\kT}$. Then
+\begin{equation}
+\avg{v} = \sqrt{\frac{\pi \kT}{2m}} = 1.2533,\qquad
+\avg{v^2} = \frac{2\kT}{m},\qquad
+\avg{|v_x|} = \sqrt{\frac{2\kT}{\pi m}} = 0.7979,
+\end{equation}
+\begin{equation}
+\avg{v_{\mathrm{rel}}} = \sqrt2\,\avg{v} = \sqrt{\frac{\pi\kT}{m}} = 1.7725
+\qquad(\text{relative speed of two Maxwellian particles}).
+\end{equation}
+
+\subsection{Collision rate per particle}
+A disk of diameter $\sigma$ sweeps a ``collision strip'' of width $\sigma$ (two centres collide when their distance is $\sigma$). In the dilute limit the rate at which one particle collides is number density $\times$ strip width $\times$ mean relative speed; at finite density multiply by the contact value of the pair correlation, $g(\sigma)$:
+\begin{equation}
+\nu_c = n\,\sigma\, g(\sigma)\,\avg{v_{\mathrm{rel}}}
+= n\sigma g(\sigma)\sqrt{\frac{\pi\kT}{m}} .
+\end{equation}
+For hard disks the equation of state is exactly $Z \equiv \dfrac{PA}{N\kT} = 1 + 2\eta\, g(\sigma)$, so $g(\sigma) = (Z-1)/2\eta$. With $n = 4\eta/(\pi\sigma^2)$:
+\begin{equation}
+\boxed{\;\nu_c = \frac{2\,(Z-1)}{\sqrt\pi}\;\sqrt{\frac{\kT}{m}}\,\frac1\sigma\;}
+\qquad\xrightarrow{\;\eta\to0\;}\qquad \nu_c \simeq \frac{4\eta}{\sqrt\pi}.
+\label{eq:nuc}
+\end{equation}
+This is the ``physical collision rate'' we used to interpret the event budget: at $\eta = 0.69$, $Z \approx 10.1$ gives $\nu_c \approx 10.3$ collisions per particle per $\sigma$-time.
+
+\subsection{Mean free path}
+\begin{equation}
+\lambda = \frac{\avg v}{\nu_c} = \frac{1}{\sqrt2\, n\sigma\, g(\sigma)}
+\qquad\xrightarrow{\;\eta\to0\;}\qquad
+\lambda = \frac{\pi}{4\sqrt2}\,\frac{\sigma}{\eta} = 0.555\,\frac{\sigma}{\eta}.
+\label{eq:lambda}
+\end{equation}
+(In the chat I quoted $0.278\,\sigma/\eta$; that missed a factor 2. The conclusions below do not change --- every Knudsen number just doubles --- but use \eqref{eq:lambda}.)
+
+\subsection{Knudsen number along route A}
+The Knudsen number compares the mean free path with the container:
+\begin{equation}
+\mathrm{Kn} = \frac{\lambda}{L_0} = \frac{0.555\,\sigma/\eta}{3.927\,\sigma/\eta} = 0.141
+\qquad\text{independent of }\eta\ \text{(dilute-limit }g\text{; at fixed }N=100).
+\label{eq:Kn}
+\end{equation}
+The $\eta$ cancels because both $\lambda$ and $L_0$ scale as $1/\eta$ when $N$ is fixed. Along route A every point has the same ratio ``collisions per crossing'', about $1/\mathrm{Kn} \approx 7$ collisions while a particle crosses the compartment.
+
+\begin{worked}[{Worked numbers at the dilute end}]
+At $\eta = 0.0196$ ($L_0 = 200$): $\lambda = 28\,\sigma$, $\nu_c = 0.046$ per $\sigma$-time (using $Z = 1.040$). The hold before release is $2000\times0.4/24 = 33.3$ $\sigma$-time, \ie $33.3\times0.046 \approx 1.5$ collisions per particle. That is enough only because the velocities are drawn Maxwellian and rescaled to $\kT = 1$ at $t = 0$; the hold does not \emph{create} equilibrium, it preserves it.
+\end{worked}
+
+\subsection{Reducing the particle number at fixed box: the Knudsen pilot}
+If instead we keep $L_0 = 200$ and lower the number per side, $\eta = N_{\mathrm{side}}\pi r^2/(L_0 H)$:
+\begin{worked}[Knudsen crossover at fixed box (compartment 200 diameters long)]
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+$N_{\mathrm{side}}$ & 50 & 25 & 10 & 5\\
+$\eta$ & 0.0196 & 0.0098 & 0.0039 & 0.0020\\
+$\lambda/\sigma$ & 28 & 57 & 141 & 283\\
+$\mathrm{Kn} = \lambda/L_0$ & 0.14 & 0.28 & 0.71 & 1.4\\
+\bottomrule
+\end{tabular}
+
+Between $N_{\mathrm{side}} = 25$ and $10$ the gas stops being a fluid (particles cross the compartment without colliding). This is the regime change of Section~\ref{sec:collisionless}, and it is why ``fewer particles'' is a different experiment from ``lower density''.
+\end{worked}
+
+\section{The collisionless limit: why \texorpdfstring{$c_s \to \sqrt3$, not $\sqrt2$}{cs -> sqrt3, not sqrt2}}
+\label{sec:collisionless}
+
+Take one particle bouncing between a fixed wall and a wall a distance $L$ away that recedes slowly with speed $u = \dot L$. Per bounce on the receding wall the particle loses $2u$ of normal speed (rule \eqref{eq:piston} with $v \to -v$); it hits that wall once per round trip, every $2L/v_x$, so
+\begin{equation}
+\frac{\dd v_x}{\dd t} = -\,2u\cdot\frac{v_x}{2L} = -\frac{\dot L}{L}\,v_x
+\quad\Longrightarrow\quad
+\frac{\dd v_x}{v_x} = -\frac{\dd L}{L}
+\quad\Longrightarrow\quad v_x L = \text{const}.
+\end{equation}
+(The adiabatic invariant $\oint p\,\dd x = 2 m v_x L$ is conserved.) If particles never collide with each other, the $y$-motion is untouched by a compression along $x$. The ``temperature'' of the $x$-motion is $T_x \propto v_x^2 \propto L^{-2}$ and the pressure on the divider is $P \propto n\,T_x \propto L^{-1}\,L^{-2} = L^{-3}$. Compare with an adiabat $P \propto V^{-\gamma}$: this is $\gamma = 3$, the one-dimensional adiabatic index (this is the Lua--Grosberg ideal piston). Then
+\begin{equation}
+c_s^2 = \gamma\,\frac{\kT}{m}:\qquad
+c_s = \sqrt3 = 1.732\ \text{(collisionless, }\mathrm{Kn}\gg1)
+\qquad\text{vs}\qquad
+c_s = \sqrt2 = 1.414\ \text{(fluid, }\mathrm{Kn}\ll1).
+\end{equation}
+The fluid value needs collisions to share the compression energy between $x$ and $y$ ($\gamma = (d+2)/d = 2$ in $d = 2$). Along route A, $\mathrm{Kn} = 0.14$ at every $\eta$, so route A sits on the fluid side and the measured dilute value $1.47$ at $\eta = 0.02$ is consistent with $\sqrt2(1+2\eta) = 1.47$. The Knudsen pilot would show the crossover $1.41 \to 1.73$ as $N_{\mathrm{side}}$ drops --- a positive control that the method sees $\gamma$, not just a number.
+
+\section{Sound speed from the equation of state}
+
+\subsection{Derivation of \texorpdfstring{$c_s^2 = \dfrac{\kT}{m}\left[Z + \eta Z' + Z^2\right]$}{the adiabatic mapping}}
+Hard disks have no potential energy, so $E = N\kT$ exactly (2D). Write $P = n\kT\,Z(\eta)$ with $n = N/A$, $\eta = n\pi r^2$, so $\eta\, Z'(\eta) = n\,\dd Z/\dd n$.
+
+\emph{Step 1: adiabat.} $\dd E = -P\,\dd A$ with $\dd E = Nk\,\dd T$:
+\begin{equation}
+Nk\,\dd T = -\frac{N}{A}\kT Z\,\dd A
+\;\Longrightarrow\;
+\frac{\dd T}{T} = -Z\,\frac{\dd A}{A} = Z\,\frac{\dd n}{n}.
+\label{eq:adiabat}
+\end{equation}
+(Ideal gas $Z = 1$: $T A = \text{const}$, \ie $TV^{\gamma-1}$ with $\gamma = 2$.)
+
+\emph{Step 2: isentropic compressibility.}
+\begin{equation}
+\left(\frac{\partial P}{\partial n}\right)_S
+= \kT Z + n k Z \left(\frac{\partial T}{\partial n}\right)_S + n\kT\frac{\dd Z}{\dd n}
+= \kT\left[Z + Z\cdot Z + \eta Z'\right].
+\end{equation}
+
+\emph{Step 3: sound speed.} Mass density $\rho = m n$, so
+\begin{equation}
+\boxed{\;c_s^2 = \left(\frac{\partial P}{\partial\rho}\right)_S = \frac{\kT}{m}\left[Z + \eta Z'(\eta) + Z^2\right].\;}
+\label{eq:cs}
+\end{equation}
+
+\subsection{Limits and expansion}
+\begin{itemize}[nosep]
+\item Ideal gas $Z = 1$: $c_s^2 = 2\kT/m$, $c_s = \sqrt2 = 1.4142$. (Same as $\gamma\kT/m$ with $\gamma = 2$.)
+\item Virial series in 2D: $Z = 1 + 2\eta + 3.128\,\eta^2 + \ldots$ (the $3.128 = 0.782\times2^2$ is $B_3/B_2^2$ times $(2\eta)^2$). Insert in \eqref{eq:cs}:
+\begin{equation}
+c_s^2 = \frac{\kT}{m}\left[2 + 8\eta + 19.6\,\eta^2 + \ldots\right]
+\;\Longrightarrow\;
+c_s = \sqrt2\,\bigl(1 + 2\eta + 2.9\,\eta^2 + \ldots\bigr).
+\label{eq:cs_expansion}
+\end{equation}
+The first-order law $c_s = \sqrt2(1+2\eta)$ is exact through $O(\eta)$ and good to $1\%$ only for $\eta \lesssim 0.05$.
+\end{itemize}
+
+\begin{worked}[{Kolafa--Rottner values (main reference)}]
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+$\eta$ & 0.0196 & 0.05 & 0.10 & 0.30 & 0.50 & 0.65\\
+$Z_{\mathrm{KR}}$ & 1.040 & 1.109 & 1.236 & 2.063 & 4.106 & 8.408\\
+$c_s$ from \eqref{eq:cs} & 1.471 & 1.567 & 1.744 & 2.852 & 5.416 & 10.44\\
+$\sqrt2(1+2\eta)$ & 1.470 & 1.556 & 1.697 & 2.263 & --- & ---\\
+\bottomrule
+\end{tabular}
+\end{worked}
+
+\begin{why}
+Your professor's interest in the ideal-gas limit: \eqref{eq:cs} is the whole thermodynamics of the fluid in one measurable number, and at $\eta\to0$ it collapses to a value with \emph{no free parameter}, $\sqrt{2\kT/m}$. If the instrument does not return $\sqrt2$ there, nothing at higher $\eta$ can be trusted. The slope $2\eta$ is the second virial coefficient --- the first real interaction effect --- so the dilute end tests both the equilibrium sampling (temperature) and the first term of the EOS. The refit gives $c_s/\sqrt2 - 1 = 0.035$ at $\eta = 0.0196$ vs $2\eta = 0.039$: the slope is right.
+\end{why}
+
+\section{How $c_s$ is measured: the divider resonance (Román relation)}
+
+\subsection{Set-up}
+Outer wall at $x = 0$ (fixed), gas column of length $L$, divider of mass $M$ at $x = L$, a second identical column on the other side. Treat the gas as a continuum with sound speed $c$ and mass density $\rho$; small displacement field $u(x,t)$, pressure perturbation $\delta P = -\rho c^2\,\partial_x u$ (compression $\partial_x u<0$ raises $P$).
+
+\subsection{Derivation of \texorpdfstring{$\cot K = \dfrac{M}{2Nm}K$}{cot K = (M/2Nm) K}}
+Standing wave with the outer wall fixed: $u(x,t) = U\sin(kx)\,e^{i\omega t}$, $\omega = ck$. The divider displacement is $\xi = u(L)$. When the divider moves right ($\xi>0$) the left column is stretched and the right one compressed; both push it back:
+\begin{equation}
+F = H\left(\delta P_L - \delta P_R\right) = -2H\rho c^2\,k\,U\cos(kL)\,e^{i\omega t}.
+\end{equation}
+Newton for the divider, $M\ddot\xi = F$:
+\begin{equation}
+-M\omega^2 U\sin(kL) = -2H\rho c^2 k\,U\cos(kL)
+\;\Longrightarrow\;
+M c^2k^2\sin(kL) = 2H\rho c^2 k\cos(kL).
+\end{equation}
+Multiply by $L/(c^2 k)$ and set $K \equiv kL$; note $H\rho L = Nm$ is the gas mass \emph{per side} ($N = 50$):
+\begin{equation}
+\boxed{\;\cot K = \frac{M}{2Nm}\,K \equiv \alpha K,\qquad \nu = \frac{\omega}{2\pi} = \frac{c_s\,K}{2\pi L_{\mathrm{eff}}}.\;}
+\label{eq:roman}
+\end{equation}
+$L_{\mathrm{eff}} = L_0 - 2r$: disk centres cannot get closer than $r$ to the outer wall or to the divider, so the acoustic column is shorter than the box by one diameter.
+
+\subsection{Two limits as sanity checks}
+\begin{sanity}
+\emph{Light divider} $M\to0$: $\cot K\to0$, $K\to\pi/2$, $\nu = c_s/(4L_{\mathrm{eff}})$ --- the quarter-wave resonance of a column open at one end.
+
+\emph{Heavy divider} $M\gg 2Nm$: $K$ small, $\cot K\approx1/K$, so $K^2 = 1/\alpha = 2Nm/M$ and
+$\omega = c_sK/L = \sqrt{2Nm c_s^2/(ML^2)} = \sqrt{2\gamma P H/(LM)} = \sqrt{\kappa/M}$: a mass on two gas springs of stiffness $\kappa/2 = \gamma PH/L$ each (using $c_s^2 = \gamma P/\rho$). This is the textbook adiabatic-piston oscillator.
+\end{sanity}
+
+\subsection{Roots for our divider masses (\texorpdfstring{$N = 50$}{N = 50} per side)}
+Solve $\cot K = \alpha K$ on $(0,\pi/2)$ by bisection ($f(K) = \cot K - \alpha K$ decreases monotonically):
+\begin{worked}
+\small
+\begin{tabular}{@{}lccccccccc@{}}
+\toprule
+$M/m$ & 1 & 10 & 50 & 100 & 200 & 500 & 1000 & 2000 & 5000\\
+$\alpha = M/2Nm$ & 0.01 & 0.1 & 0.5 & 1 & 2 & 5 & 10 & 20 & 50\\
+$K$ & 1.555 & 1.429 & 1.077 & 0.860 & 0.653 & 0.433 & 0.311 & 0.222 & 0.141\\
+$1/\sqrt\alpha$ (heavy approx.) & --- & --- & 1.414 & 1.000 & 0.707 & 0.447 & 0.316 & 0.224 & 0.141\\
+\bottomrule
+\end{tabular}
+
+Example: $\eta = 0.10$, $L_0 = 39.3$, $L_{\mathrm{eff}} = 38.3$, $M = 200$: $\nu = 1.744\times0.653/(2\pi\times38.3) = 4.7\times10^{-3}$ per $\sigma$-time, period $\approx 211$ $\sigma$-time.
+\end{worked}
+
+\subsection{How the fit works, and what the intercept tells you}
+For each $\eta$ we have 9 masses. Compute $x_M = K(\alpha_M)/(2\pi L_{\mathrm{eff}})$ and measure $\nu_M$ (FFT peak of the divider position, averaged over 25 repeats, weight $1/\mathrm{sem}^2$). Equation \eqref{eq:roman} says $\nu_M = c_s\,x_M$, a straight line \emph{through the origin} with slope $c_s$:
+\begin{equation}
+c_s = \frac{\sum_M w_M x_M\nu_M}{\sum_M w_M x_M^2},\qquad
+\sigma_{c_s}^2 = \frac{1}{\sum_M w_M x_M^2}\quad(w_M = 1/\mathrm{sem}_M^2).
+\end{equation}
+A free-intercept fit $\nu = c_s x + b$ is the diagnostic: $b$ must be zero within error. Where $b$ is significantly non-zero (the refit finds $b \approx -0.001\ldots-0.003$ at $\eta = 0.57$--$0.63$, absorbing up to 3.6\%) the single-mode continuum picture is being stretched --- the compartment is only 6--7 diameters long there.
+
+\section{Pressure: the two routes and the extrapolation (Paper 1, briefly)}
+
+\emph{Pair-virial route.} Virial theorem in $d = 2$: $PA = N\kT + \frac1d\avg{\sum_i \mathbf r_i\cdot\mathbf F_i}$. For hard disks the forces are impulses at contact ($|\mathbf r_{ij}| = \sigma$, $\Delta\mathbf p_i \parallel \hat{\mathbf r}_{ij}$), so over an observation time $t_{\mathrm{obs}}$
+\begin{equation}
+Z_{\mathrm{pair}} = 1 + \frac{m\sigma}{2N\kT\,t_{\mathrm{obs}}}\sum_{\text{collisions}}\left|\Delta\mathbf v_i\cdot\hat{\mathbf r}_{ij}\right| .
+\end{equation}
+\emph{Wall route.} Momentum delivered to the walls: $Z_{\mathrm{wall}} = \dfrac{A}{N\kT}\cdot\dfrac{1}{t_{\mathrm{obs}}\,\mathcal P}\sum_{\text{wall hits}} 2m|v_n|$ with $\mathcal P$ the perimeter. Momentum balance ties the two: in a steady state the momentum flux through any line is the same, so $Z_{\mathrm{pair}} = Z_{\mathrm{wall}}$ up to statistics --- that is the internal consistency check in the campaign.
+
+\emph{Finite size.} Fit $Z(N) = Z_\infty + a/\sqrt N$ over $N = 100, 400, 900, 1600$ with weights $1/\sigma_N^2$ and report $\chi^2$ with $2$ degrees of freedom; $\chi^2 \gg 4$ means the four sizes do not lie on one $1/\sqrt N$ line, \ie no bulk value can be quoted (this is what happens at $\eta = 0.67$, $\chi^2_1 = 7.6$, and in famA above $0.67$). The same procedure is what the bulk $c_s$ claim needs.
+
+\section{Paper 2, Level 0: the energy ledger of one piston push}
+
+\subsection{Piston collision rule}
+Prescribed-velocity (infinite-mass) piston moving with velocity $u$; particle normal velocity $v$ before the hit. In the piston frame the particle reflects elastically, $v - u \to -(v-u)$:
+\begin{equation}
+v' = 2u - v,\qquad
+\Delta E = \tfrac12 m\left[(2u-v)^2 - v^2\right] = 2mu\,(u - v),\qquad
+\Delta p = m(v'-v) = 2m(u-v).
+\label{eq:piston}
+\end{equation}
+Signs: piston pushing into the gas $u>0$, particle approaching it $v<0$ gives $\Delta E = 2mu(u+|v|) > 0$ (energy into the gas); a particle overtaking a receding piston can give $\Delta E<0$. This is exactly what \texttt{resolve\_wall} does for \texttt{EV\_PL}/\texttt{EV\_PR} with $M \le 0$; the code sums $\Delta E$ into \texttt{work\_pistonR}. For a finite-mass piston it applies the elastic two-body rule and books the \emph{piston's} kinetic-energy change --- a different quantity, keep them apart.
+
+\subsection{First law for the box}
+With $W$ the summed piston work (on the system), $Q$ the heat through thermal walls (zero for elastic walls):
+\begin{equation}
+\boxed{\;W = \Delta \mathrm{KE}_{\mathrm{gas}} + \Delta\mathrm{KE}_{\mathrm{divider}} + \Delta E_{\mathrm{spring}} + Q\;}
+\qquad\text{residual}\ R(t) = W - [\ldots] \stackrel{!}{=} \text{round-off}.
+\label{eq:ledger}
+\end{equation}
+Momentum: $\Delta(\mathbf p_{\mathrm{gas}} + \mathbf p_{\mathrm{divider}}) = \sum_{\text{piston hits}}\Delta p + \sum_{\text{outer-wall hits}}\Delta p$.
+
+\begin{why}
+This is why Level 0 could not close on the existing runs: the traces log $W$, $E_{\mathrm{spring}}$, divider and piston velocities, but not $\mathrm{KE}_{\mathrm{gas}}$ (only in a stdout line every 1000 steps, and those runs were \texttt{--quiet}), no per-collision impulses, no gas momentum. So $R(t)$ has one unrecorded term. The fix is a logging change, not physics: a per-sample $\mathrm{KE}_{\mathrm{gas}}$ (total and per compartment) column and a gated per-event piston log $(t, u, v, v', \Delta E, \Delta p)$. And the reference runs used \texttt{--edmd-acc=1}, the backend that failed validation; they must be repeated on \texttt{--edmd-acc=0} before any number from them is physics.
+\end{why}
+
+\section{Quasi-static work and the definition of dissipation}
+
+\subsection{Adiabatic compression of hard disks}
+Compress one compartment from area $A_i$ to $A_f$ (packing $\eta_i\to\eta_f$) with elastic walls and no heat exchange. Integrate the adiabat \eqref{eq:adiabat}, $\dd T/T = Z\,\dd\eta/\eta$:
+\begin{equation}
+\frac{T_f}{T_i} = \exp\!\left[\int_{\eta_i}^{\eta_f} \frac{Z(\eta)}{\eta}\,\dd\eta\right],
+\qquad
+W_{\mathrm{qs}} = \Delta E = Nk\,(T_f - T_i) = N\kT_i\left(\frac{T_f}{T_i} - 1\right).
+\label{eq:Wqs}
+\end{equation}
+Ideal gas ($Z = 1$): $T_f/T_i = \eta_f/\eta_i = A_i/A_f$, so
+\begin{equation}
+W_{\mathrm{qs}}^{\mathrm{ideal}} = N\kT_i\left(\frac{A_i}{A_f} - 1\right)\qquad(\gamma = 2).
+\end{equation}
+\begin{worked}
+$N = 50$ per side, $\kT_i = 1$, $\eta_i = 0.10$: compressing by 10\% ($\eta_f = 0.11$) gives $T_f/T_i = 1.127$ with KR (ideal: $1.100$), so $W_{\mathrm{qs}} = 50\times0.127 = 6.3$ (ideal $5.0$). A 25\% compression ($\eta_f = 0.125$) gives $W_{\mathrm{qs}} = 16.4$ (ideal $12.5$). At $\eta_i = 0.30$, a 10\% compression already costs $W_{\mathrm{qs}} = 11.4$ (ideal $5.0$) --- the EOS matters even for ``small'' pushes.
+\end{worked}
+
+\subsection{Isothermal free energy (needed for Jarzynski)}
+From $\dd F = -P\,\dd A$ at fixed $T$ and $\dd A/A = -\dd\eta/\eta$:
+\begin{equation}
+\Delta F = N\kT\int_{\eta_i}^{\eta_f}\frac{Z(\eta)}{\eta}\,\dd\eta
+\qquad(\text{ideal: } N\kT\ln\tfrac{A_i}{A_f}).
+\label{eq:dF}
+\end{equation}
+Note $\Delta F \ne W_{\mathrm{qs}}$: the adiabatic quasi-static work heats the gas, the isothermal one does not. For $\eta = 0.10\to0.11$, $N = 50$: $\Delta F = 50\times0.119 = 6.0$.
+
+\subsection{Dissipation}
+For a push at finite speed the work fluctuates from run to run. Define
+\begin{equation}
+\boxed{\;W_{\mathrm{diss}} \equiv \avg{W} - W_{\mathrm{qs}} \ge 0\;}
+\qquad(\text{adiabatic, elastic walls: minimum-work principle}),
+\end{equation}
+and, for a gas prepared canonically at $T$, the second-law form $\avg{W} \ge \Delta F$ (next section). $W_{\mathrm{diss}}$ is the energy that went into the gas beyond what a reversible compression would have put there; after the divider ring-down it is extra heat in the gas. It is the first ``lost'' quantity we can measure with the ledger closed.
+
+\section{Jarzynski: turning fluctuations into a free-energy check}
+
+\subsection{Statement and the one-line proof for a Hamiltonian system}
+Start each trajectory from the canonical distribution $\rho_i(\Gamma) = e^{-\beta H_i(\Gamma)}/Z_i$ (draw Maxwellian velocities at $T$ and an equilibrated configuration --- no thermal wall needed during the push). Drive the piston with the same protocol; the dynamics are Hamiltonian, so phase-space volume is conserved (Liouville) and $W = H_f(\Gamma_f) - H_i(\Gamma_i)$:
+\begin{equation}
+\avg{e^{-\beta W}} = \int \dd\Gamma_i\,\frac{e^{-\beta H_i(\Gamma_i)}}{Z_i}\,e^{-\beta[H_f(\Gamma_f)-H_i(\Gamma_i)]}
+= \frac{1}{Z_i}\int\dd\Gamma_f\,e^{-\beta H_f(\Gamma_f)} = \frac{Z_f}{Z_i} = e^{-\beta\Delta F}.
+\label{eq:jarz}
+\end{equation}
+Jensen ($e^{-x}$ convex): $e^{-\beta\avg W}\le\avg{e^{-\beta W}}$, hence $\avg W \ge \Delta F$.
+
+\subsection{Why the piston speed must be small}
+The estimator $\Delta F_{\mathrm{est}} = -\kT\ln\frac1n\sum_k e^{-\beta W_k}$ is dominated by the rare low-$W$ trajectories. The rule of thumb: you need of order $e^{\beta W_{\mathrm{diss}}}$ trajectories to see them.
+\begin{worked}
+$\beta W_{\mathrm{diss}} = 1 \to 3$ trajectories; $3 \to 20$; $5 \to 150$; $10 \to 2\times10^4$. With $10^3$--$10^4$ trajectories per protocol we can afford $W_{\mathrm{diss}} \lesssim 5$--$8\,\kT$. The existing reference runs ($N = 600$, work target $2\times10^4\,\kT$, piston travelling $10\sigma$ in about one $\sigma$-time, \ie $u/c_s$ of order 2--3) are shocks: $\beta W_{\mathrm{diss}}$ in the thousands, Jarzynski useless there. This fixes the design: $N = 50$--$300$ per side, $u/c_s = 0.01$--$0.3$, compression 10--25\%.
+\end{worked}
+
+\subsection{Fast-piston limit (Lua--Grosberg) as an exact reference}
+If the push is so fast that each particle hits the piston at most once ($u\,\tau_{\mathrm{push}} \ll L$ and $\mathrm{Kn}\gg1$), the work is a sum of independent single-hit terms \eqref{eq:piston} over the particles the piston catches, and $P(W)$ follows from the Maxwell distribution alone. That gives closed-form $\avg W$, $\mathrm{Var}\,W$ and $P(W)$ to test the work histograms against at one end of the speed range, while the quasi-static formula \eqref{eq:Wqs} anchors the other end.
+
+\section{Linear response: dissipation from equilibrium fluctuations}
+
+\subsection{Friction from the force autocorrelation}
+Hold the divider fixed at position $\lambda$ in an equilibrium run and record the net force $F(t)$ on it (sum of impulses from both sides per sampling interval). Linear response (Sivak--Crooks) says that a slow protocol $\lambda(t)$ dissipates
+\begin{equation}
+W_{\mathrm{diss}} \simeq \int \zeta(\lambda)\,\dot\lambda^2\,\dd t,\qquad
+\zeta(\lambda) = \beta\int_0^\infty\avg{\delta F(0)\,\delta F(t)}_\lambda\,\dd t ,
+\label{eq:sivak}
+\end{equation}
+with $\delta F = F - \avg F$. So a \emph{fixed}-divider equilibrium run predicts the dissipation of a \emph{moving}-divider experiment. That is the check: measure $\zeta$ from fluctuations, then measure $W_{\mathrm{diss}}$ directly from the ledger at several $u$, and confirm $W_{\mathrm{diss}} \propto u^2\tau = u\,\Delta x$ at small $u$.
+
+\subsection{A collisionless estimate of \texorpdfstring{$\zeta$}{zeta} (order of magnitude)}
+For a wall moving at speed $u$ into a gas whose particles do not collide with each other, the pressure it feels is the momentum flux of the particles it catches:
+\begin{equation}
+P(u) = 2mn\int_{-\infty}^{u}(u - v_x)^2 f(v_x)\,\dd v_x,\qquad
+P(0) = n\kT,\qquad
+\left.\frac{\dd P}{\dd u}\right|_0 = 2mn\avg{|v_x|} = 2n\sqrt{\frac{2m\kT}{\pi}} .
+\end{equation}
+Two sides, height $H$: $\zeta \approx 4nH\sqrt{2m\kT/\pi}$. The dissipated work for a displacement $\Delta x$ at speed $u$ is $\zeta u\Delta x$, and the quasi-static work is $\approx nkT H\Delta x$, so
+\begin{equation}
+\frac{W_{\mathrm{diss}}}{W_{\mathrm{qs}}} \approx 4\sqrt{\frac2\pi}\,\frac{u}{\sqrt{\kT/m}} = 3.2\,\frac{u}{\sqrt{\kT/m}} \approx 4.5\,\frac{u}{c_s}\quad(\text{dilute}).
+\label{eq:dissratio}
+\end{equation}
+\begin{worked}
+$u/c_s = 0.01 \to 4.5\%$ dissipation; $0.1 \to 45\%$; $0.3 \to$ outside linear response. In the collisional (fluid) regime the true friction is smaller (collisions let the gas re-equilibrate ahead of the wall) and \eqref{eq:dissratio} is an upper-side estimate; the measured $\zeta$ from \eqref{eq:sivak} replaces it. Either way, $u/c_s \approx 0.01$--$0.1$ is where $W_{\mathrm{diss}}$ is a few percent to tens of percent of $W_{\mathrm{qs}}$: measurable, and small enough in $\kT$ for Jarzynski once $W_{\mathrm{qs}}$ is tens of $\kT$.
+\end{worked}
+
+\section{Nostalgia: the information that is lost}
+
+\subsection{Definitions}
+Let $x_t$ be the \emph{signal} (the piston protocol, drawn at random from a stochastic rule so that it has entropy) and $s_t$ the \emph{system state} (gas + divider, coarse-grained, \eg divider position and velocity binned). Mutual information $I(X;Y) = H(X) - H(X|Y) = \sum p(x,y)\ln\frac{p(x,y)}{p(x)p(y)} \ge 0$. Define
+\begin{equation}
+I_{\mathrm{mem}} = I(s_t; x_t),\qquad
+I_{\mathrm{pred}} = I(s_t; x_{t+1}),\qquad
+\boxed{\;I_{\mathrm{nost}} = I_{\mathrm{mem}} - I_{\mathrm{pred}} \ge 0.\;}
+\end{equation}
+Memory is what the system's state tells you about the signal now; prediction is what it tells you about the signal next; nostalgia is the part of the memory that is useless for the future.
+
+\subsection{Why \texorpdfstring{$I_{\mathrm{nost}}\ge0$}{nostalgia >= 0}: the data-processing inequality}
+If the signal is Markov and the system at time $t$ has only seen the signal up to $t$, then $x_{t+1}$ depends on $s_t$ only through $x_t$: the chain $s_t \to x_t \to x_{t+1}$ is Markov, $p(x_{t+1}|x_t,s_t) = p(x_{t+1}|x_t)$. Then, using the chain rule twice,
+\begin{align}
+I(s_t; x_t, x_{t+1}) &= I(s_t;x_t) + \underbrace{I(s_t;x_{t+1}|x_t)}_{=0\ \text{(Markov)}}\\
+&= I(s_t;x_{t+1}) + \underbrace{I(s_t;x_t|x_{t+1})}_{\ge0}
+\quad\Longrightarrow\quad I(s_t;x_t) \ge I(s_t;x_{t+1}).
+\end{align}
+The one-variable version is the inequality in your screenshot: if $Y = f(Z)$ is a (possibly coarse-graining) function of $Z$, then $H(Y) \le H(Z)$ and $I(Y;X)\le I(Z;X)$ --- processing can only destroy information. The proof is the same chain-rule step: $H(Z) = H(Z,Y) = H(Y) + H(Z|Y) \ge H(Y)$ because $H(Z,f(Z)) = H(Z)$ and conditional entropy is non-negative.
+
+\subsection{The bound that connects it to the ledger (Still, Sivak, Bell, Crooks 2012)}
+For a system driven by a signal, with $W_{\mathrm{diss}}[x_t\to x_{t+1}]$ the dissipation during one signal step,
+\begin{equation}
+\boxed{\;\beta\,\avg{W_{\mathrm{diss}}[x_t\to x_{t+1}]} \;\ge\; I_{\mathrm{mem}} - I_{\mathrm{pred}} = I_{\mathrm{nost}}.\;}
+\label{eq:still}
+\end{equation}
+Reading: every nat of useless memory the system keeps about the driving costs at least $\kT$ of dissipation. The left side comes from the closed ledger of Section 7 (this is why Level 0 must close first); the right side comes from the joint histograms $p(s_t,x_t)$ and $p(s_t,x_{t+1})$ over many trajectories. Both sides are measurable in the same runs.
+
+\subsection{What the runs must provide}
+\begin{itemize}[nosep]
+\item A stochastic protocol: \eg $x_t\in\{$push, hold, pull$\}$ or a discretised piston velocity drawn from a Markov chain with known transition matrix, one draw per interval $\Delta t$ (a few divider periods). Deterministic protocols have $H(x)=0$ and nothing to compute.
+\item Per-trajectory logs of $x_t$, the coarse-grained $s_t$, and the work per interval (from the per-event piston log, summed over the interval).
+\item Enough trajectories for the plug-in estimator. Its bias is about $\dfrac{(k_s - 1)(k_x - 1)}{2N_{\mathrm{traj}}}$ nats for $k_s$ state bins and $k_x$ signal bins: with $k_s = 10$, $k_x = 3$ and $N_{\mathrm{traj}} = 10^3$ the bias is $0.009$ nats; with $10^4$ it is $0.001$. That is the scale on which $I_{\mathrm{nost}}$ must sit above zero to mean anything, and it sets the $10^3$--$10^4$ trajectory count.
+\item Small $N$ ($50$--$300$ per side) and $u/c_s\le0.3$, so that $\beta W_{\mathrm{diss}}$ per interval is of order one --- then \eqref{eq:still} is a tight, testable statement rather than $10^3 \ge 0.01$.
+\end{itemize}
+
+\section{The chain, in one table}
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Level & Quantity & Reference to compare with\\
+\midrule
+Paper 1 & $Z(\eta)$, $c_s(\eta)$ & KR EOS, \eqref{eq:cs}; ideal limit $\sqrt2$; famA $1/\sqrt N$ extrapolation\\
+0 & ledger residual $R(t)$, momentum & round-off (elastic walls)\\
+1 & divider fluctuations, $\zeta$ & equipartition $\tfrac12M\avg{\dot\xi^2} = \tfrac12\kT$; \eqref{eq:sivak}\\
+2 & $P(W)$ at several $u$ & \eqref{eq:Wqs} slow end, Lua--Grosberg fast end, Jarzynski \eqref{eq:jarz}\\
+3 & $W_{\mathrm{diss}}(u)$ & $\propto u$ at small $u$, prefactor $\zeta$ from Level 1\\
+4 & $I_{\mathrm{mem}}, I_{\mathrm{pred}}, I_{\mathrm{nost}}$ & data processing $\ge0$; bound \eqref{eq:still} against Level 3\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

@@ -1,0 +1,15 @@
+ commands:
+
+
+cd hspist3
+
+# trace plot
+python3 plot_energy_transfer_trace.py \
+  --csv experiments_energy_transfer/unified_20260305_112027/control_radius/trace_latest_unified_radius.csv \
+  --out experiments_energy_transfer/unified_20260305_112027/control_radius/energy_transfer_trace_positions_allwalls.png
+
+# full summary
+MPLCONFIGDIR=/tmp/mplcfg python3 plot_energy_transfer_histogram.py \
+  --csv experiments_energy_transfer/unified_20260305_112027/control_radius/energy_transfer_unified_radius_augmented.csv \
+  --group-by eta_particles_region --full-summary \
+  --out experiments_energy_transfer/unified_20260305_112027/control_radius/energy_transfer_unified_radius_comparison_histogram.png

@@ -105,6 +105,19 @@ typedef struct EDMD EDMD;
 EDMD*  edmd_create(const EDMD_Params* prm);
 void   edmd_destroy(EDMD* S);
 void   edmd_init_random_gas(EDMD* S, unsigned long long seed);
+/* ##CHRIS: lattice seeding for high density. edmd_init_random_gas() is rejection
+   sampling with an unbounded retry loop and HANGS above eta ~ 0.55. This places a
+   checked rectangular lattice, falling back to hexagonal, per
+   26_08_21_HIGH_ETA_INITIALIZATION_HEX_FALLBACK.md. Returns 0 if N disks cannot
+   be placed at all. */
+int    edmd_init_lattice_gas(EDMD* S, unsigned long long seed);
+
+/* ##CHRIS: Paper 2 Level 0 -- gated per-event log of piston/divider collisions.
+   Print only; never affects the dynamics. path = NULL disables. time_scale
+   converts core time to sigma-time (driver passes PIXELS_PER_SIGMA).
+   Columns: t_sigma,kind,u_wall,v_before,v_after,dE,dp */
+void   edmd_set_event_log(const char* path, double time_scale);
+void   edmd_close_event_log(void);
 
 /* access */
 double                edmd_time(const EDMD* S);
@@ -164,6 +177,42 @@ double edmd_work_pistonR(const EDMD* S);
    Positive means energy injected into the gas by the bath. */
 double edmd_heat_bath(const EDMD* S);
 void   edmd_reset_work(EDMD* S);
+
+/* Scientific-run diagnostics. A forced advance means the exact event loop hit
+   its avalanche/stagnation safety limit and completed the frame by free flight.
+   Such a frame is useful for keeping an interactive preview responsive, but an
+   experiment should reject the run. */
+long   edmd_forced_advance_count(const EDMD* S);
+
+/* ##CHRIS: engine health counters. Both stay 0 in a correct run; any non-zero value means
+   the engine had to repair a state it should never have reached, and is worth reporting. */
+/* ##CHRIS: equilibrium pressure via the collisional virial.
+   Z = P/(rho kB T) = 1 + W/(2 KE t),  W = sum m|dv_n| sigma over pair collisions.
+   Call edmd_reset_virial() after equilibration to open a measurement window;
+   edmd_compressibility_Z() returns NaN for an empty window. */
+void   edmd_reset_virial(EDMD* S);
+double edmd_compressibility_Z(const EDMD* S);
+double edmd_virial_accum(const EDMD* S);
+
+/* ##CHRIS: SECOND, INDEPENDENT estimator -- momentum flux on the stationary
+   outer walls. These impulses are NOT part of the pair virial above; adding them
+   there would double-count the pressure. Walls are indexed L=0, R=1, B=2, T=3.
+   Validation criterion: Z_pair ~= Z_wall_x ~= Z_wall_y ~= published EOS. */
+double edmd_wall_impulse(const EDMD* S, int wall);
+long   edmd_wall_events(const EDMD* S, int wall);
+double edmd_wall_Z_x(const EDMD* S);
+double edmd_wall_Z_y(const EDMD* S);
+long   edmd_virial_pair_events(const EDMD* S);
+double edmd_virial_window(const EDMD* S);
+
+long   edmd_clamp_repair_count(const EDMD* S);
+long   edmd_overlap_repair_count(const EDMD* S);
+long   edmd_wall_overdue_count(const EDMD* S);
+
+/* ##CHRIS: debug-only event-history tracer. Watch the surface gap between particles
+   a and b; when it first goes negative, dump the last `history` events to stderr.
+   Pass history<=0 (or a<0/b<0) to disable. Off by default and free when off. */
+void   edmd_debug_set_watch(int a, int b, int history);
 
 /* Resolve any particles currently overlapping divider slabs (push + reflect). */
 void   edmd_divider_resolve_overlaps(EDMD* S);

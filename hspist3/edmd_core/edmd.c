@@ -40,6 +40,32 @@ typedef struct {
     EvType type;
 } Event;
 
+/* ##CHRIS: ------------------- event-history tracer -------------------
+   Debug-only instrumentation for hunting missed particle-particle collisions.
+   Disabled unless edmd_debug_set_watch() is called, and then it only costs one
+   distance evaluation per processed event.
+
+   It keeps a ring buffer of the most recent events and, after every position
+   advance, measures the surface gap of the watched pair. The first time that gap
+   goes negative it dumps the ring, so you see the exact event sequence that
+   produced the overlap instead of guessing from the post-mortem state. */
+#define EDMD_TRACE_CAP 4096
+typedef struct {
+    long   seq;
+    double t;
+    EvType type;
+    int    a, b, ca, cb;
+    int    ca_now, cb_now;   /* live coll_count at pop time (stale iff != ca/cb) */
+    int    accepted;         /* 1 = resolved, 0 = discarded as stale */
+    double gap;              /* watched-pair surface gap after the position jump */
+} EdmdTraceRec;
+
+static int          g_trace_a = -1, g_trace_b = -1;
+static int          g_trace_cap = 0;
+static EdmdTraceRec g_trace[EDMD_TRACE_CAP];
+static long         g_trace_seq = 0;
+static int          g_trace_head = 0, g_trace_count = 0, g_trace_fired = 0;
+
 /* uniform grid cell (list of particle indices) */
 typedef struct {
     int *idx;
@@ -63,12 +89,158 @@ struct EDMD {
     double work_pistonR;
     /* Heat exchange at thermal (heat bath) outer walls (kinetic energy change) */
     double heat_bath;
+    long forced_advance_count;
+
+    /* ##CHRIS: grid_build()'s safety clamp is a real (if rare) boundary bounce: it can
+       move a particle and reverse its velocity. That used to happen silently, leaving the
+       particle with a stale event set and no scheduled events for its new direction --
+       which is how two particles could end up on an unscheduled collision course and pass
+       straight through each other. grid_build now records every particle it mutates here
+       and bumps its coll_count; callers must reschedule these before returning. */
+    int*  clamped;            /* indices mutated by the most recent grid_build() */
+    int   clamped_count;
+    long  clamp_repair_count; /* total clamps applied (telemetry) */
+    long  overlap_repair_count; /* PP collisions scheduled for already-overlapping pairs */
+    long  wall_overdue_count;   /* wall collisions that were already due when scheduled */
+    /* ##CHRIS: equilibrium pressure by the collisional virial. For hard disks the
+       only contribution to the virial is the impulse exchanged at contact:
+           W = sum_collisions  m * |dv_n| * sigma
+       and, since 2D kinetic energy is KE = N kB T (kB=1, m=1),
+           Z = P/(rho kB T) = 1 + W / (2 * KE * t).
+       Accumulated here rather than post-hoc because it needs the pre-collision
+       normal velocity, which is gone once resolve_ab() has run. Pure telemetry:
+       nothing here feeds back into the dynamics. */
+    double virial_accum;        /* sum of m*|dv_n|*sigma over PAIR collisions only */
+    double virial_t0;           /* sim time when accumulation last reset */
+    long   virial_pair_events;  /* number of pair collisions counted */
+
+    /* ##CHRIS: SECOND, INDEPENDENT pressure estimator -- direct momentum flux on
+       the four stationary outer walls. These impulses are deliberately NOT added
+       into virial_accum: doing so would double-count the pressure, since the pair
+       virial above is already the complete hard-disk collisional virial. They are
+       accumulated per wall so that P_x and P_y can be formed separately, which
+       makes isotropy (Z_x == Z_y) an independent check rather than an assumption.
+       Only the elastic reflection path contributes: a heat-bath wall resamples the
+       velocity and is not a momentum-conserving reflector, so its "impulse" is not
+       a mechanical pressure. */
+    double wall_impulse[4];     /* |dp| on L,R,B,T outer walls */
+    long   wall_events[4];      /* collision counts, same order */
+    long   wall_thermal_events; /* heat-bath bounces skipped (must be 0 for EOS) */
 
     Cell* grid; int gw, gh;    /* grid width/height */
     double cell_size;
 
     Heap heap;
 };
+
+static inline int edmd_trace_active(const EDMD* S){
+    return g_trace_cap > 0 && !g_trace_fired &&
+           g_trace_a >= 0 && g_trace_b >= 0 &&
+           g_trace_a < S->prm.N && g_trace_b < S->prm.N;
+}
+
+/* surface gap of the watched pair: <0 means overlapping */
+static double edmd_trace_gap(const EDMD* S){
+    const double dx = S->P[g_trace_b].x - S->P[g_trace_a].x;
+    const double dy = S->P[g_trace_b].y - S->P[g_trace_a].y;
+    return sqrt(dx*dx + dy*dy) - 2.0*S->prm.radius;
+}
+
+static void edmd_trace_dump(const EDMD* S, const char* where, double gap){
+    const EDMD_Particle* A = &S->P[g_trace_a];
+    const EDMD_Particle* B = &S->P[g_trace_b];
+    const double dx = B->x - A->x, dy = B->y - A->y;
+    const double dist = sqrt(dx*dx + dy*dy);
+    const double vn = (dist > 0.0)
+        ? ((B->vx - A->vx)*dx + (B->vy - A->vy)*dy) / dist : NAN;
+
+    fprintf(stderr,
+        "\n[EDMD-TRACE] watched pair (%d,%d) went overlapping at t=%.17g via %s\n"
+        "  gap=%.17g  dist=%.17g  sigma=%.17g  v_rel_normal=%.17g\n"
+        "  p%d: x=%.17g y=%.17g vx=%.17g vy=%.17g coll_count=%d\n"
+        "  p%d: x=%.17g y=%.17g vx=%.17g vy=%.17g coll_count=%d\n"
+        "  last %d events (oldest first); '*' marks an event touching the pair:\n",
+        g_trace_a, g_trace_b, S->t, where,
+        gap, dist, 2.0*S->prm.radius, vn,
+        g_trace_a, A->x, A->y, A->vx, A->vy, A->coll_count,
+        g_trace_b, B->x, B->y, B->vx, B->vy, B->coll_count,
+        g_trace_count);
+
+    for (int k = 0; k < g_trace_count; ++k) {
+        const int idx = (g_trace_head - g_trace_count + k + EDMD_TRACE_CAP) % EDMD_TRACE_CAP;
+        const EdmdTraceRec* r = &g_trace[idx];
+        const int touches = (r->a == g_trace_a || r->a == g_trace_b ||
+                             r->b == g_trace_a || r->b == g_trace_b);
+        fprintf(stderr,
+            "   %c #%-8ld t=%-22.17g %-2s a=%-4d b=%-4d ca=%d/%d cb=%d/%d %-8s gap=%.17g\n",
+            touches ? '*' : ' ', r->seq, r->t, ev_name(r->type), r->a, r->b,
+            r->ca, r->ca_now, r->cb, r->cb_now,
+            r->accepted ? "RESOLVED" : "stale",
+            r->gap);
+    }
+    fprintf(stderr, "[EDMD-TRACE] end of history\n\n");
+    fflush(stderr);
+}
+
+static void edmd_trace_record(const EDMD* S, const Event* e, int accepted){
+    if (!edmd_trace_active(S)) return;
+    EdmdTraceRec* r = &g_trace[g_trace_head];
+    r->seq      = g_trace_seq++;
+    r->t        = e->t;
+    r->type     = e->type;
+    r->a        = e->a;
+    r->b        = e->b;
+    r->ca       = e->ca;
+    r->cb       = e->cb;
+    r->ca_now   = (e->a >= 0 && e->a < S->prm.N) ? S->P[e->a].coll_count : -1;
+    r->cb_now   = (e->type == EV_AB && e->b >= 0 && e->b < S->prm.N) ? S->P[e->b].coll_count : -1;
+    r->accepted = accepted;
+    r->gap      = edmd_trace_gap(S);
+    g_trace_head = (g_trace_head + 1) % EDMD_TRACE_CAP;
+    if (g_trace_count < g_trace_cap) g_trace_count++;
+}
+
+/* Call after any position advance. Fires (once) when the pair first overlaps. */
+static void edmd_trace_check(const EDMD* S, const char* where){
+    if (!edmd_trace_active(S)) return;
+    const double gap = edmd_trace_gap(S);
+    /* same scale as the experiment validator: 1e-6 of a diameter */
+    const double tol = fmax(1e-7, 1e-6 * 2.0 * S->prm.radius);
+    if (gap < -tol) {
+        g_trace_fired = 1;           /* set before dump: dump must not re-enter */
+        edmd_trace_dump(S, where, gap);
+    }
+}
+
+/* ##CHRIS: log every scheduling decision made for the watched pair, so a collision that
+   is never scheduled is distinguishable from one that is scheduled and then lost. */
+static void edmd_trace_schedule_attempt(const EDMD* S, int i, int j, int ok, double t_abs){
+    const double rx = S->P[j].x - S->P[i].x, ry = S->P[j].y - S->P[i].y;
+    const double vx = S->P[j].vx - S->P[i].vx, vy = S->P[j].vy - S->P[i].vy;
+    const double b  = rx*vx + ry*vy;
+    const double rr = rx*rx + ry*ry, vv = vx*vx + vy*vy;
+    const double sig = 2.0*S->prm.radius;
+    const double c  = rr - sig*sig;
+    fprintf(stderr,
+        "[EDMD-TRACE] schedule_ab(%d,%d) at t=%.17g -> %s%s%.17g  "
+        "b=%.17g c=%.17g vv=%.17g disc=%.17g gap=%.17g\n",
+        i, j, S->t, ok ? "SCHEDULED t_abs=" : "no collision",
+        ok ? "" : " ", ok ? t_abs : 0.0,
+        b, c, vv, b*b - vv*c, sqrt(rr) - sig);
+    fflush(stderr);
+}
+
+void edmd_debug_set_watch(int a, int b, int history){
+    g_trace_a = a;
+    g_trace_b = b;
+    if (history < 0) history = 0;
+    if (history > EDMD_TRACE_CAP) history = EDMD_TRACE_CAP;
+    g_trace_cap   = history;
+    g_trace_head  = 0;
+    g_trace_count = 0;
+    g_trace_seq   = 0;
+    g_trace_fired = 0;
+}
 
 /* ------------------------ small helpers ------------------------ */
 
@@ -142,7 +314,11 @@ static void grid_build(EDMD* S){
         for(int i=0;i<S->gw*S->gh;i++) S->grid[i].count=0;
     }
     double R=S->prm.radius; double eps=1e-9;
+    S->clamped_count = 0;   /* ##CHRIS */
     for(int i=0;i<S->prm.N;i++){
+        /* ##CHRIS: snapshot so a clamp can be detected, bookkept and traced. */
+        const double dbg_vx0 = S->P[i].vx, dbg_vy0 = S->P[i].vy;
+        const double dbg_x0  = S->P[i].x,  dbg_y0  = S->P[i].y;
         /* safety clamp to ensure inside box */
         if (S->P[i].x < R) { S->P[i].x = R + eps; if (S->P[i].vx < 0) S->P[i].vx = -S->P[i].vx; }
         if (S->P[i].x > S->prm.boxW - R) { S->P[i].x = S->prm.boxW - R - eps; if (S->P[i].vx > 0) S->P[i].vx = -S->P[i].vx; }
@@ -165,6 +341,32 @@ static void grid_build(EDMD* S){
                 }
             }
         }
+        /* ##CHRIS: a clamp above is a real boundary bounce. Bookkeep it like one:
+           bump coll_count so this particle's stale events are invalidated, and record
+           the index so the caller reschedules it. Without this the particle keeps flying
+           with an event set computed for its OLD velocity - the defect behind the
+           particle-pair tunnelling seen in the speed-of-sound wall_hold phase. */
+        /* Only a VELOCITY change needs bookkeeping: that is a genuine bounce, and it is what
+           invalidates the particle's pending events. A pure sub-nanometre position nudge
+           (the common case) leaves the event set valid to within 1e-9 and is left alone, so
+           this fix does not perturb trajectories that were never broken. */
+        if (S->P[i].vx != dbg_vx0 || S->P[i].vy != dbg_vy0) {
+            if (edmd_trace_active(S) && (i == g_trace_a || i == g_trace_b)) {
+                fprintf(stderr,
+                    "[EDMD-TRACE] grid_build CLAMPED p%d at t=%.17g (coll_count %d -> %d, will reschedule)\n"
+                    "             pos (%.17g,%.17g) -> (%.17g,%.17g)\n"
+                    "             vel (%.17g,%.17g) -> (%.17g,%.17g)\n",
+                    i, S->t, S->P[i].coll_count, S->P[i].coll_count + 1,
+                    dbg_x0, dbg_y0, S->P[i].x, S->P[i].y,
+                    dbg_vx0, dbg_vy0, S->P[i].vx, S->P[i].vy);
+                fflush(stderr);
+            }
+            S->P[i].coll_count++;
+            S->clamp_repair_count++;
+            if (S->clamped && S->clamped_count < S->prm.N) {
+                S->clamped[S->clamped_count++] = i;
+            }
+        }
         int cx = (int)floor(S->P[i].x / S->cell_size);
         int cy = (int)floor(S->P[i].y / S->cell_size);
         cx = clampi(cx, 0, S->gw-1);
@@ -172,6 +374,19 @@ static void grid_build(EDMD* S){
         Cell* c = &S->grid[cy*S->gw + cx];
         cell_reserve(c, c->count+1);
         c->idx[c->count++] = i;
+    }
+}
+
+/* ##CHRIS: reschedule everything grid_build() had to clamp. Must be called after any
+   grid_build() that is NOT immediately followed by a full reschedule. Safe to call when
+   nothing was clamped (the common case) - it is then a no-op. */
+static void schedule_for(EDMD* S, int i);
+static void reschedule_clamped(EDMD* S){
+    const int n = S->clamped_count;
+    if (n <= 0) return;
+    S->clamped_count = 0;   /* clear first: schedule_for() does not clamp, but be safe */
+    for (int k = 0; k < n; ++k) {
+        schedule_for(S, S->clamped[k]);
     }
 }
 
@@ -206,60 +421,186 @@ static int collide_time_ab(double xi,double yi,double vxi,double vyi,
     double rr=rx*rx+ry*ry, vv=vx*vx+vy*vy;
     double sig = 2.0*R;
     double c = rr - sig*sig;
+    if(vv<=0.0) return 0;
+    /* ##CHRIS: SAFETY NET. c < 0 means the pair is already overlapping, and b < 0 means it
+       is still approaching - the collision is overdue, so schedule it immediately.
+       Without this branch the earlier root is negative and the `t<=1e-12` guard below
+       discards it, so an overlapping approaching pair becomes PERMANENTLY invisible to the
+       scheduler: c only grows more negative until they separate on the far side. That is
+       what turned a single missed event into two particles passing through each other.
+       This should never fire once the scheduler is correct, so every occurrence is counted
+       and reported by edmd_overlap_repair_count() rather than being silently absorbed. */
+    if(c<0.0){ *tcol = 0.0; return 2; }
     double disc = b*b - vv*c;
-    if(disc<=0.0 || vv<=0.0) return 0;
+    if(disc<=0.0) return 0;
     double t = (-b - sqrt(disc)) / vv;     /* earlier root */
     if(t<=1e-12) return 0;
     *tcol = t; return 1;
 }
 
 /* left wall x=0: hit when x - R = 0; particle must move left (vx<0). */
-static int collide_time_wall_L(const EDMD* S, const EDMD_Particle* A, double* tcol){
-    (void)S;
-    if(A->vx >= 0.0) return 0;
-    double dist = (A->x - S->prm.radius) - 0.0;
-    double t = -dist / A->vx;
-    if(t<=1e-12) return 0;
+/* ##CHRIS: `gap` is the distance still available before the face is reached and `speed` is
+   the (positive) closing speed. gap <= 0 means the particle is already at or past the face
+   while still moving outward, i.e. the wall collision is OVERDUE - schedule it now (t=0)
+   rather than discarding it. The old `t<=1e-12` guard rejected exactly this case, so a
+   particle seeded precisely on a face (gap == 0) got no wall event at all, drifted out of
+   the box, and was then silently repaired by grid_build()'s clamp. That was the first link
+   in the particle-pair tunnelling bug (seed 2381038820).
+   The guard still applies for gap > 0, and cannot mis-fire on a just-resolved collision:
+   resolve_wall() reverses the velocity, so the velocity-sign test in each caller rejects it. */
+static int wall_time_from_gap(double gap, double speed, double* tcol){
+    if (gap <= 0.0) { *tcol = 0.0; return 2; }   /* overdue */
+    const double t = gap / speed;
+    if (t <= 1e-12) return 0;
     *tcol = t; return 1;
+}
+static int collide_time_wall_L(const EDMD* S, const EDMD_Particle* A, double* tcol){
+    if(A->vx >= 0.0) return 0;
+    return wall_time_from_gap((A->x - S->prm.radius) - 0.0, -A->vx, tcol);
 }
 /* right wall x=boxW: hit when x + R = boxW; particle must move right (vx>0). */
 static int collide_time_wall_R(const EDMD* S, const EDMD_Particle* A, double* tcol){
     if(A->vx <= 0.0) return 0;
-    double dist = (S->prm.boxW - S->prm.radius) - A->x;
-    double t = dist / A->vx;
-    if(t<=1e-12) return 0;
-    *tcol = t; return 1;
+    return wall_time_from_gap((S->prm.boxW - S->prm.radius) - A->x, A->vx, tcol);
 }
 /* bottom wall y=0: hit when y - R = 0; particle must move down (vy<0). */
 static int collide_time_wall_B(const EDMD* S, const EDMD_Particle* A, double* tcol){
-    (void)S;
     if(A->vy >= 0.0) return 0;
-    double dist = (A->y - S->prm.radius) - 0.0;
-    double t = -dist / A->vy;
-    if(t<=1e-12) return 0;
-    *tcol = t; return 1;
+    return wall_time_from_gap((A->y - S->prm.radius) - 0.0, -A->vy, tcol);
 }
 /* top wall y=boxH: hit when y + R = boxH; particle must move up (vy>0). */
 static int collide_time_wall_T(const EDMD* S, const EDMD_Particle* A, double* tcol){
     if(A->vy <= 0.0) return 0;
-    double dist = (S->prm.boxH - S->prm.radius) - A->y;
-    double t = dist / A->vy;
-    if(t<=1e-12) return 0;
-    *tcol = t; return 1;
+    return wall_time_from_gap((S->prm.boxH - S->prm.radius) - A->y, A->vy, tcol);
+}
+
+static double harmonic_contact_value(double t, double base, double particle_v,
+                                     double wall_dx, double wall_v0,
+                                     double omega){
+    return base + particle_v * t
+         - wall_dx * cos(omega * t)
+         - (wall_v0 / omega) * sin(omega * t);
+}
+
+/* Find the first directed zero of
+     f(t) = base + particle_v*t - wall_dx*cos(w*t) - wall_v0/w*sin(w*t).
+   The derivative is a sinusoid plus a constant. Its analytically known zeros
+   split time into monotonic intervals, so checking those interval endpoints
+   cannot skip a fast wall crossing the way a fixed coarse scan can. */
+static int harmonic_first_contact(double base, double particle_v,
+                                  double wall_dx, double wall_v0,
+                                  double omega, double t_max,
+                                  int crossing_direction, double* tcol){
+    if (!(omega > 0.0) || !(t_max > 0.0) || !tcol) return 0;
+    const double two_pi = 2.0 * M_PI;
+    const double period = two_pi / omega;
+    const double derivative_amplitude = hypot(wall_dx * omega, wall_v0);
+    const double root_tol = 1e-12;
+    double previous_t = 0.0;
+    double previous_f = harmonic_contact_value(
+        previous_t, base, particle_v, wall_dx, wall_v0, omega);
+
+    double offsets[2] = {NAN, NAN};
+    int offset_count = 0;
+    if (derivative_amplitude > 1e-15 &&
+        fabs(particle_v) < derivative_amplitude) {
+        const double q = fmax(-1.0, fmin(1.0,
+            -particle_v / derivative_amplitude));
+        const double phase = atan2(wall_v0, wall_dx * omega);
+        const double alpha = asin(q);
+        double theta_a = fmod(phase + alpha, two_pi);
+        double theta_b = fmod(phase + M_PI - alpha, two_pi);
+        if (theta_a < 0.0) theta_a += two_pi;
+        if (theta_b < 0.0) theta_b += two_pi;
+        offsets[0] = theta_a / omega;
+        offsets[1] = theta_b / omega;
+        if (offsets[1] < offsets[0]) {
+            const double tmp = offsets[0]; offsets[0] = offsets[1]; offsets[1] = tmp;
+        }
+        offset_count = (fabs(offsets[1] - offsets[0]) <= 1e-14) ? 1 : 2;
+    }
+
+    const long max_cycles = (long)ceil(t_max / period) + 1L;
+    for (long cycle = 0; cycle <= max_cycles; ++cycle) {
+        for (int oi = 0; oi < offset_count; ++oi) {
+            double current_t = (double)cycle * period + offsets[oi];
+            if (current_t <= previous_t + 1e-14) continue;
+            if (current_t > t_max) current_t = t_max;
+            const double current_f = harmonic_contact_value(
+                current_t, base, particle_v, wall_dx, wall_v0, omega);
+            const int crosses = (crossing_direction > 0)
+                ? (previous_f <= 0.0 && current_f >= 0.0)
+                : (previous_f >= 0.0 && current_f <= 0.0);
+            if (crosses) {
+                double lo = previous_t, hi = current_t;
+                for (int it = 0; it < 80; ++it) {
+                    const double mid = 0.5 * (lo + hi);
+                    const double fm = harmonic_contact_value(
+                        mid, base, particle_v, wall_dx, wall_v0, omega);
+                    if ((crossing_direction > 0 && fm >= 0.0) ||
+                        (crossing_direction < 0 && fm <= 0.0)) hi = mid;
+                    else lo = mid;
+                }
+                const double root = 0.5 * (lo + hi);
+                if (root > root_tol) { *tcol = root; return 1; }
+                /* f(0)==0 is normal immediately after a wall collision.  If
+                   the particle initially separates, the harmonic wall can
+                   still catch it later.  Skip only this zero-time root and
+                   continue through the remaining monotonic intervals. */
+            }
+            previous_t = current_t;
+            previous_f = current_f;
+            if (current_t >= t_max - 1e-15) return 0;
+        }
+        if (offset_count == 0) break;
+    }
+
+    if (previous_t < t_max) {
+        const double final_f = harmonic_contact_value(
+            t_max, base, particle_v, wall_dx, wall_v0, omega);
+        const int crosses = (crossing_direction > 0)
+            ? (previous_f <= 0.0 && final_f >= 0.0)
+            : (previous_f >= 0.0 && final_f <= 0.0);
+        if (crosses) {
+            double lo = previous_t, hi = t_max;
+            for (int it = 0; it < 80; ++it) {
+                const double mid = 0.5 * (lo + hi);
+                const double fm = harmonic_contact_value(
+                    mid, base, particle_v, wall_dx, wall_v0, omega);
+                if ((crossing_direction > 0 && fm >= 0.0) ||
+                    (crossing_direction < 0 && fm <= 0.0)) hi = mid;
+                else lo = mid;
+            }
+            const double root = 0.5 * (lo + hi);
+            if (root > root_tol) { *tcol = root; return 1; }
+        }
+    }
+    return 0;
 }
 
 /* ------------------------ scheduling ------------------------ */
 
 static void schedule_walls(EDMD* S, int i){
-    double t;
-    if(collide_time_wall_L(S, &S->P[i], &t))
+    /* ##CHRIS: rc==2 means the wall collision was already overdue when scheduled. The old
+       code discarded exactly those, which is how a particle escaped the box. Counted so the
+       exposure is measurable rather than invisible. */
+    double t; int rc;
+    if((rc = collide_time_wall_L(S, &S->P[i], &t))) {
+        if(rc==2) S->wall_overdue_count++;
         heap_push(&S->heap, (Event){ S->t+t, i,-1, S->P[i].coll_count,0, EV_WL });
-    if(collide_time_wall_R(S, &S->P[i], &t))
+    }
+    if((rc = collide_time_wall_R(S, &S->P[i], &t))) {
+        if(rc==2) S->wall_overdue_count++;
         heap_push(&S->heap, (Event){ S->t+t, i,-1, S->P[i].coll_count,0, EV_WR });
-    if(collide_time_wall_B(S, &S->P[i], &t))
+    }
+    if((rc = collide_time_wall_B(S, &S->P[i], &t))) {
+        if(rc==2) S->wall_overdue_count++;
         heap_push(&S->heap, (Event){ S->t+t, i,-1, S->P[i].coll_count,0, EV_WB });
-    if(collide_time_wall_T(S, &S->P[i], &t))
+    }
+    if((rc = collide_time_wall_T(S, &S->P[i], &t))) {
+        if(rc==2) S->wall_overdue_count++;
         heap_push(&S->heap, (Event){ S->t+t, i,-1, S->P[i].coll_count,0, EV_WT });
+    }
 }
 
 /* divider faces (vertical slab): faces at x = cx - th/2 and x = cx + th/2 */
@@ -281,7 +622,11 @@ static int collide_time_divider_L(const EDMD* S, const EDMD_Particle* A, int d, 
         const double xeq = S->prm.divider_xeq[d];
         const double Rpart = S->prm.radius;
         const double gap = (x0 - 0.5*th) - (A->x + Rpart);
-        if (gap <= 1e-12) return 0; /* not strictly left */
+        /* A zero gap is the post-collision contact state.  It must remain
+           schedulable because an oscillating wall may catch the particle
+           again after they initially separate.  Only reject a particle that
+           is already materially through this face. */
+        if (gap < -1e-9) return 0;
 
         const double w = sqrt(k / mW);
         if (!(w > 0.0)) return 0;
@@ -301,49 +646,8 @@ static int collide_time_divider_L(const EDMD* S, const EDMD_Particle* A, int d, 
         }
         if (!(t_max > 0.0)) return 0;
 
-        /* Coarse scan for first sign change. */
-        const double coarse_step = fmin(T / 16.0, fmax(1e-6, 0.25 * gap / (fabs(v) + fabs(v0) + 1e-9)));
-        double t0s = 0.0;
-        double f0s = base + v * t0s - (x0 - xeq) * cos(w * t0s) - (v0 / w) * sin(w * t0s);
-        double ta = NAN, tb = NAN;
-        for (int it = 0; it < 20000; ++it) {
-            double t1s = t0s + coarse_step;
-            if (t1s > t_max) t1s = t_max;
-            double f1s = base + v * t1s - (x0 - xeq) * cos(w * t1s) - (v0 / w) * sin(w * t1s);
-            if ((f0s <= 0.0 && f1s >= 0.0) || (f0s >= 0.0 && f1s <= 0.0)) { ta = t0s; tb = t1s; break; }
-            t0s = t1s; f0s = f1s;
-            if (t0s >= t_max - 1e-15) break;
-        }
-        if (!isfinite(ta) || !isfinite(tb) || !(tb > ta)) return 0;
-
-        /* Refine bracket to the first root inside [ta,tb] with a finer scan. */
-        const double fine_step = fmin(T / 256.0, fmax(1e-7, (tb - ta) / 64.0));
-        double t_prev = ta;
-        double f_prev = base + v * t_prev - (x0 - xeq) * cos(w * t_prev) - (v0 / w) * sin(w * t_prev);
-        double t_lo = ta, t_hi = tb;
-        for (int it = 0; it < 4096; ++it) {
-            double t_cur = t_prev + fine_step;
-            if (t_cur > tb) t_cur = tb;
-            double f_cur = base + v * t_cur - (x0 - xeq) * cos(w * t_cur) - (v0 / w) * sin(w * t_cur);
-            if ((f_prev <= 0.0 && f_cur >= 0.0) || (f_prev >= 0.0 && f_cur <= 0.0)) { t_lo = t_prev; t_hi = t_cur; break; }
-            t_prev = t_cur; f_prev = f_cur;
-            if (t_prev >= tb - 1e-15) break;
-        }
-
-        /* Bisection (bracketed). */
-        double flo = base + v * t_lo - (x0 - xeq) * cos(w * t_lo) - (v0 / w) * sin(w * t_lo);
-        double fhi = base + v * t_hi - (x0 - xeq) * cos(w * t_hi) - (v0 / w) * sin(w * t_hi);
-        if (!((flo <= 0.0 && fhi >= 0.0) || (flo >= 0.0 && fhi <= 0.0))) return 0;
-        for (int it = 0; it < 80; ++it) {
-            double tm = 0.5 * (t_lo + t_hi);
-            double fm = base + v * tm - (x0 - xeq) * cos(w * tm) - (v0 / w) * sin(w * tm);
-            if ((flo <= 0.0 && fm >= 0.0) || (flo >= 0.0 && fm <= 0.0)) { t_hi = tm; fhi = fm; }
-            else { t_lo = tm; flo = fm; }
-        }
-        double t = 0.5 * (t_lo + t_hi);
-        if (t <= 1e-12) return 0;
-        *tcol = t;
-        return 1;
+        return harmonic_first_contact(base, v, x0 - xeq, v0, w,
+                                      t_max, +1, tcol);
     }
     /* left face, approached from left side: (x+R) + vx t = L + vW t */
     double rel = A->vx - S->prm.divider_vx[d];
@@ -369,7 +673,7 @@ static int collide_time_divider_R(const EDMD* S, const EDMD_Particle* A, int d, 
         const double xeq = S->prm.divider_xeq[d];
         const double Rpart = S->prm.radius;
         const double gap = (A->x - Rpart) - (x0 + 0.5*th);
-        if (gap <= 1e-12) return 0; /* not strictly right */
+        if (gap < -1e-9) return 0;
 
         const double w = sqrt(k / mW);
         if (!(w > 0.0)) return 0;
@@ -388,46 +692,8 @@ static int collide_time_divider_R(const EDMD* S, const EDMD_Particle* A, int d, 
         }
         if (!(t_max > 0.0)) return 0;
 
-        const double coarse_step = fmin(T / 16.0, fmax(1e-6, 0.25 * gap / (fabs(v) + fabs(v0) + 1e-9)));
-        double t0s = 0.0;
-        double f0s = base + v * t0s - (x0 - xeq) * cos(w * t0s) - (v0 / w) * sin(w * t0s);
-        double ta = NAN, tb = NAN;
-        for (int it = 0; it < 20000; ++it) {
-            double t1s = t0s + coarse_step;
-            if (t1s > t_max) t1s = t_max;
-            double f1s = base + v * t1s - (x0 - xeq) * cos(w * t1s) - (v0 / w) * sin(w * t1s);
-            if ((f0s <= 0.0 && f1s >= 0.0) || (f0s >= 0.0 && f1s <= 0.0)) { ta = t0s; tb = t1s; break; }
-            t0s = t1s; f0s = f1s;
-            if (t0s >= t_max - 1e-15) break;
-        }
-        if (!isfinite(ta) || !isfinite(tb) || !(tb > ta)) return 0;
-
-        const double fine_step = fmin(T / 256.0, fmax(1e-7, (tb - ta) / 64.0));
-        double t_prev = ta;
-        double f_prev = base + v * t_prev - (x0 - xeq) * cos(w * t_prev) - (v0 / w) * sin(w * t_prev);
-        double t_lo = ta, t_hi = tb;
-        for (int it = 0; it < 4096; ++it) {
-            double t_cur = t_prev + fine_step;
-            if (t_cur > tb) t_cur = tb;
-            double f_cur = base + v * t_cur - (x0 - xeq) * cos(w * t_cur) - (v0 / w) * sin(w * t_cur);
-            if ((f_prev <= 0.0 && f_cur >= 0.0) || (f_prev >= 0.0 && f_cur <= 0.0)) { t_lo = t_prev; t_hi = t_cur; break; }
-            t_prev = t_cur; f_prev = f_cur;
-            if (t_prev >= tb - 1e-15) break;
-        }
-
-        double flo = base + v * t_lo - (x0 - xeq) * cos(w * t_lo) - (v0 / w) * sin(w * t_lo);
-        double fhi = base + v * t_hi - (x0 - xeq) * cos(w * t_hi) - (v0 / w) * sin(w * t_hi);
-        if (!((flo <= 0.0 && fhi >= 0.0) || (flo >= 0.0 && fhi <= 0.0))) return 0;
-        for (int it = 0; it < 80; ++it) {
-            double tm = 0.5 * (t_lo + t_hi);
-            double fm = base + v * tm - (x0 - xeq) * cos(w * tm) - (v0 / w) * sin(w * tm);
-            if ((flo <= 0.0 && fm >= 0.0) || (flo >= 0.0 && fm <= 0.0)) { t_hi = tm; fhi = fm; }
-            else { t_lo = tm; flo = fm; }
-        }
-        double t = 0.5 * (t_lo + t_hi);
-        if (t <= 1e-12) return 0;
-        *tcol = t;
-        return 1;
+        return harmonic_first_contact(base, v, x0 - xeq, v0, w,
+                                      t_max, -1, tcol);
     }
     /* right face, approached from right side: (x-R) + vx t = Rf + vW t */
     double rel = A->vx - S->prm.divider_vx[d];
@@ -482,10 +748,16 @@ static void schedule_pistons(EDMD* S, int i){
 static void schedule_ab(EDMD* S, int i, int j){
     if (!S->prm.pp_collisions_enabled) return; /* ##CHRIS: skip PP if disabled */
     double t;
-    if(collide_time_ab(S->P[i].x,S->P[i].y,S->P[i].vx,S->P[i].vy,
-                       S->P[j].x,S->P[j].y,S->P[j].vx,S->P[j].vy,
-                       S->prm.radius, &t))
-    {
+    const int ok = collide_time_ab(S->P[i].x,S->P[i].y,S->P[i].vx,S->P[i].vy,
+                                   S->P[j].x,S->P[j].y,S->P[j].vx,S->P[j].vy,
+                                   S->prm.radius, &t);
+    /* ##CHRIS: trace every scheduling decision for the watched pair. */
+    if (edmd_trace_active(S) &&
+        ((i == g_trace_a && j == g_trace_b) || (i == g_trace_b && j == g_trace_a))) {
+        edmd_trace_schedule_attempt(S, i, j, ok, ok ? S->t + t : NAN);
+    }
+    if(ok){
+        if(ok == 2) S->overlap_repair_count++;   /* ##CHRIS: overdue (already-overlapping) pair */
         heap_push(&S->heap, (Event){ S->t+t, i,j, S->P[i].coll_count,S->P[j].coll_count, EV_AB });
     }
 }
@@ -543,6 +815,9 @@ static void reschedule_all_internal(EDMD* S){
             schedule_ab(S, i, j);
         }
     }
+    /* ##CHRIS: every particle was just scheduled, so anything grid_build clamped is
+       already covered - drop the pending list rather than scheduling it twice. */
+    S->clamped_count = 0;
 }
 
 /* reschedule AB only (no walls/pistons/divider; do not clamp/push) */
@@ -569,6 +844,12 @@ static void resolve_ab(EDMD* S, int i, int j){
 
     double dvx=B->vx - A->vx, dvy=B->vy - A->vy;
     double dvn=dvx*nx + dvy*ny;
+
+    /* ##CHRIS: virial BEFORE the velocities are overwritten. dvn < 0 for an
+       approaching pair, so -dvn is the closing speed; unit mass, and dist is the
+       contact separation (= sigma up to the scheduler's tolerance). */
+    S->virial_accum += (-dvn) * dist;
+    S->virial_pair_events++;
 
     A->vx += dvn*nx; A->vy += dvn*ny;
     B->vx -= dvn*nx; B->vy -= dvn*ny;
@@ -754,6 +1035,40 @@ static inline int divider_gate_allows_pass(const EDMD* S, int d, EvType type, in
     return (type == EV_DL); /* left->right */
 }
 
+/* ##CHRIS: Paper 2 Level 0 -- gated per-event log of piston and divider
+   collisions. PRINT ONLY: nothing here reads back into the dynamics, and every
+   value is captured from the same locals the collision rule already computed.
+   Enabled by the driver via edmd_set_event_log(); disabled (NULL) by default, so
+   no existing run changes. time_scale converts the core's internal time to
+   sigma-time (the driver passes PIXELS_PER_SIGMA); the core itself stays free of
+   driver constants.
+   Columns: t_sigma, kind (PL/PR/D<idx>), u_wall, v_before, v_after, dE, dp.
+   dE is the quantity the core books as work (particle KE change for a
+   prescribed-velocity wall; the WALL's KE change for a finite-mass wall -- these
+   are different quantities, see the note in the Level-0 document). dp is always
+   the particle's momentum change m(v_after - v_before). */
+static FILE*  g_edmd_evlog = NULL;
+static double g_edmd_evlog_tscale = 1.0;
+
+void edmd_set_event_log(const char* path, double time_scale){
+    if (g_edmd_evlog) { fclose(g_edmd_evlog); g_edmd_evlog = NULL; }
+    g_edmd_evlog_tscale = (time_scale > 0.0) ? time_scale : 1.0;
+    if (!path || !*path) return;
+    g_edmd_evlog = fopen(path, "w");
+    if (g_edmd_evlog) {
+        fprintf(g_edmd_evlog, "t_sigma,kind,u_wall,v_before,v_after,dE,dp\n");
+    }
+}
+void edmd_close_event_log(void){
+    if (g_edmd_evlog) { fflush(g_edmd_evlog); fclose(g_edmd_evlog); g_edmd_evlog = NULL; }
+}
+static inline void edmd_log_event(const EDMD* S, const char* kind,
+                                  double u, double v0, double v1, double dE){
+    if (!g_edmd_evlog) return;
+    fprintf(g_edmd_evlog, "%.12g,%s,%.12g,%.12g,%.12g,%.12g,%.12g\n",
+            S->t / g_edmd_evlog_tscale, kind, u, v0, v1, dE, 1.0 * (v1 - v0));
+}
+
 static void resolve_wall(EDMD* S, int i, EvType type, int b){
     EDMD_Particle* A=&S->P[i];
 
@@ -794,8 +1109,28 @@ static void resolve_wall(EDMD* S, int i, EvType type, int b){
             }
         }
         /* No heat bath or at equilibrium - normal elastic reflection */
-        if(type==EV_WL || type==EV_WR){ A->vx = -A->vx; }
-        if(type==EV_WB || type==EV_WT){ A->vy = -A->vy; }
+        /* ##CHRIS: record the ACTUAL momentum change rather than assuming 2|v_n|,
+           so the estimator stays correct if the reflection rule ever changes. */
+        {
+            const double vx0 = A->vx, vy0 = A->vy;
+            if(type==EV_WL || type==EV_WR){ A->vx = -A->vx; }
+            if(type==EV_WB || type==EV_WT){ A->vy = -A->vy; }
+            const double m = (S->prm.particle_mass > 0.0) ? S->prm.particle_mass : 1.0;
+            const int w = (type==EV_WL) ? 0 : (type==EV_WR) ? 1 : (type==EV_WB) ? 2 : 3;
+            const double dp = (w < 2) ? fabs(A->vx - vx0) : fabs(A->vy - vy0);
+            S->wall_impulse[w] += m * dp;
+            S->wall_events[w]++;
+            /* ##CHRIS: outer-wall events in the gated log, so the momentum balance
+               can close. The wall is stationary (u = 0) and the reflection is
+               elastic (dE = 0); v_before/v_after are the NORMAL component, so
+               WL/WR carry x-momentum and WB/WT carry y-momentum. */
+            {
+                static const char* wn[4] = {"WL","WR","WB","WT"};
+                const double n0 = (w < 2) ? vx0 : vy0;
+                const double n1 = (w < 2) ? A->vx : A->vy;
+                edmd_log_event(S, wn[w], 0.0, n0, n1, 0.0);
+            }
+        }
         A->coll_count++;
         return;
     }
@@ -845,6 +1180,7 @@ static void resolve_wall(EDMD* S, int i, EvType type, int b){
             double dE = 0.5 * m * (v1*v1 - u1*u1);
             S->work_divider[d] += dE;
             A->vx = v1;
+            { char kb[8]; snprintf(kb, sizeof kb, "D%d", d); edmd_log_event(S, kb, u2, u1, v1, dE); }
             A->coll_count++;
             return;
         } else {
@@ -853,6 +1189,7 @@ static void resolve_wall(EDMD* S, int i, EvType type, int b){
             /* Work: change in divider KE */
             double dE = 0.5 * M * (v2*v2 - u2*u2);
             S->work_divider[d] += dE;
+            { char kb[8]; snprintf(kb, sizeof kb, "D%d", d); edmd_log_event(S, kb, u2, u1, v1, dE); }
             A->vx = v1; S->prm.divider_vx[d] = v2; A->coll_count++; return;
         }
     }
@@ -868,6 +1205,7 @@ static void resolve_wall(EDMD* S, int i, EvType type, int b){
             if (type==EV_PL) { S->work_pistonL += dE; }
             else             { S->work_pistonR += dE; }
             A->vx = v1;
+            edmd_log_event(S, (type==EV_PL) ? "PL" : "PR", u2, u1, v1, dE);
             A->coll_count++;
             return;
         }
@@ -877,6 +1215,7 @@ static void resolve_wall(EDMD* S, int i, EvType type, int b){
         double dE = 0.5 * M * (v2*v2 - u2*u2);
         if (type==EV_PL) { S->prm.pistonL_vx = v2; S->work_pistonL += dE; }
         else             { S->prm.pistonR_vx = v2; S->work_pistonR += dE; }
+        edmd_log_event(S, (type==EV_PL) ? "PL" : "PR", u2, u1, v1, dE);
         A->coll_count++; return;
     }
 }
@@ -893,6 +1232,17 @@ EDMD* edmd_create(const EDMD_Params* prm_in){
     S->work_pistonR = 0.0;
     S->heat_bath = 0.0;
     S->P = (EDMD_Particle*)calloc((size_t)S->prm.N, sizeof(EDMD_Particle));
+    /* ##CHRIS: scratch list of particles clamped by grid_build(), so they can be rescheduled */
+    S->clamped = (int*)calloc((size_t)(S->prm.N > 0 ? S->prm.N : 1), sizeof(int));
+    S->clamped_count = 0;
+    S->clamp_repair_count = 0;
+    S->overlap_repair_count = 0;
+    S->virial_accum = 0.0;
+    S->virial_t0 = 0.0;
+    S->virial_pair_events = 0;
+    for(int w=0;w<4;w++){ S->wall_impulse[w]=0.0; S->wall_events[w]=0; }
+    S->wall_thermal_events = 0;
+    S->wall_overdue_count = 0;
     S->cell_size = (S->prm.cell_size>0.0)? S->prm.cell_size : fmax(2.5*S->prm.radius, 1.0*S->prm.radius);
     S->gw = (int)fmax(1.0, floor(S->prm.boxW / S->cell_size));
     S->gh = (int)fmax(1.0, floor(S->prm.boxH / S->cell_size));
@@ -910,6 +1260,7 @@ void edmd_destroy(EDMD* S){
     heap_free(&S->heap);
     grid_free(S);
     free(S->P);
+    free(S->clamped);   /* ##CHRIS */
     free(S);
 }
 
@@ -921,6 +1272,126 @@ static unsigned long long xorshift64(unsigned long long* s){
 }
 
 /* random non-overlapping init + Gaussian velocities (Box-Muller) */
+/* ##CHRIS: lattice seeding for densities where random insertion cannot finish.
+   edmd_init_random_gas() is rejection sampling with an unbounded retry loop (its
+   own comment says "okay for demos"): above eta ~ 0.55 the acceptance
+   probability for the last disks collapses and it never returns. That is a hang,
+   not a slowdown, and it silently stalled an entire dense campaign.
+   This follows the approach already settled in
+   01_improvements_bugsfxed_dev/26_08_21_HIGH_ETA_INITIALIZATION_HEX_FALLBACK.md:
+   place a CHECKED lattice, and never relax the overlap tolerance to make an
+   infeasible layout pass. Rectangular is used when its spacing genuinely clears a
+   diameter; otherwise hexagonal with
+       dx = d(1+eps),  dy = (sqrt(3)/2) dx
+   Velocities are drawn the same way as the random seeder, so only the positions
+   differ. Returns 0 if even the hex lattice cannot fit N disks.
+   edmd_init_random_gas() is deliberately left untouched: changing it would move
+   every existing consumer's seeds. */
+int edmd_init_lattice_gas(EDMD* S, unsigned long long seed){
+    if(!S) return 0;
+    unsigned long long st = seed ? seed : 0xC0FFEEULL;
+    const int N = S->prm.N;
+    const double R = S->prm.radius, d = 2.0*R;
+    const double eps = 1e-3;                    /* separation margin */
+    /* Inset from the walls. Placing a disk at exactly x = R leaves gap = 0 with
+       the wall face, which wall_time_from_gap() correctly classifies as an
+       overdue wall collision (the 2026-08-23 tunnelling fix). It is handled
+       properly, but it is a marginal initial state and it trips the strict
+       zero-health acceptance rule, so keep the seed strictly off the walls. */
+    const double wmargin = 1e-3 * d;
+    const double lo = R + wmargin;
+    const double usableW = S->prm.boxW - d - 2.0*wmargin;
+    const double usableH = S->prm.boxH - d - 2.0*wmargin;
+    if(usableW <= 0.0 || usableH <= 0.0 || N <= 0) return 0;
+
+    int placed = 0;
+
+    /* 1) Rectangular lattice SPREAD OVER THE WHOLE BOX. The grid is sized to hold
+          about N sites at the box aspect ratio, not packed as tightly as possible
+          -- filling a tight lattice row-major from a corner would leave most of
+          the box empty and the occupied part at near-close-packing, which is a
+          completely different (and far denser) system than the requested eta. */
+    {
+        int cols = (int)ceil(sqrt((double)N * usableW / (usableH > 0 ? usableH : 1.0)));
+        if(cols < 1) cols = 1;
+        int rows = (int)ceil((double)N / cols);
+        if(rows < 1) rows = 1;
+        const double sx = (cols>1) ? usableW/(cols-1) : usableW;
+        const double sy = (rows>1) ? usableH/(rows-1) : usableH;
+        if(sx >= d*(1.0+eps) && sy >= d*(1.0+eps)){
+            for(int r=0; r<rows && placed<N; ++r)
+                for(int c=0; c<cols && placed<N; ++c){
+                    S->P[placed].x = lo + ((cols>1) ? c*sx : 0.5*usableW);
+                    S->P[placed].y = lo + ((rows>1) ? r*sy : 0.5*usableH);
+                    placed++;
+                }
+        }
+    }
+
+    /* 2) Hexagonal fallback, for densities where no spread rectangular lattice
+          clears a diameter. Here filling the box IS correct: at these packing
+          fractions the disks genuinely occupy the whole area. */
+    if(placed < N){
+        placed = 0;
+        const double dx = d*(1.0+eps);
+        const double dy = 0.8660254037844386*dx;      /* sqrt(3)/2 */
+        const int rows = (int)floor(usableH/dy) + 1;
+        for(int r=0; r<rows && placed<N; ++r){
+            const double yoff = (r & 1) ? 0.5*dx : 0.0;
+            const double avail = usableW - yoff;
+            if(avail < 0.0) continue;
+            const int cols = (int)floor(avail/dx) + 1;
+            for(int c=0; c<cols && placed<N; ++c){
+                S->P[placed].x = lo + yoff + c*dx;
+                S->P[placed].y = lo + r*dy;
+                placed++;
+            }
+        }
+        if(placed < N) return 0;                       /* genuinely does not fit */
+    }
+
+    /* Break the lattice degeneracy. A perfect lattice puts every neighbouring
+       pair at an identical separation, so a large number of collisions come due
+       at exactly the same instant; the scheduler sees that as an event avalanche
+       and forces an advance. Jitter also avoids starting a FLUID measurement from
+       a perfectly ordered crystal. The amplitude is a fraction of the free gap,
+       so two neighbours moving toward each other still cannot overlap. */
+    {
+        double min_gap = 1e30;
+        for(int i=0;i<N;i++)
+            for(int j=i+1;j<N;j++){
+                const double dx2=S->P[i].x-S->P[j].x, dy2=S->P[i].y-S->P[j].y;
+                const double dist=sqrt(dx2*dx2+dy2*dy2);
+                if(dist < min_gap) min_gap = dist;
+            }
+        double amp = 0.2 * 0.5 * (min_gap - d);
+        if(!(amp > 0.0)) amp = 0.0;
+        for(int i=0;i<N;i++){
+            const double jx = (((double)(xorshift64(&st)%2000001))/1000000.0 - 1.0)*amp;
+            const double jy = (((double)(xorshift64(&st)%2000001))/1000000.0 - 1.0)*amp;
+            double nx = S->P[i].x + jx, ny = S->P[i].y + jy;
+            if(nx < lo) nx = lo; if(nx > S->prm.boxW-lo) nx = S->prm.boxW-lo;
+            if(ny < lo) ny = lo; if(ny > S->prm.boxH-lo) ny = S->prm.boxH-lo;
+            S->P[i].x = nx; S->P[i].y = ny;
+        }
+    }
+
+    /* velocities: same Box-Muller draw as the random seeder */
+    for(int i=0;i<N;i++){
+        double u1 = ((xorshift64(&st)%1000000)+1)/1000001.0;
+        double u2 = ((xorshift64(&st)%1000000)+1)/1000001.0;
+        double g  = sqrt(-2.0*log(u1));
+        double th = 2.0*M_PI*u2;
+        S->P[i].vx = g*cos(th);
+        S->P[i].vy = g*sin(th);
+        S->P[i].coll_count = 0;
+    }
+    S->t = 0.0;
+    reschedule_all_internal(S);   /* without this the event calendar is empty and
+                                     the system is inert: no collisions ever occur */
+    return 1;
+}
+
 void edmd_init_random_gas(EDMD* S, unsigned long long seed){
     unsigned long long st = seed? seed : 0xC0FFEEULL;
     int N=S->prm.N; double R=S->prm.radius;
@@ -974,6 +1445,7 @@ double edmd_advance_to(EDMD* S, double t_target){
             }
             advance_dividers(S, dt);
             S->t = t_target;
+            edmd_trace_check(S, "free-flight (heap empty)"); /* ##CHRIS */
             break;
         }
         events_processed++;
@@ -982,6 +1454,7 @@ double edmd_advance_to(EDMD* S, double t_target){
         else { stagnant_events = 0; last_event_t = e.t; }
         if (events_processed > EDMD_ADVANCE_MAX_EVENTS || stagnant_events > EDMD_ADVANCE_MAX_STAGNANT_EVENTS) {
             g_edmd_avalanche_warning_count++;
+            S->forced_advance_count++;
             if (g_edmd_avalanche_warning_count <= 20 || (g_edmd_avalanche_warning_count % 1000) == 0) {
                 int dominant = 0;
                 for (int k = 1; k <= (int)EV_PR; ++k) {
@@ -1005,6 +1478,7 @@ double edmd_advance_to(EDMD* S, double t_target){
                 if (S->prm.has_pistonR) S->prm.pistonR_x += S->prm.pistonR_vx * dt;
                 S->t = t_target;
             }
+            edmd_trace_check(S, "forced advance (avalanche/stagnation)"); /* ##CHRIS */
             reschedule_all_internal(S);
             break;
         }
@@ -1019,6 +1493,7 @@ double edmd_advance_to(EDMD* S, double t_target){
             if (S->prm.has_pistonL) S->prm.pistonL_x += S->prm.pistonL_vx * dt;
             if (S->prm.has_pistonR) S->prm.pistonR_x += S->prm.pistonR_vx * dt;
             S->t = t_target;
+            edmd_trace_check(S, "free-flight (next event beyond target)"); /* ##CHRIS */
             heap_push(&S->heap, e);
             break;
         }
@@ -1035,13 +1510,19 @@ double edmd_advance_to(EDMD* S, double t_target){
         if (S->prm.has_pistonR) S->prm.pistonR_x += S->prm.pistonR_vx * dt;
         S->t = e.t;
 
-        /* validate using coll_count snapshots */
-        if(e.a<0 || e.a>=S->prm.N) continue;
-        if(S->P[e.a].coll_count != e.ca) continue;
-        if(e.type==EV_AB){
-            if(e.b<0 || e.b>=S->prm.N) continue;
-            if(S->P[e.b].coll_count != e.cb) continue;
+        /* validate using coll_count snapshots
+           ##CHRIS: expressed as a flag rather than three `continue`s so the event
+           tracer can log rejected (stale) events too - behaviour is unchanged. */
+        int ev_ok = 1;
+        if(e.a<0 || e.a>=S->prm.N) ev_ok = 0;
+        else if(S->P[e.a].coll_count != e.ca) ev_ok = 0;
+        else if(e.type==EV_AB){
+            if(e.b<0 || e.b>=S->prm.N) ev_ok = 0;
+            else if(S->P[e.b].coll_count != e.cb) ev_ok = 0;
         }
+        edmd_trace_record(S, &e, ev_ok);      /* ##CHRIS */
+        edmd_trace_check(S, "position jump to event time"); /* ##CHRIS */
+        if(!ev_ok) continue;
 
         /* resolve */
         if(e.type==EV_AB) {
@@ -1049,6 +1530,7 @@ double edmd_advance_to(EDMD* S, double t_target){
             grid_build(S);
             schedule_for(S, e.a);
             schedule_for(S, e.b);
+            reschedule_clamped(S);   /* ##CHRIS: cover particles grid_build had to bounce */
         } else {
             resolve_wall(S, e.a, e.type, e.b);
             /* moving boundary velocities may have changed (divider/pistons): rebuild and reschedule all */
@@ -1057,10 +1539,86 @@ double edmd_advance_to(EDMD* S, double t_target){
             } else {
                 grid_build(S);
                 schedule_for(S, e.a);
+                reschedule_clamped(S);   /* ##CHRIS */
             }
         }
     }
     return S->t;
+}
+
+long edmd_forced_advance_count(const EDMD* S){
+    return S ? S->forced_advance_count : 0;
+}
+
+/* ##CHRIS: health telemetry. Both should stay 0 in a correct run.
+   clamp_repair_count   > 0 : grid_build() had to bounce a particle back into the box.
+   overlap_repair_count > 0 : an already-overlapping approaching pair had to be rescued. */
+
+/* ##CHRIS: pressure telemetry. edmd_reset_virial() starts a measurement window
+   (call it after equilibration); edmd_compressibility_Z() closes it. Returns NaN
+   if the window is empty so a caller can never mistake "no data" for Z=1. */
+void edmd_reset_virial(EDMD* S){
+    if(!S) return;
+    S->virial_accum = 0.0;
+    S->virial_pair_events = 0;
+    for(int w=0;w<4;w++){ S->wall_impulse[w]=0.0; S->wall_events[w]=0; }
+    S->wall_thermal_events = 0;
+    S->virial_t0 = S->t;
+}
+double edmd_virial_accum(const EDMD* S){ return S ? S->virial_accum : 0.0; }
+double edmd_wall_impulse(const EDMD* S, int wall){
+    return (S && wall>=0 && wall<4) ? S->wall_impulse[wall] : 0.0;
+}
+long   edmd_wall_events(const EDMD* S, int wall){
+    return (S && wall>=0 && wall<4) ? S->wall_events[wall] : 0;
+}
+
+/* ##CHRIS: wall-momentum-flux pressure, INDEPENDENT of the pair virial.
+     P_x = (I_L + I_R) / (2 H dt),   Z_x = P_x / (rho kB T)
+   With rho = N/(W H) and 2D kinetic energy KE = N kB T, rho kB T = KE/(W H), so
+     Z_x = (I_L + I_R) * W / (2 dt KE).
+   Agreement between Z_x, Z_y and Z_pair is the actual validation; none of the
+   three is derived from either of the others. */
+static double edmd_ke_total(const EDMD* S){
+    double ke=0.0;
+    const double m = (S->prm.particle_mass > 0.0) ? S->prm.particle_mass : 1.0;
+    for(int i=0;i<S->prm.N;i++) ke += 0.5*m*(S->P[i].vx*S->P[i].vx + S->P[i].vy*S->P[i].vy);
+    return ke;
+}
+double edmd_wall_Z_x(const EDMD* S){
+    if(!S) return NAN;
+    const double dt = S->t - S->virial_t0; if(!(dt>0.0)) return NAN;
+    const double ke = edmd_ke_total(S);    if(!(ke>0.0)) return NAN;
+    return (S->wall_impulse[0] + S->wall_impulse[1]) * S->prm.boxW / (2.0 * dt * ke);
+}
+double edmd_wall_Z_y(const EDMD* S){
+    if(!S) return NAN;
+    const double dt = S->t - S->virial_t0; if(!(dt>0.0)) return NAN;
+    const double ke = edmd_ke_total(S);    if(!(ke>0.0)) return NAN;
+    return (S->wall_impulse[2] + S->wall_impulse[3]) * S->prm.boxH / (2.0 * dt * ke);
+}
+long   edmd_virial_pair_events(const EDMD* S){ return S ? S->virial_pair_events : 0; }
+double edmd_virial_window(const EDMD* S){ return S ? (S->t - S->virial_t0) : 0.0; }
+
+double edmd_compressibility_Z(const EDMD* S){
+    if(!S) return NAN;
+    const double dt = S->t - S->virial_t0;
+    if(!(dt > 0.0)) return NAN;
+    /* KE = N kB T in 2D with kB = 1, m = 1, so 2*N*kB*T = 2*KE. */
+    double ke = 0.0;
+    for(int i=0;i<S->prm.N;i++) ke += 0.5*(S->P[i].vx*S->P[i].vx + S->P[i].vy*S->P[i].vy);
+    if(!(ke > 0.0)) return NAN;
+    return 1.0 + S->virial_accum / (2.0 * ke * dt);
+}
+
+long edmd_clamp_repair_count(const EDMD* S){
+    return S ? S->clamp_repair_count : 0;
+}
+long edmd_overlap_repair_count(const EDMD* S){
+    return S ? S->overlap_repair_count : 0;
+}
+long edmd_wall_overdue_count(const EDMD* S){
+    return S ? S->wall_overdue_count : 0;
 }
 
 void edmd_reschedule_all(EDMD* S){ reschedule_all_internal(S); }

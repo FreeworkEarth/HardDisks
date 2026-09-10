@@ -1,0 +1,279 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tcolorbox}
+\usepackage[colorlinks=true,linkcolor=NavyBlue,urlcolor=NavyBlue]{hyperref}
+\usepackage{microtype}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+\newcommand{\kT}{k_{\mathrm B}T}
+\newcommand{\avg}[1]{\left\langle #1 \right\rangle}
+\newtcolorbox{eli}[1][In plain words]{colback=NavyBlue!6,colframe=NavyBlue!60!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{num}[1][Numbers to write down]{colback=Apricot!12,colframe=BurntOrange!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{wrong}[1][Common misreading]{colback=Red!6,colframe=BrickRed!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{ex}[1][Exercise]{colback=OliveGreen!8,colframe=OliveGreen!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{term}[1][Terms used in this section]{colback=Gray!8,colframe=Gray!60!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+
+\title{Pressure in a box, the infinite-box limit, and the $\chi^2$ test\\ --- explained from zero, with our own numbers}
+\author{Cowork note for Chris --- HardDisks / hspist3 (companion to the two 260910 notes)}
+\date{2026-09-11}
+
+\begin{document}
+\maketitle
+
+\section*{How to use this}
+This is the pressure half of Paper 1, taken apart slowly. Every symbol is defined the first time it appears and again in a grey ``terms'' box; every step has a box with the numbers to copy; the $\chi^2$ test is done twice on our own data ($\eta = 0.65$ accepted, $\eta = 0.67$ rejected) as a formal hypothesis test with all steps written out. Exercises are in green; answers are in Section~\ref{sec:answers}. All data come from \texttt{260908\_pressure\_final\_analysis.md}, table B.
+
+Units: $\kT = m = \sigma = 1$, $\sigma = 2r$ the disk diameter ($r = 0.5$).
+
+\tableofcontents
+
+\section{Pressure: what we measure and why it is a number without units}
+
+\begin{term}
+\textbf{$N$}: number of disks. \textbf{$A$}: area of the box, $A = L\times H$ (length times height). \textbf{$\eta$} (packing fraction): the fraction of the area covered by disks, $\eta = N\pi r^2/A$; $0$ is empty, $\approx0.78$ is the densest possible in 2D (hexagonal packing $0.907$; the fluid stops existing around $0.70$). \textbf{$P$}: pressure --- in 2D it is force per unit \emph{length} of wall (not per area). \textbf{$\kT$}: thermal energy; in our units $= 1$. \textbf{$Z$}: compressibility factor, $Z = PA/(N\kT)$, dimensionless. \textbf{Ideal gas}: particles that never touch; $Z = 1$ exactly. \textbf{EOS} (equation of state): the function $Z(\eta)$ for the real fluid; Kolafa--Rottner 2006 is the accurate fit we compare with.
+\end{term}
+
+\begin{eli}
+Pressure is how hard the gas pushes on the walls, per unit of wall. Every time a disk hits a wall it delivers a small kick of momentum; the pressure is the total kick per unit time per unit wall length. For point particles (ideal gas) this gives exactly $PA = N\kT$ --- one $\kT$ of ``push'' per particle. Real disks take up room, so they hit the walls (and each other) more often than points would: $Z>1$. At $\eta = 0.65$, $Z\approx8.4$: the disks push more than eight times harder than points would at the same $N$, $A$, $T$. The whole content of the EOS is the curve $Z(\eta)$, and Kolafa--Rottner know it to about $0.1\%$ in the fluid. Our claim is: the simulator reproduces that curve.
+\end{eli}
+
+\subsection{Two ways to read the pressure off a run}
+\begin{eli}
+\textbf{Wall route}: literally count the kicks on the outer walls, $P_{\mathrm{wall}} = \frac{1}{t_{\mathrm{obs}}\,\mathcal P}\sum_{\text{wall hits}}2m|v_n|$ ($\mathcal P$ = perimeter, $v_n$ = normal velocity of the disk before the hit). \textbf{Pair route}: count the kicks disks give \emph{each other}; the virial theorem turns those into the pressure, $Z_{\mathrm{pair}} = 1 + \dfrac{m\sigma}{2N\kT\,t_{\mathrm{obs}}}\sum_{\text{collisions}}|\Delta\mathbf v_i\cdot\hat{\mathbf r}_{ij}|$. Both must agree, because the momentum that flows into the walls per unit time must be the same as the momentum that flows through any imaginary line inside the gas --- otherwise the gas would be accelerating. That agreement is a free self-check on the run, and it held in the campaign.
+\end{eli}
+
+\section{Why the box size matters, and what ``infinite'' means}
+\label{sec:box}
+
+\begin{term}
+\textbf{Bulk} or \textbf{thermodynamic limit}: the fluid far from any wall, equivalently the limit $N\to\infty$, $A\to\infty$ at fixed $\eta$. The EOS is a statement about \emph{that} fluid. \textbf{Finite-size effect}: the difference between what a finite box measures and the bulk value. \textbf{Wall layer}: the strip of width $\approx1\,\sigma$ along the walls where disks are arranged differently (they cannot overlap the wall, so their centres pile up at one radius from it). \textbf{Aspect ratio}: $L/H$; kept fixed when we enlarge the box so that the shape does not change.
+\end{term}
+
+\begin{eli}
+A disk sitting next to a wall has neighbours on one side only, so it collides differently from a disk in the middle. The fraction of disks that live in the wall layer is (perimeter $\times$ layer width) / area. If we enlarge a box of the same shape at the same $\eta$, the area grows like $N$ ($A = N\pi r^2/\eta$) and the side length like $\sqrt N$, so
+\begin{equation}
+\text{wall-layer fraction} \;\approx\; \frac{\text{perimeter}\times\sigma}{A} \;=\; \frac{4L\sigma}{L^2} \;=\; \frac{4\sigma}{L} \;\propto\; \frac{1}{\sqrt N}.
+\end{equation}
+Whatever the wall layer does to the pressure, its effect is proportional to how much of the gas is in it. That is the whole justification of the fit form
+\begin{equation}
+\boxed{\;Z(N) = Z_\infty + \frac{a}{\sqrt N}\;}
+\qquad\text{and ``infinite box'' means } \frac{1}{\sqrt N}\to0 .
+\label{eq:form}
+\end{equation}
+So we plot $Z$ against $x = 1/\sqrt N$, draw the straight line through the points, and read the value where the line crosses $x = 0$. That crossing point is $Z_\infty$, the number the EOS talks about. The slope $a$ tells you how strong the wall effect is (positive here: walls raise the pressure).
+\end{eli}
+
+\begin{center}
+\includegraphics[width=\textwidth]{fig_wall_layer.pdf}
+\end{center}
+
+\begin{num}[Numbers for a square box at packing fraction 0.65]
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+$N$ & 100 & 400 & 900 & 1600 & 2500\\
+$A = N\pi r^2/\eta$ & 121 & 483 & 1088 & 1933 & 3021\\
+$L = \sqrt A$ & 11.0 & 22.0 & 33.0 & 44.0 & 55.0\\
+wall layer $4\sigma/L$ & 36\% & 18\% & 12\% & 9\% & 7\%\\
+$x = 1/\sqrt N$ & 0.100 & 0.050 & 0.033 & 0.025 & 0.020\\
+\bottomrule
+\end{tabular}
+
+Even at $N = 1600$ nearly a tenth of the disks are in the wall layer; that is why we cannot just quote the $N = 1600$ number and why the extrapolation is not optional. (The campaign boxes are $L\times H$ with $H\ne L$; the percentages shift a little, the $1/\sqrt N$ scaling does not.)
+\end{num}
+
+\begin{wrong}[Why not just run a huge N?]
+Cost grows at least like $N$ per unit time, the event budget grows with it, and you still would not know how far from the limit you are. Three or more sizes on a straight line give you $Z_\infty$ \emph{and} an error bar for it \emph{and} a test of whether the straight line is even right. One huge run gives none of the three.
+\end{wrong}
+
+\section{Error bars: where $\sigma_N$ comes from}
+
+\begin{term}
+\textbf{Sample}: one measured value of $Z$ over one time block of one trajectory. \textbf{Block}: the production run is cut into $30$ blocks of $20$ time units; each block gives one $Z$. Blocks are long enough that successive blocks are (nearly) independent. \textbf{Seed}: the random number that sets the initial velocities; different seeds = independent trajectories. \textbf{Standard deviation $s$}: typical spread of the samples. \textbf{Standard error of the mean (SEM)}: how uncertain the \emph{average} is, $\mathrm{SEM} = s/\sqrt{n}$ for $n$ independent samples. This is the error bar.
+\end{term}
+
+\begin{eli}
+If you measure $Z$ thirty times and the values scatter by $s = 0.02$, the average of the thirty is known to $0.02/\sqrt{30} = 0.0037$. That is the block SEM. Do the same across the $3$--$5$ seeds (seed SEM = seed standard deviation / $\sqrt{\#\text{seeds}}$). The campaign uses the larger of the two as the error bar for each $N$, so that hidden correlations between blocks cannot make the bar too small:
+\begin{equation}
+\sigma_N = \max\!\left(\mathrm{SEM}_{\mathrm{block}},\ \mathrm{SEM}_{\mathrm{seed}}\right).
+\end{equation}
+Everything in the $\chi^2$ test hangs on these bars being honest. If they are too small, good data get rejected; if they are too large, bad data get accepted. The ``max'' rule errs on the safe side.
+\end{eli}
+
+\begin{num}[Table B: the three sizes at packing fractions 0.65 and 0.67]
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+$\eta$ & $N$ & seeds & $Z_{\mathrm{pair}}$ & seed sd & block SEM & $\sigma_N$ used\\
+\midrule
+0.65 & 400 & 5 & 8.4710 & 0.0069 & 0.0043 & 0.0043\\
+0.65 & 900 & 4 & 8.4373 & 0.0036 & 0.0031 & 0.0031\\
+0.65 & 1600 & 3 & 8.4221 & 0.0032 & 0.0032 & 0.0032\\
+\midrule
+0.67 & 400 & 5 & 9.2867 & 0.0182 & 0.0062 & 0.0081\\
+0.67 & 900 & 4 & 9.2246 & 0.0174 & 0.0053 & 0.0087\\
+0.67 & 1600 & 3 & 9.2340 & 0.0091 & 0.0050 & 0.0053\\
+\bottomrule
+\end{tabular}
+
+Check one: $0.65/400$: seed SEM $= 0.0069/\sqrt5 = 0.0031$, block SEM $0.0043$, max $= 0.0043$. $0.67/400$: seed SEM $= 0.0182/\sqrt5 = 0.0081 > 0.0062$, so $0.0081$. Notice the seed scatter at $0.67$ is three times that at $0.65$: the trajectories at $0.67$ disagree with each other more than their own blocks would suggest. That is the first hint of trouble there.
+\end{num}
+
+\section{The weighted straight-line fit, by hand}
+
+\begin{term}
+\textbf{Weight} $w_N = 1/\sigma_N^2$: a point with half the error bar gets four times the say. \textbf{Weighted least squares}: choose $Z_\infty$ and $a$ to make $\sum_N w_N\,(Z_N - Z_\infty - a x_N)^2$ as small as possible. \textbf{Residual}: $Z_N - (Z_\infty + a x_N)$, what the line misses. \textbf{Standardised residual}: residual divided by $\sigma_N$ --- ``how many error bars off''.
+\end{term}
+
+With $x_N = 1/\sqrt N$ form the five sums
+\begin{equation}
+S = \sum w,\quad S_x = \sum w x,\quad S_{xx} = \sum w x^2,\quad S_y = \sum w Z,\quad S_{xy} = \sum w x Z,\qquad D = S\,S_{xx} - S_x^2,
+\end{equation}
+and then
+\begin{equation}
+\boxed{\;Z_\infty = \frac{S_{xx}S_y - S_xS_{xy}}{D},\qquad a = \frac{S\,S_{xy} - S_xS_y}{D},\qquad
+\sigma_{Z_\infty} = \sqrt{\frac{S_{xx}}{D}},\qquad \sigma_a = \sqrt{\frac{S}{D}}.\;}
+\end{equation}
+
+\begin{num}[Worked for packing fraction 0.65]
+$x = (0.0500,\ 0.0333,\ 0.0250)$, $w = 1/\sigma^2 = (54\,083,\ 104\,058,\ 97\,656)$.
+
+$S = 255\,798$; $S_x = 8\,614.2$; $S_{xx} = 311.86$; $S_y = 2\,158\,581$; $S_{xy} = 72\,734.4$; $D = 255\,798\times311.86 - 8\,614.2^2 = 5\,569\,954$.
+
+$Z_\infty = (311.86\times2\,158\,581 - 8\,614.2\times72\,734.4)/D = 8.3727$; $a = (255\,798\times72\,734.4 - 8\,614.2\times2\,158\,581)/D = 1.958$.
+
+$\sigma_{Z_\infty} = \sqrt{311.86/D} = 0.0075$; $\sigma_a = \sqrt{255\,798/D} = 0.21$.
+
+Residuals: $8.4710 - (8.3727 + 1.958\times0.050) = +0.0004 \to +0.0004/0.0043 = +0.10$ bars; $900$: $-0.21$ bars; $1600$: $+0.14$ bars.
+
+Result: $Z_\infty = 8.3727\pm0.0075$, vs Kolafa--Rottner $8.4080$: $-0.42\%$, i.e.\ $4.7$ error bars below the EOS. (That deviation is real and is reported as such in the claim text; it is the start of the region where the fluid EOS stops being exact.)
+\end{num}
+
+\section{The \texorpdfstring{$\chi^2$}{chi-squared} test from zero}
+
+\subsection{The idea in one sentence}
+\begin{eli}
+Add up the squares of ``how many error bars off'' every point is. If the line is right and the error bars are honest, each point is typically about one bar off, so the sum is about the number of points minus the number of things you fitted. If the sum is much bigger, the line is wrong (or the bars are lying).
+\begin{equation}
+\boxed{\;\chi^2 = \sum_{N}\left(\frac{Z_N - Z_\infty - a/\sqrt N}{\sigma_N}\right)^2\;}
+\qquad \text{dof} = (\#\text{points}) - (\#\text{fitted parameters}) = 3 - 2 = 1 .
+\end{equation}
+\end{eli}
+
+\begin{term}
+\textbf{Hypothesis $H_0$} (``null''): the statement being tested --- here ``the three $Z_N$ lie on a line $Z_\infty + a/\sqrt N$, and the $\sigma_N$ are correct''. \textbf{Test statistic}: a single number computed from the data whose distribution under $H_0$ is known --- here $\chi^2$. \textbf{Degrees of freedom (dof)}: how many independent ways the data can deviate from the model after the parameters have been fitted; fitting a line through three points leaves $1$. \textbf{$p$-value}: the probability, \emph{if $H_0$ were true}, of getting a $\chi^2$ at least as large as the one observed. \textbf{Significance level $\alpha$}: the $p$ below which we reject $H_0$; the campaign uses $\chi^2>4$ at $1$ dof, i.e.\ $\alpha = 0.046$. \textbf{Reject / accept}: reject means ``this line does not describe these points''; accept means only ``we found no evidence against it''.
+\end{term}
+
+\subsection{Why the sum of squares has a known distribution}
+If $H_0$ is true, each standardised residual $(Z_N - \text{line})/\sigma_N$ is a random number with mean $0$ and spread $1$ (a standard normal). The sum of $k$ independent squared standard normals is by definition ``$\chi^2$ with $k$ degrees of freedom'':
+\begin{equation}
+\chi^2_k \;=\; \sum_{i=1}^{k} z_i^2,\qquad z_i\sim\mathcal N(0,1),\qquad \avg{\chi^2_k} = k,\qquad \mathrm{Var}(\chi^2_k) = 2k .
+\end{equation}
+Fitting two parameters to three points forces two combinations of the residuals to zero, so only one independent square is left: $k = 1$. In general $k = n - p$. That is why ``$\chi^2 \approx$ dof'' is the signature of a good fit and ``$\chi^2 \gg$ dof'' is the signature of a wrong model.
+
+\begin{center}
+\includegraphics[width=\textwidth]{fig_chi2_dist.pdf}
+\end{center}
+
+\subsection{Reading the \texorpdfstring{$p$}{p}-value}
+\begin{num}[Critical values: reject the hypothesis if the observed chi-squared is larger]
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+dof & mean & $p = 0.10$ & $p = 0.05$ & $p = 0.01$\\
+\midrule
+1 & 1 & 2.71 & 3.84 & 6.63\\
+2 & 2 & 4.61 & 5.99 & 9.21\\
+3 & 3 & 6.25 & 7.81 & 11.34\\
+4 & 4 & 7.78 & 9.49 & 13.28\\
+5 & 5 & 9.24 & 11.07 & 15.09\\
+\bottomrule
+\end{tabular}
+
+Our rule ``$\chi^2>4$ at dof $1$'' is $p<0.046$, essentially the $5\%$ line. When the $N = 2500$ run lands we will have $4$ sizes, dof $= 2$, and the same rule becomes $\chi^2 > 5.99$.
+\end{num}
+
+\subsection{The same test in its other costumes}
+\begin{eli}
+The textbook formula $\chi^2 = \sum (O_i - E_i)^2/E_i$ is the \emph{same statistic} for \emph{counts}: when you count events, the variance of a count with expected value $E_i$ is $E_i$ itself (Poisson), so $\sigma_i^2 = E_i$ and $(O-E)^2/E$ is exactly $(\text{residual}/\sigma)^2$. Our version uses measured error bars instead, because $Z$ is an average, not a count.
+
+\emph{Goodness of fit} (ours): does a model curve describe measured points? dof $= n - p$.\\
+\emph{Test of independence}: does a $2\times2$ (or $r\times c$) table of counts show a relation between two labels? Expected counts $E_{ij} = (\text{row total})(\text{column total})/(\text{grand total})$, dof $= (r-1)(c-1)$. Example: $100$ pushes labelled (push/hold) $\times$ (divider left/right) with counts $30,20,20,30$: every $E_{ij} = 25$, $\chi^2 = 4\times(5^2/25) = 4.0$, dof $1$, $p = 0.046$ --- borderline evidence that the divider position depends on the command. (This is the counting cousin of the mutual information we will compute for nostalgia.)\\
+\emph{Reduced $\chi^2$}: $\chi^2/\text{dof}$; $\approx1$ good, $\gg1$ model wrong or bars too small, $\ll1$ bars too big.
+\end{eli}
+
+\section{The test, step by step, on our data}
+
+\begin{center}
+\includegraphics[width=\textwidth]{fig_extrapolation.pdf}
+\end{center}
+
+\subsection{\texorpdfstring{$\eta = 0.65$}{eta = 0.65}}
+\begin{enumerate}[nosep]
+\item \textbf{$H_0$}: $Z(N) = Z_\infty + a/\sqrt N$ for $N = 400, 900, 1600$ with the error bars of table B. \textbf{$H_1$}: it does not.
+\item \textbf{$\alpha$}: reject if $\chi^2>4$ (dof $1$), i.e.\ $p<0.046$. Fixed \emph{before} looking.
+\item \textbf{Fit}: $Z_\infty = 8.3727\pm0.0075$, $a = 1.96\pm0.21$ (Section 4).
+\item \textbf{Standardised residuals}: $+0.10,\ -0.21,\ +0.14$.
+\item \textbf{Statistic}: $\chi^2 = 0.10^2 + 0.21^2 + 0.14^2 = 0.07$.
+\item \textbf{$p$}: $P(\chi^2_1\ge0.07) = 0.79$.
+\item \textbf{Decision}: $0.07 < 4$ --- do not reject. The three sizes lie on one $1/\sqrt N$ line; $Z_\infty$ is a bulk value.
+\item \textbf{Interpretation}: $Z_\infty = 8.3727\pm0.0075$ is $-0.42\%$ from KR. The finite-size law is fine; the small deviation from the EOS is a statement about the fluid at $0.65$, and it is quoted as measured.
+\end{enumerate}
+
+\subsection{\texorpdfstring{$\eta = 0.67$}{eta = 0.67}}
+\begin{enumerate}[nosep]
+\item Same $H_0$, same $\alpha$.
+\item \textbf{Fit}: $Z_\infty = 9.1772\pm0.0132$, $a = 2.07$.
+\item \textbf{Standardised residuals}: $+0.77,\ -2.46,\ +0.99$. The $N = 900$ point is $2.5$ error bars \emph{below} the line while its neighbours are above it: the points bend, they do not line up.
+\item \textbf{Statistic}: $\chi^2 = 0.77^2 + 2.46^2 + 0.99^2 = 7.62$.
+\item \textbf{$p$}: $P(\chi^2_1\ge7.62) = 0.006$. If the line were right, a misfit this large would happen six times in a thousand.
+\item \textbf{Decision}: $7.62 > 4$ --- reject. The three sizes do not lie on one $1/\sqrt N$ line.
+\item \textbf{Interpretation}: $Z_\infty = 9.18$ is \emph{not} a bulk value and is not compared with KR. Note the extra witness: fitting only $900$ and $1600$ gives $a = -1.12$ (walls \emph{lowering} the pressure), the opposite sign from every other density. Something other than a wall layer is changing with $N$ at $0.67$ --- the fluid is beginning to order (the coexistence region starts near $0.70$), and larger boxes order more easily. That is physics, not a bug, and the honest report is ``no bulk value at $0.67$''.
+\end{enumerate}
+
+\subsection{\texorpdfstring{$\eta = 0.30$}{eta = 0.30}: the one that trips the alarm by chance}
+$\chi^2 = 4.05$, $p = 0.044$, just over the line. Twelve densities were tested at $\alpha\approx0.05$; the expected number of false alarms is $12\times0.05 = 0.6$, so one borderline case is what chance predicts. The residual pattern ($-0.9, +1.6, -0.9$) is mild, nothing else at $0.30$ misbehaves, and the extrapolated value agrees with KR to $0.10\%$. The right action --- taken --- is to report it and \emph{not} to adjust anything to make it pass; the fifth size will settle it.
+
+\begin{wrong}[Four things chi-squared does NOT say]
+\begin{itemize}[nosep]
+\item $\chi^2 = 0.07$ does not \emph{prove} the $1/\sqrt N$ law; it says the data cannot tell it from the truth. Three points can hardly distinguish $1/\sqrt N$ from $1/N$; five can (fit both, compare $\chi^2$ --- that is the other reason for $N = 2500$).
+\item A small $\chi^2$ can also mean the error bars are too large (reduced $\chi^2\ll1$). $0.07$ at $1$ dof is on the small side; the ``max'' rule makes the bars conservative, so this is expected.
+\item $p = 0.006$ is not ``the probability that $H_0$ is true''. It is the probability of data this bad \emph{given} $H_0$.
+\item Rejecting the line is not rejecting the simulation. It rejects one finite-size \emph{model} at one density. The pair/wall agreement, the health counters and the stationarity checks are what test the simulation.
+\end{itemize}
+\end{wrong}
+
+\section{What to write on your first page}
+\begin{enumerate}[nosep]
+\item $Z = PA/N\kT$; ideal gas $1$; KR curve is the target.
+\item Wall layer fraction $\propto 1/\sqrt N$ $\Rightarrow$ $Z(N) = Z_\infty + a/\sqrt N$; read $Z_\infty$ at $x = 1/\sqrt N = 0$.
+\item Error bar $\sigma_N = \max(\text{block SEM}, \text{seed SEM})$, weight $w = 1/\sigma^2$.
+\item $\chi^2 = \sum(\text{residual}/\sigma)^2$, dof $= n - 2$, expect $\approx$ dof; reject if $\chi^2>4$ at dof $1$ ($>5.99$ at dof $2$).
+\item $0.65$: $\chi^2 = 0.07$, $Z_\infty = 8.3727\pm0.0075$ ($-0.42\%$ vs KR) --- claim. $0.67$: $\chi^2 = 7.62$ --- no bulk value. $0.30$: $4.05$ --- reported, one expected false alarm in twelve tests.
+\end{enumerate}
+
+\begin{ex}[Exercise 1]
+At $\eta = 0.67$ the standardised residuals are $+0.77, -2.46, +0.99$. Compute $\chi^2$. With the critical-value table, at which $p$ level is it rejected: $0.10$, $0.05$, or $0.01$?
+\end{ex}
+\begin{ex}[Exercise 2]
+Suppose the $N = 2500$ run at $\eta = 0.65$ gives $Z = 8.4160\pm0.0030$. Using the fitted line $Z = 8.3727 + 1.958/\sqrt N$, what does the line predict at $N = 2500$, what is the standardised residual, and what is the new $\chi^2$ (add it to $0.07$)? Now dof $= 2$: reject or not?
+\end{ex}
+\begin{ex}[Exercise 3]
+A square box at $\eta = 0.65$ with $N = 10\,000$: side length $L$, wall-layer fraction, and $x = 1/\sqrt N$. How many times smaller is the wall effect than at $N = 400$?
+\end{ex}
+\begin{ex}[Exercise 4]
+Independence test: $200$ pushes; command push/hold $100$ each; divider ends left/right; counts push-left $65$, push-right $35$, hold-left $45$, hold-right $55$. Expected counts, $\chi^2$, dof, decision at $\alpha = 0.05$.
+\end{ex}
+
+\section{Answers}
+\label{sec:answers}
+\begin{enumerate}[label=\textbf{\arabic*.},nosep,itemsep=3pt]
+\item $0.77^2 + 2.46^2 + 0.99^2 = 0.59 + 6.05 + 0.98 = 7.62$. Larger than $6.63$, so rejected even at $p = 0.01$.
+\item Prediction $8.3727 + 1.958\times0.020 = 8.4119$; residual $(8.4160 - 8.4119)/0.0030 = +1.37$; $\chi^2 = 0.07 + 1.37^2 = 1.95$ at dof $2$ (critical $5.99$): not rejected; the line survives. (A refit with four points would move the line slightly; this is the quick check.)
+\item $A = 10\,000\times0.7854/0.65 = 12\,083$, $L = 110\,\sigma$, wall layer $4/110 = 3.6\%$, $x = 0.010$. Five times smaller than at $N = 400$ ($x = 0.05$, $18\%$): the wall effect scales exactly like $x$.
+\item Row totals $100/100$, column totals $110/90$, grand $200$: $E = 55, 45, 55, 45$. $\chi^2 = (10^2/55) + (10^2/45) + (10^2/55) + (10^2/45) = 1.82 + 2.22 + 1.82 + 2.22 = 8.08$, dof $= (2-1)(2-1) = 1$, $8.08 > 3.84$: reject independence --- the divider's final side depends on the command.
+\end{enumerate}
+
+\end{document}
