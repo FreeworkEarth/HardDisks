@@ -64,3 +64,9 @@ hspist3/experiments_*/**/run.log
 hspist3/00ALLINONE_ramp
 hspist3/00ALLINONE.bak*
 .DS_Store
+__pycache__/
+*.pyc
+*.aux
+*.log
+*.out
+*.synctex.gz
