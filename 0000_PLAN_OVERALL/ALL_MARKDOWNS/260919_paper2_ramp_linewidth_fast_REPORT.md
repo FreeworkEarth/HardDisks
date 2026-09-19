@@ -507,7 +507,106 @@ layer against the wall) that is not the bulk compressibility entering c_s. But i
 offset is most likely finite-box thermodynamics that we have independently measured, not an
 uncorrected analysis error** — and Paper 1 can say so with a Paper 2 number behind it.
 
-**Still unexamined**, for honesty: the microcanonical-versus-canonical temperature convention at
-N = 100 (drift-first sets KE = N_s kT exactly with zero drift, and the walls are elastic, so the total
-KE is fixed for all time — the 1/N differences between ensembles have not been quantified), and any
-aspect-ratio dependence at H = 10 (Wu et al. 2016 report wall layering in narrow channels).
+**Still unexamined**, for honesty: any aspect-ratio dependence at H = 10 (Wu et al. 2016 report wall
+layering in narrow channels). *(The ensemble item that stood here — microcanonical versus canonical T
+at N = 100 — was struck on 2026-09-19: drift-first rescales to KE = N_s kT exactly after removing the
+drift, so T = 1 by construction and there is no 1/N convention error to chase.)*
+
+---
+
+# Appendix C, 2026-09-19 — canonical figures, the dense-geometry Z, the fast end explained, demo mode
+
+## C1. The thickness correction is canonical, verified against the estimator
+
+`validation/paper1_canonical_20260919.py`. One cell was recomputed from raw traces with the production
+estimator (η = 0.5236, M = 1000, 25 seeds, 0 discarded) and compared with the closed-form rescale:
+
+```
+c_s from traces, L_eff = L0 - 2r - t/2 : 6.086728
+c_s from traces, L_eff = L0 - 2r       : 6.110229
+ratio                                   : 0.99615385
+(L0 - 1 - 0.025)/(L0 - 1)               : 0.99615385      agreement 1.1e-16
+```
+
+So the rescale *is* the code path, and 7875 trajectories did not need re-reading. New canonical files:
+`260919_A1v2_final_cs_vs_eta.csv` (deviation column recomputed), `260919_A2_cs_per_mass.csv`,
+`260919_A2_cs_per_mass_famB.csv`, and three figures — `260919_cs_vs_eta`,
+`260919_cs_vs_eta_lowdensity_zoom`, `260919_cs_vs_eta_N100_vs_A2`. The 260914/260916/260917 versions
+are untouched. Both figure scripts now take their CSVs from `HD_A1_CSV` / `HD_A2_CSV`, because the
+first attempt silently drew a corrected A2 against a stale hardcoded A1.
+
+## C2. Z of the finite box at Paper 1's own densities — and it does **not** explain the offset
+
+120 hold-only runs (40 per density) in Paper 1's geometry, t = 0.05, N_s = 50, 0 aborts, 0 health lines:
+
+| L₀ | true compartment | η | Z_wall | Z_KR | Z_wall/Z_KR | c_s excess that implies | measured A1 offset |
+|---|---|---|---|---|---|---|---|
+| 20.0 | 19.975 | 0.1966 | 1.6647 ± 0.0031 | 1.5568 | 1.069 | **+5.22 %** | +1.56 % |
+| 10.0 | 9.975 | 0.3937 | 3.1741 ± 0.0048 | 2.7693 | 1.146 | **+11.23 %** | +1.96 % |
+| 7.5 | 7.475 | 0.5254 | 5.4838 ± 0.0060 | 4.5651 | 1.201 | **+15.86 %** | +3.03 % |
+
+**This kills the candidate as a quantitative explanation, and the appendix B version of it was too
+generous.** At η = 0.10 the wall pressure was 3 % above bulk and predicted +2.25 % against a measured
++1.17 % — close enough to look like agreement. Measured at the densities that matter it is 20 % above
+bulk and predicts +15.9 % against +3.0 %, over-predicting by a factor of five, and the discrepancy
+grows with η.
+
+The reason is that Z_wall is a *surface* quantity: it is the contact value at the wall, inflated by the
+density layer that builds against a hard boundary, while the sound mode samples the bulk. So the
+finite box is stiffer at its walls than in its interior, and only the interior sets c_s. **The N = 100
+offset remains finite-size in origin but is not quantified by Z_wall.** The instrument that does
+measure it correctly is the one Paper 1 already uses — the A2 ladder and its c_∞ extrapolation.
+
+## C3. The fast-end excess is explained: it is the contact layer, counted properly
+
+Appendix A3 left an ~8 % excess at short travel "not explained". It is now explained, and the
+explanation was measurable rather than assertable. Eq. 7 assumes the swept strip holds n_bulk·Δx·H
+centres. It does not: a disk centre cannot approach the face closer than r, and just inside that
+exclusion the density *overshoots*. Counting centres in the strip that a face can actually strike —
+width Δx, starting at face − r — over the 60 equilibrium snapshots at the same state:
+
+| Δx [σ] | ⟨N in strip⟩ | n_bulk·Δx·H | ratio | ⟨W⟩/Eq. 7 (u = 10) | Eq. 7 using the **measured** count |
+|---|---|---|---|---|---|
+| 0.750 | 1.217 | 1.077 | **1.130** | 1.081 | 0.957 |
+| 2.083 | 3.200 | 2.991 | 1.070 | 1.088 | 1.017 |
+| 3.083 | 4.517 | 4.427 | 1.020 | 1.053 | 1.032 |
+| 5.083 | 7.483 | 7.299 | 1.025 | 1.008 | 0.983 |
+| 7.083 | 10.483 | 10.171 | 1.031 | 0.986 | 0.957 |
+
+The strip holds 13 % more centres than uniform density at Δx = 0.75 σ and 3 % more at 7 σ — the contact
+layer, diluted as the strip lengthens. Feeding the measured count into Eq. 7 removes the trend: the
+ratio becomes 0.96–1.03 scattered about unity, instead of falling monotonically 1.08 → 0.99. **Eq. 7
+is right; the uniform-density N_hit was the approximation.** A caveat worth keeping: measuring the
+strip from the face rather than from face − r gives 0.39 × bulk and the opposite conclusion, so the
+r-shift is the whole of the argument.
+
+## C4. Demo mode
+
+New GUI-only flag `--demo` (plus `--demo-shot=PATH[,STEPS]` for unattended capture).
+
+**Gate first:** headless output byte-identical to the installed binary on 3 seeds, traces *and* event
+logs. `--demo` changes no physics; it does not exist outside the render loop.
+
+**What it does.** Starts paused, divider held, piston parked. `SPACE` run/pause, `R` release the
+divider, `P` start the piston, `+`/`-` double/halve the pace, `S` screenshot, `Q`/`ESC` quit.
+`--auto-release-after-hold` and `--auto-piston-step` are ignored so every stage begins on a key. A
+protocol summary prints once (geometry, masses, u, travel, hold, spring k) and a HUD line sits at the
+top of the window and is echoed to the terminal on every stage change:
+
+```
+[DEMO] PISTON step u=0.020 | t=56.8 sigma | piston x=78.35 | divider x=26.17 | W_in=0.390 |
+       KE_L=33.92 KE_R=32.87 | E_spring=0.269
+```
+
+**Two things were wrong in the plan's SDL section, and this is why the window "flashed and finished".**
+First, `--experiment=energy_transfer` is a self-contained driver that **never renders** — with or
+without `--headless`. The window belongs to the interactive loop, reached with `--show-simulation`.
+Second, the generic GUI advances about one step per 25 frames, so a 12 000-step push would have taken
+over an hour; `--demo` sets two steps per frame, which puts the u = 0.02 push at roughly two minutes.
+Both commands in the plan are rewritten, verified to run, and each carries a two-line "what you will
+see" and a screenshot: `260909_plots/260919_demo_geomA.png` and `_geomD.png`. Plan PDF is 13 pages.
+
+## C5. Struck
+
+The microcanonical-versus-canonical temperature item is removed from appendix B's open list:
+drift-first removes the drift and *then* rescales to KE = N_s kT, so T = 1 by construction.

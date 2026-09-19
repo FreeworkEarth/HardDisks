@@ -4,6 +4,7 @@
 \usepackage{booktabs}
 \usepackage{enumitem}
 \usepackage[dvipsnames]{xcolor}
+\usepackage{graphicx}
 \usepackage{tcolorbox}
 \usepackage[colorlinks=true,linkcolor=NavyBlue,urlcolor=NavyBlue]{hyperref}
 \usepackage{microtype}
@@ -82,28 +83,38 @@ positions in the trace, as \cmd{paper2\_geometry\_fix\_20260918.py} does.
 
 Every number in this note comes from headless runs, because that is the only way 1000 trajectories fit in a lunch
 break. But the same binary opens a window, and it is worth looking at once --- for a figure, for a talk, or to check
-that the geometry is what you think it is. Drop \cmd{--headless} and \cmd{--quiet} from any command in this document
-and you get the window; nothing else changes.
+that the geometry is what you think it is.
 
-\begin{howto}[One demonstration run you can watch (geometry A, Level 1/2 box)]
+\textbf{Corrected 2026-09-19.} The earlier version of this section said ``drop \cmd{--headless}''. That is wrong and it
+is why the window seemed to flash and vanish: \cmd{--experiment=energy\_transfer} is a self-contained driver that
+\emph{never renders}, with or without \cmd{--headless}. The window belongs to the interactive loop, which you reach
+with \cmd{--show-simulation}. And because every stage used to fire automatically, there was nothing to see even when a
+window did open. Both are fixed by \cmd{--demo}: the run starts paused with the divider held and the piston parked, each
+stage begins on a key, and a HUD line says what the box is doing. \cmd{--demo} is GUI-only --- headless output is
+byte-identical with and without it (3-seed gate on traces and event logs).
+
+\begin{howto}[Geometry A --- the Level 1/2 box, one divider (verified 2026-09-19)]
 \begin{Verbatim}[fontsize=\scriptsize,frame=single,samepage=true]
 cd hspist3
-./00ALLINONE --mode=edmd --experiment=energy_transfer --edmd-acc=0 \
+./00ALLINONE --show-simulation --demo --mode=edmd --edmd-acc=0 \
   --seed-drift-order=drift-first --particles=100 --particles-boxes=50,50 \
   --particle-radius=0.5 --l0=39.25 --height=10 --num-walls=1 --wall-positions=39.25 \
-  --wall-mass-factors=1000000000 --piston-right-protocol-mode=step \
-  --velocity-right-piston-step=0.02 --max-right-piston-travel=3.93 --auto-piston-step \
-  --auto-release-after-hold --wall-hold-steps=2000 --steps=40000 --fixed-dt=0.4 \
-  --energy-measurement --eff-output=wall-ke --kbt1 --seed=9200
+  --wall-mass-factors=1000000000 --wall-thickness=0.05 \
+  --piston-right-protocol-mode=step --velocity-right-piston-step=0.02 \
+  --max-right-piston-travel=3.93 --wall-hold-steps=2000 --steps=40000 \
+  --fixed-dt=0.4 --energy-measurement --eff-output=wall-ke --kbt1 --seed=9200
 \end{Verbatim}
-50 disks each side of an immovable divider; the right piston holds, then compresses at $u = 0.02$ and stops.
-\textbf{Keys:} \cmd{space} pauses, \cmd{q} or \cmd{esc} quits. Slow the piston further
-(\cmd{--velocity-right-piston-step=0.005}) to watch the quasi-static limit, or raise it to 3--10 to see the
-single-hit regime of Section~\ref{sec:fast} --- at $u = 10$ the push is over in 0.1\,$\sigma$-time, so lower
-\cmd{--wall-hold-steps} too or you will miss it.
+\textbf{What you will see.} A window opens \emph{paused}, 50 disks either side of an immovable divider, the piston
+parked at the right wall, and a HUD reading \cmd{HOLD | t=0.0 | piston x=78.75 | divider x=39.25}. Press \cmd{SPACE}
+to run, \cmd{R} to release the divider, then \cmd{P} to start the piston; the HUD switches to
+\cmd{PISTON step u=0.020} and $W_{\mathrm{in}}$ starts climbing. At $u = 0.02$ the push is $200\,\sigma$-time,
+about 12\,000 steps --- roughly two minutes at the default pace, which is what you want to talk over; \cmd{+} and
+\cmd{-} double and halve it live (render pacing only, $\dd t$ is never touched).
 
-Use \cmd{--piston-right-protocol-mode=ramp --piston-ramp-time=40} with \cmd{./00ALLINONE\_ramp} to see the gentle
-launch beside the step, which is the whole of Level~2's item~1 in one picture.
+\begin{center}\includegraphics[width=\linewidth]{260909_plots/260919_demo_geomA.png}\end{center}
+
+Swap \cmd{--piston-right-protocol-mode=ramp --piston-ramp-time=40} to watch the gentle launch beside the step, which
+is Level~2's item~1 in one picture; raise $u$ to 3--10 for the single-hit regime of Section~\ref{sec:fast}.
 
 \textbf{Do not take data this way.} Window runs are for looking; every campaign number in this note is headless,
 \cmd{--edmd-acc=0}, with the health contract enforced.
@@ -113,22 +124,24 @@ Geometry~A is what Levels 0--2 measure, but the paper's first figure will be geo
 divider, a second gas, and a spring-loaded wall. That runs today, and watching it is the quickest way to see why the
 later levels are worth doing.
 
-\begin{howto}[The two-wall spring chain (geometry D) --- Paper 2's figure 1]
+\begin{howto}[Geometry D --- two walls and a spring, Paper 2's figure 1 (verified 2026-09-19)]
 \begin{Verbatim}[fontsize=\scriptsize,frame=single,samepage=true]
 cd hspist3
-./00ALLINONE --mode=edmd --experiment=energy_transfer --edmd-acc=0 \
+./00ALLINONE --show-simulation --demo --mode=edmd --edmd-acc=0 \
   --seed-drift-order=drift-first --particles=150 --particles-boxes=50,50,50 \
-  --particle-radius=0.5 --l0=39.25 --height=10 \
+  --particle-radius=0.5 --l0=39.25 --height=10 --wall-thickness=0.05 \
   --num-walls=2 --wall-positions=20,30 --wall-mass-factors=1000,200 \
   --spring-k=5 --energy-measurement --eff-output=spring \
   --piston-right-protocol-mode=step --velocity-right-piston-step=0.02 \
-  --max-right-piston-travel=3.93 --auto-piston-step --auto-release-after-hold \
-  --wall-hold-steps=2000 --steps=40000 --fixed-dt=0.4 --kbt1 --seed=9200
+  --max-right-piston-travel=3.93 --wall-hold-steps=2000 --steps=40000 \
+  --fixed-dt=0.4 --kbt1 --seed=9200
 \end{Verbatim}
-Three compartments of 50 disks, a heavy divider ($M = 1000$) and a lighter spring-loaded wall ($M = 200$, $k = 5$).
-The piston compresses on the right; energy has to cross the heavy divider before it can reach the spring, which is
-Level~4's two channels and Level~5's impedance question in one picture. Verified to start and initialise the spring
-measurement on 2026-09-18; it is a demonstration, not a calibrated run.
+\textbf{What you will see.} Three compartments of 50 disks, a heavy divider ($M = 1000$) and a lighter spring-loaded
+wall ($M = 200$, $k = 5$) drawn as a coil. Same keys. Energy has to cross the heavy divider before it can reach the
+spring, so the HUD gains an \cmd{E\_spring} field and you can watch it rise only \emph{after} the divider starts
+moving --- Level~4's two channels and Level~5's impedance question in one picture.
+
+\begin{center}\includegraphics[width=\linewidth]{260909_plots/260919_demo_geomD.png}\end{center}
 \end{howto}
 
 \section{Level 0 --- the ledger closes}

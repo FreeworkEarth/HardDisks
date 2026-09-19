@@ -23,7 +23,7 @@ def cs_of(Z, eta):
 
 
 a1 = [(float(r["eta"]), float(r["c_s"]), float(r["c_s_scatter_mass"]))
-      for r in csv.DictReader(open(os.path.join(P, "260914_A1v2_final_cs_vs_eta.csv")))]
+      for r in csv.DictReader(open(os.path.join(P, os.environ.get("HD_A1_CSV", "260914_A1v2_final_cs_vs_eta.csv"))))]
 a1 = sorted(p for p in a1 if p[0] <= XMAX)
 by = defaultdict(list)
 for r in csv.DictReader(open(os.path.join(P, (sys.argv[1] if len(sys.argv) > 1 else "260916_A2_cs_per_mass.csv")))):
@@ -95,7 +95,7 @@ axd.annotate("A2 has only one density below 0.15 (η = 0.10),\nso the larger siz
              xy=(0.10, -0.55), xytext=(0.055, -1.05), fontsize=7.8, color="#52514e",
              arrowprops=dict(arrowstyle="->", color="#898781", lw=0.9))
 fig.text(0.99, 0.004, "same estimator everywhere: largest FFT bin at f ≥ ν_pred/2.5 · error bars = 1σ scatter of per-mass c_s · "
-                      "data: 260914_A1v2_final_cs_vs_eta.csv + " + (sys.argv[1] if len(sys.argv) > 1 else "260916_A2_cs_per_mass.csv") + "",
+                      "data: " + os.environ.get("HD_A1_CSV", "260914_A1v2_final_cs_vs_eta.csv") + " + " + (sys.argv[1] if len(sys.argv) > 1 else "260916_A2_cs_per_mass.csv") + "",
          ha="right", va="bottom", fontsize=7, color="0.4")
 fig.tight_layout(rect=(0, 0.015, 1, 1))
 for ext in ("png", "pdf"):

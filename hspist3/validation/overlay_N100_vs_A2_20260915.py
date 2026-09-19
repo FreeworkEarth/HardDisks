@@ -12,9 +12,10 @@ import tests_20260913 as T
 import plot_speed_of_sound_edmd as sos
 
 P = T.PLOTS
-A1 = os.path.join(P, "260914_A1v2_final_cs_vs_eta.csv")
-A2 = os.path.join(P, "260916_A2_cs_per_mass.csv")
-OUT = os.path.join(P, "260916_cs_vs_eta_N100_vs_A2")
+A1 = os.path.join(P, os.environ.get("HD_A1_CSV", "260914_A1v2_final_cs_vs_eta.csv"))
+A2 = os.path.join(P, os.environ.get("HD_A2_CSV", "260916_A2_cs_per_mass.csv"))
+OUTNAME = os.environ.get("HD_OUT", "260916_cs_vs_eta_N100_vs_A2")
+OUT = os.path.join(P, OUTNAME)
 
 
 def cs_of(Z, eta):
@@ -86,7 +87,7 @@ axd.set_ylim(-6, 8); axd.set_xlim(0, 0.78); axd.set_xlabel("Packing fraction  η
 axd.set_ylabel("deviation from Kolafa–Rottner [%]", fontsize=10); axd.grid(True, ls=":", alpha=0.6)
 axd.text(0.005, -5.5, "±0.5 % band", fontsize=8, color="0.35", va="bottom")
 fig.text(0.99, 0.004, "same estimator everywhere: largest FFT bin at f ≥ ν_pred/2.5 · error bars = 1σ scatter of per-mass c_s · "
-                      "data: 260914_A1v2_final_cs_vs_eta.csv + 260916_A2_cs_per_mass.csv",
+                      "data: " + os.path.basename(A1) + " + " + os.path.basename(A2),
          ha="right", va="bottom", fontsize=7, color="0.4")
 fig.tight_layout(rect=(0, 0.015, 1, 1))
 for ext in ("png", "pdf"):

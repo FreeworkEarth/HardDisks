@@ -1151,6 +1151,19 @@ static int   cli_force_kbt_one = 0; // --kbt1: force K_B*T == 1 (reduced units)
 static int   cli_seed_drift_first = 0;
 static int   cli_auto_release_wall = 0; // --auto-release: automatically release wall at start
 static int   cli_auto_release_after_hold = 0; // --auto-release-after-hold: release automatically once hold-steps reached (GUI + headless)
+/* ##CHRIS 2026-09-19: --demo, an interactive mode for figure-1 screenshots and talks. GUI ONLY:
+   it changes no physics and no headless output. The run starts paused with the divider held and
+   the piston parked; the operator drives it with the keyboard and a one-line HUD says what the box
+   is doing. Auto-release and auto-piston are ignored while it is on, because the whole point is
+   that each stage begins on a key. */
+static int   cli_demo_mode = 0;
+static int   demo_steps_per_frame = 1;     /* render pacing only -- dt is never touched */
+static int   demo_delay_ms = 0;
+static char  demo_shot_path[512] = {0};    /* --demo-shot=PATH: save one frame, for automation */
+static int   demo_shot_after = 0;          /* ...after this many advanced steps (0 = on key S only) */
+static long  demo_steps_done = 0;
+static char  demo_stage[96] = "HOLD";
+static char  demo_stage_echoed[96] = {0};
 static int   cli_single_test_mode = 0;  // --single-test: headless mode with main dir output
 static int   cli_quiet = 0;             // --quiet: suppress verbose per-particle logs
 static int   cli_fixed_dt_set = 0;      // --fixed-dt: override fixed timestep at runtime
@@ -2133,6 +2146,119 @@ static inline void maybe_stop_right_piston_on_work_target(void) {
 }
 // Global flag to pause the simulation
 bool paused = false;
+static int demo_piston_done = 0;   /* ##CHRIS 2026-09-19 */
+
+/* ##CHRIS 2026-09-19: demo-mode HUD and screenshot. Read-only with respect to the physics. */
+static const char *demo_protocol_name(void) {
+    switch (cli_protocol) {
+        case PROTOCOL_RAMP:      return "ramp";
+        case PROTOCOL_LINEAR:    return "linear";
+        case PROTOCOL_SIGMOIDAL: return "sigmoidal";
+        default:                 return "step";
+    }
+}
+
+static void demo_update_stage(void) {
+    if (!cli_demo_mode) return;
+    if (piston_step_active)
+        snprintf(demo_stage, sizeof(demo_stage), "PISTON %s u=%.3f",
+                 demo_protocol_name(), (double)fabsf(piston_protocol_max_speed));
+    else if (demo_piston_done)
+        snprintf(demo_stage, sizeof(demo_stage), "STOPPED");
+    else if (wall_is_released)
+        snprintf(demo_stage, sizeof(demo_stage), "RELEASED");
+    else
+        snprintf(demo_stage, sizeof(demo_stage), "HOLD");
+}
+
+static void demo_hud_line(char *buf, size_t cap) {
+    double keL = 0.0, keR = 0.0;
+    if (segment_count >= 2 && segment_ke) { keL = segment_ke[0]; keR = segment_ke[1]; }
+    double Win = (piston_work_left + piston_work_right) - piston_work_baseline;
+    int off = snprintf(buf, cap,
+        "%s | t=%.1f sigma | piston x=%.2f | divider x=%.2f | W_in=%.3f | KE_L=%.2f KE_R=%.2f",
+        demo_stage, (double)simulation_time,
+        (double)(piston_right_x - (float)XW1) / (double)PIXELS_PER_SIGMA,
+        (double)(wall_x - (float)XW1) / (double)PIXELS_PER_SIGMA,
+        Win, keL, keR);
+    if (energy_measurement.eff_enabled && cli_eff_output_mode == EFF_OUTPUT_SPRING && off > 0 && (size_t)off < cap)
+        snprintf(buf + off, cap - (size_t)off, " | E_spring=%.3f", (double)energy_measurement.spring_energy);
+}
+
+static void trigger_piston_step_with_protocol(void);   /* ##CHRIS 2026-09-19: used by the demo keys */
+
+static void demo_begin_once(void) {
+    static int done = 0;
+    if (done || !cli_demo_mode) return;
+    done = 1;
+    /* Interactive demo: the operator drives every stage, so the automatic triggers are off and the
+       run starts paused. A capture run (--demo-shot=PATH,STEPS) is the exception -- it is meant to
+       produce a figure without a human at the keyboard, so it runs from the start and honours
+       whatever --auto-release-after-hold / --auto-piston-step were given. */
+    simulation_started = 1;
+    /* Pace: the generic GUI advances one step per ~25 frames (dt_runtime 0.4 against a 16 ms frame),
+       which would make a 12000-step push take over an hour. Two steps per frame puts the u = 0.02
+       push at roughly two minutes, which is the right speed to talk over; + and - change it live.
+       A capture run has no audience, so it goes as fast as it can. */
+    demo_steps_per_frame = 2;
+    if (demo_shot_after > 0) {
+        demo_steps_per_frame = 64;
+        paused = false;
+    } else {
+        cli_auto_release_after_hold = 0;
+        cli_auto_piston_step = 0;
+        paused = true;
+    }
+    printf("\n================ DEMO MODE ================\n");
+    printf("  particles      : %d total", particles_active);
+    if (segment_count >= 2) printf("  (%d segments)", segment_count);
+    printf("\n  box            : %.2f x %.2f sigma\n",
+           (double)SIM_WIDTH / (double)PIXELS_PER_SIGMA, (double)SIM_HEIGHT / (double)PIXELS_PER_SIGMA);
+    printf("  disk radius    : %.3f sigma\n", (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA);
+    printf("  internal walls : %d", 1 + extra_wall_count);
+    printf("   wall thickness: %.3f sigma\n", (double)wall_thickness_runtime / (double)PIXELS_PER_SIGMA);
+    printf("  piston protocol: %s, u = %.4f sigma/sigma-time, travel = %.3f sigma\n",
+           demo_protocol_name(),
+           (double)(cli_piston_right_step_speed_set ? cli_piston_right_step_speed : piston_protocol_max_speed),
+           (double)(cli_piston_right_travel_set ? cli_piston_right_travel_sigma : 0.0f));
+    if (cli_protocol == PROTOCOL_RAMP)
+        printf("  ramp time      : %.2f sigma-time each end\n", (double)piston_protocol_ramp_time);
+    printf("  hold           : %d steps before release is allowed\n", wall_hold_steps);
+    if (energy_measurement.eff_enabled && cli_eff_output_mode == EFF_OUTPUT_SPRING)
+        printf("  spring         : k = %.3f\n", (double)cli_spring_k);
+    printf("  keys           : SPACE run/pause | R release divider | P start piston\n");
+    printf("                   + / - faster / slower (render pacing only) | S screenshot | Q quit\n");
+    printf("===========================================\n\n");
+    fflush(stdout);
+}
+
+static void demo_echo_stage_change(void) {
+    if (!cli_demo_mode) return;
+    demo_update_stage();
+    if (strcmp(demo_stage, demo_stage_echoed) != 0) {
+        char line[256];
+        demo_hud_line(line, sizeof(line));
+        printf("[DEMO] %s\n", line);
+        fflush(stdout);
+        snprintf(demo_stage_echoed, sizeof(demo_stage_echoed), "%s", demo_stage);
+    }
+}
+
+static void demo_save_screenshot(const char *path) {
+    if (!_renderer || !path || !*path) return;
+    int w = 0, h = 0;
+    SDL_GetRendererOutputSize(_renderer, &w, &h);
+    if (w <= 0 || h <= 0) return;
+    SDL_Surface *surf = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_ARGB8888);
+    if (!surf) return;
+    if (SDL_RenderReadPixels(_renderer, NULL, SDL_PIXELFORMAT_ARGB8888, surf->pixels, surf->pitch) == 0) {
+        if (SDL_SaveBMP(surf, path) == 0) printf("[DEMO] screenshot -> %s\n", path);
+        else fprintf(stderr, "[DEMO] screenshot failed: %s\n", SDL_GetError());
+    }
+    SDL_FreeSurface(surf);
+    fflush(stdout);
+}
+
 
 
 
@@ -3060,6 +3186,9 @@ static void print_cli_usage(const char *exe_name) {
     printf("  --energy-transfer-trace=PATH    Write energy-transfer trace CSV to PATH (default: experiments_energy_transfer/energy_transfer_trace.csv)\n");
     printf("  --piston-right-protocol-mode=MODE   step|linear|ramp|sigmoidal (alias for --protocol)\n");
     printf("  --piston-ramp-time=T                ramp mode: linear 0->u->0 over T sigma-time each end\n");
+    printf("  --demo                      GUI demo: start paused; SPACE run/pause, R release wall,\n");
+    printf("                              P start piston, +/- speed, S screenshot, Q quit\n");
+    printf("  --demo-shot=PATH[,STEPS]    save one BMP frame (on key S, or automatically after STEPS)\n");
     printf("  --max-right-piston-travel=value     Right piston travel (σ) (alias for --piston-travel-sigma)\n");
     printf("  --velocity-right-piston-step=value  Step protocol constant speed (σ/σ-time)\n");
     printf("  --velocity-right-piston-t0=value    Initial speed for linear/sigmoidal (σ/σ-time)\n");
@@ -3767,6 +3896,21 @@ static void parse_cli_options(int argc, char **argv) {
             else {
                 fprintf(stderr, "Unknown protocol '%s'. Use: step, sigmoidal, linear, sinusoidal, optimal\n", value);
                 exit(EXIT_FAILURE);
+            }
+        } else if (strcmp(arg, "--demo") == 0) {
+            cli_demo_mode = 1;                                   /* ##CHRIS 2026-09-19 */
+        } else if (strncmp(arg, "--demo-shot", strlen("--demo-shot")) == 0) {
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            if (!value) { fprintf(stderr, "Missing value for --demo-shot\n"); exit(EXIT_FAILURE); }
+            /* PATH or PATH,STEPS */
+            const char *comma = strchr(value, ',');
+            if (comma) {
+                size_t len = (size_t)(comma - value);
+                if (len >= sizeof(demo_shot_path)) len = sizeof(demo_shot_path) - 1;
+                memcpy(demo_shot_path, value, len); demo_shot_path[len] = 0;
+                demo_shot_after = atoi(comma + 1);
+            } else {
+                snprintf(demo_shot_path, sizeof(demo_shot_path), "%s", value);
             }
         } else if (strncmp(arg, "--piston-ramp-time", strlen("--piston-ramp-time")) == 0 ||
                    strncmp(arg, "--piston_ramp_time", strlen("--piston_ramp_time")) == 0) {
@@ -10648,6 +10792,42 @@ static void log_distributions(double t_abs, double t_rel, int released) {
 ////////// KEYBOARD INPUT HANDLING //////////
 // Keyboard input handling
 void keysSimulation(SDL_Event e) {
+    /* ##CHRIS 2026-09-19: demo mode owns SPACE / P / S / + / - so each stage begins on a key.
+       R (release) and Q (quit) fall through to the handlers below, which already do the right thing. */
+    if (cli_demo_mode && e.type == SDL_KEYDOWN) {
+        switch (e.key.keysym.sym) {
+            case SDLK_SPACE:
+                paused = !paused;
+                printf("[DEMO] %s\n", paused ? "paused" : "running");
+                fflush(stdout);
+                return;
+            case SDLK_p:
+                if (!wall_is_released) {
+                    printf("[DEMO] release the divider first (key R)\n"); fflush(stdout);
+                } else if (!piston_step_active && !demo_piston_done) {
+                    trigger_piston_step_with_protocol();
+                    demo_piston_done = 1;      /* so the stage reads STOPPED once it finishes */
+                    demo_echo_stage_change();
+                }
+                return;
+            case SDLK_s:
+                demo_save_screenshot(demo_shot_path[0] ? demo_shot_path : "demo_screenshot.bmp");
+                return;
+            case SDLK_PLUS: case SDLK_EQUALS: case SDLK_KP_PLUS:
+                if (demo_delay_ms > 0) demo_delay_ms /= 2;
+                else if (demo_steps_per_frame < 64) demo_steps_per_frame *= 2;
+                printf("[DEMO] pace: %d step(s)/frame, %d ms delay\n", demo_steps_per_frame, demo_delay_ms);
+                fflush(stdout);
+                return;
+            case SDLK_MINUS: case SDLK_KP_MINUS:
+                if (demo_steps_per_frame > 1) demo_steps_per_frame /= 2;
+                else demo_delay_ms = demo_delay_ms ? (demo_delay_ms < 256 ? demo_delay_ms * 2 : 256) : 8;
+                printf("[DEMO] pace: %d step(s)/frame, %d ms delay\n", demo_steps_per_frame, demo_delay_ms);
+                fflush(stdout);
+                return;
+            default: break;
+        }
+    }
     if (e.type == SDL_KEYDOWN) {
         switch (e.key.keysym.sym) {
 
@@ -18891,6 +19071,7 @@ void simulation_loop() {
             if (frame_time > 0.1f) frame_time = 0.1f;
             accumulator += frame_time * time_scale_runtime;
 
+            demo_begin_once();   /* ##CHRIS 2026-09-19: no-op unless --demo */
             // events
             while (SDL_PollEvent(&e)) {
                 if (e.type == SDL_QUIT) running = 0;
@@ -18958,8 +19139,27 @@ void simulation_loop() {
 
         int left_particles = 0, right_particles = 0;
 
+        if (cli_demo_mode && simulation_started && !paused && demo_steps_per_frame > 1)
+            accumulator += fixed_dt_runtime * (float)(demo_steps_per_frame - 1);   /* ##CHRIS */
         while (accumulator >= fixed_dt_runtime) {
             if (simulation_started && !paused) {
+                if (cli_demo_mode) {
+                    demo_steps_done++;
+                    /* ##CHRIS: scripted stages, capture runs only -- interactive demos never get here */
+                    if (demo_shot_after > 0) {
+                        if (!wall_is_released && demo_steps_done >= (long)wall_hold_steps) {
+                            wall_is_released = true; wall_hold_enabled = false;
+                            primary_wall_release_time = simulation_time;
+                            leftmost_wall_release_time = simulation_time;
+                            demo_echo_stage_change();
+                        } else if (wall_is_released && !demo_piston_done && !piston_step_active &&
+                                   demo_steps_done >= (long)wall_hold_steps + 200) {
+                            trigger_piston_step_with_protocol();
+                            demo_piston_done = 1;
+                            demo_echo_stage_change();
+                        }
+                    }
+                }
                 if (sz_branch_restore_requested) {
                     sz_branch_restore_requested = 0;
                     szilard_restore_branch_snapshot();
@@ -19877,7 +20077,33 @@ void simulation_loop() {
             snprintf(temp_label, sizeof(temp_label), "T_measured: %.2f", T_measured);
             //draw_text(_renderer, font, temp_label, XW1 + 5, YW1 + HEIGHT_UNITS*PIXELS_PER_SIGMA, yellow);
 
+            /* ##CHRIS 2026-09-19: demo HUD -- one line at the top of the window, echoed to the
+               terminal whenever the stage changes, plus the optional automated frame grab. */
+            if (cli_demo_mode) {
+                demo_echo_stage_change();
+                char hud[256];
+                demo_hud_line(hud, sizeof(hud));
+                int _dw = 0, _dh = 0; SDL_GetRendererOutputSize(_renderer, &_dw, &_dh);
+                SDL_Rect bar = { 0, 0, _dw, 26 };
+                SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
+                SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 190);
+                SDL_RenderFillRect(_renderer, &bar);
+                SDL_Color hc = { 255, 235, 140, 255 };
+                if (font) draw_text(_renderer, font, hud, 8, 4, hc);
+                char keys[160];
+                snprintf(keys, sizeof(keys), "%s   SPACE run/pause  R release  P piston  +/- pace  S shot  Q quit",
+                         paused ? "[PAUSED]" : "        ");
+                SDL_Color kc = { 190, 190, 190, 255 };
+                if (font_small) draw_text(_renderer, font_small, keys, 8, 26, kc);
+            }
             SDL_RenderPresent(_renderer);
+            if (cli_demo_mode) {
+                if (demo_shot_path[0] && demo_shot_after > 0 && demo_steps_done >= demo_shot_after) {
+                    demo_save_screenshot(demo_shot_path);
+                    demo_shot_after = 0;          /* once */
+                }
+                if (demo_delay_ms > 0) SDL_Delay((Uint32)demo_delay_ms);
+            }
             SDL_Delay(5);
         } // ##CHRIS: End of rendering block (skipped in headless mode)
     }
