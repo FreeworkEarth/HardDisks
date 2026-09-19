@@ -31,7 +31,7 @@ def rms_about_line(x, y):
 
 def a1v2():
     """9 masses x 25 seeds x 200 periods, from the damping-test cell cache."""
-    cells = json.load(open(os.path.join(T.PLOTS, "260915_A1v2_damping_cells.json")))
+    cells = json.load(open(T.plot_path("260915_A1v2_damping_cells.json")))
     pk, ft, win = [], [], {"peak": 0, "fit": 0}
     for leaf in T.a1_leaf_table():
         if leaf["eta"] > 0.69:
@@ -105,7 +105,7 @@ if __name__ == "__main__":
 # normalised residual against alpha = M/N (a bias shows up as a trend, not as noise) and
 # leave-one-mass-out stability of c_s. Run with `python estimator_massladder_20260917.py extra`.
 def extra():
-    cells = json.load(open(os.path.join(T.PLOTS, "260915_A1v2_damping_cells.json")))
+    cells = json.load(open(T.plot_path("260915_A1v2_damping_cells.json")))
     print("\n### Residual against α = M/N: a biased estimator leans, an unbiased one scatters")
     print("| estimator | mean residual per α, over 24 densities [%] | Spearman-like trend (first α − last α) [%] |")
     print("|---|---|---|")

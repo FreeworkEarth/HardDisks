@@ -49,7 +49,27 @@ TROOT = os.path.join(ROOT, "tests_20260913")
 DROOT = os.path.join(ROOT, "A1v2_20260914")
 STATE = os.path.join(ROOT, "_orchestration_tests_20260913")
 MD = os.path.join(REPO, "0000_PLAN_OVERALL", "ALL_MARKDOWNS")
-PLOTS = os.path.join(MD, "260909_plots")
+# ##CHRIS 2026-09-19: output moved into the per-paper folders. PLOTS is now where new figures and
+# CSVs are WRITTEN; 260909_plots is frozen and still holds every historical file, so reads fall back
+# to it (and to the sorted copies) through plot_path() below. Nothing was moved or deleted.
+PLOTS_FROZEN = os.path.join(MD, "260909_plots")
+PAPER1 = os.path.join(os.path.dirname(MD), "paper1_speedofsound", "experiments")
+PAPER2 = os.path.join(os.path.dirname(MD), "paper2_energytransfer", "experiments")
+PLOTS = os.path.join(PAPER1, "final")
+os.makedirs(PLOTS, exist_ok=True)
+
+
+def plot_path(name, write=False):
+    """Resolve a figure/CSV by name. Writes go to PLOTS; reads search the sorted copies and then
+    the frozen archive, so scripts written before 2026-09-19 keep working unchanged."""
+    if write:
+        return os.path.join(PLOTS, name)
+    for d in (PLOTS, os.path.join(PAPER1, "estimator_tests"), os.path.join(PAPER1, "archive"),
+              os.path.join(PAPER2, "final"), PLOTS_FROZEN):
+        q = os.path.join(d, name)
+        if os.path.exists(q):
+            return q
+    return os.path.join(PLOTS, name)
 STATUS = os.path.join(MD, "260913_tests_STATUS.md")
 REPORT = os.path.join(MD, "260913_tests_REPORT.md")
 A1_DIR = os.path.join(ROOT, "campaign_r25_psi6_20260823")

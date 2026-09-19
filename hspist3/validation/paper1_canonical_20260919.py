@@ -25,7 +25,7 @@ def factor(L0):
 
 def rescale(src, dst, l0_col="L0", cols=("c_s", "c_s_err", "c_s_scatter_mass", "c_s_mass", "nu_mean", "nu_sd")):
     """Rescale every c_s-like column by the thickness factor of that row's own L0."""
-    rows = list(csv.DictReader(open(os.path.join(P, src))))
+    rows = list(csv.DictReader(open(T.plot_path(src))))
     hit = [c for c in rows[0] if c in cols]
     for r in rows:
         f = factor(float(r[l0_col]))
@@ -53,7 +53,7 @@ def draw_main():
         h = 1e-5
         return sos.cs_adiabatic_2d_monatomic(Z(e), (Z(e + h) - Z(e - h)) / (2 * h), e, kbt=1, m=1)
 
-    rows = list(csv.DictReader(open(os.path.join(P, "260919_A1v2_final_cs_vs_eta.csv"))))
+    rows = list(csv.DictReader(open(T.plot_path("260919_A1v2_final_cs_vs_eta.csv"))))
     E = np.array([float(r["eta"]) for r in rows])
     C = np.array([float(r["c_s"]) for r in rows])
     S = np.array([float(r["c_s_scatter_mass"]) for r in rows])

@@ -46,7 +46,7 @@ def cs_of(Z, eta):
 
 
 a1 = []
-for r in csv.DictReader(open(os.path.join(P, "260914_A1v2_final_cs_vs_eta.csv"))):
+for r in csv.DictReader(open(T.plot_path("260914_A1v2_final_cs_vs_eta.csv"))):
     eta, L0 = float(r["eta"]), float(r["L0"])
     c, s = float(r["c_s"]), float(r["c_s_scatter_mass"])
     f = factor(L0)
@@ -54,7 +54,7 @@ for r in csv.DictReader(open(os.path.join(P, "260914_A1v2_final_cs_vs_eta.csv"))
 
 # A2: same correction, per (eta, N) cell, using that cell's own L0
 a2 = {}
-for r in csv.DictReader(open(os.path.join(P, "260917_A2_cs_per_mass.csv"))):
+for r in csv.DictReader(open(T.plot_path("260917_A2_cs_per_mass.csv"))):
     key = (float(r["eta"]), int(r["N"]))
     a2.setdefault(key, []).append((float(r["L0"]), float(r["c_s_mass"])))
 

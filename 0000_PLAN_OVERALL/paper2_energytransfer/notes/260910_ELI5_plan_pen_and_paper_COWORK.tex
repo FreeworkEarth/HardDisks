@@ -1,0 +1,294 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tcolorbox}
+\usepackage[colorlinks=true,linkcolor=NavyBlue,urlcolor=NavyBlue]{hyperref}
+\usepackage{microtype}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+\newcommand{\kT}{k_{\mathrm B}T}
+\newcommand{\avg}[1]{\left\langle #1 \right\rangle}
+\newcommand{\dd}{\mathrm{d}}
+\newtcolorbox{eli}[1][In plain words]{colback=NavyBlue!6,colframe=NavyBlue!60!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{num}[1][Numbers to write down]{colback=Apricot!12,colframe=BurntOrange!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{wrong}[1][What a wrong result looks like]{colback=Red!6,colframe=BrickRed!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{ex}[1][Exercise]{colback=OliveGreen!8,colframe=OliveGreen!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+
+\title{The plan, explained from zero:\\ what we know, what we do next, and why --- pen-and-paper edition}
+\author{Cowork note for Chris --- HardDisks / hspist3 (companion to the hand-calculation note)}
+\date{2026-09-10}
+
+\begin{document}
+\maketitle
+
+\section*{How to use this}
+Read it with the hand-calculation note next to you: that one has the derivations, this one has the \emph{story} --- what each result means, what we do next and what number we expect. Every step has a box ``numbers to write down'' (copy them into your notes), and many have ``what a wrong result looks like'' so you can judge Claude Code's reports yourself. Exercises are scattered through the text; answers are in Section~\ref{sec:answers}.
+
+Units: $\kT = m = \sigma = 1$, $\sigma = 2r$ is the disk diameter, speeds in $\sqrt{\kT/m}$, times in $\sigma\sqrt{m/\kT}$ (``$\sigma$-time''; pixel time $/24$).
+
+\tableofcontents
+
+\section{The two papers in one picture}
+
+\begin{eli}
+\textbf{Paper 1 (equilibrium).} ``Our simulator is a correct hard-disk gas.'' We prove it by measuring two things that theory predicts to a fraction of a percent: the pressure $Z(\eta)$ and the speed of sound $c_s(\eta)$. If both match the Kolafa--Rottner equation of state from the ideal gas up to the dense fluid, the machine is trustworthy.
+
+\textbf{Paper 2 (non-equilibrium).} ``When we push this gas with a piston, the energy we lose and the information we lose obey the known laws.'' Every law we want to test (energy conservation, Jarzynski, linear response, the nostalgia bound) is a statement about the \emph{same} gas --- so Paper 2 stands on Paper 1. If the gas were slightly wrong, every Paper 2 number would be slightly wrong and we would never know which law failed.
+\end{eli}
+
+The chain, top to bottom:
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+& what we measure & against what\\
+\midrule
+Paper 1 & $Z(\eta)$ and $c_s(\eta)$, bulk values & Kolafa--Rottner EOS; $\sqrt2$ at $\eta\to0$\\
+Level 0 & energy and momentum book-keeping of one push & must close to round-off\\
+Level 1 & divider jiggling in equilibrium & equipartition; gives the friction $\zeta$\\
+Level 2 & work distribution $P(W)$ for many pushes & slow limit, fast limit, Jarzynski\\
+Level 3 & dissipation vs piston speed & linear at small speed, slope $\zeta$\\
+Level 4 & memory, prediction, nostalgia & $\ge0$; bound by dissipation\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{What we know today, result by result}
+
+\subsection{Pressure: validated up to $\eta = 0.65$}
+
+\begin{eli}
+Pressure is force per length on the walls. There are two ways to get it out of a hard-disk run: count how hard the disks hit the \emph{walls} ($Z_{\mathrm{wall}}$), or count how hard they hit \emph{each other} ($Z_{\mathrm{pair}}$, the virial). Momentum conservation says the two must agree in a steady state --- that is a built-in self-check. Then there is the box-size problem: a box with 100 disks is not an infinite fluid. The correction shrinks like $1/\sqrt N$, so we ran $N = 100, 400, 900, 1600$, plotted $Z$ against $1/\sqrt N$, and read the value at $1/\sqrt N = 0$ (an infinite box).
+\end{eli}
+
+\begin{equation}
+Z(N) = Z_\infty + \frac{a}{\sqrt N},\qquad
+\chi^2 = \sum_{N}\frac{\left[Z_N - Z_\infty - a/\sqrt N\right]^2}{\sigma_N^2}
+\end{equation}
+(4 points, 2 parameters $\Rightarrow$ 2 degrees of freedom).
+
+\begin{eli}[{What chi-squared means}]
+If the four points really lie on a straight line and the error bars are honest, $\chi^2$ comes out around its number of degrees of freedom (here $\approx2$). $\chi^2 = 0.07$ means ``perfectly on a line'' (maybe error bars a bit large). $\chi^2 = 7.6$ with 1 dof has probability $0.6\%$ under the line hypothesis: the points do \emph{not} lie on a $1/\sqrt N$ line, so no bulk value can be read off. That is what happens at $\eta = 0.67$ --- not a bug, the fluid is starting to change structure there.
+\end{eli}
+
+\begin{num}
+\begin{itemize}[nosep]
+\item $Z_\infty$ within $\pm0.17\%$ of KR for $\eta = 0.2$--$0.5$; $+0.13\%$ at $0.60$; $-0.42\pm0.09\%$ at $0.65$.
+\item $\eta = 0.67$: $\chi^2_1 = 7.6$ ($p = 0.006$); $\eta = 0.69$: slope $a = 8.7$ --- no bulk value. $\eta \ge 0.70$: exploratory.
+\item $\eta = 0.30$ also gives $\chi^2_1 = 4.05$ ($p = 0.044$): one flag among twelve tests at the 5\% level is expected once. Reported, not tuned.
+\item Claim range for the paper: \textbf{$\eta \le 0.65$ validated}, $0.67$--$0.69$ ``no bulk value'', $\ge0.70$ exploratory.
+\end{itemize}
+\end{num}
+
+\begin{ex}[Exercise 1]
+$Z$ at four sizes: $2.075, 2.068, 2.066, 2.065$ for $N = 100, 400, 900, 1600$. Write $x = 1/\sqrt N$ ($0.1, 0.05, 0.0333, 0.025$). Fit a line by eye (or with two points, $N = 100$ and $1600$): what is $Z_\infty$, what is the slope $a$?
+\end{ex}
+
+\subsection{Speed of sound, route A: the instrument works}
+
+\begin{eli}
+We do not measure sound directly. We put a movable wall (the divider) between two gas columns and let it swing. The gas on both sides acts like a spring whose stiffness is set by the sound speed. Measure the swing frequency $\nu$ for 9 divider masses; theory (the Román relation) says all 9 points lie on one straight line through the origin whose slope is $c_s$. Nine masses give nine independent checks of the same number.
+\end{eli}
+
+\begin{equation}
+\nu = c_s\,\frac{K}{2\pi L_{\mathrm{eff}}},\qquad \cot K = \frac{M}{2Nm}\,K,\qquad L_{\mathrm{eff}} = L_0 - 2r .
+\end{equation}
+
+\begin{eli}[Why a fit ``through the origin'']
+The relation has no constant term: a divider that cannot swing ($K\to0$) has frequency zero. So we fit $\nu = c_s x$ with $x = K/(2\pi L_{\mathrm{eff}})$. A second fit with a free intercept $b$ is the alarm: if $b$ is not zero within error, the single-swing-mode picture is being stretched (at $\eta = 0.57$--$0.63$ the compartment is only 6--7 diameters long and $b$ absorbs up to 3.6\%).
+\end{eli}
+
+\begin{eli}[{Why route A validates the instrument but not the bulk fluid}]
+Route A always has 50 disks per side. To change $\eta$ it changes the box length, $L_0 = 3.93\,\sigma/\eta$: 196 diameters at $\eta = 0.02$, 6 at $\eta = 0.65$. So density and confinement change together and a deviation from KR could be either. That is fine for showing the method works (the dilute end reproduces $\sqrt2(1+2\eta)$ with the right slope), but a bulk claim needs the $1/\sqrt N$ game from the pressure section: several $N$ at the \emph{same} $\eta$ and the same box shape.
+\end{eli}
+
+\begin{num}
+\begin{itemize}[nosep]
+\item Refit (through the origin, 7186 of 7200 runs eligible): dilute end $-0.49\ldots-0.02\%$ vs KR; $\eta = 0.11$--$0.39$: $+0.5\ldots+1.1\%$; $\eta = 0.52$--$0.55$: $+2\ldots2.5\%$; $\eta\ge0.65$: not a fluid-branch value (structure in a 6-diameter box).
+\item Dilute slope: $c_s/\sqrt2 - 1 = 0.035$ at $\eta = 0.0196$ vs theory $2\eta = 0.039$. The ideal-gas limit is right.
+\item Per-mass residuals at the dilute end scatter by 0.5--0.7\% with no trend in $M$ and no growth with $\eta$: instrument scatter, not damping, not the $L_{\mathrm{eff}}$ convention. Closed.
+\item The 504 \texttt{wall\_overdue} flags: two disks seeded exactly on the right wall (float rounding at 9800 px); they reflect once at $t=0$; harmless; runs kept. The seeder pad must be fixed (double precision) before any \emph{new} run at $L_0\ge100$.
+\end{itemize}
+\end{num}
+
+\begin{ex}[Exercise 2]
+$\eta = 0.05$, $N = 50$ per side, $r = 0.5$, $H = 10$. Compute $L_0$, $L_{\mathrm{eff}}$, the mean free path $\lambda = 0.278/\eta$, and $\mathrm{Kn} = \lambda/L_0$. Then take $M = 100$ ($\alpha = 1$, $K = 0.860$) and $c_s = 1.567$: what is $\nu$ and the swing period?
+\end{ex}
+
+\subsection{The gap: no fixed-geometry $c_s$ data below $\eta = 0.67$}
+
+\begin{eli}
+We do have a family with $N = 100, 400, 900, 1600$ at the same box shape (``famA''), but it was run for the dense side, $\eta = 0.670$--$0.730$. At $0.670$ the four sizes sit perfectly on a $1/\sqrt N$ line ($\chi^2_2 = 0.07$) and give $c_\infty = 10.65\pm0.04$, which is $6.4\%$ below KR --- the same message as pressure: at $0.67$ the fluid EOS is already off. Everything above $0.67$ is not even monotone in $N$ ($\chi^2$ from 36 to 723): the coexistence and hexatic region, no bulk value, as expected.
+
+So for Paper 1 we currently have a \emph{bulk} pressure claim and only an \emph{instrument} sound-speed claim. The missing piece is a small family at $\eta = 0.10, 0.30, 0.50, 0.60, 0.65$ (``famB''). It is the last $c_s$ campaign of Paper 1.
+\end{eli}
+
+\begin{num}
+famA at $\eta = 0.670$: $c_s = 13.04\ (N{=}100),\ 11.86\ (400),\ 11.48\ (900),\ 11.25\ (1600)$ $\to$ $c_\infty = 10.65\pm0.04$, slope $a = +23.9$. Finite-size effects at $N = 100$ are $+22\%$ here --- which is why route A alone cannot be the bulk claim.
+\end{num}
+
+\begin{ex}[Exercise 3]
+Using the famA numbers above, check $c_\infty$ with the two-point trick ($N = 100$ and $1600$, $x = 0.1$ and $0.025$). How far is your answer from $10.65$? Why is the 4-point weighted fit better?
+\end{ex}
+
+\subsection{Level 0: the old energy-transfer runs cannot be used}
+
+\begin{eli}
+Level 0 is bookkeeping: the work the piston does must show up somewhere --- as gas kinetic energy, divider kinetic energy, spring energy, or heat into a thermal wall. With elastic walls there is no heat, so
+\begin{equation}
+W = \Delta\mathrm{KE}_{\mathrm{gas}} + \Delta\mathrm{KE}_{\mathrm{div}} + \Delta E_{\mathrm{spring}}\qquad\text{exactly, up to round-off.}
+\end{equation}
+Claude Code looked at the existing runs (\texttt{mass\_sweep\_eta02\_N600}) and found two show-stoppers. First, they were run with \texttt{--edmd-acc=1}, the accelerated backend that failed validation in August (181 of 450 trajectories invalid). Second, the trace never recorded the gas kinetic energy, nor per-collision impulses, nor gas momentum. So one term of the ledger is simply missing: the residual is \emph{undefined}, not small. Nothing from those runs is physics; they told us what to log.
+
+The good news: the collision rule in the code is exactly the textbook one, verified line by line. And the old ``efficiency'' number \texttt{SpringE\_max/W\_in} (peak spring energy over piston work) is not a thermodynamic quantity --- a single-instant maximum of an oscillating store --- so we stop using it.
+\end{eli}
+
+\begin{num}
+Piston rule, prescribed-velocity piston with velocity $u$, particle normal velocity $v$ before the hit:
+\begin{equation}
+v' = 2u - v,\qquad \Delta E = 2mu(u-v),\qquad \Delta p = 2m(u-v).
+\end{equation}
+Existing runs: $N = 600$, $\eta = 0.10$, work target $2\times10^4\,\kT$, piston travel $10\sigma$ in about one $\sigma$-time ($u/c_s$ of order 2--3: a shock).
+\end{num}
+
+\begin{ex}[Exercise 4]
+Piston moves into the gas at $u = 0.05$. A particle comes toward it with $v = -1.0$. Compute $v'$, $\Delta E$, $\Delta p$. Now a particle moving away from the piston at $v = +0.03$ (slower than the piston): is it hit, and what is $\Delta E$? And $v = +0.10$: is it hit at all?
+\end{ex}
+
+\subsection{Running now: $N = 2500$ pressure at $\eta = 0.65, 0.67, 0.69$}
+
+\begin{eli}
+A fifth box size, to see whether the $1/\sqrt N$ line at $0.65$ holds with a further point (it should, within the quoted error) and whether $0.67$ stays off the line (it should). Analysis-only until it lands; then table B is recomputed with 5 sizes (3 degrees of freedom).
+\end{eli}
+\begin{wrong}
+$Z_\infty$ at $0.65$ shifting by more than $0.2\%$, or $\chi^2$ at $0.65$ jumping above $\approx6$, would mean the $1/\sqrt N$ form is not the right finite-size law there --- then the claim range moves down to $0.60$. A calibration row with a large standard error (now logged) is the first thing to look at if that happens.
+\end{wrong}
+
+\section{The plan, step by step}
+
+\subsection{Step 1 --- driver logging (no physics change)}
+\begin{eli}
+Before any new push run, the trace must record gas kinetic energy (total, left, right) and the gas momentum $\sum m v_x$ per sample, and a switchable (``gated'') per-event file must record every piston and divider collision: time, piston speed $u$, particle speed before and after, $\Delta E$, $\Delta p$. ``Gated'' means: off unless an environment variable turns it on, so accepted runs are bit-for-bit unchanged. The acceptance test is literal: rerun one accepted sound-speed cell and \texttt{cmp} the divider trace against the accepted file --- zero differing bytes.
+\end{eli}
+\begin{wrong}
+Any byte difference in the accepted trace, or a change in any mode other than \texttt{energy\_transfer}, and the change is rejected. Also: units. The velocity columns must be declared as $\sigma/\sigma$-time; a factor 24 hiding in one column would make $\Delta\mathrm{KE}_{\mathrm{div}}$ wrong by $576$.
+\end{wrong}
+
+\subsection{Step 2 --- Level 0 pilot: one slow push, 50 disks per side}
+\begin{eli}
+Smallest experiment that can close the ledger: $\eta = 0.10$, $L_0 = 39.3$, elastic walls, validated core, piston at $u = 0.05$ (about 3\% of the sound speed) compressing the right compartment by 10\%, then a hold of 200 $\sigma$-time so the divider rings down. Five seeds. From it we get four checks at once.
+\end{eli}
+
+\begin{num}
+\begin{enumerate}[nosep]
+\item Ledger residual $R(t) = W - [\Delta\mathrm{KE}_{\mathrm{gas}} + \Delta\mathrm{KE}_{\mathrm{div}} + \Delta E_{\mathrm{spring}}]$: expect $|R| \sim 10^{-10}$--$10^{-8}\,\kT$ (double-precision round-off over $\sim10^4$ collisions).
+\item Sum of per-event $\Delta E$ = logged \texttt{PistonWork} to the last digit.
+\item Momentum: $\Delta(p_{\mathrm{gas}} + p_{\mathrm{div}}) = \sum\Delta p$ (pistons + outer walls) to round-off.
+\item Adiabatic prediction for the compressed side ($N = 50$, $\eta: 0.10\to0.11$):
+\begin{equation}
+\frac{T_f}{T_i} = \exp\!\int_{0.10}^{0.11}\frac{Z(\eta)}{\eta}\,\dd\eta = 1.127\ (\text{KR}),\quad\text{ideal gas } 1.100,
+\end{equation}
+\begin{equation}
+W_{\mathrm{qs}} = N\kT_i\left(\frac{T_f}{T_i}-1\right) = 6.3\,\kT .
+\end{equation}
+\item Dissipation $W_{\mathrm{diss}} = \avg W - W_{\mathrm{qs}}$: the collisionless estimate $W_{\mathrm{diss}}/W_{\mathrm{qs}} \approx 4.5\,u/c_s = 4.5\times0.029 = 13\%$ is an upper-side number; in the fluid expect roughly $0.3$--$0.8\,\kT$ on top of $6.3\,\kT$.
+\end{enumerate}
+\end{num}
+\begin{wrong}
+$|R| > 10^{-6}\,\kT$: a term is missing or double-counted (check whether the divider's own work is booked on the gas side or the divider side). $W_{\mathrm{diss}} < 0$ beyond the seed error: $W_{\mathrm{qs}}$ computed with the wrong $\eta$ range or wrong $N$. $W_{\mathrm{diss}}$ of tens of $\kT$: units, or the push was much faster than specified.
+\end{wrong}
+
+\begin{ex}[Exercise 5]
+Ideal-gas version of item 4 by hand: $N = 50$, $\kT_i = 1$, area shrinks by 10\% ($A_f = 0.909\,A_i$). $T_f/T_i = A_i/A_f = ?$, $W_{\mathrm{qs}} = ?$ Why is the KR answer ($6.3$) larger than the ideal one?
+\end{ex}
+
+\subsection{Step 3 --- famB: the bulk sound-speed claim}
+\begin{eli}
+$\eta = 0.10, 0.30, 0.50, 0.60, 0.65$; $N = 100, 400, 900, 1600$ at the famA box shape; 5 masses; 10 repeats. Same manifest treatment, through-origin fits, $1/\sqrt N$ extrapolation with $\chi^2$. Result: a table $c_\infty(\eta)$ vs KR that sits next to the pressure table. Launched only after $N = 2500$ finishes (machine time).
+\end{eli}
+\begin{num}
+Expected from route A and the EOS: $c_\infty$ within $\approx1\%$ of KR at $0.10$--$0.50$ ($c_s = 1.744, 2.852, 5.416$), and a visible finite-size slope that grows with $\eta$ (famA showed $+22\%$ at $N=100$ for $\eta = 0.67$).
+\end{num}
+
+\subsection{Step 4 --- Level 1: the divider as a thermometer and a friction meter}
+\begin{eli}
+Hold the piston still, let the divider jiggle in equilibrium. Two things come out. Equipartition: the divider is one more degree of freedom, so $\tfrac12M\avg{\dot\xi^2} = \tfrac12\kT$ --- a temperature check that costs nothing. And the force on a \emph{held} divider fluctuates; the time-integral of its autocorrelation is the friction $\zeta$ that a \emph{moving} divider will feel:
+\begin{equation}
+\zeta = \beta\int_0^\infty\avg{\delta F(0)\,\delta F(t)}\,\dd t,\qquad
+W_{\mathrm{diss}} \simeq \int\zeta\,\dot\lambda^2\,\dd t .
+\end{equation}
+This is the ``predict dissipation from equilibrium'' trick (Sivak--Crooks); Step 6 checks it.
+\end{eli}
+
+\subsection{Step 5 --- Level 2: many pushes, the work histogram, Jarzynski}
+\begin{eli}
+Repeat the push $10^3$--$10^4$ times from independent equilibrium starts (Maxwellian velocities at $T$, equilibrated positions --- ``canonical initial sampling''; no thermal wall is needed during the push). Every run gives one number $W$. The histogram $P(W)$ has a slow-push limit (a spike at $W_{\mathrm{qs}}$) and a fast-push limit (Lua--Grosberg: each particle hit at most once, $P(W)$ follows from the Maxwell distribution alone). In between, Jarzynski says
+\begin{equation}
+\avg{e^{-\beta W}} = e^{-\beta\Delta F},\qquad
+\Delta F = N\kT\int_{\eta_i}^{\eta_f}\frac{Z}{\eta}\,\dd\eta\ \ (= 6.0\,\kT\ \text{for }50\text{ disks},\ 0.10\to0.11).
+\end{equation}
+\end{eli}
+\begin{eli}[Why the piston must be slow for this]
+The average of $e^{-\beta W}$ is dominated by the rare runs with unusually small $W$. You need about $e^{\beta W_{\mathrm{diss}}}$ runs to catch them: $\beta W_{\mathrm{diss}} = 3\to20$ runs, $5\to150$, $10\to2\times10^4$. So keep $W_{\mathrm{diss}}$ below $\approx5$--$8\,\kT$: small $N$, $u/c_s\le0.3$, compression 10--25\%. The old shock runs had $\beta W_{\mathrm{diss}}$ in the thousands --- hopeless for this.
+\end{eli}
+
+\begin{ex}[Exercise 6]
+You measure $\beta W$ in five runs: $6.5, 6.9, 6.2, 7.4, 6.6$ with $\beta\Delta F = 6.0$. Compute $\avg W$, $W_{\mathrm{diss}}$ (with $W_{\mathrm{qs}} = 6.3$), and the Jarzynski estimate $-\ln\frac15\sum e^{-\beta W_k}$. Is $\avg W \ge \Delta F$? Is the Jarzynski estimate closer to $\Delta F$ than $\avg W$ is?
+\end{ex}
+
+\subsection{Step 6 --- Level 3: dissipation vs speed}
+\begin{eli}
+Same push at $u/c_s = 0.01, 0.03, 0.1, 0.3$. Plot $W_{\mathrm{diss}}$ against $u$. Linear response predicts a straight line through the origin at small $u$ with slope $\zeta\,\Delta x$ from Step 4. Where the line bends, linear response ends --- that is a result, not a failure.
+\end{eli}
+
+\subsection{Step 7 --- Level 4: memory, prediction, nostalgia}
+\begin{eli}[Mutual information with a coin]
+Two coins $X$ and $Y$. If they are independent, knowing $X$ tells you nothing about $Y$: $I(X;Y) = 0$. If they are glued together ($Y = X$), knowing $X$ tells you everything: $I = H(X) = \ln2$ nats $= 1$ bit. In general
+\begin{equation}
+I(X;Y) = \sum_{x,y}p(x,y)\ln\frac{p(x,y)}{p(x)\,p(y)}\ \ge 0 .
+\end{equation}
+\end{eli}
+\begin{eli}[The three quantities]
+Let $x_t$ be the piston's command at step $t$ (drawn at random from a rule, so that it carries information) and $s_t$ the state of gas + divider (coarse-grained, e.g.\ divider position and velocity in bins).
+\begin{equation}
+I_{\mathrm{mem}} = I(s_t;x_t),\qquad I_{\mathrm{pred}} = I(s_t;x_{t+1}),\qquad I_{\mathrm{nost}} = I_{\mathrm{mem}} - I_{\mathrm{pred}} \ge 0 .
+\end{equation}
+Memory: what the system's state tells you about the command \emph{now}. Prediction: what it tells you about the \emph{next} command. Nostalgia: memory that is useless for the future. It cannot be negative, because the state learns about the future only through the present (data processing: $s_t\to x_t\to x_{t+1}$). The inequality in your screenshot, $H(Y)\le H(Z)$ for $Y = f(Z)$, is the one-variable version: coarse-graining never creates information.
+\end{eli}
+\begin{eli}[The bound we want to show]
+\begin{equation}
+\beta\,\avg{W_{\mathrm{diss}}[x_t\to x_{t+1}]} \;\ge\; I_{\mathrm{nost}} .
+\end{equation}
+Left side: from the closed ledger (Steps 1--2). Right side: from histograms of $(s_t, x_t)$ and $(s_t, x_{t+1})$ over the trajectories. Every nat of useless memory costs at least $\kT$ of dissipation. For the bound to be a real test both sides must be of order one: that is why $N$ is small and $u/c_s\le0.3$.
+\end{eli}
+\begin{num}
+Plug-in estimator bias $\approx (k_s-1)(k_x-1)/(2N_{\mathrm{traj}})$ nats. $k_s = 10$ state bins, $k_x = 3$ commands: $0.009$ nats at $10^3$ trajectories, $0.001$ at $10^4$. $I_{\mathrm{nost}}$ must sit clearly above that.
+\end{num}
+
+\begin{ex}[Exercise 7]
+Joint table of a command $x\in\{\text{push},\text{hold}\}$ and a state bin $s\in\{\text{left},\text{right}\}$ over 100 trajectories: push\&left 40, push\&right 10, hold\&left 10, hold\&right 40. Compute $p(x)$, $p(s)$, and $I(s;x)$ in nats. (Sanity: independent would give $25$ in every cell and $I = 0$.)
+\end{ex}
+
+\section{What to write on the first page of your notes}
+\begin{enumerate}[nosep]
+\item Paper 1 claim: $Z$ bulk-validated $\eta\le0.65$; $c_s$ instrument-validated on route A; $c_s$ bulk claim pending famB.
+\item Level 0 closes after: logging change $\to$ \texttt{cmp} test $\to$ 5-seed pilot with $|R|\sim$ round-off, $W_{\mathrm{qs}} = 6.3\,\kT$, $W_{\mathrm{diss}}\approx0.3$--$0.8\,\kT$.
+\item Design window for Paper 2: $N = 50$--$300$ per side, $u/c_s = 0.01$--$0.3$, compression 10--25\%, $\beta W_{\mathrm{diss}}\lesssim5$, $10^3$--$10^4$ trajectories, stochastic piston command.
+\item Two positive controls waiting in the queue: route A to $\eta = 0.01, 0.005$ (after the seed-pad fix) and the Knudsen pilot $N_{\mathrm{side}} = 25, 10, 5$ at $L_0 = 200$ (expect $c_s$ to rise from $\sqrt2$ toward $\sqrt3$).
+\end{enumerate}
+
+\section{Answers}
+\label{sec:answers}
+\begin{enumerate}[label=\textbf{\arabic*.},nosep,itemsep=3pt]
+\item Two points: slope $a = (2.075-2.065)/(0.1-0.025) = 0.133$; $Z_\infty = 2.065 - 0.133\times0.025 = 2.062$. (A weighted 4-point fit gives about the same; the message is that $N = 100$ is $0.6\%$ high and the infinite-box value is below every measured point.)
+\item $L_0 = 3.927/0.05 = 78.5$; $L_{\mathrm{eff}} = 77.5$; $\lambda = 5.6$; $\mathrm{Kn} = 0.071$. $\nu = 1.567\times0.860/(2\pi\times77.5) = 2.77\times10^{-3}$ per $\sigma$-time; period $361$ $\sigma$-time.
+\item $a = (13.04-11.25)/(0.1-0.025) = 23.9$; $c_\infty = 11.25 - 23.9\times0.025 = 10.65$. Same as the full fit here because the two end points dominate; the 4-point weighted fit is better because it uses the error bars and gives $\chi^2$, which tells you whether a line is even the right model.
+\item $v = -1.0$: $v' = 2(0.05)+1.0 = 1.10$; $\Delta E = 2(0.05)(0.05+1.0) = 0.105$; $\Delta p = 2(1.05) = 2.10$. $v = +0.03$: the piston (0.05) catches it; $v' = 0.07$; $\Delta E = 2(0.05)(0.02) = 0.002$. $v = +0.10$: it outruns the piston, no hit ($\Delta E = 0$).
+\item $T_f/T_i = 1/0.909 = 1.100$; $W_{\mathrm{qs}} = 50\times0.100 = 5.0\,\kT$. KR gives more because $Z>1$: the gas pushes back harder than an ideal gas, so compressing it by the same amount costs more work ($Z\approx1.24$ at $\eta = 0.1$).
+\item $\avg{\beta W} = 6.72$; $W_{\mathrm{diss}} = 6.72-6.3 = 0.42\,\kT$. The five values of $e^{-\beta W}$ are $1.50, 1.01, 2.03, 0.61, 1.36$ (all $\times10^{-3}$); their mean is $1.30\times10^{-3}$ and $-\ln(1.30\times10^{-3}) = 6.64$. Yes, $\avg W\ge\Delta F$. The Jarzynski estimate ($6.64$) is closer to $6.0$ than $\avg W$ ($6.72$) is, but still high: with only five samples the estimate is dominated by the single smallest $W$ (the $6.2$ run) and its statistical error is large; the rule $e^{\beta W_{\mathrm{diss}}} \approx e^{0.7}\approx2$ says five runs are enough to see the effect, not to pin $\Delta F$ to $0.1\,\kT$. With $10^3$ runs it converges.
+\item $p(\text{push}) = p(\text{hold}) = 0.5$, $p(\text{left}) = p(\text{right}) = 0.5$. $I = 2\times0.4\ln\frac{0.4}{0.25} + 2\times0.1\ln\frac{0.1}{0.25} = 0.8\times0.470 + 0.2\times(-0.916) = 0.376 - 0.183 = 0.193$ nats ($0.28$ bits).
+\end{enumerate}
+
+\end{document}

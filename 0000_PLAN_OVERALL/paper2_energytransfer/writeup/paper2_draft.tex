@@ -1,0 +1,120 @@
+% ##CHRIS 2026-09-19: Paper 2 skeleton, organised as the proof ladder. Levels 0-2 carry the measured
+% numbers; Levels 3-6 are headed placeholders with the pass criteria from the plan. Every claim has a
+% % TODO-source line naming where the number came from.
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,graphicx,microtype,enumitem}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[colorlinks=true,linkcolor=NavyBlue,urlcolor=NavyBlue]{hyperref}
+\newcommand{\kT}{k_{\mathrm B}T}
+\newcommand{\avg}[1]{\left\langle #1 \right\rangle}
+\newcommand{\dd}{\mathrm{d}}
+\graphicspath{{../experiments/final/}}
+\setlength{\parskip}{4pt}\setlength{\parindent}{0pt}
+
+\title{Where injected work goes in a hard-disk box:\\ a proof ladder for an energy-transfer experiment}
+\author{C.\ Haring}
+\date{Draft, \today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A piston compresses a hard-disk gas in a closed box. We ask what fraction of the injected work can
+still be captured as ordered energy, and we refuse to answer until each simpler statement below it is
+closed: the ledger, the quasi-static baseline, the finite-rate excess, the spring, the divider, the
+chain. Levels 0--2 are closed here.
+% TODO-source: Level status from 260913_tests_STATUS.md, 2026-09-16 .. 2026-09-19
+The headline of Level 2 is that a closed compartment has \emph{no} linear friction: the force
+autocorrelation of a held piston integrates to zero at the sound traversal time, and the finite-rate
+cost is second order, $\avg W - W_{\mathrm{qs}} = A u^2$, of which roughly half is energy the
+protocol itself launches.
+\end{abstract}
+
+\section{The box and the ladder}
+Geometry A: two compartments of $N_s = 50$ disks either side of an immovable divider, a piston on the
+right. $\kT = m = \sigma = 1$, $H = 10$, compartment $38.75\,\sigma$, gas compression
+$\Delta x = 3.93\,\sigma$.
+% TODO-source: geometry established in section 1 of 260919_paper2_ramp_linewidth_fast_REPORT.md
+\begin{center}\includegraphics[width=0.92\linewidth]{260919_demo_geomA.png}\end{center}
+
+\section{Level 0 --- the ledger closes}
+$R_E = W - [\Delta KE_{\mathrm{gas}} + \Delta KE_{\mathrm{walls}} + \Delta E_{\mathrm{spring}} + Q]$
+and the matching momentum residual, from the per-event impulse log.
+% TODO-source: 260917_paper2_level0_level1_REPORT.md
+\textbf{Measured:} $|R_E|/W \le 8\times10^{-12}$, $|R_p|/\sum|\Delta p| \le 1\times10^{-13}$ over all
+75 pilot trajectories. \textbf{Passed.}
+
+\section{Level 1 --- the quasi-static baseline}
+$W_{\mathrm{qs}} = N_s\kT(T_f/T_i - 1)$ with $\ln(T_f/T_i) = \int Z\,\dd\ln\eta$ along the path, $Z$
+measured in the finite box rather than taken from the bulk EOS.
+% TODO-source: paper2_geometry_fix_20260918.py, 5 path points, 100 holds each
+\textbf{Measured:} $W_{\mathrm{qs}}^{\mathrm{finite}} = 7.4685 \pm 0.0131\,\kT$; extrapolating the
+measured work to $u \to 0$ with the (quadratic) form gives $W(0) - W_{\mathrm{qs}} = +0.0043 \pm
+0.0158\,\kT$, $0.3\sigma$. \textbf{Passed}, and on the physical side.
+
+\section{Level 2 --- the finite-rate excess}
+\subsection{Slow end}
+\begin{equation}
+\zeta(\lambda) = \beta\int_0^\infty \avg{\delta F(0)\,\delta F(t)}\,\dd t , \qquad
+W_{\mathrm{diss}} \simeq \zeta\,u\,\Delta x .
+\end{equation}
+% TODO-source: 260917_paper2_level2_REPORT.md sections 2-4 and appendix A of the 260919 report
+\textbf{Measured:} the integral is not Markovian. It falls from $2.55$ at zero lag --- the Enskog
+collisional friction --- and is cancelled by the returning sound wave at $L/c_s = 19.8\,\sigma$,
+confirmed at the compressed end of the path where the crossing moves to $18.0\,\sigma$ against a
+predicted $15.9$. Its zero-frequency limit is the hydrodynamic viscous friction
+$\zeta_{\mathrm{hyd}} = L_y\Gamma/X_p = 0.081 \pm 0.010$, which predicts a linear term of
+$0.32 \pm 0.04\,u$ --- below the resolution of 760 trajectories, and consistent with the measured
+slope $-0.50 \pm 0.67$ for $u \le 0.05$. $\Gamma$ is taken from Paper 1's divider linewidth, not
+assumed.
+
+\textbf{What is there instead} is quadratic: $A_{\mathrm{step}} = 25.9 \pm 4.3$ against
+$A_{\mathrm{ramp}} = 11.3 \pm 2.5$ when the piston is ramped over $2L/c_s$ instead of stepped
+($3.0\sigma$ apart). Roughly $14$ of the $25$ is energy the step protocol launches; what a gentle
+push leaves is consistent with the steady-flow value $N_s m/6 = 8.3$.
+
+\subsection{Fast end}
+$\avg W \simeq 2 N_s m (\Delta x/L) u^2$, no free parameter.
+% TODO-source: appendix C3 of the 260919 report
+\textbf{Measured:} $0.986$ of prediction at $u = 10$, $\Delta x = 7.08\,\sigma$. The apparent
+$8\,\%$ excess at short travel is the contact layer: the strip a face can strike (width $\Delta x$
+starting at face $-\,r$) holds $1.13\times$ the uniform-density count at $\Delta x = 0.75\,\sigma$.
+Using the measured count the ratio becomes $0.96$--$1.03$ with no trend.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{260918_level2_A_of_u.pdf}
+\caption{$A(u) = (\avg W - W_{\mathrm{qs}})/u^2$ from the acoustic to the single-hit regime, every
+point scaled to a common travel, with the travel scan at right.}
+\end{figure}
+
+\section{Level 3 --- can a spring capture it?}
+\emph{Not started.} Geometry C: one gas drives a spring-loaded wall.
+\textbf{Pass criterion:} $E_{\mathrm{spring,max}}$ agrees with the quasi-static prediction
+$\tfrac12 k x_{\mathrm{eq}}^2$ when $\tau_{\mathrm{push}} \gg T_w$ and with
+$\frac{k}{k + k_{\mathrm{gas}}}\frac{\Delta p_w^2}{2M}$ when $\tau_{\mathrm{push}} \ll T_w$, each
+within $2\sigma$.
+% TODO-source: plan 260916 section Level 3
+
+\section{Level 4 --- transmission through a free divider}
+\emph{Not started.} Fast pressure channel against slow heat channel;
+$\mathcal{T}(t) = \Delta KE_{\mathrm{gas\,2}}(t)/W_{\mathrm{in}}$, with
+$\mathcal{T}_{\mathrm{slow}} \to 1/2$ for symmetric gases.
+
+\section{Level 5 --- the chain}
+\emph{Not started.} $\epsilon = E_{\mathrm{spring,max}}/W_{\mathrm{in}}$ against piston speed,
+divider mass and the number of walls; the prediction is the \emph{ordering}, geometric intermediate
+masses beating badly matched ones.
+\begin{center}\includegraphics[width=0.92\linewidth]{260919_demo_geomD.png}\end{center}
+
+\section{Level 6 --- information}
+\emph{Not started, and gated on a canonical seeder.} $\beta\avg{W_{\mathrm{diss}}} \ge
+I_{\mathrm{mem}} - I_{\mathrm{pred}}$. Note that the Jarzynski benchmark must be the finite-box
+$\Delta F$, exactly as Level 1 needed the finite-box $W_{\mathrm{qs}}$.
+
+\section*{Reproducibility}
+Raw trajectories are not in the repository; each cell carries \texttt{summary.csv} and
+\texttt{00\_COMMAND.md}, and Level 2 an 85\,kB \texttt{stop\_digest.csv} from which the entire
+analysis reproduces. Batch scripts are in \texttt{../experiments/run\_scripts/}.
+
+\end{document}

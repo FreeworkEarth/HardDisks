@@ -23,7 +23,7 @@ def cs_of(Z, eta):
 
 
 a1 = [(float(r["eta"]), float(r["c_s"]), float(r["c_s_scatter_mass"]))
-      for r in csv.DictReader(open(os.path.join(P, os.environ.get("HD_A1_CSV", "260914_A1v2_final_cs_vs_eta.csv"))))]
+      for r in csv.DictReader(open(T.plot_path(os.environ.get("HD_A1_CSV", "260914_A1v2_final_cs_vs_eta.csv"))))]
 a1 = sorted(p for p in a1 if p[0] <= XMAX)
 by = defaultdict(list)
 for r in csv.DictReader(open(os.path.join(P, (sys.argv[1] if len(sys.argv) > 1 else "260916_A2_cs_per_mass.csv")))):

@@ -1,0 +1,179 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tcolorbox}
+\usepackage[colorlinks=true,linkcolor=NavyBlue,urlcolor=NavyBlue,citecolor=NavyBlue]{hyperref}
+\usepackage{microtype}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+\newcommand{\kT}{k_{\mathrm B}T}
+\newcommand{\avg}[1]{\left\langle #1 \right\rangle}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\src}[1]{\textcolor{OliveGreen}{\textbf{[SOURCE #1]}}}
+\newcommand{\der}{\textcolor{NavyBlue}{\textbf{[DERIVATION]}}}
+\newcommand{\infr}{\textcolor{BurntOrange}{\textbf{[INFERENCE]}}}
+\newcommand{\dat}{\textcolor{Purple}{\textbf{[DATA]}}}
+\newcommand{\opn}{\textcolor{Red}{\textbf{[OPEN]}}}
+\newtcolorbox{answer}[1][Answer for the paper]{colback=OliveGreen!8,colframe=OliveGreen!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{test}[1][Test]{colback=Apricot!12,colframe=BurntOrange!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+
+\title{Paper 2 theory audit:\\ three questions, answered from the papers in hand}
+\author{Cowork note for Chris --- HardDisks / hspist3}
+\date{2026-09-18}
+
+\begin{document}
+\maketitle
+
+\section*{How to read this}
+Every statement carries one tag. \src{X p.\,n} means the paper says it, on that page or equation. \der{} means it follows by algebra from a sourced statement under assumptions I name. \infr{} is our interpretation of the simulation. \dat{} is a number CC measured. \opn{} is not established and says what would establish it. Nothing below is tuned to the data; where the literature and the box disagree, the disagreement is kept and the violated assumption is named.
+
+Units as always: $\kT = m = \sigma = 1$, $\sigma = 2r$, compartment $L\times H = 39.25\times 10$, $N_s = 50$ disks, $\eta = 0.100$, number density $n = N_s/(LH) = 0.1274$, travel $\Delta x = 3.93\,\sigma$, so $\eta \to 0.1112$ and $L \to 35.32$.
+
+\section{What is in hand, and what each paper carries}
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}p{4.6cm}p{5.2cm}p{5.6cm}@{}}
+\toprule
+Paper & System and assumptions & Carries, for us \\
+\midrule
+Jarzynski 1997, PRL 78, 2690 (arXiv version attached) & finite classical system, \emph{canonical} initial ensemble at $T$; isolated Hamiltonian switching suffices (pp.\,4--5, Eqs.\,6--8) & the equality $\overline{e^{-\beta W}} = e^{-\beta\Delta F}$ and its exact initial-ensemble requirement; the word ``dissipated work'' for $\overline W - \Delta F$ (p.\,2) \\
+Jarzynski 1997, PRE 56, 5018 (master-equation version, attached) & same result for stochastic (bath-coupled) dynamics & not needed for Levels 0--5; keep for the Jarzynski experiment \\
+Sun 2003, JCP (path sampling) & how to converge the exponential average & Jarzynski experiment only \\
+Lua \& Grosberg 2005, JPCB 109, 6805 & \emph{one} ideal-gas molecule, canonical velocity, piston \emph{receding} at fixed $v_p$ for fixed time $\tau = 1$ (p.\,6806, Fig.\,1) & exact $P(W)$ and the fast-piston limit for \emph{expansion}; the rare-event cost of Jarzynski (p.\,6809) \\
+Sivak \& Crooks 2012, PRL 108, 150601 (attached) & system in contact with a bath, canonical; piston position named as a control parameter (p.\,1) & definition of the \emph{nonequilibrium free energy} $F = \avg E - S/\beta$ and its meaning as maximum extractable work (p.\,1); linear response as an integrated force covariance (p.\,3, Eqs.\,10--11) \\
+Sivak \& Crooks 2012, PRL 108, 190602 (``Thermodynamic metrics'', \emph{not} attached) & bath, canonical, slow protocol & the friction $\zeta(\lambda) = \beta\int_0^\infty \avg{\delta X(0)\delta X(t)}\dd t$ and $W_{\mathrm{ex}} = \int \zeta \dot\lambda^2 \dd t$; quoted from memory, page numbers to be checked \\
+Malek Mansour, Garcia \& Baras 2006, PRE 73, 016121 & 2D hard disks, adiabatic piston, dilute ($n = 0.0028$), hydrodynamics vs MD & linear flow profile (Eq.\,15), flow kinetic energy as renormalised mass (Eq.\,18), \emph{viscous} piston friction (Eq.\,17), Enskog $\eta,\zeta,g_2$ (Eqs.\,8--11), damped-oscillator period and $Q$ (Eqs.\,33--39); fast mechanical vs slow thermal stage (p.\,1) \\
+Crosignani, Di Porto \& Conti, adiabatic piston and the second law & ideal gas, Langevin piston with \emph{collisional} friction (Eq.\,1) & the Brownian-piston wander around the maximum-entropy position (p.\,2): this is Paper 1's slow mode \\
+Wu, Liu, Reese \& Zhang 2016, JFM 794, 252 & hard disks in a channel of width $L/\sigma$, generalised Enskog & wall layering in narrow channels; background for why $Z_{\mathrm{wall}} > Z_{\mathrm{bulk}}$ at $H = 10$; not used below \\
+Kirkwood 1946, JCP 14, 180; Green 1954, JCP 22, 398; Kubo 1957, JPSJ 12, 570 (\emph{not} attached) & & the origin of the force-autocorrelation friction and its plateau problem; cited, not quoted \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Question 1 --- what is $\zeta$ in a closed box?}
+
+\subsection{The formula and what it assumes}
+Sivak--Crooks (190602) define, for a control parameter $\lambda$ with conjugate force $X = -\partial E/\partial\lambda$,
+\begin{equation}
+\zeta(\lambda) = \beta\int_0^\infty \avg{\delta X(0)\,\delta X(t)}_\lambda \dd t,
+\qquad
+W_{\mathrm{ex}} \simeq \int \zeta(\lambda)\,\dot\lambda^2\,\dd t ,
+\label{eq:SC}
+\end{equation}
+for a system in contact with a bath, in canonical equilibrium at fixed $\lambda$, driven slowly compared with the decay of the force fluctuations. The attached Letter (150601, p.\,3, Eqs.\,10--11) shows the same structure one level down: the linear response of any observable to a protocol is $\beta\int \dot\lambda\,\avg{\delta\mathcal G\,\delta B}\dd t'$, and the boundary term vanishes because ``for an ergodic system all measurements separated by infinite time are uncorrelated''. \src{S--C 150601 p.\,3}
+
+Three assumptions are therefore built in: (a) canonical preparation with a bath; (b) the covariance decays, so the integral to $\infty$ exists and is reached on a time short compared with the protocol; (c) $\dot\lambda$ slow on that same time. The plateau problem is older than all of this: Kirkwood 1946 already noted that for a Brownian particle the running integral must be read on an intermediate plateau, after the collisional decay and before the finite-system recurrences. \src{Kirkwood 1946, cited}
+
+\subsection{What the box does}
+\dat{} The running integral on the held wall at $\eta = 0.10$: $2.55 \to 1.22\ (10\sigma) \to 0.15\ (20\sigma) \to -0.05\ (40\sigma)$, zero crossing at $19.8$--$21.5\,\sigma$-time, recurrence $\approx 39.5$, and at the compressed end the crossing moves to $18.0$ (predicted $15.9$ from $L/c_s$). Averaged past the first crossing: $-0.07$. Measured slope $\dd\avg W/\dd u$ for $u \le 0.05$: $-0.50 \pm 0.67$.
+
+\subsection{Why an undamped cavity mode contributes nothing}
+\der{} A closed compartment with rigid walls has standing acoustic modes with $f_k = k\,c_s/(2L)$. If the wall force were carried by the fundamental alone,
+\begin{equation}
+C_{FF}(t) \propto \cos\!\left(\frac{\pi c_s t}{L}\right)
+\quad\Longrightarrow\quad
+\int_0^\tau C_{FF}\,\dd t \propto \sin\!\left(\frac{\pi c_s \tau}{L}\right),
+\end{equation}
+which is maximal at $\tau = L/2c_s$, crosses zero at $\tau = L/c_s$ and recurs with $2L/c_s$: $19.8$ and $39.5\,\sigma$-time here. That is CC's curve. An undamped mode therefore contributes \emph{zero} to $\zeta$; only its damping survives the integral. This is a first-mode model, consistent with the timings, not an exact expression for $C_{FF}$ (ChatGPT's caveat, which I accept). \infr{} for the identification with the data.
+
+\subsection{Two frictions, both in the literature, thirty times apart}
+\textbf{Collisional (short-time).} For an infinite-mass wall moving at $u$ into a Maxwellian gas the momentum flux gives, to first order in $u$, \der{}
+\begin{equation}
+\zeta_0 = h\,n\sqrt{\frac{8m\kT}{\pi}}\;g_2(\eta),
+\qquad g_2 = \frac{1 - 7\eta/16}{(1-\eta)^2}\ \ \text{\src{Mansour Eq.\,11}},
+\end{equation}
+so here $\zeta_0 = 10\times0.1274\times1.596\times1.181 = 2.40$.
+CC's zero-lag value $2.53$ is this to 5\,\%. The same coefficient is the friction term of the Langevin adiabatic piston of Crosignani et al., Eq.\,(1) \src{Crosignani p.\,2}, where it is correct because the piston's Brownian jitter is fast compared with $L/c_s$: the gas cannot co-move, the wall sees molecules at rest.
+
+\textbf{Viscous (zero-frequency).} Mansour et al.\ assume a linear fluid velocity profile $v(x) = v_p\,x/X_p$ (Eq.\,15) and derive the piston equation
+\begin{equation}
+\hat M\,\ddot X_p = L_y(\bar P_L - \bar P_R) - L_y\,v_p\!\left(\frac{\bar\Gamma_L}{X_p} + \frac{\bar\Gamma_R}{L_x - X_p}\right),
+\qquad \Gamma = \zeta_{\mathrm{bulk}} + \eta_{\mathrm{shear}},
+\end{equation}
+\src{Mansour Eq.\,17}
+so the friction on a wall that compresses one compartment of length $X_p$ is $\zeta_{\mathrm{hyd}} = L_y\Gamma/X_p$. With their Enskog expressions (Eqs.\,8--9) at $\eta = 0.100$: $\eta_{\mathrm{shear}} = 0.314$, $\zeta_{\mathrm{bulk}} = 0.017$, $\Gamma = 0.331$, \der{}
+\begin{equation}
+\zeta_{\mathrm{hyd}} = \frac{10\times0.331}{39.25} = 0.084 \ (\text{start}),\qquad 0.096\ (\text{end}, \eta = 0.1112),
+\qquad
+\frac{\zeta_{\mathrm{hyd}}}{\zeta_0} \approx 0.035 .
+\end{equation}
+The prediction for the slow end of Level 2 is then $W_{\mathrm{diss}} = \bar\zeta_{\mathrm{hyd}}\,u\,\Delta x \approx 0.09\times3.93\,u = 0.35\,u$: a slope of $+0.35$ against the measured $-0.50 \pm 0.67$. Consistent, and unresolvable with the present seeds; at $u = 0.05$ it is $0.02\,\kT$ against a quadratic term of $0.06\,\kT$, at $u = 0.2$ it is $0.07$ against $1.0$.
+
+\begin{answer}[What to write]
+The force memory on a wall of a closed compartment is not Markovian: its running integral is the Enskog collisional friction $\zeta_0 \approx 2.4$ at zero lag, is cancelled by the returning sound wave at $L/c_s$, recurs at $2L/c_s$, and its zero-frequency limit is the hydrodynamic viscous friction $\zeta_{\mathrm{hyd}} = L_y\Gamma/X_p \approx 0.09$ (Malek Mansour et al.\ 2006, Eq.\,17), thirty times smaller. The Sivak--Crooks slow-end term $\zeta u\Delta x$ is therefore predicted at $0.35\,u$ and is below the resolution of 760 trajectories; the data show no linear term at the $0.7$ level. ``Friction is zero'' is not the statement; ``the Markovian friction is the viscous one and it is small'' is.
+\end{answer}
+
+\subsection{A free cross-check against Paper 1}
+\der{} Mansour et al.\ linearise the same equation for a heavy piston between two compartments (Eqs.\,33--39): a damped oscillator with, in their scaled time, $\omega_0 = 4$ and damping $\beta = 2\mu$, $\mu = \Gamma L_y\sqrt{2/(\hat M N)}$, $\hat M = M + mN/3$. Hence $Q = \omega_0/2\beta = 1/\mu$. For Paper 1's A1 geometry at $\eta = 0.10$ ($N = 100$, $H = 10$, $\Gamma = 0.331$): $M = 1000$ gives $\mu = 0.0146$, $Q \approx 69$, amplitude loss $1 - e^{-\pi/Q} \approx 4.5\,\%$ per period, linewidth $\Delta f/f = 1/Q \approx 1.5\,\%$; $M = 100$ gives $Q \approx 25$ and $4\,\%$ linewidth, but there $K \approx 0.86$ and their homogeneous-density assumption (valid for $K \ll 1$, $\alpha \gg 1$) is marginal. \opn{} Compare $1/Q$ with the measured width of the position-spectrum peak in the A1 data; at 200 periods the bin is $0.5\,\%$, so a $1.5\,\%$ line spans three bins, which is what CC's ``median 3 distinct peak bins per 10 seeds'' looks like. Their theory is dilute ($n = 0.0028$); using the Enskog $\Gamma$ at $\eta = 0.10$ is an extrapolation they do not make. If it holds, Paper 1's linewidths give $\Gamma$, and $\Gamma$ gives Paper 2's $\zeta_{\mathrm{hyd}}$ with no new runs.
+
+\section{Question 2 --- may $W - W_{\mathrm{qs}}$ be called dissipation?}
+
+Jarzynski names $\overline W - \Delta F$ ``the dissipated work, associated with the increase of entropy during an irreversible process'' \src{Jarzynski PRL p.\,2}, for a system that has a reservoir and re-equilibrates after the switch. Sivak--Crooks define the nonequilibrium free energy $F = \avg E - S/\beta$ on any distribution and state that its excess over equilibrium ``equals the maximum work that can be done on [a] mechanical system while the original system relaxes to equilibrium (also known as the exergy)'' \src{S--C 150601 p.\,1}. Both statements are about the state \emph{after} relaxation.
+
+\infr{} At piston stop the gas is not relaxed. Energy conservation (Level 0) says $W = \Delta E_{\mathrm{gas}}$ exactly, and $W_{\mathrm{qs}}$ is the part that a reversible path would also have put in. The remainder is, at that instant, stored:
+\begin{equation}
+W - W_{\mathrm{qs}} = E_{\mathrm{flow}} + E_{\mathrm{compress}} + E_{\mathrm{transient}} + (\text{already thermalised}),
+\end{equation}
+and only the last term is heat. The first term has a sourced size: the linear profile $v = u\,x/L$ \src{Mansour Eq.\,15} gives $E_{\mathrm{flow}} = \tfrac12\rho H\!\int_0^L v^2 \dd x = N_s m u^2/6$, which is exactly the $mN/3$ added to the piston mass in their Eq.\,18 (with $N_s = N/2$). \der{} So a steady compression flow carries $8.3\,u^2$, not the measured $25.2\,u^2$; the other two thirds must be compressional energy and the two impulses of the step protocol. A single impulsive start radiates a pulse of pressure $\rho c_s u$ for a time $L/c_s$, i.e.\ energy $\rho c_s u\cdot H\cdot uL/c_s = N_s m u^2$ (equipartitioned between kinetic and compressional in a sound wave), and the stop does the same, so $A$ can lie anywhere between $N_s m/6$ and about $2N_s m$ depending on how much of the launched energy is still in the gas at stop. \infr{} The coincidence $A \approx N_s m/2$ is not an identification.
+
+\begin{answer}[What to write]
+Level 2 measures the finite-rate \emph{excess energy} of the compressed gas at piston stop, $E_{\mathrm{ex}} = W - W_{\mathrm{qs}} = A u^2$ with $A = 25.2$ and no resolvable linear term. It is not dissipation: at that instant it is flow and compressional energy of the closed cavity plus what the step protocol launched, and it becomes heat only as the cavity modes damp. The Sivak--Crooks exergy $F_{\mathrm{neq}} - F_{\mathrm{eq}}$ is the part that a mechanical degree of freedom could still capture --- which is precisely what the spring of Level 3 measures.
+\end{answer}
+
+\begin{test}[The cheap decisive test: ramp against step]
+Same box, same $\Delta x$, $u = 0.05, 0.1, 0.2$, 60 seeds each, piston velocity ramped linearly over $2L/c_s \approx 40\,\sigma$-time at start and at stop instead of the step. Fit $A_{\mathrm{ramp}}$. If $A_{\mathrm{ramp}} \ll A_{\mathrm{step}}$ the $u^2$ term is protocol-launched acoustic energy; if $A_{\mathrm{ramp}} \approx A_{\mathrm{step}}$, decompose at stop into $\tfrac12 m\sum_b N_b \bar v_{x,b}^2$ (flow), $\sum_b (\delta p_b)^2 A_b/(2\rho c_s^2)$ (compression) and the rest. The flow term has a prediction: $N_s m u^2/6$.
+\end{test}
+
+\opn{} Whether ``fully relaxed'' exists for this box at finite $N$: Mansour et al.\ (p.\,1) note that the mechanical-equilibrium state is degenerate in the thermodynamic limit and that the final state depends on the order of $N \to \infty$ and $t \to \infty$; Crosignani et al.\ (p.\,2) find the piston never stops but wanders around the maximum-entropy position. Paper 1's slow mode is that wander. For Level 2 this is harmless, since $W$ is read at stop; for Level 4 (heat channel through the divider) it is the physics.
+
+\section{Question 3 --- the fast limit at fixed $\Delta x$}
+
+\subsection{What Lua--Grosberg actually solve}
+\src{L--G p.\,6806, Fig.\,1} One molecule, $\kT = m = 1$, canonical initial velocity, piston \emph{receding} at $v_p$ for a fixed time $\tau = 1$ (expansion, $L \to L + v_p$). Work per collision $-w_1 = -2(v - v_p)v_p$ (Eq.\,8), after $n$ collisions $-w_n = -2nvv_p + 2n^2v_p^2$ (Eq.\,9); the identity $\avg{e^{W}} = (L+v_p)/L = Z_{\mathrm{final}}/Z_{\mathrm{initial}}$ is recovered exactly (Eq.\,11). Fast limit $v_p \gg 1$: single bounce dominates, $P_{W>0} \simeq e^{-v_p^2/2}/(\sqrt{2\pi}Lv_p^2)$ and $\avg W \simeq 4P_{W>0}$ (Eqs.\,21--22): the mean work is \emph{exponentially small} because almost no molecule catches a receding piston, and the Jarzynski average is carried by the Maxwell tail; the number of runs needed grows like $\exp[mL^2/\tau^2\kT]$ (p.\,6809).
+
+\subsection{Why none of that transfers to compression, and what does}
+\der{} For a piston \emph{advancing} at $u \gg v_{\mathrm{th}}$ over $\Delta x$, every particle in the swept strip is hit once (after the hit it moves at $2u - v > u$ and outruns the piston), so
+\begin{equation}
+N_{\mathrm{hit}} \simeq N_s\frac{\Delta x}{L},\qquad
+\avg{\Delta E} = \avg{2mu(u - v)} = 2mu^2,\qquad
+\avg{W} \simeq 2N_s m\,\frac{\Delta x}{L}\,u^2 = 10.0\,u^2 .
+\label{eq:fast}
+\end{equation}
+The scaling is $u^2$ because $\Delta x$ is fixed; the $u^3$ of the plan was the fixed-duration protocol ($\Delta x = u\tau$ grows with $u$), i.e.\ Lua--Grosberg's protocol, not ours. The sign convention is also opposite: their $W$ is done by the gas on the piston (expansion), ours by the piston on the gas.
+
+\infr{} So $A u^2$ is the natural form at both ends but with different prefactors: $A \approx 25$ in the acoustic regime $u \ll c_s$ (measured up to $u = 0.2$) and $A \to 2N_s m\Delta x/L = 10$ in the single-hit regime $u \gg v_{\mathrm{th}}$. Between them $A(u)$ must fall, which is the crossover the plan asked for. \opn{} Not yet measured: the fast runs $u = 3, 5, 10$ with travel $1\,\sigma$ (100 seeds, seconds each) test Eq.\,\eqref{eq:fast} with no free parameter, and the variance $\mathrm{Var}\,W \simeq N_{\mathrm{hit}}[4mu^2\kT + (2mu^2)^2]$ alongside.
+
+\subsection{Jarzynski, kept for later, with its exact requirement}
+\src{Jarzynski PRL p.\,3} The ensemble is ``microscopic initial conditions for the system and reservoir generated from a thermal equilibrium ensemble at temperature $T$''; \src{pp.\,4--5, Eqs.\,6--8} the proof for an isolated system during switching needs only canonical initial conditions and Liouville's theorem. Consequences for us: (i) canonical seeding is required, drift-first fixed-energy seeding is not it (that is the canonical-seeder flag); (ii) $\Delta F$ is the \emph{isothermal} free-energy difference at $T_i$, $\Delta F = N_s\kT_i\int_{\eta_i}^{\eta_f} Z/\eta\,\dd\eta \approx 6.6$ (bulk KR) --- not the adiabatic $W_{\mathrm{qs}} = N_s\kT_i(e^{\int Z/\eta\,\dd\eta} - 1) = 7.07$; the two differ because the adiabat heats the gas; (iii) for compression the rare events that carry $\overline{e^{-\beta W}}$ are the \emph{low}-work trajectories (few hits, hits on receding particles), not Lua--Grosberg's tail of fast molecules, so their $\exp[mL^2/\tau^2\kT]$ estimate does not apply; the cost is set by $\mathrm{Var}(\beta W)$ instead. \opn{} until the canonical seeder exists.
+
+\section{The next three moves, in order}
+\begin{enumerate}[nosep]
+\item Ramp against step (box above). Cheap, decides what $A$ is.
+\item Paper 1 linewidth against Mansour's $Q = 1/\mu$ (Section 2.5). Analysis only. If it holds it gives $\Gamma$, hence $\zeta_{\mathrm{hyd}}$, from data already published in Paper 1.
+\item Fast end $u = 3, 5, 10$, travel $1\,\sigma$, against Eq.\,\eqref{eq:fast}. Seconds of machine time.
+\end{enumerate}
+Level 2B (long or absorbing compartment) only after these; it asks whether the recurrence disappears and $\zeta$ climbs from $\zeta_{\mathrm{hyd}}$ toward $\zeta_0$ as the box opens, which is now a prediction, not a fishing trip.
+
+\section{The proof ladder, with the source under each arrow}
+\begin{center}
+\small
+\begin{tabular}{@{}p{4.2cm}p{7.6cm}p{3.6cm}@{}}
+\toprule
+Arrow & Validated by & Status \\
+\midrule
+conservation $\to$ quasi-static work & first law, $W = \Delta E$; Level 0 ledgers & closed \dat{} \\
+quasi-static work $\to$ excess energy & $W_{\mathrm{qs}}$ from the finite-box adiabat $\dd E = -P\dd A$ with measured $Z_{\mathrm{wall}}$ & closed at $1.8\sigma$ \dat{} \\
+excess energy: its size & $E_{\mathrm{flow}} = N_s m u^2/6$ (Mansour Eq.\,15/18); acoustic launch $\sim N_s m u^2$ & $A = 25.2$ measured; ramp test open \\
+excess energy: no linear term & $\zeta_{\mathrm{hyd}} = L_y\Gamma/X_p$ (Mansour Eq.\,17) $\Rightarrow$ slope $0.35$ & consistent, below resolution \\
+excess energy $\to$ spring capture & exergy $F_{\mathrm{neq}} - F_{\mathrm{eq}}$ is the capturable part (S--C 150601 p.\,1) & Level 3, not started \\
+spring $\to$ divider transmission & fast pressure channel vs slow heat channel (Mansour p.\,1; Crosignani p.\,2) & Level 4, not started \\
+transmission $\to$ multi-wall efficiency & impedance matching $4m_1m_2/(m_1+m_2)^2$ chain & Level 5, not started \\
+(later) Jarzynski & canonical seeding, isolated switching (Jarzynski Eqs.\,6--8) & needs the seeder flag \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

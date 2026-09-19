@@ -1,0 +1,141 @@
+% ##CHRIS 2026-09-19: Paper 1 skeleton. Every number here is pulled from
+% ../experiments/final/260919_A1v2_final_cs_vs_eta.csv, ../experiments/final/260917_A2_cs_vs_N_extrapolation.csv
+% and ALL_MARKDOWNS/260913_tests_STATUS.md. Sentences that make a claim carry a % TODO-source line
+% naming the file the number came from, so nothing enters the text unsourced.
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,graphicx,microtype}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[colorlinks=true,linkcolor=NavyBlue,urlcolor=NavyBlue]{hyperref}
+\newcommand{\kT}{k_{\mathrm B}T}
+\newcommand{\avg}[1]{\left\langle #1 \right\rangle}
+\graphicspath{{../experiments/final/}}
+\setlength{\parskip}{4pt}\setlength{\parindent}{0pt}
+
+\title{The speed of sound in a two-dimensional hard-disk gas:\\
+a divider-mode measurement against the equation of state}
+\author{C.\ Haring}
+\date{Draft, \today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+% TODO-source: numbers below from 260919_A1v2_final_cs_vs_eta.csv (35 densities, 7873 trajectories)
+We measure the adiabatic speed of sound of a hard-disk fluid from the eigenfrequency of a massive
+divider separating two compartments, the method of Rom\'an et al. (2002), over 35 packing fractions
+from $\eta = 0.0065$ to $0.76$ and nine divider masses per density. The measurement is compared
+against the Kolafa--Rottner equation of state through the adiabatic mapping
+$c_s^2 = (\kT/m)[Z + \eta Z' + Z^2]$ with no fitted parameter. For $\eta \le 0.4$ the agreement is
+$+1.0\,\%$ on average and never worse than $1.7\,\%$ at $N = 100$; extrapolating to infinite system
+size along a ladder of $N = 100$--$2500$ brings it to $\lesssim 1\,\%$. We give the finite-size law,
+the estimator and its sensitivity, and a divider linewidth that recovers the Enskog transport
+coefficient of the same gas.
+\end{abstract}
+
+\section{Introduction}
+% TODO-source: motivation paragraph, no numbers yet
+Why the divider mode, why hard disks, what is being tested against what. State plainly that the EOS
+is an input, not a fit, so agreement is a test and disagreement is a measurement.
+
+\section{Model and geometry}
+Hard disks of diameter $\sigma = 2r$ and mass $m$ in a box $2L_0 \times H$, split by a divider of
+mass $M$ and thickness $t$ at the centre; $N_s$ disks each side; $\kT = m = \sigma = 1$;
+event-driven dynamics with the scientific backend (\texttt{--edmd-acc=0}).
+% TODO-source: geometry constants from hspist3/validation/tests_20260913.py (N_TOTAL, N_SIDE, RDISK, H, WALL_T)
+The divider is held for an equilibration period and then released; its position is recorded.
+
+\paragraph{Effective length.} The centres of the disks in one compartment span $r$ to
+$L_0 - t/2 - r$, so
+\begin{equation}
+L_{\mathrm{eff}} = L_0 - 2r - t/2 , \qquad t = 0.05\,\sigma .
+\label{eq:leff}
+\end{equation}
+% TODO-source: t = 0.05 proved by reproducing a stored trajectory, appendix A1 of 260919 report
+Carrying $t$ lowers every $c_s$ by $(t/2)/(L_0 - 2r)$: $0.07\,\%$ at $\eta = 0.10$ and $0.50\,\%$ at
+$\eta = 0.65$.
+
+\section{The estimator}
+\begin{equation}
+P(f) = \Big|\sum_j (x_j - \bar x)\,e^{-2\pi i f t_j}\Big|^2 , \qquad
+\nu = \arg\max_{f \ge \nu_{\mathrm{pred}}/X} P(f), \qquad X = 2.5 ,
+\end{equation}
+per trajectory, then the mean over seeds, then $c_s$ as the through-origin slope of $\bar\nu_M$
+against $x_M = K(\alpha)/(2\pi L_{\mathrm{eff}})$ with $\cot K = \alpha K$, $\alpha = M/2N_s m$.
+% TODO-source: estimator and sensitivity table in 260913_method_roman_fft_COWORK.md section 1.1
+The one-sided edge exists because the divider carries a second, slow mode; the choice $X = 2.5$ is
+flat over $X \in [2.08, 6.25]$ at 200 periods.
+
+\paragraph{Why the largest bin and not a resonance fit.} Both put the nine masses on one line to
+$0.27\,\%$, but the residual of the fit \emph{leans} with mass, $-0.286 \pm 0.020\,\%$ per e-fold in
+$\alpha$ ($14.4\sigma$), while the largest bin is flat, $-0.030 \pm 0.029\,\%$ ($1.0\sigma$).
+% TODO-source: 260913_method_roman_fft_COWORK.md section 3.1
+The fit is the more precise estimator and the more biased one.
+
+\section{Results}
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{260919_cs_vs_eta.pdf}
+\caption{$c_s(\eta)$ at $N = 100$ against three equations of state. Shading marks the approximate
+regimes; only $0.700/0.716/0.720$ are physical transitions. Above $\eta = 0.65$ the compartment is
+$6\,\sigma$ wide and the structure changes during the measurement, so those points are not
+fluid-branch values.}
+\end{figure}
+
+% TODO-source: 260919_A1v2_final_cs_vs_eta.csv, column dev_KR_pct
+Over $\eta \le 0.4$ the measurement sits $+1.04\,\%$ above Kolafa--Rottner on average, with a maximum
+deviation of $1.68\,\%$. 7873 of 7875 trajectories were used; two were discarded by the health
+contract.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=0.85\linewidth]{260919_cs_vs_eta_lowdensity_zoom.pdf}
+\caption{The dilute end. The $N = 100$ curve sits above the EOS by $0.5$--$1.5\,\%$; the larger
+systems agree with it within their errors, so the offset is finite size.}
+\end{figure}
+
+\section{Finite size}
+% TODO-source: 260917_A2_cs_vs_N_extrapolation.csv
+Along $N = 100, 400, 900, 1600$ (and 2500 where available) at fixed $\eta$, $c_s(N)$ is fitted with
+$c_\infty + b/\sqrt N$; the two other forms ($b/N$ and both together) bracket the systematic.
+At $\eta = 0.02$, $c_\infty = 1.4614 \pm 0.0102$ against $1.4725$ from the EOS ($-1.1\sigma$); at
+$\eta = 0.05$, $1.5699 \pm 0.0029$ against $1.5666$ ($+1.1\sigma$).
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=0.85\linewidth]{260919_cs_vs_eta_N100_vs_A2.pdf}
+\caption{$N = 100$ against $N = 900$ and $1600$.}
+\end{figure}
+
+\paragraph{What the offset is not.} The wall pressure of the same finite box is $7$--$20\,\%$ above
+the bulk EOS and rising with $\eta$, which would imply a $+5$ to $+16\,\%$ excess in $c_s$ — five
+times what is observed.
+% TODO-source: appendix C2 of 260919_paper2_ramp_linewidth_fast_REPORT.md, 120 hold runs
+The wall value is a surface contact value; the mode samples the bulk. The finite-size law above is
+the measurement, not the wall pressure.
+
+\section{The divider linewidth gives a transport coefficient}
+% TODO-source: 260918_A1v2_linewidth.json and appendix A4 of the 260919 report
+Linearising the piston equation of Malek Mansour et al.\ gives a damped oscillator with
+$Q = 1/\mu$, $\mu = \Gamma L_y \sqrt{2/(\hat M N)}$, $\hat M = M + mN/3$. The measured FWHM of the
+seed-averaged spectrum, with the bin width removed in quadrature, gives
+$\Gamma = 0.314 \pm 0.038$ at $\eta = 0.112$, against the Enskog value $0.331$ --- consistent within
+its $12\,\%$ error. The $M = 50$ row ($\alpha = 0.5$) fails the $K \ll 1$ assumption and is excluded;
+the $M = 500$ row is $0.59$ of prediction and is not explained.
+
+\section{Methods}
+Health contract, seeding, sampling, record length, discard rule.
+% TODO-source: 260912_paper1_methods.md sections 4 and 12
+
+\section{Reproducibility}
+Every campaign directory carries \texttt{00\_COMMAND.md} with the exact command and the estimator
+geometry line. The geometry constant and the estimator share one definition
+(\texttt{tests\_20260913.WALL\_T}, \texttt{l\_eff}), and \texttt{assert\_wall\_thickness} refuses to
+analyse data whose recorded thickness disagrees.
+% TODO-source: appendix B1 of 260919_paper2_ramp_linewidth_fast_REPORT.md
+
+\section*{Open}
+\begin{itemize}\itemsep2pt
+\item $\eta > 0.69$: no fluid reference. Liu (2021) global EOS with hexatic and solid branches.
+\item $\eta = 0.65$ at larger $N$, and an $N \approx 1000$ sweep, as the final Paper 1 runs.
+\item The $M = 500$ linewidth row.
+\end{itemize}
+
+\end{document}

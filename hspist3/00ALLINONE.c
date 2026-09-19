@@ -499,6 +499,14 @@ static bool cli_no_pp_collisions = false;    // disable particle-particle collis
 static bool cli_szilard_no_pp_during_g = false; /* ##CHRIS: disable PP during Szilard G phase only */
 static bool cli_distribute_area = false;     // distribute particles by segment area
 // Spring CLI overrides
+/* ##CHRIS 2026-09-19: a spring exists only when a wall is declared to carry one. Before this,
+   --spring-k acted on the primary divider in every geometry, so runs with no spring still reported
+   an E_spring field and drew a coil. --spring-wall=<index> is now required; without it --spring-k
+   and --spring-eq are inert. The compartment behind the spring wall must also be empty, or the gas
+   on that side pushes the wall too and moves its equilibrium -- checked at startup, not assumed. */
+static int   cli_spring_wall_set = 0;
+static int   cli_spring_wall_index = -1;
+static int   cli_spring_compartment_particles = 0;   /* recorded in summary.csv */
 static int   cli_spring_k_set = 0;          // 1 if user set --spring-k
 static float cli_spring_k = 0.0f;
 static int   cli_spring_eq_set = 0;         // 1 if user set --spring-eq (sigma units)
@@ -1157,6 +1165,7 @@ static int   cli_auto_release_after_hold = 0; // --auto-release-after-hold: rele
    is doing. Auto-release and auto-piston are ignored while it is on, because the whole point is
    that each stage begins on a key. */
 static int   cli_demo_mode = 0;
+static int   cli_render_paper = 0;   /* ##CHRIS 2026-09-19: --render=paper, a figure-grade scene */
 static int   demo_steps_per_frame = 1;     /* render pacing only -- dt is never touched */
 static int   demo_delay_ms = 0;
 static char  demo_shot_path[512] = {0};    /* --demo-shot=PATH: save one frame, for automation */
@@ -2244,6 +2253,142 @@ static void demo_echo_stage_change(void) {
     }
 }
 
+static void compute_segment_bounds(float *left_bounds, float *right_bounds);     /* ##CHRIS fwd */
+void SDL_RenderFillCircle(SDL_Renderer* renderer, int cx, int cy, int radius_pixels); /* ##CHRIS fwd */
+
+/* ##CHRIS 2026-09-19: --render=paper. One scene, drawn for a figure rather than for debugging:
+   a light ground, the box outline, each wall as a rectangle of its TRUE thickness, the piston as a
+   bar with an arrow and its speed while it moves, a coil only when a spring is actually declared,
+   particles as filled circles of radius r coloured by compartment, and a single HUD line. No
+   histograms, no panels. Drawing only -- it reads state and returns. */
+static void paper_draw_coil(int x0, int x1, int ymid, int amp, int turns) {
+    if (x1 <= x0 || turns < 1) return;
+    int prevx = x0, prevy = ymid;
+    for (int k = 1; k <= turns * 2; ++k) {
+        int x = x0 + (int)((double)(x1 - x0) * k / (turns * 2));
+        int y = ymid + ((k % 2) ? -amp : amp);
+        SDL_RenderDrawLine(_renderer, prevx, prevy, x, y);
+        SDL_RenderDrawLine(_renderer, prevx, prevy + 1, x, y + 1);
+        prevx = x; prevy = y;
+    }
+    SDL_RenderDrawLine(_renderer, prevx, prevy, x1, ymid);
+}
+
+static void render_paper_scene(void) {
+    const SDL_Color ink   = { 25, 25, 30, 255 };
+    const SDL_Color wallc = { 70, 70, 80, 255 };
+    const SDL_Color pist  = { 200, 60, 40, 255 };
+    const SDL_Color seg[] = { { 40, 110, 200, 255 }, { 220, 140, 20, 255 },
+                              { 40, 160, 90, 255 },  { 150, 60, 170, 255 }, { 90, 90, 90, 255 } };
+    const int nseg_col = (int)(sizeof(seg) / sizeof(seg[0]));
+
+    SDL_SetRenderDrawColor(_renderer, 250, 250, 248, 255);
+    SDL_RenderClear(_renderer);
+
+    /* particles, coloured by the compartment they are in */
+    float lb[MAX_DIVIDER_CAPACITY + 1], rb[MAX_DIVIDER_CAPACITY + 1];
+    int have_bounds = (segment_count > 0 && segment_count <= MAX_DIVIDER_CAPACITY + 1);
+    if (have_bounds) compute_segment_bounds(lb, rb);
+    int r_px = (int)lroundf(fmaxf((float)PARTICLE_RADIUS, 2.0f));
+    for (int i = 0; i < particles_active; ++i) {
+        int c = 0;
+        if (have_bounds)
+            for (int sg = 0; sg < segment_count; ++sg)
+                if ((float)X[i] >= lb[sg] && (float)X[i] < rb[sg]) { c = sg; break; }
+        SDL_Color k = seg[c % nseg_col];
+        SDL_SetRenderDrawColor(_renderer, k.r, k.g, k.b, 255);
+        SDL_RenderFillCircle(_renderer, (int)lroundf((float)X[i]), (int)lroundf((float)Y[i]), r_px);
+    }
+
+    /* The walls, at true thickness, each labelled with its mass. Without the label geometry A and
+       geometry B are the same picture -- two gases and a divider -- because what separates them is
+       the divider mass, which nothing on screen shows. A held wall is drawn solid, a free one
+       hollow, so the distinction survives even at thumbnail size. (##CHRIS 2026-09-19) */
+    if (have_bounds) {
+        const EDMD_Params *ep_ = g_edmd ? edmd_backend_params(g_edmd) : NULL;
+        int tpx = (int)fmaxf(3.0f, WALL_THICKNESS);
+        for (int sg = 0; sg + 1 < segment_count; ++sg) {
+            int xc = (int)lroundf(0.5f * (rb[sg] + lb[sg + 1]));
+            double mass = (ep_ && sg < ep_->divider_count) ? ep_->divider_mass[sg] : 0.0;
+            int held = (mass <= 0.0 || mass >= 1.0e6);
+            SDL_Rect w = { xc - tpx / 2, YW1, tpx, YW2 - YW1 };
+            SDL_SetRenderDrawColor(_renderer, wallc.r, wallc.g, wallc.b, 255);
+            if (held) {
+                SDL_RenderFillRect(_renderer, &w);            /* immovable: solid */
+            } else {
+                SDL_Rect o = { xc - tpx / 2 - 2, YW1, tpx + 4, YW2 - YW1 };
+                SDL_RenderDrawRect(_renderer, &o);            /* free: hollow */
+                SDL_RenderDrawRect(_renderer, &w);
+            }
+            if (font) {
+                char mb[64];
+                if (held) snprintf(mb, sizeof(mb), "held  M = 1e9");
+                else      snprintf(mb, sizeof(mb), "free  M = %.0f", mass);
+                SDL_Color mc = { 60, 60, 70, 255 };
+                draw_text(_renderer, font, mb, xc - 58, YW2 + 18, mc);
+            }
+        }
+    }
+
+    /* ##CHRIS 2026-09-19: the spring is drawn in EVERY geometry, because every geometry is the same
+       master box with elements switched on or off. Grey when its wall is held (the gas cannot tell
+       that wall from the outer wall), green when the spring is live. Drawn whenever the leftmost
+       compartment is empty, which is what makes it a spring compartment. */
+    if (have_bounds && segment_count >= 2 && segment_counts && segment_counts[0] == 0) {
+        const EDMD_Params *eps_ = g_edmd ? edmd_backend_params(g_edmd) : NULL;
+        double m0 = (eps_ && eps_->divider_count > 0) ? eps_->divider_mass[0] : 0.0;
+        int live = (cli_spring_wall_set && energy_measurement.spring_constant > 0.0f
+                    && m0 > 0.0 && m0 < 1.0e6);
+        if (live) SDL_SetRenderDrawColor(_renderer, 30, 140, 70, 255);
+        else      SDL_SetRenderDrawColor(_renderer, 170, 170, 175, 255);
+        int xw = (int)lroundf(lb[1]);
+        paper_draw_coil(XW1 + 2, xw - 2, (YW1 + YW2) / 2, (YW2 - YW1) / 6, 9);
+        if (font) {
+            SDL_Color sc = live ? (SDL_Color){ 30, 140, 70, 255 } : (SDL_Color){ 150, 150, 155, 255 };
+            char sb[48];
+            if (live) snprintf(sb, sizeof(sb), "spring k = %.3g", (double)energy_measurement.spring_constant);
+            else      snprintf(sb, sizeof(sb), "spring (held)");
+            draw_text(_renderer, font, sb, XW1 + 6, YW2 + 18, sc);
+        }
+    }
+
+    /* the piston, with an arrow and its speed while it is moving */
+    {
+        int px = (int)lroundf(piston_right_x);
+        SDL_SetRenderDrawColor(_renderer, pist.r, pist.g, pist.b, 255);
+        SDL_Rect pr = { px - 4, YW1, 8, YW2 - YW1 };
+        SDL_RenderFillRect(_renderer, &pr);
+        if (fabsf(vx_piston_right) > 1e-9f) {
+            int ymid = (YW1 + YW2) / 2, dir = (vx_piston_right < 0) ? -1 : 1;
+            int tip = px + dir * 52, tail = px + dir * 10;
+            for (int dy = -1; dy <= 1; ++dy) {
+                SDL_RenderDrawLine(_renderer, tail, ymid + dy, tip, ymid + dy);
+                SDL_RenderDrawLine(_renderer, tip, ymid + dy, tip - dir * 14, ymid - 10 + dy);
+                SDL_RenderDrawLine(_renderer, tip, ymid + dy, tip - dir * 14, ymid + 10 + dy);
+            }
+            if (font) {
+                char ub[48];
+                snprintf(ub, sizeof(ub), "u = %.3f", (double)fabsf(piston_protocol_max_speed));
+                draw_text(_renderer, font, ub, px + (dir < 0 ? -140 : 60), ymid - 34, pist);
+            }
+        }
+    }
+
+    /* the box last, so its outline sits on top of everything */
+    SDL_SetRenderDrawColor(_renderer, ink.r, ink.g, ink.b, 255);
+    for (int d = 0; d < 3; ++d) {
+        SDL_Rect b = { XW1 - d, YW1 - d, (XW2 - XW1) + 2 * d, (YW2 - YW1) + 2 * d };
+        SDL_RenderDrawRect(_renderer, &b);
+    }
+
+    /* HUD below the box: YW1 is the canvas top, so anything above it is off-screen. */
+    if (font) {
+        char hud[256];
+        demo_hud_line(hud, sizeof(hud));
+        draw_text(_renderer, font, hud, XW1, YW2 + 52, ink);
+    }
+}
+
 static void demo_save_screenshot(const char *path) {
     if (!_renderer || !path || !*path) return;
     int w = 0, h = 0;
@@ -3189,6 +3334,8 @@ static void print_cli_usage(const char *exe_name) {
     printf("  --demo                      GUI demo: start paused; SPACE run/pause, R release wall,\n");
     printf("                              P start piston, +/- speed, S screenshot, Q quit\n");
     printf("  --demo-shot=PATH[,STEPS]    save one BMP frame (on key S, or automatically after STEPS)\n");
+    printf("  --render=experiment|paper   experiment (default): the normal GUI with panels.\n");
+    printf("                              paper: figure scene only -- box, walls, piston, coil, one HUD line.\n");
     printf("  --max-right-piston-travel=value     Right piston travel (σ) (alias for --piston-travel-sigma)\n");
     printf("  --velocity-right-piston-step=value  Step protocol constant speed (σ/σ-time)\n");
     printf("  --velocity-right-piston-t0=value    Initial speed for linear/sigmoidal (σ/σ-time)\n");
@@ -3225,6 +3372,9 @@ static void print_cli_usage(const char *exe_name) {
     printf("  --particles=N               Total active particles (<= MAX buffer)\n");
     printf("  --phi-max=value             Max packing fraction cap for seeding (default 0.78)\n");
     printf("  --particles-boxes=a,b,...   Target counts per segment (left→right)\n");
+    printf("  --spring-wall=INDEX         Declare which wall carries the spring (0-based, left to right).\n");
+    printf("                              Without it --spring-k / --spring-eq are inert; the compartment\n");
+    printf("                              behind that wall must be empty or the run aborts.\n");
     printf("  --particles-box-left=n      Shorthand: left count for 2 boxes\n");
     printf("  --particles-box-right=n     Shorthand: right count for 2 boxes\n");
     printf("  --pl-tensor=FILE            Load custom particle-life interaction tensor from file\n");
@@ -3839,6 +3989,15 @@ static void parse_cli_options(int argc, char **argv) {
             errno = 0; char *endptr = NULL; float v = strtof(value, &endptr);
             if (errno != 0 || endptr == value) { fprintf(stderr, "Invalid spring-k '%s'.\n", value); exit(EXIT_FAILURE);} 
             cli_spring_k_set = 1; cli_spring_k = v;
+        } else if (strncmp(arg, "--spring-wall", strlen("--spring-wall")) == 0) {
+            const char *sw = cli_option_value(arg, argc, argv, &i);   /* ##CHRIS 2026-09-19 */
+            if (!sw) { fprintf(stderr, "Missing value for --spring-wall\n"); exit(EXIT_FAILURE); }
+            errno = 0; char *swend = NULL; long swi = strtol(sw, &swend, 10);
+            if (errno || swend == sw || *swend || swi < 0 || swi > 4) {
+                fprintf(stderr, "Invalid --spring-wall '%s' (wall index 0..4, left to right).\n", sw);
+                exit(EXIT_FAILURE);
+            }
+            cli_spring_wall_set = 1; cli_spring_wall_index = (int)swi;
         } else if (strncmp(arg, "--spring-eq", 11) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
             errno = 0; char *endptr = NULL; float v = strtof(value, &endptr);
@@ -3897,6 +4056,15 @@ static void parse_cli_options(int argc, char **argv) {
                 fprintf(stderr, "Unknown protocol '%s'. Use: step, sigmoidal, linear, sinusoidal, optimal\n", value);
                 exit(EXIT_FAILURE);
             }
+        } else if (strncmp(arg, "--render", strlen("--render")) == 0) {
+            const char *rv = cli_option_value(arg, argc, argv, &i);   /* ##CHRIS 2026-09-19 */
+            if (!rv) { fprintf(stderr, "Missing value for --render\n"); exit(EXIT_FAILURE); }
+            /* ##CHRIS 2026-09-19: two render modes, both kept. "experiment" is the normal black GUI
+               with its panels -- the DEFAULT, unchanged, and what you actually run and demo.
+               "paper" is the minimal figure scene. "debug" stays as an alias for "experiment". */
+            if (strcmp(rv, "paper") == 0) cli_render_paper = 1;
+            else if (strcmp(rv, "experiment") == 0 || strcmp(rv, "debug") == 0) cli_render_paper = 0;
+            else { fprintf(stderr, "Unknown --render '%s'. Use: experiment (default), paper\n", rv); exit(EXIT_FAILURE); }
         } else if (strcmp(arg, "--demo") == 0) {
             cli_demo_mode = 1;                                   /* ##CHRIS 2026-09-19 */
         } else if (strncmp(arg, "--demo-shot", strlen("--demo-shot")) == 0) {
@@ -6193,7 +6361,7 @@ void initialize_energy_measurement() {
             }
             eq = min_pos;
         }
-        if (cli_spring_k_set) {
+        if (cli_spring_k_set && cli_spring_wall_set) {          /* ##CHRIS 2026-09-19 */
             energy_measurement.spring_constant = cli_spring_k;
         }
         energy_measurement.equilibrium_position = eq;
@@ -16969,7 +17137,7 @@ static void run_energy_transfer_experiment(void) {
 		                "num_walls,wall_positions_cli,wall_mass_factors_cli,particles_boxes_cli,"
 		                "wall_thickness_sigma,wall_thickness_vis_sigma,"
 		                "kbt1,kBT,kB_effective,temperature_runtime,"
-		                "spring_k,spring_eq_sigma,spring_eq_sigma_effective,"
+		                "spring_wall,spring_compartment_particles,spring_k,spring_eq_sigma,spring_eq_sigma_effective,"
 		                "piston_auto,piston_protocol,piston_target_sigma,piston_speed_px,"
 		                "piston_right_protocol_mode,piston_right_travel_sigma,piston_right_v_step_constant,"
 		                "piston_right_v0,piston_right_v_gradient,piston_right_vmax,piston_right_duration,piston_right_sigmoid_steepness,"
@@ -17122,7 +17290,7 @@ static void run_energy_transfer_experiment(void) {
 	                    "%d,%s,%s,%s,"
 	                    "%.9g,%.9g,"
 	                    "%d,%.9g,%.9g,%.9g,"
-	                    "%.9g,%.9g,%.9g,"
+	                    "%d,%d,%.9g,%.9g,%.9g,"   /* ##CHRIS spring_wall, spring_compartment_particles */
 	                    "%d,%s,%.9g,%.9g,"
 			                    "%s,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,"
 			                    "%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%s,",
@@ -17141,6 +17309,8 @@ static void run_energy_transfer_experiment(void) {
 	                    (double)kBT_effective(),
 	                    (double)kB_effective(),
 	                    (double)temperature_runtime,
+	                    cli_spring_wall_set ? cli_spring_wall_index : -1,   /* ##CHRIS 2026-09-19 */
+	                    cli_spring_compartment_particles,
 	                    (double)energy_measurement.spring_constant,
 	                    (double)(cli_spring_eq_set ? cli_spring_eq_sigma : NAN),
 	                    spring_eq_sigma_eff,
@@ -19945,6 +20115,11 @@ void simulation_loop() {
             // (Physics state remains at simulation_time; this only affects visualization.)
             gui_render_dt_rem = accumulator;
 
+            if (cli_render_paper) {
+                /* ##CHRIS 2026-09-19: figure-grade scene, drawn instead of the debug view.
+                   Everything below this block is skipped by the guard on the panels. */
+                render_paper_scene();
+            } else {
             draw_clear_screen();
             gui_begin_scene_view();
             draw_coordinate_system(_renderer);
@@ -20077,9 +20252,11 @@ void simulation_loop() {
             snprintf(temp_label, sizeof(temp_label), "T_measured: %.2f", T_measured);
             //draw_text(_renderer, font, temp_label, XW1 + 5, YW1 + HEIGHT_UNITS*PIXELS_PER_SIGMA, yellow);
 
+            }   /* ##CHRIS 2026-09-19: end of the debug-scene branch */
+
             /* ##CHRIS 2026-09-19: demo HUD -- one line at the top of the window, echoed to the
                terminal whenever the stage changes, plus the optional automated frame grab. */
-            if (cli_demo_mode) {
+            if (cli_demo_mode && !cli_render_paper) {
                 demo_echo_stage_change();
                 char hud[256];
                 demo_hud_line(hud, sizeof(hud));
@@ -20098,7 +20275,12 @@ void simulation_loop() {
             }
             SDL_RenderPresent(_renderer);
             if (cli_demo_mode) {
-                if (demo_shot_path[0] && demo_shot_after > 0 && demo_steps_done >= demo_shot_after) {
+                if (cli_render_paper) demo_echo_stage_change();
+                /* ##CHRIS 2026-09-19: fire on the STAGE, not on a step count. A count guesses when
+                   the push starts, and it guessed wrong for the two-wall geometry, which was caught
+                   during the hold with no piston arrow. Wait until the piston is actually moving. */
+                if (demo_shot_path[0] && demo_shot_after > 0 && demo_steps_done >= demo_shot_after
+                    && piston_step_active) {
                     demo_save_screenshot(demo_shot_path);
                     demo_shot_after = 0;          /* once */
                 }
@@ -20491,6 +20673,34 @@ int main(int argc, char* argv[]) {
     // ##CHRIS: Initialize particle-life experiment if selected
     if (cli_experiment_preset == EXPERIMENT_PRESET_PARTICLELIFE) {
         pl_initialize();
+    }
+
+    /* ##CHRIS 2026-09-19: a declared spring needs an empty compartment behind it. Gas on that side
+       pushes the wall too, so the equilibrium the spring settles at is not the one the analysis
+       assumes. Refuse to start rather than produce a number that looks fine. */
+    if (cli_spring_wall_set) {
+        int seg = cli_spring_wall_index;   /* the compartment left of that wall */
+        int behind = 0;
+        if (cli_particles_box_counts && (size_t)seg < cli_particles_box_counts_count)
+            behind = cli_particles_box_counts[seg];
+        cli_spring_compartment_particles = behind;
+        if (behind > 0) {
+            fprintf(stderr,
+                "ABORTING: --spring-wall=%d declares a spring on wall %d, but --particles-boxes puts "
+                "%d particles in the compartment behind it (segment %d). That gas pushes the spring "
+                "wall from both sides and shifts its equilibrium. Set that entry to 0.\n",
+                cli_spring_wall_index, cli_spring_wall_index, behind, seg);
+            exit(EXIT_FAILURE);
+        }
+        if (!cli_spring_k_set)
+            fprintf(stderr, "[warn] --spring-wall given without --spring-k; no spring force applied.\n");
+    } else {
+        /* ##CHRIS 2026-09-19: the struct default is k = 1000, so before this EVERY
+           --energy-measurement run carried a spring on the primary divider whether the experiment
+           had one or not. With no wall declared there is no spring, and E_spring is identically 0. */
+        if (cli_spring_k_set)
+            fprintf(stderr, "[warn] --spring-k ignored: no --spring-wall declared, so no wall carries a spring.\n");
+        energy_measurement.spring_constant = 0.0f;
     }
 
     // Single-test mode takes priority over experiment modes
