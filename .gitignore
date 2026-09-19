@@ -53,3 +53,14 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+# raw simulation output: reproducible from 00_COMMAND.md, never committed
+hspist3/experiments_*/**/tr_*.csv
+hspist3/experiments_*/**/tr_*.csv.gz
+hspist3/experiments_*/**/ev_*.csv
+hspist3/experiments_*/**/snap_*.csv
+hspist3/experiments_*/**/wall_x_positions_*.csv
+hspist3/experiments_*/**/.run*/
+hspist3/experiments_*/**/run.log
+hspist3/00ALLINONE_ramp
+hspist3/00ALLINONE.bak*
+.DS_Store

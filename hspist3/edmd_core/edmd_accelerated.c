@@ -25,6 +25,11 @@
 #define edmd_work_pistonR edmd_acc_work_pistonR
 #define edmd_heat_bath edmd_acc_heat_bath
 #define edmd_reset_work edmd_acc_reset_work
+#define edmd_forced_advance_count edmd_acc_forced_advance_count
+#define edmd_clamp_repair_count edmd_acc_clamp_repair_count      /* ##CHRIS */
+#define edmd_overlap_repair_count edmd_acc_overlap_repair_count  /* ##CHRIS */
+#define edmd_wall_overdue_count edmd_acc_wall_overdue_count        /* ##CHRIS */
+#define edmd_debug_set_watch edmd_acc_debug_set_watch            /* ##CHRIS */
 #define edmd_divider_resolve_overlaps edmd_acc_divider_resolve_overlaps
 #include "edmd.h"
 #include <stdlib.h>
@@ -94,6 +99,16 @@ struct EDMD {
     double work_pistonR;
     /* Heat exchange at thermal (heat bath) outer walls (kinetic energy change) */
     double heat_bath;
+    long forced_advance_count;
+
+    /* ##CHRIS: see edmd.c for the full rationale. grid_build()'s safety clamp is a real
+       boundary bounce; done silently it leaves the particle with a stale event set and no
+       events for its new direction, which lets particle pairs tunnel through each other. */
+    int*  clamped;              /* indices mutated by the most recent grid_build() */
+    int   clamped_count;
+    long  clamp_repair_count;
+    long  overlap_repair_count;
+    long  wall_overdue_count;
 
     Cell* grid; int gw, gh;    /* grid width/height */
     double cell_size;
@@ -173,7 +188,10 @@ static void grid_build(EDMD* S){
         for(int i=0;i<S->gw*S->gh;i++) S->grid[i].count=0;
     }
     double R=S->prm.radius; double eps=1e-9;
+    S->clamped_count = 0;   /* ##CHRIS */
     for(int i=0;i<S->prm.N;i++){
+        /* ##CHRIS: snapshot so a clamp can be detected and bookkept (see edmd.c). */
+        const double dbg_vx0 = S->P[i].vx, dbg_vy0 = S->P[i].vy;
         /* safety clamp to ensure inside box */
         if (S->P[i].x < R) { S->P[i].x = R + eps; if (S->P[i].vx < 0) S->P[i].vx = -S->P[i].vx; }
         if (S->P[i].x > S->prm.boxW - R) { S->P[i].x = S->prm.boxW - R - eps; if (S->P[i].vx > 0) S->P[i].vx = -S->P[i].vx; }
@@ -194,6 +212,16 @@ static void grid_build(EDMD* S){
                         else { S->P[i].x = Rf + eps - R; S->P[i].vx = 2.0*S->prm.divider_vx[d] - S->P[i].vx; }
                     }
                 }
+            }
+        }
+        /* ##CHRIS: a velocity change here is a real boundary bounce. Bookkeep it: bump
+           coll_count to invalidate this particle's now-stale events, and record it so the
+           caller reschedules it. Doing this silently is what let particle pairs tunnel. */
+        if (S->P[i].vx != dbg_vx0 || S->P[i].vy != dbg_vy0) {
+            S->P[i].coll_count++;
+            S->clamp_repair_count++;
+            if (S->clamped && S->clamped_count < S->prm.N) {
+                S->clamped[S->clamped_count++] = i;
             }
         }
         int cx = (int)floor(S->P[i].x / S->cell_size);
@@ -237,60 +265,73 @@ static int collide_time_ab(double xi,double yi,double vxi,double vyi,
     double rr=rx*rx+ry*ry, vv=vx*vx+vy*vy;
     double sig = 2.0*R;
     double c = rr - sig*sig;
+    if(vv<=0.0) return 0;
+    /* ##CHRIS: SAFETY NET (mirrors edmd.c). c<0 and b<0 means the pair is already
+       overlapping AND still approaching - the collision is overdue, so schedule it now.
+       Without this the earlier root is negative, the `t<=1e-12` guard discards it, and the
+       pair becomes permanently invisible to the scheduler. Counted, never silent. */
+    if(c<0.0){ *tcol = 0.0; return 2; }
     double disc = b*b - vv*c;
-    if(disc<=0.0 || vv<=0.0) return 0;
+    if(disc<=0.0) return 0;
     double t = (-b - sqrt(disc)) / vv;     /* earlier root */
     if(t<=1e-12) return 0;
     *tcol = t; return 1;
 }
 
 /* left wall x=0: hit when x - R = 0; particle must move left (vx<0). */
-static int collide_time_wall_L(const EDMD* S, const EDMD_Particle* A, double* tcol){
-    (void)S;
-    if(A->vx >= 0.0) return 0;
-    double dist = (A->x - S->prm.radius) - 0.0;
-    double t = -dist / A->vx;
-    if(t<=1e-12) return 0;
+/* ##CHRIS: gap<=0 means the wall collision is OVERDUE (particle at/past the face, still
+   moving outward) - schedule it now instead of discarding it. The old `t<=1e-12` guard
+   rejected exactly that case, so a particle seeded precisely on a face got no wall event,
+   drifted out of the box and was silently repaired by grid_build(). See edmd.c. */
+static int wall_time_from_gap(double gap, double speed, double* tcol){
+    if (gap <= 0.0) { *tcol = 0.0; return 2; }   /* overdue */
+    const double t = gap / speed;
+    if (t <= 1e-12) return 0;
     *tcol = t; return 1;
+}
+static int collide_time_wall_L(const EDMD* S, const EDMD_Particle* A, double* tcol){
+    if(A->vx >= 0.0) return 0;
+    return wall_time_from_gap((A->x - S->prm.radius) - 0.0, -A->vx, tcol);
 }
 /* right wall x=boxW: hit when x + R = boxW; particle must move right (vx>0). */
 static int collide_time_wall_R(const EDMD* S, const EDMD_Particle* A, double* tcol){
     if(A->vx <= 0.0) return 0;
-    double dist = (S->prm.boxW - S->prm.radius) - A->x;
-    double t = dist / A->vx;
-    if(t<=1e-12) return 0;
-    *tcol = t; return 1;
+    return wall_time_from_gap((S->prm.boxW - S->prm.radius) - A->x, A->vx, tcol);
 }
 /* bottom wall y=0: hit when y - R = 0; particle must move down (vy<0). */
 static int collide_time_wall_B(const EDMD* S, const EDMD_Particle* A, double* tcol){
-    (void)S;
     if(A->vy >= 0.0) return 0;
-    double dist = (A->y - S->prm.radius) - 0.0;
-    double t = -dist / A->vy;
-    if(t<=1e-12) return 0;
-    *tcol = t; return 1;
+    return wall_time_from_gap((A->y - S->prm.radius) - 0.0, -A->vy, tcol);
 }
 /* top wall y=boxH: hit when y + R = boxH; particle must move up (vy>0). */
 static int collide_time_wall_T(const EDMD* S, const EDMD_Particle* A, double* tcol){
     if(A->vy <= 0.0) return 0;
-    double dist = (S->prm.boxH - S->prm.radius) - A->y;
-    double t = dist / A->vy;
-    if(t<=1e-12) return 0;
-    *tcol = t; return 1;
+    return wall_time_from_gap((S->prm.boxH - S->prm.radius) - A->y, A->vy, tcol);
 }
 
 /* ------------------------ scheduling ------------------------ */
 
 static void schedule_walls(EDMD* S, int i){
-    double t;
-    if(collide_time_wall_L(S, &S->P[i], &t))
+    /* ##CHRIS: rc==2 means the wall collision was already overdue when scheduled. The old
+       code discarded exactly those, which is how a particle escaped the box. Counted so the
+       exposure is measurable rather than invisible. */
+    double t; int rc;
+    if((rc = collide_time_wall_L(S, &S->P[i], &t))) {
+        if(rc==2) S->wall_overdue_count++;
         heap_push(&S->heap, (Event){ S->t+t, i,-1, S->P[i].coll_count,0, EV_WL });
-    if(collide_time_wall_R(S, &S->P[i], &t))
+    }
+    if((rc = collide_time_wall_R(S, &S->P[i], &t))) {
+        if(rc==2) S->wall_overdue_count++;
         heap_push(&S->heap, (Event){ S->t+t, i,-1, S->P[i].coll_count,0, EV_WR });
-    if(collide_time_wall_B(S, &S->P[i], &t))
+    }
+    if((rc = collide_time_wall_B(S, &S->P[i], &t))) {
+        if(rc==2) S->wall_overdue_count++;
         heap_push(&S->heap, (Event){ S->t+t, i,-1, S->P[i].coll_count,0, EV_WB });
-    if(collide_time_wall_T(S, &S->P[i], &t))
+    }
+    if((rc = collide_time_wall_T(S, &S->P[i], &t))) {
+        if(rc==2) S->wall_overdue_count++;
         heap_push(&S->heap, (Event){ S->t+t, i,-1, S->P[i].coll_count,0, EV_WT });
+    }
 }
 
 /* divider faces (vertical slab): faces at x = cx - th/2 and x = cx + th/2 */
@@ -495,11 +536,15 @@ static void schedule_pistons(EDMD* S, int i){
 }
 
 static void schedule_ab(EDMD* S, int i, int j){
+    /* ##CHRIS: honour pp_collisions_enabled, matching edmd.c. The accelerated backend was
+       missing this check, so --no-pp-collisions was silently ignored under --edmd-acc=1. */
+    if (!S->prm.pp_collisions_enabled) return;
     double t;
-    if(collide_time_ab(S->P[i].x,S->P[i].y,S->P[i].vx,S->P[i].vy,
-                       S->P[j].x,S->P[j].y,S->P[j].vx,S->P[j].vy,
-                       S->prm.radius, &t))
-    {
+    const int ok = collide_time_ab(S->P[i].x,S->P[i].y,S->P[i].vx,S->P[i].vy,
+                                   S->P[j].x,S->P[j].y,S->P[j].vx,S->P[j].vy,
+                                   S->prm.radius, &t);
+    if(ok){
+        if(ok == 2) S->overlap_repair_count++;   /* ##CHRIS: overdue overlapping pair */
         heap_push(&S->heap, (Event){ S->t+t, i,j, S->P[i].coll_count,S->P[j].coll_count, EV_AB });
     }
 }
@@ -620,6 +665,17 @@ static void reschedule_all_internal(EDMD* S){
     for (int i = 0; i < S->prm.N; ++i) {
         schedule_for(S, i);
     }
+    /* ##CHRIS: every particle was just scheduled, so clamped ones are already covered. */
+    S->clamped_count = 0;
+}
+
+/* ##CHRIS: reschedule everything grid_build() had to bounce. Must follow any grid_build()
+   that is not immediately followed by a full reschedule. No-op when nothing was clamped. */
+static void reschedule_clamped(EDMD* S){
+    const int n = S->clamped_count;
+    if (n <= 0) return;
+    S->clamped_count = 0;
+    for (int k = 0; k < n; ++k) schedule_for(S, S->clamped[k]);
 }
 
 /* reschedule AB only (no walls/pistons/divider; do not clamp/push) */
@@ -970,6 +1026,12 @@ EDMD* edmd_create(const EDMD_Params* prm_in){
     S->work_pistonR = 0.0;
     S->heat_bath = 0.0;
     S->P = (EDMD_Particle*)calloc((size_t)S->prm.N, sizeof(EDMD_Particle));
+    /* ##CHRIS */
+    S->clamped = (int*)calloc((size_t)(S->prm.N > 0 ? S->prm.N : 1), sizeof(int));
+    S->clamped_count = 0;
+    S->clamp_repair_count = 0;
+    S->overlap_repair_count = 0;
+    S->wall_overdue_count = 0;
     S->cell_size = (S->prm.cell_size>0.0)? S->prm.cell_size : fmax(2.5*S->prm.radius, 1.0*S->prm.radius);
     S->gw = (int)fmax(1.0, floor(S->prm.boxW / S->cell_size));
     S->gh = (int)fmax(1.0, floor(S->prm.boxH / S->cell_size));
@@ -987,6 +1049,7 @@ void edmd_destroy(EDMD* S){
     heap_free(&S->heap);
     grid_free(S);
     free(S->P);
+    free(S->clamped);   /* ##CHRIS */
     free(S);
 }
 
@@ -1059,6 +1122,7 @@ double edmd_advance_to(EDMD* S, double t_target){
         else { stagnant_events = 0; last_event_t = e.t; }
         if (events_processed > EDMD_ADVANCE_MAX_EVENTS || stagnant_events > EDMD_ADVANCE_MAX_STAGNANT_EVENTS) {
             g_edmd_avalanche_warning_count++;
+            S->forced_advance_count++;
             if (g_edmd_avalanche_warning_count <= 20 || (g_edmd_avalanche_warning_count % 1000) == 0) {
                 int dominant = 0;
                 for (int k = 1; k <= (int)EV_CC; ++k) {
@@ -1126,6 +1190,7 @@ double edmd_advance_to(EDMD* S, double t_target){
             grid_build(S);
             schedule_for(S, e.a);
             schedule_for(S, e.b);
+            reschedule_clamped(S);   /* ##CHRIS */
         } else if (e.type==EV_CC) {
             /* Cell-crossing: no collision, but it is a scheduling epoch.
              * Increment coll_count so duplicate stale CC events for this particle
@@ -1134,6 +1199,7 @@ double edmd_advance_to(EDMD* S, double t_target){
             S->P[e.a].coll_count++;
             grid_build(S);
             schedule_for(S, e.a);
+            reschedule_clamped(S);   /* ##CHRIS */
         } else {
             resolve_wall(S, e.a, e.type, e.b);
             /* moving boundary velocities may have changed (divider/pistons): rebuild and reschedule all */
@@ -1142,10 +1208,37 @@ double edmd_advance_to(EDMD* S, double t_target){
             } else {
                 grid_build(S);
                 schedule_for(S, e.a);
+                reschedule_clamped(S);   /* ##CHRIS */
             }
         }
     }
     return S->t;
+}
+
+/* ##CHRIS: the event-history tracer lives in the default core (edmd.c) only. Accept the
+   call here so --edmd-debug-particles does not fail under --edmd-acc=1, but say plainly
+   that no tracing will happen rather than pretending it is armed. */
+void edmd_debug_set_watch(int a, int b, int history){
+    if (history > 0 && a >= 0 && b >= 0) {
+        fprintf(stderr, "[EDMD] note: event-history tracer is not implemented in the "
+                        "accelerated core; re-run with --edmd-acc=0 to trace pair (%d,%d).\n",
+                a, b);
+    }
+}
+
+/* ##CHRIS: engine health telemetry (see edmd.c). Both stay 0 in a correct run. */
+long edmd_clamp_repair_count(const EDMD* S){
+    return S ? S->clamp_repair_count : 0;
+}
+long edmd_overlap_repair_count(const EDMD* S){
+    return S ? S->overlap_repair_count : 0;
+}
+long edmd_wall_overdue_count(const EDMD* S){
+    return S ? S->wall_overdue_count : 0;
+}
+
+long edmd_forced_advance_count(const EDMD* S){
+    return S ? S->forced_advance_count : 0;
 }
 
 void edmd_reschedule_all(EDMD* S){ reschedule_all_internal(S); }

@@ -9,6 +9,7 @@ KISSFFT_SRCS    := kissfft/kiss_fft.c kissfft/kiss_fftr.c
 #   make EDMD_SRCS=edmd_core/edmd.c
 #   make EDMD_SRCS=edmd_core/edmd_accelerated.c
 EDMD_SRCS       ?= edmd_core/edmd.c edmd_core/edmd_accelerated.c
+VALIDATION_SRCS := experiment_validation.c
 
 # Compiler
 CC              ?= cc
@@ -26,7 +27,10 @@ INCLUDE         := $(if $(PKG_SDL_CFLAGS),$(PKG_SDL_CFLAGS),$(INCLUDE_FALLBACK))
 
 # Build types
 CFLAGS_DEBUG    := -g -fsanitize=address -DDEBUG $(INCLUDE)
-CFLAGS_RELEASE  := -O3 -ffast-math -march=native $(INCLUDE)
+# Scientific runs depend on IEEE NaN/Inf checks and ordered collision times.
+# -ffast-math is intentionally excluded because it lets the compiler assume
+# non-finite values never occur and can invalidate experiment safety guards.
+CFLAGS_RELEASE  := -O3 -march=native $(INCLUDE)
 
 # Linker search paths (keep your Homebrew/Mesa ones)
 LDFLAGS        += -L/opt/homebrew/lib -L/opt/homebrew/opt/mesa/lib
@@ -45,10 +49,18 @@ LIBS            := $(if $(PKG_SDL_LIBS),$(PKG_SDL_LIBS),-lSDL2 -lSDL2_ttf) $(LIB
 # -----------------------------
 # Targets
 # -----------------------------
-.PHONY: all debug release clean tar
+.PHONY: all debug release koa clean tar
 
 # Default target
 all: debug
+
+# ##CHRIS 2026-09-16: cluster build (KOA, UH Manoa). Same sources and same physics as `release`;
+# the only difference is the instruction set. -march=native would bake in whatever login node built
+# it and could then differ from the compute nodes, so a fixed, portable ISA is used instead: every
+# KOA node produces the same bytes. Cluster traces are NEVER byte-identical to the macOS/ARM ones
+# (different architecture, different FMA contraction) and must not be mixed with them inside one
+# cell or figure; they are gated statistically -- see cluster/README.md.
+CFLAGS_KOA      := -O2 -march=x86-64-v3 -mtune=generic $(INCLUDE)
 
 debug: CFLAGS=$(CFLAGS_DEBUG)
 debug: $(TG)
@@ -56,9 +68,12 @@ debug: $(TG)
 release: CFLAGS=$(CFLAGS_RELEASE)
 release: $(TG)
 
+koa: CFLAGS=$(CFLAGS_KOA)
+koa: $(TG)
+
 # Link rule (libs at the end)
-$(TG): $(TG).c $(KISSFFT_SRCS) $(EDMD_SRCS)
-	$(CC) $(LDFLAGS) -o $@ $(TG).c $(KISSFFT_SRCS) $(EDMD_SRCS) $(CFLAGS) $(LIBS)
+$(TG): $(TG).c $(KISSFFT_SRCS) $(EDMD_SRCS) $(VALIDATION_SRCS)
+	$(CC) $(LDFLAGS) -o $@ $(TG).c $(KISSFFT_SRCS) $(EDMD_SRCS) $(VALIDATION_SRCS) $(CFLAGS) $(LIBS)
 
 # Clean up the build
 clean:

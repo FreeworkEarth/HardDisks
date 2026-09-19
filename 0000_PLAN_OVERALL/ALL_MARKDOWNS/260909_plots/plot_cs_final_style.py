@@ -25,8 +25,9 @@ def cs(Zf, e, h=1e-6):
     return np.sqrt(np.maximum(Z + e * dZ + Z * Z, 0))
 
 # Roman et al. (2002) reference values, keyed by L0 (N=100, r=0.5, H=10) as in plot_speed_of_sound_edmd.py
+# ##CHRIS 2026-09-13: Roman et al. 2002 Table I gives 2.01 +- 0.02 (was mistranscribed as 2.10)
 ROMAN = {7.5: (5.99, 0.09), 10.0: (3.78, 0.08), 15.0: (2.61, 0.03), 20.0: (2.20, 0.02),
-         25.0: (2.10, 0.02), 30.0: (1.89, 0.02), 35.0: (1.81, 0.02)}
+         25.0: (2.01, 0.02), 30.0: (1.89, 0.02), 35.0: (1.81, 0.02)}
 rom = sorted(((100 * math.pi * 0.25) / (2 * L * 10.0), v[0], v[1]) for L, v in ROMAN.items())
 
 sim = []

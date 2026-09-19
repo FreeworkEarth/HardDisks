@@ -69,6 +69,21 @@ for (e,N),g in sorted(cells.items()):
     dev = f"{100*(m-kr)/kr:+.2f}%" if kr==kr else "— (KR invalid)"
     md.append(f"| {e:.3f} | {N} | {len(g)} | {m:.4f} | {sd:.4f} | {bsem:.4f} | {kr:.4f} | {dev} |" if kr==kr else
               f"| {e:.3f} | {N} | {len(g)} | {m:.4f} | {sd:.4f} | {bsem:.4f} | — | {dev} |")
+def fit_inf_pow(e, key, semkey, power):
+    """##CHRIS: same weighted straight line but in 1/N**power, so the a+b/sqrt(N)
+    and a+b/N forms can be compared. Above eta ~ 0.1 the two intercepts differ by
+    more than their statistical errors, and that spread is a genuine model
+    (form) uncertainty that the claim has to carry."""
+    pts = [(N,)+stat(g,key,semkey) for (ee,N),g in cells.items() if ee==e]
+    pts = [(N,m,err) for (N,m,sd,bsem,ssem,err) in pts if err>0]
+    if len(pts) < 3: return None
+    x = np.array([N**(-power) for N,_,_ in pts]); y = np.array([m for _,m,_ in pts])
+    w = 1/np.array([err for *_,err in pts])**2
+    A = np.vstack([np.ones_like(x), x]).T; W = np.diag(w)
+    cov = np.linalg.inv(A.T@W@A); coef = cov@A.T@W@y
+    chi2 = float(((y - A@coef)**2 * w).sum())
+    return coef[0], math.sqrt(cov[0,0]), coef[1], len(pts), chi2, len(pts)-2
+
 def fit_inf(e, key, semkey, only=None):
     """Weighted straight line Z = Z_inf + a/sqrt(N). Returns
     (Z_inf, sigma, a, n_points, chi2, dof). `only` restricts the N used."""
@@ -94,6 +109,7 @@ md.append("\nFit Z(N) = Z_inf + a/sqrt(N) (weighted, error = max(block sem, seed
           "chi2 has (#N - 2) degrees of freedom; p = P(chi2_dof >= observed). "
           "An eta with chi2 > 4 at 1 dof (p < 0.046) is flagged: the 1/sqrt(N) form is rejected there and Z_inf is not a bulk value.\n")
 md.append("| eta | #N | Z_pair_inf | sigma | slope a | chi2 | dof | p | Z_inf from N=900/1600 only | KR | Z_inf vs KR | form |\n|---|---|---|---|---|---|---|---|---|---|---|---|")
+FORMROWS=[]
 for e in sorted({e for e,_ in cells}):
     f = fit_inf(e,"Zp","Zp_sem")
     if not f: continue
@@ -103,8 +119,24 @@ for e in sorted({e for e,_ in cells}):
     p = chi2_sf(chi2,dof) if dof>0 else float("nan")
     form = "n/a (2 N)" if dof < 1 else ("rejected (chi2>4)" if chi2 > 4 else "ok")
     dev = f"{100*(zi-kr)/kr:+.2f}%" if kr==kr else "—"
+    g1=fit_inf_pow(e,"Zp","Zp_sem",0.5); g2=fit_inf_pow(e,"Zp","Zp_sem",1.0)
+    if g1 and g2:
+        spread=abs(g1[0]-g2[0]); comb=math.hypot(g1[1],g2[1])
+        FORMROWS.append((e,g1[0],g1[1],g1[4],g2[0],g2[1],g2[4],spread,comb,kr))
     md.append(f"| {e:.3f} | {n} | {zi:.4f} | {sg:.4f} | {a:+.3f} | {chi2:.2f} | {dof} | {p:.3f} | {z2} | {kr:.4f} | {dev} | {form} |" if kr==kr else
               f"| {e:.3f} | {n} | {zi:.4f} | {sg:.4f} | {a:+.3f} | {chi2:.2f} | {dof} | {p:.3f} | {z2} | — | — | {form} |")
+
+md.append("\n### Extrapolation-form comparison: Z_inf from a + b/sqrt(N) vs a + b/N\n")
+md.append("Both are weighted straight lines through the same per-cell means. Where the two "
+          "intercepts differ by more than their combined statistical error, the choice of form "
+          "is the dominant uncertainty and the claim must carry that spread.\n")
+md.append("| eta | Z_inf (1/sqrtN) | sigma | chi2 | Z_inf (1/N) | sigma | chi2 | spread | comb. sigma | dev sqrtN | dev 1/N | form dominates |\n"
+          "|---|---|---|---|---|---|---|---|---|---|---|---|")
+for (e,z1,s1,c1,z2,s2,c2,sp,cb,kr) in FORMROWS:
+    d1=f"{100*(z1-kr)/kr:+.2f}%" if kr==kr else "—"
+    d2=f"{100*(z2-kr)/kr:+.2f}%" if kr==kr else "—"
+    md.append(f"| {e:.3f} | {z1:.4f} | {s1:.4f} | {c1:.2f} | {z2:.4f} | {s2:.4f} | {c2:.2f} | "
+              f"{sp:.4f} | {cb:.4f} | {d1} | {d2} | {'**yes**' if sp>cb else 'no'} |")
 
 # ---------------- C ----------------
 md.append("\n## C. Wall route: isotropy, wall–pair gap, Z_wall_inf\n")

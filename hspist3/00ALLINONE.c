@@ -541,12 +541,15 @@ typedef enum {
     PROTOCOL_SIGMOIDAL,         // Smooth sigmoidal acceleration
     PROTOCOL_LINEAR,            // Linear acceleration
     PROTOCOL_SINUSOIDAL,        // Sinusoidal protocol
-    PROTOCOL_OPTIMAL              // AI-optimized protocol
+    PROTOCOL_OPTIMAL,             // AI-optimized protocol
+    PROTOCOL_RAMP                 // ##CHRIS 2026-09-18: symmetric linear ramp up/hold/down
 } PistonProtocol;
 
 // Piston protocol parameters (σ-time units; velocities are numerically σ/σ-time)
 static float piston_protocol_start_time = -1.0f;
 static float piston_protocol_duration = 2.0f;        // how long to ramp to max speed
+static float piston_protocol_ramp_time = 0.0f;       // ##CHRIS PROTOCOL_RAMP: ramp length (σ-time)
+static float piston_protocol_start_x = 0.0f;         // ##CHRIS PROTOCOL_RAMP: piston x when the push began
 static float piston_protocol_max_speed = 1.0f;       // magnitude of max speed (σ/σ-time)
 static float piston_protocol_v0 = 0.0f;              // initial speed for linear/sigmoidal (σ/σ-time)
 static float piston_protocol_linear_gradient = 0.0f; // σ / (σ-time)^2
@@ -576,6 +579,8 @@ static bool  cli_piston_right_vmax_set = false;
 static float cli_piston_right_vmax = 0.0f;
 static bool  cli_piston_right_duration_set = false;
 static float cli_piston_right_duration = 0.0f; // σ-time units
+static float cli_piston_ramp_time = 0.0f;      // ##CHRIS PROTOCOL_RAMP: σ-time units
+static bool  cli_piston_ramp_time_set = false;
 static bool  cli_piston_right_sigmoid_steepness_set = false;
 static float cli_piston_right_sigmoid_steepness = 0.0f; // dimensionless "k*duration" style
 
@@ -896,7 +901,17 @@ static int live_scene_drag_index = -1;
 static int live_scene_drag_visible_row = -1;
 static int live_scene_rebuild_requested = 0;
 #define LIVE_SCENE_MAX_WALLS 5
-#define LIVE_SCENE_ROW_COUNT (5 + LIVE_SCENE_MAX_WALLS)
+/* ##CHRIS 2026-09-10: scene-reset rows. 0..4 are the original scalar parameters,
+   row 5 is the new wall-thickness slider, rows 6..(6+MAX_WALLS-1) are the per-wall
+   mass factors. The mass range was widened from 2..16000 to 50..1e6 (log) so the
+   speed-of-sound piston modes reachable from the CLI are also reachable here. */
+#define LIVE_SCENE_ROW_THICKNESS 5
+#define LIVE_SCENE_ROW_MASS0     6
+#define LIVE_SCENE_ROW_COUNT (LIVE_SCENE_ROW_MASS0 + LIVE_SCENE_MAX_WALLS)
+#define LIVE_SCENE_MASS_MIN      50.0
+#define LIVE_SCENE_MASS_MAX      1.0e6
+#define LIVE_SCENE_THICK_MIN_SIGMA 0.01
+#define LIVE_SCENE_THICK_MAX_SIGMA 5.0
 typedef enum {
     LIVE_SCENE_MODE_ENERGY_TRANSFER = 0,
     LIVE_SCENE_MODE_SZILARD = 1,
@@ -917,6 +932,10 @@ static float live_scene_eta = 0.20f;
 static float live_scene_radius_sigma = 0.10f;
 static float live_scene_spring_l0_sigma = 20.0f;
 static float live_scene_wall_mass[LIVE_SCENE_MAX_WALLS] = {200.0f, 2000.0f, 200.0f, 200.0f, 200.0f};
+/* ##CHRIS: wall thickness in sigma. user_set stays 0 until the slider is dragged, so an
+   untouched panel keeps the historical behaviour of recomputing the thickness as 2R. */
+static float live_scene_wall_thickness_sigma = 0.05f;
+static int   live_scene_wall_thickness_user_set = 0;
 
 static LiveSlider live_sliders[] = {
     { "time scale", "x", LIVE_PARAM_FLOAT,  &time_scale_runtime,       0.10,   256.0, 1.0,      1 },
@@ -1897,6 +1916,45 @@ static void ke_audit(const char* where){
     printf("[KE-AUDIT] %-28s N=%d  KE_tot=%.9g  KE_left=%.9g  KE_right=%.9g  Px=%.9g  kT_mean=%.9g\n",
            where, particles_active, ke, kel, ker, px, ke / (particles_active > 0 ? particles_active : 1));
     fflush(stdout);
+}
+
+/* ##CHRIS: optional per-compartment gas kinetic energy columns KE_L,KE_R in the
+   speed-of-sound trace (HD_KE_COLUMNS=1), for the slow-wander / adiabatic-piston
+   check. Logging only: reads velocities, changes no state and draws no random
+   numbers. Without the variable the trace schema and bytes are unchanged. */
+static int speed_sound_ke_columns_enabled(void){
+    static int on = -1;
+    if (on < 0) on = (getenv("HD_KE_COLUMNS") != NULL);
+    return on;
+}
+
+/* ##CHRIS 2026-09-18: one particle snapshot at the instant the piston stops (HD_STOP_SNAPSHOT=path),
+   for the Level 2 decomposition of the excess energy into flow, compression and rest. Logging only:
+   reads positions and velocities, changes no state and draws no random numbers. Without the variable
+   nothing is opened and not a byte of any other output changes. */
+static void dump_stop_snapshot(void) {
+    const char *path = getenv("HD_STOP_SNAPSHOT");
+    if (!path || !*path || !g_edmd) return;
+    static int written = 0;
+    if (written) return;                      /* the push happens once per run */
+    const EDMD_Params *ep = edmd_backend_params(g_edmd);
+    const EDMD_Particle *P = edmd_backend_particles(g_edmd);
+    if (!ep || !P || ep->N <= 0) return;
+    FILE *f = fopen(path, "w");
+    if (!f) return;
+    fprintf(f, "# t_sigma=%.9f piston_x_sigma=%.9f divider_x_sigma=%.9f N=%d\n",
+            (double)simulation_time,
+            (double)piston_right_x / (double)PIXELS_PER_SIGMA,
+            (double)(ep->divider_count > 0 ? ep->divider_x[0] : 0.0) / (double)PIXELS_PER_SIGMA, ep->N);
+    fputs("i,x_sigma,y_sigma,vx,vy\n", f);
+    for (int i = 0; i < ep->N; ++i) {
+        fprintf(f, "%d,%.9f,%.9f,%.9f,%.9f\n", i,
+                (double)P[i].x / (double)PIXELS_PER_SIGMA,
+                (double)P[i].y / (double)PIXELS_PER_SIGMA,
+                (double)P[i].vx, (double)P[i].vy);
+    }
+    fclose(f);
+    written = 1;
 }
 
 static inline void equalize_temperature_per_segment(float T_target) {
@@ -3000,7 +3058,8 @@ static void print_cli_usage(const char *exe_name) {
     printf("  --piston-travel-sigma=value Right piston travel distance for step trigger (σ)\n");
     printf("  --energy-transfer-summary=PATH  Append energy-transfer run summary rows to PATH (CSV)\n");
     printf("  --energy-transfer-trace=PATH    Write energy-transfer trace CSV to PATH (default: experiments_energy_transfer/energy_transfer_trace.csv)\n");
-    printf("  --piston-right-protocol-mode=MODE   step|linear|sigmoidal (alias for --protocol)\n");
+    printf("  --piston-right-protocol-mode=MODE   step|linear|ramp|sigmoidal (alias for --protocol)\n");
+    printf("  --piston-ramp-time=T                ramp mode: linear 0->u->0 over T sigma-time each end\n");
     printf("  --max-right-piston-travel=value     Right piston travel (σ) (alias for --piston-travel-sigma)\n");
     printf("  --velocity-right-piston-step=value  Step protocol constant speed (σ/σ-time)\n");
     printf("  --velocity-right-piston-t0=value    Initial speed for linear/sigmoidal (σ/σ-time)\n");
@@ -3693,8 +3752,9 @@ static void parse_cli_options(int argc, char **argv) {
             if (strcmp(value, "step") == 0) cli_protocol = PROTOCOL_STEP;
             else if (strcmp(value, "sigmoidal") == 0) cli_protocol = PROTOCOL_SIGMOIDAL;
             else if (strcmp(value, "linear") == 0) cli_protocol = PROTOCOL_LINEAR;
+            else if (strcmp(value, "ramp") == 0) cli_protocol = PROTOCOL_RAMP;   // ##CHRIS
             else {
-                fprintf(stderr, "Unknown piston-right-protocol-mode '%s'. Use: step, linear, sigmoidal\n", value);
+                fprintf(stderr, "Unknown piston-right-protocol-mode '%s'. Use: step, linear, ramp, sigmoidal\n", value);
                 exit(EXIT_FAILURE);
             }
         } else if (strncmp(arg, "--protocol", strlen("--protocol")) == 0) {
@@ -3708,6 +3768,18 @@ static void parse_cli_options(int argc, char **argv) {
                 fprintf(stderr, "Unknown protocol '%s'. Use: step, sigmoidal, linear, sinusoidal, optimal\n", value);
                 exit(EXIT_FAILURE);
             }
+        } else if (strncmp(arg, "--piston-ramp-time", strlen("--piston-ramp-time")) == 0 ||
+                   strncmp(arg, "--piston_ramp_time", strlen("--piston_ramp_time")) == 0) {
+            // ##CHRIS 2026-09-18: ramp length for --piston-right-protocol-mode=ramp, in σ-time.
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            if (!value) { fprintf(stderr, "Missing value for --piston-ramp-time\n"); exit(EXIT_FAILURE); }
+            errno = 0; char *endptr = NULL; float v = strtof(value, &endptr);
+            if (errno != 0 || endptr == value || *endptr != '\0' || v <= 0.0f) {
+                fprintf(stderr, "Invalid --piston-ramp-time '%s' (must be > 0, in σ-time).\n", value);
+                exit(EXIT_FAILURE);
+            }
+            cli_piston_ramp_time_set = true;
+            cli_piston_ramp_time = v;
         } else if (strncmp(arg, "--max-right-piston-travel", strlen("--max-right-piston-travel")) == 0 ||
                    strncmp(arg, "--max_right_piston_travel", strlen("--max_right_piston_travel")) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
@@ -4011,6 +4083,22 @@ static void parse_cli_options(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
             cli_override_wall_mass_factor = v;
+        } else if (strncmp(arg, "--wall-thickness-vis", 20) == 0) {
+            /* ##CHRIS 2026-09-10: this branch must precede "--wall-thickness". The old
+               order prefix-matched "--wall-thickness-vis=X" against the 16-char
+               "--wall-thickness" test, so the visual flag silently set the PHYSICAL
+               thickness and cli_override_wall_thickness_vis_sigma was never assigned.
+               Every recorded command in this repo passes the same value to both flags,
+               so no run on disk is affected. Same defect class as --seeding vs --seed. */
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            errno = 0;
+            char *endptr = NULL;
+            float v = strtof(value, &endptr);
+            if (errno != 0 || endptr == value || *endptr != '\0' || v <= 0.0f) {
+                fprintf(stderr, "Invalid visual wall thickness '%s'.\n", value);
+                exit(EXIT_FAILURE);
+            }
+            cli_override_wall_thickness_vis_sigma = v;
         } else if (strncmp(arg, "--wall-thickness", 16) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
             errno = 0;
@@ -4021,16 +4109,6 @@ static void parse_cli_options(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
             cli_override_wall_thickness_sigma = v;
-        } else if (strncmp(arg, "--wall-thickness-vis", 21) == 0) {
-            const char *value = cli_option_value(arg, argc, argv, &i);
-            errno = 0;
-            char *endptr = NULL;
-            float v = strtof(value, &endptr);
-            if (errno != 0 || endptr == value || *endptr != '\0' || v <= 0.0f) {
-                fprintf(stderr, "Invalid visual wall thickness '%s'.\n", value);
-                exit(EXIT_FAILURE);
-            }
-            cli_override_wall_thickness_vis_sigma = v;
         } else if (strncmp(arg, "--temperature", 13) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
             if (strchr(value, ',') != NULL) {
@@ -5478,7 +5556,21 @@ void initialize_simulation(void) {
     // NOTE: positions X/Y are in pixels. DIAMETER is in σ-units (based on PARTICLE_RADIUS_UNIT),
     // so we must derive margins in pixels from PARTICLE_RADIUS instead of using DIAMETER directly.
     const float diameter_px = 2.0f * (float)PARTICLE_RADIUS;
-    const float seed_pad_px = fmaxf(1e-4f, 1e-5f * diameter_px);
+    /* ##CHRIS: seed inset, fixed at 1e-3 of a particle DIAMETER.
+       The old pad was fmaxf(1e-4f, 1e-5f*diameter_px) = 2.4e-4 px for d = 24 px.
+       Everything here is float, and the float spacing near x is ~x*6e-8 px, so at a
+       box width of ~5.7e3 px (L0 = 117.8 sigma) the representable step is ~4.9e-4 px
+       and the pad is rounded away entirely: the last lattice column lands exactly on
+       the wall face (gap == 0), which schedule_walls() correctly books as an overdue
+       wall collision. That produced the 504 route-A flags at L0 >= 100 and, on
+       2026-09-11, flags in every famB eta=0.10 N=900 cell.
+       Raising the ABSOLUTE pad would only move the threshold to a larger box. Tying
+       it to the diameter keeps it 100x above the float step out to a box of ~4e5 px
+       (1.7e4 sigma), far beyond anything we run.
+       This changes SEED POSITIONS ONLY. PARTICLE_RADIUS, the box dimensions, the
+       particle counts and therefore eta = N*pi*r^2/(2*L0*H) are all untouched; the
+       centres simply start 0.024 px (1e-3 sigma) further from the faces. */
+    const float seed_pad_px = 1e-3f * diameter_px;
     const float margin_px = (float)PARTICLE_RADIUS + seed_pad_px;
 
     const float wall_half_thick_px = 0.5f * (float)WALL_THICKNESS;
@@ -5834,6 +5926,7 @@ void apply_piston_protocol(float dt) {
     if (piston_step_active) {
         if (piston_protocol_start_time < 0.0f) {
             piston_protocol_start_time = simulation_time;
+            piston_protocol_start_x = piston_right_x;   // ##CHRIS PROTOCOL_RAMP
         }
         
         float elapsed = simulation_time - piston_protocol_start_time;
@@ -5881,6 +5974,27 @@ void apply_piston_protocol(float dt) {
                 }
                 break;
                 
+            case PROTOCOL_RAMP: {
+                // ##CHRIS 2026-09-18: symmetric trapezoid for the Level 2 ramp-against-step test.
+                // Accelerate linearly 0 -> vmax over t_ramp, hold, then decelerate to zero, arriving
+                // at the SAME target with the SAME travel as the step protocol. The deceleration is
+                // keyed to the remaining distance, v = sqrt(2 a d): that is the linear-in-time ramp
+                // written without a clock, so the piston lands on the target with v = 0 whatever the
+                // step size. t_ramp is clamped at travel/vmax, where the profile becomes triangular
+                // and vmax is only just reached; the clamp is reported in the run header.
+                float travel_sigma = fabsf(piston_step_target - piston_protocol_start_x) / PIXELS_PER_SIGMA;
+                float t_ramp = (piston_protocol_ramp_time > 1e-9f) ? piston_protocol_ramp_time : 1e-9f;
+                float t_max = (vmax > 1e-12f) ? (travel_sigma / vmax) : t_ramp;
+                if (t_ramp > t_max) t_ramp = t_max;
+                float a = vmax / t_ramp;                                   // σ / (σ-time)^2
+                float d_sigma = fabsf(piston_step_target - piston_right_x) / PIXELS_PER_SIGMA;
+                float v_up = a * elapsed;
+                float v_down = sqrtf(fmaxf(0.0f, 2.0f * a * d_sigma));
+                float v = fminf(vmax, fminf(v_up, v_down));
+                vx_piston_right = piston_step_direction * v;
+                break;
+            }
+
             case PROTOCOL_OPTIMAL:
                 // AI-optimized protocol (placeholder for future implementation)
                 vx_piston_right = piston_step_direction * sigmoid_velocity_profile(
@@ -5899,6 +6013,7 @@ void apply_piston_protocol(float dt) {
             vx_piston_right = 0;
             piston_step_active = false;
             piston_protocol_start_time = -1.0f;
+            dump_stop_snapshot();   // ##CHRIS 2026-09-18, env-gated, logging only
             // Start windowed spring response measurement on the next energy update.
             if (energy_measurement.eff_enabled) {
                 energy_measurement.eff_window_pending_start = true;
@@ -10893,6 +11008,7 @@ static void configure_right_piston_protocol_from_cli(void) {
         piston_protocol_max_speed = (cli_piston_speed_set && cli_piston_speed > 0.0f) ? cli_piston_speed : 1.0f;
     }
 
+    piston_protocol_ramp_time = cli_piston_ramp_time_set ? cli_piston_ramp_time : 0.0f;  // ##CHRIS
     if (cli_piston_right_duration_set && cli_piston_right_duration > 0.0f) {
         piston_protocol_duration = cli_piston_right_duration;
     } else {
@@ -10917,6 +11033,9 @@ static void configure_right_piston_protocol_from_cli(void) {
             break;
         case PROTOCOL_SIGMOIDAL:
             piston_step_speed = piston_step_direction * fmaxf(0.0f, piston_protocol_v0);
+            break;
+        case PROTOCOL_RAMP:            // ##CHRIS starts from rest by construction
+            piston_step_speed = 0.0f;
             break;
         default:
             piston_step_speed = 0.0f;
@@ -12890,9 +13009,11 @@ static int live_scene_param_visible(int index) {
     if (index == 0) return live_scene_fixed_wall_count() == 0;
     if (index >= 1 && index <= 3) return 1;
     if (index == 4) return live_scene_mode == LIVE_SCENE_MODE_ENERGY_TRANSFER;
-    if (index >= 5 && index < LIVE_SCENE_ROW_COUNT) {
-        return live_scene_mode == LIVE_SCENE_MODE_ENERGY_TRANSFER &&
-               (index - 5) < live_scene_wall_count;
+    if (index == LIVE_SCENE_ROW_THICKNESS) return 1;
+    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT) {
+        return (live_scene_mode == LIVE_SCENE_MODE_ENERGY_TRANSFER ||
+                live_scene_mode == LIVE_SCENE_MODE_SPEED_OF_SOUND) &&
+               (index - LIVE_SCENE_ROW_MASS0) < live_scene_wall_count;
     }
     return 0;
 }
@@ -13123,10 +13244,22 @@ static void live_scene_sync_from_runtime(void) {
         } else if (i < num_internal_walls && all_wall_masses && all_wall_masses[i] > 0.0f) {
             mf = all_wall_masses[i] / (float)PARTICLE_MASS;
         }
-        if (mf < 2.0f) mf = 2.0f;
-        if (mf > 16000.0f) mf = 16000.0f;
+        if (mf < (float)LIVE_SCENE_MASS_MIN) mf = (float)LIVE_SCENE_MASS_MIN;
+        if (mf > (float)LIVE_SCENE_MASS_MAX) mf = (float)LIVE_SCENE_MASS_MAX;
         live_scene_wall_mass[i] = mf;
     }
+
+    /* ##CHRIS: seed the thickness slider from the CLI override if one was given,
+       otherwise from the thickness the engine is actually running with. */
+    if (cli_override_wall_thickness_sigma > 0.0f) {
+        live_scene_wall_thickness_sigma = cli_override_wall_thickness_sigma;
+        live_scene_wall_thickness_user_set = 1;
+    } else if (WALL_THICKNESS > 0.0f) {
+        live_scene_wall_thickness_sigma = (float)((double)WALL_THICKNESS / (double)PIXELS_PER_SIGMA);
+    }
+    live_scene_wall_thickness_sigma = (float)live_clamp((double)live_scene_wall_thickness_sigma,
+                                                       LIVE_SCENE_THICK_MIN_SIGMA,
+                                                       LIVE_SCENE_THICK_MAX_SIGMA);
 }
 
 static double live_scene_get_value(int index) {
@@ -13135,7 +13268,9 @@ static double live_scene_get_value(int index) {
     if (index == 2) return (double)live_scene_radius_sigma;
     if (index == 3) return (double)live_scene_eta;
     if (index == 4) return (double)live_scene_spring_l0_sigma;
-    if (index >= 5 && index < LIVE_SCENE_ROW_COUNT) return (double)live_scene_wall_mass[index - 5];
+    if (index == LIVE_SCENE_ROW_THICKNESS) return (double)live_scene_wall_thickness_sigma;
+    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT)
+        return (double)live_scene_wall_mass[index - LIVE_SCENE_ROW_MASS0];
     return 0.0;
 }
 
@@ -13164,8 +13299,14 @@ static void live_scene_set_value(int index, double value) {
                                                       live_scene_spring_l0_min_sigma(),
                                                       live_scene_spring_l0_max_sigma());
         live_scene_update_radius_from_eta();
-    } else if (index >= 5 && index < LIVE_SCENE_ROW_COUNT) {
-        live_scene_wall_mass[index - 5] = (float)live_clamp(value, 2.0, 16000.0);
+    } else if (index == LIVE_SCENE_ROW_THICKNESS) {
+        live_scene_wall_thickness_sigma = (float)live_clamp(value,
+                                                           LIVE_SCENE_THICK_MIN_SIGMA,
+                                                           LIVE_SCENE_THICK_MAX_SIGMA);
+        live_scene_wall_thickness_user_set = 1;
+    } else if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT) {
+        live_scene_wall_mass[index - LIVE_SCENE_ROW_MASS0] =
+            (float)live_clamp(value, LIVE_SCENE_MASS_MIN, LIVE_SCENE_MASS_MAX);
     }
 }
 
@@ -13176,15 +13317,17 @@ static const char *live_scene_label(int index) {
     if (index == 2) return "radius σ";
     if (index == 3) return "eta";
     if (index == 4) return "spring L0";
-    if (index >= 5 && index < LIVE_SCENE_ROW_COUNT) {
-        snprintf(label, sizeof(label), "M%d", index - 4);
+    if (index == LIVE_SCENE_ROW_THICKNESS) return "wall thick";
+    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT) {
+        snprintf(label, sizeof(label), "M%d", index - LIVE_SCENE_ROW_MASS0 + 1);
         return label;
     }
     return "?";
 }
 
 static int live_scene_log_scale(int index) {
-    return (index == 1 || index == 2 || (index >= 5 && index < LIVE_SCENE_ROW_COUNT));
+    return (index == 1 || index == 2 || index == LIVE_SCENE_ROW_THICKNESS ||
+            (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT));
 }
 
 static double live_scene_min_value(int index) {
@@ -13193,7 +13336,8 @@ static double live_scene_min_value(int index) {
     if (index == 2) return 0.005;
     if (index == 3) return 0.02;
     if (index == 4) return live_scene_spring_l0_min_sigma();
-    return 2.0;
+    if (index == LIVE_SCENE_ROW_THICKNESS) return LIVE_SCENE_THICK_MIN_SIGMA;
+    return LIVE_SCENE_MASS_MIN;
 }
 
 static double live_scene_max_value(int index) {
@@ -13205,7 +13349,8 @@ static double live_scene_max_value(int index) {
     }
     if (index == 3) return 0.75;
     if (index == 4) return live_scene_spring_l0_max_sigma();
-    return 16000.0;
+    if (index == LIVE_SCENE_ROW_THICKNESS) return LIVE_SCENE_THICK_MAX_SIGMA;
+    return LIVE_SCENE_MASS_MAX;
 }
 
 static double live_scene_value_to_norm(int index, double value) {
@@ -13415,8 +13560,8 @@ static void live_scene_prepare_rebuild(void) {
     cli_wall_masses_count = walls;
     for (int w = 0; w < 5; ++w) {
         float mf = live_scene_wall_mass[w];
-        if (mf < 2.0f) mf = 2.0f;
-        if (mf > 16000.0f) mf = 16000.0f;
+        if (mf < (float)LIVE_SCENE_MASS_MIN) mf = (float)LIVE_SCENE_MASS_MIN;
+        if (mf > (float)LIVE_SCENE_MASS_MAX) mf = (float)LIVE_SCENE_MASS_MAX;
         cli_wall_masses[w] = mf;
     }
 
@@ -13428,7 +13573,15 @@ static void live_scene_prepare_rebuild(void) {
     cli_particle_diameter_set = 0;
     cli_particle_diameter_sigma = 0.0f;
     particle_scale_runtime = radius_sigma / PARTICLE_RADIUS_UNIT;
-    if (cli_override_wall_thickness_sigma <= 0.0f) {
+    /* ##CHRIS: wall thickness applied on APPLY, exactly like the other rows. Only once
+       the slider has been dragged (or a CLI --wall-thickness was supplied) does it pin
+       the thickness; otherwise the old auto path (2R from the new radius) is kept. */
+    if (live_scene_wall_thickness_user_set) {
+        cli_override_wall_thickness_sigma = live_scene_wall_thickness_sigma;
+    }
+    if (cli_override_wall_thickness_sigma > 0.0f) {
+        set_wall_thickness_sigma(cli_override_wall_thickness_sigma);
+    } else {
         wall_thickness_runtime = 0.0f; // recompute from the new real collision radius.
     }
 
@@ -13449,10 +13602,12 @@ static void live_scene_prepare_rebuild(void) {
 
     live_scene_rebuild_requested = 1;
     if (!cli_quiet) {
-        printf("Scene reset queued: mode=%s engine=%s walls=%d springL0=%.3fσ N=%d r=%.4fσ eta=%.3f masses=",
+        printf("Scene reset queued: mode=%s engine=%s walls=%d springL0=%.3fσ N=%d r=%.4fσ eta=%.3f thick=%.4fσ%s masses=",
                live_scene_mode_label(live_scene_mode), live_scene_engine_label(),
                walls, (double)live_scene_spring_l0_sigma,
-               n_particles, (double)radius_sigma, (double)eta);
+               n_particles, (double)radius_sigma, (double)eta,
+               (double)((double)WALL_THICKNESS / (double)PIXELS_PER_SIGMA),
+               live_scene_wall_thickness_user_set ? "" : "(auto)");
         for (int w = 0; w < walls; ++w) printf("%s%.3g", w ? "," : "", (double)cli_wall_masses[w]);
         printf("\n");
     }
@@ -14065,7 +14220,8 @@ static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
         else if (i == 2) snprintf(value_text, sizeof(value_text), "%.4f", (double)live_scene_radius_sigma);
         else if (i == 3) snprintf(value_text, sizeof(value_text), "%.3f", (double)live_scene_eta);
         else if (i == 4) snprintf(value_text, sizeof(value_text), "%.2f", (double)live_scene_spring_l0_sigma);
-        else snprintf(value_text, sizeof(value_text), "%.0f", (double)live_scene_wall_mass[i - 5]);
+        else if (i == LIVE_SCENE_ROW_THICKNESS) snprintf(value_text, sizeof(value_text), "%.3f", (double)live_scene_wall_thickness_sigma);
+        else snprintf(value_text, sizeof(value_text), "%.4g", (double)live_scene_wall_mass[i - LIVE_SCENE_ROW_MASS0]);
 
         draw_text_clipped(renderer, font, live_scene_label(i), sx + 10, row_y, row_color, 96);
         draw_text_clipped(renderer, font, value_text, sx + sw - 78, row_y, row_color, 64);
@@ -15171,7 +15327,9 @@ void run_speed_of_sound_experiments() {
                 if (wall_log) {
                     fprintf(wall_log,
                             "Time,Wall_X,Displacement(σ),Left_Count,Right_Count,L0,eta,Center_X(σ),Seed,"
-                            "Target_Oscillations,Predicted_Frequency,Planned_Steps,Planned_Duration\n");
+                            "Target_Oscillations,Predicted_Frequency,Planned_Steps,Planned_Duration");
+                    if (speed_sound_ke_columns_enabled()) fputs(",KE_L,KE_R", wall_log);
+                    fputc('\n', wall_log);
                 }
 
                 printf("🔬 Running: L0 = %.1f, M = %d*m, run = %d, seed = %u\n",
@@ -15460,12 +15618,23 @@ void run_speed_of_sound_experiments() {
                                 || (recorded_steps % log_stride) == 0
                                 || recorded_steps == target_recorded_steps - 1)) {
                             fprintf(wall_log,
-                                    "%.6f,%.6f,%.6f,%d,%d,%.6f,%.6f,%.6f,%u,%d,%.12g,%d,%.12g\n",
+                                    "%.6f,%.6f,%.6f,%d,%d,%.6f,%.6f,%.6f,%u,%d,%.12g,%d,%.12g",
                                     t_after, wall_x_sigma, disp, left_particles, right_particles,
                                     (double)L0_UNITS, eta_nominal_const, center_x_sigma_const,
                                     run_seed, cli_speed_sound_target_oscillations,
                                     predicted_frequency, target_recorded_steps,
                                     planned_duration_sigma);
+                            if (speed_sound_ke_columns_enabled()) {
+                                /* ##CHRIS: same side convention as Left_Count/Right_Count. */
+                                double ke_l = 0.0, ke_r = 0.0;
+                                for (int i = 0; i < particles_active; ++i) {
+                                    const double e = 0.5 * (double)PARTICLE_MASS
+                                        * (Pnow[i].vx * Pnow[i].vx + Pnow[i].vy * Pnow[i].vy);
+                                    if (Pnow[i].x < div_x_px) ke_l += e; else ke_r += e;
+                                }
+                                fprintf(wall_log, ",%.9g,%.9g", ke_l, ke_r);
+                            }
+                            fputc('\n', wall_log);
                         }
 
                         // ##CHRIS: sample psi_6 across the measurement window itself.
@@ -16702,6 +16871,7 @@ static void run_energy_transfer_experiment(void) {
                                  : (cli_protocol == PROTOCOL_LINEAR) ? "linear"
                                  : (cli_protocol == PROTOCOL_SINUSOIDAL) ? "sinusoidal"
                                  : (cli_protocol == PROTOCOL_OPTIMAL) ? "optimal"
+                                 : (cli_protocol == PROTOCOL_RAMP) ? "ramp"
                                  : "step";
 
             const double dt_sigma = (double)fixed_dt_runtime / (double)PIXELS_PER_SIGMA;

@@ -47,6 +47,20 @@ def fitrows(md, header_key):
         except: pass
     return out
 abc=open(f"{A}/tables_ABC.md").read()
+FORMTAB={}
+_sec=abc.split("Extrapolation-form comparison",1)[1] if "Extrapolation-form comparison" in abc else ""
+_body=False
+for l in _sec.splitlines():
+    if l.startswith("|---"): _body=True; continue
+    if _body:
+        if not l.startswith("| 0."): break      # stop at the end of THIS table
+        c=[x.strip() for x in l.strip("|").split("|")]
+        if len(c)!=12: break
+        try: FORMTAB[round(float(c[0]),3)]=c   # eta,Z1,s1,chi1,Z2,s2,chi2,spread,comb,dev1,dev2,dominates
+        except ValueError: break
+def F1(e,i):
+    try: return float(FORMTAB[e][i])
+    except Exception: return float("nan")
 B=fitrows(abc,"Z_pair_inf | sigma")      # eta,#N,Zinf,sigma,a,chi2,dof,p,Z(900/1600),KR,dev,form
 Cw=fitrows(abc,"Z_wall_inf | sigma")     # eta, Zwinf, sigma, Zpinf, wall-pair, KR, dev
 def pct(x): return float(x.rstrip("%")) if x.rstrip("%").replace("+","").replace("-","").replace(".","").isdigit() else None
@@ -74,23 +88,51 @@ def bP(e):
     c=cellB.get((e,900)); return f(c[3])*4*e/math.pi if c else float("nan")
 note30=(f" One low-density point, η = 0.30, sits at the flag threshold (χ²₁ = {f(B[0.3][CHI]):.2f}, p = {f(B[0.3][7]):.3f}) with a −0.10% intercept; "
         f"its N = 900/1600-only intercept is {B[0.3][Z2].split(' ')[0]}. It is reported, not excluded." if 0.3 in chi_flag else "")
-claims=(f"- **η ≤ 0.65: equation of state validated in the N → ∞ limit.** Z(N) = Z∞ + a/√N over N = 400/900/1600 "
-        f"(χ²₁ ≤ {chi_mid_max:.2f} for η = 0.2–0.5, {f(B[0.6][CHI]):.2f} at 0.60, {f(B[0.65][CHI]):.2f} at 0.65); "
-        f"Z_pair,∞ within ±{mid_max:.2f}% of Kolafa–Rottner 2006 for η = 0.2–0.5, {dv(0.6):+.2f} ± {sig(0.6):.2f}% at 0.60, "
-        f"{dv(0.65):+.2f} ± {sig(0.65):.2f}% at 0.65; the wall-momentum-flux route extrapolates to the same limit within "
-        f"{max(wp):.2f}% (momentum-balance consistency, not an independent measurement). The 0.65 value is statistically below KR "
-        f"({abs(dv(0.65))/sig(0.65):.1f} σ) and awaits the N = 2500 point before it is called either way.{note30}\n"
-        f"- **η = 0.67–0.69: no bulk value from these boxes.** The finite-size dependence is no longer a perimeter term "
-        f"(χ²₁ = {f(B[0.67][CHI]):.2f} at 0.67 with Z(1600) > Z(900), intercept from N = 900/1600 only {B[0.67][Z2]}; "
-        f"slope a = {f(B[0.69][4]):+.2f} at 0.69 against {f(B[0.6][4]):+.2f} at 0.60). We report Z(N): "
-        f"{devN(0.67,400):+.1f}/{devN(0.67,900):+.1f}/{devN(0.67,1600):+.1f}% vs KR at N = 400/900/1600 for 0.67 and "
-        f"{devN(0.69,400):+.1f}/{devN(0.69,900):+.1f}/{devN(0.69,1600):+.1f}% for 0.69; stationary over t = 400–7000 at 0.69/900 (D1); "
-        f"seed-to-seed scatter up to 2× the block error. Consistent with correlation lengths comparable to the box "
+def dofstr(e):
+    d=B[e][6] if e in B else "?"
+    return f"chi2_{d}"
+def chi(e): return f(B[e][CHI]) if e in B else float("nan")
+def nN(e):  return B[e][1] if e in B else "?"
+def KRv(e):
+    try: return float(B[e][9])
+    except Exception: return float('nan')
+def fdev(e,i): return FORMTAB[e][i] if e in FORMTAB else "—"
+lowok=[e for e in FORMTAB if e<=0.10]
+claims=(f"- **η ≤ 0.10: the equation of state is reproduced in the N → ∞ limit, and the "
+        f"extrapolation form does not matter.** Fitting Z(N) = Z∞ + b·N^(-1/2) and Z∞ + b·N^(-1) "
+        f"to the same per-cell means gives intercepts differing by ≤ {max(F1(e,7) for e in lowok):.4f}, "
+        f"below their combined statistical error, because the finite-size term is negligible there. "
+        f"Z_pair,∞ lies within {max(abs(pct(FORMTAB[e][9])) for e in lowok):.2f}% of Kolafa–Rottner 2006 "
+        f"for η = 0.005–0.10 under either form.\n"
+        f"- **η = 0.20–0.65: consistent with the EOS, but the extrapolation FORM is now the dominant "
+        f"uncertainty and the claim carries it.** At η = 0.65 (four sizes, N = 400/900/1600/2500, 2 dof): "
+        f"**Z∞ = {F1(0.65,1):.4f} ± {F1(0.65,2):.4f} (stat) from a + b/√N, χ² = {F1(0.65,3):.2f}**, and "
+        f"**Z∞ = {F1(0.65,4):.4f} ± {F1(0.65,5):.4f} (stat) from a + b/N, χ² = {F1(0.65,6):.2f}**. "
+        f"Both forms fit acceptably, but the intercepts differ by {F1(0.65,7):.4f}, which is "
+        f"{F1(0.65,7)/F1(0.65,8):.1f}× their combined statistical error — so the honest quotation is "
+        f"**Z∞(0.65) = {0.5*(F1(0.65,1)+F1(0.65,4)):.4f} ± {F1(0.65,2):.4f} (stat) ± {0.5*F1(0.65,7):.4f} (form)**, "
+        f"i.e. {fdev(0.65,9)} to {fdev(0.65,10)} relative to KR. **The two forms do not agree on a "
+        f"significant deviation** — 1/√N puts Z∞ {abs(F1(0.65,1)-KRv(0.65))/F1(0.65,2):.1f} σ below KR while "
+        f"1/N puts it {abs(F1(0.65,4)-KRv(0.65))/F1(0.65,5):.1f} σ from it — so no claim of a significant "
+        f"departure from KR is made at 0.65. Of the two, the 1/N form is the better fit "
+        f"(χ² = {F1(0.65,6):.2f} against {F1(0.65,3):.2f} on 2 dof), but a χ² difference of that size on "
+        f"2 degrees of freedom does not select between the forms, and the claim stands as no significant "
+        f"departure. The same form spread dominates at every η ≥ 0.20 "
+        f"(η = 0.60: {fdev(0.60,9)} vs {fdev(0.60,10)}); under either form the agreement with KR is "
+        f"within ≈1%.\n"
+        f"- **η = 0.67–0.69: these data do not support a bulk extrapolation with this model.** "
+        f"Z(N) is non-monotone — it falls to N = 1600 and turns back up at N = 2500 — and both forms are "
+        f"rejected by their own χ² (0.67: {F1(0.67,3):.1f} and {F1(0.67,6):.1f}; 0.69: {F1(0.69,3):.1f} and "
+        f"{F1(0.69,6):.1f}, 2 dof). We therefore report Z(N) per size and quote no extrapolated value: "
+        f"0.67 gives {devN(0.67,400):+.2f} → {devN(0.67,900):+.2f} → {devN(0.67,1600):+.2f} → {devN(0.67,2500):+.2f}% "
+        f"vs KR and 0.69 gives {devN(0.69,400):+.2f} → {devN(0.69,900):+.2f} → {devN(0.69,1600):+.2f} → "
+        f"{devN(0.69,2500):+.2f}%. Stationary over t = 400–7000 at 0.69/900 (D1); seed-to-seed scatter up to "
+        f"2× the block error. Consistent with correlation lengths comparable to the box "
         f"(Bernard–Krauth: ξ ≈ 50 σ at 0.698) in hard-wall geometry.\n"
-        f"- **η ≥ 0.70: exploratory.** KR is not a reference there (its fit turns over at 0.70). βPσ² at N = 900 "
-        f"({bP(0.702):.2f} / {bP(0.710):.2f} / {bP(0.720):.2f} at 0.702 / 0.710 / 0.720) sits above the coexistence plateau (9.185) and rises: "
-        f"a homogeneous state that cannot phase-separate in a 32 σ hard-wall box; ψ₆ drifts while Z and T are flat (D2); "
-        f"one cell (0.720/900) shows a 3.5% x–y anisotropy in the wall pressure, a physical signal of an anisotropic structure, not noise.")
+        f"- **η ≥ 0.70: exploratory.** KR is not a reference there (its fit turns over at 0.70). βPσ² at "
+        f"N = 900 ({bP(0.702):.2f} / {bP(0.710):.2f} / {bP(0.720):.2f} at 0.702 / 0.710 / 0.720) sits above "
+        f"the coexistence plateau (9.185) and rises; ψ₆ drifts while Z and T are flat (D2); one cell "
+        f"(0.720/900) shows a 3.5% x–y anisotropy in the wall pressure.")
 # boundary table from the discards: N*chunk, exceedances / equilibration calls
 bnd={}
 for r in d_rows:

@@ -114,7 +114,7 @@ Route A always has 50 disks per side. To change $\eta$ it changes the box length
 \end{num}
 
 \begin{ex}[Exercise 2]
-$\eta = 0.05$, $N = 50$ per side, $r = 0.5$, $H = 10$. Compute $L_0$, $L_{\mathrm{eff}}$, the mean free path $\lambda = 0.555/\eta$, and $\mathrm{Kn} = \lambda/L_0$. Then take $M = 100$ ($\alpha = 1$, $K = 0.860$) and $c_s = 1.567$: what is $\nu$ and the swing period?
+$\eta = 0.05$, $N = 50$ per side, $r = 0.5$, $H = 10$. Compute $L_0$, $L_{\mathrm{eff}}$, the mean free path $\lambda = 0.278/\eta$, and $\mathrm{Kn} = \lambda/L_0$. Then take $M = 100$ ($\alpha = 1$, $K = 0.860$) and $c_s = 1.567$: what is $\nu$ and the swing period?
 \end{ex}
 
 \subsection{The gap: no fixed-geometry $c_s$ data below $\eta = 0.67$}
@@ -276,14 +276,14 @@ Joint table of a command $x\in\{\text{push},\text{hold}\}$ and a state bin $s\in
 \item Paper 1 claim: $Z$ bulk-validated $\eta\le0.65$; $c_s$ instrument-validated on route A; $c_s$ bulk claim pending famB.
 \item Level 0 closes after: logging change $\to$ \texttt{cmp} test $\to$ 5-seed pilot with $|R|\sim$ round-off, $W_{\mathrm{qs}} = 6.3\,\kT$, $W_{\mathrm{diss}}\approx0.3$--$0.8\,\kT$.
 \item Design window for Paper 2: $N = 50$--$300$ per side, $u/c_s = 0.01$--$0.3$, compression 10--25\%, $\beta W_{\mathrm{diss}}\lesssim5$, $10^3$--$10^4$ trajectories, stochastic piston command.
-\item Two positive controls waiting in the queue: route A to $\eta = 0.01, 0.005$ (after the seed-pad fix) and the Knudsen pilot $N_{\mathrm{side}} = 25, 10$ at $L_0 = 200$ (expect $c_s$ to rise from $\sqrt2$ toward $\sqrt3$).
+\item Two positive controls waiting in the queue: route A to $\eta = 0.01, 0.005$ (after the seed-pad fix) and the Knudsen pilot $N_{\mathrm{side}} = 25, 10, 5$ at $L_0 = 200$ (expect $c_s$ to rise from $\sqrt2$ toward $\sqrt3$).
 \end{enumerate}
 
 \section{Answers}
 \label{sec:answers}
 \begin{enumerate}[label=\textbf{\arabic*.},nosep,itemsep=3pt]
 \item Two points: slope $a = (2.075-2.065)/(0.1-0.025) = 0.133$; $Z_\infty = 2.065 - 0.133\times0.025 = 2.062$. (A weighted 4-point fit gives about the same; the message is that $N = 100$ is $0.6\%$ high and the infinite-box value is below every measured point.)
-\item $L_0 = 3.927/0.05 = 78.5$; $L_{\mathrm{eff}} = 77.5$; $\lambda = 11.1$; $\mathrm{Kn} = 0.141$. $\nu = 1.567\times0.860/(2\pi\times77.5) = 2.77\times10^{-3}$ per $\sigma$-time; period $361$ $\sigma$-time.
+\item $L_0 = 3.927/0.05 = 78.5$; $L_{\mathrm{eff}} = 77.5$; $\lambda = 5.6$; $\mathrm{Kn} = 0.071$. $\nu = 1.567\times0.860/(2\pi\times77.5) = 2.77\times10^{-3}$ per $\sigma$-time; period $361$ $\sigma$-time.
 \item $a = (13.04-11.25)/(0.1-0.025) = 23.9$; $c_\infty = 11.25 - 23.9\times0.025 = 10.65$. Same as the full fit here because the two end points dominate; the 4-point weighted fit is better because it uses the error bars and gives $\chi^2$, which tells you whether a line is even the right model.
 \item $v = -1.0$: $v' = 2(0.05)+1.0 = 1.10$; $\Delta E = 2(0.05)(0.05+1.0) = 0.105$; $\Delta p = 2(1.05) = 2.10$. $v = +0.03$: the piston (0.05) catches it; $v' = 0.07$; $\Delta E = 2(0.05)(0.02) = 0.002$. $v = +0.10$: it outruns the piston, no hit ($\Delta E = 0$).
 \item $T_f/T_i = 1/0.909 = 1.100$; $W_{\mathrm{qs}} = 50\times0.100 = 5.0\,\kT$. KR gives more because $Z>1$: the gas pushes back harder than an ideal gas, so compressing it by the same amount costs more work ($Z\approx1.24$ at $\eta = 0.1$).

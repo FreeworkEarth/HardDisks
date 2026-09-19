@@ -40,6 +40,13 @@ double edmd_acc_work_pistonL(const EDMD* S);
 double edmd_acc_work_pistonR(const EDMD* S);
 double edmd_acc_heat_bath(const EDMD* S);
 void   edmd_acc_reset_work(EDMD* S);
+long   edmd_acc_forced_advance_count(const EDMD* S);
+/* ##CHRIS: engine health counters; both stay 0 in a correct run. */
+long   edmd_acc_clamp_repair_count(const EDMD* S);
+long   edmd_acc_overlap_repair_count(const EDMD* S);
+long   edmd_acc_wall_overdue_count(const EDMD* S);
+/* ##CHRIS: accepted but inert - the tracer is implemented in the default core only. */
+void   edmd_acc_debug_set_watch(int a, int b, int history);
 
 void   edmd_acc_divider_resolve_overlaps(EDMD* S);
 

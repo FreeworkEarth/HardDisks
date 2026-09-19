@@ -5,9 +5,10 @@ Runner: `validation/pressure_validation.c`; driver: `validation/run_pressure_cam
 
 ## Claim range
 
-- **η ≤ 0.65: equation of state validated in the N → ∞ limit.** Z(N) = Z∞ + a/√N over N = 400/900/1600 (χ²₁ ≤ 4.05 for η = 0.2–0.5, 0.66 at 0.60, 0.07 at 0.65); Z_pair,∞ within ±0.17% of Kolafa–Rottner 2006 for η = 0.2–0.5, +0.13 ± 0.09% at 0.60, -0.42 ± 0.09% at 0.65; the wall-momentum-flux route extrapolates to the same limit within 0.26% (momentum-balance consistency, not an independent measurement). The 0.65 value is statistically below KR (4.7 σ) and awaits the N = 2500 point before it is called either way. One low-density point, η = 0.30, sits at the flag threshold (χ²₁ = 4.05, p = 0.044) with a −0.10% intercept; its N = 900/1600-only intercept is 2.0524. It is reported, not excluded.
-- **η = 0.67–0.69: no bulk value from these boxes.** The finite-size dependence is no longer a perimeter term (χ²₁ = 7.62 at 0.67 with Z(1600) > Z(900), intercept from N = 900/1600 only 9.2621 (a=-1.12); slope a = +8.69 at 0.69 against +2.60 at 0.60). We report Z(N): -0.8/-1.5/-1.4% vs KR at N = 400/900/1600 for 0.67 and -1.1/-2.7/-3.1% for 0.69; stationary over t = 400–7000 at 0.69/900 (D1); seed-to-seed scatter up to 2× the block error. Consistent with correlation lengths comparable to the box (Bernard–Krauth: ξ ≈ 50 σ at 0.698) in hard-wall geometry.
-- **η ≥ 0.70: exploratory.** KR is not a reference there (its fit turns over at 0.70). βPσ² at N = 900 (9.23 / 9.59 / 10.14 at 0.702 / 0.710 / 0.720) sits above the coexistence plateau (9.185) and rises: a homogeneous state that cannot phase-separate in a 32 σ hard-wall box; ψ₆ drifts while Z and T are flat (D2); one cell (0.720/900) shows a 3.5% x–y anisotropy in the wall pressure, a physical signal of an anisotropic structure, not noise.
+- **η ≤ 0.10: the equation of state is reproduced in the N → ∞ limit, and the extrapolation form does not matter.** Fitting Z(N) = Z∞ + b·N^(-1/2) and Z∞ + b·N^(-1) to the same per-cell means gives intercepts differing by ≤ 0.0001, below their combined statistical error, because the finite-size term is negligible there. Z_pair,∞ lies within 0.15% of Kolafa–Rottner 2006 for η = 0.005–0.10 under either form.
+- **η = 0.20–0.65: consistent with the EOS, but the extrapolation FORM is now the dominant uncertainty and the claim carries it.** At η = 0.65 (four sizes, N = 400/900/1600/2500, 2 dof): **Z∞ = 8.3783 ± 0.0053 (stat) from a + b/√N, χ² = 1.17**, and **Z∞ = 8.4067 ± 0.0029 (stat) from a + b/N, χ² = 0.42**. Both forms fit acceptably, but the intercepts differ by 0.0283, which is 4.7× their combined statistical error — so the honest quotation is **Z∞(0.65) = 8.3925 ± 0.0053 (stat) ± 0.0141 (form)**, i.e. -0.35% to -0.02% relative to KR. **The two forms do not agree on a significant deviation** — 1/√N puts Z∞ 5.6 σ below KR while 1/N puts it 0.4 σ from it — so no claim of a significant departure from KR is made at 0.65. Of the two, the 1/N form is the better fit (χ² = 0.42 against 1.17 on 2 dof), but a χ² difference of that size on 2 degrees of freedom does not select between the forms, and the claim stands as no significant departure. The same form spread dominates at every η ≥ 0.20 (η = 0.60: +0.13% vs +0.82%); under either form the agreement with KR is within ≈1%.
+- **η = 0.67–0.69: these data do not support a bulk extrapolation with this model.** Z(N) is non-monotone — it falls to N = 1600 and turns back up at N = 2500 — and both forms are rejected by their own χ² (0.67: 34.2 and 30.4; 0.69: 16.4 and 6.4, 2 dof). We therefore report Z(N) per size and quote no extrapolated value: 0.67 gives -0.81 → -1.47 → -1.37 → -1.14% vs KR and 0.69 gives -1.13 → -2.70 → -3.11 → -3.00%. Stationary over t = 400–7000 at 0.69/900 (D1); seed-to-seed scatter up to 2× the block error. Consistent with correlation lengths comparable to the box (Bernard–Krauth: ξ ≈ 50 σ at 0.698) in hard-wall geometry.
+- **η ≥ 0.70: exploratory.** KR is not a reference there (its fit turns over at 0.70). βPσ² at N = 900 (9.23 / 9.59 / 10.14 at 0.702 / 0.710 / 0.720) sits above the coexistence plateau (9.185) and rises; ψ₆ drifts while Z and T are flat (D2); one cell (0.720/900) shows a 3.5% x–y anisotropy in the wall pressure.
 
 ## TASK 1 — state verified against `run.log`
 
@@ -99,7 +100,7 @@ Tables A–C follow (from `analysis/tables_ABC.md`), then D (from `analysis/tabl
 
 ## A. Numerical validity
 
-Accepted trajectories on disk: **162** (all valid=1: True; any nonzero health counter: 0).
+Accepted trajectories on disk: **171** (all valid=1: True; any nonzero health counter: 0).
 
 | eta | N | seeds | chunk (prod) | calib A / B | T_mean range | sum health |
 |---|---|---|---|---|---|---|
@@ -133,12 +134,15 @@ Accepted trajectories on disk: **162** (all valid=1: True; any nonzero health co
 | 0.650 | 400 | 5 | 0.8 | 1 / 1 | 0.913–1.057 | 0 |
 | 0.650 | 900 | 4 | 0.3 | 0.5 / 0.5 | 0.928–1.030 | 0 |
 | 0.650 | 1600 | 3 | 0.15 | 0.25 / 0.25 | 0.979–1.016 | 0 |
+| 0.650 | 2500 | 3 | 0.075 | 0.125 / 0.125 | 0.979–1.028 | 0 |
 | 0.670 | 400 | 5 | 0.8 | 1 / 1 | 0.913–1.057 | 0 |
 | 0.670 | 900 | 4 | 0.3 | 0.5 / 0.5 | 0.928–1.030 | 0 |
 | 0.670 | 1600 | 3 | 0.075 | 0.125 / 0.125 | 0.979–1.016 | 0 |
+| 0.670 | 2500 | 3 | 0.0375 | 0.0625 / 0.0625 | 0.979–1.028 | 0 |
 | 0.690 | 400 | 5 | 0.8 | 1 / 1 | 0.913–1.057 | 0 |
 | 0.690 | 900 | 4 | 0.4 | 1 / 0.5 | 0.928–1.030 | 0 |
 | 0.690 | 1600 | 3 | 0.2 | 0.5 / 0.25 | 0.979–1.016 | 0 |
+| 0.690 | 2500 | 3 | 0.0375 | 0.0625 / 0.0625 | 0.979–1.028 | 0 |
 | 0.702 | 400 | 3 | 0.8 | 1 / 1 | 1.003–1.057 | 0 |
 | 0.702 | 900 | 3 | 0.4 | 0.5 / 0.5 | 0.928–1.030 | 0 |
 | 0.710 | 400 | 3 | 0.8 | 1 / 1 | 1.003–1.057 | 0 |
@@ -183,12 +187,15 @@ T_mean varies between seeds (velocities are drawn from a unit Gaussian and not r
 | 0.650 | 400 | 5 | 8.4710 | 0.0069 | 0.0043 | 8.4080 | +0.75% |
 | 0.650 | 900 | 4 | 8.4373 | 0.0036 | 0.0031 | 8.4080 | +0.35% |
 | 0.650 | 1600 | 3 | 8.4221 | 0.0032 | 0.0032 | 8.4080 | +0.17% |
+| 0.650 | 2500 | 3 | 8.4168 | 0.0054 | 0.0025 | 8.4080 | +0.10% |
 | 0.670 | 400 | 5 | 9.2867 | 0.0182 | 0.0062 | 9.3625 | -0.81% |
 | 0.670 | 900 | 4 | 9.2246 | 0.0174 | 0.0053 | 9.3625 | -1.47% |
 | 0.670 | 1600 | 3 | 9.2340 | 0.0091 | 0.0050 | 9.3625 | -1.37% |
+| 0.670 | 2500 | 3 | 9.2554 | 0.0054 | 0.0035 | 9.3625 | -1.14% |
 | 0.690 | 400 | 5 | 10.0850 | 0.0208 | 0.0101 | 10.2007 | -1.13% |
 | 0.690 | 900 | 4 | 9.9255 | 0.0226 | 0.0071 | 10.2007 | -2.70% |
 | 0.690 | 1600 | 3 | 9.8835 | 0.0304 | 0.0079 | 10.2007 | -3.11% |
+| 0.690 | 2500 | 3 | 9.8945 | 0.0204 | 0.0069 | 10.2007 | -3.00% |
 | 0.702 | 400 | 3 | 10.5492 | 0.0088 | 0.0159 | — | — (KR invalid) |
 | 0.702 | 900 | 3 | 10.3248 | 0.0155 | 0.0101 | — | — (KR invalid) |
 | 0.710 | 400 | 3 | 10.9447 | 0.0159 | 0.0155 | — | — (KR invalid) |
@@ -209,12 +216,31 @@ Fit Z(N) = Z_inf + a/sqrt(N) (weighted, error = max(block sem, seed sem)), per e
 | 0.400 | 3 | 2.8283 | 0.0032 | +0.907 | 0.02 | 1 | 0.880 | 2.8276 (a=+0.93) | 2.8293 | -0.04% | ok |
 | 0.500 | 3 | 4.1134 | 0.0033 | +1.462 | 0.99 | 1 | 0.321 | 4.1074 (a=+1.68) | 4.1064 | +0.17% | ok |
 | 0.600 | 3 | 6.4635 | 0.0056 | +2.599 | 0.66 | 1 | 0.416 | 6.4742 (a=+2.20) | 6.4553 | +0.13% | ok |
-| 0.650 | 3 | 8.3727 | 0.0075 | +1.957 | 0.07 | 1 | 0.798 | 8.3763 (a=+1.83) | 8.4080 | -0.42% | ok |
-| 0.670 | 3 | 9.1772 | 0.0132 | +2.065 | 7.62 | 1 | 0.006 | 9.2621 (a=-1.12) | 9.3625 | -1.98% | rejected (chi2>4) |
-| 0.690 | 3 | 9.6476 | 0.0286 | +8.686 | 2.29 | 1 | 0.131 | 9.7574 (a=+5.04) | 10.2007 | -5.42% | ok |
+| 0.650 | 4 | 8.3783 | 0.0053 | +1.816 | 1.17 | 2 | 0.558 | 8.3763 (a=+1.83) | 8.4080 | -0.35% | ok |
+| 0.670 | 4 | 9.2324 | 0.0077 | +0.708 | 34.21 | 2 | 0.000 | 9.2621 (a=-1.12) | 9.3625 | -1.39% | rejected (chi2>4) |
+| 0.690 | 4 | 9.7313 | 0.0180 | +6.820 | 16.44 | 2 | 0.000 | 9.7574 (a=+5.04) | 10.2007 | -4.60% | rejected (chi2>4) |
 | 0.702 | 2 | 9.8760 | 0.0439 | +13.465 | 0.00 | 0 | nan | — | — | — | n/a (2 N) |
 | 0.710 | 2 | 9.9506 | 0.1238 | +19.882 | 0.00 | 0 | nan | — | — | — | n/a (2 N) |
 | 0.720 | 2 | 10.2235 | 0.0474 | +25.242 | 0.00 | 0 | nan | — | — | — | n/a (2 N) |
+
+### Extrapolation-form comparison: Z_inf from a + b/sqrt(N) vs a + b/N
+
+Both are weighted straight lines through the same per-cell means. Where the two intercepts differ by more than their combined statistical error, the choice of form is the dominant uncertainty and the claim must carry that spread.
+
+| eta | Z_inf (1/sqrtN) | sigma | chi2 | Z_inf (1/N) | sigma | chi2 | spread | comb. sigma | dev sqrtN | dev 1/N | form dominates |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.005 | 1.0099 | 0.0003 | 0.54 | 1.0099 | 0.0001 | 0.59 | 0.0001 | 0.0003 | -0.02% | -0.01% | no |
+| 0.020 | 1.0417 | 0.0005 | 0.07 | 1.0416 | 0.0003 | 0.05 | 0.0001 | 0.0006 | +0.04% | +0.03% | no |
+| 0.050 | 1.1090 | 0.0010 | 1.20 | 1.1091 | 0.0005 | 1.20 | 0.0001 | 0.0011 | +0.06% | +0.06% | no |
+| 0.100 | 1.2380 | 0.0013 | 0.02 | 1.2380 | 0.0007 | 0.02 | 0.0000 | 0.0015 | +0.15% | +0.15% | no |
+| 0.200 | 1.5721 | 0.0020 | 0.45 | 1.5746 | 0.0011 | 0.76 | 0.0024 | 0.0022 | +0.11% | +0.27% | **yes** |
+| 0.300 | 2.0612 | 0.0026 | 4.05 | 2.0709 | 0.0013 | 7.33 | 0.0096 | 0.0030 | -0.10% | +0.37% | **yes** |
+| 0.400 | 2.8283 | 0.0032 | 0.02 | 2.8440 | 0.0016 | 1.37 | 0.0157 | 0.0036 | -0.04% | +0.52% | **yes** |
+| 0.500 | 4.1134 | 0.0033 | 0.99 | 4.1385 | 0.0017 | 5.54 | 0.0251 | 0.0037 | +0.17% | +0.78% | **yes** |
+| 0.600 | 6.4635 | 0.0056 | 0.66 | 6.5080 | 0.0031 | 0.13 | 0.0445 | 0.0064 | +0.13% | +0.82% | **yes** |
+| 0.650 | 8.3783 | 0.0053 | 1.17 | 8.4067 | 0.0029 | 0.42 | 0.0283 | 0.0060 | -0.35% | -0.02% | **yes** |
+| 0.670 | 9.2324 | 0.0077 | 34.21 | 9.2409 | 0.0040 | 30.44 | 0.0085 | 0.0087 | -1.39% | -1.30% | no |
+| 0.690 | 9.7313 | 0.0180 | 16.44 | 9.8366 | 0.0110 | 6.37 | 0.1052 | 0.0211 | -4.60% | -3.57% | **yes** |
 
 ## C. Wall route: isotropy, wall–pair gap, Z_wall_inf
 
@@ -252,12 +278,15 @@ Note: the pair virial and the wall momentum flux are tied by momentum balance wi
 | 0.650 | 400 | 8.8750 | 8.8735 | +0.17 | 8.8743 | +4.76% | 1.00 | 1.00 |
 | 0.650 | 900 | 8.7000 | 8.7020 | -0.29 | 8.7010 | +3.12% | 0.66 | 0.67 |
 | 0.650 | 1600 | 8.6182 | 8.6184 | -0.03 | 8.6183 | +2.33% | 0.49 | 0.50 |
+| 0.650 | 2500 | 8.5693 | 8.5761 | -1.19 | 8.5727 | +1.85% | 0.39 | 0.40 |
 | 0.670 | 400 | 9.7381 | 9.7350 | +0.17 | 9.7365 | +4.84% | 1.00 | 1.00 |
 | 0.670 | 900 | 9.5177 | 9.5187 | -0.08 | 9.5182 | +3.18% | 0.66 | 0.67 |
 | 0.670 | 1600 | 9.4496 | 9.4541 | -0.35 | 9.4518 | +2.36% | 0.49 | 0.50 |
+| 0.670 | 2500 | 9.4300 | 9.4303 | -0.05 | 9.4301 | +1.89% | 0.39 | 0.40 |
 | 0.690 | 400 | 10.5726 | 10.5897 | -0.78 | 10.5811 | +4.92% | 1.00 | 1.00 |
 | 0.690 | 900 | 10.2384 | 10.2526 | -0.82 | 10.2455 | +3.22% | 0.66 | 0.67 |
 | 0.690 | 1600 | 10.1156 | 10.1249 | -0.36 | 10.1203 | +2.40% | 0.49 | 0.50 |
+| 0.690 | 2500 | 10.0854 | 10.0815 | +0.22 | 10.0834 | +1.91% | 0.39 | 0.40 |
 | 0.702 | 400 | 10.9813 | 11.1647 | -2.71 | 11.0730 | +4.96% | 1.00 | 1.00 |
 | 0.702 | 900 | 10.6620 | 10.6591 | +0.12 | 10.6605 | +3.25% | 0.65 | 0.67 |
 | 0.710 | 400 | 11.5385 | 11.4437 | +0.59 | 11.4911 | +4.99% | 1.00 | 1.00 |
@@ -276,9 +305,9 @@ Note: the pair virial and the wall momentum flux are tied by momentum balance wi
 | 0.400 | 2.8240 | 0.0106 | 2.8283 | -0.15% | 2.8293 | -0.19% |
 | 0.500 | 4.1093 | 0.0109 | 4.1134 | -0.10% | 4.1064 | +0.07% |
 | 0.600 | 6.4527 | 0.0109 | 6.4635 | -0.17% | 6.4553 | -0.04% |
-| 0.650 | 8.3614 | 0.0111 | 8.3727 | -0.14% | 8.4080 | -0.55% |
-| 0.670 | 9.1603 | 0.0146 | 9.1772 | -0.18% | 9.3625 | -2.16% |
-| 0.690 | 9.6245 | 0.0319 | 9.6476 | -0.24% | 10.2007 | -5.65% |
+| 0.650 | 8.3696 | 0.0074 | 8.3783 | -0.10% | 8.4080 | -0.46% |
+| 0.670 | 9.2186 | 0.0089 | 9.2324 | -0.15% | 9.3625 | -1.54% |
+| 0.690 | 9.7197 | 0.0200 | 9.7313 | -0.12% | 10.2007 | -4.72% |
 | 0.702 | 9.8356 | 0.0676 | 9.8760 | -0.41% | — | — |
 | 0.710 | 9.9004 | 0.1382 | 9.9506 | -0.50% | — | — |
 | 0.720 | 10.1627 | 0.0993 | 10.2235 | -0.59% | — | — |

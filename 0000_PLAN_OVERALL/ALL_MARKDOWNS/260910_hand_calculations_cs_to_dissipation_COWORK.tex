@@ -20,7 +20,7 @@
 
 \title{Hand calculations, step by step:\\ from the hard-disk sound speed to dissipation and lost information}
 \author{Cowork note for Chris --- HardDisks / hspist3}
-\date{2026-09-10}
+\date{2026-09-10, revised 2026-09-11 (mean free path; Paper-2 ladder added)}
 
 \begin{document}
 \maketitle
@@ -73,39 +73,39 @@ The 2D Maxwell speed distribution is $f(v) = \frac{m}{\kT}\,v\,e^{-mv^2/2\kT}$. 
 \end{equation}
 
 \subsection{Collision rate per particle}
-A disk of diameter $\sigma$ sweeps a ``collision strip'' of width $\sigma$ (two centres collide when their distance is $\sigma$). In the dilute limit the rate at which one particle collides is number density $\times$ strip width $\times$ mean relative speed; at finite density multiply by the contact value of the pair correlation, $g(\sigma)$:
+A disk of diameter $\sigma$ sweeps a ``collision strip'' of width $2\sigma$: two centres collide when their distance is $\sigma$, so the impact parameter runs from $-\sigma$ to $+\sigma$ (the 2D analogue of the 3D cross-section $\pi\sigma^2$). In the dilute limit the rate at which one particle collides is number density $\times$ strip width $\times$ mean relative speed; at finite density multiply by the contact value of the pair correlation, $g(\sigma)$:
 \begin{equation}
-\nu_c = n\,\sigma\, g(\sigma)\,\avg{v_{\mathrm{rel}}}
-= n\sigma g(\sigma)\sqrt{\frac{\pi\kT}{m}} .
+\nu_c = n\,2\sigma\, g(\sigma)\,\avg{v_{\mathrm{rel}}}
+= 2n\sigma g(\sigma)\sqrt{\frac{\pi\kT}{m}} .
 \end{equation}
 For hard disks the equation of state is exactly $Z \equiv \dfrac{PA}{N\kT} = 1 + 2\eta\, g(\sigma)$, so $g(\sigma) = (Z-1)/2\eta$. With $n = 4\eta/(\pi\sigma^2)$:
 \begin{equation}
-\boxed{\;\nu_c = \frac{2\,(Z-1)}{\sqrt\pi}\;\sqrt{\frac{\kT}{m}}\,\frac1\sigma\;}
-\qquad\xrightarrow{\;\eta\to0\;}\qquad \nu_c \simeq \frac{4\eta}{\sqrt\pi}.
+\boxed{\;\nu_c = \frac{4\,(Z-1)}{\sqrt\pi}\;\sqrt{\frac{\kT}{m}}\,\frac1\sigma\;}
+\qquad\xrightarrow{\;\eta\to0\;}\qquad \nu_c \simeq \frac{8\eta}{\sqrt\pi}.
 \label{eq:nuc}
 \end{equation}
-This is the ``physical collision rate'' we used to interpret the event budget: at $\eta = 0.69$, $Z \approx 10.1$ gives $\nu_c \approx 10.3$ collisions per particle per $\sigma$-time.
+This is the ``physical collision rate'' we used to interpret the event budget: at $\eta = 0.69$, $Z \approx 10.1$ gives $\nu_c \approx 20.5$ collisions per particle per $\sigma$-time. (The first version of this note had the strip width as $\sigma$ instead of $2\sigma$ and therefore half this rate and twice the mean free path below; corrected 2026-09-11.)
 
 \subsection{Mean free path}
 \begin{equation}
-\lambda = \frac{\avg v}{\nu_c} = \frac{1}{\sqrt2\, n\sigma\, g(\sigma)}
+\lambda = \frac{\avg v}{\nu_c} = \frac{1}{2\sqrt2\, n\sigma\, g(\sigma)}
 \qquad\xrightarrow{\;\eta\to0\;}\qquad
-\lambda = \frac{\pi}{4\sqrt2}\,\frac{\sigma}{\eta} = 0.555\,\frac{\sigma}{\eta}.
+\lambda = \frac{\pi}{8\sqrt2}\,\frac{\sigma}{\eta} = 0.278\,\frac{\sigma}{\eta}.
 \label{eq:lambda}
 \end{equation}
-(In the chat I quoted $0.278\,\sigma/\eta$; that missed a factor 2. The conclusions below do not change --- every Knudsen number just doubles --- but use \eqref{eq:lambda}.)
+(Check: $\avg v/\nu_c = 1.2533/(8\eta/\sqrt\pi) = 0.278/\eta$. The 2026-09-10 version of this note said $0.555$; that was the factor-2 error in the strip width, and it halved every Knudsen number below.)
 
 \subsection{Knudsen number along route A}
 The Knudsen number compares the mean free path with the container:
 \begin{equation}
-\mathrm{Kn} = \frac{\lambda}{L_0} = \frac{0.555\,\sigma/\eta}{3.927\,\sigma/\eta} = 0.141
+\mathrm{Kn} = \frac{\lambda}{L_0} = \frac{0.278\,\sigma/\eta}{3.927\,\sigma/\eta} = 0.071
 \qquad\text{independent of }\eta\ \text{(dilute-limit }g\text{; at fixed }N=100).
 \label{eq:Kn}
 \end{equation}
-The $\eta$ cancels because both $\lambda$ and $L_0$ scale as $1/\eta$ when $N$ is fixed. Along route A every point has the same ratio ``collisions per crossing'', about $1/\mathrm{Kn} \approx 7$ collisions while a particle crosses the compartment.
+The $\eta$ cancels because both $\lambda$ and $L_0$ scale as $1/\eta$ when $N$ is fixed. Along route A every point has the same ratio ``collisions per crossing'', about $1/\mathrm{Kn} \approx 14$ collisions while a particle crosses the compartment.
 
 \begin{worked}[{Worked numbers at the dilute end}]
-At $\eta = 0.0196$ ($L_0 = 200$): $\lambda = 28\,\sigma$, $\nu_c = 0.046$ per $\sigma$-time (using $Z = 1.040$). The hold before release is $2000\times0.4/24 = 33.3$ $\sigma$-time, \ie $33.3\times0.046 \approx 1.5$ collisions per particle. That is enough only because the velocities are drawn Maxwellian and rescaled to $\kT = 1$ at $t = 0$; the hold does not \emph{create} equilibrium, it preserves it.
+At $\eta = 0.0196$ ($L_0 = 200$): $\lambda = 14\,\sigma$, $\nu_c = 0.090$ per $\sigma$-time (using $Z = 1.040$). The hold before release is $2000\times0.4/24 = 33.3$ $\sigma$-time, \ie $33.3\times0.090 \approx 3$ collisions per particle. That is enough only because the velocities are drawn Maxwellian and rescaled to $\kT = 1$ at $t = 0$; the hold does not \emph{create} equilibrium, it preserves it.
 \end{worked}
 
 \subsection{Reducing the particle number at fixed box: the Knudsen pilot}
@@ -115,12 +115,12 @@ If instead we keep $L_0 = 200$ and lower the number per side, $\eta = N_{\mathrm
 \toprule
 $N_{\mathrm{side}}$ & 50 & 25 & 10 & 5\\
 $\eta$ & 0.0196 & 0.0098 & 0.0039 & 0.0020\\
-$\lambda/\sigma$ & 28 & 57 & 141 & 283\\
-$\mathrm{Kn} = \lambda/L_0$ & 0.14 & 0.28 & 0.71 & 1.4\\
+$\lambda/\sigma$ & 14 & 28 & 71 & 141\\
+$\mathrm{Kn} = \lambda/L_0$ & 0.071 & 0.14 & 0.35 & 0.71\\
 \bottomrule
 \end{tabular}
 
-Between $N_{\mathrm{side}} = 25$ and $10$ the gas stops being a fluid (particles cross the compartment without colliding). This is the regime change of Section~\ref{sec:collisionless}, and it is why ``fewer particles'' is a different experiment from ``lower density''.
+Between $N_{\mathrm{side}} = 10$ and $5$ the gas stops being a fluid (particles cross the compartment with about one collision or none); at $N_{\mathrm{side}} = 25$ it is still on the fluid side, so the pilot needs the $5$ point. This is the regime change of Section~\ref{sec:collisionless}, and it is why ``fewer particles'' is a different experiment from ``lower density''.
 \end{worked}
 
 \section{The collisionless limit: why \texorpdfstring{$c_s \to \sqrt3$, not $\sqrt2$}{cs -> sqrt3, not sqrt2}}
@@ -140,7 +140,7 @@ c_s = \sqrt3 = 1.732\ \text{(collisionless, }\mathrm{Kn}\gg1)
 \qquad\text{vs}\qquad
 c_s = \sqrt2 = 1.414\ \text{(fluid, }\mathrm{Kn}\ll1).
 \end{equation}
-The fluid value needs collisions to share the compression energy between $x$ and $y$ ($\gamma = (d+2)/d = 2$ in $d = 2$). Along route A, $\mathrm{Kn} = 0.14$ at every $\eta$, so route A sits on the fluid side and the measured dilute value $1.47$ at $\eta = 0.02$ is consistent with $\sqrt2(1+2\eta) = 1.47$. The Knudsen pilot would show the crossover $1.41 \to 1.73$ as $N_{\mathrm{side}}$ drops --- a positive control that the method sees $\gamma$, not just a number.
+The fluid value needs collisions to share the compression energy between $x$ and $y$ ($\gamma = (d+2)/d = 2$ in $d = 2$). Along route A, $\mathrm{Kn} = 0.07$ at every $\eta$, so route A sits on the fluid side and the measured dilute value $1.47$ at $\eta = 0.02$ is consistent with $\sqrt2(1+2\eta) = 1.47$. The Knudsen pilot would show the crossover $1.41 \to 1.73$ as $N_{\mathrm{side}}$ drops --- a positive control that the method sees $\gamma$, not just a number.
 
 \section{Sound speed from the equation of state}
 
@@ -404,6 +404,60 @@ Reading: every nat of useless memory the system keeps about the driving costs at
 \item Enough trajectories for the plug-in estimator. Its bias is about $\dfrac{(k_s - 1)(k_x - 1)}{2N_{\mathrm{traj}}}$ nats for $k_s$ state bins and $k_x$ signal bins: with $k_s = 10$, $k_x = 3$ and $N_{\mathrm{traj}} = 10^3$ the bias is $0.009$ nats; with $10^4$ it is $0.001$. That is the scale on which $I_{\mathrm{nost}}$ must sit above zero to mean anything, and it sets the $10^3$--$10^4$ trajectory count.
 \item Small $N$ ($50$--$300$ per side) and $u/c_s\le0.3$, so that $\beta W_{\mathrm{diss}}$ per interval is of order one --- then \eqref{eq:still} is a tight, testable statement rather than $10^3 \ge 0.01$.
 \end{itemize}
+
+
+\section{Paper 2: the ladder from Level 0 to the multi-wall experiment}
+\label{sec:ladder}
+
+\subsection{What a ``ledger'' is}
+A ledger is a bookkeeping table: every unit of energy that enters the box through the piston must be found again somewhere inside it. With elastic walls there are only four places energy can sit --- kinetic energy of the gas, kinetic energy of the movable walls, potential energy of the spring, and (if thermal walls are on) heat that left through them. So
+\begin{equation}
+R(t) \;=\; W_{\mathrm{piston}}(t) \;-\; \Big[\Delta\mathrm{KE}_{\mathrm{gas}} + \Delta\mathrm{KE}_{\mathrm{walls}} + \Delta E_{\mathrm{spring}} + Q\Big](t)
+\end{equation}
+is the amount not accounted for. ``The ledger closes to round-off'' means $R(t)/W$ stays at the level of floating-point noise ($10^{-9}$ in the Level-0 pilot) for the whole run. If it did not, either a term is not being logged or the collision rules are wrong; nothing built on top of the ledger (dissipation, Jarzynski, nostalgia) can be trusted before it closes. The momentum ledger is the same idea for momentum: pair collisions conserve momentum exactly, so the total momentum of gas + walls can change only through impulses at the outer walls and the piston,
+\begin{equation}
+\Delta p_{\mathrm{gas}} + \Delta p_{\mathrm{walls}} \;=\; \sum_{\text{piston hits}} \Delta p \;+\; \sum_{\text{outer-wall hits}} \Delta p .
+\end{equation}
+It catches a class of bug the energy ledger can miss (a two-body rule applied with the wrong mass, or to the wrong partner, can conserve energy and still violate momentum). The outer-wall impulses are the one term not yet logged.
+
+\subsection{The four geometries}
+All with $L_0 = 20$ (box $2L_0 = 40\,\sigma$ wide), $H = 10$, $r = 0.5$, $\kT = 1$, prescribed right piston. Positions are measured from the left outer wall.
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}lp{6.2cm}p{2.6cm}p{5.2cm}@{}}
+\toprule
+ & Geometry (left $\to$ right) & Energy stores & What it measures\\
+\midrule
+A & wall $|$ empty $|$ \textbf{held} wall at $L_0$ $|$ gas $|$ piston & gas only & $W$ vs $W_{\mathrm{qs}}$, $W_{\mathrm{diss}}(u)$, $P(W)$, Jarzynski\\
+B & wall $|$ empty $|$ held wall $|$ gas $|$ \textbf{free} divider $|$ gas $|$ piston & gas 1, divider, gas 2 & transmission through a moving wall\\
+C & wall \textbf{--spring--} free wall at $L_0$ $|$ gas $|$ piston & gas, wall, spring & $E_{\mathrm{spring,max}}/W$: ordered energy delivered\\
+D & wall --spring-- free wall $|$ gas $|$ free divider $|$ gas $|$ piston & all of the above & the energy-transfer experiment proper\\
+\bottomrule
+\end{tabular}
+\end{center}
+A is Level 0 of Section 7: with the divider held (mass factor $10^9$) and no spring, the only store is the gas, so the ledger is a two-term identity and every number has a hand formula. The ``empty left compartment'' in A and B is only there so that the held wall is an ordinary divider object in the code; physically it is a fixed wall. C adds the spring \emph{without} a second gas: a single oscillator (wall + spring) driven by one gas, with a clean prediction for the peak spring energy. B adds a second gas without the spring: a transmission measurement. D is C and B together, and ``more walls'' means more free dividers between the piston and the spring wall.
+
+Order to run them: A (done as the Level-0 pilot; the open item is the $0.2$--$0.3\,\kT$ offset of $W_0$ against $W_{\mathrm{qs}}$), then C, then B, then D. C before B because C has an ordered-energy observable and a one-line prediction; B is needed to interpret D but has no ``efficiency'' of its own.
+
+\subsection{The observable of D and why it is interesting}
+Gas kinetic energy is heat; the divider's kinetic energy comes and goes; the spring is the only place where injected work can sit as \emph{ordered} energy. So the observable is
+\begin{equation}
+\epsilon \;\equiv\; \frac{E_{\mathrm{spring,max}}}{W_{\mathrm{in}}},
+\end{equation}
+the fraction of the piston work that arrives on the far side in usable form; $1-\epsilon$ is the price of transport. $E_{\mathrm{spring,max}}$ is a \emph{peak}: without a latch the spring gives the energy back and the system rings down into heat. Capturing it needs a ratchet or a measurement-triggered latch --- which is where this experiment meets the Szilard one.
+
+Each knob has physics behind it. \textbf{Piston speed:} $u/c_s$ is the dimensionless speed ($c_s$ from Paper~1 is the scale); fast pushes launch a shock that heats gas~1 instead of moving the wall, and Sivak--Crooks \eqref{eq:sivak} says the protocol that minimises $\int\zeta\dot\lambda^2\dd t$ minimises the loss. \textbf{Divider mass:} energy transfer between two colliders is largest when their effective masses match; a gas column has an effective inertia (its acoustic impedance $\rho c_s$), a wall much heavier barely moves, much lighter rattles and reflects. \textbf{Number of walls:} this is impedance matching. Between two mismatched masses, intermediate masses stepped geometrically transmit \emph{more} energy than a direct hit, not less.
+
+\begin{worked}[Why intermediate walls can help: the collision-chain estimate]
+Elastic head-on collision, mass $m_1$ moving into $m_2$ at rest: fraction of kinetic energy transferred $f = \dfrac{4m_1m_2}{(m_1+m_2)^2}$. Take the gas column as $m_1 = 50$ (50 disks) and the spring wall as $m_2 = 1000$: direct, $f = 4\cdot50\cdot1000/1050^2 = 0.18$. Insert one wall of mass $m_{\mathrm{int}} = \sqrt{m_1m_2} = 224$: the two steps give $f_1 = 4\cdot50\cdot224/274^2 = 0.60$ and $f_2 = 4\cdot224\cdot1000/1224^2 = 0.60$, product $0.36$ --- twice the direct transfer. With two intermediate walls at $50\to136\to368\to1000$ (ratio $2.7$ each) the product is $0.45$. The same formula with acoustic impedances $Z_i = \rho_i c_{s,i}$ in place of masses is the transmission coefficient of a sound wave through layers. The estimate is heuristic (a gas is not a rigid body, and the timing of the hits matters), but it gives the prediction to test in D: \emph{wall masses stepped geometrically between the gas inertia and the load raise $\epsilon$; arbitrary intermediate walls only add heat.}
+\end{worked}
+
+\begin{why}
+Paper 2 is not ``push a piston and see what happens''. It is: (i) close the ledger (A); (ii) show that the excess work is dissipation in the linear-response sense, $W_{\mathrm{diss}}\propto u$ with the prefactor $\zeta$ measured independently from fluctuations (A, Section 10); (iii) show how much of it can be delivered as ordered energy and how the protocol, the wall masses and the number of walls change that (C, B, D); (iv) connect the lost part to information (Section 11). Lua--Grosberg is the exact reference at the fast end of (ii) and the simplest instance of (i): one ideal-gas particle, one piston, the work distribution by hand.
+\end{why}
+
+\subsection{Seeding note for Jarzynski}
+\texttt{--seed-drift-order=drift-first} rescales every run to exactly $\kT = 1$. That is what we want for $W_{\mathrm{diss}}$ (no $T_i$ noise), but it is microcanonical in the kinetic energy, and \eqref{eq:jarz} needs canonical initial conditions (Maxwellian velocities \emph{not} rescaled, equilibrated positions). Before any Jarzynski run the seeder needs a canonical option; it is a flag, not physics, but it must exist first.
 
 \section{The chain, in one table}
 \begin{center}
