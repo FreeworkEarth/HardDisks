@@ -228,3 +228,22 @@ The longer the record, the more of that power is resolved into separate bins tha
 the unrestricted largest-bin rule is off by at most 33 % against $w = 3$ at 25 periods and by up to 93 % at 200 periods
 (table 1.1). Short records therefore hide much of the problem, but in our data they do not remove it; a lower edge is
 needed at every record length we use, and the edge adopted in section 1 is verified at both.
+
+**Why Román 2002 apparently did not need this floor (INFERENCE, not stated in his paper).** His
+Ref. 7 is *Numerical Recipes in C*, 2nd ed., chapter 13, whose spectral-estimate routine is the
+**Welch segmented periodogram**: the record is cut into overlapping segments, each is windowed and
+transformed, and the results are averaged. Segmenting has a specific consequence here — the lowest
+frequency a segment can resolve is 1/T_seg, not 1/T, so power below that is not resolved into
+separate bins but folded into the DC/first bin, which is exactly the region his rule discards
+("the nonzero value of the frequency corresponding to the maximum peak"). A segmented estimator
+therefore suppresses the sub-segment low-frequency content that our fixed-record periodogram
+resolves, and the slow divider wander of § 7 would be largely invisible to it.
+
+This is **inference and is tagged as such**: his paper does not state that the record was segmented,
+does not give a segment length, and does not mention windowing or averaging over segments — only
+that 100 independent *trajectories* were averaged. The one supporting detail in the paper is that
+his Fig. 3(b) is plotted from f = 0.02 upward with ν₁ ≈ 0.085, i.e. displayed only above
+≈ ν₁/4.25, which sits inside our flat range [ν_pred/6.25, ν_pred/2.08]; whether that is an axis
+choice or where he searched is not stated. Our records are single fixed-length periodograms, which
+resolve the wander into bins that can outgrow the resonance, so the ν_pred/2.5 floor of § 1 is
+needed instead.

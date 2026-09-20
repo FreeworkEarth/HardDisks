@@ -1,5 +1,13 @@
 # Level 3 v3 — the pre-loaded spring and the one-degree-of-freedom model
 
+> **SUPERSEDED by v4 (2026-09-22).** The adiabatic force table in the model normalised the
+> adiabat at the left edge of the interpolation grid instead of at L, so the ODE drive was
+> ~28 % too weak and the quasi-static fixed point read 0.625 sigma instead of 0.840. Every
+> model number and every sigma distance below is affected: the corrected distances are
+> **1.5-3.0 sigma**, not the 2.8-4.2 quoted here. See `260922_paper2_level3_REPORT_v4.md` §0.
+> Content is left unedited as the record of what was believed on 2026-09-21.
+
+
 2026-09-21. Supersedes v1 (`260920_...`) and v2 (`260921_paper2_level3_REPORT.md`). Runs:
 `experiments_energy_transfer/level3_master_preload_20260921`, 760 trajectories, **0 aborts, 0 health
 events**. Analysis `validation/paper2_level3_v3_20260921.py`.
