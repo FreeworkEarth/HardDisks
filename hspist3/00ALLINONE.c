@@ -2057,12 +2057,18 @@ static void apply_segment_temperatures(const float* temps, size_t temps_count) {
 }
 
 // Energy measurement system
+// ##CHRIS 2026-09-20: the spring diagnostics are now double, and are computed from the EDMD
+// state (divider_x/divider_xeq/divider_k/divider_vx, all double) rather than from the float
+// pixel mirror all_wall_positions[]. That mirror has ~7 significant digits at x ~ 2600 px, i.e.
+// ~1e-5 sigma, which is exactly the 2.5e-6 floor the 2026-09-19 Level 3 pilot hit when it tried
+// to close the ledger. These fields never enter the dynamics -- the spring force is integrated
+// inside EDMD from the same doubles -- so this is a reporting change only.
 typedef struct {
-    float spring_constant;           // Spring constant for leftmost wall
+    float spring_constant;           // Spring constant for leftmost wall (PER PIXEL^2, see below)
     float equilibrium_position;      // Equilibrium position of spring
-    float spring_force;             // Current spring force
-    float spring_energy;            // Potential energy in spring
-    float spring_energy_max;        // Peak potential energy observed
+    double spring_force;            // Current spring force
+    double spring_energy;           // Potential energy in spring
+    double spring_energy_max;       // Peak potential energy observed
     float energy_transferred;       // Total energy transferred to leftmost wall
     float max_displacement;         // Maximum displacement from equilibrium
     bool  eff_enabled;              // Enable efficiency/gain measurement (spring or wall-KE)
@@ -2074,8 +2080,8 @@ typedef struct {
     bool  eff_window_active;
     bool  eff_window_done;
     float eff_piston_stop_time;     // absolute sigma-time when piston motion ended
-    float spring_energy_at_stop;    // SpringE at piston stop (baseline)
-    float spring_energy_peak_window;// Peak SpringE observed during window
+    double spring_energy_at_stop;   // SpringE at piston stop (baseline)
+    double spring_energy_peak_window;// Peak SpringE observed during window
     float spring_energy_peak_window_time; // absolute sigma-time when SpringE_peak_window occurred
 } EnergyMeasurement;
 
@@ -2309,7 +2315,18 @@ static void render_paper_scene(void) {
         int tpx = (int)fmaxf(3.0f, WALL_THICKNESS);
         for (int sg = 0; sg + 1 < segment_count; ++sg) {
             int xc = (int)lroundf(0.5f * (rb[sg] + lb[sg + 1]));
-            double mass = (ep_ && sg < ep_->divider_count) ? ep_->divider_mass[sg] : 0.0;
+            /* ##CHRIS 2026-09-20: take the mass from all_wall_masses[], which is filled for EVERY
+               wall from --wall-mass-factors, and only fall back to the EDMD copy. Reading the EDMD
+               copy first labelled geometry D's free divider "held M = 1e9": in the interactive path
+               only the primary wall's mass reaches ep_->divider_mass[], so the second entry is 0,
+               and 0 means INFINITE mass in EDMD's convention -- the label said held while the run
+               had it moving 1.96 sigma. The physics was right; only the picture lied, which is the
+               second time these labels have misled and the reason they now come from one place. */
+            double mass = 0.0;
+            if (all_wall_masses && sg < num_internal_walls)
+                mass = (double)all_wall_masses[sg] / (double)PARTICLE_MASS;
+            else if (ep_ && sg < ep_->divider_count)
+                mass = ep_->divider_mass[sg];
             int held = (mass <= 0.0 || mass >= 1.0e6);
             SDL_Rect w = { xc - tpx / 2, YW1, tpx, YW2 - YW1 };
             SDL_SetRenderDrawColor(_renderer, wallc.r, wallc.g, wallc.b, 255);
@@ -2346,7 +2363,12 @@ static void render_paper_scene(void) {
         if (font) {
             SDL_Color sc = live ? (SDL_Color){ 30, 140, 70, 255 } : (SDL_Color){ 150, 150, 155, 255 };
             char sb[48];
-            if (live) snprintf(sb, sizeof(sb), "spring k = %.3g", (double)energy_measurement.spring_constant);
+            /* ##CHRIS 2026-09-20: label the spring in kT/sigma^2, not in the internal per-pixel
+               units. The stored constant is per pixel^2, so the figure would have read
+               "k = 0.000858" for a spring whose physical constant is 0.494. */
+            if (live) snprintf(sb, sizeof(sb), "spring k = %.3g kT/sigma^2",
+                               (double)energy_measurement.spring_constant
+                               * (double)PIXELS_PER_SIGMA * (double)PIXELS_PER_SIGMA);
             else      snprintf(sb, sizeof(sb), "spring (held)");
             draw_text(_renderer, font, sb, XW1 + 6, YW2 + 18, sc);
         }
@@ -3375,6 +3397,10 @@ static void print_cli_usage(const char *exe_name) {
     printf("  --spring-wall=INDEX         Declare which wall carries the spring (0-based, left to right).\n");
     printf("                              Without it --spring-k / --spring-eq are inert; the compartment\n");
     printf("                              behind that wall must be empty or the run aborts.\n");
+    printf("  --spring-k-sigma=K          Spring constant in kT/sigma^2 (PHYSICAL units). Prefer this.\n");
+    printf("                              --spring-k is per PIXEL^2, i.e. %g times smaller for the\n",
+           (double)PIXELS_PER_SIGMA * (double)PIXELS_PER_SIGMA);
+    printf("                              same physical spring; it is kept only for old commands.\n");
     printf("  --particles-box-left=n      Shorthand: left count for 2 boxes\n");
     printf("  --particles-box-right=n     Shorthand: right count for 2 boxes\n");
     printf("  --pl-tensor=FILE            Load custom particle-life interaction tensor from file\n");
@@ -3984,6 +4010,25 @@ static void parse_cli_options(int argc, char **argv) {
                 fprintf(stderr, "Unknown seeding mode '%s'. Use: grid, honeycomb, random\n", value);
                 exit(EXIT_FAILURE);
             }
+        } else if (strncmp(arg, "--spring-k-sigma", strlen("--spring-k-sigma")) == 0) {
+            // ##CHRIS 2026-09-20: MUST stay above the --spring-k branch. That branch prefix-matches
+            // on 10 characters, so "--spring-k-sigma" hits it first and this one becomes dead code
+            // -- the same trap that already killed "--seeding" behind "--seed".
+            //
+            // Why the flag exists: --spring-k is PER PIXEL^2, which is not what anybody means by a
+            // spring constant. It cost the 2026-09-19 Level 3 pilot its design: k = 5 was read as
+            // 5 kT/sigma^2 when it is 5*24^2 = 2880 kT/sigma^2, so the quoted wall period
+            // T_w = 39.5 sigma-time was really 1.66 and every cell meant to be impulsive was deep
+            // in the quasi-static regime. Measured on a stored pilot trace: peak at f = 0.6033,
+            // T = 1.657, against 1.656 predicted from k = 2880. This flag takes k in kT/sigma^2.
+            // --spring-k keeps its old meaning so every run made before today still means what its
+            // recorded command line says.
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            if (!value) { fprintf(stderr, "Missing value for --spring-k-sigma\n"); exit(EXIT_FAILURE); }
+            errno = 0; char *endptr = NULL; double v = strtod(value, &endptr);
+            if (errno != 0 || endptr == value) { fprintf(stderr, "Invalid spring-k-sigma '%s'.\n", value); exit(EXIT_FAILURE); }
+            cli_spring_k_set = 1;
+            cli_spring_k = (float)(v / ((double)PIXELS_PER_SIGMA * (double)PIXELS_PER_SIGMA));
         } else if (strncmp(arg, "--spring-k", 10) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
             errno = 0; char *endptr = NULL; float v = strtof(value, &endptr);
@@ -6385,6 +6430,17 @@ void initialize_energy_measurement() {
         energy_measurement.spring_energy_peak_window_time = 0.0f;
         if (!cli_quiet) {
             const char *mode = (cli_eff_output_mode == EFF_OUTPUT_WALL_KE) ? "wall-ke" : "spring";
+        // ##CHRIS 2026-09-20: say the spring constant in BOTH units, every run, plus the wall
+        // period it implies. The pilot's whole design error would have been visible on line one.
+        if (!cli_quiet && cli_eff_output_mode == EFF_OUTPUT_SPRING && energy_measurement.spring_constant > 0.0f) {
+            const double k_px = (double)energy_measurement.spring_constant;
+            const double k_sig = k_px * (double)PIXELS_PER_SIGMA * (double)PIXELS_PER_SIGMA;
+            const double M = (wall_mass_runtime > 0.0) ? (double)wall_mass_runtime : 1.0;
+            const double w = sqrt(k_sig / M);
+            printf("🔩 spring: k = %.6g /px^2 = %.6g kT/sigma^2 | M_wall = %.4g | "
+                   "omega_w = %.5g, T_w = %.5g sigma-time | thermal rms = %.4g sigma\n",
+                   k_px, k_sig, M, w, (w > 0.0 ? 2.0 * M_PI / w : 0.0), sqrt(1.0 / k_sig));
+        }
             printf("🔬 Energy measurement initialized: mode=%s, equilibrium at %.2f\n",
                    mode, energy_measurement.equilibrium_position);
         }
@@ -6409,13 +6465,31 @@ void update_energy_measurement(float dt) {
     //
     // - spring: SpringE = 0.5*k*x^2, SpringF = -k*x
     // - wall-ke: SpringE = 0.5*M_wall*vx_wall^2, SpringF = 0
+    // ##CHRIS 2026-09-20: prefer the EDMD doubles. divider_x/xeq/k/vx are the very numbers the
+    // integrator uses, so the reported energy is the integrated energy to full double precision
+    // instead of a float pixel mirror re-squared. Falls back to the float path when EDMD is not
+    // the active backend, so the non-EDMD modes keep working unchanged.
+    const EDMD_Params *ep_hp = (sim_mode == MODE_EDMD && g_edmd) ? edmd_backend_params(g_edmd) : NULL;
+    int hp_idx = primary_wall_index;
+    if (ep_hp && (hp_idx < 0 || hp_idx >= ep_hp->divider_count)) hp_idx = 0;
+    const int hp_ok = (ep_hp && ep_hp->divider_count > 0);
+
     if (energy_measurement.eff_output_mode == EFF_OUTPUT_SPRING) {
-        energy_measurement.spring_force = -energy_measurement.spring_constant * displacement;
-        energy_measurement.spring_energy = 0.5f * energy_measurement.spring_constant * displacement * displacement;
+        if (hp_ok) {
+            const double dx = ep_hp->divider_x[hp_idx] - ep_hp->divider_xeq[hp_idx];
+            const double k  = ep_hp->divider_k[hp_idx];
+            energy_measurement.spring_force  = -k * dx;
+            energy_measurement.spring_energy = 0.5 * k * dx * dx;
+        } else {
+            energy_measurement.spring_force  = -(double)energy_measurement.spring_constant * (double)displacement;
+            energy_measurement.spring_energy = 0.5 * (double)energy_measurement.spring_constant
+                                             * (double)displacement * (double)displacement;
+        }
     } else {
-        energy_measurement.spring_force = 0.0f;
+        energy_measurement.spring_force = 0.0;
         // vx_wall is the velocity of the primary (leftmost) internal wall
-        energy_measurement.spring_energy = 0.5f * (float)wall_mass_runtime * (float)(vx_wall * vx_wall);
+        const double vw = hp_ok ? ep_hp->divider_vx[hp_idx] : (double)vx_wall;
+        energy_measurement.spring_energy = 0.5 * (double)wall_mass_runtime * vw * vw;
     }
     if (energy_measurement.spring_energy > energy_measurement.spring_energy_max) {
         energy_measurement.spring_energy_max = energy_measurement.spring_energy;
@@ -17011,9 +17085,16 @@ static void run_energy_transfer_experiment(void) {
             for (int s = 1; s < segment_count; ++s) log_right_particles += segment_counts[s];
         }
 
+        // ##CHRIS 2026-09-20: SpringF/SpringE/SpringE_Max widened to %.17g. They are doubles now
+        // (computed from the EDMD state); %.6e threw away everything past the 7th digit and put a
+        // 2.5e-6 floor under the Level 3 ledger. Column order and count are unchanged.
         fprintf(elog,
-                "%.6f, %.6f, %.6e, %.6e, %.6e, %d, %d, %.9e, %.9e, %.9e,"
-                "%.6f, %.6e, %.6f, %.6e, %.6f, %.6e, %.6f, %.6e, %.6f, %.6e,"
+                // ##CHRIS 2026-09-21: the wall VELOCITIES are %.17g as well. They were %.6e, i.e.
+                // 7 digits, and the wall kinetic energy in the Level 3 ledger goes as v^2, so they
+                // put a 2e-7 floor under it -- measured at 1.12e-7 once the spring term was fixed,
+                // against a 1e-8 criterion. Positions stay %.6f; they are not in the ledger.
+                "%.6f, %.6f, %.17g, %.17g, %.6e, %d, %d, %.9e, %.9e, %.17g,"
+                "%.6f, %.17g, %.6f, %.17g, %.6f, %.17g, %.6f, %.17g, %.6f, %.17g,"
                 "%.6f, %.6e, %.6f, %.6e,"
                 "%.6f, %.9e, %.9e, %.9e,",
                 t,

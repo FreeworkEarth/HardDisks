@@ -475,83 +475,95 @@ In between, $\epsilon(\tau_{\mathrm{push}}/T_w)$ interpolates; that curve is the
 % ##CHRIS 2026-09-20: the pass box below replaces the original one, which asked the spring to catch
 % the quasi-static part. The derivation in validation/level3_design_20260920.py shows that cannot
 % work at 10 % compression, for a reason that is arithmetic rather than experimental.
-\subsection{Why the 2026-09-19 pilot could not have passed}\label{sec:l3ceiling}
+\subsection{The apparatus is a PRE-LOADED spring, and that sets the ceiling}\label{sec:l3ceiling}
 
-Quasi-statically the gas and the spring are two springs in \emph{series}. A piston compression
-$\Delta x$ divides between them and the spring takes
+A spring that holds a wall against a gas is not at its natural length. It carries the standing gas
+force $F = N\kT Z/L$, so the wall sits $d = F/k$ from the anchor and the stored energy is
+$E = \tfrac12 k (d+s)^2$ for a further displacement $s$. Expanding,
 \begin{equation}
-x_{\mathrm{eq}} = \Delta x\,\frac{k_{\mathrm{gas}}}{k + k_{\mathrm{gas}}},\qquad
-E_{\mathrm{qs}} = \tfrac12 k\,x_{\mathrm{eq}}^2
-= \tfrac12 k \Delta x^2 \frac{k_{\mathrm{gas}}^2}{(k+k_{\mathrm{gas}})^2}.
-\label{eq:series}
+\Delta E(s) = F s + \tfrac12 k s^2 ,
+\label{eq:preload}
 \end{equation}
-This is \emph{maximal} at $k = k_{\mathrm{gas}}$ --- a stiffer spring barely moves, a softer one
-stores nothing --- and the maximum is
+which is \textbf{first order} in $s$. The $F s$ term is work done lifting a weight --- the most
+classical definition of ordered work output there is, and exactly what a Szilard-type engine is
+judged by. The pre-load cancels out of the \emph{dynamics}, because at $s=0$ the spring's pull
+balances the gas exactly, but it does not cancel out of the \emph{energy}.
+
+The two limits fix the shape of the answer:
+\begin{itemize}\itemsep2pt
+\item $k \to 0$ --- a \textbf{pushrod}. The wall simply follows the piston, $s \to \Delta x$ and
+  $\epsilon \to 1$ trivially. Nothing has been captured \emph{from the gas}; the piston did the work
+  directly.
+\item $k \to \infty$ --- a \textbf{rigid wall}. $s \to 0$ and $\epsilon \to 0$.
+\end{itemize}
+In between, the quasi-static capture is Eq.~\eqref{eq:preload} evaluated at
+$s_{\mathrm{qs}} = \Delta x\,k_{\mathrm{gas}}/(k + k_{\mathrm{gas}})$.
+
+\paragraph{The gas spring is adiabatic, and it is Paper 1's $c_s$.} There is no heat bath in this
+box, so a compression heats the gas and the restoring force rises faster than $Z(\eta)$ alone says.
+With $U = N\kT$ in 2D, $\dd U = -P\,\dd V$ gives $\dd\ln T/\dd\ln L = -Z$, and
 \begin{equation}
-E_{\mathrm{max}} = \frac{k_{\mathrm{gas}}\Delta x^2}{8}
- = \frac{N \kT f^2\,(Z + \eta Z')}{8},\qquad f = \frac{\Delta x}{L}.
-\label{eq:ceiling}
+k_{\mathrm{gas}}^{\mathrm{ad}} = -\frac{\partial F}{\partial L}\bigg|_S
+ = \frac{N\kT}{L^2}\left(Z + \eta Z' + Z^2\right) = \frac{N\kT}{L^2}\,c_s^2 ,
+\label{eq:kgasad}
 \end{equation}
-The capture is \textbf{second order in the compression fraction} $f$ while $W_{\mathrm{qs}}$ is first
-order. That is the whole story: at $f = 0.1$, $N_s = 50$, $\eta = 0.10$, Eq.~\eqref{eq:ceiling}
-gives $E_{\mathrm{max}} = 0.098\,\kT$, and the wall carries $\kT/2$ of thermal energy in that same
-coordinate. The pilot ran $k = 5$, a factor $99$ stiffer than $k_{\mathrm{gas}} = 0.0507$, so its
-prediction was $E_{\mathrm{qs}} = 0.0039\,\kT$ --- $128\times$ below the pedestal. \emph{No choice of
-$k$ rescues it}: the ceiling over all $k$ is still $5\times$ below. The pilot's measured
-$\epsilon = 0.487$ was the pedestal, not a capture. Its numbers stand as the design finding.
+\emph{exactly Paper 1's measured sound speed}. Here that is $0.04938$ against the isothermal
+$0.02457$, a factor $2.01$, and using the isothermal value put the model a factor $2.3$ below the
+measured wall displacement. The adiabat cross-checks independently: it gives $T_f/T_i = 1.1432$ for
+this $10\,\%$ compression against Level 1's measured $1.149$, agreeing to $0.5\,\%$.
 
-Two ways out, and Eq.~\eqref{eq:ceiling} says which is cheap. Raising $f$ works but only as $f^2$:
-$E_{\mathrm{max}} = \kT/2$ needs $f \approx 0.16$ at $N = 100$ or $f \approx 0.07$ at $N = 500$.
-The cheaper route is to stop asking the spring to catch the \emph{quasi-static} part at all.
+\paragraph{Note: why the 2026-09-19 pilot could not pass.} For an \emph{unloaded} spring the $Fs$
+term is absent and $\Delta E = \tfrac12 k s^2$ is second order, maximal at $k = k_{\mathrm{gas}}$
+with $E_{\mathrm{max}} = k_{\mathrm{gas}}\Delta x^2/8 = N\kT f^2 c_s^2/8$ --- $0.098\,\kT$ at
+$f = 0.1$, against a $\kT/2$ thermal pedestal. No choice of $k$ rescues it. That is the pilot, and
+its numbers stand as the design finding. It also cannot be built: the static offset at
+$k = k_{\mathrm{gas}}$ is $F/k_{\mathrm{gas}} = L\,Z/(Z+\eta Z') = 0.816\,L$ \emph{independent of
+$N$}, so the stiffness that maximises unloaded capture is the one at which the spring cannot be
+statically balanced inside its own apparatus.
 
-\subsection{Where Level 3 actually lives: the acoustic pulse}\label{sec:l3acoustic}
+\paragraph{Units trap, fixed.} \cmd{--spring-k} is per \textbf{pixel$^2$}, not per $\sigma^2$ --- a
+factor $24^2 = 576$. The pilot's $k = 5$ was $2880\,\kT/\sigma^2$, so its quoted $T_w = 39.5$ was
+really $1.66$ and every cell it believed impulsive was quasi-static. Confirmed two ways:
+equipartition gives implied $k = 2885$, and the measured wall period is $1.657$ against $1.656$
+predicted. Use \cmd{--spring-k-sigma}, which takes $\kT/\sigma^2$; \cmd{--spring-k} is kept
+unchanged so older commands still mean what they say.
 
-Level 2 measured what a stepped piston launches \emph{beyond} $W_{\mathrm{qs}}$: $A u^2$ with
-$A_{\mathrm{step}} = 25.9 \pm 4.3$. That excess is coherent acoustic energy --- precisely the
-``ordered energy before it thermalises'' this ladder exists to chase --- and it clears the $\kT/2$
-pedestal at $u \ge 0.2$ ($A u^2 = 1.04, 6.5, 25.9\,\kT$ at $u = 0.2, 0.5, 1.0$). The wall is then a
-mass-loaded acoustic termination and the share a pulse can deposit is
+\subsection{What replaces the impedance criterion}\label{sec:l3acoustic}
+
+It is not impedance matching. The maximum of $\epsilon_{\mathrm{coh}}$ tracks
+$\tau_{\mathrm{push}}/T_w$, not $Z_w/Z_g$: that is a driven oscillator, where a pressure rise
+applied faster than the wall's period overshoots up to twice the static displacement and one applied
+slower is followed quasi-statically. The acoustic pulse ($Au^2 \approx 1\,\kT$ at $u = 0.2$) is a
+small correction to a $16\,\kT$ bulk pressure rise, so an impedance formula for the pulse was never
+going to be the controlling physics.
+
+The prediction is a one-degree-of-freedom model with \textbf{no free parameter}:
 \begin{equation}
-\mathcal T_{\mathrm{imp}} = \frac{4 Z_w Z_g}{(Z_w + Z_g)^2},\qquad
-Z_g = \rho\,c_s H,\qquad Z_w = M_s \omega_w = \sqrt{M_s (k + k_{\mathrm{gas}})},
-\label{eq:imp}
+M \ddot s = F_{\mathrm{ad}}(L - x_p(t) + s) - F_{\mathrm{ad}}(L) - k s , \qquad
+x_p(t) = \min(u t, \Delta x), \quad s(0) = \dot s(0) = 0,
+\label{eq:onedof}
 \end{equation}
-maximal at $Z_w = Z_g$.
+with $F_{\mathrm{ad}}$ the exact adiabatic gas force and $E_{\mathrm{max}} = \max_t \Delta E(s(t))$.
 
-\textbf{A trap this calculation exposed.} In geometry C of the master box ($N = 100$ over
-$L = 78.5\,\sigma$) $k_{\mathrm{gas}} = 0.0246$, \emph{half} the pilot's $0.0507$ --- doubling both
-$N$ and $L$ halves $k_{\mathrm{gas}} \propto N/L^2$. And with $M_s = 200$, Eq.~\eqref{eq:imp} is
-already matched at $k \approx 0$: $Z_w/Z_g = \sqrt{M_s(Z+\eta Z')/N}/c_s = 0.998$. So at
-$M_s = 200$ the impedance optimum and the quasi-static optimum \emph{coincide}, both at the soft
-end, and a $k$ scan alone cannot tell the two predictions apart. It also means the soft end is
-unrunnable for a different reason: the wall's thermal excursion $\sqrt{\kT/(k+k_{\mathrm{gas}})}$ is
-$4.5\,\sigma$ at $k = k_{\mathrm{gas}}$, comparable to the $10\,\sigma$ spring compartment.
-
-The discriminating knob is therefore $M_s$, not $k$: Eq.~\eqref{eq:series} does not contain $M_s$ at
-all, so a scan at fixed $k$ leaves the quasi-static prediction flat while Eq.~\eqref{eq:imp} predicts
-an interior maximum. At $k = 0.5$ the match sits at $M_s \approx 9.4$.
-
-\begin{run}[What we run (2026-09-20)]
+\begin{run}[What we run (2026-09-21)]
 Master box, geometry C (divider removed, one gas of 100 disks, $\eta = 0.1001$,
-$\Delta x = 7.96\,\sigma$ = 10\,\%), step protocol, 40 seeds per cell, event log on, trace
-$200\,\sigma$-time past the stop.
-\textbf{(a) $k$ ladder:} $k \in \{0.05, 0.5, 5\}$ $\times$ $u \in \{0.1, 0.2, 0.5, 1.0\}$.
-\textbf{(b) $M_s$ ladder} at fixed $k = 0.5$: $M_s \in \{2, 10, 50, 1000\}$ $\times$
-$u \in \{0.2, 0.5, 1.0\}$, which brackets the impedance match at $M_s \approx 9.4$ while
-$E_{\mathrm{qs}}$ stays fixed at $0.035\,\kT$.
-Primary observable is the \textbf{ensemble-mean} $E_{\mathrm{spring}}(t)$; the per-seed maximum is
-the wrong estimator and the pilot showed why (it is $\sim 3\times$ the coherent peak, because it
-samples the tail of the pedestal).
+$\Delta x = 7.96\,\sigma$ = 10\,\%), spring \textbf{pre-loaded} at wall $+ F/k = 33.65\,\sigma$,
+$k = 0.5\,\kT/\sigma^2$, step protocol, 40 seeds per cell, event log on, trace $200\,\sigma$-time
+past the stop. $M_s \in \{2,10,50,200,1000\}$ at $u \in \{0.2, 0.5, 1.0\}$, plus $u \in \{0.05,0.1\}$
+at $M_s \in \{50,200\}$ to anchor the quasi-static end: 760 runs.
+$M_s$ is the discriminator because Eq.~\eqref{eq:preload} contains no $M_s$ while
+Eq.~\eqref{eq:onedof} does.
+Primary observable is the \textbf{ensemble-mean} $E_{\mathrm{spring}}(t)$, baseline and
+peak-picking bias both taken from the causally blind window $t < 0.4\,L/c_s$ after the push starts.
 \end{run}
-\begin{pass}[Pass criterion (2026-09-20)]
-(i) The ledger \eqref{eq:ledgerE} closes with the spring term to $10^{-8}$.
-(ii) The coherent peak $E_{\mathrm{coh}}$ of the seed-averaged $E_{\mathrm{spring}}(t)$ stands more
-than $3\sigma$ above the pre-push pedestal in every cell with $u \ge 0.2$.
-(iii) $\epsilon_{\mathrm{coh}} = E_{\mathrm{coh}}/\avg{W_{\mathrm{in}}}$ has an interior maximum in
-the $M_s$ ladder at the $M_s$ nearest the impedance match, which Eq.~\eqref{eq:series} cannot
-produce. Report ring-down time and the final energy split as before.
+\begin{pass}[Pass criterion (2026-09-21)]
+(i) The ledger closes with the spring term to $10^{-8}$.
+(ii) The coherent peak stands $>3\sigma$ above the pedestal.
+(iii) Eq.~\eqref{eq:onedof} reproduces $\Delta E_{\mathrm{coh}}(M_s, u)$ within $2\sigma$ at the
+speeds where the gas is genuinely quasi-static, $\tau_{\mathrm{push}} > L/c_s$ (i.e. $u \le 0.1$).
+At $u \ge 0.2$ the deviation is \emph{reported} as the acoustic contribution, measured rather than
+assumed, with no pass claimed.
 \end{pass}
-
 \section{Level 4 --- geometry B: transmission through a free divider}
 
 \begin{why}

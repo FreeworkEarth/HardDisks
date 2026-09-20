@@ -21,11 +21,11 @@
 # ---------------------------------------------------------------------------------------------
 # THE MASTER BOX -- one apparatus, four geometries. All of Paper 2 runs in this box.
 #
-#   |<-- 10 sigma empty -->|  wall_S  |<-- gas 1, 38.75 x 10 -->| divider |<-- gas 2, 38.75 x 10 -->| piston
-#   0                    10.0      11.0                      49.75     50.75                     89.50
+#   |<-- 30 sigma empty -->|  wall_S  |<-- gas 1, 38.75 x 10 -->| divider |<-- gas 2, 38.75 x 10 -->| piston
+#   0                    30.0      31.0                      69.75     70.75                    109.50
 #
-#   --l0=44.75 (the binary doubles it: box 0 .. 89.50), --height=10, wall thickness 1.0 (default),
-#   wall_S centre 10.5, divider centre 50.25, 50 disks per gas -> eta = 0.1013.
+#   --l0=54.75 (the binary doubles it: box 0 .. 109.50), --height=10, wall thickness 1.0 (default),
+#   wall_S centre 30.5, divider centre 70.25, 50 disks per gas -> eta = 0.1013.
 #   The spring lives in the left compartment, which is ALWAYS empty: no gas ever touches it.
 #
 #   A  wall_S held, divider held           <- what Levels 0-2 measured
@@ -37,7 +37,7 @@
 #   compartment (eta 0.101 -> 0.113), dx = 7.96 sigma for geometry C's 78.5 sigma gas.
 #
 # GRID TRAP: every wall position and the box length must be an integer number of 1/24 sigma, or
-# the binary aborts with [initial_wall_position_mismatch]. 10.5, 50.25, 44.75 all are. The piston
+# the binary aborts with [initial_wall_position_mismatch]. 30.5, 70.25, 54.75 all are. The piston
 # travel is NOT subject to this -- 3.93 is fine.
 # ---------------------------------------------------------------------------------------------
 set -uo pipefail
@@ -64,9 +64,9 @@ FAILED=()
 cd "$HS" || exit 1
 
 # ---- the master box, as shell arrays so no step can drift from another -----------------------
-BOX=(--particle-radius=0.5 --l0=44.75 --height=10)
-GAS2=(--particles=100 --particles-boxes=0,50,50 --num-walls=2 --wall-positions=10.5,50.25)
-GAS1=(--particles=100 --particles-boxes=0,100  --num-walls=1 --wall-positions=10.5)
+BOX=(--particle-radius=0.5 --l0=54.75 --height=10)
+GAS2=(--particles=100 --particles-boxes=0,50,50 --num-walls=2 --wall-positions=30.5,70.25)
+GAS1=(--particles=100 --particles-boxes=0,100  --num-walls=1 --wall-positions=30.5)
 HELD=1000000000
 RUN=(--mode=edmd --experiment=energy_transfer --headless --quiet --edmd-acc=0
      --seed-drift-order=drift-first --fixed-dt=0.4 --kbt1 --energy-measurement)
@@ -145,10 +145,10 @@ step2(){ hdr 2 "geometries A B C D start up" \
     case $g in
       A) cell "$d" 0.05 17000 1 "${GAS2[@]}" --wall-mass-factors=$HELD,$HELD --eff-output=wall-ke --max-right-piston-travel=$DX ;;
       B) cell "$d" 0.05 17000 1 "${GAS2[@]}" --wall-mass-factors=$HELD,1000 --eff-output=wall-ke --max-right-piston-travel=$DX ;;
-      C) cell "$d" 0.05 20000 1 "${GAS1[@]}" --wall-mass-factors=200 --spring-k=5 --spring-wall=0 \
-              --spring-eq=10.5 --eff-output=spring --max-right-piston-travel=$DXC ;;
-      D) cell "$d" 0.05 20000 1 "${GAS2[@]}" --wall-mass-factors=200,1000 --spring-k=5 --spring-wall=0 \
-              --spring-eq=10.5 --eff-output=spring --max-right-piston-travel=$DX ;;
+      C) cell "$d" 0.05 20000 1 "${GAS1[@]}" --wall-mass-factors=200 --spring-k-sigma=0.494 --spring-wall=0 \
+              --spring-eq=30.5 --eff-output=spring --max-right-piston-travel=$DXC ;;
+      D) cell "$d" 0.05 20000 1 "${GAS2[@]}" --wall-mass-factors=200,1000 --spring-k-sigma=0.494 --spring-wall=0 \
+              --spring-eq=30.5 --eff-output=spring --max-right-piston-travel=$DX ;;
     esac
     CUR="2$g"; printf "  %s: " "$g"; health "$d/run.log" 1 "$d/tr_*.csv" || ok=0
   done
@@ -258,8 +258,8 @@ step6(){ hdr 6 "Level 3 -- the spring captures some of it" \
   local u
   for u in 0.02 0.20; do
     local st=20000; [ "$u" = 0.02 ] && st=40000
-    cell "$OUT/step6/u$u" "$u" "$st" "$SEEDS" "${GAS1[@]}" --wall-mass-factors=200 --spring-k=5 \
-         --spring-wall=0 --spring-eq=10.5 --eff-output=spring --max-right-piston-travel=$DXC
+    cell "$OUT/step6/u$u" "$u" "$st" "$SEEDS" "${GAS1[@]}" --wall-mass-factors=200 --spring-k-sigma=0.494 \
+         --spring-wall=0 --spring-eq=30.5 --eff-output=spring --max-right-piston-travel=$DXC
   done
   health "$(cat $OUT/step6/u*/run.log > $OUT/step6/all.log; echo $OUT/step6/all.log)" \
          $((2 * SEEDS)) "$OUT/step6/u*/tr_*.csv" || return
