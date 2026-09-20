@@ -73,6 +73,10 @@ def _T_of(Lt):
     lnL = np.log(_LG / L)
     Zs = np.array([sos.Z_kolafa_rottner_2006(N * math.pi * R * R / (x * H)) for x in _LG])
     lnT = np.concatenate([[0.0], np.cumsum(-0.5 * (Zs[1:] + Zs[:-1]) * np.diff(lnL))])
+    # ##CHRIS 2026-09-22 BUGFIX: normalise the adiabat at L, not at the grid's left edge.
+    # Without this every force carries a constant ~0.72 factor and the drive F_ad(L') - F_ad(L)
+    # is ~28 % too weak; the quasi-static fixed point read 0.625 sigma instead of 0.840.
+    lnT = lnT - np.interp(L, _LG, lnT)
     return np.exp(lnT)
 _TG = _T_of(_LG)
 _FG = np.array([N * _TG[i] * sos.Z_kolafa_rottner_2006(N * math.pi * R * R / (_LG[i] * H)) / _LG[i]

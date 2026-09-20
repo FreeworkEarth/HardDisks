@@ -1,26 +1,28 @@
-% ##CHRIS 2026-09-19: Paper 1 skeleton. Every number here is pulled from
-% ../experiments/final/260919_A1v2_final_cs_vs_eta.csv, ../experiments/final/260917_A2_cs_vs_N_extrapolation.csv
-% and ALL_MARKDOWNS/260913_tests_STATUS.md. Sentences that make a claim carry a % TODO-source line
-% naming the file the number came from, so nothing enters the text unsourced.
-\documentclass[11pt,a4paper]{article}
-\usepackage[margin=2.4cm]{geometry}
+% ##CHRIS 2026-09-22: converted to IEEEtran (journal, two columns). Content unchanged except where
+% marked; the B1 Roman re-mapping section is new. Every claim still carries its % TODO-source line.
+\documentclass[journal]{IEEEtran}
 \usepackage{amsmath,amssymb,booktabs,graphicx,microtype}
 \usepackage[dvipsnames]{xcolor}
 \usepackage[colorlinks=true,linkcolor=NavyBlue,urlcolor=NavyBlue]{hyperref}
 \newcommand{\kT}{k_{\mathrm B}T}
 \newcommand{\avg}[1]{\left\langle #1 \right\rangle}
 \graphicspath{{../experiments/final/}}
-\setlength{\parskip}{4pt}\setlength{\parindent}{0pt}
+
+\begin{document}
 
 \title{The speed of sound in a two-dimensional hard-disk gas:\\
 a divider-mode measurement against the equation of state}
-\author{C.\ Haring}
-\date{Draft, \today}
 
-\begin{document}
+\author{Christoph~Haring \and Susanne~Still%
+\thanks{The authors are with the Department of Information and Computer Sciences,
+University of Hawai\`i at M\=anoa, Honolulu, HI 96822 USA
+(e-mail: charing@hawaii.edu; sstill@hawaii.edu).}}
+
 \maketitle
 
+
 \begin{abstract}
+
 % TODO-source: numbers below from 260919_A1v2_final_cs_vs_eta.csv (35 densities, 7873 trajectories)
 We measure the adiabatic speed of sound of a hard-disk fluid from the eigenfrequency of a massive
 divider separating two compartments, the method of Rom\'an et al. (2002), over 35 packing fractions
@@ -32,6 +34,10 @@ size along a ladder of $N = 100$--$2500$ brings it to $\lesssim 1\,\%$. We give 
 the estimator and its sensitivity, and a divider linewidth that recovers the Enskog transport
 coefficient of the same gas.
 \end{abstract}
+\begin{IEEEkeywords}
+hard-disk fluid, speed of sound, event-driven molecular dynamics, equation of state, finite-size scaling
+\end{IEEEkeywords}
+
 
 \section{Introduction}
 % TODO-source: motivation paragraph, no numbers yet
@@ -73,13 +79,13 @@ $\alpha$ ($14.4\sigma$), while the largest bin is flat, $-0.030 \pm 0.029\,\%$ (
 The fit is the more precise estimator and the more biased one.
 
 \section{Results}
-\begin{figure}[htbp]\centering
-\includegraphics[width=\linewidth]{260919_cs_vs_eta.pdf}
+\begin{figure*}[t]\centering
+\includegraphics[width=0.86\textwidth]{260919_cs_vs_eta.pdf}
 \caption{$c_s(\eta)$ at $N = 100$ against three equations of state. Shading marks the approximate
-regimes; only $0.700/0.716/0.720$ are physical transitions. Above $\eta = 0.65$ the compartment is
-$6\,\sigma$ wide and the structure changes during the measurement, so those points are not
-fluid-branch values.}
-\end{figure}
+regimes; only $0.700/0.716/0.720$ are physical transitions. Points beyond $\eta \approx 0.69$ lie in
+the coexistence/ordering region where no fluid reference exists; they are shaded as such and are
+not counted as a deviation from Kolafa--Rottner.}
+\end{figure*}
 
 % TODO-source: 260919_A1v2_final_cs_vs_eta.csv, column dev_KR_pct
 Over $\eta \le 0.4$ the measurement sits $+1.04\,\%$ above Kolafa--Rottner on average, with a maximum
@@ -92,7 +98,7 @@ contract.
 systems agree with it within their errors, so the offset is finite size.}
 \end{figure}
 
-\section{Finite size}
+\section{Finite size}\label{sec:finitesize}
 % TODO-source: 260917_A2_cs_vs_N_extrapolation.csv
 Along $N = 100, 400, 900, 1600$ (and 2500 where available) at fixed $\eta$, $c_s(N)$ is fitted with
 $c_\infty + b/\sqrt N$; the two other forms ($b/N$ and both together) bracket the systematic.
@@ -119,6 +125,61 @@ seed-averaged spectrum, with the bin width removed in quadrature, gives
 $\Gamma = 0.314 \pm 0.038$ at $\eta = 0.112$, against the Enskog value $0.331$ --- consistent within
 its $12\,\%$ error. The $M = 50$ row ($\alpha = 0.5$) fails the $K \ll 1$ assumption and is excluded;
 the $M = 500$ row is $0.59$ of prediction and is not explained.
+
+
+\section{Comparison with Rom\'an et al. (2002)}\label{sec:roman}
+% TODO-source: validation/roman2002_remapped_20260922.py; his Table I, p. 850;
+% figure 260922_roman2002_remapped_vs_KR
+Rom\'an et al.\ measured the same observable in the same box ($N_s = 50$ per side, $H = 10$) and
+report $c_s$ lying above spt and Henderson by an amount that \emph{grows} with density, from
+$+1.3\,\%$ at $\eta = 0.112$ to $+12.8\,\%$ at $0.524$. That growth is the mapping, not the data.
+They convert $Z$ to $c_s$ with a constant $\gamma = 2$; the correct adiabatic relation for a
+two-dimensional monatomic hard-disk fluid is $c_s^2 = (\kT/m)[Z + \eta Z' + Z^2]$.
+
+Re-mapping their own numbers through it, against Kolafa--Rottner:
+
+\begin{table}[h]
+\centering
+\caption{Rom\'an et al.\ (2002) Table I re-mapped. $\eta$ is recomputed from their $L_0$.}
+\label{tab:roman}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+$L_0$ & $\eta$ & $c_s$ (theirs) & dev., $\gamma=2$ & dev., adiabatic \\
+\midrule
+7.5  & 0.5236 & $5.99 \pm 0.09$ & $+10.6\,\%$ & $+1.0\,\%$ \\
+10   & 0.3927 & $3.78 \pm 0.08$ & $+5.5\,\%$  & $+0.9\,\%$ \\
+15   & 0.2618 & $2.61 \pm 0.03$ & $+3.3\,\%$  & $+1.5\,\%$ \\
+20   & 0.1963 & $2.20 \pm 0.02$ & $+1.9\,\%$  & $+0.9\,\%$ \\
+25   & 0.1571 & $2.01 \pm 0.02$ & $+1.9\,\%$  & $+1.3\,\%$ \\
+30   & 0.1309 & $1.89 \pm 0.02$ & $+1.5\,\%$  & $+1.1\,\%$ \\
+35   & 0.1122 & $1.81 \pm 0.02$ & $+1.3\,\%$  & $+1.0\,\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Their density-dependent excess becomes a \emph{flat} $+1.10\,\%$ (spread $+0.91$ to $+1.46\,\%$),
+and our $N = 100$ curve sits $+1.04\,\%$ above the same equation of state averaged over
+$\eta \le 0.4$. Two independent implementations, twenty-four years apart, in the same box, with the
+same offset: that makes the $+1\,\%$ a property of the $N = 100$ divider apparatus rather than of
+either code. Their own size series (Table II, $N = 64 \to 4096$, $c_s = 3.81 \to 3.75$ extrapolating
+to $3.74$) falls in the same direction as ours (\S\ref{sec:finitesize}).
+
+As a transcription check, their spt and Henderson columns are reproduced to every printed digit by
+the equation-of-state code used here together with their $\gamma = 2$ mapping.
+
+The one point where the two measurements differ is $\eta \approx 0.52$: ours sits $+2.6\,\%$ and
+theirs $+1.0 \pm 1.5\,\%$, which is $1.1\sigma$ on their error bar alone, with 100 trajectories
+against our 25.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{260922_roman2002_remapped_vs_KR.pdf}
+\caption{Rom\'an et al.\ re-mapped. Solid red, Kolafa--Rottner through the adiabatic relation;
+dashed red, the same equation of state through their $\gamma = 2$ mapping; black squares, their
+Table I with their error bars; blue, this work at $N = 100$. Lower panel: deviation from
+Kolafa--Rottner, with their own mapping shown in grey for comparison.}
+\label{fig:roman}
+\end{figure}
 
 \section{Methods}
 Health contract, seeding, sampling, record length, discard rule.

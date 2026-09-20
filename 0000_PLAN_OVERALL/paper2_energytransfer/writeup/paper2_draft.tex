@@ -1,8 +1,6 @@
-% ##CHRIS 2026-09-19: Paper 2 skeleton, organised as the proof ladder. Levels 0-2 carry the measured
-% numbers; Levels 3-6 are headed placeholders with the pass criteria from the plan. Every claim has a
-% % TODO-source line naming where the number came from.
-\documentclass[11pt,a4paper]{article}
-\usepackage[margin=2.4cm]{geometry}
+% ##CHRIS 2026-09-22: converted to IEEEtran (journal, two columns). Level 3 box added, marked
+% "v4 pending". Every claim carries its % TODO-source line.
+\documentclass[journal]{IEEEtran}
 \usepackage{amsmath,amssymb,booktabs,graphicx,microtype,enumitem}
 \usepackage[dvipsnames]{xcolor}
 \usepackage[colorlinks=true,linkcolor=NavyBlue,urlcolor=NavyBlue]{hyperref}
@@ -10,14 +8,19 @@
 \newcommand{\avg}[1]{\left\langle #1 \right\rangle}
 \newcommand{\dd}{\mathrm{d}}
 \graphicspath{{../experiments/final/}}
-\setlength{\parskip}{4pt}\setlength{\parindent}{0pt}
-
-\title{Where injected work goes in a hard-disk box:\\ a proof ladder for an energy-transfer experiment}
-\author{C.\ Haring}
-\date{Draft, \today}
 
 \begin{document}
+
+\title{Where injected work goes in a hard-disk box:\\
+a proof ladder for an energy-transfer experiment}
+
+\author{Christoph~Haring \and Susanne~Still%
+\thanks{The authors are with the Department of Information and Computer Sciences,
+University of Hawai\`i at M\=anoa, Honolulu, HI 96822 USA
+(e-mail: charing@hawaii.edu; sstill@hawaii.edu).}}
+
 \maketitle
+
 
 \begin{abstract}
 A piston compresses a hard-disk gas in a closed box. We ask what fraction of the injected work can
@@ -30,13 +33,27 @@ autocorrelation of a held piston integrates to zero at the sound traversal time,
 cost is second order, $\avg W - W_{\mathrm{qs}} = A u^2$, of which roughly half is energy the
 protocol itself launches.
 \end{abstract}
+\begin{IEEEkeywords}
+hard-disk fluid, energy transfer, event-driven molecular dynamics, dissipation, adiabatic piston
+\end{IEEEkeywords}
+
 
 \section{The box and the ladder}
 Geometry A: two compartments of $N_s = 50$ disks either side of an immovable divider, a piston on the
 right. $\kT = m = \sigma = 1$, $H = 10$, compartment $38.75\,\sigma$, gas compression
 $\Delta x = 3.93\,\sigma$.
 % TODO-source: geometry established in section 1 of 260919_paper2_ramp_linewidth_fast_REPORT.md
-\begin{center}\includegraphics[width=0.92\linewidth]{260919_demo_geomA.png}\end{center}
+\begin{figure*}[t]\centering
+\includegraphics[width=0.48\textwidth]{260920_master_geomA_paper.png}\hfill
+\includegraphics[width=0.48\textwidth]{260920_master_geomB_paper.png}\\[3pt]
+\includegraphics[width=0.48\textwidth]{260920_master_geomC_paper.png}\hfill
+\includegraphics[width=0.48\textwidth]{260920_master_geomD_paper.png}
+\caption{The master box, one apparatus with elements switched on. A (top left) both walls held, as
+Levels 0--2 were measured; B (top right) divider free; C (bottom left) divider removed, one gas
+driving the spring-loaded wall; D (bottom right) both free. Held walls are drawn solid and labelled
+by mass, free walls hollow; the spring is grey when held and green when live.}
+\label{fig:geoms}
+\end{figure*}
 
 \section{Level 0 --- the ledger closes}
 $R_E = W - [\Delta KE_{\mathrm{gas}} + \Delta KE_{\mathrm{walls}} + \Delta E_{\mathrm{spring}} + Q]$
@@ -88,13 +105,31 @@ Using the measured count the ratio becomes $0.96$--$1.03$ with no trend.
 point scaled to a common travel, with the travel scan at right.}
 \end{figure}
 
-\section{Level 3 --- can a spring capture it?}
-\emph{Not started.} Geometry C: one gas drives a spring-loaded wall.
-\textbf{Pass criterion:} $E_{\mathrm{spring,max}}$ agrees with the quasi-static prediction
-$\tfrac12 k x_{\mathrm{eq}}^2$ when $\tau_{\mathrm{push}} \gg T_w$ and with
-$\frac{k}{k + k_{\mathrm{gas}}}\frac{\Delta p_w^2}{2M}$ when $\tau_{\mathrm{push}} \ll T_w$, each
-within $2\sigma$.
-% TODO-source: plan 260916 section Level 3
+\section{Level 3 --- can a spring capture it?}\label{sec:l3}
+\emph{Open; v4 pending.} Geometry C: one gas of 100 disks drives a spring-loaded wall through a
+10\,\% compression ($\Delta x = 7.96\,\sigma$, $\eta$ $0.100 \to 0.111$).
+% TODO-source: 260921_paper2_level3_REPORT_v3.md, 260922_paper2_level3_REPORT_v4.md
+
+\textbf{The apparatus is a pre-loaded spring.} It holds the standing gas force
+$F = N\kT Z/L$, so the wall sits $d = F/k$ from the anchor and
+$\Delta E = F s + \tfrac12 k s^2$ is \emph{first} order in the wall displacement --- the $Fs$ term
+is work lifting a weight. Limits: $k \to 0$ is a pushrod ($\epsilon \to 1$ trivially, nothing taken
+from the gas), $k \to \infty$ a rigid wall ($\epsilon \to 0$).
+
+\textbf{The gas spring is adiabatic, and it is Paper 1's $c_s$.} With $U = N\kT$ in 2D,
+$\dd U = -P\,\dd V$ gives $\dd\ln T/\dd\ln L = -Z$ and
+$k_{\mathrm{gas}} = (N\kT/L^2)\,c_s^2$ --- which is also the heavy-divider limit of
+Rom\'an's $\cot K = \alpha K$, so the two papers share one line of physics. It is $2.01\times$ the
+isothermal stiffness here, and the adiabat reproduces Level 1's measured $T_f/T_i = 1.149$ to
+$0.5\,\%$.
+
+\textbf{Status.} The ledger closes (median $4.6\times10^{-10}$, 593/600 below $10^{-8}$) and the
+coherent peak stands $6.8$--$31\sigma$ above the pedestal. A parameter-free one-degree-of-freedom
+model $M\ddot s = F_{\mathrm{ad}}(L - x_p + s) - F_{\mathrm{ad}}(L) - k s$ reproduces the
+\emph{settled} wall displacement to $8$--$10\,\%$ but under-predicts the \emph{peak} by
+$19$--$57\,\%$. The residual is therefore entirely in the transient, and it is the acoustic pulse:
+the model is undamped, so it already gives the largest overshoot a linear system can. Closing it
+needs the wall's radiation reaction in the drive.
 
 \section{Level 4 --- transmission through a free divider}
 \emph{Not started.} Fast pressure channel against slow heat channel;
@@ -105,7 +140,7 @@ $\mathcal{T}_{\mathrm{slow}} \to 1/2$ for symmetric gases.
 \emph{Not started.} $\epsilon = E_{\mathrm{spring,max}}/W_{\mathrm{in}}$ against piston speed,
 divider mass and the number of walls; the prediction is the \emph{ordering}, geometric intermediate
 masses beating badly matched ones.
-\begin{center}\includegraphics[width=0.92\linewidth]{260919_demo_geomD.png}\end{center}
+
 
 \section{Level 6 --- information}
 \emph{Not started, and gated on a canonical seeder.} $\beta\avg{W_{\mathrm{diss}}} \ge
