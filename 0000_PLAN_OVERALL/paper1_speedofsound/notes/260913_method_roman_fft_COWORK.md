@@ -247,3 +247,15 @@ his Fig. 3(b) is plotted from f = 0.02 upward with ν₁ ≈ 0.085, i.e. display
 choice or where he searched is not stated. Our records are single fixed-length periodograms, which
 resolve the wander into bins that can outgrow the resonance, so the ν_pred/2.5 floor of § 1 is
 needed instead.
+
+**Slow-mode origin (2026-09-24, B2 closed).** The canonical A1 v2 traces carry `Time, Wall_X,
+Displacement, Left_Count, Right_Count, L0, eta, Center_X, Seed, Target_Oscillations,
+Predicted_Frequency, Planned_Steps, Planned_Duration` — particle counts only, with no
+per-compartment kinetic temperature and no release snapshot — so the regression of the slow-mode
+variance fraction on (ΔT/T)² cannot be done over the canonical seeds and is not pursued further.
+The mechanism is nevertheless directly evidenced by the dedicated 5-seed test in § 7.2, which logged
+KE_L and KE_R: the slow mode correlates with the compartment temperature difference at r = +0.978,
+and its amplitude is reproduced to 6–7 % by x = (L₀/2)(ΔT/T)·Z/(Z+ηZ′), with the expected
+instantaneous imbalance √(2/N_s) ≈ 20 %. Origin is therefore the adiabatic-piston relaxation from
+the release-time temperature imbalance, stated on that evidence. **`log T_1, T_2 at release` is added
+to the KOA campaign list** so the regression can be done properly on the next campaign.
