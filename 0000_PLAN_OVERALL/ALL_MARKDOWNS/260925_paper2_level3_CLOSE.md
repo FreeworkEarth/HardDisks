@@ -88,33 +88,30 @@ geometry, a different observable and a different analysis.
 **Fixed point from the measured adiabat: s_qs = 0.8819**, against the pooled measurement
 0.8705 ± 0.0049: **−1.29 %, 2.3σ** (bulk KR gave +3.59 %, 6.1σ).
 
-### And the answer to the attribution question is NO
+### The measured F(L) is the physically correct input
 
-Does Z_box − Z_KR match Paper 1's +1 % in c_s through c_s² = Z + ηZ′ + Z²? With
-d ln c_s²/d ln Z = 1.502, a +2.48 % excess in Z implies **+1.86 % in c_s**. Paper 1 measures
-**+1.01 ± 0.27 %** at this η. They disagree by roughly 3σ.
+In equilibrium the force a hard wall feels **is** the pressure of the box: the wall theorem gives
+P = kT ρ_contact, and mechanical equilibrium makes the normal pressure uniform, so F/H = P
+throughout. It is also literally what the spring wall in Level 3 feels. So Z_box(η) is not one of
+two flawed estimates — **it is the correct gas input for the wall model**, and the earlier framing
+of it as a "contact value that over-states the bulk stiffness", with the two routes "bracketing"
+the truth, is withdrawn.
 
-This is the same disagreement Paper 1 already documented and withdrew: the wall force is a
-**surface contact value**, and it over-states the bulk stiffness. At Paper 1's higher densities it
-over-predicted the c_s offset five-fold; here at η = 0.10 it over-predicts it by about 1.8×. So the
-measured-F(L) route removes the equation of state and the area convention, and substitutes a
-different systematic in their place.
+With the box's measured pressure the model predicts the settled displacement to **−1.3 ± 0.6 % (2.2σ)**; with the bulk EOS **+3.6 %**. The box is **2.5 % over-pressured** relative to Kolafa–Rottner and **1.0 % over-stiff in c_s** (Paper 1); these are two different finite-size numbers and are reported as such.
 
-### What this does and does not settle
-
-The two routes **bracket** the measurement rather than closing on it:
-
-| model for the gas spring | s_qs | vs measured | σ |
+| gas spring from | s_qs | vs measured 0.8705 ± 0.0049 | σ |
 |---|---|---|---|
+| the box's own measured pressure Z_box(η) | 0.8819 ± 0.0016 | **−1.29 ± 0.59 %** | **2.2** |
 | bulk Kolafa–Rottner (nominal area) | 0.8404 | +3.59 % | 6.1 |
-| **measurement 0.8705 ± 0.0049** | — | — | — |
-| measured wall force Z_box(η) | 0.8819 | −1.29 % | 2.3 |
 
-The bulk EOS under-stiffens the box; the wall contact value over-stiffens it; the truth sits between
-them, and the measurement does too. **Level 3's verdict is unchanged by this set** — it closes on
-the observable, and the attribution stays open. What would close it is a *bulk* stiffness for this
-box, which is what Paper 1's c_s already is — and the A2 finite-size ladder is the instrument for
-that, not the wall.
+### Two different finite-size numbers, and a question for the meeting
+
+The box is **+2.48 ± 0.14 % over-pressured** against KR, and **+1.01 ± 0.27 % over-stiff in c_s**
+(Paper 1, same η). Through the bulk relation c_s² = Z + ηZ′ + Z², a +2.48 % excess in Z would imply
++1.86 % in c_s — so the two do **not** agree, at roughly 3σ. That is a real finite-size result
+belonging to both papers, not an artefact to be explained away: in a 100-disk box the pressure
+excess and the sound-speed excess are different numbers, and the bulk relation between them does
+not hold. It is worth putting in front of Susanne as a question.
 
 ## 6. Corrections carried from v6
 
