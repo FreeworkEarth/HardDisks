@@ -136,6 +136,12 @@ $78.50 - 3.93 = 74.57$, which is where the piston stops; the piston parks at 78.
 $4.18\,\sigma$ while the gas is compressed by exactly the flag value, $3.93\,\sigma$. Use 3.93 in anything about the
 gas and 4.18 in anything about the piston.
 
+\textbf{\cmd{--temperature} takes a COMMA-SEPARATED LIST}, one value per segment, which is how the
+two gases are started at different temperatures --- and with \cmd{--kbt1} the runtime temperature is
+100 and $k_B$ is scaled so $k_BT = 1$, so the list is in \emph{those} units.
+\cmd{--temperature=1.25,0.75} gives $k_BT = 0.0125/0.0075$: the right ratio and eighty times the
+wrong scale. Use \cmd{--temperature=125,75}. Measured: $1.2500$ and $0.7500$.
+
 \textbf{\cmd{--l0} is not the compartment length} --- the binary prints \cmd{L\_eff = L0 - 1}, which is Paper~1's
 sound-mode length $L_0 - 2r$, a different quantity again. Always take the compartment from the piston and divider
 positions in the trace, as \cmd{paper2\_geometry\_fix\_20260918.py} does.
@@ -721,11 +727,127 @@ agreement well under $1\,\%$. A pure exponential fit is therefore safe. (An earl
 fitted over $40\tau$ returned a spurious $1.4\times$; the tail underflows and its logarithm is
 noise. Fit over a few $\tau$.)
 
+\paragraph{DERIVATION --- the seed-to-seed spread is the physics, not noise.} Hard disks carry no
+potential energy, so a compartment's kinetic temperature \emph{is} its total energy and can change
+only through collisions with the divider. The spread of $T_1-T_2$ across seeds is therefore the
+equilibrium fluctuation of the energy split, reached by the same Brownian exchange that relaxes the
+mean. Microcanonically $f = E_1/E \sim \mathrm{Beta}(N,N)$, so
+$\sigma_f = 1/(2\sqrt{2N+1}) = 0.0497$ and, with $T_1-T_2 = (2f-1)\cdot 2\bar T$,
+\begin{equation}
+\sigma(T_1-T_2) = 4\bar T\sigma_f = 0.199 .
+\end{equation}
+\textbf{Measured: $0.204$ and $0.179$.} Relaxation and fluctuation are one Ornstein--Uhlenbeck
+process --- the mean decays as $e^{-t/\tau_T}$ while the variance grows as
+$\sigma^2(1-e^{-2t/\tau_T})$. This is fluctuation--dissipation, and it has a practical consequence:
+a \emph{step-relaxation} measurement of $\tau_T$ is intrinsically seed-hungry, while the
+\emph{equilibrium autocorrelation} $\sigma^2 e^{-t/\tau_T}$ carries the same $\tau_T$ from any
+record with a free divider and no step at all. Record length, not seed count, is then the binding
+constraint.
+
+\paragraph{The stage-1 overshoot is a small result, not a confirmation.} An over-damped oscillator
+does not overshoot, and $R = 5$ at $M_d = 10$ is over-damped by Cencini's criterion --- yet the
+divider swings to $+6.4\,\sigma$ against an equilibrium of $\approx 4$. The criterion is built on
+kinetic friction into a gas that re-thermalises instantly; in a closed finite box the divider's
+energy goes into sound modes and comes back, which is what Level 3's A4 control already showed.
+\textbf{Stage 1 in an interacting gas is less damped than the ideal-gas criterion predicts.}
+
+\paragraph{The stage-1 offset, quoted properly.} Taking the centre of the oscillation over the
+first three periods ($T_{\mathrm{osc}} = 2\pi\sqrt{M/2k_{\mathrm{gas}}} = 44.0$ and $98.4\,\sigma$-time)
+and correcting for the stage-2 decay during that window (mean of $e^{-t/\tau_T}$ over $0..T$ is
+$(\tau_T/T)(1-e^{-T/\tau_T})$, i.e. factors $0.880$ and $0.944$):
+\begin{center}\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+$M_d$ & offset (corrected) & vs KR $3.989$ & vs ideal $4.922$ \\
+\midrule
+10 & $3.678 \pm 0.174$ & $1.8\sigma$ & $7\sigma$ \\
+50 & $3.771 \pm 0.139$ & $1.6\sigma$ & $8\sigma$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+The hard-disk correction to the isobar is therefore \textbf{confirmed in the stage-1 offset}: the
+measurement sits with KR and $7$--$8\sigma$ from the ideal gas.
+
 \paragraph{What the earlier $M^2$ claim was.} Withdrawn twice over. The literature says linear. And
 the anchor it rested on was a different process: the A4 number was measured in the \emph{spring}
 geometry, which has one gas and a spring-loaded wall, so its $\tau$ is the wall equilibrating with
 its own gas and there is no $T_1-T_2$ in it at all. Comparing that with \eqref{eq:tauT} is a
 category error; the factor 67 between them is its size.
+
+\paragraph{RESULT --- $\tau_T$ from equilibrium fluctuations (2026-09-29).} Relaxation and
+fluctuation are one process, so the \emph{stationary} autocorrelation carries $\tau_T$ and no
+temperature step is needed --- which removes the signal-to-noise decay that defeated the step
+protocol. 20 seeds at $M_d = 10$, $10\,195\,\sigma$-time each, no step and no piston. The premise
+checks out first: $\sigma(T_1-T_2) = \mathbf{0.1980}$ measured against the Beta$(N,N)$ prediction
+$0.199$.
+
+The autocorrelation is \textbf{not} a single exponential --- it falls to zero by lag $45$ and
+returns to $0.66$ by lag $90$. Its spectrum has $45\,\%$ of the variance at periods
+$> 200\,\sigma$-time (the isobaric mode $\tau_T$ describes), a discrete peak at period
+$\mathbf{95.3}$ carrying $\approx 30\,\%$, and a fast remainder. Fitting one exponential across all
+three gave $288$ and $335$ from the two observables --- a $3.5\sigma$ disagreement between two
+observables of the same process, which is how the error was caught. Block-averaging at
+$100\,\sigma$-time removes the oscillation by construction and the two agree:
+$302 \pm 65$ and $291 \pm 55$.
+
+Calibrating the identical procedure on synthetic Ornstein--Uhlenbeck series of known $\tau$ (same
+record, blocking, fit window and seed count) gives a response slope of $0.335$ --- the estimator
+compresses differences threefold at this record length. Inverting it,
+\begin{equation}
+\tau_T(M_d = 10) = 490 \pm 190 \ \ (T_1-T_2), \qquad 450 \pm 165 \ \ (\text{divider }x),
+\end{equation}
+against $503$ for hard disks and $618$ ideal: $-0.1\sigma$ and $-0.6\sigma$. \textbf{The first
+direct measurement of the stage-2 timescale, consistent with both hypotheses} --- a $23\,\%$ gap
+cannot be resolved with a $35$--$40\,\%$ error bar. Unlike stage 1, no preference between KR and the
+ideal gas is claimed here.
+
+\paragraph{OPEN --- the period-95 mode.} The adiabatic gas spring predicts a divider oscillation at
+$\omega = \sqrt{2k_{\mathrm{gas}}/M_d}$ with $k_{\mathrm{gas}} = N\kT c_s^2/L^2 = 0.0988$ per side,
+i.e. period $44.7$. The measured peak is at $95.3$, a factor $2.13$ too slow; an isothermal spring
+gives $63.4$ and does not close it either. It is not a release transient --- the autocorrelation on
+$t > 2000$ matches that on $t < 2000$, and the seed mean shows no coherent ring-down. No mechanism
+is claimed; hydrodynamic added mass on a piston in a closed tube would have to supply $\approx 35m$.
+It carries $\approx 30\,\%$ of the variance of both observables, so any future estimator must handle
+it.
+
+\paragraph{KOA design --- record length, not seeds.} The earlier ``$\approx 2300$ seeds'' was
+derived for a \emph{decaying step}; the equilibrium route has no step to lose, and what hides the
+$23\,\%$ gap is the estimator's bias, which is common-mode across seeds and therefore immune to
+them. Separation between the two hypotheses for one experiment of the stated size:
+\begin{center}
+\begin{tabular}{rrrcc}
+\toprule
+record [$\sigma$] & $L/\tau$ & seeds & slope & separation \\
+\midrule
+$8\,200$ (run) & 16 & 20 & 0.29 & $0.8\sigma$ \\
+$8\,200$ & 16 & 80 & 0.33 & $1.7\sigma$ \\
+$16\,400$ & 33 & 20 & 0.78 & $1.7\sigma$ \\
+$\mathbf{32\,800}$ & \textbf{65} & \textbf{80} & \textbf{0.85} & $\mathbf{3.3\sigma}$ \\
+$65\,600$ & 130 & 20 & 0.93 & $2.5\sigma$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Quadrupling the record buys more than quadrupling the seeds. \textbf{Recommended:}
+$M_d \in \{10, 50, 200\}$, records $\approx 65\,\tau_T$ ($32\,800$, $164\,000$,
+$656\,000\,\sigma$-time), 80 seeds each --- at $M_d = 10$ about $13\times$ this run, an overnight
+job. The mass ladder is what tests the \emph{exponent}; this run has one mass and tests neither it
+nor Eqs.~\eqref{eq:gp51}--(52). See \texttt{260929\_paper2\_level4\_fd.md}.
+
+\paragraph{KOA design --- Route B, stationary heat conduction. BLOCKED, recorded, not built.} The
+alternative to any decaying signal is a stationary one: hold the outer walls at $T_{\mathrm{hot}}$
+and $T_{\mathrm{cold}}$, reach a steady state, read the conductivity from the steady flux. A
+stationary observable has no signal-to-noise decay at all. \textbf{The current binary cannot do
+it}: in \texttt{edmd.h} the heat bath is a single global --- \texttt{heatbath\_enabled} (int) and
+\texttt{heatbath\_temperature} (double) --- applied to every thermalising wall, and
+\texttt{S->heat\_bath} accumulates \emph{one total}. With both walls at one temperature the net
+steady flux is zero by construction, and the per-side fluxes are not separable from one accumulator
+even in principle. What it would need: (i) \texttt{heatbath\_temperature} as a per-wall array parsed
+from a comma list, copying the \texttt{--temperature} per-segment parser at
+\texttt{00ALLINONE.c:4579}; (ii) \texttt{S->heat\_bath} as a per-wall accumulator so flux in at the
+hot wall and out at the cold wall are measured separately, their difference being the steady-state
+check; (iii) trace columns for each. That is a core change to the energy ledger. It is \textbf{not
+made}, and if it ever is, Level 0's bit-identity gate and the health contract must both be re-run
+against it.
 
 \subsection{What replaces the impedance criterion}\label{sec:l3acoustic}
 
@@ -802,7 +924,17 @@ amplitude and its finite-size scaling.
 \end{howto}
 
 
-\subsection{How long does the divider take? (written before the runs)}\label{sec:l4tau}
+\subsection{SUPERSEDED --- how long does the divider take? (written before the papers arrived)}
+\label{sec:l4tau-superseded}
+
+\begin{center}\fbox{\begin{minipage}{0.92\linewidth}
+\textbf{SUPERSEDED by \S\ref{sec:l4tau}}, which was rewritten on 2026-09-27 with Cencini \emph{et
+al.} and Gruber--Piasecki in hand. The $M^2$ law derived below is \textbf{withdrawn}: the literature
+states stage 2 is linear in $M$, and the $A4$ anchor this section leans on was measured in the
+spring geometry --- one gas, a spring-loaded wall, no $T_1-T_2$ in it at all --- so it is a
+different process. The section is kept because it is what was predicted \emph{before} the runs, and
+the record of that matters. Nothing below should be quoted.
+\end{minipage}}\end{center}
 
 \paragraph{SOURCE --- not available.} The Crosignani \emph{et al.} paper was cited as attached but
 is not in the repository, and Gruber--Piasecki (1999) is not either. What follows is therefore
@@ -834,7 +966,7 @@ $M = 200$, against $\tau_v = 12.3$ and $49.2$. The \emph{ratio} $\tau/\tau_v$ is
 $13.8$ --- it is itself proportional to $M$. Hence
 \begin{equation}
 \tau_T \;\sim\; \frac{M}{c\,m}\,\tau_v \;=\; \frac{M^2}{c\,m\,\gamma},\qquad c \approx 14 ,
-\label{eq:tauT}
+\label{eq:tauT-superseded}
 \end{equation}
 with $c$ the same to within $7\,\%$ at both masses. The physical content is the standard two-stage
 adiabatic-piston picture: pressures equalise mechanically on $\tau_v$, but each collision exchanges

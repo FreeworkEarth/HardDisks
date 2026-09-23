@@ -231,12 +231,39 @@ multiplies the rate by $1 + \eta Z'/Z = 1.228$, so $\tau_T = 50.4\,M$ against th
 a $23\,\%$ gap the experiment can resolve.
 
 Starting the two gases at $T = 1.25$ and $0.75$ with the divider free and no piston, stage 1 is
-observed: the divider swings out and rings, overshooting the predicted equilibrium offset
-($3.99\,\sigma$ with KR, $4.92\,\sigma$ ideal) by $1.6$--$1.7\times$, as the damping regime implies.
-Stage 2 is \emph{not} resolved at 20 seeds. The kinetic temperature of $N_s = 50$ disks fluctuates
-by $1/\sqrt{N_s} = 14\,\%$, so $\sigma(T_1-T_2) = 0.20$ per seed --- measured $0.204$ --- and on 20
-seeds the signal exceeds the noise for only $1.7\,\tau$. Measuring $\tau_T$, and with it Eq.~(51)
-and Eq.~(52), needs of order $2000$ seeds.
+observed. Taking the centre of the oscillation over three periods and correcting for stage-2 decay,
+the offset is $3.678 \pm 0.174$ and $3.771 \pm 0.139\,\sigma$ at $M_d = 10$ and $50$, against
+$3.989$ carrying $Z(\eta)$ through the isobar and $4.922$ for an ideal gas: $1.8\sigma$ and
+$1.6\sigma$ from the first, $7\sigma$ and $8\sigma$ from the second. \textbf{The hard-disk
+correction to the isobar is confirmed in stage 1.}
+
+\paragraph{Stage 2 from equilibrium fluctuations} A decaying step is the wrong instrument here. The
+per-seed spread of $T_1 - T_2$ is not measurement noise: hard disks carry no potential energy, so a
+compartment's kinetic temperature \emph{is} its energy, the microcanonical split is
+$f = E_1/E \sim \mathrm{Beta}(N,N)$, and $\sigma(T_1-T_2) = 4\bar T/(2\sqrt{2N+1}) = 0.199$ ---
+measured $\mathbf{0.1980}$. Relaxation and fluctuation being one process, the \emph{stationary}
+autocorrelation carries $\tau_T$ with no step to lose against that floor.
+
+It is not a single exponential. Its spectrum holds $45\,\%$ of the variance at periods
+$>200\,\sigma$-time, a discrete oscillation at period $95.3$ carrying $\approx 30\,\%$, and a fast
+remainder; fitting one exponential across all three returns values that differ by $3.5\sigma$
+between the two observables of the same process. Block-averaging at $100\,\sigma$-time removes the
+oscillation and they agree. Calibrating the identical procedure on Ornstein--Uhlenbeck series of
+known $\tau$ --- same record, blocking, fit window and seed count --- gives a response slope of
+$0.335$, and inverting it,
+\[
+\tau_T(M_d\!=\!10) = 490 \pm 190\ (T_1{-}T_2),\qquad 450 \pm 165\ (\text{divider }x),
+\]
+against $503$ for hard disks and $618$ ideal. This is the first direct measurement of the stage-2
+timescale in an interacting gas, and it is consistent with both: a $23\,\%$ gap is not resolvable
+with a $35$--$40\,\%$ error bar. Resolving it is a question of \emph{record length} rather than
+seeds, because the estimator's bias is common-mode and seeds do not touch it --- quadrupling the
+record lifts the response slope from $0.29$ to $0.85$, and $65\,\tau_T$ at 80 seeds separates the
+two hypotheses at $3.3\sigma$.
+
+The oscillation at period $95.3$ is unexplained: the adiabatic gas spring
+$k_{\mathrm{gas}} = N\kT c_s^2/L^2$ predicts $44.7$, and it is not a release transient. It is
+reported rather than accounted for.
 
 Measuring this in an \emph{interacting} gas is the point: Cencini \emph{et al.} call that case
 ``still too ambitious'' and note that very few studies have attempted it~\cite{cencini2007}.
@@ -250,9 +277,14 @@ does not hold; both are reported, and neither is used to explain the other. The 
 appears in Paper 1 from the sound-speed side.
 
 \section{Outlook}
-The Level 4 ladder in $M_d$ is the immediate continuation: $M_d \le 50$ is a desktop job at
-$5\tau_T$, while $M_d \ge 200$ needs records of several thousand $\sigma$-time and belongs on a
-cluster. Beyond it, Level 5 asks whether a chain of walls beats a single one --- the prediction
+The Level 4 ladder in $M_d$ is the immediate continuation, and the equilibrium route sets its cost:
+records of $\approx 65\,\tau_T$ at 80 seeds, i.e. $3.3\times10^4$, $1.6\times10^5$ and
+$6.6\times10^5\,\sigma$-time at $M_d = 10, 50, 200$. That ladder tests the \emph{exponent} in
+$\tau_T \propto M$, which a single mass cannot, and at $65\,\tau_T$ it also separates the hard-disk
+and ideal isobars in stage 2 as stage 1 already does. A stationary alternative --- outer walls held
+at two temperatures, conductivity from the steady flux --- would remove the finite-record bias
+entirely, at the price of a per-wall heat-bath temperature and per-wall energy accounting, which the
+present single-global bath does not provide. Beyond it, Level 5 asks whether a chain of walls beats a single one --- the prediction
 there is an \emph{ordering}, with geometrically matched intermediate masses beating badly matched
 ones --- and Level 6 asks for the information bound,
 $\beta\avg{W_{\mathrm{diss}}} \ge I_{\mathrm{mem}} - I_{\mathrm{pred}}$~\cite{still2012}, which
