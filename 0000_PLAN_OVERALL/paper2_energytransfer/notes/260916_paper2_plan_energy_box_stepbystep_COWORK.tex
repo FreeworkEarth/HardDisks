@@ -613,6 +613,262 @@ amplitude and its finite-size scaling.
 \end{howto}
 
 
+\subsection{How long does the divider take? The adiabatic piston}\label{sec:l4tau}
+
+\emph{Rewritten 2026-09-27 with the papers in hand. Every equation below was read from the printed
+page, not transcribed from a summary; where what is printed differs from what was quoted to us, the
+printed form is used and the difference is noted.}
+
+\paragraph{The problem is named.} Cencini \emph{et al.}~\cite{cencini2007} open by recording that
+the adiabatic piston was the subject of renewed attention ``mainly stimulated by the talk of Lieb at
+the Statistical Physics Conference in 1998'' [SOURCE, p.~2]. Level 4 is that problem, in an
+interacting gas.
+
+\paragraph{SOURCE --- stage 1, the damped oscillator.} With the two gases at different pressures the
+piston oscillates and is damped to a \emph{mechanical} equilibrium $P_l \simeq P_r$ but
+$T_l \neq T_r$. The controlling parameter is $R = mN/M$: ``For $R < R_c$ the adiabatic oscillations
+of the piston are weakly damped, while for $R > R_c$ they are over-damped, $R_c$ being
+$\mathcal{O}(1)$'' [SOURCE: Cencini, p.~2]. Crosignani \emph{et al.}~\cite{crosignani1996} give the
+same stage as ordinary differential equations.
+
+\emph{Free prediction for us.} With $N_s = 50$, $R = 5.00,\ 1.00,\ 0.25$ at
+$M_d = 10,\ 50,\ 200$ --- over-damped, critical, ringing. And Paper~1's divider masses $50$--$2000$
+give $R = 1.00$ down to $0.03$, \emph{all} weakly damped, which is exactly why the divider mode
+there is a sharp resonance rather than a relaxation. The two papers agree on one parameter.
+
+\paragraph{SOURCE --- stage 2, the Brownian drift.} Once the oscillations are damped the system sits
+``in a state of marginal equilibrium approximately along the isobar $T_l/x = T_r/(L-x)$'' and ``the
+Brownian motor-like mechanism is responsible for heat transfer from the warmer to the colder chamber
+mediated via the piston fluctuations. \textbf{This stage occurs on a long timescale (proportional to
+$M$)}'' [SOURCE: Cencini, p.~8]. Gruber \& Piasecki~\cite{gruber1999} give the prefactor. Their
+Eq.~(51), \emph{as printed}, is
+\begin{equation}
+\avg V = \frac{\sqrt{2\pi}}{4}\sqrt{\frac{m}{M}}
+\left[\sqrt{\frac{k_BT_2}{M}} - \sqrt{\frac{k_BT_1}{M}}\right],
+\label{eq:gp51}
+\end{equation}
+with $\sqrt{m/M}$ --- a square root, not $m/M$ --- and their Eq.~(52) gives the piston kinetic
+energy from a Maxwellian at temperature $\sqrt{T_1T_2}$, so
+$\avg{\tfrac12 MV^2} = \tfrac12 k_B\sqrt{T_1T_2}$.
+
+\paragraph{DERIVATION --- the relaxation time.} On the isobar a divider displacement $\dd x$ changes
+the two temperatures oppositely, $\dd(T_1-T_2) = (2T/L_c)\,\dd x$ for equal compartments. Setting
+$\dd x/\dd t = \avg V$ and linearising \eqref{eq:gp51} about $T_1 = T_2 = T$,
+\begin{equation}
+\frac{\dd(T_1-T_2)}{\dd t} = -\frac{T_1-T_2}{\tau_T},\qquad
+\tau_T = \frac{4}{\sqrt{2\pi}}\,\frac{M L_c}{\sqrt{mk_BT}} .
+\label{eq:tauT}
+\end{equation}
+\textbf{Linear in $M$, and independent of $N$ and of the density} --- the asymmetric flux and the
+friction both scale with $n$ and cancel. In our units with $L_c = 38.75$ this is
+$\tau_T = 61.84\,M$, i.e. $618$, $3092$, $12\,367\,\sigma$-time at $M_d = 10, 50, 200$. Verified
+numerically from \eqref{eq:gp51} as printed: the coefficient comes out $61.836$ at every mass.
+
+\paragraph{OPEN --- and larger than expected.} Gruber \& Piasecki assume an ideal gas, and Cencini
+\emph{et al.} state plainly that they ``assume that the gases follow the perfect gas law''
+[SOURCE, p.~2]. Ours does not: at $\eta = 0.1013$, $Z = 1.2399$. The isobar is then
+$P = nZ(\eta)k_BT$ = const, giving
+\begin{equation}
+\dd\ln T = \left(1 + \frac{\eta Z'}{Z}\right)\dd\ln L ,
+\end{equation}
+a coefficient of $1.2281$ rather than $1$. That is a \textbf{$22.8\,\%$ correction, not the few per
+cent anticipated}, and it \emph{shortens} $\tau_T$ to $50.35\,M$: $503$, $2517$,
+$10\,070\,\sigma$-time. A second correction, to the kinetic coefficients inside \eqref{eq:gp51}
+itself, is genuinely open --- the friction and the collisional asymmetry are computed there for a
+Maxwellian ideal gas, and we have not redone them for hard disks. Both figures are quoted below and
+the experiment should distinguish them.
+
+\paragraph{Why an interacting gas is the interesting case, and the caveat.} Cencini \emph{et al.}
+write: ``Clearly, the ultimate goal would be to quantitatively understand the behavior of the system
+for an interacting gas, but this seems to be still too ambitious. Indeed only very few studies
+analyzed the case of gas composed by interacting particles'' [SOURCE, p.~2]. Their own tractable
+model is a \emph{randomized gas}, in which the gas is re-drawn from equilibrium after every piston
+collision so that ``shock waves are ruled out''. A real interacting gas approximates that
+re-equilibration physically rather than by fiat, which is the argument for measuring it here --- but
+it also breaks their perfect-gas assumption, which is the $22.8\,\%$ above. Both should be said.
+
+\paragraph{DERIVATION --- does Eq.~\eqref{eq:gp51} itself change for hard disks?} Argued no at
+leading order, and tagged OPEN until the data say. The drift is a ratio of the asymmetric momentum
+flux to the friction, and both are proportional to the contact density $nZ$, which cancels. What
+survives depends only on the disks that strike the divider having a Maxwellian velocity
+distribution and uncorrelated successive collisions --- molecular chaos at the wall --- and both
+hold at $\eta = 0.1$. So the hard-disk correction enters through the \emph{isobar} alone, and the
+prediction to write down is
+\begin{equation}
+\tau_T \simeq 50.4\,M\quad\text{(hard-disk isobar)},\qquad 61.8\,M\quad\text{(ideal gas)} ,
+\end{equation}
+a $23\,\%$ gap between two lines. With fits good to $\pm10\,\%$ that is a discriminating
+measurement, which is the point of running it.
+
+\paragraph{DERIVATION --- the end of stage 1, and what enters stage 2.} Each gas follows its own
+adiabat and the two pressures balance. For an ideal 2D gas the adiabat is $TL$ = const, so
+$L_1/L_2 = \sqrt{T_1(0)/T_2(0)}$ and the divider offset is $L_c(r-1)/(r+1)$ with
+$r = \sqrt{T_1/T_2}$: for $1.25/0.75$ that is $\mathbf{4.92\,\sigma}$, not the $5.3$ quoted to us
+(which would need $L_c = 41.7$). Carrying KR --- adiabat $\dd\ln T = -Z\,\dd\ln L$, pressure balance
+with $Z(\eta)$ --- gives
+\begin{equation}
+\text{offset} = \mathbf{3.99\,\sigma},\qquad -18.9\,\% \text{ against the ideal gas},
+\end{equation}
+and this is the value to quote. The temperatures at the end of stage 1 are $T_1 = 1.108$,
+$T_2 = 0.860$, so the difference entering stage 2 is $0.249$ --- \textbf{exactly half} the initial
+$0.5$, as anticipated.
+
+\paragraph{The $\sqrt T$ nonlinearity is negligible.} At the start of stage 2 the exact
+Eq.~\eqref{eq:gp51} differs from its linearisation by $0.20\,\%$ ($0.80\,\%$ at the initial
+$1.25/0.75$). Integrating the exact ODE and fitting an exponential over $3\tau$ returns
+$507.5$ and $2537.3\,\sigma$-time at $M_d = 10, 50$, against the analytic $507.6$ and $2537.9$ ---
+agreement well under $1\,\%$. A pure exponential fit is therefore safe. (An earlier attempt that
+fitted over $40\tau$ returned a spurious $1.4\times$; the tail underflows and its logarithm is
+noise. Fit over a few $\tau$.)
+
+\paragraph{What the earlier $M^2$ claim was.} Withdrawn twice over. The literature says linear. And
+the anchor it rested on was a different process: the A4 number was measured in the \emph{spring}
+geometry, which has one gas and a spring-loaded wall, so its $\tau$ is the wall equilibrating with
+its own gas and there is no $T_1-T_2$ in it at all. Comparing that with \eqref{eq:tauT} is a
+category error; the factor 67 between them is its size.
+
+\subsection{What replaces the impedance criterion}\label{sec:l3acoustic}
+
+It is not impedance matching. The maximum of $\epsilon_{\mathrm{coh}}$ tracks
+$\tau_{\mathrm{push}}/T_w$, not $Z_w/Z_g$: that is a driven oscillator, where a pressure rise
+applied faster than the wall's period overshoots up to twice the static displacement and one applied
+slower is followed quasi-statically. The acoustic pulse ($Au^2 \approx 1\,\kT$ at $u = 0.2$) is a
+small correction to a $16\,\kT$ bulk pressure rise, so an impedance formula for the pulse was never
+going to be the controlling physics.
+
+The prediction is a one-degree-of-freedom model with \textbf{no free parameter}:
+\begin{equation}
+M \ddot s = F_{\mathrm{ad}}(L - x_p(t) + s) - F_{\mathrm{ad}}(L) - k s , \qquad
+x_p(t) = \min(u t, \Delta x), \quad s(0) = \dot s(0) = 0,
+\label{eq:onedof}
+\end{equation}
+with $F_{\mathrm{ad}}$ the exact adiabatic gas force and $E_{\mathrm{max}} = \max_t \Delta E(s(t))$.
+
+\begin{run}[What we run (2026-09-21)]
+Master box, geometry C (divider removed, one gas of 100 disks, $\eta = 0.1001$,
+$\Delta x = 7.96\,\sigma$ = 10\,\%), spring \textbf{pre-loaded} at wall $+ F/k = 33.65\,\sigma$,
+$k = 0.5\,\kT/\sigma^2$, step protocol, 40 seeds per cell, event log on, trace $200\,\sigma$-time
+past the stop. $M_s \in \{2,10,50,200,1000\}$ at $u \in \{0.2, 0.5, 1.0\}$, plus $u \in \{0.05,0.1\}$
+at $M_s \in \{50,200\}$ to anchor the quasi-static end: 760 runs.
+$M_s$ is the discriminator because Eq.~\eqref{eq:preload} contains no $M_s$ while
+Eq.~\eqref{eq:onedof} does.
+Primary observable is the \textbf{ensemble-mean} $E_{\mathrm{spring}}(t)$, baseline and
+peak-picking bias both taken from the causally blind window $t < 0.4\,L/c_s$ after the push starts.
+\end{run}
+\begin{pass}[Pass criterion (2026-09-21)]
+(i) The ledger closes with the spring term to $10^{-8}$.
+(ii) The coherent peak stands $>3\sigma$ above the pedestal.
+(iii) Eq.~\eqref{eq:onedof} reproduces $\Delta E_{\mathrm{coh}}(M_s, u)$ within $2\sigma$ at the
+speeds where the gas is genuinely quasi-static, $\tau_{\mathrm{push}} > L/c_s$ (i.e. $u \le 0.1$).
+At $u \ge 0.2$ the deviation is \emph{reported} as the acoustic contribution, measured rather than
+assumed, with no pass claimed.
+\end{pass}
+\section{Level 4 --- geometry B: transmission through a free divider}
+
+\begin{why}
+Before stacking walls we need the transmission of one wall between two gases, and we already own half of this result: the slow mode of Paper~1 \emph{is} the heat conduction of the divider.
+\end{why}
+
+Release the divider between gas 1 (pushed) and gas 2. Two channels carry energy across: the fast one, pressure waves moving the divider ($\tau \sim \tau_{\mathrm{sound}}$), and the slow one, heat conduction by divider collisions. Paper~1 measured the slow one: correlation time $\tau_{\mathrm{heat}} = 54$--$100$ acoustic periods at $M = 100$--$1000$, amplitude set by the isothermal stiffness. The adiabatic-piston literature predicts $\tau_{\mathrm{heat}} \propto M/m$; we can now test that with the $KE_L, KE_R$ columns, and it becomes a figure for free. The transmission observable is the energy that has crossed after the push has relaxed:
+\begin{equation}
+\mathcal T(t) = \frac{\Delta KE_{\mathrm{gas\,2}}(t)}{W_{\mathrm{in}}},\qquad
+\mathcal T_{\mathrm{fast}} = \mathcal T(t \approx 5\tau_{\mathrm{sound}}),\qquad
+\mathcal T_{\mathrm{slow}} = \mathcal T(t \to \infty) \to \tfrac12\ \text{(equipartition of the excess heat)}.
+\label{eq:transmission}
+\end{equation}
+The prediction to test for the fast channel is the two-body energy-transfer fraction with the gas column as a mass:
+\begin{equation}
+f(m_1, m_2) = \frac{4m_1m_2}{(m_1+m_2)^2},\qquad m_1 \to \text{effective gas mass } N_s m,\ m_2 \to M,
+\label{eq:twobody}
+\end{equation}
+which is heuristic and is exactly what Level~4 measures the validity of.
+
+\begin{run}
+Geometry B, $L_0 = 20$, $N_s = 50$ each side, $\eta = 0.196$, held wall at $L_0$ (mass $10^9$), free divider at $1.5L_0$ with $M = 20, 50, 100, 200, 500, 1000, 2000$; piston step $u/c_s = 0.1$, travel $2\,\sigma$; 25 seeds. Run to $t = 200\,\tau_{\mathrm{sound}}$ so $\mathcal T_{\mathrm{slow}}$ is reached.
+\end{run}
+\begin{pass}
+$\mathcal T_{\mathrm{slow}} \to 0.5$ within $2\sigma$ for every $M$ (a ledger-level check). $\tau_{\mathrm{heat}}(M)$ from the exponential approach; report its exponent in $M$ (expected $+1$). $\mathcal T_{\mathrm{fast}}(M)$: compare with \eqref{eq:twobody}; the pass is not agreement but a \emph{measured} curve with error bars and the location of its maximum in $\alpha = M/N_s$.
+\end{pass}
+\begin{res}
+\textbf{Level 4: the slow channel is already measured; the fast channel is not started.}
+From Paper~1, with the $KE_L, KE_R$ columns: the slow divider mode is stationary (its variance is the same in both halves of a 1000-period record, ratio $0.72$--$1.25$), survives a $100\times$ longer hold, and has correlation time $53$--$102$ acoustic periods at $M = 100$--$1000$. Its amplitude is the \emph{isothermal} equipartition value $\avg{x^2} = L^2/(2N_s[Z+\eta Z'])$ to 4\,\% for light dividers, while the adiabatic form overshoots by 37--62\,\%. It follows $T_L - T_R$ directly: correlation $+0.978$ ($M = 100$) and $+0.910$ ($M = 1000$) with the slow part of the compartment-temperature difference, positive sign (a hotter left compartment pushes the divider to $+x$), lag $\le 0.25$ periods at $M = 100$, and the pressure balance $x = (L_0/2)(\Delta T/T)\,Z/(Z+\eta Z')$ reproduces the amplitude to 6--7\,\%. Across the A2 size ladder its amplitude falls as $N^{-0.39}$ to $N^{-0.54}$ in units of the box, \ie it is a finite-size fluctuation that vanishes as $N\to\infty$. What is \emph{not} yet measured: $\tau_{\mathrm{heat}}(M)\propto M$ over a mass ladder, and the fast channel $\mathcal T_{\mathrm{fast}}$ --- both need the geometry-B runs of this level.
+\end{res}
+
+\begin{howto}
+\textbf{Data:} Paper 1's A1 v2 campaign, already on disk --- this level needs no new runs yet.
+\textbf{Analysis:} \cmd{python3 hspist3/validation/paper1\_linewidth\_20260918.py} gives $\Gamma(\eta)$ from the
+divider linewidth; \cmd{damping\_test\_20260915.py} and \cmd{A2\_slow\_mode\_20260915.py} give the slow-mode
+amplitude and its finite-size scaling.
+\end{howto}
+
+
+\subsection{How long does the divider take? (written before the runs)}\label{sec:l4tau}
+
+\paragraph{SOURCE --- not available.} The Crosignani \emph{et al.} paper was cited as attached but
+is not in the repository, and Gruber--Piasecki (1999) is not either. What follows is therefore
+\emph{derived here} from kinetic theory, with the one literature-dependent step marked OPEN. The
+nearest paper we do hold, Gradenigo \emph{et al.}, \emph{Phys.\ Rev.\ E} \textbf{89}, 042105 (2014),
+is on the same adiabatic-piston problem and should be read before this section is finalised.
+
+\paragraph{DERIVATION --- the velocity relaxation.} A divider of mass $M$ spanning height $h$ in a
+gas of number density $n$, particle mass $m$, temperature $T$, moving at velocity $V \ll
+\sqrt{\kT/m}$. In the divider frame the incoming flux on one face is $n(v_x - V)$ for $v_x > V$ and
+each collision transfers $2m(v_x-V)$, so
+\begin{equation}
+F(V) = 2mnh\left[\int_V^\infty (v_x-V)^2 f\,\dd v_x - \int_{-\infty}^V (V-v_x)^2 f\,\dd v_x\right].
+\end{equation}
+This vanishes at $V=0$; differentiating and using $\int_0^\infty v f\,\dd v = \sqrt{\kT/2\pi m}$,
+\begin{equation}
+\gamma \equiv -\frac{\dd F}{\dd V}\bigg|_0 = 8mnh\sqrt{\frac{\kT}{2\pi m}}
+ = 4nh\sqrt{\frac{2m\kT}{\pi}},\qquad \tau_v = \frac{M}{\gamma}.
+\label{eq:gamma}
+\end{equation}
+So the velocity relaxation is \textbf{linear in $M$}, as quoted. For the two-compartment Level 4 box
+($N_s = 50$, $L = 38.75$, $h = 10$), $nh = 1.290$ and $\gamma = 4.118$, giving
+$\tau_v = 2.4,\ 12.1,\ 48.6\,\sigma$-time at $M = 10,\ 50,\ 200$.
+
+\paragraph{DERIVATION --- the temperature relaxation does \emph{not} inherit it.} Our own
+measurements settle this without any fitting. In the A4 spring geometry ($nh = 1.274$,
+$\gamma = 4.066$) the validated fit gives $\tau = 46.1 \pm 1.2$ at $M = 50$ and $\gtrsim 680$ at
+$M = 200$, against $\tau_v = 12.3$ and $49.2$. The \emph{ratio} $\tau/\tau_v$ is then $3.7$ and
+$13.8$ --- it is itself proportional to $M$. Hence
+\begin{equation}
+\tau_T \;\sim\; \frac{M}{c\,m}\,\tau_v \;=\; \frac{M^2}{c\,m\,\gamma},\qquad c \approx 14 ,
+\label{eq:tauT}
+\end{equation}
+with $c$ the same to within $7\,\%$ at both masses. The physical content is the standard two-stage
+adiabatic-piston picture: pressures equalise mechanically on $\tau_v$, but each collision exchanges
+only $O(m/M)$ of the divider's energy, so temperatures equalise a further factor $\sim M/m$ later.
+
+\paragraph{Check that costs nothing.} $\tau(200)/\tau(50) \ge 14.8$ measured, against $4.0$ for
+$\tau \propto M$ and $16.0$ for $\tau \propto M^2$. Extrapolating the $M = 50$ anchor by $M^2$ gives
+$46.1 \times 16 = 738\,\sigma$-time, against the measured lower bound $\gtrsim 680$. The $M^2$ law
+is used to set the record lengths below; it is \emph{not} fitted to them.
+
+\paragraph{OPEN.} Three things this section does not settle. (i) The constant $c \approx 14$ is
+empirical --- the two-stage argument fixes the \emph{exponent}, not the prefactor, and whether $c$
+should carry $N_s$ or $\sqrt{N_s}$ is exactly what the literature would say. (ii) At $M = 10$ the
+$M^2$ law predicts $\tau_T = 1.8 < \tau_v = 2.4$, which is impossible: the asymptotic law must
+saturate near $M \sim c\,m$, and $M = 10$ is deliberately placed there to see it. (iii) The spring
+geometry and the two-compartment geometry differ in $nh$ by $1.3\,\%$; the predictions transfer with
+$\gamma$, which assumes the mechanism is the same in both, and Level 4 tests that.
+
+\paragraph{Predictions for the runs.} $\tau_T \approx 2.4$ (saturated) at $M_d = 10$, $45.5$ at
+$50$, $729$ at $200$. Records $\ge 5\tau_T$: 1000 $\sigma$-time at $M_d = 10$ and $50$ (40 seeds),
+4000 at $M_d = 200$ (8 seeds, to measure $\tau(200)$ rather than bound it).
+
+\paragraph{Level 4 v3 result (2026-09-26).} 88 runs, 0 aborts, 0 health. The work splits in half
+and the divider takes half the compression at $M_d = 10, 50, 200$ --- $0.1$--$1.5\sigma$ and
+$0.1$--$1.3\sigma$ respectively, with no mass dependence over a factor 20. The error bars are set by
+the per-gas kinetic-energy fluctuation, $\sqrt{N_s} = 7.1\,\kT$ per seed. The $\tau_T$ prediction of
+\S\ref{sec:l4tau} is \textbf{untested rather than refuted}: at $u = 0.05$ the push lasts
+$78.6\,\sigma$-time against $\tau_v = 2.4$--$48.6$, so the divider follows quasi-statically and both
+gases end at the same length and the same temperature --- $T_1 - T_2$ wanders within
+$\pm 0.09\,\kT$ and never relaxes, because it was never created. Testing $\tau_T$ needs either a
+push that outruns the divider ($u \gtrsim 1.6$, $0.32$, $0.08$ at $M_d = 10, 50, 200$) or, cleaner,
+the two gases started at different temperatures with no piston motion at all --- the exact analogue
+of the A4 no-push control. See \texttt{260926\_paper2\_level4\_v3.md}.
+
 \section{Level 5 --- geometry D and more walls: the efficiency experiment}
 
 \begin{why}
@@ -672,4 +928,13 @@ Two code items, both logging or seeding, no physics: the per-event wall-impulse 
 \item[5.] The fraction of work delivered as ordered energy depends on speed, mass and the number of walls in the predicted order.
 \end{enumerate}
 
+
+\begin{thebibliography}{9}
+\bibitem{gruber1999} Ch.~Gruber and J.~Piasecki, ``Stationary motion of the adiabatic piston,''
+\emph{Physica A}, vol.~268, pp.~412--423, 1999. (arXiv:cond-mat/9812359)
+\bibitem{cencini2007} M.~Cencini, L.~Palatella, S.~Pigolotti and A.~Vulpiani, ``Macroscopic
+equations for the adiabatic piston,'' \emph{Phys.\ Rev.\ E}, vol.~76, 051103, 2007.
+\bibitem{crosignani1996} B.~Crosignani, P.~Di~Porto and M.~Segev, ``Approach to thermal equilibrium
+in a system with adiabatic constraints,'' \emph{Am.\ J.\ Phys.}, vol.~64, pp.~610--613, 1996.
+\end{thebibliography}
 \end{document}

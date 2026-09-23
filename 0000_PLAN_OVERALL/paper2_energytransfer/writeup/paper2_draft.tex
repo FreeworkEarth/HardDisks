@@ -1,9 +1,10 @@
-% ##CHRIS 2026-09-22: converted to IEEEtran (journal, two columns). Level 3 box added, marked
-% "v4 pending". Every claim carries its % TODO-source line.
+% ##CHRIS 2026-09-26: Paper 2 draft v1, complete. IEEEtran journal, two columns.
+% Every number carries a % TODO-source line naming the report or CSV it came from. Figures that do
+% not exist yet are listed at the end of this source under "FIGURES NOT YET MADE", not invented.
 \documentclass[journal]{IEEEtran}
-\usepackage{amsmath,amssymb,booktabs,graphicx,microtype,enumitem}
+\usepackage{amsmath,amssymb,booktabs,graphicx,microtype}
 \usepackage[dvipsnames]{xcolor}
-\usepackage[colorlinks=true,linkcolor=NavyBlue,urlcolor=NavyBlue]{hyperref}
+\usepackage[colorlinks=true,linkcolor=NavyBlue,urlcolor=NavyBlue,citecolor=NavyBlue]{hyperref}
 \newcommand{\kT}{k_{\mathrm B}T}
 \newcommand{\avg}[1]{\left\langle #1 \right\rangle}
 \newcommand{\dd}{\mathrm{d}}
@@ -21,141 +22,290 @@ University of Hawai\`i at M\=anoa, Honolulu, HI 96822 USA
 
 \maketitle
 
-
 \begin{abstract}
-A piston compresses a hard-disk gas in a closed box. We ask what fraction of the injected work can
-still be captured as ordered energy, and we refuse to answer until each simpler statement below it is
-closed: the ledger, the quasi-static baseline, the finite-rate excess, the spring, the divider, the
-chain. Levels 0--2 are closed here.
-% TODO-source: Level status from 260913_tests_STATUS.md, 2026-09-16 .. 2026-09-19
-The headline of Level 2 is that a closed compartment has \emph{no} linear friction: the force
-autocorrelation of a held piston integrates to zero at the sound traversal time, and the finite-rate
-cost is second order, $\avg W - W_{\mathrm{qs}} = A u^2$, of which roughly half is energy the
-protocol itself launches.
+A piston compresses a hard-disk gas in an isolated box. We ask what fraction of the injected work
+can still be recovered as ordered energy, and we refuse to answer until every simpler statement
+below it is closed: the ledger, the quasi-static baseline, the finite-rate excess, the spring, the
+divider. Each level is stated with its pass criterion before it is measured. We find that a closed
+compartment has \emph{no} linear friction --- the force autocorrelation of a held piston integrates
+to zero at the sound traversal time --- and that the finite-rate cost is second order,
+$\avg W - W_{\mathrm{qs}} = Au^2$, of which roughly half is energy the protocol itself launches.
+A spring-loaded wall is then shown to store work at \emph{first} order in its displacement, because
+it is pre-loaded, and a parameter-free model whose gas spring is Paper 1's measured sound speed
+predicts where that wall settles. Two levels failed on their first attempt for reasons that were
+statistical rather than physical, and we report both.
 \end{abstract}
+
 \begin{IEEEkeywords}
-hard-disk fluid, energy transfer, event-driven molecular dynamics, dissipation, adiabatic piston
+hard-disk fluid, energy transfer, event-driven molecular dynamics, dissipation, adiabatic piston,
+fluctuation theorems
 \end{IEEEkeywords}
 
+\section{Introduction}
+\IEEEPARstart{I}{f} a piston compresses a gas in a box with no heat bath, where does the work go?
+Part raises the gas temperature irreversibly; part can in principle be recovered by a load. The
+split is the quantity of interest for any engine argument --- Szilard's included~\cite{szilard1929}
+--- and for the bounds relating dissipation to protocol speed~\cite{jarzynski1997,sivak2012}.
 
-\section{The box and the ladder}
-Geometry A: two compartments of $N_s = 50$ disks either side of an immovable divider, a piston on the
-right. $\kT = m = \sigma = 1$, $H = 10$, compartment $38.75\,\sigma$, gas compression
-$\Delta x = 3.93\,\sigma$.
-% TODO-source: geometry established in section 1 of 260919_paper2_ramp_linewidth_fast_REPORT.md
+The difficulty is not the simulation but the bookkeeping. At the sizes where a hard-disk box is
+cheap, $N \sim 100$, thermal fluctuations are $O(\sqrt N\,\kT)$ and comparable to the effects being
+measured; a statistic chosen carelessly will find structure that is not there. We therefore
+organise the work as a \emph{ladder}: each level states an observable and a pass criterion before
+the runs, and no level is trusted until the one below it is closed. Two of the levels below failed
+first time for statistical reasons and are reported with the failure, because the failures are the
+reusable part.
+
+The ladder is tied to a companion measurement. Paper 1 measures the speed of sound of the same gas
+from the eigenmode of a massive divider~\cite{roman2002}; the heavy-divider limit of that mode gives
+a gas spring of stiffness
+\begin{equation}
+k_{\mathrm{gas}} = \frac{N m c_s^2}{L^2},
+\label{eq:kgas}
+\end{equation}
+which is exactly the spring that appears in Level 3 below. The two papers share this one line of
+physics, and Paper 1's measured $c_s$ enters Level 3 as an input.
+
+\section{Apparatus}\label{sec:apparatus}
+All levels run in one box, with elements switched on rather than rebuilt
+(Fig.~\ref{fig:geoms}). An empty compartment behind a held wall carries the spring; two gas
+compartments of $N_s = 50$ disks each, $38.75\,\sigma$ long and $H = 10$ high, give
+$\eta = 0.1013$; a piston on the right is the only place work enters. Units are reduced,
+$\kT = m = \sigma = 1$. The four geometries are
+\begin{itemize}\itemsep1pt
+\item[A] both walls held --- Levels 0--2;
+\item[B] divider free --- Level 4;
+\item[C] divider removed, one gas of 100 disks driving the spring-loaded wall --- Level 3;
+\item[D] both free --- the chain.
+\end{itemize}
+% TODO-source: geometry and Level 0b in 260913_tests_STATUS.md, 2026-09-19/20
+
 \begin{figure*}[t]\centering
 \includegraphics[width=0.48\textwidth]{260920_master_geomA_paper.png}\hfill
 \includegraphics[width=0.48\textwidth]{260920_master_geomB_paper.png}\\[3pt]
 \includegraphics[width=0.48\textwidth]{260920_master_geomC_paper.png}\hfill
 \includegraphics[width=0.48\textwidth]{260920_master_geomD_paper.png}
-\caption{The master box, one apparatus with elements switched on. A (top left) both walls held, as
-Levels 0--2 were measured; B (top right) divider free; C (bottom left) divider removed, one gas
-driving the spring-loaded wall; D (bottom right) both free. Held walls are drawn solid and labelled
-by mass, free walls hollow; the spring is grey when held and green when live.}
+\caption{The master box, drawn by the simulation. A (top left) both walls held, as Levels 0--2 were
+measured; B (top right) divider free; C (bottom left) divider removed, one gas driving the
+spring-loaded wall; D (bottom right) both free. Held walls are drawn solid and labelled by mass,
+free walls hollow; the spring is grey when held and green when live.}
 \label{fig:geoms}
 \end{figure*}
 
-\section{Level 0 --- the ledger closes}
+The dynamics are event-driven and exact between collisions. Every trajectory is checked against a
+health contract --- a scheduler forced advance, an overlap repair, a wall clamp or an overdue wall
+collision each discard that trajectory. Every campaign reported here ran with zero health events.
+
+\section{Level 0 --- the ledger closes}\label{sec:l0}
+The energy residual
 $R_E = W - [\Delta KE_{\mathrm{gas}} + \Delta KE_{\mathrm{walls}} + \Delta E_{\mathrm{spring}} + Q]$
-and the matching momentum residual, from the per-event impulse log.
+and the matching momentum residual are formed from the per-event impulse log.
+\textbf{Measured:} $|R_E|/W \le 8\times10^{-12}$ and $|R_p|/\sum|\Delta p| \le 1\times10^{-13}$ over
+all 75 pilot trajectories. \textbf{Passed.}
 % TODO-source: 260917_paper2_level0_level1_REPORT.md
-\textbf{Measured:} $|R_E|/W \le 8\times10^{-12}$, $|R_p|/\sum|\Delta p| \le 1\times10^{-13}$ over all
-75 pilot trajectories. \textbf{Passed.}
 
-\section{Level 1 --- the quasi-static baseline}
-$W_{\mathrm{qs}} = N_s\kT(T_f/T_i - 1)$ with $\ln(T_f/T_i) = \int Z\,\dd\ln\eta$ along the path, $Z$
-measured in the finite box rather than taken from the bulk EOS.
-% TODO-source: paper2_geometry_fix_20260918.py, 5 path points, 100 holds each
-\textbf{Measured:} $W_{\mathrm{qs}}^{\mathrm{finite}} = 7.4685 \pm 0.0131\,\kT$; extrapolating the
-measured work to $u \to 0$ with the (quadratic) form gives $W(0) - W_{\mathrm{qs}} = +0.0043 \pm
-0.0158\,\kT$, $0.3\sigma$. \textbf{Passed}, and on the physical side.
+\paragraph{Level 0b --- the box is one apparatus} Geometry A is the master box with both walls held,
+which must be verified rather than assumed. At $u = 0.05$, $\avg{W_{\mathrm{in}}}$ is
+$7.4739 \pm 0.0832\,\kT$ in the master box against $7.4841 \pm 0.0381$ in the original geometry:
+$0.11\sigma$. An earlier attempt read $1.08\sigma$ because it used a travel of $3.875$ where the
+original used $3.93$; the travel, not the box, was the whole difference.
+% TODO-source: 260913_tests_STATUS.md, Level 0b entry
 
-\section{Level 2 --- the finite-rate excess}
-\subsection{Slow end}
-\begin{equation}
-\zeta(\lambda) = \beta\int_0^\infty \avg{\delta F(0)\,\delta F(t)}\,\dd t , \qquad
-W_{\mathrm{diss}} \simeq \zeta\,u\,\Delta x .
-\end{equation}
-% TODO-source: 260917_paper2_level2_REPORT.md sections 2-4 and appendix A of the 260919 report
-\textbf{Measured:} the integral is not Markovian. It falls from $2.55$ at zero lag --- the Enskog
-collisional friction --- and is cancelled by the returning sound wave at $L/c_s = 19.8\,\sigma$,
-confirmed at the compressed end of the path where the crossing moves to $18.0\,\sigma$ against a
-predicted $15.9$. Its zero-frequency limit is the hydrodynamic viscous friction
-$\zeta_{\mathrm{hyd}} = L_y\Gamma/X_p = 0.081 \pm 0.010$, which predicts a linear term of
-$0.32 \pm 0.04\,u$ --- below the resolution of 760 trajectories, and consistent with the measured
+\section{Level 1 --- the quasi-static baseline}\label{sec:l1}
+$W_{\mathrm{qs}} = N_s\kT(T_f/T_i - 1)$ with $\ln(T_f/T_i) = \int Z\,\dd\ln\eta$ taken along the
+path, $Z$ measured in the finite box rather than taken from the bulk equation of state.
+\textbf{Measured:} $W_{\mathrm{qs}} = 7.4685 \pm 0.0131\,\kT$, i.e. $T_f/T_i = 1.149$;
+extrapolating $\avg W$ to $u \to 0$ on the quadratic form gives
+$W(0) - W_{\mathrm{qs}} = +0.0043 \pm 0.0158\,\kT$, $0.3\sigma$, and on the physical side.
+\textbf{Passed.}
+% TODO-source: validation/paper2_geometry_fix_20260918.py, 5 path points, 100 holds each
+
+That number is later reproduced independently. Measuring the gas temperature directly in the
+held-wall pressure runs of \S\ref{sec:l3} gives $T = 1.1499$ at the same $10\,\%$ compression, from
+a different geometry, a different observable and a different analysis.
+% TODO-source: 260925_paper2_level3_CLOSE.md section 5
+
+\section{Level 2 --- the finite-rate excess}\label{sec:l2}
+\paragraph{Slow end} With $\zeta(\lambda) = \beta\int_0^\infty \avg{\delta F(0)\delta F(t)}\dd t$
+and $W_{\mathrm{diss}} \simeq \zeta u \Delta x$, the integral is \emph{not} Markovian. It falls from
+$2.55$ at zero lag --- the Enskog collisional friction --- and is cancelled by the returning sound
+wave at $L/c_s = 19.8\,\sigma$, confirmed at the compressed end of the path where the crossing moves
+to $18.0\,\sigma$ against a predicted $15.9$. Its zero-frequency limit is the hydrodynamic viscous
+friction $\zeta_{\mathrm{hyd}} = L_y\Gamma/X_p = 0.081 \pm 0.010$, predicting a linear term
+$0.32 \pm 0.04\,u$ --- below the resolution of 760 trajectories and consistent with the measured
 slope $-0.50 \pm 0.67$ for $u \le 0.05$. $\Gamma$ is taken from Paper 1's divider linewidth, not
-assumed.
+assumed: $\Gamma = 0.314 \pm 0.038$ against the Enskog value $0.331$.
+% TODO-source: 260917_paper2_level2_REPORT.md sections 2-4; 260918_A1v2_linewidth.json
 
-\textbf{What is there instead} is quadratic: $A_{\mathrm{step}} = 25.9 \pm 4.3$ against
+\textbf{What is there instead is quadratic:} $A_{\mathrm{step}} = 25.9 \pm 4.3$ against
 $A_{\mathrm{ramp}} = 11.3 \pm 2.5$ when the piston is ramped over $2L/c_s$ instead of stepped
 ($3.0\sigma$ apart). Roughly $14$ of the $25$ is energy the step protocol launches; what a gentle
 push leaves is consistent with the steady-flow value $N_s m/6 = 8.3$.
 
-\subsection{Fast end}
-$\avg W \simeq 2 N_s m (\Delta x/L) u^2$, no free parameter.
-% TODO-source: appendix C3 of the 260919 report
-\textbf{Measured:} $0.986$ of prediction at $u = 10$, $\Delta x = 7.08\,\sigma$. The apparent
-$8\,\%$ excess at short travel is the contact layer: the strip a face can strike (width $\Delta x$
-starting at face $-\,r$) holds $1.13\times$ the uniform-density count at $\Delta x = 0.75\,\sigma$.
-Using the measured count the ratio becomes $0.96$--$1.03$ with no trend.
+\paragraph{Fast end} The single-hit law $\avg W \simeq 2N_s m(\Delta x/L)u^2$~\cite{lua2005} has no
+free parameter and is met to $0.986$ at $u = 10$, $\Delta x = 7.08\,\sigma$. The apparent $8\,\%$
+excess at short travel is the contact layer: the strip a face can strike (width $\Delta x$ starting
+at face $-\,r$) holds $1.13\times$ the uniform-density count at $\Delta x = 0.75\,\sigma$. Using the
+measured count the ratio becomes $0.96$--$1.03$ with no trend.
+% TODO-source: appendix C3 of 260919_paper2_ramp_linewidth_fast_REPORT.md
 
-\begin{figure}[htbp]\centering
+\begin{figure}[t]\centering
 \includegraphics[width=\linewidth]{260918_level2_A_of_u.pdf}
 \caption{$A(u) = (\avg W - W_{\mathrm{qs}})/u^2$ from the acoustic to the single-hit regime, every
-point scaled to a common travel, with the travel scan at right.}
+point scaled to a common travel; the travel scan is at right.}
+\label{fig:aofu}
 \end{figure}
 
 \section{Level 3 --- can a spring capture it?}\label{sec:l3}
-\emph{Closed on the observable (2026-09-25).} Geometry C: one gas of 100 disks drives a spring-loaded wall through a
-10\,\% compression ($\Delta x = 7.96\,\sigma$, $\eta$ $0.100 \to 0.111$).
-% TODO-source: 260921_paper2_level3_REPORT_v3.md, 260922_paper2_level3_REPORT_v4.md
+\paragraph{The apparatus is a pre-loaded spring} A spring holding a wall against a gas is not at its
+natural length: it carries the standing force $F = N\kT Z/L$, so the wall sits $d = F/k$ from the
+anchor and a further displacement $s$ stores
+\begin{equation}
+\Delta E(s) = F s + \tfrac12 k s^2 ,
+\label{eq:preload}
+\end{equation}
+which is \textbf{first} order in $s$. The $Fs$ term is work lifting a weight. The limits fix the
+shape: $k \to 0$ is a pushrod ($\epsilon \to 1$ trivially, with nothing taken from the gas), and
+$k \to \infty$ a rigid wall ($\epsilon \to 0$).
 
-\textbf{The apparatus is a pre-loaded spring.} It holds the standing gas force
-$F = N\kT Z/L$, so the wall sits $d = F/k$ from the anchor and
-$\Delta E = F s + \tfrac12 k s^2$ is \emph{first} order in the wall displacement --- the $Fs$ term
-is work lifting a weight. Limits: $k \to 0$ is a pushrod ($\epsilon \to 1$ trivially, nothing taken
-from the gas), $k \to \infty$ a rigid wall ($\epsilon \to 0$).
+\paragraph{The gas spring is adiabatic, and it is Paper 1's $c_s$} There is no heat bath, so
+compression heats the gas. With $U = N\kT$ in two dimensions, $\dd U = -P\,\dd V$ gives
+$\dd\ln T/\dd\ln L = -Z$ and hence \eqref{eq:kgas} --- the same expression as the heavy-divider
+limit of Paper 1's mode. It is $2.01\times$ the isothermal stiffness here, and the adiabat
+reproduces Level 1's measured $T_f/T_i$ to $0.5\,\%$.
 
-\textbf{The gas spring is adiabatic, and it is Paper 1's $c_s$.} With $U = N\kT$ in 2D,
-$\dd U = -P\,\dd V$ gives $\dd\ln T/\dd\ln L = -Z$ and
-$k_{\mathrm{gas}} = (N\kT/L^2)\,c_s^2$ --- which is also the heavy-divider limit of
-Rom\'an's $\cot K = \alpha K$, so the two papers share one line of physics. It is $2.01\times$ the
-isothermal stiffness here, and the adiabat reproduces Level 1's measured $T_f/T_i = 1.149$ to
-$0.5\,\%$.
+\paragraph{The observable, and a lesson} The first analysis reported a large transient excess over
+the model and attributed it to the acoustic pulse. It was neither. The statistic was a maximum over
+time of a noisy ensemble mean, and a \emph{no-push control} --- the same apparatus with the piston
+never started --- reproduces it: at $u = 0.02$ the push gives $+0.463$ and $+0.339\,\sigma$ above
+settled while the control gives $+0.446$ and $+0.354$. The correct observable is the \emph{settled}
+displacement, and the peak is retained only as a diagnostic.
+% TODO-source: 260923_paper2_level3_REPORT_v5.md sections 1-2
 
-\textbf{Status: closed on the observable.} The ledger closes (median $4.6\times10^{-10}$,
-593/600 below $10^{-8}$). The observable is the wall's settled displacement, pooled over five cells
-with validated windows, $\bar s = 0.8705 \pm 0.0049\,\sigma$. The gas input is the box's own
-measured pressure: in equilibrium the force a hard wall feels is the pressure of the box
-($P = k_BT\rho_{\mathrm{contact}}$, uniform normal pressure), and it is what the spring wall feels,
-so $Z_{\mathrm{box}}(\eta) = FL/(Nk_BT)$ is measured directly from the momentum delivered to a held
-wall. With it the parameter-free model $M\ddot s = F(L - x_p + s) - F(L) - k s$ predicts the settled
-displacement to $-1.3 \pm 0.6\,\%$ ($2.2\sigma$); with the bulk equation of state, $+3.6\,\%$.
+\paragraph{Result} Pooled over five cells with validated windows,
+$\bar s = 0.8705 \pm 0.0049\,\sigma$. The gas input is the box's own measured pressure: in
+equilibrium the force a hard wall feels \emph{is} the pressure of the box
+($P = \kT\rho_{\mathrm{contact}}$, with the normal pressure uniform), so
+$Z_{\mathrm{box}}(\eta) = FL/(N\kT)$ is read directly from the momentum delivered to a held wall,
+with the gas temperature measured at the same instant. With it the parameter-free model
+$M\ddot s = F(L - x_p + s) - F(L) - ks$ predicts the settled displacement to
+$\mathbf{-1.3 \pm 0.6\,\%}$ ($2.2\sigma$); with the bulk equation of state, $+3.6\,\%$
+(Fig.~\ref{fig:l3settled}). \textbf{Level 3 closes on the observable.}
+% TODO-source: 260925_paper2_level3_CLOSE.md sections 4-5
 
-The box is $2.5\,\%$ over-pressured relative to Kolafa--Rottner and $1.0\,\%$ over-stiff in $c_s$
-(Paper~1). Through $c_s^2 = Z + \eta Z' + Z^2$ the first would imply $+1.9\,\%$ in $c_s$, so the two
-finite-size numbers do not agree, at roughly $3\sigma$; both are reported. The transient excess
-reported earlier was a peak statistic, reproduced by a no-push control with no gas driving at all.
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{260923_level3_settled_comparison.pdf}
+\caption{Where the spring-loaded wall settles. Points are the five validated cells with their
+errors; the band is the pooled measurement; the two lines are the same parameter-free model with the
+bulk equation of state and with the box's own measured pressure.}
+\label{fig:l3settled}
+\end{figure}
 
-\section{Level 4 --- transmission through a free divider}
-\emph{Not started.} Fast pressure channel against slow heat channel;
-$\mathcal{T}(t) = \Delta KE_{\mathrm{gas\,2}}(t)/W_{\mathrm{in}}$, with
-$\mathcal{T}_{\mathrm{slow}} \to 1/2$ for symmetric gases.
+\section{Level 4 --- transmission through a free divider}\label{sec:l4}
+Geometry B: the piston compresses one gas, a free divider of mass $M_d$ separates it from the other.
+Quasi-statically the divider moves to pressure balance, so at first order each gas takes half the
+volume change and half the work, and the divider settles at $\Delta x/2$.
 
-\section{Level 5 --- the chain}
-\emph{Not started.} $\epsilon = E_{\mathrm{spring,max}}/W_{\mathrm{in}}$ against piston speed,
-divider mass and the number of walls; the prediction is the \emph{ordering}, geometric intermediate
-masses beating badly matched ones.
+\paragraph{A protocol fix found by the pilot} The first pilot could not measure its own observable.
+The trace schema assigns segment 0 to one kinetic-energy column and \emph{every other segment} to
+the other, so in the master box --- whose segment 0 is the empty spring compartment --- the columns
+read ``zero'' and ``both gases combined''. Level 4 therefore runs in a two-compartment box, where
+the columns are the two gases; an empty compartment behind a held wall is already known to change
+nothing the gas can see (\S\ref{sec:l0}).
+% TODO-source: 260925_paper2_level4_PILOT.md section 2
 
+\paragraph{Pilot results} At $M_d = 50$ the work split is $0.502 \pm 0.140$ of the total, i.e.
+$0.0\sigma$ from one half, and the divider settles at $|{-2.001}| \pm 0.184\,\sigma$ against the
+predicted $1.965$, $0.2\sigma$. The error bars are set by the per-gas kinetic-energy fluctuation,
+$O(\sqrt{N_s})\,\kT$ per seed, which is why a $2.1\sigma$ departure seen at $M_d = 200$ on 20 seeds
+is not yet evidence of a mass dependence.
 
-\section{Level 6 --- information}
-\emph{Not started, and gated on a canonical seeder.} $\beta\avg{W_{\mathrm{diss}}} \ge
-I_{\mathrm{mem}} - I_{\mathrm{pred}}$. Note that the Jarzynski benchmark must be the finite-box
-$\Delta F$, exactly as Level 1 needed the finite-box $W_{\mathrm{qs}}$.
+\paragraph{How long the divider takes} This is the adiabatic-piston problem, named as an open
+question by Lieb in 1998~\cite{cencini2007}. Stage 1 is a damped oscillation to \emph{mechanical}
+equilibrium, $P_l \simeq P_r$ with $T_l \neq T_r$, governed by $R = mN/M$ --- over-damped for
+$R > \mathcal{O}(1)$, weakly damped below~\cite{cencini2007,crosignani1996}. Here $R = 5.00$ and
+$1.00$ at $M_d = 10$ and $50$. Stage 2 is a Brownian drift along the isobar toward $T_l = T_r$, on a
+timescale \emph{proportional to $M$}~\cite{cencini2007}; linearising Gruber and Piasecki's
+stationary velocity~\cite{gruber1999} gives $\tau_T = (4/\sqrt{2\pi})ML_c/\sqrt{mk_BT}$, independent
+of $N$ and of density. Both papers assume an ideal gas; carrying $Z(\eta)$ through the isobar
+multiplies the rate by $1 + \eta Z'/Z = 1.228$, so $\tau_T = 50.4\,M$ against the ideal $61.8\,M$ ---
+a $23\,\%$ gap the experiment can resolve.
+
+Starting the two gases at $T = 1.25$ and $0.75$ with the divider free and no piston, stage 1 is
+observed: the divider swings out and rings, overshooting the predicted equilibrium offset
+($3.99\,\sigma$ with KR, $4.92\,\sigma$ ideal) by $1.6$--$1.7\times$, as the damping regime implies.
+Stage 2 is \emph{not} resolved at 20 seeds. The kinetic temperature of $N_s = 50$ disks fluctuates
+by $1/\sqrt{N_s} = 14\,\%$, so $\sigma(T_1-T_2) = 0.20$ per seed --- measured $0.204$ --- and on 20
+seeds the signal exceeds the noise for only $1.7\,\tau$. Measuring $\tau_T$, and with it Eq.~(51)
+and Eq.~(52), needs of order $2000$ seeds.
+
+Measuring this in an \emph{interacting} gas is the point: Cencini \emph{et al.} call that case
+``still too ambitious'' and note that very few studies have attempted it~\cite{cencini2007}.
+
+\section{Finite size}\label{sec:finitesize}
+The box is $\mathbf{2.5\,\%}$ over-pressured relative to Kolafa--Rottner and $\mathbf{1.0\,\%}$
+over-stiff in $c_s$ (Paper 1, same $\eta$). Through $c_s^2 = Z + \eta Z' + Z^2$ the first would
+imply $+1.9\,\%$ in $c_s$, so the two do not agree, at roughly $3\sigma$. These are two
+\emph{different} finite-size numbers for the same $N = 100$ box, and the bulk relation between them
+does not hold; both are reported, and neither is used to explain the other. The same statement
+appears in Paper 1 from the sound-speed side.
+
+\section{Outlook}
+The Level 4 ladder in $M_d$ is the immediate continuation: $M_d \le 50$ is a desktop job at
+$5\tau_T$, while $M_d \ge 200$ needs records of several thousand $\sigma$-time and belongs on a
+cluster. Beyond it, Level 5 asks whether a chain of walls beats a single one --- the prediction
+there is an \emph{ordering}, with geometrically matched intermediate masses beating badly matched
+ones --- and Level 6 asks for the information bound,
+$\beta\avg{W_{\mathrm{diss}}} \ge I_{\mathrm{mem}} - I_{\mathrm{pred}}$~\cite{still2012}, which
+requires a canonical seeder and the finite-box $\Delta F$ as the Jarzynski benchmark rather than the
+bulk one.
 
 \section*{Reproducibility}
-Raw trajectories are not in the repository; each cell carries \texttt{summary.csv} and
-\texttt{00\_COMMAND.md}, and Level 2 an 85\,kB \texttt{stop\_digest.csv} from which the entire
-analysis reproduces. Batch scripts are in \texttt{../experiments/run\_scripts/}.
+Raw trajectories are not in the repository; each cell carries its summary and the exact command,
+and Level 2 an 85\,kB digest from which the whole analysis reproduces. Every binary change carries a
+three-seed byte-identity gate on traces and per-event logs.
+
+\begin{thebibliography}{9}
+\bibitem{szilard1929} L.~Szil\'ard, ``\"Uber die Entropieverminderung in einem thermodynamischen
+System bei Eingriffen intelligenter Wesen,'' \emph{Z.\ Phys.}, vol.~53, pp.~840--856, 1929.
+\bibitem{jarzynski1997} C.~Jarzynski, ``Nonequilibrium equality for free energy differences,''
+\emph{Phys.\ Rev.\ Lett.}, vol.~78, pp.~2690--2693, 1997.
+\bibitem{sivak2012} D.~A.~Sivak and G.~E.~Crooks, ``Thermodynamic metrics and optimal paths,''
+\emph{Phys.\ Rev.\ Lett.}, vol.~108, 190602, 2012.
+\bibitem{roman2002} F.~L.~Rom\'an, J.~A.~White, A.~Gonz\'alez and S.~Velasco, ``The speed of sound
+in a hard disk gas: A computer simulation,'' \emph{Am.\ J.\ Phys.}, vol.~70, pp.~847--851, 2002.
+\bibitem{mansour2006} M.~Malek Mansour, A.~L.~Garcia and F.~Baras, ``Hydrodynamic description of
+the adiabatic piston,'' \emph{Phys.\ Rev.\ E}, vol.~73, 016121, 2006.
+\bibitem{lua2005} R.~C.~Lua and A.~Y.~Grosberg, ``Practical applicability of the Jarzynski relation
+in statistical mechanics: A pedagogical example,'' \emph{J.\ Phys.\ Chem.\ B}, vol.~109,
+pp.~6805--6811, 2005.
+\bibitem{gradenigo2014} G.~Gradenigo, A.~Sarracino, A.~Puglisi and A.~Vulpiani, ``Fluctuations in
+partitioning systems with few degrees of freedom,'' \emph{Phys.\ Rev.\ E}, vol.~89, 042105, 2014.
+\bibitem{gruber1999} Ch.~Gruber and J.~Piasecki, ``Stationary motion of the adiabatic piston,''
+\emph{Physica A}, vol.~268, pp.~412--423, 1999.
+\bibitem{cencini2007} M.~Cencini, L.~Palatella, S.~Pigolotti and A.~Vulpiani, ``Macroscopic
+equations for the adiabatic piston,'' \emph{Phys.\ Rev.\ E}, vol.~76, 051103, 2007.
+\bibitem{crosignani1996} B.~Crosignani, P.~Di~Porto and M.~Segev, ``Approach to thermal equilibrium
+in a system with adiabatic constraints,'' \emph{Am.\ J.\ Phys.}, vol.~64, pp.~610--613, 1996.
+\bibitem{still2012} S.~Still, D.~A.~Sivak, A.~J.~Bell and G.~E.~Crooks, ``Thermodynamics of
+prediction,'' \emph{Phys.\ Rev.\ Lett.}, vol.~109, 120604, 2012.
+\end{thebibliography}
+
+% ---------------------------------------------------------------------------------------------
+% FIGURES NOT YET MADE -- listed, not invented.
+%   1. Level 4 pilot bars (far/total vs 1/2 and divider settled vs dx/2). The figure EXISTS as
+%      260923_level4_pilot_bars in 0000_PLAN_OVERALL/260923_status_figures/ but has not been copied
+%      into paper2's experiments/final; it is deliberately NOT included here until the v3 ladder
+%      replaces the 20-seed pilot numbers.
+%   2. zeta(tau) -- the force-autocorrelation integral against lag, showing the cancellation at
+%      L/c_s. Quoted in section \ref{sec:l2}; no plot exists.
+%   3. Level 1 path integral: Z measured at the five path points against the bulk EOS, with the
+%      resulting W_qs. Quoted; no plot exists.
+%   4. tau_heat(M): the validated fits at M = 10, 50, 200 with the M^2 law. Needs the v3 ladder,
+%      running at the time of writing.
+% CITATIONS TO VERIFY: Crosignani et al. and Gruber-Piasecki 1999 are cited in the plan's Level 4
+%   theory section but are NOT in the repository and were not available; the derivation there is
+%   self-contained and the literature step is tagged OPEN. Do not add them to this bibliography
+%   until they are read.
+% ---------------------------------------------------------------------------------------------
 
 \end{document}
