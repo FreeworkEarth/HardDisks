@@ -92,7 +92,10 @@ def main():
     path = T.plot_path("260919_A1v2_final_cs_vs_eta.csv")
     for r in csv.DictReader(open(path)):
         e, c = float(r["eta"]), float(r["c_s"])
-        s = float(r.get("c_s_scatter_mass", 0.0) or 0.0)
+        # ##CHRIS 2026-10-02: prefer c_s_err_scaled -- the SE of the through-origin slope with
+        # the 25-seed per-mass errors propagated and inflated by sqrt(chi2_red). Falls back to
+        # the old mass scatter if an older CSV is resolved.
+        s = float(r.get("c_s_err_scaled") or r.get("c_s_scatter_mass", 0.0) or 0.0)
         if e <= 0.69:
             ad = adiabatic(sos.Z_kolafa_rottner_2006, sos.dZ_kolafa_rottner_2006, e)
             ours.append((e, c, s, ad, 100 * (c - ad) / ad))

@@ -56,7 +56,12 @@ def draw_main():
     rows = list(csv.DictReader(open(T.plot_path("260919_A1v2_final_cs_vs_eta.csv"))))
     E = np.array([float(r["eta"]) for r in rows])
     C = np.array([float(r["c_s"]) for r in rows])
-    S = np.array([float(r["c_s_scatter_mass"]) for r in rows])
+    # ##CHRIS 2026-10-02: the plotted error is now c_s_err_scaled -- the standard error of the
+    # through-origin slope with the per-mass (25-seed) frequency errors propagated, inflated by
+    # sqrt(chi2_red) where the nine masses disagree by more than those errors. It replaces the raw
+    # mass scatter, which was the right SIZE (median ratio 1.26) but the wrong quantity.
+    key = "c_s_err_scaled" if "c_s_err_scaled" in rows[0] else "c_s_scatter_mass"
+    S = np.array([float(r[key]) for r in rows])
     fig, ax = plt.subplots(figsize=(10.0, 6.4))
     sos.add_eta_regime_shading(ax, x_max=0.78)
     for t_ in list(ax.texts):
@@ -90,8 +95,14 @@ def draw_main():
 
 def main():
     print("### Making L_eff = L0 - 2r - t/2 canonical (t = %.3f)\n" % WALL_T)
-    for src, dst in (("260914_A1v2_final_cs_vs_eta.csv", "260919_A1v2_final_cs_vs_eta.csv"),
-                     ("260917_A2_cs_per_mass.csv", "260919_A2_cs_per_mass.csv"),
+    # ##CHRIS 2026-10-02: the A1 rescale 260914 -> 260919 is REMOVED and must not come back.
+    # T.x_of now puts the divider thickness into l_eff itself (T.l_eff = L0 - 2r - 0.5t), so
+    # rescaling a freshly computed table applies the factor TWICE -- a silent -42 to -1314 ppm
+    # shift in c_s, growing with eta. 260919_A1v2_final_cs_vs_eta.csv is now computed DIRECTLY by
+    # paper1_populate_cs_err_20261002.py, which also fills c_s_err/c_s_err_scaled/chi2_red.
+    # 260914 stays as the historical no-thickness record. The A2 tables are untouched: they are
+    # still produced by the older path and still need the factor.
+    for src, dst in (("260917_A2_cs_per_mass.csv", "260919_A2_cs_per_mass.csv"),
                      ("260916_A2_cs_per_mass.csv", "260919_A2_cs_per_mass_famB.csv")):
         if not os.path.exists(os.path.join(P, src)):
             print(f"  {src}: MISSING, skipped"); continue

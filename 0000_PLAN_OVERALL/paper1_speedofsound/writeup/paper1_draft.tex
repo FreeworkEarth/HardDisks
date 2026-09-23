@@ -156,6 +156,28 @@ noise. Taken together the estimator's own systematic is below $0.3\,\%$, against
 effects the paper reports.
 % TODO-source: 260915_A1v2_damping_test.csv; 260914_A1v2_velocity_spectrum_test.csv
 
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{261001_p1_slowmode.pdf}
+\caption{Why the floor exists. \textbf{Left:} the divider displacement at $M = 1000$,
+$\eta = 0.1122$, with its five-period running mean --- the slow adiabatic-piston wander, which
+carries no information about $c_s$ but has more low-frequency power than the resonance.
+\textbf{Right:} the same record's periodogram. Without a floor the largest bin is the wander, not
+the mode; the estimator therefore takes the largest bin at $f \geq \nu_{\rm pred}/2.5$.}
+\label{fig:slowmode}
+\end{figure}
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{261001_p1_estimator_floor.pdf}
+\caption{Floor sensitivity. Median $|\Delta c_s|$ against the windowed reference over all 35
+densities, with the $16$--$84\,\%$ spread as the error bar, versus the floor parameter $X$ (the
+floor is $\nu_{\rm pred}/X$, so a \emph{large} $X$ is a \emph{low} floor). The collapse at large
+$X$ is the slow mode of Fig.~\ref{fig:slowmode} winning the periodogram; it is worse at 200
+periods, where the wander has more bins below the resonance. At the production value $X = 2.5$ the
+estimator reproduces the windowed reference exactly at both record lengths.}
+\label{fig:floor}
+\end{figure}
+
 \section{The mass ladder}\label{sec:ladder}
 Linearising about the symmetric position makes the divider a mass on two gas springs. Writing the
 displacement field in each compartment as a standing wave of wavenumber $k$, imposing continuity at
@@ -183,13 +205,36 @@ the scatter of the per-mass values about that line. That scatter, $0.27\,\%$, is
 of the bin-rounding floor.
 % TODO-source: 260919_A1v2_final_cs_vs_eta.csv columns c_s, c_s_scatter_mass, n_masses
 
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{261001_p1_massladder_line.pdf}
+\caption{One worked mass ladder, $\eta = 0.1122$, nine divider masses $M = 50$--$2000$, 25 seeds
+each. \textbf{Left:} $\bar\nu_M$ against $x_M = K(\alpha)/2\pi L_{\rm eff}$ with $K$ the root of
+$\cot K = \alpha K$; the slope through the origin is $c_s$. \textbf{Right:} residuals about that
+line, flat across a factor 40 in $M$. The measured $c_s$ sits $1.0\,\%$ above Kolafa--Rottner, the
+finite-size offset discussed in \S\ref{sec:finitesize}.}
+\label{fig:ladderline}
+\end{figure}
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{261001_p1_massladder_residuals.pdf}
+\caption{Mass independence, the ladder's one assumption, tested. Mean residual about each density's
+own ladder line at fixed $\alpha = M/2N_sm$, averaged over the 24 densities with $\eta \leq 0.69$,
+against $\ln\alpha$. The largest-bin estimator is flat; the per-trajectory fit drifts by an order
+of magnitude more per e-fold in $\alpha$, which is why the largest bin is the production
+estimator.}
+\label{fig:ladderres}
+\end{figure}
+
 \section{Results}\label{sec:results}
 \begin{figure*}[t]\centering
 \includegraphics[width=0.86\textwidth]{260919_cs_vs_eta.pdf}
 \caption{$c_s(\eta)$ at $N = 100$ against three equations of state, through \eqref{eq:adiabatic}
-with no fitted parameter. Shading marks the approximate regimes. Points beyond $\eta \approx 0.69$
-lie in the coexistence and ordering region where no fluid reference exists; they are shown but are
-not counted as a deviation from Kolafa--Rottner.}
+with no fitted parameter. Shading marks the regimes, with the transition densities taken from
+Engel \emph{et al.}~\cite{engel2013}: liquid--hexatic coexistence over
+$0.700 \lesssim \eta \lesssim 0.716$ and the hexatic--solid crossover near $\eta = 0.720$. Points
+beyond $\eta \approx 0.69$ lie in that region, where no fluid reference exists; they are shown but
+are not counted as a deviation from Kolafa--Rottner.}
 \label{fig:csvseta}
 \end{figure*}
 
@@ -275,13 +320,73 @@ Kolafa--Rottner.}
 \label{fig:roman}
 \end{figure}
 
+\subsection{Above $\eta \approx 0.69$: the right comparison is not Kolafa--Rottner}
+\label{sec:ordering}
+Kolafa--Rottner is a \emph{fluid} equation of state fitted below the transition, so a deviation
+from it above $\eta \approx 0.69$ measures the extrapolation, not the gas. The reference there is
+Engel \emph{et al.}~\cite{engel2013}, who computed the hard-disk equation of state through the
+melting region with event-chain Monte Carlo, massively parallel Monte Carlo, local Monte Carlo and
+event-driven molecular dynamics --- the same algorithm class used here --- and found all four to
+agree at one tabulated state point, $\eta = 0.698$, to $\beta P (2\sigma)^2 = 9.1705$--$9.1708$
+with relative errors $\lesssim 10^{-4}$, i.e. $Z = 10.3187$--$10.3191$. That agreement is also the
+answer to why an event-driven method is used here for an equilibrium quantity at all.
+
+Their equation of state carries a Mayer--Wood loop whose local extrema sit at $\eta \approx 0.702$
+and $\eta \approx 0.714$ and whose position is independent of system size. Between those extrema
+$Z'(\eta) < 0$, and since $c_s^2 = (\kT/m)(Z + \eta Z' + Z^2)$ a loop in $Z$ must appear as a
+\emph{dip} in $c_s$ bounded by the same two densities. It does:
+
+\begin{center}\begin{tabular}{lcc}
+\toprule
+ & our $c_s(\eta)$, $N = 100$ & Engel \emph{et al.} \\
+\midrule
+local maximum & $\eta = 0.700$ & loop extremum $\approx 0.702$ \\
+local minimum & $\eta = 0.715$ & loop extremum $\approx 0.714$ \\
+\bottomrule
+\end{tabular}\end{center}
+
+\noindent both within our grid spacing of $0.005$, and the dip is deep:
+$c_s(0.700) - c_s(0.715) = 2.80$, which is $\mathbf{9.5\sigma}$ on the error bars plotted in
+Fig.~\ref{fig:melting} and $18.2\sigma$ on the propagated statistical error alone. \textbf{The
+claim rests on the former}, the conservative of the two: the standard error of the through-origin
+slope with the per-mass frequency errors propagated from 25 seeds, inflated by
+$\sqrt{\chi^2_{\mathrm{red}}}$ wherever the nine masses disagree by more than those errors --- and
+in this window they do, $\chi^2_{\mathrm{red}} = 1.8$--$14$. The mass scatter tells the same story
+independently: $0.40$ inside $0.695 \le \eta \le 0.720$ against $0.08$ outside it, a factor five,
+which is what a phase-separating and slowly-equilibrating system should do to a resonance
+measurement.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{261002_p1_melting_region.pdf}
+\caption{The melting region. Vertical lines are Engel \emph{et al.}'s independently measured
+landmarks~\cite{engel2013}: the Mayer--Wood loop extrema at $\eta \approx 0.702$ and $0.714$, the
+end of liquid--hexatic coexistence at $0.716$, and the hexatic--solid crossover at $0.720$. Our
+$c_s$ turns over inside the same interval. Kolafa--Rottner is solid inside its fitted range and
+dashed beyond it, and is cut off at $\eta = 0.705$ deliberately: its fitted $Z'$ runs $48$ at
+$\eta = 0.67$, $28$ at $0.69$, $-9$ at $0.700$ and $+3386$ at $0.720$, so a $c_s$ built from it
+there is meaningless rather than merely uncertain. The negative $Z'$ already inside the stated
+fitted range is also why KR's own $c_s$ turns over near $\eta = 0.683$.}
+\label{fig:melting}
+\end{figure}
+
+A caution that applies to the whole window, ours and theirs alike: $c_s$ is built from $Z'$, and
+$Z'$ is where every equation of state is weakest. This is a \textbf{qualitative} correspondence and
+is claimed as nothing more. Engel \emph{et al.}
+work at $N = 256^2$ to $1024^2$; at $N = 100$ the Mayer--Wood loop is smeared over a width
+comparable to its own depth, the first-order character cannot be resolved, and their tabulated
+pressure exists at one density rather than as a table across the range, so no quantitative
+comparison is available. What the correspondence does establish is that the structure in our
+$c_s(\eta)$ above $0.69$ is the melting transition rather than an estimator artefact.
+
 \section{Outlook}
 Two measurements remain. A size ladder at $N \approx 1000$ across the full density range would turn
 \S\ref{sec:finitesize}'s two-point extrapolation into a curve; and a size series at $\eta = 0.65$
 would test whether the offset continues to close where the compartment is only six disk diameters
-wide. Both are cluster jobs. Above $\eta \approx 0.69$ no fluid reference exists and a global
-equation of state with hexatic and solid branches~\cite{liu2021} would be needed to say anything
-quantitative; we show those points but make no claim about them.
+wide. Both are cluster jobs. Above $\eta \approx 0.69$ the comparison is with
+Engel \emph{et al.}~\cite{engel2013} rather than with a fluid equation of state
+(\S\ref{sec:ordering}); turning the qualitative correspondence found there into a quantitative one
+needs a global equation of state with hexatic and solid branches~\cite{liu2021} and a box large
+enough to resolve the Mayer--Wood loop, neither of which is available at $N = 100$.
 
 \section*{Reproducibility}
 Every campaign directory carries the exact command and the estimator geometry line. The geometry
@@ -292,6 +397,9 @@ recorded wall thickness disagrees with it.
 \begin{thebibliography}{9}
 \bibitem{kolafa2006} J.~Kolafa and M.~Rottner, ``Simulation-based equation of state of the hard disk
 fluid and prediction of higher-order virial coefficients,'' \emph{Mol.\ Phys.}, vol.~104, 2006.
+\bibitem{engel2013} M.~Engel, J.~A.~Anderson, S.~C.~Glotzer, M.~Isobe, E.~P.~Bernard and
+W.~Krauth, ``Hard-disk equation of state: first-order liquid--hexatic transition in two dimensions
+with three simulation methods,'' \emph{Phys.\ Rev.\ E}, vol.~87, p.~042134, 2013.
 \bibitem{roman2002} F.~L.~Rom\'an, J.~A.~White, A.~Gonz\'alez and S.~Velasco, ``The speed of sound
 in a hard disk gas: A computer simulation,'' \emph{Am.\ J.\ Phys.}, vol.~70, no.~8, pp.~847--851,
 2002.
@@ -300,18 +408,13 @@ systems,'' \emph{Mol.\ Phys.}, vol.~119, no.~10, 2021.
 \end{thebibliography}
 
 % ---------------------------------------------------------------------------------------------
-% FIGURES NOT YET MADE -- listed, not invented. All four are no-run jobs.
-%   1. Estimator floor sensitivity as a FIGURE (deviation in c_s vs X, at 25 and 200 periods).
-%      Data exist: 260914_A1v2_kmin_sensitivity.csv and _extended.csv. Section \ref{sec:estimator}
-%      currently quotes the numbers in prose.
-%   2. Mass-ladder residual flatness (mean residual vs ln alpha, largest bin against the
-%      per-trajectory fit). Data: tables in 260913_method_roman_fft_COWORK.md section 3.1,
-%      reproducible from validation/estimator_massladder_20260917.py.
-%   3. A worked mass-ladder line for one density: nu_M against K/2 pi L_eff with the through-origin
-%      fit and residuals. The most direct illustration of section \ref{sec:ladder}; nothing exists.
-%   4. Slow-mode illustration: x(t) with its 5-period running mean, beside the spectrum showing the
-%      low-frequency shoulder against the resonance. Would make section \ref{sec:estimator}
-%      self-evident; nothing exists.
+% FIGURES: all four of the previously-missing figures were made on 2026-10-01 from existing CSVs
+% and traces (no runs) by validation/paper1_figures_20261001.py, and are now in the text:
+%   fig:slowmode, fig:floor (section \ref{sec:estimator}); fig:ladderline, fig:ladderres (section
+%   \ref{sec:ladder}). Sources: 260914_A1v2_kmin_sensitivity{,_extended,_X2p5}.csv;
+%   260915_A1v2_damping_cells.json; A1v2_20260914/eta_0p112200/m_*/ traces.
+% NOTE the worked ladder line is at eta = 0.1122, NOT 0.10: the A1 v2 sweep has no 0.10 leaf, and
+%   0.1122 is the density at which all nine masses were run.
 % ---------------------------------------------------------------------------------------------
 
 \end{document}
