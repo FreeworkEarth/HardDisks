@@ -637,6 +637,9 @@ static size_t cli_temperature_segments_count = 0;
 //        * EDMD/HYBRID    → per-step logging (highest resolution)
 //  - cli_output_dt  > 1.0 : log every output_dt σ-time units (all modes)
 static float cli_output_dt = 1.0f;
+// ##CHRIS 2026-09-30: energy-transfer trace decimation, in STEPS (not sigma-time, so it is exact
+// and seed-independent). <=1 keeps the historical one-row-per-step behaviour byte-for-byte.
+static int cli_trace_every = 1;
 // Override collision substepping at runtime (<=0 => use compile-time SUBSTEPS).
 static int cli_substeps_override = -1;
 // Adaptive collision substepping (auto): choose substeps per fixed step based on vmax*dt.
@@ -3413,6 +3416,7 @@ static void print_cli_usage(const char *exe_name) {
     printf("  --hb-temp=value             Set heat bath temperature and auto-enable it (reduced units)\n");
     printf("  --timescale=value           Speed multiplier for interactive run (default 1.0)\n");
     printf("  --output-dt=value           CSV logging interval (sim units), 0=every step\n");
+    printf("  --trace-every=N             Energy-transfer trace: write 1 row every N steps (default 1)\n");
     printf("  --fixed-dt=value            Override fixed timestep (σ-time units)\n");
     printf("  --substeps=N                Collision substeps per fixed step (reduces tunneling at high speeds)\n");
     printf("  --substeps-auto             Adaptive collision substeps (auto-increase during shocks/collapse)\n");
@@ -3901,6 +3905,16 @@ static void parse_cli_options(int argc, char **argv) {
             errno = 0; char *endptr = NULL; float v = strtof(value, &endptr);
             if (errno != 0 || endptr == value || v < 0.0f) { fprintf(stderr, "Invalid output-dt '%s'.\n", value); exit(EXIT_FAILURE);} 
             cli_output_dt = v;
+        } else if (strncmp(arg, "--trace-every", strlen("--trace-every")) == 0) {
+            /* ##CHRIS 2026-09-30: no other flag begins with "--trace", so this branch cannot be
+               shadowed by the strncmp prefix matching used throughout this chain. */
+            const char *value = cli_option_value(arg, argc, argv, &i);
+            errno = 0; char *endptr = NULL; long v = strtol(value, &endptr, 10);
+            if (errno != 0 || endptr == value || *endptr != '\0' || v < 1 || v > 1000000000L) {
+                fprintf(stderr, "Invalid trace-every '%s' (want an integer >= 1).\n", value);
+                exit(EXIT_FAILURE);
+            }
+            cli_trace_every = (int)v;
         } else if (strncmp(arg, "--fixed-dt", 10) == 0 || strncmp(arg, "--dt", 4) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
             errno = 0; char *endptr = NULL; float v = strtof(value, &endptr);
@@ -17088,65 +17102,75 @@ static void run_energy_transfer_experiment(void) {
         // ##CHRIS 2026-09-20: SpringF/SpringE/SpringE_Max widened to %.17g. They are doubles now
         // (computed from the EDMD state); %.6e threw away everything past the 7th digit and put a
         // 2.5e-6 floor under the Level 3 ledger. Column order and count are unchanged.
-        fprintf(elog,
-                // ##CHRIS 2026-09-21: the wall VELOCITIES are %.17g as well. They were %.6e, i.e.
-                // 7 digits, and the wall kinetic energy in the Level 3 ledger goes as v^2, so they
-                // put a 2e-7 floor under it -- measured at 1.12e-7 once the spring term was fixed,
-                // against a 1e-8 criterion. Positions stay %.6f; they are not in the ledger.
-                "%.6f, %.6f, %.17g, %.17g, %.6e, %d, %d, %.9e, %.9e, %.17g,"
-                "%.6f, %.17g, %.6f, %.17g, %.6f, %.17g, %.6f, %.17g, %.6f, %.17g,"
-                "%.6f, %.6e, %.6f, %.6e,"
-                "%.6f, %.9e, %.9e, %.9e,",
-                t,
-                (double)wall_x,
-                (double)energy_measurement.spring_force,
-                (double)energy_measurement.spring_energy,
-                (double)energy_measurement.energy_transferred,
-                log_left_particles, log_right_particles,
-                Wp,
-                piston_work_delta_max,
-                (double)energy_measurement.spring_energy_max,
-                wx_sigma[0], wv[0],
-                wx_sigma[1], wv[1],
-                wx_sigma[2], wv[2],
-                wx_sigma[3], wv[3],
-                wx_sigma[4], wv[4],
-                pistonR_x_sigma, pistonR_v,
-                pistonL_x_sigma, pistonL_v,
-                (double)(energy_measurement.eff_window_started ? (energy_measurement.eff_piston_stop_time - (float)wall_release_time) : NAN),
-                (double)(energy_measurement.eff_window_started ? energy_measurement.spring_energy_at_stop : NAN),
-                (double)(energy_measurement.eff_window_started ? energy_measurement.spring_energy_peak_window : NAN),
-                (double)(energy_measurement.eff_window_started ? fmaxf(0.0f, energy_measurement.spring_energy_peak_window - energy_measurement.spring_energy_at_stop) : NAN));
-        csv_put_escaped(elog, seg_buf[0] ? seg_buf : NULL);
-        fputc(',', elog);
-        csv_put_escaped(elog, seg_eta_buf[0] ? seg_eta_buf : NULL);
-        /* ##CHRIS: gas kinetic energy and x-momentum for the Level-0 ledger.
-           X/Vx/Vy were synced from the EDMD backend and
-           recompute_segment_stats_counts_and_temperature() was called earlier in
-           this same block, so segment_ke[] is current. The left/right split uses
-           the same convention as Left_Count/Right_Count above: segment 0 is left,
-           everything else is right. */
-        {
-            double ke_tot = 0.0, ke_left = 0.0, ke_right = 0.0, px_gas = 0.0;
-            for (int i = 0; i < particles_active; ++i) {
-                px_gas += (double)PARTICLE_MASS * (double)Vx[i];
-            }
-            if (segment_ke && segment_count > 0) {
-                for (int sgi = 0; sgi < segment_count; ++sgi) {
-                    ke_tot += segment_ke[sgi];
-                    if (sgi == 0) ke_left += segment_ke[sgi];
-                    else          ke_right += segment_ke[sgi];
-                }
-            } else {
+        /* ##CHRIS 2026-09-30: --trace-every=N decimation. The energy-transfer trace was the one
+           writer in this file with NO cadence control -- it ignores --output-dt and emits one row
+           per step, which is 21 GB for a single 10,000 sigma-time cell and makes a KOA-length
+           record impossible. N<=1 is the historical behaviour, so every existing script is
+           byte-identical. recorded_steps++ stays OUTSIDE this guard: it is also the loop's
+           termination counter, so decimating it would shorten the run. */
+        const int trace_this_row = (cli_trace_every <= 1) ||
+                                   ((recorded_steps % cli_trace_every) == 0);
+        if (trace_this_row) {
+            fprintf(elog,
+                    // ##CHRIS 2026-09-21: the wall VELOCITIES are %.17g as well. They were %.6e, i.e.
+                    // 7 digits, and the wall kinetic energy in the Level 3 ledger goes as v^2, so they
+                    // put a 2e-7 floor under it -- measured at 1.12e-7 once the spring term was fixed,
+                    // against a 1e-8 criterion. Positions stay %.6f; they are not in the ledger.
+                    "%.6f, %.6f, %.17g, %.17g, %.6e, %d, %d, %.9e, %.9e, %.17g,"
+                    "%.6f, %.17g, %.6f, %.17g, %.6f, %.17g, %.6f, %.17g, %.6f, %.17g,"
+                    "%.6f, %.6e, %.6f, %.6e,"
+                    "%.6f, %.9e, %.9e, %.9e,",
+                    t,
+                    (double)wall_x,
+                    (double)energy_measurement.spring_force,
+                    (double)energy_measurement.spring_energy,
+                    (double)energy_measurement.energy_transferred,
+                    log_left_particles, log_right_particles,
+                    Wp,
+                    piston_work_delta_max,
+                    (double)energy_measurement.spring_energy_max,
+                    wx_sigma[0], wv[0],
+                    wx_sigma[1], wv[1],
+                    wx_sigma[2], wv[2],
+                    wx_sigma[3], wv[3],
+                    wx_sigma[4], wv[4],
+                    pistonR_x_sigma, pistonR_v,
+                    pistonL_x_sigma, pistonL_v,
+                    (double)(energy_measurement.eff_window_started ? (energy_measurement.eff_piston_stop_time - (float)wall_release_time) : NAN),
+                    (double)(energy_measurement.eff_window_started ? energy_measurement.spring_energy_at_stop : NAN),
+                    (double)(energy_measurement.eff_window_started ? energy_measurement.spring_energy_peak_window : NAN),
+                    (double)(energy_measurement.eff_window_started ? fmaxf(0.0f, energy_measurement.spring_energy_peak_window - energy_measurement.spring_energy_at_stop) : NAN));
+            csv_put_escaped(elog, seg_buf[0] ? seg_buf : NULL);
+            fputc(',', elog);
+            csv_put_escaped(elog, seg_eta_buf[0] ? seg_eta_buf : NULL);
+            /* ##CHRIS: gas kinetic energy and x-momentum for the Level-0 ledger.
+               X/Vx/Vy were synced from the EDMD backend and
+               recompute_segment_stats_counts_and_temperature() was called earlier in
+               this same block, so segment_ke[] is current. The left/right split uses
+               the same convention as Left_Count/Right_Count above: segment 0 is left,
+               everything else is right. */
+            {
+                double ke_tot = 0.0, ke_left = 0.0, ke_right = 0.0, px_gas = 0.0;
                 for (int i = 0; i < particles_active; ++i) {
-                    ke_tot += 0.5 * (double)PARTICLE_MASS *
-                              ((double)Vx[i] * (double)Vx[i] + (double)Vy[i] * (double)Vy[i]);
+                    px_gas += (double)PARTICLE_MASS * (double)Vx[i];
                 }
-                ke_left = ke_tot; ke_right = 0.0;
+                if (segment_ke && segment_count > 0) {
+                    for (int sgi = 0; sgi < segment_count; ++sgi) {
+                        ke_tot += segment_ke[sgi];
+                        if (sgi == 0) ke_left += segment_ke[sgi];
+                        else          ke_right += segment_ke[sgi];
+                    }
+                } else {
+                    for (int i = 0; i < particles_active; ++i) {
+                        ke_tot += 0.5 * (double)PARTICLE_MASS *
+                                  ((double)Vx[i] * (double)Vx[i] + (double)Vy[i] * (double)Vy[i]);
+                    }
+                    ke_left = ke_tot; ke_right = 0.0;
+                }
+                fprintf(elog, ",%.12e,%.12e,%.12e,%.12e", ke_tot, ke_left, ke_right, px_gas);
             }
-            fprintf(elog, ",%.12e,%.12e,%.12e,%.12e", ke_tot, ke_left, ke_right, px_gas);
+            fputc('\n', elog);
         }
-        fputc('\n', elog);
         recorded_steps++;
 
         if (cli_eff_stop_after_window && energy_measurement.eff_window_done) {

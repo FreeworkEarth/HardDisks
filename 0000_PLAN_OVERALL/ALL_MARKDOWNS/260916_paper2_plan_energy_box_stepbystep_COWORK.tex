@@ -801,14 +801,67 @@ direct measurement of the stage-2 timescale, consistent with both hypotheses} --
 cannot be resolved with a $35$--$40\,\%$ error bar. Unlike stage 1, no preference between KR and the
 ideal gas is claimed here.
 
-\paragraph{OPEN --- the period-95 mode.} The adiabatic gas spring predicts a divider oscillation at
-$\omega = \sqrt{2k_{\mathrm{gas}}/M_d}$ with $k_{\mathrm{gas}} = N\kT c_s^2/L^2 = 0.0988$ per side,
-i.e. period $44.7$. The measured peak is at $95.3$, a factor $2.13$ too slow; an isothermal spring
-gives $63.4$ and does not close it either. It is not a release transient --- the autocorrelation on
-$t > 2000$ matches that on $t < 2000$, and the seed mean shows no coherent ring-down. No mechanism
-is claimed; hydrodynamic added mass on a piston in a closed tube would have to supply $\approx 35m$.
-It carries $\approx 30\,\%$ of the variance of both observables, so any future estimator must handle
-it.
+\paragraph{CLOSED (2026-09-30) --- the period-95 mode is Paper 1's divider resonance.} It was never
+unexplained; the wrong limit of our own equation was applied to it. Rom\'an's eigenmode satisfies
+$\cot K = \alpha K$ with $\alpha = M/(2N_s m)$, and here $\alpha = 10/100 = \mathbf{0.1}$ --- a
+\emph{light} divider, where the gas is not a massless spring but a standing wave carrying most of
+the inertia. The first branch gives $K = 1.428870$ (close to the $\alpha \to 0$ limit $K \to \pi/2$),
+and with KR at $\eta = 0.100051$ ($c_s = 1.744337$) and $L_{\mathrm{eff}} = 38.75 - 2r = 37.75$,
+\begin{equation}
+\nu = \frac{c_s K}{2\pi L_{\mathrm{eff}}} = 0.010508 \quad\Longrightarrow\quad
+T = \mathbf{95.16}\ \sigma\text{-time}.
+\end{equation}
+Measured, as the spectral peak with its FWHM as the error: $\mathbf{95.13 \pm 5.15}$ ($T_1-T_2$) and
+$\mathbf{95.22 \pm 7.04}$ (divider $x$) --- $0.03\,\%$ and $0.06\,\%$ [DERIVATION]. The ideal-gas
+variant is $117.38$, $4.3\sigma$ away, so \textbf{the mode discriminates KR from the ideal gas on
+its own}; Paper~1's measured $c_s$ ($+1.01\,\%$) gives $94.21$, and the ACF fit with $\omega$ free
+returns $93.27 \pm 0.51$ and $94.31 \pm 0.57$, so the period estimators agree only at the $2\,\%$
+level and no claim finer than ``KR, not ideal'' is made.
+
+\textbf{Why $\omega = \sqrt{2k_{\mathrm{gas}}/M}$ does not apply here.} That is the $\alpha \gg 1$
+limit, where $\cot K \approx 1/K$ gives $K \approx \alpha^{-1/2}$. At $\alpha = 0.1$ it would give
+$K = 3.162$, which is not even on the branch whose root is $1.4289$: the asymptotic form is
+inapplicable, not merely inaccurate. Its prediction was $44.71$. The ``effective mass 45 rather than
+10'' noted earlier is exactly the standing-wave inertia the full solution accounts for --- the
+symptom, not a puzzle. \textbf{Paper~1 runs $\alpha = 0.5$--$20$ and this run $\alpha = 0.1$: one
+eigenvalue problem, two papers, opposite ends of $\alpha$.}
+
+\paragraph{RESULT --- the ACF modelled rather than blocked (2026-09-30).} Because $\omega$ is now
+known, the autocorrelation has a known form and the oscillation can be \emph{modelled} instead of
+averaged away --- keeping the whole record, which is what drove the block estimator's bias to
+$0.335$. Fitting $C(t) = A e^{-t/\tau_T} + B e^{-t/\tau_r}\cos\omega t$ with $\omega$ fixed:
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+observable & $A$ & $\tau_T$ & $B$ & $\tau_r$ \\
+\midrule
+$T_1-T_2$   & $0.472 \pm 0.024$ & $311 \pm 34$ & $0.503 \pm 0.021$ & $195 \pm 17$ \\
+divider $x$ & $0.468 \pm 0.023$ & $316 \pm 38$ & $0.511 \pm 0.021$ & $186 \pm 15$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+with fit rms residuals $0.034$ and $0.026$: the two components split the variance almost exactly in
+half and the two observables agree on every parameter. Calibrated the same way (synthetic OU plus a
+matched AR(2) oscillation, same record and seeds) the response slope is $0.438$, giving
+$\tau_T = 482 \pm 100$ and $488 \pm 107$, i.e. $-0.5\sigma$ and $-0.3\sigma$ from $503$ and
+$-1.9\sigma$ and $-1.6\sigma$ from $618$.
+
+\textbf{Decision by the pre-registered rule: $0.438 < 0.6$, so the block estimator stays the
+headline} and the modelled fit is reported as corroboration --- $482$ and $488$ against the block
+estimator's $490 \pm 190$ and $450 \pm 165$, two analyses of one record with different biases
+agreeing. The conclusion is unchanged: $\tau_T(M_d=10)$ is of order $500\,\sigma$-time and the
+$23\,\%$ gap is not resolved.
+
+\paragraph{DERIVATION --- $\tau_r$ is Paper~1's linewidth at a mass Paper~1 never ran.} For a
+damped-cosine ACF the spectrum is a Lorentzian of fractional width $\Delta f/f = 1/(\pi\tau_r\nu)$,
+so the measurement is $\Delta f/f = 0.155$ and $0.163$, $Q = 6.4$ and $6.1$. Paper~1 uses Mansour's
+piston form $\Delta f/f = \Gamma L_y\sqrt{2/(\hat M N)}$, $\hat M = M + mN/3$; extrapolating to
+$M = 10$ is the only free step, since $L_y = 10$, $N = 100$ and $\eta = 0.10$ are shared. With
+Enskog $\Gamma = 0.331$ that is $\Delta f/f = 0.0711$, $\tau_r = 426$. \textbf{The measured
+resonance is $2.2\times$ broader} ($\Gamma_{\mathrm{implied}} = 0.72$, $0.76$). Reported as a
+measurement, not a discrepancy: $M_d = 10$ is a factor 5 below Paper~1's lightest mass and in the
+opposite $\alpha$ regime, and Paper~1's own inferred $\Gamma$ at $\eta = 0.10$ scatters from $0.084$
+to $0.439$ across its nine masses. OPEN.
 
 \paragraph{KOA design --- record length, not seeds.} The earlier ``$\approx 2300$ seeds'' was
 derived for a \emph{decaying step}; the equilibrium route has no step to lose, and what hides the
@@ -831,7 +884,36 @@ Quadrupling the record buys more than quadrupling the seeds. \textbf{Recommended
 $M_d \in \{10, 50, 200\}$, records $\approx 65\,\tau_T$ ($32\,800$, $164\,000$,
 $656\,000\,\sigma$-time), 80 seeds each --- at $M_d = 10$ about $13\times$ this run, an overnight
 job. The mass ladder is what tests the \emph{exponent}; this run has one mass and tests neither it
-nor Eqs.~\eqref{eq:gp51}--(52). See \texttt{260929\_paper2\_level4\_fd.md}.
+nor Eqs.~\eqref{eq:gp51}--(52).
+
+\textbf{And use the modelled estimator there, not the block one.} Its slope clears the $0.6$
+threshold once the record is long enough, and at the recommended size it wins outright:
+\begin{center}
+\begin{tabular}{rrrcc}
+\toprule
+record [$\sigma$] & $L/\tau$ & seeds & slope & separation \\
+\midrule
+$8\,200$ (this run) & 16 & 20 & 0.45 & $1.4\sigma$ \\
+$16\,400$ & 33 & 20 & 0.56 & $1.6\sigma$ \\
+$32\,800$ & 65 & 20 & 0.74 & $1.9\sigma$ \\
+$\mathbf{32\,800}$ & \textbf{65} & \textbf{80} & \textbf{0.74} & $\mathbf{4.0\sigma}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+against $3.3\sigma$ for the block estimator at the same cost. See
+\texttt{260929\_paper2\_level4\_fd.md} and \texttt{260930\_paper2\_level4\_fd2.md}.
+
+\paragraph{PREREQUISITE, now built and gated --- \texttt{--trace-every=N}.} The energy-transfer
+trace was the only writer in \texttt{00ALLINONE.c} with no cadence control: it ignores
+\texttt{--output-dt} and emits one row per step, which is 21\,GB for a single $10\,000\,\sigma$-time
+cell and makes the $656\,000\,\sigma$-time record above impossible. \texttt{--trace-every=N}
+decimates in \emph{steps} (exact and seed-independent); $N \le 1$ is the historical behaviour, so
+every existing script is byte-identical. The guard wraps the row write only --- \texttt{recorded\_steps++}
+stays outside it, because it is also the loop's termination counter and decimating it would shorten
+the run. \textbf{GATE PASS}: energy\_transfer 6/6 and speed\_of\_sound 9/9 data files byte-identical
+across 3 seeds, every \texttt{summary.csv} column identical, \emph{no} \texttt{EXPECT\_DIFF} needed.
+Functionally, \texttt{--trace-every=300} turns 12\,000 rows (4.41\,MB) into 40 (15\,kB), every kept
+row byte-identical to the full run's every-300th.
 
 \paragraph{KOA design --- Route B, stationary heat conduction. BLOCKED, recorded, not built.} The
 alternative to any decaying signal is a stationary one: hold the outer walls at $T_{\mathrm{hot}}$
@@ -848,81 +930,6 @@ hot wall and out at the cold wall are measured separately, their difference bein
 check; (iii) trace columns for each. That is a core change to the energy ledger. It is \textbf{not
 made}, and if it ever is, Level 0's bit-identity gate and the health contract must both be re-run
 against it.
-
-\subsection{What replaces the impedance criterion}\label{sec:l3acoustic}
-
-It is not impedance matching. The maximum of $\epsilon_{\mathrm{coh}}$ tracks
-$\tau_{\mathrm{push}}/T_w$, not $Z_w/Z_g$: that is a driven oscillator, where a pressure rise
-applied faster than the wall's period overshoots up to twice the static displacement and one applied
-slower is followed quasi-statically. The acoustic pulse ($Au^2 \approx 1\,\kT$ at $u = 0.2$) is a
-small correction to a $16\,\kT$ bulk pressure rise, so an impedance formula for the pulse was never
-going to be the controlling physics.
-
-The prediction is a one-degree-of-freedom model with \textbf{no free parameter}:
-\begin{equation}
-M \ddot s = F_{\mathrm{ad}}(L - x_p(t) + s) - F_{\mathrm{ad}}(L) - k s , \qquad
-x_p(t) = \min(u t, \Delta x), \quad s(0) = \dot s(0) = 0,
-\label{eq:onedof}
-\end{equation}
-with $F_{\mathrm{ad}}$ the exact adiabatic gas force and $E_{\mathrm{max}} = \max_t \Delta E(s(t))$.
-
-\begin{run}[What we run (2026-09-21)]
-Master box, geometry C (divider removed, one gas of 100 disks, $\eta = 0.1001$,
-$\Delta x = 7.96\,\sigma$ = 10\,\%), spring \textbf{pre-loaded} at wall $+ F/k = 33.65\,\sigma$,
-$k = 0.5\,\kT/\sigma^2$, step protocol, 40 seeds per cell, event log on, trace $200\,\sigma$-time
-past the stop. $M_s \in \{2,10,50,200,1000\}$ at $u \in \{0.2, 0.5, 1.0\}$, plus $u \in \{0.05,0.1\}$
-at $M_s \in \{50,200\}$ to anchor the quasi-static end: 760 runs.
-$M_s$ is the discriminator because Eq.~\eqref{eq:preload} contains no $M_s$ while
-Eq.~\eqref{eq:onedof} does.
-Primary observable is the \textbf{ensemble-mean} $E_{\mathrm{spring}}(t)$, baseline and
-peak-picking bias both taken from the causally blind window $t < 0.4\,L/c_s$ after the push starts.
-\end{run}
-\begin{pass}[Pass criterion (2026-09-21)]
-(i) The ledger closes with the spring term to $10^{-8}$.
-(ii) The coherent peak stands $>3\sigma$ above the pedestal.
-(iii) Eq.~\eqref{eq:onedof} reproduces $\Delta E_{\mathrm{coh}}(M_s, u)$ within $2\sigma$ at the
-speeds where the gas is genuinely quasi-static, $\tau_{\mathrm{push}} > L/c_s$ (i.e. $u \le 0.1$).
-At $u \ge 0.2$ the deviation is \emph{reported} as the acoustic contribution, measured rather than
-assumed, with no pass claimed.
-\end{pass}
-\section{Level 4 --- geometry B: transmission through a free divider}
-
-\begin{why}
-Before stacking walls we need the transmission of one wall between two gases, and we already own half of this result: the slow mode of Paper~1 \emph{is} the heat conduction of the divider.
-\end{why}
-
-Release the divider between gas 1 (pushed) and gas 2. Two channels carry energy across: the fast one, pressure waves moving the divider ($\tau \sim \tau_{\mathrm{sound}}$), and the slow one, heat conduction by divider collisions. Paper~1 measured the slow one: correlation time $\tau_{\mathrm{heat}} = 54$--$100$ acoustic periods at $M = 100$--$1000$, amplitude set by the isothermal stiffness. The adiabatic-piston literature predicts $\tau_{\mathrm{heat}} \propto M/m$; we can now test that with the $KE_L, KE_R$ columns, and it becomes a figure for free. The transmission observable is the energy that has crossed after the push has relaxed:
-\begin{equation}
-\mathcal T(t) = \frac{\Delta KE_{\mathrm{gas\,2}}(t)}{W_{\mathrm{in}}},\qquad
-\mathcal T_{\mathrm{fast}} = \mathcal T(t \approx 5\tau_{\mathrm{sound}}),\qquad
-\mathcal T_{\mathrm{slow}} = \mathcal T(t \to \infty) \to \tfrac12\ \text{(equipartition of the excess heat)}.
-\label{eq:transmission}
-\end{equation}
-The prediction to test for the fast channel is the two-body energy-transfer fraction with the gas column as a mass:
-\begin{equation}
-f(m_1, m_2) = \frac{4m_1m_2}{(m_1+m_2)^2},\qquad m_1 \to \text{effective gas mass } N_s m,\ m_2 \to M,
-\label{eq:twobody}
-\end{equation}
-which is heuristic and is exactly what Level~4 measures the validity of.
-
-\begin{run}
-Geometry B, $L_0 = 20$, $N_s = 50$ each side, $\eta = 0.196$, held wall at $L_0$ (mass $10^9$), free divider at $1.5L_0$ with $M = 20, 50, 100, 200, 500, 1000, 2000$; piston step $u/c_s = 0.1$, travel $2\,\sigma$; 25 seeds. Run to $t = 200\,\tau_{\mathrm{sound}}$ so $\mathcal T_{\mathrm{slow}}$ is reached.
-\end{run}
-\begin{pass}
-$\mathcal T_{\mathrm{slow}} \to 0.5$ within $2\sigma$ for every $M$ (a ledger-level check). $\tau_{\mathrm{heat}}(M)$ from the exponential approach; report its exponent in $M$ (expected $+1$). $\mathcal T_{\mathrm{fast}}(M)$: compare with \eqref{eq:twobody}; the pass is not agreement but a \emph{measured} curve with error bars and the location of its maximum in $\alpha = M/N_s$.
-\end{pass}
-\begin{res}
-\textbf{Level 4: the slow channel is already measured; the fast channel is not started.}
-From Paper~1, with the $KE_L, KE_R$ columns: the slow divider mode is stationary (its variance is the same in both halves of a 1000-period record, ratio $0.72$--$1.25$), survives a $100\times$ longer hold, and has correlation time $53$--$102$ acoustic periods at $M = 100$--$1000$. Its amplitude is the \emph{isothermal} equipartition value $\avg{x^2} = L^2/(2N_s[Z+\eta Z'])$ to 4\,\% for light dividers, while the adiabatic form overshoots by 37--62\,\%. It follows $T_L - T_R$ directly: correlation $+0.978$ ($M = 100$) and $+0.910$ ($M = 1000$) with the slow part of the compartment-temperature difference, positive sign (a hotter left compartment pushes the divider to $+x$), lag $\le 0.25$ periods at $M = 100$, and the pressure balance $x = (L_0/2)(\Delta T/T)\,Z/(Z+\eta Z')$ reproduces the amplitude to 6--7\,\%. Across the A2 size ladder its amplitude falls as $N^{-0.39}$ to $N^{-0.54}$ in units of the box, \ie it is a finite-size fluctuation that vanishes as $N\to\infty$. What is \emph{not} yet measured: $\tau_{\mathrm{heat}}(M)\propto M$ over a mass ladder, and the fast channel $\mathcal T_{\mathrm{fast}}$ --- both need the geometry-B runs of this level.
-\end{res}
-
-\begin{howto}
-\textbf{Data:} Paper 1's A1 v2 campaign, already on disk --- this level needs no new runs yet.
-\textbf{Analysis:} \cmd{python3 hspist3/validation/paper1\_linewidth\_20260918.py} gives $\Gamma(\eta)$ from the
-divider linewidth; \cmd{damping\_test\_20260915.py} and \cmd{A2\_slow\_mode\_20260915.py} give the slow-mode
-amplitude and its finite-size scaling.
-\end{howto}
-
 
 \subsection{SUPERSEDED --- how long does the divider take? (written before the papers arrived)}
 \label{sec:l4tau-superseded}
