@@ -92,8 +92,9 @@ that the disagreement is firm rather than indicative:
 | Mansour piston form at M = 10 (Enskog Γ) | 426 |
 | bulk sound absorption, 2/(Γk²) | 4217 |
 
-Still bracketed by the two limits, still ~2× narrower than Mansour, and now at 4 σ-time precision
-rather than 17. This is the one number in Level 4 that disagrees with an independent prediction, and
+Still bracketed by the two limits, and **the mode damps 2.1× faster than Mansour's piston form**
+(207 against 426) — which is a *broader* line, not a narrower one: Δf/f = 1/(πτ_rν), so a shorter
+τ_r is more damping and more linewidth. It is now at 4 σ-time precision rather than 17. This is the one number in Level 4 that disagrees with an independent prediction, and
 the mass ladder measures τ_r(M) at the same time as τ_T(M) for free.
 
 ## 6. Cost, corrected

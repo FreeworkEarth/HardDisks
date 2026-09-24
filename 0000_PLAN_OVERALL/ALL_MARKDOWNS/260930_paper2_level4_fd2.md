@@ -31,10 +31,25 @@ and L_eff = 38.75 − 2r = 37.75:
 | predicted, ideal gas (c_s = √2) | 117.38 |
 | predicted, Paper 1's measured c_s (+1.01 %) | 94.21 |
 
-**0.03 % and 0.06 % on the spectral peaks**, whose errors are the peak FWHM. The ideal-gas variant
-is 4.3σ away, so the mode discriminates KR from the ideal gas on its own. The ACF-fit periods land
-1–2 % low, between KR and the Paper-1 c_s variant; the three period estimators are mutually
-consistent only at the ~2 % level, so no finer claim than "KR, not ideal" is made.
+**The precision is the FWHM, ±5.4 % and ±7.4 %; the agreement is 0.01σ.** Those are different
+statements and the second is only as good as the first — a 5 % measurement agreeing with a
+prediction to 0.03 % is luck on top of a correct identification, not a 0.03 % measurement. What the
+precision *does* support is the exclusion: the ideal-gas variant, 117.38, is **4.3σ away**, so the
+mode discriminates KR from the ideal gas on its own.
+
+**The sharper numbers point at the box, not the bulk.** The ω-free ACF fits are much tighter than
+the spectral peaks, and they do not sit on bulk KR:
+
+| | vs bulk KR 95.16 | vs Paper 1's box c_s 94.21 |
+|---|---|---|
+| T₁−T₂, 93.27 ± 0.51 | 3.7σ | 1.8σ |
+| divider x, 94.31 ± 0.57 | 1.5σ | 0.2σ |
+
+**This is the third independent appearance of the same +1 %** — after Paper 1's c_s and Level 3's
+box stiffness — and it is the better match here. But the two fits differ from *each other* by 1.4σ,
+so their errors are optimistic and the systematic between period estimators is the ~2 % level. The
+claim stays exactly where it was: **KR, not ideal**, with the box's own sound speed noted as the
+closer of the two and nothing built on it.
 
 **Why the previous formula was wrong.** ω = √(2k_gas/M) is the α ≫ 1 limit, where cot K ≈ 1/K gives
 K ≈ α^(−1/2). At α = 0.1 that would be K = 3.162, which is not even on the branch whose root is
@@ -106,13 +121,29 @@ are shared — gives
 | Paper 1's own mean Γ = 0.314 ± 0.038 | 0.0675 | 449 |
 | **measured here** | **0.155 / 0.163** | **195 ± 17 / 186 ± 15** |
 
-**The resonance is 2.2× broader than the extrapolation**, i.e. Γ_implied = 0.72 and 0.76 against
-0.331. Stated as a measurement, not a discrepancy to be explained away: M_d = 10 is a factor 5
-below Paper 1's lightest mass and in the opposite α regime, where the mode is a gas standing wave
-rather than a loaded piston, and the Mansour form is derived for a heavy piston. The extrapolation's
-own footing is soft — Paper 1's inferred Γ at η = 0.10 scatters from 0.084 to 0.439 across its nine
-masses. This is a new number at a new α, and it is the one place where this run's damping and
-Paper 1's disagree.
+**The mode damps 2.2× faster than the extrapolation predicts**, i.e. a correspondingly
+broader line, Γ_implied = 0.72 and 0.76 against 0.331.
+
+**Bracketing it physically.** At α = 0.1 the mode is a gas standing wave, and the two limiting
+mechanisms are both computable [DERIVATION]:
+
+| mechanism | τ_r |
+|---|---|
+| kinetic (Brownian) friction on the divider, 2M_eff/γ with γ = 4.118, M_eff = 45.4 | **22** |
+| bulk sound absorption of the standing wave, 2/(Γk²), k = K/L_eff = 0.037851, Γ = 0.331 | **4217** |
+| Mansour's piston form at M = 10 | 426 |
+| **measured** | **195 ± 17 / 186 ± 15** |
+
+The friction limit is not merely too fast by a factor 9 — it is **wrong in principle**, because the
+momentum the divider exchanges with the standing wave is *coherent*, returned to the mode rather
+than lost to the gas. That is Level 3's A4 lesson in a different geometry. Bulk absorption is too
+slow by a factor 22. The measurement lies between them, nearest Mansour's piston form.
+
+So the damping of a light-divider mode is neither single-particle friction nor bulk absorption, and
+pinning it down **is** Paper 1's linewidth question asked at a new α. The extrapolation's own footing
+is soft in any case — Paper 1's inferred Γ at η = 0.10 scatters from 0.084 to 0.439 across its nine
+masses. **OPEN**, and worth a measurement rather than an apology: the mass ladder of §2 measures
+τ_r(M) at the same time as τ_T(M), for free.
 
 ## 4. Trace decimation — built and gated
 
@@ -166,7 +197,7 @@ Level 3 → l3ceiling → l3acoustic → Level 4 → `sec:l4tau` → `sec:l4tau-
 | **the equilibrium oscillation** | **Paper 1's divider mode, 95.13 ± 5.15 vs 95.16 predicted** — closed |
 | τ_T at M_d = 10 | **~490**, consistent with 503 and with 618 |
 | τ_T ∝ M | **untested** — one mass only |
-| τ_r vs Paper 1's linewidth | **measured, 2.2× broader than the extrapolation** — open |
+| τ_r vs Paper 1's linewidth | **measured, damps 2.2× faster than the extrapolation** — open |
 | Eq. (51), Eq. (52) | **untested** |
 
 Route B (stationary heat conduction, per-wall baths with separate ledgers) stays a design in the

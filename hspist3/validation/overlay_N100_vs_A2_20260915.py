@@ -9,10 +9,11 @@ import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE); sys.path.insert(0, os.path.dirname(HERE))
 import tests_20260913 as T
+from paper1_populate_cs_err_20261002 import slope_with_errors
 import plot_speed_of_sound_edmd as sos
 
 P = T.PLOTS
-A1 = os.path.join(P, os.environ.get("HD_A1_CSV", "260914_A1v2_final_cs_vs_eta.csv"))
+A1 = T.plot_path(os.environ.get("HD_A1_CSV", "260919_A1v2_final_cs_vs_eta.csv"))
 A2 = os.path.join(P, os.environ.get("HD_A2_CSV", "260916_A2_cs_per_mass.csv"))
 OUTNAME = os.environ.get("HD_OUT", "260916_cs_vs_eta_N100_vs_A2")
 OUT = os.path.join(P, OUTNAME)
@@ -24,14 +25,22 @@ def cs_of(Z, eta):
     return sos.cs_adiabatic_2d_monatomic(Z(eta), dZ, eta, kbt=1, m=1)
 
 
-a1 = [(float(r["eta"]), float(r["c_s"]), float(r["c_s_scatter_mass"])) for r in csv.DictReader(open(A1))]
+a1 = [(float(r["eta"]), float(r["c_s"]), float(r.get("c_s_err_scaled") or r["c_s_scatter_mass"])) for r in csv.DictReader(open(A1))]
 by = defaultdict(list)
 for r in csv.DictReader(open(A2)):
-    by[(float(r["eta"]), int(r["N"]))].append((float(r["nu_mean"]), float(r["c_s_mass"])))
+    by[(float(r["eta"]), int(r["N"]))].append((float(r["nu_mean"]), float(r["c_s_mass"]),
+                                                  float(r["nu_sd"]), int(r["n_runs"])))
 a2 = defaultdict(list)
 for (eta, N), v in by.items():
     nu = np.array([q[0] for q in v]); csm = np.array([q[1] for q in v]); x = nu / csm
-    a2[N].append((eta, float((x * nu).sum() / (x * x).sum()), float(csm.std(ddof=1)), len(v)))
+    # ##CHRIS 2026-10-02: the plotted error was the SCATTER of the per-mass c_s values, which is
+    # not the uncertainty on c_s and never used the per-mass seed errors this table already
+    # carries (nu_sd, n_runs). Same correction as the A1 table: propagate them through the
+    # through-origin slope and inflate by sqrt(chi2_red). The tuple keeps FOUR fields so every
+    # downstream unpack is untouched, and the CENTRAL VALUE is the same unweighted slope.
+    sy = np.array([q[2] / math.sqrt(max(1, q[3])) for q in v])
+    _s, _e, _es, _x2 = slope_with_errors(x, nu, sy)
+    a2[N].append((eta, float((x * nu).sum() / (x * x).sum()), float(_es), len(v)))
 for N in a2:
     a2[N].sort()
 

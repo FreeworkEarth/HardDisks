@@ -69,6 +69,27 @@ def cell(task):
                 n=len(nus), nd=nd)
 
 
+
+def slope_with_errors(x, y, sy):
+    """Through-origin slope with propagated + chi2-scaled error. ONE definition, imported by the
+    A2 figure scripts too, so the A1 and A2 error bars cannot drift apart.
+
+    Returns (s, err, err_scaled, chi2_red). The slope is UNWEIGHTED, matching T.slope and matching
+    what every existing figure already plots as its central value, so adopting this cannot move a
+    published number -- only the error bar changes.
+    """
+    import numpy as _np, math as _math
+    x = _np.asarray(x, float); y = _np.asarray(y, float); sy = _np.asarray(sy, float)
+    ok = _np.isfinite(x) & _np.isfinite(y) & _np.isfinite(sy) & (sy > 0)
+    if ok.sum() < 3:
+        return float("nan"), float("nan"), float("nan"), float("nan")
+    x, y, sy = x[ok], y[ok], sy[ok]
+    sxx = float((x * x).sum())
+    s = float((x * y).sum() / sxx)
+    err = _math.sqrt(float((x * x * sy * sy).sum()) / sxx ** 2)
+    chi2 = float((((y - s * x) / sy) ** 2).sum()) / max(1, len(x) - 1)
+    return s, err, err * max(1.0, _math.sqrt(chi2)), chi2
+
 def thickness_factor(L0):
     lo = L0 - 2 * RDISK
     return (lo - 0.5 * WALL_T) / lo
