@@ -189,3 +189,50 @@ the ideal gas; the mode period tracks cot K = αK across α = 0.1–2.0.
 Whether it survives the light-end top-up is the next test. If it does, the quantity to report is
 not an exponent but the curve τ_T(M)/M, and the adiabatic-piston theory's linear law is wrong in
 this box in a way that grows with mass.
+
+## 6. Top-up of the light masses, and the ladder as τ_T = M g(R)
+
+**M = 10 and M = 20 topped up** (`level4_topup_20261005`, 160 runs, 0 aborts, 0 health, 4 minutes)
+to close the one failing sampling criterion. Every mass now passes both:
+
+| M | L/τ | cal slope | modelled | block | S(0) | spread | τ_T |
+|---|---|---|---|---|---|---|---|
+| 10 | **71** | 0.746 | 475 ± 20 | 455 | 450 ± 12 | 1.06× | 475 ± 20 |
+| 20 | **70** | 0.690 | 1089 ± 57 | 1140 | 995 ± 19 | 1.15× | 1089 ± 57 |
+| 50 | 70 | 0.746 | 3835 ± 95 | 4384 | 3792 ± 28 | 1.16× | 3835 ± 95 |
+| 100 | 68 | 0.741 | 12 330 ± 855 | 13 091 | 11 989 ± 89 | 1.09× | 12 330 ± 855 |
+| 200 | 87 | 0.734 | 40 079 ± 1708 | 41 460 | 39 596 ± 109 | 1.05× | 40 079 ± 1708 |
+
+L/τ ≥ 60 **PASS**, slope ≥ 0.6 **PASS**, subsets agree within 2σ **FAIL** (8.4σ / 4.6σ / 7.5σ).
+So b remains not quotable — but **the light end barely moved** (475 vs 482, 1089 vs 1091), so the
+curvature is *not* a light-end calibration artefact. That was the last sampling systematic.
+
+### Why "∝ M" was never the theory's claim along this path
+
+Cencini *et al.* define their limit explicitly [SOURCE: Cencini 2007, **p. 4, Sect. II.B**]:
+
+> "We are interested in the limit N, M, L → ∞ in which we keep fixed ρ₀ = N/L and the
+> nondimensional mass ratio **R = Nm/M**."
+
+Gruber–Piasecki is derived for an infinite gas, i.e. R → ∞. **Both "∝ M" statements are at fixed
+R.** This ladder holds N_s = 50 and L_c = 38.75 and varies M, so R runs 5 → 0.25 and ρ₀ stays
+1.2903. Nothing in either paper claims linearity along that path.
+
+Written as **τ_T = M g(R)**:
+
+| M | R | g = τ_T/M | g/g_GP | σ from Gruber–Piasecki (50.35) |
+|---|---|---|---|---|
+| 10 | 5.00 | **47.5 ± 2.0** | 0.94 | **−1.4σ** |
+| 20 | 2.50 | **54.4 ± 2.8** | 1.08 | **+1.4σ** |
+| 50 | 1.00 | 76.7 ± 1.9 | 1.52 | +13.9σ |
+| 100 | 0.50 | 123.3 ± 8.6 | 2.45 | +8.5σ |
+| 200 | 0.25 | 200.4 ± 8.5 | 3.98 | +17.6σ |
+
+**The infinite-reservoir theory is reproduced where the gas is the reservoir** — R = 5 at −1.4σ and
+R = 2.5 at +1.4σ — **and departs smoothly, by a factor 4, once the divider outweighs a compartment
+of gas.** Over the measured range g ∝ R^(−0.48), so τ = Mg ∝ R^(−1.48), which is why the local
+logarithmic slope in M saturates near 1.7 rather than continuing as a power law.
+
+That is the sentence to use: not "the linear law is wrong in this box", but "the linear law holds
+at large R and the departure is a function of R". Whether R is really the variable is tested in
+`261005_paper2_level4_Rcollapse.md`.
