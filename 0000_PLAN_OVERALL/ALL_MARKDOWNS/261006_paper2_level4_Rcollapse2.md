@@ -263,3 +263,81 @@ interpolation enters the comparison at all**.
 
 Cost at 65 tau: M = 12.5 needs ~2.5 M steps/seed, M = 25 ~5.7 M; 80 seeds each is **652 M steps,
 ~2.9 core-hours**. **Not launched** — no new campaign without a go.
+
+---
+
+## 8. Item 6 — the ladder measured at R = 4 and R = 2, and the close
+
+`level4_ladderRfill_20261009`, N_s = 50, M_d = 12.5 and 25, 80 seeds each, 0 aborts, 0 health.
+**Both gates pass**: L/tau = 90 and 78, calibration slopes 0.750 and 0.725, no clamping.
+Fractional `wall_mass_factors=12.5` was verified accepted by the parser before launch.
+
+| M | R | L/tau | slope | modelled | block | S(0) | spread | **f = tau/tau_GP** |
+|---|---|---|---|---|---|---|---|---|
+| 12.5 | 4 | **90** | 0.750 | 660 ± 30 | 644 | 730 | 1.13x | **1.048 ± 0.048** |
+| 25 | 2 | **78** | 0.725 | 1546 ± 56 | 1562 | 1863 | 1.21x | **1.228 ± 0.045** |
+
+**Against the two pre-registered outcomes: NOT RESOLVED.** Outcome I (the big box's f: 1.120, 1.400)
+is 1.2 and 2.2 sigma away; Outcome II (the ladder's own interpolation: 0.98, 1.18) is 1.0 and 0.6
+sigma away. Neither is within 2 sigma at both points.
+
+**But the light-M anchor-bias hypothesis is dead.** 1.048 and 1.228 sit on the small box's own
+trend (0.943 at R = 5, 1.080 at R = 2.5, 1.523 at R = 1) exactly where interpolation put them, so
+the ladder's M = 10 and M = 20 cells are not biased and "GP reproduced at R = 5 and 2.5" stands.
+
+### 8.1 Box to box at the same R — both measured, no interpolation anywhere
+
+| R | N_s = 50 | N_s = 100 | difference | rule A | rule B | rule C |
+|---|---|---|---|---|---|---|
+| 4 | 1.048 (M = 12.5) | 1.120 (**M = 25**) | +0.072 | **1.2 sigma** | 0.9 | 1.2 |
+| 2 | 1.228 (M = 25) | 1.400 (**M = 50**) | +0.172 | **2.2 sigma** | 0.9 | 2.2 |
+| | | | **combined** | **+0.109 ± 0.047 = 2.3 sigma** | +0.087 ± 0.071 = 1.2 | +0.109 ± 0.047 = 2.3 |
+
+**The error rule, stated because it changes the answer.** Rule A is the **calibration Monte-Carlo
+spread**, which is what pass 2 used and therefore what this comparison must use; the plan quotes
+**2.3 sigma**. Rule B additionally takes half the spread of all three estimators, as the mode-period
+analysis did, and gives 1.2 sigma. **The entire difference between them is the S(0) estimator**,
+which reads high in all five cells (730 vs 660, 1863 vs 1546, 8383 vs 7049, 18636 vs 15263, 2864 vs
+2821) while the modelled and block estimators agree to 1-2 %. Rule C is rule B with S(0) dropped,
+and it returns exactly rule A. **S(0) was never pre-registered as excludable, so it is kept and
+both numbers are reported; if it is ever declared biased, C is the rule and the answer is 2.3 sigma
+either way.**
+
+### 8.2 The M = 25 mode diagnostic
+
+T_mode = 107.2 at alpha = 0.25. Raw ACF fits (before the calibration correction all three share):
+
+| fit | raw tau_T | jackknife |
+|---|---|---|
+| with the mode term (the headline estimator) | **1389** | ± 46 |
+| **without** the mode term | **1375** | ± 46 |
+| lags > 3 T_mode = 322 only, no mode term | **1379** | ± 57 |
+
+**All three agree to 1 %.** The mode term is irrelevant at M = 25, so the headline tau_T is not an
+artefact of how the oscillation is modelled. (The ~10 % gap to the quoted 1546 is the calibration
+correction, which applies identically to all three.)
+
+### 8.3 Item 6 is closed
+
+1. **f(R) is not universal**, at **2.3 sigma** on the pass-2 error rule — the larger box sits
+   **7-14 % above** the smaller at the same R, same sign at both R.
+2. **The second variable is degenerate between N_s and the separation tau_T/(L_c/c_s) at fixed
+   eta**, and these boxes cannot tell them apart: at fixed R the divider mass scales with N_s, so
+   separation ~ M f scales with N_s too and the big box always has about twice the separation.
+
+   | | N_s = 50 | N_s = 100 |
+   |---|---|---|
+   | R = 4 | 29.8 (f = 1.048) | 63.7 (f = 1.120) |
+   | R = 2 | 69.8 (f = 1.228) | 159.1 (f = 1.400) |
+   | R = 1 | **173.1 (f = 1.523)** | **344.5 (f = 1.516)** |
+
+3. **Both boxes are converged at R = 1** — separations 173 and 345, f = 1.523 and 1.516, agreeing to
+   0.5 %. The story consistent with every point is that **f converges once the separation exceeds
+   roughly 150**: at R = 2 the small box (70) is below it and the big box (159) just above, and they
+   differ; at R = 4 neither is converged.
+4. **Future test, stated with its prediction and not queued: N_s = 25 at R = 1 (M_d = 25),
+   separation ~87. Under the separation hypothesis f < 1.52; under an N_s hypothesis it should
+   track N_s instead. ~1 core-hour.** This is adiabatic-piston physics on tau_T, which the
+   efficiency measurement never touches, so it belongs in the plan as a future test rather than in
+   the queue.
+

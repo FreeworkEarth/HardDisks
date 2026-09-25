@@ -4,10 +4,24 @@
 #   ./watch.sh demo            open the GUI and watch the push experiment (B1long)
 #   ./watch.sh demo shot       don't watch -- just save the experiment + paper screenshots
 #   ./watch.sh equil           the equilibrium (no-piston) run that tau_T comes from
-#   ./watch.sh effmap          geometry C, the efficiency map cell (k = 0.5, u = 0.05)
+#   ./watch.sh effmap [k]      geometry C, the efficiency map (k = 0.25 | 0.5 | 1.0, default 0.5)
 #   ./watch.sh 4b              the Level 4b transmission cell (M = 200, u = 0.2)
 #
 # Keys in the GUI: P start piston, S screenshot, +/- speed, Q quit.
+#
+# THE PICTURE RULE, from 2026-10-10: EVERY campaign gets both pictures before it launches.
+#   ./watch.sh <experiment> shot
+# runs first, the two PNGs go in paper2_pictures/, and the paper-render one is copied into
+# 0000_PLAN_OVERALL/paper2_energytransfer/experiments/final/ with the campaign's date prefix.
+# A campaign whose geometry nobody has looked at is a campaign nobody can check: the 0.25-sigma
+# piston gap was visible in the very first paper render (piston at 78.44 with W_in = 0.000) and
+# cost three rounds of inference to find in the numbers.
+#
+# effmap flags follow 261010 section 1: the spring rest length is NOT free -- it is set per k so
+# the system starts in mechanical equilibrium, k (x_eq - 30.5) = P h = 1.57489:
+#     k = 0.25 -> x_eq = 36.7996     k = 0.50 -> x_eq = 33.6498     k = 1.00 -> x_eq = 32.0749
+# Level 3's 33.65 is the k = 0.5 value; using it at k = 0.25 or 1.0 starts the run with a 50-100 %
+# force preload and the measured efficiency is meaningless.
 set -uo pipefail
 cd /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3
 WHAT=${1:-demo}; MODE=${2:-watch}
@@ -31,9 +45,13 @@ case "$WHAT" in
   equil)  FLAGS=(--particles=200 --particles-boxes=100,100 --l0=78.0 --num-walls=1
                  --wall-positions=78.0 --wall-mass-factors=100 --eff-output=wall-ke
                  --wall-hold-steps=12000 --steps=400000); SHOT_AT=20000 ;;
-  effmap) FLAGS=(--particles=100 --particles-boxes=0,100 --l0=54.75 --num-walls=1
-                 --wall-positions=30.5 --wall-mass-factors=200 --spring-k-sigma=0.5
-                 --spring-wall=0 --spring-eq=33.6498 --eff-output=spring
+  effmap) K=${3:-0.5}
+          case "$K" in 0.25) XEQ=36.7996 ;; 0.5) XEQ=33.6498 ;; 1.0) XEQ=32.0749 ;;
+            *) echo "k must be 0.25, 0.5 or 1.0 (the pre-registered grid)"; exit 1 ;; esac
+          echo "  effmap: k = $K, spring rest length x_eq = $XEQ (mechanical equilibrium at t = 0)"
+          FLAGS=(--particles=100 --particles-boxes=0,100 --l0=54.75 --num-walls=1
+                 --wall-positions=30.5 --wall-mass-factors=200 --spring-k-sigma=$K
+                 --spring-wall=0 --spring-eq=$XEQ --eff-output=spring
                  --piston-right-protocol-mode=step --velocity-right-piston-step=0.05
                  --max-right-piston-travel=7.96 --auto-piston-step
                  --wall-hold-steps=12000 --steps=200000); SHOT_AT=14000 ;;
