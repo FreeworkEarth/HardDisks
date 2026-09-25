@@ -33,3 +33,22 @@ instant the piston stops. Both are logging only: without them not a byte of any 
 
 **Every run directory also records its own command** in `00_COMMAND.md`, written by the binary, so
 any single trajectory can be reproduced without reading these scripts at all.
+
+## Two things that will bite you
+
+**`make` builds AddressSanitizer, not science.** The default target is `debug`
+(`-g -fsanitize=address -DDEBUG`), which is correct and roughly 5× slower. Science binaries are
+`make release` (`-O3 -march=native`, this machine) or `make koa` (`-O2 -march=x86-64-v2`, portable
+across KOA's heterogeneous nodes). A campaign accidentally run on the debug build is not wrong, only
+very slow — but it is also not byte-comparable with a release build, so it cannot be pooled with one.
+
+**Trace size: the energy-transfer trace writes one row per step and ignores `--output-dt`.** One
+10 000 σ-time cell is ≈ 220 MB per seed, and a first attempt at 3 M steps × 20 seeds reached 21 GB
+with 2.6 GB free before it was killed. Since 2026-09-30 use **`--trace-every=N`** (decimation in
+*steps*, so it is exact and seed-independent; `N ≤ 1` is the historical every-step behaviour and is
+byte-identical to it). Pick N from the physics — ≈ 25 samples per divider-mode period is ample, and
+the Md10 equilibrium run's 19 gave a clean two-component ACF fit. Row cost is ≈ 368 bytes.
+
+> Implementation note for anyone editing that guard: it wraps the row write **only**.
+> `recorded_steps++` is deliberately left outside it, because it is also the loop's termination
+> counter — decimating it would silently shorten every run.

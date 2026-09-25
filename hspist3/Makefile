@@ -60,7 +60,13 @@ all: debug
 # KOA node produces the same bytes. Cluster traces are NEVER byte-identical to the macOS/ARM ones
 # (different architecture, different FMA contraction) and must not be mixed with them inside one
 # cell or figure; they are gated statistically -- see cluster/README.md.
-CFLAGS_KOA      := -O2 -march=x86-64-v3 -mtune=generic $(INCLUDE)
+#
+# ##CHRIS 2026-10-01: x86-64-v3 CORRECTED TO v2. KOA's shared partition is heterogeneous and
+# includes Ivy Bridge nodes; v3 requires AVX2/FMA (Haswell and later), so a v3 binary dies with
+# SIGILL the moment Slurm lands the job on an older node -- intermittently, and only on some array
+# tasks, which is the worst way to find out. v2 (SSE4.2/POPCNT, Nehalem and later) runs on every
+# node in the partition. Do NOT raise this without pinning --constraint to a node feature.
+CFLAGS_KOA      := -O2 -march=x86-64-v2 -mtune=generic $(INCLUDE)
 
 debug: CFLAGS=$(CFLAGS_DEBUG)
 debug: $(TG)

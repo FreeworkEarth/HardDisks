@@ -76,3 +76,6 @@ __pycache__/
 *.synctex.gz
 0000_PLAN_OVERALL/ALL_MARKDOWNS/*.log
 hspist3/_orchestration_tests_20260913/binaries/
+
+# local commit/push helper scripts, never committed
+_commit_scripts/

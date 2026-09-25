@@ -20,7 +20,7 @@ however correct both are. Therefore:
 
 1. **Never mix laptop and cluster trajectories inside one cell or one figure.** Each campaign root is
    tagged by where it ran.
-2. The cluster build is compiled with a **fixed, portable ISA** (`-O2 -march=x86-64-v3`, the `koa`
+2. The cluster build is compiled with a **fixed, portable ISA** (`-O2 -march=x86-64-v2`, the `koa`
    target) so that all KOA nodes agree with each other, and `cluster/BUILD_KOA.txt` records compiler,
    flags, git commit and binary hash.
 3. The cluster build is accepted only after the **mirror gate** below passes.
@@ -77,17 +77,72 @@ bash cluster/fetch_results.sh koa ~/harddisks/runs
 Cost on the laptop for comparison: `a2_long200` alone is ≈ 1400 core-hours ≈ 140 h at 10 slots; at
 200 KOA cores it is ≈ 7 h.
 
-## Still to fill in from KOA
+## KOA facts (as of the account briefing, 2026-10-01)
 
-`run_array.sbatch` carries `--partition=PARTITION_TBD` and `--time=04:00:00`. Replace both from:
+| | |
+|---|---|
+| `sandbox` | 4 h walltime — interactive tests and the first-hour checks only |
+| `shared` | **3 d** walltime, up to **93 cores per node** — the science partition |
+| `kill-shared` | same but **preemptable**: jobs can be killed at any moment |
+| home | **50 GiB, NOT backed up** — source and scripts only, never campaign output |
+| `~/koa_scratch` | no quota, **purged after 90 days** — all campaign output lives here |
+| transfer | DTN **`koa-dtn.its.hawaii.edu`** — use it for rsync, not the login node |
+| modules | **Lmod** (`module avail`, `module load`) |
+| CPUs | **heterogeneous, Ivy Bridge included** — see the ISA warning below |
+
+**Preemption changes how you submit.** `kill-shared` is free capacity but a task can die mid-run, so
+it is only usable because `run_array.sbatch` is **restart-safe**: it skips a trajectory whose trace
+already reaches its planned duration, and `--requeue` is set. Submit long cells to `shared` and use
+`kill-shared` for the wide, cheap, easily-redone arrays.
+
+**The 90-day purge is a deadline, not a detail.** `cluster/fetch_results.sh` must be run before any
+campaign output ages out; nothing on KOA is backed up anywhere.
+
+## Three ways to lose a week
+
+**1. ISA: use `-march=x86-64-v2`, not v3.** KOA's shared partition includes **Ivy Bridge** nodes.
+`x86-64-v3` requires AVX2/FMA (Haswell and later), so a v3 binary dies with **SIGILL the moment
+Slurm lands a task on an older node** — intermittently, on some array tasks only, which is the worst
+possible way to discover it. `x86-64-v2` (SSE4.2/POPCNT, Nehalem and later) runs on every node in
+the partition. The `koa` Makefile target was corrected from v3 to v2 on 2026-10-01. Do not raise it
+without pinning `--constraint` to a node feature, and if you ever do, the mirror gate must be re-run.
+
+**2. `make` builds AddressSanitizer, not science.** The default target is `debug`
+(`-g -fsanitize=address -DDEBUG`), ≈ 5× slower. Science is `make release` on the laptop and
+**`make koa`** on the cluster. A campaign on the debug build is not wrong, only slow — but it is not
+byte-comparable with a release build and cannot be pooled with one.
+
+**3. Trace size.** The energy-transfer trace writes one row per step and ignores `--output-dt`
+(≈ 368 bytes/row). Always pass **`--trace-every=N`** for Level 4 cells — see the table in
+`level4_massladder.sbatch`. Undecimated, the M_d = 200 cell below would be **14.5 GB per seed**.
+
+## Provenance every node must record
+
+Because acceptance across nodes is **statistical, never byte-identical**, each run has to say where
+it ran. Every task appends to its `00_COMMAND.md`:
+
+```sh
+{ echo; echo "## node provenance";
+  echo "- hostname: $(hostname)";
+  echo "- cpu: $(awk -F: '/model name/{print $2; exit}' /proc/cpuinfo | sed 's/^ *//')";
+  echo "- slurm: job ${SLURM_JOB_ID:-none} task ${SLURM_ARRAY_TASK_ID:-none} on ${SLURM_JOB_PARTITION:-none}";
+  echo "- binary: $(sha1sum "$BIN" | cut -d' ' -f1)";
+} >> "$outdir/00_COMMAND.md"
+```
+
+If a cell's results ever split into two clusters, the CPU model is the first thing to check.
+
+## Commands to confirm the above on first login
 
 ```sh
 sinfo -o "%P %l %D %c %m" | head -20
-module avail 2>&1 | grep -iE "sdl|glew|mesa|gcc" | head
 sacctmgr show assoc where user=$USER format=Account,Partition,MaxJobs,GrpTRES | head
-lscpu | grep -E "Model name|Flags" | head -2      # confirm x86-64-v3 (avx2, bmi2) is supported
-df -h $HOME "$SCRATCH" 2>/dev/null
+module avail 2>&1 | grep -iE "sdl|glew|mesa|gcc" | head
+lscpu | grep -E "Model name|Flags" | head -2     # v2 needs sse4_2 + popcnt, NOT avx2
+df -h $HOME ~/koa_scratch
 ```
 
 The longest single run in `a2_long200` (η = 0.10, N = 2500, M = 2000, 200 periods) took ≈ 11 h on one
-laptop core, so its array task needs a walltime above that or that cell must be split by seed.
+laptop core. That fits `shared`'s 3 d limit but not `sandbox`'s 4 h.
+
+See `RUNBOOK_first_hour.md` for the sequence to run on day one.
