@@ -1,3 +1,6 @@
+CHAT:  
+
+
 Yes — choose Option 1. Your reasoning is sound: once the production trajectory has the strict all-or-nothing health criterion, calibration is no longer part of the scientific validity proof. It is a performance heuristic for choosing a likely-safe chunk.
 
 The distinction is:
@@ -1439,4 +1442,261 @@ That is exactly why the health/validity layer has to be independent of whether t
 
 So yes: add those tests, run the three smoke cases, and if they pass, relaunch the dense grid. Then stop debugging unless the campaign itself produces a new reproducible failure.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CLAUDE CODE: 
+
+
+Route B is done, and it settles the question — but not the way either of us expected.
+The test result
+
+Same η, two box geometries. Below η ≈ 0.55 they agree; above, they don't:
+η	L0/σ route A	L0/σ route B	c_s A	c_s B	B/A
+0.026	150	55	1.504	1.504	1.000
+0.157	25.0	22.4	2.001	1.986	0.993
+0.393	10.0	14.1	3.775	3.849	1.020
+0.550	7.14	11.9	6.782	7.075	1.043
+0.630	6.23	11.2	9.581	11.657	1.217
+0.700	5.61	10.6	19.301	19.863	1.029
+0.730	5.38	10.4	18.521	25.461	1.375
+
+c_s stops being intensive above η ≈ 0.55. A sound speed is a material property — at fixed η it cannot depend on box size. It does. So the absolute values above η≈0.55 are not sound speeds, whatever else they are.
+Why — and it's not L_eff
+
+ψ₆ tells the story, and it's the opposite of a geometry correction:
+η	ψ₆ route A	ψ₆ route B
+0.720	0.91 (crystal)	0.62
+0.750	0.97	0.12
+0.760	0.98	0.11
+
+The two geometries don't reach the same state. Route A's near-square box (11.2 × 10 diameters) crystallises cleanly. Route B's long thin box (21 × 5.3 diameters) is only ~5 particle rows tall — that frustrates the hexagonal lattice, so it jams disordered instead. Different structure → different elastic response → different mode speed.
+
+So it isn't an L_eff bookkeeping error. At high density you're measuring the structure the box imposes, not a bulk property. That also explains why splitting by ψ₆ within one geometry found nothing: every run in a given box adopts that box's structure.
+
+Also: route B at η ≥ 0.75 has peak_on_search_boundary flags (3 and 11) — the window clipped again — so those c_s = 64, 99 values are not trustworthy either way.
+
+Figure: campaign_r25_psi6_20260823/analysis/final_plots/routeA_vs_routeB_finite_size.pdf
+Are we paper-ready?
+
+Partly — and the honest split is at η ≈ 0.55.
+
+Ready now: η ≲ 0.55. Two independent routes agree to 1–3%, both match Liu to ~2%, the core is fixed and verified across 14,400 trajectories (0 clamp repairs, 0 overlap repairs, 0 forced advances), and Román is reproduced. That's a defensible result.
+
+Not ready: η > 0.55. Not because the simulation is wrong, but because a single 100-particle box can't define c_s there. Two ways forward, and they're different papers:
+
+    Push N up (your "more, smaller particles" instinct) until c_s stops moving — route B with N=1000 is already supported by the script, needs a timing check since the default core is O(N²).
+    Report the geometry-dependence as the finding — "in finite 2D hard-disk systems the high-density longitudinal mode is set by box-imposed structure" — with ψ₆ as the evidence.
+
+Want me to time and launch N=1000?
+
+ok where is the plan B single plot and the overlay plot? here is nt siulation inside : /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/routeB_radius_N100_L0_20_20260825/analysis/final_plots/FINAL speed_of_sound_on_packing_fracture.pdf
+
+
+AHHH oki get it. as we only get less and less particles the noise or the crystallisation effect is destroyed as too little particles i giess right? was this a pure radius sweep then? 
+
+
+can we maybe now do a test with maybe 1000 particles and change the rasius ir maybe use 1000 particles instead 100 for the boces. also we shall plit in the final plot ata on cs the number of particles and radius maybe ?
+
+Two things there — one important: the file you found is wrong, don't use it.
+
+That routeB/analysis/final_plots/FINAL...pdf came from the failed grouped analysis (all 32 η collapsed into one L0 group, and radius defaulted to 0.5). The correct route-B results are in analysis_pereta/. Let me remove the bad one and build a proper combined plot:
+Removed broken analysis and merged per-eta summaries
+
+Now the route-B FINAL plot, with N and radius shown as you asked:
+Built route B final plot with radius axis
+
+Now let me time N=1000 before committing to it — the default core is O(N²):
+Time one N=1000 trajectory at eta=0.70
+
+6.5 minutes per trajectory at N=1000 — ~180× slower than N=100, because the default core is O(N²) per event. A full N=1000 curve would be ~780 CPU-hours. Let me check a cheaper ladder:
+Time N=200 and N=400 at eta 0.70
+
+Timing ladder at η=0.70: N=100 → 2.2 s, N=200 → 10.4 s, N=400 → 46 s, N=1000 → 391 s (scales ~N^2.2). A full N=1000 curve is ~780 CPU-hours, so let me do a proper finite-size ladder instead:
+Launched finite-size ladder N=100,200,400
+
+Ladder is running. Answering your questions while it goes.
+Where the plots are
+
+Route B single plot — I had to rebuild it, because the file you found was wrong:
+
+The broken one came from the grouped analysis collapsing: the pipeline groups by L0, and in route B L0 = 20 for every η, so all 32 η merged into one group (summary had 1 row instead of 32). It also used the default --radius 0.5 for L_eff = L0 − 2r, when the real radius runs 0.158 → 0.984. I re-ran it per-η with the correct radius.
+
+Overlay plot:
+
+And yes to your plot request — the final plots now carry a provenance box (N = 100   L0 = 20 (fixed), r varies   H = 10), and route B gets a top axis showing the particle radius, since r is the actual sweep variable.
+One correction to your reasoning
+
+    as we only get less and less particles the crystallisation effect is destroyed
+
+Not quite — N is 100 in both routes. Nothing got fewer. What changed is the box shape measured in particle diameters:
+	L0/σ	H/σ	rows of particles	ψ₆
+Route A, η=0.72	5.45	10.0	~10	0.91 crystal
+Route B, η=0.72	10.44	5.2	~5	0.62
+
+Route B's box is only ~5 particle rows tall. You can't build a clean hexagonal lattice in 5 rows against flat hard walls — it's geometrically frustrated. Same 100 particles, same η, different structure purely from aspect ratio.
+
+And yes — it was a pure radius sweep: L0=20, H=10, N=100 all fixed, only r varied.
+On the N=1000 request
+
+I timed it: 391 s per trajectory at η=0.70, vs 2.2 s at N=100. The default EDMD core reschedules all pairs per event, so it's ~O(N²); measured scaling is ~N^2.2. A full N=1000 curve like route A/B would be ~780 CPU-hours.
+
+So I launched what actually answers the question — a finite-size ladder, N = 100 / 200 / 400 at five η (0.40, 0.55, 0.63, 0.70, 0.72), 9 masses, 10 repeats. ~40 min. If c_s at fixed η stops moving as N grows, we have a material property and a number for the paper. If it keeps climbing, the high-density regime is finite-size all the way down.
+
+For N=1000 specifically there are two options once the ladder reports — spot-check 2 η values (~50 min), or validate the accelerated core (--edmd-acc=1, cell lists) against the default at N=100 first and then use it, which is the only route that scales. I'd want that validation done anyway before it goes near a paper.
+
+
+
+
+
+
+
+
+Route B is done, and it settles the question — but not the way either of us expected.
+The test result
+
+Same η, two box geometries. Below η ≈ 0.55 they agree; above, they don't:
+η	L0/σ route A	L0/σ route B	c_s A	c_s B	B/A
+0.026	150	55	1.504	1.504	1.000
+0.157	25.0	22.4	2.001	1.986	0.993
+0.393	10.0	14.1	3.775	3.849	1.020
+0.550	7.14	11.9	6.782	7.075	1.043
+0.630	6.23	11.2	9.581	11.657	1.217
+0.700	5.61	10.6	19.301	19.863	1.029
+0.730	5.38	10.4	18.521	25.461	1.375
+
+c_s stops being intensive above η ≈ 0.55. A sound speed is a material property — at fixed η it cannot depend on box size. It does. So the absolute values above η≈0.55 are not sound speeds, whatever else they are.
+Why — and it's not L_eff
+
+ψ₆ tells the story, and it's the opposite of a geometry correction:
+η	ψ₆ route A	ψ₆ route B
+0.720	0.91 (crystal)	0.62
+0.750	0.97	0.12
+0.760	0.98	0.11
+
+The two geometries don't reach the same state. Route A's near-square box (11.2 × 10 diameters) crystallises cleanly. Route B's long thin box (21 × 5.3 diameters) is only ~5 particle rows tall — that frustrates the hexagonal lattice, so it jams disordered instead. Different structure → different elastic response → different mode speed.
+
+So it isn't an L_eff bookkeeping error. At high density you're measuring the structure the box imposes, not a bulk property. That also explains why splitting by ψ₆ within one geometry found nothing: every run in a given box adopts that box's structure.
+
+Also: route B at η ≥ 0.75 has peak_on_search_boundary flags (3 and 11) — the window clipped again — so those c_s = 64, 99 values are not trustworthy either way.
+
+Figure: campaign_r25_psi6_20260823/analysis/final_plots/routeA_vs_routeB_finite_size.pdf
+Are we paper-ready?
+
+Partly — and the honest split is at η ≈ 0.55.
+
+Ready now: η ≲ 0.55. Two independent routes agree to 1–3%, both match Liu to ~2%, the core is fixed and verified across 14,400 trajectories (0 clamp repairs, 0 overlap repairs, 0 forced advances), and Román is reproduced. That's a defensible result.
+
+Not ready: η > 0.55. Not because the simulation is wrong, but because a single 100-particle box can't define c_s there. Two ways forward, and they're different papers:
+
+    Push N up (your "more, smaller particles" instinct) until c_s stops moving — route B with N=1000 is already supported by the script, needs a timing check since the default core is O(N²).
+    Report the geometry-dependence as the finding — "in finite 2D hard-disk systems the high-density longitudinal mode is set by box-imposed structure" — with ψ₆ as the evidence.
+
+Want me to time and launch N=1000?
+
+ok where is the plan B single plot and the overlay plot? here is nt siulation inside : /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/routeB_radius_N100_L0_20_20260825/analysis/final_plots/FINAL speed_of_sound_on_packing_fracture.pdf
+
+
+AHHH oki get it. as we only get less and less particles the noise or the crystallisation effect is destroyed as too little particles i giess right? was this a pure radius sweep then? 
+
+
+can we maybe now do a test with maybe 1000 particles and change the rasius ir maybe use 1000 particles instead 100 for the boces. also we shall plit in the final plot ata on cs the number of particles and radius maybe ?
+
+Two things there — one important: the file you found is wrong, don't use it.
+
+That routeB/analysis/final_plots/FINAL...pdf came from the failed grouped analysis (all 32 η collapsed into one L0 group, and radius defaulted to 0.5). The correct route-B results are in analysis_pereta/. Let me remove the bad one and build a proper combined plot:
+Removed broken analysis and merged per-eta summaries
+
+Now the route-B FINAL plot, with N and radius shown as you asked:
+Built route B final plot with radius axis
+
+Now let me time N=1000 before committing to it — the default core is O(N²):
+Time one N=1000 trajectory at eta=0.70
+
+6.5 minutes per trajectory at N=1000 — ~180× slower than N=100, because the default core is O(N²) per event. A full N=1000 curve would be ~780 CPU-hours. Let me check a cheaper ladder:
+Time N=200 and N=400 at eta 0.70
+
+Timing ladder at η=0.70: N=100 → 2.2 s, N=200 → 10.4 s, N=400 → 46 s, N=1000 → 391 s (scales ~N^2.2). A full N=1000 curve is ~780 CPU-hours, so let me do a proper finite-size ladder instead:
+Launched finite-size ladder N=100,200,400
+
+Ladder is running. Answering your questions while it goes.
+Where the plots are
+
+Route B single plot — I had to rebuild it, because the file you found was wrong:
+
+The broken one came from the grouped analysis collapsing: the pipeline groups by L0, and in route B L0 = 20 for every η, so all 32 η merged into one group (summary had 1 row instead of 32). It also used the default --radius 0.5 for L_eff = L0 − 2r, when the real radius runs 0.158 → 0.984. I re-ran it per-η with the correct radius.
+
+Overlay plot:
+
+And yes to your plot request — the final plots now carry a provenance box (N = 100   L0 = 20 (fixed), r varies   H = 10), and route B gets a top axis showing the particle radius, since r is the actual sweep variable.
+One correction to your reasoning
+
+    as we only get less and less particles the crystallisation effect is destroyed
+
+Not quite — N is 100 in both routes. Nothing got fewer. What changed is the box shape measured in particle diameters:
+	L0/σ	H/σ	rows of particles	ψ₆
+Route A, η=0.72	5.45	10.0	~10	0.91 crystal
+Route B, η=0.72	10.44	5.2	~5	0.62
+
+Route B's box is only ~5 particle rows tall. You can't build a clean hexagonal lattice in 5 rows against flat hard walls — it's geometrically frustrated. Same 100 particles, same η, different structure purely from aspect ratio.
+
+And yes — it was a pure radius sweep: L0=20, H=10, N=100 all fixed, only r varied.
+On the N=1000 request
+
+I timed it: 391 s per trajectory at η=0.70, vs 2.2 s at N=100. The default EDMD core reschedules all pairs per event, so it's ~O(N²); measured scaling is ~N^2.2. A full N=1000 curve like route A/B would be ~780 CPU-hours.
+
+So I launched what actually answers the question — a finite-size ladder, N = 100 / 200 / 400 at five η (0.40, 0.55, 0.63, 0.70, 0.72), 9 masses, 10 repeats. ~40 min. If c_s at fixed η stops moving as N grows, we have a material property and a number for the paper. If it keeps climbing, the high-density regime is finite-size all the way down.
+
+For N=1000 specifically there are two options once the ladder reports — spot-check 2 η values (~50 min), or validate the accelerated core (--edmd-acc=1, cell lists) against the default at N=100 first and then use it, which is the only route that scales. I'd want that validation done anyway before it goes near a paper.
 

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+<script src="https://templates.lcs.brightspace.com/lib/assets/js/scripts.min.js" defer=""></script></head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h2>What is Slurm?</h2>
+<p>Slurm is the workload manager for the Koa cluster. Think of it as an air traffic controller for all the computational jobs submitted by users. Its main purpose is to decide which jobs run, where they run, and when they run, ensuring the system is used efficiently and fairly.<sup data-turn-source-index="1" _ngcontent-ng-c3677216728=""></sup>&nbsp;</p>
+<p>Of course. Here is the information about Slurm, reworked for clarity and easier scanning.</p>
+<h3>How Slurm Works on Koa: A Priority System</h3>
+<p>Koa uses a <strong>priority-based scheduling</strong> system. This ensures that everyone gets a fair chance to use the cluster's resources. Here’s a simple breakdown of how it works:</p>
+<h4 style="text-align: left;">1. Fair-Share Priority</h4>
+<ul>
+<li>
+<p>Everyone starts with the same base priority.</p>
+</li>
+<li>
+<p>When you run jobs, your priority temporarily goes down. The more resources you use, the lower it gets.</p>
+</li>
+<li>
+<p></p>
+<div _ngcontent-ng-c3504852951=""><!----><!----><!----><!----></div>
+<!----><!----><!----><!----><!----><!----><!----><!---->When your jobs finish, your priority slowly recharges back to its starting level over time.</li>
+</ul>
+<p><strong>The Goal:</strong> This system gives a slight edge to users who have been waiting longer or who haven't run jobs recently, preventing any single user from monopolizing the system.</p>
+<h4 style="text-align: left;">2. Job "Aging"</h4>
+<ul>
+<li>
+<p>The longer your job waits in the queue, the higher its priority becomes.</p>
+</li>
+<li>
+<p>Slurm recalculates your job's priority every few minutes, so a job that has been waiting patiently will gradually move up the list.</p>
+</li>
+</ul>
+<h4 style="text-align: left;">3. Backfilling</h4>
+<p>Slurm’s main goal is to keep the cluster as busy as possible. To do this, it uses&nbsp;<strong>backfilling</strong>.</p>
+<ul>
+<li>
+<p>Imagine a high-priority, 8-hour job is scheduled to start in one hour. Slurm sees an open one-hour slot and will "backfill" it by running a smaller, shorter job that can finish before the larger job is due to begin.</p>
+</li>
+<li>
+<p>This is like playing Tetris with jobs to fill in the gaps, which improves overall efficiency without delaying higher-priority work.</p>
+</li>
+</ul>
+<h4 style="text-align: left;">4. Slurm Accounts</h4>
+<p>To keep things fair across different groups, Slurm uses <strong>accounts</strong>.</p>
+<p><sup data-turn-source-index="3" _ngcontent-ng-c3677216728=""><!----></sup><sources-carousel-inline _nghost-ng-c529831324="" ng-version="0.0.0-PLACEHOLDER"><!----><source-inline-chips _nghost-ng-c786323692="" _ngcontent-ng-c529831324=""><source-inline-chip _nghost-ng-c3504852951="" _ngcontent-ng-c786323692=""></source-inline-chip></source-inline-chips></sources-carousel-inline>By default, all users are in the general&nbsp;<code>uh</code> account.</p>
+<h3><!----><!----><!----><!----><!----><!----><!----><!----></h3>
+<ul>
+<li>
+<p>If you are part of a specific class or lab, you will also have a unique account for that group.</p>
+</li>
+<li>
+<p>Running jobs for your class or lab only affects the priority of that specific account, not your personal priority. This ensures heavy use in one area doesn't penalize you in another.</p>
+</li>
+</ul>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

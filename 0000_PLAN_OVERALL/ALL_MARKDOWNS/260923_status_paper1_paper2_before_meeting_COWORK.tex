@@ -1,0 +1,102 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.1cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tcolorbox}
+\usepackage[colorlinks=true,linkcolor=NavyBlue,urlcolor=NavyBlue,citecolor=NavyBlue]{hyperref}
+\usepackage[T1]{fontenc}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+\newcommand{\kT}{k_{\mathrm B}T}
+\newcommand{\avg}[1]{\left\langle #1 \right\rangle}
+\newcommand{\dat}{\textcolor{Purple}{\textbf{[DATA]}}}
+\newcommand{\der}{\textcolor{NavyBlue}{\textbf{[DERIVATION]}}}
+\newcommand{\opn}{\textcolor{Red}{\textbf{[OPEN]}}}
+\newtcolorbox{say}[1][Say it like this]{colback=OliveGreen!8,colframe=OliveGreen!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{ask}[1][Decision for Susanne]{colback=Apricot!12,colframe=BurntOrange!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+
+\title{Where both papers stand --- status before the 23 September meeting}
+\author{Cowork note for Chris --- HardDisks / hspist3}
+\date{2026-09-23 (rev.\ 3, $\tau_T$ measured)}
+
+\begin{document}
+\maketitle
+
+\section*{The two sentences}
+\begin{say}[Paper 1 --- speed of sound]
+We measure the adiabatic sound speed of a 2D hard-disk fluid from the resonance of a heavy divider, over $\eta = 0.0065$--$0.76$ with nine divider masses and 25 seeds per point. At $N = 100$ the curve sits $+1.0\,\%$ above Kolafa--Rottner on average, the offset shrinks with $N$, and we show that Rom\'an et al.\ (2002) --- same box, same $N$, 24 years ago --- have exactly the same $+1\,\%$ once their data are mapped with the correct adiabatic formula instead of their $\gamma = 2$.
+\end{say}
+\begin{say}[Paper 2 --- energy transfer]
+A proof ladder for where injected work goes in a hard-disk box: Levels 0--2 closed (ledgers, quasi-static work, the $u^2$ excess and its friction), Level 3 closed on the observable (a pre-loaded spring wall settles where a parameter-free model says, to $-1.3\,\%$ with the box's own measured pressure, $+3.6\,\%$ with the bulk EOS), Level 4 measured in both halves (a free divider passes exactly half a slow push's work at any mass; the thermal relaxation through it is the adiabatic-piston problem, and its measured timescale selects the hard-disk theory at $-0.6\sigma$ and excludes the ideal gas at $3.5\sigma$). The levels are tied to Paper 1 by one line: the gas spring is $k_{\rm gas} = N m c_s^2/L^2$.
+\end{say}
+
+\section{Paper 1 --- what is established}
+\begin{center}\small
+\begin{tabular}{@{}p{5.2cm}p{9.6cm}@{}}
+\toprule
+Item & Status and number \\
+\midrule
+Apparatus & EDMD, $\kT = m = \sigma = 1$, $N_s = 50$ per compartment, $h = 10$, divider thickness $t = 0.05$; event ledger to $10^{-12}$. \dat{} \\
+Estimator & Periodogram of the divider position, largest bin above $\nu_{\rm pred}/2.5$; bin floor $0.144\,\%$; flat for any floor in $[\nu_{\rm pred}/6.25, \nu_{\rm pred}/2.08]$; largest-bin bias across the mass ladder $-0.030 \pm 0.029\,\%$ per e-fold (flat); the resonance-fit alternative leans $-0.29\,\%$ per e-fold ($14\sigma$) and was rejected on that evidence. \dat{} \\
+Theory & $\cot K = MK/(2Nm)$, $\nu_1 = c_s K/(2\pi L_{\rm eff})$, $c_s^2 = (\kT/m)(Z + \eta Z' + Z^2)$ --- all three derived from first principles in the 20 Sept note; $c_s$ is the slope of $\nu_1$ vs $K/2\pi L_{\rm eff}$ through the origin over nine masses. \der{} \\
+Effective length & $L_{\rm eff} = L_0 - 2r - t/2$; the missing $t/2$ was a real error ($-0.004\,\%$ at low $\eta$, $-0.50\,\%$ at $\eta = 0.65$), now a single constant with an assert guard. \dat{} \\
+Canonical result & 260919 set: $+1.04\,\%$ above KR averaged over $\eta \le 0.4$; $+2.6\,\%$ at $\eta = 0.52$; points beyond $\eta \approx 0.69$ are in the ordering region and are shaded, not counted. \dat{} \\
+Finite size & Offset shrinks with $N$ (A2 ladder); $Z_{\rm wall}$ as an explanation withdrawn (overpredicts $5\times$); $1/\sqrt N$ extrapolation as a surface-scaling hypothesis. \dat{} \\
+Rom\'an 2002 & His Table I re-mapped adiabatically against KR: $+1.0, +0.9, +1.5, +0.9, +1.3, +1.1, +1.0\,\%$ --- flat, same as ours; his own $\gamma = 2$ mapping made it look like $+1.3 \to +10.6\,\%$ growing with density. His SPT/Henderson columns reproduce to every printed digit from our EOS code, which validates both. His $N$-series $3.81 \to 3.74$ falls the same way as ours. \dat{} \\
+New this week & The box's pressure, measured directly on a held wall (Paper 2's $F(L)$ set), is $Z_{\rm box}/Z_{\rm KR} = 1.0248 \pm 0.0014$, flat over $\eta = 0.100$--$0.111$. Through the bulk formula that would imply $+1.9\,\%$ in $c_s$; the divider mode measures $+1.0 \pm 0.3\,\%$. So the 100-disk box is $2.5\,\%$ over-pressured and $1\,\%$ over-stiff, and the two are not the same number --- a finite-size fact worth one paragraph. \opn{} \\
+Draft & IEEEtran skeleton, 3 pages, Rom\'an section and table in. Full v1 (6--8 pages, every number sourced to a CSV) is tonight's CC job; no runs needed. \\
+Left for KOA & $N \approx 1000$ sweep and the $\eta = 0.65$ size series. Account expected Friday 25 Sept. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{ask}[Paper 1]
+Submit with the $N = 100$ curve, the finite-size ladder and the Rom\'an re-mapping as the story, and add the KOA $N \approx 1000$ points as a revision --- or hold until KOA? My recommendation: write v1 now, decide after the first KOA week; the draft does not change shape either way. Second question: which venue (the Rom\'an paper is Am.\ J.\ Phys.; the result is Phys.\ Rev.\ E / J.\ Chem.\ Phys.\ material).
+\end{ask}
+
+\section{Paper 2 --- the ladder, level by level}
+\begin{center}\footnotesize
+\begin{tabular}{@{}lp{3.4cm}p{9.2cm}@{}}
+\toprule
+Level & Status & What it says, with numbers \\
+\midrule
+0 & closed & Event ledgers close to $10^{-12}$/$10^{-13}$; the master box with both walls held reproduces geometry A to $0.11\sigma$ (Level 0b), so Levels 0--2 are valid in the master box. \\
+1 & closed, pass $0.3\sigma$ & Quasi-static work for a 10\,\% compression ($\Delta x = 3.93\,\sigma$, $\eta\ 0.100 \to 0.111$): $W_{\rm qs}^{\rm finite} = 7.4685 \pm 0.0131\,\kT$; $T_f/T_i = 1.149$. Independently reproduced this week by the $F(L)$ set in a different geometry: $T = 1.1499$ at 10\,\%. \\
+2 & closed, honest verdict & ``Passes on mean work at both ends; prediction corrected mid-level; linear friction consistent with zero at $0.32u$; variance 25--40\,\% below Poisson unexplained.'' $A_{\rm step} = 25.9 \pm 4.3$, $A_{\rm ramp} = 11.3 \pm 2.5$; friction from Paper 1's linewidth $\Gamma = 0.31$--$0.33$ vs Enskog 0.331; fast end $\avg W = 2N_s m(\Delta x/L)u^2$ to 0.986. \\
+3 & closed on the observable & See \S\ref{sec:l3}. Settled wall displacement $\bar s = 0.8705 \pm 0.0049\,\sigma$; model with bulk KR $0.8404$ ($+3.6\,\%$, $6\sigma$); model with the box's measured $F(L)$ $0.8819$ ($-1.3\,\%$, $2.3\sigma$). Attribution of the last per cent open. \\
+4 & two halves, one measured & \emph{Mechanical half (measured):} a free divider between two 50-disk gases passes exactly half a slow push's work and takes half the compression at every mass over $M_d = 10$--$200$ (far/total $0.49 \pm 0.13$, $0.44 \pm 0.13$, $0.28 \pm 0.15$ vs $1/2$; settled $1.87$--$2.25\,\sigma$ vs $\Delta x/2 = 1.965$). Because it follows quasi-statically it creates no temperature difference, so thermal transmission is a separate experiment. \emph{Thermal half (the adiabatic-piston problem, Lieb 1998):} theory from Gruber--Piasecki 1999 Eq.\,51 and Cencini et al.\ 2007 gives $\tau_T = (4/\sqrt{2\pi})\,ML_c/\sqrt{mkT}$, linear in $M$; carrying the hard-disk EOS through the isobar shortens it by $1.228$ to $\tau_T = 50\,M$ (ideal gas $62\,M$). A temperature-step run (20 seeds) shows stage 1 (the divider swings to the KR-predicted pressure-balance offset $3.99\,\sigma$ and rings) but cannot resolve stage 2: the per-seed spread of $T_1 - T_2$ is the microcanonical energy-split fluctuation, $0.198$ measured vs $0.199$ predicted, i.e.\ the physics, not noise. So $\tau_T$ was measured instead from \emph{equilibrium} fluctuations (fluctuation--dissipation, no step), with the analysis pre-registered and its bias calibrated on synthetic series before any real record was fitted. Result at $M_d = 10$, 80 seeds, $65\,\tau_T$ of record: $\tau_T = 491 \pm 29$ from $T_1 - T_2$ and $487 \pm 29$ from the divider position, against $503.5$ (hard-disk isobar) and $618$ (ideal gas) --- \textbf{the hard-disk prediction at $-0.6\sigma$, the ideal gas excluded at $3.5\sigma$}. The oscillatory part of the same autocorrelation has period $93$--$96 \pm 5$; Paper 1's $\cot K = \alpha K$ at $\alpha = 0.1$ predicts $95.2$ with KR (ideal gas 117, excluded at $5\sigma$ on its own). The mode's damping, $\tau_r = 207 \pm 4$, is $2\times$ faster than the Mansour piston form (426) --- the one Level 4 number that disagrees with an independent prediction. The exponent in $M$ is untested at one mass; the four-mass ladder ($M_d = 20$--$200$) runs on the Mac the night before the meeting (the $M_d = 10$ cell took 13 minutes, not the night I had budgeted). Two papers, one autocorrelation function. \\
+5--6 & next & The stationary heat-conduction design (per-wall heat baths, a gated ledger change, tests Eq.\,52 directly); chain of dividers. KOA: Paper 1's $N \approx 1000$ sweep and the $\eta = 0.65$ size series. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Level 3 in five lines, because it will be asked}
+\label{sec:l3}
+The apparatus is a pre-loaded spring: it already holds the standing gas force $F$, so the energy it captures is $\Delta E = F s + \tfrac12 k s^2$, first order in the wall displacement $s$ --- weight-lifting work, with $k \to 0$ a pushrod and $k \to \infty$ a rigid wall. \der{}
+The gas is an adiabatic spring of stiffness $k_{\rm gas} = N m c_s^2/L^2 = 0.0494$, which is also the heavy-divider limit of Paper 1's resonance equation --- the two papers share this line. \der{}
+The model is one degree of freedom with no fitted parameter, $M\ddot s = F_{\rm ad}(L - x_p + s) - F_{\rm ad}(L) - ks$. It predicts where the wall \emph{settles}: measured $0.8705 \pm 0.0049\,\sigma$, model $0.840$ with bulk KR, $0.882$ with the box's own measured pressure. \dat{}
+The ``transient excess'' of 19--57\,\% reported in v4 was a peak-picking statistic: the identical statistic on a no-push control gives the same number ($+0.463$ vs $+0.446\,\sigma$), and it does not scale with $u$ as an acoustic pulse must. Withdrawn. \dat{}
+What is open is the last per cent: with the wall's actual pressure the model is $2.3\sigma$ low. My reading: the wall force is the box's real pressure (wall theorem, $P = \kT\rho_{\rm contact}$), so the $F(L)$ route is the physically right input for a wall, and the remaining $-1.3\,\%$ is a genuine small residual, not a bracket between two wrong inputs. \opn{}
+
+\begin{ask}[Paper 2]
+Is ``Level 3 closes on the observable: the model predicts the settled displacement to $-1.3 \pm 0.6\,\%$ with the box's measured pressure'' an acceptable close, or do we chase the last per cent before Level 4? My recommendation: accept, state it, move to Level 4 on KOA; the per cent is a finite-size effect of the same family as Paper 1's and belongs in one shared paragraph. Second: the Level 4 ladder --- $M_d \in \{10, 50, 200, 1000, 5000\}$, 40 seeds, records $5\tau_{\rm heat}$ --- is the first KOA campaign for Paper 2. OK?
+\end{ask}
+
+\begin{ask}[Paper 2 Level 4 --- scope]
+Level 4 has turned into a test of the adiabatic-piston (Lieb) problem in an \emph{interacting} gas, which Cencini et al.\ call ``still too ambitious'' with ``very few studies''. Is that now the centre of Paper 2, with Levels 0--3 as the validated apparatus, or does it stay one section of the ``where does injected work go'' ladder? KOA is now Paper 1's $N$-sweep only: the Level 4 mass ladder turned out to be a Mac night. Second: building per-wall heat baths for the stationary-conduction experiment is a change to the energy ledger (gated, Level 0 re-run) --- worth it?
+\end{ask}
+
+\section{Errors caught and fixed --- in case ``how do you know'' comes up}
+Each was found by a check we now run every time: the missing $t/2$ in $L_{\rm eff}$ (assert guard); the isothermal gas spring replaced by the adiabatic one (tied to $c_s$); a normalisation bug in the Level 3 adiabat that made the drive 28\,\% too weak (fixed-point check against a standalone calculation); the peak statistic (no-push control); the $Z_{\rm wall}$ explanation (measured, overpredicts $5\times$); the Level 4 KE columns that silently summed both gases in the master box (two-compartment box, no code change). Every claim in the plan carries a tag: SOURCE, DERIVATION, INFERENCE, DATA or OPEN.
+
+\section{Next two weeks}
+\begin{itemize}[leftmargin=1.2em,itemsep=2pt]
+\item Done since Monday: Paper 1 draft v1 (4 pp), Paper 2 draft v1 (4 pp), figure pack, Level 3 closed, Level 4 both halves, adiabatic-piston papers read and cited.
+\item Thu 24: meeting. Decisions above.
+\item Fri 25: KOA account. First hour: ssh, hello job on sandbox, rsync via DTN to \texttt{koa\_scratch}, build with \texttt{-march=x86-64-v2}, one cell, a 10-task array on \texttt{shared,kill-shared}, \texttt{seff}.
+\item Week of 28 Sept: Paper 1 KOA campaign ($N \approx 1000$ sweep, $\eta = 0.65$ size series); Level 4 ladder. Paper 1 v1 to Susanne by Monday 28.
+\item Repo hygiene, not before deadlines: \texttt{git filter-repo} for the 25 GB szilard blobs; \texttt{git gc} for \texttt{tmp\_pack\_*}.
+\end{itemize}
+\end{document}

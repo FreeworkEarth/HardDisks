@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+<script src="https://templates.lcs.brightspace.com/lib/assets/js/scripts.min.js" defer=""></script></head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h3>Simplifying Your Koa Data Transfers</h3>
+<p>Moving large amounts of data to and from the Koa cluster requires the right tools for the job. For the fastest and most reliable transfers, especially for large datasets, it is highly recommended to use Koa's dedicated Data Transfer Node (DTN).</p>
+<h4>Why Use the Data Transfer Node?</h4>
+<p>The standard login nodes (<code>koa.its.hawaii.edu</code>) are protected by a firewall that can significantly slow down large data transfers. The DTN is a dedicated machine designed to bypass this firewall, enabling much faster and more efficient data movement.</p>
+<h3>Which Transfer Method Should I Use?</h3>
+<p>Koa offers two primary methods for using the DTN, each suited for different needs.</p>
+<div>
+<div><response-element ng-version="0.0.0-PLACEHOLDER"><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----></response-element>
+<div _ngcontent-ng-c919095818="">
+<div not-end-of-paragraph="" _ngcontent-ng-c919095818="">
+<table style="width: 105.705%; height: 243.859px; border-collapse: collapse; border-width: 2px;" border="1">
+<thead>
+<tr style="height: 45.7812px;">
+<td style="width: 22.2222%; border-width: 2px;">
+<h4><span style="font-size: 16px;">Best for...</span></h4>
+</td>
+<td style="width: 37.0347%; border-width: 2px;">
+<h4><span style="font-size: 16px;">Everyday Transfers &amp; Small Files</span></h4>
+</td>
+<td style="width: 40.6803%; border-width: 2px;">
+<h4><span style="font-size: 16px;">Large Files &amp; Automated Transfers</span></h4>
+</td>
+</tr>
+</thead>
+<tbody>
+<tr style="height: 36.1719px;">
+<td style="width: 22.2222%; border-width: 2px;"><strong>Recommended Tool</strong></td>
+<td style="width: 37.0347%; border-width: 2px;"><strong>Standard Shell Tools</strong> (scp, rsync, sftp)</td>
+<td style="width: 40.6803%; border-width: 2px;"><strong>Globus</strong></td>
+</tr>
+<tr style="height: 80.9531px;">
+<td style="width: 22.2222%; border-width: 2px;"><strong>How it Works</strong></td>
+<td style="width: 37.0347%; border-width: 2px;">You connect directly to the DTN address and run commands from your own computer.</td>
+<td style="width: 40.6803%; border-width: 2px;">A "fire-and-forget" web service. You start a transfer on the Globus website, and it manages the process in the background.</td>
+</tr>
+<tr style="height: 80.9531px;">
+<td style="width: 22.2222%; border-width: 2px;"><strong>Speed</strong></td>
+<td style="width: 37.0347%; border-width: 2px;">Good, but can be limited by encryption overhead (typically up to 250 MB/s).</td>
+<td style="width: 40.6803%; border-width: 2px;"><strong>Fastest.</strong> Ideal for moving terabytes of data between HPC centers or your local systems.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<h3>How to Connect and Transfer Data</h3>
+<h4 style="text-align: left;">1. Standard Shell Tools (scp, rsync, sftp)</h4>
+<p>This method is best for routine, manual file transfers. Use this specific address instead of the normal Koa login address.</p>
+<ul>
+<li>
+<p><strong>DTN Address:</strong> <code>koa-dtn.its.hawaii.edu</code></p>
+</li>
+</ul>
+<p><strong>Example (using <code>scp</code> from your local computer):</strong></p>
+<h4 style="text-align: left;"><response-element ng-version="0.0.0-PLACEHOLDER"><!----><!----><!----><!----><code-block _nghost-ng-c3592737396=""><!----><!----><!----><!----><!----></code-block><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----></response-element></h4>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash"># Copy a local file TO your home directory on Koa
+scp local_file.dat your_username@koa-dtn.its.hawaii.edu:~/
+
+# Copy a file FROM Koa TO your current local directory
+scp your_username@koa-dtn.its.hawaii.edu:~/path/to/remote_file.dat .</code></pre>
+<h4></h4>
+<h4 style="text-align: left;">2. Globus Web Platform</h4>
+<p>This is the most powerful and reliable method for very large or critical data transfers. Globus automatically retries failed transfers and notifies you upon completion.</p>
+<ul>
+<li>
+<p><strong>Globus Collection Name:</strong> <code>UH Koa Collection</code></p>
+</li>
+</ul>
+<p>To use Globus, log in to the <response-element ng-version="0.0.0-PLACEHOLDER"><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----></response-element><a href="https://www.globus.org/" jslog="197247;track:generic_click,impression,attention;BardVeMetadataKey:[[&quot;r_82e5b6d39c6ec8f9&quot;,&quot;c_4179a898cf4f85ee&quot;,null,&quot;rc_2a1549cd3ce627ea&quot;,null,null,&quot;en&quot;,null,1,null,null,1,0]]" _nghost-ng-c3875141363="" externallink="" rel="noopener" target="_blank" _ngcontent-ng-c1718683327="">Globus web portal</a><response-element ng-version="0.0.0-PLACEHOLDER"><link-block _nghost-ng-c1718683327=""><!----></link-block><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----></response-element>, search for the <strong>UH Koa Collection</strong>, and initiate transfers between it and other Globus collections (including your own personal computer after installing Globus Connect Personal).</p>
+<p><a href="https://uhawaii.atlassian.net/wiki/x/c4GO" target="_blank" rel="noopener">Koa documentation on Data Transfer</a></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<div class="d2l-element mceNonEditable" data-idx="3" data-type="attention" role="section" aria-describedby="d2l-uid-216">
+<p id="d2l-uid-216" class="sr-only">Callout</p>
+<div class="card card-graphic" data-prop="0|attention">
+<div class="card-body">
+<div class="card-icon"><!-- empty--></div>
+<div class="card-text">
+<div class="d2l-callout-title" data-prop="1|null"><!-- Empty --></div>
+<div data-prop="2|null">
+<p>The DTN is for <strong>data transfer only</strong>.</p>
+<ul>
+<li>
+<p>✅ <strong>You can access</strong> all your Koa files (home, lab, scratch), just like on a login node.</p>
+</li>
+<li>
+<p>❌ <strong>You cannot submit</strong> or run computational jobs from the DTN.</p>
+</li>
+</ul>
+<p>Please use the standard login nodes to manage your jobs.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>&nbsp;</p>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

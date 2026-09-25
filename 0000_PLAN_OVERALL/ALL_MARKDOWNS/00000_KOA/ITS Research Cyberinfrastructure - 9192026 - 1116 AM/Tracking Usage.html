@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+</head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h2>Tracking Usage</h2>
+<p>Each users is responsible for managing their own permanent storage and copying off or deleting files they no longer need.&nbsp; This can also extend to koa_scratch in that users can delete temporary files sooner than the automated purge process, which in some cases can help reduce the chance that an emergency purge that will being to&nbsp; look at files younger than 90 days will be required.</p>
+<p></p>
+<p>For users to see what they are using, a few commands are at your disposal, including one specific to Koa.</p>
+<ul>
+<li><strong>df</strong> - The df command can be used to see how much disk is free.&nbsp; By default it shows you every disk on the system, but you can limit it to a give disk, making it target only the locations you care about.&nbsp; Do note, that <em>df&nbsp;</em> is not meant to show your specific usage, but due to how storage is allocated on Koa, it can be used to show the usage of common locations.<br>
+<pre class="d2l-code"><code class="language-bash">[itsrci@vn-00-00-00 ~]$ df -h /home/itsrci /mnt/lustre/koa/scratch/itsrci
+Filesystem                                               Size  Used Avail Use% Mounted on
+home-ib.mana.ci.its.hawaii.edu:/manastore/home/itsrci     50G  1.0M   50G   1% /home/itsrci
+10.200.2.20@o2ib100,10.200.2.21@o2ib100:/koa             800T  451T  350T  57% /mnt/lustre/koa
+</code></pre>
+<p></p>
+</li>
+<li><strong>du </strong>- The du command can be used to determine disk usage.&nbsp; This command can take a while, especially if you have a lot of files in the location you are trying to figure out the usage for.&nbsp; While this can provide the exact usage in a location, it may not be recommended to run this repeatedly as you are working with a a network file system on Koa, making the look up for space usage expensive.<br>
+<pre class="d2l-code"><code class="language-javascript">[itsrci@vn-00-00-00 ~]$ du -sh .[^.]* ~/*
+512     .bash_logout
+1.0K    .bash_profile
+1.0K    .bashrc
+512     .condarc
+1.0K    .config
+1.0K    .emacs
+14K     .local
+3.5K    .ssh
+512     .vimrc
+21K     /home/itsrci/examples
+512     /home/itsrci/koa_scratch
+</code></pre>
+<p></p>
+</li>
+<li>&nbsp; <strong>usage </strong>- On Koa a command was created just simply named <em>usage</em>.&nbsp; This command is designed to know what storage locations you have access to and ti display the usage for all these and to also provide you an approximate&nbsp; value for your usage for those locations that usage may not be all due to your, e.g., koa_scratch, lab storage, class storage, KoaStore.&nbsp; <strong>The approximate usage is updated at 1 hour intervals, but can take longer to be reflected due to how changes are tracked.</strong> The output of this command is also provided as you login to Koa using SSH as part of the message of the day.&nbsp;&nbsp;<br>
+<pre class="d2l-code"><code class="language-bash">[itsrci@vn-00-00-00 ~]$ usage
+============================================================================================ USAGE =============================================================================================
+|                                                                        Last Updated: 2025-07-25 20:45:27.039522+00:00                                                                        |
+================================================================================================================================================================================================
+|                                             |                          |                     STORAGE LIMITS                      |                    INODE (FILES) LIMITS                   |
+|                    PATH                     |         SYMLINK          |     SOFT     (HARD)      |   USED: itsrci (OVERALL)     |       SOFT     (HARD)        |   USED: itsrci (OVERALL)   |
+|==============================================================================================================================================================================================|
+|/home/itsrci                                 | -                        | -        (50.0 GiB)      | 30.0 GiB (30.0 GiB)          | -        (0.00)              |                       - (-)|
+|/mnt/lustre/koa/class/atmo449_class          | atmo449_class            | -        (1.0 TiB)       | 59.0 KiB (77.1 GiB)          | -        (1.05 M)            |                5.00 (325 k)|
+|/mnt/lustre/koa/koastore/blues_group         | -                        | -        (100.0 GiB)     | 32.5 KiB (32.5 KiB)          | -        (102 k)             |                 1.00 (1.00)|
+|/mnt/lustre/koa/scratch/itsrci               | koa_scratch              | -        (800.0 TiB)     | 1.0 TiB (451.0 TiB)          | -        (400 M)             |             12.9 k (62.7 M)|
+================================================================================================================================================================================================
+</code></pre>
+</li>
+</ul>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

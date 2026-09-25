@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+</head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h2>CPU Nodes</h2>
+<p>As Koa is the 3rd generation central HPC cluster at UH, in which it has consumed previous cluster generation hardware, it currently has a long tail of different types of CPUs available to users.&nbsp; The CPUs available to users go as far back as Circa 2012 with the Intel <a href="https://en.wikipedia.org/wiki/Ivy_Bridge_(microarchitecture)" target="_blank" rel="noopener">Ivy-bridge</a> architecture and reach into modern day Intel with the Xeon 6 series,&nbsp; <a href="https://en.wikipedia.org/wiki/Granite_Rapids" target="_blank" rel="noopener">Granite Rapids,</a> and&nbsp; AMD's EPYC 4th generation <a href="https://en.wikichip.org/wiki/amd/cores/genoa" target="_blank" rel="noopener">Genoa </a>.</p>
+<p>Below is a list of nodes and the processors and other specifications that are important for understanding what CPUs resources are available on&nbsp; Koa</p>
+<table border="1" style="border-collapse: collapse; width: 100.058%; height: 855.188px;"><colgroup><col style="width: 15.7773%;"><col style="width: 11.6009%;"><col style="width: 16.8213%;"><col style="width: 11.8329%;"><col style="width: 12.877%;"><col style="width: 10.6729%;"><col style="width: 11.6009%;"><col style="width: 8.81671%;"></colgroup>
+<tbody>
+<tr style="height: 61.7812px;">
+<td style="text-align: center;" colspan="4"><strong><br></strong><strong>Processor</strong></td>
+<td rowspan="2" style="text-align: center;"><strong>Memory</strong></td>
+<td colspan="2" style="text-align: center;"><strong>Networks</strong></td>
+<td style="text-align: center;" rowspan="2"><strong>Approx. Cnt.</strong></td>
+</tr>
+<tr style="height: 37.7812px;">
+<td style="text-align: center;"><strong>Code Name</strong></td>
+<td style="text-align: center;"><strong>Release Yr</strong></td>
+<td style="text-align: center;"><strong>Name</strong></td>
+<td style="text-align: center;"><strong>Total Cores</strong></td>
+<td style="text-align: center;"><strong>Ethernet</strong></td>
+<td style="text-align: center;"><strong>Infiniband</strong></td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Ivy_Bridge_(microarchitecture)" target="_blank" rel="noopener">Ivy-Bridge</a></td>
+<td>Q3 2013</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/75277/intel-xeon-processor-e52680-v2-25m-cache-2-80-ghz/specifications.html" target="_blank" rel="noopener">Intel E5-2680 v2&nbsp;</a></td>
+<td>20</td>
+<td>128 GB</td>
+<td>1 Gbit&nbsp;&nbsp;</td>
+<td>N/A</td>
+<td>20</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Ivy_Bridge_(microarchitecture)" target="_blank" rel="noopener">Ivy-Bridge</a></td>
+<td>Q1 2014</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/75288/intel-xeon-processor-e54640-v2-20m-cache-2-20-ghz/specifications.html" target="_blank" rel="noopener">Intel E5-4640 v2</a></td>
+<td>40</td>
+<td>1TB</td>
+<td>1 Gbit</td>
+<td>N/A</td>
+<td>4</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Haswell_(microarchitecture)" target="_blank" rel="noopener">Haswell</a></td>
+<td>Q3 2014</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/81706/intel-xeon-processor-e52660-v3-25m-cache-2-60-ghz/specifications.html">Intel E5-2660 v3</a></td>
+<td>20</td>
+<td>&nbsp;256GB</td>
+<td>1 Gbit</td>
+<td>N/A</td>
+<td>32</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Haswell_(microarchitecture)" target="_blank" rel="noopener">Haswell</a></td>
+<td>Q3 2014</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/81706/intel-xeon-processor-e52660-v3-25m-cache-2-60-ghz/specifications.html" target="_blank" rel="noopener">Intel E5-2660 v3</a></td>
+<td>20</td>
+<td>&nbsp;1TB</td>
+<td>1 Gbit</td>
+<td>N/A</td>
+<td>4</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Haswell_(microarchitecture)" target="_blank" rel="noopener">Haswell</a></td>
+<td>Q3 2014</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/81709/intel-xeon-processor-e52670-v3-30m-cache-2-30-ghz/specifications.html" target="_blank" rel="noopener">Intel E5-2670 v3</a></td>
+<td>24</td>
+<td>128GB</td>
+<td>1 Gbit</td>
+<td>N/A</td>
+<td>59</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Broadwell_(microarchitecture)" target="_blank" rel="noopener">Broadwell</a></td>
+<td>Q1 2016</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/92981/intel-xeon-processor-e52630-v4-25m-cache-2-20-ghz/specifications.html" target="_blank" rel="noopener">Intel E5-2630 v4</a></td>
+<td>20</td>
+<td>128 GB</td>
+<td>1 Gbit</td>
+<td>N/A</td>
+<td>5</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Skylake_(microarchitecture)" target="_blank" rel="noopener">Skylake</a></td>
+<td>Q3 2017</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/120484/intel-xeon-gold-5115-processor-13-75m-cache-2-40-ghz/specifications.html" target="_blank" rel="noopener">Intel &nbsp;Gold 5115</a></td>
+<td>20</td>
+<td>96 GB</td>
+<td>25 Gbit</td>
+<td>N/A</td>
+<td>7</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Cascade_Lake" target="_blank" rel="noopener">Cascade Lake</a></td>
+<td>Q2 2019</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/192446/intel-xeon-gold-6248-processor-27-5m-cache-2-50-ghz/specifications.html" target="_blank" rel="noopener">Intel Gold 6248</a></td>
+<td>40</td>
+<td>192 GB</td>
+<td>25 Gbit</td>
+<td>100Gbit</td>
+<td>28</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Cascade_Lake" target="_blank" rel="noopener">Cascade Lake</a></td>
+<td>Q1 2020</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/199343/intel-xeon-gold-6240r-processor-35-75m-cache-2-40-ghz/specifications.html" target="_blank" rel="noopener">Intel Gold 6240R</a></td>
+<td>48</td>
+<td>192 GB</td>
+<td>25 Gbit</td>
+<td>100Gbit</td>
+<td>17</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Cascade_Lake" target="_blank" rel="noopener">Cascade Lake</a></td>
+<td>Q1 2020</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/199351/intel-xeon-gold-6248r-processor-35-75m-cache-3-00-ghz/specifications.html" target="_blank" rel="noopener">Intel Gold 6248R</a></td>
+<td>48</td>
+<td>192 GB</td>
+<td>25 Gbit</td>
+<td>100Gbit</td>
+<td>7</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Ice_Lake_(microprocessor)" target="_blank" rel="noopener">Ice Lake</a></td>
+<td>Q2 2021</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/215276/intel-xeon-gold-6342-processor-36m-cache-2-80-ghz/specifications.html" target="_blank" rel="noopener">Intel Gold 6342&nbsp;</a></td>
+<td>48</td>
+<td>256&nbsp; GB</td>
+<td>25 Gbit</td>
+<td>100Gbit</td>
+<td>26</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Ice_Lake_(microprocessor)" target="_blank" rel="noopener">Ice Lake</a></td>
+<td>Q2 2021</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/215276/intel-xeon-gold-6342-processor-36m-cache-2-80-ghz/specifications.html" target="_blank" rel="noopener">Intel Gold 6342&nbsp;</a></td>
+<td>48</td>
+<td>512 GB</td>
+<td>25 Gbit</td>
+<td>100Gbit</td>
+<td>2</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Ice_Lake_(microprocessor)" target="_blank" rel="noopener">Ice Lake</a></td>
+<td>Q2 2021</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/215276/intel-xeon-gold-6342-processor-36m-cache-2-80-ghz/specifications.html" target="_blank" rel="noopener">Intel Gold 6342&nbsp;</a></td>
+<td>48</td>
+<td>1TB</td>
+<td>25 Gbit</td>
+<td>100Gbit</td>
+<td>3</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Sapphire_Rapids" target="_blank" rel="noopener">Sapphire Rapids</a></td>
+<td>Q1 2023</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/232390/intel-xeon-gold-6418h-processor-60m-cache-2-10-ghz/specifications.html" target="_blank" rel="noopener">Intel Gold 6418H</a></td>
+<td>48</td>
+<td>512 GB</td>
+<td>25 Gbit</td>
+<td>100 Gbit</td>
+<td>2</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Emerald_Rapids" target="_blank" rel="noopener">Emerald Rapids</a></td>
+<td>Q4 2023</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/237563/intel-xeon-gold-6538y-processor-60m-cache-2-20-ghz/specifications.html" target="_blank" rel="noopener">Intel Gold 6548Y+</a></td>
+<td>64</td>
+<td>512 GB</td>
+<td>25 Gbit</td>
+<td>100 Gbit</td>
+<td>1</td>
+</tr>
+<tr>
+<td><a href="https://en.wikipedia.org/wiki/Sierra_Forest" target="_blank" rel="noopener">Sierra Forest</a></td>
+<td>Q2 2024&nbsp;</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/240363/intel-xeon-6710e-processor-96m-cache-2-40-ghz/specifications.html" target="_blank" rel="noopener">Intel 6710E</a></td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/240363/intel-xeon-6710e-processor-96m-cache-2-40-ghz/specifications.html" target="_blank" rel="noopener"></a>128</td>
+<td>2 TB</td>
+<td>25 Gbit</td>
+<td>&nbsp;100 Gbit</td>
+<td>1</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Granite_Rapids" target="_blank" rel="noopener">Granite Rapids</a></td>
+<td>Q3 2024</td>
+<td><a href="https://www.intel.com/content/www/us/en/products/sku/241643/intel-xeon-6952p-processor-480m-cache-2-10-ghz/specifications.html" target="_blank" rel="noopener">Intel 6952P</a></td>
+<td>192</td>
+<td>768 GB</td>
+<td>25 Gbit</td>
+<td>100 Gbit</td>
+<td>1</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Epyc#Fourth_generation_Epyc_(Genoa,_Bergamo_and_Siena)" target="_blank" rel="noopener">Genoa</a></td>
+<td>Q4 2022</td>
+<td><a href="https://www.amd.com/en/products/processors/server/epyc/4th-generation-9004-and-8004-series/amd-epyc-9334.html" target="_blank" rel="noopener">AMD Epyc 9334</a></td>
+<td>64</td>
+<td>768 GB</td>
+<td>25 Gbit</td>
+<td>100 Gbit</td>
+<td>1</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Epyc#Fourth_generation_Epyc_(Genoa,_Bergamo_and_Siena)" target="_blank" rel="noopener">Genoa</a></td>
+<td>Q4 2022</td>
+<td><a href="https://www.amd.com/en/products/processors/server/epyc/4th-generation-9004-and-8004-series/amd-epyc-9654.html" target="_blank" rel="noopener">AMD Epyc 9654</a></td>
+<td>192</td>
+<td>1.5TB</td>
+<td>25 Gbit</td>
+<td>100 Gbit</td>
+<td>3</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Epyc#Fourth_generation_Epyc_(Genoa,_Bergamo_and_Siena)" target="_blank" rel="noopener">Genoa</a></td>
+<td>Q4 2022</td>
+<td><a href="https://www.amd.com/en/products/processors/server/epyc/4th-generation-9004-and-8004-series/amd-epyc-9654.html" target="_blank" rel="noopener">AMD Epyc 9654</a></td>
+<td>94</td>
+<td>716GB</td>
+<td>50 Gbit</td>
+<td>200 Gibt</td>
+<td>2</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://en.wikipedia.org/wiki/Epyc#Fourth_generation_Epyc_(Genoa,_Bergamo_and_Siena)" target="_blank" rel="noopener">Genoa</a></td>
+<td>Q4 2022</td>
+<td><a href="https://www.amd.com/en/products/processors/server/epyc/4th-generation-9004-and-8004-series/amd-epyc-9654.html" target="_blank" rel="noopener">AMD Epyc 9654</a></td>
+<td>21</td>
+<td>159 GB</td>
+<td>50 Gbit</td>
+<td>200 Gibt</td>
+<td>18</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

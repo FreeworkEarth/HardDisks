@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+</head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h2>Anaconda Environments</h2>
+<p>While other methods of software access has been discussed (containers and modules), another common method it to utilize Anaconda environments.&nbsp; While Anaconda environments are fairly common, license issues around anaconda has made it less than ideal to utilize.&nbsp; Open source alternatives to Anaconda that do not have the same licensing issues.&nbsp; While a handful of Anaconda modules exist, it is recommended to use the <strong>mamba</strong> command when using these modules.&nbsp; For a modern environment, we recommend looking to are mamba modules, which your conda environment needs.</p>
+<p></p>
+<h3>Typical usage</h3>
+<p>To build an conda environment on Koa, one would first start an interactive session and then load the specific Anaconda module they wish to use.&nbsp; Take note of the module you use, since you will need to load the anaconda module each time you wish to use anaconda and you may want to use the same or newer version.</p>
+<div data-macro-id="7451d6ec-3917-41a8-bb19-c35f6394a519" data-macro-name="code" data-hasbody="true">
+<div>
+<div>
+<div id="highlighter_718618">
+<table style="width: 1069px; height: auto;" cellspacing="0" cellpadding="0" border="0">
+<tbody>
+<tr style="height: auto; width: auto;">
+<td style="height: auto; width: 1054px;">
+<div title="Hint: double-click to select code">
+<div data-bidi-marker="true"><code>[user@login001 ~]$ srun -p sandbox --mem=6G -c 2 -t 60 --pty&nbsp;</code><code>/bin/bash</code></div>
+<div data-bidi-marker="true"><code>[user@node-0005 ~]$ module load&nbsp; lang</code><code>/Anaconda3</code></div>
+<div data-bidi-marker="true"><code>[user@node-0005 ~]$ mamba create -n ipyrad -c conda-forge -c bioconda ipyrad</code></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<p>Once anaconda is loaded, you will now be able to create an anaconda environment, using the conda&nbsp; create command.&nbsp; In the example below, we will be naming our conda environment "test" and temporarily adding the conda channel of "conda-forge", while trying to install "</p>
+<div data-macro-id="a84fe1d3-045e-41ca-abf7-640165661620" data-macro-name="code" data-hasbody="true">
+<div>
+<div>
+<div id="highlighter_353210">
+<table style="width: 1069px; height: auto;" cellspacing="0" cellpadding="0" border="0">
+<tbody>
+<tr style="height: auto; width: auto;">
+<td style="height: auto; width: 1054px;">
+<div title="Hint: double-click to select code">
+<div data-bidi-marker="true"><code>[user@node-0005 ~]$ mamba create -n&nbsp;</code><code>test</code>&nbsp;<code>-c conda-forge -c conda&nbsp; python=3.8 matplotlib scipy ipython</code></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<p>Once the environment is installed, it can be activated using "source activate test", or the generic form of "source activate [name of conda environment ]".</p>
+<div data-macro-id="bfb25c88-d669-4ff4-8e4e-daa0e2a56cd8" data-macro-name="code" data-hasbody="true">
+<div>
+<div>
+<div id="highlighter_406159">
+<table style="width: 1069px; height: auto;" cellspacing="0" cellpadding="0" border="0">
+<tbody>
+<tr style="height: auto; width: auto;">
+<td style="height: auto; width: 1054px;">
+<div title="Hint: double-click to select code">
+<div data-bidi-marker="true"><code>[user@node-0005 ~]$&nbsp;</code><code>source</code>&nbsp;<code>activate&nbsp;</code><code>test</code></div>
+<div data-bidi-marker="true"><code>(</code><code>test</code><code>) [user@node-0005 ~]$ conda deactivate</code></div>
+<div data-bidi-marker="true"><code>[user@node-0005 ~]$</code></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<p></p>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

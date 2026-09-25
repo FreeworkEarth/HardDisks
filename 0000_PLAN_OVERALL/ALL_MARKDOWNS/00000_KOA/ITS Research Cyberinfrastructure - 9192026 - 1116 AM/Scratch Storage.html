@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+<script src="https://templates.lcs.brightspace.com/lib/assets/js/scripts.min.js" defer=""></script></head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h3><strong>Scratch Storage (</strong><strong>koa_scratch</strong><strong>)&nbsp;</strong></h3>
+<p><strong>koa_scratch </strong>is Koa's high-speed, temporary storage area. It is the best place for temporary files created and used while your jobs are running.</p>
+<p><img src="696284c3-7b4c-4c6f-a284-aedde0e539f4.png" alt="Lustre layout" title="Lustre layout" width="551" height="399" style="display: block; margin-left: auto; margin-right: auto;"></p>
+<p></p>
+<p>&nbsp;Additional details about koa_scratch can be found in our <a href="https://uhawaii.atlassian.net/wiki/spaces/HPC/pages/1112604696/Storage+Systems#Scratch-(Free)" target="_blank" rel="noopener">online documentation</a>.&nbsp;</p>
+<p>&nbsp;</p>
+<h3>⚠️ <strong>Important: Files are Deleted Automatically</strong></h3>
+<p></p>
+<p>Files on <code>koa_scratch</code> are <strong>automatically deleted 90 days</strong> after they were last modified (written to).</p>
+<ul>
+<li>
+<p><strong>This is not for permanent storage.</strong></p>
+</li>
+<li>
+<p>Move important results to a permanent location (like your Home or Lab Storage) as soon as your job is finished.</p>
+<h3>How It Works</h3>
+</li>
+<li>
+<p><strong>Best For:</strong> Active jobs that need to read and write data quickly. It is the highest-performance storage on Koa.</p>
+</li>
+<li>
+<p><strong>Storage Limits:</strong> There are no individual user quotas. The entire system is a shared space with a total capacity of <strong>800 TiB</strong> and <strong>400 million files</strong>.</p>
+</li>
+<li>
+<p><strong>Accessibility:</strong> You can access it from all nodes on the Koa cluster.</p>
+</li>
+</ul>
+<h3><strong>Key Features and Limitations</strong></h3>
+<ul>
+<li>
+<p><strong>High Performance:</strong> koa_scratch provides the best performance for applications that need to read and write files during a job.</p>
+</li>
+<li>
+<p><strong>No User Quotas:</strong> There are no individual storage limits, but the entire system has a total limit of <strong>800 TiB</strong> and <strong>400 million files</strong>.</p>
+</li>
+<li>
+<p><strong>Temporary:</strong> Files are automatically deleted <strong>90 days</strong> after they were last modified.</p>
+</li>
+<li>
+<p><strong>Accessibility:</strong> It's accessible from all user nodes on Koa.</p>
+</li>
+</ul>
+<p></p>
+<h3>✅ <strong>Tip for Best Performance</strong></h3>
+<p></p>
+<p><code>koa_scratch</code> works best when reading and writing large files in a sequential manner.</p>
+<p>If your job needs to read many small files, you can improve performance by bundling them into a single <code>squashfs</code> archive. This allows the system to read them more efficiently. Instructions can be found in the <a href="https://uhawaii.atlassian.net/wiki/x/R4A6HQ" target="_blank" rel="noopener">online documentation</a>.</p>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

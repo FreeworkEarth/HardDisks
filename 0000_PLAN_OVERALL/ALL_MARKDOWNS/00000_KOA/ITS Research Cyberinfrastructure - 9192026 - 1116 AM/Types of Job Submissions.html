@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+<script src="https://templates.lcs.brightspace.com/lib/assets/js/scripts.min.js" defer=""></script></head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h3>Understanding Job Types on Koa: Batch vs. Interactive</h3>
+<p>here are two fundamental ways to run work on the Koa cluster: <strong>Batch jobs</strong> and <strong>Interactive jobs</strong>. Choosing the right one depends on your task.</p>
+<h4>At-a-Glance Comparison</h4>
+<p></p>
+<div>
+<div><response-element ng-version="0.0.0-PLACEHOLDER"><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----></response-element>
+<div _ngcontent-ng-c919095818="">
+<div not-end-of-paragraph="" _ngcontent-ng-c919095818="">
+<table style="border-collapse: collapse; border-width: 2px; width: 100.063%;" border="1">
+<thead>
+<tr>
+<td style="border-width: 2px; width: 12.3193%;"><strong>Feature</strong></td>
+<td style="border-width: 2px; width: 41.4861%;"><strong>Batch Job</strong></td>
+<td style="border-width: 2px; width: 46.1317%;"><strong>Interactive Job</strong></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="border-width: 2px; width: 12.3193%;"><strong>Analogy</strong></td>
+<td style="border-width: 2px; width: 41.4861%;">Sending a detailed email with instructions.</td>
+<td style="border-width: 2px; width: 46.1317%;">Making a live phone call.</td>
+</tr>
+<tr>
+<td style="border-width: 2px; width: 12.3193%;"><strong>Best For</strong></td>
+<td style="border-width: 2px; width: 41.4861%;"><strong>Production &amp; Research:</strong> Running your main scientific computations.</td>
+<td style="border-width: 2px; width: 46.1317%;"><strong>Preparation &amp; Debugging:</strong> Compiling, testing, and troubleshooting code.</td>
+</tr>
+<tr>
+<td style="border-width: 2px; width: 12.3193%;"><strong>User Interaction</strong></td>
+<td style="border-width: 2px; width: 41.4861%;">None. You submit the job and wait for it to finish.</td>
+<td style="border-width: 2px; width: 46.1317%;">Direct. You get a command prompt and type commands in real-time.</td>
+</tr>
+<tr>
+<td style="border-width: 2px; width: 12.3193%;"><strong>Typical Duration</strong></td>
+<td style="border-width: 2px; width: 41.4861%;">Can be very long (days or weeks).</td>
+<td style="border-width: 2px; width: 46.1317%;">Relatively short (minutes to a few hours).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<h3 style="text-align: left;">1. Batch Jobs</h3>
+<p>This is the standard and most common way to run jobs on Koa. A batch job runs independently in the background without any user interaction.</p>
+<ul>
+<li>
+<p><strong>How it Works:</strong> You write all the commands you want to run into a shell script file. You then submit this script to the Slurm scheduler using the <code>sbatch</code> command. Slurm will run your job when resources become available and will email you when it's complete.</p>
+</li>
+<li>
+<p><strong>Best For:</strong></p>
+<ul>
+<li>
+<p>Running scientific simulations or data analysis that takes hours or days.</p>
+</li>
+<li>
+<p>Any task that can be fully automated in a script.</p>
+</li>
+<li>
+<p>Submitting hundreds or thousands of similar tasks (job arrays).</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 style="text-align: left;">2. Interactive Jobs</h3>
+<p>An interactive job gives you a live command-line prompt directly on a compute node. This allows you to type commands and see the results immediately, as if you were logged into a dedicated server.</p>
+<ul>
+<li>
+<p><strong>How it Works:</strong> You request resources for a specific amount of time using the <code>salloc</code> command. Once the resources are granted, your terminal connects to a compute node where you can work in real-time. The session ends when you exit or your requested time runs out.</p>
+</li>
+<li>
+<p><strong>Best For:</strong></p>
+<ul>
+<li>
+<p>Compiling software.</p>
+</li>
+<li>
+<p>Debugging code that is crashing or giving strange results.</p>
+</li>
+<li>
+<p>Testing scripts and workflows before submitting a large batch job.</p>
+</li>
+<li>
+<p>Any task that requires direct human input.</p>
+</li>
+</ul>
+</li>
+</ul>
+<div class="d2l-element mceNonEditable" data-idx="3" data-type="attention" role="section" aria-describedby="d2l-uid-304">
+<p id="d2l-uid-304" class="sr-only">Callout</p>
+<div class="card card-graphic" data-prop="0|attention">
+<div class="card-body">
+<div class="card-icon"><!-- empty--></div>
+<div class="card-text">
+<div class="d2l-callout-title" data-prop="1|null"><!-- Empty --></div>
+<div data-prop="2|null">
+<p>Interactive Apps submitted via the web portal for Koa are in fact batch jobs.&nbsp; What makes them interactive is the additional layer that the web portal provides.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p></p>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+<link rel="stylesheet" href="https://s.brightspace.com/lib/fonts/0.6.1/fonts.css"><script src="https://templates.lcs.brightspace.com/lib/assets/js/scripts.min.js" defer=""></script></head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<p></p>
+<h2>Community Partitions on Koa</h2>
+<p>Any user on Koa can submit jobs to the community partitions. They are designed for different types of tasks, primarily separated by how long your job needs to run.</p>
+<p></p>
+<h4>Short-Run Partitions</h4>
+<p></p>
+<p>These partitions are designed for jobs with fast turnaround times. They are perfect for interactive tasks where you need resources quickly, such as:</p>
+<ul>
+<li>
+<p>Compiling code</p>
+</li>
+<li>
+<p>Testing and debugging scripts</p>
+</li>
+<li>
+<p>Development and optimization</p>
+</li>
+</ul>
+<div>
+<div>
+<div _ngcontent-ng-c919095818="">
+<div not-end-of-paragraph="" _ngcontent-ng-c919095818="">
+<h3>Short-Run Partitions (<code>sandbox</code> &amp; <code>gpu-sandbox</code>)</h3>
+<p></p>
+<p>These partitions are designed for short, interactive jobs like compiling, testing, and debugging code. They provide rapid access to resources to help you prepare your main computational jobs.</p>
+<p></p>
+<h4>At-a-Glance Comparison</h4>
+<p></p>
+<div>
+<div><response-element ng-version="0.0.0-PLACEHOLDER"><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----></response-element>
+<div _ngcontent-ng-c919095818="">
+<div not-end-of-paragraph="" _ngcontent-ng-c919095818="">
+<table>
+<thead>
+<tr>
+<td>Partition Name</td>
+<td>Purpose</td>
+<td>Hardware</td>
+<td>Max Job Time</td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sandbox</code></td>
+<td>Quick <strong>CPU</strong> tasks (compiling, debugging).</td>
+<td>CPU-only</td>
+<td><strong>4 hours</strong></td>
+</tr>
+<tr>
+<td><code>gpu-sandbox</code></td>
+<td>Quick <strong>GPU</strong> tasks (testing CUDA code, AI/ML model development).</td>
+<td>1 Node with 8 GPUs</td>
+<td><strong>4 hours</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<h3><code>sandbox</code></h3>
+<p>This is your go-to partition for short, CPU-based interactive work. It's ideal for preparing your code and scripts before launching a larger job.</p>
+<p><strong>Best For:</strong></p>
+<ul>
+<li>
+<p>Compiling software</p>
+</li>
+<li>
+<p>Testing and debugging scripts</p>
+</li>
+<li>
+<p>General code development</p>
+</li>
+</ul>
+<table style="width: 877.719px; height: 110.344px;" border="1"><colgroup><col style="width: 97.6667px;"><col style="width: 66.125px;"><col style="width: 122.094px;"><col style="width: 77.3229px;"><col style="width: 59.0104px;"><col style="width: 91.5625px;"><col style="width: 78.3438px;"><col style="width: 88.5104px;"><col style="width: 62.0625px;"><col style="width: 76.3021px;"><col style="width: 58.0521px;"></colgroup>
+<tbody>
+<tr style="height: 37.7812px;">
+<td colspan="2"><strong>Wall Time</strong></td>
+<td colspan="3"><strong>Job Maximums</strong><strong><br></strong></td>
+<td colspan="2"><strong>CPU Memory&nbsp;</strong></td>
+<td colspan="2"><strong>&nbsp;Nodes per Job</strong></td>
+<td colspan="2"><strong>CPUs per node</strong></td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max&nbsp;</strong></td>
+<td><strong>Pending&nbsp;&nbsp;</strong></td>
+<td><strong>Running&nbsp;</strong></td>
+<td><strong>Total</strong></td>
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+</tr>
+<tr style="height: 34.7812px;">
+<td>10 min</td>
+<td>4 hrs</td>
+<td>N/A</td>
+<td>2</td>
+<td>N/A</td>
+<td>512 MiB</td>
+<td>120 GB</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>19</td>
+</tr>
+</tbody>
+</table>
+<h3><code>gpu-sandbox</code></h3>
+<p>This partition provides quick, interactive access to GPUs. It is specifically designed for developing and testing GPU-accelerated workflows without waiting in the main GPU queues.</p>
+<p><strong>Best For:</strong></p>
+<ul>
+<li>
+<p>Developing and debugging GPU-accelerated code (e.g., CUDA, OpenACC).</p>
+</li>
+<li>
+<p>Interactive testing of machine learning models.</p>
+</li>
+<li>
+<p>Optimizing GPU-based workflows.<strong></strong></p>
+</li>
+</ul>
+<table style="width: 878px; height: 110.344px;" border="1"><colgroup><col style="width: 74px;"><col style="width: 65px;"><col style="width: 78px;"><col style="width: 76px;"><col style="width: 51px;"><col style="width: 95px;"><col style="width: 75px;"><col style="width: 71px;"><col style="width: 48px;"><col style="width: 71px;"><col style="width: 46px;"><col style="width: 82px;"><col style="width: 46px;"></colgroup>
+<tbody>
+<tr style="height: 37.7812px;">
+<td colspan="2"><strong>Wall Time</strong></td>
+<td colspan="3"><strong>Job Maximums</strong><strong><br></strong></td>
+<td colspan="2"><strong>CPU Memory per Job</strong></td>
+<td colspan="2"><strong>&nbsp;Nodes per Job</strong></td>
+<td colspan="2"><strong>CPUs per Job</strong></td>
+<td colspan="2"><strong>GPUs per Job</strong></td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max&nbsp;</strong></td>
+<td><strong>Pending&nbsp;&nbsp;</strong></td>
+<td><strong>Running&nbsp;</strong></td>
+<td><strong>Total</strong></td>
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+</tr>
+<tr style="height: 34.7812px;">
+<td>10 min</td>
+<td>4 hrs</td>
+<td>N/A</td>
+<td>1</td>
+<td>N/A</td>
+<td>30 GiB</td>
+<td>30 GiB</td>
+<td>1</td>
+<td>1</td>
+<td>20</td>
+<td>20</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<div class="d2l-element mceNonEditable" data-idx="3" data-type="attention" role="section" aria-describedby="d2l-uid-256">
+<p id="d2l-uid-256" class="sr-only">Callout</p>
+<div class="card card-graphic" data-prop="0|attention">
+<div class="card-body">
+<div class="card-icon"><!-- empty--></div>
+<div class="card-text">
+<div class="d2l-callout-title" data-prop="1|null"><!-- Empty --></div>
+<div data-prop="2|null">
+<p><strong>Idle Usage:</strong> This partition is not monitored for low GPU activity, making it perfect for interactive sessions where usage may be sporadic.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>&nbsp;</p>
+<h3>Standard Partitions: For Production and Research Jobs</h3>
+<h3>Standard Partitions</h3>
+<p>Use these partitions when your code is tested and ready to run for your research, or for any task that will take longer than four hours.</p>
+<p>A job in these partitions will run until it is complete, or until it is terminated for one of the following reasons:</p>
+<ul>
+<li>
+<p>It runs out of the requested wall time.</p>
+</li>
+<li>
+<p>It tries to use more memory than requested.</p>
+</li>
+<li>
+<p>(GPU jobs only) It fails to use all the GPU resources it requested.</p>
+</li>
+</ul>
+<h3>At-a-Glance Comparison</h3>
+<p>This table helps you quickly choose the best partition for your job.</p>
+<div>
+<div><response-element ng-version="0.0.0-PLACEHOLDER"><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----></response-element>
+<div _ngcontent-ng-c919095818="">
+<div not-end-of-paragraph="" _ngcontent-ng-c919095818="">
+<table style="width: 100.058%; border-collapse: collapse; border-width: 2px;" border="1">
+<thead>
+<tr>
+<td style="width: 14.8402%; border-width: 2px;"><strong>Partition Name</strong></td>
+<td style="width: 36.758%; border-width: 2px;"><strong>Best For (Use Case)</strong></td>
+<td style="width: 34.3646%; border-width: 2px;"><strong>How Resources are Allocated</strong></td>
+<td style="width: 14.0372%; border-width: 2px;"><strong>Max Job Time</strong></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="width: 14.8402%; border-width: 2px;"><code>shared</code></td>
+<td style="width: 36.758%; border-width: 2px;">Single-node, multi-threaded jobs.</td>
+<td style="width: 34.3646%; border-width: 2px;"><strong>By the CPU core</strong> (share a node with others).</td>
+<td style="width: 14.0372%; border-width: 2px;"><strong>3 days</strong></td>
+</tr>
+<tr>
+<td style="width: 14.8402%; border-width: 2px;"><code>shared-long</code></td>
+<td style="width: 36.758%; border-width: 2px;">Long-running, single-node, multi-threaded jobs.</td>
+<td style="width: 34.3646%; border-width: 2px;"><strong>By the CPU core</strong> (share a node with others).</td>
+<td style="width: 14.0372%; border-width: 2px;"><strong>7 days</strong></td>
+</tr>
+<tr>
+<td style="width: 14.8402%; border-width: 2px;"><code>exclusive</code></td>
+<td style="width: 36.758%; border-width: 2px;">Multi-node MPI jobs.</td>
+<td style="width: 34.3646%; border-width: 2px;"><strong>By the whole node</strong> (you get the entire server).</td>
+<td style="width: 14.0372%; border-width: 2px;"><strong>3 days</strong></td>
+</tr>
+<tr>
+<td style="width: 14.8402%; border-width: 2px;"><code>exclusive-long</code></td>
+<td style="width: 36.758%; border-width: 2px;">Long-running, multi-node MPI jobs.</td>
+<td style="width: 34.3646%; border-width: 2px;"><strong>By the whole node</strong> (you get the entire server).</td>
+<td style="width: 14.0372%; border-width: 2px;"><strong>7 days</strong></td>
+</tr>
+<tr>
+<td style="width: 14.8402%; border-width: 2px;"><code>gpu</code></td>
+<td style="width: 36.758%; border-width: 2px;">GPU-accelerated applications.</td>
+<td style="width: 34.3646%; border-width: 2px;"><strong>By the CPU core and whole GPU</strong>.</td>
+<td style="width: 14.0372%; border-width: 2px;"><strong>3 days</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<h3>Detailed Partition Information</h3>
+<h4><code>shared</code> &amp; <code>shared-long</code></h4>
+<p>These partitions allow your job to request a specific number of CPU cores and memory on a single server, which you may share with other users' jobs.</p>
+<ul>
+<li>
+<p><strong>Best For:</strong></p>
+<ul>
+<li>
+<p>Multi-threaded applications that run on a single machine.</p>
+</li>
+<li>
+<p>Jobs that don't need all the CPU cores or memory on a full node.</p>
+</li>
+</ul>
+</li>
+</ul>
+<table style="width: 877.719px; height: 162.438px;" border="1"><colgroup><col style="width: 98px;"><col style="width: 66px;"><col style="width: 122px;"><col style="width: 77px;"><col style="width: 59px;"><col style="width: 92px;"><col style="width: 78px;"><col style="width: 88px;"><col style="width: 62px;"><col style="width: 76px;"><col style="width: 58px;"></colgroup>
+<tbody>
+<tr style="height: 50.7344px;">
+<td colspan="11">
+<h4><strong>shared</strong></h4>
+</td>
+</tr>
+<tr style="height: 37.7656px;">
+<td colspan="2"><strong>Wall Time</strong></td>
+<td colspan="3"><strong>Job Maximums</strong><strong><br></strong></td>
+<td colspan="2"><strong>CPU Memory&nbsp;</strong></td>
+<td colspan="2"><strong>&nbsp;Nodes per Job</strong></td>
+<td colspan="2"><strong>CPUs per node</strong></td>
+</tr>
+<tr style="height: 37.7656px;">
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max&nbsp;</strong></td>
+<td><strong>Pending&nbsp;&nbsp;</strong></td>
+<td><strong>Running&nbsp;</strong></td>
+<td><strong>Total</strong></td>
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+</tr>
+<tr style="height: 36.1719px;">
+<td>10 min</td>
+<td>3 days</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>512 MiB</td>
+<td>1TiB</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>93</td>
+</tr>
+</tbody>
+</table>
+<p><strong></strong></p>
+<table style="width: 877.719px; height: 110.344px;" border="1"><colgroup><col style="width: 98px;"><col style="width: 66px;"><col style="width: 122px;"><col style="width: 77px;"><col style="width: 59px;"><col style="width: 92px;"><col style="width: 78px;"><col style="width: 88px;"><col style="width: 62px;"><col style="width: 76px;"><col style="width: 58px;"></colgroup>
+<tbody>
+<tr>
+<td colspan="11">
+<h4><strong>shared-long</strong>&nbsp;</h4>
+</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td colspan="2"><strong>Wall Time</strong></td>
+<td colspan="3"><strong>Job Maximums</strong><strong><br></strong></td>
+<td colspan="2"><strong>CPU Memory&nbsp;</strong></td>
+<td colspan="2"><strong>&nbsp;Nodes per Job</strong></td>
+<td colspan="2"><strong>CPUs per node</strong></td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max&nbsp;</strong></td>
+<td><strong>Pending&nbsp;&nbsp;</strong></td>
+<td><strong>Running&nbsp;</strong></td>
+<td><strong>Total</strong></td>
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+</tr>
+<tr style="height: 34.7812px;">
+<td>10 min</td>
+<td>7 days</td>
+<td>N/A</td>
+<td>2</td>
+<td>5</td>
+<td>512 MiB</td>
+<td>1TiB</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>93</td>
+</tr>
+</tbody>
+</table>
+<h4><strong></strong></h4>
+<h4><code>exclusive</code> &amp; <code>exclusive-long</code></h4>
+<p>These partitions allocate entire compute nodes exclusively to your job.<sup data-turn-source-index="1" _ngcontent-ng-c3677216728=""><!----></sup> No one else can run on the nodes you are assigned.</p>
+<p><sources-carousel-inline _nghost-ng-c529831324="" ng-version="0.0.0-PLACEHOLDER"><!----><source-inline-chips _nghost-ng-c786323692="" _ngcontent-ng-c529831324=""><source-inline-chip _nghost-ng-c3504852951="" _ngcontent-ng-c786323692=""></source-inline-chip></source-inline-chips></sources-carousel-inline><strong>Best For:</strong></p>
+<h4><span style="font-family: Lato, sans-serif; font-size: 1.875rem; text-align: left;"><!----><!----><!----><!----><!----><!----><!----><!----></span></h4>
+<ul>
+<li style="list-style-type: none;">
+<ul>
+<li>
+<p>Large-scale MPI (Message Passing Interface) jobs that need to communicate across multiple nodes.</p>
+</li>
+<li>
+<p>Workloads that require all the resources on one or more nodes without interference.</p>
+</li>
+</ul>
+</li>
+</ul>
+<table style="width: 877.719px; height: 110.344px;" border="1"><colgroup><col style="width: 98px;"><col style="width: 66px;"><col style="width: 122px;"><col style="width: 77px;"><col style="width: 59px;"><col style="width: 92px;"><col style="width: 78px;"><col style="width: 88px;"><col style="width: 62px;"><col style="width: 76px;"><col style="width: 58px;"></colgroup>
+<tbody>
+<tr>
+<td colspan="11">
+<h4><strong>exclusive</strong></h4>
+</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td colspan="2"><strong>Wall Time</strong></td>
+<td colspan="3"><strong>Job Maximums</strong><strong><br></strong></td>
+<td colspan="2"><strong>CPU Memory&nbsp;</strong></td>
+<td colspan="2"><strong>&nbsp;Nodes per Job</strong></td>
+<td colspan="2"><strong>CPUs per node</strong></td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max&nbsp;</strong></td>
+<td><strong>Pending&nbsp;&nbsp;</strong></td>
+<td><strong>Running&nbsp;</strong></td>
+<td><strong>Total</strong></td>
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+</tr>
+<tr style="height: 34.7812px;">
+<td>10 min</td>
+<td>3 days</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>1</td>
+<td>20</td>
+<td>1</td>
+<td>93</td>
+</tr>
+</tbody>
+</table>
+<p></p>
+<table style="width: 877.719px; height: 113.344px;" border="1"><colgroup><col style="width: 98px;"><col style="width: 66px;"><col style="width: 79px;"><col style="width: 119px;"><col style="width: 60px;"><col style="width: 92px;"><col style="width: 78px;"><col style="width: 88px;"><col style="width: 62px;"><col style="width: 76px;"><col style="width: 58px;"></colgroup>
+<tbody>
+<tr>
+<td colspan="11">
+<h4><strong>exclusive-long</strong></h4>
+</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td colspan="2"><strong>Wall Time</strong></td>
+<td colspan="3"><strong>Job Maximums</strong><strong><br></strong></td>
+<td colspan="2"><strong>CPU Memory&nbsp;</strong></td>
+<td colspan="2"><strong>&nbsp;Nodes per Job</strong></td>
+<td colspan="2"><strong>CPUs per node</strong></td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max&nbsp;</strong></td>
+<td><strong>Pending&nbsp;&nbsp;</strong></td>
+<td><strong>Running&nbsp;</strong></td>
+<td><strong>Total</strong></td>
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+</tr>
+<tr style="height: 37.7812px;">
+<td>10 min</td>
+<td>7 days</td>
+<td>N/A</td>
+<td>2</td>
+<td>5</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>1</td>
+<td>20</td>
+<td>1</td>
+<td>93</td>
+</tr>
+</tbody>
+</table>
+<h4><strong></strong></h4>
+<h4><code>gpu</code></h4>
+<p>This partition provides access to nodes with GPUs for accelerating scientific and machine learning applications.<sup data-turn-source-index="2" _ngcontent-ng-c3677216728=""><!----></sup><sources-carousel-inline _nghost-ng-c529831324="" ng-version="0.0.0-PLACEHOLDER"><!----><source-inline-chips _nghost-ng-c786323692="" _ngcontent-ng-c529831324=""><source-inline-chip _nghost-ng-c3504852951="" _ngcontent-ng-c786323692=""></source-inline-chip></source-inline-chips></sources-carousel-inline><!----><!----><!----><!----></p>
+<h4><span style="font-family: Lato, sans-serif; font-size: 1.875rem; text-align: left;"><!----><!----><!----><!----><!----><!----><!----><!----></span></h4>
+<ul>
+<li>
+<p><strong>Best For:</strong></p>
+<ul>
+<li>
+<p>AI/ML training and inference.</p>
+</li>
+<li>
+<p>GPU-accelerated scientific simulations.<sup data-turn-source-index="3" _ngcontent-ng-c3677216728=""><!----></sup><sources-carousel-inline _nghost-ng-c529831324="" ng-version="0.0.0-PLACEHOLDER"><!----><source-inline-chips _nghost-ng-c786323692="" _ngcontent-ng-c529831324=""><source-inline-chip _nghost-ng-c3504852951="" _ngcontent-ng-c786323692=""></source-inline-chip></source-inline-chips></sources-carousel-inline></p>
+<!----><!----><!----><!----><!----><!----><!----><!----></li>
+</ul>
+</li>
+<li>
+<p><strong>Important:</strong> It is highly recommended to test your workflow in the <code>gpu-sandbox</code> partition first to ensure it runs correctly.</p>
+</li>
+</ul>
+<table style="width: 877.719px; height: 110.344px;" border="1"><colgroup><col style="width: 97.6667px;"><col style="width: 66.125px;"><col style="width: 122.094px;"><col style="width: 77.3229px;"><col style="width: 59.0104px;"><col style="width: 91.5625px;"><col style="width: 78.3438px;"><col style="width: 88.5104px;"><col style="width: 62.0625px;"><col style="width: 76.3021px;"><col style="width: 58.0521px;"></colgroup>
+<tbody>
+<tr style="height: 37.7812px;">
+<td colspan="2"><strong>Wall Time</strong></td>
+<td colspan="3"><strong>Job Maximums</strong><strong><br></strong></td>
+<td colspan="2"><strong>CPU Memory&nbsp;</strong></td>
+<td colspan="2"><strong>&nbsp;Nodes per Job</strong></td>
+<td colspan="2"><strong>CPUs per node</strong></td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max&nbsp;</strong></td>
+<td><strong>Pending&nbsp;&nbsp;</strong></td>
+<td><strong>Running&nbsp;</strong></td>
+<td><strong>Total</strong></td>
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+</tr>
+<tr style="height: 34.7812px;">
+<td>10 min</td>
+<td>3 days</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>512 MiB</td>
+<td>N/A</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>47</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<div class="d2l-element mceNonEditable" data-idx="3" data-type="attention" role="section" aria-describedby="d2l-uid-459">
+<p id="d2l-uid-459" class="sr-only">Callout</p>
+<div class="card card-graphic" data-prop="0|attention">
+<div class="card-body">
+<div class="card-icon"><!-- empty--></div>
+<div class="card-text">
+<div class="d2l-callout-title" data-prop="1|null"><!-- Empty --></div>
+<div data-prop="2|null">
+<p><strong>Idle Usage:</strong> This partition is monitored for low GPU activity.&nbsp; If jobs do not utilize all GPU cards requested or GPUs are idle for multiple hours, users will be notified via email and after 3 hours of no activity have the job automatically cancelled.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>&nbsp;</p>
+<div>
+<div _ngcontent-ng-c919095818="">
+<div not-end-of-paragraph="" _ngcontent-ng-c919095818="">
+<div id="185654c1fb2aad06" _ngcontent-ng-c3536657001="">
+<div _ngcontent-ng-c1087290128="">
+<div jslog="173900;track:impression,attention" _ngcontent-ng-c4234192971="">
+<div _ngcontent-ng-c4234192971="">
+<div _ngcontent-ng-c4234192971="">
+<div _ngcontent-ng-c1087290128="">
+<div dir="ltr" id="model-response-message-contentr_185654c1fb2aad06" _ngcontent-ng-c1831196054="">
+<p></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

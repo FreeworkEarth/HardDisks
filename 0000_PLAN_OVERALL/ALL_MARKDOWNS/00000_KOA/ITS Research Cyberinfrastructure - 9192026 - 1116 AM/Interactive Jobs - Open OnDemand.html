@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+<script src="https://templates.lcs.brightspace.com/lib/assets/js/scripts.min.js" defer=""></script></head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h2>Interactive Jobs via the Web Portal</h2>
+<p>The Koa web portal, powered by Open OnDemand, offers a user-friendly way to launch popular interactive applications like Jupyter Notebooks, RStudio, and graphical desktops directly from your web browser.</p>
+<h4>How They Work (Behind the Scenes)</h4>
+<p>While these applications feel fully interactive, it's helpful to understand what happens when you click "Launch."</p>
+<p><strong>Analogy:</strong> Think of the web portal as a helpful waiter. You fill out a simple form (your order), and the waiter (the portal) takes that information and submits a formal ticket to the kitchen (the Slurm scheduler).</p>
+<p>Essentially, the web portal automatically creates and submits a <strong>batch job</strong> on your behalf.</p>
+<h4>What This Means for You</h4>
+<p></p>
+<ul>
+<li>
+<p><strong>No Scripting Required:</strong> The biggest advantage is that you don't have to write your own Slurm job script. The web form does it for you.</p>
+</li>
+<li>
+<p><strong>Queue Times Still Apply:</strong> Just like any other batch job, your interactive session might have to wait in the queue (<code>Pending</code> state) if the cluster is busy.</p>
+</li>
+<li>
+<p><strong>Subject to Partition Rules:</strong> Your session is still a Slurm job and must follow the rules of the partition you select, including maximum time limits.</p>
+</li>
+<li>
+<p><strong>You Get a Job ID:</strong> Your session will be assigned a unique Job ID, which you can use to monitor it if needed.</p>
+</li>
+</ul>
+<p>In short, the web portal provides the convenience of an interactive application with the power and scheduling of the underlying Slurm batch system.&nbsp;</p>
+<div class="d2l-element mceNonEditable" data-idx="3" data-type="attention" role="section" aria-describedby="d2l-uid-213">
+<p id="d2l-uid-213" class="sr-only">Callout</p>
+<div class="card card-graphic" data-prop="0|attention">
+<div class="card-body">
+<div class="card-icon"><!-- empty--></div>
+<div class="card-text">
+<div class="d2l-callout-title" data-prop="1|null"><!-- Empty --></div>
+<div data-prop="2|null">
+<h3>Your Responsibility: Be a Good Cluster Citizen</h3>
+<p>The Koa cluster is a valuable, shared resource for the entire University of Hawaiʻi research community. When you launch an interactive job through the web portal (like Jupyter or RStudio), you are reserving a piece of the cluster for your exclusive use.</p>
+<p>To ensure everyone has fair and timely access to these limited resources, we ask that you please follow two simple rules.</p>
+<h4>1. Request Only the Time You Need</h4>
+<p>When launching your job, please make an accurate estimate of how long you'll need the session. If you only need two hours for a task, please request two hours instead of the three-day maximum.</p>
+<h4>2. End Your Session When You Are Done</h4>
+<p>This is the most important rule. An active session holds resources hostage, even if you close your browser tab and are no longer using it. This prevents other researchers from running their jobs.</p>
+<p><strong>When your work is finished, please explicitly end your session by clicking the red "Delete" button in the "My Interactive Sessions" tab of the web portal.</strong></p>
+<p>Thank you for helping us make Koa a productive and efficient resource for everyone.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>&nbsp;</p>
+<h3>Submitting a Job</h3>
+<p>The first step is to login to the web portal for Koa and select the interactive app you want to run from under the Interactive Apps menu or by clicking on the window restore icon to bring up "My Interactive Sessions" and selecting the app you want to run from the left hand links.</p>
+<p><img src="Screenshot-2025-08-04-141043_a.png" alt="Job submission form" title="Job submission form" data-d2l-editor-default-img-style="true" style="max-width: 100%;"></p>
+<p></p>
+<p>Once the form comes up, you will want to provide it with what resources you will need, the partition you will be using and for how long you need the resources for.&nbsp; If you are submitting to a partition that may have a wait time longer than a few minutes, you may also want to check the box to receive an email when your job actually starts.&nbsp; This way you can do other work and not have to constantly monitor your pending job on Koa.</p>
+<p></p>
+<p><img src="image_20250805001220545.png" data-d2l-editor-default-img-style="true" style="max-width: 100%;" alt="Jobs queued screen" width="798" height="460"></p>
+<p></p>
+<p>Once you hit launch your job will be queued.&nbsp; In this view, the important links and piece of information for troubleshooting would be:</p>
+<ul>
+<li>Job ID: The number in parenthesis next to the job title, which in this case is 7535224</li>
+<li>Session ID:&nbsp; The unique identifier for the job in the web portal itself.&nbsp; It also doubles as a link to the folder in your home directory that contains logs for your interactive app job.</li>
+<li>Delete Button:&nbsp; This button can be used to cancel your job or to end your job once you are done using the requested resources</li>
+<li>Job State:&nbsp; Found in the upper right of the Job title bar, which currently says <strong>Queued</strong>&nbsp;</li>
+</ul>
+<p><img src="image_20250805001220641.png" data-d2l-editor-default-img-style="true" style="max-width: 100%;" alt="Jobs starting screen" width="798" height="453"></p>
+<p></p>
+<p>Once the resources become available, the job state changes to starting.&nbsp; This step may take a little time as it is starting up the applications need to run your environment, which in this case is Jupyter Lab.</p>
+<p><img src="image_20250805001220708.png" data-d2l-editor-default-img-style="true" style="max-width: 100%;" alt="Jobs is running screen" width="798" height="451"></p>
+<p>Finally, the job goes into a Running state and button to connect to your interactive app becomes available.&nbsp; In this case the button reads <strong>Connect to Jupyter.</strong></p>
+<p>Note, the job also provides you a link to the Host, in the case you need to bring up a terminal on the host to monitor you job using tools like <strong>htop </strong>or <strong>top</strong>.</p>
+<p></p>
+<p>Once you are done with your job, remember to hit the Delete button or to close the session from within your application to terminate your job.</p>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

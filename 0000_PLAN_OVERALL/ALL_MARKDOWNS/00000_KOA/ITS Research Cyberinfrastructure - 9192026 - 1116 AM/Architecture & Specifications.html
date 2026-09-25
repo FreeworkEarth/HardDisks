@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+</head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h3>The Components of Koa</h3>
+<p></p>
+<p>Koa is comprised of two&nbsp; different clusters of systems, several support services and of which&nbsp; users primarily interface directly with one of these cluster and supporting infrastructure</p>
+<ol>
+<li>Computational cluster (Koa)</li>
+<li>Lustre Storage cluster (KoaStorage)</li>
+<li>User Accessible Support Systems
+<ul>
+<li>Login Nodes</li>
+<li>Data Transfer Nodes</li>
+</ul>
+</li>
+<li>Networking
+<ul>
+<li>Ethernet (1/10/25/100 Gbit)</li>
+<li>Infiniband (100/200Gbit)&nbsp;</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3>Computational Cluster (Koa)</h3>
+<p>Koa is the 3rd iteration of a central High Performance Computing (HPC) cluster that is centrally managed at the University of Hawaii.&nbsp; Koa is preceded by the UH-HPC (2014) and Mana (2019).&nbsp; &nbsp;While the name of the central HPC at UH has changed over the years, the hardware from each iteration is added to the previous generations, making Koa a heterogeneous HPC with both Intel and AMD processor that span the processor generations from 2014 to present day. &nbsp;<a href="https://uhawaii.atlassian.net/wiki/spaces/HPC/pages/429752517/Koa#Hardware" target="_blank" rel="noopener">Hardware specifications</a></p>
+<p>Koa consist of over 230 nodes with a total of 7,900+ CPU cores, 57+TB of total CPU memory and 140+ GPUs.</p>
+<p>Being a Condo cluster, Koa is made of about 50% condo nodes, purchased by departments and researchers, and 50% community nodes, funded by the University of Hawaii and grants that Research Cyberinfrastructure has been awarded (NSF awards: #1920304, #2201428 and #2232862 ).</p>
+<h3>KoaStorage (Lustre Storage Cluster)</h3>
+<p>KoaStorage is small purpose built cluster dedicated to managing the 6+ PB storage array that users&nbsp; use to store all data on Koa.&nbsp; KoaStorage utilizes a storage system known as <a href="https://www.lustre.org/" target="_blank" rel="noopener">Lustre </a>.&nbsp; Data on Lustre is divided into two types of data.</p>
+<p><strong>Meta data</strong><em>:</em> Where data for a user file is located, file ownership and permissions.&nbsp; KoaStorage utilizes<em> </em>solid state drives (SSDs) in order to provide quick retrieval times.</p>
+<p><strong>Object data:&nbsp; </strong>The actual use file data.&nbsp; KoaStorage utilizes a mixture of spinning hard drives (HDDs) and SSDs (SAS and NVMe).&nbsp; To help with performance, as files grow they are striped across multiple storage locations allow for increased read and write performance.&nbsp;&nbsp;</p>
+<p></p>
+<h3>User accessible support systems</h3>
+<h4 style="text-align: left;">Login Nodes</h4>
+<p>Two&nbsp; types of login nodes exist on Koa reachable at: <strong>koa.its.hawaii.edu</strong></p>
+<p><strong>Standard login nodes: </strong>All users with active accounts on Koa are able use the standard login nodes with an SSH client and valid UH credentials with DUO enabled.&nbsp; These provide command-line access only via SSH.</p>
+<p><strong>Open OnDemand: </strong>Users of Koa can utilize a web browser to connect to the Open OnDemand (OOD) nodes of Koa to provide a standard platform to access Koa.&nbsp; The OOD interface provides the ability to upload and download small files (less than 5 GB in size), edit text files in the browser, look at your&nbsp; home directory, connect to the command-line on Koa, and access several applications that interactive, such as:</p>
+<ol>
+<li>JupyterLab &amp; Jupyter Notebook</li>
+<li>Matlab (with a valid license (TAH license will work: <a href="https://hawaii.edu/sitelic/matlab/matlab.html" target="_blank" rel="noopener">site license office</a>)</li>
+<li>A virtual desktop for applications that require graphics</li>
+<li>Rstudio Server</li>
+</ol>
+<p></p>
+<h4 style="text-align: left;">Data Transfer Nodes</h4>
+<p>A Data transfer node (DTN) is a single purpose server to aid in optimizing the transfer of data to and from Koa.&nbsp; While at lower speeds ( 1 or 2 Gbit/s) a DTN may not show any difference than a login node, at the higher transfer rates (10/25/50/100 Gbit/s) a DTN can begin to show performance benefits.&nbsp; Koa has two different DTNs.</p>
+<p><strong>User accessible DTN: </strong>users are able to SSH into this DTN located at:<strong> koa-dtn.its.hawaii.edu </strong>.&nbsp; This node is setup with access to the storage systems of Koa and a series of different transfer tools.&nbsp; Standard tools like sftp, scp and rsync will limit the transfer rates regardless of using this node or a login node, just due to the nature of how they need to encrypt and decrypt the data.</p>
+<p><strong>Globus DTN: </strong>Koa has a <a href="https://www.globus.org/" target="_blank" rel="noopener">Globus </a>collection named <strong>UH Koa Collection</strong>.&nbsp; For Globus, we have four servers managing this particular collection and are all connected to the internet at 100Gbit/s.&nbsp; In the case both ends are well tuned, have Globus, transfers can go much quicker than using tools like sftp, scp and rsync.&nbsp; In recent testing, we have seen download speeds from test Globus collections located on the West cost, Central and East Cost of the United States ranging from 1 GiB/s u to 4GiB/s.</p>
+<p></p>
+<h3>Networking</h3>
+<p>Koa has two different networks that users utilize when transfer data inside of Koa as well as when moving data to and from Koa from an external system.</p>
+<p style="text-align: left;"><strong>Ethernet Network: </strong>The Ethernet network of Koa provides the standard network access allowing the nodes of Koa to access the internet.&nbsp; The internal network utilizes a mixture of 1/10/25/50/100 Gbit connections.&nbsp; Nodes that users access are typically connected to this particular network at 1/25/50 Gbit, depending on when the node was added to Koa.&nbsp; Border systems, such as the login nodes and DTNs, are all connected at 100 Gbit/s to the UH networks, which are external to Koa.</p>
+<p style="text-align: left;"><strong>Infiniband Network: </strong>The Infiniband (IB) network on Koa provides a high speed, low latency network that is ideal for Multi node workloads that utilize Message Passing Interface (MPI).&nbsp; This network currently uses what is known as High Data Rate Infiniband (HDR IB), which operates at either 200 Gbit/s or 100Gbit/s.&nbsp; This network is also used to transport file system traffic for user home directories as well as the directories on Lustre (lab storage, koastore, user scratch).&nbsp; This network is entirely internal to Koa.</p>
+<p style="text-align: left;"><img src="image4.png" alt="Koa Architecture diagram" title="Koa Architecture diagram" data-d2l-editor-default-img-style="true" style="max-width: 100%;"></p>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

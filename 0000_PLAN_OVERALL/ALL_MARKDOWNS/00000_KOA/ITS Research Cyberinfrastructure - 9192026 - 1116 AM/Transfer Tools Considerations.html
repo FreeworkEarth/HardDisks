@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+<script src="https://templates.lcs.brightspace.com/lib/assets/js/scripts.min.js" defer=""></script></head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<p data-renderer-start-pos="305"></p>
+<h4 style="text-align: left;">Using Data Transfer Tools with MFA/DUO</h4>
+<p>When you transfer files to Koa, how you handle the DUO (MFA) prompt depends on the tool you are using.</p>
+<hr>
+<h3>Method 1: SSH-Based Tools (<code>scp</code>, <code>rsync</code>, FileZilla)</h3>
+<p>These common tools use the SSH protocol, which requires a DUO two-factor authentication for&nbsp;<strong>every new connection</strong>. This can cause issues, especially with graphical programs.</p>
+<h4>The Challenge: Multiple Connections</h4>
+<p>Programs like FileZilla often try to open multiple connections at once to speed up transfers. This will either fail or bombard you with multiple DUO push notifications.</p>
+<h4><strong>Solution for FileZilla:</strong></h4>
+<p>To ensure a smooth connection, you must change two settings in FileZilla's Site Manager for your Koa connection:</p>
+<ol start="1">
+<li>
+<p>In the <strong>General</strong> tab, set the <strong>Logon Type</strong> to <strong>Interactive</strong>.</p>
+</li>
+<li>
+<p>In the <strong>Transfer Settings</strong> tab, check the box for <strong>Limit number of simultaneous connections</strong> and set the <strong>Maximum number of connections</strong> to <strong>1</strong>.</p>
+</li>
+</ol>
+<p>This forces FileZilla to use a single connection that can correctly show you the DUO prompt.</p>
+<p><strong>Tip for <code>scp</code> and <code>rsync</code>:</strong> If your command-line transfer seems to hang, check your primary DUO device. It may have received a "silent push" that is waiting for your approval.</p>
+<hr>
+<h3>Method 2: Globus</h3>
+<p>Globus is the easiest and most reliable option for frequent or large data transfers, as it avoids these MFA issues entirely.</p>
+<ul>
+<li>
+<p><strong>How it Works:</strong> Globus uses its own web-based authentication. You log in and approve DUO <strong>once</strong> through your browser.</p>
+</li>
+<li>
+<p><strong>The Benefit:</strong> After logging in, you can start as many transfers as you need without any further DUO prompts. Globus manages the transfer in the background, even if you close your computer.</p>
+</li>
+</ul>
+<p><a href="https://uhawaii.atlassian.net/wiki/x/4oCO" target="_blank" rel="noopener">Koa Documentation on MFA/DUO considerations</a></p>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

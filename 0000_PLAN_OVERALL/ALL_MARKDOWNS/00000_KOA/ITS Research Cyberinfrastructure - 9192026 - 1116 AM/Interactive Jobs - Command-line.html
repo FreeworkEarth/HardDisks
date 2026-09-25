@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+<script src="https://templates.lcs.brightspace.com/lib/assets/js/scripts.min.js" defer=""></script></head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<h2><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></h2>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h2>How to Start an Interactive Command-Line Job</h2>
+<p>An interactive job gives you a live command prompt directly on a compute node. This is the best way to handle tasks that require real-time feedback, such as compiling code, debugging, or testing a workflow before submitting a large batch job.</p>
+<p>While there are two commands (<code>salloc</code> and <code>srun</code>), the modern and recommended method is to use <code>salloc</code> to reserve your resources first.</p>
+<h3>Example</h3>
+<p>Let us assume we want to acquire a 4 hour job in the sandbox partition to do some compilation of code as well as debugging of a submission script.&nbsp; The first step would be to connect to the login node of Koa using ann SSH application or using the cluster terminal found in the web portal for Koa.</p>
+<p>Once you are on a login node, we can go ahead and request our job.&nbsp; Let us also assume we are testing a MPI job.&nbsp; The submission may look like this:</p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">salloc -p sandbox --mem=24g -t 240 --ntasks=4</code></pre>
+<p>&nbsp;</p>
+<div class="d2l-element mceNonEditable" data-idx="3" data-type="attention" role="section" aria-describedby="d2l-uid-275">
+<p id="d2l-uid-275" class="sr-only">Callout</p>
+<div class="card card-graphic" data-prop="0|attention">
+<div class="card-body">
+<div class="card-icon"><!-- empty--></div>
+<div class="card-text">
+<div class="d2l-callout-title" data-prop="1|null"><!-- Empty --></div>
+<div data-prop="2|null">
+<p>Koa has set for both the classic srun and salloc a timeout on how long the command will wait to acquire the resources you requested before giving up.&nbsp; A users can override this value using the immediate parameter or unsetting the related environment variable.</p>
+<p>Currently, srun and salloc will give up after <strong>180 seconds</strong> if it cannot fulfill your resource request within that time frame.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>&nbsp;</p>
+<p>Upon submission, iit may wait for resources to become available and once they become available the prompt will reappear stating it is on a different host:</p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">[test_user@login-0101 intel]$ salloc -p sandbox --mem=24g -t 240 --ntasks=4
+salloc: Pending job allocation 7534879
+salloc: job 7534879 queued and waiting for resources
+salloc: Granted job allocation 7534879
+salloc: Nodes cn-03-13-03 are ready for job
+[test_user@cn-03-13-03 intel]$
+</code></pre>
+<p>Once we are on a compute node in this interactive manner, we are able to access software modules, and execute scripts and applications that are install in the various locations of Koa.</p>
+<p>As we are working to testing our job script and debugging issues, let us assume this is what our current work directory and submission script looks like:</p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">[test_user@cn-03-13-03 intel]$ ls -l
+total 3
+-rw-r--r-- 1 test_user test_user  101 Aug  4 21:46 Makefile
+-rw-r--r-- 1 test_user test_user  457 Jun 14  2023 hello.intel.c
+-rw-r--r-- 1 test_user test_user 1261 Aug  4 21:47 intel_ib_hdr_mpi.slurm
+[test_user@cn-03-13-03 intel]$ cat intel_ib_hdr_mpi.slurm
+#!/bin/bash
+#SBATCH --job-name=MPI_example
+#SBATCH --partition=exclusive
+#SBATCH --time=3-00:00:00 ## time format is DD-HH:MM:SS
+
+#SBATCH --cpus-per-task=1
+##SBATCH --ntasks=78 # nodes have 40 to 48 physical cores, so ask for 2 nodes with this number of tasks.
+
+#SBATCH --nodes=2
+#SBATCH --tasks-per-node=39
+
+#SBATCH --distribution="*:*:*"  # Set the distribution to defaults if doing sbatch from interactive session
+
+#SBATCH --error=hello-%A.err ## %A - filled with jobid
+#SBATCH --output=hello-%A.out ## %A - filled with jobid
+
+## Useful for remote notification
+##SBATCH --mail-type=BEGIN,END,FAIL,REQUEUE,TIME_LIMIT_80
+##SBATCH --mail-user=user@test.org
+
+# unset these variables so submission via interactive sessions do not cause problems
+unset SLURM_CPU_BIND_VERBOSE SLURM_CPU_BIND_LIST SLURM_CPU_BIND_TYPE SLURM_CPU_BIND
+
+module purge
+
+# build the application
+module load toolchain/intel
+make clean
+make
+
+# Configure the Intel MPI parameters
+# https://www.intel.com/content/www/us/en/docs/mpi-library/developer-reference-linux/2021-9/overview.html
+#export I_MPI_PIN_RESPECT_CPUSET=0
+export I_MPI_FABRICS=shm
+export I_MPI_PMI_LIBRARY=/lib64/libpmi.so
+# Prepare and execute the MPI application
+
+echo ${SLURM_NTASKS}
+
+srun -n ${SLURM_NTASKS} ./hello.intel
+</code></pre>
+<p></p>
+<p>While the job script has several parameters that are different from our salloc, for debugging our execution steps and that the applications will typically not require an identical environment, resource wise, to what you plan to use in production.&nbsp; As a result, our small salloc setup of 4 tasks is sufficient.</p>
+<p>What we are looking to test is just this aspect of our job script.</p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">
+module purge
+module load toolchain/intel
+make clean
+make
+
+export I_MPI_FABRICS=shm
+export I_MPI_PMI_LIBRARY=/lib64/libpmi.so
+
+srun -n ${SLURM_NTASKS} ./hello.intel
+</code></pre>
+<p></p>
+<p>These are the steps our application take to build and run our MPI application.&nbsp; It begins by setting our module environment to our baseline of nothing, then loads the default intel compiler.&nbsp; It then goes into using the make command to clean up from any previous compilation then uses the make command to build out script.</p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">[test_user@cn-03-13-03 intel]$ module purge
+[test_user@cn-03-13-03 intel]$ module load toolchain/intel
+make clean
+rm -f hello.intel *.o *~
+[test_user@cn-03-13-03 intel]$ make
+mpiicc -o hello.intel hello.intel.c
+/opt/apps/software/mpi/impi/2021.15.0-intel-compilers-2025.1.1/mpi/2021.15/bin/mpiicx: line 534: icc: command not found
+make: *** [Makefile:4: all] Error 127
+</code></pre>
+<p></p>
+<p>When we attempt this, we find out that the build command used by make, somehow no longer works.&nbsp; It turns out, that the default intel compiler on Koa no longer supports the <strong>icc </strong>compiler and expects us to use the newer <strong>icx </strong>compiler.&nbsp; If we make the correction in our Makefile to call <strong>mpiicx </strong>instead of <strong>mpiicc </strong>we can&nbsp; go ahead and try to run the build steps again.</p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">
+[test_user@cn-03-13-03 intel]$ make clean
+rm -f hello.intel *.o *~
+[test_user@cn-03-13-03 intel]$ make
+mpiicx -o hello.intel hello.intel.c
+[test_user@cn-03-13-03 intel]$ ls -l
+total 7
+-rw-r--r-- 1 test_user test_user   101 Aug  4 21:56 Makefile
+-rwxr-x--- 1 test_user test_user 16776 Aug  4 21:56 hello.intel
+-rw-r--r-- 1 test_user test_user   457 Jun 14  2023 hello.intel.c
+-rw-r--r-- 1 test_user test_user  1261 Aug  4 21:47 intel_ib_hdr_mpi.slurm
+[test_user@cn-03-13-03 intel]$
+</code></pre>
+<p></p>
+<p>We can now see that our code compiles without any warnings or errors and we have a new executable named <strong>hello.intel</strong>.</p>
+<p></p>
+<p>Now that we have the build steps working correctly, we need to test that the application actually executes as expected.&nbsp; To do this, we can copy the last few steps of our job script to the command-line and see the results.</p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">[test_user@cn-03-13-03 intel]$ export I_MPI_FABRICS=shm
+[test_user@cn-03-13-03 intel]$ export I_MPI_PMI_LIBRARY=/lib64/libpmi.so
+[test_user@cn-03-13-03 intel]$ srun -n ${SLURM_NTASKS} ./hello.intel
+Hello world from process 0 of 4!  cn-03-13-03
+Hello world from process 0 of 4!
+Hello world from process 1 of 4!  cn-03-13-03
+Hello world from process 1 of 4!
+Hello world from process 2 of 4!  cn-03-13-03
+Hello world from process 3 of 4!  cn-03-13-03
+Hello world from process 3 of 4!
+Hello world from process 2 of 4!
+</code></pre>
+<p></p>
+<p>Once we are done testing that the parts of the job script work and we are ready to move on to submitting the job using sbatch, we can go ahead and exit out of our salloc session using the <strong>exit</strong> command.&nbsp; &nbsp;Releasing the resources you no longer need for others to use is a good practice to get into as it allows others to use these resources to forward their research and it won't use your credits, lowing your priority, for resources you no longer need.</p>
+<p>&nbsp;</p>
+<div class="d2l-element mceNonEditable" data-idx="3" data-type="attention" role="section" aria-describedby="d2l-uid-511">
+<p id="d2l-uid-511" class="sr-only">Callout</p>
+<div class="card card-graphic" data-prop="0|attention">
+<div class="card-body">
+<div class="card-icon"><!-- empty--></div>
+<div class="card-text">
+<div class="d2l-callout-title" data-prop="1|null"><!-- Empty --></div>
+<div data-prop="2|null">
+<p>Interactive jobs on the command-line can be terminated in a few different ways:</p>
+<ul>
+<li>Users calls exit and returns to the login node</li>
+<li>The job uses all the requested time the user requested</li>
+<li>The connection from the users remote system is disrupted and they are disconnected from Koa</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>&nbsp;</p>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

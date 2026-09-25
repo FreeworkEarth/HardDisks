@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+<link rel="stylesheet" href="https://s.brightspace.com/lib/fonts/0.6.1/fonts.css"><script src="https://templates.lcs.brightspace.com/lib/assets/js/scripts.min.js" defer=""></script></head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h2>Preemptable Partitions:<br><span style="font-family: Lato, sans-serif; font-size: 1.875rem;">High-Risk, High-Reward Computing</span></h2>
+<p><em>"While the cat's away, the mice will play."</em></p>
+<p>Preemptable partitions allow you to run jobs on idle servers owned by specific research groups ("condos"). This gives you opportunistic access to a huge pool of powerful resources that would otherwise be unused.</p>
+<p><strong>The catch?</strong> Your job can be <strong>preempted</strong> (stopped and requeued) at any moment if the owner of that server needs their resources back.</p>
+<h3>Understanding Preemption</h3>
+<ul>
+<li>
+<p><strong>What happens:</strong> If an owner submits a job, your job is stopped, and its progress is <strong>lost</strong>. It is then automatically put back in the queue to wait for another idle resource.</p>
+</li>
+<li>
+<p><strong>Best For:</strong> Jobs that can handle interruptions. This is ideal for applications that automatically save their progress (<strong>checkpointing</strong>) and can resume from where they left off.</p>
+</li>
+<li>
+<p><strong>Not For:</strong> Urgent, time-sensitive, or long-running jobs that cannot be easily restarted.</p>
+</li>
+</ul>
+<h4>Reasons Your Job Might Stop</h4>
+<ol start="1">
+<li>
+<p><strong>Requeued (Preempted):</strong> The owner of the hardware needs their resources back. Your job is stopped and put back in the waiting queue.</p>
+</li>
+<li>
+<p><strong>Canceled (Error):</strong> Your job will be permanently canceled (not requeued) if it exceeds its requested time or memory, or fails to use all requested GPUs.</p>
+</li>
+</ol>
+<h3>At-a-Glance Comparison</h3>
+<div><response-element ng-version="0.0.0-PLACEHOLDER"><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----></response-element>
+<div _ngcontent-ng-c919095818="">
+<div not-end-of-paragraph="" _ngcontent-ng-c919095818="">
+<table style="width: 97.6232%; border-collapse: collapse; border-width: 2px;" border="1">
+<thead>
+<tr>
+<td style="width: 15.22%; border-width: 2px;">Partition Name</td>
+<td style="width: 45.3032%; border-width: 2px;">Best For (Use Case)</td>
+<td style="width: 39.4768%; border-width: 2px;">How Resources are Allocated</td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="width: 15.22%; border-width: 2px;"><code>kill-shared</code></td>
+<td style="width: 45.3032%; border-width: 2px;">Single-node, fault-tolerant jobs (can be CPU or GPU).</td>
+<td style="width: 39.4768%; border-width: 2px;"><strong>By the CPU core</strong> (share a node with others).</td>
+</tr>
+<tr>
+<td style="width: 15.22%; border-width: 2px;"><code>kill-exclusive</code></td>
+<td style="width: 45.3032%; border-width: 2px;">Multi-node, fault-tolerant MPI jobs.</td>
+<td style="width: 39.4768%; border-width: 2px;"><strong>By the whole node</strong> (you get the entire server).</td>
+</tr>
+</tbody>
+</table>
+<div id="185654c1fb2aad06" _ngcontent-ng-c3536657001="">
+<div _ngcontent-ng-c1087290128="">
+<div jslog="173900;track:impression,attention" _ngcontent-ng-c4234192971="">
+<div _ngcontent-ng-c4234192971="">
+<div _ngcontent-ng-c4234192971="">
+<div _ngcontent-ng-c1087290128="">
+<div dir="ltr" id="model-response-message-contentr_185654c1fb2aad06" _ngcontent-ng-c1831196054="">
+<h3>Detailed Partition Information</h3>
+<h4><code>kill-shared</code></h4>
+<p>This partition allows your job to request a specific number of CPU cores and memory on a single condo server, which you may share with other preemptable jobs.</p>
+<ul>
+<li>
+<p><strong>Best For:</strong></p>
+<ul>
+<li>
+<p>Lower-priority, single-node jobs that can be checkpointed.</p>
+</li>
+<li>
+<p>Opportunistically using idle CPU or GPU resources.</p>
+</li>
+</ul>
+</li>
+</ul>
+<table style="width: 878px; height: 110.344px;" border="1"><colgroup><col style="width: 98px;"><col style="width: 66px;"><col style="width: 122px;"><col style="width: 77px;"><col style="width: 59px;"><col style="width: 92px;"><col style="width: 78px;"><col style="width: 88px;"><col style="width: 62px;"><col style="width: 76px;"><col style="width: 58px;"></colgroup>
+<tbody>
+<tr style="height: 37.7812px;">
+<td colspan="2"><strong>Wall Time</strong></td>
+<td colspan="3"><strong>Job Maximums</strong><strong><br></strong></td>
+<td colspan="2"><strong>CPU Memory&nbsp;</strong></td>
+<td colspan="2"><strong>&nbsp;Nodes per Job</strong></td>
+<td colspan="2"><strong>CPUs per node</strong></td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max&nbsp;</strong></td>
+<td><strong>Pending&nbsp;&nbsp;</strong></td>
+<td><strong>Running&nbsp;</strong></td>
+<td><strong>Total</strong></td>
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+</tr>
+<tr style="height: 34.7812px;">
+<td>10 min</td>
+<td>3 days</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>512 MiB</td>
+<td>N/A</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>191</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<div class="d2l-element mceNonEditable" data-idx="3" data-type="attention" role="section" aria-describedby="d2l-uid-715">
+<p id="d2l-uid-715" class="sr-only">Callout</p>
+<div class="card card-graphic" data-prop="0|attention">
+<div class="card-body">
+<div class="card-icon"><!-- empty--></div>
+<div class="card-text">
+<div class="d2l-callout-title" data-prop="1|null"><!-- Empty --></div>
+<div data-prop="2|null">
+<p>⚠️ <strong>Warning:</strong> Your job can be preempted at any time.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>&nbsp;</p>
+<h4><br><code></code><code>kill-exclusive</code><code></code></h4>
+<p>This partition allocates entire idle condo nodes exclusively to your job.</p>
+<ul>
+<li>
+<p><strong>Best For:</strong></p>
+<ul>
+<li>
+<p>Lower-priority, multi-node MPI jobs that can be checkpointed.</p>
+</li>
+<li>
+<p>Large-scale calculations that are not time-sensitive.</p>
+</li>
+</ul>
+</li>
+</ul>
+<table style="width: 877.719px; height: 114.344px;" border="1"><colgroup><col style="width: 97.6667px;"><col style="width: 66.125px;"><col style="width: 122.094px;"><col style="width: 77.3229px;"><col style="width: 59.0104px;"><col style="width: 91.5625px;"><col style="width: 78.3438px;"><col style="width: 88.5104px;"><col style="width: 62.0625px;"><col style="width: 76.3021px;"><col style="width: 58.0521px;"></colgroup>
+<tbody>
+<tr style="height: 38.7812px;">
+<td colspan="2"><strong>Wall Time</strong></td>
+<td colspan="3"><strong>Job Maximums</strong><strong><br></strong></td>
+<td colspan="2"><strong>CPU Memory&nbsp;</strong></td>
+<td colspan="2"><strong>&nbsp;Nodes per Job</strong></td>
+<td colspan="2"><strong>CPUs per node</strong></td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max&nbsp;</strong></td>
+<td><strong>Pending&nbsp;&nbsp;</strong></td>
+<td><strong>Running&nbsp;</strong></td>
+<td><strong>Total</strong></td>
+<td><strong>Default&nbsp;</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+<td><strong>Default</strong></td>
+<td><strong>Max</strong></td>
+</tr>
+<tr style="height: 37.7812px;">
+<td>10 min</td>
+<td>3 days</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>1</td>
+<td>20</td>
+<td>1</td>
+<td>191</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<div class="d2l-element mceNonEditable" data-idx="3" data-type="attention" role="section" aria-describedby="d2l-uid-918">
+<p id="d2l-uid-918" class="sr-only">Callout</p>
+<div class="card card-graphic" data-prop="0|attention">
+<div class="card-body">
+<div class="card-icon"><!-- empty--></div>
+<div class="card-text">
+<div class="d2l-callout-title" data-prop="1|null"><!-- Empty --></div>
+<div data-prop="2|null">
+<p>⚠️ <strong>Warning:</strong> Your job can be preempted at any time.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>&nbsp;</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

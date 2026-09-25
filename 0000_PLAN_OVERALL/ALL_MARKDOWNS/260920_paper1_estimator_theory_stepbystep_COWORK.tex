@@ -1,0 +1,262 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tcolorbox}
+\usepackage[colorlinks=true,linkcolor=NavyBlue,urlcolor=NavyBlue,citecolor=NavyBlue]{hyperref}
+\usepackage[T1]{fontenc}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+\newcommand{\kT}{k_{\mathrm B}T}
+\newcommand{\avg}[1]{\left\langle #1 \right\rangle}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\Leff}{L_{\mathrm{eff}}}
+\newcommand{\src}[1]{\textcolor{OliveGreen}{\textbf{[SOURCE #1]}}}
+\newcommand{\der}{\textcolor{NavyBlue}{\textbf{[DERIVATION]}}}
+\newcommand{\infr}{\textcolor{BurntOrange}{\textbf{[INFERENCE]}}}
+\newcommand{\dat}{\textcolor{Purple}{\textbf{[DATA]}}}
+\newcommand{\opn}{\textcolor{Red}{\textbf{[OPEN]}}}
+\newtcolorbox{answer}[1][Answer]{colback=OliveGreen!8,colframe=OliveGreen!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{chk}[1][Check]{colback=Apricot!12,colframe=BurntOrange!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+
+\title{Paper 1, every step and every equation:\\ from the wobbling divider to $c_s(\eta)$ and Kolafa--Rottner}
+\author{Cowork note for Chris --- HardDisks / hspist3}
+\date{2026-09-20}
+
+\begin{document}
+\maketitle
+
+\section*{Why this note}
+You asked three things: (1) do we get \emph{less} deviation from the estimator, and would a thinner divider bring us closer to Rom\'an; (2) explain every step and every equation again; (3) are we 100\,\% correct. The short answers are in the boxes at the end (\S\ref{sec:answers}); everything in between is the derivation that justifies them, so you can check each line. Tags as in the earlier audit: \src{X p.\,n} the paper says it; \der{} follows by algebra under named assumptions; \infr{} our interpretation; \dat{} a number CC measured; \opn{} not established, with what would establish it.
+
+Units: $\kT = m = \sigma = 1$, $\sigma = 2r$. $N$ = disks on \emph{one} side of the divider ($N = N_s = 50$; Rom\'an's $N = N_0/2 = 50$ too). $L_0$ = nominal length of one compartment; $h$ = box height (10 for both of us).
+
+\section{The chain of logic in one picture}
+\[
+\small
+\underbrace{x(t)}_{\text{divider position}}
+\;\xrightarrow{\ \text{FFT, peak}\ }\;
+\underbrace{\nu_1(M)}_{\text{resonance}}
+\;\xrightarrow{\ \cot K = \alpha K\ }\;
+\underbrace{c_s}_{\text{slope}}
+\;\xleftarrow{\ c_s^2 = Z+\eta Z'+Z^2\ }\;
+\underbrace{Z(\eta)}_{\text{EOS: KR, SPT, Henderson}}
+\]
+The left three arrows are \emph{measurement}; the right arrow is \emph{theory}. They meet at $c_s$. Every possible error lives in exactly one arrow, and the sections below take them one at a time.
+
+\section{Step 1: why the divider oscillates, and the equation $\cot K = \alpha K$}
+\label{sec:cotK}
+\textbf{Model.} Each compartment is a one-dimensional acoustic medium of length $L$, density $\rho = Nm/(Lh)$, sound speed $c_s$; the divider is a rigid mass $M$ moving in $x$ only. \src{Rom\'an 2002 Sec.\,II} This is the standard ``mass between two gas springs'' problem, but with the gas treated as a \emph{continuum} (standing waves), not as a massless spring. That distinction is what makes the equation transcendental instead of $\omega^2 = 2k_{\rm gas}/M$.
+
+\textbf{Derivation.} \der{} Let $u(x,t)$ be the displacement of the gas at position $x$ in compartment 1 ($0 \le x \le L$; closed wall at $x=0$, divider at $x=L$). Linear acoustics:
+\begin{equation}
+\frac{\partial^2 u}{\partial t^2} = c_s^2\,\frac{\partial^2 u}{\partial x^2},
+\qquad
+\delta P = -\rho c_s^2\,\frac{\partial u}{\partial x}.
+\label{eq:wave}
+\end{equation}
+The second relation says: where the gas is squeezed ($\partial u/\partial x<0$) the pressure rises. A standing wave that vanishes at the closed wall is
+\begin{equation}
+u(x,t) = U\sin(kx)\cos(\omega t), \qquad \omega = c_s k .
+\label{eq:standing}
+\end{equation}
+The divider's displacement is the gas displacement at its face, $\xi(t) = u(L,t) = U \sin(kL)\cos\omega t$. The pressure perturbation at the face is $\delta P_1(L,t) = -\rho c_s^2 U k\cos(kL)\cos\omega t$. Compartment 2 is the mirror image; for the mode in which the divider moves, its pressure perturbation is equal and opposite, $\delta P_2 = -\delta P_1$, so the net force on the divider is $2h\,\delta P_1(L,t)$ (force = pressure $\times$ height in 2D). Newton for the divider:
+\begin{equation}
+M\ddot\xi = 2h\,\delta P_1(L,t)
+\;\Longrightarrow\;
+-M\omega^2 U\sin K = -2h\rho c_s^2 U k \cos K, \qquad K \equiv kL .
+\end{equation}
+Use $h\rho L = Nm$ (the mass of gas in one compartment) and $\omega = c_s k$:
+\begin{equation}
+M c_s^2 k^2 \sin K = \frac{2Nm}{L} c_s^2 k \cos K
+\;\Longrightarrow\;
+M K \sin K = 2Nm \cos K
+\;\Longrightarrow\;
+\boxed{\;\cot K = \alpha K,\qquad \alpha = \frac{M}{2Nm}\;}
+\label{eq:cotK}
+\end{equation}
+This is Rom\'an's Eq.\,(17) \src{Rom\'an 2002 p.\,848}. Note $c_s$ has cancelled: the root $K$ depends \emph{only} on the mass ratio $\alpha$. That is the whole trick --- $K$ is pure geometry/mass, and $c_s$ enters only through
+\begin{equation}
+\boxed{\;\nu_1 = \frac{\omega}{2\pi} = \frac{c_s K}{2\pi L}\;}
+\qquad\text{\src{Rom\'an 2002 Eq.\,18}}
+\label{eq:nu}
+\end{equation}
+
+\textbf{Limits (sanity checks).} \der{} Heavy divider $M \gg 2Nm$: $K$ small, $\cot K \approx 1/K$, so $K^2 = 1/\alpha$ and
+\begin{equation}
+\omega^2 = c_s^2 K^2/L^2 = \frac{2 N m c_s^2}{M L^2} = \frac{2 k_{\rm gas}}{M},
+\qquad k_{\rm gas} = \frac{N m c_s^2}{L^2}.
+\label{eq:kgas}
+\end{equation}
+So the heavy-divider limit is exactly a mass on two gas springs of stiffness $k_{\rm gas}$ each --- and with $c_s^2 = (\kT/m)(Z+\eta Z'+Z^2)$ from \S\ref{sec:cs} this $k_{\rm gas}$ is \emph{the same adiabatic gas stiffness} CC now uses in Paper 2 Level 3 ($k_{\rm gas}^{\rm ad} = N\kT c_s^2/L^2 = 0.04938$ in geometry C). Paper 1 and Paper 2 are tied together by this one line. Light divider $M \ll 2Nm$: $\cot K \to 0$, $K \to \pi/2$, $\nu_1 \to c_s/(4L)$ --- the quarter-wave resonance of a closed--open pipe, as it must be. \src{Rom\'an 2002 Eqs.\,19--21}
+
+\textbf{Assumptions you should know are in there.} \infr{} (i) Linear acoustics --- amplitudes are thermal, tiny, fine. (ii) One-dimensional --- the mode is a plane wave along $x$; transverse modes exist in a $2$D box but the divider, spanning the full height, does not couple to them at linear order. Rom\'an flags this as his one caveat \src{Rom\'an 2002 p.\,851}. (iii) The gas is a continuum with a \emph{local} sound speed --- fails when $L$ is only a few mean free paths; that is a finite-size effect and part of why $N=100$ sits above theory (\S\ref{sec:finite}). (iv) The divider is perfectly reflecting and adiabatic --- true in EDMD.
+
+\section{Step 2: the nine masses and the slope}
+\label{sec:ladder}
+Rewrite \eqref{eq:nu} as a straight line:
+\begin{equation}
+\nu_1(M) = c_s \cdot x_M, \qquad x_M \equiv \frac{K(\alpha)}{2\pi \Leff}, \quad \alpha = \frac{M}{2Nm}.
+\label{eq:line}
+\end{equation}
+For each mass $M$ you solve \eqref{eq:cotK} numerically for the smallest positive root $K(\alpha)$, compute $x_M$, measure $\nu_1(M)$, and plot $\nu_1$ against $x_M$. Theory says the points lie on a line through the origin with slope $c_s$. Rom\'an: 12 masses $M = 20\ldots1000$, least-squares slope, intercept not stated \src{Rom\'an 2002 Fig.\,4}. Us: 9 masses $M = 50\ldots2000$, slope forced through the origin \dat{}.
+
+\textbf{Why several masses instead of one?} \der{} With one mass you get one number and no check. With nine, the \emph{straightness} of the line tests the model: anything that depends on $M$ but is not in \eqref{eq:cotK} (divider inertia coupling, the slow mode, estimator bias) would bend or shift the line. CC's test that the largest-bin estimator gives a flat residual across the ladder ($-0.030 \pm 0.029\,\%$ per e-fold of $M$, $1.0\sigma$) while the per-trajectory resonance fit leans ($-0.286\pm0.020\,\%$ per e-fold, $14\sigma$) \dat{} is exactly this check doing its job.
+
+\textbf{Why through the origin?} \der{} Equation \eqref{eq:nu} has no constant term. A free intercept would absorb a systematic and hide it; forcing zero exposes it as curvature instead. Stricter than Rom\'an, and the right choice.
+
+\section{Step 3: the effective length $\Leff$}
+\label{sec:leff}
+\der{} The acoustic medium is the set of disk \emph{centres}. A centre cannot come closer than $r = \sigma/2$ to any hard boundary. In a compartment bounded by a wall and a zero-width piston the centres span $L_0 - 2r = L_0 - \sigma$; this is Rom\'an's $L_0 - 1$ \src{Rom\'an 2002 p.\,850}. In our box the divider has thickness $t$ and $L_0$ is measured from the outer wall to the divider's \emph{centre plane} (convention in \texttt{tests\_20260913.py}, \dat{}), so the gas face sits at $L_0 - t/2$ and
+\begin{equation}
+\boxed{\;\Leff = L_0 - 2r - \tfrac{t}{2}\;}
+\label{eq:leff}
+\end{equation}
+This is not a correction \emph{to} Rom\'an; it is the same excluded-length argument applied to a thicker divider. Its size: $t/2 = 0.025\,\sigma$ against $\Leff \approx 39$ at $\eta = 0.1$ is $0.06\,\%$; at $\eta = 0.65$ the compartment is short ($L_0 = N\pi\sigma^2/(4\eta h) \approx 6.0$) and it is $0.4\,\%$ --- CC's measured $-0.004\,\%$ to $-0.50\,\%$ \dat{}.
+
+\begin{chk}[Would a thinner divider help?]
+No. The thickness is already removed \emph{exactly} by \eqref{eq:leff}; going from $t = 0.05$ to $t = 0$ changes $\Leff$ by a known $0.025\,\sigma$ and nothing else in the physics. It costs a full re-run of every cell and buys nothing. Keep $t = 0.05$. \der{}
+\end{chk}
+
+\textbf{The part that is approximate.} \infr{} The excluded-length picture assumes the density is uniform up to $r$ from each wall. In reality the gas layers against a hard wall (Wu et al.\ 2016 show this for Enskog channels), so the ``acoustic length'' is not exactly $\Leff$ at high $\eta$. This is one of the \emph{genuine} finite-size effects; it scales with (wall length)/(area), i.e.\ roughly $1/\sqrt N$ at fixed shape, and it is not removable by any estimator. It is what the KOA $N$-sweep measures.
+
+\section{Step 4: from the equation of state to $c_s$ --- the adiabatic formula}
+\label{sec:cs}
+This is the arrow where Rom\'an went wrong, so every line is written out.
+
+\textbf{Thermodynamics of hard disks.} \der{} The hard-core potential is $0$ or $\infty$, so it stores no energy: the internal energy is purely kinetic, $U = N\kT$ (two translational degrees of freedom, $\tfrac12\kT$ each), hence
+\begin{equation}
+c_v = \left(\frac{\partial U}{\partial T}\right)_{\!n}\Big/N = k_{\mathrm B} \quad\text{exactly, at every density.}
+\label{eq:cv}
+\end{equation}
+The pressure is $P = n\kT\,Z(\eta)$ with $n = N/(Lh)$ the number density, $\eta = n\pi\sigma^2/4$, and $Z$ the compressibility factor from the EOS.
+
+\textbf{Sound speed is the adiabatic derivative.} \src{any textbook; Landau--Lifshitz Fluid Mechanics \S64} A sound wave compresses the gas on a timescale $1/\nu \ll$ any heat-exchange time (and here the compartments are isolated anyway), so
+\begin{equation}
+c_s^2 = \left(\frac{\partial P}{\partial \rho}\right)_{\!S} = \frac{1}{m}\left(\frac{\partial P}{\partial n}\right)_{\!S}.
+\label{eq:csdef}
+\end{equation}
+
+\textbf{Converting the adiabatic derivative to isothermal ones.} \der{} Write $S = S(T,n)$. Per particle, with $v = 1/n$,
+\begin{equation}
+\dd s = \frac{c_v}{T}\,\dd T + \left(\frac{\partial P}{\partial T}\right)_{\!v}\dd v
+= \frac{c_v}{T}\,\dd T - \frac{1}{n^2}\left(\frac{\partial P}{\partial T}\right)_{\!n}\dd n,
+\end{equation}
+where the Maxwell relation $(\partial s/\partial v)_T = (\partial P/\partial T)_v$ was used. Set $\dd s = 0$:
+\begin{equation}
+\left(\frac{\dd T}{\dd n}\right)_{\!S} = \frac{T}{n^2 c_v}\left(\frac{\partial P}{\partial T}\right)_{\!n}.
+\end{equation}
+Then by the chain rule
+\begin{equation}
+\left(\frac{\partial P}{\partial n}\right)_{\!S}
+= \left(\frac{\partial P}{\partial n}\right)_{\!T}
++ \left(\frac{\partial P}{\partial T}\right)_{\!n}\left(\frac{\dd T}{\dd n}\right)_{\!S}
+= \left(\frac{\partial P}{\partial n}\right)_{\!T}
++ \frac{T}{n^2 c_v}\left(\frac{\partial P}{\partial T}\right)_{\!n}^{2}.
+\label{eq:adiab}
+\end{equation}
+
+\textbf{Insert the hard-disk EOS.} \der{} With $P = n\kT Z(\eta)$ and $\eta \propto n$:
+\begin{align}
+\left(\frac{\partial P}{\partial n}\right)_{\!T} &= \kT\,(Z + \eta Z'), \qquad Z' \equiv \dd Z/\dd\eta, \\
+\left(\frac{\partial P}{\partial T}\right)_{\!n} &= n k_{\mathrm B} Z, \\
+\frac{T}{n^2 c_v}\left(\frac{\partial P}{\partial T}\right)_{\!n}^{2} &= \frac{T}{n^2 k_{\mathrm B}}\, n^2 k_{\mathrm B}^2 Z^2 = \kT\, Z^2 .
+\end{align}
+Therefore
+\begin{equation}
+\boxed{\;c_s^2 = \frac{\kT}{m}\left(Z + \eta Z' + Z^2\right)\;}
+\qquad\text{equivalently}\qquad
+\gamma(\eta) \equiv \frac{c_s^2}{(\partial P/\partial\rho)_T} = 1 + \frac{Z^2}{Z + \eta Z'} .
+\label{eq:cs}
+\end{equation}
+At $\eta \to 0$: $Z = 1$, $Z' = 0$, so $c_s^2 = 2\kT/m$ and $\gamma = 2$ --- the ideal 2D gas. At finite $\eta$, $\gamma$ is \emph{not} 2: e.g.\ SPT at $\eta = 0.524$ gives $Z = 4.41$, $Z+\eta Z' = 14.1$, $\gamma = 1 + 19.4/14.1 = 2.38$.
+
+\textbf{What Rom\'an did.} \src{Rom\'an 2002 Eq.\,26} He used $c_s^2 = \gamma\,(\kT/m)(Z+\eta Z')$ with $\gamma = 2$ for all $\eta$, i.e.\ he kept the ideal-gas $c_P/c_V$. That is exact only at $\eta\to0$. Consequence: his ``theory'' is too low at high density and his data look $+10\,\%$ high there. Re-mapped with \eqref{eq:cs} his data are $+0.2$ to $+1.4\,\%$ above Henderson at every $\eta$ (my table in the chat, recomputed from his Table I) \der{}. His $N = 100$ then shows the same $\approx+1\,\%$ offset as ours.
+
+\begin{chk}[{Independent check of \eqref{eq:cs} --- the one thing worth asking ChatGPT}]
+The whole comparison to KR rests on \eqref{eq:cs} and \eqref{eq:cotK}. Both are derived above from first principles with no free choices, and \eqref{eq:cs} is additionally confirmed by Rom\'an's own high-density point: at $\eta=0.524$ the $\gamma=2$ mapping misses his $5.99\pm0.09$ by $9.7\,\%$, the adiabatic mapping by $0.2\,\%$ \dat{}. If you want a third pair of eyes, ask ChatGPT precisely this: ``For 2D hard disks with $P = n k T Z(\eta)$ and $U = N k T$, show that the adiabatic sound speed is $c_s^2 = (kT/m)(Z + \eta Z' + Z^2)$, and derive the piston resonance condition $\cot K = MK/(2Nm)$ for a rigid mass $M$ between two closed 1D acoustic compartments of $N$ particles each.'' Two short derivations, easy to compare line by line. Do not ask it to review the estimator --- that is a data question and it has no data.
+\end{chk}
+
+\section{Step 5: which $Z(\eta)$ --- SPT, Henderson, Kolafa--Rottner}
+\label{sec:eos}
+\begin{align}
+\text{SPT:}\qquad & Z = \frac{1}{(1-\eta)^2} \\
+\text{Henderson:}\qquad & Z = \frac{1 + \eta^2/8}{(1-\eta)^2} \\
+\text{Kolafa--Rottner:}\qquad & Z = \text{fit to simulation data, valid to the freezing region}
+\end{align}
+\src{Helfand--Frisch--Lebowitz 1961 (SPT); Henderson 1975; Kolafa \& Rottner, Mol.\ Phys.\ 104 (2006) 3435}
+For the derivative $Z'$ in \eqref{eq:cs} you differentiate whichever $Z$ you use; for KR that is done numerically or from the fit's closed form in the code. \opn{} I have not re-typed the KR coefficients here on purpose --- copy them from the paper, not from memory; CC's \texttt{tests\_20260913.py} carries the implementation, and the one check worth doing once is that its $Z$ reproduces two tabulated KR values (e.g.\ at $\eta = 0.5$ and $0.65$) to all printed digits.
+
+Why KR is the reference: SPT and Henderson are analytic approximations that drift high/low beyond $\eta \approx 0.5$; KR is a fit to simulation data and is the accepted disk EOS up to the freezing transition ($\eta \approx 0.69$--$0.70$). Rom\'an compared to SPT/Henderson because KR did not exist in 2002. Our curve goes to $\eta = 0.76$, where \emph{no fluid EOS is meaningful} (the system is ordering) --- points beyond $\approx 0.69$ are a different phase and must be plotted as such, not counted as ``deviation from KR''.
+
+\section{Step 6: the estimator --- periodogram, floor, averaging}
+\label{sec:est}
+\textbf{Record.} One seed, divider position sampled at fixed $\Delta t$ for a record of length $T_{\rm rec} = N_{\rm cyc}/\nu_{\rm pred}$ with $N_{\rm cyc} = 200$ predicted periods \dat{}. ($\nu_{\rm pred}$ is a rough guess from \eqref{eq:nu} with any EOS; it sets only the record length and the floor below.)
+
+\textbf{Periodogram.} \der{}
+\begin{equation}
+P(f_k) = \Big|\sum_j \big(x(t_j) - \bar x\big)\, e^{-2\pi i f_k t_j}\Big|^2,
+\qquad f_k = k\,\Delta f,\quad \Delta f = \frac{1}{T_{\rm rec}} .
+\end{equation}
+The resonance at $\nu_1$ appears at bin $k_1 = \nu_1/\Delta f \approx N_{\rm cyc} = 200$.
+
+\textbf{Bin-width floor.} \der{} A single record can only report $\nu_1$ to the nearest bin. The rounding error is uniform on $\pm\Delta f/2$, so its rms is $\Delta f/\sqrt{12}$, i.e.\ relative
+\begin{equation}
+\frac{\delta\nu}{\nu} = \frac{1}{\sqrt{12}\,N_{\rm cyc}} = \frac{1}{\sqrt{12}\cdot 200} = 0.144\,\% ,
+\end{equation}
+which is CC's ``bin-width rounding floor'' \dat{}. Averaging 25 seeds, whose thermal noise shifts the peak by different amounts, reduces it further; it is not the limiting error.
+
+\textbf{The slow mode and the floor at $\nu_{\rm pred}/2.5$.} \infr{} The two compartments are released with slightly different temperatures. For equal $N$ and pressure balance $n_1 T_1 Z_1 = n_2 T_2 Z_2$, the divider's mechanical equilibrium is at $L_1/L_2 \approx T_1/T_2$ (dilute), so a temperature imbalance $\Delta T/T$ shifts the equilibrium position by $\approx L\,\Delta T/(2T)$. Each compartment's kinetic temperature fluctuates by $\sqrt{2/N}\approx 20\,\%$ for $N=50$ \der{}, so shifts of a few $\sigma$ are expected --- comparable to the thermal oscillation amplitude $\sqrt{\kT/(2k_{\rm gas})}$. The imbalance relaxes only through the divider's motion (the ``adiabatic piston'' problem; Gruber \& Piasecki 1999; Crosignani et al.), on a timescale much longer than $1/\nu_1$, so it puts power at low frequency. CC measured 9--57\,\% of the variance in a 5-period running mean \dat{}. The literal largest-bin rule therefore picks the wander in a large fraction of records: $-21\,\%$ to $-57\,\%$ error inside Rom\'an's own density range \dat{}. The cure is to search only above $f \ge \nu_{\rm pred}/2.5$ (bin $k_{\min} = \mathrm{round}(N_{\rm cyc}/2.5)$); the result is flat for any floor in $[\nu_{\rm pred}/6.25,\ \nu_{\rm pred}/2.08]$ \dat{}, i.e.\ the answer does not depend on where you put it as long as it separates the two features. Rom\'an's Ref.\,7 is Numerical Recipes Ch.\,13, whose spectrum routine segments and windows the record (Welch), which suppresses sub-segment low-frequency power \infr{}; the paper does not say so, so we cannot claim it, but it is the natural explanation for why his largest-bin rule worked.
+
+\textbf{Why not fit a resonance curve?} \dat{} The per-trajectory fit is more precise (same scatter) but leans with mass by $-0.29\,\%$ per e-fold, $14\sigma$ --- a $1\,\%$ walk across the ladder --- while the largest bin is flat. The line in \eqref{eq:line} must be straight; the fit bends it. Rejected on that evidence, with no EOS consulted.
+
+\section{Step 7: the error budget, and what is finite size}
+\label{sec:finite}
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}p{6.2cm}p{6.2cm}l@{}}
+\toprule
+Source & Size & Status \\
+\midrule
+bin-width rounding (200 periods) & 0.144\,\%, reduced by seed averaging & \dat{} \\
+floor position in $[\nu_{\rm pred}/6.25, \nu_{\rm pred}/2.08]$ & 0.000\,\% & \dat{} \\
+largest-bin bias across the ladder & $-0.030\pm0.029\,\%$/e-fold (flat) & \dat{} \\
+damping pulling the peak below $f_0$ & $\le 0.34\,\%$, typically 0.01--0.11\,\% & \dat{} \\
+divider thickness in $\Leff$ & removed exactly by \eqref{eq:leff} & \der{} \\
+\midrule
+$N=100$ offset above KR & $+1.0\,\%$ mean, up to $+3\,\%$ at $\eta=0.52$ & \dat{} \\
+same offset in Rom\'an's $N=100$ data (adiabatic mapping) & $+0.2$ to $+1.4\,\%$ & \der{} \\
+Rom\'an's own $N$-sweep at $\eta=0.393$ & $3.81\to3.74$ for $N=64\to4096$ & \src{Table II} \\
+\bottomrule
+\end{tabular}
+\end{center}
+The estimator rows are all a few tenths of a percent or less. The offset is 3--10$\times$ larger, shrinks with $N$ in two independent data sets, and is therefore finite size. Its physical sources, all scaling with boundary/area: wall layering breaking the excluded-length picture (\S\ref{sec:leff}); the continuum assumption failing when $L$ is a few mean free paths; and the divider's own thermal motion ($\tfrac12\kT$ in one extra degree of freedom out of $2N$). \infr{} None of these is touched by the estimator, the divider thickness, or the EOS; only $N$ moves them.
+
+\section{Answers}
+\label{sec:answers}
+\begin{answer}[1. Less deviation with the estimator?]
+The estimator's own systematic is bounded at $\lesssim 0.3\,\%$ and is flat across the mass ladder. It is not where the $+1$--$3\,\%$ lives. There is nothing to gain by changing it, and the largest-bin rule with the floor is also the one that is closest in spirit to Rom\'an.
+\end{answer}
+\begin{answer}[2. Thinner divider --- approach Rom\'an?]
+No new runs. The thickness enters only through $\Leff$ and is removed exactly ($0.06\,\%$ at $\eta=0.1$, $0.4\,\%$ at $0.65$, already applied). We are already ``at Rom\'an'': once his Table I is mapped with the correct adiabatic $c_s$, his $N=100$ points sit $+0.2$ to $+1.4\,\%$ above Henderson, the same offset as ours above KR. The only lever left is $N$, which is the KOA campaign (the $N\approx1000$ sweep and the $\eta=0.65$ size series). Nothing to re-run on the Mac.
+\end{answer}
+\begin{answer}[3. Are we 100\,\% correct?]
+The two equations everything rests on, \eqref{eq:cotK} and \eqref{eq:cs}, are derived above from first principles with no free choices, and \eqref{eq:cs} is independently confirmed by Rom\'an's high-density point (his $\gamma=2$ misses by $9.7\,\%$, the adiabatic form by $0.2\,\%$). Two items remain to \emph{verify}, not to derive: (a) that the code's KR implementation reproduces two tabulated KR values to all digits; (b) that $L_0$ in the code is indeed measured to the divider's centre plane, as \eqref{eq:leff} assumes (CC's \texttt{assert\_wall\_thickness} guard covers $t$, not this convention). Both are one-line checks for CC. Beyond that, the honest statement for the paper is: measurement and theory agree to the finite-size offset, the offset is quantified, its sign and scaling are understood, and the large-$N$ extrapolation is the KOA result.
+\end{answer}
+\begin{answer}[4. Ask ChatGPT?]
+Yes, but only the two derivations in the box in \S\ref{sec:cs}, verbatim. A narrow question gets a checkable answer; ``review our method'' gets a plausible essay.
+\end{answer}
+
+\section*{References}
+\begin{itemize}[leftmargin=1.2em,itemsep=1pt]
+\item F.\,L. Rom\'an, J.\,A. White, S. Velasco, ``Simulations of an ideal-gas piston: speed of sound'', Am.\ J.\ Phys.\ 70, 847 (2002). (pages as read by CC)
+\item J. Kolafa, M. Rottner, ``Simulation of hard disks: equation of state'', Mol.\ Phys.\ 104, 3435 (2006).
+\item D. Henderson, Mol.\ Phys.\ 30, 971 (1975). E. Helfand, H.\,L. Frisch, J.\,L. Lebowitz, J.\ Chem.\ Phys.\ 34, 1037 (1961) (SPT).
+\item Ch. Gruber, J. Piasecki, ``Stationary motion of the adiabatic piston'', Physica A 268, 412 (1999). B. Crosignani et al., adiabatic piston (attached).
+\item L. Wu et al., J.\ Fluid Mech.\ 2016 (Enskog channel layering, attached).
+\item W.\,H. Press et al., Numerical Recipes in C, 2nd ed., Ch.\,13 (Rom\'an's Ref.\,7).
+\item L.\,D. Landau, E.\,M. Lifshitz, Fluid Mechanics, \S64 (sound speed as adiabatic derivative).
+\end{itemize}
+\end{document}

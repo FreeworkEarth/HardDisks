@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+</head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h2>How to Create a Slurm Job Script</h2>
+<p>A job script is a simple text file that tells the Slurm scheduler two things:</p>
+<ol start="1">
+<li>
+<p><strong>What resources you need</strong> (e.g., how much time, CPU, memory).</p>
+</li>
+<li>
+<p><strong>What commands to run</strong> (e.g., your scientific program).</p>
+</li>
+</ol>
+<p>On Koa, these are typically Bash shell scripts. You submit them using the <code>sbatch</code> command.</p>
+<h3>Anatomy of a Job Script</h3>
+<p>A job script has two main parts: the resource request section at the top, and the command section at the bottom.</p>
+<p>Lines that start with <code>#SBATCH</code> are special directives that request resources from Slurm. Lines that start with a plain <code>#</code> are regular comments for human readers.</p>
+<h4>Annotated Example</h4>
+<p>Here is a basic job script with each line explained. You can use this as a template for your own jobs.</p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">#!/bin/bash
+# --- Resource Request Section ---
+#
+#SBATCH --job-name=my_first_job      # A descriptive name for your job
+#SBATCH --partition=sandbox          # The partition (queue) to run on
+#SBATCH --time=00:10:00              # Maximum runtime in HH:MM:SS
+#SBATCH --cpus-per-task=1            # Number of CPU cores requested
+#SBATCH --mem=4G                     # Amount of RAM needed (e.g., 4G, 8G, 16G)
+#SBATCH --output=job_output_%A.out   # File to write standard output to (%A is the Job ID)
+#SBATCH --error=job_error_%A.err     # File to write standard error to
+# --- Optional: If not enabled and set, the working directory is set to the directory sbatch was executed from ---
+##SBATCH --chdir=/path/to/your/work   # Set the working directory for the job
+#
+# --- Optional: Email Notifications ---
+##SBATCH --mail-type=ALL             # Send email on job ALL events (BEGIN, END, FAIL)
+##SBATCH --mail-user=your_email@hawaii.edu  # Email address for notifications
+#
+# --- Command Section ---
+#
+echo "Job started on $(hostname) at $(date)"
+
+# Purge any existing modules and load the ones you need
+module purge
+module load toolchain/intel
+
+# Your actual commands or program to run
+./my_program --input data.txt
+
+echo "Job finished at $(date)"</code></pre>
+<p><strong>Tip:</strong> To activate an option that starts with <code>##SBATCH</code>, simply remove one of the <code>#</code> symbols.</p>
+<p></p>
+<h3>Common Parameters Explained</h3>
+<p></p>
+<p>While there are many <code>#SBATCH</code> options (<a href="https://slurm.schedmd.com/sbatch.html" target="_blank" rel="noopener">sbatch</a>), you only need a few to get started.</p>
+<table border="1" style="border-collapse: collapse; width: 99.9581%; height: 743.266px;"><colgroup><col style="width: 16.2407%;"><col style="width: 47.5713%;"><col style="width: 19.9492%;"><col style="width: 16.3686%;"></colgroup>
+<tbody>
+<tr style="height: 42.2812px;">
+<td><strong><span style="font-size: 19px;">Parameter</span></strong></td>
+<td><strong><span style="font-size: 19px;">Description</span></strong></td>
+<td><strong><span style="font-size: 19px;">Examples</span></strong></td>
+<td><strong><span style="font-size: 19px;">Formats</span></strong></td>
+</tr>
+<tr style="height: 61.7656px;">
+<td><span style="font-size: 16px;"><a href="https://slurm.schedmd.com/sbatch.html#OPT_job-name" target="_blank" rel="noopener">--job-name</a></span></td>
+<td><span style="font-size: 16px;">A simple name displayed for your job</span></td>
+<td><span style="font-size: 16px;">&nbsp;my_job</span></td>
+<td><span style="font-size: 16px;">string</span></td>
+</tr>
+<tr style="height: 105.766px;">
+<td><span style="font-size: 16px;"><a href="https://slurm.schedmd.com/sbatch.html#OPT_partition" target="_blank" rel="noopener">--partition</a></span></td>
+<td><span style="font-size: 16px;">Partitions you want to try and submit your job to</span></td>
+<td>
+<p><span style="font-size: 16px;">sandbox</span></p>
+<p><span style="font-size: 16px;">shared,kill-shared</span></p>
+</td>
+<td><span style="font-size: 16px;">string[,string]</span></td>
+</tr>
+<tr style="height: 148.781px;">
+<td><span style="font-size: 16px;"><a href="https://slurm.schedmd.com/sbatch.html#OPT_time" target="_blank" rel="noopener">--time</a></span></td>
+<td><span style="font-size: 16px;">The maximum amount of time your job will need</span></td>
+<td>
+<p><span style="font-size: 16px;">1440</span></p>
+<p><span style="font-size: 16px;">1-00:00</span></p>
+</td>
+<td>
+<p><span style="font-size: 16px;">minutes</span></p>
+<p><span style="font-size: 16px;">dd-hh:mm</span></p>
+<p><span style="font-size: 16px;">dd-hh:mm:ss</span></p>
+</td>
+</tr>
+<tr style="height: 61.7656px;">
+<td><span style="font-size: 16px;"><a href="https://slurm.schedmd.com/sbatch.html#OPT_cpus-per-task" target="_blank" rel="noopener">--cpus-per-task</a></span></td>
+<td><span style="font-size: 16px;">How many CPUs (threads) does your job need</span></td>
+<td><span style="font-size: 16px;">5</span></td>
+<td><span style="font-size: 16px;">integer</span></td>
+</tr>
+<tr style="height: 147.781px;">
+<td><a href="https://slurm.schedmd.com/sbatch.html#OPT_mem" target="_blank" rel="noopener"><span style="font-size: 16px;">--mem</span></a></td>
+<td><span style="font-size: 16px;">How much CPU memory does your job need</span></td>
+<td style="text-align: left;">
+<p><span style="font-size: 16px;">8192</span></p>
+<p><span style="font-size: 16px;">8g</span></p>
+</td>
+<td style="text-align: left;">
+<p><span style="font-size: 16px;">integer(MiB)</span></p>
+<p><span style="font-size: 16px;">integer[g] (GiB)</span></p>
+<p></p>
+</td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><span style="font-size: 16px;"><a href="https://slurm.schedmd.com/sbatch.html#OPT_error" target="_blank" rel="noopener">--error</a></span></td>
+<td><span style="font-size: 16px;">Where do you want the stderr to be written&nbsp;</span></td>
+<td><span style="font-size: 16px;">hello-%A.err</span></td>
+<td><span style="font-size: 16px;">string</span></td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><span style="font-size: 16px;"><a href="https://slurm.schedmd.com/sbatch.html#OPT_error" target="_blank" rel="noopener">--output</a></span></td>
+<td><span style="font-size: 16px;">Where do you want the stdout to be written</span></td>
+<td><span style="font-size: 16px;">hello-%A.out</span></td>
+<td><span style="font-size: 16px;">string</span></td>
+</tr>
+<tr>
+<td><a href="https://slurm.schedmd.com/sbatch.html#OPT_chdir" target="_blank" rel="noopener"><span style="font-size: 16px;">--chdir</span></a></td>
+<td><span style="font-size: 16px;">Set where your job will move to at the start of a job</span></td>
+<td><span style="font-size: 16px;">~/koa_scratch/</span></td>
+<td><span style="font-size: 16px;">valid path</span></td>
+</tr>
+<tr style="height: 37.7812px;">
+<td><a href="https://slurm.schedmd.com/sbatch.html#OPT_mail-type" target="_blank" rel="noopener"><span style="font-size: 16px;">--mail-type</span></a></td>
+<td><span style="font-size: 16px;">Type of events should send you an email</span></td>
+<td><span style="font-size: 16px;">BEGIN,END,FAIL</span></td>
+<td><span style="font-size: 16px;">string[,string]</span></td>
+</tr>
+<tr style="height: 61.7812px;">
+<td><a href="https://slurm.schedmd.com/sbatch.html#OPT_mail-user" target="_blank" rel="noopener"><span style="font-size: 16px;">--mail-user</span></a></td>
+<td><span style="font-size: 16px;">Your email address to receive event email at</span></td>
+<td><span style="font-size: 16px;">noreply@hawaii.edu</span></td>
+<td><span style="font-size: 16px;">email address</span></td>
+</tr>
+</tbody>
+</table>
+<p></p>
+<h3>Using Provided Sample Scripts</h3>
+<p>Koa provides several example job scripts in your home directory to help you get started. It's best to copy an example that matches your needs and then modify it.</p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">cd ~/examples/slurm/</code></pre>
+<p></p>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

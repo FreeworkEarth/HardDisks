@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+<link rel="stylesheet" href="https://s.brightspace.com/lib/fonts/0.6.1/fonts.css"></head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h3>Essential Slurm Job Commands</h3>
+<p>You only need to know a few key commands to manage your jobs on Koa. They fall into two main categories: Batch and Interactive.</p>
+<h3 style="text-align: left;">1. Batch Jobs (Running a Script)</h3>
+<p>This is the most common way to run jobs on Koa. You write your commands into a script file and then submit it to the scheduler.</p>
+<ul>
+<li>
+<p><code>sbatch</code> <strong>Purpose:</strong> <strong>Submits</strong> your job script to the queue. This is the main command you will use to start a job. <strong>Example:</strong> <code>sbatch my_job_script.sh</code></p>
+</li>
+<li>
+<p><code>scancel</code> <strong>Purpose:</strong> <strong>Cancels</strong> a pending or running job. <strong>Example:</strong> <code>scancel 12345</code> (where 12345 is your job ID)</p>
+</li>
+</ul>
+<h3 style="text-align: left;">2. Interactive Jobs (Working Directly on a Compute Node)</h3>
+<p>Use these commands when you need to work directly on a compute node for tasks like testing, debugging, or compiling software.</p>
+<ul>
+<li>
+<p><code>salloc</code> <strong>Purpose:</strong> <strong>Allocates</strong> resources for a new interactive session. This is the <strong>recommended</strong> way to get a command prompt on a compute node. <strong>Example:</strong> <code>salloc --ntasks=1 --cpus-per-task=4 --mem=16G --time=1:00:00</code></p>
+</li>
+<li>
+<p><code>srun</code> <strong>Purpose:</strong> While <code>srun</code> can start a simple interactive job, its main use on Koa is <strong>within a batch script</strong> to launch parallel tasks for applications like MPI.<span style="font-size: 1.1875rem; color: #494c4e; font-family: Lato, sans-serif; font-weight: 400; text-align: left;">&nbsp;</span></p>
+</li>
+</ul>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

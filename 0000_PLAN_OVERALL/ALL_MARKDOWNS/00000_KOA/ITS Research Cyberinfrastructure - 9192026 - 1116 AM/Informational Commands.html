@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+</head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h3>Checking the Status of Jobs and the Cluster</h3>
+<p>Slurm provides several commands to help you see what the cluster is doing and to track the progress of your jobs.</p>
+<h3 style="text-align: left;"><code>squeue</code>: Check the Job Queue</h3>
+<p><strong>Use this command to see which jobs are currently running or waiting in the queue.</strong> It's the best way to check the status of your own jobs.</p>
+<div>
+<div><response-element ng-version="0.0.0-PLACEHOLDER"><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----></response-element>
+<div _ngcontent-ng-c919095818="">
+<div not-end-of-paragraph="" _ngcontent-ng-c919095818="">
+<table style="border-collapse: collapse; border-width: 2px; width: 96.9275%;" border="1">
+<thead>
+<tr>
+<td style="border-width: 2px; width: 25.0567%;"><strong>Common Usage</strong></td>
+<td style="border-width: 2px; width: 74.9452%;"><strong>Description</strong></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="border-width: 2px; width: 25.0567%;"><code>squeue</code></td>
+<td style="border-width: 2px; width: 74.9452%;">Shows all jobs currently in the queue. Can be a very long list.</td>
+</tr>
+<tr>
+<td style="border-width: 2px; width: 25.0567%;"><code>squeue --me</code></td>
+<td style="border-width: 2px; width: 74.9452%;"><strong>(Most useful)</strong> Shows only <em>your</em> jobs.</td>
+</tr>
+<tr>
+<td style="border-width: 2px; width: 25.0567%;"><code>squeue -j 12345</code></td>
+<td style="border-width: 2px; width: 74.9452%;">Shows the status of a specific job ID (e.g., 12345).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<h3 style="text-align: left;"><code>sinfo</code>: Check the Cluster Status</h3>
+<p><strong>Use this command to see the status of the compute nodes.</strong> This helps you see how busy the cluster is and what resources are available.</p>
+<ul>
+<li>
+<p>It shows which partitions (groups of nodes) are available.</p>
+</li>
+<li>
+<p>It tells you if nodes are <code>idle</code>, <code>alloc</code> (allocated/busy), or <code>down</code>.</p>
+</li>
+<li>
+<p>The output on Koa is customized to show details about GPUs and other specific hardware features.</p>
+</li>
+</ul>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">[~]$ sinfo
+PARTITION            NODES  CPUS(A/I/O/T)     TIMELIMIT    DEFAULTTIME  JOB_SIZE STATE        GRES                                                         ACTIVE_FEATURES
+shared*              24     395/125/0/520     3-00:00:00   1:00         1        mixed-       (null)                                                       x86,intel,ivy-bridge
+shared*              4      80/16/0/96        3-00:00:00   1:00         1        mixed-       (null)                                                       x86,intel,haswell
+shared*              6      244/44/0/288      3-00:00:00   1:00         1        mixed-       (null)                                                       x86,intel,ice_lake,ib_hdr
+shared*              13     462/58/0/520      3-00:00:00   1:00         1        mixed-       (null)                                                       x86,intel,cascade_lake,ib_hdr
+shared*              2      174/14/0/188      3-00:00:00   1:00         1        mixed-       (null)                                                       x86,amd,epyc,genoa,ib_hdr
+shared*              4      124/32/0/156      3-00:00:00   1:00         1        mixed-       (null)                                                       x86,amd,epyc,milan,ib_hdr
+shared*              2      0/0/60/60         3-00:00:00   1:00         1        drained*     (null)                                                       x86,intel,ivy-bridge
+shared*              40     780/40/0/820      3-00:00:00   1:00         1        allocated    (null)                                                       x86,intel,ivy-bridge
+shared*              3      141/3/0/144       3-00:00:00   1:00         1        allocated    (null)                                                       x86,intel,ice_lake,ib_hdr
+shared*              12     468/12/0/480      3-00:00:00   1:00         1        allocated    (null)                                                       x86,intel,cascade_lake,ib_hdr
+shared*              17     340/17/0/357      3-00:00:00   1:00         1        allocated    (null)                                                       x86,amd,epyc,genoa,ib_hdr
+shared*              1      9/1/0/10          3-00:00:00   1:00         1        allocated    (null)                                                       x86,amd,epyc,milan,ib_hdr
+shared*              1      0/21/0/21         3-00:00:00   1:00         1        idle         (null)                                                       x86,amd,epyc,genoa,ib_hdr
+gpu                  1      5/43/0/48         3-00:00:00   1:00         1        mixed        gpu:NV-A30:2                                                 x86,intel,ice_lake,gpu,nvidia,tesla,ampere,ib_hdr
+gpu                  1      10/38/0/48        3-00:00:00   1:00         1        mixed        gpu:nvidia_a30_2g.12gb:4(S:1)                                x86,intel,ice_lake,gpu,nvidia,tesla,ampere,ib_hdr
+gpu                  1      5/43/0/48         3-00:00:00   1:00         1        mixed        gpu:NV-RTX-A4000:10                                          x86,intel,ice_lake,gpu,nvidia,quadro,ampere,ib_hdr
+gpu                  2      0/96/0/96         3-00:00:00   1:00         1        idle         gpu:NV-A30:2                                                 x86,intel,ice_lake,gpu,nvidia,tesla,ampere,ib_hdr
+gpu                  1      0/48/0/48         3-00:00:00   1:00         1        idle         gpu:NV-A30:2                                                 x86,intel,sapphire_rapids,gpu,nvidia,tesla,ampere,ib_hdr
+gpu                  1      0/48/0/48         3-00:00:00   1:00         1        idle         gpu:NV-V100-SXM2:8                                           x86,intel,cascade_lake,gpu,nvidia,tesla,volta,ib_hdr
+gpu                  2      0/96/0/96         3-00:00:00   1:00         1        idle         gpu:NV-RTX5000:8                                             x86,intel,cascade_lake,gpu,nvidia,quadro,turing,ib_hdr
+gpu                  1      0/48/0/48         3-00:00:00   1:00         1        idle         gpu:NV-RTX-A4000:10                                          x86,intel,ice_lake,gpu,nvidia,quadro,ampere,ib</code></pre>
+<h3 style="text-align: left;"><code></code><code>sprio</code>: Check Job Priority</h3>
+<p><strong>Use this command to see the priority calculation for all pending jobs.</strong> This can help you understand why some jobs are scheduled before others.</p>
+<ul>
+<li>
+<p>Jobs with a <strong>higher</strong> number have a higher priority and are more likely to run next.</p>
+</li>
+<li>
+<p>Your job's priority increases the longer it waits in the queue.</p>
+</li>
+</ul>
+<p></p>
+<h3 style="text-align: left;"><code>seff</code> Command: Checking Your Job's Efficiency</h3>
+<p>The <code>seff</code> (Slurm efficiency) command is a simple but powerful tool that gives you a performance report on a completed job. It helps you answer the crucial question: <strong>"Did my job make good use of the resources I requested?"</strong></p>
+<p><strong>Syntax:</strong></p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">seff &lt;job_id&gt;</code></pre>
+<p><strong>Example:</strong></p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">[ ~]# seff 7888913
+Job ID: 7888913
+Cluster: mana
+User/Group: user/user
+State: COMPLETED (exit code 0)
+Nodes: 1
+Cores per node: 10
+CPU Utilized: 00:00:10
+CPU Efficiency: 11.11% of 00:01:30 core-walltime
+Job Wall-clock time: 00:00:09
+Memory Utilized: 975.45 MB
+Memory Efficiency: 1.49% of 64.00 GB (64.00 GB/node)</code></pre>
+<h3>What the Output Tells You</h3>
+<p>The <code>seff</code> command provides a clean summary with several key metrics:</p>
+<ul>
+<li>
+<p><strong>Job Wall-clock time:</strong> The actual real-world time your job took to run from start to finish.</p>
+</li>
+<li>
+<p><strong>Total CPU time:</strong> The combined time all of your requested CPU cores spent actively working.</p>
+</li>
+<li>
+<p><strong>CPU Efficiency:</strong> This is the most important metric. It compares the <em>actual</em> CPU time used against the <em>total</em> CPU time you reserved. A low percentage means your job requested many more CPU cores than it could actually use, leaving them idle. <strong>Your goal is to get this as close to 100% as possible.</strong></p>
+</li>
+<li>
+<p><strong>Memory Utilized:</strong> The peak amount of RAM your job used.</p>
+</li>
+<li>
+<p><strong>Memory Efficiency:</strong> Compares the peak RAM used against the amount you requested. A low percentage means you requested much more RAM than your job needed.</p>
+</li>
+</ul>
+<p></p>
+<h3 style="text-align: left;"><code>jobstats</code>&nbsp;Command: Checking Your Job's Efficiency</h3>
+<p>The <code>jobstats</code> command is a powerful, detailed performance analysis tool developed at Princeton University. It goes much deeper than <code>seff</code> by providing <strong>time-series plots</strong> that show you how your job used resources throughout its entire runtime.</p>
+<p>Think of it this way:</p>
+<ul>
+<li>
+<p><code>seff</code> gives you the final score of a game (e.g., you used 50% of the CPU).</p>
+</li>
+<li>
+<p><code>jobstats</code> gives you the play-by-play analysis, showing you exactly <em>when</em> in the game your team was performing well or poorly.</p>
+</li>
+</ul>
+<p>This is extremely useful for understanding complex jobs with different stages, such as a data-loading phase followed by a computation phase.</p>
+<h3>How to Use <code>jobstats</code></h3>
+<p>The <code>jobstats</code> command is a script that needs to be run after your job has completed. It processes the performance data collected by Slurm during the run.</p>
+<p><strong>Syntax:</strong></p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">jobstats &lt;job_id&gt;</code></pre>
+<p><strong>Example:</strong></p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">[~]$ jobstats  7888556
+
+================================================================================
+                              Slurm Job Statistics
+================================================================================
+         Job ID: 7888556
+   User/Account: user/uh
+       Job Name: bl_LpZG8V
+          State: RUNNING
+          Nodes: 1
+      CPU Cores: 1
+     CPU Memory: 6GB (6GB per CPU-core)
+  QOS/Partition: normal/kill-shared
+        Cluster: mana
+     Start Time: Thu Aug 28, 2025 at 1:18 AM
+       Run Time: 00:15:14 (in progress)
+     Time Limit: 1-00:00:00
+
+                         Overall Utilization
+================================================================================
+  CPU utilization  [|||                                             6%]
+  CPU memory usage [                                                0%]
+
+                         Detailed Utilization
+================================================================================
+  CPU utilization per node (CPU time used/run time)
+      cn-03-38-07.mana.ci.its.hawaii.edu: 00:00:52/00:15:14 (efficiency=5.8%)
+
+  CPU memory usage per node - used/allocated
+      cn-03-38-07.mana.ci.its.hawaii.edu: 30.5MB/6GB (30.5MB/6GB per core of 1)
+
+                                Notes
+================================================================================
+  * The overall CPU utilization of this job is 6%. This value is low compared
+    to the target range of 90% and above. Please investigate the reason for
+    the low efficiency. For more info:
+      https://researchcomputing.princeton.edu/get-started/cpu-utilization
+
+  * Have a nice day!
+</code></pre>
+<h3><code>jobstats</code> vs. <code>seff</code>: Which One Should I Use?</h3>
+<div>
+<div><response-element ng-version="0.0.0-PLACEHOLDER"><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----></response-element>
+<div _ngcontent-ng-c919095818="">
+<div not-end-of-paragraph="" _ngcontent-ng-c919095818="">
+<table style="width: 100.058%; border-collapse: collapse; border-width: 2px;" border="1">
+<thead>
+<tr>
+<td style="width: 10.7889%; border-width: 2px;"></td>
+<td style="width: 32.1346%; border-width: 2px;"><code>seff</code></td>
+<td style="width: 57.0766%; border-width: 2px;"><code>jobstats</code></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="width: 10.7889%; border-width: 2px;"><strong>Purpose</strong></td>
+<td style="width: 32.1346%; border-width: 2px;">Quick, overall summary of job efficiency.</td>
+<td style="width: 57.0766%; border-width: 2px;">Detailed, visual analysis of performance over time.</td>
+</tr>
+<tr>
+<td style="width: 10.7889%; border-width: 2px;"><strong>Output</strong></td>
+<td style="width: 32.1346%; border-width: 2px;">Simple text summary (CPU %, Memory %).</td>
+<td style="width: 57.0766%; border-width: 2px;">HTML report with time-series graphs.</td>
+</tr>
+<tr>
+<td style="width: 10.7889%; border-width: 2px;"><strong>Best For</strong></td>
+<td style="width: 32.1346%; border-width: 2px;">Getting a fast, "at-a-glance" check on any completed job.</td>
+<td style="width: 57.0766%; border-width: 2px;"><strong>Troubleshooting</strong> inefficient jobs, <strong>optimizing</strong> complex code, and understanding jobs with multiple stages.</td>
+</tr>
+<tr>
+<td style="width: 10.7889%; border-width: 2px;"><strong>When to Use</strong></td>
+<td style="width: 32.1346%; border-width: 2px;">Use it routinely on most of your completed jobs.</td>
+<td style="width: 57.0766%; border-width: 2px;">Use it when <code>seff</code> reports low efficiency and you need to know <strong>why</strong>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

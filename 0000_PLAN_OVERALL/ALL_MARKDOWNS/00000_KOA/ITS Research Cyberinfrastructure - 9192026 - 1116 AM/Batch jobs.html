@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+<script src="https://templates.lcs.brightspace.com/lib/assets/js/scripts.min.js" defer=""></script></head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h3>How to Submit a Job on Koa</h3>
+<p></p>
+<p>Once you have created your job script, you need to submit it to the Slurm scheduler. The scheduler will then run your job when the necessary resources become available.</p>
+<p>The command to submit a batch job is <code>sbatch</code>.</p>
+<p><a href="https://slurm.schedmd.com/sbatch.html" target="_blank" rel="noopener">Online documentation from SchedMD</a></p>
+<h3>A Step-by-Step Example</h3>
+<p>This example will walk you through submitting one of the sample jobs already provided in your home directory on Koa.</p>
+<h4 style="text-align: left;">Step 1: Log in to Koa</h4>
+<p>Connect to Koa using your preferred SSH client or the web portal.&nbsp;</p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">Last login: Sat Aug  2 15:41:22 UTC 2025 from 10.96.0.1 on pts/5
+=================================================== LOGIN NODE INFO ====================================================
+Hostname: login-0101
+Date    : Mon Aug  4 20:35:30 UTC 2025
+Uptime :  20:35:30 up 32 days, 18:46,  6 users,  load average: 0.00, 0.00, 0.00
+========================================================================================================================
+
+========================================================================================================================
+                                             ##    ##  #######     ###
+                                             ##   ##  ##     ##   ## ##
+                                             ##  ##   ##     ##  ##   ##
+                                             #####    ##     ## ##     ##
+                                             ##  ##   ##     ## #########
+                                             ##   ##  ##     ## ##     ##
+                                             ##    ##  #######  ##     ##
+========================================================================================================================
+         Unauthorized access is prohibited by law in accordance with Chapter 708 of the Hawaii Revised Statutes
+            all use is subject to University of Hawaii Executive Policy EP 2.210.(http://go.hawaii.edu/JYj)
+========================================================================================================================
+
+                                This system is subject to University of Hawaii policies
+________________________________________________________________________________________________________________________
+Executive Policy EP 2.210: Use and Management of Information Technology Resources (https://go.hawaii.edu/JYj)
+Executive Policy EP 2.214: Data Classification &amp; Security Guidelines (http://go.hawaii.edu/FLG)
+Executive Policy EP 2.215: Data Governance Policy (http://go.hawaii.edu/GLa)
+====================================================  INFORMATION  =====================================================
+Data Governance: https://www.hawaii.edu/uhdatagov/
+UH Information Security: https://www.hawaii.edu/infosec/
+Office of Research Compliance https://researchcompliance.hawaii.edu/
+________________________________________________________________________________________________________________________
+General Information: https://datascience.hawaii.edu/hpc/
+FAQ and tutorials: https://go.hawaii.edu/ex2
+Latest HPC-101 (Onboarding) slides: http://go.hawaii.edu/wL
+Up-to-date sample SLURM scripts: /opt/misc/examples
+The modules list has hidden modules.
+To view the full module list: module --show_hidden av
+========================================================================================================================
+============================================================================================ USAGE =============================================================================================
+|                                                                        Last Updated: 2025-08-04 19:45:22.546918+00:00                                                                        |
+================================================================================================================================================================================================
+|                                             |                          |                     STORAGE LIMITS                      |                    INODE (FILES) LIMITS                   |
+|                    PATH                     |         SYMLINK          |     SOFT     (HARD)      |   USED: test_user (OVERALL)  |       SOFT     (HARD)        | USED: test_user (OVERALL)  |
+|==============================================================================================================================================================================================|
+|/home/test_user                              | -                        | -        (50.0 GiB)      | 1.0 MiB (1.0 MiB)            | -        (0.00)              |                       - (-)|
+|/mnt/lustre/koa/scratch/test_user            | koa_scratch              | -        (800.0 TiB)     | 3.1 TiB (459.7 TiB)          | -        (400 M)             |             24.1 k (47.0 M)|
+================================================================================================================================================================================================
+test_user@login-0101 ~]$
+
+</code></pre>
+<h3></h3>
+<h4 style="text-align: left;">Step 2: Navigate to the Example Directory</h4>
+<p>The sample scripts are located in <code>~/examples/slurm/</code>. We will use a simple, non-parallel (non-MPI) example.</p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">[test_user@login-0101 ~]$ pwd
+/home/test_user/
+[test_user@login-0101 ~]$ cd ~/examples/slurm/non_mpi/
+[test_user@login-0101 non_mpi]$ pwd
+/home/test_user/examples/slurm/non_mpi
+[test_user@login-0101 non_mpi]$ ls -l
+total 5
+-rw-r--r-- 1 test_user test_user  72 Aug  4 20:38 Makefile
+-rw-r--r-- 1 test_user test_user 111 Jun 14  2023 hello.c
+-rw-r--r-- 1 test_user test_user 697 Aug  4 20:42 non_mpi.slurm
+[test_user@login-0101 non_mpi]$
+</code></pre>
+<h4 style="text-align: left;"></h4>
+<h4 style="text-align: left;">Step 3: Review the Job Script (Optional)</h4>
+<p>You can view the contents of the script, <code>non_mpi.slurm</code>, to see the <code>#SBATCH</code> directives and the commands it will run.</p>
+<p>Once in the examples directory, we can take a look at the job script if we desire using a command-line text editor such as emacs, vim, neovim, nano and make edits if we want.&nbsp;</p>
+<h3>non_mpi.slurm</h3>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">
+#!/bin/bash
+#SBATCH --job-name=example
+#SBATCH --partition=sandbox
+
+#SBATCH --time=0-01:00:00 ## time format is DD-HH:MM:SS
+
+#SBATCH --cpus-per-task=1
+## max amount of CPU memory per node you require
+#SBATCH --mem=6g 
+
+#SBATCH --error=hello-%A.err ## %A - filled with jobid
+#SBATCH --output=hello-%A.out ## %A - filled with jobid
+
+##SBATCH --mail-type=BEGIN,END,FAIL,REQUEUE
+##SBATCH --mail-user=user@test.org
+
+## All options and environment variables found on schedMD site: http://slurm.schedmd.com/sbatch.html
+
+### begin commands to run ###
+
+module purge
+module load toolchain/intel
+make
+
+./hello ${RANDOM}
+</code></pre>
+<p></p>
+<h4 style="text-align: left;">Step 4: Submit the Job</h4>
+<p>Use the <code>sbatch</code> command to send the script to the scheduler.</p>
+<p>Upon submission, Slurm will give you a unique <strong>Job ID </strong>(7534798 in the example below). This is how you will track your job.</p>
+<h3>What Happens After You Submit?</h3>
+<p></p>
+<p>You can monitor your job's progress and see the final results once it's finished.</p>
+<h4 style="text-align: left;">1. Check the Job Status</h4>
+<p>Use the <code>squeue --me</code> command to see the status of your jobs.</p>
+<ul>
+<li>
+<p>Your job will first appear with the status <code>PD</code> (Pending), meaning it is waiting for resources.</p>
+</li>
+<li>
+<p>Once it starts, the status will change to <code>R</code> (Running).</p>
+</li>
+<li>
+<p>When the job is finished, it will disappear from the <code>squeue</code> list.</p>
+</li>
+</ul>
+<h4 style="text-align: left;">2. Check the Output Files</h4>
+<p>After the job completes, Slurm creates output and error files in the same directory. The <code>%A</code> in the script's filename is automatically replaced with the Job ID.</p>
+<ul>
+<li>
+<p><code>hello-7534798.out</code>: Contains the standard output from your script.</p>
+</li>
+<li>
+<p><code>hello-7534798.err</code>: Contains any error messages. If this file is empty, your job likely ran without errors.</p>
+</li>
+</ul>
+<p>You can view these files to see the results of your job.</p>
+<p></p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">[test_user@login-0101 non_mpi]$ sbatch non_mpi.slurm
+Submitted batch job 7534798
+[test_user@login-0101 non_mpi]$ squeue --me
+             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+           7534798   sandbox  example  test_user PD       0:00      1 (None)
+[test_user@login-0101 non_mpi]$ sleep 8
+[test_user@login-0101 non_mpi]$ squeue --me
+             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+[test_user@login-0101 non_mpi]$ ls -l
+total 7
+-rw-r--r-- 1 test_user test_user    72 Aug  4 20:38 Makefile
+-rwxr-x--- 1 test_user test_user 16536 Aug  4 21:01 hello
+-rw-r----- 1 test_user test_user     0 Aug  4 21:01 hello-7534810.err
+-rw-r----- 1 test_user test_user    40 Aug  4 21:01 hello-7534810.out
+-rw-r--r-- 1 test_user test_user   111 Jun 14  2023 hello.c
+-rw-r--r-- 1 test_user test_user   734 Aug  4 20:58 non_mpi.slurm
+[datest_uservidls@login-0101 non_mpi]$ cat *.err
+[test_user@login-0101 non_mpi]$ cat *.out
+icx -o hello hello.c
+26620   Hello World!
+[test_user@login-0101 non_mpi]$
+
+</code></pre>
+<p></p>
+<p></p>
+<p>Once the job is submitted we obtain a job ID number.&nbsp; This is a unique number for your job allowing for you and administrators of Koa to identify the specific job in the case of troubleshooting or exploration of actual resource usage.&nbsp; As you can seen our progression, the output of squeue for the users job start in a state (ST) of PD (Pending) and when we return after waiting 8 seconds, and check again, the job is no longer listed.&nbsp; this signals to us the job is no longer pending or running and has completed either is success or with an error.&nbsp; Note, if the example was a longer running job, we could see the job enter a state of R (Running).&nbsp; We conclude the example submission by checking the output using the <strong>cat </strong>command and see that we did infcat get some output printed to the <em>hello-7534810.out</em> file.</p>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>

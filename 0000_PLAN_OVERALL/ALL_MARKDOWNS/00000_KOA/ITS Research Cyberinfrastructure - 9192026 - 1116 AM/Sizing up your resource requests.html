@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+   <!-- Required meta tags -->
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/css/bootstrap.min.css">
+   <!-- Font Awesome CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/fontawesome-free-5.9.0-web/css/all.min.css">
+   <!-- Template CSS -->
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/styles.min.css">
+   <link rel="stylesheet" href="/shared/HTML-Template-Library/UH-System-Template/../_assets/css/SYS_custom.css">
+   <title>Basic Page</title>
+<script src="https://templates.lcs.brightspace.com/lib/assets/js/scripts.min.js" defer=""></script></head><body><div class="container-fluid">
+<div class="content-wrapper">
+<div class="row">
+<div class="col-12 banner-img">
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_banner.png" alt="banner"></p>
+</div>
+<div class="col-sm-10 offset-sm-1">
+<h3>How to Determine Your Resource Needs by Analyzing Past Jobs</h3>
+<p>One of the best ways to improve your future resource requests is to learn from your past jobs. By checking the actual resources a completed job used, you can make more accurate requests, which helps your jobs start sooner and frees up resources for the entire UH community.</p>
+<p>Koa provides several command-line tools to help you with this analysis.</p>
+<h3>Tools for Analyzing Your Job History</h3>
+<p></p>
+<p>Here’s a quick guide to the tools available on Koa, from the simplest to the most detailed. For all examples, replace <code>&lt;job_id&gt;</code> with the actual ID of a completed job.</p>
+<h3>Quick Comparison of Tools</h3>
+<p></p>
+<div>
+<div><response-element ng-version="0.0.0-PLACEHOLDER"><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----></response-element>
+<div _ngcontent-ng-c4250937403="">
+<div jslog="275421;track:impression,attention" not-end-of-paragraph="" _ngcontent-ng-c4250937403="">
+<table style="border-collapse: collapse; border-width: 2px; width: 104.756%;" border="1">
+<thead>
+<tr>
+<td style="border-width: 2px; width: 12.3145%;"><strong>Tool</strong></td>
+<td style="border-width: 2px; width: 48.9614%;"><strong>Best For...</strong></td>
+<td style="border-width: 2px; width: 24.4807%;"><strong>Output Format</strong></td>
+<td style="border-width: 2px; width: 14.2433%;"><strong>Complexity</strong></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="border-width: 2px; width: 12.3145%;"><strong><code>seff</code></strong></td>
+<td style="border-width: 2px; width: 48.9614%;">A quick, easy efficiency summary.</td>
+<td style="border-width: 2px; width: 24.4807%;">Simple Text</td>
+<td style="border-width: 2px; width: 14.2433%;"><strong>Low</strong></td>
+</tr>
+<tr>
+<td style="border-width: 2px; width: 12.3145%;"><strong><code>jobstats</code></strong></td>
+<td style="border-width: 2px; width: 48.9614%;">A detailed, visual analysis over time.</td>
+<td style="border-width: 2px; width: 24.4807%;">HTML Report &amp; Plots</td>
+<td style="border-width: 2px; width: 14.2433%;"><strong>Medium</strong></td>
+</tr>
+<tr>
+<td style="border-width: 2px; width: 12.3145%;"><strong><code>sacct</code></strong></td>
+<td style="border-width: 2px; width: 48.9614%;">Getting raw, comprehensive accounting data.</td>
+<td style="border-width: 2px; width: 24.4807%;">Detailed Text Table</td>
+<td style="border-width: 2px; width: 14.2433%;"><strong>High</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<h4 style="text-align: left;"></h4>
+<h4 style="text-align: left;">1. <code>seff</code> (Recommended Starting Point)</h4>
+<p></p>
+<p>This is the <strong>easiest and most useful</strong> tool for a quick review. It provides a simple, human-readable summary of your job's efficiency.</p>
+<ul>
+<li>
+<p><strong>Best For:</strong> Getting a quick, "at-a-glance" report on a completed job's performance.</p>
+</li>
+<li>
+<p><strong>How to Use:</strong></p>
+<pre class="d2l-code d2l-code-dark"><code class="language-bash">seff &lt;jobid&gt;</code></pre>
+<p></p>
+</li>
+<li>
+<p><strong></strong><strong>What to Look For:</strong> Pay close attention to the <strong>CPU Efficiency</strong> and <strong>Memory Efficiency</strong> percentages. These tell you if you requested the right amount of CPUs and RAM.</p>
+</li>
+</ul>
+<p></p>
+<h4 style="text-align: left;">2. <code>jobstats</code></h4>
+<p></p>
+<p>This tool provides a much more detailed, visual analysis of your job's performance over time.</p>
+<ul>
+<li>
+<p><strong>Best For:</strong> Troubleshooting an inefficient job. Use this when <code>seff</code> reports low efficiency and you need to understand <em>why</em>.</p>
+</li>
+<li>
+<p><strong>How to Use:<br></strong></p>
+<pre class="d2l-code-dark d2l-code"><code class="language-bash">jobstats &lt;jobid&gt;</code></pre>
+<p><strong></strong></p>
+</li>
+<li>
+<p><strong>Web Dashboard instructions</strong></p>
+<ul>
+<li>
+<p><strong><a href="https://go.hawaii.edu/Tym">https://go.hawaii.edu/Tym</a>&nbsp;</strong></p>
+<response-element ng-version="0.0.0-PLACEHOLDER"><!----><!----><!----><!----><!----><!----></response-element><strong></strong><strong></strong></li>
+</ul>
+</li>
+</ul>
+<h4 style="text-align: left;">3. <code>sacct</code></h4>
+<p></p>
+<p>This is a powerful, built-in Slurm command that provides a comprehensive and detailed accounting of all job information. Its output can be overwhelming, so it is best used when you need specific, raw data that <code>seff</code> doesn't provide.</p>
+<ul>
+<li>
+<p><strong>Best For:</strong> Advanced users who need very specific, detailed, and raw accounting data about a past job.</p>
+</li>
+<li>
+<p><strong>How to Use:</strong></p>
+<response-element ng-version="0.0.0-PLACEHOLDER"><!----><!----><!----><!----><!----><!----></response-element></li>
+</ul>
+<pre class="d2l-code d2l-code-dark"><code class="language-bash"># The "-l" flag provides a long, detailed output
+sacct -j &lt;jobid&gt; -l | less -S</code></pre>
+<p></p>
+<p></p>
+<h3>A Practical Guide to Requesting Resources</h3>
+<p>Requesting the right amount of resources for your job is a critical skill. It not only helps your own research but also benefits the entire UH community. Here’s a breakdown of the consequences of over-requesting and under-requesting for each major resource type.</p>
+<h4>At-a-Glance Summary: The Impact of Over-Requesting</h4>
+<div><response-element ng-version="0.0.0-PLACEHOLDER"><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----></response-element>
+<div _ngcontent-ng-c4250937403="">
+<div jslog="275421;track:impression,attention" not-end-of-paragraph="" _ngcontent-ng-c4250937403="">
+<table style="border-collapse: collapse; border-width: 2px; width: 100.065%;" border="1">
+<thead>
+<tr>
+<td style="border-width: 2px; width: 26.5046%;"><strong>If you request too much...</strong></td>
+<td style="border-width: 2px; width: 73.4301%;"><strong>The primary negative impact is...</strong></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="border-width: 2px; width: 26.5046%;"><strong>Time</strong></td>
+<td style="border-width: 2px; width: 73.4301%;">Your job may wait <strong>longer in the queue</strong> because it's harder to schedule.</td>
+</tr>
+<tr>
+<td style="border-width: 2px; width: 26.5046%;"><strong>CPU Cores</strong></td>
+<td style="border-width: 2px; width: 73.4301%;">Your job priority will be <strong>lowered for future jobs</strong>, making you wait longer next time.</td>
+</tr>
+<tr>
+<td style="border-width: 2px; width: 26.5046%;"><strong>CPU Memory</strong></td>
+<td style="border-width: 2px; width: 73.4301%;">Your job priority will be <strong>lowered for future jobs</strong>, making you wait longer next time.</td>
+</tr>
+<tr>
+<td style="border-width: 2px; width: 26.5046%;"><strong>GPUs</strong></td>
+<td style="border-width: 2px; width: 73.4301%;">Your job priority is lowered, and your job <strong>may be automatically canceled</strong> if GPUs are left unused.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!----></div>
+<response-element ng-version="0.0.0-PLACEHOLDER"><table-block _nghost-ng-c4250937403=""></table-block><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----></response-element></div>
+<h3>In-Depth Guide to Resource Requests</h3>
+<h4 style="text-align: left;">1. Requesting Time (<code>--time</code>)</h4>
+<ul>
+<li>
+<p><strong>Requesting Too Much:</strong> Your job will be harder for the scheduler to fit into available slots ("backfilling"). This means you will likely spend <strong>more time waiting in the queue</strong>, especially when the cluster is busy.</p>
+</li>
+<li>
+<p><strong>Requesting Too Little:</strong> This is critical. If your job exceeds the time you requested, it will be <strong>immediately canceled</strong> and all progress will be lost.</p>
+</li>
+<li>
+<p><strong>Best Practice:</strong> Analyze a past job with <code>seff</code> to see how long it took. For your next run, request that amount of time plus a reasonable buffer (e.g., 20%) to account for any variability.</p>
+</li>
+</ul>
+<h4 style="text-align: left;">2. Requesting CPU Cores (<code>--cpus-per-task</code>)</h4>
+<ul>
+<li>
+<p><strong>Requesting Too Much:</strong> Requesting more CPU cores than your application can use <strong>will not make it run faster</strong>. However, your job priority "account" is charged for every core you reserve. This lowers your priority for future jobs, increasing your wait times later.</p>
+</li>
+<li>
+<p><strong>Requesting Too Little:</strong> Your application may run slower than its full potential.</p>
+</li>
+<li>
+<p><strong>Best Practice:</strong> Match the number of CPUs to the number of threads or parallel processes your application is designed to use. Use <code>seff</code> to check your "CPU Efficiency" and adjust accordingly.</p>
+</li>
+</ul>
+<h4 style="text-align: left;">3. Requesting CPU Memory (<code>--mem</code>)</h4>
+<ul>
+<li>
+<p><strong>Requesting Too Much:</strong> Like with CPUs, this doesn't speed up your job but it does lower your priority for future jobs, as you are charged for all the memory you reserve.</p>
+</li>
+<li>
+<p><strong>Requesting Too Little:</strong> This is critical. If your job tries to use more memory than you requested, it will be <strong>immediately canceled</strong> with an "Out of Memory" (OOM) error.</p>
+</li>
+<li>
+<p><strong>Best Practice:</strong> Use <code>seff</code> on a completed job to see its peak "Memory Utilized." For your next run, request that amount plus a safe buffer (15-20%) to prevent unexpected crashes.</p>
+</li>
+</ul>
+<p></p>
+<h4 style="text-align: left;">4. Requesting GPUs (<code>--gres</code>)</h4>
+<ul>
+<li>
+<p><strong>Requesting Too Much:</strong> You will lower your priority for future jobs. More importantly, Koa's community partitions have a strict policy: if your job requests multiple GPUs but leaves any of them completely idle for a period of time, it will be <strong>automatically canceled</strong> after you receive a series of warning emails.</p>
+</li>
+<li>
+<p><strong>Requesting Too Little:</strong> Your application will not be able to use the GPUs it needs.</p>
+</li>
+<li>
+<p><strong>Best Practice:</strong> Only request the exact number of GPUs your application is written to use. If your code is not GPU-enabled, do not request any GPUs.</p>
+</li>
+</ul>
+</div>
+<div class="col-12"><footer>
+<p><img src="/shared/HTML-Template-Library/UH-System-Template/../_assets/img/SYS_seal.png" alt="UH campus seal" title="UH campus seal" data-d2l-editor-default-img-style="true" style="max-width: 100%;" width="100" height="100"></p>
+<p>© 2024 University of Hawaiʻi</p>
+</footer></div>
+</div>
+</div>
+</div>
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/jquery/jquery-3.3.1.slim.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/popper-js/popper.min.js"></script>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/thirdpartylib/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+</p>
+<!-- Template JavaScript -->
+<p>
+<script src="/shared/HTML-Template-Library/UH-System-Template/../_assets/js/scripts.min.js"></script>
+</p></body></html>
