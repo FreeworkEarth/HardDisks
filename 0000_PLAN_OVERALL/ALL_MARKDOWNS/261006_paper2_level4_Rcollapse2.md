@@ -174,4 +174,92 @@ no-recollision assumption predicts, once the divider outweighs a compartment of 
 
 ## 7. Results
 
-*Empty. To be filled only after the campaign completes and the three estimators run.*
+Campaign `level4_Rcollapse2_20261006`, 00:06:30 - 12:06:11, **240/240 runs, 0 aborts, 0 health
+events**, 652 MB reduced. (The machine slept 01:06-09:27 with the lid closed; compute throughput
+was ~2650 M steps/h throughout, matching pass 1.)
+
+**Parameter audit, read from the recorded values and not inferred.** All three cells:
+`wall_thickness_sigma = 1`, `--l0=78.0`, 200 particles as `100;100`, `radius 0.5`,
+`dt_sigma = 0.0166666669`, and per cell `M_d`/`steps_after_release`/`--trace-every`/seed range
+exactly 25/12 800 000/580/9400-9479, 50/28 300 000/590/9200-9279, 100/61 500 000/690/9200-9279.
+**Every value matches section 5. No mixed values within any cell.** (The summary's
+`eta_nominal = 0.100692` measures from the wall *position* and ignores the divider; the physical
+eta from the recorded thickness is 0.10134170, as section 2.)
+
+### 7.1 Measurements
+
+| M | R | L/tau | cal slope | modelled | block | S(0) | spread | tau_T | g = tau/M | **f = tau/tau_GP** |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 25 | 4 | **75** | 0.760 | 2821 ± 85 | 2948 | 2864 | 1.04x | **2821 ± 85** | 112.8 ± 3.4 | **1.120 ± 0.034** |
+| 50 | 2 | **67** | 0.729 | 7049 ± 315 | 7271 | 8383 | 1.19x | **7049 ± 315** | 141.0 ± 6.3 | **1.400 ± 0.063** |
+| 100 | 1 | **67** | 0.702 | 15 263 ± 589 | 17 490 | 18 636 | 1.22x | **15 263 ± 589** | 152.6 ± 5.9 | **1.516 ± 0.058** |
+
+**Both sampling gates pass this time**, which was the whole point of pass 2: L/tau = 75, 67, 67
+against the required 60, and calibration slopes 0.760, 0.729, 0.702 against 0.6, with no clamping.
+
+### 7.2 The pre-registered test, applied exactly as written
+
+| R | M | f measured | A: f(R) | sigma (registered) | sigma (my propagation) | B: f_lad(M)/2 | sigma |
+|---|---|---|---|---|---|---|---|
+| 4 | 25 | **1.120 ± 0.034** | 0.98 ± 0.05 | **2.3** | 2.8 | 0.59 ± 0.02 | **13.4** |
+| 2 | 50 | **1.400 ± 0.063** | 1.18 ± 0.06 | **2.5** | 2.8 | 0.76 ± 0.02 | **9.7** |
+| 1 | 100 | **1.516 ± 0.058** | 1.52 ± 0.04 | **0.1** | 0.1 | 1.22 ± 0.09 | **2.8** |
+
+Section 4 promised both readings of the prediction error if they ever disagreed. **They do not
+disagree on the verdict**: my propagated errors are *tighter* than the registered ones, so they make
+A worse (2.8, 2.8, 0.1), not better.
+
+> ## VERDICT: **NOT RESOLVED**
+>
+> A requires "within 2 sigma at all three". It is 2.3 and 2.5 sigma out at R = 4 and R = 2.
+> **A is not selected.** B requires the same and is 13.4 and 9.7 sigma out. **B is not selected
+> either, and is excluded outright.**
+
+**The rule is not ambiguous and has not been rewritten.** What it does not capture is how unequal
+the two failures are: chi² over the three points is **11.8 for A (chi²_red 3.9) against 282 for B
+(chi²_red 94)** — **A is better by a factor 24** and B is dead. The honest sentence is
+*"B is excluded; A's specific ladder-derived values are excluded at 2.3-2.5 sigma at two of three
+points, and agree to 0.1 sigma at the third."*
+
+### 7.3 What pass 2 did settle
+
+**(a) The record-length worry is over, and it was never the explanation.** The nested diagnostic
+reuses pass 1's seeds and cadence, so truncating pass 2 back to pass 1's length isolates record
+length with **zero seed noise**:
+
+| M | pass 1 record | pass 1 tau | pass 2 truncated to it | pass 2 full | full/short |
+|---|---|---|---|---|---|
+| 50 | 329 426 | 7253 | 7403 ± 273 | 7049 ± 315 | **0.952x** |
+| 100 | 803 838 | 15 773 | 15 837 ± 868 | 15 263 ± 589 | **0.964x** |
+
+**Lengthening the record by 1.4x and 1.3x moved tau by only -4.8 % and -3.6 %.** Pass 1's L/tau = 45
+and 51 were a real protocol violation but a small numerical one, and pass 1's central values stand:
+pass 1 -> pass 2 moved f by -2.8 % (0.3 sigma) at R = 2 and -3.4 % (0.5 sigma) at R = 1.
+
+**(b) The residual is not an interpolation artefact.** A at R = 4 and R = 2 is *interpolated* from
+the ladder while A at R = 1 is a *measured* ladder node — and the agreement is perfect exactly where
+A is measured. That invites the explanation "the interpolation is wrong", and it is checkable:
+refitting the five ladder points with a smooth quadratic in ln f vs ln R (convex, curvature
++0.131) instead of piecewise chords gives
+
+| R | measured | piecewise (registered A) | smooth quadratic | measured/smooth |
+|---|---|---|---|---|
+| 4 | 1.120 | 0.980 | 0.970 | **1.155** |
+| 2 | 1.400 | 1.180 | 1.145 | **1.223** |
+| 1 | 1.516 | 1.520 | 1.533 | **0.989** |
+
+**The smooth curve is slightly *lower*, so it makes A marginally worse, not better.** The residual
+is real: **the N_s = 100 box sits 15-22 % above the N_s = 50 ladder's f(R) at R = 4 and R = 2, and
+on top of it at R = 1.**
+
+### 7.4 What closes it, and it is cheap
+
+The residual sits exactly where f(R) must be *interpolated* from the ladder, and nowhere else. That
+is either a genuine box-size dependence at fixed R, or structure in the ladder's own f(R) between
+its nodes (R = 5, 2.5, 1, 0.5, 0.25) that no interpolation can know about. **The two are separated
+by measuring the ladder at the missing R directly** — N_s = 50 with M_d = 12.5 (R = 4) and
+M_d = 25 (R = 2) — after which both boxes have measured points at R = 4, 2 and 1 and **no
+interpolation enters the comparison at all**.
+
+Cost at 65 tau: M = 12.5 needs ~2.5 M steps/seed, M = 25 ~5.7 M; 80 seeds each is **652 M steps,
+~2.9 core-hours**. **Not launched** — no new campaign without a go.
