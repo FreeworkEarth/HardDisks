@@ -473,3 +473,120 @@ written, with its provenance.
 `261008_p2_level4b_transmission.{png,pdf}` — (a) f_first against x with T(x), the first-written
 ansatz dashed, and the naive ΔE₂/W_in in red as the trap; (b) the W_in(u) ledger against both
 equations of state.
+
+---
+
+## 2b. Power-up on one binary — and Level 4b is closed
+
+2026-10-10. `level4b_powerup_20261010`, binary **05215ea** (v1 + `-ffp-contract=off` + `--version`),
+**the whole 12-cell grid rerun on this one binary**: the six fit cells (u = 0.2, 0.5) at **80 seeds**,
+the six non-fit cells at 8. 0 aborts, 0 health events. Every number below was printed by
+`paper2_level4b_powerup_20261010.py`. **The 8-seed first pass of section 2 was made on the
+contraction-on binary; it is quoted beside these numbers as "first pass, under-powered" and enters
+no fit and no figure here** (rebaseline rule, `05215ea`). This section is written once.
+
+### 2b.1 Validation
+
+**(a) Ledger.** max |W_in − (ΔKE_1 + ΔKE_2 + KE_div)| over every sample, every seed, all 12 cells =
+**9.56 × 10⁻⁷ kT**.
+
+**(c) First kick at M = 200, seed-mean velocity, 80 seeds at u = 0.2 and 0.5:**
+
+| u | measured ΔV | 2Zd/M (KR) −0.0875 | ideal −0.0707 |
+|---|---|---|---|
+| 0.05 | −0.0565 ± 0.0123 | 2.5σ | 1.2σ |
+| **0.2** | **−0.0766 ± 0.0045** | **2.4σ** | **1.3σ** |
+| **0.5** | **−0.0911 ± 0.0039** | **0.9σ** | **5.2σ** |
+| 1.0 | −0.1486 ± 0.0158 | 3.9σ | 4.9σ |
+
+**Two things this table says that the 8-seed pass could not.** First, **the kick is not
+u-independent**: it grows monotonically 0.057 → 0.077 → 0.091 → 0.149 across the four speeds,
+whereas the heavy-limit argument (pulse momentum Zd, independent of u) predicts one number. The
+first encounter does not deliver the whole pulse momentum, and the fraction it delivers rises with
+u. Second, the KR-vs-ideal reading **depends on the cell**: at u = 0.2 the measurement sits closer
+to the ideal value (1.3σ vs 2.4σ); at u = 0.5 it sits on KR and excludes ideal at 5.2σ. The first
+kick is therefore **not** a clean discriminator, and the 8-seed "0.3σ from KR" of section 2.1 is
+withdrawn as a KR confirmation — it was within its error of both.
+
+**Abort gate** (|ΔV| > 0.04): passes at every cell.
+
+### 2b.2 The work ledger and the EOS line
+
+| M_d | W_in(0.05) | W_in(0.2) | W_in(0.5) | intercept (3 pt) | intercept (2 pt) |
+|---|---|---|---|---|---|
+| 10 | 7.161 ± 0.069 | 8.432 ± 0.180 | 11.999 ± 0.381 | 6.636 ± 0.087 | 6.738 |
+| 50 | 7.092 ± 0.159 | 8.573 ± 0.165 | 11.999 ± 0.381 | 6.509 ± 0.172 | 6.598 |
+| 200 | 7.535 ± 0.127 | 8.495 ± 0.163 | 11.999 ± 0.381 | 6.970 ± 0.144 | **7.215** |
+
+Same conclusion as section 2.2: the three-point line is bent by u = 0.5 and its intercept is not
+an EOS test; a usable intercept needs u = 0.01–0.02, which the efficiency map's grid has.
+
+> **THE (200, 0.05) EOS LINE, one-sided.** W_in(200, 0.05) = **7.535 ± 0.127** on 8 seeds.
+> It is **+6.6 %** above the Kolafa–Rottner isentrope (7.0715). The ideal isentrope (5.5556) plus
+> the largest linear excess it could carry (Z_id u d = 0.354) reaches at most **5.909**, and the
+> measurement exceeds that ceiling by **1.626 = 12.8σ**. **The ideal isentrope is excluded
+> one-sided; the compression work follows Kolafa–Rottner, with a 6.6 % excess** that is the
+> dissipation at u = 0.05 plus the divider's response during a 77.5-sigma push (it moved: this cell's
+> first kick is 0.057). The contraction-on binary's 8 seeds gave 7.172 ± 0.126 for the same cell;
+> the two are 2.0σ apart and are not combined.
+
+### 2b.3 f_first against T(x): MODEL TEST FAILED — now with a constrained fit
+
+| M | u | x | T(x) | **f_first (80 seeds)** | first pass (8, contraction-on) | ⟨denominator⟩ / E_pulse |
+|---|---|---|---|---|---|---|
+| 10 | 0.2 | 0.114 | 0.886 | **−0.244 ± 0.445** | −0.211 ± 0.861 | 0.92 ± 0.16 / 1.75 |
+| 10 | 0.5 | 0.286 | 0.723 | **+0.239 ± 0.083** | +0.171 ± 0.287 | 4.33 ± 0.38 / 4.37 |
+| 50 | 0.2 | 0.572 | 0.528 | **+0.034 ± 0.103** | −1.125 ± 1.530 | 1.38 ± 0.15 / 1.75 |
+| 50 | 0.5 | 1.429 | 0.281 | **+0.072 ± 0.037** | +0.076 ± 0.049 | 4.43 ± 0.35 / 4.37 |
+| 200 | 0.2 | 2.287 | 0.190 | **+0.050 ± 0.029** | −0.010 ± 0.122 | 1.76 ± 0.16 / 1.75 |
+| 200 | 0.5 | 5.717 | 0.083 | **+0.043 ± 0.011** | +0.046 ± 0.022 | 5.14 ± 0.37 / 4.37 |
+| *10* | *1.0* | *0.572* | *0.528* | *+0.187 ± 0.143 (8)* | *+0.248 ± 0.063* | *plotted only* |
+| *50* | *1.0* | *2.858* | *0.156* | *+0.125 ± 0.047 (8)* | *+0.071 ± 0.043* | *plotted only* |
+| *200* | *1.0* | *11.43* | *0.043* | *+0.022 ± 0.015 (8)* | *+0.049 ± 0.008* | *plotted only* |
+
+**The power-up did what section 1.4 said it would: the denominators are resolved.** At u = 0.2 they
+are now 0.92 ± 0.16, 1.38 ± 0.15 and 1.76 ± 0.16 against E_pulse = 1.75 — the (50, 0.2) and
+(200, 0.2) excess ledgers close on the launched pulse energy, and (10, 0.2) is 5σ from zero. The
+fit is therefore constrained this time:
+
+> **Six-cell pre-registered fit, Z free: Z = 0.447 ± 0.110 against 2.2572 — a factor 5.0 too small.
+> χ²_red = 1.93 (passes). Z within 25 %: FAIL. Limits: (10, 0.2) = −0.244 vs > 0.6, FAIL;
+> (200, 1.0) = +0.022 vs < 0.1, PASS.**
+>
+> ## MODEL TEST FAILED, and this time it means something.
+
+**What the failure says.** The *shape* of f_first(x) is compatible with the spectral average
+(χ²_red 1.93 with one free parameter), but the *scale* is not: **the measured first-pass share of the
+excess is a factor 3–5 below T(x) across the grid** — 0.050 vs 0.190 at (200, 0.2), 0.072 vs 0.281 at
+(50, 0.5), 0.239 vs 0.723 at (10, 0.5). Section 1D pre-registered the direction of this as an
+INFERENCE ("below T(x) by the fraction of the excess already thermalised in gas 1 before the pulse
+reaches the divider"); the magnitude is now measured and it is large. A fitted Z of 0.45 is not a
+gas impedance anyone would recognise, so the honest statement is not "Z is 0.45" but **"the
+mass-on-a-string transmission, with Z = N m c_s/L_c, over-predicts the first-pass excess transfer by
+a factor 3–5; the x-dependence it predicts is not contradicted."** The (10, 0.2) cell, where T(x)
+predicts 0.89, measures −0.24 ± 0.45 — consistent with zero and with 0.5, and inconsistent with 0.89
+at 2.5σ.
+
+**No further amendment, no further run. Level 4b is closed** with: the ledger identity holding to
+10⁻⁶ kT per seed on both binaries; the ideal isentrope excluded one-sided at 12.8σ in the
+(200, 0.05) cell; the first kick measured to be u-dependent and not a KR/ideal discriminator; and
+T(x) failing on scale while surviving on shape.
+
+### 2b.4 D(u, M_d) on this binary
+
+| M_d | u = 0.05 | 0.2 | 0.5 | 1.0 |
+|---|---|---|---|---|
+| 10 | −0.037 ± 0.263 | −0.073 ± 0.080 | −0.133 ± 0.051 | −0.111 ± 0.107 |
+| 50 | +0.311 ± 0.402 | +0.144 ± 0.081 | +0.065 ± 0.057 | +0.319 ± 0.127 |
+| 200 | +0.057 ± 0.171 | +0.133 ± 0.061 | +0.112 ± 0.042 | **+0.225 ± 0.107** |
+
+D(200, 1.0) on this binary, **8 seeds: +0.225 ± 0.107**, against the contraction-on 32-seed cell's
+0.224 ± 0.049 — the same number; the two are not combined. (The script's label "32-seed cell" on
+this line is a leftover string from the 2026-10-09 run; the seed count printed beside it, 8, is
+the true one.) B3 (section 3B of `261007`) is the 80-seed test of what D(200, 1.0) does on tau_T.
+
+### 2b.5 Figure
+
+`261010_p2_level4b_transmission.{png,pdf}` — this binary only. The 2026-10-09 figure stays as the
+first-pass record and is not overplotted.
+
