@@ -358,6 +358,46 @@ equilibrates — at 3.1 sigma, on eight seeds** (see the corrected bound in sect
 kind — reversible or violently irreversible — creates a temperature difference to watch decay*,
 which is why the fluctuation route is the only route.
 
+### 4.4b WITHDRAWAL, 2026-10-10 — two statements of section 4.4 are retracted
+
+**Withdrawn:** *"the free divider shares the dissipated work between the compartments"* and *"no
+push protocol of this kind creates a temperature difference to watch decay"*. Both rested on
+B2pilot's eight seeds averaged over t > 10 tau_r. The 32-seed cell `M200_u100` of Level 4b, same
+geometry, measured **D(200, 1.0) = 0.224 ± 0.049 at ~3 tau_r** — 4.5 sigma from zero, 65 % of full
+retention (0.347). **Most of the dissipated heat stays in gas 1.** B2pilot's near-zero value is
+explained, not contradicted: its window, t > 10 tau_r = 21 000, is **0.5 tau_T at M = 200**
+(tau_T = 40 079 from the ladder), so the thermal stage had already removed part of it. Propagating
+the 32-seed value into B2pilot's window with a single exponential on tau_T predicts **0.057**,
+against the measured **0.021 ± 0.099 — 0.4 sigma**. The two cells agree.
+
+The corrected statement: **at Mach 0.57 the push leaves T_1 − T_2 ≈ 0.09 in the hot gas, four times
+B1long's noise floor, and it decays on tau_T.** That is the thermal demonstration this section said
+did not exist — and an out-of-equilibrium cross-check of Level 4a, whose tau_T came entirely from
+equilibrium fluctuations. It is tested directly in section 3B.
+
+### 3B PRE-REGISTRATION — B3, the out-of-equilibrium tau_T test
+
+*Written 2026-10-10 before any B3 record existed; the run script refuses to start until this text
+is committed (marker file created only after the commit).*
+
+**Cell:** u = 1.0, M_d = 200, ladder box (N_s = 50, L_c = 38.75, d = 3.875), **80 seeds**, record
+**3 tau_T = 7 250 000 steps = 120 833 sigma**, `--trace-every=600` (dt = 10) — identical to B1long
+except u. Binary **05215ea** (v1 + `-ffp-contract=off`); the compression is the recorded travel
+and starts at 0.25/u = 0.25 sigma-time after release.
+
+**Prediction:** D(t) = (T_1 − T_2) N k / W_in follows **D(t) = D_0 exp(−t/tau_T)** with
+**tau_T = 40 079 ± 1708** (the ladder's M = 200 value and its error), D_0 free. The divider mode
+(period 186 in the compressed box, section 4.9) is removed by a running mean over one period before
+fitting. Fit window: from the end of the mechanical stage (t > 3 tau_r ≈ 6 300, where the 32-seed
+cell measured D = 0.224) to the end of the record.
+
+**Verdict rule:** fitted tau_T within **2 sigma** (combined fit error and the ladder's ±1708) of
+40 079 → the equilibrium tau_T is confirmed out of equilibrium. Outside 2 sigma → report the
+number; a value near 10 070 (Gruber–Piasecki) would be its own result. D_0 is reported against
+0.224 ± 0.049 as a consistency line, not a gate.
+
+**Not mixed:** B2pilot (8 seeds, contraction-on binary) is not combined with B3 in any fit or figure.
+
 ### 4.5 (iv) The W_in ledger verdict — and my own pre-registration was wrong about it
 
 > **W_in(u = 0.2) = 8.4403 ± 0.1840 kT.** Kolafa–Rottner isentropic 7.0715: **+19.4 %**.

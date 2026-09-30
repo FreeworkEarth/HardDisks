@@ -114,6 +114,27 @@ at t = 0**, and `piston_stop_t_rel` exceeds d/u by that amount.
 
 ---
 
+### 1.7 Added 2026-10-10: binary, the v1 gap rule, and the pre-registered Level 3 reproduction
+
+**Binary.** Piston v2 was not adopted (branch RED, `05215ea`). The map runs on **v1 +
+`-ffp-contract=off` + `--version`**, and every summary CSV carries `build_git / build_target /
+build_cflags`. The **0.25-sigma piston gap therefore stays**: the piston parks at XW2 + 0.25 and
+does zero work until t = 0.25/u; the compression equals the recorded travel d = 7.96 exactly
+(verified on Level 3's own geometry: `XW2 − piston_target = 7.9600`, PistonWork = 0 for
+t < 0.25/u). So, as established: **tau_push = piston_stop_t_rel − 0.25/u**, the compression start is
+read from the first nonzero PistonWork per seed, and d from `piston_target_sigma`. No number in
+sections 1.1–1.6 changes.
+
+**Pre-registered consistency line.** The cell **(k = 0.5, u = 0.05, M_s = 200)** is Level 3's
+geometry C cell (`level3_v6_20260924/k0.5_M200_u0.05`, same L0 = 54.75, spring_eq 33.65 = 33.6498,
+travel 7.96). Its settled displacement ratio must reproduce Level 3's closing number
+**s̄ = 0.8705 ± 0.0049 within 2 sigma**, computed with Level 3's own estimator on the new run.
+Pass → the map is on the same footing as Level 3. Fail → the map does not proceed to a figure
+until the discrepancy is understood; it is reported, not absorbed.
+
+**Never mixed:** Level 3's data (contraction-on binary) and the map (contraction-off) do not appear
+in one figure; the reproduction line is a comparison of two numbers, each with its own error.
+
 ## 2. Results
 
 *Empty. Not launched. Chris and the plan author read section 1 first.*
