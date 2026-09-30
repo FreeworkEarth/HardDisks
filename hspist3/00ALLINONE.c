@@ -639,6 +639,18 @@ static size_t cli_temperature_segments_count = 0;
 static float cli_output_dt = 1.0f;
 // ##CHRIS 2026-09-30: energy-transfer trace decimation, in STEPS (not sigma-time, so it is exact
 // and seed-independent). <=1 keeps the historical one-row-per-step behaviour byte-for-byte.
+/* ##CHRIS 2026-10-10: build provenance, injected by the Makefile (see PROVENANCE there). Defaults
+   keep a hand-compiled build honest rather than silently claiming a hash it does not have. */
+#ifndef BUILD_GIT
+#define BUILD_GIT "unknown"
+#endif
+#ifndef BUILD_TARGET
+#define BUILD_TARGET "unknown"
+#endif
+#ifndef BUILD_CFLAGS
+#define BUILD_CFLAGS "unknown"
+#endif
+
 static int cli_trace_every = 1;
 // Override collision substepping at runtime (<=0 => use compile-time SUBSTEPS).
 static int cli_substeps_override = -1;
@@ -3489,6 +3501,10 @@ static void parse_cli_options(int argc, char **argv) {
     for (int i = 1; i < argc; ++i) {
         const char *arg = argv[i];
 
+        if (strcmp(arg, "--version") == 0) {
+            printf("00ALLINONE  git %s  target %s\n  CFLAGS: %s\n", BUILD_GIT, BUILD_TARGET, BUILD_CFLAGS);
+            exit(0);
+        }
         if (strcmp(arg, "--help") == 0) {
             print_cli_usage(argv[0]);
             exit(EXIT_SUCCESS);
@@ -17248,7 +17264,8 @@ static void run_energy_transfer_experiment(void) {
 		                "piston_right_v0,piston_right_v_gradient,piston_right_vmax,piston_right_duration,piston_right_sigmoid_steepness,"
 		                "W_in_max,W_out_max,ratio,loss_fraction,total_loss,"
 		                "springE_stop,springE_peak_win,W_out_peak_win,ratio_win,eff_window_T,piston_stop_t_rel,"
-		                "trace_path,spring_peak_t_rel,spring_peak_dt,spring_peak_near_end,command,seed\n";
+		                "trace_path,spring_peak_t_rel,spring_peak_dt,spring_peak_near_end,command,seed,"
+		                "build_git,build_target,build_cflags\n";   /* ##CHRIS build provenance */
 
         ensure_csv_header_schema(summary_path, header);
         const bool need_header = (access(summary_path, F_OK) != 0);
@@ -17437,7 +17454,7 @@ static void run_energy_transfer_experiment(void) {
 		                    trace_path);
 		            fprintf(sf, "%.9g,%.9g,%d,", spring_peak_t_rel, spring_peak_dt, spring_peak_near_end);
 		            csv_put_escaped(sf, cli_command_line ? cli_command_line : "");
-		            fprintf(sf, ",%u\n", cli_seed);
+		            fprintf(sf, ",%u,%s,%s,\"%s\"\n", cli_seed, BUILD_GIT, BUILD_TARGET, BUILD_CFLAGS);
 	            const int summary_write_failed = ferror(sf);
 	            const int summary_close_failed = (fclose(sf) != 0);
                 if (summary_write_failed || summary_close_failed) {

@@ -79,3 +79,6 @@ hspist3/_orchestration_tests_20260913/binaries/
 
 # local commit/push helper scripts, never committed
 _commit_scripts/
+
+# build artefact; provenance travels in every summary CSV via --version (build_git/build_target/build_cflags)
+hspist3/00ALLINONE
