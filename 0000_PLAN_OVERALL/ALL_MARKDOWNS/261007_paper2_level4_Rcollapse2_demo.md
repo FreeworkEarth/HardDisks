@@ -624,6 +624,39 @@ cannot be tested from a 2-sigma swing — the frequency route in (a) already tes
 mode energy that tau_r later turns into heat. Section 4.5's 19.4 % is the push figure and stands;
 **27.7 % is the total irreversibility of the whole protocol.**
 
+### 4.10 B3 — the out-of-equilibrium tau_T test (section 3B), result
+
+`level4_B3_20261010`, binary **05215ea**, u = 1.0, M_d = 200, **80/80 seeds, 0 health, 0 aborts**,
+record 120 830 sigma at dt = 10. Per-seed ledger max |residual| **9.7 × 10⁻⁷ kT**.
+W_in = 21.957 ± 0.777 (B2pilot's 20.67 ± 2.94 on the other binary is consistent and not combined).
+Fit exactly as pre-registered: D(t) = D_0 exp(−t/tau_T), mode removed by a 19-sample (190 sigma)
+running mean, window t ∈ [6270, 120 640], jackknife errors over seeds.
+
+| quantity | fitted | reference | sigma |
+|---|---|---|---|
+| **tau_T** | **29 626 ± 12 246** | 40 079 ± 1708 (ladder, M = 200) | **0.85** |
+| tau_T vs Gruber–Piasecki | | 10 070 | 1.6 |
+| D_0 | 0.341 ± 0.098 | 0.224 ± 0.049 (32-seed cell at ~3 tau_r) | 1.1 (consistency line) |
+
+| t | 6300 | 10 000 | 20 000 | 40 000 | 80 000 | 120 000 |
+|---|---|---|---|---|---|---|
+| D(t) | +0.230 ± 0.053 | +0.258 ± 0.069 | +0.165 ± 0.062 | +0.133 ± 0.062 | +0.074 ± 0.075 | +0.007 ± 0.056 |
+
+> **VERDICT by the rule of section 3B: CONFIRMED — the fitted tau_T is 0.85 sigma from the
+> equilibrium ladder's 40 079.** The temperature difference the push leaves in the hot gas decays,
+> and it decays on the timescale the equilibrium fluctuations gave.
+
+**Stated as plainly as the pass: this is a consistency check, not a discriminating one.** The
+fitted error is ±12 246 — 41 % — because each D(t) sample carries a seed noise of ~0.06 on a signal
+of ~0.2, and the decay is followed over only three e-folds. Gruber–Piasecki's 10 070 is excluded at
+just 1.6 sigma. The test confirms that the out-of-equilibrium decay is compatible with the
+equilibrium tau_T and incompatible with nothing else at 2 sigma. Sharpening it to a discriminator
+needs a larger D_0 (a stronger push) or of order 4× the seeds; neither is queued.
+
+**What is established without qualification:** the withdrawal of section 4.4b stands on 80 seeds
+now, not eight. A Mach-0.57 push leaves D ≈ 0.23–0.26 in the hot gas at 3 tau_r, four times
+B1long's noise floor, and it is gone by 3 tau_T. The thermal stage exists and was watched.
+
 ### 4.6 Not done
 
 The two geometry pictures still need a GUI session (section 3.5). Not produced.
