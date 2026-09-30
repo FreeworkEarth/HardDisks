@@ -607,7 +607,7 @@ Geometry B, $L_0 = 20$, $N_s = 50$ each side, $\eta = 0.196$, held wall at $L_0$
 $\mathcal T_{\mathrm{slow}} \to 0.5$ within $2\sigma$ for every $M$ (a ledger-level check). $\tau_{\mathrm{heat}}(M)$ from the exponential approach; report its exponent in $M$ (expected $+1$). $\mathcal T_{\mathrm{fast}}(M)$: compare with \eqref{eq:twobody}; the pass is not agreement but a \emph{measured} curve with error bars and the location of its maximum in $\alpha = M/N_s$.
 \end{pass}
 \begin{res}
-\textbf{Level 4: the slow channel is already measured; the fast channel is not started.}
+\textbf{Level 4, status 2026-10-10: measured --- see \S\ref{sec:l4measured} for the three invariants, the $f(R)$ table, the demonstration run, Level~4b and B3.} (The paragraph below is the 2026-09 status and is kept as written.)
 From Paper~1, with the $KE_L, KE_R$ columns: the slow divider mode is stationary (its variance is the same in both halves of a 1000-period record, ratio $0.72$--$1.25$), survives a $100\times$ longer hold, and has correlation time $53$--$102$ acoustic periods at $M = 100$--$1000$. Its amplitude is the \emph{isothermal} equipartition value $\avg{x^2} = L^2/(2N_s[Z+\eta Z'])$ to 4\,\% for light dividers, while the adiabatic form overshoots by 37--62\,\%. It follows $T_L - T_R$ directly: correlation $+0.978$ ($M = 100$) and $+0.910$ ($M = 1000$) with the slow part of the compartment-temperature difference, positive sign (a hotter left compartment pushes the divider to $+x$), lag $\le 0.25$ periods at $M = 100$, and the pressure balance $x = (L_0/2)(\Delta T/T)\,Z/(Z+\eta Z')$ reproduces the amplitude to 6--7\,\%. Across the A2 size ladder its amplitude falls as $N^{-0.39}$ to $N^{-0.54}$ in units of the box, \ie it is a finite-size fluctuation that vanishes as $N\to\infty$. What is \emph{not} yet measured: $\tau_{\mathrm{heat}}(M)\propto M$ over a mass ladder, and the fast channel $\mathcal T_{\mathrm{fast}}$ --- both need the geometry-B runs of this level.
 \end{res}
 
@@ -936,6 +936,105 @@ hot wall and out at the cold wall are measured separately, their difference bein
 check; (iii) trace columns for each. That is a core change to the energy ledger. It is \textbf{not
 made}, and if it ever is, Level 0's bit-identity gate and the health contract must both be re-run
 against it.
+
+\subsection{Level 4 as measured (2026-10-10): three invariants, the demonstration run, Level~4b, B3}
+\label{sec:l4measured}
+
+\emph{One pass, written after Level~4b and B3 reported. Every number is quoted from the report that
+produced it (\texttt{261004}, \texttt{261006}, \texttt{261007}, \texttt{261008}); nothing is
+re-derived here. Binary: everything before commit \texttt{05215ea} was produced with compiler
+contraction on (``v1''); the Level~4b power-up and B3 were produced on \texttt{05215ea}
+(\texttt{-ffp-contract=off}). The two are never mixed in one fit or one figure.}
+
+\paragraph{Three quantities, three different invariants.} The equilibrium record of one free divider
+between two gases carries three timescales, and they collapse on three different variables:
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+quantity & collapses on & evidence \\
+\midrule
+$\tau_T$ (heat conduction) & $R = N_s m/M$, as $f = \tau_T/\tau_{\mathrm{GP}}$ & two boxes, $N_s = 50$ and $100$, \S\ref{sec:l4tau} and below \\
+mode period (Paper~1's divider mode) & $\alpha = M/(2N_s m) = 1/(2R)$ & seven points over $\alpha = 0.1$--$2.0$; departure from $\cot K = \alpha K$ is $+1.03 \pm 0.04\,\%$ ($N_s = 50$) vs $+1.06 \pm 0.02\,\%$ ($N_s = 100$) at the one shared $\alpha = 0.5$ \\
+$\tau_r$ (mode damping) & $L_c$ at fixed $M$ & $\tau_r/L_c = 15.11$ vs $15.61$ ($M = 50$), $28.01$ vs $26.98$ ($M = 100$) across the two boxes \\
+\bottomrule
+\end{tabular}
+\end{center}
+The period's departure from the eigenvalue equation grows monotonically from $+0.45\,\%$ at
+$\alpha = 0.1$ to $+1.34\,\%$ at $\alpha = 2.0$ --- a factor~3, so no single sound speed absorbs it
+--- and Paper~1's own measured $c_s$ ($+1.01\,\%$ on Kolafa--Rottner) leaves a residual of $-0.55$
+to $+0.33\,\%$: the fourth independent appearance of that $+1\,\%$. Mansour's piston linewidth is a
+\emph{limit}, not an error: the ratio Mansour/measured falls monotonically $2.04 \to 1.03$ as $M$
+goes $10 \to 200$ and is exact to $3\,\%$ in the heavy limit.
+
+\paragraph{$f(R)$ is not universal, at $2.3\sigma$.} Measured, no interpolation anywhere:
+\begin{center}\small
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+$R$ & 5 & 4 & 2.5 & 2 & 1 & 0.5 & 0.25 \\
+\midrule
+$f$, $N_s = 50$  & $0.943 \pm 0.040$ & $1.048 \pm 0.048$ & $1.081 \pm 0.057$ & $1.228 \pm 0.045$ & $1.523 \pm 0.038$ & $2.449 \pm 0.170$ & $3.980 \pm 0.170$ \\
+$f$, $N_s = 100$ & --- & $1.120 \pm 0.034$ & --- & $1.400 \pm 0.063$ & $1.516 \pm 0.058$ & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+Gruber--Piasecki ($f = 1$) is reproduced where the gas is the reservoir ($R = 5$, $-1.4\sigma$;
+$R = 2.5$, $+1.4\sigma$) and departs by a factor~4 once the divider outweighs a compartment. The
+larger box sits $7$--$14\,\%$ above the smaller at the same $R$, same sign at both, combined
+$+0.109 \pm 0.047 = 2.3\sigma$ on the calibration-Monte-Carlo error rule pass~2 used (adding half the
+estimator spread gives $1.2\sigma$; the whole difference is the $S(0)$ estimator, high in every
+cell). The second variable is \emph{degenerate} between $N_s$ and the separation
+$\tau_T/(L_c/c_s)$ at fixed $\eta$, because the divider mass scales with $N_s$ at fixed $R$; both
+boxes are converged at $R = 1$ (separations 173 and 345, $f = 1.523$ and $1.516$). \textbf{Future
+test, not queued:} $N_s = 25$ at $R = 1$ ($M_d = 25$, separation $\sim 87$), prediction $f < 1.52$
+under the separation hypothesis, about one core-hour.
+
+\paragraph{The demonstration run (piston on gas~1, $u = 0.2$, $M_d = 200$, 80 seeds).}
+(i)~confirmed: $\Delta KE_{\mathrm{right}} = 100.0\,\%$ of $W_{\mathrm{in}}$ at the end of the push,
+$\Delta KE_{\mathrm{left}} = -2.2 \pm 1.4\,\%$, the divider unmoved ($0.6\sigma$) --- the push ends at
+$20.65$ against a sound transit of $22.15$, so the far gas has not been told. (iii)~confirmed in
+sign and size: the divider settles at $-1.906 \pm 0.145$ against the predicted $-1.9375$
+($0.2\sigma$), \emph{away} from the hot side, half the piston travel, and does not return. (ii) is
+unobservable by construction: both gases keep their entropy, so mechanical equilibrium is at
+\emph{equal} temperature for any equation of state, and what is left is dissipation. The mode the
+push excites has period $186.2 \pm 1.4$ (zero crossings of the 80-seed mean); the ladder's
+$204.81$ at $\alpha = 2$, scaled for the compressed lengths, the new $\eta$ \emph{and} the
+isentropic heating $T_{\mathrm{ad}} = 1.066$, is $186.0$ ($0.2\sigma$) --- the push changes $L$,
+$\eta$ and $T$, and the mode follows all three with no free parameter. Two reference works belong
+in the ledger: $W_{\mathrm{qs}}(3.875) = 7.0715$ (divider held during the push, the right reference
+while $\tau_{\mathrm{push}} = 19.4 \ll 186$) and $2W_{\mathrm{qs}}(1.9375) = 6.6069$ (the reversible
+minimum for the final state); their difference $0.4646$ is the mode energy. Measured
+$W_{\mathrm{in}} = 8.440 \pm 0.184$: dissipation $19.4\,\%$ on the first reference, $27.7\,\%$ on the
+second.
+
+\paragraph{Level 4b (acoustic transmission), closed.} Validation: the per-seed ledger
+$W_{\mathrm{in}} = \Delta KE_1 + \Delta KE_2 + KE_{\mathrm{div}}$ closes to $10^{-6}\,kT$ at every
+sample on both binaries. The ideal isentrope is excluded one-sided at $12.8\sigma$ in the
+$(M_d, u) = (200, 0.05)$ cell ($W_{\mathrm{in}} = 7.535 \pm 0.127$ against a ceiling of $5.909$);
+the compression work follows Kolafa--Rottner at $+6.6\,\%$. The divider's first kick at $M = 200$ is
+\emph{not} $u$-independent ($0.057 \to 0.149$ across $u = 0.05$--$1.0$) and is not a KR/ideal
+discriminator. Model test: with the reversible first-order term $PhX$ subtracted exactly (the
+excess ledger, $X_i = \Delta KE_i - E_{\mathrm{qs},i}(L_i(t))$ from the recorded compartment
+lengths), the first-pass share of the excess against the spectral average
+$T(x) = 1 - x(1 - e^{-1/x})$, $x = M_d/(2Z\tau_{\mathrm{push}})$, gives $Z = 0.447 \pm 0.110$
+against $N m c_s/L_c = 2.2572$ ($\chi^2_{\mathrm{red}} = 1.93$): \textbf{the model fails on scale by a
+factor 3--5 and survives on shape}. (Mass-on-a-string transmission: standard result, citation
+unverified.) The naive $\Delta E_2/W_{\mathrm{in}}$ reads $0.3$--$0.9$ with no $x$-dependence at
+all --- the first-order term, which three earlier observables had measured by mistake.
+
+\paragraph{B3: the thermal stage watched.} A Mach-$0.57$ push ($u = 1.0$, $M_d = 200$, 80 seeds,
+$3\tau_T$) leaves $D = (T_1 - T_2)Nk/W_{\mathrm{in}} = 0.23 \pm 0.05$ in the hot gas at $3\tau_r$
+--- so ``the free divider shares the dissipated work'' and ``no push protocol creates a temperature
+difference to watch decay'' are both withdrawn --- and it decays: the pre-registered fit
+$D_0 e^{-t/\tau_T}$ gives $\tau_T = 29\,626 \pm 12\,246$ against the equilibrium ladder's
+$40\,079 \pm 1708$, $0.85\sigma$, \textbf{confirmed out of equilibrium}. Stated with the pass: the
+$41\,\%$ fit error excludes Gruber--Piasecki's $10\,070$ at only $1.6\sigma$, so this is a
+consistency check, not a discriminator. Figure \texttt{261010\_p2\_B3\_tauT}.
+
+\paragraph{What this level does and does not claim.} Claimed: the three invariants above; the
+demonstration run's (i) and (iii); the mode-period scaling after a push; the ledger and the
+one-sided ideal-gas exclusion; the withdrawal of the sharing statement. Not claimed: universality
+of $f(R)$ (open at $2.3\sigma$, with a named future test); the spectral-average transmission
+(failed on scale); a discriminating out-of-equilibrium $\tau_T$ (B3 is consistent, not sharp).
 
 \subsection{SUPERSEDED --- how long does the divider take? (written before the papers arrived)}
 \label{sec:l4tau-superseded}
