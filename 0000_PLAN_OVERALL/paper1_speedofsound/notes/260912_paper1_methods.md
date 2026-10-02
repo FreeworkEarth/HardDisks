@@ -352,3 +352,47 @@ binary reproducing an accepted A1 v2 trace; the unmodified source rebuilt; the n
 variable unset (all three byte-identical to the accepted trace); and the new source with the
 variable set, whose first 13 columns are byte-identical and whose stdout differs only in the
 output-folder line. The pre-change binary is kept alongside the new one.
+
+---
+
+## 13. Linewidth convention (fixed 2026-10-12; applies to every spectrum from now on)
+
+**Model.** The divider-position autocorrelation is fitted as
+
+$$C(t) = A\,e^{-t/\tau_T} + B\,e^{-t/\tau_r}\cos\omega_1 t ,$$
+
+where $\tau_r$ is the **amplitude** decay time of the mode. This is the quantity every table up to
+2026-10-12 reports, including 261006 §3.
+
+**Linewidth.** $\Gamma$ is the **energy**-decay rate of the mode:
+
+$$\Gamma \equiv \frac{2}{\tau_r}, \qquad E_1(t) \propto e^{-\Gamma t}, \qquad \sigma_\Gamma = \frac{2\,\sigma_{\tau_r}}{\tau_r^2}.$$
+
+It is twice the amplitude rate $1/\tau_r$. Near $\omega_1$ the Fourier transform of the oscillatory
+term is a Lorentzian,
+
+$$S(\omega) \simeq \frac{B}{2}\,\frac{\Gamma}{(\omega-\omega_1)^2 + (\Gamma/2)^2},$$
+
+so $\Gamma$ is also the **FWHM in angular frequency**. In ordinary frequency
+$\Delta f_{\rm FWHM} = \Gamma/2\pi = 1/(\pi\tau_r)$, and
+$Q = \omega_1/\Gamma = \pi\nu_1\tau_r = (\Delta f/f)^{-1}$. The $\Delta f/f$ of
+`paper1_linewidth_20260918.py` (FWHM of the seed-averaged position spectrum over $f$) and the
+"$\Delta f/f$ Mansour" column of 261006 §3 are therefore $\Gamma/\omega_1$. No conversion factor
+is needed.
+
+**Integrated peak power.** With $S(\omega) = \int C(t)\,e^{i\omega t}\,dt$ (two-sided), Parseval
+gives $C(0) = \int S\,d\omega/2\pi$. The two Lorentzians at $\pm\omega_1$ carry $B/2$ each, so
+
+$$P_1 \equiv \int_{\rm peak} S(\omega)\,\frac{d\omega}{2\pi} = B \quad [\sigma^2],$$
+
+which is the variance of the divider position carried by the mode. The primary estimator is $B$
+from the ACF fit. A periodogram check integrates the one-sided PSD over
+$|f-\nu_1| \le 5\,\Delta f_{\rm FWHM}$ and divides by the Lorentzian fraction
+$(2/\pi)\arctan 10 = 0.9365$. A periodogram FWHM includes the record-length resolution
+broadening of one bin ($1/T_{\rm rec}$), so its raw width is an upper bound on $\Gamma/2\pi$.
+
+**Not converted.** The "$\Gamma/f_0 = 0.023$ / 0.063" of § 6 (damping bias) came from a
+per-trajectory resonance fit whose script is no longer on disk. Its width convention cannot be
+read from code, so it is left as published and is not compared with any $\Gamma$ defined here.
+The slow-mode time $\tau_T$ keeps its ACF meaning; the factor 2 applies to the oscillatory line
+only.

@@ -1443,3 +1443,100 @@ Extrapolations (a + b/√N): η = 0.02 → c_∞ = 1.4614 ± 0.0102, −0.75 % v
 The mass scatter tracks the seed noise (ratio ≈ 1), so the error is statistical, not a mass-to-mass systematic. But the seed noise barely fell when the bin width shrank from 2.7 % to 2.0 %: at these dilute densities the per-seed frequency spread is physical (thermal driving of a light divider in a long box), not quantisation. Longer records therefore buy little here, unlike the dense cells where TEST A showed the resolution dominating. To halve these error bars needs ≈ 4× the seeds (≈ 23 h wall for both densities and all four sizes), not longer records.
 
 Figures: 260917_A2_cs_vs_N (ladder with the 50-period dilute cells), 260917_cs_vs_eta_lowdensity_zoom (three densities per size at N = 900 and 1600). The 37.5-period versions (260916_*) are kept for comparison.
+
+## Addendum 2026-10-12 15:16:57 HST: PRE-REGISTRATION 1b: linewidth decomposition of the divider mode (committed before the fit)
+
+**Data.** `hspist3/validation/261006_mode_ladder.json` holds seven cells in two boxes: A ($N_s=50$, $L_c=38.75$, $M=10,20,50,100,200$) and B ($N_s=100$, $L_c=77.5$, $M=50,100$). All of it is v1 binary, contraction on; no post-flag data enters. $\tau_r$ comes from the free five-parameter x-trace fit, with errors from a delete-8 block jackknife over 80 seeds. Convention: methods § 13.
+
+**Disclosure.** The $\tau_r$ values have been public since 261006 § 3. While sizing the terms I made a two-point hand estimate of the slope from box A, $M=10$ and $M=200$: about 1.8, with a negative intercept. That was before this text was written. This registration therefore fixes the model, the inputs and the decision rule before the fit is run. It is not blind to the data.
+
+**Model, as specified.**
+
+$$\Gamma_{\rm meas} \equiv \frac{2}{\tau_r} = \frac{\gamma_M}{M_{\rm eff}(\alpha)} + c\,\omega^2 + \Gamma_{\rm res}$$
+
+- $\gamma_M = 2L_y(\eta_s+\zeta)/X_p$ is Mansour's friction: Mansour, Garcia & Baras, PRE 73, 016121 (2006), Eq. 17, p. 5, with the linear velocity profile of Eq. 15, evaluated at the midpoint, and $X_p \to L_{\rm eff} = L_c - 1$. The same length enters $\nu = c_s K/2\pi L_{\rm eff}$.
+- $M_{\rm eff}(\alpha) = M + 2N_s m\,[\tfrac12 - \sin 2K/(4K)]/\sin^2 K$, with $\cot K = \alpha K$ and $\alpha = M/(2N_s m)$. As $K \to 0$ this is Mansour's $\hat M = M + mN/3$ (Eq. 18, p. 5).
+- **Enskog coefficients** $\eta_s, \zeta, \kappa, g_2$: Mansour Eqs. 8–11, p. 3, at $\eta = 0.10134170$, $T = 1$. Mansour cites them as ref. [20], Gass, J. Chem. Phys. 54, 1898 (1971). **The Gass paper is not in the repo, so no Gass page is cited.** The coefficients are Mansour's transcription, read from the PDF.
+
+**Prediction for $c$.** The classical 2D sound absorption [STANDARD RESULT, citation unverified] is
+
+$$\Gamma_{\rm ac} = k^2\Big[\frac{\eta_s+\zeta}{\rho} + \frac{(\gamma-1)\kappa}{\rho c_p}\Big], \qquad k = \omega/c_s \;\Rightarrow\; c_{\rm full} = \frac{1}{c_s^2}\Big[\frac{\eta_s+\zeta}{\rho} + \frac{(\gamma-1)\kappa}{\rho c_p}\Big].$$
+
+**Its viscous half is already inside $\gamma_M$.** The viscous dissipation of the standing wave $v(x) = v_p \sin kx/\sin K$ is $\gamma_M\,g(K)\,v_p^2$, with
+
+$$g(K) = \frac{K^2\,[\tfrac12 + \sin 2K/(4K)]}{\sin^2 K} = 1 + O(K^4).$$
+
+Mansour's linear profile is its $K \to 0$ limit. Equivalently, for a heavy divider, $K^2 \to 1/\alpha$ and $\omega^2 \to 2N_s m\,c_s^2/(M L^2)$, so
+
+$$\frac{\eta_s+\zeta}{\rho\,c_s^2}\,\omega^2 \;\to\; \frac{2L_y(\eta_s+\zeta)}{M L} = \frac{\gamma_M}{M}.$$
+
+Adding $c_{\rm full}\,\omega^2$ would count viscosity twice. **The primary prediction is therefore the thermal part,**
+
+$$c_{\rm th} = \frac{(\gamma-1)\,\kappa}{\rho\,c_p\,c_s^2},$$
+
+with $c_{\rm full}$ reported as secondary.
+
+**Expected direction, stated now.** $c_{\rm th}\,\omega^2$ is a free-wave estimate. In the heavy-divider cells the gas compresses almost uniformly, so temperature gradients are smaller by $O(K)$, and the thermal loss of the coupled mode should fall below $c_{\rm th}\,\omega^2$. $c_{\rm th}$ is therefore an upper estimate, and outcome 3 can occur for this reason alone. The exact linear thermoviscous eigenvalue problem (insulated outer walls, divider boundary condition) is not solved here.
+
+**Fit, run once.** Weighted least squares of $y_i = \Gamma_{{\rm meas},i} - \gamma_M/M_{{\rm eff},i}$ on $x_i = \omega_i^2$ (measured periods), with free $(c, \Gamma_{\rm res})$, weights $1/\sigma_\Gamma^2$, 7 cells, 5 dof. If $\chi^2_{\rm red} > 1$, $\sigma_c$ is scaled by $\sqrt{\chi^2_{\rm red}}$. If $p(\chi^2) < 0.01$ the model form is flagged as rejected, whatever the outcome.
+
+**Outcomes, with $\sigma$ the scaled $\sigma_c$:**
+
+1. $|c - c_{\rm th}| \le 2\sigma$ and $|c| > 2\sigma$: **$c$ consistent with Enskog.**
+2. $|c| \le 2\sigma$ and $|c - c_{\rm th}| > 2\sigma$: **$c = 0$ within errors.**
+3. Both $> 2\sigma$: **neither.** Report $\Gamma_{\rm res}$ against $L$ using the per-cell residual $r_i = \Gamma_{{\rm meas},i} - \gamma_M/M_{{\rm eff},i} - c_{\rm th}\,\omega_i^2$, which has no fitted parameter. Take the weighted mean per box ($L_c = 38.75$ and $77.5$) and print $\Gamma_{\rm res}L$ and $\Gamma_{\rm res}L^2$, which separate $\propto 1/L$ from $\propto 1/L^2$.
+4. Both $\le 2\sigma$: **undetermined.** The data cannot separate $c_{\rm th}$ from 0.
+
+**Secondary, no verdict:** $c$ against $c_{\rm full}$; $\gamma_M$ with $L_c$ in place of $L_{\rm eff}$; the standing-wave variant $\gamma_M\,g(K)/M_{\rm eff}$.
+
+**Facts to reproduce, before the fit:** R1, Mansour/measured 2.04 → 1.03 (box A) and 1.87, 1.52 (box B) from the JSON; R2, $\tau_r \propto L$ at fixed $M$; R3, the audit's Enskog $\eta_s + \zeta = 0.331$ at $\eta = 0.100$.
+
+**Printed by `python3 hspist3/validation/paper1_linewidth_decomp_20261012.py --prereg`** (verbatim):
+
+### R3. Enskog transcription check against the 260918 audit (eta = 0.100)
+
+eta_s = 0.3138, zeta = 0.0170, eta_s + zeta = 0.3307  (audit: 0.314, 0.017, 0.331)
+
+### Fixed inputs at the box packing fraction eta = 0.10134170
+
+| quantity | value | source |
+|---|---|---|
+| n = rho (m = 1) | 0.129032 | 4 eta / pi |
+| g2 | 1.18336 | Mansour Eq. 11, p. 3 |
+| eta_s | 0.31430 | Mansour Eq. 8, p. 3 |
+| zeta | 0.01747 | Mansour Eq. 9, p. 3 |
+| kappa | 1.38341 | Mansour Eq. 10, p. 3 |
+| Z, eta Z' | 1.239880, 0.282875 | Kolafa-Rottner 2006 |
+| c_s | 1.749302 | (Z + eta Z' + Z^2)^(1/2) |
+| gamma = c_P/c_V | 2.00955 | 1 + Z^2/(Z + eta Z') |
+| c_v, c_p per unit mass | 1, 2.00955 | 2D hard disks: c_v = k_B/m exactly |
+| (eta_s + zeta)/rho | 2.57117 | viscous diffusivity |
+| (gamma-1) kappa/(rho c_p) | 5.38618 | thermal part |
+| **c_th** = (gamma-1) kappa/(rho c_p c_s^2) | **1.7602** | primary prediction |
+| c_full = [(eta_s+zeta)/rho + (gamma-1) kappa/(rho c_p)]/c_s^2 | 2.6004 | literal free-wave form, secondary |
+| c_visc = (eta_s+zeta)/(rho c_s^2) | 0.8402 | the part already inside gamma_M |
+
+### Per-cell inputs (tau_r, period: 261006_mode_ladder.json, x-trace fit; errors: delete-8 block jackknife)
+
+| box | N_s | L_eff | M | alpha | K | M_hat | M_eff | gamma_M | gamma_M/M_eff | tau_r | Gamma_meas = 2/tau_r | omega^2 | c_th omega^2 | Mansour/measured (261006 form) | published |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A | 50 | 37.75 | 10 | 0.100 | 1.4289 | 43.33 | 56.02 | 0.17577 | 3.138e-03 | 208 ± 3 | 9.6143e-03 ± 1.4e-04 | 4.4240e-03 | 7.787e-03 | 2.04 | 2.04 OK |
+| A | 50 | 37.75 | 20 | 0.200 | 1.3138 | 53.33 | 63.45 | 0.17577 | 2.770e-03 | 298 ± 6 | 6.7216e-03 ± 1.3e-04 | 3.7547e-03 | 6.609e-03 | 1.72 | 1.72 OK |
+| A | 50 | 37.75 | 50 | 0.500 | 1.0769 | 83.33 | 89.50 | 0.17577 | 1.964e-03 | 586 ± 9 | 3.4156e-03 ± 5.5e-05 | 2.5415e-03 | 4.473e-03 | 1.33 | 1.33 OK |
+| A | 50 | 37.75 | 100 | 1.000 | 0.8603 | 133.33 | 137.01 | 0.17577 | 1.283e-03 | 1085 ± 9 | 1.8429e-03 ± 1.5e-05 | 1.6276e-03 | 2.865e-03 | 1.14 | 1.14 OK |
+| A | 50 | 37.75 | 200 | 2.000 | 0.6533 | 233.33 | 235.35 | 0.17577 | 7.468e-04 | 2090 ± 12 | 9.5696e-04 ± 5.4e-06 | 9.4116e-04 | 1.657e-03 | 1.03 | 1.03 OK |
+| B | 100 | 76.50 | 50 | 0.250 | 1.2646 | 116.67 | 134.99 | 0.08674 | 6.425e-04 | 1209 ± 23 | 1.6536e-03 ± 3.2e-05 | 8.5012e-04 | 1.496e-03 | 1.87 | 1.87 OK |
+| B | 100 | 76.50 | 100 | 0.500 | 1.0769 | 166.67 | 178.99 | 0.08674 | 4.846e-04 | 2091 ± 35 | 9.5657e-04 ± 1.6e-05 | 6.1925e-04 | 1.090e-03 | 1.52 | 1.52 OK |
+
+**R1 (Mansour/measured reproduced from the JSON to 2 decimals): PASS**
+
+**R2 (tau_r proportional to L at fixed M):**
+
+- M = 50: tau_r(B)/tau_r(A) = 2.066 ± 0.052; L_c ratio 2.000, L_eff ratio 2.026; (q - 2)/sigma = +1.3
+- M = 100: tau_r(B)/tau_r(A) = 1.927 ± 0.036; L_c ratio 2.000, L_eff ratio 2.026; (q - 2)/sigma = -2.0
+
+sigma_omega contributes at most 0.127 of sigma_Gamma per cell, so omega^2 is treated as exact.
+
+R2 reads +1.3σ at M = 50 and −2.0σ at M = 100, so "τ_r ∝ L at fixed M" (261006) reproduces only at the 2σ edge at M = 100. It is stated, not rounded up.
+
+The fit is `python3 hspist3/validation/paper1_linewidth_decomp_20261012.py --fit`. It refuses to run until this text is in the committed HEAD.
