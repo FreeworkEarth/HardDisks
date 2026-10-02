@@ -296,4 +296,246 @@ A2 boundary: 2 L_0/c_s(eta_0) = 90.0 sigma-time -> tau_push = d/u below it for u
 
 ## 2. Results
 
-*Empty. Not launched. Chris and the plan author read section 1 first.*
+**Run.** Launched 2026-10-01 17:16:22 (clock) on the post-flag binary (`05215ea`, release, `-ffp-contract=off`; "-dirty" refers to unrelated files, the core sources are identical to 05215ea), after § 1.8 was committed (b788e82). **336/336 runs, 0 failed, 0 health lines, 0 aborts**, 10.5 min wall, 306 MB. Pictures per k: `261012_effmap_k{0.25,0.5,1.0}_paper.png`.
+
+### 2.1 Pre-registered analysis, run once
+
+**Printed by `python3 hspist3/validation/paper2_effmap_analysis_20261012.py`** (committed before launch), verbatim:
+
+#### Ledger (A3): max |W_in - (Delta KE_gas + KE_div + Delta E_spring)| per cell, all samples, all seeds
+
+**max over all cells = 1.35e-05 kT**; recorded SpringE vs k(x - x_eq)^2/2 on rows >= 1: max 1.59e-05 kT
+
+#### epsilon per cell (A1): ratio of means, control-corrected; errors jackknife + control SE
+
+| k | M_s | u | seeds | <W_in> | s_corr (3 T_w) | **epsilon_mean** | s_corr (tau_r) | **epsilon_settled** | E_coh ± σ | 0.01 ΔE_spring | gate | epsilon_rev |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.25 | 50 | 0.01 | 8 | 14.1501 | 1.4728 | **0.1831 ± 0.0101** | 1.5503 | **0.1938 ± 0.0015** | -0.0030 ± 0.0373 | 0.0274 | UNRESOLVED | 0.1892 |
+| 0.25 | 50 | 0.02 | 8 | 14.3209 | 1.6277 | **0.2021 ± 0.0056** | 1.5666 | **0.1937 ± 0.0018** | 0.0094 ± 0.0346 | 0.0277 | UNRESOLVED | 0.1892 |
+| 0.25 | 50 | 0.05 | 8 | 14.4435 | 1.5666 | **0.1921 ± 0.0124** | 1.5659 | **0.1920 ± 0.0021** | 0.0095 ± 0.0667 | 0.0277 | UNRESOLVED | 0.1892 |
+| 0.25 | 50 | 0.1 | 8 | 15.1256 | 1.5650 | **0.1832 ± 0.0090** | 1.5980 | **0.1875 ± 0.0018** | -0.0282 ± 0.0633 | 0.0284 | UNRESOLVED | 0.1892 |
+| 0.25 | 50 | 0.2 | 8 | 17.1641 | 1.7370 | **0.1814 ± 0.0095** | 1.7222 | **0.1796 ± 0.0028** | -0.0047 ± 0.0950 | 0.0308 | UNRESOLVED | 0.1892 |
+| 0.25 | 50 | 0.5 | 8 | 25.4512 | 2.1014 | **0.1517 ± 0.0052** | 2.1668 | **0.1571 ± 0.0047** | -0.0042 ± 0.0403 | 0.0400 | UNRESOLVED | 0.1892 |
+| 0.25 | 200 | 0.01 | 8 | 14.2585 | 1.5633 | **0.1941 ± 0.0103** | 1.5665 | **0.1945 ± 0.0019** | -0.0330 ± 0.1213 | 0.0277 | UNRESOLVED | 0.1892 |
+| 0.25 | 200 | 0.02 | 8 | 14.2703 | 1.5505 | **0.1922 ± 0.0103** | 1.5450 | **0.1914 ± 0.0020** | -0.0786 ± 0.0770 | 0.0273 | UNRESOLVED | 0.1892 |
+| 0.25 | 200 | 0.05 | 8 | 14.2929 | 1.6402 | **0.2043 ± 0.0119** | 1.5705 | **0.1946 ± 0.0019** | -0.0691 ± 0.0653 | 0.0278 | UNRESOLVED | 0.1892 |
+| 0.25 | 200 | 0.1 | 8 | 15.5385 | 1.5275 | **0.1736 ± 0.0124** | 1.6287 | **0.1864 ± 0.0022** | 0.0102 ± 0.0701 | 0.0290 | UNRESOLVED | 0.1892 |
+| 0.25 | 200 | 0.2 | 8 | 17.2524 | 1.6778 | **0.1735 ± 0.0127** | 1.7162 | **0.1780 ± 0.0030** | -0.0382 ± 0.1629 | 0.0307 | UNRESOLVED | 0.1892 |
+| 0.25 | 200 | 0.5 | 8 | 25.4191 | 2.2999 | **0.1685 ± 0.0089** | 2.1771 | **0.1582 ± 0.0049** | 0.1906 ± 0.0908 | 0.0402 | UNRESOLVED | 0.1892 |
+| 0.5 | 50 | 0.01 | 8 | 14.3414 | 1.0228 | **0.1306 ± 0.0087** | 0.8637 | **0.1079 ± 0.0006** | -0.0161 ± 0.0394 | 0.0155 | UNRESOLVED | 0.1062 |
+| 0.5 | 50 | 0.02 | 8 | 14.2787 | 0.9188 | **0.1161 ± 0.0089** | 0.8535 | **0.1069 ± 0.0009** | 0.0385 ± 0.0618 | 0.0153 | UNRESOLVED | 0.1062 |
+| 0.5 | 50 | 0.05 | 8 | 14.4228 | 0.8389 | **0.1038 ± 0.0077** | 0.8683 | **0.1079 ± 0.0008** | -0.0089 ± 0.0336 | 0.0156 | UNRESOLVED | 0.1062 |
+| 0.5 | 50 | 0.1 | 8 | 14.8496 | 1.0231 | **0.1261 ± 0.0095** | 0.8865 | **0.1073 ± 0.0009** | -0.0310 ± 0.0368 | 0.0159 | UNRESOLVED | 0.1062 |
+| 0.5 | 50 | 0.2 | 8 | 17.4588 | 0.9068 | **0.0936 ± 0.0062** | 0.9613 | **0.1000 ± 0.0015** | -0.0362 ± 0.0447 | 0.0175 | UNRESOLVED | 0.1062 |
+| 0.5 | 50 | 0.5 | 8 | 25.4245 | 1.2287 | **0.0910 ± 0.0054** | 1.2120 | **0.0895 ± 0.0022** | 0.0037 ± 0.0336 | 0.0228 | UNRESOLVED | 0.1062 |
+| 0.5 | 200 | 0.01 | 8 | 14.4762 | 0.8882 | **0.1103 ± 0.0066** | 0.8573 | **0.1060 ± 0.0009** | 0.0185 ± 0.1567 | 0.0153 | UNRESOLVED | 0.1062 |
+| 0.5 | 200 | 0.02 | 8 | 14.3214 | 0.8808 | **0.1104 ± 0.0087** | 0.8558 | **0.1069 ± 0.0010** | -0.0531 ± 0.0845 | 0.0153 | UNRESOLVED | 0.1062 |
+| 0.5 | 200 | 0.05 | 8 | 14.4494 | 0.8324 | **0.1027 ± 0.0087** | 0.8717 | **0.1082 ± 0.0008** | 0.0965 ± 0.1129 | 0.0156 | UNRESOLVED | 0.1062 |
+| 0.5 | 200 | 0.1 | 8 | 14.7210 | 0.9903 | **0.1226 ± 0.0082** | 0.8891 | **0.1085 ± 0.0014** | 0.0117 ± 0.1238 | 0.0160 | UNRESOLVED | 0.1062 |
+| 0.5 | 200 | 0.2 | 8 | 17.0360 | 0.8555 | **0.0898 ± 0.0089** | 0.9321 | **0.0989 ± 0.0014** | -0.0762 ± 0.0492 | 0.0169 | UNRESOLVED | 0.1062 |
+| 0.5 | 200 | 0.5 | 8 | 25.4213 | 1.0993 | **0.0800 ± 0.0052** | 1.2151 | **0.0898 ± 0.0026** | 0.0748 ± 0.0911 | 0.0228 | UNRESOLVED | 0.1062 |
+| 1.0 | 50 | 0.01 | 8 | 14.4137 | 0.4860 | **0.0613 ± 0.0071** | 0.4608 | **0.0577 ± 0.0004** | 0.0055 ± 0.0334 | 0.0083 | UNRESOLVED | 0.0567 |
+| 1.0 | 50 | 0.02 | 8 | 14.5058 | 0.5103 | **0.0644 ± 0.0088** | 0.4661 | **0.0581 ± 0.0005** | 0.0243 ± 0.0601 | 0.0084 | UNRESOLVED | 0.0567 |
+| 1.0 | 50 | 0.05 | 8 | 14.6093 | 0.3587 | **0.0431 ± 0.0074** | 0.4607 | **0.0569 ± 0.0006** | -0.0058 ± 0.0287 | 0.0083 | UNRESOLVED | 0.0567 |
+| 1.0 | 50 | 0.1 | 8 | 15.1579 | 0.5880 | **0.0725 ± 0.0076** | 0.4720 | **0.0564 ± 0.0007** | 0.0045 ± 0.0452 | 0.0085 | UNRESOLVED | 0.0567 |
+| 1.0 | 50 | 0.2 | 8 | 18.2446 | 0.6371 | **0.0661 ± 0.0087** | 0.5239 | **0.0527 ± 0.0010** | -0.0165 ± 0.0333 | 0.0096 | UNRESOLVED | 0.0567 |
+| 1.0 | 50 | 0.5 | 8 | 25.4237 | 0.7248 | **0.0552 ± 0.0045** | 0.6424 | **0.0479 ± 0.0014** | 0.0212 ± 0.0336 | 0.0122 | UNRESOLVED | 0.0567 |
+| 1.0 | 200 | 0.01 | 8 | 14.4324 | 0.4818 | **0.0606 ± 0.0045** | 0.4641 | **0.0581 ± 0.0003** | 0.0965 ± 0.1145 | 0.0084 | UNRESOLVED | 0.0567 |
+| 1.0 | 200 | 0.02 | 8 | 14.5782 | 0.4184 | **0.0512 ± 0.0086** | 0.4673 | **0.0580 ± 0.0003** | 0.0062 ± 0.0848 | 0.0085 | UNRESOLVED | 0.0567 |
+| 1.0 | 200 | 0.05 | 8 | 14.4441 | 0.4863 | **0.0612 ± 0.0066** | 0.4630 | **0.0579 ± 0.0004** | 0.0131 ± 0.0476 | 0.0084 | UNRESOLVED | 0.0567 |
+| 1.0 | 200 | 0.1 | 8 | 15.0841 | 0.4351 | **0.0517 ± 0.0065** | 0.4784 | **0.0575 ± 0.0006** | -0.0488 ± 0.0537 | 0.0087 | UNRESOLVED | 0.0567 |
+| 1.0 | 200 | 0.2 | 8 | 17.1097 | 0.5666 | **0.0615 ± 0.0061** | 0.5106 | **0.0546 ± 0.0005** | -0.0223 ± 0.0356 | 0.0093 | UNRESOLVED | 0.0567 |
+| 1.0 | 200 | 0.5 | 8 | 25.4456 | 0.6719 | **0.0505 ± 0.0040** | 0.6535 | **0.0488 ± 0.0013** | -0.0228 ± 0.0283 | 0.0124 | UNRESOLVED | 0.0567 |
+
+#### KR decomposition of Delta KE_gas at settle (A3; a model split, not the check)
+
+| k | M_s | u | L (SegEtas, last tau_r) | T_f = KE/N | Delta KE_gas | E_qs(L) | X = Delta KE_gas - E_qs | E_dof (INFERENCE) | X + E_dof | Z_ac u d |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0.25 | 50 | 0.01 | 72.1641 | 1.10422 | 10.4220 | 11.0777 | -0.6557 | 0.9874 | +0.3317 | 0.1769 |
+| 0.25 | 50 | 0.02 | 72.1743 | 1.10324 | 10.3238 | 11.0580 | -0.7342 | 0.9867 | +0.2525 | 0.3538 |
+| 0.25 | 50 | 0.05 | 72.1793 | 1.10436 | 10.4364 | 11.0482 | -0.6118 | 0.9876 | +0.3758 | 0.8844 |
+| 0.25 | 50 | 0.1 | 72.2032 | 1.11148 | 11.1475 | 11.0020 | +0.1456 | 0.9934 | +1.1390 | 1.7688 |
+| 0.25 | 50 | 0.2 | 72.3296 | 1.12846 | 12.8460 | 10.7574 | +2.0886 | 1.0076 | +3.0962 | 3.5376 |
+| 0.25 | 50 | 0.5 | 72.7712 | 1.20340 | 20.3400 | 9.9116 | +10.4284 | 1.0695 | +11.4979 | 8.8440 |
+| 0.25 | 200 | 0.01 | 72.1776 | 1.10507 | 10.5073 | 11.0516 | -0.5443 | 0.9882 | +0.4438 | 0.1769 |
+| 0.25 | 200 | 0.02 | 72.1629 | 1.10323 | 10.3232 | 11.0802 | -0.7570 | 0.9866 | +0.2296 | 0.3538 |
+| 0.25 | 200 | 0.05 | 72.1759 | 1.10595 | 10.5953 | 11.0549 | -0.4597 | 0.9889 | +0.5292 | 0.8844 |
+| 0.25 | 200 | 0.1 | 72.2443 | 1.11726 | 11.7262 | 10.9224 | +0.8038 | 0.9983 | +1.8021 | 1.7688 |
+| 0.25 | 200 | 0.2 | 72.3342 | 1.13064 | 13.0638 | 10.7485 | +2.3152 | 1.0094 | +3.3246 | 3.5376 |
+| 0.25 | 200 | 0.5 | 72.7828 | 1.20347 | 20.3469 | 9.8897 | +10.4573 | 1.0695 | +11.5268 | 8.8440 |
+| 0.5 | 50 | 0.01 | 71.4425 | 1.11541 | 11.5414 | 12.4962 | -0.9548 | 1.0474 | +0.0926 | 0.1769 |
+| 0.5 | 50 | 0.02 | 71.4341 | 1.11517 | 11.5167 | 12.5129 | -0.9963 | 1.0471 | +0.0509 | 0.3538 |
+| 0.5 | 50 | 0.05 | 71.4536 | 1.11672 | 11.6722 | 12.4742 | -0.8020 | 1.0486 | +0.2466 | 0.8844 |
+| 0.5 | 50 | 0.1 | 71.4657 | 1.12197 | 12.1974 | 12.4500 | -0.2526 | 1.0532 | +0.8007 | 1.7688 |
+| 0.5 | 50 | 0.2 | 71.5521 | 1.14556 | 14.5556 | 12.2784 | +2.2772 | 1.0743 | +3.3515 | 3.5376 |
+| 0.5 | 50 | 0.5 | 71.7924 | 1.22046 | 22.0455 | 11.8040 | +10.2415 | 1.1408 | +11.3823 | 8.8440 |
+| 0.5 | 200 | 0.01 | 71.4436 | 1.11593 | 11.5928 | 12.4940 | -0.9013 | 1.0478 | +0.1466 | 0.1769 |
+| 0.5 | 200 | 0.02 | 71.4423 | 1.11534 | 11.5342 | 12.4967 | -0.9626 | 1.0473 | +0.0847 | 0.3538 |
+| 0.5 | 200 | 0.05 | 71.4583 | 1.11957 | 11.9566 | 12.4648 | -0.5082 | 1.0511 | +0.5429 | 0.8844 |
+| 0.5 | 200 | 0.1 | 71.4732 | 1.12275 | 12.2750 | 12.4353 | -0.1602 | 1.0539 | +0.8937 | 1.7688 |
+| 0.5 | 200 | 0.2 | 71.5198 | 1.13794 | 13.7935 | 12.3427 | +1.4509 | 1.0675 | +2.5183 | 3.5376 |
+| 0.5 | 200 | 0.5 | 71.7955 | 1.22253 | 22.2530 | 11.7978 | +10.4552 | 1.1426 | +11.5978 | 8.8440 |
+| 1.0 | 50 | 0.01 | 71.0232 | 1.12514 | 12.5140 | 13.3372 | -0.8232 | 1.0878 | +0.2646 | 0.1769 |
+| 1.0 | 50 | 0.02 | 71.0257 | 1.12533 | 12.5335 | 13.3321 | -0.7987 | 1.0880 | +0.2893 | 0.3538 |
+| 1.0 | 50 | 0.05 | 71.0255 | 1.12619 | 12.6190 | 13.3326 | -0.7136 | 1.0888 | +0.3752 | 0.8844 |
+| 1.0 | 50 | 0.1 | 71.0356 | 1.13116 | 13.1161 | 13.3122 | -0.1961 | 1.0934 | +0.8974 | 1.7688 |
+| 1.0 | 50 | 0.2 | 71.0849 | 1.16146 | 16.1457 | 13.2126 | +2.9330 | 1.1218 | +4.0549 | 3.5376 |
+| 1.0 | 50 | 0.5 | 71.1977 | 1.22976 | 22.9761 | 12.9856 | +9.9904 | 1.1857 | +11.1761 | 8.8440 |
+| 1.0 | 200 | 0.01 | 71.0230 | 1.12345 | 12.3450 | 13.3376 | -0.9926 | 1.0862 | +0.0936 | 0.1769 |
+| 1.0 | 200 | 0.02 | 71.0252 | 1.12546 | 12.5463 | 13.3332 | -0.7869 | 1.0881 | +0.3012 | 0.3538 |
+| 1.0 | 200 | 0.05 | 71.0205 | 1.12493 | 12.4926 | 13.3427 | -0.8501 | 1.0876 | +0.2374 | 0.8844 |
+| 1.0 | 200 | 0.1 | 71.0369 | 1.13210 | 13.2102 | 13.3095 | -0.0993 | 1.0943 | +0.9950 | 1.7688 |
+| 1.0 | 200 | 0.2 | 71.0685 | 1.15025 | 15.0248 | 13.2458 | +1.7790 | 1.1113 | +2.8904 | 3.5376 |
+| 1.0 | 200 | 0.5 | 71.2056 | 1.23129 | 23.1288 | 12.9698 | +10.1590 | 1.1871 | +11.3461 | 8.8440 |
+
+#### Prediction 1: epsilon -> epsilon_rev as u -> 0 (u = 0.01 and 0.02 cells)
+
+| k | M_s | u | epsilon_mean | epsilon_rev | (eps - eps_rev)/sigma | epsilon_settled | (eps_s - eps_rev)/sigma |
+|---|---|---|---|---|---|---|---|
+| 0.25 | 50 | 0.01 | 0.1831 | 0.1892 | -0.6 | 0.1938 | +3.2 |
+| 0.25 | 50 | 0.02 | 0.2021 | 0.1892 | +2.3 | 0.1937 | +2.6 |
+| 0.25 | 200 | 0.01 | 0.1941 | 0.1892 | +0.5 | 0.1945 | +2.9 |
+| 0.25 | 200 | 0.02 | 0.1922 | 0.1892 | +0.3 | 0.1914 | +1.1 |
+| 0.5 | 50 | 0.01 | 0.1306 | 0.1062 | +2.8 | 0.1079 | +2.7 |
+| 0.5 | 50 | 0.02 | 0.1161 | 0.1062 | +1.1 | 0.1069 | +0.7 |
+| 0.5 | 200 | 0.01 | 0.1103 | 0.1062 | +0.6 | 0.1060 | -0.3 |
+| 0.5 | 200 | 0.02 | 0.1104 | 0.1062 | +0.5 | 0.1069 | +0.7 |
+| 1.0 | 50 | 0.01 | 0.0613 | 0.0567 | +0.6 | 0.0577 | +2.3 |
+| 1.0 | 50 | 0.02 | 0.0644 | 0.0567 | +0.9 | 0.0581 | +3.0 |
+| 1.0 | 200 | 0.01 | 0.0606 | 0.0567 | +0.9 | 0.0581 | +5.0 |
+| 1.0 | 200 | 0.02 | 0.0512 | 0.0567 | -0.6 | 0.0580 | +4.2 |
+
+#### Prediction 2 (A2): flat for u <~ 0.09, then roughly linear; slope on u in {0.1, 0.2, 0.5}
+
+| k | M_s | slope d eps_mean/du ± σ | -eps_rev Z_ac d / W_rev (order of magnitude) | mean eps_mean, u <= 0.05 |
+|---|---|---|---|---|
+| 0.25 | 50 | -0.0847 ± 0.0233 | -0.2396 | 0.1924 |
+| 0.25 | 200 | -0.0139 ± 0.0350 | -0.2396 | 0.1968 |
+| 0.5 | 50 | -0.0489 ± 0.0224 | -0.1331 | 0.1168 |
+| 0.5 | 200 | -0.0863 ± 0.0221 | -0.1331 | 0.1078 |
+| 1.0 | 50 | -0.0414 ± 0.0201 | -0.0706 | 0.0563 |
+| 1.0 | 200 | -0.0144 ± 0.0169 | -0.0706 | 0.0577 |
+
+#### Prediction 3: no-push controls (W_in = 0; thermal drift of x; floor on E_spring)
+
+| k | M_s | seeds | max |PistonWork| | <s> whole run | ΔE_spring(<s>) | Delta KE_gas, last half | -E_dof predicted |
+|---|---|---|---|---|---|---|---|
+| 0.25 | 50 | 8 | 0.00e+00 | +0.0807 | +0.1279 | -0.9941 ± 0.0512 | -0.9091 |
+| 0.25 | 200 | 8 | 0.00e+00 | +0.0723 | +0.1145 | -1.2921 ± 0.1633 | -0.9066 |
+| 0.5 | 50 | 8 | 0.00e+00 | +0.0406 | +0.0644 | -0.9701 ± 0.0252 | -0.9462 |
+| 0.5 | 200 | 8 | 0.00e+00 | +0.0425 | +0.0674 | -0.8241 ± 0.0568 | -0.9475 |
+| 1.0 | 50 | 8 | 0.00e+00 | +0.0211 | +0.0335 | -1.0248 ± 0.0437 | -0.9667 |
+| 1.0 | 200 | 8 | 0.00e+00 | +0.0194 | +0.0308 | -1.0090 ± 0.0544 | -0.9668 |
+
+#### Reproduction line (sec. 1.7): Level 3 v6 estimator on k0.5_M200_u0.05
+
+s̄ = **0.8710 ± 0.0078 σ** (229 periods in window) vs Level 3 0.8705 ± 0.0049: **0.06 σ -> PASS** (rule: within 2σ)
+
+figure: 0000_PLAN_OVERALL/paper2_energytransfer/experiments/final/261012_p2_effmap.{png,pdf}
+
+Figure: `261012_p2_effmap.{png,pdf}` ($\varepsilon_{\rm mean}$, the pre-registered figure).
+
+### 2.2 Post-hoc summaries (written after 2.1; no pre-registered number changes)
+
+$\varepsilon_{\rm mean}$'s last-$3T_w$ window leaves the divider's thermal motion unaveraged, so its errors are 5–20× those of $\varepsilon_{\rm settled}$. The pre-registered slope fit used $\varepsilon_{\rm mean}$. The tables below re-express the same cells through $\varepsilon_{\rm settled}$ and are labelled post hoc.
+
+**Printed by `python3 hspist3/validation/paper2_effmap_posthoc_20261012.py`**, verbatim:
+
+#### (a) POST HOC: epsilon_settled over the quasi-static cells u <= 0.05 (inverse-variance mean)
+
+| k | M_s | mean eps_settled | chi2/dof across u | eps_rev | ratio to eps_rev | (mean - eps_rev)/sigma |
+|---|---|---|---|---|---|---|
+| 0.25 | 50 | 0.19335 ± 0.00099 | 0.6/2 | 0.1892 | 1.0222 | +4.2 |
+| 0.25 | 200 | 0.19360 ± 0.00112 | 1.7/2 | 0.1892 | 1.0235 | +4.0 |
+| 0.25 | both | 0.19346 ± 0.00074 | 2.3/5 | 0.1892 | 1.0228 | +5.8 |
+| 0.5 | 50 | 0.10765 ± 0.00043 | 0.9/2 | 0.1062 | 1.0134 | +3.3 |
+| 0.5 | 200 | 0.10707 ± 0.00052 | 3.3/2 | 0.1062 | 1.0079 | +1.6 |
+| 0.5 | both | 0.10742 ± 0.00033 | 5.0/5 | 0.1062 | 1.0112 | +3.6 |
+| 1.0 | 50 | 0.05765 ± 0.00028 | 2.6/2 | 0.0567 | 1.0168 | +3.4 |
+| 1.0 | 200 | 0.05802 ± 0.00019 | 0.2/2 | 0.0567 | 1.0233 | +7.1 |
+| 1.0 | both | 0.05791 ± 0.00016 | 4.0/5 | 0.0567 | 1.0212 | +7.8 |
+
+#### (b) POST HOC: epsilon_settled slope on u in {0.1, 0.2, 0.5} (weighted linear fit)
+
+| k | M_s | slope ± σ | intercept | chi2 (1 dof) | pre-registered eps_mean slope (for reference) |
+|---|---|---|---|---|---|
+| 0.25 | 50 | -0.0761 ± 0.0123 | 0.1950 | 0.0 | -0.0847 ± 0.0233 |
+| 0.25 | 200 | -0.0711 ± 0.0133 | 0.1931 | 0.1 | -0.0139 ± 0.0350 |
+| 0.5 | 50 | -0.0459 ± 0.0059 | 0.1113 | 2.7 | -0.0489 ± 0.0224 |
+| 0.5 | 200 | -0.0481 ± 0.0074 | 0.1114 | 6.9 | -0.0863 ± 0.0221 |
+| 1.0 | 50 | -0.0216 ± 0.0039 | 0.0582 | 1.7 | -0.0414 ± 0.0201 |
+| 1.0 | 200 | -0.0223 ± 0.0036 | 0.0594 | 0.9 | -0.0144 ± 0.0169 |
+
+#### (c) POST HOC: M_s = 50 vs 200, epsilon_settled, per (k, u)
+
+| k | u | eps(50) | eps(200) | difference / sigma |
+|---|---|---|---|---|
+| 0.25 | 0.01 | 0.1938 | 0.1945 | -0.3 |
+| 0.25 | 0.02 | 0.1937 | 0.1914 | +0.9 |
+| 0.25 | 0.05 | 0.1920 | 0.1946 | -0.9 |
+| 0.25 | 0.1 | 0.1875 | 0.1864 | +0.4 |
+| 0.25 | 0.2 | 0.1796 | 0.1780 | +0.4 |
+| 0.25 | 0.5 | 0.1571 | 0.1582 | -0.2 |
+| 0.5 | 0.01 | 0.1079 | 0.1060 | +1.8 |
+| 0.5 | 0.02 | 0.1069 | 0.1069 | -0.0 |
+| 0.5 | 0.05 | 0.1079 | 0.1082 | -0.2 |
+| 0.5 | 0.1 | 0.1073 | 0.1085 | -0.8 |
+| 0.5 | 0.2 | 0.1000 | 0.0989 | +0.5 |
+| 0.5 | 0.5 | 0.0895 | 0.0898 | -0.1 |
+| 1.0 | 0.01 | 0.0577 | 0.0581 | -0.8 |
+| 1.0 | 0.02 | 0.0581 | 0.0580 | +0.2 |
+| 1.0 | 0.05 | 0.0569 | 0.0579 | -1.4 |
+| 1.0 | 0.1 | 0.0564 | 0.0575 | -1.3 |
+| 1.0 | 0.2 | 0.0527 | 0.0546 | -1.6 |
+| 1.0 | 0.5 | 0.0479 | 0.0488 | -0.5 |
+
+chi2 = 13.2 on 18 dof, p = 0.782
+
+#### (d) POST HOC: where the quasi-static excess sits -- W_in and s_corr (last tau_r) at u <= 0.05
+
+| k | M_s | <W_in>/W_rev | s_corr/s_rev | Delta E_spring/E_spring,rev |
+|---|---|---|---|---|
+| 0.25 | 50 | 1.0245 | 1.0415 | 1.0461 |
+| 0.25 | 200 | 1.0223 | 1.0413 | 1.0459 |
+| 0.5 | 50 | 1.0161 | 1.0256 | 1.0287 |
+| 0.5 | 200 | 1.0209 | 1.0253 | 1.0284 |
+| 1.0 | 50 | 1.0208 | 1.0323 | 1.0365 |
+| 1.0 | 200 | 1.0190 | 1.0375 | 1.0423 |
+
+#### (e) POST HOC: no-push controls, Delta KE_gas (last half) against -E_dof
+
+| k | M_s | Delta KE_gas | -E_dof | z |
+|---|---|---|---|---|
+| 0.25 | 50 | -0.9941 ± 0.0512 | -0.9091 | -1.7 |
+| 0.25 | 200 | -1.2921 ± 0.1633 | -0.9066 | -2.4 |
+| 0.5 | 50 | -0.9701 ± 0.0252 | -0.9462 | -0.9 |
+| 0.5 | 200 | -0.8241 ± 0.0568 | -0.9475 | +2.2 |
+| 1.0 | 50 | -1.0248 ± 0.0437 | -0.9667 | -1.3 |
+| 1.0 | 200 | -1.0090 ± 0.0544 | -0.9668 | -0.8 |
+
+chi2 = 16.3 on 6 dof, p = 0.0121
+
+figure: 0000_PLAN_OVERALL/paper2_energytransfer/experiments/final/261012_p2_effmap_both.{png,pdf}
+
+### 2.3 Reading, item by item
+
+1. **Ledger (A3): closed.** $\max|W_{\rm in} - (\Delta KE_{\rm gas} + KE_{\rm div} + \Delta E_{\rm spring})| = 1.35\times10^{-5}$ kT over every sample of all 288 pushed and 48 control runs, at the precision of the 6-decimal $x$. The `SpringE` row-0 gap is confirmed; from row 1 on, SpringE agrees with $\tfrac12 k(x - x_{\rm eq})^2$ to $1.6\times10^{-5}$.
+2. **Reproduction line (§ 1.7): PASS.** $\bar s = 0.8710 \pm 0.0078\,\sigma$ against Level 3's $0.8705 \pm 0.0049$, i.e. 0.06σ. The map stands on Level 3's footing. Level 3 (contraction on) and the map (contraction off) are compared only as two numbers.
+3. **Prediction 1, $\varepsilon \to \varepsilon_{\rm rev}$ with no $M_s$ dependence: holds to 1–2 %, and the residual is resolved.**
+   - $\varepsilon_{\rm mean}$ agrees with $\varepsilon_{\rm rev}$ within 2σ in 10 of the 12 cells at $u \le 0.02$.
+   - $\varepsilon_{\rm settled}$ resolves a small excess. Over $u \le 0.05$ it is $1.0228$, $1.0112$ and $1.0212 \times \varepsilon_{\rm rev}$ for $k = 0.25, 0.5, 1.0$ (+5.8σ, +3.6σ, +7.8σ; post hoc (a)).
+   - **There is no $M_s$ dependence at any $u$:** $\chi^2 = 13.2$ on 18 dof, $p = 0.78$ (post hoc (c)).
+   - The excess sits in both terms of the ratio: $W_{\rm in}$ is 1.6–2.5 % above $W_{\rm rev}$, and the settled $s$ is 2.5–4.2 % above $s_{\rm rev}$ (post hoc (d)).
+   - **INFERENCE, not tested:** this is the box's finite-size over-pressure and over-stiffness, which the KR reversible reference omits. Level 3 measured $Z_{\rm box}/Z_{\rm KR} = 1.0248 \pm 0.0014$ in this same geometry. Recomputing $\varepsilon_{\rm rev}$ with Level 3's measured $F(L)$ would test it; that has not been done.
+4. **Prediction 2, A2's shape: confirmed by $\varepsilon_{\rm settled}$.**
+   - **Plateau.** $\varepsilon$ is flat for $u \le 0.05$ in all six $(k, M_s)$, with $\chi^2$ across $u$ of 0.2–3.3 on 2 dof. At $u = 0.1$ it is still on the plateau for $k = 0.5$, and just below it for $k = 0.25$ and 1.0.
+   - **Decline.** Beyond that it falls roughly linearly. The slopes on $u \in \{0.1, 0.2, 0.5\}$ are $-0.076/-0.071$ ($k = 0.25$), $-0.046/-0.048$ ($k = 0.5$) and $-0.022/-0.022$ ($k = 1.0$), for $M_s = 50/200$. They fall with $k$ roughly in proportion to $\varepsilon_{\rm rev}$, and are about a third of the order-of-magnitude reference $-\varepsilon_{\rm rev}Z_{\rm ac}d/W_{\rm rev}$ (−0.24, −0.13, −0.071). That reference ignores the extra spring loading by the heated gas, which is in the direction observed.
+   - **Pre-registered fit.** The slopes fitted on $\varepsilon_{\rm mean}$ (table 2.1) are consistent with these within their larger errors.
+   - **Dissipation from the KR split.** $X + E_{\rm dof}$ is close to $Z_{\rm ac}ud$ for $u \ge 0.1$, within about a factor 1.5: $u = 0.5$ gives 11.2–11.6 against 8.84, $u = 0.2$ gives 2.5–4.1 against 3.54, and $u = 0.1$ gives 0.8–1.8 against 1.77. For $u \le 0.05$ it falls below the linear law (0.05–0.54 against 0.18–0.88), which is A2's quasi-static fall-off.
+5. **Prediction 3, the controls: $W_{\rm in} = 0$ exactly in all 48 control runs.**
+   - **Drift.** The control's drift $\langle s\rangle$ is +0.081/+0.072, +0.041/+0.043 and +0.021/+0.019 σ for $k = 0.25, 0.5, 1.0$. It scales as $1/k$, which is the pre-push offset Level 3 traced to the box's excess standing force.
+   - **Spring-energy floor:** 0.03–0.13 kT.
+   - **The $E_{\rm dof}$ INFERENCE (§ 1.8, A3) is right in sign and size but not in detail.** The control $\Delta KE_{\rm gas}$ is −0.82 to −1.29 against −0.91 to −0.97 predicted. Per cell, $\chi^2 = 16.3$ on 6 dof ($p = 0.012$), driven by two $M_s = 200$ cells at −2.4σ and +2.2σ with opposite signs, so not by a common offset. It is reported as a magnitude check, not a confirmation.
+6. **Gate (A1 as implemented):** all 36 cells are UNRESOLVED, as expected from the 8-seed floor, and none is FAIL. The largest $E_{\rm coh}$ is $0.19 \pm 0.09$ at $(0.25, 200, 0.5)$, below the FAIL line. The construction part ($\ge 3\tau_r$ after the push, with Mansour's $\tau_r$ as an upper bound) carries the gate.
+
+**The map, in one sentence.** The efficiency of storing piston work in the spring is set by $k$ alone, with no measurable $M_s$ dependence. It equals the reversible value (+1–2 %, the box effect) for pushes slower than one acoustic round trip ($d/u > 2L_0/c_s$), and falls roughly linearly in $u$ beyond it.
