@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 # ##CHRIS 2026-10-10: EFFICIENCY MAP, geometry C, per 261010 section 1 (committed before this ran).
-# NOT LAUNCHED until Chris and the plan author have read section 1 and given the go.
+# GO given 2026-10-12 with amendments A1-A3 (261010 sec. 1.8), committed before launch.
 # Binary: v1 + -ffp-contract=off + --version (05215ea line). The piston parks 0.25 sigma outside:
 # tau_push = piston_stop_t_rel - 0.25/u, compression start = first nonzero PistonWork, d from piston_target.
 # Spring rest length per k so the run STARTS in mechanical equilibrium (k (x_eq - 30.5) = P h = 1.57489):
 #   k = 0.25 -> 36.7996   k = 0.5 -> 33.65 (Level 3's value; the equilibrium is 33.6498)   k = 1.0 -> 32.0749
-# Run length d/u + 5 spring periods; --trace-every so dt <= period/40; no-push control per (k, M_s) at the
-# u = 0.01 length. 36 cells x 8 seeds + 6 controls x 8 = 336 runs, ~16 M steps. Seeds 9500-9507.
+# AMENDED 2026-10-12 (261010 sec. 1.8, A1): run length = 0.25/u + d/u + max(5 spring periods, 3 tau_r), tau_r from
+# Mansour friction with ONE gas and M_hat = M_s + N m/3 (3270-9430 sigma-time); steps and table printed by
+# validation/paper2_effmap_amend_20261012.py (--emit-specs wrote the SPECS block below). --trace-every unchanged
+# (dt <= period/40); no-push control per (k, M_s) at the u = 0.01 length. 336 runs, ~388 M steps, ~1.3 core-h.
+# The reduction now also keeps PistonR_v, so Level 3 v6's estimator runs verbatim. Seeds 9500-9507.
+# (was: d/u + 5 spring periods, ~16 M steps -- too short for epsilon_settled.)
 set -uo pipefail
 cd /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3
 P=experiments_energy_transfer/level5_effmap_20261010
@@ -32,7 +36,7 @@ run_one() {
   if [ "$rc" -ne 0 ] || [ "$health" -ne 0 ]; then echo "$TAG seed=$sd FAILED rc=$rc health=$health"; return 1; fi
   python3 - "$d/raw_${sd}.csv" "$d/red_${sd}.csv" <<'PY'
 import sys, pandas as pd
-want = ["Time","KE_gas_total","W0_x_sigma","W0_v","PistonWork","PistonR_x_sigma","SegCounts","SegEtas","SpringE"]
+want = ["Time","KE_gas_total","W0_x_sigma","W0_v","PistonWork","PistonR_x_sigma","PistonR_v","SegCounts","SegEtas","SpringE"]
 e = pd.read_csv(sys.argv[1], low_memory=False)
 missing = [c for c in want if c not in e.columns]
 if missing: sys.exit("REDUCTION ABORTED: columns absent: %s" % ",".join(missing))
@@ -42,48 +46,48 @@ PY
 }
 # TAG k x_eq M u steps every push
 SPECS=(
-  "k0.25_M50_u0.01 0.25 36.7996 50 0.01 75000 133 1"
-  "k0.25_M50_u0.02 0.25 36.7996 50 0.02 51000 133 1"
-  "k0.25_M50_u0.05 0.25 36.7996 50 0.05 37000 133 1"
-  "k0.25_M50_u0.1 0.25 36.7996 50 0.1 32000 133 1"
-  "k0.25_M50_u0.2 0.25 36.7996 50 0.2 30000 133 1"
-  "k0.25_M50_u0.5 0.25 36.7996 50 0.5 28000 133 1"
-  "ctrl_k0.25_M50 0.25 36.7996 50 0.01 75000 133 0"
-  "k0.25_M200_u0.01 0.25 36.7996 200 0.01 102000 266 1"
-  "k0.25_M200_u0.02 0.25 36.7996 200 0.02 78000 266 1"
-  "k0.25_M200_u0.05 0.25 36.7996 200 0.05 63000 266 1"
-  "k0.25_M200_u0.1 0.25 36.7996 200 0.1 59000 266 1"
-  "k0.25_M200_u0.2 0.25 36.7996 200 0.2 56000 266 1"
-  "k0.25_M200_u0.5 0.25 36.7996 200 0.5 55000 266 1"
-  "ctrl_k0.25_M200 0.25 36.7996 200 0.01 102000 266 0"
-  "k0.5_M50_u0.01 0.5 33.65 50 0.01 67000 94 1"
-  "k0.5_M50_u0.02 0.5 33.65 50 0.02 43000 94 1"
-  "k0.5_M50_u0.05 0.5 33.65 50 0.05 29000 94 1"
-  "k0.5_M50_u0.1 0.5 33.65 50 0.1 24000 94 1"
-  "k0.5_M50_u0.2 0.5 33.65 50 0.2 22000 94 1"
-  "k0.5_M50_u0.5 0.5 33.65 50 0.5 20000 94 1"
-  "ctrl_k0.5_M50 0.5 33.65 50 0.01 67000 94 0"
-  "k0.5_M200_u0.01 0.5 33.65 200 0.01 86000 188 1"
-  "k0.5_M200_u0.02 0.5 33.65 200 0.02 62000 188 1"
-  "k0.5_M200_u0.05 0.5 33.65 200 0.05 48000 188 1"
-  "k0.5_M200_u0.1 0.5 33.65 200 0.1 43000 188 1"
-  "k0.5_M200_u0.2 0.5 33.65 200 0.2 41000 188 1"
-  "k0.5_M200_u0.5 0.5 33.65 200 0.5 39000 188 1"
-  "ctrl_k0.5_M200 0.5 33.65 200 0.01 86000 188 0"
-  "k1.0_M50_u0.01 1.0 32.0749 50 0.01 62000 66 1"
-  "k1.0_M50_u0.02 1.0 32.0749 50 0.02 38000 66 1"
-  "k1.0_M50_u0.05 1.0 32.0749 50 0.05 23000 66 1"
-  "k1.0_M50_u0.1 1.0 32.0749 50 0.1 19000 66 1"
-  "k1.0_M50_u0.2 1.0 32.0749 50 0.2 16000 66 1"
-  "k1.0_M50_u0.5 1.0 32.0749 50 0.5 15000 66 1"
-  "ctrl_k1.0_M50 1.0 32.0749 50 0.01 62000 66 0"
-  "k1.0_M200_u0.01 1.0 32.0749 200 0.01 75000 133 1"
-  "k1.0_M200_u0.02 1.0 32.0749 200 0.02 51000 133 1"
-  "k1.0_M200_u0.05 1.0 32.0749 200 0.05 37000 133 1"
-  "k1.0_M200_u0.1 1.0 32.0749 200 0.1 32000 133 1"
-  "k1.0_M200_u0.2 1.0 32.0749 200 0.2 30000 133 1"
-  "k1.0_M200_u0.5 1.0 32.0749 200 0.5 28000 133 1"
-  "ctrl_k1.0_M200 1.0 32.0749 200 0.01 75000 133 0"
+  "k0.25_M50_u0.01 0.25 36.7996 50 0.01 656000 133 1"
+  "k0.25_M50_u0.02 0.25 36.7996 50 0.02 631000 133 1"
+  "k0.25_M50_u0.05 0.25 36.7996 50 0.05 616000 133 1"
+  "k0.25_M50_u0.1 0.25 36.7996 50 0.1 611000 133 1"
+  "k0.25_M50_u0.2 0.25 36.7996 50 0.2 609000 133 1"
+  "k0.25_M50_u0.5 0.25 36.7996 50 0.5 607000 133 1"
+  "ctrl_k0.25_M50 0.25 36.7996 50 0.01 656000 133 0"
+  "k0.25_M200_u0.01 0.25 36.7996 200 0.01 1746000 266 1"
+  "k0.25_M200_u0.02 0.25 36.7996 200 0.02 1722000 266 1"
+  "k0.25_M200_u0.05 0.25 36.7996 200 0.05 1707000 266 1"
+  "k0.25_M200_u0.1 0.25 36.7996 200 0.1 1702000 266 1"
+  "k0.25_M200_u0.2 0.25 36.7996 200 0.2 1700000 266 1"
+  "k0.25_M200_u0.5 0.25 36.7996 200 0.5 1698000 266 1"
+  "ctrl_k0.25_M200 0.25 36.7996 200 0.01 1746000 266 0"
+  "k0.5_M50_u0.01 0.5 33.65 50 0.01 645000 94 1"
+  "k0.5_M50_u0.02 0.5 33.65 50 0.02 621000 94 1"
+  "k0.5_M50_u0.05 0.5 33.65 50 0.05 606000 94 1"
+  "k0.5_M50_u0.1 0.5 33.65 50 0.1 601000 94 1"
+  "k0.5_M50_u0.2 0.5 33.65 50 0.2 598000 94 1"
+  "k0.5_M50_u0.5 0.5 33.65 50 0.5 597000 94 1"
+  "ctrl_k0.5_M50 0.5 33.65 50 0.01 645000 94 0"
+  "k0.5_M200_u0.01 0.5 33.65 200 0.01 1717000 188 1"
+  "k0.5_M200_u0.02 0.5 33.65 200 0.02 1692000 188 1"
+  "k0.5_M200_u0.05 0.5 33.65 200 0.05 1678000 188 1"
+  "k0.5_M200_u0.1 0.5 33.65 200 0.1 1673000 188 1"
+  "k0.5_M200_u0.2 0.5 33.65 200 0.2 1670000 188 1"
+  "k0.5_M200_u0.5 0.5 33.65 200 0.5 1669000 188 1"
+  "ctrl_k0.5_M200 0.5 33.65 200 0.01 1717000 188 0"
+  "k1.0_M50_u0.01 1.0 32.0749 50 0.01 639000 66 1"
+  "k1.0_M50_u0.02 1.0 32.0749 50 0.02 614000 66 1"
+  "k1.0_M50_u0.05 1.0 32.0749 50 0.05 600000 66 1"
+  "k1.0_M50_u0.1 1.0 32.0749 50 0.1 595000 66 1"
+  "k1.0_M50_u0.2 1.0 32.0749 50 0.2 592000 66 1"
+  "k1.0_M50_u0.5 1.0 32.0749 50 0.5 591000 66 1"
+  "ctrl_k1.0_M50 1.0 32.0749 50 0.01 639000 66 0"
+  "k1.0_M200_u0.01 1.0 32.0749 200 0.01 1699000 133 1"
+  "k1.0_M200_u0.02 1.0 32.0749 200 0.02 1675000 133 1"
+  "k1.0_M200_u0.05 1.0 32.0749 200 0.05 1660000 133 1"
+  "k1.0_M200_u0.1 1.0 32.0749 200 0.1 1655000 133 1"
+  "k1.0_M200_u0.2 1.0 32.0749 200 0.2 1653000 133 1"
+  "k1.0_M200_u0.5 1.0 32.0749 200 0.5 1651000 133 1"
+  "ctrl_k1.0_M200 1.0 32.0749 200 0.01 1699000 133 0"
 )
 echo "effmap start $(date +%H:%M:%S), binary: $(./00ALLINONE --version | head -1)"
 for s in "${SPECS[@]}"; do set -- $s

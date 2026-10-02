@@ -24,7 +24,7 @@
 # force preload and the measured efficiency is meaningless.
 set -uo pipefail
 cd /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3
-WHAT=${1:-demo}; MODE=${2:-watch}
+WHAT=${1:-demo}; MODE=${2:-watch}; NAME=$WHAT   # NAME: file tag (effmap adds _k<K> so the three k don't overwrite)
 OUT=experiments_energy_transfer/paper2_pictures; mkdir -p "$OUT"
 STAMP=$(date +%y%m%d)
 
@@ -45,7 +45,7 @@ case "$WHAT" in
   equil)  FLAGS=(--particles=200 --particles-boxes=100,100 --l0=78.0 --num-walls=1
                  --wall-positions=78.0 --wall-mass-factors=100 --eff-output=wall-ke
                  --wall-hold-steps=12000 --steps=400000); SHOT_AT=20000 ;;
-  effmap) K=${3:-0.5}
+  effmap) K=${3:-0.5}; NAME="effmap_k$K"
           case "$K" in 0.25) XEQ=36.7996 ;; 0.5) XEQ=33.6498 ;; 1.0) XEQ=32.0749 ;;
             *) echo "k must be 0.25, 0.5 or 1.0 (the pre-registered grid)"; exit 1 ;; esac
           echo "  effmap: k = $K, spring rest length x_eq = $XEQ (mechanical equilibrium at t = 0)"
@@ -64,9 +64,9 @@ if [ "$MODE" = "watch" ]; then
 fi
 
 for m in experiment paper; do
-  bmp="$OUT/${STAMP}_${WHAT}_${m}.bmp"; png="${bmp%.bmp}.png"; rm -f "$bmp" "$png"
+  bmp="$OUT/${STAMP}_${NAME}_${m}.bmp"; png="${bmp%.bmp}.png"; rm -f "$bmp" "$png"
   ./00ALLINONE "${COMMON[@]}" "${FLAGS[@]}" --show-simulation --demo --render=$m \
-      --demo-shot="$bmp",$SHOT_AT > "$OUT/log_${WHAT}_${m}.txt" 2>&1 &
+      --demo-shot="$bmp",$SHOT_AT > "$OUT/log_${NAME}_${m}.txt" 2>&1 &
   pid=$!
   for _ in $(seq 60); do [ -s "$bmp" ] && break; sleep 0.5; done
   sleep 1; kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null
@@ -87,5 +87,5 @@ im.save(sys.argv[2], "PNG", optimize=True)
 print("   cropped to", im.size)
 PYX
     rm -f "$bmp"; echo "  $m -> $png"
-  else echo "  $m MISSING (no display? see $OUT/log_${WHAT}_${m}.txt)"; fi
+  else echo "  $m MISSING (no display? see $OUT/log_${NAME}_${m}.txt)"; fi
 done
