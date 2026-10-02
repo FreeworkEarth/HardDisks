@@ -1,0 +1,8 @@
+source,N_per_compartment,L0,eta,c_s,c_s_err,KR,note
+Roman2002_TableII,64,11.313708,0.392699,3.81,,3.746081,"as published, no uncertainty"
+Roman2002_TableII,256,22.627417,0.392699,3.78,,3.746081,"as published, no uncertainty"
+Roman2002_TableII,1024,45.254834,0.392699,3.76,,3.746081,"as published, no uncertainty"
+Roman2002_TableII,4096,90.509668,0.392699,3.75,,3.746081,"as published, no uncertainty"
+Roman2002_extrapolated,inf,,0.392699,3.74,,3.746081,as published
+ours_A1v2_9mass,50,10.0,0.392699,3.80884,0.011193,3.746081,"260919 table, scaled error"
+ours_A1v2_M50,50,10.0,0.392699,3.808654,0.019193,3.746081,"alpha=0.5 like-for-like, seed SE"

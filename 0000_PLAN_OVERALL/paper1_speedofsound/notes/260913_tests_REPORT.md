@@ -1540,3 +1540,95 @@ sigma_omega contributes at most 0.127 of sigma_Gamma per cell, so omega^2 is tre
 R2 reads +1.3σ at M = 50 and −2.0σ at M = 100, so "τ_r ∝ L at fixed M" (261006) reproduces only at the 2σ edge at M = 100. It is stated, not rounded up.
 
 The fit is `python3 hspist3/validation/paper1_linewidth_decomp_20261012.py --fit`. It refuses to run until this text is in the committed HEAD.
+
+## Addendum 2026-10-12 15:17:58 HST: 1b RESULT: linewidth decomposition, fit run once after the pre-registration (84d7a49)
+
+**Printed by `python3 hspist3/validation/paper1_linewidth_decomp_20261012.py --fit`** (verbatim):
+
+### Fit (run once): Gamma_meas - gamma_M/M_eff = c omega^2 + Gamma_res, weighted, 7 cells, 5 dof
+
+c = 0.6597 ± 0.0155 (raw) ± 0.3465 (x sqrt(chi2_red) = 22.426)
+Gamma_res = -3.501e-04 ± 1.6e-05 (raw) ± 3.6e-04 (scaled)
+chi2 = 2514.60 on 5 dof, chi2_red = 502.92, p = 0  -> MODEL FORM REJECTED (p < 0.01) by the pre-registered flag
+corr(c, Gamma_res) = -0.955
+
+Verdict quantities (scaled sigma_c = 0.3465): (c - c_th)/sigma = -3.18;  c/sigma = +1.90;  (c - c_full)/sigma = -5.60 [secondary]
+
+**OUTCOME 2 -- c = 0 within errors, and inconsistent with Enskog (c_th)**
+
+Per-cell residual against the PREDICTION (no fitted parameter): r = Gamma_meas - gamma_M/M_eff - c_th omega^2
+
+| box | L_c | M | alpha | Gamma_meas | gamma_M/M_eff | c_th omega^2 | r | r/sigma | fit residual/sigma |
+|---|---|---|---|---|---|---|---|---|---|
+| A | 38.75 | 10 | 0.100 | 9.6143e-03 | 3.138e-03 | 7.787e-03 | -1.310e-03 | -9.3 | +27.7 |
+| A | 38.75 | 20 | 0.200 | 6.7216e-03 | 2.770e-03 | 6.609e-03 | -2.657e-03 | -20.7 | +14.2 |
+| A | 38.75 | 50 | 0.500 | 3.4156e-03 | 1.964e-03 | 4.473e-03 | -3.022e-03 | -54.9 | +2.3 |
+| A | 38.75 | 100 | 1.000 | 1.8429e-03 | 1.283e-03 | 2.865e-03 | -2.305e-03 | -149.2 | -10.6 |
+| A | 38.75 | 200 | 2.000 | 9.5696e-04 | 7.468e-04 | 1.657e-03 | -1.446e-03 | -267.0 | -11.2 |
+| B | 77.50 | 50 | 0.250 | 1.6536e-03 | 6.425e-04 | 1.496e-03 | -4.853e-04 | -15.3 | +25.3 |
+| B | 77.50 | 100 | 0.500 | 9.5657e-04 | 4.846e-04 | 1.090e-03 | -6.180e-04 | -38.5 | +25.8 |
+
+Gamma_res vs L (weighted mean of r per box, scaled by sqrt(chi2_red) of the box mean where > 1):
+
+- box A (L_c = 38.75): Gamma_res = -1.555e-03 ± 1.5e-04  (chi2 = 3544.9 on 4 dof; Gamma_res * L_c = -0.0602, Gamma_res * L_c^2 = -2.334)
+- box B (L_c = 77.5): Gamma_res = -5.909e-04 ± 5.3e-05  (chi2 = 14.0 on 1 dof; Gamma_res * L_c = -0.0458, Gamma_res * L_c^2 = -3.549)
+
+### Secondary (reported, no verdict)
+
+- gamma_M with L_c instead of L_eff: c = 0.6819 ± 0.3438, Gamma_res = -3.526e-04, chi2 = 2474.81/5
+- standing-wave viscous profile, gamma_M g(K)/M_eff: c = 0.6198 ± 0.3229, Gamma_res = -3.189e-04, chi2 = 2183.15/5
+
+figure: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261012_paper1_linewidth_decomp.png (+ .pdf)
+
+Figure: `261012_paper1_linewidth_decomp.{png,pdf}`. Error bars are drawn but smaller than the symbols.
+
+**Reading.**
+
+- **By the written rule: outcome 2.** $c = 0.66 \pm 0.35$ (scaled) is $1.90\sigma$ from 0 and $3.18\sigma$ below $c_{\rm th} = 1.76$.
+- **The pre-registered flag also fired, and it outranks the label.** $\chi^2 = 2515$ on 5 dof ($\chi^2_{\rm red} = 503$, $p = 0$), so the form $\Gamma_{\rm meas} = \gamma_M/M_{\rm eff} + c\,\omega^2 + \Gamma_{\rm res}$ is rejected. The outcome-2 label rests entirely on the $\sqrt{\chi^2_{\rm red}} = 22.4$ inflation of $\sigma_c$. With the raw $\sigma_c = 0.0155$ (printed above), $c$ would be tens of $\sigma$ from both 0 and $c_{\rm th}$. Neither outcome is a physical statement. What the fit establishes is that **no single $c\,\omega^2$ law describes the seven cells**: the residuals run $+28\sigma$ at $\alpha = 0.1$, $-11\sigma$ at $\alpha = 2$, and $+25\sigma$ for both box-B cells. The data are convex in $\omega^2$ and the two boxes do not share one curve. The three secondary variants do not rescue the form either ($\chi^2 = 2183$–$2475$ on 5 dof).
+- **What holds with no fitted parameter** (per-cell table above):
+  1. $\Gamma_{\rm meas} - \gamma_M/M_{\rm eff} > 0$ in all seven cells. The measured damping exceeds Mansour's friction with the standing-wave mass everywhere, which restates 261006's Mansour/measured > 1 in the rate form.
+  2. $r = \Gamma_{\rm meas} - \gamma_M/M_{\rm eff} - c_{\rm th}\,\omega^2 < 0$ in all seven cells ($-9\sigma$ to $-267\sigma$). The free-wave thermal estimate over-predicts in every cell, which is the direction pre-registered as expected.
+  3. The per-box $\Gamma_{\rm res}$ printed for outcome 3 fits neither $\propto 1/L$ ($\Gamma_{\rm res}L = -0.060$ vs $-0.046$) nor $\propto 1/L^2$ ($-2.33$ vs $-3.55$). Box A's own $\chi^2 = 3545$ on 4 dof says one constant per box does not describe it either.
+- **INFERENCE (post hoc, not tested).** Box B lies above box A at comparable $\omega^2$, and at equal $\alpha = 0.5$ (equal $K$) the excess over Mansour is not the same multiple of $\omega^2$ in the two boxes. So the excess is not a function of $K$ alone. That fits a thermal loss controlled by $L/\delta_{\rm th}$, with $\delta_{\rm th} = \sqrt{2\chi/\omega}$ comparable to $L$ here. Deciding it needs the exact linear thermoviscous eigenvalue problem of the coupled divider–gas system (insulated walls), which is the natural next calculation and has not been done.
+- **Facts reproduced:** R1 PASS (2.04 → 1.03; 1.87, 1.52); R3 PASS ($\eta_s + \zeta = 0.3307$ vs 0.331); R2 at $+1.3\sigma$ ($M = 50$) and $-2.0\sigma$ ($M = 100$).
+
+## Addendum 2026-10-12 15:20:22 HST: 1a: Román 2002 Table II (size series at η = π/8) re-mapped against Kolafa–Rottner
+
+**Source, read from the PDF.** Román, González, White & Velasco, **Am. J. Phys. 70, 847 (2002)**, doi 10.1119/1.1482060. Table I is on p. 850 and Table II on p. 851. The 261002 plan note cites it as "Eur. J. Phys.", which is wrong. Table II: $N = 64, 256, 1024, 4096$; $L_0 = 8\sqrt2, 16\sqrt2, 32\sqrt2, 64\sqrt2$; $c_s = 3.81, 3.78, 3.76, 3.75$. Text, p. 851: "same aspect ratio ($A = L_0$) at fixed $\eta = 0.393$", "constant $K = 1.07687$, that is, with a piston mass $M = Nm$", "extrapolated value … $c_s = 3.74$". **No uncertainties are printed.** The points are plotted without error bars and labelled "as published", and no $\chi^2$ is computed. The only stated precision is the 2-decimal rounding ($\pm 0.005$, i.e. $\pm 0.13\,\%$).
+
+**$N$ is per compartment.** $\eta = N\pi r^2/(A L_0)$ with $A = L_0$ gives exactly $\pi/8$ for every row (recomputed below). The comparison quantity is the adiabatic Kolafa–Rottner value, $c_s^2 = (kT/m)(Z + \eta Z' + Z^2)$.
+
+**Printed by `python3 hspist3/validation/roman2002_tableII_20261012.py`** (verbatim):
+
+### Roman 2002 Table II (Am. J. Phys. 70, 847; table on p. 851), re-mapped
+
+KR adiabatic c_s at eta = pi/8 = 0.392699: **3.74608**
+
+| N (per compartment) | L_0 = A | eta recomputed | c_s as published | (c_s - KR)/KR | guide line |
+|---|---|---|---|---|---|
+| 64 | 11.3137 | 0.392699 | 3.81 | +1.71 % | 3.8112 |
+| 256 | 22.6274 | 0.392699 | 3.78 | +0.91 % | 3.7771 |
+| 1024 | 45.2548 | 0.392699 | 3.76 | +0.37 % | 3.7601 |
+| 4096 | 90.5097 | 0.392699 | 3.75 | +0.10 % | 3.7516 |
+
+Guide: unweighted straight line in N^(-1/2) through the four published values (no errors exist, so no chi^2): c_s = 3.7430 + 0.5454 N^(-1/2).
+Its intercept 3.7430 vs Roman's own extrapolated 3.74 (as published) and KR 3.74608 (-0.08 %); at N = 50 the guide gives 3.8202.
+
+Our estimator self-check (9-mass recomputation from T.DROOT vs 260919 table 3.80884): 3.80884 -> REPRODUCED to 5e-6
+Our canonical point, N_s = 50, H = L_0 = 10: c_s = 3.80884 ± 0.01119 (scaled), +1.68 % vs KR; minus guide at N = 50: -0.0113
+Our like-for-like point, M = 50 only (alpha = 0.5, K = 1.07687 vs Roman's 1.07687): c_s = 3.80865 ± 0.01919 (25 seeds), +1.67 % vs KR; minus guide at N = 50: -0.0115
+
+figure + csv: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261012_roman2002_tableII_vs_KR.{png,pdf,csv}
+
+Figure: `261012_roman2002_tableII_vs_KR.{png,pdf}` (+ `.csv`). Román's points are black, KR is red, ours are blue.
+
+**The L/H ambiguity.** Román scales the height and the length together, $A = L_0 \propto \sqrt N$. Along his series
+
+$$N^{-1/2} \;\propto\; \frac{1}{L_0} \;\propto\; \frac{1}{H}, \qquad \frac{2}{H} + \frac{2}{L_0} = \frac{4}{L_0},$$
+
+so a finite-size term $\propto 1/H$ (hypothesis B) and one $\propto 2/H + 2/L$ (hypothesis A) are the same straight line in $N^{-1/2}$ and differ only in the coefficient. **Table II cannot separate confinement across the channel from the finite length of the column.** Only a scan that moves $H$ and $L$ separately can (item 2, 261012_paper1_confinement.md).
+
+**Where our box sits.** Our box ($N_s = 50$, $H = L_0 = 10$) is square, so it is the $N = 50$ member of the same series. It is also Román's own Table I box, which gave $3.78 \pm 0.08$ at $\eta = 0.392699$ (260922 re-mapping). Our canonical $3.80884 \pm 0.01119$ (+1.68 % vs KR) and the like-for-like $M = 50$ cell, at Román's $\alpha = 0.5$ and $K = 1.07687$ ($3.80865 \pm 0.01919$, +1.67 %), agree with each other. That is expected, since the 9-mass fit uses the $M = 50$ cell. Both lie **0.011 below** the guide line extrapolated to $N = 50$ (3.8202), i.e. at about the level of Román's $N = 64$ point (3.81, +1.71 %). No significance is attached: the guide is an extrapolation past Román's smallest system and carries no uncertainty. The guide's intercept, 3.7430, sits −0.08 % from KR (3.74608), against Román's own "3.74".
+
+**What it does and does not say.** The size series and our point share one trend: a +1.7 % excess at $N \approx 50$–64 that falls toward KR as the square box grows. That matches the A2 conclusion (methods § 9: no departure from KR claimed for $\eta \le 0.60$). The series says nothing about *which* dimension controls the excess.
