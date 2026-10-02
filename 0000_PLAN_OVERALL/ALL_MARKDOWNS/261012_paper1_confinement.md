@@ -1,6 +1,6 @@
 # Paper 1 confinement campaign — PRE-REGISTRATION (not launched)
 
-Written 2026-10-12 before any run. **Nothing here is launched.** The campaign starts after the
+Written 2026-10-12 before any run. **Nothing here is launched.** *Amended the same day (§ 1.9, C1–C2); still unlaunched.* The campaign starts after the
 Paper 2 efficiency map and only on an explicit go. Every number in the tables of § 1.4 is printed
 by `python3 hspist3/validation/paper1_confinement_prereg_20261012.py`, pasted verbatim.
 
@@ -292,7 +292,7 @@ $C_L = N_s k$):
 $$\frac{N_s m\,c_s^2}{L_{\rm eff}^2} = k_S = -\Big(\frac{\partial F}{\partial L}\Big)_T + \frac{F^2}{N_s kT}.$$
 
 Here $c_s$ comes from (B) and $k_T$, $F$, $T$ from (A); $L_{\rm eff}$ is the length in
-$\nu = c_sK/2\pi L_{\rm eff}$. **Verdict: agreement within 2σ at every cell.** The expected
+$\nu = c_sK/2\pi L_{\rm eff}$. **Verdict: agreement within 2σ at every cell.** *(Superseded as the test by § 1.9, C1: the length-free form $2k_S^{\rm dyn} = \hat M\omega_1^2$ is primary.)* The expected
 $\sigma(\rho_I)$ is 0.72–0.74 % (Table I). Under C the residual would be $\rho_I \approx 2\Delta_C$,
 which is +3.4σ at $N_s = 25$, $\eta \approx 0.10$ and +1.7σ at the anchor. **So a failure
 concentrated at small $N_s$ is C's signature, and is read that way.**
@@ -343,10 +343,85 @@ first, then (B) and (A) both anchors), then L-scan, then aspect.
 4. **Pilot at $\pi/8$:** 4 seeds per position at the anchor. This measures the noise coefficient,
    fixes the record, and checks that the steps-to-σ-time conversion gives 5000 σ-time per seed
    (read from the event-log time range, not computed from `--steps`).
-5. **Health contract** zero on every run (forced_advance, clamp_repair, overlap_repair,
+5. **Mode-equivalence gate** (§ 1.9, C2): one cell in both modes; $\eta$, $t$, compartment lengths and $L_{\rm eff}$ agree to $10^{-6}$; pictures from both.
+6. **Health contract** zero on every run (forced_advance, clamp_repair, overlap_repair,
    wall_overdue). `00_COMMAND.md` per leaf, and a `--version` line in every summary.
 
 ### 1.8 What would change this registration
 
 Only the pilot of gate 4: it may change the record length and the cost of (A) at $\pi/8$, by the
 rule already written. Nothing else is tuned after data.
+
+---
+
+### 1.9 Amendments C1–C2 (2026-10-12), before any run — the campaign stays unlaunched until the map is analysed and the go is given
+
+#### C1 — the identity in its length-free form is the primary test
+
+$$2\,k_S^{\rm dyn} \equiv \hat M\,\omega_1^2,\qquad \hat M = M + \tfrac{2}{3}N_s m \qquad(\text{heavy masses, }\alpha \ge 5),$$
+
+compared with the static side, which is unchanged:
+
+$$k_S^{\rm dyn} \overset{?}{=} -\Big(\frac{\partial F}{\partial L}\Big)_T + \frac{F^2}{N_s kT}.$$
+
+$k_S^{\rm dyn}$ is computed per heavy mass, and the five values ($\alpha = 5, 7.5, 10, 15, 20$) are combined by inverse-variance weighting. Neither side contains a length. $\omega_1$ and $M$ are measured or set; $F$ and $\partial F/\partial L$ come from method A, where the derivative is with respect to the divider position, so no convention enters.
+
+**$\hat M$ is $M + \tfrac23 N_s m$, not $M + \tfrac13 N_s m$.** The divider drives two gas columns, and each has the linear-profile inertia $N_s m/3$. Mansour's $\hat M = M + mN/3$ (Eq. 18) has $N = 2N_s$ total, and it is the $K \to 0$ limit of the standing-wave mass $M + 2N_s m[\tfrac12 - \sin 2K/4K]/\sin^2K$. Expanding $\cot K = \alpha K$ gives
+
+$$K^2(\alpha + \tfrac13) = 1 - \frac{K^4}{45} + \dots\;\Rightarrow\;\omega^2 = \frac{2k_S}{M + \tfrac23 N_s m}\Big(1 - \frac{K^4}{45}\Big).$$
+
+Table H shows the result. With $\tfrac23$, the heavy form matches the exact standing wave to ≤ 0.08 % for $\alpha \ge 5$. With $\tfrac13$, it would be off by 3.3 % at $\alpha = 5$ and still 0.8 % at $\alpha = 20$, several times the expected σ. The amendment as written in the plan would therefore have built a 1–3 % bias into the test, so $\tfrac23$ is used.
+
+**The check at all $\alpha$** uses the exact standing-wave stiffness, which is also length-free:
+
+$$k_S^{\rm SW} = \frac{N_s m\,\omega_1^2}{K(\alpha)^2},\qquad \cot K = \alpha K.$$
+
+It is reported per mass, with no verdict.
+
+**The $c_s/L$ form is NOT the test.** $N_s m c_s^2/L^2$ needs a length, and the choice between the geometric $L_0$ and the $L_{\rm eff}$ of the frequency formula moves it by $(L_0/L_{\rm eff})^2$. That is **1.0543 at the $\eta \approx 0.10$ anchor and 1.2415 at $\pi/8$** (Table L), far beyond any error bar. The § 1.5 identity in the $c_s/L$ form and Table I are therefore superseded as the test. The comparison of $c_s(\eta)$ with KR, using $L_{\rm eff}$, remains a separate bulk comparison, as in Paper 1.
+
+**Expected σ, recomputed (Table I-ω).** $\sigma(\rho_I)$ is **0.457 % ($\eta \approx 0.10$) and 0.435 % ($\pi/8$)**, against 0.736 % and 0.717 % for the $c_s/L$ form. The heavy masses pin $\omega_1$ to 0.09–0.14 % on $k_S$, so the static side's 0.9 % on $k_T$, weighted by $k_T/k_S \approx 0.5$, now dominates. Under hypothesis C, $\rho_I \approx 2\Delta_C$ is **+2.8σ and +1.8σ** at the two anchors, up from +1.7σ and +1.1σ. The ω-form makes C easier to test, not harder.
+
+**Verdict rule, unchanged:** agreement within 2σ at every cell.
+
+#### C2 — mode-equivalence gate (added to § 1.7)
+
+Before any quantity from method A (energy-transfer mode, held divider) is compared with any quantity from method B (speed-of-sound mode, free divider), one test cell is run in both modes. The recorded $\eta$, divider thickness, both compartment lengths and $L_{\rm eff}$ must agree to $10^{-6}$, read from each mode's own summary or log output, not from the command line. Pictures (GUI + paper render) are taken from both modes. **No cross-mode comparison is made before this gate passes.** If it fails, the difference is reported and the geometry is reconciled before launch. Levels 3 and 4 ran energy-transfer mode with $t = 1.0$, and Paper 1 ran speed-of-sound mode with $t = 0.05$. The convention has never been checked across the two modes.
+
+**Tables printed by `python3 hspist3/validation/paper1_confinement_prereg_20261012.py --c1`** (verbatim):
+
+#### Table L -- the length convention the c_s/L form would depend on
+
+| anchor | eta | L_0 (geometric) | L_eff = L_0 - 2r - t/2 | (L_0/L_eff)^2 |
+|---|---|---|---|---|
+| 0.10 | 0.100051 | 39.2500 | 38.2250 | 1.0543 |
+| 0.39 | 0.392699 | 10.0000 | 8.9750 | 1.2415 |
+
+#### Table H -- heavy-divider form vs the exact standing wave, per alpha (box-independent)
+
+Exact: omega^2 = c_s^2 K^2/L^2 with cot K = alpha K. Heavy form: omega^2 = 2 k_S / M_hat, k_S = N_s m c_s^2/L^2,
+M_hat = M + 2 N_s m/3, i.e. omega^2 = (c_s^2/L^2)/(alpha + 1/3). The plan's M + N_s m/3 is shown for comparison.
+
+| alpha | K | heavy/exact omega^2, M_hat = M + 2N_s m/3 | same with M + N_s m/3 | used in primary |
+|---|---|---|---|---|
+| 0.5 | 1.07687 | 1.03479 | 1.29349 | check only |
+| 1 | 0.86033 | 1.01328 | 1.15803 | check only |
+| 2 | 0.65327 | 1.00424 | 1.08149 | check only |
+| 3 | 0.54716 | 1.00205 | 1.05479 | check only |
+| 5 | 0.43284 | 1.00079 | 1.03308 | yes |
+| 7.5 | 0.35723 | 1.00037 | 1.02211 | yes |
+| 10 | 0.31105 | 1.00021 | 1.01661 | yes |
+| 15 | 0.25536 | 1.00010 | 1.01109 | yes |
+| 20 | 0.22176 | 1.00005 | 1.00832 | yes |
+
+#### Table I-omega -- expected sigma of the identity residual in the length-free form
+
+Primary (alpha >= 5): k_S^dyn = M_hat omega_1^2 / 2 per mass, inverse-variance mean over the five heavy masses;
+sigma(k_S^dyn)/k_S = 2 sigma_nu/nu (M_hat exact). Per-mass sigma_nu/nu = seed SE of the A1v2 cell (canonical
+estimator) at the anchor (eta = 0.1122 stands in for 0.10). Static side as in Table I (k_T noise 0.9 %).
+Standing-wave check (all alpha): k_S^SW = N_s m omega_1^2 / K(alpha)^2, per mass.
+
+| anchor | per-mass 2 sigma_nu/nu, alpha = 0.5 ... 20 [%] | heavy combined 2 sigma_nu/nu [%] | k_T/k_S | sigma(rho_I) omega-form [%] | sigma(rho_I) c_s/L form (Table I) [%] | rho_I under C [%] | rho_I(C)/sigma |
+|---|---|---|---|---|---|---|---|
+| 0.10 | 0.81 / 0.69 / 0.42 / 0.36 / 0.20 / 0.24 / 0.20 / 0.24 / 0.18 | 0.093 | 0.4977 | 0.457 | 0.736 | +1.269 | +2.8 |
+| 0.39 | 1.01 / 0.80 / 0.68 / 0.46 / 0.39 / 0.39 / 0.33 / 0.31 / 0.24 | 0.142 | 0.4571 | 0.435 | 0.717 | +0.768 | +1.8 |

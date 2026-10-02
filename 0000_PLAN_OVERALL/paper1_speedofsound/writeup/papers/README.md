@@ -4,7 +4,7 @@ PDFs to be added (Zotero). Listed in the order they are used in the draft.
 
 | key | reference | DOI / arXiv | used for |
 |---|---|---|---|
-| Roman2002 | F. L. Román, J. A. White, S. Velasco, *The speed of sound in a hard disk gas: a computer simulation*, Eur. J. Phys. 23 (2002) | 10.1088/0143-0807/23/5/302 | the divider-mode method this paper reproduces and extends |
+| Roman2002 | F. L. Román, A. González, J. A. White, S. Velasco, *The speed of sound in a hard disk gas: A computer simulation*, Am. J. Phys. 70, 847 (2002) [corrected 2026-10-12 from the PDF; was "Eur. J. Phys. 23", with González missing and a wrong DOI] | 10.1119/1.1482060 | the divider-mode method this paper reproduces and extends |
 | KolafaRottner2006 | J. Kolafa, M. Rottner, *Simulation-based equation of state of the hard disk fluid*, Mol. Phys. 104 (2006) | 10.1080/00268970600880574 | the reference EOS, valid to η ≈ 0.69 |
 | Henderson1975 | D. Henderson, *A simple equation of state for hard discs*, Mol. Phys. 30 (1975) | 10.1080/00268977500102041 | comparison curve |
 | SPT | E. Helfand, H. L. Frisch, J. L. Lebowitz, *Scaled particle theory*, J. Chem. Phys. 34 (1961) | 10.1063/1.1731699 | comparison curve |

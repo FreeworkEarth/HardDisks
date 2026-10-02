@@ -191,5 +191,45 @@ def main():
             a_ = sum(c["cpuA"] for c in cc); b_ = sum(c["cpuB"] for c in cc)
             print(f"| {scan} | {lab} | {len(cc)} | {a_:.1f} | {b_:.1f} | {a_+b_:.1f} | {(a_+b_)/9:.1f} |")
 
+def amend_c1():
+    """##CHRIS 2026-10-12, amendment C1 (261012 sec. 1.9): the identity in its length-free form."""
+    from paper1_populate_cs_err_20261002 import cell
+    A = anchors(); eps0 = None
+    print("### Table L -- the length convention the c_s/L form would depend on\n")
+    print("| anchor | eta | L_0 (geometric) | L_eff = L_0 - 2r - t/2 | (L_0/L_eff)^2 |")
+    print("|---|---|---|---|---|")
+    for lab, a in A.items():
+        print(f"| {lab} | {eta_of(a['Ns'], a['H'], a['L0']):.6f} | {a['L0']:.4f} | {leff(a['L0']):.4f} | {(a['L0']/leff(a['L0']))**2:.4f} |")
+    print("\n### Table H -- heavy-divider form vs the exact standing wave, per alpha (box-independent)\n")
+    print("Exact: omega^2 = c_s^2 K^2/L^2 with cot K = alpha K. Heavy form: omega^2 = 2 k_S / M_hat, k_S = N_s m c_s^2/L^2,")
+    print("M_hat = M + 2 N_s m/3, i.e. omega^2 = (c_s^2/L^2)/(alpha + 1/3). The plan's M + N_s m/3 is shown for comparison.\n")
+    print("| alpha | K | heavy/exact omega^2, M_hat = M + 2N_s m/3 | same with M + N_s m/3 | used in primary |")
+    print("|---|---|---|---|---|")
+    for M in MASSES:
+        al = M / 100.0; K = kroot(al)
+        r2 = 1 / (K * K * (al + 1 / 3)); r1 = 1 / (K * K * (al + 1 / 6))
+        print(f"| {al:g} | {K:.5f} | {r2:.5f} | {r1:.5f} | {'yes' if al >= 5 else 'check only'} |")
+    print("\n### Table I-omega -- expected sigma of the identity residual in the length-free form\n")
+    print("Primary (alpha >= 5): k_S^dyn = M_hat omega_1^2 / 2 per mass, inverse-variance mean over the five heavy masses;")
+    print("sigma(k_S^dyn)/k_S = 2 sigma_nu/nu (M_hat exact). Per-mass sigma_nu/nu = seed SE of the A1v2 cell (canonical")
+    print("estimator) at the anchor (eta = 0.1122 stands in for 0.10). Static side as in Table I (k_T noise 0.9 %).")
+    print("Standing-wave check (all alpha): k_S^SW = N_s m omega_1^2 / K(alpha)^2, per mass.\n")
+    print("| anchor | per-mass 2 sigma_nu/nu, alpha = 0.5 ... 20 [%] | heavy combined 2 sigma_nu/nu [%] | k_T/k_S | sigma(rho_I) omega-form [%] | sigma(rho_I) c_s/L form (Table I) [%] | rho_I under C [%] | rho_I(C)/sigma |")
+    print("|---|---|---|---|---|---|---|---|")
+    for lab, tag, eA in (("0.10", "eta_0p112200", 0.112200), ("0.39", "eta_0p392699", 0.392699)):
+        a = A[lab]; L0d = {"0.112200": 34.9999, "0.392699": 10.0}[f"{eA:.6f}"]
+        rel = []
+        for M in MASSES:
+            c = cell((eA, L0d, M, T.cell_runs(os.path.join(T.DROOT, tag, f"m_{M}"), M)))
+            rel.append(2 * c["sd"] / math.sqrt(c["n"]) / c["nu"])
+        heavy = [r for M, r in zip(MASSES, rel) if M / 100.0 >= 5]
+        comb = 1 / math.sqrt(sum(1 / r ** 2 for r in heavy))
+        e = eta_of(a["Ns"], a["H"], a["L0"]); z = Z(e); dz = e * dZ(e); kr = (z + dz) / cs2(e)
+        sI = math.hypot(comb, kr * NOISE_MAX); sI_old = math.hypot(2 * a["sig"], kr * NOISE_MAX)
+        q = cs2(e) / z; dC = (q + 1) * (q + 2) / (16 * a["Ns"] * q * z)
+        print(f"| {lab} | {' / '.join(f'{100*r:.2f}' for r in rel)} | {100*comb:.3f} | {kr:.4f} | {100*sI:.3f} | {100*sI_old:.3f} | "
+              f"{200*dC:+.3f} | {2*dC/sI:+.1f} |")
+
 if __name__ == "__main__":
-    main()
+    if "--c1" in sys.argv: amend_c1()
+    else: main()
