@@ -819,3 +819,55 @@ delta = 0 at 7 of 35 densities; c_s lowered by at most 0.09 % for eta <= 0.16 (a
 
     snprintf(backup, sizeof(backup), "%s.legacy_%ld", path, (long)now);
     if (rename(path, backup) != 0) {
+
+### 14.3 A2 size-ladder correction — pre-registration (2026-10-02, machine date; written and committed before anything below is computed)
+
+**What is corrected.** § 14.2 (OPEN table) showed that the A2 ladder uses non-grid $L_0$ too, with $\delta$ up to $0.0414\,\sigma$ and a $c_s$ shift up to $0.41\,\%$ (η = 0.65, N = 100). The geometry is the same as in § 14: the divider starts $L_0$ from the left wall and oscillates about the centre of the truncated box. So the correction is the § 14 one, per (η, N) cell:
+$$L_{\rm eff,true} = L_{\rm eff} - \frac{\delta}{2},\qquad \eta_{\rm true} = \eta\,\frac{L_0}{L_0 - \delta/2},\qquad \delta = \frac{2L_0\cdot 24 - \lfloor 2L_0\cdot 24\rfloor}{24},$$
+with $\delta$ computed by the binary's float32 expression (`SIM_WIDTH = (int)(2*L0_UNITS*PIXELS_PER_SIGMA)`, `00ALLINONE.c:323`), as in § 14.2.
+
+**The ladder cells (DATA, from the runs' own command files).** $L_0$ is the value recorded in the per-mass tables (`260919_A2_cs_per_mass.csv` and `_famB`; listed with its $\delta$ per cell in the § 14.2 OPEN table). $H = 10\sqrt{N/100}$:
+
+| N | 100 | 400 | 900 | 1600 | 2500 |
+|---|---|---|---|---|---|
+| H | 10 | 20 | 30 | 40 | 50 |
+
+These are read from `--height=` in the `00_COMMAND.md` files of `A2_dilute_20260916`, `A2_dilute50_20260917`, `A2_topup_20260912`, `A2_alpha2_20260912` and `A2_long200_20260915`. For cells whose directories hold no `00_COMMAND.md`, the script reads $H$ back from the trace's recorded η, $H = N\pi r^2/(2L_0\eta_{\rm rec})$, as in § 14.1.
+- **Height cast:** `SIM_HEIGHT = (int)(HEIGHT_UNITS * PIXELS_PER_SIGMA);` (`00ALLINONE.c:324`). $H\cdot 24 = 240, 480, 720, 960, 1200$ are integers, so the height is never truncated. The script checks this per cell.
+- **Off-grid cells:** every A2 cell with $\delta > 0$ in § 14.2. In that table, all 60 rows of both families are off-grid (smallest $\delta = 0.0047\,\sigma$).
+
+**What is recomputed, and from what.** No trajectory is re-analysed. The per-mass frequencies $\bar\nu_M$ are data. The correction changes only $x_M = K(\alpha)/(2\pi L_{\rm eff})$, by one factor per (η, N) cell, plus the η at which KR is evaluated.
+1. **Estimator gate first.** From `260919_A2_cs_per_mass.csv` ($\bar\nu_M$, $L_0$), the published fit `260917_A2_cs_vs_N_extrapolation.csv` (printed by `analyze_A2_X2p5_20260914.py`) must be reproduced to its printed precision, with that script's own definitions:
+   - $x_M$ with $L_{\rm eff} = L_0 - 2r$;
+   - per-cell $c_s$ = the unweighted through-origin slope;
+   - weight = SD of $\bar\nu_M/x_M$;
+   - `sos.weighted_linreg` on $1/\sqrt N$.
+
+   If it is not reproduced, the analysis stops and the verdict is VOID.
+2. **Three columns are reported:**
+   - **(P)** as published, $L_{\rm eff} = L_0 - 2r$;
+   - **(B) before** = the current canonical geometry, $L_{\rm eff} = L_0 - 2r - t/2$, as in the A1 table since 2026-09-18;
+   - **(A) after** = $L_0 - 2r - t/2 - \delta/2$ and $\eta_{\rm true}$.
+
+   **The verdict compares B with A only**, i.e. the box truncation alone, as in § 14. P → B is the divider-thickness factor, which the draft's finite-size numbers do not yet carry. That is reported separately and does not enter the verdict.
+
+**Per-point test.**
+- For every ladder point, $D = (c_s - c_s^{\rm KR}(\eta))/\sigma$. Here σ is the error bar the draft plots for that point: `slope_with_errors` with $\sigma_\nu = {\rm sd}/\sqrt n$, inflated by $\sqrt{\chi^2_{\rm red}}$, as in `overlay_N100_vs_A2_20260915.py:42` and `lowdensity_zoom_20260917.py:44`. KR is taken at the point's own η (B: η; A: $\eta_{\rm true}$).
+- Both per-mass tables are tested.
+- Points above η = 0.69 do not exist in A2.
+
+**Fit test.** The draft defines the finite-size fit as $c_s(N) = c_\infty + b/\sqrt N$, weighted by the mass scatter (`analyze_A2_X2p5_20260914.py:120`). The exponent is fixed at 1/2; the draft fits no exponent, so the two fitted parameters are the intercept $c_\infty$ and the coefficient $b$.
+- **Why the fit uses deviations.** After the correction, the points of one ladder no longer share one η, because $\eta_{\rm true}$ depends on N. The A fit is therefore made on the deviations $\Delta_N = c_s - c_s^{\rm KR}(\eta_{\rm true,N})$, with the same weights, and reported as $c_\infty = c_s^{\rm KR}(\eta) + \Delta_\infty$.
+- In B all points share η, so this is identical to the published form.
+- The test is on the draft's source table, `260919_A2_cs_per_mass.csv` (the 260917 data).
+
+**Verdict rule (fixed now):**
+- **REGENERATE** if any ladder point's $D$ changes by more than 0.5 (of that point's own σ) between B and A, in either table; **or** the fit's $c_\infty$ or $b$ changes by more than its own 1σ (the B error) at any η.
+- **KEEP** otherwise.
+
+**If REGENERATE:**
+- dated copies `_pre_boxtrunc_261002` (`cp -n`, `cmp`) of both A2 per-mass tables, `260917_A2_cs_vs_N_extrapolation.csv`, and the two figures that show A2 points;
+- the tables are regenerated with $c_s$-like columns at $L_{\rm eff,true}$, plus `eta_true` and `delta_sigma` columns. The figures are regenerated by their original scripts with "corrected for box truncation (methods §14)", and the "A2 points not yet corrected" annotation goes.
+- The extrapolation table is regenerated by `paper1_A2_boxtrunc_261002.py` with the original script's fit (same function, same weights) in the A geometry.
+
+**If KEEP:** nothing is regenerated, and the draft says in one sentence that the correction changes no A2 result by more than the stated amount.
