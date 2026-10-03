@@ -772,3 +772,31 @@ $$\theta(k) = \max\big(0.01\,s_{\rm rev}(k),\ 3\sigma_{\rm ctrl}\big),\qquad s_{
 **Cells.** If G2 is valid, each of the 36 cells is PASS if $|d| < \theta(k)$ and FAIL otherwise. The label on 261012_p2_effmap(_both) and the per-$k$ panels comes from G2.
 
 **Disclosure.** The absolute control drifts for these exact windows, 0.0022 / 0.0117 / 0.0032 / 0.0044 / 0.0014 / 0.0012 σ, were already printed as the post-hoc diagnostic of § 3.2. The control outcome of G2 is therefore not blind. $\sigma_{\rm ctrl}$ (from the signed drifts) and every cell's $d$ have not been computed.
+
+### 3.3 Over-pressure test: timeline, tag split, and an open provenance item (2026-10-14; no new computation)
+
+*(Numbered as the plan asks. It is appended after § 3.4 because both pre-registrations, § 14 of the methods and G2 § 3.4, had to be committed before anything was computed.)*
+
+**(i) Timeline: when was the literal § 1.3 variant (0.90–0.92) computed?** **After** the pre-registration commit. The evidence is file birth and modification times on the Mac, and the commit times, all on 2026-10-02 (HST):
+
+| time | event |
+|---|---|
+| 14:00:05 | `paper2_effmap_overpressure_20261013.py` created. Both constructions are coded (`variant="literal"` and the matched one); not run. |
+| 14:00:48 | The § 3 pre-registration text written. It names the literal construction as secondary variant (i) and argues the matched one as primary, from the control-corrected estimator, with no number. |
+| **14:00:53** | **f3c6209 committed** (the § 3 pre-registration alone). |
+| 14:00:58 | First run of the script started (its tee output file is born). |
+| 14:02:13 | First run finished (the results json and the figure are born). The 0.90–0.92 appears here for the first time. |
+| 14:06:28 | c849b93 (results) committed. |
+
+So **the reference choice was not informed by the literal variant's number**. What was known before f3c6209:
+- the plateau ratios to KR (§ 2, 0504d68);
+- the Level 3 window scan against the 260925 table, which yields $F$ and $T$ only (disclosed in § 3);
+- the structure of the estimator.
+
+The c849b93 report said the 0.90–0.92 "is why the pre-registration matched the control-corrected pre-push equilibrium". That wording implied a causation the timeline excludes. Correctly: the matched construction was chosen on the estimator's structure, and the literal variant's later result is consistent with that choice.
+
+**(ii) The tag, split.**
+- **DATA (level).** The 1–2 % plateau excess over the KR reversible reference is consistent with the measured box over-pressure, within the 1.0–1.2 % precision of $F(L)$. The ratios to $\varepsilon_{\rm rev,F}$ are $0.995 \pm 0.011$, $0.977 \pm 0.012$ and $0.982 \pm 0.012$.
+- **OPEN (pattern in $k$).** The reference error comes from one $\lambda(\eta)$ fit and is **shared by the three ratios**, so it shifts them together and **cannot explain their differences**. The measured ratios to KR reject a common value: $\chi^2 = 7.67$ on 2 dof, $p = 0.022$. Over-pressure alone predicts a monotonic rise with $k$ (1.028, 1.035, 1.040). The resulting ~1 % $k$-pattern is real, untouched by the over-pressure correction, and unexplained. It is a candidate for divider or thermal physics, not for the equation of state.
+
+**(iii) OPEN, provenance.** Level 3's inline $F(L)$ estimator (the 260925 table) is not recoverable: it was never committed, and no averaging window reproduces its $F$ to 4 decimals. $F(L)$ for § 3 was recomputed from the raw event logs, giving $T$ exactly and $F$ within the published errors. Keep the Level 3 raw event logs (`level3_FofL_20260925/`) permanently for that reason.
