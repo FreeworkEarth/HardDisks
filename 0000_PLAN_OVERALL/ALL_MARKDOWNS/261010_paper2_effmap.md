@@ -753,3 +753,22 @@ Figures re-rendered with the label: `261012_p2_effmap.{png,pdf}`, `261012_p2_eff
 - **It is noise-limited (DATA).** The six no-push controls are settled by construction, yet only 1 of 6 passes. For a settled system, the one-period mean of the 8-seed trajectory moves by 0.010–0.124 σ, which is 1–28× the thresholds of 0.0045–0.015 σ. **A FAIL from this gate therefore does not indicate an unsettled divider**, and the label cannot serve as the paper figure's settle criterion. A one-period window does not average out the divider's thermal motion.
 - **What would work (post-hoc diagnostic, not adopted).** With windows one $\tau_r$ long — the windows $\varepsilon_{\rm settled}$ already uses — the controls' $\Delta$ is 0.0011–0.0117 σ, under threshold in 6 of 6. A "last $\tau_r$ vs previous $\tau_r$" version of the same criterion would be a usable gate. Adopting it after seeing these data would be a post-hoc change, so **it is not applied here; the decision is the plan author's (OPEN).**
 - **Unaffected:** the $\varepsilon$ values, their errors, the § 3.1 verdict and every number in § 2. The gate is a label, not an input.
+
+### 3.4 Gate G2 — pre-registration (2026-10-14, committed before G2 is computed)
+
+G2 replaces the one-period gate of § 3.2. That gate failed 5 of 6 controls that are settled by construction, so it was not a gate.
+
+**Definition.**
+- $\bar x(t)$ is the 8-seed mean divider trajectory (`W0_x_sigma`).
+- $\tau_r = 2\hat M/\gamma_1$ is taken per $(k, M_s)$ from § 1.8 table 1: 3366 / 9426 / 3308 / 9262 / 3273 / 9165.
+- For each run, with $W_1$ the last $\tau_r$ of the record and $W_0$ the $\tau_r$ before it, the signed drift is
+$$d = \langle \bar x\rangle_{W_1} - \langle \bar x\rangle_{W_0}.$$
+- $\sigma_{\rm ctrl}$ is the sample standard deviation (ddof = 1) of the six **signed** control drifts. The no-push controls have $W_{\rm in} = 0$, and each uses its own $(k, M_s)$ $\tau_r$.
+- The threshold is set per $k$:
+$$\theta(k) = \max\big(0.01\,s_{\rm rev}(k),\ 3\sigma_{\rm ctrl}\big),\qquad s_{\rm rev} = 1.4987,\ 0.8403,\ 0.4480 \text{ (§ 1.3).}$$
+
+**Validity.** G2 is VALID only if all six controls have $|d| < \theta(k)$. If it is not valid, no cell is labelled, and the outcome is reported.
+
+**Cells.** If G2 is valid, each of the 36 cells is PASS if $|d| < \theta(k)$ and FAIL otherwise. The label on 261012_p2_effmap(_both) and the per-$k$ panels comes from G2.
+
+**Disclosure.** The absolute control drifts for these exact windows, 0.0022 / 0.0117 / 0.0032 / 0.0044 / 0.0014 / 0.0012 σ, were already printed as the post-hoc diagnostic of § 3.2. The control outcome of G2 is therefore not blind. $\sigma_{\rm ctrl}$ (from the signed drifts) and every cell's $d$ have not been computed.
