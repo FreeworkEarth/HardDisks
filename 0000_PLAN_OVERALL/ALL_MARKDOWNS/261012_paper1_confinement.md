@@ -963,3 +963,191 @@ The anchor cell `epi8_H_H10_L10` of conf_A_0.39 runs seeds 9700–9722 at the fi
 - **What it tests:** determinism across jobs, nodes and builds of the same C source. The pilot ran at 70b2069; Round 2 runs on the rebuild of step 8e, where only the build hash string differs.
 - **If any pair differs:** the difference is reported and **no conf_A_0.39 result is used** until it is explained.
 - **When it is checked:** on the Mac, after the summaries of Round 2 are copied back, before any analysis.
+
+
+### 1.13 Round 1 outcome and repair (2026-10-03)
+
+**Round 1 [DATA, Chris's KOA terminal, 2026-10-03].** Build `279282b target koa`. The arrays were conf_B_0.10 (14967049), conf_B_0.39 (14967050) and conf_A_0.10 (14967051). conf_A_0.39 (14967120) was cancelled by its `afterok` dependency, because A_0.10 task 4 timed out. Scratch use: 3.1 GiB, 41.3 k files (`koa_scratch` limit 800 TiB).
+
+The `done; failures: N` lines (`FAILED build guard`):
+- A_0.10: H10 1, L_H10_L19.625 6, aspect_H7_L56.0417 2;
+- B_0.10: aspect_H9.91667 2, aspect_H7 2;
+- B_0.39: aspect_H5_L20 1, aspect_H3.54167_L28.2917 3;
+- all other finished cells 0.
+
+`flock: 9: Bad file descriptor` appears once per trajectory in every array task (166–750 times) and never in the pilot or smoke logs.
+
+#### Cause 1 — the build guard never locked (CC's error in U4)
+
+The U4 guard locked with:
+
+    have=$( flock 9
+            ...
+            cat "$dir/.build_git" ) 9>"$dir/.build_git.lock"
+
+On an assignment, the command substitution is expanded **before** the redirection opens fd 9. So `flock` had no file and never locked, which is the "Bad file descriptor" line. The Mac test of U4 stubbed `flock` and could not see this.
+
+Without the lock, the 8–16 workers that start together in one directory raced: `printf … > .build_git` (truncate, then write) against `cat`. A worker that read the file in between saw a different "build" and refused (`FAILED build guard`) [DERIVATION from the code; the REFUSED detail lines were not pasted, OPEN]. A refused worker exits **before** anything of its trajectory exists. Its seed was skipped, not spoiled (W2).
+
+#### Cause 2 — the H = 40 cells cost far more than the model
+
+In all three arrays, task 4 is the H = 40 cell ($N_s$ = 200), and it hit `--time`. Printed by `python3 cluster/round1_timing_261003.py` (verbatim):
+
+##### Round 1, measured wall per wave (sacct Elapsed / ceil(n/P))
+
+| array | task | cell | N_s | trajectories | P | waves | Elapsed | state | wall per wave (s) |
+|---|---|---|---|---|---|---|---|---|---|
+| B_0.10 | 1 | e0p10_H_H5_L39.25 | 25 | 225 | 8 | 29 | 00:06:31 | COMPLETED | 13.5 |
+| B_0.10 | 2 | e0p10_H_H10_L39.25 | 50 | 225 | 8 | 29 | 00:15:42 | COMPLETED | 32.5 |
+| B_0.10 | 3 | e0p10_H_H20_L39.25 | 100 | 225 | 8 | 29 | 00:46:07 | COMPLETED | 95.4 |
+| B_0.10 | 4 | e0p10_H_H40_L39.25 | 200 | 225 | 8 | 29 | 02:47:01 | TIMEOUT | >345.6 |
+| B_0.10 | 5 | e0p10_L_H10_L19.625 | 25 | 225 | 8 | 29 | 00:03:12 | COMPLETED | 6.6 |
+| B_0.10 | 6 | e0p10_L_H10_L78.5 | 100 | 225 | 8 | 29 | 01:22:51 | COMPLETED | 171.4 |
+| B_0.10 | 7 | e0p10_aspect_H19.7917_L19.7917 | 50 | 225 | 8 | 29 | 00:09:08 | COMPLETED | 18.9 |
+| B_0.10 | 8 | e0p10_aspect_H14_L28 | 50 | 225 | 8 | 29 | 00:11:44 | COMPLETED | 24.3 |
+| B_0.10 | 9 | e0p10_aspect_H9.91667_L39.625 | 50 | 225 | 8 | 29 | 00:15:32 | COMPLETED | 32.1 |
+| B_0.10 | 10 | e0p10_aspect_H7_L56.0417 | 50 | 225 | 8 | 29 | 00:20:27 | COMPLETED | 42.3 |
+| B_0.39 | 1 | epi8_H_H5_L10 | 25 | 225 | 8 | 29 | 00:04:08 | COMPLETED | 8.6 |
+| B_0.39 | 2 | epi8_H_H10_L10 | 50 | 225 | 8 | 29 | 00:08:14 | COMPLETED | 17.0 |
+| B_0.39 | 3 | epi8_H_H20_L10 | 100 | 225 | 8 | 29 | 01:05:33 | COMPLETED | 135.6 |
+| B_0.39 | 4 | epi8_H_H40_L10 | 200 | 225 | 8 | 29 | 02:02:00 | TIMEOUT | >252.4 |
+| B_0.39 | 5 | epi8_L_H10_L5 | 25 | 225 | 8 | 29 | 00:02:30 | COMPLETED | 5.2 |
+| B_0.39 | 6 | epi8_L_H10_L20 | 100 | 225 | 8 | 29 | 01:33:20 | COMPLETED | 193.1 |
+| B_0.39 | 7 | epi8_aspect_H7.08333_L14.125 | 50 | 225 | 8 | 29 | 00:10:19 | COMPLETED | 21.3 |
+| B_0.39 | 8 | epi8_aspect_H5_L20 | 50 | 225 | 8 | 29 | 00:13:17 | COMPLETED | 27.5 |
+| B_0.39 | 9 | epi8_aspect_H3.54167_L28.2917 | 50 | 225 | 8 | 29 | 00:17:56 | COMPLETED | 37.1 |
+| A_0.10 | 1 | e0p10_H_H5_L39.25 | 25 | 710 | 16 | 45 | 00:01:56 | COMPLETED | 2.6 |
+| A_0.10 | 2 | e0p10_H_H10_L39.25 | 50 | 720 | 16 | 45 | 00:03:03 | COMPLETED | 4.1 |
+| A_0.10 | 3 | e0p10_H_H20_L39.25 | 100 | 675 | 16 | 43 | 00:06:42 | COMPLETED | 9.3 |
+| A_0.10 | 4 | e0p10_H_H40_L39.25 | 200 | 720 | 16 | 45 | 00:32:06 | TIMEOUT | >42.8 |
+| A_0.10 | 5 | e0p10_L_H10_L19.625 | 25 | 750 | 16 | 47 | 00:02:04 | COMPLETED | 2.6 |
+| A_0.10 | 6 | e0p10_L_H10_L78.5 | 100 | 675 | 16 | 43 | 00:06:29 | COMPLETED | 9.0 |
+| A_0.10 | 7 | e0p10_aspect_H19.7917_L19.7917 | 50 | 730 | 16 | 46 | 00:03:46 | COMPLETED | 4.9 |
+| A_0.10 | 8 | e0p10_aspect_H14_L28 | 50 | 685 | 16 | 43 | 00:03:19 | COMPLETED | 4.6 |
+| A_0.10 | 9 | e0p10_aspect_H9.91667_L39.625 | 50 | 680 | 16 | 43 | 00:03:10 | COMPLETED | 4.4 |
+| A_0.10 | 10 | e0p10_aspect_H7_L56.0417 | 50 | 685 | 16 | 43 | 00:03:07 | COMPLETED | 4.3 |
+
+##### Fit over the H-scan cells H5, H10, H20 (N_s 25, 50, 100) -> H40 (N_s 200)
+
+| array | exponent p (fit) | local exponent H10->H20 | H40 predicted, fit (h) | H40 predicted, local (h) | H40 TIMEOUT Elapsed (h) | fit consistent with TIMEOUT? |
+|---|---|---|---|---|---|---|
+| B_0.10 | 1.41 | 1.55 | 1.98 | 2.26 | > 2.78 | **NO** (fit below the timeout) |
+| B_0.39 | 1.99 | 2.99 | 3.45 | 8.70 | > 2.03 | yes |
+| A_0.10 | 0.93 | 1.20 | 0.21 | 0.27 | > 0.54 | **NO** (fit below the timeout) |
+
+lower bound on the H20 -> H40 exponent from the timeouts: B_0.10 > 1.86, B_0.39 > 0.90, A_0.10 > 2.19
+USED exponent p* = steepest local exponent measured = 2.99; exceeds every timeout bound: yes
+
+##### --time for the resubmission (p* scaling, 3 x the whole cell)
+
+| array | task(s) | cell | predicted whole cell (h) | basis | --time |
+|---|---|---|---|---|---|
+| B_0.10 | 4 | e0p10_H_H40_L39.25 | 6.12 | H20 95.4 s/wave x 2^2.99 x 29 waves (> timeout 2.78 h: yes) | 18:30:00 |
+| B_0.10 | 1,2,3,5,6,7,8,9,10 | the others (COMPLETED; only missing seeds run) | -- | default | 02:45:00 (sbatch) |
+| B_0.39 | 4 | epi8_H_H40_L10 | 8.70 | H20 135.6 s/wave x 2^2.99 x 29 waves (> timeout 2.03 h: yes) | 1-02:15:00 |
+| B_0.39 | 1,2,3,5,6,7,8,9 | the others (COMPLETED; only missing seeds run) | -- | default | 02:00:00 (sbatch) |
+| A_0.10 | 4 | e0p10_H_H40_L39.25 | 0.93 | H20 9.3 s/wave x 2^2.99 x 45 waves (> timeout 0.54 h: yes) | 03:00:00 |
+| A_0.10 | 1,2,3,5,6,7,8,9,10 | the others (COMPLETED; only missing seeds run) | -- | default | 00:30:00 (sbatch) |
+| A_0.39 | 1 | epi8_H_H5_L10 (N_s 25, 130 traj.) | 0.05 | pilot 20.5 s/wave x (N_s/50)^2.99 x 9 waves | 00:45:00 (sbatch default >= 3 x) |
+| A_0.39 | 2 | epi8_H_H10_L10 (N_s 50, 115 traj.) | 0.05 | pilot 20.5 s/wave x (N_s/50)^2.99 x 8 waves | 00:45:00 (sbatch default >= 3 x) |
+| A_0.39 | 3 | epi8_H_H20_L10 (N_s 100, 130 traj.) | 0.41 | pilot 20.5 s/wave x (N_s/50)^2.99 x 9 waves | 01:15:00 |
+| A_0.39 | 4 | epi8_H_H40_L10 (N_s 200, 255 traj.) | 5.78 | pilot 20.5 s/wave x (N_s/50)^2.99 x 16 waves | 17:30:00 |
+| A_0.39 | 5 | epi8_L_H10_L5 (N_s 25, 130 traj.) | 0.05 | pilot 20.5 s/wave x (N_s/50)^2.99 x 9 waves | 00:45:00 (sbatch default >= 3 x) |
+| A_0.39 | 6 | epi8_L_H10_L20 (N_s 100, 130 traj.) | 0.41 | pilot 20.5 s/wave x (N_s/50)^2.99 x 9 waves | 01:15:00 |
+| A_0.39 | 7 | epi8_aspect_H7.08333_L14.125 (N_s 50, 130 traj.) | 0.05 | pilot 20.5 s/wave x (N_s/50)^2.99 x 9 waves | 00:45:00 (sbatch default >= 3 x) |
+| A_0.39 | 8 | epi8_aspect_H5_L20 (N_s 50, 115 traj.) | 0.05 | pilot 20.5 s/wave x (N_s/50)^2.99 x 8 waves | 00:45:00 (sbatch default >= 3 x) |
+| A_0.39 | 9 | epi8_aspect_H3.54167_L28.2917 (N_s 50, 105 traj.) | 0.04 | pilot 20.5 s/wave x (N_s/50)^2.99 x 7 waves | 00:45:00 (sbatch default >= 3 x) |
+
+##### Resubmission lines (from ~/harddisks/hspist3 on login-0102; the skip logic runs only what is missing)
+
+Set 1 (now); at most 64 cores at once:
+    sbatch --array=4 --time=18:30:00 cluster/confinement_20261013/conf_B_0.10.sbatch
+    sbatch --array=1-3,5-10%1 cluster/confinement_20261013/conf_B_0.10.sbatch
+    sbatch --array=4 --time=1-02:15:00 cluster/confinement_20261013/conf_B_0.39.sbatch
+    sbatch --array=1-3,5-9%1 cluster/confinement_20261013/conf_B_0.39.sbatch
+    sbatch --array=4 --time=03:00:00 cluster/confinement_20261013/conf_A_0.10.sbatch
+    sbatch --array=1-3,5-10%1 cluster/confinement_20261013/conf_A_0.10.sbatch
+Set 2 (Round 2, behind the A_0.10 resubmission); at most 48 cores at once:
+    sbatch --array=1,2,5,7,8,9%1 --dependency=afterok:<A_0.10 task-4 jobid>:<A_0.10 rest jobid> cluster/confinement_20261013/conf_A_0.39.sbatch
+    sbatch --array=3,6%1 --time=01:15:00 --dependency=afterok:<A_0.10 task-4 jobid>:<A_0.10 rest jobid> cluster/confinement_20261013/conf_A_0.39.sbatch
+    sbatch --array=4 --time=17:30:00 --dependency=afterok:<A_0.10 task-4 jobid>:<A_0.10 rest jobid> cluster/confinement_20261013/conf_A_0.39.sbatch
+Set 2 starts while the two long B H40 tasks of set 1 may still run: 16 + set 2 = 64 cores (cap 64).
+
+
+**Reading [DATA → INFERENCE].** The H-scan fit over $N_s$ = 25, 50, 100 is falsified by two of the three timeouts: its H40 prediction is below the time those cells had already run. The cost per trajectory grows steeper than any single power law over that range:
+- A_0.10 goes up ≥ 4.6× from $N_s$ 100 to 200 (exponent ≥ 2.19);
+- B_0.39 goes up 8× from 50 to 100 (2.99).
+
+The pre-registered cost model (per σ-time ∝ N) and the KOA speed factor (measured at $N_s$ = 50) therefore underestimate the large cells. The cause is not known; something in the code may scale like $N^2$ or worse at N = 400 (OPEN; no profiling, since there are no simulation runs on the Mac). **Used for every `--time`:** the steepest exponent measured, p* = 2.99, which exceeds every timeout bound, × 3, capped at 3 days. conf_A_0.39 gets the same scaling from the pilot ($N_s$ = 50), so its $N_s$ = 100 cells (tasks 3, 6) now get 1:15 instead of 0:45, and its H40 cell 17:30.
+
+#### W1 — the lock fix (`conf_worker.sh`)
+
+The guard now locks with `mkdir`, which is atomic on every file system:
+
+    until mkdir "$lock" 2>/dev/null; do
+      i=$((i + 1)); [ "$i" -le 600 ] || { echo "REFUSED $dir: lock $lock not free within 60 s"; return 1; }
+      sleep 0.1
+    done
+    trap 'rmdir "$lock" 2>/dev/null' EXIT
+    trap 'rmdir "$lock" 2>/dev/null; exit 143' TERM INT
+    if [ ! -e "$dir/.build_git" ]; then
+      if compgen -G "$dir/$2" >/dev/null; then have="(none recorded, outputs present)"
+      else printf '%s\n' "$BUILD" > "$dir/.build_git.tmp$$" && mv "$dir/.build_git.tmp$$" "$dir/.build_git"; fi
+    fi
+    [ -n "$have" ] || have=$(cat "$dir/.build_git")
+    rmdir "$lock"; trap - EXIT TERM INT
+
+- **Lock and record.** The lock is released on SIGTERM too, which is Slurm's TIMEOUT. `.build_git` is renamed into place, so it is never seen half-written.
+- **Stale locks.** A lock that stays held is not broken, because breaking it cannot be made race-free. The worker refuses and the seed stays missing; `check_cells.sh` lists the lock.
+- **Partial files.** A refused worker writes nothing.
+- **Killed runs.** New lines move the partial files of a killed run aside before the rerun; they are neither reused nor deleted:
+  - B: `[ -e "$tmp" ] && mv "$tmp" "$cell/.stale_run${r}_$(date +%Y%m%d_%H%M%S)"`;
+  - A: the seed's `ev_/tr_/summary_/run_` files go to `.stale_<seed>_<date>/`. The binary opens `summary_<seed>.csv` in append mode (`00ALLINONE.c:17287`, `fopen(summary_path, "a")`), so a rerun would otherwise leave two rows. `ev_` and `tr_` are opened with `"w"` (`edmd.c:1057`; `00ALLINONE.c:16531`, `FILE *elog = fopen(trace_path, "w")`).
+- **sbatch generator.** The `command -v flock` check is removed (`gen_confinement_sbatch.py`; one line per sbatch). The B `run.log` append keeps its `flock`, which has the correct form `( flock 9; … ) 9>file` and works on KOA.
+
+**Mac test** of the real `conf_worker.sh`, with a stub binary and a stub `reduce_A.py`; all as expected:
+1. 16 parallel workers, 48 seeds, fresh A directory: 0 FAILED, 48 `red_`, `.build_git` correct, no lock left.
+2. Resume of the same seeds: 0 binary calls.
+3. 16 new seeds racing into a directory with outputs and a record: 0 FAILED.
+4. Another build on that directory: all 16 refused, 0 binary calls, directory unchanged.
+5. Outputs without a record: all 16 refused, directory unchanged.
+6. A killed seed (ev, summary and run log, no red): moved to `.stale_9790_*`, rerun, the new summary has 1 row.
+7. 32 B runs, 16 parallel, with a stale `.run5`: 0 FAILED, 32 traces, `.run5` moved aside.
+8. A lock held by someone else: refused after 60 s, nothing written.
+
+#### W2 — data integrity of Round 1 [DERIVATION from `conf_worker.sh`]
+
+**No output can be written twice.** Every output name belongs to one task line, and each line (B: mass M, run r; A: position, seed) appears once in its task file and is run once by `xargs`.
+- B runs in its own `.run$r` inside `m_$M` and moves the finished trace to `"$cell/$(basename "${tr%run0.csv}")run$r.csv"`.
+- A writes `ev_${seed}.csv`, `tr_${seed}.csv`, `summary_${seed}.csv`, `run_${seed}.log` and `red_${seed}.csv` in its position directory.
+
+The race was in the guard, which runs before any of these. It could skip a trajectory but never write one twice.
+
+What a resume does:
+- **(a) A seed skipped by the race:** none of its files exist. The guard passes, because the record matches the unchanged binary; the skip test (`[ -s red_<seed>.csv ]`, or the B trace) fails, so the seed runs.
+- **(b) A directory whose `.build_git` holds `00ALLINONE  git 279282b  target koa`:** it matches `HD_BUILD` of the same binary, so the resume proceeds. **A rebuild at a new commit would refuse every such directory**, hence runsheet rule 5: no rebuild while any cell is incomplete.
+- **(c) The three TIMEOUT cells:**
+  - finished trajectories keep their outputs and are skipped;
+  - a trajectory killed in flight left only partial files (B: inside `.run<r>`, since its trace is moved into the cell only on success; A: `ev_/tr_/summary_/run_` without `red_`), which are moved aside and the trajectory is rerun;
+  - `reduce_B.py` never ran on the two B H40 cells, and runs at the end of their resubmission.
+
+  On a resubmitted B cell `reduce_B.py` rewrites `red_nu.csv` from the same traces.
+
+**`cluster/check_cells.sh`** (bash plus Python from `~/envs/hd`; read-only; refuses to run on the login node). Per cell it prints:
+- trajectories expected (task file) against present (non-empty);
+- the missing list as ranges;
+- the `.build_git` record(s), and directories without a record;
+- zero-size, duplicate, unexpected and malformed (not 2-line) outputs;
+- partial seeds, leftovers (`.run<r>`, `.stale_*`, `.failed_*`) and held `.guard.lock` directories;
+- a timing line for incomplete cells;
+- a verdict: COMPLETE, INCOMPLETE (n missing), PROBLEM or NOT STARTED.
+
+It was tested on a mock tree built from the real task files: complete cells, two race-skipped seeds, a TIMEOUT-like cell with partial seeds and a leftover `.run21`, and a PROBLEM cell with a zero-size `red`, a held lock and a second build record. Every case was reported as built.
+
+#### W3 — resubmission
+
+`--time` is set as above. The lines are printed by `round1_timing_261003.py` (verbatim, above); runsheet step 8f gives the KOA sequence. Set 1 (all six lines together) uses at most 64 cores. Set 2 (conf_A_0.39) waits for both A_0.10 resubmission jobs (`afterok`). When it starts, the two long B H40 tasks may still be running: 16 + 48 = 64 cores.
+
+#### W4 — pull without rebuild
+
+The repair touches no build input. Runsheet rule 4 now allows a pull that touches no `*.c`, `*.h`, `Makefile`, `edmd_core/` or `kissfft` to be followed by a resubmission without a rebuild, because the arrays verify the binary by sha256. Rule 5 forbids a rebuild while any cell is incomplete.
