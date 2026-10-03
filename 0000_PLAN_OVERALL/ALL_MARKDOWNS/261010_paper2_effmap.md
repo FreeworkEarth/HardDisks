@@ -539,3 +539,78 @@ figure: 0000_PLAN_OVERALL/paper2_energytransfer/experiments/final/261012_p2_effm
 6. **Gate (A1 as implemented):** all 36 cells are UNRESOLVED, as expected from the 8-seed floor, and none is FAIL. The largest $E_{\rm coh}$ is $0.19 \pm 0.09$ at $(0.25, 200, 0.5)$, below the FAIL line. The construction part ($\ge 3\tau_r$ after the push, with Mansour's $\tau_r$ as an upper bound) carries the gate.
 
 **The map, in one sentence.** The efficiency of storing piston work in the spring is set by $k$ alone, with no measurable $M_s$ dependence. It equals the reversible value (+1–2 %, the box effect) for pushes slower than one acoustic round trip ($d/u > 2L_0/c_s$), and falls roughly linearly in $u$ beyond it.
+
+---
+
+## 3. Over-pressure test — pre-registration (2026-10-13, written and committed before anything below was computed)
+
+**The inference under test** (§ 2.3, item 3; commit 0504d68). The quasi-static plateau sits above the KR reversible reference:
+
+$$\varepsilon_{\rm settled}/\varepsilon_{\rm rev} = 1.023 \pm 0.004,\; 1.011 \pm 0.003,\; 1.021 \pm 0.003 \qquad (k = 0.25,\ 0.5,\ 1.0).$$
+
+This was attributed (INFERENCE) to the box's over-pressure, $Z_{\rm box}/Z_{\rm KR} = 1.0248$ (Level 3). The test replaces the guess by a number for each $k$: recompute $\varepsilon_{\rm rev}$ with the box's own measured equation of state instead of KR.
+
+### Method
+
+**F(L) source (DATA).** The files are `experiments_energy_transfer/level3_FofL_20260925/c{0,2.5,5,7.5,10}/ev_<seed>.csv` (20 seeds per compression) and the matching `tr_<seed>.csv`. These are geometry C with the divider held at mass $10^9$, the gas compressed by $d = 0, 1.99, 3.98, 5.97, 7.96$, so $L = 78.5 - d$. The recorded quantities and the code that writes them:
+
+- `dp` in the event log is the **particle's** momentum change, `edmd.c:1069`:
+  `fprintf(g_edmd_evlog, "%.12g,%s,%.12g,%.12g,%.12g,%.12g,%.12g\n", S->t / g_edmd_evlog_tscale, kind, u, v0, v1, dE, 1.0 * (v1 - v0));`
+  The divider's events have kind `D0`. Event times include the 12 000-step hold (200 σ); trace times start at release.
+- `KE_gas_total` is the sum of the segment kinetic energies, `00ALLINONE.c:17186`:
+  `fprintf(elog, ",%.12e,%.12e,%.12e,%.12e", ke_tot, ke_left, ke_right, px_gas);`
+  with `ke_tot += segment_ke[sgi]` (lines 17173–17175).
+
+**Estimator.** For each seed,
+$$F = \frac{1}{t_1 - t_0}\sum_{D0,\ t_0 \le t \le t_1}|dp|,\qquad T = \frac{\langle KE_{\rm gas}\rangle}{N},\qquad Z_{\rm box} = \frac{F L}{N T},\qquad \lambda = \frac{Z_{\rm box}}{Z_{\rm KR}(\eta)}.$$
+The window is fixed by a principle, not a fit: it opens **two acoustic round trips after the piston stops**, $t_0 = t_{\rm stop} + 2\,(2L_0/c_s) = t_{\rm stop} + 180$ (with $t_{\rm stop} = 0.25/u + d/u$; for c0, $t_0 = 180$), and closes at the end of the record, $t_1 = 666.65$. Means are taken over seeds, with standard errors.
+
+**Disclosure.** The 260925 table was computed inline and never committed. While preparing this section I scanned window starts from 0 to 450 σ after $t_{\rm stop}$ against it:
+- $T$ reproduces exactly (1.0000 / 1.0347 / 1.0699 / 1.1070 / 1.1499) for every window after the stop.
+- **$F$ is not reproduced to 4 decimals by any window.** The best is 0.002 off, and every post-stop window lies within ~0.005 of it, i.e. inside the published errors (0.004–0.008).
+- So the published estimator is not recoverable. The table here is recomputed and printed beside the published one. Robustness of the $\lambda$ fit to window starts 100, 180 and 300 is a pre-registered check.
+
+**Interpolation.** $\lambda(\eta)$ is a weighted linear fit over the five points, and $Z_F(\eta) = \lambda(\eta)\,Z_{\rm KR}(\eta)$. In `hspist3/validation/paper2_effmap_overpressure_20261013.py`, the pre-registered lines are:
+
+    lam = lambda e: a + b * (e - ETA0)                       # <- the interpolation of Level 3's F(L) (pre-registered line)
+    ZF = lambda e: lam(e) * Z(e)
+
+The map's settled states ($\eta = 0.109$–$0.111$) lie inside Level 3's range ($0.10005$–$0.11134$), so there is no extrapolation.
+
+**Reversible construction.** This is § 1.3 with $Z_F$ in place of $Z_{\rm KR}$, both in the force and in the isentrope:
+$$d\ln T = -Z_F\,d\ln L \;(\text{exact for hard disks, whose energy is purely kinetic}),\qquad F(L) = N\,T_{\rm ad}(L)\,Z_F(\eta(L))/L,$$
+with $k\,(x_{\rm eq} - (109 - d - L)) = F(L)$ solved for $L$, and $x_{\rm eq}$ as run.
+
+With KR, § 1.3's starting point $x = 30.5$ **is** the gas–spring equilibrium (the $x_{\rm eq}$ were chosen for it). With $F(L)$ it is not: the box pushes ~2.5 % harder, the divider settles at a slightly different $x_i$ before the push, and the measurement subtracts exactly that offset through the no-push control. Two versions are therefore defined.
+
+**The primary version is the estimator-matched construction, started from the box's own pre-push equilibrium $x_i$:**
+$$s_F = x_i - x_f,\qquad \Delta E_{\rm est} = F_s s_F + \tfrac12 k s_F^2\;(F_s = k(x_{\rm eq} - 30.5),\ \text{the estimator's own formula, § 1.8}),$$
+$$W_{\rm rev,F} = N\,[T_{\rm ad}(L_f) - T_{\rm ad}(L_i)] + \tfrac12 k(x_f - x_{\rm eq})^2 - \tfrac12 k(x_i - x_{\rm eq})^2,\qquad \varepsilon_{\rm rev,F} = \frac{\Delta E_{\rm est}}{W_{\rm rev,F}}.$$
+$W_{\rm in}$ counts piston work only, and the relaxation $30.5 \to x_i$ involves none, so $W_{\rm rev,F}$ and $W_{\rm in}$ are on the same footing. With $\lambda \equiv 1$ this construction reproduces § 1.3 exactly; that identity is printed as a check.
+
+**Errors.** $\sigma(\varepsilon_{\rm rev,F})$ comes from 400 draws of the $\lambda$-fit parameters (fit covariance, fixed seed). It is combined in quadrature with $\sigma(\varepsilon_{\rm settled})$.
+
+**Measured plateau.** The inverse-variance mean of $\varepsilon_{\rm settled}$ over $u \le 0.05$ and both $M_s$, exactly as in § 2.2 (a).
+
+### Verdict rules (written before the data)
+
+- **PASS:** all three recomputed ratios $\varepsilon_{\rm settled}/\varepsilon_{\rm rev,F}$ lie within 2σ of 1.00. **The over-pressure explanation becomes DATA.**
+- **FAIL:** any ratio lies outside 2σ. **It stays OPEN**, and the paper says "a 1–2 % unexplained offset". At most three candidate causes are listed, as OPEN, with no new runs.
+
+**Consistency check (pre-registered).** $\chi^2$ of the three measured $\varepsilon_{\rm settled}/\varepsilon_{\rm rev,KR}$ against one common value (2 dof). A single factor $\lambda$ predicts $k$-independence only to first order: the spring preload $F_s$ is fixed by $x_{\rm eq}$, not by the gas. So the recomputation also prints $\varepsilon_{\rm rev,F}/\varepsilon_{\rm rev,KR}$ per $k$, which is the actual prediction of "over-pressure only".
+
+**Secondary, no verdict.**
+- (i) The literal § 1.3 construction with $Z_F$, started at $x = 30.5$.
+- (ii) The primary construction with the gas started at the measured control temperature $T_i = \langle KE_{\rm gas}\rangle/N$ (late half of the no-push controls). This covers the divider's equipartition share, § 1.8 A3.
+
+### The settle gate, replaced (§ 3.2)
+
+The $KE_{\rm div}$ gate measured physics, not settling: the divider always carries $kT/2$. The replacement is **position-settled**:
+$$\Delta = \big|\langle \bar x\rangle_{\text{last } P_m} - \langle \bar x\rangle_{\text{previous } P_m}\big| < 0.01\, s_{\rm rev}(k),$$
+- $\bar x(t)$ is the 8-seed mean trajectory.
+- $s_{\rm rev} = 1.4987, 0.8403, 0.4480$ is the reversible displacement of § 1.3, the plan's "$x_{\rm rev}$".
+- $P_m$ is the mode period, from the exact one-column eigen-equation at the settled state:
+$$M_s\,\omega^2 = k + k_S\,K\cot K,\qquad K = \frac{\omega L_f}{c_s},\qquad k_S = \frac{N m c_s^2}{L_f^2},$$
+with KR $c_s$ at $(\eta_f, T_f)$ of § 1.3. For the controls, $(\eta_0, T = 1)$.
+
+Every one of the 36 cells gets PASS or FAIL. **Calibration (reported, not a reclassification):** the same gate is applied to the six no-push controls, which are settled by construction. Their pass rate measures the gate's noise floor. The map figures are re-rendered with the label, and nothing on them says "UNRESOLVED".
