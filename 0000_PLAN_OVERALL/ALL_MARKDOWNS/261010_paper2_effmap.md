@@ -800,3 +800,76 @@ The c849b93 report said the 0.90–0.92 "is why the pre-registration matched the
 - **OPEN (pattern in $k$).** The reference error comes from one $\lambda(\eta)$ fit and is **shared by the three ratios**, so it shifts them together and **cannot explain their differences**. The measured ratios to KR reject a common value: $\chi^2 = 7.67$ on 2 dof, $p = 0.022$. Over-pressure alone predicts a monotonic rise with $k$ (1.028, 1.035, 1.040). The resulting ~1 % $k$-pattern is real, untouched by the over-pressure correction, and unexplained. It is a candidate for divider or thermal physics, not for the equation of state.
 
 **(iii) OPEN, provenance.** Level 3's inline $F(L)$ estimator (the 260925 table) is not recoverable: it was never committed, and no averaging window reproduces its $F$ to 4 decimals. $F(L)$ for § 3 was recomputed from the raw event logs, giving $T$ exactly and $F$ within the published errors. Keep the Level 3 raw event logs (`level3_FofL_20260925/`) permanently for that reason.
+
+### 3.5 Results — gate G2 (applied once, after the § 3.4 commit 5190846; no new runs)
+
+**Printed by `python3 hspist3/validation/paper2_effmap_gate2_20261014.py`**, verbatim:
+
+#### Gate G2 -- controls (signed drift d over the last tau_r vs the tau_r before)
+
+| k | M_s | tau_r | d (control) | theta(k) | label |
+|---|---|---|---|---|---|
+| 0.25 | 50 | 3366 | -0.00216 | 0.01557 | PASS |
+| 0.25 | 200 | 9426 | -0.01168 | 0.01557 | PASS |
+| 0.5 | 50 | 3308 | +0.00316 | 0.01557 | PASS |
+| 0.5 | 200 | 9262 | -0.00443 | 0.01557 | PASS |
+| 1.0 | 50 | 3273 | -0.00142 | 0.01557 | PASS |
+| 1.0 | 200 | 9165 | +0.00115 | 0.01557 | PASS |
+
+sigma_ctrl = 0.00519 sigma (std, ddof = 1, of the six signed control drifts); 3 sigma_ctrl = 0.01557
+theta(k) = max(0.01 s_rev, 3 sigma_ctrl): k = 0.25: max(0.01499, 0.01557) = 0.01557; k = 0.5: max(0.00840, 0.01557) = 0.01557; k = 1.0: max(0.00448, 0.01557) = 0.01557
+controls passing: 6/6 -> **G2 VALID**
+
+#### Gate G2 -- the 36 cells
+
+| k | M_s | u | d | theta(k) | label |
+|---|---|---|---|---|---|
+| 0.25 | 50 | 0.01 | -0.01662 | 0.01557 | FAIL |
+| 0.25 | 50 | 0.02 | -0.00607 | 0.01557 | PASS |
+| 0.25 | 50 | 0.05 | -0.00622 | 0.01557 | PASS |
+| 0.25 | 50 | 0.1 | +0.02719 | 0.01557 | FAIL |
+| 0.25 | 50 | 0.2 | -0.00911 | 0.01557 | PASS |
+| 0.25 | 50 | 0.5 | -0.00225 | 0.01557 | PASS |
+| 0.25 | 200 | 0.01 | +0.00514 | 0.01557 | PASS |
+| 0.25 | 200 | 0.02 | +0.00914 | 0.01557 | PASS |
+| 0.25 | 200 | 0.05 | +0.00050 | 0.01557 | PASS |
+| 0.25 | 200 | 0.1 | +0.00308 | 0.01557 | PASS |
+| 0.25 | 200 | 0.2 | +0.02129 | 0.01557 | FAIL |
+| 0.25 | 200 | 0.5 | -0.01767 | 0.01557 | FAIL |
+| 0.5 | 50 | 0.01 | +0.00249 | 0.01557 | PASS |
+| 0.5 | 50 | 0.02 | +0.01576 | 0.01557 | FAIL |
+| 0.5 | 50 | 0.05 | -0.00899 | 0.01557 | PASS |
+| 0.5 | 50 | 0.1 | -0.00326 | 0.01557 | PASS |
+| 0.5 | 50 | 0.2 | -0.00537 | 0.01557 | PASS |
+| 0.5 | 50 | 0.5 | -0.00748 | 0.01557 | PASS |
+| 0.5 | 200 | 0.01 | +0.00762 | 0.01557 | PASS |
+| 0.5 | 200 | 0.02 | +0.00381 | 0.01557 | PASS |
+| 0.5 | 200 | 0.05 | -0.00236 | 0.01557 | PASS |
+| 0.5 | 200 | 0.1 | -0.02515 | 0.01557 | FAIL |
+| 0.5 | 200 | 0.2 | +0.01301 | 0.01557 | PASS |
+| 0.5 | 200 | 0.5 | -0.00732 | 0.01557 | PASS |
+| 1.0 | 50 | 0.01 | -0.00089 | 0.01557 | PASS |
+| 1.0 | 50 | 0.02 | -0.00401 | 0.01557 | PASS |
+| 1.0 | 50 | 0.05 | +0.00281 | 0.01557 | PASS |
+| 1.0 | 50 | 0.1 | +0.00225 | 0.01557 | PASS |
+| 1.0 | 50 | 0.2 | +0.00309 | 0.01557 | PASS |
+| 1.0 | 50 | 0.5 | +0.00554 | 0.01557 | PASS |
+| 1.0 | 200 | 0.01 | +0.00022 | 0.01557 | PASS |
+| 1.0 | 200 | 0.02 | -0.00057 | 0.01557 | PASS |
+| 1.0 | 200 | 0.05 | +0.00379 | 0.01557 | PASS |
+| 1.0 | 200 | 0.1 | -0.00045 | 0.01557 | PASS |
+| 1.0 | 200 | 0.2 | -0.00480 | 0.01557 | PASS |
+| 1.0 | 200 | 0.5 | -0.00260 | 0.01557 | PASS |
+
+**PASS count per (k, M_s):** k = 0.25, M_s = 50: 4/6; k = 0.25, M_s = 200: 4/6; k = 0.5, M_s = 50: 5/6; k = 0.5, M_s = 200: 5/6; k = 1.0, M_s = 50: 6/6; k = 1.0, M_s = 200: 6/6. **Total 30/36.**
+
+The figures carry the G2 label: `261012_p2_effmap.{png,pdf}`, `261012_p2_effmap_both.{png,pdf}` and the per-$k$ panels `261012_p2_effmap_k{0.25,0.5,1.0}.{png,pdf}`. FAIL cells carry a black ×. They replace the § 3.2 renders under the same names; those are in git history at c849b93. No figure carries "UNRESOLVED" or the one-period label any more.
+
+**Reading.**
+
+- **G2 is VALID (DATA).** All six no-push controls pass. $\sigma_{\rm ctrl} = 0.00519$ σ, so $3\sigma_{\rm ctrl} = 0.01557$ σ. That is larger than $0.01\,s_{\rm rev}$ at every $k$, narrowly at $k = 0.25$ (0.01499), so $\theta = 0.01557$ σ for all three springs.
+- **Cells: 30 of 36 PASS (DATA).** That is 8/12 at $k = 0.25$, 10/12 at $k = 0.5$ and 12/12 at $k = 1.0$.
+- **The six FAILs are marginal.** Their drifts are $|d| = 0.0158$–$0.0272$ σ, i.e. 1.01–1.75 θ. Three are positive and three negative, and they are spread over $u = 0.01$ to 0.5 with no trend.
+- **INFERENCE, not tested.** These look more like the threshold's own statistical fragility than like dividers still relaxing. A relaxation would have one sign. And the sample standard deviation of six values has a relative uncertainty of $1/\sqrt{2(n-1)} = 0.32$ (DERIVATION, normal sampling), so $\theta$ itself is uncertain by about a third.
+- **The labels stand as computed.** G2 is the rule, and it is not re-tuned. A larger control set (more no-push seeds) would sharpen $\sigma_{\rm ctrl}$. That is a new run and is not done.
+- **Unchanged:** every $\varepsilon$ value and its error, § 3.1, and § 2. The gate is a label on the figure, not an input to $\varepsilon$.
