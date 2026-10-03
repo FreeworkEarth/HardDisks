@@ -28,6 +28,12 @@
 #                   in an initial velocity is amplified by the chaotic dynamics within a few hundred collisions.
 #                   The two runs are therefore independent realisations, and the gate is statistical.
 #
+# AMENDED 2026-10-14 (261012 sec. 1.10.1; printed by cluster/smoketest_gate_width_20261014.py) -- the statistics gate:
+#   0.05150 above is np.std(imp, ddof=1) (cluster/confinement_pilot.py:64): the SCATTER (SD) of the nine per-mass implied
+#   c_s, NOT a standard error. The pilot c_s is the through-origin slope, a weighted mean with w = x^2 (effective n = 4.45),
+#   so SE = s sqrt(sum w^2)/sum w = 0.02441 and two independent pilots differ with sigma_diff = sqrt(2) SE = 0.03452.
+#   The gate is now 2 sigma_diff:  |c_s(KOA) - c_s(Mac)| <= 0.06903  (false-fail under the null 4.55 %). The old 0.05150
+#   sat at 1.49 sigma_diff and would have failed a correct KOA build 13.6 % of the time.
 # FILL BEFORE RUNNING (KOA runbook): __PARTITION__ (sandbox, 4 h, is enough: ~2 core-min x 9), __ACCOUNT__,
 # __SCRATCH__, and the module line for gcc + python3 with numpy/pandas/scipy.
 #SBATCH --job-name=conf-smoke
@@ -60,7 +66,7 @@ eta = float(re.search(r"eta \(trace\) = \[([\d.]+)\]", t).group(1)); L0 = float(
 Le = float(re.search(r"L_eff = L_0 - 2r - t/2 = ([\d.]+)", t).group(1)); cs = float(re.search(r"c_s = ([\d.]+) \+-", t).group(1))
 hl = int(re.search(r"health lines = (\d+)", t).group(1))
 g = [("eta", abs(eta - 0.392699) <= 1e-6), ("L_0", abs(L0 - 10.0) <= 1e-6), ("L_eff", abs(Le - 8.975) <= 1e-6),
-     ("health", hl == 0), ("c_s within 0.05150 of 3.85886", abs(cs - 3.85886) <= 0.05150)]
+     ("health", hl == 0), ("c_s within 0.06903 (2 sigma_diff) of 3.85886", abs(cs - 3.85886) <= 0.06903)]
 for n, ok in g: print(f"  {n}: {'PASS' if ok else 'FAIL'}")
 print(f"  c_s(KOA) - c_s(Mac) = {cs - 3.85886:+.5f}")
 print("SMOKE TEST", "PASSED -- the arrays may be submitted (after the go)" if all(ok for _, ok in g) else "FAILED -- STOP")

@@ -631,3 +631,33 @@ OPEN, outside this campaign: the same (int) cast on the canonical A1v2 cells wit
 **Not done: pictures from speed-of-sound mode.** That mode has no piston, so the automatic shot (gated on a moving piston) never fires. Capturing it needs a GUI code change, which needs a go. Geometry equality across the modes rests on the numerical gate above.
 
 **Still unlaunched.** Nothing has been submitted. The order stays: the smoke test on KOA (`sandbox`), then the method-A pilot, then the H-scan, the L-scan and aspect, after the go.
+
+#### 1.10.1 Smoke-test gate width (2026-10-14; § 1.10 text left as written)
+
+**What 0.05150 is.** It is the sample **standard deviation** of the nine per-mass implied $c_s$, not a standard error. It is computed at `cluster/confinement_pilot.py:64`:
+
+    print(f"\n**c_s = {cs:.5f} +- {np.std(imp, ddof=1):.5f}** (through-origin slope; +- = 1-sigma mass scatter of implied c_s)")
+
+**The right width (DERIVATION).** The pilot $c_s$ is the through-origin slope, a weighted mean of the implied $c_i$ with weights $w = x^2$:
+$$\mathrm{SE} = s\,\frac{\sqrt{\sum w^2}}{\sum w},\qquad \sigma_{\rm diff} = \sqrt2\,\mathrm{SE}\ \text{(two independent pilots)},\qquad \text{gate} = 2\sigma_{\rm diff}.$$
+
+Printed by `python3 cluster/smoketest_gate_width_20261014.py`:
+
+##### KOA smoke-test gate width, from the Mac pi/8 pilot
+
+- pilot c_s (through-origin slope)                  = 3.85886   (reproduces the header's 3.85886)
+- s = np.std(imp, ddof=1), confinement_pilot.py:64  = 0.05150   -> the 0.05150 is the SCATTER (SD) across the 9 masses
+- slope weights w = x^2 (share per mass, M = 50 ... 2000): 0.368, 0.235, 0.135, 0.095, 0.059, 0.040, 0.031, 0.021, 0.016;  effective n = 4.45
+- SE of the pilot c_s (slope)  = s sqrt(sum w^2)/sum w = 0.02441   (an unweighted mean would have s/3 = 0.01717)
+- sigma of (KOA - Mac), two independent pilots     = sqrt(2) SE = 0.03452
+- **new gate: |c_s(KOA) - c_s(Mac)| <= 2 sigma_diff = 0.06903**
+- expected false-fail probability under the null (Gaussian, same scatter on KOA): 2(1 - Phi(2)) = 0.0455
+- the old gate 0.05150 sat at 1.49 sigma_diff; its false-fail probability was 0.1357
+- caveat (stated, not corrected): s is estimated from 9 single-seed values, so sigma_diff itself is uncertain by about 1/sqrt(2*8) = 0.25 (relative); the per-mass frequencies are quantised by the 200-period spectral bin.
+
+**Consequence.** The slope weights concentrate on the light masses ($M = 50$ alone carries 37 %), so the effective number of masses is 4.45, not 9.
+- The SE of the pilot is therefore 0.0244, not $s/3 = 0.0172$, and $\sigma_{\rm diff} = 0.0345$.
+- The § 1.10 gate of 0.05150 sat at only $1.49\,\sigma_{\rm diff}$. It would have failed a correct KOA build 13.6 % of the time.
+- **The gate in `koa_smoketest.sh` is now $|c_s^{\rm KOA} - c_s^{\rm Mac}| \le 0.06903$** ($2\sigma_{\rm diff}$; false-fail 4.55 % under the null). The header carries a dated amendment block, and the old lines are left in place.
+
+**Caveat, stated.** $s$ comes from nine single-seed values, so $\sigma_{\rm diff}$ is itself uncertain by about 25 %.
