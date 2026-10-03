@@ -46,10 +46,14 @@ ifeq ($(PLATFORM),Darwin)
   GL_LIBS      := -framework OpenGL -framework CoreGraphics
 else
   GL_LIBS      := -lGL
+  # ##CHRIS 2026-10-02: on Linux the maths library is separate and must be named; the first KOA link failed with
+  # "undefined reference to symbol 'acos@@GLIBC_2.2.5' ... libm.so.6: DSO missing from command line". On macOS
+  # libm is part of libSystem, so SYS_LIBS stays empty there and the Mac link line is unchanged.
+  SYS_LIBS     := -lm
 endif
 
 # Libraries: prefer pkg-config libs if present; add GLEW and GL last
-LIBS_BASE       := -lGLEW $(GL_LIBS)
+LIBS_BASE       := -lGLEW $(GL_LIBS) $(SYS_LIBS)
 LIBS            := $(if $(PKG_SDL_LIBS),$(PKG_SDL_LIBS),-lSDL2 -lSDL2_ttf) $(LIBS_BASE)
 
 # -----------------------------
