@@ -614,3 +614,142 @@ $$M_s\,\omega^2 = k + k_S\,K\cot K,\qquad K = \frac{\omega L_f}{c_s},\qquad k_S 
 with KR $c_s$ at $(\eta_f, T_f)$ of § 1.3. For the controls, $(\eta_0, T = 1)$.
 
 Every one of the 36 cells gets PASS or FAIL. **Calibration (reported, not a reclassification):** the same gate is applied to the six no-push controls, which are settled by construction. Their pass rate measures the gate's noise floor. The map figures are re-rendered with the label, and nothing on them says "UNRESOLVED".
+
+### 3.1 Results — over-pressure test (run once, after the § 3 commit f3c6209)
+
+**Printed by `python3 hspist3/validation/paper2_effmap_overpressure_20261013.py`**, verbatim:
+
+#### 1. Level 3 F(L), recomputed from the raw files (window t_stop + 180 -> end), against the 260925 table
+
+| cell | L | eta | F (here) | F (260925) | T (here) | T (260925) | Z_box (here) | Z_box (260925) | lambda = Z_box/Z_KR |
+|---|---|---|---|---|---|---|---|---|---|
+| c0 | 78.50 | 0.10005 | 1.6135 ± 0.0051 | 1.6087 ± 0.0064 | 1.0000 | 1.0 | 1.2666 ± 0.0040 | 1.2628 | 1.0245 ± 0.0033 |
+| c2.5 | 76.51 | 0.10265 | 1.7208 ± 0.0035 | 1.7218 ± 0.0078 | 1.0347 | 1.0347 | 1.2725 ± 0.0020 | 1.2732 | 1.0232 ± 0.0016 |
+| c5 | 74.52 | 0.10539 | 1.8378 ± 0.0053 | 1.8366 ± 0.0067 | 1.0699 | 1.0699 | 1.2800 ± 0.0033 | 1.2792 | 1.0230 ± 0.0026 |
+| c7.5 | 72.53 | 0.10829 | 1.9699 ± 0.0070 | 1.9715 ± 0.0059 | 1.1070 | 1.107 | 1.2906 ± 0.0045 | 1.2917 | 1.0247 ± 0.0035 |
+| c10 | 70.54 | 0.11134 | 2.1303 ± 0.0058 | 2.1217 ± 0.0042 | 1.1499 | 1.1499 | 1.3069 ± 0.0034 | 1.3016 | 1.0304 ± 0.0026 |
+
+lambda(eta) = 1.02189 ± 0.00181 + (+0.587 ± 0.301)(eta - 0.10005098); chi2 = 2.09 on 3 dof; pooled constant lambda = 1.02471
+
+Robustness of the fit to the window start (pre-registered check):
+
+| window start after t_stop | a = lambda(eta_0) | b |
+|---|---|---|
+| 100 | 1.02246 ± 0.00206 | +0.187 ± 0.339 |
+| 180 | 1.02189 ± 0.00181 | +0.587 ± 0.301 |
+| 300 | 1.01990 ± 0.00338 | +0.624 ± 0.477 |
+
+#### 2. The test (primary: estimator-matched construction from the box's own pre-push equilibrium)
+
+| k | eps_rev KR (sec. 1.3) | eps_rev KR, matched | **eps_rev F(L)** | eps_settled (u <= 0.05) | ratio_KR | **ratio_F** | (ratio_F - 1)/σ | verdict | eps_rev F/KR |
+|---|---|---|---|---|---|---|---|---|---|
+| 0.25 | 0.18915 | 0.18916 | **0.19445 ± 0.00199** | 0.19346 ± 0.00074 | 1.0228 ± 0.0039 | **0.9949 ± 0.0109** | -0.5 | within 2σ | 1.0280 |
+| 0.5 | 0.10623 | 0.10624 | **0.10997 ± 0.00127** | 0.10742 ± 0.00033 | 1.0112 ± 0.0031 | **0.9768 ± 0.0117** | -2.0 | within 2σ | 1.0352 |
+| 1.0 | 0.05670 | 0.05670 | **0.05897 ± 0.00073** | 0.05791 ± 0.00016 | 1.0212 ± 0.0027 | **0.9820 ± 0.0124** | -1.4 | within 2σ | 1.0400 |
+
+**VERDICT (pre-registered): PASS -- the over-pressure explanation becomes DATA**
+
+Consistency check (pre-registered): measured ratio_KR against one common value: mean 1.0181 ± 0.0018, chi2 = 7.67 on 2 dof, p = 0.0216
+
+#### 3. Secondary variants (no verdict)
+
+| k | literal sec. 1.3 construction with F(L): eps_rev | ratio | matched + measured control T_i: T_i | eps_rev | ratio |
+|---|---|---|---|---|---|
+| 0.25 | 0.21033 | 0.9198 | 0.98857 | 0.19484 | 0.9929 |
+| 0.5 | 0.11874 | 0.9047 | 0.99103 | 0.11003 | 0.9763 |
+| 1.0 | 0.06361 | 0.9103 | 0.98983 | 0.05895 | 0.9823 |
+
+Figure: `261013_p2_effmap_overpressure.{png,pdf}`.
+
+**Reading.**
+
+- **The F(L) input (DATA).** Recomputed from the raw files, $T$ reproduces the 260925 table exactly, and $F$ lies within the published errors. The fit is $\lambda(\eta) = 1.02189 \pm 0.00181 + (0.59 \pm 0.30)(\eta - \eta_0)$, with $\chi^2 = 2.09$ on 3 dof. Moving the window start between 100 and 300 σ shifts $\lambda(\eta_0)$ within its error.
+- **Verdict by the pre-registered rule: PASS.** The three recomputed ratios are $0.995 \pm 0.011$, $0.977 \pm 0.012$ and $0.982 \pm 0.012$, at $-0.5\sigma$, $-2.0\sigma$ and $-1.4\sigma$. **The over-pressure explanation is tagged DATA**, with this precise content: *within the precision of Level 3's measured $F(L)$, the box's over-pressure accounts for the quasi-static plateau excess.* Three qualifications go with it:
+  1. **The pass rests on the reference error.** $\sigma(\varepsilon_{\rm rev,F})$ is 1.0–1.2 %, three to four times the measurement error. The three ratios share the same $\lambda$-fit draws, so they are correlated, not three independent passes.
+  2. **The correction overshoots.** All three ratios lie *below* 1. The F(L) reference raises $\varepsilon_{\rm rev}$ by +2.8, +3.5 and +4.0 %, against an observed excess of +2.3, +1.1 and +2.1 %. $k = 0.5$ sits on the 2σ line.
+  3. **The pattern in $k$ is not explained (OPEN).** The measured ratios are not consistent with one common value: $\chi^2 = 7.67$ on 2 dof, $p = 0.022$, driven by the dip at $k = 0.5$. Over-pressure alone predicts a ratio rising monotonically with $k$ ($\varepsilon_{\rm rev,F}/\varepsilon_{\rm rev,KR} = 1.028, 1.035, 1.040$), and the data do not follow it. The $k = 0.5$ runs used $x_{\rm eq} = 33.65$ rather than 33.6498, a preload difference of $10^{-4}$, which is too small to matter.
+- **Secondary variants.**
+  - The literal § 1.3 construction, started at $x = 30.5$, gives 0.90–0.92. This confirms that the pre-push offset, which the control removes, has to be matched.
+  - Starting the gas at the measured control temperature $T_i = 0.989$–$0.991$ changes the ratios by at most 0.002.
+
+**For the paper:** the quasi-static efficiency agrees with the reversible value computed from the box's own measured equation of state, within that equation of state's 1 % precision. The residual $k$-dependence at the 1 % level is stated as open.
+
+### 3.2 Results — position-settled gate (pre-registered in § 3; no new runs)
+
+**Printed by `python3 hspist3/validation/paper2_effmap_gate_20261013.py`**, verbatim. The last table is a post-hoc diagnostic, labelled as such.
+
+#### Position-settled gate, all 36 cells (Delta in sigma; threshold 0.01 s_rev)
+
+| k | M_s | u | P_m | Delta | 0.01 s_rev | label |
+|---|---|---|---|---|---|---|
+| 0.25 | 50 | 0.01 | 112.47 | 0.09614 | 0.01499 | FAIL |
+| 0.25 | 50 | 0.02 | 112.47 | 0.03102 | 0.01499 | FAIL |
+| 0.25 | 50 | 0.05 | 112.47 | 0.11372 | 0.01499 | FAIL |
+| 0.25 | 50 | 0.1 | 112.47 | 0.05232 | 0.01499 | FAIL |
+| 0.25 | 50 | 0.2 | 112.47 | 0.12445 | 0.01499 | FAIL |
+| 0.25 | 50 | 0.5 | 112.47 | 0.04698 | 0.01499 | FAIL |
+| 0.25 | 200 | 0.01 | 172.17 | 0.07130 | 0.01499 | FAIL |
+| 0.25 | 200 | 0.02 | 172.17 | 0.08537 | 0.01499 | FAIL |
+| 0.25 | 200 | 0.05 | 172.17 | 0.03096 | 0.01499 | FAIL |
+| 0.25 | 200 | 0.1 | 172.17 | 0.02271 | 0.01499 | FAIL |
+| 0.25 | 200 | 0.2 | 172.17 | 0.01207 | 0.01499 | PASS |
+| 0.25 | 200 | 0.5 | 172.17 | 0.05158 | 0.01499 | FAIL |
+| 0.5 | 50 | 0.01 | 92.74 | 0.19781 | 0.00840 | FAIL |
+| 0.5 | 50 | 0.02 | 92.74 | 0.00580 | 0.00840 | PASS |
+| 0.5 | 50 | 0.05 | 92.74 | 0.12182 | 0.00840 | FAIL |
+| 0.5 | 50 | 0.1 | 92.74 | 0.03171 | 0.00840 | FAIL |
+| 0.5 | 50 | 0.2 | 92.74 | 0.08829 | 0.00840 | FAIL |
+| 0.5 | 50 | 0.5 | 92.74 | 0.20781 | 0.00840 | FAIL |
+| 0.5 | 200 | 0.01 | 130.02 | 0.06728 | 0.00840 | FAIL |
+| 0.5 | 200 | 0.02 | 130.02 | 0.01995 | 0.00840 | FAIL |
+| 0.5 | 200 | 0.05 | 130.02 | 0.02276 | 0.00840 | FAIL |
+| 0.5 | 200 | 0.1 | 130.02 | 0.07469 | 0.00840 | FAIL |
+| 0.5 | 200 | 0.2 | 130.02 | 0.02105 | 0.00840 | FAIL |
+| 0.5 | 200 | 0.5 | 130.02 | 0.00610 | 0.00840 | PASS |
+| 1.0 | 50 | 0.01 | 82.04 | 0.06280 | 0.00448 | FAIL |
+| 1.0 | 50 | 0.02 | 82.04 | 0.05319 | 0.00448 | FAIL |
+| 1.0 | 50 | 0.05 | 82.04 | 0.17001 | 0.00448 | FAIL |
+| 1.0 | 50 | 0.1 | 82.04 | 0.00270 | 0.00448 | PASS |
+| 1.0 | 50 | 0.2 | 82.04 | 0.11607 | 0.00448 | FAIL |
+| 1.0 | 50 | 0.5 | 82.04 | 0.01466 | 0.00448 | FAIL |
+| 1.0 | 200 | 0.01 | 98.26 | 0.05638 | 0.00448 | FAIL |
+| 1.0 | 200 | 0.02 | 98.26 | 0.14157 | 0.00448 | FAIL |
+| 1.0 | 200 | 0.05 | 98.26 | 0.02206 | 0.00448 | FAIL |
+| 1.0 | 200 | 0.1 | 98.26 | 0.02789 | 0.00448 | FAIL |
+| 1.0 | 200 | 0.2 | 98.26 | 0.02834 | 0.00448 | FAIL |
+| 1.0 | 200 | 0.5 | 98.26 | 0.00320 | 0.00448 | PASS |
+
+**PASS count per (k, M_s):** k = 0.25, M_s = 50: 0/6; k = 0.25, M_s = 200: 1/6; k = 0.5, M_s = 50: 1/6; k = 0.5, M_s = 200: 1/6; k = 1.0, M_s = 50: 1/6; k = 1.0, M_s = 200: 1/6. **Total 5/36.**
+
+#### Calibration: the same gate on the no-push controls (settled by construction)
+
+| k | M_s | P_m (eta_0, T = 1) | Delta | 0.01 s_rev | label |
+|---|---|---|---|---|---|
+| 0.25 | 50 | 120.45 | 0.08686 | 0.01499 | FAIL |
+| 0.25 | 200 | 178.17 | 0.01015 | 0.01499 | PASS |
+| 0.5 | 50 | 103.33 | 0.12421 | 0.00840 | FAIL |
+| 0.5 | 200 | 134.23 | 0.07251 | 0.00840 | FAIL |
+| 1.0 | 50 | 95.61 | 0.01225 | 0.00448 | FAIL |
+| 1.0 | 200 | 104.78 | 0.05309 | 0.00448 | FAIL |
+
+controls PASS: 1/6
+
+#### DIAGNOSTIC, post hoc, not a gate: the controls' Delta against window length (noise floor of the rule)
+
+| k | M_s | 0.01 s_rev | Delta, 1 P_m | 10 P_m | 30 P_m | tau_r |
+|---|---|---|---|---|---|---|
+| 0.25 | 50 | 0.01499 | 0.08686 | 0.00797 | 0.00719 | 0.00216 |
+| 0.25 | 200 | 0.01499 | 0.01015 | 0.04544 | 0.01545 | 0.01168 |
+| 0.5 | 50 | 0.00840 | 0.12421 | 0.02248 | 0.00621 | 0.00316 |
+| 0.5 | 200 | 0.00840 | 0.07251 | 0.02027 | 0.00167 | 0.00443 |
+| 1.0 | 50 | 0.00448 | 0.01225 | 0.00102 | 0.00231 | 0.00142 |
+| 1.0 | 200 | 0.00448 | 0.05309 | 0.00711 | 0.00659 | 0.00115 |
+
+Figures re-rendered with the label: `261012_p2_effmap.{png,pdf}`, `261012_p2_effmap_both.{png,pdf}`, and the per-k panels `261012_p2_effmap_k{0.25,0.5,1.0}.{png,pdf}`. FAIL cells carry a black ×. Every figure states the control calibration, and nothing on them says "UNRESOLVED".
+
+**Reading.**
+
+- **The gate as pre-registered (DATA): 5 of 36 cells PASS.**
+- **It is noise-limited (DATA).** The six no-push controls are settled by construction, yet only 1 of 6 passes. For a settled system, the one-period mean of the 8-seed trajectory moves by 0.010–0.124 σ, which is 1–28× the thresholds of 0.0045–0.015 σ. **A FAIL from this gate therefore does not indicate an unsettled divider**, and the label cannot serve as the paper figure's settle criterion. A one-period window does not average out the divider's thermal motion.
+- **What would work (post-hoc diagnostic, not adopted).** With windows one $\tau_r$ long — the windows $\varepsilon_{\rm settled}$ already uses — the controls' $\Delta$ is 0.0011–0.0117 σ, under threshold in 6 of 6. A "last $\tau_r$ vs previous $\tau_r$" version of the same criterion would be a usable gate. Adopting it after seeing these data would be a post-hoc change, so **it is not applied here; the decision is the plan author's (OPEN).**
+- **Unaffected:** the $\varepsilon$ values, their errors, the § 3.1 verdict and every number in § 2. The gate is a label, not an input.
