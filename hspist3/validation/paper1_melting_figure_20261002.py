@@ -90,7 +90,8 @@ def main():
     ax.set_xlim(LO, HI); ax.set_ylim(11.5, 39.5)
     ax.set_xlabel(r"packing fraction  $\eta$", fontsize=11.5)
     ax.set_ylabel(r"speed of sound  $c_s$  [$\sqrt{k_BT/m}$]", fontsize=11.5)
-    ax.set_title("The melting region: $c_s$ dips across the coexistence interval", fontsize=12.5)
+    ax.set_title("The melting region: $c_s$ dips across the coexistence interval\n"
+                 "(corrected for box truncation, methods §14; $\\eta = \\eta_{\\rm true}$)", fontsize=12.5)   # ##CHRIS 2026-10-14
     ax.grid(alpha=0.3); ax.legend(frameon=False, fontsize=8.5, loc="upper left")
 
     out = os.path.join(T.PLOTS, "261002_p1_melting_region")

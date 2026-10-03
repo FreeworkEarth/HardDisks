@@ -18,6 +18,12 @@ from paper1_populate_cs_err_20261002 import cell, slope_with_errors
 REPO = os.path.dirname(os.path.dirname(HERE))
 FIG = os.path.join(REPO, "0000_PLAN_OVERALL", "paper1_speedofsound", "experiments", "final")
 XW1, PPS, R = 200.0, 24.0, 0.5
+CANON = "260919_A1v2_final_cs_vs_eta.csv"
+PRE = "260919_A1v2_final_cs_vs_eta_pre_boxtrunc_20261014.csv"   # the uncorrected table, kept as a dated copy (A2)
+
+def source():
+    """The UNcorrected table: the dated copy once it exists (after the canonical one is regenerated), else the canonical."""
+    return PRE if os.path.exists(os.path.join(T.PLOTS, PRE)) else CANON
 
 def kr(e):
     a = np.array([e]); return float(sos.cs_adiabatic_2d_monatomic(sos.Z_kolafa_rottner_2006(a), sos.dZ_kolafa_rottner_2006(a), a, kbt=1.0, m=1.0)[0])
@@ -34,8 +40,8 @@ def slope_x(cs, Leff):
     y = np.array([q["nu"] for q in cs]); sy = np.array([(q["sd"] / math.sqrt(q["n"])) if q["n"] > 1 else np.nan for q in cs])
     return slope_with_errors(x, y, sy)
 
-def main():
-    rows = list(csv.DictReader(open(T.plot_path("260919_A1v2_final_cs_vs_eta.csv"))))
+def compute():
+    rows = list(csv.DictReader(open(os.path.join(T.PLOTS, source()))))
     out = []
     for r in rows:
         eta, L0t = float(r["eta"]), float(r["L0"]); d = leaf(eta)
@@ -64,6 +70,10 @@ def main():
         out.append(dict(eta=eta, L0=L0t, delta=delta, cen=cen_off, disp=disp, H=H, N=N, eT=eT, Le=Le, LeT=LeT,
                         cs=float(r["c_s"]), sig=sig, s=s, ok=ok, sT=sT, sigT=sig * LeT / Le, kR=kR, kT=kT, tabKR=float(r["KR"]) if r["KR"].strip() else float("nan"),
                         Db=Db, Da=Da, ch=Da - Db, chB=DB - Db, ident=sT / s - LeT / Le, nm=len(cs)))
+    return out
+
+def main():
+    out = compute()
     print("### Box-truncation correction, every canonical A1 v2 cell (sigma = c_s_err_scaled)\n")
     print("| eta_rec | L_0 | delta | Center_X - (XW1 + L_0) | <Displacement> (m_500) | H from eta_rec | eta_true | L_eff,rec | L_eff,true | "
           "c_s,rec ± σ | gate | c_s,true ± σ | KR(eta_rec) | KR(eta_true) | D before | D after | change | flag | change if L_0 - delta |")
@@ -103,5 +113,39 @@ def figure(out):
     for ext in ("png", "pdf"): fig.savefig(os.path.join(FIG, f"261014_p1_boxtrunc_shift.{ext}"), dpi=200)
     print("\nfigure: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261014_p1_boxtrunc_shift.{png,pdf}")
 
+def table():
+    """methods sec. 14.2: the full per-cell regenerated table, the box-height check, and the A2 magnitude (OPEN)."""
+    out = compute()
+    print(f"### Regenerated per-cell table (uncorrected input: {source()}; sigma = c_s_err_scaled, rescaled with L_eff)\n")
+    print("| eta_rec | L_0 | delta | eta_true | L_eff,rec | L_eff,true | c_s,rec ± σ | c_s,true ± σ | KR(eta_rec) | KR(eta_true) | D before [σ] | D after [σ] |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|---|")
+    for o in out:
+        fm = lambda v, f: ("n/a" if v != v else format(v, f))
+        print(f"| {o['eta']:.6f} | {o['L0']} | {o['delta']:.6f} | {o['eT']:.6f} | {o['Le']:.4f} | {o['LeT']:.4f} | "
+              f"{o['cs']:.5f} ± {o['sig']:.5f} | {o['sT']:.5f} ± {o['sigT']:.5f} | {fm(o['kR'], '.5f')} | {fm(o['kT'], '.5f')} | "
+              f"{fm(o['Db'], '+.2f')} | {fm(o['Da'], '+.2f')} |")
+    print(f"\nestimator gate: {sum(o['ok'] for o in out)}/{len(out)} cells reproduce the uncorrected table to 5e-6")
+    print("\n**Box HEIGHT (00ALLINONE.c:324, `SIM_HEIGHT = (int)(HEIGHT_UNITS * PIXELS_PER_SIGMA);`).** Every A1 v2 run was launched "
+          "by the harness with `--height=10.0` (tests_20260913.py:78 `H = \"10.0\"`, passed at :285 as `f\"--height={H}\"`):")
+    hs = sorted({float(T.H) * PPS for _ in out})
+    print(f"H x 24 = {hs} -> integer in all {len(out)} cells, so SIM_HEIGHT is exact and the height is NOT truncated. "
+          f"Read back from each run's own eta_rec: H = {min(o['H'] for o in out):.5f} ... {max(o['H'] for o in out):.5f} "
+          f"(H x 24 = {24*min(o['H'] for o in out):.3f} ... {24*max(o['H'] for o in out):.3f}; 6-decimal eta print).")
+    print("\n**OPEN, not corrected in this batch: A2 (the finite-size ladder) uses non-grid L_0 as well.** Per (eta, N), from the A2 "
+          "per-mass tables the draft's zoom and overlay figures read:\n")
+    print("| table | eta | N | L_0 | delta [σ] | delta/2 / L_eff (c_s shift) | eta shift |")
+    print("|---|---|---|---|---|---|---|")
+    worst = 0.0
+    for fn in ("260919_A2_cs_per_mass.csv", "260919_A2_cs_per_mass_famB.csv"):
+        seen = {}
+        for r in csv.DictReader(open(os.path.join(T.PLOTS, fn))):
+            seen[(float(r["eta"]), int(r["N"]))] = r["L0"]
+        for (e, n), l0s in sorted(seen.items()):
+            L0 = float(l0s); w = np.float32(2) * np.float32(L0) * np.float32(PPS); dl = (float(w) - math.floor(float(w))) / PPS
+            rel = dl / 2 / T.l_eff(L0); worst = max(worst, rel)
+            print(f"| {fn.replace('260919_A2_cs_per_mass', 'A2').replace('.csv', '')} | {e:g} | {n} | {l0s} | {dl:.6f} | {100*rel:.4f} % | {100*(L0/(L0-dl/2)-1):.4f} % |")
+    print(f"\nlargest A2 c_s shift: {100*worst:.4f} %. The zoom and N100-vs-A2 figures therefore pair a corrected A1 v2 curve with "
+          "uncorrected A2 points; their titles say so.")
+
 if __name__ == "__main__":
-    main()
+    table() if "--table" in sys.argv else main()

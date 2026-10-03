@@ -81,7 +81,8 @@ for N in (900, 1600):
                 label=f"{lab} · 5 masses × 10–35 seeds, 50 periods (η ≤ 0.05) / 37.5 (η = 0.10)")
 ax.set_xlim(0, XMAX); ax.set_ylim(1.38, 1.95)
 ax.set_ylabel("Speed of sound  c_s  [√(k_BT/m)]", fontsize=11.5)
-ax.set_title("The dilute end: one system size measured densely, two larger sizes at η = 0.10", fontsize=12.5)
+ax.set_title("The dilute end: one system size measured densely, two larger sizes at η = 0.10"
+             + ("\n" + os.environ["HD_TITLE_SUFFIX"] if os.environ.get("HD_TITLE_SUFFIX") else ""), fontsize=12.5)   # ##CHRIS 2026-10-14
 ax.grid(True, ls=":", alpha=0.6)
 ax.legend(loc="upper left", bbox_to_anchor=(0.0, 0.93), fontsize=8.5, framealpha=0.95)
 

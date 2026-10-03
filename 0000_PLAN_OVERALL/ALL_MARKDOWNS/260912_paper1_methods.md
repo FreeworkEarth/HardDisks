@@ -558,3 +558,259 @@ The code that writes or warns (`00ALLINONE.c`):
 **DETERMINISM GATE: PASS**
 
 ENERGY-TRANSFER MODE ALREADY REFUSED NON-GRID GEOMETRY: both binaries abort the $L_0 = 34.9999$ run with `initial_wall_position_mismatch` (the divider snaps to the pixel grid, 34.9791667 σ). That is the "grid check" the Paper 2 run scripts relied on. Speed-of-sound mode had no such check, which is why only Paper 1 data are affected.
+
+### 14.2 Regenerated table (2026-10-14; GO from the plan author on the REGENERATE verdict of § 14.1)
+
+The full per-cell correction was printed **before any canonical file was changed**. Columns: recorded and true packing fraction, recorded and true acoustic length, $c_s$ before and after (σ = `c_s_err_scaled`, which rescales with $L_{\rm eff}$), KR at both packing fractions, and the deviation $D = (c_s - c_s^{\rm KR})/\sigma$ before and after. Rows with $\eta_{\rm rec} \ge 0.695$ carry no KR in the canonical table, so $D$ is n/a there.
+
+**Printed by `python3 hspist3/validation/paper1_boxtrunc_20261014.py --table`** (verbatim):
+
+#### Regenerated per-cell table (uncorrected input: 260919_A1v2_final_cs_vs_eta.csv; sigma = c_s_err_scaled, rescaled with L_eff)
+
+| eta_rec | L_0 | delta | eta_true | L_eff,rec | L_eff,true | c_s,rec ± σ | c_s,true ± σ | KR(eta_rec) | KR(eta_true) | D before [σ] | D after [σ] |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.006545 | 600.0 | 0.000000 | 0.006545 | 598.9750 | 598.9750 | 1.44297 ± 0.00238 | 1.44297 ± 0.00238 | 1.43290 | 1.43290 | +4.24 | +4.24 |
+| 0.009817 | 400.0 | 0.000000 | 0.009817 | 398.9750 | 398.9750 | 1.45388 ± 0.00434 | 1.45388 ± 0.00434 | 1.44238 | 1.44238 | +2.65 | +2.65 |
+| 0.013090 | 300.0 | 0.000000 | 0.013090 | 298.9750 | 298.9750 | 1.46003 ± 0.00247 | 1.46003 ± 0.00247 | 1.45195 | 1.45195 | +3.27 | +3.27 |
+| 0.019635 | 199.9995 | 0.040649 | 0.019637 | 198.9745 | 198.9542 | 1.47744 ± 0.00442 | 1.47729 ± 0.00442 | 1.47138 | 1.47138 | +1.37 | +1.34 |
+| 0.026180 | 149.9996 | 0.040873 | 0.026184 | 148.9746 | 148.9542 | 1.50376 ± 0.00443 | 1.50356 ± 0.00442 | 1.49118 | 1.49119 | +2.84 | +2.79 |
+| 0.039270 | 99.9998 | 0.041260 | 0.039278 | 98.9748 | 98.9542 | 1.54272 ± 0.00419 | 1.54240 ± 0.00419 | 1.53196 | 1.53199 | +2.57 | +2.48 |
+| 0.052360 | 74.9998 | 0.041270 | 0.052374 | 73.9748 | 73.9542 | 1.58740 ± 0.00257 | 1.58696 ± 0.00257 | 1.57439 | 1.57444 | +5.07 | +4.88 |
+| 0.078540 | 49.9999 | 0.041463 | 0.078573 | 48.9749 | 48.9542 | 1.67866 ± 0.00526 | 1.67795 ± 0.00526 | 1.66454 | 1.66465 | +2.68 | +2.53 |
+| 0.112200 | 34.9999 | 0.041468 | 0.112267 | 33.9749 | 33.9542 | 1.81155 ± 0.00529 | 1.81044 ± 0.00529 | 1.79189 | 1.79216 | +3.71 | +3.46 |
+| 0.130900 | 29.9999 | 0.041468 | 0.130991 | 28.9749 | 28.9542 | 1.89683 ± 0.00473 | 1.89547 ± 0.00473 | 1.86885 | 1.86924 | +5.91 | +5.55 |
+| 0.157080 | 24.9999 | 0.041468 | 0.157210 | 23.9749 | 23.9542 | 2.01616 ± 0.00277 | 2.01442 ± 0.00277 | 1.98495 | 1.98555 | +11.25 | +10.41 |
+| 0.196350 | 20.0 | 0.000000 | 0.196350 | 18.9750 | 18.9750 | 2.21096 ± 0.00555 | 2.21096 ± 0.00555 | 2.17981 | 2.17981 | +5.62 | +5.62 |
+| 0.261799 | 15.0 | 0.000000 | 0.261799 | 13.9750 | 13.9750 | 2.61299 ± 0.00766 | 2.61299 ± 0.00766 | 2.57255 | 2.57255 | +5.28 | +5.28 |
+| 0.392699 | 10.0 | 0.000000 | 0.392699 | 8.9750 | 8.9750 | 3.80884 ± 0.01119 | 3.80884 ± 0.01119 | 3.74608 | 3.74608 | +5.61 | +5.61 |
+| 0.523599 | 7.5 | 0.000000 | 0.523599 | 6.4750 | 6.4750 | 6.08815 ± 0.01713 | 6.08815 ± 0.01713 | 5.93213 | 5.93213 | +9.11 | +9.11 |
+| 0.549999 | 7.14 | 0.030000 | 0.551157 | 6.1150 | 6.1000 | 6.73988 ± 0.03585 | 6.72335 ± 0.03576 | 6.60185 | 6.63378 | +3.85 | +2.50 |
+| 0.569996 | 6.8895 | 0.029001 | 0.571198 | 5.8645 | 5.8500 | 7.21712 ± 0.05177 | 7.19927 ± 0.05164 | 7.18766 | 7.22533 | +0.57 | -0.50 |
+| 0.590001 | 6.6559 | 0.020134 | 0.590895 | 5.6309 | 5.6208 | 7.92513 ± 0.09137 | 7.91096 ± 0.09121 | 7.85471 | 7.88661 | +0.77 | +0.27 |
+| 0.609999 | 6.4377 | 0.000399 | 0.610018 | 5.4127 | 5.4125 | 8.57780 ± 0.06569 | 8.57748 ± 0.06569 | 8.61562 | 8.61638 | -0.58 | -0.59 |
+| 0.630002 | 6.2333 | 0.008268 | 0.630420 | 5.2083 | 5.2042 | 9.51057 ± 0.12953 | 9.50302 ± 0.12943 | 9.48076 | 9.49995 | +0.23 | +0.02 |
+| 0.650003 | 6.0415 | 0.041334 | 0.652234 | 5.0165 | 4.9958 | 11.03078 ± 0.05298 | 10.98533 ± 0.05276 | 10.43889 | 10.54877 | +11.17 | +8.27 |
+| 0.669998 | 5.8612 | 0.014066 | 0.670803 | 4.8362 | 4.8292 | 12.99552 ± 0.03927 | 12.97662 ± 0.03922 | 11.37328 | 11.40491 | +41.31 | +40.08 |
+| 0.679998 | 5.775 | 0.008334 | 0.680489 | 4.7500 | 4.7458 | 14.51554 ± 0.04912 | 14.50280 ± 0.04907 | 11.67118 | 11.67835 | +57.91 | +57.56 |
+| 0.689999 | 5.6913 | 0.007600 | 0.690460 | 4.6663 | 4.6625 | 16.51931 ± 0.10955 | 16.50586 ± 0.10946 | 11.55102 | 11.52719 | +45.35 | +45.48 |
+| 0.695006 | 5.6503 | 0.008934 | 0.695556 | 4.6253 | 4.6208 | 17.76362 ± 0.15152 | 17.74646 ± 0.15137 | n/a | n/a | n/a | n/a |
+| 0.699998 | 5.61 | 0.011667 | 0.700727 | 4.5850 | 4.5792 | 19.24481 ± 0.22622 | 19.22032 ± 0.22593 | n/a | n/a | n/a | n/a |
+| 0.705000 | 5.5702 | 0.015400 | 0.705976 | 4.5452 | 4.5375 | 18.38705 ± 0.67519 | 18.35590 ± 0.67405 | n/a | n/a | n/a | n/a |
+| 0.709997 | 5.531 | 0.020334 | 0.711304 | 4.5060 | 4.4958 | 17.11137 ± 0.51285 | 17.07276 ± 0.51169 | n/a | n/a | n/a | n/a |
+| 0.714999 | 5.4923 | 0.026267 | 0.716713 | 4.4673 | 4.4542 | 16.44125 ± 0.19129 | 16.39291 ± 0.19073 | n/a | n/a | n/a | n/a |
+| 0.719994 | 5.4542 | 0.033399 | 0.722205 | 4.4292 | 4.4125 | 16.75907 ± 0.23220 | 16.69588 ± 0.23133 | n/a | n/a | n/a | n/a |
+| 0.725005 | 5.4165 | 0.041334 | 0.727782 | 4.3915 | 4.3708 | 17.86572 ± 0.13509 | 17.78164 ± 0.13446 | n/a | n/a | n/a | n/a |
+| 0.730005 | 5.3794 | 0.008799 | 0.730603 | 4.3544 | 4.3500 | 18.58431 ± 0.09869 | 18.56553 ± 0.09859 | n/a | n/a | n/a | n/a |
+| 0.740006 | 5.3067 | 0.030067 | 0.742108 | 4.2817 | 4.2667 | 22.76518 ± 0.13520 | 22.68524 ± 0.13472 | n/a | n/a | n/a | n/a |
+| 0.749998 | 5.236 | 0.013667 | 0.750978 | 4.2110 | 4.2042 | 27.84595 ± 0.21448 | 27.80076 ± 0.21414 | n/a | n/a | n/a | n/a |
+| 0.759999 | 5.1671 | 0.000867 | 0.760063 | 4.1421 | 4.1417 | 37.40656 ± 0.19181 | 37.40264 ± 0.19179 | n/a | n/a | n/a | n/a |
+
+estimator gate: 35/35 cells reproduce the uncorrected table to 5e-6
+
+**Box HEIGHT (00ALLINONE.c:324, `SIM_HEIGHT = (int)(HEIGHT_UNITS * PIXELS_PER_SIGMA);`).** Every A1 v2 run was launched by the harness with `--height=10.0` (tests_20260913.py:78 `H = "10.0"`, passed at :285 as `f"--height={H}"`):
+H x 24 = [240.0] -> integer in all 35 cells, so SIM_HEIGHT is exact and the height is NOT truncated. Read back from each run's own eta_rec: H = 9.99998 ... 10.00049 (H x 24 = 239.999 ... 240.012; 6-decimal eta print).
+
+**OPEN, not corrected in this batch: A2 (the finite-size ladder) uses non-grid L_0 as well.** Per (eta, N), from the A2 per-mass tables the draft's zoom and overlay figures read:
+
+| table | eta | N | L_0 | delta [σ] | delta/2 / L_eff (c_s shift) | eta shift |
+|---|---|---|---|---|---|---|
+| A2 | 0.02 | 100 | 196.349548 | 0.032430 | 0.0083 % | 0.0083 % |
+| A2 | 0.02 | 400 | 392.699097 | 0.023193 | 0.0030 % | 0.0030 % |
+| A2 | 0.02 | 900 | 589.048645 | 0.013997 | 0.0012 % | 0.0012 % |
+| A2 | 0.02 | 1600 | 785.398193 | 0.004720 | 0.0003 % | 0.0003 % |
+| A2 | 0.05 | 100 | 78.539818 | 0.037964 | 0.0245 % | 0.0242 % |
+| A2 | 0.05 | 400 | 157.079636 | 0.034261 | 0.0110 % | 0.0109 % |
+| A2 | 0.05 | 900 | 235.619446 | 0.030558 | 0.0065 % | 0.0065 % |
+| A2 | 0.05 | 1600 | 314.159271 | 0.026855 | 0.0043 % | 0.0043 % |
+| A2 | 0.1 | 100 | 39.269909 | 0.039815 | 0.0521 % | 0.0507 % |
+| A2 | 0.1 | 400 | 78.539818 | 0.037964 | 0.0245 % | 0.0242 % |
+| A2 | 0.1 | 900 | 117.809723 | 0.036112 | 0.0155 % | 0.0153 % |
+| A2 | 0.1 | 1600 | 157.079636 | 0.034261 | 0.0110 % | 0.0109 % |
+| A2 | 0.1 | 2500 | 196.349548 | 0.032430 | 0.0083 % | 0.0083 % |
+| A2 | 0.3 | 100 | 13.089969 | 0.013270 | 0.0550 % | 0.0507 % |
+| A2 | 0.3 | 400 | 26.179939 | 0.026545 | 0.0528 % | 0.0507 % |
+| A2 | 0.3 | 900 | 39.269909 | 0.039815 | 0.0521 % | 0.0507 % |
+| A2 | 0.3 | 1600 | 52.359879 | 0.011424 | 0.0111 % | 0.0109 % |
+| A2 | 0.3 | 2500 | 65.449844 | 0.024689 | 0.0192 % | 0.0189 % |
+| A2 | 0.5 | 100 | 7.853982 | 0.041298 | 0.3024 % | 0.2636 % |
+| A2 | 0.5 | 400 | 15.707963 | 0.040927 | 0.1394 % | 0.1304 % |
+| A2 | 0.5 | 900 | 23.561945 | 0.040558 | 0.0900 % | 0.0861 % |
+| A2 | 0.5 | 1600 | 31.415928 | 0.040192 | 0.0661 % | 0.0640 % |
+| A2 | 0.6 | 100 | 6.544985 | 0.006636 | 0.0601 % | 0.0507 % |
+| A2 | 0.6 | 400 | 13.089969 | 0.013270 | 0.0550 % | 0.0507 % |
+| A2 | 0.6 | 900 | 19.634954 | 0.019908 | 0.0535 % | 0.0507 % |
+| A2 | 0.6 | 1600 | 26.179939 | 0.026545 | 0.0528 % | 0.0507 % |
+| A2 | 0.65 | 100 | 6.041524 | 0.041382 | 0.4125 % | 0.3437 % |
+| A2 | 0.65 | 400 | 12.083049 | 0.041097 | 0.1858 % | 0.1704 % |
+| A2 | 0.65 | 900 | 18.124573 | 0.040812 | 0.1193 % | 0.1127 % |
+| A2 | 0.65 | 1600 | 24.166098 | 0.040527 | 0.0876 % | 0.0839 % |
+| A2_famB | 0.02 | 100 | 196.349548 | 0.032430 | 0.0083 % | 0.0083 % |
+| A2_famB | 0.02 | 400 | 392.699097 | 0.023193 | 0.0030 % | 0.0030 % |
+| A2_famB | 0.02 | 900 | 589.048645 | 0.013997 | 0.0012 % | 0.0012 % |
+| A2_famB | 0.02 | 1600 | 785.398193 | 0.004720 | 0.0003 % | 0.0003 % |
+| A2_famB | 0.05 | 100 | 78.539818 | 0.037964 | 0.0245 % | 0.0242 % |
+| A2_famB | 0.05 | 400 | 157.079636 | 0.034261 | 0.0110 % | 0.0109 % |
+| A2_famB | 0.05 | 900 | 235.619446 | 0.030558 | 0.0065 % | 0.0065 % |
+| A2_famB | 0.05 | 1600 | 314.159271 | 0.026855 | 0.0043 % | 0.0043 % |
+| A2_famB | 0.1 | 100 | 39.269909 | 0.039815 | 0.0521 % | 0.0507 % |
+| A2_famB | 0.1 | 400 | 78.539818 | 0.037964 | 0.0245 % | 0.0242 % |
+| A2_famB | 0.1 | 900 | 117.809723 | 0.036112 | 0.0155 % | 0.0153 % |
+| A2_famB | 0.1 | 1600 | 157.079636 | 0.034261 | 0.0110 % | 0.0109 % |
+| A2_famB | 0.1 | 2500 | 196.349548 | 0.032430 | 0.0083 % | 0.0083 % |
+| A2_famB | 0.3 | 100 | 13.089969 | 0.013270 | 0.0550 % | 0.0507 % |
+| A2_famB | 0.3 | 400 | 26.179939 | 0.026545 | 0.0528 % | 0.0507 % |
+| A2_famB | 0.3 | 900 | 39.269909 | 0.039815 | 0.0521 % | 0.0507 % |
+| A2_famB | 0.3 | 1600 | 52.359879 | 0.011424 | 0.0111 % | 0.0109 % |
+| A2_famB | 0.3 | 2500 | 65.449844 | 0.024689 | 0.0192 % | 0.0189 % |
+| A2_famB | 0.5 | 100 | 7.853982 | 0.041298 | 0.3024 % | 0.2636 % |
+| A2_famB | 0.5 | 400 | 15.707963 | 0.040927 | 0.1394 % | 0.1304 % |
+| A2_famB | 0.5 | 900 | 23.561945 | 0.040558 | 0.0900 % | 0.0861 % |
+| A2_famB | 0.5 | 1600 | 31.415928 | 0.040192 | 0.0661 % | 0.0640 % |
+| A2_famB | 0.6 | 100 | 6.544985 | 0.006636 | 0.0601 % | 0.0507 % |
+| A2_famB | 0.6 | 400 | 13.089969 | 0.013270 | 0.0550 % | 0.0507 % |
+| A2_famB | 0.6 | 900 | 19.634954 | 0.019908 | 0.0535 % | 0.0507 % |
+| A2_famB | 0.6 | 1600 | 26.179939 | 0.026545 | 0.0528 % | 0.0507 % |
+| A2_famB | 0.65 | 100 | 6.041524 | 0.041382 | 0.4125 % | 0.3437 % |
+| A2_famB | 0.65 | 400 | 12.083049 | 0.041097 | 0.1858 % | 0.1704 % |
+| A2_famB | 0.65 | 900 | 18.124573 | 0.040812 | 0.1193 % | 0.1127 % |
+| A2_famB | 0.65 | 1600 | 24.166098 | 0.040527 | 0.0876 % | 0.0839 % |
+
+largest A2 c_s shift: 0.4125 %. The zoom and N100-vs-A2 figures therefore pair a corrected A1 v2 curve with uncorrected A2 points; their titles say so.
+
+#### 14.2.1 Regeneration record and draft audit (2026-10-14)
+
+**Dated copies first (copy, never move).** These were made before anything was regenerated, with `cp -n` and checked with `cmp`. There are twelve, in `paper1_speedofsound/experiments/final/`, each named `<name>_pre_boxtrunc_20261014.<ext>`:
+- `260919_A1v2_final_cs_vs_eta.csv`;
+- `260919_cs_vs_eta`, `260919_cs_vs_eta_lowdensity_zoom`, `260919_cs_vs_eta_N100_vs_A2` and `261002_p1_melting_region`, each as `.png` and `.pdf`;
+- `260922_roman2002_remapped_vs_KR` as `.csv`, `.png` and `.pdf`.
+
+**Regenerated, each by the script that originally made it (DATA).**
+- **Canonical table** `260919_A1v2_final_cs_vs_eta.csv`, by `paper1_populate_cs_err_20261002.py`.
+  - It first recomputes the uncorrected table from the raw traces. It refuses to write unless that recomputation reproduces the dated copy to $5\times10^{-6}$ in every cell; all 35 passed.
+  - It then applies $L_{\rm eff,true}$ and $\eta_{\rm true}$. The `eta` column now holds $\eta_{\rm true}$, and three columns are new: `eta_rec`, `delta_sigma` and `L_eff_true`.
+  - `KR` and `dev_KR_pct` are evaluated at $\eta_{\rm true}$ for the same 24 cells as before ($\eta_{\rm rec} \le 0.69$).
+- **Main figure, low-density zoom and the N = 100 vs A2 overlay**, by `paper1_canonical_20260919.py`, which calls `lowdensity_zoom_20260917.py` and `overlay_N100_vs_A2_20260915.py`. The A2 inputs it would rebuild (260916/260917) are not on disk, so the A2 tables were left byte-identical to HEAD.
+- **Román comparison** by `roman2002_remapped_20260922.py`; **melting region** by `paper1_melting_figure_20261002.py`.
+- **Titles and style.** Every regenerated title carries "corrected for box truncation (methods §14)". The two figures that show A2 points add "A2 points not yet corrected". The style is unchanged: data blue, KR red, error bars, no Liu 2021.
+
+**Not regenerated, and why.**
+- **The four `261001_p1_*` figures** (`paper1_figures_20261001.py`) are drawn from raw traces, not from this table.
+  - The estimator floor and the mass-ladder residuals are relative, per-density quantities. They are invariant when $x$ is rescaled by one factor per density.
+  - The worked ladder line and the slow mode are drawn at the recorded geometry of the $\eta_{\rm rec} = 0.1122$ cell. That cell's $c_s$ moves from 1.81155 to 1.81044 (§ 14.1 table), and the draft labels the cell by its recorded $\eta$.
+  - **OPEN:** redraw the ladder line at $L_{\rm eff,true}$ if its legend is to match the table.
+- **The tracked `writeup/paper1_draft.pdf` was not rebuilt.** The edited tex compiles cleanly into the scratchpad (two passes, no undefined references).
+
+**Downstream readers of the canonical CSV** (`grep -rl --include='*.py' 260919_A1v2_final_cs_vs_eta hspist3`):
+- **Unchanged inputs.** `paper1_confinement_prereg_20261012.py` and `roman2002_tableII_20261012.py` read the $\pi/8$ row, where $\delta = 0$, so they are unchanged. `paper1_modegate_20261013.py` reads only `L0`, which is unchanged, and computes the truncation itself.
+- **`paper1_nofuse_check_20261010.py`** selects the row with `if abs(float(r["eta"]) - ETA) < 1e-6: REF = r`, where `ETA = 0.112200`. The `eta` column now holds 0.112267, so a rerun would find no row and stop.
+  - Its committed result was computed on the pre-correction table and stands as a historical record.
+  - Pointing it at the dated copy or at `eta_rec` is a one-line change, left for a go.
+- **`paper2_level3_v6_20260924.py:163–172`** interpolates this table's deviation to $\eta = 0.1$.
+  - INFERENCE: a rerun would give a slightly smaller box-stiffening ratio, because the deviation at the two bracketing cells fell by 0.05 and 0.08 percentage points (table below).
+  - Its committed numbers stand as computed on the pre-correction table.
+
+**Erratum to § 14.1 (DATA, from its own printed table).** Two sentences there are not exact: "Every change is negative" and "the deviation from KR shrinks everywhere".
+- At $\eta_{\rm rec} = 0.690$ the change in $D$ is $+0.13$. There $c_s^{\rm KR}(\eta_{\rm true}) = 11.52719$ is below $c_s^{\rm KR}(\eta_{\rm rec}) = 11.55102$, so the higher $\eta$ lowers KR.
+- At $\eta_{\rm rec} = 0.610$, $|D|$ grows from 0.58 to 0.59.
+- The verdict is unaffected: all six cells that changed by more than 0.5 moved toward KR.
+
+**Two draft numbers that the old table did not reproduce.**
+- **Zoom caption (l. 247), "$0.5$–$1.5\,\%$".** The old table gives 0.41 to 1.50. The text was replaced by the new table's 0.40 to 1.40, printed as "$0.4$–$1.4\,\%$".
+- **Ladder caption (l. 214), "$1.0\,\%$".** The old table gives 1.10; the corrected table gives 1.02, which matches the text, so it was not edited.
+
+**Draft audit (A3), printed by `python3 hspist3/validation/paper1_draft_audit_20261014.py` before any edit** (verbatim). $D$ here comes from the table's 5-decimal values and can differ from § 14.2 by 0.01.
+
+### Paper 1 draft audit: every number from the canonical A1 v2 table, old -> new (printed BEFORE editing)
+
+| tex line(s) | old text | new text | definition | old table gives | old text reproduced? | new table gives | action |
+|---|---|---|---|---|---|---|---|
+| 33, 242, 303 | `$+1.04\,\%$` | `$+1.01\,\%$` | mean dev from KR, eta <= 0.4 (Roman script def.; 14 cells) | +1.04 | yes | +1.01 | EDIT |
+| 243 | `never worse than $1.68\,\%$` | `never worse than $1.68\,\%$` | max dev, eta <= 0.4 (the pi/8 cell, delta = 0) | 1.68 | yes | 1.68 | UNCHANGED |
+| 247 | `sits $0.5$--$1.5\,\%$ above` | `sits $0.4$--$1.4\,\%$ above` | dev range of the N = 100 points, eta <= 0.15 (zoom XMAX) | 0.41 to 1.50 | **NO** | 0.40 to 1.40 | EDIT |
+| 214 | `sits $1.0\,\%$ above Kolafa` | `sits $1.0\,\%$ above Kolafa` | dev at the worked-ladder cell, eta_rec = 0.1122 | 1.10 | **NO** | 1.02 | UNCHANGED |
+| 204 | `That scatter, $0.27\,\%$` | `That scatter, $0.27\,\%$` | median of c_s_scatter_mass / c_s over eta_rec <= 0.69 | 0.268 | yes | 0.268 | UNCHANGED |
+| 310 | `ours sits $+2.6\,\%$` | `ours sits $+2.6\,\%$` | dev at eta = 0.5236 (L_0 = 7.5, delta = 0) | +2.63 | yes | +2.63 | UNCHANGED |
+| 343 | `local maximum & $\eta = 0.700$` | `local maximum & $\eta = 0.701$` | eta of the local c_s maximum (melting script) | 0.7000 | yes | 0.7007 | EDIT |
+| 344 | `local minimum & $\eta = 0.715$` | `local minimum & $\eta = 0.717$` | eta of the local c_s minimum (melting script) | 0.7150 | yes | 0.7167 | EDIT |
+| 349 | `$c_s(0.700) - c_s(0.715) = 2.80$` | `$c_s(0.701) - c_s(0.717) = 2.83$` | depth of the dip (melting script) | 2.804 | yes | 2.827 | EDIT |
+| 349 | `$\mathbf{9.5\sigma}$` | `$\mathbf{9.6\sigma}$` | dip / plotted (scaled) errors in quadrature | 9.46 | yes | 9.56 | EDIT |
+| 350 | `$18.2\sigma$ on the propagated` | `$18.4\sigma$ on the propagated` | dip / propagated errors in quadrature | 18.22 | yes | 18.43 | EDIT |
+| 354 | `$\chi^2_{\mathrm{red}} = 1.8$--$14$` | `$\chi^2_{\mathrm{red}} = 1.8$--$14$` | chi2_red range, 0.695 <= eta <= 0.720 | 1.8-14 (6 cells) | yes | 1.8-14 (5 cells) | UNCHANGED |
+| 355 | `$0.40$ inside` | `$0.45$ inside` | mean c_s_scatter_mass, 0.695 <= eta <= 0.720 | 0.404 | yes | 0.451 | EDIT |
+| 355 | `against $0.08$ outside` | `against $0.09$ outside` | mean c_s_scatter_mass, rest of the melting-figure range 0.66-0.765 | 0.079 | yes | 0.088 | EDIT |
+
+'a factor five' (l. [355]): inside/outside = 5.13 before, 5.15 after -> unchanged.
+'both within our grid spacing of 0.005': |0.7007 - 0.702| = 0.0013, |0.7167 - 0.714| = 0.0027 -> still true.
+'0.73' (the nofuse sigma check) in the draft: 0 occurrences -> not quoted, nothing to audit.
+abstract 'eta = 0.0065 to 0.76': corrected range 0.0065 to 0.7601 -> unchanged.
+l. 101 thickness factor (t/2)/(L_0 - 2r) at eta = 0.65 with L_0,true: 0.498 % (text 0.50 %); at eta = 0.0065 delta = 0 -> unchanged.
+Cell labels NOT edited: 'eta = 0.1122' (ladder-line and slow-mode captions, ll. 211, 163) names the cell by its recorded eta, as do the two 261001 figures drawn from its raw traces; its corrected eta is 0.112267. '24 densities with eta <= 0.69' (l. 222) is the canonical KR cut, applied to the recorded eta; the 24th cell's corrected eta is 0.6905.
+
+### Per-cell deviations before and after (KR = the table's own KR column; D in units of c_s_err_scaled)
+
+| eta_rec | eta_true | c_s - KR before | c_s - KR after | dev before [%] | dev after [%] | D before | D after | change in D | abs(D) |
+|---|---|---|---|---|---|---|---|---|---|
+| 0.006545 | 0.006545 | +0.01007 | +0.01007 | +0.703 | +0.703 | +4.24 | +4.24 | +0.00 | same |
+| 0.009817 | 0.009817 | +0.01150 | +0.01150 | +0.797 | +0.797 | +2.65 | +2.65 | +0.00 | same |
+| 0.013090 | 0.013090 | +0.00808 | +0.00808 | +0.556 | +0.556 | +3.27 | +3.27 | +0.00 | same |
+| 0.019635 | 0.019637 | +0.00606 | +0.00591 | +0.412 | +0.402 | +1.37 | +1.34 | -0.03 | smaller |
+| 0.026180 | 0.026184 | +0.01258 | +0.01237 | +0.844 | +0.830 | +2.84 | +2.80 | -0.05 | smaller |
+| 0.039270 | 0.039278 | +0.01076 | +0.01041 | +0.702 | +0.680 | +2.57 | +2.48 | -0.08 | smaller |
+| 0.052360 | 0.052374 | +0.01301 | +0.01252 | +0.826 | +0.795 | +5.07 | +4.88 | -0.19 | smaller |
+| 0.078540 | 0.078573 | +0.01412 | +0.01329 | +0.848 | +0.798 | +2.68 | +2.53 | -0.16 | smaller |
+| 0.112200 | 0.112267 | +0.01966 | +0.01828 | +1.097 | +1.020 | +3.71 | +3.45 | -0.26 | smaller |
+| 0.130900 | 0.130991 | +0.02798 | +0.02623 | +1.497 | +1.403 | +5.92 | +5.55 | -0.37 | smaller |
+| 0.157080 | 0.157210 | +0.03121 | +0.02887 | +1.572 | +1.454 | +11.25 | +10.42 | -0.83 | smaller |
+| 0.196350 | 0.196350 | +0.03115 | +0.03115 | +1.429 | +1.429 | +5.61 | +5.61 | +0.00 | same |
+| 0.261799 | 0.261799 | +0.04044 | +0.04044 | +1.572 | +1.572 | +5.28 | +5.28 | +0.00 | same |
+| 0.392699 | 0.392699 | +0.06276 | +0.06276 | +1.675 | +1.675 | +5.61 | +5.61 | +0.00 | same |
+| 0.523599 | 0.523599 | +0.15602 | +0.15602 | +2.630 | +2.630 | +9.11 | +9.11 | +0.00 | same |
+| 0.549999 | 0.551157 | +0.13803 | +0.08957 | +2.091 | +1.350 | +3.85 | +2.50 | -1.35 | smaller |
+| 0.569996 | 0.571198 | +0.02946 | -0.02605 | +0.410 | -0.361 | +0.57 | -0.50 | -1.07 | smaller |
+| 0.590001 | 0.590895 | +0.07042 | +0.02434 | +0.897 | +0.309 | +0.77 | +0.27 | -0.50 | smaller |
+| 0.609999 | 0.610018 | -0.03782 | -0.03891 | -0.439 | -0.452 | -0.58 | -0.59 | -0.02 | LARGER |
+| 0.630002 | 0.630420 | +0.02981 | +0.00307 | +0.314 | +0.032 | +0.23 | +0.02 | -0.21 | smaller |
+| 0.650003 | 0.652234 | +0.59189 | +0.43657 | +5.670 | +4.139 | +11.17 | +8.27 | -2.90 | smaller |
+| 0.669998 | 0.670803 | +1.62224 | +1.57171 | +14.264 | +13.781 | +41.31 | +40.08 | -1.23 | smaller |
+| 0.679998 | 0.680489 | +2.84436 | +2.82445 | +24.371 | +24.185 | +57.91 | +57.56 | -0.35 | smaller |
+| 0.689999 | 0.690460 | +4.96829 | +4.97867 | +43.012 | +43.191 | +45.35 | +45.48 | +0.13 | LARGER |
+| 0.695006 | 0.695556 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | no KR in table |
+| 0.699998 | 0.700727 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | no KR in table |
+| 0.705000 | 0.705976 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | no KR in table |
+| 0.709997 | 0.711304 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | no KR in table |
+| 0.714999 | 0.716713 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | no KR in table |
+| 0.719994 | 0.722205 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | no KR in table |
+| 0.725005 | 0.727782 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | no KR in table |
+| 0.730005 | 0.730603 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | no KR in table |
+| 0.740006 | 0.742108 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | no KR in table |
+| 0.749998 | 0.750978 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | no KR in table |
+| 0.759999 | 0.760063 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | no KR in table |
+
+cells with |change in D| > 0.5: 6 at eta_rec = 0.157, 0.550, 0.570, 0.590, 0.650, 0.670; all toward KR: True
+cells where |D| grows (by > 0.005): eta_rec = 0.610: -0.58 -> -0.59; eta_rec = 0.690: +45.35 -> +45.48
+
+### Regeneration checks
+
+rows changed: 28 of 35; unchanged (delta = 0): L_0 = 600, 400, 300, 20.0000, 15.0000, 10.0000, 7.5000
+identity c_s,new = c_s,old * L_eff,true/L_eff,rec: max |difference| 9.0e-06 (table prints 5 decimals)
+identity eta_new = eta_old * L_0/(L_0 - delta/2): max |difference| 5.1e-07 (table prints 6 decimals)
+
+### Numbers for the Methods paragraph
+
+delta = 0 at 7 of 35 densities; c_s lowered by at most 0.09 % for eta <= 0.16 (at eta_rec = 0.1571) and by at most 0.47 % overall (at eta_rec = 0.7250); eta raised by at most 0.38 % (at eta_rec = 0.7250); 6 densities changed D by more than 0.5, all toward KR: True; Center_X check quoted from methods sec. 14.1: 5.5\times10^{-6} sigma.
+
+**Applied** with `--apply`, which printed (verbatim):
+
+    edited (3x): $+1.04\,\%$ -> $+1.01\,\%$
+    edited (1x) -- old text was NOT reproduced by the old table; new text is the new table value: sits $0.5$--$1.5\,\%$ above -> sits $0.4$--$1.4\,\%$ above
+    edited (1x): local maximum & $\eta = 0.700$ -> local maximum & $\eta = 0.701$
+    edited (1x): local minimum & $\eta = 0.715$ -> local minimum & $\eta = 0.717$
+    edited (1x): $c_s(0.700) - c_s(0.715) = 2.80$ -> $c_s(0.701) - c_s(0.717) = 2.83$
+    edited (1x): $\mathbf{9.5\sigma}$ -> $\mathbf{9.6\sigma}$
+    edited (1x): $18.2\sigma$ on the propagated -> $18.4\sigma$ on the propagated
+    edited (1x): $0.40$ inside -> $0.45$ inside
+    edited (1x): against $0.08$ outside -> against $0.09$ outside
+
+    applied: edits + Methods paragraph written to paper1_draft.tex
+
+**The Methods paragraph** ("Integer-pixel box width", five sentences, placed after "Effective length" in § II) takes its numbers from the last block above. The one exception is the Center_X agreement, $5.5\times10^{-6}\,\sigma$, which is quoted from § 14.1. The paragraph says "for every $N = 100$ density" rather than "throughout", and it states that the larger systems of the finite-size section are not yet corrected.

@@ -30,7 +30,7 @@ divider separating two compartments, the method of Rom\'an \emph{et al.}, over 3
 from $\eta = 0.0065$ to $0.76$ and nine divider masses per density. The measurement is compared with
 the Kolafa--Rottner equation of state through the adiabatic relation
 $c_s^2 = (\kT/m)[Z + \eta Z' + Z^2]$ with no fitted parameter. For $\eta \le 0.4$ the agreement is
-$+1.04\,\%$ on average at $N = 100$; a size ladder to $N = 2500$ shows the offset is finite size. We
+$+1.01\,\%$ on average at $N = 100$; a size ladder to $N = 2500$ shows the offset is finite size. We
 bound the estimator's own systematic below $0.3\,\%$, and we show that the apparent
 density-dependent excess reported in 2002 is an artefact of the $\gamma = 2$ mapping used then:
 re-mapped adiabatically, that 24-year-old data set shows the same flat $+1.1\,\%$ offset as ours,
@@ -102,6 +102,22 @@ Carrying $t$ lowers every $c_s$ by $(t/2)/(L_0-2r)$: $0.004\,\%$ at $\eta = 0.00
 at $\eta = 0.65$. The density is defined on the physical area, $\eta = N_s\pi r^2/(L_0H)$, with no
 exclusion --- $L_{\mathrm{eff}}$ is an acoustic length and enters nowhere else.
 % TODO-source: validation/paper1_canonical_20260919.py; 260919_A1v2_final_cs_vs_eta.csv
+
+% ##CHRIS 2026-10-14: box-truncation paragraph (methods sec. 14), numbers from validation/paper1_draft_audit_20261014.py
+\paragraph{Integer-pixel box width} The simulation sizes its box in whole pixels of $\sigma/24$, so when
+$2L_0$ is not a whole number of pixels the box is shorter than requested by
+$\delta = (48L_0 - \lfloor 48L_0 \rfloor)/24$, less than one pixel. The divider starts $L_0$ from one wall
+and oscillates about the centre of the shortened box, so each compartment is on average $L_0 - \delta/2$
+long, as the recorded box centre confirms at every density to $5.5\times10^{-6}\,\sigma$. For every $N = 100$
+density we therefore use $\eta = N_s\pi r^2/[(L_0 - \delta/2)H]$ and
+$L_{\mathrm{eff}} = L_0 - 2r - t/2 - \delta/2$; $\delta = 0$ at 7 of the 35 densities, and the
+correction lowers $c_s$ by at most $0.09\,\%$ for $\eta \le 0.16$ and $0.47\,\%$ overall and raises
+$\eta$ by at most $0.38\,\%$. The correction was applied after the measurements, under a rule fixed
+before it was evaluated: the table is regenerated if any density's deviation from Kolafa--Rottner changes
+by more than half that density's error bar, which happened at six densities, all of which moved
+toward the equation of state. The larger systems of \S\ref{sec:finitesize} carry the same shortfall and are
+not yet corrected.
+% TODO-source: methods sec. 14 (rule, 4db8c9d), 14.1 (Center_X check; 615561c), 14.2; validation/paper1_boxtrunc_20261014.py
 
 \section{The estimator}\label{sec:estimator}
 For each trajectory we form the periodogram of the divider position,
@@ -239,12 +255,12 @@ are not counted as a deviation from Kolafa--Rottner.}
 \end{figure*}
 
 % TODO-source: 260919_A1v2_final_cs_vs_eta.csv, column dev_KR_pct
-Over $\eta \le 0.4$ the measurement sits $+1.04\,\%$ above Kolafa--Rottner on average at $N = 100$
+Over $\eta \le 0.4$ the measurement sits $+1.01\,\%$ above Kolafa--Rottner on average at $N = 100$
 and never worse than $1.68\,\%$. The offset is one-signed and grows slowly with density.
 
 \begin{figure}[t]\centering
 \includegraphics[width=\linewidth]{260919_cs_vs_eta_lowdensity_zoom.pdf}
-\caption{The dilute end. The $N = 100$ curve sits $0.5$--$1.5\,\%$ above the equation of state;
+\caption{The dilute end. The $N = 100$ curve sits $0.4$--$1.4\,\%$ above the equation of state;
 larger systems agree with it within their errors.}
 \label{fig:zoom}
 \end{figure}
@@ -300,7 +316,7 @@ $L_0$ & $\eta$ & $c_s$ (theirs) & dev., $\gamma=2$ & dev., adiabatic \\
 \end{table}
 
 The density-dependent excess becomes a flat $+1.10\,\%$ (spread $+0.91$ to $+1.46\,\%$), against our
-$+1.04\,\%$ at $N = 100$ averaged over $\eta \le 0.4$. Two independent implementations, 24 years
+$+1.01\,\%$ at $N = 100$ averaged over $\eta \le 0.4$. Two independent implementations, 24 years
 apart, in the same box, with the same offset: that makes the $+1\,\%$ a property of the $N = 100$
 divider apparatus rather than of either code. Their own size series (their Table II,
 $N = 64 \to 4096$, $c_s = 3.81 \to 3.75$, extrapolating to $3.74$) runs in the same direction as
@@ -340,19 +356,19 @@ $Z'(\eta) < 0$, and since $c_s^2 = (\kT/m)(Z + \eta Z' + Z^2)$ a loop in $Z$ mus
 \toprule
  & our $c_s(\eta)$, $N = 100$ & Engel \emph{et al.} \\
 \midrule
-local maximum & $\eta = 0.700$ & loop extremum $\approx 0.702$ \\
-local minimum & $\eta = 0.715$ & loop extremum $\approx 0.714$ \\
+local maximum & $\eta = 0.701$ & loop extremum $\approx 0.702$ \\
+local minimum & $\eta = 0.717$ & loop extremum $\approx 0.714$ \\
 \bottomrule
 \end{tabular}\end{center}
 
 \noindent both within our grid spacing of $0.005$, and the dip is deep:
-$c_s(0.700) - c_s(0.715) = 2.80$, which is $\mathbf{9.5\sigma}$ on the error bars plotted in
-Fig.~\ref{fig:melting} and $18.2\sigma$ on the propagated statistical error alone. \textbf{The
+$c_s(0.701) - c_s(0.717) = 2.83$, which is $\mathbf{9.6\sigma}$ on the error bars plotted in
+Fig.~\ref{fig:melting} and $18.4\sigma$ on the propagated statistical error alone. \textbf{The
 claim rests on the former}, the conservative of the two: the standard error of the through-origin
 slope with the per-mass frequency errors propagated from 25 seeds, inflated by
 $\sqrt{\chi^2_{\mathrm{red}}}$ wherever the nine masses disagree by more than those errors --- and
 in this window they do, $\chi^2_{\mathrm{red}} = 1.8$--$14$. The mass scatter tells the same story
-independently: $0.40$ inside $0.695 \le \eta \le 0.720$ against $0.08$ outside it, a factor five,
+independently: $0.45$ inside $0.695 \le \eta \le 0.720$ against $0.09$ outside it, a factor five,
 which is what a phase-separating and slowly-equilibrating system should do to a resonance
 measurement.
 

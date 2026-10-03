@@ -75,7 +75,8 @@ for N in (900, 1600):
     ax.errorbar([p[0] for p in a2[N]], [p[1] for p in a2[N]], yerr=[p[2] for p in a2[N]], fmt=mk, color=col, ms=5, lw=1.4,
                 capsize=3, mfc="white" if N == 1600 else col, mew=1.4, zorder=5, label=lab)
 ax.set_ylim(0, 22); ax.set_ylabel("Speed of sound  c_s  [√(k_BT/m)]", fontsize=11.5)
-ax.set_title("Speed of sound against packing fraction: one system size (N = 100) and two larger ones", fontsize=12.5)
+ax.set_title("Speed of sound against packing fraction: one system size (N = 100) and two larger ones"
+             + ("\n" + os.environ["HD_TITLE_SUFFIX"] if os.environ.get("HD_TITLE_SUFFIX") else ""), fontsize=12.5)   # ##CHRIS 2026-10-14
 ax.grid(True, ls=":", alpha=0.6)
 ax.legend(loc="upper left", bbox_to_anchor=(0.0, 0.91), fontsize=8.5, framealpha=0.95)
 ax.text(0.565, 2.2, "η ≥ 0.65: 6 σ compartment,\nstructure changes during\nmeasurement — not a\nfluid-branch value",

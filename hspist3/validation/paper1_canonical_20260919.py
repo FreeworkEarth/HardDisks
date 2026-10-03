@@ -75,16 +75,17 @@ def draw_main():
     ax.axhline(math.sqrt(2), color="0.45", lw=1.0, ls=":", label="ideal-gas limit: c_s = sqrt(2)")
     ax.errorbar(E, C, yerr=S, fmt="o-", color="#2a78d6", ms=4.5, lw=1.1, capsize=2.5, zorder=5,
                 label="A1 v2, N = 100, 9 masses x 25 seeds, 200 periods,\nlargest FFT bin at f >= nu_pred/2.5, "
-                      "L_eff = L0 - 2r - t/2")
+                      "L_eff = L0 - 2r - t/2 - delta/2 (box truncation, methods §14)")
     ax.set_ylim(0, 22); ax.set_xlim(0, 0.78)
     ax.set_xlabel("Packing fraction  eta", fontsize=11.5)
     ax.set_ylabel("Speed of sound  c_s  [sqrt(k_BT/m)]", fontsize=11.5)
-    ax.set_title("Speed of sound against packing fraction (canonical, divider thickness in L_eff)", fontsize=12.5)
+    ax.set_title("Speed of sound against packing fraction (canonical; corrected for box truncation, methods §14)", fontsize=12.5)
     ax.grid(True, ls=":", alpha=0.6)
     ax.legend(loc="upper left", bbox_to_anchor=(0.0, 0.93), fontsize=8.5, framealpha=0.95)
     ax.text(0.555, 2.2, "eta >= 0.65: 6 sigma compartment, structure\nchanges during measurement - not a\nfluid-branch value",
             fontsize=8.5, color="0.3")
-    fig.text(0.99, 0.004, "L_eff = L0 - 2r - t/2 with t = 0.05 sigma - data: 260919_A1v2_final_cs_vs_eta.csv",
+    fig.text(0.99, 0.004, "L_eff = L0 - 2r - t/2 - delta/2 (t = 0.05 sigma; delta = integer-pixel box shortfall; eta = eta_true) "
+             "- corrected for box truncation (methods §14) - data: 260919_A1v2_final_cs_vs_eta.csv",
              ha="right", va="bottom", fontsize=7, color="0.4")
     fig.tight_layout(rect=(0, 0.02, 1, 1))
     out = os.path.join(P, "260919_cs_vs_eta")
@@ -116,8 +117,8 @@ def main():
     p = os.path.join(P, "260919_A1v2_final_cs_vs_eta.csv")
     rows = list(csv.DictReader(open(p)))
     for r in rows:
-        e = float(r["eta"])
-        if e <= 0.69:
+        e = float(r["eta"])                                  # eta_true since 2026-10-14 (methods §14)
+        if float(r.get("eta_rec") or r["eta"]) <= 0.69:       # ##CHRIS 2026-10-14: the KR set by RECORDED eta (same 24 cells)
             h = 1e-5; Z = sos.Z_kolafa_rottner_2006
             kr = float(sos.cs_adiabatic_2d_monatomic(Z(e), (Z(e + h) - Z(e - h)) / (2 * h), e, kbt=1, m=1))
             r["KR"] = f"{kr:.5f}"
@@ -128,7 +129,8 @@ def main():
 
     print("\n### Regenerating the three circulated figures from the corrected CSVs\n")
     here = os.path.dirname(os.path.abspath(__file__))
-    env = dict(os.environ, HD_A1_CSV="260919_A1v2_final_cs_vs_eta.csv")
+    env = dict(os.environ, HD_A1_CSV="260919_A1v2_final_cs_vs_eta.csv",
+               HD_TITLE_SUFFIX="N = 100 (A1 v2) corrected for box truncation (methods §14); A2 points not yet corrected")   # ##CHRIS 2026-10-14
     jobs = [
         ("dilute zoom  -> 260919_cs_vs_eta_lowdensity_zoom",
          [sys.executable, os.path.join(here, "lowdensity_zoom_20260917.py"),

@@ -37,6 +37,15 @@ matching (L0-2r-t/2)/(L0-2r) at every density. Recomputing with the current T.x_
 rescaling reproduces the published canonical c_s to better than 5e-6 everywhere. So this script
 writes the canonical 260919 table DIRECTLY and does not touch 260914, which stays as the historical
 no-thickness record.
+
+##CHRIS 2026-10-14: BOX-TRUNCATION CORRECTION (methods sec. 14; pre-registered 4db8c9d, verdict REGENERATE 615561c,
+GO from the plan author). The binary sizes the box in whole pixels, SIM_WIDTH = (int)(2 L0 * 24) (00ALLINONE.c:323),
+so a non-grid L0 runs in a box shorter by delta; the divider oscillates about the truncated centre, each compartment
+is L0 - delta/2 on average (the runs' own Center_X confirms -delta/2 to 5.5e-6). This script now writes the
+CORRECTED canonical table: eta = eta_true = eta_rec L0/(L0 - delta/2), c_s from the per-mass nu with
+L_eff,true = L0 - 2r - t/2 - delta/2, KR and dev_KR_pct at eta_true (for the same 24 cells, chosen by eta_rec <= 0.69),
+plus columns eta_rec, delta_sigma, L_eff_true. L0 stays the value the runs were launched with. GATE before writing:
+the UNcorrected recomputation must reproduce the pre-correction table (PRE19, the dated copy) to 5e-6 in every cell.
 """
 import csv, math, os, sys
 import numpy as np
@@ -50,6 +59,14 @@ TD, X_EDGE = 200, 2.5           # identical to final_A1_figures_20260914.py
 RDISK, WALL_T = 0.5, 0.05
 SRC14 = "260914_A1v2_final_cs_vs_eta.csv"
 SRC19 = "260919_A1v2_final_cs_vs_eta.csv"
+PRE19 = "260919_A1v2_final_cs_vs_eta_pre_boxtrunc_20261014.csv"   # ##CHRIS 2026-10-14: the uncorrected table
+
+
+def box_delta(L0):
+    """##CHRIS 2026-10-14: box shortfall [sigma] of SIM_WIDTH = (int)(2 * L0_UNITS * PIXELS_PER_SIGMA) (00ALLINONE.c:323),
+    evaluated in the binary's own float32 arithmetic."""
+    w = np.float32(2) * np.float32(L0) * np.float32(24)
+    return (float(w) - math.floor(float(w))) / 24.0
 
 
 def cell(task):
@@ -109,7 +126,8 @@ def main():
         cells = pool.map(cell, tasks, chunksize=1)
 
     old = {r["eta"]: r for r in csv.DictReader(open(T.plot_path(SRC14)))}
-    rows, moved = [], []
+    pre = {r["eta"]: r for r in csv.DictReader(open(T.plot_path(PRE19)))}    # ##CHRIS 2026-10-14
+    rows, moved, gate_fail = [], [], []
     for leaf in table:
         cs = [c for c in cells if c["eta"] == leaf["eta"] and c["n"] > 0]
         if len(cs) < 3:
@@ -130,28 +148,47 @@ def main():
         o = old.get(key)
         if o is not None and abs(float(o["c_s"]) - s) > 5e-6 * max(1.0, abs(s)):
             moved.append((key, float(o["c_s"]), s))
+        # ##CHRIS 2026-10-14 GATE: the uncorrected recomputation must reproduce the pre-correction canonical table.
+        p = pre.get(key)
+        if p is None or abs(float(p["c_s"]) - s) > 5e-6 * max(1.0, abs(s)):
+            gate_fail.append((key, p["c_s"] if p else None, s))
+        # ##CHRIS 2026-10-14 BOX-TRUNCATION CORRECTION (methods sec. 14): same per-mass nu, true length and density.
+        delta = box_delta(L0)
+        LeT = T.l_eff(L0) - delta / 2
+        xT = np.array([T.k_root(q["M"] / (2.0 * T.N_SIDE)) / (2 * math.pi * LeT) for q in cs])
+        sT, scatT, _ = T.slope(xT, y)
+        sxxT = float((xT * xT).sum()); errT = math.sqrt(float((xT * xT * sy * sy).sum()) / (sxxT ** 2))
+        chi2T = float((((y - sT * xT) / sy) ** 2).sum()) / max(1, len(xT) - 1)
+        etaT = leaf["eta"] * L0 / (L0 - delta / 2)
         r = dict(o) if o else {}
-        r.update(eta=key, L0=leaf["L0"], c_s=f"{s:.5f}", c_s_err=f"{err:.6f}",
-                 c_s_scatter_mass=f"{scat:.5f}", chi2_red=f"{chi2:.3f}",
-                 c_s_err_scaled=f"{err * max(1.0, math.sqrt(chi2)):.6f}", n_masses=nm,
+        r.update(eta=f"{etaT:.6f}", L0=leaf["L0"], c_s=f"{sT:.5f}", c_s_err=f"{errT:.6f}",
+                 c_s_scatter_mass=f"{scatT:.5f}", chi2_red=f"{chi2T:.3f}",
+                 c_s_err_scaled=f"{errT * max(1.0, math.sqrt(chi2T)):.6f}", n_masses=nm,
                  trajectories_used=sum(q["n"] for q in cs),
-                 trajectories_discarded=sum(q["nd"] for q in cs))
-        if leaf["eta"] <= 0.69:
-            r["KR"] = f"{T.kr_cs(leaf['eta']):.5f}"
-            r["dev_KR_pct"] = f"{100 * (s / T.kr_cs(leaf['eta']) - 1):+.3f}"
+                 trajectories_discarded=sum(q["nd"] for q in cs),
+                 eta_rec=key, delta_sigma=f"{delta:.6f}", L_eff_true=f"{LeT:.6f}")
+        if leaf["eta"] <= 0.69:                      # the KR set is chosen by eta_rec: the same 24 cells as before
+            r["KR"] = f"{T.kr_cs(etaT):.5f}"
+            r["dev_KR_pct"] = f"{100 * (sT / T.kr_cs(etaT) - 1):+.3f}"
         else:
             r["KR"] = ""; r["dev_KR_pct"] = ""
         rows.append(r)
 
     fields = ["eta", "L0", "c_s", "c_s_err", "c_s_err_scaled", "c_s_scatter_mass", "chi2_red", "n_masses",
-              "trajectories_used", "trajectories_discarded", "KR", "dev_KR_pct"]
+              "trajectories_used", "trajectories_discarded", "KR", "dev_KR_pct",
+              "eta_rec", "delta_sigma", "L_eff_true"]          # ##CHRIS 2026-10-14: box-truncation columns
+    if gate_fail:                                                   # ##CHRIS 2026-10-14: fail closed
+        print("GATE FAILED -- the uncorrected recomputation does not reproduce the pre-correction table; NOTHING WRITTEN:")
+        for g in gate_fail: print("   ", g)
+        sys.exit(1)
+    print(f"gate: the uncorrected recomputation reproduces {PRE19} to 5e-6 in all {len(rows)} cells")
     # Write the CANONICAL table directly. No rescale: see the trap in the module docstring.
     # 260914 is left exactly as it is -- it is the historical no-thickness record.
     out19 = os.path.join(T.PLOTS, SRC19)
     old19 = {r["eta"]: r for r in csv.DictReader(open(T.plot_path(SRC19)))}
     moved19 = []
     for r in rows:
-        o = old19.get(r["eta"])
+        o = old19.get(r.get("eta_rec", r["eta"]))          # ##CHRIS 2026-10-14: match on the recorded eta
         if o is not None and abs(float(o["c_s"]) - float(r["c_s"])) > 5e-6 * max(1.0, abs(float(r["c_s"]))):
             moved19.append((r["eta"], float(o["c_s"]), float(r["c_s"])))
     with open(out19, "w", newline="") as fh:

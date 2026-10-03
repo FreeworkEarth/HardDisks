@@ -130,7 +130,8 @@ def main():
     ax.set_ylabel("Speed of sound  $c_s$  [$\\sqrt{k_BT/m}$]", fontsize=11)
     ax.set_ylim(1.5, 6.6); ax.grid(True, ls=":", alpha=0.6)
     ax.legend(fontsize=8.5, loc="upper left", framealpha=0.95)
-    ax.set_title("Román 2002 re-mapped: the density-dependent excess was the mapping", fontsize=12)
+    ax.set_title("Román 2002 re-mapped: the density-dependent excess was the mapping\n"
+                 "(this work: corrected for box truncation, methods §14)", fontsize=12)   # ##CHRIS 2026-10-14
 
     axd.axhline(0, color="#e34948", lw=1.6)
     axd.axhspan(-1, 1, color="#e1e0d9", alpha=0.7, zorder=0)
