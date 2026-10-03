@@ -19,5 +19,9 @@ export PKG_CONFIG_PATH=$HOME/envs/hd/lib/pkgconfig:${PKG_CONFIG_PATH:-}
 export LD_LIBRARY_PATH=$HOME/envs/hd/lib:${LD_LIBRARY_PATH:-}
 export PATH=$HOME/envs/hd/bin:$PATH
 export LDFLAGS="-Wl,-rpath,$HOME/envs/hd/lib ${LDFLAGS:-}"     # Makefile:41 uses LDFLAGS +=, so this survives
+# ##CHRIS 2026-10-02 (Task O): the Makefile says `CC              ?= cc` (Makefile:15), so without this make compiles with
+# `cc` -- on KOA most likely /usr/bin/cc, the system gcc 11.5, even with the 14.3 module loaded. Export the compiler
+# explicitly; build_koa.sh records the compiler make actually invokes (from `make -n`).
+export CC=gcc
 gcc --version | head -1 | grep -q "14.3" || { echo "STOP: gcc is not 14.3: $(gcc --version | head -1)"; return 1; }
 echo "env: $(gcc --version | head -1) | $(python3 --version 2>&1) at $(command -v python3) | $(git --version)"

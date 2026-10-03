@@ -65,6 +65,7 @@ bash cluster/build_koa.sh
   - writes `logs/BUILD_KOA_<jobid>.txt`.
 - **Expected:**
   - the first line is `env: gcc (GCC) 14.3.0 | Python 3.12.14 at /home/charing/envs/hd/bin/python3 | git version ...`;
+  - a line `== make compiler: gcc -> /.../gcc -> gcc (GCC) 14.3.0` (the compiler make really uses; if it says 11.5, stop);
   - then the compiler output (warnings are fine);
   - the last line is `BUILD OK`.
 - **Any `STOP:` line:** stop, `exit`, and paste the output.

@@ -23,6 +23,11 @@ echo "== toolchain";  gcc --version | head -1
 echo "== libraries";  pkg-config --exists sdl2 SDL2_ttf glew || { echo "STOP: pkg-config does not find sdl2/SDL2_ttf/glew in ~/envs/hd"; exit 3; }
 echo "   sdl2 $(pkg-config --modversion sdl2), SDL2_ttf $(pkg-config --modversion SDL2_ttf), glew $(pkg-config --modversion glew)"
 
+# ##CHRIS 2026-10-02 (Task O): the compiler make will actually invoke -- the first word of the link line of `make -n` --
+# its full path and its version, so the record cannot claim one compiler while make used another.
+MAKE_CC=$(make -n -B koa | awk 'NF{print $1; exit}')
+MAKE_CC_LINE="$MAKE_CC -> $(command -v "$MAKE_CC") -> $("$MAKE_CC" --version | head -1)"
+echo "== make compiler: $MAKE_CC_LINE"
 echo "== build (portable ISA -march=x86-64-v2, not -march=native: every KOA node must produce the same bytes)"
 make -B koa || { echo "STOP: make koa failed"; exit 4; }
 
@@ -41,7 +46,8 @@ mkdir -p logs
   echo "built_utc      $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "host           $(hostname)   job ${SLURM_JOB_ID}"
   echo "cpu            $(lscpu | awk -F: '/Model name/{gsub(/^ +/,"",$2); print $2; exit}')"
-  echo "compiler       $(gcc --version | head -1)"
+  echo "compiler       $(gcc --version | head -1)   (gcc on PATH)"
+  echo "make compiler  $MAKE_CC_LINE   (CC=${CC:-unset}; Makefile:15 'CC ?= cc')"
   echo "version        $ver"
   echo "git_commit     $(git rev-parse HEAD)"
   echo "sha256         $(sha256sum 00ALLINONE | cut -d' ' -f1)"
