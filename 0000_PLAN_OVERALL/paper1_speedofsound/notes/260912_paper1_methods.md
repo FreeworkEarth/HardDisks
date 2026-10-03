@@ -1064,3 +1064,50 @@ Not edited: 'a size ladder to N = 2500 shows the offset is finite size' (abstrac
 The draft compiles in two passes with no undefined references (scratchpad build).
 
 **FLAG for the plan author (pre-existing, not edited).** The zoom caption says "larger systems agree with it within their errors." The table above shows that is not true at 1σ for every point: N = 900 at η = 0.10 sits at $D = +2.96$, and was at +3.05 before the correction. The wording is the plan author's call.
+
+#### 14.3.2 Draft dependencies after the corrections: 261001 figures, draft pdf, fresh-clone build (2026-10-02, Task G)
+
+**G1, tracked first.** `paper1_figures_20261001.py` and the four `261001_p1_*` figures (png and pdf) were committed exactly as they were (e10f0d2). Before that, the draft included them while git did not track them.
+
+**G1, redrawn.** The ladder-line and slow-mode figures were redrawn at the corrected geometry of the $\eta_{\rm rec} = 0.1122$ cell. Dated copies were made first (`cp -n`, `cmp`): `261001_p1_massladder_line_pre_boxtrunc_261002` and `261001_p1_slowmode_pre_boxtrunc_261002`, each as `.png` and `.pdf`.
+- **Ladder line.** $x_M$ at $L_{\rm eff,true} = 33.9542$, KR at $\eta_{\rm true} = 0.112267$. The title carries "corrected for box truncation (methods §14)". The data label gives both η values.
+- **A pre-existing inconsistency was found and fixed (DATA).** The 2026-10-01 figure did not use the canonical estimator:
+  - it took the whole record, with floor bin $k = N_{\rm cyc}/2.5$, instead of the first TD = 200 periods with $k = {\rm TD}/X$;
+  - its ± was ${\rm sd}_{\rm mass}/\sqrt n$, not `c_s_err_scaled`.
+  - So it showed $c_s = 1.8098 \pm 0.0015$ (read from the old figure's legend) against the table's $1.81155 \pm 0.00529$.
+  - It now uses `cell()`'s per-trajectory estimator and `slope_with_errors`, both imported. It draws nothing unless the gate below passes.
+- **Slow mode.** The title gives $\eta_{\rm true}$ and carries the correction note. The periodogram is now computed on the canonical 200-period record, which gives the same ν, 0.002627.
+  - The floor $\nu_{\rm pred}/2.5$ and the $\nu_{\rm pred}$ line are **not** moved. $\nu_{\rm pred}$ is the binary's own prediction at the recorded geometry, and the estimator anchors its floor on it, so this is where the floor really was. The legend says so.
+
+**Printed by `python3 hspist3/validation/paper1_figures_20261001.py ladder slowmode`** (verbatim):
+
+Paper 1 figures -> /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/0000_PLAN_OVERALL/paper1_speedofsound/experiments/final
+     gate: recorded geometry 1.81155 (pre-correction table 1.81155); corrected 1.81044 (table 1.81044); error 0.005291 (table c_s_err_scaled 0.005291) -> PASS
+  wrote 261001_p1_massladder_line.png/.pdf
+     c_s = 1.81044 +- 0.00529   KR = 1.79216   ratio 1.01020
+  wrote 261001_p1_slowmode.png/.pdf
+     M=1000: dt=11.9999, window=160 samples, nu_pred=0.002601, nu=0.002627
+
+The draft's ladder caption ("sits $1.0\,\%$ above Kolafa–Rottner") still holds: the ratio printed above is 1.01020.
+
+**The two relative-quantity figures stay as they were (INFERENCE from their definitions).**
+- **`261001_p1_estimator_floor`** plots each density's deviation of the floor estimator from the windowed reference in percent. Both are computed from the same traces at the same geometry, so the one-factor-per-density correction cancels in the ratio.
+- **`261001_p1_massladder_residuals`** plots residuals $\bar\nu_M/(c_s x_M) - 1$ about each density's own ladder line. The correction scales $x_M$ and $c_s$ by inverse factors, so the product $c_s x_M$, and with it every residual, is unchanged.
+
+**G2.** `writeup/paper1_draft.pdf` was rebuilt from the corrected tex in two passes (b5a4c9a):
+- 6 pages, 636139 bytes, 0 undefined references or citations;
+- 6 warnings, all pre-existing: 2 font-shape, and 4 hyperref warnings about math in the section title at tex line 342, which is dropped from the PDF bookmark only;
+- 1 overfull hbox (lines 358–365) and 1 underfull vbox.
+
+**G3, fresh-clone build: PASS.**
+- **Setup.** A `--shared` clone of HEAD b5a4c9a in the scratchpad, sparse to `0000_PLAN_OVERALL/paper1_speedofsound/` (1759 tracked files), compiled in two passes.
+- **Result.** 6 pages, 636139 bytes, the same as G2. 0 missing files, 0 undefined references, 6 warnings.
+- **Inputs.** The draft includes ten graphics files, all tracked:
+  - `260919_cs_vs_eta`, `260919_cs_vs_eta_N100_vs_A2`, `260919_cs_vs_eta_lowdensity_zoom`;
+  - `260922_apparatus_paper.png`, `260922_roman2002_remapped_vs_KR`;
+  - the four `261001_p1_*`;
+  - `261002_p1_melting_region`.
+
+  Nothing needed adding.
+
+**FLAG (caption labels, not edited).** The ladder-line and slow-mode captions name the cell "$\eta = 0.1122$", its recorded value. The redrawn figure titles now show $\eta_{\rm true} = 0.1123$; the ladder legend gives both values. Whether the captions should read "$\eta = 0.1123$ (recorded 0.1122)" is the plan author's call.
