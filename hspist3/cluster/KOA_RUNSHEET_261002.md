@@ -177,6 +177,12 @@ bash hspist3/cluster/confinement_20261013/fetch_confinement.sh
 1. **After every `git pull`, rebuild (step 2) before any NEW submission.** Do the pull and the build in the same sandbox session.
 2. **Never pull or rebuild while an array still has tasks pending or running** (`squeue -u charing` must be empty). A pending task reads the task files and the binary only when it starts. `conf_worker.sh` refuses to resume a directory that another build wrote (`FAILED build guard`), so such tasks would fail rather than mix builds.
 3. **The first submission after this change needs a pull and a rebuild** (step 8e). The 70b2069 build did not write `logs/BUILD_KOA_LAST.hash`, so without a rebuild every array stops at once with `STOP: no logs/BUILD_KOA_LAST.hash`.
+4. **Exception (2026-10-03, Task W4): a pull may be followed by resubmission WITHOUT a rebuild if its diff touches no build input** (`*.c`, `*.h`, `Makefile`, `edmd_core/`, `kissfft`). This is safe for two reasons:
+   - the arrays verify the binary by sha256 against `logs/BUILD_KOA_LAST.hash`, not by the commit;
+   - the `.build_git` records hold the binary's own `--version` line, which a pull does not change.
+
+   Check with `git diff --name-only <build commit>..HEAD`, where the build commit is the `git` hash in `./00ALLINONE --version`. Otherwise rebuild.
+5. **Do not rebuild while any cell is incomplete.** A rebuild at a new commit changes the binary's `--version` line. Every directory already written by the old build is then REFUSED by the build guard (by design: no cell mixes builds), so its missing seeds could no longer be finished.
 
 **The numbers in 8b–8d (planning seeds, Mac speed) are superseded by 8e** (gate 4 applied, KOA speed measured). Submit the arrays from 8e.
 
@@ -355,3 +361,63 @@ sbatch --array=1-9%4 cluster/confinement_20261013/conf_A_0.39.sbatch
 
 - 64 cores at once while Round 1 is still running, so up to 128 cores in total for a short while; this is about 0.3 h and 11.0 core-h. If that is too much, wait until Round 1 has finished.
 - **Determinism gate (261012 § 1.12, V2):** the anchor cell `epi8_H_H10_L10` reruns the pilot's seeds 9700–9703 at all five positions. Its `red_970[0-3].csv` must equal the pilot's byte for byte (determinism). Their `red_*.csv` files come back with the summaries.
+
+### 8f. Round 1 repair (written 2026-10-03; nothing is submitted before the cell check is read and the go is given)
+
+Round 1 ran on build `279282b target koa` (261012 § 1.13). Two things went wrong:
+- the build guard's lock never locked, so some seeds were skipped;
+- the three H = 40 cells hit their time limit.
+
+The fix touches only scripts. **No build input changed, so there is no rebuild** (rule 4 above).
+
+**1. On the Mac:** push (`bash _commit_scripts/commit_20261007.sh`).
+
+**2. On KOA, from a `login-0102` prompt:** check that nothing is queued, then open a sandbox session.
+
+```sh
+squeue -u charing
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+```
+
+`squeue` must list no jobs. Wait for the `cn-...` prompt.
+
+**3. At the `cn-...` prompt:** pull, confirm that no build input changed, check the cells.
+
+```sh
+cd ~/harddisks/hspist3
+git pull
+git log --oneline -1
+git diff --stat 279282b..HEAD
+git diff --name-only 279282b..HEAD | grep -E '^hspist3/([^/]+\.(c|h)|Makefile|edmd_core/|kissfft)' || echo "no build input changed"
+sha256sum --status -c logs/BUILD_KOA_LAST.hash && echo "binary = recorded build"
+bash cluster/check_cells.sh
+exit
+```
+
+**Expected:**
+- `no build input changed`, then `binary = recorded build`;
+- one block per array, with one verdict per cell, then a `SUMMARY:` line;
+- `conf_A_0.39` and its cells are `NOT STARTED`.
+
+**Paste everything from `git log` to `SUMMARY:`.** If `git diff 279282b..HEAD` says it does not know `279282b`, use `git diff --stat HEAD@{1}..HEAD` instead.
+
+**4. After the go, from `~/harddisks/hspist3` on `login-0102`.**
+
+The lines are printed by `python3 hspist3/cluster/round1_timing_261003.py` on the Mac, with `--time` from the measured Round 1 times:
+
+Set 1 (now); at most 64 cores at once:
+    sbatch --array=4 --time=18:30:00 cluster/confinement_20261013/conf_B_0.10.sbatch
+    sbatch --array=1-3,5-10%1 cluster/confinement_20261013/conf_B_0.10.sbatch
+    sbatch --array=4 --time=1-02:15:00 cluster/confinement_20261013/conf_B_0.39.sbatch
+    sbatch --array=1-3,5-9%1 cluster/confinement_20261013/conf_B_0.39.sbatch
+    sbatch --array=4 --time=03:00:00 cluster/confinement_20261013/conf_A_0.10.sbatch
+    sbatch --array=1-3,5-10%1 cluster/confinement_20261013/conf_A_0.10.sbatch
+Set 2 (Round 2, behind the A_0.10 resubmission); at most 48 cores at once:
+    sbatch --array=1,2,5,7,8,9%1 --dependency=afterok:<A_0.10 task-4 jobid>:<A_0.10 rest jobid> cluster/confinement_20261013/conf_A_0.39.sbatch
+    sbatch --array=3,6%1 --time=01:15:00 --dependency=afterok:<A_0.10 task-4 jobid>:<A_0.10 rest jobid> cluster/confinement_20261013/conf_A_0.39.sbatch
+    sbatch --array=4 --time=17:30:00 --dependency=afterok:<A_0.10 task-4 jobid>:<A_0.10 rest jobid> cluster/confinement_20261013/conf_A_0.39.sbatch
+Set 2 starts while the two long B H40 tasks of set 1 may still run: 16 + set 2 = 64 cores (cap 64).
+
+- **Set 1** is all six lines, submitted together. Finished cells exit in seconds; only the missing seeds and the three H = 40 cells run.
+- **Set 2** has three lines. Write down the two A_0.10 job numbers that `sbatch` prints in set 1: the line `--array=4 … conf_A_0.10` and the line `--array=1-3,5-10%1 … conf_A_0.10`. Put them into the `<…>` placeholders of set 2.
+- **No `git pull` and no rebuild** between the sets, or while any of them runs (rule 5).

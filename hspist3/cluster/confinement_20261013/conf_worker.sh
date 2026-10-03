@@ -24,14 +24,29 @@ HEALTH='EDMD-HEALTH|forced_advance|clamp_repair|overlap_repair|wall_overdue'
 # flock. A worker whose binary differs from the record REFUSES the directory, and so does a worker that finds outputs
 # but no record (written by an unknown build, e.g. before this guard). The sbatch exports HD_BUILD once.
 BUILD="${HD_BUILD:-$("$HD_BIN" --version | head -1)}"
+# ##CHRIS 2026-10-03 (Task W1): the U4 version locked with `have=$( flock 9 ... ) 9>"$dir/.build_git.lock"`. On an
+# assignment the command substitution is expanded BEFORE the redirection opens fd 9, so flock got no file ("flock: 9: Bad
+# file descriptor", once per trajectory in Round 1) and never locked. Parallel workers then raced on `printf > .build_git`
+# (truncate, then write) against `cat`, and a worker that read the file in between saw another "build" and refused: the
+# "FAILED build guard" lines of Round 1. Those workers exited before writing anything; the seeds were skipped, not spoiled.
+# Now: a mkdir lock (atomic on every file system, testable on the Mac), up to 60 s of waiting, released by rmdir, also
+# on SIGTERM (Slurm's TIMEOUT); .build_git is written to a temporary name and renamed (mv), so it is never seen half
+# written. A lock older than the wait is NOT broken: the worker refuses (the seed stays missing and
+# cluster/check_cells.sh lists the lock), because breaking a lock cannot be made race-free here.
 guard() {   # guard <dir> <glob of finished outputs, relative to dir>
-  local dir=$1 have
-  have=$( flock 9
-          if [ ! -e "$dir/.build_git" ]; then
-            compgen -G "$dir/$2" >/dev/null && { echo "(none recorded, outputs present)"; exit 0; }
-            printf '%s\n' "$BUILD" > "$dir/.build_git"
-          fi
-          cat "$dir/.build_git" ) 9>"$dir/.build_git.lock"
+  local dir=$1 lock="$1/.guard.lock" have="" i=0
+  until mkdir "$lock" 2>/dev/null; do
+    i=$((i + 1)); [ "$i" -le 600 ] || { echo "REFUSED $dir: lock $lock not free within 60 s"; return 1; }
+    sleep 0.1
+  done
+  trap 'rmdir "$lock" 2>/dev/null' EXIT
+  trap 'rmdir "$lock" 2>/dev/null; exit 143' TERM INT
+  if [ ! -e "$dir/.build_git" ]; then
+    if compgen -G "$dir/$2" >/dev/null; then have="(none recorded, outputs present)"
+    else printf '%s\n' "$BUILD" > "$dir/.build_git.tmp$$" && mv "$dir/.build_git.tmp$$" "$dir/.build_git"; fi
+  fi
+  [ -n "$have" ] || have=$(cat "$dir/.build_git")
+  rmdir "$lock"; trap - EXIT TERM INT
   [ "$have" = "$BUILD" ] && return 0
   echo "REFUSED $dir: written by '$have', this binary is '$BUILD'"; return 1
 }
@@ -41,7 +56,11 @@ if [ "$mode" = B ]; then
   cell="$HD_DATA/$rel"; mkdir -p "$cell"
   guard "$cell" 'wall_x_positions_L0_*_run*.csv' || { echo "B $rel M=$M r=$r FAILED build guard"; exit 3; }
   ls "$cell"/wall_x_positions_L0_*_wallmassfactor_${M}_run${r}.csv >/dev/null 2>&1 && exit 0     # done before
-  tmp="$cell/.run$r"; mkdir -p "$tmp"
+  tmp="$cell/.run$r"
+  # ##CHRIS 2026-10-03 (Task W1): a .run<r> left by a killed run (Round 1 TIMEOUT) is moved aside, neither reused nor
+  # deleted (the binary appends to speed_of_sound_psi6.csv in it, 00ALLINONE.c:15355)
+  [ -e "$tmp" ] && mv "$tmp" "$cell/.stale_run${r}_$(date +%Y%m%d_%H%M%S)"
+  mkdir -p "$tmp"
   t0=$SECONDS
   cd "$tmp" || exit 1
   HD_KE_TRACE=1 "$HD_BIN" --mode=edmd --experiment=speed_of_sound --headless --kbt1 --seed-drift-order=drift-first \
@@ -63,6 +82,12 @@ elif [ "$mode" = A ]; then
   d="$HD_DATA/$rel"; mkdir -p "$d"
   guard "$d" 'red_*.csv' || { echo "A $rel seed=$seed FAILED build guard"; exit 3; }
   [ -s "$d/red_${seed}.csv" ] && exit 0
+  # ##CHRIS 2026-10-03 (Task W1): files of this seed left by a killed run (no non-empty red_: Round 1 TIMEOUT) are moved
+  # aside before the rerun, neither overwritten nor deleted -- the binary APPENDS to summary_<seed>.csv
+  # (00ALLINONE.c:17287, fopen "a"), which would otherwise carry two rows; ev_ and tr_ are opened "w".
+  if compgen -G "$d/*_${seed}.*" >/dev/null; then
+    st="$d/.stale_${seed}_$(date +%Y%m%d_%H%M%S)"; mkdir -p "$st"; mv "$d"/*_"${seed}".* "$st"/
+  fi
   cd "$d" || exit 1
   HD_PISTON_EVENTS="$d/ev_${seed}.csv" "$HD_BIN" --mode=edmd --experiment=energy_transfer --headless --quiet \
      --edmd-acc=0 --seed-drift-order=drift-first --energy-transfer-summary="$d/summary_${seed}.csv" \

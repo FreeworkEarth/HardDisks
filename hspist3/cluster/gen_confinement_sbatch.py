@@ -22,7 +22,8 @@ stops unless the binary is the clean koa build of the checkout's HEAD. The cell 
     to 15 min, at least 30 min. The pilot keeps its 1 hour (it ran in 41 s).
   - The arrays check the binary against logs/BUILD_KOA_LAST.hash (written by cluster/build_koa.sh), not against
     `git rev-parse HEAD`, so a later `git pull` cannot stop a running campaign; they export HD_BUILD for the build
-    guard in conf_worker.sh and stop if flock is missing. The sbatch comment carries the throttle of the round plan.
+    guard in conf_worker.sh. The sbatch comment carries the throttle of the round plan.
+    (2026-10-03, Task W1: the "stop if flock is missing" check is removed; the guard uses a mkdir lock.)
 """
 import contextlib, io, math, os, sys
 from scipy.optimize import brentq
@@ -133,7 +134,7 @@ gcc --version | head -1; "$HD_BIN" --version | head -2
 sha256sum --status -c logs/BUILD_KOA_LAST.hash || {{ echo "STOP: ./00ALLINONE is not the build recorded in logs/BUILD_KOA_LAST.hash"; exit 1; }}
 export HD_BUILD="$("$HD_BIN" --version | head -1)"
 echo "$HD_BUILD" | grep -Eq -- "git [0-9a-f]+  target koa" || {{ echo "STOP: not a clean koa build: $HD_BUILD"; exit 1; }}
-command -v flock >/dev/null || {{ echo "STOP: flock not found (conf_worker.sh needs it)"; exit 1; }}
+# ##CHRIS 2026-10-03 (Task W1): the `command -v flock` check is gone -- the build guard locks with mkdir now
 CELL=$(sed -n "${{SLURM_ARRAY_TASK_ID}}p" cluster/confinement_20261013/cells_{g}.tsv)
 TASKS=cluster/confinement_20261013/tasks_{'A_' if meth == 'A' else 'B_'}$CELL.txt
 echo "cell $CELL: $(wc -l < "$TASKS") trajectories, {cpus} in parallel"

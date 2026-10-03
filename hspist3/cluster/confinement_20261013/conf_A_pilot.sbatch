@@ -27,7 +27,7 @@ gcc --version | head -1; "$HD_BIN" --version | head -2
 sha256sum --status -c logs/BUILD_KOA_LAST.hash || { echo "STOP: ./00ALLINONE is not the build recorded in logs/BUILD_KOA_LAST.hash"; exit 1; }
 export HD_BUILD="$("$HD_BIN" --version | head -1)"
 echo "$HD_BUILD" | grep -Eq -- "git [0-9a-f]+  target koa" || { echo "STOP: not a clean koa build: $HD_BUILD"; exit 1; }
-command -v flock >/dev/null || { echo "STOP: flock not found (conf_worker.sh needs it)"; exit 1; }
+# ##CHRIS 2026-10-03 (Task W1): the `command -v flock` check is gone -- the build guard locks with mkdir now
 CELL=$(sed -n "${SLURM_ARRAY_TASK_ID}p" cluster/confinement_20261013/cells_A_pilot.tsv)
 TASKS=cluster/confinement_20261013/tasks_A_$CELL.txt
 echo "cell $CELL: $(wc -l < "$TASKS") trajectories, 16 in parallel"
