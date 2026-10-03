@@ -162,3 +162,100 @@ bash hspist3/cluster/confinement_20261013/fetch_confinement.sh
 
 - Both go through the data transfer node `koa-dtn` (password + Duo again).
 - `rsync` only copies; it deletes nothing on either side.
+
+## 8. Round plan (written 2026-10-02; nothing here is submitted until the pilot's gate 4 and the go)
+
+**Rules for this step**: the rules at the top of this runsheet apply unchanged. There is one correction, dated 2026-10-02:
+- The rule "Every script refuses an output directory that already exists" holds for the smoke test, the cross-node check and `confinement_pilot.py det1`.
+- It does **not** hold for the five `conf_*.sbatch` arrays. They **resume**: `conf_worker.sh` skips a trajectory whose output already exists (B: `..._run<r>.csv`; A: a non-empty `red_<seed>.csv`) and runs the rest. A resubmitted array therefore continues; it does not start over and does not overwrite.
+- All data go under `/mnt/lustre/koa/scratch/charing/harddisks/hspist3/` (`HD_DATA`). The Slurm logs go to `~/harddisks/hspist3/logs/` in home.
+- Checked statically by `python3 hspist3/cluster/round_plan_261002.py` (Mac).
+
+**Do not `git pull` on KOA before Round 1.** Every array refuses a binary that is not the clean koa build of HEAD (`STOP: not the clean koa build of HEAD`). The binary is `git 70b2069`. Round 1 needs no file newer than 70b2069, so a pull would only make every array stop. Round 2 needs a pull and a rebuild (step 8d).
+
+### 8a. Gate 4: the method-A pilot (job 14966594)
+
+1. **On KOA, at the `login-0102` prompt.** The pilot needs no extra reduction: `conf_worker.sh` mode A already calls `reduce_A.py` per seed and writes `red_<seed>.csv`. Check the log's last line, then read three numbers:
+
+   ```sh
+   tail -15 logs/conf-A_pilot_14966594_1.out
+   sacct -j 14966594 --format=JobID,Elapsed,TotalCPU,State
+   lfs quota -h -u charing /mnt/lustre/koa
+   ```
+
+   - **Expected:** `cell pilot_epi8_H_H10_L10 done; failures: 0`.
+   - `sacct` gives the pilot's elapsed time, which sets the KOA speed factor `--slow` below.
+   - `lfs quota` gives the scratch quota, which is OPEN; it decides 8c.
+   - All three are read-only and light, so they are fine on the login node.
+
+2. **On the Mac, from the repo root.** Copy the pilot's summaries only: `red_*.csv`, `run_*.log`, `summary_*.csv`. The ~0.4 GB of event logs stay on scratch.
+
+   ```sh
+   cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks
+   rsync -av --prune-empty-dirs --include='*/' --include='red_*.csv' --include='run_*.log' --include='summary_*.csv' --exclude='*' charing@koa-dtn.its.hawaii.edu:/mnt/lustre/koa/scratch/charing/harddisks/hspist3/experiments_energy_transfer/paper1_confinement_A_20261013/pilot_epi8_H_H10_L10/ hspist3/experiments_energy_transfer/paper1_confinement_A_20261013/pilot_epi8_H_H10_L10/
+   ```
+
+3. **On the Mac, apply gate 4.** The script prints the verdict and the seeds per position for conf_A_0.39:
+
+   ```sh
+   python3 hspist3/cluster/gate4_pilot_261002.py
+   ```
+
+   - It first checks that the pre-registered rule, with the planning ε₀ = 0.2710, reproduces the committed task files: 9 of 9 cells, PASS on 2026-10-02 with `--dry`.
+   - It then requires 20 seeds, health 0, and a window of 5000 ± 1 % σ-time per seed, read from the event log. The 1 % is this script's tolerance, not a pre-registered number.
+   - It measures ε₀ at π/8 and recomputes T per position and seeds per position by the § 1.4 rule.
+   - **conf_A_0.10 is not affected**: its ε₀ was measured at η = 0.10005 (Level 3), and § 1.8 lets the pilot change only (A) at π/8.
+
+### 8b. Round 1: conf_B_0.10, conf_B_0.39, conf_A_0.10 (shared; all three may run together)
+
+At most 64 cores at once, summed over the arrays that run together. Why 64:
+- `shared` is used by every KOA user, and 64 cores is about three of its nodes;
+- a systematic error then costs at most 64 cores × the time until Chris notices;
+- the whole campaign is ~96 core-hours, so more cores would save little wall time.
+
+KOA's own per-user limits are not read yet (OPEN; `sacctmgr -n show assoc user=charing format=account,partition,maxjobs,maxsubmit,grptres%30,maxtres%30` shows them).
+
+Printed by `python3 hspist3/cluster/round_plan_261002.py` (cost model of the pre-registration, Mac speed; rerun it with `--slow F` once the pilot gives the KOA speed):
+
+| round | array | partition | tasks | cores/task | traj. | core-h | longest cell (h) | --time (h) | throttle | cores at once | wall (h) | scratch GiB |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Round 1 | conf_B_0.10 | shared | 10 | 8 | 2250 | 21.8 | 0.74 | 2 | %2 | 16 | 1.50 | 1.8 |
+| Round 1 | conf_B_0.39 | shared | 9 | 8 | 2025 | 17.7 | 0.52 | 1 | %2 | 16 | 1.23 | 1.6 |
+| Round 1 | conf_A_0.10 | shared | 10 | 16 | 7030 | 4.5 | 0.08 | 1 | %2 | 32 | 0.14 | 34.9 |
+| Round 2 | conf_A_0.39 | shared | 9 | 16 | 10465 | 51.8 | 1.57 | 3 | %4 | 64 | 1.57 | 235.1 |
+
+
+Wall time is from the cost model at Mac speed. "Longest cell" must stay below `--time`: the margins are ×2.7 (B_0.10), ×1.9 (B_0.39), ×12 (A_0.10) and ×1.9 (A_0.39). If the pilot shows KOA running more than ~1.8× slower than the Mac, `--time` of B_0.39 and A_0.39 must be raised before submission.
+
+**On KOA, at the `login-0102` prompt, from `~/harddisks/hspist3`:**
+
+```sh
+cd ~/harddisks/hspist3
+mkdir -p logs
+sbatch --array=1-10%2 cluster/confinement_20261013/conf_B_0.10.sbatch
+sbatch --array=1-9%2 cluster/confinement_20261013/conf_B_0.39.sbatch
+sbatch --array=1-10%2 cluster/confinement_20261013/conf_A_0.10.sbatch
+```
+
+- `%2` means at most two cells of that array run at a time: 2 × 8 + 2 × 8 + 2 × 16 = 64 cores.
+- Each log ends with `cell <id> done; failures: 0`.
+- Check with `squeue -u charing`; stop an array with `scancel <jobid>`.
+
+### 8c. Scratch: decision before Round 2 (OPEN)
+
+The estimate comes from the E5 event log (DATA: 20424 rows over a wall length of 80 and 400 σ-time) and the contact theorem (the impact rate per unit length is $nZ/\sqrt{2\pi}$).
+- The method-A event logs need about 35 GiB for conf_A_0.10 and **about 235 GiB for conf_A_0.39**. Method B needs under 2 GiB per array.
+- If `lfs quota` (8a) shows less room than that, the event logs must be compressed or removed after each seed's reduction. That is a decision for Chris and the plan author, because it changes what stays regenerable on scratch.
+
+### 8d. Round 2: conf_A_0.39 (only after gate 4 PASS and the go)
+
+1. On the Mac, the conf_A_0.39 task files are regenerated with the pilot's ε₀; that is a separate CC task. It is committed, and Chris pushes.
+2. On KOA, inside a sandbox session (step 2), run `git pull`, then rebuild with `bash cluster/build_koa.sh` (step 3).
+3. Then, from `login-0102`:
+
+   ```sh
+   cd ~/harddisks/hspist3
+   sbatch --array=1-9%4 cluster/confinement_20261013/conf_A_0.39.sbatch
+   ```
+
+   `%4` × 16 cores = 64. The row above uses the planning seeds. After gate 4, `python3 hspist3/cluster/round_plan_261002.py --eps0-ratio R` prints the updated row, with R = ε₀(pilot)/ε₀(plan) as gate 4 prints it.
