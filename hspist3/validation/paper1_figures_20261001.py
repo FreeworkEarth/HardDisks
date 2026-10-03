@@ -21,10 +21,19 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 import tests_20260913 as T
+from paper1_populate_cs_err_20261002 import TD, X_EDGE, slope_with_errors   # ##CHRIS 2026-10-02: the canonical estimator
 
 BLUE, RED, GREY, ORANGE = "#2a78d6", "#e34948", "#52514e", "#eb6834"
 OUTDIR = T.PLOTS
 ETA_CELL, L0_CELL = 0.1122, 34.9999
+
+# ##CHRIS 2026-10-02 (Task G1): methods sec. 14 -- the eta_rec = 0.1122 cell, read from the regenerated canonical table:
+# its true packing fraction and acoustic length after the box-truncation correction (delta/2 per compartment).
+import csv as _csv
+_ROW = [r for r in _csv.DictReader(open(T.plot_path("260919_A1v2_final_cs_vs_eta.csv")))
+        if abs(float(r.get("eta_rec") or r["eta"]) - ETA_CELL) < 1e-6][0]
+ETA_TRUE, LE_TRUE, CS_CANON = float(_ROW["eta"]), float(_ROW["L_eff_true"]), float(_ROW["c_s"])
+TITLE_SUFFIX = "corrected for box truncation (methods §14)"
 
 
 def save(fig, name):
@@ -157,10 +166,14 @@ def _nu_per_run(cell_dir, M):
         if len(t) < 64:
             continue
         dt = (t[-1] - t[0]) / (len(t) - 1)
-        P, df = T._spectrum(x, dt)
-        k = max(1, int(round(len(x) * dt * nup / 2.5)))
-        if k >= len(P):
+        # ##CHRIS 2026-10-02 (Task G1): the CANONICAL per-trajectory estimator (paper1_populate_cs_err_20261002.cell):
+        # the first TD = 200 predicted periods, floor bin k = TD/X_EDGE. The 2026-10-01 version used the whole record
+        # with k = N_cyc/2.5, which put the figure's c_s 0.1 % off the canonical table.
+        n = T._prefix(t, nup, TD)
+        if n is None:
             continue
+        P, df = T._spectrum(x[:n], dt)
+        k = int(round(TD / X_EDGE))
         out.append((k + int(np.argmax(P[k:]))) * df)
     return np.array(out)
 
@@ -182,27 +195,37 @@ def fig_ladder_line():
         nu = _nu_per_run(d, M)
         if nu.size < 3:
             continue
-        xs.append(T.x_of(M, L0_CELL)); ys.append(nu.mean())
+        xs.append(T.x_of(M, L0_CELL) * T.l_eff(L0_CELL) / LE_TRUE); ys.append(nu.mean())   # ##CHRIS 2026-10-02: x at L_eff,true
         es.append(nu.std(ddof=1) / math.sqrt(nu.size)); ns.append((M, nu.size))
     if len(xs) < 3:
         print("  not enough masses for the ladder line"); return
     xs, ys, es = np.array(xs), np.array(ys), np.array(es)
     # T.slope is the paper's own estimator: through-origin slope, and sd(nu/x) as the mass scatter.
-    s, sd_mass, nfit = T.slope(xs, ys)
-    ds = sd_mass / math.sqrt(nfit)          # error on c_s itself; sd_mass is the scatter over masses
-    kr = float(T.kr_cs(ETA_CELL))
+    # ##CHRIS 2026-10-02 (Task G1): slope and error exactly as the canonical table (slope_with_errors, err_scaled);
+    # gate before anything is drawn: the recorded-geometry slope must reproduce the pre-correction table (1.81155, the
+    # dated copy) and the corrected one the regenerated table, to 5 decimals.
+    s, _err, ds, _chi2 = slope_with_errors(xs, ys, es)
+    kr = float(T.kr_cs(ETA_TRUE))           # KR at eta_true (methods sec. 14)
+    s_rec = s * T.l_eff(L0_CELL) / LE_TRUE  # the same slope at the recorded geometry
+    old = [r for r in _csv.DictReader(open(T.plot_path("260919_A1v2_final_cs_vs_eta_pre_boxtrunc_20261014.csv")))
+           if abs(float(r["eta"]) - ETA_CELL) < 1e-6][0]
+    ok = f"{s_rec:.5f}" == old["c_s"] and f"{s:.5f}" == _ROW["c_s"] and f"{ds:.6f}" == _ROW["c_s_err_scaled"]
+    print(f"     gate: recorded geometry {s_rec:.5f} (pre-correction table {old['c_s']}); corrected {s:.5f} "
+          f"(table {_ROW['c_s']}); error {ds:.6f} (table c_s_err_scaled {_ROW['c_s_err_scaled']}) -> {'PASS' if ok else 'FAIL'}")
+    if not ok:
+        print("     STOP: the figure does not reproduce the canonical table -- not drawn"); return
 
     fig, (ax, axr) = plt.subplots(1, 2, figsize=(12.2, 5.2), gridspec_kw={"width_ratios": [1.5, 1]})
     ax.errorbar(xs, ys, yerr=es, fmt="o", color=BLUE, capsize=3, ms=7, zorder=3,
-                label=f"A1 v2, $\\eta = {ETA_CELL}$, {len(xs)} masses, 25 seeds each")
+                label=f"A1 v2, $\\eta = {ETA_TRUE:.6f}$ ($\\eta_{{\\rm rec}} = {ETA_CELL}$), {len(xs)} masses, 25 seeds each")
     g = np.linspace(0, xs.max() * 1.06, 50)
     ax.plot(g, s * g, "-", color=BLUE, lw=1.8, zorder=2,
             label=f"through-origin slope $c_s = {s:.4f} \\pm {ds:.4f}$")
     ax.plot(g, kr * g, "--", color=RED, lw=1.8, zorder=1, label=f"Kolafa–Rottner $c_s = {kr:.4f}$")
     ax.set_xlim(left=0); ax.set_ylim(bottom=0)
-    ax.set_xlabel(r"$x_M = K(\alpha)\,/\,2\pi L_{\rm eff}$")
+    ax.set_xlabel(r"$x_M = K(\alpha)\,/\,2\pi L_{\rm eff}$,  $L_{\rm eff} = L_0 - 2r - t/2 - \delta/2$")
     ax.set_ylabel(r"$\bar\nu_M$")
-    ax.set_title(f"One worked mass ladder ($\\eta = {ETA_CELL}$)")
+    ax.set_title(f"One worked mass ladder ($\\eta = {ETA_TRUE:.4f}$)\n{TITLE_SUFFIX}")
     ax.grid(alpha=0.3); ax.legend(frameon=False, fontsize=9, loc="upper left")
 
     res = 100.0 * (ys - s * xs) / (s * xs)
@@ -232,8 +255,9 @@ def fig_slowmode(M=1000):
     W = max(3, int(round(5.0 / (nup * dt))))            # 5-period running mean
     ker = np.ones(W) / W
     slow = np.convolve(x, ker, mode="same")
-    P, df = T._spectrum(x, dt)
-    k = max(1, int(round(len(x) * dt * nup / 2.5)))
+    n = T._prefix(t, nup, TD)                            # ##CHRIS 2026-10-02: the canonical record, first TD periods
+    P, df = T._spectrum(x[:n], dt)
+    k = int(round(TD / X_EDGE))
     nu = (k + int(np.argmax(P[k:]))) * df
 
     fig, (ax, axs) = plt.subplots(1, 2, figsize=(12.6, 5.0), gridspec_kw={"width_ratios": [1.5, 1]})
@@ -242,15 +266,15 @@ def fig_slowmode(M=1000):
     ax.plot(t[show], slow[show], "-", color=ORANGE, lw=2.2, label=f"5-period running mean (slow mode)")
     ax.axhline(0, color=GREY, lw=1)
     ax.set_xlabel(r"time [$\sigma$-time]"); ax.set_ylabel(r"displacement [$\sigma$]")
-    ax.set_title(f"The slow mode, $M = {M}$, $\\eta = {ETA_CELL}$")
+    ax.set_title(f"The slow mode, $M = {M}$, $\\eta = {ETA_TRUE:.4f}$\n{TITLE_SUFFIX}")
     ax.grid(alpha=0.3); ax.legend(frameon=False, fontsize=9)
 
     f = np.arange(len(P)) * df
     axs.loglog(f[1:], P[1:], "-", color=BLUE, lw=0.9)
     axs.axvline(nup / 2.5, color=RED, ls="--", lw=2, label=r"estimator floor $\nu_{\rm pred}/2.5$")
-    axs.axvline(nup, color=GREY, ls=":", lw=1.6, label=r"$\nu_{\rm pred}$")
+    axs.axvline(nup, color=GREY, ls=":", lw=1.6, label=r"$\nu_{\rm pred}$ (the binary's own, recorded geometry)")
     axs.plot([nu], [P[int(round(nu / df))]], "v", color=ORANGE, ms=11, zorder=5,
-             label=f"largest bin above floor, $\\nu = {nu:.5f}$")
+             label=f"largest bin above floor, $\\nu = {nu:.5f}$ (first {TD} periods)")
     axs.set_xlabel("frequency"); axs.set_ylabel("power")
     axs.set_title("…and why the floor is needed")
     axs.grid(alpha=0.3, which="both"); axs.legend(frameon=False, fontsize=9, loc="lower left")
@@ -260,7 +284,9 @@ def fig_slowmode(M=1000):
 
 if __name__ == "__main__":
     print("Paper 1 figures ->", OUTDIR)
-    fig_floor()
-    fig_residuals()
-    fig_ladder_line()
-    fig_slowmode()
+    # ##CHRIS 2026-10-02: optional selection, e.g. `python3 paper1_figures_20261001.py ladder slowmode`
+    want = set(sys.argv[1:]) or {"floor", "residuals", "ladder", "slowmode"}
+    if "floor" in want: fig_floor()
+    if "residuals" in want: fig_residuals()
+    if "ladder" in want: fig_ladder_line()
+    if "slowmode" in want: fig_slowmode()
