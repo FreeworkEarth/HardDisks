@@ -426,6 +426,20 @@ Standing-wave check (all alpha): k_S^SW = N_s m omega_1^2 / K(alpha)^2, per mass
 | 0.10 | 0.81 / 0.69 / 0.42 / 0.36 / 0.20 / 0.24 / 0.20 / 0.24 / 0.18 | 0.093 | 0.4977 | 0.457 | 0.736 | +1.269 | +2.8 |
 | 0.39 | 1.01 / 0.80 / 0.68 / 0.46 / 0.39 / 0.39 / 0.33 / 0.31 / 0.24 | 0.142 | 0.4571 | 0.435 | 0.717 | +0.768 | +1.8 |
 
+
+#### C3 — seeds at π/8 from the upper 1σ bound of the pilot ε₀ (2026-10-02, machine date; before any π/8 held-divider array)
+
+**Amendment.** The seeds per position of conf_A_0.39 are set from the upper 1σ bound of the pilot's noise coefficient, $\epsilon_0 = 0.0820 + 0.0106 = 0.0926$ (§ 1.12, U1), by the **unchanged** § 1.4 rule: $T_{\rm pos} = \big((\sqrt{130}/12)\,\epsilon\,F/K\,/\,(\delta L \cdot 0.009)\big)^2/2$, $\epsilon = \epsilon_0 (100/N_s)^{1/2}$, seeds per position $= \lceil T_{\rm pos}/5000\rceil$.
+
+**Reasons.**
+1. The pilot's ε₀ carries a 13 % error, from 30 degrees of freedom (4 seeds × 5 positions × 2 faces).
+2. The seed count scales as $\epsilon_0^2$ [DERIVATION, the rule above]. If the coefficient is 1σ low, every π/8 cell needs $(0.0926/0.0820)^2 = 1.28$ times the record the gate-4 seeds give it, so it gets only 78 % of that record, and the pre-registered noise budget (≤ 0.9 % on $k_T$) would not be met.
+3. Under-seeding weakens the pre-registered discrimination between the hypotheses (Tables P, I and I-ω).
+4. Extra seeds cannot bias the estimate. They are further independent records of the same cell, with the same stencil, record length and analysis.
+5. The cost is about +2.5 core-h at KOA speed; the exact figure is printed in § 1.12 (V2).
+
+**§ 1.8 is respected [DATA].** § 1.8 lets only the gate-4 pilot change the record of (A) at π/8, and nothing is tuned after data. No π/8 held-divider array has run. On KOA the only π/8 method-A jobs are the pilot itself (job 14966594, 20 trajectories) and its duplicate submission (job 14966614, which ran nothing; § 1.12 U2). No campaign data exist at π/8, so this choice cannot be informed by results. It changes neither the rule, nor the record per seed (5000 σ-time), nor the stencil, nor the analysis. conf_A_0.10 is unchanged.
+
 ---
 
 ### 1.10 KOA smoke test, sbatch generation, local gates (2026-10-13; nothing submitted to KOA, nothing launched)
