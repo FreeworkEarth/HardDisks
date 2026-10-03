@@ -1196,3 +1196,116 @@ commits: 53; carrying a series date: 45; series date >= 2 days ahead of the comm
 first affected: bf8588c (2026-09-20 22:20, series 2026-09-24, +4 d); last affected: 9ff3491 (2026-10-02 15:51, series 2026-10-14, +12 d)
 offset by commit day: 2026-09-20: +4 to +4; 2026-09-22: +3 to +7; 2026-09-23: +7 to +12; 2026-09-24: +12 to +12; 2026-09-25: +14 to +15; 2026-09-30: +10 to +10; 2026-10-01: +11 to +11; 2026-10-02: +11 to +12
 before 2026-09-20 (commits since 2026-08-01): 3 with a series date >= 2 days ahead; earliest c6e5f62 (2026-09-19 14:56, series 2026-09-21, +2 d)
+
+### 14.5 Draft housekeeping after the review (2026-10-02, Task M; the plan author's decisions)
+
+**Printed by `python3 hspist3/validation/paper1_draft_audit_20261014.py --m` before any edit** (verbatim):
+
+zoom points N = 900/1600 (A geometry, plotted sigma): eta 0.02 N 900: D = -1.43, eta 0.02 N 1600: D = +0.18, eta 0.05 N 900: D = +1.77, eta 0.05 N 1600: D = +1.42, eta 0.10 N 900: D = +2.96, eta 0.10 N 1600: D = +1.39
+largest |D| 2.96 at eta = 0.10, N = 900; all others |D| <= 1.77; worked cell eta_true = 0.112267 -> 0.1123
+
+### Task M text changes, old -> new (printed BEFORE editing)
+
+| kind | where | tex line | old | new | why |
+|---|---|---|---|---|---|
+| TEX | zoom caption (M1) | 267 | `larger systems agree with it within their errors.}` | `larger systems agree with it within their errors, except $N = 900$ at $\eta = 0.10$ ($3\sigma$).}` | D = +2.96; the other five points |D| <= 1.77 |
+| TEX | slow-mode caption (M2; first mention in the text) | 182 | `$\eta = 0.1122$, with its five-period running mean` | `$\eta = 0.1123$ (recorded $0.1122$), with its five-period running mean` | eta_true = 0.112267; figure title says 0.1123 |
+| TEX | ladder-line caption (M2) | 230 | `One worked mass ladder, $\eta = 0.1122$, nine divider masses` | `One worked mass ladder, $\eta = 0.1123$, nine divider masses` | figure title says 0.1123, legend gives both |
+| SCRIPT | lowdensity_zoom_20260917.py:107 footnote (M3) | - | `error bars = 1σ scatter of per-mass c_s` | `error bars = 1σ propagated error of the through-origin slope (σ_ν = sd/√n per mass, × √χ²_red when > 1)` | the plotted bar is slope_with_errors' err_scaled (:44) |
+| SCRIPT | overlay_N100_vs_A2_20260915.py:99 footnote (M3) | - | `error bars = 1σ scatter of per-mass c_s` | `error bars = 1σ propagated error of the through-origin slope (σ_ν = sd/√n per mass, × √χ²_red when > 1)` | the plotted bar is slope_with_errors' err_scaled (:42) |
+| SCRIPT | lowdensity_zoom_20260917.py:113 printed header (M3) | - | `| η | N | c_s | ± scatter | KR | dev [%] |` | `| η | N | c_s | ± err (propagated) | KR | dev [%] |` | same quantity |
+| SCRIPT | lowdensity_zoom_20260917.py:3-4 docstring (M3) | - | `error bars are the 1 sigma scatter of the per-mass c_s.` | `error bars are the 1 sigma propagated error of the through-origin slope (slope_with_errors: sd/sqrt(n) per mass, x sqrt(chi2_red) when > 1).` | same quantity |
+| SCRIPT | overlay_N100_vs_A2_20260915.py:4 docstring (M3) | - | `error bars are the 1 sigma scatter of the per-mass c_s.` | `error bars are the 1 sigma propagated error of the through-origin slope (slope_with_errors: sd/sqrt(n) per mass, x sqrt(chi2_red) when > 1).` | same quantity |
+
+`--m --check-scripts` printed:
+
+    lowdensity_zoom_20260917.py:107 footnote (M3): old ABSENT, new present
+    overlay_N100_vs_A2_20260915.py:99 footnote (M3): old ABSENT, new present
+    lowdensity_zoom_20260917.py:113 printed header (M3): old ABSENT, new present
+    lowdensity_zoom_20260917.py:3-4 docstring (M3): old ABSENT, new present
+    overlay_N100_vs_A2_20260915.py:4 docstring (M3): old ABSENT, new present
+
+**Applied.**
+- The three TEX rows were applied with `--m --apply`.
+- The five SCRIPT rows were applied exactly as printed. `--m --check-scripts` reports every old string absent and every new string present.
+
+**Layout change (disclosed; not in the list above).** The corrected footnote no longer fits on one line, so its left end was cut off at the figure edge. In both scripts:
+- the footnote is now two lines, with "data: …" on the second;
+- `fig.tight_layout(rect=(0, 0.015, 1, 1))` became `rect=(0, 0.03, 1, 1)`.
+
+Both figures were then regenerated with the environment `paper1_canonical_20260919.py` gives them. Their printed tables are identical to the § 14.3.1 run, apart from the zoom table's header.
+
+**M1, wording note (DATA, not edited).** The other five larger-system points in the zoom have |D| ≤ 1.77 (list above). So "agree with it within their errors" holds at 2σ, not at 1σ. "Within $2\sigma$" would be the exact wording; that is the plan author's call.
+
+**M4.** `260917_A2_cs_vs_N.{png,pdf}`: dated copies `_pre_boxtrunc_261002` were made first (`cp -n`, `cmp`). The figure was then redrawn by `paper1_A2_boxtrunc_261002.py --figure`, in geometry A, with the layout and colours of `analyze_A2_X2p5_20260914.py:128–147`.
+- **Why not the original script.** It recomputes everything at $L_{\rm eff} = L_0 - 2r$ and would overwrite the corrected extrapolation table.
+- **What each point is.** $c_s - c_s^{\rm KR}(\eta_{\rm true}) + c_s^{\rm KR}(\eta)$, i.e. the § 14.3 deviation shifted by the constant $c_s^{\rm KR}(\eta)$ (DERIVATION), so the drawn line $c_\infty + b/\sqrt N$ is the fit itself.
+- **Printed:** `figure gate: plotted c_inf, b and errors equal 260917_A2_cs_vs_N_extrapolation.csv to its printed digits -> PASS`. The analysis part of that run is identical, line for line, to the committed § 14.3.1 run.
+
+**M5.**
+- **Local build.** `paper1_draft.pdf` rebuilt in two passes: 6 pages, 638006 bytes, 0 undefined references, 6 warnings (all pre-existing, § 14.3.2), 1 overfull hbox.
+- **Fresh clone of 15c8b39** (sparse to `paper1_speedofsound/`, 1774 files): 6 pages, 638006 bytes, 0 missing files, 0 undefined references, 6 warnings. **PASS.**
+
+    figure gate: plotted c_inf, b and errors equal 260917_A2_cs_vs_N_extrapolation.csv to its printed digits -> PASS
+    wrote 260917_A2_cs_vs_N.png/.pdf (geometry A)
+
+## 15. Kolafa–Rottner module: independent check (2026-10-02, Task L)
+
+**Verdict by the stated rule: FAIL, stopped; the module is not edited.** The verdict is relative to the reference fixed in the script before the module was read. The module itself is an exact implementation of one of the paper's three published equations; which one Paper 1 should use is a decision for the plan author.
+
+**What the paper says.** [SOURCE: Kolafa & Rottner, Mol. Phys. 104, 3435–3441 (2006); PDF in `ZZZ_PAPER/`; every digit below was confirmed against the PDF's text layer.]
+- **Form.** Eq. (7), p. 3437: $Z(y) = \sum_i A_i x^i$ with $x = y/(1-y)$, where $y$ is the packing fraction.
+- **Three fitted equations,** § 3.2, pp. 3438–3439: $\rho_{\max} = 0.88$ ($s = 0.724$), $0.89$ ($s = 0.966$) and $0.90$ ($s = 0.927$).
+  - $\rho = N\sigma^2/A$, so $\eta = (\pi/4)\rho$, and $\rho_{\max} = 0.88 \Leftrightarrow \eta = 0.6912$, $0.90 \Leftrightarrow \eta = 0.7069$.
+  - Of the 0.90 equation the paper says: "region $\rho \in [0.89, 0.90]$ of this equation may be affected by finite-size effects".
+  - Fig. 3 marks all three versions as the best equations.
+
+**What the module implements (DATA, table below).** The $\rho_{\max} = 0.90$ fit: Z to 4.2e-16, Z′ to 1.5e-16, $c_s$ to 3.4e-16 relative. Its own comment says so: `plot_speed_of_sound_edmd.py:620` reads "Kolafa & Rottner (2006), rho_max=0.90 fit". It draws KR only to `KR2006_PLOT_ETA_MAX = 0.690`.
+
+**The reference I chose.** It was the $\rho_{\max} = 0.88$ fit, because the project documents KR as "valid to η ≈ 0.69", which is exactly that fit's range:
+- `writeup/papers/README.md`;
+- the figure legends "Kolafa–Rottner 2006 (valid to η ≈ 0.69)", `paper1_canonical_20260919.py:74` and `paper1_thickness_correction_20260918.py:87`.
+
+Against it the module differs by up to 1.4e-6 in Z, 7.1e-5 in Z′ and 1.0e-5 in $c_s$ at η = 0.05–0.65. INFERENCE: that is small against every error bar in Paper 1. The question is which published equation the paper names, and what its "fitted range" sentences mean.
+
+**Draft text that depends on the decision.** None of it is edited.
+- **Line 255:** "beyond η ≈ 0.69 … no fluid reference exists".
+- **Lines 342–345:** "fitted below the transition … above η ≈ 0.69 measures the extrapolation". The implemented fit extends to η = 0.707.
+- **Lines 383–387,** the melting caption: "solid inside its fitted range … its fitted Z′ runs 48 at η = 0.67, 28 at 0.69, −9 at 0.700 and +3386 at 0.720 … The negative Z′ already inside the stated fitted range …". These Z′ values come from the 0.90 fit; with the 0.88 fit, the values beyond its range would differ.
+- **Lines 398, 404:** "above 0.69".
+
+**Options (decision for the plan author).**
+- **(a) Keep the 0.90 fit,** as implemented and commented. Name it in the draft and README as "the $\rho_{\max} = 0.90$ fit, to η = 0.707, compared with our data only to η = 0.69". Re-run L1 with that version as the stated reference.
+- **(b) Switch to the 0.88 fit,** valid to η = 0.691. Every KR value moves by ≤ 1e-5 relative at η ≤ 0.65; the KR columns and figures are regenerated; the melting caption's Z′ values change.
+
+**Printed by `python3 hspist3/validation/paper1_kr_sanity_261002.py`** (verbatim):
+
+module functions: Z_kolafa_rottner_2006(eta: 'np.ndarray') -> 'np.ndarray', dZ_kolafa_rottner_2006(eta: 'np.ndarray') -> 'np.ndarray', cs_adiabatic_2d_monatomic(Z: 'np.ndarray', dZ: 'np.ndarray', eta: 'np.ndarray', *, kbt: 'float', m: 'float') -> 'np.ndarray'
+independent reference: rho_max = 0.88 version (eta_max = 0.6912)
+
+| eta | Z paper | Z module | rel diff | Z' paper (analytic) | Z' complex-step | Z' module | rel diff | c_s paper | c_s module | rel diff | tests_20260913.kr_cs | rel diff vs paper |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.05 | 1.10838774198968 | 1.10838774198985 | 1.6e-13 | 2.34761773305187 | 2.34761773305187 | 2.3476177330678 | 6.8e-12 | 1.56661801829139 | 1.56661801829183 | 2.8e-13 | 1.56661801830068 | 5.9e-12 |
+| 0.30 | 2.06326085484772 | 2.06326087957605 | 1.2e-08 | 6.03583224566138 | 6.03583224566138 | 6.03583334839163 | 1.8e-07 | 2.8515006371546 | 2.85150071739119 | 2.8e-08 | 2.85150071752567 | 2.8e-08 |
+| 0.50 | 4.10635800241687 | 4.10636394336527 | 1.4e-06 | 16.7336733246343 | 16.7336733246343 | 16.7336836142638 | 6.1e-07 | 5.41621368750783 | 5.41621921508607 | 1.0e-06 | 5.41621921569349 | 1.0e-06 |
+| 0.65 | 8.40804926299822 | 8.4080435277207 | 6.8e-07 | 45.9481747610299 | 45.9481747610299 | 45.9449284500896 | 7.1e-05 | 10.4388531585933 | 10.4387471941955 | 1.0e-05 | 10.4387471910944 | 1.0e-05 |
+
+largest relative difference module vs paper (Z, Z', c_s; and analytic vs complex-step Z'): 7.1e-05
+tests_20260913.kr_cs vs paper: largest relative difference 1.0e-05 (above 1e-10; reported, not part of the verdict -- see how kr_cs forms Z')
+
+for information (NOT the verdict) -- the other two published versions against the module, largest relative difference over the four eta:
+| version | Z | Z' (analytic) | c_s |
+|---|---|---|---|
+| rho_max = 0.89 | 6.8e-07 | 7.2e-06 | 1.5e-06 |
+| rho_max = 0.9 | 4.2e-16 | 1.5e-16 | 3.4e-16 |
+module comment, plot_speed_of_sound_edmd.py:620: '# Kolafa & Rottner (2006), rho_max=0.90 fit.  Their x is eta/(1-eta).'
+
+**VERDICT: FAIL -- STOP, the module is NOT edited** (criterion: relative difference <= 1e-10)
+
+**L2, printed by `python3 hspist3/validation/untracked_imports_scan_261002.py`** (verbatim):
+
+tracked scripts scanned: 98 (of 98); local modules known: 123
+| untracked module | file(s) | imported by (tracked) |
+|---|---|---|
+
+untracked modules imported by tracked scripts: 0 -- none
