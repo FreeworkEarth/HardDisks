@@ -18,8 +18,14 @@ NOFUSE = os.path.join(T.ROOT, "nofuse_check_20261010", "eta_0p112200")
 REF = {}
 with open(T.plot_path("260919_A1v2_final_cs_vs_eta.csv")) as fh:
     for r in csv.DictReader(fh):
-        if abs(float(r["eta"]) - ETA) < 1e-6: REF = r
+        # ##CHRIS 2026-10-02 (Task H): select by the RECORDED eta. Since methods sec. 14.2 the table's `eta` column holds
+        # eta_true (0.112267 for this cell) and `eta_rec` the recorded value; the old line was
+        #     if abs(float(r["eta"]) - ETA) < 1e-6: REF = r
+        if abs(float(r.get("eta_rec") or r["eta"]) - ETA) < 1e-6: REF = r
 cs_ref, e_ref = float(REF["c_s"]), float(REF["c_s_err_scaled"])
+# the table's c_s is at L_eff,true (sec. 14.2), so the recomputation uses the same acoustic length; a table without the
+# column (pre-correction) gives the recorded l_eff. The binary comparison is a ratio, so its sigma is geometry-independent.
+LE = float(REF.get("L_eff_true") or T.l_eff(L0))
 
 def per_mass(d, label, max_runs=None):
     out = {}
@@ -43,7 +49,7 @@ for M in T.A1_MASSES:
 
 def cs_of(D):
     ms = [M for M in T.A1_MASSES if D[M]["n"] > 1]
-    x = np.array([T.x_of(M, L0) for M in ms]); y = np.array([D[M]["nu"] for M in ms])
+    x = np.array([T.x_of(M, L0) * T.l_eff(L0) / LE for M in ms]); y = np.array([D[M]["nu"] for M in ms])   # old: T.x_of(M, L0)
     sy = np.array([D[M]["sd"]/math.sqrt(D[M]["n"]) for M in ms])
     return slope_with_errors(x, y, sy)
 sA, eA, eAs, chA = cs_of(A); sB, eB, eBs, chB = cs_of(B)
