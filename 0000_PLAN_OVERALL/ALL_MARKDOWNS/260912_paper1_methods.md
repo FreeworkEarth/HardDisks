@@ -1111,3 +1111,88 @@ The draft's ladder caption ("sits $1.0\,\%$ above Kolafa–Rottner") still holds
   Nothing needed adding.
 
 **FLAG (caption labels, not edited).** The ladder-line and slow-mode captions name the cell "$\eta = 0.1122$", its recorded value. The redrawn figure titles now show $\eta_{\rm true} = 0.1123$; the ladder legend gives both values. Whether the captions should read "$\eta = 0.1123$ (recorded 0.1122)" is the plan author's call.
+
+### 14.4 Date note: series dates against machine dates (2026-10-02, machine date)
+
+**What happened (DATA, table below).** From at least c6e5f62 (committed 2026-09-19) to 9ff3491 (committed 2026-10-02 15:51), the dates written into new file names (`2609xx_…`, `2610xx_…`), `##CHRIS` headers and STATUS timestamps came from a series counter that ran ahead of the machine clock.
+- The offset was not constant. Per commit day it was:
+
+  | commit day | 09-19 | 09-20 | 09-22 | 09-23 | 09-25 | 09-30 | 10-01 | 10-02 |
+  |---|---|---|---|---|---|---|---|---|
+  | offset [days] | +2 | +4 | +3 to +7 | +7 to +12 | +14 to +15 | +10 | +11 | +11 to +12 |
+
+- The "8 days on 2026-09-23" in the plan is the cluster-file case: headers say 2026-10-01, file mtime 2026-09-23. The commits of that day range from +7 to +12.
+- STATUS timestamps in that range carry the series date with the machine's time of day.
+- The dates inside this file's § 14 headings ("2026-10-14") are series dates too. The real date is 2026-10-02.
+
+**Rules from now on.**
+- **Git commit timestamps are authoritative.** Where a date in a file name, a header or a STATUS line disagrees with the commit that added it, the commit date is the real one.
+- **Nothing is renamed.** Scripts, drafts and earlier sections refer to the existing names.
+- **Machine dates from 4adedde (2026-10-02 18:32) on:** `date +%y%m%d` in new file names, `date` in STATUS lines. These commits show offset +0.
+- **The two −1 rows** are files written earlier under the series, with header 2026-10-01, and committed later: the cluster runbook and sbatch drafts (fa300e6) and the 261001 figures (e10f0d2).
+- **Commits with no date** in what they added are left blank.
+
+**Printed by `python3 hspist3/validation/date_series_audit_261002.py`** (verbatim; series date = the latest date written into what the commit added):
+
+### Series date written into each commit vs its git commit date (every commit since 2026-09-20, oldest first)
+
+| # | hash | commit date (HST) | series date | offset [days] | latest series date found in | subject |
+|---|---|---|---|---|---|---|
+| 1 | bf8588c | 2026-09-20 22:20 | 2026-09-24 | +4 | ##CHRIS | Level 3 v6: window validity, box-input model, verdict |
+| 2 | 7760690 | 2026-09-22 12:17 | 2026-09-25 | +3 | ##CHRIS | Level 3 closed; measured F(L); Level 4 design and pilot |
+| 3 | ba83144 | 2026-09-22 12:42 | 2026-09-23 | +1 | file name | Paper 1 draft v1; status figures; Level 3 wording; tau_heat estimator |
+| 4 | 2df7c81 | 2026-09-22 22:03 | 2026-09-28 | +6 | ##CHRIS | Level 4 thermal: adiabatic piston stage 1 measured, stage 2 needs more seeds |
+| 5 | 849cd77 | 2026-09-22 23:12 | 2026-09-29 | +7 | ##CHRIS | Level 4: tau_T measured from equilibrium fluctuations; record length is the constraint |
+| 6 | 767cd9c | 2026-09-23 10:46 | 2026-09-30 | +7 | ##CHRIS | Level 4: the equilibrium oscillation is Paper 1's divider mode; --trace-every gated |
+| 7 | fdcf559 | 2026-09-23 12:17 | 2026-10-02 | +9 | ##CHRIS | Paper 1 error bars populated; melting-region figure; Md10 long run resolves the isobar at  |
+| 8 | 5ce3522 | 2026-09-23 20:44 | 2026-10-03 | +10 | ##CHRIS | Level 4 ladder: exponent withdrawn, heavy end is an estimator limit; A2 error bars; Eq 51  |
+| 9 | 2777d9c | 2026-09-23 20:44 | 2026-10-04 | +11 | ##CHRIS | Level 4 ladder rerun at 65 tau_true; eta read from recorded t=1.0; A2 surface scaling re-d |
+| 10 | 0f299df | 2026-09-23 23:58 | 2026-10-05 | +12 | ##CHRIS | Level 4: ladder as tau_T = M g(R); R-collapse test; Cencini fixed-R limit verified |
+| 11 | 3af501c | 2026-09-24 00:05 | 2026-10-06 | +12 | ##CHRIS | Level 4 R-collapse pass 2: PRE-REGISTRATION committed before any data exists |
+| 12 | c7b95f6 | 2026-09-25 10:03 | 2026-10-09 | +14 | ##CHRIS | Level 4: R-collapse pass 2 NOT RESOLVED; mode ladder; demo; 4b model test failed, ledger p |
+| 13 | 364268e | 2026-09-25 10:03 | 2026-09-26 | +1 | file name | housekeeping: KOA docs, COWORK notes, 260908/260926 notes, knowledge-transfer edit |
+| 14 | 50e47b3 | 2026-09-25 10:07 | 2026-10-10 | +15 | ##CHRIS | redo follow-up: files dropped by the explicit-path rewrite |
+| 15 | 1f7be49 | 2026-09-25 10:08 | - |  | - | Restore gui_config.c; commit the Makefile/KOA/run-script notes; ignore _commit_scripts/ |
+| 16 | 0ab395b | 2026-09-25 10:28 | 2026-10-09 | +14 | file name | Item 6 closed: f(R) not universal at 2.3 sigma; second variable degenerate at fixed eta |
+| 17 | 05215ea | 2026-09-30 11:36 | 2026-10-10 | +10 | STATUS | Piston v2 not adopted (branch RED); -ffp-contract=off in release/koa; --version provenance |
+| 18 | eb7387e | 2026-09-30 11:38 | 2026-10-10 | +10 | ##CHRIS | 261007 section 4.4 withdrawn; B3 PRE-REGISTERED (section 3B) before any record exists; eff |
+| 19 | f6cde70 | 2026-09-30 11:44 | 2026-10-10 | +10 | ##CHRIS | Level 4b closed: full grid on one binary (05215ea); T(x) fails on scale by 3-5x, survives  |
+| 20 | 33cf95a | 2026-09-30 11:50 | 2026-10-10 | +10 | STATUS | B3: tau_T confirmed out of equilibrium at 0.85 sigma (29 626 +- 12 246 vs 40 079); a consi |
+| 21 | f6bf799 | 2026-09-30 11:53 | 2026-10-10 | +10 | ##CHRIS | Plan: Level 4 as measured, one pass (sec:l4measured); B3 figure |
+| 22 | a2ccaac | 2026-09-30 11:54 | 2026-10-10 | +10 | ##CHRIS | Efficiency-map runner per 261010 section 1 -- written and syntax-checked, NOT launched (wa |
+| 23 | 84d7a49 | 2026-10-01 15:17 | 2026-10-12 | +11 | ##CHRIS | Paper 1 item 1b PRE-REGISTERED before any fit (linewidth decomposition); 1c linewidth conv |
+| 24 | 97938a7 | 2026-10-01 15:20 | 2026-10-12 | +11 | ##CHRIS | Paper 1 items 1a and 1b results |
+| 25 | 463ccf9 | 2026-10-01 15:26 | 2026-10-12 | +11 | STATUS | Paper 1 confinement campaign PRE-REGISTERED, not launched (261012 sec. 1); status log for  |
+| 26 | b788e82 | 2026-10-01 17:15 | 2026-10-12 | +11 | ##CHRIS | Efficiency map: amendments A1-A3 committed BEFORE launch (261010 sec. 1.8); analysis scrip |
+| 27 | 1968d08 | 2026-10-01 17:18 | 2026-10-12 | +11 | ##CHRIS | Confinement amendments C1-C2 (261012 sec. 1.9), not launched; Roman citation corrected in  |
+| 28 | 0504d68 | 2026-10-01 17:30 | 2026-10-12 | +11 | STATUS | Efficiency map results (261010 sec. 2): 336/336 runs; ledger 1.35e-5 kT; Level 3 reproduct |
+| 29 | f3c6209 | 2026-10-02 14:00 | - |  | - | effmap: over-pressure test pre-registration (§3) |
+| 30 | c849b93 | 2026-10-02 14:06 | 2026-10-13 | +11 | ##CHRIS | effmap: over-pressure test results, position-settled gate (§3.1–3.2) |
+| 31 | 4f8d854 | 2026-10-02 14:08 | 2026-10-13 | +11 | ##CHRIS | Disk report 2026-10-13 (read-only; nothing deleted or moved): 20 largest campaign director |
+| 32 | 930a92d | 2026-10-02 14:31 | 2026-10-13 | +11 | STATUS | paper1 confinement: KOA smoke test, sbatch generation, local gates (§1.10) |
+| 33 | 4db8c9d | 2026-10-02 14:52 | - |  | - | paper1: box-truncation correction pre-registration (§9) |
+| 34 | 5190846 | 2026-10-02 14:52 | - |  | - | effmap: gate G2 pre-registration (§3.4) |
+| 35 | 615561c | 2026-10-02 14:57 | 2026-10-14 | +12 | ##CHRIS | paper1: box-truncation results (§9.1), box_width_sigma column + truncation warning |
+| 36 | a5c4e19 | 2026-10-02 14:58 | - |  | - | effmap: over-pressure timeline disclosure and tag split (§3.3) |
+| 37 | 1ff8654 | 2026-10-02 15:00 | 2026-10-14 | +12 | ##CHRIS | effmap: gate G2 results (§3.5) -- valid (6/6 controls), 30/36 cells PASS; figures relabell |
+| 38 | 06e3df6 | 2026-10-02 15:01 | 2026-10-14 | +12 | ##CHRIS | paper1 confinement: smoke-test gate width (§1.10.1) -- 0.05150 was the mass SD; gate now 2 |
+| 39 | 3bf7b55 | 2026-10-02 15:01 | 2026-10-14 | +12 | STATUS | status: box-truncation REGENERATE, effmap §3.3/G2, smoke-test gate width |
+| 40 | e823187 | 2026-10-02 15:46 | 2026-10-14 | +12 | ##CHRIS | paper1: canonical table/figure regenerated with box-truncation correction (§14.2), draft n |
+| 41 | bbdf135 | 2026-10-02 15:50 | 2026-10-14 | +12 | STATUS | status: clean rebuild e823187 (release, -ffp-contract=off), determinism IDENTICAL, new bui |
+| 42 | 9ff3491 | 2026-10-02 15:51 | 2026-10-14 | +12 | STATUS | methods §14 + status: summary.csv header rotation -- Level 3-era runners get new output di |
+| 43 | fa300e6 | 2026-10-02 15:52 | 2026-10-01 | -1 | ##CHRIS | cluster: KOA first-hour runbook and first sbatch drafts (recovered) |
+| 44 | 4adedde | 2026-10-02 18:32 | - |  | - | build: track experiment_validation.c/.h — provenance gap closed |
+| 45 | 38e191a | 2026-10-02 18:33 | 2026-10-02 | +0 | STATUS | status: clean rebuild 4adedde, three-binary cross-check IDENTICAL; E1 inventory and E5 scr |
+| 46 | f956b4b | 2026-10-02 18:41 | 2026-10-02 | +0 | ##CHRIS | cluster: KOA placeholders filled, noexec build path, runsheet |
+| 47 | 0ddefa9 | 2026-10-02 18:44 | - |  | - | paper1: A2 correction pre-registration (§14.3) |
+| 48 | 47dbb5f | 2026-10-02 18:52 | 2026-10-02 | +0 | ##CHRIS | paper1: A2 size-ladder box-truncation correction (§14.3.1, REGENERATE), tables/figures reg |
+| 49 | e10f0d2 | 2026-10-02 18:52 | 2026-10-01 | -1 | ##CHRIS | paper1: track 261001 figures and script (draft dependency) |
+| 50 | 94f7d6c | 2026-10-02 18:55 | 2026-10-02 | +0 | ##CHRIS | paper1: ladder-line and slow-mode figures redrawn at the corrected geometry, canonical est |
+| 51 | b5a4c9a | 2026-10-02 18:55 | - |  | - | paper1: draft pdf rebuilt from the corrected tex (6 pages, 0 undefined references) |
+| 52 | 300b743 | 2026-10-02 18:56 | 2026-10-02 | +0 | STATUS | paper1: fresh-clone draft build PASS; figures/pdf record (§14.3.2) and STATUS |
+| 53 | 52fee6d | 2026-10-02 18:57 | 2026-10-02 | +0 | STATUS | paper1: nofuse check selects by eta_rec (L_eff,true geometry); re-run 0.73 sigma PASS, unc |
+
+commits: 53; carrying a series date: 45; series date >= 2 days ahead of the commit: 35
+first affected: bf8588c (2026-09-20 22:20, series 2026-09-24, +4 d); last affected: 9ff3491 (2026-10-02 15:51, series 2026-10-14, +12 d)
+offset by commit day: 2026-09-20: +4 to +4; 2026-09-22: +3 to +7; 2026-09-23: +7 to +12; 2026-09-24: +12 to +12; 2026-09-25: +14 to +15; 2026-09-30: +10 to +10; 2026-10-01: +11 to +11; 2026-10-02: +11 to +12
+before 2026-09-20 (commits since 2026-08-01): 3 with a series date >= 2 days ahead; earliest c6e5f62 (2026-09-19 14:56, series 2026-09-21, +2 d)
