@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """##CHRIS 2026-09-16: dilute-end zoom, eta <= 0.15, N = 100 against N = 900 and N = 1600.
-Analysis only. Same estimator everywhere (largest FFT bin at f >= nu_pred/2.5); error bars are the
-1 sigma scatter of the per-mass c_s. Note A2 has only ONE density below 0.15 (eta = 0.10), so the
+Analysis only. Same estimator everywhere (largest FFT bin at f >= nu_pred/2.5); error bars are the 1 sigma
+propagated error of the through-origin slope (slope_with_errors: sd/sqrt(n) per mass, x sqrt(chi2_red) when > 1). Note A2 has only ONE density below 0.15 (eta = 0.10), so the
 larger sizes appear as single points, not curves -- that is the honest state of the data."""
 import os, sys, csv, math
 from collections import defaultdict
@@ -104,13 +104,13 @@ axd.text(0.0015, 0.58, "±0.5 % band", fontsize=8, color="0.35", va="bottom")
 axd.annotate("A2 has only one density below 0.15 (η = 0.10),\nso the larger sizes are single points, not curves",
              xy=(0.10, -0.55), xytext=(0.055, -1.05), fontsize=7.8, color="#52514e",
              arrowprops=dict(arrowstyle="->", color="#898781", lw=0.9))
-fig.text(0.99, 0.004, "same estimator everywhere: largest FFT bin at f ≥ ν_pred/2.5 · error bars = 1σ scatter of per-mass c_s · "
+fig.text(0.99, 0.004, "same estimator everywhere: largest FFT bin at f ≥ ν_pred/2.5 · error bars = 1σ propagated error of the through-origin slope (σ_ν = sd/√n per mass, × √χ²_red when > 1)\n"
                       "data: " + os.environ.get("HD_A1_CSV", "260914_A1v2_final_cs_vs_eta.csv") + " + " + (sys.argv[1] if len(sys.argv) > 1 else "260916_A2_cs_per_mass.csv") + "",
          ha="right", va="bottom", fontsize=7, color="0.4")
-fig.tight_layout(rect=(0, 0.015, 1, 1))
+fig.tight_layout(rect=(0, 0.03, 1, 1))   # ##CHRIS 2026-10-02: two-line footnote
 for ext in ("png", "pdf"):
     fig.savefig(f"{OUT}.{ext}", dpi=200)
-print("| η | N | c_s | ± scatter | KR | dev [%] |")
+print("| η | N | c_s | ± err (propagated) | KR | dev [%] |")
 print("|---|---|---|---|---|---|")
 for p in a1:
     kr = float(cs_of(sos.Z_kolafa_rottner_2006, np.array([p[0]]))[0])

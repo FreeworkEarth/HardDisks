@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """##CHRIS 2026-09-15: c_s(eta) at N = 100 (A1 v2) with the A2 points at N = 900 and N = 1600 overlaid.
 Analysis only: reads 260914_A1v2_final_cs_vs_eta.csv and 260916_A2_cs_per_mass.csv. Same estimator everywhere
-(largest FFT bin at f >= nu_pred/2.5); error bars are the 1 sigma scatter of the per-mass c_s."""
+(largest FFT bin at f >= nu_pred/2.5); error bars are the 1 sigma
+propagated error of the through-origin slope (slope_with_errors: sd/sqrt(n) per mass, x sqrt(chi2_red) when > 1)."""
 import os, sys, csv, math
 from collections import defaultdict
 import numpy as np
@@ -96,10 +97,10 @@ for N in (900, 1600):
 axd.set_ylim(-6, 8); axd.set_xlim(0, 0.78); axd.set_xlabel("Packing fraction  η", fontsize=11.5)
 axd.set_ylabel("deviation from Kolafa–Rottner [%]", fontsize=10); axd.grid(True, ls=":", alpha=0.6)
 axd.text(0.005, -5.5, "±0.5 % band", fontsize=8, color="0.35", va="bottom")
-fig.text(0.99, 0.004, "same estimator everywhere: largest FFT bin at f ≥ ν_pred/2.5 · error bars = 1σ scatter of per-mass c_s · "
+fig.text(0.99, 0.004, "same estimator everywhere: largest FFT bin at f ≥ ν_pred/2.5 · error bars = 1σ propagated error of the through-origin slope (σ_ν = sd/√n per mass, × √χ²_red when > 1)\n"
                       "data: " + os.path.basename(A1) + " + " + os.path.basename(A2),
          ha="right", va="bottom", fontsize=7, color="0.4")
-fig.tight_layout(rect=(0, 0.015, 1, 1))
+fig.tight_layout(rect=(0, 0.03, 1, 1))   # ##CHRIS 2026-10-02: two-line footnote
 for ext in ("png", "pdf"):
     fig.savefig(f"{OUT}.{ext}", dpi=200)
 print("A1 v2 has no density at exactly 0.10/0.30/0.50/0.60/0.65, so the N = 100 column below is A1 v2 at its OWN")

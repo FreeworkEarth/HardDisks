@@ -237,5 +237,52 @@ def a2():
             assert s.count(o) == 1, o; s = s.replace(o, n); print(f"edited: {o.splitlines()[0][:70]} ...")
         open(TEX, "w").write(s); print("\napplied to paper1_draft.tex")
 
+def m():
+    """##CHRIS 2026-10-02 (Task M, the plan author's decisions): M1 zoom caption, M2 the worked cell's label, M3 the stale
+    error-bar wording in the zoom and overlay scripts. Every text change is printed old -> new BEFORE editing; --apply
+    edits the tex rows (TEX); the script rows (SCRIPT) are applied exactly as printed and checked afterwards."""
+    import paper1_A2_boxtrunc_261002 as A2
+    tex = open(TEX).read(); tl = tex.splitlines()
+    src = {k: A2.point(v, k[0], k[1], "A") for k, v in A2.cells(A2.TABLES[0]).items()}
+    zd = sorted((e, N, q["D"]) for (e, N), q in src.items() if e <= 0.15 and N in (900, 1600))
+    w = max(zd, key=lambda z: abs(z[2])); rest = max(abs(d) for e, N, d in zd if (e, N) != (w[0], w[1]))
+    row = [r for r in csv.DictReader(open(T.plot_path("260919_A1v2_final_cs_vs_eta.csv"))) if abs(float(r["eta_rec"]) - 0.1122) < 1e-6][0]
+    e4 = f"{float(row['eta']):.4f}"
+    print(f"zoom points N = 900/1600 (A geometry, plotted sigma): " + ", ".join(f"eta {e:.2f} N {N}: D = {d:+.2f}" for e, N, d in zd))
+    print(f"largest |D| {abs(w[2]):.2f} at eta = {w[0]:.2f}, N = {w[1]}; all others |D| <= {rest:.2f}; worked cell eta_true = {row['eta']} -> {e4}\n")
+    zoom, over = "lowdensity_zoom_20260917.py", "overlay_N100_vs_A2_20260915.py"
+    new_bar = "error bars = 1σ propagated error of the through-origin slope (σ_ν = sd/√n per mass, × √χ²_red when > 1)"
+    new_doc = "error bars are the 1 sigma\npropagated error of the through-origin slope (slope_with_errors: sd/sqrt(n) per mass, x sqrt(chi2_red) when > 1)"
+    items = [  # (kind, where, old, new, why)
+        ("TEX", "zoom caption (M1)", "larger systems agree with it within their errors.}",
+         f"larger systems agree with it within their errors, except $N = {w[1]}$ at $\\eta = {w[0]:.2f}$ (${abs(w[2]):.0f}\\sigma$).}}",
+         f"D = {w[2]:+.2f}; the other five points |D| <= {rest:.2f}"),
+        ("TEX", "slow-mode caption (M2; first mention in the text)", "$\\eta = 0.1122$, with its five-period running mean",
+         f"$\\eta = {e4}$ (recorded $0.1122$), with its five-period running mean", f"eta_true = {row['eta']}; figure title says {e4}"),
+        ("TEX", "ladder-line caption (M2)", "One worked mass ladder, $\\eta = 0.1122$, nine divider masses",
+         f"One worked mass ladder, $\\eta = {e4}$, nine divider masses", f"figure title says {e4}, legend gives both"),
+        ("SCRIPT", f"{zoom}:107 footnote (M3)", "error bars = 1σ scatter of per-mass c_s", new_bar, "the plotted bar is slope_with_errors' err_scaled (:44)"),
+        ("SCRIPT", f"{over}:99 footnote (M3)", "error bars = 1σ scatter of per-mass c_s", new_bar, "the plotted bar is slope_with_errors' err_scaled (:42)"),
+        ("SCRIPT", f"{zoom}:113 printed header (M3)", "| η | N | c_s | ± scatter | KR | dev [%] |", "| η | N | c_s | ± err (propagated) | KR | dev [%] |", "same quantity"),
+        ("SCRIPT", f"{zoom}:3-4 docstring (M3)", "error bars are the\n1 sigma scatter of the per-mass c_s.", new_doc + ".", "same quantity"),
+        ("SCRIPT", f"{over}:4 docstring (M3)", "error bars are the 1 sigma scatter of the per-mass c_s.", new_doc + ".", "same quantity"),
+    ]
+    print("### Task M text changes, old -> new (printed BEFORE editing)\n")
+    print("| kind | where | tex line | old | new | why |\n|---|---|---|---|---|---|")
+    for k, where, o, n, why in items:
+        ln = ", ".join(str(i + 1) for i, l in enumerate(tl) if o.split("\n")[0] in l) if k == "TEX" else "-"
+        print(f"| {k} | {where} | {ln} | `{o.replace(chr(10), ' ')}` | `{n.replace(chr(10), ' ')}` | {why} |")
+    if "--apply" in sys.argv:
+        s = tex
+        for k, where, o, n, why in items:
+            if k != "TEX": continue
+            assert s.count(o) == 1, o; s = s.replace(o, n); print(f"edited tex: {where}")
+        open(TEX, "w").write(s)
+    if "--check-scripts" in sys.argv:
+        for k, where, o, n, why in items:
+            if k != "SCRIPT": continue
+            f = os.path.join(HERE, where.split(":")[0]); t = open(f).read()
+            print(f"{where}: old {'ABSENT' if o not in t else 'STILL PRESENT'}, new {'present' if n in t else 'MISSING'}")
+
 if __name__ == "__main__":
-    a2() if "--a2" in sys.argv else main()
+    a2() if "--a2" in sys.argv else (m() if "--m" in sys.argv else main())

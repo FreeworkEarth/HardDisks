@@ -163,8 +163,53 @@ def write(allpts, fits):
     print(f"  {PUB}: {len(out)} rows, geometry A (L_eff = L0 - 2r - t/2 - delta/2, KR at eta_true per point, "
           f"c_inf = KR(eta) + intercept of the deviation fit); same columns as before")
 
+def figure(allpts, fits):
+    """##CHRIS 2026-10-02 (Task M4): 260917_A2_cs_vs_N redrawn in geometry A, the layout and colours of
+    analyze_A2_X2p5_20260914.py:128-147 (which cannot be rerun for this: it recomputes everything at L_eff = L0 - 2r and
+    would overwrite the corrected extrapolation table). Each point is c_s at L_eff,true, referred to the nominal eta by
+    KR, y = c_s - KR(eta_true,N) + KR(eta) [DERIVATION: exactly the quantity the sec. 14.3 deviation fit uses, shifted by
+    the constant KR(eta)], so the fitted line c_inf + b/sqrt(N) passes through the points as fitted. Gate before saving:
+    the plotted c_inf, its error, b and its error equal the regenerated 260917 extrapolation table to its printed digits."""
+    import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
+    for ext in ("png", "pdf"):
+        assert os.path.exists(T.plot_path(f"260917_A2_cs_vs_N_pre_boxtrunc_261002.{ext}")), "dated copy missing -- cp -n first"
+    tab = {r["eta"]: r for r in csv.DictReader(open(T.plot_path(PUB)))}
+    ok = all(tab[f"{e:.2f}"][k] == f"{f['A'][v]:.5f}" for e, f in fits.items()
+             for k, v in (("c_inf", "cinf"), ("c_inf_err", "cinf_err"), ("slope", "b"), ("slope_err", "b_err")))
+    print(f"\nfigure gate: plotted c_inf, b and errors equal {PUB} to its printed digits -> {'PASS' if ok else 'FAIL'}")
+    if not ok: sys.exit("figure not drawn")
+    src = allpts[TABLES[0]]; etas = sorted(fits); nc = min(3, len(etas)); nr = math.ceil(len(etas) / nc)
+    fig, axs = plt.subplots(nr, nc, figsize=(4.6 * nc, 3.9 * nr), squeeze=False)
+    for ax, eta in zip(axs.flat, etas):
+        A = fits[eta]["A"]; Ns = A["Ns"]; u = 1 / np.sqrt(Ns)
+        p = [src[(eta, int(N))]["A"] for N in Ns]
+        y = np.array([q["cs"] - q["kr"] + A["kr"] for q in p]); s = np.array([max(q["sc"], 1e-12) for q in p])
+        ax.errorbar(u, y, yerr=s, fmt="o", color="#2a78d6", capsize=3, ms=6, label="EDMD A2, per-N c_s ± mass scatter")
+        uu = np.linspace(0, u.max() * 1.08, 50)
+        ax.plot(uu, A["cinf"] + A["b"] * uu, "-", color="#52514e", lw=1.2, label=f"c_∞ + b/√N, χ² = {A['chi2']:.2f}")
+        ax.errorbar([0], [A["cinf"]], yerr=[A["cinf_err"]], fmt="s", color="#eb6834", capsize=3, ms=7,
+                    label=f"c_∞ = {A['cinf']:.4f} ± {A['cinf_err']:.4f}")
+        ax.axhline(A["kr"], color="#e34948", lw=1.4, label=f"KR 2006 = {A['kr']:.4f}")
+        for n, ui, ci in zip(Ns, u, y):
+            ax.annotate(f"N={int(n)}", (ui, ci), textcoords="offset points", xytext=(4, 6), fontsize=7, color="#52514e")
+        ax.set_title(f"η = {eta:.2f}  ({100*(A['cinf']-A['kr'])/A['kr']:+.2f} % vs KR, {(A['cinf']-A['kr'])/A['cinf_err']:+.1f}σ)", fontsize=10)
+        ax.set_xlabel("1/√N"); ax.set_ylabel("c_s"); ax.grid(True, ls=":", alpha=0.6); ax.legend(fontsize=6.8, loc="best")
+    for ax in list(axs.flat)[len(etas):]:
+        ax.axis("off")
+    fig.suptitle("A2, fixed η, N ladder: largest FFT bin at f ≥ ν_pred/2.5, mean over seeds, through-origin fit over masses\n"
+                 "corrected for box truncation (methods §14)", fontsize=10.5)
+    fig.text(0.99, 0.004, "each point: c_s at L_eff = L0 − 2r − t/2 − δ/2 and η_true, referred to the nominal η by KR: "
+             "c_s − KR(η_true) + KR(η)\nfit on the deviations from KR (methods §14.3) · error bars = mass scatter (the fit weights) · "
+             "data: 260919_A2_cs_per_mass.csv, 260917_A2_cs_vs_N_extrapolation.csv", ha="right", va="bottom", fontsize=7, color="0.4")
+    fig.tight_layout(rect=(0, 0.04, 1, 0.96))
+    for ext in ("png", "pdf"):
+        fig.savefig(T.plot_path(f"260917_A2_cs_vs_N.{ext}"), dpi=170)
+    print("wrote 260917_A2_cs_vs_N.png/.pdf (geometry A)")
+
 if __name__ == "__main__":
     reg, allpts, fits = main()
     if "--write" in sys.argv:
         if not reg: sys.exit("verdict KEEP -- nothing is written (sec. 14.3)")
         write(allpts, fits)
+    if "--figure" in sys.argv:
+        figure(allpts, fits)
