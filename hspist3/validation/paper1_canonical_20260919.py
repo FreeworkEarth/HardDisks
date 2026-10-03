@@ -82,8 +82,11 @@ def draw_main():
     ax.set_title("Speed of sound against packing fraction (canonical; corrected for box truncation, methods §14)", fontsize=12.5)
     ax.grid(True, ls=":", alpha=0.6)
     ax.legend(loc="upper left", bbox_to_anchor=(0.0, 0.93), fontsize=8.5, framealpha=0.95)
-    ax.text(0.555, 2.2, "eta >= 0.65: 6 sigma compartment, structure\nchanges during measurement - not a\nfluid-branch value",
-            fontsize=8.5, color="0.3")
+    # ##CHRIS 2026-10-02 (Task T b): the note ran past the right edge of the axes when placed in data coordinates,
+    #   ax.text(0.555, 2.2, "...", fontsize=8.5, color="0.3")
+    # It is now right-aligned inside the axes, bottom right, above the ideal-gas line; same text, same size and colour.
+    ax.text(0.985, 0.08, "eta >= 0.65: 6 sigma compartment, structure\nchanges during measurement - not a\nfluid-branch value",
+            transform=ax.transAxes, ha="right", va="bottom", multialignment="left", fontsize=8.5, color="0.3")
     fig.text(0.99, 0.004, "L_eff = L0 - 2r - t/2 - delta/2 (t = 0.05 sigma; delta = integer-pixel box shortfall; eta = eta_true) "
              "- corrected for box truncation (methods §14) - data: 260919_A1v2_final_cs_vs_eta.csv",
              ha="right", va="bottom", fontsize=7, color="0.4")
