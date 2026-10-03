@@ -439,3 +439,122 @@ The mass ratio $\alpha$, and hence $K$, does not change. So $c_{s,\rm true} = c_
 - **KEEP:** otherwise. The correction is documented and the table is unchanged.
 
 The $\pi/8$ anchor ($L_0 = 10$) must come out with $\delta = 0$ exactly.
+
+### 14.1 Results (the plan's "§ 9.1"; computed once, after the § 14 commit 4db8c9d)
+
+**Printed by `python3 hspist3/validation/paper1_boxtrunc_20261014.py`**, verbatim:
+
+#### Box-truncation correction, every canonical A1 v2 cell (sigma = c_s_err_scaled)
+
+| eta_rec | L_0 | delta | Center_X - (XW1 + L_0) | <Displacement> (m_500) | H from eta_rec | eta_true | L_eff,rec | L_eff,true | c_s,rec ± σ | gate | c_s,true ± σ | KR(eta_rec) | KR(eta_true) | D before | D after | change | flag | change if L_0 - delta |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.006545 | 600.0 | 0.000000 | -0.000000 | -0.9402 | 9.99998 | 0.006545 | 598.9750 | 598.9750 | 1.44297 ± 0.00238 | ok | 1.44297 ± 0.00238 | 1.43290 | 1.43290 | +4.24 | +4.24 | +0.00 |  | +0.00 |
+| 0.009817 | 400.0 | 0.000000 | -0.000000 | -1.2442 | 10.00049 | 0.009817 | 398.9750 | 398.9750 | 1.45388 ± 0.00434 | ok | 1.45388 ± 0.00434 | 1.44238 | 1.44238 | +2.65 | +2.65 | +0.00 |  | +0.00 |
+| 0.013090 | 300.0 | 0.000000 | -0.000000 | -1.0503 | 9.99998 | 0.013090 | 298.9750 | 298.9750 | 1.46003 ± 0.00247 | ok | 1.46003 ± 0.00247 | 1.45195 | 1.45195 | +3.27 | +3.27 | +0.00 |  | +0.00 |
+| 0.019635 | 199.9995 | 0.040649 | -0.020329 | +2.9489 | 10.00000 | 0.019637 | 198.9745 | 198.9542 | 1.47744 ± 0.00442 | ok | 1.47729 ± 0.00442 | 1.47138 | 1.47138 | +1.37 | +1.34 | -0.03 |  | -0.07 |
+| 0.026180 | 149.9996 | 0.040873 | -0.020436 | -1.4855 | 10.00000 | 0.026184 | 148.9746 | 148.9542 | 1.50376 ± 0.00443 | ok | 1.50356 ± 0.00442 | 1.49118 | 1.49119 | +2.84 | +2.79 | -0.05 |  | -0.10 |
+| 0.039270 | 99.9998 | 0.041260 | -0.020635 | +0.2237 | 10.00000 | 0.039278 | 98.9748 | 98.9542 | 1.54272 ± 0.00419 | ok | 1.54240 ± 0.00419 | 1.53196 | 1.53199 | +2.57 | +2.48 | -0.08 |  | -0.16 |
+| 0.052360 | 74.9998 | 0.041270 | -0.020635 | +0.0826 | 10.00000 | 0.052374 | 73.9748 | 73.9542 | 1.58740 ± 0.00257 | ok | 1.58696 ± 0.00257 | 1.57439 | 1.57444 | +5.07 | +4.88 | -0.19 |  | -0.38 |
+| 0.078540 | 49.9999 | 0.041463 | -0.020734 | -0.3284 | 10.00000 | 0.078573 | 48.9749 | 48.9542 | 1.67866 ± 0.00526 | ok | 1.67795 ± 0.00526 | 1.66454 | 1.66465 | +2.68 | +2.53 | -0.16 |  | -0.31 |
+| 0.112200 | 34.9999 | 0.041468 | -0.020734 | +0.0221 | 10.00000 | 0.112267 | 33.9749 | 33.9542 | 1.81155 ± 0.00529 | ok | 1.81044 ± 0.00529 | 1.79189 | 1.79216 | +3.71 | +3.46 | -0.26 |  | -0.51 |
+| 0.130900 | 29.9999 | 0.041468 | -0.020734 | +0.0704 | 10.00001 | 0.130991 | 28.9749 | 28.9542 | 1.89683 ± 0.00473 | ok | 1.89547 ± 0.00473 | 1.86885 | 1.86924 | +5.91 | +5.55 | -0.36 |  | -0.73 |
+| 0.157080 | 24.9999 | 0.041468 | -0.020734 | +0.1151 | 10.00002 | 0.157210 | 23.9749 | 23.9542 | 2.01616 ± 0.00277 | ok | 2.01442 ± 0.00277 | 1.98495 | 1.98555 | +11.25 | +10.41 | -0.84 | **> 0.5** | -1.68 |
+| 0.196350 | 20.0 | 0.000000 | -0.000000 | -0.0053 | 9.99998 | 0.196350 | 18.9750 | 18.9750 | 2.21096 ± 0.00555 | ok | 2.21096 ± 0.00555 | 2.17981 | 2.17981 | +5.62 | +5.62 | -0.00 |  | -0.00 |
+| 0.261799 | 15.0 | 0.000000 | -0.000000 | -0.0750 | 10.00001 | 0.261799 | 13.9750 | 13.9750 | 2.61299 ± 0.00766 | ok | 2.61299 ± 0.00766 | 2.57255 | 2.57255 | +5.28 | +5.28 | +0.00 |  | +0.00 |
+| 0.392699 | 10.0 | 0.000000 | -0.000000 | -0.0001 | 10.00000 | 0.392699 | 8.9750 | 8.9750 | 3.80884 ± 0.01119 | ok | 3.80884 ± 0.01119 | 3.74608 | 3.74608 | +5.61 | +5.61 | -0.00 |  | -0.00 |
+| 0.523599 | 7.5 | 0.000000 | -0.000000 | -0.0039 | 10.00000 | 0.523599 | 6.4750 | 6.4750 | 6.08815 ± 0.01713 | ok | 6.08815 ± 0.01713 | 5.93213 | 5.93213 | +9.11 | +9.11 | +0.00 |  | +0.00 |
+| 0.549999 | 7.14 | 0.030000 | -0.015000 | -0.0053 | 9.99999 | 0.551157 | 6.1150 | 6.1000 | 6.73988 ± 0.03585 | ok | 6.72335 ± 0.03576 | 6.60185 | 6.63378 | +3.85 | +2.50 | -1.35 | **> 0.5** | -2.71 |
+| 0.569996 | 6.8895 | 0.029001 | -0.014500 | +0.0203 | 10.00001 | 0.571198 | 5.8645 | 5.8500 | 7.21712 ± 0.05177 | ok | 7.19927 ± 0.05164 | 7.18766 | 7.22533 | +0.57 | -0.50 | -1.07 | **> 0.5** | -2.16 |
+| 0.590001 | 6.6559 | 0.020134 | -0.010066 | -0.0067 | 10.00001 | 0.590895 | 5.6309 | 5.6208 | 7.92513 ± 0.09137 | ok | 7.91096 ± 0.09121 | 7.85471 | 7.88661 | +0.77 | +0.27 | -0.50 | **> 0.5** | -1.01 |
+| 0.609999 | 6.4377 | 0.000399 | -0.000200 | -0.0032 | 10.00000 | 0.610018 | 5.4127 | 5.4125 | 8.57780 ± 0.06569 | ok | 8.57748 ± 0.06569 | 8.61562 | 8.61638 | -0.58 | -0.59 | -0.02 |  | -0.03 |
+| 0.630002 | 6.2333 | 0.008268 | -0.004133 | +0.0107 | 10.00000 | 0.630420 | 5.2083 | 5.2042 | 9.51057 ± 0.12953 | ok | 9.50302 ± 0.12943 | 9.48076 | 9.49995 | +0.23 | +0.02 | -0.21 |  | -0.41 |
+| 0.650003 | 6.0415 | 0.041334 | -0.020666 | -0.0046 | 9.99999 | 0.652234 | 5.0165 | 4.9958 | 11.03078 ± 0.05298 | ok | 10.98533 ± 0.05276 | 10.43889 | 10.54877 | +11.17 | +8.27 | -2.90 | **> 0.5** | -5.83 |
+| 0.669998 | 5.8612 | 0.014066 | -0.007033 | +0.0064 | 10.00000 | 0.670803 | 4.8362 | 4.8292 | 12.99552 ± 0.03927 | ok | 12.97662 ± 0.03922 | 11.37328 | 11.40491 | +41.31 | +40.08 | -1.23 | **> 0.5** | -2.44 |
+| 0.679998 | 5.775 | 0.008334 | -0.004166 | +0.0025 | 10.00001 | 0.680489 | 4.7500 | 4.7458 | 14.51554 ± 0.04912 | ok | 14.50280 ± 0.04907 | 11.67118 | 11.67835 | +57.91 | +57.56 | -0.35 |  | -0.69 |
+| 0.689999 | 5.6913 | 0.007600 | -0.003800 | +0.0028 | 10.00000 | 0.690460 | 4.6663 | 4.6625 | 16.51931 ± 0.10955 | ok | 16.50586 ± 0.10946 | 11.55102 | 11.52719 | +45.35 | +45.48 | +0.13 |  | +0.28 |
+| 0.695006 | 5.6503 | 0.008934 | -0.004466 | -0.0004 | 10.00000 | 0.695556 | 4.6253 | 4.6208 | 17.76362 ± 0.15152 | ok | 17.74646 ± 0.15137 | nan | nan | +nan | +nan | +nan | no KR in table | +nan |
+| 0.699998 | 5.61 | 0.011667 | -0.005833 | +0.0016 | 10.00001 | 0.700727 | 4.5850 | 4.5792 | 19.24481 ± 0.22622 | ok | 19.22032 ± 0.22593 | nan | nan | +nan | +nan | +nan | no KR in table | +nan |
+| 0.705000 | 5.5702 | 0.015400 | -0.007700 | +0.0283 | 10.00000 | 0.705976 | 4.5452 | 4.5375 | 18.38705 ± 0.67519 | ok | 18.35590 ± 0.67405 | nan | nan | +nan | +nan | +nan | no KR in table | +nan |
+| 0.709997 | 5.531 | 0.020334 | -0.010166 | +0.0011 | 9.99999 | 0.711304 | 4.5060 | 4.4958 | 17.11137 ± 0.51285 | ok | 17.07276 ± 0.51169 | nan | nan | +nan | +nan | +nan | no KR in table | +nan |
+| 0.714999 | 5.4923 | 0.026267 | -0.013133 | +0.0218 | 10.00000 | 0.716713 | 4.4673 | 4.4542 | 16.44125 ± 0.19129 | ok | 16.39291 ± 0.19073 | nan | nan | +nan | +nan | +nan | no KR in table | +nan |
+| 0.719994 | 5.4542 | 0.033399 | -0.016700 | +0.0114 | 10.00000 | 0.722205 | 4.4292 | 4.4125 | 16.75907 ± 0.23220 | ok | 16.69588 ± 0.23133 | nan | nan | +nan | +nan | +nan | no KR in table | +nan |
+| 0.725005 | 5.4165 | 0.041334 | -0.020666 | +0.0125 | 10.00000 | 0.727782 | 4.3915 | 4.3708 | 17.86572 ± 0.13509 | ok | 17.78164 ± 0.13446 | nan | nan | +nan | +nan | +nan | no KR in table | +nan |
+| 0.730005 | 5.3794 | 0.008799 | -0.004400 | +0.0027 | 10.00000 | 0.730603 | 4.3544 | 4.3500 | 18.58431 ± 0.09869 | ok | 18.56553 ± 0.09859 | nan | nan | +nan | +nan | +nan | no KR in table | +nan |
+| 0.740006 | 5.3067 | 0.030067 | -0.015033 | +0.0078 | 10.00000 | 0.742108 | 4.2817 | 4.2667 | 22.76518 ± 0.13520 | ok | 22.68524 ± 0.13472 | nan | nan | +nan | +nan | +nan | no KR in table | +nan |
+| 0.749998 | 5.236 | 0.013667 | -0.006833 | +0.0049 | 10.00000 | 0.750978 | 4.2110 | 4.2042 | 27.84595 ± 0.21448 | ok | 27.80076 ± 0.21414 | nan | nan | +nan | +nan | +nan | no KR in table | +nan |
+| 0.759999 | 5.1671 | 0.000867 | -0.000433 | +0.0003 | 10.00000 | 0.760063 | 4.1421 | 4.1417 | 37.40656 ± 0.19181 | ok | 37.40264 ± 0.19179 | nan | nan | +nan | +nan | +nan | no KR in table | +nan |
+
+pi/8 anchor: delta = 0.000000 (must be exactly 0) -> OK
+estimator gate: 35/35 cells reproduce the 260919 c_s to 5e-6; KR function reproduces the table's KR column to 4.9e-06 (24 cells with a tabulated KR; the rest carry no published deviation and do not enter the verdict)
+identity c_s,true/c_s,rec = L_eff,true/L_eff,rec: max deviation 3.3e-16
+recorded Center_X offset vs -delta/2: max |difference| 5.5e-06 sigma
+
+cells with |change| > 0.5: 6 -> **VERDICT: REGENERATE** (eta = 0.157, 0.550, 0.570, 0.590, 0.650, 0.670)
+largest |change|: 2.90 at eta = 0.6500; for eta <= 0.39: 0.84
+
+Figure: `paper1_speedofsound/experiments/final/261014_p1_boxtrunc_shift.{png,pdf}`.
+
+**Verdict, by the pre-registered rule: REGENERATE (DATA).** Six cells change $D$ by more than 0.5:
+
+| $\eta$ | 0.157 | 0.550 | 0.570 | 0.590 | 0.650 | 0.670 |
+|---|---|---|---|---|---|---|
+| change in $D$ | −0.84 | −1.35 | −1.07 | −0.50 | −2.90 | −1.23 |
+
+At $\eta = 0.590$ the change sits on the 0.5 line.
+
+**What the correction does.**
+- **Direction.** Every change is negative. The correction lowers $c_s$ (a shorter $L_{\rm eff}$) and raises $c_s^{\rm KR}$ (a higher $\eta$), so the deviation from KR shrinks everywhere.
+- **Dilute side.** At $\eta \le 0.13$ the changes are at most 0.36σ, and the +1–2 % N = 100 excess of § 8 is essentially untouched. For example, $\eta = 0.1122$ goes from $D = +3.71$ to $+3.46$.
+- **Exact cells.** The $\pi/8$ anchor has $\delta = 0$ exactly. So do the cells with $L_0 = 600, 400, 300, 20, 15, 10, 7.5$.
+- **Where it matters.** The large shifts are at the dense cells, where both $L_{\rm eff}$ is short and $c_s^{\rm KR}$ is steep in $\eta$.
+
+**Data checks (DATA).**
+- **Truncated geometry, confirmed from the runs' own output.** The recorded `Center_X` sits at $-\delta/2$ from $XW_1/24 + L_0$ in every cell, to $5.5\times10^{-6}$ σ, i.e. at print precision.
+- **The divider oscillates about the truncated centre.** At dense $\eta$ the trajectory-mean `Displacement` is $0.000$–$0.03$, not $+\delta/2$. At dilute $\eta$ the divider's slow wander (±1–3 σ at $L_0 = 600$) makes this check uninformative.
+- **Height and counts.** $H$ read back from $\eta_{\rm rec}$ is $10.0000 \pm 5\times10^{-5}$ in every cell, with $N = 100$.
+
+**Gates.**
+- The estimator reproduces all 35 cells to $5\times10^{-6}$.
+- The KR function reproduces the table's KR column to $4.9\times10^{-6}$ in the 24 cells that tabulate it.
+- The 11 cells with $\eta \ge 0.695$ carry no KR in the table, hence no published deviation. They do not enter the verdict, though their $c_{s,\rm true}$ is printed.
+- The rescaling identity holds to $3\times10^{-16}$.
+
+**The plan's "$L_0 - \delta$"** (the right compartment at $t = 0$ only) would roughly double every change; see the last column. It is a bound, not the correction.
+
+**What follows.** Paper 1's canonical table and figure must be regenerated with $\eta_{\rm true}$ and $L_{\rm eff,true}$. This is a recomputation from data that already exist; no rerun is needed, and the script above already computes every $c_{s,\rm true}$. It is **not done in this batch**, because the canonical table and the drafts change only on the plan author's go.
+
+**Recording fix in the binary (output only), and its determinism gate.**
+
+The code that writes or warns (`00ALLINONE.c`):
+- **Warning**, line 330 in `initialize_simulation_dimensions()`: `fprintf(stderr, "WARNING: L_0 not on the 1/48 sigma grid: box truncated by %.6f sigma\n", ...)`. The same check is applied to $H$ on the 1/24 grid.
+- **Speed-of-sound trace**: the header gets a new last column at 15796, `fputs(",Box_Width_sigma", wall_log);`. Its value is `box_width_sigma_const = (XW2 - XW1) / PIXELS_PER_SIGMA` (15810), written by both row writers at 16103 and 16202.
+- **Energy-transfer summary**: the header gains `...,build_cflags,box_width_sigma` (17283), and the row its value (17473).
+
+`--version` before was `git 05215ea-dirty target release`, CFLAGS `-O3 -march=native -ffp-contract=off`. After it was `git 5190846-dirty target release` with the same CFLAGS. The previous binary is kept as `hspist3/00ALLINONE_pre_boxw_20261014` (untracked).
+
+**Gate.** The same seeds went through both binaries in both modes, on the grid-exact $\pi/8$ cell and the non-grid $L_0 = 34.9999$ cell, with outputs written to the scratchpad only:
+
+| file | old vs new | note |
+|---|---|---|
+| SoS pi8 trace (1252 lines) | IDENTICAL after stripping the last column `Box_Width_sigma` | Box_Width_sigma = ['20.000000'] |
+| SoS pi8 psi6 csv | IDENTICAL | |
+| SoS nongrid trace (8330 lines) | IDENTICAL after stripping the last column `Box_Width_sigma` | Box_Width_sigma = ['69.958333'] |
+| SoS nongrid psi6 csv | IDENTICAL | |
+| ET pi8 tr.csv | IDENTICAL | byte compare |
+| ET pi8 ev.csv | IDENTICAL | byte compare |
+| ET pi8 summary | IDENTICAL on all fields except ['box_width_sigma', 'build_git', 'command', 'timestamp', 'trace_path'] | box_width_sigma = 20.000000 |
+| ET nongrid tr.csv | IDENTICAL | byte compare (partial trace of the aborted run) |
+| ET nongrid ev.csv | IDENTICAL | byte compare (partial trace of the aborted run) |
+| ET nongrid summary | none written by EITHER binary -- both abort identically (same message) | `ABORTING INVALID RUN [initial_wall_position_mismatch]: Wall 0 initialized at 34.9791667 sigma; command requested 34.9999008 sigma.` |
+- old sos_pi8: no warning
+- old sos_nongrid: no warning
+- old et_pi8: no warning
+- old et_nongrid: no warning
+- new sos_pi8: no warning
+- new sos_nongrid: ['WARNING: L_0 not on the 1/48 sigma grid: box truncated by 0.041468 sigma']
+- new et_pi8: no warning
+- new et_nongrid: ['WARNING: L_0 not on the 1/48 sigma grid: box truncated by 0.041468 sigma']
+
+**DETERMINISM GATE: PASS**
+
+ENERGY-TRANSFER MODE ALREADY REFUSED NON-GRID GEOMETRY: both binaries abort the $L_0 = 34.9999$ run with `initial_wall_position_mismatch` (the divider snaps to the pixel grid, 34.9791667 σ). That is the "grid check" the Paper 2 run scripts relied on. Speed-of-sound mode had no such check, which is why only Paper 1 data are affected.

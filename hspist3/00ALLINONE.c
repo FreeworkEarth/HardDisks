@@ -322,6 +322,18 @@ int HIST_WIDTH, HIST_HEIGHT;
 void initialize_simulation_dimensions() {
     SIM_WIDTH = (int)(2 * L0_UNITS * PIXELS_PER_SIGMA);
     SIM_HEIGHT = (int)(HEIGHT_UNITS * PIXELS_PER_SIGMA);
+    /* ##CHRIS 2026-10-14: the (int) casts truncate any L_0 (H) that is not a multiple of 1/48 (1/24) sigma, and the
+       physics uses the truncated box (prm.boxW = XW2 - XW1). Output only: warn, so it can never be silent again. */
+    {
+        const float wexact = 2 * L0_UNITS * PIXELS_PER_SIGMA;
+        if (wexact - (float)SIM_WIDTH > 1e-4f)
+            fprintf(stderr, "WARNING: L_0 not on the 1/48 sigma grid: box truncated by %.6f sigma\n",
+                    (double)(wexact - (float)SIM_WIDTH) / (double)PIXELS_PER_SIGMA);
+        const float hexact = HEIGHT_UNITS * PIXELS_PER_SIGMA;
+        if (hexact - (float)SIM_HEIGHT > 1e-4f)
+            fprintf(stderr, "WARNING: H not on the 1/24 sigma grid: box height truncated by %.6f sigma\n",
+                    (double)(hexact - (float)SIM_HEIGHT) / (double)PIXELS_PER_SIGMA);
+    }
 
     XW2 = XW1 + SIM_WIDTH;
     YW2 = YW1 + SIM_HEIGHT;
@@ -15781,6 +15793,7 @@ void run_speed_of_sound_experiments() {
                             "Time,Wall_X,Displacement(σ),Left_Count,Right_Count,L0,eta,Center_X(σ),Seed,"
                             "Target_Oscillations,Predicted_Frequency,Planned_Steps,Planned_Duration");
                     if (speed_sound_ke_columns_enabled()) fputs(",KE_L,KE_R", wall_log);
+                    fputs(",Box_Width_sigma", wall_log);   /* ##CHRIS 2026-10-14: the box the physics uses */
                     fputc('\n', wall_log);
                 }
 
@@ -15794,6 +15807,7 @@ void run_speed_of_sound_experiments() {
                 missed_collision_events = 0;
                 worst_penetration_observed = 0.0;
                 const double center_x_sigma_const = ((double)XW1 + (double)XW2) / (2.0 * (double)PIXELS_PER_SIGMA);
+                const double box_width_sigma_const = ((double)XW2 - (double)XW1) / (double)PIXELS_PER_SIGMA;  /* ##CHRIS 2026-10-14 */
                 const double height_sigma_const = ((double)YW2 - (double)YW1) / (double)PIXELS_PER_SIGMA;
                 const double radius_sigma_const =
                     (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA;
@@ -16086,6 +16100,7 @@ void run_speed_of_sound_experiments() {
                                 }
                                 fprintf(wall_log, ",%.9g,%.9g", ke_l, ke_r);
                             }
+                            fprintf(wall_log, ",%.6f", box_width_sigma_const);   /* ##CHRIS 2026-10-14 */
                             fputc('\n', wall_log);
                         }
 
@@ -16179,12 +16194,12 @@ void run_speed_of_sound_experiments() {
 
                         if (wall_log) {
                             fprintf(wall_log,
-                                    "%.6f,%.6f,%.6f,%d,%d,%.6f,%.6f,%.6f,%u,%d,%.12g,%d,%.12g\n",
+                                    "%.6f,%.6f,%.6f,%d,%d,%.6f,%.6f,%.6f,%u,%d,%.12g,%d,%.12g,%.6f\n",
                                     time_after_release, wall_x_sigma, disp, left_particles, right_particles,
                                     (double)L0_UNITS, eta_nominal_const, center_x_sigma_const,
                                     run_seed, cli_speed_sound_target_oscillations,
                                     predicted_frequency, target_recorded_steps,
-                                    planned_duration_sigma);
+                                    planned_duration_sigma, box_width_sigma_const);   /* ##CHRIS 2026-10-14 */
                         }
 
                         recorded_steps++;
@@ -17265,7 +17280,7 @@ static void run_energy_transfer_experiment(void) {
 		                "W_in_max,W_out_max,ratio,loss_fraction,total_loss,"
 		                "springE_stop,springE_peak_win,W_out_peak_win,ratio_win,eff_window_T,piston_stop_t_rel,"
 		                "trace_path,spring_peak_t_rel,spring_peak_dt,spring_peak_near_end,command,seed,"
-		                "build_git,build_target,build_cflags\n";   /* ##CHRIS build provenance */
+		                "build_git,build_target,build_cflags,box_width_sigma\n";   /* ##CHRIS build provenance; box 2026-10-14 */
 
         ensure_csv_header_schema(summary_path, header);
         const bool need_header = (access(summary_path, F_OK) != 0);
@@ -17454,7 +17469,8 @@ static void run_energy_transfer_experiment(void) {
 		                    trace_path);
 		            fprintf(sf, "%.9g,%.9g,%d,", spring_peak_t_rel, spring_peak_dt, spring_peak_near_end);
 		            csv_put_escaped(sf, cli_command_line ? cli_command_line : "");
-		            fprintf(sf, ",%u,%s,%s,\"%s\"\n", cli_seed, BUILD_GIT, BUILD_TARGET, BUILD_CFLAGS);
+		            fprintf(sf, ",%u,%s,%s,\"%s\",%.6f\n", cli_seed, BUILD_GIT, BUILD_TARGET, BUILD_CFLAGS,
+		                    ((double)XW2 - (double)XW1) / (double)PIXELS_PER_SIGMA);   /* ##CHRIS 2026-10-14: box_width_sigma */
 	            const int summary_write_failed = ferror(sf);
 	            const int summary_close_failed = (fclose(sf) != 0);
                 if (summary_write_failed || summary_close_failed) {
