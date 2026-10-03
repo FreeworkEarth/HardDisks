@@ -396,3 +396,46 @@ per-trajectory resonance fit whose script is no longer on disk. Its width conven
 read from code, so it is left as published and is not compared with any $\Gamma$ defined here.
 The slow-mode time $\tau_T$ keeps its ACF meaning; the factor 2 applies to the oscillatory line
 only.
+
+---
+
+## 14. Box-truncation correction of the canonical A1 v2 table (`final/260919_A1v2_final_cs_vs_eta.csv`) — pre-registration (2026-10-14)
+
+*(The plan's "§9 of the A1v2 results markdown". No markdown holds the 260919 table itself. A1 v2 is documented in this file's § 8, so the section goes here, numbered 14 because §§ 9–13 exist. Written and committed before anything below was computed.)*
+
+**The finding (261012 § 1.10, DATA).**
+- The box width is set in whole pixels, `SIM_WIDTH = (int)(2 * L0_UNITS * PIXELS_PER_SIGMA)` (`00ALLINONE.c:323`, 24 px/σ). The physics uses that truncated box: `prm.boxW = (double)(XW2 - XW1)` (15882 speed-of-sound).
+- The recorded $\eta$ (`eta_nominal_const`, 15800–15802) and the analysis length $L_{\rm eff} = L_0 - 2r - t/2$ (`tests_20260913.l_eff`) both use the untruncated $L_0$.
+- The box shortfall is
+$$\delta = \frac{2L_0 \cdot 24 - \lfloor 2L_0 \cdot 24\rfloor}{24}\ [\sigma].$$
+
+**Per compartment it is $\delta/2$, not $\delta$ (from the runs' own output).** For $\eta = 0.1122$, $L_0 = 34.999901$ (`A1v2/eta_0p112200/m_500`, run 0, first row):
+- `Center_X(σ)` = 43.3125, which is $(200 + 200 + 1679)/48$: the centre of the *truncated* box (15797).
+- `Wall_X` = 43.333232, i.e. $200/24 + L_0$: the divider *starts* $L_0$ from the left wall.
+- `Displacement(σ)` = +0.020732 $= \delta/2$.
+
+So the left compartment starts at $L_0$ and the right at $L_0 - \delta$. With equal $N_s$ the divider oscillates about the truncated centre, where each compartment is $L_0 - \delta/2$. The script prints, per cell, `Center_X` minus $(200/24 + L_0)$, which should equal $-\delta/2$, and the trajectory-mean `Displacement`, which should be about 0 rather than $+\delta/2$. That confirms the mean geometry from the data. The plan's "$L_0 - \delta$" is the shortened *right* compartment at $t = 0$ only. It is printed as an upper-bound variant, not used for the verdict.
+
+**The correction, per cell (primary):**
+$$L_{0,\rm true} = L_0 - \frac{\delta}{2},\qquad \eta_{\rm true} = \eta_{\rm rec}\,\frac{L_0}{L_{0,\rm true}},\qquad L_{\rm eff,true} = L_{\rm eff,rec} - \frac{\delta}{2}.$$
+
+**Check against the run.** $\eta_{\rm true}$ is checked against the recorded particle counts (`Left_Count`, `Right_Count`) and the height. The height is not written by speed-of-sound mode. It is read back from the run's own $\eta_{\rm rec} = N\pi r^2/(2L_0H)$ as $H = N\pi r^2/(2L_0\eta_{\rm rec})$ and compared with 10. `SIM_HEIGHT = (int)(H \cdot 24)` is exact for $H = 10$. Then $\eta_{\rm true} = N_s\pi r^2/(H\,L_{0,\rm true})$.
+
+**$c_s$ re-derived from the recorded frequencies.** The canonical estimator (`paper1_populate_cs_err_20261002.py`, lines 117–120):
+
+    L0 = float(leaf["L0"])
+    x = np.array([T.x_of(q["M"], L0) for q in cs])
+    y = np.array([q["nu"] for q in cs])
+
+with `T.x_of(M, L0) = k_root(M/(2 N_SIDE)) / (2 pi l_eff(L0))` (`tests_20260913.py:182–183`), and $c_s$ the through-origin slope (`slope_with_errors`). The re-derivation keeps the per-mass $\nu$ (from `cell()` on the raw traces) and replaces $l_{\rm eff}(L_0)$ by $L_{\rm eff,true}$.
+
+The mass ratio $\alpha$, and hence $K$, does not change. So $c_{s,\rm true} = c_{s,\rm rec}\,L_{\rm eff,true}/L_{\rm eff,rec}$ exactly, and the error rescales with it. That identity is printed as a check.
+
+**Estimator gate first.** The recomputation from the raw traces must reproduce the 260919 table's $c_s$ to $5\times10^{-6}$ in every cell before any correction is reported. Otherwise the cell is VOID.
+
+**Verdict rule.** With $D = (c_s - c_s^{\rm KR})/\sigma$, $\sigma$ = `c_s_err_scaled`, and $c_s^{\rm KR}$ from the table's own function at the respective $\eta$:
+
+- **REGENERATE:** some canonical cell's $D$ changes by more than $0.5$ (of that cell's own error) between $(c_{s,\rm rec}, \eta_{\rm rec})$ and $(c_{s,\rm true}, \eta_{\rm true})$. Paper 1's table and figure must then be regenerated from the corrected values.
+- **KEEP:** otherwise. The correction is documented and the table is unchanged.
+
+The $\pi/8$ anchor ($L_0 = 10$) must come out with $\delta = 0$ exactly.
