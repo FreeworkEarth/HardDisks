@@ -257,3 +257,20 @@ One line per step, newest at the bottom. Written automatically by `hspist3/valid
 - **2026-10-02 21:20:19 HST** **ROUND PLAN (Task R2, b31b74f, runsheet step 8).** At most 64 cores at once. Round 1: B_0.10 %2, B_0.39 %2, A_0.10 %2, totalling 44.0 core-h at Mac speed, about 1.5 h wall. Round 2: A_0.39 %4, 51.8 core-h with the planning seeds. The arrays RESUME rather than refuse an existing directory (stated). They write data only under /mnt/lustre/koa/scratch/charing; Slurm logs go to ~/harddisks/hspist3/logs. OPEN: the A_0.39 event logs come to about 235 GiB against an unread scratch quota, and the KOA speed factor is unknown.
 - **2026-10-02 21:20:19 HST** **PAPER 3 TERMS IN TRACKED FILES (Task S, list only).** At 70b2069, 102 matching lines in 21 tracked files, plus 3 tracked paths (paper3_szilardsliding/ x2, demo1/two piston notes.txt). Nothing was changed; this is a decision for Chris.
 - **2026-10-02 21:20:19 HST** **KR BIBITEM AND MAIN-FIGURE NOTE (Task T, 785e6a1).** The bibitem now carries pp. 3435–3441 and doi:10.1080/00268970600967963, checked against the PDF title page. The main-figure note now sits inside the axes; the plotted data and texts are cmp-identical, and the CSV is unchanged (sha256 218b1e90…). Dated copies _pre_note_261002. Draft pdf: 6 pages. Fresh-clone build of b31b74f: PASS (0 missing, 0 undefined, 6 warnings).
+- **2026-10-02 21:50:41 HST** **GATE 4 PASSED (Task U1, 261012 §1.12, 303280d).**
+  - Pilot 14966594: 20 of 20 seeds, health 0, window 4999.9 to 5000.0 σ-time from the event log (the ±1 % tolerance is CC's own).
+  - ε₀(π/8) = 0.0820 ± 0.0106 (30 dof), against 0.2710 planned (ratio 0.303); Bartlett p = 0.75.
+  - conf_A_0.39 seeds per position by the pre-registered rule: 16 to 40, down from 174 to 437. Core-h: 51.8 → 4.7 (Mac model), 93.5 → 8.6 at KOA speed.
+  - conf_A_0.10 is not affected (§1.8).
+  - The reproduction gate (planning ε₀ against the task files at 70b2069) still PASSes.
+- **2026-10-02 21:50:41 HST** **DUPLICATE PILOT 14966614 RE-RAN NOTHING (Task U2).** All 60 rsynced files have KOA mtimes of 07:06:16 to 07:06:38 UTC, inside job 14966594; none is from 07:11. The 20 run logs are identical. The worker exits on an existing red_<seed>.csv before the binary starts, and the binary would have truncated run_<seed>.log. The pilot is usable; its summaries are committed (df53ba1).
+- **2026-10-02 21:50:41 HST** **TASK FILES REGENERATED, KOA SPEED MEASURED (Task U3, 303280d).**
+  - The generator reads cluster/confinement_20261013/gate4_pi8_result.txt. Only the nine tasks_A_epi8_*.txt files and cells_summary.txt changed, and each new file equals the first lines of each position of the old one.
+  - KOA speed: 371.764 CPU-s / 20 = 18.59 per trajectory, against 10.30 in the Mac model → factor 1.804 (measured on method A, applied to method B as INFERENCE).
+  - --time ≥ 2 × the longest cell: B_0.10 2:45, B_0.39 2:00, A_0.10 0:30, A_0.39 0:45. Round 1: 79.6 KOA core-h, about 2.7 h wall at 64 cores. Round 2: 8.6 core-h, about 0.3 h.
+- **2026-10-02 21:50:41 HST** **BUILD-HASH GUARD (Task U4, 303280d).**
+  - The arrays check ./00ALLINONE against logs/BUILD_KOA_LAST.hash (written by build_koa.sh) instead of `git rev-parse HEAD`, and stop without flock.
+  - conf_worker.sh records the build in <dir>/.build_git under flock and refuses a different build, or outputs without a record.
+  - Tested on the Mac with a stub flock (5 cases); KOA's flock is OPEN until the first array.
+  - Runsheet rules: rebuild after every pull before a new submission; no pull or rebuild while tasks are pending; the first submission needs a pull and a rebuild (step 8e).
+- **2026-10-02 21:50:41 HST** **§1.11 ROW COUNT CLOSED (Task U5).** The KOA determinism trace has 846 lines and 104506 bytes, against 846 and 104237 on the Mac: equal row counts [DATA], so the size difference is characters only. lfs quota: no per-user limit (155.7M used).

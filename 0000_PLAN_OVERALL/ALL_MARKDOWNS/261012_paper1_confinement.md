@@ -699,9 +699,212 @@ The date in the heading is KOA's: `date +%y%m%d` on KOA named the environment li
 
 **Trace sizes, KOA vs Mac.** Both are the determinism trajectory: M = 50, 25 oscillations, seed 57831576, HD_KE_TRACE = 1.
 - Mac [DATA]: `wc -lc` gives `846  104237 $SP/det_e823187/_determinism/det_A/m_50/wall_x_positions_L0_100_wallmassfactor_50_run0.csv`. That is 845 data rows plus the header. The file records `Planned_Steps 21944`, so the row count is fixed by the analytic predicted frequency, not by the trajectory.
-- KOA: 104506 bytes. **Its row count is OPEN.** No KOA trace is on the Mac, and nobody has run `wc -l` on it yet.
-- Why the sizes differ [INFERENCE]: the same seed on two platforms gives different trajectories. glibc's libm (KOA, gcc 14.3) and Apple's libm (Mac, clang) differ in the last bits of transcendental functions, and the chaotic collision sequence amplifies that difference, so the printed values (for example the number of minus signs; the Mac file has 393) and therefore their character counts differ. If the KOA row count is not 846, the difference is in the number of samples, not only in their characters. That would be a finding, and nothing here explains it.
+- KOA: 104506 bytes. ~~Its row count is OPEN.~~ **Closed 2026-10-02 [DATA]:** `wc -l` on KOA (Chris's terminal) gives **846 lines, 104506 bytes**, the same row count as the Mac.
+- Why the sizes differ: the row counts are equal [DATA], so the 269 bytes are digit and sign characters only. That is DATA for the row count; the cause below stays INFERENCE. The same seed on two platforms gives different trajectories. glibc's libm (KOA, gcc 14.3) and Apple's libm (Mac, clang) differ in the last bits of transcendental functions, and the chaotic collision sequence amplifies that difference, so the printed values (for example the number of minus signs; the Mac file has 393) and therefore their character counts differ. If the KOA row count is not 846, the difference is in the number of samples, not only in their characters. That would be a finding, and nothing here explains it.
 
 **Storage decision (Chris and the plan author) [DATA].** There is no lab storage. Raw trajectories and event logs stay on `koa_scratch`, which is purged 90 days after the last write. They can be regenerated from the committed task files and seeds. Per-seed summaries (`red_*.csv`, `red_nu.csv`, `summary_*.csv`, run logs) and the full pilot cells come back to the Mac. Round-plan estimate (`cluster/round_plan_261002.py`, runsheet step 8) [INFERENCE]: conf_A_0.39 needs about 235 GiB of event logs and conf_A_0.10 about 35 GiB, while method B needs under 2 GiB per array. The KOA scratch quota has not been read yet (OPEN).
 
 **Repository decision (Chris and the plan author) [DATA].** The repository stays public: KOA clones it anonymously over https, without a key. The unpublished Paper 3 ideas are listed by Task S, and no file has been changed for that.
+
+
+### 1.12 Gate 4 result and launch plan (2026-10-02)
+
+**Inputs [DATA, Chris's KOA terminal, 2026-10-03 UTC].**
+- **Pilot, job 14966594_1:** COMPLETED 0:0; Elapsed 00:00:41; TotalCPU 06:11.764 (371.8 CPU-s for 20 trajectories, 16 in parallel). The log ends `cell pilot_epi8_H_H10_L10 done; failures: 0`.
+- **Duplicate submission, job 14966614_1:** COMPLETED 0:0; Elapsed 00:00:01; TotalCPU 00:01.002. Its log text is identical (373 bytes).
+- **`lfs quota`:** 155.7M used, quota 0k, limit 0k, so there is no per-user limit; 355 files.
+- **Pilot summaries:** 60 files rsynced to the Mac (`red_*.csv`, `run_*.log`, `summary_*.csv`; 5 positions × seeds 9700–9703). They are committed with this section, so gate 4 can be reproduced from the repository.
+
+#### U1 — Gate 4 (§ 1.4 rule, § 1.7 item 4, § 1.8)
+
+Printed by `python3 cluster/gate4_pilot_261002.py` (verbatim). The 5000 ± 1 % window tolerance is this script's own operational reading of "gives 5000 σ-time"; it is not pre-registered. The ε₀ error, the Bartlett test, the impact-rate line and the "ε₀ + 1σ" column are for information only. The verdict uses the pre-registered rule alone.
+
+##### Reproduction gate: the pre-registered rule with the planning eps0 against the task files at git 70b2069
+
+| cell | seeds/position (rule) | seeds/position (tasks file) | reproduced |
+|---|---|---|---|
+| epi8_H_H5_L10 | 219 | 219 | yes |
+| epi8_H_H10_L10 | 194 | 194 | yes |
+| epi8_H_H20_L10 | 219 | 219 | yes |
+| epi8_H_H40_L10 | 437 | 437 | yes |
+| epi8_L_H10_L5 | 219 | 219 | yes |
+| epi8_L_H10_L20 | 219 | 219 | yes |
+| epi8_aspect_H7.08333_L14.125 | 218 | 218 | yes |
+| epi8_aspect_H5_L20 | 194 | 194 | yes |
+| epi8_aspect_H3.54167_L28.2917 | 174 | 174 | yes |
+
+reproduction gate: PASS
+
+##### Pilot: experiments_energy_transfer/paper1_confinement_A_20261013/pilot_epi8_H_H10_L10
+
+seeds found: 20 of 20; missing files: none; health lines: 0
+  red_*: 20 files, mtime (UTC) 2026-10-03 07:06:18 .. 2026-10-03 07:06:38
+  run_*: 20 files, mtime (UTC) 2026-10-03 07:06:16 .. 2026-10-03 07:06:37
+  summary_*: 20 files, mtime (UTC) 2026-10-03 07:06:16 .. 2026-10-03 07:06:37
+  run_*.log: 1 distinct content(s); all files: 60, mtime (UTC) 2026-10-03 07:06:16 .. 2026-10-03 07:06:38
+window per seed from the event log: 4999.9 .. 5000.0 sigma-time -> conversion check (5000 +- 1 %): PASS
+
+| position | face | F mean | SD over 4 seeds | eps = SD/mean x sqrt(window) |
+|---|---|---|---|---|
+| x_m2 | L | 16.88662 | 0.02952 | 0.1236 |
+| x_m2 | R | 15.07771 | 0.02109 | 0.0989 |
+| x_m1 | L | 16.40074 | 0.02635 | 0.1136 |
+| x_m1 | R | 15.46030 | 0.02020 | 0.0924 |
+| x_0 | L | 15.92653 | 0.01873 | 0.0832 |
+| x_0 | R | 15.92009 | 0.01253 | 0.0556 |
+| x_p1 | L | 15.48972 | 0.01425 | 0.0650 |
+| x_p1 | R | 16.38306 | 0.03963 | 0.1711 |
+| x_p2 | L | 15.07554 | 0.03399 | 0.1594 |
+| x_p2 | R | 16.89430 | 0.03301 | 0.1381 |
+
+pooled eps at N_s = 50: 0.1160 -> eps0 (pi/8 pilot) = 0.0820 +- 0.0106 (30 degrees of freedom)  (planning value 0.2710, ratio 0.303)
+Bartlett test, one relative variance across the 10 (position, face) groups: p = 0.748
+impacts per face per sigma-time: 0.628 (eta 0.10005) vs 5.506 (pi/8), ratio 8.76; pure shot noise would scale eps by sqrt(1/ratio) = 0.338; measured eps(pi/8, N_s 50)/eps0(plan) = 0.428
+
+##### Seeds per position for conf_A_0.39, by the pre-registered rule with the pilot's eps0
+
+| cell | T per position (plan) | seeds/position (plan) | T per position (pilot eps0) | seeds/position (new) | seeds/position at eps0 + 1 sigma (info) | core-h plan (Mac model) | core-h new (Mac model) |
+|---|---|---|---|---|---|---|---|
+| epi8_H_H5_L10 | 1.09e+06 | 219 | 9.99e+04 | 20 | 26 | 1.57 | 0.14 |
+| epi8_H_H10_L10 | 9.7e+05 | 194 | 8.88e+04 | 18 | 23 | 2.78 | 0.26 |
+| epi8_H_H20_L10 | 1.09e+06 | 219 | 9.99e+04 | 20 | 26 | 6.27 | 0.57 |
+| epi8_H_H40_L10 | 2.18e+06 | 437 | 2e+05 | 40 | 51 | 25.01 | 2.29 |
+| epi8_L_H10_L5 | 1.09e+06 | 219 | 9.99e+04 | 20 | 26 | 1.57 | 0.14 |
+| epi8_L_H10_L20 | 1.09e+06 | 219 | 9.99e+04 | 20 | 26 | 6.27 | 0.57 |
+| epi8_aspect_H7.08333_L14.125 | 1.09e+06 | 218 | 9.98e+04 | 20 | 26 | 3.12 | 0.29 |
+| epi8_aspect_H5_L20 | 9.7e+05 | 194 | 8.88e+04 | 18 | 23 | 2.78 | 0.26 |
+| epi8_aspect_H3.54167_L28.2917 | 8.66e+05 | 174 | 7.93e+04 | 16 | 21 | 2.48 | 0.23 |
+
+conf_A_0.39 core-h: plan 51.8 -> new 4.7 (Mac cost model); at the measured KOA speed x1.804: plan 93.5 -> new 8.6
+recorded: cluster/confinement_20261013/gate4_pi8_result.txt
+
+**GATE 4: PASS** -- conf_A_0.39 uses the new seeds per position (its tasks files must be regenerated before Round 2). conf_A_0.10 is NOT affected: its eps0 was measured at eta = 0.10005 (Level 3 c0), and sec. 1.8 allows the pilot to change only (A) at pi/8.
+
+**Reading [INFERENCE].** ε₀ at π/8 is 0.30 of the planning value, so the seeds per position fall by a factor of about 11. That is a large change, so here is why the comparison is like for like:
+- **Same definition.** Both numbers are the relative per-face divider force noise × √T, with F = Σ|dp| of the `D0` events over the event-log time range, at H = 10. The planning value comes from `noise_eps0()` (Level 3 c0); the pilot value from `reduce_A.py`.
+- **The size of the drop is plausible.** The pre-registration ASSUMED that ε depends on η only through $N_s$. At π/8 the divider is hit 8.8 times more often per face, which on its own (shot noise) would scale ε by 0.34; the measurement gives 0.43.
+- **The groups agree.** The ten (position, face) groups share one relative variance (Bartlett p = 0.75).
+
+Over 30 degrees of freedom the ε₀ error is ±13 %. At ε₀ + 1σ, the rule would give about 26 % more seeds; that column is information only.
+
+#### U2 — The duplicate pilot submission (job 14966614)
+
+[DATA] It re-ran nothing:
+- every one of the 60 rsynced files has a KOA mtime between 07:06:16 and 07:06:38 UTC (preserved by `rsync -a`), which lies within job 14966594's 41 s, and none is from 07:11;
+- the 20 `run_*.log` files have one identical content;
+- the `summary_*.csv` timestamps are 07:06.
+
+[DERIVATION] It could not have re-run anything without leaving a trace:
+- `conf_worker.sh` mode A exits before the binary starts when `red_<seed>.csv` is non-empty: `[ -s "$d/red_${seed}.csv" ] && exit 0`;
+- the binary truncates `run_<seed>.log` (`> "$d/run_${seed}.log"`), so any rerun would have given that file a 07:11 mtime.
+
+So no file was written by both jobs. The event logs and traces (`ev_*`, `tr_*`) stayed on scratch and their mtimes were not inspected, but by the same exit line they were not touched. **The pilot is usable.**
+
+#### U3 — Task files with the gate-4 seeds; round plan at the measured KOA speed
+
+**Seeds.**
+- `cluster/gate4_pilot_261002.py` records the result in `cluster/confinement_20261013/gate4_pi8_result.txt` (ε₀ 0.0820079 ± 0.0105872, planning value 0.2709969, PASS).
+- `cluster/gen_confinement_sbatch.py` reads that file and scales $T_{\rm pos}$ by $(\epsilon_0^{\rm pilot}/\epsilon_0^{\rm plan})^2$ for the π/8 cells only, which is exact because the pre-registered $T_{\rm pos} \propto \epsilon_0^2$ [DERIVATION]. It then sets seeds per position = ⌈$T_{\rm pos}$/5000⌉ and rewrites the task files.
+- A run without the gate-4 file first showed that the generator reproduces every committed task, cell and summary file byte for byte. With the file, only the nine `tasks_A_epi8_*.txt` files and `cells_summary.txt` changed. All B task files, the A_0.10 task files and the pilot's task file are unchanged.
+
+**KOA speed [DATA → DERIVATION].**
+- KOA cost: 371.764 CPU-s / 20 = 18.59 CPU-s per held-divider trajectory (5000 σ-time, π/8, $N_s$ = 50 per side, including the 200 σ-time hold and the Python reduction).
+- Mac cost model for the same trajectory: 10.30 CPU-s.
+- So the factor is **1.804**. It was measured on method A and is applied to method B too [INFERENCE].
+
+**`--time` rule:** `--time` ≥ 2 × the longest cell at KOA speed, rounded up to 15 min, at least 30 min (`round_plan_261002.time_limit_h`). The generator writes it into every array.
+
+Printed by `python3 cluster/round_plan_261002.py` (verbatim):
+
+##### conf_A_0.39 task files: planning seeds (git 70b2069) vs gate-4 seeds (working tree)
+
+| cell | seeds/position at 70b2069 | seeds/position now | lines now = first lines of each position at 70b2069 | seeds now |
+|---|---|---|---|---|
+| epi8_H_H5_L10 | 219 | 20 | yes | 9700..9719 |
+| epi8_H_H10_L10 | 194 | 18 | yes | 9700..9717 |
+| epi8_H_H20_L10 | 219 | 20 | yes | 9700..9719 |
+| epi8_H_H40_L10 | 437 | 40 | yes | 9700..9739 |
+| epi8_L_H10_L5 | 219 | 20 | yes | 9700..9719 |
+| epi8_L_H10_L20 | 219 | 20 | yes | 9700..9719 |
+| epi8_aspect_H7.08333_L14.125 | 218 | 20 | yes | 9700..9719 |
+| epi8_aspect_H5_L20 | 194 | 18 | yes | 9700..9717 |
+| epi8_aspect_H3.54167_L28.2917 | 174 | 16 | yes | 9700..9715 |
+
+KOA speed (measured, pilot 14966594): 371.764 CPU-s / 20 = 18.59 CPU-s per trajectory; Mac cost model 10.30 -> factor 1.804
+times below: cost model x 1.804 (--slow); trajectories per cell from the task files
+
+| round | array | partition | tasks | cores/task | traj. | core-h (KOA) | longest cell (h) | --time (h) | rule 2 x longest (h) | throttle | cores at once | wall (h) | scratch GiB |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Round 1 | conf_B_0.10 | shared | 10 | 8 | 2250 | 39.4 | 1.33 | 2.75 | 2.75 | %2 | 16 | 2.71 | 1.8 |
+| Round 1 | conf_B_0.39 | shared | 9 | 8 | 2025 | 32.0 | 0.94 | 2 | 2 | %2 | 16 | 2.22 | 1.6 |
+| Round 1 | conf_A_0.10 | shared | 10 | 16 | 7030 | 8.2 | 0.15 | 0.5 | 0.5 | %2 | 32 | 0.26 | 34.9 |
+| Round 2 | conf_A_0.39 | shared | 9 | 16 | 960 | 8.6 | 0.27 | 0.75 | 0.75 | %4 | 64 | 0.27 | 21.6 |
+
+Round 1: cores at once = 64 (limit 64) -> OK
+Round 2: cores at once = 64 (limit 64) -> OK
+
+sbatch lines (from ~/harddisks/hspist3, after `mkdir -p logs`):
+
+    Round 1:  sbatch --array=1-10%2 cluster/confinement_20261013/conf_B_0.10.sbatch
+    Round 1:  sbatch --array=1-9%2 cluster/confinement_20261013/conf_B_0.39.sbatch
+    Round 1:  sbatch --array=1-10%2 cluster/confinement_20261013/conf_A_0.10.sbatch
+    Round 2:  sbatch --array=1-9%4 cluster/confinement_20261013/conf_A_0.39.sbatch
+
+**Scratch:** the A_0.39 event logs now come to about 22 GiB (235 GiB planned); with no per-user quota, the § 1.11 storage question is closed. **Cost:** the A_0.39 core-hours drop from 93.5 to 8.6 at KOA speed. Round 1 dominates (about 80 core-hours, about 2.7 h of wall time).
+
+#### U4 — Build-hash guard and the recorded build hash
+
+**Arrays (all five `conf_*.sbatch`, generated).**
+
+Old:
+
+    "$HD_BIN" --version | head -1 | grep -q -- "git $(git rev-parse --short HEAD)  target koa" || { echo "STOP: not the clean koa build of HEAD"; exit 1; }
+
+New:
+
+    [ -s logs/BUILD_KOA_LAST.hash ] || { echo "STOP: no logs/BUILD_KOA_LAST.hash -- build with cluster/build_koa.sh first"; exit 1; }
+    sha256sum --status -c logs/BUILD_KOA_LAST.hash || { echo "STOP: ./00ALLINONE is not the build recorded in logs/BUILD_KOA_LAST.hash"; exit 1; }
+    export HD_BUILD="$("$HD_BIN" --version | head -1)"
+    echo "$HD_BUILD" | grep -Eq -- "git [0-9a-f]+  target koa" || { echo "STOP: not a clean koa build: $HD_BUILD"; exit 1; }
+    command -v flock >/dev/null || { echo "STOP: flock not found (conf_worker.sh needs it)"; exit 1; }
+
+**Build (`cluster/build_koa.sh`, new lines before `BUILD OK`).** The build itself still requires build_git = HEAD, with no `-dirty`:
+
+    sha256sum 00ALLINONE > logs/BUILD_KOA_LAST.hash
+    echo "recorded       logs/BUILD_KOA_LAST.hash: $(cat logs/BUILD_KOA_LAST.hash)"
+
+**Worker (`conf_worker.sh`, both modes; the pilot path is the same worker).**
+- A new function `guard <dir> <glob>` reads `<dir>/.build_git` under `flock`, or creates it if absent. It refuses when:
+  - the recorded line differs from this binary's `--version` line, or
+  - outputs are present but no record exists.
+- Called as:
+
+      guard "$cell" 'wall_x_positions_L0_*_run*.csv' || { echo "B $rel M=$M r=$r FAILED build guard"; exit 3; }
+      guard "$d" 'red_*.csv' || { echo "A $rel seed=$seed FAILED build guard"; exit 3; }
+
+  The first line comes before the B "done before" skip, the second before the A skip.
+- Tested on the Mac with a stub `flock`, five cases: fresh, resume with the same build, other build, outputs without a record, and the B glob. All behave as specified.
+- The locking itself is not tested, because macOS has no `flock`; KOA's presence is checked by the sbatch [OPEN until the first array].
+- **Consequence:** the existing KOA pilot directories have outputs but no `.build_git`, so a resubmitted pilot would now be refused. That is intended.
+- `cluster/koa_crossnode_det.sh` still compares against HEAD. It is a one-off test, not a campaign, and is unchanged.
+
+**Runsheet (step 8, new rules):**
+1. after every `git pull`, rebuild before any NEW submission;
+2. never pull or rebuild while array tasks are pending or running;
+3. the first submission after this change needs a pull and a rebuild, because the 70b2069 build wrote no hash file.
+
+Step 8e gives the commands.
+
+#### Launch lines (from `~/harddisks/hspist3` on `login-0102`, after the pull and rebuild of step 8e and after the go)
+
+Round 1 (64 cores at once):
+
+    sbatch --array=1-10%2 cluster/confinement_20261013/conf_B_0.10.sbatch
+    sbatch --array=1-9%2 cluster/confinement_20261013/conf_B_0.39.sbatch
+    sbatch --array=1-10%2 cluster/confinement_20261013/conf_A_0.10.sbatch
+
+Round 2 (64 cores at once; after its go):
+
+    sbatch --array=1-9%4 cluster/confinement_20261013/conf_A_0.39.sbatch
+
+**Free cross-check [DERIVATION].** The anchor cell `epi8_H_H10_L10` reruns the pilot's seeds 9700–9703. The C source is the same as the pilot's, only the build hash differs, so its `red_970[0-3].csv` must equal the pilot's byte for byte.
