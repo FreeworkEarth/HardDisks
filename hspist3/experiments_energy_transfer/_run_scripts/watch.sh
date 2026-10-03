@@ -6,6 +6,7 @@
 #   ./watch.sh equil           the equilibrium (no-piston) run that tau_T comes from
 #   ./watch.sh effmap [k]      geometry C, the efficiency map (k = 0.25 | 0.5 | 1.0, default 0.5)
 #   ./watch.sh 4b              the Level 4b transmission cell (M = 200, u = 0.2)
+#   ./watch.sh conf [MODE] H L0 Ns   a Paper 1 confinement cell (261012), held divider; --height comes after COMMON's 10
 #
 # Keys in the GUI: P start piston, S screenshot, +/- speed, Q quit.
 #
@@ -55,7 +56,17 @@ case "$WHAT" in
                  --piston-right-protocol-mode=step --velocity-right-piston-step=0.05
                  --max-right-piston-travel=7.96 --auto-piston-step
                  --wall-hold-steps=12000 --steps=200000); SHOT_AT=14000 ;;
-  *) echo "unknown experiment '$WHAT'; try: demo 4b equil effmap"; exit 1 ;;
+  conf)   CH=${3:-10}; CL=${4:-10}; CN=${5:-50}; NAME="conf_H${CH}_L${CL}"
+          echo "  confinement cell (261012): H = $CH, L_0 = $CL, N_s = $CN per side, held divider t = 0.05 (method A geometry)"
+          FLAGS=(--particles=$((2*CN)) --particles-boxes=$CN,$CN --l0=$CL --height=$CH --num-walls=1
+                 --wall-positions=$CL --wall-mass-factors=1000000000 --wall-thickness=0.05 --wall-thickness-vis=0.05
+                 --eff-output=wall-ke --piston-right-protocol-mode=step --velocity-right-piston-step=0.01
+                 --max-right-piston-travel=0.25 --wall-hold-steps=12000 --steps=200000); SHOT_AT=12600 ;;
+          # NO WORK ON THE GAS: a capture run auto-starts the step piston 200 steps after release, and the shot fires only
+          # while it moves (00ALLINONE.c:20404-20405). The piston parks 0.25 sigma outside the gas, so u = 0.01 with travel
+          # 0.25 crosses only that gap (25 sigma-time, zero work) -- W_in = 0.000 in the picture. (First conf picture, with
+          # the default travel, compressed the gas: W_in = 400. Headless runs never start a piston without --auto-piston-step.)
+  *) echo "unknown experiment '$WHAT'; try: demo 4b equil effmap conf"; exit 1 ;;
 esac
 
 if [ "$MODE" = "watch" ]; then

@@ -425,3 +425,209 @@ Standing-wave check (all alpha): k_S^SW = N_s m omega_1^2 / K(alpha)^2, per mass
 |---|---|---|---|---|---|---|---|
 | 0.10 | 0.81 / 0.69 / 0.42 / 0.36 / 0.20 / 0.24 / 0.20 / 0.24 / 0.18 | 0.093 | 0.4977 | 0.457 | 0.736 | +1.269 | +2.8 |
 | 0.39 | 1.01 / 0.80 / 0.68 / 0.46 / 0.39 / 0.39 / 0.33 / 0.31 / 0.24 | 0.142 | 0.4571 | 0.435 | 0.717 | +0.768 | +1.8 |
+
+---
+
+### 1.10 KOA smoke test, sbatch generation, local gates (2026-10-13; nothing submitted to KOA, nothing launched)
+
+**KOA facts used (SOURCE: the saved runbook pages, `0000_PLAN_OVERALL/ALL_MARKDOWNS/00000_KOA/`).**
+- **Partitions.** `sandbox` is for tests (short runs). `shared` allocates by core, with a maximum job time of 3 days. `shared-long` allows 7 days.
+- **Storage.** **`koa_scratch` has no per-user quota (800 TiB shared), but files are deleted automatically 90 days after they were last written.** Home is 50 GiB.
+- The nodes are a mix of Intel and AMD CPUs from 2014 to now, so the `koa` target stays at `-march=x86-64-v2`.
+
+**What the 90-day purge means for where the data lives (decision for Chris).** Summaries plus the two full pilot cells come back to the Mac, as recommended. **The full trajectories cannot stay on scratch "until there is an external drive"**: unless they are touched or copied, they are deleted 90 days after the run. Either they are copied to permanent storage (KoaStore / lab storage, or the external drive) within 90 days, or losing them is accepted. The summaries are enough for every pre-registered analysis, given the reduction gate below.
+
+#### 3a — smoke test and Mac target
+
+The file is `hspist3/cluster/koa_smoketest.sh`, submitted with sbatch. Its steps:
+1. `make -B koa`
+2. `--version`, which must show `-ffp-contract=off`
+3. the determinism self-test: the same seed twice, and `cmp` must report the files identical
+4. the $\pi/8$ pilot: the anchor cell, method B, the nine A1v2 masses with **one** seed each, 200 oscillations, seeds `run_seed(20261013, 0, m, 0)`
+
+One script, `hspist3/cluster/confinement_pilot.py`, runs and analyses on both machines, so both go through the same code.
+
+**The Mac target**, run 2026-10-13 on the release binary (`05215ea`, `-O3 -march=native -ffp-contract=off`). The determinism self-test on the Mac gave **IDENTICAL**. Printed by `python3 cluster/confinement_pilot.py analyse --out <mac_pi8_H10_L10>`:
+
+pilot cell: eta (trace) = [0.392699], L_0 (trace) = [10.0], H = 10.0, N_s = 50, r = 0.5, t = 0.05 (set by --wall-thickness; not written by speed-of-sound mode), L_eff = L_0 - 2r - t/2 = 8.975000
+T_total (sum of planned durations, 9 trajectories) = 69944.5 sigma-time; health lines = 0
+| M | nu | implied c_s | seeds |
+|---|---|---|---|
+| 50 | 0.07519225 | 3.93752 | 1 |
+| 100 | 0.05870708 | 3.84803 | 1 |
+| 200 | 0.04395559 | 3.79433 | 1 |
+| 300 | 0.03664223 | 3.77643 | 1 |
+| 500 | 0.02912381 | 3.79432 | 1 |
+| 750 | 0.02392290 | 3.77643 | 1 |
+| 1000 | 0.02092928 | 3.79432 | 1 |
+| 1500 | 0.01742544 | 3.84802 | 1 |
+| 2000 | 0.01506197 | 3.83012 | 1 |
+
+**c_s = 3.85886 +- 0.05150** (through-origin slope; +- = 1-sigma mass scatter of implied c_s)
+
+**Gates in the script header** (fixed now):
+- **determinism:** KOA run twice gives IDENTICAL.
+- **geometry:** $\eta$, $L_0$, $H$ and $L_{\rm eff}$ equal to the Mac within $10^{-6}$. $t$ is not written by speed-of-sound mode, so it is checked by the mode-equivalence gate below.
+- **statistics:** $|c_s^{\rm KOA} - c_s^{\rm Mac}| \le 0.05150$, the Mac pilot's 1σ mass scatter. This is the 2026-09-16 mirror-gate rule. With one seed per mass, a per-mass seed error does not exist.
+
+**Byte-identity between the Mac and KOA is not required.** The Mac is arm64 (clang, Apple libm) and KOA is x86-64-v2 (gcc, glibc libm). Even with `-ffp-contract=off` on both, transcendental functions (log, cos and exp in the velocity draw) are not correctly rounded, and they differ in the last bit between the two libraries. Chaotic dynamics amplify one ulp within a few hundred collisions, so the two runs are independent realisations and the gate is statistical.
+
+#### 3b — sbatch files, generated from the pre-registered cell list
+
+`hspist3/cluster/gen_confinement_sbatch.py` writes `hspist3/cluster/confinement_20261013/`:
+- one array task per cell: `conf_B_0.10`, `conf_B_0.39`, `conf_A_0.10` and `conf_A_0.39`;
+- the method-A pilot `conf_A_pilot`;
+- the per-cell task lists, the per-trajectory worker, and the two reductions.
+
+**Placeholders** for Chris: `__PARTITION__`, `__ACCOUNT__`, `__SCRATCH__`, plus `__UHID__` in the fetch script. **`conf_A_0.39` is marked "submit only after the method-A pilot"** (gate 4): its seeds per position are the planning values from Table A.
+
+**Data layout.** Under `$HD_DATA = __SCRATCH__/harddisks/hspist3` the paths are relative to `hspist3/`, exactly as on the Mac:
+- method B follows the A1v2 run0 → `_run<r>.csv` harness;
+- method A writes `x_<position>/ev|tr|summary|red_<seed>`.
+
+**Reduction gate.** Run on the full Mac pilot traces, `reduce_B.py` reproduces `cell()`'s per-mass ν to $8\times10^{-17}$ (one ulp, a CSV round-trip). The same check is to be repeated on the full KOA pilot cell when it comes back.
+
+**Printed by `python3 cluster/gen_confinement_sbatch.py`** (the summary table and the copy-back commands):
+
+| method | cell id | N_s | H | L_0 | trajectories (seeds) | est. core-h | output dir (relative to hspist3/) |
+|---|---|---|---|---|---|---|---|
+| B | e0p10_H_H5_L39.25 | 25 | 5 | 39.25 | 225 (9 masses x 25) | 0.71 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/e0p10_H_H5_L39.25` |
+| A | e0p10_H_H5_L39.25 | 25 | 5 | 39.25 | 710 (5 positions x 142) | 0.16 | `experiments_energy_transfer/paper1_confinement_A_20261013/e0p10_H_H5_L39.25` |
+| B | e0p10_H_H10_L39.25 | 50 | 10 | 39.25 | 225 (9 masses x 25) | 1.41 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/e0p10_H_H10_L39.25` |
+| A | e0p10_H_H10_L39.25 | 50 | 10 | 39.25 | 720 (5 positions x 144) | 0.33 | `experiments_energy_transfer/paper1_confinement_A_20261013/e0p10_H_H10_L39.25` |
+| B | e0p10_H_H20_L39.25 | 100 | 20 | 39.25 | 225 (9 masses x 25) | 2.83 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/e0p10_H_H20_L39.25` |
+| A | e0p10_H_H20_L39.25 | 100 | 20 | 39.25 | 675 (5 positions x 135) | 0.62 | `experiments_energy_transfer/paper1_confinement_A_20261013/e0p10_H_H20_L39.25` |
+| B | e0p10_H_H40_L39.25 | 200 | 40 | 39.25 | 225 (9 masses x 25) | 5.65 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/e0p10_H_H40_L39.25` |
+| A | e0p10_H_H40_L39.25 | 200 | 40 | 39.25 | 720 (5 positions x 144) | 1.33 | `experiments_energy_transfer/paper1_confinement_A_20261013/e0p10_H_H40_L39.25` |
+| B | e0p10_L_H10_L19.625 | 25 | 10 | 19.625 | 225 (9 masses x 25) | 0.34 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/e0p10_L_H10_L19.625` |
+| A | e0p10_L_H10_L19.625 | 25 | 10 | 19.625 | 750 (5 positions x 150) | 0.17 | `experiments_energy_transfer/paper1_confinement_A_20261013/e0p10_L_H10_L19.625` |
+| B | e0p10_L_H10_L78.5 | 100 | 10 | 78.5 | 225 (9 masses x 25) | 5.73 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/e0p10_L_H10_L78.5` |
+| A | e0p10_L_H10_L78.5 | 100 | 10 | 78.5 | 675 (5 positions x 135) | 0.62 | `experiments_energy_transfer/paper1_confinement_A_20261013/e0p10_L_H10_L78.5` |
+| B | e0p10_aspect_H19.7917_L19.7917 | 50 | 19.7917 | 19.7917 | 225 (9 masses x 25) | 0.69 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/e0p10_aspect_H19.7917_L19.7917` |
+| A | e0p10_aspect_H19.7917_L19.7917 | 50 | 19.7917 | 19.7917 | 730 (5 positions x 146) | 0.34 | `experiments_energy_transfer/paper1_confinement_A_20261013/e0p10_aspect_H19.7917_L19.7917` |
+| B | e0p10_aspect_H14_L28 | 50 | 14 | 28 | 225 (9 masses x 25) | 1.00 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/e0p10_aspect_H14_L28` |
+| A | e0p10_aspect_H14_L28 | 50 | 14 | 28 | 685 (5 positions x 137) | 0.32 | `experiments_energy_transfer/paper1_confinement_A_20261013/e0p10_aspect_H14_L28` |
+| B | e0p10_aspect_H9.91667_L39.625 | 50 | 9.91667 | 39.625 | 225 (9 masses x 25) | 1.43 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/e0p10_aspect_H9.91667_L39.625` |
+| A | e0p10_aspect_H9.91667_L39.625 | 50 | 9.91667 | 39.625 | 680 (5 positions x 136) | 0.31 | `experiments_energy_transfer/paper1_confinement_A_20261013/e0p10_aspect_H9.91667_L39.625` |
+| B | e0p10_aspect_H7_L56.0417 | 50 | 7 | 56.0417 | 225 (9 masses x 25) | 2.03 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/e0p10_aspect_H7_L56.0417` |
+| A | e0p10_aspect_H7_L56.0417 | 50 | 7 | 56.0417 | 685 (5 positions x 137) | 0.32 | `experiments_energy_transfer/paper1_confinement_A_20261013/e0p10_aspect_H7_L56.0417` |
+| B | epi8_H_H5_L10 | 25 | 5 | 10 | 225 (9 masses x 25) | 0.48 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/epi8_H_H5_L10` |
+| A | epi8_H_H5_L10 | 25 | 5 | 10 | 1095 (5 positions x 219) | 1.57 | `experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H5_L10` |
+| B | epi8_H_H10_L10 | 50 | 10 | 10 | 225 (9 masses x 25) | 0.96 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/epi8_H_H10_L10` |
+| A | epi8_H_H10_L10 | 50 | 10 | 10 | 970 (5 positions x 194) | 2.78 | `experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10` |
+| B | epi8_H_H20_L10 | 100 | 20 | 10 | 225 (9 masses x 25) | 1.91 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/epi8_H_H20_L10` |
+| A | epi8_H_H20_L10 | 100 | 20 | 10 | 1095 (5 positions x 219) | 6.27 | `experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H20_L10` |
+| B | epi8_H_H40_L10 | 200 | 40 | 10 | 225 (9 masses x 25) | 3.83 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/epi8_H_H40_L10` |
+| A | epi8_H_H40_L10 | 200 | 40 | 10 | 2185 (5 positions x 437) | 25.01 | `experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H40_L10` |
+| B | epi8_L_H10_L5 | 25 | 10 | 5 | 225 (9 masses x 25) | 0.21 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/epi8_L_H10_L5` |
+| A | epi8_L_H10_L5 | 25 | 10 | 5 | 1095 (5 positions x 219) | 1.57 | `experiments_energy_transfer/paper1_confinement_A_20261013/epi8_L_H10_L5` |
+| B | epi8_L_H10_L20 | 100 | 10 | 20 | 225 (9 masses x 25) | 4.04 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/epi8_L_H10_L20` |
+| A | epi8_L_H10_L20 | 100 | 10 | 20 | 1095 (5 positions x 219) | 6.27 | `experiments_energy_transfer/paper1_confinement_A_20261013/epi8_L_H10_L20` |
+| B | epi8_aspect_H7.08333_L14.125 | 50 | 7.08333 | 14.125 | 225 (9 masses x 25) | 1.40 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/epi8_aspect_H7.08333_L14.125` |
+| A | epi8_aspect_H7.08333_L14.125 | 50 | 7.08333 | 14.125 | 1090 (5 positions x 218) | 3.12 | `experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H7.08333_L14.125` |
+| B | epi8_aspect_H5_L20 | 50 | 5 | 20 | 225 (9 masses x 25) | 2.02 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/epi8_aspect_H5_L20` |
+| A | epi8_aspect_H5_L20 | 50 | 5 | 20 | 970 (5 positions x 194) | 2.78 | `experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H5_L20` |
+| B | epi8_aspect_H3.54167_L28.2917 | 50 | 3.54167 | 28.2917 | 225 (9 masses x 25) | 2.90 | `experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/epi8_aspect_H3.54167_L28.2917` |
+| A | epi8_aspect_H3.54167_L28.2917 | 50 | 3.54167 | 28.2917 | 870 (5 positions x 174) | 2.48 | `experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917` |
+
+Totals: method A 56.4 core-h, method B 39.6 core-h, all 95.9 core-h (the 261012 cost table counts the pi/8 anchor once; so does this list). Plus the pi/8 method-A pilot (20 trajectories, 0.06 core-h).
+
+rsync back (written to cluster/confinement_20261013/fetch_confinement.sh):
+
+```sh
+#!/usr/bin/env bash
+# ##CHRIS 2026-10-13: copy the confinement campaign back FROM KOA (run on the Mac, from the repo root).
+# Summaries only, plus the full pilot cells; full trajectories stay on KOA scratch (deleted after 90 days).
+# Fill KOA_USER and SCRATCH. Nothing on either side is deleted.
+KOA_USER=__UHID__; SCRATCH="__SCRATCH__"; DTN=$KOA_USER@koa-dtn.its.hawaii.edu; R=$SCRATCH/harddisks/hspist3
+SUM=(--prune-empty-dirs --include='*/' --include='red_*.csv' --include='red_nu.csv' --include='acf_runs.npz'
+     --include='run.log' --include='run_*.log' --include='summary_*.csv' --include='command*.txt' --exclude='*')
+rsync -av "${SUM[@]}" "$DTN:$R/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/" "hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/"
+rsync -av "${SUM[@]}" "$DTN:$R/experiments_energy_transfer/paper1_confinement_A_20261013/" "hspist3/experiments_energy_transfer/paper1_confinement_A_20261013/"
+# full pilot cells (every file):
+rsync -av "$DTN:$R/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_pilot_20261013/koa_pi8_H10_L10/" \
+          "hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_pilot_20261013/koa_pi8_H10_L10/"
+rsync -av "$DTN:$R/experiments_energy_transfer/paper1_confinement_A_20261013/pilot_epi8_H_H10_L10/" "hspist3/experiments_energy_transfer/paper1_confinement_A_20261013/pilot_epi8_H_H10_L10/"
+```
+
+#### 3c — local gates on the Mac
+
+**Mode-equivalence gate (C2): PASS.** The test cell is the $\pi/8$ anchor in both modes:
+- speed-of-sound: the Mac pilot, $M = 50$;
+- energy-transfer: a held divider, 200 σ, seed 9700, run through the campaign worker. That run had health 0 and $F_L = 15.97$, $F_R = 15.88$, $T = 1.000$.
+
+**Disclosure.** The first version of the comparison reported a spurious FAIL of $2.5\times10^{-4}$ on the divider position. It had compared the speed-of-sound trace's first row, which comes one step *after* release, with energy-transfer's held position. The corrected script reads the held position from the run.log line `Initial wall_x` (`00ALLINONE.c:15789`, printed in px to 3 decimals, so 2.1e-5 σ). That tolerance replaces $10^{-6}$ wherever the speed-of-sound print is coarser, and it is marked in the table. The code lines are quoted in the script header.
+
+Printed by `python3 hspist3/validation/paper1_modegate_20261013.py`:
+
+#### Mode-equivalence gate, pi/8 anchor (H = L_0 = 10, N_s = 50, t = 0.05)
+
+| quantity | speed-of-sound | energy-transfer | abs. difference | tolerance | verdict | note |
+|---|---|---|---|---|---|---|
+| eta (nominal) | 0.392699 | 0.392699 | 8.2e-08 | 1e-06 | PASS | both written, %.6f |
+| L_0 | 10.000000 | 10.000000 | 0.0e+00 | 1e-06 | PASS | both written |
+| N | 100.000000 | 100.000000 | 0.0e+00 | 0e+00 | PASS | SoS: Left+Right counts; ET: particles_total |
+| H | 10.000002 | 10.000000 | 2.1e-06 | 2e-05 | PASS | SoS does not write H; inferred from its eta (6-decimal print -> ~1e-5) |
+| divider centre from left wall (held) | 10.000000 | 10.000000 | 0.0e+00 | 2e-05 | PASS | SoS: run.log Initial wall_x (px, 3 dec. -> 2.1e-5); ET: W0_x_sigma |
+| t | 0.050000 | 0.050000 | 2.0e-09 | 1e-06 | PASS | SoS does NOT write t (input shown); ET summary |
+| left free length | 9.975000 | 9.975000 | 1.0e-09 | 2e-05 | PASS | x - t/2 (inherits the 2.1e-5 of x) |
+| right free length | 9.975000 | 9.975000 | 1.0e-09 | 2e-05 | PASS | 2 L_0 - x - t/2 |
+| L_eff = free length - 2r | 8.975000 | 8.975000 | 1.0e-09 | 2e-05 | PASS | SoS r not written (input) |
+
+SegEtas cross-check (ET honours t): free length from SegEtas = 9.97501 / 9.97501 vs x - t/2 = 9.97500 (SegEtas printed to 6 decimals -> ~1e-5 sigma); with t ignored it would be 10.00000.
+
+Grid exactness of every campaign geometry (the (int) cast at line 323 truncates 2 L_0 x 24 px):
+  20 cells; 2 L_0 x 24 and H x 24 integer in all: YES
+
+OPEN, outside this campaign: the same (int) cast on the canonical A1v2 cells with non-grid L_0 (260919 table):
+
+| eta | L_0 (table) | 2 L_0 x 24 px | box after (int) | box shortened by [sigma] | relative |
+|---|---|---|---|---|---|
+| 0.019635 | 199.9995 | 9599.9760 | 9599 | 0.0407 | 1.0e-04 |
+| 0.026180 | 149.9996 | 7199.9808 | 7199 | 0.0409 | 1.4e-04 |
+| 0.039270 | 99.9998 | 4799.9904 | 4799 | 0.0413 | 2.1e-04 |
+| 0.052360 | 74.9998 | 3599.9904 | 3599 | 0.0413 | 2.8e-04 |
+| 0.078540 | 49.9999 | 2399.9952 | 2399 | 0.0415 | 4.1e-04 |
+| 0.112200 | 34.9999 | 1679.9952 | 1679 | 0.0415 | 5.9e-04 |
+| 0.130900 | 29.9999 | 1439.9952 | 1439 | 0.0415 | 6.9e-04 |
+| 0.157080 | 24.9999 | 1199.9952 | 1199 | 0.0415 | 8.3e-04 |
+| 0.549999 | 7.14 | 342.7200 | 342 | 0.0300 | 2.1e-03 |
+| 0.569996 | 6.8895 | 330.6960 | 330 | 0.0290 | 2.1e-03 |
+| 0.590001 | 6.6559 | 319.4832 | 319 | 0.0201 | 1.5e-03 |
+| 0.609999 | 6.4377 | 309.0096 | 309 | 0.0004 | 3.1e-05 |
+| 0.630002 | 6.2333 | 299.1984 | 299 | 0.0083 | 6.6e-04 |
+| 0.650003 | 6.0415 | 289.9920 | 289 | 0.0413 | 3.4e-03 |
+| 0.669998 | 5.8612 | 281.3376 | 281 | 0.0141 | 1.2e-03 |
+| 0.679998 | 5.775 | 277.2000 | 277 | 0.0083 | 7.2e-04 |
+| 0.689999 | 5.6913 | 273.1824 | 273 | 0.0076 | 6.7e-04 |
+| 0.695006 | 5.6503 | 271.2144 | 271 | 0.0089 | 7.9e-04 |
+| 0.699998 | 5.61 | 269.2800 | 269 | 0.0117 | 1.0e-03 |
+| 0.705000 | 5.5702 | 267.3696 | 267 | 0.0154 | 1.4e-03 |
+| 0.709997 | 5.531 | 265.4880 | 265 | 0.0203 | 1.8e-03 |
+| 0.714999 | 5.4923 | 263.6304 | 263 | 0.0263 | 2.4e-03 |
+| 0.719994 | 5.4542 | 261.8016 | 261 | 0.0334 | 3.1e-03 |
+| 0.725005 | 5.4165 | 259.9920 | 259 | 0.0413 | 3.8e-03 |
+| 0.730005 | 5.3794 | 258.2112 | 258 | 0.0088 | 8.2e-04 |
+| 0.740006 | 5.3067 | 254.7216 | 254 | 0.0301 | 2.8e-03 |
+| 0.749998 | 5.236 | 251.3280 | 251 | 0.0137 | 1.3e-03 |
+| 0.759999 | 5.1671 | 248.0208 | 248 | 0.0009 | 8.4e-05 |
+
+**GATE: PASS** -- every quantity both modes write agrees to its tolerance. t and r are not written by speed-of-sound mode; they are equal by construction (one global, set in parse_cli_options before either experiment runs), and H is pinned by the equal eta at fixed N, r, L_0.
+
+**OPEN: a systematic in the existing Paper 1 data, found by this gate.**
+- `initialize_simulation_dimensions()` sets `SIM_WIDTH = (int)(2 * L0_UNITS * PIXELS_PER_SIGMA)` (`00ALLINONE.c:323`), and the physics box is `prm.boxW = (double)(XW2 - XW1)` (15882 speed-of-sound, 16592 energy-transfer).
+- So **any $L_0$ that is not a multiple of 1/48 σ runs in a box shorter than recorded**, while the recorded $\eta$ and the analysis $L_{\rm eff}$ use the untruncated $L_0$.
+- In the canonical A1v2 table the shortening is up to 0.042 σ: relative $10^{-4}$ at dilute $\eta$, up to $3.8\times10^{-3}$ at $\eta \approx 0.65$–0.73 (table above).
+- The effect on $c_s$ is of the same order, through both $\eta$ and $L_{\rm eff}$. It is not quantified here.
+- The $\pi/8$ canonical cell ($L_0 = 10$) and every confinement cell are exact.
+
+**Pictures gate: done for one H-scan cell and one L-scan cell**, $\pi/8$ with $H = 20, L_0 = 10$ and with $H = 10, L_0 = 20$, $N_s = 100$, held divider. They were taken with `watch.sh conf shot H L0 Ns`, a new entry, and copied to `paper1_speedofsound/experiments/final/261013_conf_H20_L10_{paper,experiment}.png` and `261013_conf_H10_L20_{...}.png`. Both show $W_{\rm in} = 0.000$ and $KE_L = KE_R = 100$.
+
+**Found on the way: the GUI capture path starts a step piston on its own.** A capture run auto-starts the piston 200 steps after release, and the shot fires only while it moves (`00ALLINONE.c:20404–20405`). The first `conf` picture therefore showed the right gas being compressed at $u = 1.0$ ($W_{\rm in} = 400$). The `conf` entry now gives the piston $u = 0.01$ and travel 0.25, so it crosses only the 0.25 σ gap and does zero work.
+- Headless runs never start a piston without `--auto-piston-step` (the gate run: $T_L = T_R = 1.000$).
+- The existing `watch.sh equil` entry has no piston flags and is presumably affected the same way. Its pictures should be re-checked (OPEN).
+- `watch.sh` deletes an earlier picture of the same name before shooting. The first, piston-contaminated `conf_H10_L20` render was overwritten that way; it was viewed before it was replaced.
+
+**Not done: pictures from speed-of-sound mode.** That mode has no piston, so the automatic shot (gated on a moving piston) never fires. Capturing it needs a GUI code change, which needs a go. Geometry equality across the modes rests on the numerical gate above.
+
+**Still unlaunched.** Nothing has been submitted. The order stays: the smoke test on KOA (`sandbox`), then the method-A pilot, then the H-scan, the L-scan and aspect, after the go.

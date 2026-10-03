@@ -166,7 +166,7 @@ def main():
         nu_c = 2 * H * (4 * e / math.pi) * z * math.sqrt(1 / (2 * math.pi))          # impacts per sigma-time, both faces
         drift = math.sqrt(nu_c * T_SEED_A * 8) * T_SEED_A / (math.sqrt(3) * M_HOLD)
         cpu = 5 * nseed * T_SEED_A * rate_at(e, rates) * (2 * Ns / 100) / 1000 / 3600
-        c.update(sx=sx, dL=dL, cpuA=cpu)
+        c.update(sx=sx, dL=dL, cpuA=cpu, nseed=nseed, Tpos=Tpos)
         print(f"| {c['scan']} | {e:.4f} | {c['H']:.3f} | {c['L0']:.3f} | {Ns} | {sx:.3f} | {dL:.4f} ({round(dL*GRID)}/24) | "
               f"{2*dL/c['L0']:.4f} | {bias:+.1e} | {Tpos:.3g} | {nseed} | {drift:.1e} | {cpu:.2f} |")
 
@@ -190,6 +190,7 @@ def main():
                 cc = [c for c in cc if not (abs(c["L0"] - A[lab]["L0"]) < 1e-9 and abs(c["H"] - A[lab]["H"]) < 1e-9)]
             a_ = sum(c["cpuA"] for c in cc); b_ = sum(c["cpuB"] for c in cc)
             print(f"| {scan} | {lab} | {len(cc)} | {a_:.1f} | {b_:.1f} | {a_+b_:.1f} | {(a_+b_)/9:.1f} |")
+    return C, A
 
 def amend_c1():
     """##CHRIS 2026-10-12, amendment C1 (261012 sec. 1.9): the identity in its length-free form."""
