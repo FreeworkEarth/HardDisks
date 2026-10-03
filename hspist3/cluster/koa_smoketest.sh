@@ -61,8 +61,12 @@ OUT="$SCRATCH/harddisks/hspist3/$REL/${SMOKE_TAG:-koa_pi8_H10_L10}"
 [ -e "$OUT" ] && { echo "$OUT exists -- not overwriting; choose a fresh name with SMOKE_TAG=..."; exit 2; }
 
 echo "== (0) node";    echo "$(hostname) | $(lscpu | awk -F: '/Model name/{gsub(/^ +/,"",$2); print $2; exit}') | job $SLURM_JOB_ID"
-echo "== (1) build";   bash cluster/build_koa.sh || exit 1
 source cluster/koa_env.sh || exit 1
+# ##CHRIS 2026-10-02: preflight -- the analysis modules must import BEFORE anything is built or run (seconds, not minutes)
+echo "== (0b) analysis modules"
+python3 -c "import sys; sys.path[:0] = ['validation', '.']; import tests_20260913, plot_speed_of_sound_edmd, paper1_populate_cs_err_20261002" \
+  || { echo "STOP: an analysis module does not import -- plot_speed_of_sound_edmd.py must be tracked, pushed and pulled (runsheet step 1)"; exit 1; }
+echo "== (1) build";   bash cluster/build_koa.sh || exit 1
 echo "== (2) version"; gcc --version | head -1; ./00ALLINONE --version | head -2
 ./00ALLINONE --version | grep -q -- "-ffp-contract=off" || { echo "STOP: binary lacks -ffp-contract=off"; exit 1; }
 echo "== (3) determinism (two srun steps, same node)"

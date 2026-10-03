@@ -31,12 +31,16 @@ git clone https://github.com/mborgerding/kissfft.git hspist3/kissfft
 git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec
 git log --oneline -1
 cd hspist3 && mkdir -p logs
+ls Makefile 00ALLINONE.c experiment_validation.c plot_speed_of_sound_edmd.py validation/tests_20260913.py cluster/koa_smoketest.sh
 ```
 
 - `--depth 1 --sparse`: only the newest commit, only the source folders.
 - kissfft is the FFT library. It is a separate public repository, pinned to the exact commit the Mac uses.
 - **Expected:** `git log --oneline -1` prints the same hash and message as `git log --oneline -1` on the Mac after
   your push. That hash is what the binary will report as its `build_git`.
+- **The `ls` line must list all six files without an error.** If `plot_speed_of_sound_edmd.py` is missing, it was not committed
+  and pushed from the Mac (it is the analysis module with the equation of state; untracked until Chris decides): stop here.
+  The smoke test would stop on it anyway, within seconds (its preflight imports the analysis modules before building).
 - **If the clone fails** (no network from the login node), stop and tell CC. Do not copy files by hand.
 - **Later updates:** `cd ~/harddisks && git pull` (after a push from the Mac). Then rebuild in step 2.
 

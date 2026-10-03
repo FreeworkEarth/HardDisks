@@ -18,6 +18,8 @@
 set -uo pipefail
 cd "${SLURM_SUBMIT_DIR:?submit with sbatch from ~/harddisks/hspist3}"
 source cluster/koa_env.sh || exit 1
+python3 -c "import sys; sys.path[:0] = ['validation', '.']; import tests_20260913, plot_speed_of_sound_edmd, paper1_populate_cs_err_20261002" \
+  || { echo "STOP: an analysis module does not import -- plot_speed_of_sound_edmd.py must be tracked, pushed and pulled (runsheet step 1)"; exit 1; }
 [ -x ./00ALLINONE ] || { echo "STOP: no ./00ALLINONE -- run the smoke test first (it builds)"; exit 2; }
 ./00ALLINONE --version | head -2
 ./00ALLINONE --version | head -1 | grep -q -- "git $(git rev-parse --short HEAD)  target koa" || { echo "STOP: binary is not the clean koa build of HEAD"; exit 2; }
