@@ -10,8 +10,11 @@ The coefficients below are typed from the paper, not copied from the module.
     for rho_max = 0.88 (s = 0.724, p. 3438), rho_max = 0.89 (s = 0.966, p. 3439) and rho_max = 0.90 (s = 0.927, p. 3439).
     rho = N sigma^2 / A is the reduced number density (p. 3435), so eta = (pi/4) rho and rho_max = 0.88 <=> eta = 0.6912.
   - The paper gives no table of A_i; the "table" is the three equations of section 3.2. Table 2 lists virial coefficients.
-REFERENCE VERSION, fixed before the module was read: rho_max = 0.88 -- the project's documented validity "eta ~ 0.69"
-(writeup/papers/README.md) is exactly its range, (pi/4)*0.88 = 0.6912. The other two versions are printed for information.
+REFERENCE VERSION. First run (methods sec. 15, commit 864fec9): rho_max = 0.88, fixed before the module was read, because
+the project's documented validity "eta ~ 0.69" is exactly its range -> FAIL (the module implements the 0.90 fit).
+##CHRIS 2026-10-02 (Task P1): DECISION by the plan author -- Paper 1 uses the rho_max = 0.90 fit (fitted to eta <= 0.7069;
+compared with data only for eta <= 0.69); it is now the default reference. `--ref 0.88` reproduces the first run.
+The other two versions are printed for information.
 
 [DERIVATION] c_s for a 2D monatomic fluid: c_s^2 = (1/m)(dp/drho)_S with p = rho kT Z(eta), c_v = k per particle:
   (dp/drho)_T = kT (Z + eta Z'),  T (dp/dT)_rho^2 / (rho^2 c_v) = kT Z^2   =>   c_s^2 = (kT/m)(Z + eta Z' + Z^2).
@@ -35,7 +38,9 @@ KR = {
            7: 0.0134578632, 8: 0.00140888182, 9: -0.00834273601, 10: 0.00694127367, 11: -0.00262254723,
            12: 0.000355746352, 22: -5.24672938e-9, 57: 5.88054639e-23},
 }
-REF = 0.88
+REF = 0.90
+for _i, _a in enumerate(sys.argv):                      # --ref 0.88 | 0.89 | 0.90
+    if _a == "--ref": REF = float(sys.argv[_i + 1])
 ETAS = (0.05, 0.30, 0.50, 0.65)
 
 def Z(eta, v=REF):
@@ -75,7 +80,7 @@ def main():
     print("\nfor information (NOT the verdict) -- the other two published versions against the module, largest relative "
           "difference over the four eta:")
     print("| version | Z | Z' (analytic) | c_s |\n|---|---|---|---|")
-    for v in (0.89, 0.90):
+    for v in sorted(k for k in KR if k != REF):
         dz = dzp = dc = 0.0
         for e in ETAS:
             zm = float(sos.Z_kolafa_rottner_2006(np.array([e]))[0]); dm = float(sos.dZ_kolafa_rottner_2006(np.array([e]))[0])

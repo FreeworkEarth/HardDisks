@@ -12,6 +12,9 @@ Phys. Rev. E 87, 042134 (2013):
 Kolafa-Rottner is continued DASHED beyond 0.69 to make visible that it is an extrapolation there --
 a fluid EOS fitted below the transition, so a deviation from it in this window measures the
 extrapolation and not the gas.
+##CHRIS 2026-10-02 (Task P, plan author's DECISION, methods sec. 15.1): the curve is the Kolafa-Rottner rho_max = 0.90
+fit (Eq. 7, sec. 3.2), fitted to eta <= 0.7069. It is solid where it is compared with data (eta <= 0.69) and dashed from
+0.69 to 0.705, which is INSIDE its fit range; "extrapolation" applies only beyond 0.7069.
 
 The claim the figure supports: c_s has a local maximum at eta = 0.700 and a local minimum at
 eta = 0.715, bracketing the same interval as the loop. Mechanism: between the loop's extrema
@@ -65,17 +68,19 @@ def main():
     ok = g <= 0.69
     ext = (g > 0.69) & (g <= 0.705)     # stop before the fit's derivative explodes -- see below
     ax.plot(g[ok], kr[ok], "-", color=RED, lw=2.2, zorder=2,
-            label="Kolafa–Rottner 2006 (fitted range, $\\eta \\leq 0.69$)")
+            label="Kolafa–Rottner 2006, compared with data ($\\eta \\leq 0.69$)")
     ax.plot(g[ext], kr[ext], "--", color=RED, lw=1.8, alpha=0.8, zorder=2,
-            label="Kolafa–Rottner, EXTRAPOLATED (no fluid branch here)")
+            label="same fit, not compared ($0.69 < \\eta \\leq 0.705$; fit range $\\eta \\leq 0.7069$)")
     # Why the dashed line stops at 0.705 rather than running to 0.76: the KR fit does not merely
     # become inaccurate there, it becomes unusable for a SOUND SPEED. c_s depends on Z', and the
     # fitted Z' runs 48.3 (eta=0.67) -> 27.8 (0.69) -> -8.7 (0.700) -> +3386 (0.720). A negative Z'
     # inside the stated fitted range already makes KR's own c_s turn over and fall from eta ~ 0.683
     # -- unphysical. Drawing that divergence would put a spurious factor-4 feature on the axis.
-    ax.annotate("KR's fitted $Z'$ changes sign near $\\eta = 0.70$\nand diverges by $0.72$: $c_s$ from it is\n"
-                "meaningless here, not merely uncertain",
-                xy=(0.6975, 12.3), fontsize=8.2, color=RED, ha="left", va="top")
+    # ##CHRIS 2026-10-02: 0.720 lies beyond the fit range (eta <= 0.7069) -- extrapolation; the module gives Z' = 3392.4
+    # there (not 3386), and the draft no longer quotes any Z' beyond the fit range (methods sec. 15.1).
+    ax.annotate("KR's fluid-branch fit: $Z'$ changes sign near $\\eta = 0.70$,\ninside its fit range; beyond $\\eta = 0.7069$ the fit is\n"
+                "an extrapolation and its derivative carries no information",
+                xy=(0.703, 31.0), fontsize=8.2, color=RED, ha="left", va="top")   # ##CHRIS 2026-10-02: inside the axes (was 0.6975, 12.3: below them)
 
     ax.errorbar(e, c, yerr=es, fmt="o-", color=BLUE, ms=6, lw=1.3, capsize=3.5, zorder=5,
                 label="$N = 100$, 9 masses $\\times$ 25 seeds\nerror = SE of slope $\\times\\max(1,\\sqrt{\\chi^2_{\\rm red}})$")
@@ -87,7 +92,11 @@ def main():
                     fontsize=9, color=BLUE, ha="center",
                     arrowprops=dict(arrowstyle="->", color=BLUE, lw=1.3))
 
-    ax.set_xlim(LO, HI); ax.set_ylim(11.5, 39.5)
+    # ##CHRIS 2026-10-02 (Task P5): the lower limit was 11.5, which clipped most of the drawn KR segment (c_s 10.1-11.7) and
+    # hid the dashed part the legend and the caption describe; it now includes the whole drawn segment.
+    kr_lo = float(np.min(kr[ok | ext])); y_lo = min(11.5, math.floor(kr_lo) - 0.5)
+    print(f"KR drawn: c_s {kr_lo:.2f} to {float(np.max(kr[ok | ext])):.2f} on {LO} <= eta <= 0.705 -> y axis from {y_lo}")
+    ax.set_xlim(LO, HI); ax.set_ylim(y_lo, 39.5)
     ax.set_xlabel(r"packing fraction  $\eta$", fontsize=11.5)
     ax.set_ylabel(r"speed of sound  $c_s$  [$\sqrt{k_BT/m}$]", fontsize=11.5)
     ax.set_title("The melting region: $c_s$ dips across the coexistence interval\n"

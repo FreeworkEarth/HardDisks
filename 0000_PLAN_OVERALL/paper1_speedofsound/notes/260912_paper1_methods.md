@@ -1309,3 +1309,106 @@ tracked scripts scanned: 98 (of 98); local modules known: 123
 |---|---|---|
 
 untracked modules imported by tracked scripts: 0 -- none
+
+### 15.1 The fit, named and bounded (2026-10-02, Task P)
+
+**Decision (plan author).** Paper 1 uses the Kolafa–Rottner 2006 $\rho_{\max} = 0.90$ fit (Eq. 7, coefficients of § 3.2), which is fitted to $\eta \le 0.7069$. Data are compared with it only for $\eta \le 0.69$, and the module stays as it is.
+
+**Reasoning.** The three published fits differ by at most $10^{-5}$ in $c_s$ up to $\eta = 0.65$ (§ 15 table), so a switch would only churn every KR column. The 0.90 fit reaches furthest toward melting, but anything it gives beyond $\eta = 0.7069$ is an extrapolation, so no $Z'$ from there is quoted any more.
+
+**P1, re-run with the 0.90 fit as reference: PASS (DATA).**
+- The largest relative difference between module and paper over Z, Z′ and $c_s$ is 4.6e-16 (criterion 1e-10).
+- `--ref 0.88` reproduces the § 15 run exactly (table, worst value and verdict).
+- `tests_20260913.kr_cs` differs from the analytic value by up to 3.0e-10, because it takes Z′ by finite difference. That is reported, not part of the verdict.
+
+Printed by `python3 hspist3/validation/paper1_kr_sanity_261002.py` (verbatim):
+
+module functions: Z_kolafa_rottner_2006(eta: 'np.ndarray') -> 'np.ndarray', dZ_kolafa_rottner_2006(eta: 'np.ndarray') -> 'np.ndarray', cs_adiabatic_2d_monatomic(Z: 'np.ndarray', dZ: 'np.ndarray', eta: 'np.ndarray', *, kbt: 'float', m: 'float') -> 'np.ndarray'
+independent reference: rho_max = 0.9 version (eta_max = 0.7069)
+
+| eta | Z paper | Z module | rel diff | Z' paper (analytic) | Z' complex-step | Z' module | rel diff | c_s paper | c_s module | rel diff | tests_20260913.kr_cs | rel diff vs paper |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.05 | 1.10838774198985 | 1.10838774198985 | 4.0e-16 | 2.3476177330678 | 2.3476177330678 | 2.3476177330678 | 0.0e+00 | 1.56661801829183 | 1.56661801829183 | 2.8e-16 | 1.56661801830068 | 5.6e-12 |
+| 0.30 | 2.06326087957606 | 2.06326087957605 | 2.2e-16 | 6.03583334839163 | 6.03583334839163 | 6.03583334839163 | 1.5e-16 | 2.8515007173912 | 2.85150071739119 | 3.1e-16 | 2.85150071752567 | 4.7e-11 |
+| 0.50 | 4.10636394336527 | 4.10636394336527 | 0.0e+00 | 16.7336836142638 | 16.7336836142638 | 16.7336836142638 | 0.0e+00 | 5.41621921508607 | 5.41621921508607 | 0.0e+00 | 5.41621921569349 | 1.1e-10 |
+| 0.65 | 8.40804352772069 | 8.4080435277207 | 4.2e-16 | 45.9449284500896 | 45.9449284500896 | 45.9449284500896 | 0.0e+00 | 10.4387471941955 | 10.4387471941955 | 3.4e-16 | 10.4387471910944 | 3.0e-10 |
+
+largest relative difference module vs paper (Z, Z', c_s; and analytic vs complex-step Z'): 4.6e-16
+tests_20260913.kr_cs vs paper: largest relative difference 3.0e-10 (above 1e-10; reported, not part of the verdict -- see how kr_cs forms Z')
+
+for information (NOT the verdict) -- the other two published versions against the module, largest relative difference over the four eta:
+| version | Z | Z' (analytic) | c_s |
+|---|---|---|---|
+| rho_max = 0.88 | 1.4e-06 | 7.1e-05 | 1.0e-05 |
+| rho_max = 0.89 | 6.8e-07 | 7.2e-06 | 1.5e-06 |
+module comment, plot_speed_of_sound_edmd.py:620: '# Kolafa & Rottner (2006), rho_max=0.90 fit.  Their x is eta/(1-eta).'
+
+**VERDICT: PASS** (criterion: relative difference <= 1e-10)
+
+**P2–P4: printed by `python3 hspist3/validation/paper1_draft_audit_20261014.py --p` before any edit** (verbatim). It contains:
+- the P3 table, i.e. the four Z′ values of the melting caption with the η at which each is evaluated and whether that η lies inside the fit range;
+- the old → new list for every text change.
+
+fit range: eta <= pi*0.90/4 = 0.706858 -> '0.7069' (KR2006_ETA_MAX); comparison cutoff KR2006_PLOT_ETA_MAX = 0.69
+
+### P3: the Z' values quoted in the melting caption
+
+| caption value | eta | Z' analytic (module) | Z' finite difference (h = 1e-5, as the melting script) | reproduced | eta <= fit range? | action |
+|---|---|---|---|---|---|---|
+| 48 | 0.670 | 48.2615 | 48.2615 | yes | yes | keep, labelled fluid-branch fit |
+| 28 | 0.690 | 27.7824 | 27.7824 | yes | yes | keep, labelled fluid-branch fit |
+| -9 | 0.700 | -8.6854 | -8.6854 | yes | yes | keep, labelled fluid-branch fit |
+| +3386 | 0.720 | 3392.4452 | 3392.4505 | **NO** | **NO** (beyond 0.7069) | REMOVE |
+
+KR's own c_s maximum on 0.60 <= eta <= 0.7069 (analytic Z'): eta = 0.6834 -> caption says 'near eta = 0.683': consistent
+
+### P2 / P3 / P4: every text change, old -> new (printed BEFORE editing)
+
+| kind | where | tex line | old | new | why |
+|---|---|---|---|---|---|
+| TEX | Methods (sec. Model and apparatus): new paragraph after 'Integer-pixel box width' (P2: fit named once) | 123 | `%   sec. 14.3 (A2 rule 0ddefa9, results 14.3.1); validation/paper1_A2_boxtrunc_261002.py` | `%   sec. 14.3 (A2 rule 0ddefa9, results 14.3.1); validation/paper1_A2_boxtrunc_261002.py  % ##CHRIS 2026-10-02: the reference equation of state, named and bounded (plan author's decision, methods sec. 15.1) \paragraph{Reference equation of state} We compare with the hard-disk equation of state of Kolafa and Rottner~\cite{kolafa2006}: the $\rho_{\max} = 0.90$ fit of their Eq.~(7), with the coefficients of their \S3.2, which is fitted to $\eta \le 0.7069$. $Z'$ is taken from the same fit, and data are compared with it only for $\eta \le 0.69$. % TODO-source: hspist3/plot_speed_of_sound_edmd.py:620-640 (KR2006_COEFFICIENTS, KR2006_ETA_MAX); validation/paper1_kr_sanity_261002.py (PASS)` | fit range 0.7069 = pi*0.90/4; comparison cutoff 0.69 = KR2006_PLOT_ETA_MAX |
+| TEX | Fig. csvseta caption (P2) | 255 | `beyond $\eta \approx 0.69$ lie in that region, where no fluid reference exists; they are shown but are not counted as a deviation from Kolafa--Rottner.}` | `beyond $\eta = 0.69$ lie in or near that region; Kolafa--Rottner ($\rho_{\max} = 0.90$ fit, fitted to $\eta \le 0.7069$) is compared with data only for $\eta \le 0.69$, so those points are shown but are not counted as a deviation from it.}` | names the range exactly; 'no fluid reference' was imprecise below 0.7069 |
+| TEX | sec:ordering, first sentence (P2) | 344 | `Kolafa--Rottner is a \emph{fluid} equation of state fitted below the transition, so a deviation from it above $\eta \approx 0.69$ measures the extrapolation, not the gas.` | `Kolafa--Rottner is a \emph{fluid} equation of state; the $\rho_{\max} = 0.90$ fit used here is fitted to $\eta \le 0.7069$ and compared with data only for $\eta \le 0.69$, so above that a deviation from it measures the fluid-branch fit, not the gas.` | the fit reaches 0.7069, into the coexistence interval; 'fitted below the transition' was imprecise |
+| TEX | melting caption (P3) | 383 | `Kolafa--Rottner is solid inside its fitted range and dashed beyond it, and is cut off at $\eta = 0.705$ deliberately: its fitted $Z'$ runs $48$ at $\eta = 0.67$, $28$ at $0.69$, $-9$ at $0.700$ and $+3386$ at $0.720$, so a $c_s$ built from it there is meaningless rather than merely uncertain. The negative $Z'$ already inside the stated fitted range is also why KR's own $c_s$ turns over near $\eta = 0.683$.}` | `Kolafa--Rottner ($\rho_{\max} = 0.90$ fit, fitted to $\eta \le 0.7069$) is solid where it is compared with data, $\eta \le 0.69$, and dashed from there to $\eta = 0.705$, inside its fit range; the fluid-branch fit gives $Z' = 48$ at $\eta = 0.67$, $28$ at $0.69$ and $-9$ at $0.700$. Beyond its fit range the fluid-branch fit is an extrapolation and its derivative carries no information. The negative $Z'$ already inside the fit range is also why KR's own $c_s$ turns over near $\eta = 0.683$.}` | +3386 is at 0.720 > 0.7069: removed; the three values inside the range stay |
+| TEX | zoom caption (P4) | 267 | `larger systems agree with it within their errors, except` | `larger systems agree with it within $2\sigma$, except` | plan author's decision 2 |
+| UNCHANGED | sec:ordering title, l. 342 | 342 | `\subsection{Above $\eta \approx 0.69$: the right comparison is not Kolafa--Rottner}` | `(unchanged)` | states where the comparison stops, consistent with the decision |
+| UNCHANGED | l. 398 | 398 | `$c_s(\eta)$ above $0.69$ is the melting transition` | `(unchanged)` | about our data, not the KR range |
+| UNCHANGED | l. 404 (Outlook) | 404 | `Above $\eta \approx 0.69$ the comparison is with` | `(unchanged)` | where the comparison stops, consistent |
+| SCRIPT | paper1_canonical_20260919.py:74 legend, main figure (first KR legend: fit named) | - | `label="Kolafa-Rottner 2006 (valid to eta = 0.69)")` | `label="Kolafa-Rottner 2006, rho_max = 0.90 fit (Eq. 7), fitted to eta <= 0.7069;\ncompared with data for eta <= 0.69")` | the first figure that draws the KR equation of state |
+| SCRIPT | overlay_N100_vs_A2_20260915.py:68 legend | - | `label="Kolafa–Rottner 2006 (valid to η ≈ 0.69)")` | `label="Kolafa–Rottner 2006 (fitted to η ≤ 0.7069; compared for η ≤ 0.69)")` | range bounded |
+| SCRIPT | paper1_melting_figure_20261002.py:68 legend | - | `label="Kolafa–Rottner 2006 (fitted range, $\\eta \\leq 0.69$)")` | `label="Kolafa–Rottner 2006, compared with data ($\\eta \\leq 0.69$)")` | 0.69 is the comparison cutoff, not the fit range (0.7069) |
+| SCRIPT | paper1_melting_figure_20261002.py:70 legend | - | `label="Kolafa–Rottner, EXTRAPOLATED (no fluid branch here)")` | `label="same fit, not compared ($0.69 < \\eta \\leq 0.705$; fit range $\\eta \\leq 0.7069$)")` | 0.69-0.705 is inside the fit range: not an extrapolation of the fit |
+| SCRIPT | paper1_melting_figure_20261002.py annotation | - | `"KR's fitted $Z'$ changes sign near $\\eta = 0.70$\nand diverges by $0.72$: $c_s$ from it is\n"                 "meaningless here, not merely uncertain"` | `"KR's fluid-branch fit: $Z'$ changes sign near $\\eta = 0.70$,\ninside its fit range; beyond $\\eta = 0.7069$ the fit is\n"                 "an extrapolation and its derivative carries no information"` | no statement about the fit beyond its range |
+| DOC | writeup/papers/README.md, KolafaRottner2006 row | - | `| 10.1080/00268970600880574 | the reference EOS, valid to η ≈ 0.69 |` | `| 10.1080/00268970600967963 | the reference EOS: the ρ_max = 0.90 fit (Eq. 7, coefficients of §3.2), fitted to η ≤ 0.7069; compared with data for η ≤ 0.69 |` | range named; DOI corrected from the paper's own title page [SOURCE: PDF in ZZZ_PAPER/] |
+
+`--p --check-scripts` printed:
+
+    paper1_canonical_20260919.py:74 legend, main figure (first KR legend: fit named): old ABSENT, new present
+    overlay_N100_vs_A2_20260915.py:68 legend: old ABSENT, new present
+    paper1_melting_figure_20261002.py:68 legend: old ABSENT, new present
+    paper1_melting_figure_20261002.py:70 legend: old ABSENT, new present
+    paper1_melting_figure_20261002.py annotation: old ABSENT, new present
+    writeup/papers/README.md, KolafaRottner2006 row: old ABSENT, new present
+
+**Applied.**
+- `--p --apply --apply-scripts` applied the TEX, SCRIPT and DOC rows from the same strings as printed.
+- `--p --check-scripts` then reports every old string absent and every new string present.
+
+**P3 in one line (DATA).**
+- Of the four Z′ values, three are evaluated inside the fit range and stay, labelled "fluid-branch fit": 48 at η = 0.67, 28 at 0.69, −9 at 0.700.
+- One is beyond it and is removed: +3386 at η = 0.720 > 0.7069. The caption's +3386 did not even reproduce; the module gives 3392.4 there.
+- "KR's own $c_s$ turns over near η = 0.683" is confirmed (0.6834).
+
+**Disclosed, beyond the printed list.**
+- **Melting-figure layout (no data change).** The y axis started at 11.5, which clipped most of the drawn KR segment ($c_s$ 10.08–11.70) and hid the dashed 0.69–0.705 part that the legend and caption describe. The lower limit now follows the drawn segment (9.5, printed by the script). The note about the fit, which sat below the axes over the tick labels in the old figure too, moved inside the axes.
+- **`paper1_melting_figure_20261002.py`.** Its docstring and one internal comment carried the old "extrapolation beyond 0.69" wording and the +3386. Each got a dated note; the old text was not erased.
+- **README DOI.** The references README row for Kolafa–Rottner gave DOI `10.1080/00268970600880574`. The paper's own title page says `10.1080/00268970600967963` [SOURCE: PDF in ZZZ_PAPER/], so it was corrected in the same row.
+- **"The first KR figure legend"** is read as the first figure that draws the KR equation of state, i.e. the main $c_s(\eta)$ figure. The earlier ladder-line figure shows KR only as one value at η = 0.1123.
+
+**P5: figures with changed legends.** Main $c_s(\eta)$, N100-vs-A2 overlay, and melting region.
+- Dated copies `_pre_krfit_261002` were made first (`cp -n`, `cmp`; 6 files).
+- Regeneration, each by its original script:
+  - the main figure via `paper1_canonical_20260919.draw_main()` only, so no other figure was touched;
+  - the overlay with the environment `paper1_canonical_20260919.py` gives it; its printed table is identical to the § 14.5 run;
+  - the melting figure; its printed dip is unchanged (2.827, 9.6σ plotted, 18.4σ propagated), plus the new line `KR drawn: c_s 10.08 to 11.70 on 0.66 <= eta <= 0.705 -> y axis from 9.5`.
+- **Draft pdf rebuilt:** 6 pages, 640839 bytes, 0 undefined references, 6 warnings (all pre-existing), 1 overfull hbox.

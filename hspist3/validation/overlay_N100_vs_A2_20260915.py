@@ -65,7 +65,7 @@ for _t in list(ax.texts):
 e = np.linspace(0.001, 0.78, 600); ek = e[e <= 0.69]
 ax.plot(e, cs_of(sos.Z_spt_eos, e), "--", color="#eda100", lw=1.4, label="SPT equation of state")
 ax.plot(e, cs_of(sos.Z_henderson_eos, e), "-.", color="#1baf7a", lw=1.4, label="Henderson (a = 0.125) equation of state")
-ax.plot(ek, cs_of(sos.Z_kolafa_rottner_2006, ek), "-", color="#e34948", lw=2.4, label="Kolafa–Rottner 2006 (valid to η ≈ 0.69)")
+ax.plot(ek, cs_of(sos.Z_kolafa_rottner_2006, ek), "-", color="#e34948", lw=2.4, label="Kolafa–Rottner 2006 (fitted to η ≤ 0.7069; compared for η ≤ 0.69)")
 ax.axhline(math.sqrt(2), color="0.45", lw=1.0, ls=":", label="ideal-gas limit η → 0:  c_s = √2")
 ax.errorbar([p[0] for p in a1], [p[1] for p in a1], yerr=[p[2] for p in a1], fmt="o-", color="#2a78d6", ms=4.5, lw=1.1, capsize=2.5,
             label="A1 v2, N = 100 (50/50), 9 masses × 25 seeds, 200 periods")

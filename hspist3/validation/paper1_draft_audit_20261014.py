@@ -284,5 +284,121 @@ def m():
             f = os.path.join(HERE, where.split(":")[0]); t = open(f).read()
             print(f"{where}: old {'ABSENT' if o not in t else 'STILL PRESENT'}, new {'present' if n in t else 'MISSING'}")
 
+def p():
+    """##CHRIS 2026-10-02 (Task P; plan author's DECISION: Paper 1 uses the Kolafa-Rottner 2006 rho_max = 0.90 fit, Eq. 7 with
+    the coefficients of sec. 3.2, fitted to eta <= 0.7069; data are compared with it only for eta <= 0.69). P3: the four Z'
+    values of the melting caption, where each is evaluated and whether that is inside the fit range. P2/P3/P4: every text
+    change, old -> new, printed BEFORE editing. --apply edits the TEX rows; SCRIPT/DOC rows are applied exactly as printed
+    and checked with --check-scripts."""
+    import plot_speed_of_sound_edmd as sos
+    tex = open(TEX).read(); tl = tex.splitlines()
+    EMAX, ECMP = sos.KR2006_ETA_MAX, sos.KR2006_PLOT_ETA_MAX
+    zan = lambda e: float(sos.dZ_kolafa_rottner_2006(np.array([e]))[0])
+    zfd = lambda e, h=1e-5: float((sos.Z_kolafa_rottner_2006(np.array([e + h])) - sos.Z_kolafa_rottner_2006(np.array([e - h])))[0] / (2 * h))
+    print(f"fit range: eta <= pi*0.90/4 = {EMAX:.6f} -> '{EMAX:.4f}' (KR2006_ETA_MAX); comparison cutoff KR2006_PLOT_ETA_MAX = {ECMP}\n")
+    print("### P3: the Z' values quoted in the melting caption\n")
+    print("| caption value | eta | Z' analytic (module) | Z' finite difference (h = 1e-5, as the melting script) | reproduced | eta <= fit range? | action |")
+    print("|---|---|---|---|---|---|---|")
+    keep = []
+    for txt, e in (("48", 0.67), ("28", 0.69), ("-9", 0.700), ("+3386", 0.720)):
+        a, d = zan(e), zfd(e); ins = e <= EMAX
+        rep = (f"{a:+.0f}" if txt.startswith("+") else f"{a:.0f}") == txt
+        if ins: keep.append((txt, e))
+        print(f"| {txt} | {e:.3f} | {a:.4f} | {d:.4f} | {'yes' if rep else '**NO**'} | {'yes' if ins else '**NO** (beyond ' + format(EMAX, '.4f') + ')'} | "
+              f"{'keep, labelled fluid-branch fit' if ins else 'REMOVE'} |")
+    g = np.linspace(0.60, EMAX, 200001)
+    Z, dZ = sos.Z_kolafa_rottner_2006(g), sos.dZ_kolafa_rottner_2006(g)
+    c = sos.cs_adiabatic_2d_monatomic(Z, dZ, g, kbt=1, m=1); et = float(g[int(np.argmax(c))])
+    print(f"\nKR's own c_s maximum on 0.60 <= eta <= {EMAX:.4f} (analytic Z'): eta = {et:.4f} -> caption says 'near eta = 0.683': "
+          f"{'consistent' if f'{et:.3f}' == '0.683' else 'NOT 0.683'}\n")
+    em, ec = f"{EMAX:.4f}", f"{ECMP:.2f}"
+    fit = f"$\\rho_{{\\max}} = 0.90$ fit"
+    vals = [(t.lstrip("+"), e) for t, e in keep]
+    parts = [f"$Z' = {vals[0][0]}$ at $\\eta = {vals[0][1]:.2f}$"] + [f"${t}$ at ${e:.3f}$" if e == 0.700 else f"${t}$ at ${e:.2f}$" for t, e in vals[1:]]
+    zt = (", ".join(parts[:-1]) + " and " + parts[-1]) if len(parts) > 1 else parts[0]
+    items = [  # (kind, where, old, new, why)
+        ("TEX", "Methods (sec. Model and apparatus): new paragraph after 'Integer-pixel box width' (P2: fit named once)",
+         "%   sec. 14.3 (A2 rule 0ddefa9, results 14.3.1); validation/paper1_A2_boxtrunc_261002.py\n",
+         "%   sec. 14.3 (A2 rule 0ddefa9, results 14.3.1); validation/paper1_A2_boxtrunc_261002.py\n\n"
+         "% ##CHRIS 2026-10-02: the reference equation of state, named and bounded (plan author's decision, methods sec. 15.1)\n"
+         "\\paragraph{Reference equation of state} We compare with the hard-disk equation of state of Kolafa and\n"
+         f"Rottner~\\cite{{kolafa2006}}: the {fit} of their Eq.~(7), with the coefficients of their \\S3.2, which is\n"
+         f"fitted to $\\eta \\le {em}$. $Z'$ is taken from the same fit, and data are compared with it only for\n"
+         f"$\\eta \\le {ec}$.\n"
+         "% TODO-source: hspist3/plot_speed_of_sound_edmd.py:620-640 (KR2006_COEFFICIENTS, KR2006_ETA_MAX); validation/paper1_kr_sanity_261002.py (PASS)\n",
+         f"fit range {em} = pi*0.90/4; comparison cutoff {ec} = KR2006_PLOT_ETA_MAX"),
+        ("TEX", "Fig. csvseta caption (P2)",
+         "beyond $\\eta \\approx 0.69$ lie in that region, where no fluid reference exists; they are shown but\n"
+         "are not counted as a deviation from Kolafa--Rottner.}",
+         f"beyond $\\eta = {ec}$ lie in or near that region; Kolafa--Rottner ({fit}, fitted to\n"
+         f"$\\eta \\le {em}$) is compared with data only for $\\eta \\le {ec}$, so those points are shown but are not\n"
+         "counted as a deviation from it.}", "names the range exactly; 'no fluid reference' was imprecise below 0.7069"),
+        ("TEX", "sec:ordering, first sentence (P2)",
+         "Kolafa--Rottner is a \\emph{fluid} equation of state fitted below the transition, so a deviation\n"
+         "from it above $\\eta \\approx 0.69$ measures the extrapolation, not the gas.",
+         f"Kolafa--Rottner is a \\emph{{fluid}} equation of state; the {fit} used here is fitted to\n"
+         f"$\\eta \\le {em}$ and compared with data only for $\\eta \\le {ec}$, so above that a deviation from it measures\n"
+         "the fluid-branch fit, not the gas.", f"the fit reaches {em}, into the coexistence interval; 'fitted below the transition' was imprecise"),
+        ("TEX", "melting caption (P3)",
+         "Kolafa--Rottner is solid inside its fitted range and\n"
+         "dashed beyond it, and is cut off at $\\eta = 0.705$ deliberately: its fitted $Z'$ runs $48$ at\n"
+         "$\\eta = 0.67$, $28$ at $0.69$, $-9$ at $0.700$ and $+3386$ at $0.720$, so a $c_s$ built from it\n"
+         "there is meaningless rather than merely uncertain. The negative $Z'$ already inside the stated\n"
+         "fitted range is also why KR's own $c_s$ turns over near $\\eta = 0.683$.}",
+         f"Kolafa--Rottner ({fit}, fitted to\n"
+         f"$\\eta \\le {em}$) is solid where it is compared with data, $\\eta \\le {ec}$, and dashed from there to\n"
+         f"$\\eta = 0.705$, inside its fit range; the fluid-branch fit gives {zt}.\n"
+         "Beyond its fit range the fluid-branch fit is an extrapolation and its derivative carries no\n"
+         "information. The negative $Z'$ already inside the fit range is also why KR's own $c_s$ turns over\n"
+         f"near $\\eta = {et:.3f}$.}}", f"+3386 is at 0.720 > {em}: removed; the three values inside the range stay"),
+        ("TEX", "zoom caption (P4)", "larger systems agree with it within their errors, except",
+         "larger systems agree with it within $2\\sigma$, except", "plan author's decision 2"),
+        ("UNCHANGED", "sec:ordering title, l. 342", "\\subsection{Above $\\eta \\approx 0.69$: the right comparison is not Kolafa--Rottner}",
+         "(unchanged)", "states where the comparison stops, consistent with the decision"),
+        ("UNCHANGED", "l. 398", "$c_s(\\eta)$ above $0.69$ is the melting transition", "(unchanged)", "about our data, not the KR range"),
+        ("UNCHANGED", "l. 404 (Outlook)", "Above $\\eta \\approx 0.69$ the comparison is with", "(unchanged)", "where the comparison stops, consistent"),
+        ("SCRIPT", "paper1_canonical_20260919.py:74 legend, main figure (first KR legend: fit named)",
+         'label="Kolafa-Rottner 2006 (valid to eta = 0.69)")',
+         f'label="Kolafa-Rottner 2006, rho_max = 0.90 fit (Eq. 7), fitted to eta <= {em};\\ncompared with data for eta <= {ec}")',
+         "the first figure that draws the KR equation of state"),
+        ("SCRIPT", "overlay_N100_vs_A2_20260915.py:68 legend", 'label="Kolafa–Rottner 2006 (valid to η ≈ 0.69)")',
+         f'label="Kolafa–Rottner 2006 (fitted to η ≤ {em}; compared for η ≤ {ec})")', "range bounded"),
+        ("SCRIPT", "paper1_melting_figure_20261002.py:68 legend", 'label="Kolafa–Rottner 2006 (fitted range, $\\\\eta \\\\leq 0.69$)")',
+         f'label="Kolafa–Rottner 2006, compared with data ($\\\\eta \\\\leq {ec}$)")', f"0.69 is the comparison cutoff, not the fit range ({em})"),
+        ("SCRIPT", "paper1_melting_figure_20261002.py:70 legend", 'label="Kolafa–Rottner, EXTRAPOLATED (no fluid branch here)")',
+         f'label="same fit, not compared ($0.69 < \\\\eta \\\\leq 0.705$; fit range $\\\\eta \\\\leq {em}$)")', f"0.69-0.705 is inside the fit range: not an extrapolation of the fit"),
+        ("SCRIPT", "paper1_melting_figure_20261002.py annotation",
+         '"KR\'s fitted $Z\'$ changes sign near $\\\\eta = 0.70$\\nand diverges by $0.72$: $c_s$ from it is\\n"\n                "meaningless here, not merely uncertain"',
+         f'"KR\'s fluid-branch fit: $Z\'$ changes sign near $\\\\eta = 0.70$,\\ninside its fit range; beyond $\\\\eta = {em}$ the fit is\\n"\n                "an extrapolation and its derivative carries no information"',
+         "no statement about the fit beyond its range"),
+        ("DOC", "writeup/papers/README.md, KolafaRottner2006 row",
+         "| 10.1080/00268970600880574 | the reference EOS, valid to η ≈ 0.69 |",
+         f"| 10.1080/00268970600967963 | the reference EOS: the ρ_max = 0.90 fit (Eq. 7, coefficients of §3.2), fitted to η ≤ {em}; compared with data for η ≤ {ec} |",
+         "range named; DOI corrected from the paper's own title page [SOURCE: PDF in ZZZ_PAPER/]"),
+    ]
+    print("### P2 / P3 / P4: every text change, old -> new (printed BEFORE editing)\n")
+    print("| kind | where | tex line | old | new | why |\n|---|---|---|---|---|---|")
+    for k, where, o, n, why in items:
+        ln = ", ".join(str(i + 1) for i, l in enumerate(tl) if o.split("\n")[0] in l) if k in ("TEX", "UNCHANGED") else "-"
+        print(f"| {k} | {where} | {ln} | `{o.strip().replace(chr(10), ' ')}` | `{n.strip().replace(chr(10), ' ')}` | {why} |")
+    if "--apply" in sys.argv:
+        s = tex
+        for k, where, o, n, why in items:
+            if k != "TEX": continue
+            assert s.count(o) == 1, o; s = s.replace(o, n); print(f"edited tex: {where}")
+        open(TEX, "w").write(s)
+    path = lambda k, where: (os.path.join(REPO, "0000_PLAN_OVERALL/paper1_speedofsound/writeup/papers/README.md") if k == "DOC"
+                             else os.path.join(HERE, where.split(":")[0].split(" ")[0]))
+    if "--apply-scripts" in sys.argv:       # the SCRIPT/DOC rows, applied from the same strings that were printed
+        for k, where, o, n, why in items:
+            if k not in ("SCRIPT", "DOC"): continue
+            f = path(k, where); t = open(f).read(); assert t.count(o) == 1, (where, o)
+            open(f, "w").write(t.replace(o, n)); print(f"edited {k.lower()}: {where}")
+    if "--check-scripts" in sys.argv:
+        for k, where, o, n, why in items:
+            if k not in ("SCRIPT", "DOC"): continue
+            t = open(path(k, where)).read()
+            print(f"{where}: old {'ABSENT' if o not in t else 'STILL PRESENT'}, new {'present' if n in t else 'MISSING'}")
+
 if __name__ == "__main__":
-    a2() if "--a2" in sys.argv else (m() if "--m" in sys.argv else main())
+    a2() if "--a2" in sys.argv else (m() if "--m" in sys.argv else (p() if "--p" in sys.argv else main()))

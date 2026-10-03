@@ -122,6 +122,13 @@ $1/\sqrt N$ by up to $1.10$ of its error (at $\eta = 0.50$ and $0.65$), so the s
 % TODO-source: methods sec. 14 (rule, 4db8c9d), 14.1 (Center_X check; 615561c), 14.2; validation/paper1_boxtrunc_20261014.py;
 %   sec. 14.3 (A2 rule 0ddefa9, results 14.3.1); validation/paper1_A2_boxtrunc_261002.py
 
+% ##CHRIS 2026-10-02: the reference equation of state, named and bounded (plan author's decision, methods sec. 15.1)
+\paragraph{Reference equation of state} We compare with the hard-disk equation of state of Kolafa and
+Rottner~\cite{kolafa2006}: the $\rho_{\max} = 0.90$ fit of their Eq.~(7), with the coefficients of their \S3.2, which is
+fitted to $\eta \le 0.7069$. $Z'$ is taken from the same fit, and data are compared with it only for
+$\eta \le 0.69$.
+% TODO-source: hspist3/plot_speed_of_sound_edmd.py:620-640 (KR2006_COEFFICIENTS, KR2006_ETA_MAX); validation/paper1_kr_sanity_261002.py (PASS)
+
 \section{The estimator}\label{sec:estimator}
 For each trajectory we form the periodogram of the divider position,
 \begin{equation}
@@ -252,8 +259,9 @@ estimator.}
 with no fitted parameter. Shading marks the regimes, with the transition densities taken from
 Engel \emph{et al.}~\cite{engel2013}: liquid--hexatic coexistence over
 $0.700 \lesssim \eta \lesssim 0.716$ and the hexatic--solid crossover near $\eta = 0.720$. Points
-beyond $\eta \approx 0.69$ lie in that region, where no fluid reference exists; they are shown but
-are not counted as a deviation from Kolafa--Rottner.}
+beyond $\eta = 0.69$ lie in or near that region; Kolafa--Rottner ($\rho_{\max} = 0.90$ fit, fitted to
+$\eta \le 0.7069$) is compared with data only for $\eta \le 0.69$, so those points are shown but are not
+counted as a deviation from it.}
 \label{fig:csvseta}
 \end{figure*}
 
@@ -264,7 +272,7 @@ and never worse than $1.68\,\%$. The offset is one-signed and grows slowly with 
 \begin{figure}[t]\centering
 \includegraphics[width=\linewidth]{260919_cs_vs_eta_lowdensity_zoom.pdf}
 \caption{The dilute end. The $N = 100$ curve sits $0.4$--$1.4\,\%$ above the equation of state;
-larger systems agree with it within their errors, except $N = 900$ at $\eta = 0.10$ ($3\sigma$).}
+larger systems agree with it within $2\sigma$, except $N = 900$ at $\eta = 0.10$ ($3\sigma$).}
 \label{fig:zoom}
 \end{figure}
 
@@ -341,8 +349,9 @@ Kolafa--Rottner.}
 
 \subsection{Above $\eta \approx 0.69$: the right comparison is not Kolafa--Rottner}
 \label{sec:ordering}
-Kolafa--Rottner is a \emph{fluid} equation of state fitted below the transition, so a deviation
-from it above $\eta \approx 0.69$ measures the extrapolation, not the gas. The reference there is
+Kolafa--Rottner is a \emph{fluid} equation of state; the $\rho_{\max} = 0.90$ fit used here is fitted to
+$\eta \le 0.7069$ and compared with data only for $\eta \le 0.69$, so above that a deviation from it measures
+the fluid-branch fit, not the gas. The reference there is
 Engel \emph{et al.}~\cite{engel2013}, who computed the hard-disk equation of state through the
 melting region with event-chain Monte Carlo, massively parallel Monte Carlo, local Monte Carlo and
 event-driven molecular dynamics --- the same algorithm class used here --- and found all four to
@@ -380,11 +389,12 @@ measurement.
 \caption{The melting region. Vertical lines are Engel \emph{et al.}'s independently measured
 landmarks~\cite{engel2013}: the Mayer--Wood loop extrema at $\eta \approx 0.702$ and $0.714$, the
 end of liquid--hexatic coexistence at $0.716$, and the hexatic--solid crossover at $0.720$. Our
-$c_s$ turns over inside the same interval. Kolafa--Rottner is solid inside its fitted range and
-dashed beyond it, and is cut off at $\eta = 0.705$ deliberately: its fitted $Z'$ runs $48$ at
-$\eta = 0.67$, $28$ at $0.69$, $-9$ at $0.700$ and $+3386$ at $0.720$, so a $c_s$ built from it
-there is meaningless rather than merely uncertain. The negative $Z'$ already inside the stated
-fitted range is also why KR's own $c_s$ turns over near $\eta = 0.683$.}
+$c_s$ turns over inside the same interval. Kolafa--Rottner ($\rho_{\max} = 0.90$ fit, fitted to
+$\eta \le 0.7069$) is solid where it is compared with data, $\eta \le 0.69$, and dashed from there to
+$\eta = 0.705$, inside its fit range; the fluid-branch fit gives $Z' = 48$ at $\eta = 0.67$, $28$ at $0.69$ and $-9$ at $0.700$.
+Beyond its fit range the fluid-branch fit is an extrapolation and its derivative carries no
+information. The negative $Z'$ already inside the fit range is also why KR's own $c_s$ turns over
+near $\eta = 0.683$.}
 \label{fig:melting}
 \end{figure}
 

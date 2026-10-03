@@ -71,7 +71,7 @@ def draw_main():
     ax.plot(e, cs_of(sos.Z_spt_eos, e), "--", color="#eda100", lw=1.4, label="SPT equation of state")
     ax.plot(e, cs_of(sos.Z_henderson_eos, e), "-.", color="#1baf7a", lw=1.4, label="Henderson (a = 0.125)")
     ax.plot(ek, cs_of(sos.Z_kolafa_rottner_2006, ek), "-", color="#e34948", lw=2.4,
-            label="Kolafa-Rottner 2006 (valid to eta = 0.69)")
+            label="Kolafa-Rottner 2006, rho_max = 0.90 fit (Eq. 7), fitted to eta <= 0.7069;\ncompared with data for eta <= 0.69")
     ax.axhline(math.sqrt(2), color="0.45", lw=1.0, ls=":", label="ideal-gas limit: c_s = sqrt(2)")
     ax.errorbar(E, C, yerr=S, fmt="o-", color="#2a78d6", ms=4.5, lw=1.1, capsize=2.5, zorder=5,
                 label="A1 v2, N = 100, 9 masses x 25 seeds, 200 periods,\nlargest FFT bin at f >= nu_pred/2.5, "
