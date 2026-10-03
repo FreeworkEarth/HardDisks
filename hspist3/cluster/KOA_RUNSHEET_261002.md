@@ -17,10 +17,17 @@ the last ~30 lines to CC. Nothing here starts a campaign: the arrays come only a
 - **To stop a job:** `scancel <jobid>`. To leave a compute-node shell: `exit` (the prompt returns to `login-0102`).
 - **Onboarding quiz:** finish it at lamaku.hawaii.edu within 30 days of the account e-mail, or access is suspended.
 
-## 1. Get the code (login node, ~10 s)
+## 1. Get the code (inside a sandbox session, ~10 s)
 
 Do this once, after you pushed from the Mac. It fetches only the sources and scripts (about 11 MB), never binaries
-or data.
+or data. **The login node has no git** (found 2026-10-02: `git: command not found`); the compute nodes have
+/usr/bin/git 2.52.0. So open the sandbox session of step 2 first, wait for the `cn-...` prompt, and clone there:
+
+```sh
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+```
+
+then, at the `cn-...` prompt:
 
 ```sh
 cd ~
@@ -42,15 +49,12 @@ ls Makefile 00ALLINONE.c experiment_validation.c plot_speed_of_sound_edmd.py val
   and pushed from the Mac (it is the analysis module with the equation of state; untracked until Chris decides): stop here.
   The smoke test would stop on it anyway, within seconds (its preflight imports the analysis modules before building).
 - **If the clone fails** (no network from the login node), stop and tell CC. Do not copy files by hand.
-- **Later updates:** `cd ~/harddisks && git pull` (after a push from the Mac). Then rebuild in step 2.
+- **Later updates:** `cd ~/harddisks && git pull`, also inside a sandbox session (after a push from the Mac). Then rebuild in step 2.
 
 ## 2. Build once, interactively (compute node, ~5 min)
 
-```sh
-srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
-```
-
-Wait for the `cn-...` prompt, then:
+In the same `cn-...` session as step 1 (if you left it, start it again with
+`srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash` and wait for the `cn-...` prompt):
 
 ```sh
 cd ~/harddisks/hspist3
