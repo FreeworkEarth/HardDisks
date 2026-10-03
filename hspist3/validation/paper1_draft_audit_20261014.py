@@ -169,5 +169,73 @@ def main():
         s = s.replace(anchor, para)
         open(TEX, "w").write(s); print("\napplied: edits + Methods paragraph written to paper1_draft.tex")
 
+def a2():
+    """##CHRIS 2026-10-02 (Task F3): every draft number and statement that depends on the A2 size ladder, old -> new,
+    after the methods sec. 14.3 correction. Old = the dated copies (_pre_boxtrunc_261002), new = the regenerated tables.
+    Numbers for the Methods sentence come from paper1_A2_boxtrunc_261002.py's own functions. --apply edits the EDIT rows."""
+    import paper1_A2_boxtrunc_261002 as A2
+    tex = open(TEX).read(); tl = tex.splitlines()
+    rd = lambda n: {round(float(r["eta"]), 2): r for r in csv.DictReader(open(T.plot_path(n)))}
+    P, NEW = rd("260917_A2_cs_vs_N_extrapolation_pre_boxtrunc_261002.csv"), rd("260917_A2_cs_vs_N_extrapolation.csv")
+    items = []
+    def add(old_s, new_s, definition, oc, ok, nc, act=None):
+        lines = [i + 1 for i, l in enumerate(tl) if old_s.split("\n")[0] in l]
+        items.append((lines, old_s, new_s, definition, oc, ok, nc, act or ("UNCHANGED" if old_s == new_s else "EDIT")))
+    for eta in (0.02, 0.05):
+        p, n = P[eta], NEW[eta]
+        f = lambda r: f"{float(r['c_inf']):.4f} \\pm {float(r['c_inf_err']):.4f}"
+        add(f(p), f(n), f"c_inf at eta = {eta} (260917 extrapolation)", f"{p['c_inf']} ± {p['c_inf_err']}",
+            f(p) in tex, f"{n['c_inf']} ± {n['c_inf_err']}")
+        g = lambda r: f"${float(r['KR']):.4f}$"
+        add(g(p), g(n), f"KR at eta = {eta}", p["KR"], g(p) in tex, n["KR"])
+        h = lambda r: f"(${float(r['dev_KR_sigma']):+.1f}\\sigma$)"
+        add(h(p), h(n), f"(c_inf - KR)/sigma at eta = {eta}", p["dev_KR_sigma"], h(p) in tex, n["dev_KR_sigma"])
+    # numbers of the sec. 14.3 result, for the Methods sentence
+    pts = {t: {k: {g: A2.point(v, k[0], k[1], g) for g in "BA"} for k, v in A2.cells(t).items()} for t in A2.TABLES}
+    maxD = max(abs(q["A"]["D"] - q["B"]["D"]) for t in pts for q in pts[t].values())
+    src = pts[A2.TABLES[0]]; etas = sorted(e for e in {e for e, _ in src} if sum(1 for (x, _) in src if x == e) >= 3)
+    F = {e: {g: A2.fit(src, e, g) for g in "BA"} for e in etas}
+    dc = {e: (F[e]["A"]["cinf"] - F[e]["B"]["cinf"]) / F[e]["B"]["cinf_err"] for e in etas}
+    db = {e: (F[e]["A"]["b"] - F[e]["B"]["b"]) / F[e]["B"]["b_err"] for e in etas}
+    big = [e for e in etas if abs(db[e]) > 1]; maxc = max(abs(v) for v in dc.values()); maxb = max(abs(db[e]) for e in big)
+    verb = "lowers" if all(db[e] < 0 for e in big) else "changes"
+    print(f"sec. 14.3 numbers: max |change in D| = {maxD:.2f}; max |change in c_inf| = {maxc:.2f} sigma; "
+          f"|change in b| > 1 sigma at eta = {big} ({', '.join(f'{db[e]:+.2f}' for e in big)}); max {maxb:.2f}\n")
+    add("The larger systems of \\S\\ref{sec:finitesize} carry the same shortfall and are\nnot yet corrected.",
+        "The same rule, pre-registered separately, was applied to\nthe larger systems of \\S\\ref{sec:finitesize}: "
+        f"the correction moves no point of the size ladder by more than ${maxD:.2f}$\nof its error bar and no fitted "
+        f"$c_\\infty$ by more than ${maxc:.2f}$ of its error, but it {verb} the coefficient of\n$1/\\sqrt N$ by up to "
+        f"${maxb:.2f}$ of its error (at $\\eta = " + "$ and $".join(f"{e:.2f}" for e in big) + "$), so the size ladder was regenerated too.",
+        "Methods paragraph: the A2 status sentence", "not corrected", True, f"corrected (sec. 14.3, REGENERATE)")
+    add("For every $N = 100$\ndensity we therefore use", "For every density and system\nsize we therefore use",
+        "Methods paragraph: scope of the correction", "N = 100 only", True, "all A1 and A2 cells")
+    add("long, as the recorded box centre confirms at every density to",
+        "long, as the recorded box centre confirms at every $N = 100$ density to",
+        "Methods paragraph: the Center_X check covers the A1 runs only (sec. 14.1)", "every density", True, "every N = 100 density")
+    add("% TODO-source: methods sec. 14 (rule, 4db8c9d), 14.1 (Center_X check; 615561c), 14.2; validation/paper1_boxtrunc_20261014.py",
+        "% TODO-source: methods sec. 14 (rule, 4db8c9d), 14.1 (Center_X check; 615561c), 14.2; validation/paper1_boxtrunc_20261014.py;\n"
+        "%   sec. 14.3 (A2 rule 0ddefa9, results 14.3.1); validation/paper1_A2_boxtrunc_261002.py",
+        "source comment", "-", True, "+ sec. 14.3")
+    zoomD = [(e, N, q["A"]["D"]) for (e, N), q in sorted(src.items()) if e <= 0.15 and N in (900, 1600)]
+    worst = max(zoomD, key=lambda z: abs(z[2]))
+    add("larger systems agree with it within their errors.", "larger systems agree with it within their errors.",
+        "zoom caption: D (A geometry, plotted sigma) of the N = 900/1600 points shown (eta <= 0.15): "
+        + ", ".join(f"{e:.2f}/N{N}: {d:+.2f}" for e, N, d in zoomD), "(claim)", all(abs(d) <= 1 for _, _, d in zoomD),
+        f"largest |D| = {abs(worst[2]):.2f} at eta = {worst[0]:.2f}, N = {worst[1]}", act="FLAG -- claim not supported at 1 sigma; not edited (wording is the plan author's call)")
+    print("### Paper 1 draft audit, A2-dependent text (methods sec. 14.3), old -> new (printed BEFORE editing)\n")
+    print("| tex line(s) | old text | new text | definition | old table gives | old text reproduced / claim holds? | new table gives | action |")
+    print("|---|---|---|---|---|---|---|---|")
+    for lines, o, n, dfn, oc, ok, nc, act in items:
+        print(f"| {', '.join(map(str, lines))} | `{o.replace(chr(10), ' ')}` | `{n.replace(chr(10), ' ')}` | {dfn} | {oc} | {'yes' if ok else '**NO**'} | {nc} | {act} |")
+    print("\nNot edited: 'a size ladder to N = 2500 shows the offset is finite size' (abstract) and 'The N = 100 offset closes as the box "
+          f"grows' (sec. finitesize) -- after the correction c_inf sits at {NEW[0.02]['dev_KR_sigma']} and {NEW[0.05]['dev_KR_sigma']} sigma "
+          "from KR at eta = 0.02 and 0.05, as before.")
+    if "--apply" in sys.argv:
+        s = tex
+        for lines, o, n, dfn, oc, ok, nc, act in items:
+            if act != "EDIT": continue
+            assert s.count(o) == 1, o; s = s.replace(o, n); print(f"edited: {o.splitlines()[0][:70]} ...")
+        open(TEX, "w").write(s); print("\napplied to paper1_draft.tex")
+
 if __name__ == "__main__":
-    main()
+    a2() if "--a2" in sys.argv else main()

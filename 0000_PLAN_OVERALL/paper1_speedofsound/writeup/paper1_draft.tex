@@ -108,16 +108,19 @@ exclusion --- $L_{\mathrm{eff}}$ is an acoustic length and enters nowhere else.
 $2L_0$ is not a whole number of pixels the box is shorter than requested by
 $\delta = (48L_0 - \lfloor 48L_0 \rfloor)/24$, less than one pixel. The divider starts $L_0$ from one wall
 and oscillates about the centre of the shortened box, so each compartment is on average $L_0 - \delta/2$
-long, as the recorded box centre confirms at every density to $5.5\times10^{-6}\,\sigma$. For every $N = 100$
-density we therefore use $\eta = N_s\pi r^2/[(L_0 - \delta/2)H]$ and
+long, as the recorded box centre confirms at every $N = 100$ density to $5.5\times10^{-6}\,\sigma$. For every density and system
+size we therefore use $\eta = N_s\pi r^2/[(L_0 - \delta/2)H]$ and
 $L_{\mathrm{eff}} = L_0 - 2r - t/2 - \delta/2$; $\delta = 0$ at 7 of the 35 densities, and the
 correction lowers $c_s$ by at most $0.09\,\%$ for $\eta \le 0.16$ and $0.47\,\%$ overall and raises
 $\eta$ by at most $0.38\,\%$. The correction was applied after the measurements, under a rule fixed
 before it was evaluated: the table is regenerated if any density's deviation from Kolafa--Rottner changes
 by more than half that density's error bar, which happened at six densities, all of which moved
-toward the equation of state. The larger systems of \S\ref{sec:finitesize} carry the same shortfall and are
-not yet corrected.
-% TODO-source: methods sec. 14 (rule, 4db8c9d), 14.1 (Center_X check; 615561c), 14.2; validation/paper1_boxtrunc_20261014.py
+toward the equation of state. The same rule, pre-registered separately, was applied to
+the larger systems of \S\ref{sec:finitesize}: the correction moves no point of the size ladder by more than $0.73$
+of its error bar and no fitted $c_\infty$ by more than $0.34$ of its error, but it lowers the coefficient of
+$1/\sqrt N$ by up to $1.10$ of its error (at $\eta = 0.50$ and $0.65$), so the size ladder was regenerated too.
+% TODO-source: methods sec. 14 (rule, 4db8c9d), 14.1 (Center_X check; 615561c), 14.2; validation/paper1_boxtrunc_20261014.py;
+%   sec. 14.3 (A2 rule 0ddefa9, results 14.3.1); validation/paper1_A2_boxtrunc_261002.py
 
 \section{The estimator}\label{sec:estimator}
 For each trajectory we form the periodogram of the divider position,

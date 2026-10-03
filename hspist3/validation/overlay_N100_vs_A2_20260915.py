@@ -107,10 +107,14 @@ print("nearest density, and every deviation is against KR at that point's own et
 print("| A2 η | N = 900 | ± | dev KR [%] | N = 1600 | ± | dev KR [%] | nearest A1 v2 η | N = 100 | ± | dev KR [%] |")
 print("|---|---|---|---|---|---|---|---|---|---|---|")
 for eta, c9, s9, n9 in a2[900]:
-    c16 = next((p for p in a2[1600] if abs(p[0] - eta) < 1e-9), None)
+    # ##CHRIS 2026-10-02: since methods sec. 14.3 each A2 point sits at its own eta_true (it differs between N = 900 and
+    # 1600 by < 0.003), so the two sizes are paired by the nearest eta within 0.005 (nominal densities are >= 0.02 apart),
+    # and each deviation is taken against KR at that point's OWN eta, as the header above says.
+    c16 = next((p for p in a2[1600] if abs(p[0] - eta) < 5e-3), None)
     a1p = min(a1, key=lambda p: abs(p[0] - eta))
     kr = float(cs_of(sos.Z_kolafa_rottner_2006, np.array([eta]))[0])
+    kr16 = float(cs_of(sos.Z_kolafa_rottner_2006, np.array([c16[0]]))[0])
     kr1p = float(cs_of(sos.Z_kolafa_rottner_2006, np.array([a1p[0]]))[0])
-    print(f"| {eta:.2f} | {c9:.4f} | {s9:.4f} | {100*(c9-kr)/kr:+.2f} | {c16[1]:.4f} | {c16[2]:.4f} | {100*(c16[1]-kr)/kr:+.2f} | "
+    print(f"| {eta:.2f} | {c9:.4f} | {s9:.4f} | {100*(c9-kr)/kr:+.2f} | {c16[1]:.4f} | {c16[2]:.4f} | {100*(c16[1]-kr16)/kr16:+.2f} | "
           f"{a1p[0]:.6f} | {a1p[1]:.4f} | {a1p[2]:.4f} | {100*(a1p[1]-kr1p)/kr1p:+.2f} |")
 print("\nwrote", OUT + ".png/.pdf")

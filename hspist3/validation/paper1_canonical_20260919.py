@@ -107,6 +107,10 @@ def main():
                      ("260916_A2_cs_per_mass.csv", "260919_A2_cs_per_mass_famB.csv")):
         if not os.path.exists(os.path.join(P, src)):
             print(f"  {src}: MISSING, skipped"); continue
+        # ##CHRIS 2026-10-02: methods sec. 14.3 -- the 260919 A2 tables now carry the box-truncation correction
+        # (paper1_A2_boxtrunc_261002.py --write); a plain thickness rescale of the old source must never overwrite them.
+        if os.path.exists(os.path.join(P, dst)) and "delta_sigma" in open(os.path.join(P, dst)).readline():
+            print(f"  {dst}: box-truncation corrected (methods sec. 14.3) -- not overwritten"); continue
         n, hit = rescale(src, dst)
         print(f"  {src} -> {dst}: {n} rows, rescaled columns {hit}")
 
@@ -130,7 +134,7 @@ def main():
     print("\n### Regenerating the three circulated figures from the corrected CSVs\n")
     here = os.path.dirname(os.path.abspath(__file__))
     env = dict(os.environ, HD_A1_CSV="260919_A1v2_final_cs_vs_eta.csv",
-               HD_TITLE_SUFFIX="N = 100 (A1 v2) corrected for box truncation (methods §14); A2 points not yet corrected")   # ##CHRIS 2026-10-14
+               HD_TITLE_SUFFIX="N = 100 (A1 v2) and A2 corrected for box truncation (methods §14)")   # ##CHRIS 2026-10-02: A2 corrected (sec. 14.3)
     jobs = [
         ("dilute zoom  -> 260919_cs_vs_eta_lowdensity_zoom",
          [sys.executable, os.path.join(here, "lowdensity_zoom_20260917.py"),
