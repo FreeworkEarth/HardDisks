@@ -814,3 +814,8 @@ delta = 0 at 7 of 35 densities; c_s lowered by at most 0.09 % for eta <= 0.16 (a
     applied: edits + Methods paragraph written to paper1_draft.tex
 
 **The Methods paragraph** ("Integer-pixel box width", five sentences, placed after "Effective length" in § II) takes its numbers from the last block above. The one exception is the Center_X agreement, $5.5\times10^{-6}\,\sigma$, which is quoted from § 14.1. The paragraph says "for every $N = 100$ density" rather than "throughout", and it states that the larger systems of the finite-size section are not yet corrected.
+
+**§ 14 addendum: summary rotation (2026-10-14; no code change).** From source 615561c on (first binary 5190846-dirty, now e823187), the energy-transfer summary header ends in `,build_cflags,box_width_sigma` (`00ALLINONE.c:17283`), and `ensure_csv_header_schema` (called at 17285) renames any shared `summary.csv` whose first line differs to `<path>.legacy_<unix time>` before writing a fresh file, so the five Level 3-era runners in `hspist3/experiments_energy_transfer/_run_scripts/` that append to `--energy-transfer-summary="$d/summary.csv"` (`level3_master_preload_20260921.sh`, `level3_master_20260920.sh`, `level3_v6_longrecords.sh`, `level3_FofL_20260925.sh`, `level4_equilibrium_KOAlength_20261002.sh`) must not be rerun into their existing directories with this or any newer build, and any rerun gets a new output directory. The rename, `00ALLINONE.c:2903–2904`:
+
+    snprintf(backup, sizeof(backup), "%s.legacy_%ld", path, (long)now);
+    if (rename(path, backup) != 0) {
