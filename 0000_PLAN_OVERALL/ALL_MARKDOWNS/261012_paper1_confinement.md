@@ -661,3 +661,47 @@ Printed by `python3 cluster/smoketest_gate_width_20261014.py`:
 - **The gate in `koa_smoketest.sh` is now $|c_s^{\rm KOA} - c_s^{\rm Mac}| \le 0.06903$** ($2\sigma_{\rm diff}$; false-fail 4.55 % under the null). The header carries a dated amendment block, and the old lines are left in place.
 
 **Caveat, stated.** $s$ comes from nine single-seed values, so $\sigma_{\rm diff}$ is itself uncertain by about 25 %.
+
+### 1.11 KOA build and gates (2026-10-03; written 2026-10-02 HST on the Mac)
+
+The date in the heading is KOA's: `date +%y%m%d` on KOA named the environment list `hd_explicit_261003.txt` while the Mac clock read 2026-10-02 HST, so KOA's shell evidently runs on UTC [INFERENCE]. This section was written on the Mac. Every value below is quoted from the KOA log Chris pasted, unless it is marked otherwise.
+
+**Binary [DATA].** It was built in sandbox job 14966574 on cn-03-33-01, by `cluster/build_koa.sh`. `logs/BUILD_KOA_14966574.txt`:
+
+    make compiler  gcc -> /opt/apps/software/compiler/GCCcore/14.3.0/bin/gcc -> gcc (GCC) 14.3.0   (CC=gcc; Makefile:15 'CC ?= cc')
+    version        00ALLINONE  git 70b2069  target koa
+    git_commit     70b20698ab21028c3cd301fd01fd7d34b0ab8706
+    sha256         f15fb1f107dc0dc12d06ac821e9c471cd9ac43be2193b17fa41a9b8c9a4fe160
+    libs           sdl2 2.32.56 SDL2_ttf 2.24.0 glew 2.3.0 (~/envs/hd)
+    BUILD OK
+
+`./00ALLINONE --version` prints `CFLAGS: -O2 -march=x86-64-v2 -mtune=generic -ffp-contract=off`.
+
+**Compiler record [DATA].** `Makefile:15` is `CC              ?= cc`. `cluster/koa_env.sh` exports `CC=gcc` (f4c4756). The "make compiler" line above is the first word of `make -n -B koa`, resolved to its path and version. It shows that make invoked the GCC 14.3.0 of module `compiler/GCC/14.3.0`, not the system gcc 11.5.
+
+**Build fixes on KOA.**
+1. **`opengl.pc` [DATA].** The first pkg-config check stopped with `Package 'opengl', required by 'glu', not found`. Chris installed the one missing package into `~/envs/hd` inside a sandbox job, without changing anything already installed:
+
+       conda install -y -p $HOME/envs/hd --override-channels -c conda-forge --freeze-installed libopengl-devel
+
+   This added `libopengl-devel-1.7.0 ha4b6fd6_5` (16 KB, conda-forge). The environment list after it was written by `conda list -p $HOME/envs/hd --explicit > $HOME/envs/hd_explicit_$(date +%y%m%d)_opengl.txt`, so on KOA's date it is `~/envs/hd_explicit_261003_opengl.txt` (that exact name not yet confirmed with `ls`); the list before it is `~/envs/hd_explicit_261003.txt` (177 lines).
+2. **libm [DATA].** The first link stopped with `undefined reference to symbol 'acos'` / `DSO missing from command line`. Commit 70b2069 adds `SYS_LIBS := -lm` in the non-Darwin branch of the Makefile (`Makefile:52`, `LIBS_BASE := -lGLEW $(GL_LIBS) $(SYS_LIBS)` at `:56`). On the Mac, SYS_LIBS stays empty, and the `make -n` link line is identical before and after (38 of 38 arguments).
+3. **No git on the login node [DATA].** On `login-0102`, `git` gives `command not found`. Compute nodes have `/usr/bin/git` 2.52.0. The clone and every `git pull` therefore run inside a sandbox session (runsheet, acb0380).
+
+**Gates [DATA].**
+
+| gate | job | node(s) | result |
+|---|---|---|---|
+| smoke test: π/8 pilot $c_s$ vs Mac | 14966575 (sandbox) | cn-03-33-01 | $c_s$ = 3.81894 ± 0.02600 vs Mac 3.85886; difference −0.03992, gate ±0.06903 (§ 1.10.1): **PASS** |
+| smoke test: η, $L_0$, $L_{\rm eff}$, health | 14966575 | cn-03-33-01 | **PASS** (all four) |
+| determinism, same node | 14966575 | cn-03-33-01 | **IDENTICAL** |
+| determinism, two nodes | 14966588 (sandbox) | cn-03-33-01 vs cn-03-33-02 | `wall_x_positions_L0_100_wallmassfactor_50_run0.csv: IDENTICAL (104506 bytes)`, `speed_of_sound_psi6.csv: IDENTICAL (353 bytes)` |
+
+**Trace sizes, KOA vs Mac.** Both are the determinism trajectory: M = 50, 25 oscillations, seed 57831576, HD_KE_TRACE = 1.
+- Mac [DATA]: `wc -lc` gives `846  104237 $SP/det_e823187/_determinism/det_A/m_50/wall_x_positions_L0_100_wallmassfactor_50_run0.csv`. That is 845 data rows plus the header. The file records `Planned_Steps 21944`, so the row count is fixed by the analytic predicted frequency, not by the trajectory.
+- KOA: 104506 bytes. **Its row count is OPEN.** No KOA trace is on the Mac, and nobody has run `wc -l` on it yet.
+- Why the sizes differ [INFERENCE]: the same seed on two platforms gives different trajectories. glibc's libm (KOA, gcc 14.3) and Apple's libm (Mac, clang) differ in the last bits of transcendental functions, and the chaotic collision sequence amplifies that difference, so the printed values (for example the number of minus signs; the Mac file has 393) and therefore their character counts differ. If the KOA row count is not 846, the difference is in the number of samples, not only in their characters. That would be a finding, and nothing here explains it.
+
+**Storage decision (Chris and the plan author) [DATA].** There is no lab storage. Raw trajectories and event logs stay on `koa_scratch`, which is purged 90 days after the last write. They can be regenerated from the committed task files and seeds. Per-seed summaries (`red_*.csv`, `red_nu.csv`, `summary_*.csv`, run logs) and the full pilot cells come back to the Mac. Round-plan estimate (`cluster/round_plan_261002.py`, runsheet step 8) [INFERENCE]: conf_A_0.39 needs about 235 GiB of event logs and conf_A_0.10 about 35 GiB, while method B needs under 2 GiB per array. The KOA scratch quota has not been read yet (OPEN).
+
+**Repository decision (Chris and the plan author) [DATA].** The repository stays public: KOA clones it anonymously over https, without a key. The unpublished Paper 3 ideas are listed by Task S, and no file has been changed for that.
