@@ -1,0 +1,5 @@
+# gate 4 (261012 sec. 1.7 item 4), written by cluster/gate4_pilot_261002.py; pilot job 14966594 (KOA, 70b2069)
+eps0_pilot 0.0820079272035727
+eps0_pilot_err 0.01058717787721424
+eps0_plan 0.27099689012557643
+verdict PASS

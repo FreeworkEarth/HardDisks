@@ -53,4 +53,9 @@ mkdir -p logs
   echo "sha256         $(sha256sum 00ALLINONE | cut -d' ' -f1)"
   echo "libs           sdl2 $(pkg-config --modversion sdl2) SDL2_ttf $(pkg-config --modversion SDL2_ttf) glew $(pkg-config --modversion glew) (~/envs/hd)"
 } | tee "logs/BUILD_KOA_${SLURM_JOB_ID}.txt"
+# ##CHRIS 2026-10-02 (Task U4): the hash every array checks the binary against (sha256sum -c format, path relative to
+# hspist3/). It replaces the arrays' `git rev-parse HEAD` test, so a later `git pull` cannot stop a running campaign.
+# Rewritten by every successful build; the per-build record stays in logs/BUILD_KOA_<jobid>.txt.
+sha256sum 00ALLINONE > logs/BUILD_KOA_LAST.hash
+echo "recorded       logs/BUILD_KOA_LAST.hash: $(cat logs/BUILD_KOA_LAST.hash)"
 echo "BUILD OK"

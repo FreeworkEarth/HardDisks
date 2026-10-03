@@ -15,7 +15,15 @@ theorem the impact rate per unit wall length is n Z / sqrt(2 pi) (kT = m = 1, n 
 (pi/8, H 10, L0 10, 400 sigma: 20424 rows over wall length 80 -> 0.638 per sigma per length; theory 0.66) at 69.0
 bytes per row; wall length = 2 (2 L0) top/bottom + 2 H sides + 2 H divider faces; record = 5000 + 200 (hold)
 sigma-time. Trace tr_<seed>.csv: (300000 + 12000)/600 = 520 rows x 377 bytes (E5 trace: 75449 bytes / 200 rows).
-usage: python3 hspist3/cluster/round_plan_261002.py [--slow F] [--eps0-ratio R]   (R = gate-4 eps0_pilot / eps0_plan)
+usage: python3 hspist3/cluster/round_plan_261002.py [--slow F]
+
+##CHRIS 2026-10-02 (Task U3): (1) the KOA speed is MEASURED: the method-A pilot (job 14966594, sacct TotalCPU 06:11.764 =
+371.764 CPU-s for 20 trajectories of 5000 sigma-time at pi/8, N_s = 50 per side; DATA from Chris's terminal) against the
+Mac cost model for the same trajectory (5000 x rate_at(pi/8) ms) -> koa_speed(); it is the default of --slow. It is
+measured on method A and applied to method B too [INFERENCE]. (2) Trajectories per cell are read from the task files
+(after gate 4 the conf_A_0.39 files carry the gate-4 seeds), and a cell's core-h is the pre-registered cost per
+trajectory times that count; --eps0-ratio is gone. (3) The --time rule: --time >= 2 x the longest cell at KOA speed,
+rounded up to 15 min, at least 30 min (time_limit_h(); gen_confinement_sbatch.py writes it into the sbatch files).
 """
 import math, os, re, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); HS = os.path.dirname(HERE)
@@ -28,6 +36,21 @@ MAX_CORES = 64
 B_TRACE_MB = 0.80
 A_BYTES_ROW, A_TRACE_MB, A_T = 1409182 / 20424, 520 * 75449 / 200 / 1e6, 5200.0
 ROUNDS = [("Round 1", [("B_0.10", 2), ("B_0.39", 2), ("A_0.10", 2)]), ("Round 2", [("A_0.39", 4)])]
+KOA_PILOT_CPU_S, KOA_PILOT_TRAJ, KOA_PILOT_NS = 371.764, 20, 50      # ##CHRIS 2026-10-02 (Task U3): sacct, job 14966594
+
+def koa_speed():
+    """KOA CPU-s per pilot trajectory / Mac cost model of the same trajectory (5000 sigma-time, pi/8, 2 N_s particles)."""
+    import contextlib, io
+    with contextlib.redirect_stdout(io.StringIO()): rates = PR.cost_rate()
+    mac = PR.T_SEED_A * PR.rate_at(math.pi / 8, rates) * (2 * KOA_PILOT_NS / 100) / 1000
+    return KOA_PILOT_CPU_S / KOA_PILOT_TRAJ / mac
+
+def cell_wall_h(n, P, core_h):
+    """Wall hours of one cell: n trajectories, P at a time (xargs -P)."""
+    return math.ceil(n / P) * core_h / n
+
+def time_limit_h(longest_h):
+    return max(0.5, math.ceil(2 * longest_h * 4) / 4)
 
 def arg(name, default):
     return float(sys.argv[sys.argv.index(name) + 1]) if name in sys.argv else default
@@ -62,16 +85,35 @@ def check_paths(group, s):
     out.append(("task output paths (relative to HD_DATA, no '/' or '..')", "all OK" if bad == 0 else f"**{bad} BAD**"))
     return out
 
+def seed_diff(ref="70b2069"):
+    """##CHRIS 2026-10-02 (Task U3): conf_A_0.39 seeds per position, task files at the planning commit vs now."""
+    import subprocess
+    print(f"### conf_A_0.39 task files: planning seeds (git {ref}) vs gate-4 seeds (working tree)\n")
+    print("| cell | seeds/position at " + ref + " | seeds/position now | lines now = first lines of each position at " + ref +
+          " | seeds now |\n|---|---|---|---|---|")
+    for cell in open(os.path.join(CONF, "cells_A_0.39.tsv")).read().split():
+        f = f"cluster/confinement_20261013/tasks_A_{cell}.txt"
+        old = subprocess.run(["git", "show", f"{ref}:hspist3/{f}"], capture_output=True, text=True, cwd=HS).stdout.splitlines()
+        new = open(os.path.join(HS, f)).read().splitlines()
+        no, nn = len(old) // 5, len(new) // 5
+        prefix = all(new[k * nn:(k + 1) * nn] == old[k * no:k * no + nn] for k in range(5))
+        seeds = sorted({int(l.split()[3]) for l in new})
+        print(f"| {cell} | {no} | {nn} | {'yes' if prefix else '**NO**'} | {seeds[0]}..{seeds[-1]} |")
+    print()
+
 def main():
-    slow, ratio = arg("--slow", 1.0), arg("--eps0-ratio", None)
+    speed = koa_speed(); slow = arg("--slow", speed)
+    seed_diff()
     cells, _ = G.planned()
     by = {}
     for c in cells:
         for meth in ("A", "B"):
             by.setdefault(f"{meth}_{c['eta_lab']}", {})[G.cid(c)] = c
-    print(f"cost model x {slow:g} (--slow); gate-4 eps0 ratio: {ratio if ratio else 'not applied (planning seeds)'}\n")
-    print("| round | array | partition | tasks | cores/task | traj. | core-h | longest cell (h) | --time (h) | throttle | cores at once | wall (h) | scratch GiB |")
-    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    print(f"KOA speed (measured, pilot 14966594): {KOA_PILOT_CPU_S} CPU-s / {KOA_PILOT_TRAJ} = {KOA_PILOT_CPU_S / KOA_PILOT_TRAJ:.2f} "
+          f"CPU-s per trajectory; Mac cost model {KOA_PILOT_CPU_S / KOA_PILOT_TRAJ / speed:.2f} -> factor {speed:.3f}")
+    print(f"times below: cost model x {slow:.3f} (--slow); trajectories per cell from the task files\n")
+    print("| round | array | partition | tasks | cores/task | traj. | core-h (KOA) | longest cell (h) | --time (h) | rule 2 x longest (h) | throttle | cores at once | wall (h) | scratch GiB |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     lines, checks, tot = [], {}, {}
     for rnd, arrays in ROUNDS:
         for group, N in arrays:
@@ -80,17 +122,16 @@ def main():
             walls, ch, ntr, gib = [], 0.0, 0, 0.0
             for cell in order:
                 c = by[group][cell]; n = sum(1 for _ in open(os.path.join(CONF, f"tasks_{group[0]}_{cell}.txt")))
-                cpu = (c["cpuA"] if group[0] == "A" else c["cpuB"]) * slow
-                if group == "A_0.39" and ratio:                       # gate 4: Tpos scales with eps0^2
-                    ns = math.ceil(c["Tpos"] * ratio ** 2 / PR.T_SEED_A); cpu *= 5 * ns / n; n = 5 * ns
-                walls.append(math.ceil(n / P) * cpu / n); ch += cpu; ntr += n
+                n_plan = 5 * c["nseed"] if group[0] == "A" else 225                 # trajectories behind cpuA / cpuB
+                cpu = (c["cpuA"] if group[0] == "A" else c["cpuB"]) * n / n_plan * slow
+                walls.append(cell_wall_h(n, P, cpu)); ch += cpu; ntr += n
                 gib += n * (a_seed_mb(c) if group[0] == "A" else B_TRACE_MB) / 1024
             w = schedule(walls, N)
             tot[rnd] = tot.get(rnd, 0) + N * P
             print(f"| {rnd} | conf_{group} | {part} | {len(order)} | {P} | {ntr} | {ch:.1f} | {max(walls):.2f} | {tlim:g} | "
-                  f"%{N} | {N * P} | {w:.2f} | {gib:.1f} |")
+                  f"{time_limit_h(max(walls)):g} | %{N} | {N * P} | {w:.2f} | {gib:.1f} |")
             lines.append((rnd, f"sbatch --array=1-{len(order)}%{N} cluster/confinement_20261013/conf_{group}.sbatch"))
-            checks[group] = check_paths(group, s) + [("longest cell within --time", f"{'yes' if max(walls) <= tlim else '**NO**'} "
+            checks[group] = check_paths(group, s) + [("--time >= 2 x longest cell at KOA speed", f"{'yes' if tlim >= 2 * max(walls) else '**NO**'} "
                                                        f"(margin x{tlim / max(walls):.1f})")]
     print()
     for rnd, n in tot.items():
@@ -107,6 +148,10 @@ def main():
     print(f"\nexisting output directory: the arrays do NOT refuse it; conf_worker.sh skips a trajectory whose output exists "
           f"(B: trace run<r>.csv present -> {resume[0]}; A: red_<seed>.csv non-empty -> {resume[1]}), i.e. a resubmitted "
           f"array resumes. mkdir -p creates the directory otherwise.")
+    # ##CHRIS 2026-10-02 (Task U4): the resume is now guarded by the build that wrote the directory
+    gw = 'guard "$cell"' in w and 'guard "$d"' in w; hs = all("sha256sum --status -c logs/BUILD_KOA_LAST.hash" in sbatch_fields(g)[0]
+                                                      for _, arr in ROUNDS for g, _ in arr)
+    print(f"build guard in conf_worker.sh (both modes): {gw}; every array checks the binary against logs/BUILD_KOA_LAST.hash: {hs}")
     return 0
 
 if __name__ == "__main__":

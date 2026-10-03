@@ -4,12 +4,14 @@
 # One array task = one cell (cells_A_0.10.tsv line N); the cell's trajectories run 16 at a time.
 # FILLED 2026-10-02 (Task K1): partition shared, account uh, scratch /mnt/lustre/koa/scratch/charing (koa_scratch:
 # files are DELETED 90 days after last write -- copy results back before then). Submit from ~/harddisks/hspist3 after
-# `mkdir -p logs`; the binary must already be built by cluster/koa_smoketest.sh (this job does not build).
-#   sbatch --array=1-10 cluster/confinement_20261013/conf_A_0.10.sbatch
+# `mkdir -p logs`; the binary must already be built by cluster/build_koa.sh (this job does not build), which records
+# logs/BUILD_KOA_LAST.hash. After any `git pull`, rebuild before a NEW submission (runsheet step 8).
+# --time: >= 2 x the longest cell at the measured KOA speed (x1.804, pilot 14966594).
+#   sbatch --array=1-10%2 cluster/confinement_20261013/conf_A_0.10.sbatch
 #SBATCH --job-name=conf-A_0.10
 #SBATCH --partition=shared
 #SBATCH --account=uh
-#SBATCH --time=1:00:00
+#SBATCH --time=0:30:00
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=8G
 #SBATCH --output=logs/%x_%A_%a.out
@@ -20,7 +22,12 @@ cd "$SLURM_SUBMIT_DIR"                       # hspist3/ (source, scripts, the ko
 source cluster/koa_env.sh || exit 1
 export HD_BIN="$PWD/00ALLINONE" HD_DATA="$SCRATCH/harddisks/hspist3"
 gcc --version | head -1; "$HD_BIN" --version | head -2
-"$HD_BIN" --version | head -1 | grep -q -- "git $(git rev-parse --short HEAD)  target koa" || { echo "STOP: not the clean koa build of HEAD"; exit 1; }
+# ##CHRIS 2026-10-02 (Task U4): checked against the hash recorded at build time, not `git rev-parse HEAD`
+[ -s logs/BUILD_KOA_LAST.hash ] || { echo "STOP: no logs/BUILD_KOA_LAST.hash -- build with cluster/build_koa.sh first"; exit 1; }
+sha256sum --status -c logs/BUILD_KOA_LAST.hash || { echo "STOP: ./00ALLINONE is not the build recorded in logs/BUILD_KOA_LAST.hash"; exit 1; }
+export HD_BUILD="$("$HD_BIN" --version | head -1)"
+echo "$HD_BUILD" | grep -Eq -- "git [0-9a-f]+  target koa" || { echo "STOP: not a clean koa build: $HD_BUILD"; exit 1; }
+command -v flock >/dev/null || { echo "STOP: flock not found (conf_worker.sh needs it)"; exit 1; }
 CELL=$(sed -n "${SLURM_ARRAY_TASK_ID}p" cluster/confinement_20261013/cells_A_0.10.tsv)
 TASKS=cluster/confinement_20261013/tasks_A_$CELL.txt
 echo "cell $CELL: $(wc -l < "$TASKS") trajectories, 16 in parallel"

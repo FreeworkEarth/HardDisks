@@ -19,10 +19,27 @@ case "$HD_BIN" in /*) ;; *) echo "HD_BIN must be an absolute path"; exit 2 ;; es
 case "$HD_DATA" in /*) ;; *) echo "HD_DATA must be an absolute path"; exit 2 ;; esac
 HERE="$(cd "$(dirname "$0")" && pwd)"
 HEALTH='EDMD-HEALTH|forced_advance|clamp_repair|overlap_repair|wall_overdue'
+# ##CHRIS 2026-10-02 (Task U4): build guard. Every output directory records the build that wrote it in .build_git (the
+# first line of `00ALLINONE --version`, e.g. "00ALLINONE  git 70b2069  target koa"); the first worker writes it, under
+# flock. A worker whose binary differs from the record REFUSES the directory, and so does a worker that finds outputs
+# but no record (written by an unknown build, e.g. before this guard). The sbatch exports HD_BUILD once.
+BUILD="${HD_BUILD:-$("$HD_BIN" --version | head -1)}"
+guard() {   # guard <dir> <glob of finished outputs, relative to dir>
+  local dir=$1 have
+  have=$( flock 9
+          if [ ! -e "$dir/.build_git" ]; then
+            compgen -G "$dir/$2" >/dev/null && { echo "(none recorded, outputs present)"; exit 0; }
+            printf '%s\n' "$BUILD" > "$dir/.build_git"
+          fi
+          cat "$dir/.build_git" ) 9>"$dir/.build_git.lock"
+  [ "$have" = "$BUILD" ] && return 0
+  echo "REFUSED $dir: written by '$have', this binary is '$BUILD'"; return 1
+}
 mode=$1; shift
 if [ "$mode" = B ]; then
   rel=$1 M=$2 r=$3 seed=$4 L0=$5 H=$6 NS=$7 stride=$8 base=$9
   cell="$HD_DATA/$rel"; mkdir -p "$cell"
+  guard "$cell" 'wall_x_positions_L0_*_run*.csv' || { echo "B $rel M=$M r=$r FAILED build guard"; exit 3; }
   ls "$cell"/wall_x_positions_L0_*_wallmassfactor_${M}_run${r}.csv >/dev/null 2>&1 && exit 0     # done before
   tmp="$cell/.run$r"; mkdir -p "$tmp"
   t0=$SECONDS
@@ -44,6 +61,7 @@ if [ "$mode" = B ]; then
 elif [ "$mode" = A ]; then
   rel=$1 xw=$2 seed=$3 L0=$4 H=$5 NS=$6 steps=$7 every=$8
   d="$HD_DATA/$rel"; mkdir -p "$d"
+  guard "$d" 'red_*.csv' || { echo "A $rel seed=$seed FAILED build guard"; exit 3; }
   [ -s "$d/red_${seed}.csv" ] && exit 0
   cd "$d" || exit 1
   HD_PISTON_EVENTS="$d/ev_${seed}.csv" "$HD_BIN" --mode=edmd --experiment=energy_transfer --headless --quiet \

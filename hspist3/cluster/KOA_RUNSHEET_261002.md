@@ -66,11 +66,13 @@ bash cluster/build_koa.sh
   - loads the compiler (module `compiler/GCC/14.3.0`) and the libraries from `~/envs/hd` (`cluster/koa_env.sh`);
   - compiles with `-O2 -march=x86-64-v2 -ffp-contract=off`;
   - checks that every library resolves (`ldd`) and that the binary's hash is the clean checkout's HEAD;
-  - writes `logs/BUILD_KOA_<jobid>.txt`.
+  - writes `logs/BUILD_KOA_<jobid>.txt`;
+  - (added 2026-10-02, Task U4) records the binary's sha256 in `logs/BUILD_KOA_LAST.hash`, which every array checks.
 - **Expected:**
   - the first line is `env: gcc (GCC) 14.3.0 | Python 3.12.14 at /home/charing/envs/hd/bin/python3 | git version ...`;
   - a line `== make compiler: gcc -> /.../gcc -> gcc (GCC) 14.3.0` (the compiler make really uses; if it says 11.5, stop);
   - then the compiler output (warnings are fine);
+  - a line `recorded       logs/BUILD_KOA_LAST.hash: <sha256>  00ALLINONE` (from 2026-10-02 on);
   - the last line is `BUILD OK`.
 - **Any `STOP:` line:** stop, `exit`, and paste the output.
 
@@ -171,7 +173,12 @@ bash hspist3/cluster/confinement_20261013/fetch_confinement.sh
 - All data go under `/mnt/lustre/koa/scratch/charing/harddisks/hspist3/` (`HD_DATA`). The Slurm logs go to `~/harddisks/hspist3/logs/` in home.
 - Checked statically by `python3 hspist3/cluster/round_plan_261002.py` (Mac).
 
-**Do not `git pull` on KOA before Round 1.** Every array refuses a binary that is not the clean koa build of HEAD (`STOP: not the clean koa build of HEAD`). The binary is `git 70b2069`. Round 1 needs no file newer than 70b2069, so a pull would only make every array stop. Round 2 needs a pull and a rebuild (step 8d).
+**Pull and rebuild rules (2026-10-02, Task U4; this replaces the earlier "do not `git pull` before Round 1").** The arrays no longer compare the binary with `git rev-parse HEAD`. They compare it with `logs/BUILD_KOA_LAST.hash`, which `cluster/build_koa.sh` writes. A later `git pull` therefore cannot stop a running campaign.
+1. **After every `git pull`, rebuild (step 2) before any NEW submission.** Do the pull and the build in the same sandbox session.
+2. **Never pull or rebuild while an array still has tasks pending or running** (`squeue -u charing` must be empty). A pending task reads the task files and the binary only when it starts. `conf_worker.sh` refuses to resume a directory that another build wrote (`FAILED build guard`), so such tasks would fail rather than mix builds.
+3. **The first submission after this change needs a pull and a rebuild** (step 8e). The 70b2069 build did not write `logs/BUILD_KOA_LAST.hash`, so without a rebuild every array stops at once with `STOP: no logs/BUILD_KOA_LAST.hash`.
+
+**The numbers in 8b–8d (planning seeds, Mac speed) are superseded by 8e** (gate 4 applied, KOA speed measured). Submit the arrays from 8e.
 
 ### 8a. Gate 4: the method-A pilot (job 14966594)
 
@@ -259,3 +266,84 @@ The estimate comes from the E5 event log (DATA: 20424 rows over a wall length of
    ```
 
    `%4` × 16 cores = 64. The row above uses the planning seeds. After gate 4, `python3 hspist3/cluster/round_plan_261002.py --eps0-ratio R` prints the updated row, with R = ε₀(pilot)/ε₀(plan) as gate 4 prints it.
+
+### 8e. Launch plan after gate 4 (written 2026-10-02; Round 1 needs the go, Round 2 a second go)
+
+**Gate 4 PASSED** (261012 § 1.12). ε₀(π/8) = 0.0820 ± 0.0106, against 0.2710 planned. The conf_A_0.39 seeds per position were recomputed by the pre-registered rule, and the generator rewrote the task files.
+
+Printed by `python3 hspist3/cluster/round_plan_261002.py`:
+
+### conf_A_0.39 task files: planning seeds (git 70b2069) vs gate-4 seeds (working tree)
+
+| cell | seeds/position at 70b2069 | seeds/position now | lines now = first lines of each position at 70b2069 | seeds now |
+|---|---|---|---|---|
+| epi8_H_H5_L10 | 219 | 20 | yes | 9700..9719 |
+| epi8_H_H10_L10 | 194 | 18 | yes | 9700..9717 |
+| epi8_H_H20_L10 | 219 | 20 | yes | 9700..9719 |
+| epi8_H_H40_L10 | 437 | 40 | yes | 9700..9739 |
+| epi8_L_H10_L5 | 219 | 20 | yes | 9700..9719 |
+| epi8_L_H10_L20 | 219 | 20 | yes | 9700..9719 |
+| epi8_aspect_H7.08333_L14.125 | 218 | 20 | yes | 9700..9719 |
+| epi8_aspect_H5_L20 | 194 | 18 | yes | 9700..9717 |
+| epi8_aspect_H3.54167_L28.2917 | 174 | 16 | yes | 9700..9715 |
+
+KOA speed (measured, pilot 14966594): 371.764 CPU-s / 20 = 18.59 CPU-s per trajectory; Mac cost model 10.30 -> factor 1.804
+times below: cost model x 1.804 (--slow); trajectories per cell from the task files
+
+| round | array | partition | tasks | cores/task | traj. | core-h (KOA) | longest cell (h) | --time (h) | rule 2 x longest (h) | throttle | cores at once | wall (h) | scratch GiB |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Round 1 | conf_B_0.10 | shared | 10 | 8 | 2250 | 39.4 | 1.33 | 2.75 | 2.75 | %2 | 16 | 2.71 | 1.8 |
+| Round 1 | conf_B_0.39 | shared | 9 | 8 | 2025 | 32.0 | 0.94 | 2 | 2 | %2 | 16 | 2.22 | 1.6 |
+| Round 1 | conf_A_0.10 | shared | 10 | 16 | 7030 | 8.2 | 0.15 | 0.5 | 0.5 | %2 | 32 | 0.26 | 34.9 |
+| Round 2 | conf_A_0.39 | shared | 9 | 16 | 960 | 8.6 | 0.27 | 0.75 | 0.75 | %4 | 64 | 0.27 | 21.6 |
+
+**1. On the Mac:** push (`bash _commit_scripts/commit_20261007.sh`).
+
+**2. On KOA, from a `login-0102` prompt:** check that nothing of yours is queued, then open a sandbox session.
+
+```sh
+squeue -u charing
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+```
+
+`squeue` must list no jobs. Wait for the `cn-...` prompt.
+
+**3. At the `cn-...` prompt:** pull, rebuild, check.
+
+```sh
+cd ~/harddisks/hspist3
+git pull
+bash cluster/build_koa.sh
+cat logs/BUILD_KOA_LAST.hash
+wc -l cluster/confinement_20261013/tasks_A_epi8_H_H10_L10.txt
+exit
+```
+
+**Expected:**
+- `version        00ALLINONE  git <the pushed commit>  target koa`, then `recorded       logs/BUILD_KOA_LAST.hash: ...`, then `BUILD OK`;
+- `90 cluster/confinement_20261013/tasks_A_epi8_H_H10_L10.txt` (18 seeds × 5 positions).
+
+Any `STOP:` line: stop and paste the output.
+
+**4. Round 1, back at the `login-0102` prompt (after the go):**
+
+```sh
+cd ~/harddisks/hspist3
+mkdir -p logs
+sbatch --array=1-10%2 cluster/confinement_20261013/conf_B_0.10.sbatch
+sbatch --array=1-9%2 cluster/confinement_20261013/conf_B_0.39.sbatch
+sbatch --array=1-10%2 cluster/confinement_20261013/conf_A_0.10.sbatch
+```
+
+- 64 cores at once; about 2.7 h of wall time at the measured KOA speed.
+- Every log starts with the binary's `--version` line and ends with `cell <id> done; failures: 0`.
+- A `FAILED build guard` line means that a directory was written by another build. Stop and paste it.
+
+**5. Round 2 (after its go; the binary is the same, so no pull and no rebuild in between):**
+
+```sh
+sbatch --array=1-9%4 cluster/confinement_20261013/conf_A_0.39.sbatch
+```
+
+- 64 cores at once; about 0.3 h.
+- **Cross-check, free of charge:** the anchor cell `epi8_H_H10_L10` reruns the pilot's seeds 9700–9703 at all five positions. Its `red_970[0-3].csv` must equal the pilot's byte for byte (determinism). Their `red_*.csv` files come back with the summaries.
