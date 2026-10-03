@@ -16,6 +16,11 @@ A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m2 
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m2 9.750000 9715 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m2 9.750000 9716 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m2 9.750000 9717 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m2 9.750000 9718 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m2 9.750000 9719 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m2 9.750000 9720 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m2 9.750000 9721 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m2 9.750000 9722 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m1 9.875000 9700 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m1 9.875000 9701 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m1 9.875000 9702 10.000000 10.000000 50 300000 600
@@ -34,6 +39,11 @@ A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m1 
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m1 9.875000 9715 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m1 9.875000 9716 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m1 9.875000 9717 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m1 9.875000 9718 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m1 9.875000 9719 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m1 9.875000 9720 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m1 9.875000 9721 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_m1 9.875000 9722 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_0 10.000000 9700 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_0 10.000000 9701 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_0 10.000000 9702 10.000000 10.000000 50 300000 600
@@ -52,6 +62,11 @@ A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_0 1
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_0 10.000000 9715 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_0 10.000000 9716 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_0 10.000000 9717 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_0 10.000000 9718 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_0 10.000000 9719 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_0 10.000000 9720 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_0 10.000000 9721 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_0 10.000000 9722 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p1 10.125000 9700 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p1 10.125000 9701 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p1 10.125000 9702 10.000000 10.000000 50 300000 600
@@ -70,6 +85,11 @@ A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p1 
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p1 10.125000 9715 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p1 10.125000 9716 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p1 10.125000 9717 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p1 10.125000 9718 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p1 10.125000 9719 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p1 10.125000 9720 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p1 10.125000 9721 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p1 10.125000 9722 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p2 10.250000 9700 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p2 10.250000 9701 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p2 10.250000 9702 10.000000 10.000000 50 300000 600
@@ -88,3 +108,8 @@ A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p2 
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p2 10.250000 9715 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p2 10.250000 9716 10.000000 10.000000 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p2 10.250000 9717 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p2 10.250000 9718 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p2 10.250000 9719 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p2 10.250000 9720 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p2 10.250000 9721 10.000000 10.000000 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_H_H10_L10/x_p2 10.250000 9722 10.000000 10.000000 50 300000 600

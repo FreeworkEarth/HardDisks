@@ -269,23 +269,23 @@ The estimate comes from the E5 event log (DATA: 20424 rows over a wall length of
 
 ### 8e. Launch plan after gate 4 (written 2026-10-02; Round 1 needs the go, Round 2 a second go)
 
-**Gate 4 PASSED** (261012 § 1.12). ε₀(π/8) = 0.0820 ± 0.0106, against 0.2710 planned. The conf_A_0.39 seeds per position were recomputed by the pre-registered rule, and the generator rewrote the task files.
+**Gate 4 PASSED** (261012 § 1.12). ε₀(π/8) = 0.0820 ± 0.0106, against 0.2710 planned. By **amendment C3** (261012 § 1.9, 2026-10-02), the conf_A_0.39 seeds per position come from the upper bound 0.0926 by the unchanged rule. The generator rewrote the task files.
 
-Printed by `python3 hspist3/cluster/round_plan_261002.py`:
+Printed by `python3 hspist3/cluster/round_plan_261002.py` (re-run 2026-10-02 after amendment C3):
 
-### conf_A_0.39 task files: planning seeds (git 70b2069) vs gate-4 seeds (working tree)
+### conf_A_0.39 task files: seeds per position, plan (git 70b2069), gate 4 (git 303280d) -> now (working tree)
 
-| cell | seeds/position at 70b2069 | seeds/position now | lines now = first lines of each position at 70b2069 | seeds now |
-|---|---|---|---|---|
-| epi8_H_H5_L10 | 219 | 20 | yes | 9700..9719 |
-| epi8_H_H10_L10 | 194 | 18 | yes | 9700..9717 |
-| epi8_H_H20_L10 | 219 | 20 | yes | 9700..9719 |
-| epi8_H_H40_L10 | 437 | 40 | yes | 9700..9739 |
-| epi8_L_H10_L5 | 219 | 20 | yes | 9700..9719 |
-| epi8_L_H10_L20 | 219 | 20 | yes | 9700..9719 |
-| epi8_aspect_H7.08333_L14.125 | 218 | 20 | yes | 9700..9719 |
-| epi8_aspect_H5_L20 | 194 | 18 | yes | 9700..9717 |
-| epi8_aspect_H3.54167_L28.2917 | 174 | 16 | yes | 9700..9715 |
+| cell | plan (70b2069) | gate 4 (303280d) | now | lines | nested in each earlier file | seeds now |
+|---|---|---|---|---|---|---|
+| epi8_H_H5_L10 | 219 | 20 | 26 | 130 | yes | 9700..9725 |
+| epi8_H_H10_L10 | 194 | 18 | 23 | 115 | yes | 9700..9722 |
+| epi8_H_H20_L10 | 219 | 20 | 26 | 130 | yes | 9700..9725 |
+| epi8_H_H40_L10 | 437 | 40 | 51 | 255 | yes | 9700..9750 |
+| epi8_L_H10_L5 | 219 | 20 | 26 | 130 | yes | 9700..9725 |
+| epi8_L_H10_L20 | 219 | 20 | 26 | 130 | yes | 9700..9725 |
+| epi8_aspect_H7.08333_L14.125 | 218 | 20 | 26 | 130 | yes | 9700..9725 |
+| epi8_aspect_H5_L20 | 194 | 18 | 23 | 115 | yes | 9700..9722 |
+| epi8_aspect_H3.54167_L28.2917 | 174 | 16 | 21 | 105 | yes | 9700..9720 |
 
 KOA speed (measured, pilot 14966594): 371.764 CPU-s / 20 = 18.59 CPU-s per trajectory; Mac cost model 10.30 -> factor 1.804
 times below: cost model x 1.804 (--slow); trajectories per cell from the task files
@@ -295,7 +295,7 @@ times below: cost model x 1.804 (--slow); trajectories per cell from the task fi
 | Round 1 | conf_B_0.10 | shared | 10 | 8 | 2250 | 39.4 | 1.33 | 2.75 | 2.75 | %2 | 16 | 2.71 | 1.8 |
 | Round 1 | conf_B_0.39 | shared | 9 | 8 | 2025 | 32.0 | 0.94 | 2 | 2 | %2 | 16 | 2.22 | 1.6 |
 | Round 1 | conf_A_0.10 | shared | 10 | 16 | 7030 | 8.2 | 0.15 | 0.5 | 0.5 | %2 | 32 | 0.26 | 34.9 |
-| Round 2 | conf_A_0.39 | shared | 9 | 16 | 960 | 8.6 | 0.27 | 0.75 | 0.75 | %4 | 64 | 0.27 | 21.6 |
+| Round 2 | conf_A_0.39 | shared | 9 | 16 | 1240 | 11.0 | 0.33 | 0.75 | 0.75 | %4 | 64 | 0.33 | 27.8 |
 
 **1. On the Mac:** push (`bash _commit_scripts/commit_20261007.sh`).
 
@@ -321,9 +321,17 @@ exit
 
 **Expected:**
 - `version        00ALLINONE  git <the pushed commit>  target koa`, then `recorded       logs/BUILD_KOA_LAST.hash: ...`, then `BUILD OK`;
-- `90 cluster/confinement_20261013/tasks_A_epi8_H_H10_L10.txt` (18 seeds × 5 positions).
+- `115 cluster/confinement_20261013/tasks_A_epi8_H_H10_L10.txt` (23 seeds × 5 positions, amendment C3).
 
 Any `STOP:` line: stop and paste the output.
+
+**Launch rules (2026-10-02, Task V3):**
+- **All four arrays are submitted from ONE build:** the one made in step 3.
+- **No `git pull` between Round 1 and Round 2.** Round 2 needs nothing newer than that build, and a pull would require a rebuild (rule 1 above).
+- **Round 2 goes in only after Round 1's first tasks have run cleanly for about 30 minutes.** Before submitting it, check:
+  - `squeue -u charing` shows the Round-1 tasks running (`R`), not pending with an error;
+  - `grep -l "STOP\|FAILED" logs/conf-*` prints nothing;
+  - `head -3 logs/conf-B_0.10_<jobid>_1.out` shows the gcc 14.3.0 line and the binary's `--version`.
 
 **4. Round 1, back at the `login-0102` prompt (after the go):**
 
@@ -339,11 +347,11 @@ sbatch --array=1-10%2 cluster/confinement_20261013/conf_A_0.10.sbatch
 - Every log starts with the binary's `--version` line and ends with `cell <id> done; failures: 0`.
 - A `FAILED build guard` line means that a directory was written by another build. Stop and paste it.
 
-**5. Round 2 (after its go; the binary is the same, so no pull and no rebuild in between):**
+**5. Round 2 (after its go, and after Round 1 has run cleanly for about 30 min; the same build, so no pull and no rebuild in between):**
 
 ```sh
 sbatch --array=1-9%4 cluster/confinement_20261013/conf_A_0.39.sbatch
 ```
 
-- 64 cores at once; about 0.3 h.
-- **Cross-check, free of charge:** the anchor cell `epi8_H_H10_L10` reruns the pilot's seeds 9700–9703 at all five positions. Its `red_970[0-3].csv` must equal the pilot's byte for byte (determinism). Their `red_*.csv` files come back with the summaries.
+- 64 cores at once while Round 1 is still running, so up to 128 cores in total for a short while; this is about 0.3 h and 11.0 core-h. If that is too much, wait until Round 1 has finished.
+- **Determinism gate (261012 § 1.12, V2):** the anchor cell `epi8_H_H10_L10` reruns the pilot's seeds 9700–9703 at all five positions. Its `red_970[0-3].csv` must equal the pilot's byte for byte (determinism). Their `red_*.csv` files come back with the summaries.

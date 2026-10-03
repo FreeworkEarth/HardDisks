@@ -117,20 +117,25 @@ def main():
     speed = RP.koa_speed()
     print("\n### Seeds per position for conf_A_0.39, by the pre-registered rule with the pilot's eps0\n")
     print("| cell | T per position (plan) | seeds/position (plan) | T per position (pilot eps0) | seeds/position (new) | "
-          "seeds/position at eps0 + 1 sigma (info) | core-h plan (Mac model) | core-h new (Mac model) |\n|---|---|---|---|---|---|---|---|")
-    ch_plan = ch_new = 0.0
+          "seeds/position at eps0 + 1 sigma (= amendment C3, USED) | core-h plan (Mac model) | core-h new (Mac model) |\n|---|---|---|---|---|---|---|---|")
+    ch_plan = ch_new = ch_c3 = 0.0
     for c in [c for c in cells if c["eta_lab"] == "0.39"]:
         Tn = c["Tpos"] * (eps0_pilot / eps0_plan) ** 2; nn = math.ceil(Tn / PR.T_SEED_A)
         nhi = math.ceil(c["Tpos"] * ((eps0_pilot + err) / eps0_plan) ** 2 / PR.T_SEED_A)
-        cn = c["cpuA"] * nn / c["nseed"]; ch_plan += c["cpuA"]; ch_new += cn
+        cn = c["cpuA"] * nn / c["nseed"]; ch_plan += c["cpuA"]; ch_new += cn; ch_c3 += c["cpuA"] * nhi / c["nseed"]
         print(f"| {cid(c)} | {c['Tpos']:.3g} | {c['nseed']} | {Tn:.3g} | {nn} | {nhi} | {c['cpuA']:.2f} | {cn:.2f} |")
     print(f"\nconf_A_0.39 core-h: plan {ch_plan:.1f} -> new {ch_new:.1f} (Mac cost model); at the measured KOA speed x{speed:.3f}: "
           f"plan {ch_plan * speed:.1f} -> new {ch_new * speed:.1f}")
+    # ##CHRIS 2026-10-02 (Task V2): amendment C3 uses the eps0 + 1 sigma column
+    print(f"amendment C3 (eps0 + 1 sigma = {eps0_pilot + err:.4f}): conf_A_0.39 core-h {ch_c3:.1f} (Mac cost model), "
+          f"{ch_c3 * speed:.1f} at KOA speed (+{(ch_c3 - ch_new) * speed:.1f} over the gate-4 seeds)")
     ok = len(rows) == 20 and health == 0 and conv_ok
     if ok:
         res = os.path.join(CONF, "gate4_pi8_result.txt")
         open(res, "w").write(f"# gate 4 (261012 sec. 1.7 item 4), written by cluster/gate4_pilot_261002.py; pilot job 14966594 (KOA, 70b2069)\n"
-                             f"eps0_pilot {float(eps0_pilot)!r}\neps0_pilot_err {float(err)!r}\neps0_plan {float(eps0_plan)!r}\nverdict PASS\n")
+                             f"eps0_pilot {float(eps0_pilot)!r}\neps0_pilot_err {float(err)!r}\neps0_plan {float(eps0_plan)!r}\nverdict PASS\n"
+                             # ##CHRIS 2026-10-02 (Task V2): amendment C3 (261012 sec. 1.9) -- the seeds come from eps0 + 1 sigma
+                             f"eps0_c3_upper {float(eps0_pilot + err)!r}\n")
         print(f"recorded: {os.path.relpath(res, HS)}")
     print(f"\n**GATE 4: {'PASS' if ok else 'FAIL'}** -- conf_A_0.39 uses the new seeds per position "
           f"(its tasks files must be regenerated before Round 2). conf_A_0.10 is NOT affected: its eps0 was measured at "

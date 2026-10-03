@@ -85,20 +85,23 @@ def check_paths(group, s):
     out.append(("task output paths (relative to HD_DATA, no '/' or '..')", "all OK" if bad == 0 else f"**{bad} BAD**"))
     return out
 
-def seed_diff(ref="70b2069"):
-    """##CHRIS 2026-10-02 (Task U3): conf_A_0.39 seeds per position, task files at the planning commit vs now."""
+def seed_diff(refs=(("plan", "70b2069"), ("gate 4", "303280d"))):
+    """##CHRIS 2026-10-02 (Tasks U3, V2): conf_A_0.39 seeds per position in the task files at earlier commits
+    (planning seeds 70b2069; gate-4 seeds 303280d) vs now (amendment C3). 'nested' = per position, the shorter seed list
+    is the first lines of the longer one, i.e. the files differ only by seeds added or removed at the end."""
     import subprocess
-    print(f"### conf_A_0.39 task files: planning seeds (git {ref}) vs gate-4 seeds (working tree)\n")
-    print("| cell | seeds/position at " + ref + " | seeds/position now | lines now = first lines of each position at " + ref +
-          " | seeds now |\n|---|---|---|---|---|")
+    print("### conf_A_0.39 task files: seeds per position, " + ", ".join(f"{a} (git {r})" for a, r in refs) + " -> now (working tree)\n")
+    print("| cell | " + " | ".join(f"{a} ({r})" for a, r in refs) + " | now | lines | nested in each earlier file | seeds now |")
+    print("|---|" + "---|" * len(refs) + "---|---|---|---|")
     for cell in open(os.path.join(CONF, "cells_A_0.39.tsv")).read().split():
         f = f"cluster/confinement_20261013/tasks_A_{cell}.txt"
-        old = subprocess.run(["git", "show", f"{ref}:hspist3/{f}"], capture_output=True, text=True, cwd=HS).stdout.splitlines()
-        new = open(os.path.join(HS, f)).read().splitlines()
-        no, nn = len(old) // 5, len(new) // 5
-        prefix = all(new[k * nn:(k + 1) * nn] == old[k * no:k * no + nn] for k in range(5))
+        new = open(os.path.join(HS, f)).read().splitlines(); nn = len(new) // 5; cols, nest = [], True
+        for _, r in refs:
+            old = subprocess.run(["git", "show", f"{r}:hspist3/{f}"], capture_output=True, text=True, cwd=HS).stdout.splitlines()
+            no = len(old) // 5; m = min(no, nn); cols.append(str(no))
+            nest &= all(new[k * nn:k * nn + m] == old[k * no:k * no + m] for k in range(5))
         seeds = sorted({int(l.split()[3]) for l in new})
-        print(f"| {cell} | {no} | {nn} | {'yes' if prefix else '**NO**'} | {seeds[0]}..{seeds[-1]} |")
+        print(f"| {cell} | {' | '.join(cols)} | {nn} | {len(new)} | {'yes' if nest else '**NO**'} | {seeds[0]}..{seeds[-1]} |")
     print()
 
 def main():

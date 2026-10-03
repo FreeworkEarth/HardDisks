@@ -922,3 +922,44 @@ Round 2 (64 cores at once; after its go):
     sbatch --array=1-9%4 cluster/confinement_20261013/conf_A_0.39.sbatch
 
 **Free cross-check [DERIVATION].** The anchor cell `epi8_H_H10_L10` reruns the pilot's seeds 9700–9703. The C source is the same as the pilot's, only the build hash differs, so its `red_970[0-3].csv` must equal the pilot's byte for byte.
+
+
+#### V2 — conf_A_0.39 under amendment C3 (2026-10-02)
+
+The generator (`cluster/gen_confinement_sbatch.py`) reads `eps0_c3_upper 0.09259510508078693` = ε₀ + 1σ from `cluster/confinement_20261013/gate4_pi8_result.txt`, written by `cluster/gate4_pilot_261002.py`. It rewrote the nine conf_A_0.39 task files, `cells_summary.txt`, and the header comment of `conf_A_0.39.sbatch`; no other file changed. Rounding ε₀ to 0.0926 gives the same seeds.
+
+Printed by `python3 cluster/round_plan_261002.py` (verbatim):
+
+##### conf_A_0.39 task files: seeds per position, plan (git 70b2069), gate 4 (git 303280d) -> now (working tree)
+
+| cell | plan (70b2069) | gate 4 (303280d) | now | lines | nested in each earlier file | seeds now |
+|---|---|---|---|---|---|---|
+| epi8_H_H5_L10 | 219 | 20 | 26 | 130 | yes | 9700..9725 |
+| epi8_H_H10_L10 | 194 | 18 | 23 | 115 | yes | 9700..9722 |
+| epi8_H_H20_L10 | 219 | 20 | 26 | 130 | yes | 9700..9725 |
+| epi8_H_H40_L10 | 437 | 40 | 51 | 255 | yes | 9700..9750 |
+| epi8_L_H10_L5 | 219 | 20 | 26 | 130 | yes | 9700..9725 |
+| epi8_L_H10_L20 | 219 | 20 | 26 | 130 | yes | 9700..9725 |
+| epi8_aspect_H7.08333_L14.125 | 218 | 20 | 26 | 130 | yes | 9700..9725 |
+| epi8_aspect_H5_L20 | 194 | 18 | 23 | 115 | yes | 9700..9722 |
+| epi8_aspect_H3.54167_L28.2917 | 174 | 16 | 21 | 105 | yes | 9700..9720 |
+
+KOA speed (measured, pilot 14966594): 371.764 CPU-s / 20 = 18.59 CPU-s per trajectory; Mac cost model 10.30 -> factor 1.804
+times below: cost model x 1.804 (--slow); trajectories per cell from the task files
+
+| round | array | partition | tasks | cores/task | traj. | core-h (KOA) | longest cell (h) | --time (h) | rule 2 x longest (h) | throttle | cores at once | wall (h) | scratch GiB |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Round 1 | conf_B_0.10 | shared | 10 | 8 | 2250 | 39.4 | 1.33 | 2.75 | 2.75 | %2 | 16 | 2.71 | 1.8 |
+| Round 1 | conf_B_0.39 | shared | 9 | 8 | 2025 | 32.0 | 0.94 | 2 | 2 | %2 | 16 | 2.22 | 1.6 |
+| Round 1 | conf_A_0.10 | shared | 10 | 16 | 7030 | 8.2 | 0.15 | 0.5 | 0.5 | %2 | 32 | 0.26 | 34.9 |
+| Round 2 | conf_A_0.39 | shared | 9 | 16 | 1240 | 11.0 | 0.33 | 0.75 | 0.75 | %4 | 64 | 0.33 | 27.8 |
+
+Printed by `python3 cluster/gate4_pilot_261002.py`: `amendment C3 (eps0 + 1 sigma = 0.0926): conf_A_0.39 core-h 6.1 (Mac cost model), 11.0 at KOA speed (+2.5 over the gate-4 seeds)`. The longest cell is 0.33 h, so `--time` stays at 0:45 (rule ≥ 2 × 0.33 h, rounded up to 15 min). `wc -l cluster/confinement_20261013/tasks_A_epi8_H_H10_L10.txt` gives **115** (23 seeds × 5 positions). The "nested" column shows that every file only adds seeds at the end of each position. The gate-4 and planning seed lists are prefixes of the C3 list.
+
+#### Analysis-plan gate: determinism across jobs (added 2026-10-02, before any π/8 array)
+
+The anchor cell `epi8_H_H10_L10` of conf_A_0.39 runs seeds 9700–9722 at the five positions x_m2 … x_p2 with the same command line as the pilot.
+- **Gate:** at every position, the anchor's `red_9700.csv` … `red_9703.csv` must be byte-identical (`cmp`) to the pilot's (`pilot_epi8_H_H10_L10/x_*/red_970[0-3].csv`, committed in df53ba1). That is 20 comparisons.
+- **What it tests:** determinism across jobs, nodes and builds of the same C source. The pilot ran at 70b2069; Round 2 runs on the rebuild of step 8e, where only the build hash string differs.
+- **If any pair differs:** the difference is reported and **no conf_A_0.39 result is used** until it is explained.
+- **When it is checked:** on the Mac, after the summaries of Round 2 are copied back, before any analysis.

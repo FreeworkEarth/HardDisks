@@ -14,6 +14,11 @@ A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m2 27.541667 9713 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m2 27.541667 9714 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m2 27.541667 9715 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m2 27.541667 9716 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m2 27.541667 9717 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m2 27.541667 9718 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m2 27.541667 9719 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m2 27.541667 9720 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m1 27.916667 9700 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m1 27.916667 9701 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m1 27.916667 9702 28.291667 3.541667 50 300000 600
@@ -30,6 +35,11 @@ A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m1 27.916667 9713 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m1 27.916667 9714 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m1 27.916667 9715 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m1 27.916667 9716 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m1 27.916667 9717 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m1 27.916667 9718 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m1 27.916667 9719 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_m1 27.916667 9720 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_0 28.291667 9700 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_0 28.291667 9701 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_0 28.291667 9702 28.291667 3.541667 50 300000 600
@@ -46,6 +56,11 @@ A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_0 28.291667 9713 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_0 28.291667 9714 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_0 28.291667 9715 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_0 28.291667 9716 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_0 28.291667 9717 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_0 28.291667 9718 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_0 28.291667 9719 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_0 28.291667 9720 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p1 28.666667 9700 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p1 28.666667 9701 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p1 28.666667 9702 28.291667 3.541667 50 300000 600
@@ -62,6 +77,11 @@ A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p1 28.666667 9713 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p1 28.666667 9714 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p1 28.666667 9715 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p1 28.666667 9716 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p1 28.666667 9717 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p1 28.666667 9718 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p1 28.666667 9719 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p1 28.666667 9720 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p2 29.041667 9700 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p2 29.041667 9701 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p2 29.041667 9702 28.291667 3.541667 50 300000 600
@@ -78,3 +98,8 @@ A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p2 29.041667 9713 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p2 29.041667 9714 28.291667 3.541667 50 300000 600
 A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p2 29.041667 9715 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p2 29.041667 9716 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p2 29.041667 9717 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p2 29.041667 9718 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p2 29.041667 9719 28.291667 3.541667 50 300000 600
+A experiments_energy_transfer/paper1_confinement_A_20261013/epi8_aspect_H3.54167_L28.2917/x_p2 29.041667 9720 28.291667 3.541667 50 300000 600
