@@ -34,28 +34,42 @@
 #   so SE = s sqrt(sum w^2)/sum w = 0.02441 and two independent pilots differ with sigma_diff = sqrt(2) SE = 0.03452.
 #   The gate is now 2 sigma_diff:  |c_s(KOA) - c_s(Mac)| <= 0.06903  (false-fail under the null 4.55 %). The old 0.05150
 #   sat at 1.49 sigma_diff and would have failed a correct KOA build 13.6 % of the time.
-# FILL BEFORE RUNNING (KOA runbook): __PARTITION__ (sandbox, 4 h, is enough: ~2 core-min x 9), __ACCOUNT__,
-# __SCRATCH__, and the module line for gcc + python3 with numpy/pandas/scipy.
+# FILLED 2026-10-02 (Task K1/K2; KOA facts from Chris's terminal, 2026-10-03 UTC; the placeholders are gone):
+#   partition sandbox (4 h; this job needs < 1 h), account uh, scratch /mnt/lustre/koa/scratch/charing, environment
+#   cluster/koa_env.sh (module compiler/GCC/14.3.0 + the conda env ~/envs/hd for SDL2/SDL2_ttf/GLEW and python).
+#   /home is noexec on the login node, so the build runs HERE, inside the job (cluster/build_koa.sh); the binary stays in
+#   the checkout and runs on the compute node. build_koa.sh stops unless build_git == the checkout's clean HEAD.
+#   Determinism: the two runs are two separate srun steps. Inside this one-node job both land on the SAME node by
+#   construction; that the bytes are also identical ACROSS nodes (the point of -march=x86-64-v2) is tested by
+#   cluster/koa_crossnode_det.sh, which places the two steps on two different nodes. The gates below are unchanged.
+#   Submit from ~/harddisks/hspist3 after `mkdir -p logs` (Slurm does not create the log directory):
+#       sbatch cluster/koa_smoketest.sh            # a re-run needs a fresh name: SMOKE_TAG=koa_pi8_try2 sbatch ...
 #SBATCH --job-name=conf-smoke
-#SBATCH --partition=__PARTITION__
-#SBATCH --account=__ACCOUNT__
+#SBATCH --partition=sandbox
+#SBATCH --account=uh
 #SBATCH --time=01:00:00
+#SBATCH --nodes=1
 #SBATCH --cpus-per-task=9
 #SBATCH --mem=4G
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.out
 set -uo pipefail
-cd "${SLURM_SUBMIT_DIR:-$(dirname "$0")/..}"
-SCRATCH="__SCRATCH__"
-# module load <gcc> <python with numpy pandas scipy>        # __MODULES__ from the runbook
+cd "${SLURM_SUBMIT_DIR:?submit with sbatch from ~/harddisks/hspist3}"
+SCRATCH="/mnt/lustre/koa/scratch/charing"
 REL=experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_pilot_20261013
-OUT="$SCRATCH/harddisks/hspist3/$REL/koa_pi8_H10_L10"
-[ -e "$OUT" ] && { echo "$OUT exists -- not overwriting; choose a fresh name"; exit 2; }
+OUT="$SCRATCH/harddisks/hspist3/$REL/${SMOKE_TAG:-koa_pi8_H10_L10}"
+[ -e "$OUT" ] && { echo "$OUT exists -- not overwriting; choose a fresh name with SMOKE_TAG=..."; exit 2; }
 
-echo "== (1) build"; make -B koa || exit 1
-echo "== (2) version"; ./00ALLINONE --version | head -2
+echo "== (0) node";    echo "$(hostname) | $(lscpu | awk -F: '/Model name/{gsub(/^ +/,"",$2); print $2; exit}') | job $SLURM_JOB_ID"
+echo "== (1) build";   bash cluster/build_koa.sh || exit 1
+source cluster/koa_env.sh || exit 1
+echo "== (2) version"; gcc --version | head -1; ./00ALLINONE --version | head -2
 ./00ALLINONE --version | grep -q -- "-ffp-contract=off" || { echo "STOP: binary lacks -ffp-contract=off"; exit 1; }
-echo "== (3) determinism"; python3 cluster/confinement_pilot.py determinism --bin ./00ALLINONE --out "$OUT/_determinism" || exit 1
+echo "== (3) determinism (two srun steps, same node)"
+for tag in A B; do
+  srun --ntasks=1 --cpus-per-task=1 --exact python3 cluster/confinement_pilot.py det1 --tag $tag --bin ./00ALLINONE --out "$OUT/_determinism" || exit 1
+done
+python3 cluster/confinement_pilot.py detcmp --out "$OUT/_determinism" || exit 1
 echo "== (4) pi/8 pilot"; python3 cluster/confinement_pilot.py run --bin ./00ALLINONE --out "$OUT" --jobs "${SLURM_CPUS_PER_TASK:-9}" || exit 1
 python3 cluster/confinement_pilot.py analyse --out "$OUT" | tee "$OUT/pilot_analysis.txt"
 echo "== gates"
@@ -69,5 +83,5 @@ g = [("eta", abs(eta - 0.392699) <= 1e-6), ("L_0", abs(L0 - 10.0) <= 1e-6), ("L_
      ("health", hl == 0), ("c_s within 0.06903 (2 sigma_diff) of 3.85886", abs(cs - 3.85886) <= 0.06903)]
 for n, ok in g: print(f"  {n}: {'PASS' if ok else 'FAIL'}")
 print(f"  c_s(KOA) - c_s(Mac) = {cs - 3.85886:+.5f}")
-print("SMOKE TEST", "PASSED -- the arrays may be submitted (after the go)" if all(ok for _, ok in g) else "FAILED -- STOP")
+print("SMOKE TEST", "PASSED -- the method-A pilot may be submitted (after the go)" if all(ok for _, ok in g) else "FAILED -- STOP")
 PY

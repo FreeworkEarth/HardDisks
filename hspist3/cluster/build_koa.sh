@@ -3,62 +3,48 @@
 #
 # The simulation never opens a display: initSDL() and TTF_Init() sit behind `if (!cli_headless)` and
 # every render function returns early when headless. SDL2/SDL2_ttf/GLEW/GL are therefore needed only
-# to LINK. First choice is cluster modules; the fallback is a user-space conda-forge environment,
-# which needs no admin rights.
+# to LINK.
 #
-# usage: bash cluster/build_koa.sh        (run from the hspist3 directory on a KOA login node)
-set -euo pipefail
+# ##CHRIS 2026-10-02 (Task K2), REWRITTEN for what KOA turned out to be (KOA facts, 2026-10-03 UTC):
+#   - /home is mounted noexec on the login node, so this script refuses to run outside a Slurm job (srun or sbatch);
+#     the built binary runs fine on compute nodes.
+#   - KOA has no SDL2_ttf module; the libraries come from the user conda env ~/envs/hd, set up by cluster/koa_env.sh
+#     together with the compiler (module compiler/GCC/14.3.0). The old module-guessing fallback is gone.
+#   - Provenance gate: the binary's build_git must equal `git rev-parse --short HEAD` of this checkout, with no -dirty.
+#     A -dirty or unknown hash stops the build (a clean clone of the pushed commit is the intended input).
+#
+# usage (from hspist3/, inside `srun -p sandbox ... --pty /bin/bash` or from koa_smoketest.sh):  bash cluster/build_koa.sh
+set -uo pipefail
 cd "$(dirname "$0")/.."
+[ -n "${SLURM_JOB_ID:-}" ] || { echo "STOP: run inside a Slurm job (srun/sbatch) -- home is noexec on the login node"; exit 2; }
+source cluster/koa_env.sh || exit 2
 
-echo "== toolchain"
-command -v gcc >/dev/null || { echo "no gcc found; module load a compiler first"; exit 2; }
-gcc --version | head -1
+echo "== toolchain";  gcc --version | head -1
+echo "== libraries";  pkg-config --exists sdl2 SDL2_ttf glew || { echo "STOP: pkg-config does not find sdl2/SDL2_ttf/glew in ~/envs/hd"; exit 3; }
+echo "   sdl2 $(pkg-config --modversion sdl2), SDL2_ttf $(pkg-config --modversion SDL2_ttf), glew $(pkg-config --modversion glew)"
 
-echo "== SDL2 / GLEW"
-if pkg-config --exists sdl2 SDL2_ttf glew 2>/dev/null; then
-  echo "pkg-config finds sdl2, SDL2_ttf and glew -- using them"
-else
-  echo "not found. Trying modules..."
-  for m in sdl2 SDL2 glew GLEW mesa Mesa; do module load "$m" 2>/dev/null && echo "  loaded $m" || true; done
-  if ! pkg-config --exists sdl2 SDL2_ttf glew 2>/dev/null; then
-    cat <<'EOF'
-  Still not found. User-space fallback (no admin needed):
+echo "== build (portable ISA -march=x86-64-v2, not -march=native: every KOA node must produce the same bytes)"
+make -B koa || { echo "STOP: make koa failed"; exit 4; }
 
-      module load lang/Anaconda3 2>/dev/null || true
-      conda create -y -p $HOME/envs/hd -c conda-forge sdl2 sdl2_ttf glew mesa-libgl-devel-cos7-x86_64 pkg-config gcc_linux-64
-      conda activate $HOME/envs/hd
-      export PKG_CONFIG_PATH=$HOME/envs/hd/lib/pkgconfig:$PKG_CONFIG_PATH
-      export LD_LIBRARY_PATH=$HOME/envs/hd/lib:$LD_LIBRARY_PATH
-
-  then re-run this script.
-EOF
-    exit 3
-  fi
-fi
-
-echo "== build (portable ISA, not -march=native: every KOA node must produce the same bytes)"
-make -B koa
+echo "== checks"
+missing=$(ldd ./00ALLINONE | grep -c "not found") || true
+[ "${missing:-0}" -eq 0 ] || { ldd ./00ALLINONE | grep "not found"; echo "STOP: unresolved shared libraries"; exit 5; }
+./00ALLINONE --version | head -2
+head=$(git rev-parse --short HEAD)
+ver=$(./00ALLINONE --version | head -1)
+echo "$ver" | grep -q -- "git $head  target koa" || { echo "STOP: build_git is not the clean HEAD $head: $ver"; exit 6; }
+./00ALLINONE --version | grep -q -- "-ffp-contract=off" || { echo "STOP: binary lacks -ffp-contract=off"; exit 6; }
 
 echo "== provenance"
+mkdir -p logs
 {
   echo "built_utc      $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  echo "host           $(hostname)"
-  echo "compiler       $(gcc --version | head -1)"
-  echo "cflags         $(make -n koa | grep -o -- '-O2 .*' | head -1)"
-  echo "git_commit     $(git -C .. rev-parse HEAD 2>/dev/null || echo 'not a git checkout')"
-  echo "git_dirty      $(git -C .. status --porcelain 2>/dev/null | wc -l | tr -d ' ') modified paths"
-  echo "sha256         $(sha256sum 00ALLINONE | cut -d' ' -f1)"
+  echo "host           $(hostname)   job ${SLURM_JOB_ID}"
   echo "cpu            $(lscpu | awk -F: '/Model name/{gsub(/^ +/,"",$2); print $2; exit}')"
-} | tee cluster/BUILD_KOA.txt
-
-cat <<'EOF'
-
-Next: the acceptance gate. The cluster binary is x86 and the laptop binary is ARM, so traces are NOT
-byte-identical and never will be -- hard-disk dynamics is chaotic and the last bit diverges. Run the
-mirror campaign and compare statistically before trusting any cluster number:
-
-    python3 cluster/make_manifest.py mirror manifests/mirror.tsv
-    mkdir -p logs && sbatch --array=1-150%150 cluster/run_array.sbatch manifests/mirror.tsv
-    # when it finishes, rsync back and run, on the laptop:
-    python3 validation/cluster_gate_20260916.py   # (written once the mirror data exists)
-EOF
+  echo "compiler       $(gcc --version | head -1)"
+  echo "version        $ver"
+  echo "git_commit     $(git rev-parse HEAD)"
+  echo "sha256         $(sha256sum 00ALLINONE | cut -d' ' -f1)"
+  echo "libs           sdl2 $(pkg-config --modversion sdl2) SDL2_ttf $(pkg-config --modversion SDL2_ttf) glew $(pkg-config --modversion glew) (~/envs/hd)"
+} | tee "logs/BUILD_KOA_${SLURM_JOB_ID}.txt"
+echo "BUILD OK"

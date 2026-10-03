@@ -14,6 +14,14 @@ usage (from hspist3/):
   python3 cluster/confinement_pilot.py run         --bin ./00ALLINONE --out <dir> [--jobs 9]
   python3 cluster/confinement_pilot.py analyse     --out <dir>
   python3 cluster/confinement_pilot.py determinism --bin ./00ALLINONE --out <dir>
+  python3 cluster/confinement_pilot.py det1        --bin ./00ALLINONE --out <dir> --tag A    (one run; KOA: one srun step)
+  python3 cluster/confinement_pilot.py detcmp      --out <dir>                               (cmp det_A vs det_B)
+
+##CHRIS 2026-10-02 (Task K2): det1/detcmp split the determinism self-test so that KOA can run the two trajectories as two
+separate Slurm steps (koa_smoketest.sh: same node; koa_crossnode_det.sh: two different nodes). Every trajectory now runs
+with its own output directory as working directory (cwd=d), so the files the binary writes into its cwd (run_params.json,
+00_COMMAND.md; 00ALLINONE.c:1819, 2837) land next to the trace instead of in the git checkout -- a sparse checkout turns
+-dirty if a tracked path appears in it. --bin and --out are made absolute first. Trace bytes do not depend on the cwd.
 """
 import argparse, glob, math, os, subprocess, sys, time
 import numpy as np
@@ -34,13 +42,14 @@ def cmd(binp, M, mi, out, target=TARGET):
             f"--speed-sound-log-stride={T.d_stride(nu)}", f"--speed-sound-run-dir={out}", f"--speed-sound-exact-seed={seed}"]
 
 def run(a):
+    a.bin, a.out = os.path.abspath(a.bin), os.path.abspath(a.out)
     procs = []
     for mi, M in enumerate(T.A1_MASSES):
         d = os.path.join(a.out, f"m_{M}"); os.makedirs(d, exist_ok=True)
         c = cmd(a.bin, M, mi, d); open(os.path.join(d, "command.txt"), "w").write("HD_KE_TRACE=1 " + " ".join(c) + "\n")
         while len([p for p in procs if p.poll() is None]) >= a.jobs: time.sleep(0.5)
         procs.append(subprocess.Popen(c, stdout=open(os.path.join(d, "run.log"), "w"), stderr=subprocess.STDOUT,
-                                      env=dict(os.environ, HD_KE_TRACE="1")))
+                                      env=dict(os.environ, HD_KE_TRACE="1"), cwd=d))
     rc = [p.wait() for p in procs]; print("run exit codes:", rc); return 0 if all(r == 0 for r in rc) else 1
 
 def analyse(a):
@@ -65,18 +74,44 @@ def analyse(a):
     return 0
 
 def determinism(a):
+    a.bin, a.out = os.path.abspath(a.bin), os.path.abspath(a.out)
     outs = []
     for tag in ("A", "B"):
         d = os.path.join(a.out, f"det_{tag}", "m_50"); os.makedirs(d, exist_ok=True)
         subprocess.run(cmd(a.bin, 50, 0, d, target=25), stdout=open(os.path.join(d, "run.log"), "w"), stderr=subprocess.STDOUT,
-                       env=dict(os.environ, HD_KE_TRACE="1"), check=True)
+                       env=dict(os.environ, HD_KE_TRACE="1"), check=True, cwd=d)
         outs.append(sorted(glob.glob(os.path.join(d, "wall_x_positions_*_run0.csv")))[0])
     same = subprocess.run(["cmp", outs[0], outs[1]]).returncode == 0
     print(f"determinism self-test (same binary, same seed, twice): {'IDENTICAL' if same else 'DIFFERENT -- STOP'}")
     return 0 if same else 1
 
+def det1(a):
+    """One determinism trajectory (M = 50, 25 oscillations, the same seed as `determinism`) into <out>/det_<tag>/m_50."""
+    a.bin, a.out = os.path.abspath(a.bin), os.path.abspath(a.out)
+    d = os.path.join(a.out, f"det_{a.tag}", "m_50")
+    if glob.glob(os.path.join(d, "wall_x_positions_*_run0.csv")): sys.exit(f"{d} already holds a trace -- not overwriting")
+    os.makedirs(d, exist_ok=True)
+    import socket; open(os.path.join(d, "host.txt"), "w").write(socket.gethostname() + "\n")
+    r = subprocess.run(cmd(a.bin, 50, 0, d, target=25), stdout=open(os.path.join(d, "run.log"), "w"), stderr=subprocess.STDOUT,
+                       env=dict(os.environ, HD_KE_TRACE="1"), cwd=d)
+    print(f"det1 {a.tag}: host {socket.gethostname()}, exit code {r.returncode}"); return r.returncode
+
+def detcmp(a):
+    """cmp the trace and the psi6 file of det_A and det_B; print the hosts they ran on."""
+    a.out = os.path.abspath(a.out); ok = True
+    hosts = [open(os.path.join(a.out, f"det_{t}", "m_50", "host.txt")).read().strip() for t in "AB"]
+    for pat in ("wall_x_positions_*_run0.csv", "speed_of_sound_psi6.csv"):
+        p = [sorted(glob.glob(os.path.join(a.out, f"det_{t}", "m_50", pat))) for t in "AB"]
+        if not all(len(x) == 1 for x in p): print(f"{pat}: missing in one run -- DIFFERENT -- STOP"); ok = False; continue
+        same = subprocess.run(["cmp", p[0][0], p[1][0]]).returncode == 0; ok &= same
+        print(f"{os.path.basename(p[0][0])}: {'IDENTICAL' if same else 'DIFFERENT -- STOP'} ({os.path.getsize(p[0][0])} bytes)")
+    print(f"determinism self-test (same binary, same seed, run A on {hosts[0]}, run B on {hosts[1]}"
+          f"{', different nodes' if hosts[0] != hosts[1] else ', same node'}): {'IDENTICAL' if ok else 'DIFFERENT -- STOP'}")
+    return 0 if ok else 1
+
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(); ap.add_argument("what", choices=["run", "analyse", "determinism"])
+    ap = argparse.ArgumentParser(); ap.add_argument("what", choices=["run", "analyse", "determinism", "det1", "detcmp"])
+    ap.add_argument("--tag", choices=["A", "B"], default="A")
     ap.add_argument("--bin", default=os.path.join(HS, "00ALLINONE")); ap.add_argument("--out", required=True)
     ap.add_argument("--jobs", type=int, default=9); a = ap.parse_args()
-    sys.exit({"run": run, "analyse": analyse, "determinism": determinism}[a.what](a))
+    sys.exit({"run": run, "analyse": analyse, "determinism": determinism, "det1": det1, "detcmp": detcmp}[a.what](a))
