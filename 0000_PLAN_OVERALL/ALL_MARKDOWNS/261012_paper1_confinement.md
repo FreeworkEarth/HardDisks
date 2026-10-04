@@ -1631,3 +1631,163 @@ eta 0.39: rho_I,c = a x 2 Delta_C: a = 0.58 +- 0.12, chi2 17.2 / 8 dof (rho_I,c 
 | identity, length-free (C1) | within 2 σ at every cell | **FAIL**, 4/19 [post-hoc drift-corrected: 10/19; the π/8 failures are mostly the released-divider bias] |
 | γ_box (§ 1.5) | no pass/fail | η 0.10: 2.038 ± 0.004 (bulk 2.009); π/8 registered 2.35–3.07, drift-corrected 2.26–2.41 (bulk 2.188) |
 | gates | inventory, reduction (§ 1.10), determinism (§ 1.12), health | all PASS; one trajectory excluded by the health rule (effect ≤ 0.008 σ on c_s) |
+
+
+---
+
+## 3. PRE-REGISTRATION "A-fixed": the identity with a divider that is actually held (2026-10-04, before any A-fixed run)
+
+Written and committed before any A-fixed trajectory exists. Decisions taken by the plan author on 2026-10-04:
+- the registered verdicts of § 2 stand;
+- C4 (the temperature-based drift correction of § 2.7) is a documented POST-HOC analysis, not the identity result;
+- the identity is re-measured, by the design below.
+
+### 3.1 Why
+
+The registered identity test (C1) failed: 4 of 19 cells were within 2 σ (§ 2.3). Afterwards, § 2.7 found the main reason in the data: method A held its divider for the 200 σ-time equilibration only, then released it with mass 10⁹. In the off-centre runs the divider returned towards the centre while the force was being recorded, which biased k_T low, by 0.9–35 % at π/8.
+
+A-fixed measures the same static side again with a divider held for the entire record.
+
+### 3.2 Code facts (Task Y1) [SOURCE, quoted]
+
+- **The hold is on by default:** `bool wall_hold_enabled = true;` (`00ALLINONE.c:294`).
+- **While held, the core is given mass 0 and velocity 0:** `if (hold_active) { div_mass[w] = 0.0; div_vx[w] = 0.0; }` (`00ALLINONE.c:16890–16892`).
+- **A mass-0 divider has no spring** (`divider_has_spring` requires mass > 0, `edmd.c:253`). Its position update is therefore `S->prm.divider_x[d] += S->prm.divider_vx[d] * dt;` (`edmd.c:779`), which adds exactly 0: the divider does not move.
+- **Every collision with it is resolved by the infinite-mass branch and logged:** `if (M <= 0.0){ double v1 = 2.0 * u2 - u1; … edmd_log_event(S, kb, u2, u1, v1, dE); …` (`edmd.c:1174–1183`). Each one appears in the event log as `D0` with dp = v₁ − u₁.
+  - **So yes: the forces F_L and F_R are recorded during the hold**, from the event log, exactly as after the release.
+- **The run length:** `recorded_steps = 0;` at the release (`00ALLINONE.c:17055`), `if (!wall_is_released) continue;` (`:17069`) and `recorded_steps++;` (`:17205`) with `target_steps = num_steps` (`:16592`). So `--steps` counts released steps only.
+  - The trace (KE, hence T_L and T_R) is written after the release only, and its time is `simulation_time - wall_release_time` (`:17086`).
+- **[DATA] Pre-check on existing data**, printed by `python3 hspist3/cluster/afix_pilot_check_261004.py`. In all 20 method-A pilot runs, the 200 σ-time hold has about 2,500 divider collisions, each with u_wall = 0 and Σ dE = 0 exactly:
+
+##### Pre-check on existing data: the hold phase (t < 200) of the 20 method-A pilot runs
+
+| position | seed | D0 events, t < 200 | max abs u_wall | sum dE |
+|---|---|---|---|---|
+| x_m2 | 9700 | 2577 | 0 | 0 |
+| x_m2 | 9701 | 2613 | 0 | 0 |
+| x_m2 | 9702 | 2589 | 0 | 0 |
+| x_m2 | 9703 | 2485 | 0 | 0 |
+| x_m1 | 9700 | 2642 | 0 | 0 |
+| x_m1 | 9701 | 2527 | 0 | 0 |
+| x_m1 | 9702 | 2546 | 0 | 0 |
+| x_m1 | 9703 | 2544 | 0 | 0 |
+| x_0 | 9700 | 2570 | 0 | 0 |
+| x_0 | 9701 | 2550 | 0 | 0 |
+| x_0 | 9702 | 2573 | 0 | 0 |
+| x_0 | 9703 | 2502 | 0 | 0 |
+| x_p1 | 9700 | 2562 | 0 | 0 |
+| x_p1 | 9701 | 2601 | 0 | 0 |
+| x_p1 | 9702 | 2547 | 0 | 0 |
+| x_p1 | 9703 | 2546 | 0 | 0 |
+| x_p2 | 9700 | 2538 | 0 | 0 |
+| x_p2 | 9701 | 2502 | 0 | 0 |
+| x_p2 | 9702 | 2543 | 0 | 0 |
+| x_p2 | 9703 | 2511 | 0 | 0 |
+
+pre-check: the divider is immovable during the hold in all 20 runs
+
+**Consequence: no code change.** A-fixed runs on the same binary as method B, `279282b target koa`. The identity figure therefore compares two methods of one build generation, and no byte-identity evidence across builds is needed.
+
+### 3.3 Design
+
+- **Cells, positions, seeds and stencil** are those of method A, by construction. `hspist3/cluster/gen_afix_sbatch_261004.py` turns every line of `tasks_A_<cell>.txt` one-to-one into an `AF` line, and checks that the (position, seed) sets are equal; they are, in all 19 cells (table below).
+- **Flags** are those of method A (`conf_worker.sh` mode A), except `--wall-hold-steps=312000` (200 σ-time equilibration + 5000 σ-time record, dt = 1/60 σ-time) and `--steps=1200`. The 20 σ-time released tail exists only so that the trace records the temperatures (mode `AF`).
+- **Window:** [200, 5200) σ-time, i.e. the equilibration and the released tail are both excluded (`reduce_AF.py`).
+- **Output** goes to `experiments_energy_transfer/paper1_confinement_Afix_261004/` (new). The method-A directories are never written.
+- **Seed reuse [INFERENCE].** The first 200 σ-time of every A-fixed run is identical to its method-A run; gate G1(a) checks this. The records then differ (held against released) and decorrelate within a few collision times. P1 treats the two as independent; any residual positive correlation would make P1 conservative.
+
+Printed by `python3 hspist3/cluster/gen_afix_sbatch_261004.py` (verbatim):
+
+##### A-fixed arrays (261012 sec. 3): tasks from the method-A task files, hold 312000 steps, tail 1200, every 600
+
+| group | task | cell | N_s | trajectories | same (position, seed) set as method A | predicted wall (h) | basis | core-h (wall x 16) |
+|---|---|---|---|---|---|---|---|---|
+| Afix_0.10 | 1 | e0p10_H_H5_L39.25 | 25 | 710 | yes | 0.03 | Round 1 sacct (measured) | 0.5 |
+| Afix_0.10 | 2 | e0p10_H_H10_L39.25 | 50 | 720 | yes | 0.05 | Round 1 sacct (measured) | 0.8 |
+| Afix_0.10 | 3 | e0p10_H_H20_L39.25 | 100 | 675 | yes | 0.11 | Round 1 sacct (measured) | 1.8 |
+| Afix_0.10 | 4 | e0p10_H_H40_L39.25 | 200 | 720 | yes | 0.93 | H20 per wave x 2^2.99 | 14.9 |
+| Afix_0.10 | 5 | e0p10_L_H10_L19.625 | 25 | 750 | yes | 0.03 | Round 1 sacct (measured) | 0.6 |
+| Afix_0.10 | 6 | e0p10_L_H10_L78.5 | 100 | 675 | yes | 0.11 | Round 1 sacct (measured) | 1.7 |
+| Afix_0.10 | 7 | e0p10_aspect_H19.7917_L19.7917 | 50 | 730 | yes | 0.06 | Round 1 sacct (measured) | 1.0 |
+| Afix_0.10 | 8 | e0p10_aspect_H14_L28 | 50 | 685 | yes | 0.06 | Round 1 sacct (measured) | 0.9 |
+| Afix_0.10 | 9 | e0p10_aspect_H9.91667_L39.625 | 50 | 680 | yes | 0.05 | Round 1 sacct (measured) | 0.8 |
+| Afix_0.10 | 10 | e0p10_aspect_H7_L56.0417 | 50 | 685 | yes | 0.05 | Round 1 sacct (measured) | 0.8 |
+| Afix_0.10 | -- | sbatch default --time = 3 x the largest non-H40 cell = 0:30:00; H40 override 3:00:00 | | | | | | |
+| Afix_0.39 | 1 | epi8_H_H5_L10 | 25 | 130 | yes | 0.05 | pilot per wave x (N_s/50)^2.99 | 0.8 |
+| Afix_0.39 | 2 | epi8_H_H10_L10 | 50 | 115 | yes | 0.05 | pilot per wave x (N_s/50)^2.99 | 0.7 |
+| Afix_0.39 | 3 | epi8_H_H20_L10 | 100 | 130 | yes | 0.41 | pilot per wave x (N_s/50)^2.99 | 6.5 |
+| Afix_0.39 | 4 | epi8_H_H40_L10 | 200 | 255 | yes | 5.78 | pilot per wave x (N_s/50)^2.99 | 92.4 |
+| Afix_0.39 | 5 | epi8_L_H10_L5 | 25 | 130 | yes | 0.05 | pilot per wave x (N_s/50)^2.99 | 0.8 |
+| Afix_0.39 | 6 | epi8_L_H10_L20 | 100 | 130 | yes | 0.41 | pilot per wave x (N_s/50)^2.99 | 6.5 |
+| Afix_0.39 | 7 | epi8_aspect_H7.08333_L14.125 | 50 | 130 | yes | 0.05 | pilot per wave x (N_s/50)^2.99 | 0.8 |
+| Afix_0.39 | 8 | epi8_aspect_H5_L20 | 50 | 115 | yes | 0.05 | pilot per wave x (N_s/50)^2.99 | 0.7 |
+| Afix_0.39 | 9 | epi8_aspect_H3.54167_L28.2917 | 50 | 105 | yes | 0.04 | pilot per wave x (N_s/50)^2.99 | 0.6 |
+| Afix_0.39 | -- | sbatch default --time = 3 x the largest non-H40 cell = 1:15:00; H40 override 17:30:00 | | | | | | |
+
+A-fixed pilot: 20 trajectories (the method-A pilot's tasks, held), sandbox, 1:00:00
+
+total (upper bound, wall x 16 cores): Afix_0.10 23.8 core-h, Afix_0.39 110.0 core-h, together 133.9 core-h; p* = 2.99
+
+submission lines (runsheet step 9; at most 64 cores: 2 x 16 + 2 x 16):
+
+    sbatch --array=1-1 cluster/confinement_20261013/conf_Afix_pilot.sbatch      (first, sandbox; gate G1)
+    sbatch --array=4 --time=3:00:00 cluster/confinement_20261013/conf_Afix_0.10.sbatch
+    sbatch --array=1,2,3,5,6,7,8,9,10%2 cluster/confinement_20261013/conf_Afix_0.10.sbatch
+    sbatch --array=4 --time=17:30:00 cluster/confinement_20261013/conf_Afix_0.39.sbatch
+    sbatch --array=1,2,3,5,6,7,8,9%2 cluster/confinement_20261013/conf_Afix_0.39.sbatch
+
+files written: tasks_AF_*.txt (19 cells + pilot), cells_Afix_{0.10,0.39,pilot}.tsv, conf_Afix_{0.10,0.39,pilot}.sbatch, fetch_afix.sh
+
+**Cost note [INFERENCE].** The η = 0.10 cells take their wall times from the Round 1 sacct, except H40. H40 and every π/8 cell use the Round-1 measured-scaling rule (p* = 2.99). The π/8 H40 cell (5.8 h, 92 core-h) dominates the total and is an extrapolation from N_s = 50. The Round-2 sacct of `conf-A_0.39` task 4 would replace it with a measurement. `--time` is 3× the prediction, so an over-estimate costs only queue priority.
+
+### 3.4 Estimator (registered now)
+
+- **Per seed:** F_L/T_L and F_R/T_R, the normalisation of C4. Here T ≡ 1 by construction, since each compartment is closed and the divider does no work.
+- **Points:** F̃(j) is the mean of (F_L/T_L)(run j) and (F_R/T_R)(run −j).
+- **k_T** = −[F̃(−2) − 8F̃(−1) + 8F̃(+1) − F̃(+2)]/(12 dL), with the nominal spacing dL (f = 1). Its σ comes from the seed standard errors.
+- **Static side:** k_T + F(L₀)²/(N_s kT), with F(L₀) = ½(F_L + F_R) at x = 0 and kT the mean temperature of the x = 0 seeds, as in § 2.3.
+- **Dynamic side:** k_S^dyn is method B's, unchanged (C1, § 2.3).
+- **Residual:** ρ_I = (k_S^dyn − static)/k_S^dyn, with σ(ρ_I)² = (σ_kS/k_S)² + (σ_kT/k_S)².
+- **Drift check, per cell.** f from the recorded temperatures by the C4 formula (`paper1_confinement_heldwall_posthoc_261004.drift`) must give |1 − f| < 0.002.
+  - A cell that fails is flagged, reported, and left out of P1–P3. More than two flagged cells → stop (design failure).
+  - Every seed must also have `u_wall_max` = 0 and `W_div` = 0.
+- **The analysis script** will be `hspist3/validation/paper1_confinement_afix_<date>.py`, written before the data are opened and applied once.
+
+### 3.5 Gates
+
+- **G1 (before the arrays): the A-fixed pilot.** It runs the 20 tasks of the method-A pilot, held. `afix_pilot_check_261004.py` checks, per run:
+  - (a) the event-log lines before t = 200 are identical to the method-A pilot's;
+  - (b) u_wall = 0 for every D0 event before the release;
+  - (c) Σ dE = 0;
+  - (d) the record is complete;
+  - (e) health 0;
+  - (f) |1 − f| < 0.002.
+  
+  If (a) fails, stop: the two flags would be changing the trajectory before 200 σ-time, which must be explained before launch.
+- **G2 (after): inventory,** as in § 2.1: every seed, the recorded geometry, the build, health 0.
+- **G3 (after, per cell):** the drift check of § 3.4.
+
+### 3.6 Predictions, and what each outcome means (registered now)
+
+**P1: consistency with C4.**
+- **Test:** per cell, ρ_I(A-fixed) − ρ_I(C4) must lie within 2 σ, with σ² = (σ_kT,A-fixed² + σ_kT,C4²)/k_S^dyn². k_S^dyn is common to both and cancels. The C4 values are the § 2.7 table (`261004_p1_identity_heldwall_posthoc`).
+- **Rule:** P1 holds if every cell is within 2 σ. The χ² over the cells is reported as well.
+- **If it holds:** the C4 correction is validated, and the A-fixed values become the paper's identity figure.
+- **If it fails:** C4 is not an adequate correction of a moving divider. The A-fixed values supersede it, and the pattern of the differences is reported.
+
+**P2: the identity, by the C1 rule.** |ρ_I(A-fixed)| ≤ 2 σ at every cell.
+- **If it holds:** the dynamic and the static stiffness agree in every box; the identity holds in the confined system.
+- **If it fails:** there is a real difference between dynamic and static stiffness, characterised by P3.
+
+**P3: the 1/N_s residual.**
+- **Fit:** per density, a weighted one-parameter fit ρ_I = c/N_s.
+- **Report:** r = c/A_C, where A_C = 2 N_s Δ_C, the amplitude hypothesis C predicts: (q+1)(q+2)/(8qZ) = 0.634 at η = 0.10 and 0.384 at π/8 [DERIVATION, Table P: Δ_C = +0.634 % and +0.384 % at N_s = 50]. Also report r's σ, the χ² of the fit and the χ² of ρ_I = 0.
+- **Outcomes, declared now:**
+  - |c| < 2 σ_c at both densities: there is no 1/N_s residual. The C4-corrected residual (r = 0.75 ± 0.07 and 0.58 ± 0.12, § 2.7) was an artefact of correcting a moving divider.
+  - c > 2 σ_c, with r within 2 σ of the C4 values: the residual is physics; the dynamic stiffness exceeds the static one in proportion to 1/N_s. The paper reports it, and its tension with the flat L-scan of Δ (§ 2.9) is stated as OPEN.
+  - r within 2 σ of 1: hypothesis C's mechanism (thermal-amplitude anharmonicity) at its predicted size.
+  - c < −2 σ_c: the static stiffness exceeds the dynamic one. This is new, and is reported as such.
+
+### 3.7 What would change this registration
+
+Only gate G1. If any of (a)–(f) fails, the design is revised, and amended in writing, before any array runs. Nothing is tuned after array data.
