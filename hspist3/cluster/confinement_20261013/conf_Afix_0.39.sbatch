@@ -9,7 +9,7 @@
 #SBATCH --job-name=conf-Afix_0.39
 #SBATCH --partition=shared
 #SBATCH --account=uh
-#SBATCH --time=1:15:00
+#SBATCH --time=0:30:00
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=8G
 #SBATCH --output=logs/%x_%A_%a.out

@@ -1841,6 +1841,11 @@ files written: tasks_AF_*.txt (19 cells + pilot), cells_Afix_{0.10,0.39,pilot}.t
 
 **Cost note [INFERENCE].** The η = 0.10 cells take their wall times from the Round 1 sacct, except H40. H40 and every π/8 cell use the Round-1 measured-scaling rule (p* = 2.99). The π/8 H40 cell (5.8 h, 92 core-h) dominates the total and is an extrapolation from N_s = 50. The Round-2 sacct of `conf-A_0.39` task 4 would replace it with a measurement. `--time` is 3× the prediction, so an over-estimate costs only queue priority.
 
+**Amendment (2026-10-04, before any A-fixed run; plan author's decision) [DATA].** Cost and `--time` now come from the measured sacct times of the identical method-A cells, replacing the p* extrapolation above.
+- Total: 49.4 core-h (Afix_0.10 17.7, Afix_0.39 31.7; both upper bounds).
+- `--time` = 2 × the measured time per task, rounded up to 5 min, at least 0:30. That gives H40 1:10:00 (η = 0.10) and 3:05:00 (π/8); every other task gets 0:30.
+- Printed by `gen_afix_sbatch_261004.py`; the table is in runsheet step 9. Nothing else in § 3 changes.
+
 ### 3.4 Estimator (registered now)
 
 - **Per seed:** F_L/T_L and F_R/T_R, the normalisation of C4. Here T ≡ 1 by construction, since each compartment is closed and the divider does no work.

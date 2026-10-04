@@ -479,13 +479,41 @@ Paste the output. Its last line must be `**GATE G1: PASS**`. The fetch copies ab
 
 ```sh
 cd ~/harddisks/hspist3
-sbatch --array=4 --time=3:00:00 cluster/confinement_20261013/conf_Afix_0.10.sbatch
+sbatch --array=4 --time=1:10:00 cluster/confinement_20261013/conf_Afix_0.10.sbatch
 sbatch --array=1,2,3,5,6,7,8,9,10%2 cluster/confinement_20261013/conf_Afix_0.10.sbatch
-sbatch --array=4 --time=17:30:00 cluster/confinement_20261013/conf_Afix_0.39.sbatch
+sbatch --array=4 --time=3:05:00 cluster/confinement_20261013/conf_Afix_0.39.sbatch
 sbatch --array=1,2,3,5,6,7,8,9%2 cluster/confinement_20261013/conf_Afix_0.39.sbatch
 ```
 
-The `--time` values are 3 × the predicted cell time (`python3 hspist3/cluster/gen_afix_sbatch_261004.py` prints them). The π/8 H = 40 prediction (5.8 h) is an extrapolation with p* = 2.99. If the Round-2 `sacct` of `conf-A_0.39` task 4 is pasted first, that measured time replaces it.
+(Amended 2026-10-04.) Every `--time` is 2 × the measured time of the identical method-A cell, rounded up to 5 min, with a minimum of 0:30. Round 1 and Round 2 ran these cells with the released divider: the same steps and the same collisions. In total the arrays use about 49 core-hours.
+
+Printed by `python3 hspist3/cluster/gen_afix_sbatch_261004.py`:
+
+| group | task | cell | N_s | trajectories | same (position, seed) set as method A | measured wall (h) | source | --time = 2 x measured | core-h (wall x 16) |
+|---|---|---|---|---|---|---|---|---|---|
+| Afix_0.10 | 1 | e0p10_H_H5_L39.25 | 25 | 710 | yes | 0.032 | Round 1 sacct | 0:30:00 | 0.5 |
+| Afix_0.10 | 2 | e0p10_H_H10_L39.25 | 50 | 720 | yes | 0.051 | Round 1 sacct | 0:30:00 | 0.8 |
+| Afix_0.10 | 3 | e0p10_H_H20_L39.25 | 100 | 675 | yes | 0.112 | Round 1 sacct | 0:30:00 | 1.8 |
+| Afix_0.10 | 4 | e0p10_H_H40_L39.25 | 200 | 720 | yes | 0.548 | Round 1 32:06 (707/720) + repair 0:47 | 1:10:00 | 8.8 |
+| Afix_0.10 | 5 | e0p10_L_H10_L19.625 | 25 | 750 | yes | 0.034 | Round 1 sacct | 0:30:00 | 0.6 |
+| Afix_0.10 | 6 | e0p10_L_H10_L78.5 | 100 | 675 | yes | 0.108 | Round 1 sacct | 0:30:00 | 1.7 |
+| Afix_0.10 | 7 | e0p10_aspect_H19.7917_L19.7917 | 50 | 730 | yes | 0.063 | Round 1 sacct | 0:30:00 | 1.0 |
+| Afix_0.10 | 8 | e0p10_aspect_H14_L28 | 50 | 685 | yes | 0.055 | Round 1 sacct | 0:30:00 | 0.9 |
+| Afix_0.10 | 9 | e0p10_aspect_H9.91667_L39.625 | 50 | 680 | yes | 0.053 | Round 1 sacct | 0:30:00 | 0.8 |
+| Afix_0.10 | 10 | e0p10_aspect_H7_L56.0417 | 50 | 685 | yes | 0.052 | Round 1 sacct | 0:30:00 | 0.8 |
+| Afix_0.10 | -- | sbatch default --time = 2 x the largest non-H40 cell = 0:30:00; H40 override 1:10:00 | | | | | | | |
+| Afix_0.39 | 1 | epi8_H_H5_L10 | 25 | 130 | yes | 0.035 | Round 2 sacct, range 0:55-2:07 (upper end) | 0:30:00 | 0.6 |
+| Afix_0.39 | 2 | epi8_H_H10_L10 | 50 | 115 | yes | 0.035 | Round 2 sacct, range 0:55-2:07 (upper end) | 0:30:00 | 0.6 |
+| Afix_0.39 | 3 | epi8_H_H20_L10 | 100 | 130 | yes | 0.142 | Round 2 sacct | 0:30:00 | 2.3 |
+| Afix_0.39 | 4 | epi8_H_H40_L10 | 200 | 255 | yes | 1.533 | Round 2 sacct | 3:05:00 | 24.5 |
+| Afix_0.39 | 5 | epi8_L_H10_L5 | 25 | 130 | yes | 0.035 | Round 2 sacct, range 0:55-2:07 (upper end) | 0:30:00 | 0.6 |
+| Afix_0.39 | 6 | epi8_L_H10_L20 | 100 | 130 | yes | 0.095 | Round 2 sacct | 0:30:00 | 1.5 |
+| Afix_0.39 | 7 | epi8_aspect_H7.08333_L14.125 | 50 | 130 | yes | 0.035 | Round 2 sacct, range 0:55-2:07 (upper end) | 0:30:00 | 0.6 |
+| Afix_0.39 | 8 | epi8_aspect_H5_L20 | 50 | 115 | yes | 0.035 | Round 2 sacct, range 0:55-2:07 (upper end) | 0:30:00 | 0.6 |
+| Afix_0.39 | 9 | epi8_aspect_H3.54167_L28.2917 | 50 | 105 | yes | 0.035 | Round 2 sacct, range 0:55-2:07 (upper end) | 0:30:00 | 0.6 |
+| Afix_0.39 | -- | sbatch default --time = 2 x the largest non-H40 cell = 0:30:00; H40 override 3:05:00 | | | | | | | |
+
+total (measured wall x 16 cores, an upper bound): Afix_0.10 17.7 core-h, Afix_0.39 31.7 core-h, together 49.4 core-h
 
 **7. When `squeue -u charing` is empty:** run `bash cluster/check_cells.sh` in a sandbox session (it covers the A-fixed groups `Afix_*`) and paste its `== Afix_*` blocks and `SUMMARY:` line. Then, on the Mac, fetch the summaries:
 

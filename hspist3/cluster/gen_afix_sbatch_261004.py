@@ -12,11 +12,16 @@ and a released tail of --steps = 1200 (20 sigma-time; only so the trace, written
 temperatures). The output directory REL_AF is new; the method-A directories are never written.
 The binary is unchanged (no build input changes): the same 279282b build that ran method B and method A.
 
-Cost [INFERENCE]: an A-fixed trajectory runs the same number of steps as a method-A trajectory (+0.4 %), so its cost is
-taken from Round 1: for the eta = 0.10 cells the measured wall time of the method-A array task (sacct, round1_timing_261003);
-for the H = 40 cell and every pi/8 cell the measured-scaling rule of round1_timing_261003 (p* = the steepest local
-exponent measured, 2.99; pi/8 from the method-A pilot, 20.5 s per wave of 16 at N_s = 50). --time = 3 x the prediction,
-rounded up to 15 min, capped at 72 h; one array default (3 x the largest non-H40 cell) and one override line for H40.
+Cost: an A-fixed trajectory runs the same number of steps (+0.4 %) and the same collisions as a method-A trajectory, so the
+cost of a cell is the MEASURED wall time of the method-A array task that ran the identical cell.
+##CHRIS 2026-10-04 (amendment, plan author's decision; replaces the first version's p* = 2.99 extrapolation and its 3 x
+--time): sacct Elapsed on 16 cores [DATA, Chris's terminal]:
+  conf-A_0.39 (Round 2): task 4 (H40) 01:31:59; task 3 00:08:31; task 6 00:05:43; tasks 1, 2, 5, 7, 8, 9 between 00:00:55
+      and 00:02:07 (only the range was given, so each of them is costed at the upper end, 00:02:07);
+  conf-A_0.10: tasks 1-3, 5-10 from the Round 1 sacct (round1_timing_261003.SACCT); task 4 (H40) = 00:32:06 (707 of 720
+      trajectories before the TIMEOUT) + 00:00:47 (the remaining 13 in the repair).
+--time = 2 x the measured time per task, rounded up to 5 min, at least 0:30; the array default covers every task but H40,
+which gets an override line. core-h = measured wall x 16 cores (an upper bound: it includes the tail of each cell).
 usage (from hspist3/): python3 cluster/gen_afix_sbatch_261004.py
 """
 import math, os, sys
@@ -41,34 +46,28 @@ def af_lines(cid, src_cell=None):
     return out
 
 
-def pstar():
-    loc = []
-    for g in RT.SACCT:
-        hs = [c for c in RT.cells(g) if "_H_H" in c]
-        pw = {RT.ns(g, c): RT.sec(el) / math.ceil(RT.ntraj(g, c) / RT.sbatch(g)[0])
-              for c in hs for t, el, st in RT.SACCT[g] if st == "C" and RT.cells(g)[t - 1] == c}
-        n = sorted(pw); loc.append(math.log(pw[n[-1]] / pw[n[-2]]) / math.log(n[-1] / n[-2]))
-    return max(loc)
+# ##CHRIS 2026-10-04 (amendment): measured sacct Elapsed [DATA], see the docstring
+A39_MEASURED_S = {4: 1 * 3600 + 31 * 60 + 59, 3: 8 * 60 + 31, 6: 5 * 60 + 43}
+A39_RANGE_UPPER_S = 2 * 60 + 7                      # tasks 1, 2, 5, 7, 8, 9: 00:00:55 .. 00:02:07, upper end used
+A10_H40_S = 32 * 60 + 6 + 47                        # 707/720 in 32:06 before TIMEOUT + the remaining 13 in 0:47
 
 
-def predict_h(group, cid, n, Ns):
-    """Wall hours of one A-fixed cell (n trajectories, 16 at a time)."""
-    waves = math.ceil(n / CPUS)
-    if group == "Afix_0.10":
-        cl = RT.cells("A_0.10"); t = cl.index(cid) + 1
-        el, st = [(e, s) for tt, e, s in RT.SACCT["A_0.10"] if tt == t][0]
-        if st == "C":
-            return RT.sec(el) / 3600, "Round 1 sacct (measured)"
-        ref = [c for c in cl if "_H_H20" in c][0]; tr = cl.index(ref) + 1
-        pw = RT.sec([e for tt, e, s in RT.SACCT["A_0.10"] if tt == tr][0]) / math.ceil(RT.ntraj("A_0.10", ref) / CPUS)
-        return pw * (Ns / RT.ns("A_0.10", ref)) ** P * waves / 3600, f"H20 per wave x 2^{P:.2f}"
-    pw50 = RT.PILOT_ELAPSED_S / math.ceil(RT.PILOT_N / RT.PILOT_P)
-    return pw50 * max(1.0, Ns / 50) ** P * waves / 3600, f"pilot per wave x (N_s/50)^{P:.2f}"
+def measured_h(group, task):
+    """Measured wall hours of the method-A array task that ran the identical cell, and where the number comes from."""
+    if group == "Afix_0.39":
+        if task in A39_MEASURED_S:
+            return A39_MEASURED_S[task] / 3600, "Round 2 sacct"
+        return A39_RANGE_UPPER_S / 3600, "Round 2 sacct, range 0:55-2:07 (upper end)"
+    if task == 4:
+        return A10_H40_S / 3600, "Round 1 32:06 (707/720) + repair 0:47"
+    el = [e for t, e, s in RT.SACCT["A_0.10"] if t == task][0]
+    return RT.sec(el) / 3600, "Round 1 sacct"
 
 
 def hms(h):
-    m = max(30, math.ceil(min(72.0, h) * 4) * 15)
-    return f"{m // 60}:{m % 60:02d}:00" if m < 1440 else f"{m // 1440}-{(m % 1440) // 60:02d}:{m % 60:02d}:00"
+    """2 x measured is applied by the caller; here: round up to 5 min, at least 30 min."""
+    m = max(30, math.ceil(h * 60 / 5) * 5)
+    return f"{m // 60}:{m % 60:02d}:00"
 
 
 def sbatch_text(g, ncell, part, tstr):
@@ -108,11 +107,9 @@ echo "cell $CELL done; failures: $(grep -c FAILED logs/conf-{g}_${{SLURM_ARRAY_J
 
 
 def main():
-    global P
-    P = pstar()
     print(f"### A-fixed arrays (261012 sec. 3): tasks from the method-A task files, hold {HOLD} steps, tail {POST}, every {EVERY}\n")
-    print("| group | task | cell | N_s | trajectories | same (position, seed) set as method A | predicted wall (h) | basis | core-h (wall x 16) |")
-    print("|---|---|---|---|---|---|---|---|---|")
+    print("| group | task | cell | N_s | trajectories | same (position, seed) set as method A | measured wall (h) | source | --time = 2 x measured | core-h (wall x 16) |")
+    print("|---|---|---|---|---|---|---|---|---|---|")
     lines_out, tot = [], {}
     for lab in ("0.10", "0.39"):
         g = f"Afix_{lab}"; cl = open(os.path.join(CONF, f"cells_A_{lab}.tsv")).read().split()
@@ -122,25 +119,25 @@ def main():
             A = [l.split() for l in open(os.path.join(CONF, f"tasks_A_{cid}.txt"))]
             same = sorted((os.path.basename(a[1]), a[3]) for a in A) == sorted((l.split()[1].rsplit("/", 1)[1], l.split()[3]) for l in L)
             open(os.path.join(CONF, f"tasks_AF_{cid}.txt"), "w").write("\n".join(L) + "\n")
-            Ns = int(A[0][6]); h, basis = predict_h(g, cid, len(L), Ns); preds.append((t, cid, h))
+            Ns = int(A[0][6]); h, basis = measured_h(g, t); preds.append((t, cid, h))
             tot[g] = tot.get(g, 0.0) + h * CPUS
-            print(f"| {g} | {t} | {cid} | {Ns} | {len(L)} | {'yes' if same else '**NO**'} | {h:.2f} | {basis} | {h * CPUS:.1f} |")
+            print(f"| {g} | {t} | {cid} | {Ns} | {len(L)} | {'yes' if same else '**NO**'} | {h:.3f} | {basis} | {hms(2 * h)} | {h * CPUS:.1f} |")
         open(os.path.join(CONF, f"cells_{g}.tsv"), "w").write("\n".join(cl) + "\n")
         big = [p for p in preds if "_H_H40" in p[1]][0]
-        default = hms(3 * max(h for t, c, h in preds if t != big[0]))
+        default = hms(2 * max(h for t, c, h in preds if t != big[0]))
         open(os.path.join(CONF, f"conf_{g}.sbatch"), "w").write(sbatch_text(g, len(cl), "shared", default))
         rest = ",".join(str(t) for t, c, h in preds if t != big[0])
-        lines_out += [f"sbatch --array={big[0]} --time={hms(3 * big[2])} cluster/confinement_20261013/conf_{g}.sbatch",
+        lines_out += [f"sbatch --array={big[0]} --time={hms(2 * big[2])} cluster/confinement_20261013/conf_{g}.sbatch",
                       f"sbatch --array={rest}%{THR[g]} cluster/confinement_20261013/conf_{g}.sbatch"]
-        print(f"| {g} | -- | sbatch default --time = 3 x the largest non-H40 cell = {default}; H40 override {hms(3 * big[2])} | | | | | | |")
+        print(f"| {g} | -- | sbatch default --time = 2 x the largest non-H40 cell = {default}; H40 override {hms(2 * big[2])} | | | | | | | |")
     # the A-fixed pilot: the method-A pilot's 20 tasks (pi/8 anchor, seeds 9700-9703), held
     L = af_lines("pilot_epi8_H_H10_L10")
     open(os.path.join(CONF, "tasks_AF_pilot_epi8_H_H10_L10.txt"), "w").write("\n".join(L) + "\n")
     open(os.path.join(CONF, "cells_Afix_pilot.tsv"), "w").write("pilot_epi8_H_H10_L10\n")
     open(os.path.join(CONF, "conf_Afix_pilot.sbatch"), "w").write(sbatch_text("Afix_pilot", 1, "sandbox", "1:00:00"))
     print(f"\nA-fixed pilot: {len(L)} trajectories (the method-A pilot's tasks, held), sandbox, 1:00:00")
-    print(f"\ntotal (upper bound, wall x 16 cores): Afix_0.10 {tot['Afix_0.10']:.1f} core-h, Afix_0.39 {tot['Afix_0.39']:.1f} core-h, "
-          f"together {sum(tot.values()):.1f} core-h; p* = {P:.2f}")
+    print(f"\ntotal (measured wall x 16 cores, an upper bound): Afix_0.10 {tot['Afix_0.10']:.1f} core-h, "
+          f"Afix_0.39 {tot['Afix_0.39']:.1f} core-h, together {sum(tot.values()):.1f} core-h")
     print("\nsubmission lines (runsheet step 9; at most 64 cores: 2 x 16 + 2 x 16):\n")
     print("    sbatch --array=1-1 cluster/confinement_20261013/conf_Afix_pilot.sbatch      (first, sandbox; gate G1)")
     for l in lines_out: print("    " + l)
