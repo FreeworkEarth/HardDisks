@@ -1151,3 +1151,483 @@ It was tested on a mock tree built from the real task files: complete cells, two
 #### W4 — pull without rebuild
 
 The repair touches no build input. Runsheet rule 4 now allows a pull that touches no `*.c`, `*.h`, `Makefile`, `edmd_core/` or `kissfft` to be followed by a resubmission without a rebuild, because the arrays verify the binary by sha256. Rule 5 forbids a rebuild while any cell is incomplete.
+
+
+---
+
+## 2. RESULTS (2026-10-04) — the pre-registered analysis of § 1 (with C1–C3), applied once
+
+### Plain summary (for a non-specialist)
+
+Paper 1 found that the speed of sound in its small simulated box comes out about 1 % above the value for an infinitely large gas. This campaign asked why. It changed the box's height and its length separately, and it measured the gas in each box in two independent ways:
+- **Swinging divider.** A movable divider between two gas compartments is left free to swing, and its ringing frequency gives the speed of sound.
+- **Clamped divider.** The divider is clamped, and the gas's push on it is measured at slightly different positions, which gives the gas's springiness directly.
+
+All 38 measurement series finished. One of 12,545 simulation runs was set aside by the pre-registered health rule; it cannot have changed any result.
+
+What was found:
+
+1. **Dilute gas (η = 0.10).**
+   - The 1 % excess comes from the walls that run along the direction of the sound: it grows about in inverse proportion to the box's height, and it barely changes when the box is made longer or shorter.
+   - Two of the three pre-registered explanations pass the test: A ("all four walls") and B ("the long walls only"). B fits clearly better, but the pre-registered rule does not separate them.
+   - The third, C (a shift caused by the divider's own thermal jiggling), is ruled out as the cause of the excess.
+2. **Dense gas (η = π/8).**
+   - None of the three explanations fits. The excess again grows as the box gets thinner, but it also depends on the box's length in a way none of them allows: the shortest box gives a sound speed below the infinite-gas value.
+   - For the dense gas the question is **not resolved**.
+3. **The cross-check between the two methods failed its pre-registered test.**
+   - Most of the failure in the dense gas comes from a flaw in the clamped measurement, found afterwards. The "clamped" divider was not perfectly fixed: while the force was being recorded, it slowly slid back towards the middle. That made the gas look less springy than it is, by up to 35 % in the tallest box.
+   - How far it slid can be read off the gas temperatures, which every run recorded. Correcting for it, a step that was not pre-registered, brings the two methods into agreement to within about 1.6 %.
+   - A small difference remains in both densities. It is largest in the boxes with the fewest particles, which is the pattern pre-registered for explanation C, at roughly 60–75 % of its predicted size.
+
+### 2.1 Data, gates and exclusion (X1, X2)
+
+**Fetched [DATA].** Everything was fetched by `fetch_confinement.sh` on 2026-10-03, build `279282b target koa`:
+- Method B: 513 files (19 cells × 9 masses × `red_nu.csv`, `acf_runs.npz`, `run.log`; 22 MB).
+- Method A: 24,810 files (8,270 seeds × `red_`, `run_`, `summary_`; 20 MB).
+- The two full pilot cells: `koa_pi8_H10_L10`, 133 files; the A pilot with its traces.
+
+Raw trajectories stay on KOA scratch (decision, § 1.11). Every number below is printed by `python3 hspist3/validation/paper1_confinement_results_261004.py`, verbatim, unless marked post-hoc.
+
+**Gates [DATA].**
+- **Inventory: PASS.** Every cell is complete, and its geometry as recorded by the binary matches the task file and the registration (A summaries: L₀, H, 2N_s, t = 0.05, box width = 2L₀, η, wall position; B logs: `Initial wall_x` = 200 + 24 L₀ px in all 4,274 used runs).
+  - Disclosure: the first run flagged 5,282 A summaries as different. The cause was print precision, not geometry: the summary prints L₀, H and the wall position to 4 decimals (`'19.7917'`), so values on the 1/24 grid differ from the task file by 3.3×10⁻⁵, while my tolerance was 10⁻⁵.
+  - The tolerance was set to the print precision (5×10⁻⁵), and nothing else changed. A rerun reproduced every analysis number and both result CSVs byte for byte.
+  - The B logs also print a startup banner `L0 (half-length): 20.000 σ` for every cell. It is the global default `L0_UNITS = 20.0f` (`00ALLINONE.c:250`), printed before the experiment loop sets `L0_UNITS = L0` per run (`:15732`); the per-run `Running: L0 = …` and `Initial wall_x` lines are right [DERIVATION].
+- **Reduction gate (§ 1.10): PASS.** On the KOA pilot traces, `reduce_B.py` equals the canonical `cell()` to 7.3×10⁻¹⁷.
+- **Determinism gate (§ 1.12): PASS.** 20 of 20 `red_970[0-3].csv` of the anchor cell are byte-identical to the pilot's: same source, different build hash, different job and node.
+- **Health [DATA].** 0 health lines in every used B `run.log` and A `run_<seed>.log`.
+- **Carried over from § 1.10:** the C2 mode-equivalence gate PASSED before launch. The pictures gate was met for two held-divider cells only, with no speed-of-sound pictures.
+
+##### X1 -- inventory of the fetched summaries (expected = task file)
+
+| eta | cell | B masses | B trajectories (exp.) | B files, MB | B nu rows with n missing | B wall_x = 200 + 24 L0 px | A positions x seeds (exp.) | A files, MB | A window min..max | health lines (B run.log / A run logs) | A build | A geometry (L0, H, 2N_s, t, box, eta, x_wall) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.10 | e0p10_H_H5_L39.25 | 9 | 225 (225) | 27, 1.18 | 0 | 225/225 | 5 x 142 (710) | 2130, 1.81 | 4999.4..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.10 | e0p10_H_H10_L39.25 | 9 | 225 (225) | 27, 1.18 | 0 | 225/225 | 5 x 144 (720) | 2160, 1.84 | 4999.2..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.10 | e0p10_H_H20_L39.25 | 9 | 225 (225) | 27, 1.19 | 0 | 225/225 | 5 x 135 (675) | 2025, 1.73 | 4999.5..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.10 | e0p10_H_H40_L39.25 | 9 | 225 (225) | 27, 1.19 | 0 | 225/225 | 5 x 144 (720) | 2160, 1.84 | 4999.6..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.10 | e0p10_L_H10_L19.625 | 9 | 225 (225) | 27, 1.18 | 0 | 225/225 | 5 x 150 (750) | 2250, 1.91 | 4999.3..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.10 | e0p10_L_H10_L78.5 | 9 | 225 (225) | 27, 1.19 | 0 | 225/225 | 5 x 135 (675) | 2025, 1.73 | 4999.7..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.10 | e0p10_aspect_H19.7917_L19.7917 | 9 | 225 (225) | 27, 1.19 | 0 | 225/225 | 5 x 146 (730) | 2190, 1.89 | 4999.3..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.10 | e0p10_aspect_H14_L28 | 9 | 225 (225) | 27, 1.18 | 0 | 225/225 | 5 x 137 (685) | 2055, 1.75 | 4999.4..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.10 | e0p10_aspect_H9.91667_L39.625 | 9 | 225 (225) | 27, 1.19 | 0 | 225/225 | 5 x 136 (680) | 2040, 1.76 | 4999.5..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.10 | e0p10_aspect_H7_L56.0417 | 9 | 225 (225) | 27, 1.18 | 0 | 225/225 | 5 x 137 (685) | 2055, 1.76 | 4999.6..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.39 | epi8_H_H5_L10 | 9 | 225 (225) | 27, 1.20 | 0 | 225/225 | 5 x 26 (130) | 390, 0.33 | 4999.9..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.39 | epi8_H_H10_L10 | 9 | 225 (225) | 27, 1.21 | 0 | 225/225 | 5 x 23 (115) | 345, 0.29 | 4999.9..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.39 | epi8_H_H20_L10 | 9 | 225 (225) | 27, 1.21 | 0 | 225/225 | 5 x 26 (130) | 390, 0.33 | 4999.9..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.39 | epi8_H_H40_L10 | 9 | 224 (225) | 27, 1.21 | 0 | 224/224 | 5 x 51 (255) | 765, 0.65 | 4999.9..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.39 | epi8_L_H10_L5 | 9 | 225 (225) | 27, 1.21 | 0 | 225/225 | 5 x 26 (130) | 390, 0.33 | 4999.8..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.39 | epi8_L_H10_L20 | 9 | 225 (225) | 27, 1.21 | 0 | 225/225 | 5 x 26 (130) | 390, 0.33 | 4999.9..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.39 | epi8_aspect_H7.08333_L14.125 | 9 | 225 (225) | 27, 1.21 | 0 | 225/225 | 5 x 26 (130) | 390, 0.34 | 4999.9..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.39 | epi8_aspect_H5_L20 | 9 | 225 (225) | 27, 1.21 | 0 | 225/225 | 5 x 23 (115) | 345, 0.29 | 4999.9..5000.0 | 0 / 0 | 279282b | all as registered |
+| 0.39 | epi8_aspect_H3.54167_L28.2917 | 9 | 225 (225) | 27, 1.21 | 0 | 225/225 | 5 x 21 (105) | 315, 0.27 | 4999.9..5000.0 | 0 / 0 | 279282b | all as registered |
+
+inventory: every cell complete and as registered, except the one excluded B trajectory
+
+##### Reduction gate (sec. 1.10): reduce_B.py vs the canonical cell() on the full KOA pilot cell (pi/8 anchor, 1 run per mass)
+
+| M | nu, reduce_B.py (red_nu.csv) | nu, cell() | abs. difference |
+|---|---|---|---|
+| 50 | 0.072116205132757294 | 0.072116205132757294 | 0.0e+00 |
+| 100 | 0.058980134293145602 | 0.058980134293145671 | 6.9e-17 |
+| 200 | 0.044370262967487598 | 0.044370262967487598 | 0.0e+00 |
+| 300 | 0.037163207870788702 | 0.037163207870788709 | 6.9e-18 |
+| 500 | 0.029535941825679202 | 0.029535941825679275 | 7.3e-17 |
+| 750 | 0.024149659505260102 | 0.024149659505260157 | 5.6e-17 |
+| 1000 | 0.021028002470520901 | 0.021028002470520973 | 7.3e-17 |
+| 1500 | 0.017425438449665001 | 0.017425438449665025 | 2.4e-17 |
+| 2000 | 0.0150619720497352 | 0.015061972049735238 | 3.8e-17 |
+
+reduction gate: max abs. difference 7.3e-17 -> PASS
+
+##### Determinism gate (sec. 1.12): anchor cell of conf_A_0.39 vs the pilot, red_970[0-3].csv, cmp
+
+| position | seed | anchor bytes | pilot bytes | cmp |
+|---|---|---|---|---|
+| x_m2 | 9700 | 145 | 145 | IDENTICAL |
+| x_m2 | 9701 | 144 | 144 | IDENTICAL |
+| x_m2 | 9702 | 147 | 147 | IDENTICAL |
+| x_m2 | 9703 | 147 | 147 | IDENTICAL |
+| x_m1 | 9700 | 146 | 146 | IDENTICAL |
+| x_m1 | 9701 | 146 | 146 | IDENTICAL |
+| x_m1 | 9702 | 143 | 143 | IDENTICAL |
+| x_m1 | 9703 | 145 | 145 | IDENTICAL |
+| x_0 | 9700 | 147 | 147 | IDENTICAL |
+| x_0 | 9701 | 144 | 144 | IDENTICAL |
+| x_0 | 9702 | 146 | 146 | IDENTICAL |
+| x_0 | 9703 | 147 | 147 | IDENTICAL |
+| x_p1 | 9700 | 147 | 147 | IDENTICAL |
+| x_p1 | 9701 | 147 | 147 | IDENTICAL |
+| x_p1 | 9702 | 147 | 147 | IDENTICAL |
+| x_p1 | 9703 | 146 | 146 | IDENTICAL |
+| x_p2 | 9700 | 147 | 147 | IDENTICAL |
+| x_p2 | 9701 | 147 | 147 | IDENTICAL |
+| x_p2 | 9702 | 147 | 147 | IDENTICAL |
+| x_p2 | 9703 | 146 | 146 | IDENTICAL |
+
+determinism gate: 20/20 IDENTICAL -> PASS
+max |eta_rec - eta_reg| = 4.2e-08, max |dL - dL_reg| = 6.7e-07
+
+geometry vs registration (eta, dL from paper1_confinement_prereg_20261012): all equal; box shortfall delta: max 2.54e-06 sigma (grid-exact boxes)
+
+**The excluded trajectory (X2).** It is `epi8_H_H40_L10`, M = 3000 (α = 7.5), run 5. It ended with rc = 0 and health = 1.
+- **The rule [SOURCE, § 1.7 item 6]:** "**Health contract** zero on every run (forced_advance, clamp_repair, overlap_repair, wall_overdue)."
+- **How it was applied [SOURCE, `conf_worker.sh` mode B]:** the run was set aside before its trace entered the cell:
+
+      if [ "$rc" -ne 0 ] || [ "${h:-0}" -ne 0 ] || [ -z "$tr" ]; then
+        echo "B $rel M=$M r=$r FAILED rc=$rc health=${h:-0}"; mv "$tmp" "$cell/.failed_run${r}_$(date +%Y%m%d_%H%M%S)"; exit 1; fi
+
+  The canonical estimator would have discarded it as well (`tests_20260913.cell_runs`, `r in bad`).
+- **The health line itself is OPEN.** It is in `.failed_run5_*/stdout.log` on KOA scratch, which the fetch filter did not copy.
+- **What each counter means [SOURCE, `edmd_core/edmd.c`]:**
+  - `forced_advance` (`:1457`, `S->forced_advance_count++;`): the event loop exceeded its event or stagnation guard, and time was advanced by force.
+  - `wall_clamp_repairs` (`:365`, `S->clamp_repair_count++;`): `grid_build()` had to bounce a particle back into the box.
+  - `overlap_repairs` (`:760`, `if(ok == 2) S->overlap_repair_count++;`): an already-overlapping approaching pair had to be rescued.
+  - `wall_overdue` (`:589–601`, `if(rc==2) S->wall_overdue_count++;`): a wall collision was already overdue when it was scheduled.
+- **Precedent [SOURCE, 260913 STATUS]:** A1 v2 had 2 health lines in 7,875 runs, both `wall_clamp_repairs=1`, both discarded.
+- **What the exclusion could have moved [DATA]:**
+
+##### X2 -- the excluded trajectory: how far could it have moved the cell?
+
+cell epi8_H_H40_L10, M = 3000 (alpha = 7.5): 24 of 25 runs used; nu = 0.0236678, sd over seeds = 0.0001899
+- a 25th run largest deviation among the 24 used runs (0.0004819) away from the mean moves that mass's nu by 1.93e-05 and c_s by 1.23e-04 = 0.007 of the cell's c_s_err_scaled (0.01721)
+- a 25th run 3 sd (0.0005696) away from the mean moves that mass's nu by 2.28e-05 and c_s by 1.46e-04 = 0.008 of the cell's c_s_err_scaled (0.01721)
+- the same mass is one of the five heavy masses of the identity: its k_S^dyn = 34.64592; a 3-sd 25th run changes it by 6.67e-02; with its inverse-variance weight 0.168 the cell's combined k_S^dyn moves by 1.12e-02 = 0.24 of its sigma (4.66e-02) and rho_I by 0.033 %
+
+### 2.2 Confinement, method B: the shift Δ = c_s/c_s^KR − 1 and the A/B/C verdicts (§ 1.5)
+
+##### Confinement: per-cell shift from method B (canonical estimator, campaign cells only)
+
+| eta | cell | scan | H | L_0 | N_s | eta_true | c_s | c_s_err | chi2_red (9 masses) | c_s_err_scaled | c_s^KR(eta_true) | Delta = c_s/c_s^KR - 1 [%] | sigma [%] | shape A: 2/H + 2/L_0 | shape B: 1/H | shape C: 1/N_s | Delta_C (fixed) [%] |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.10 | e0p10_H_H5_L39.25 | H | 5 | 39.25 | 25 | 0.100051 | 1.78685 | 0.00345 | 0.88 | 0.00345 | 1.74434 | +2.437 | 0.198 | 0.4510 | 0.2000 | 0.0400 | +1.269 |
+| 0.10 | e0p10_H_H10_L39.25 | H | 10 | 39.25 | 50 | 0.100051 | 1.76165 | 0.00186 | 3.19 | 0.00331 | 1.74434 | +0.992 | 0.190 | 0.2510 | 0.1000 | 0.0200 | +0.634 |
+| 0.10 | e0p10_H_H20_L39.25 | H | 20 | 39.25 | 100 | 0.100051 | 1.74851 | 0.00260 | 10.14 | 0.00827 | 1.74434 | +0.239 | 0.474 | 0.1510 | 0.0500 | 0.0100 | +0.317 |
+| 0.10 | e0p10_H_H40_L39.25 | H | 40 | 39.25 | 200 | 0.100051 | 1.74514 | 0.00203 | 3.08 | 0.00356 | 1.74434 | +0.046 | 0.204 | 0.1010 | 0.0250 | 0.0050 | +0.159 |
+| 0.10 | e0p10_L_H10_L19.625 | L | 10 | 19.625 | 25 | 0.100051 | 1.76502 | 0.00352 | 1.02 | 0.00355 | 1.74434 | +1.186 | 0.203 | 0.3019 | 0.1000 | 0.0400 | +1.269 |
+| 0.10 | e0p10_L_H10_L78.5 | L | 10 | 78.5 | 100 | 0.100051 | 1.76551 | 0.00160 | 3.64 | 0.00306 | 1.74434 | +1.214 | 0.175 | 0.2255 | 0.1000 | 0.0100 | +0.317 |
+| 0.10 | e0p10_aspect_H19.7917_L19.7917 | aspect | 19.7917 | 19.7917 | 50 | 0.100252 | 1.75723 | 0.00385 | 0.84 | 0.00385 | 1.74511 | +0.695 | 0.221 | 0.2021 | 0.0505 | 0.0200 | +0.634 |
+| 0.10 | e0p10_aspect_H14_L28 | aspect | 14 | 28 | 50 | 0.100178 | 1.76267 | 0.00319 | 1.90 | 0.00439 | 1.74483 | +1.022 | 0.252 | 0.2143 | 0.0714 | 0.0200 | +0.634 |
+| 0.10 | e0p10_aspect_H9.91667_L39.625 | aspect | 9.91667 | 39.625 | 50 | 0.099937 | 1.76276 | 0.00269 | 1.69 | 0.00349 | 1.74390 | +1.081 | 0.200 | 0.2522 | 0.1008 | 0.0200 | +0.634 |
+| 0.10 | e0p10_aspect_H7_L56.0417 | aspect | 7 | 56.0417 | 50 | 0.100104 | 1.77716 | 0.00266 | 5.89 | 0.00646 | 1.74454 | +1.870 | 0.370 | 0.3214 | 0.1429 | 0.0200 | +0.634 |
+| 0.39 | epi8_H_H5_L10 | H | 5 | 10 | 25 | 0.392699 | 3.90716 | 0.00901 | 6.20 | 0.02243 | 3.74608 | +4.300 | 0.599 | 0.6000 | 0.2000 | 0.0400 | +0.768 |
+| 0.39 | epi8_H_H10_L10 | H | 10 | 10 | 50 | 0.392699 | 3.82030 | 0.00671 | 3.41 | 0.01239 | 3.74608 | +1.981 | 0.331 | 0.4000 | 0.1000 | 0.0200 | +0.384 |
+| 0.39 | epi8_H_H20_L10 | H | 20 | 10 | 100 | 0.392699 | 3.75811 | 0.00732 | 1.54 | 0.00909 | 3.74608 | +0.321 | 0.243 | 0.3000 | 0.0500 | 0.0100 | +0.192 |
+| 0.39 | epi8_H_H40_L10 | H | 40 | 10 | 200 | 0.392699 | 3.71657 | 0.00727 | 5.60 | 0.01721 | 3.74608 | -0.788 | 0.459 | 0.2500 | 0.0250 | 0.0050 | +0.096 |
+| 0.39 | epi8_L_H10_L5 | L | 10 | 5 | 25 | 0.392699 | 3.68187 | 0.01305 | 3.70 | 0.02508 | 3.74608 | -1.714 | 0.670 | 0.6000 | 0.1000 | 0.0400 | +0.768 |
+| 0.39 | epi8_L_H10_L20 | L | 10 | 20 | 100 | 0.392699 | 3.85055 | 0.00490 | 1.24 | 0.00547 | 3.74608 | +2.789 | 0.146 | 0.3000 | 0.1000 | 0.0100 | +0.192 |
+| 0.39 | epi8_aspect_H7.08333_L14.125 | aspect | 7.08333 | 14.125 | 50 | 0.392495 | 3.87945 | 0.00554 | 1.13 | 0.00590 | 3.74367 | +3.627 | 0.158 | 0.4239 | 0.1412 | 0.0200 | +0.384 |
+| 0.39 | epi8_aspect_H5_L20 | aspect | 5 | 20 | 50 | 0.392699 | 3.98277 | 0.00539 | 0.91 | 0.00539 | 3.74608 | +6.318 | 0.144 | 0.5000 | 0.2000 | 0.0200 | +0.384 |
+| 0.39 | epi8_aspect_H3.54167_L28.2917 | aspect | 3.54167 | 28.2917 | 50 | 0.391917 | 3.99919 | 0.00455 | 0.30 | 0.00455 | 3.73688 | +7.020 | 0.122 | 0.6354 | 0.2824 | 0.0200 | +0.384 |
+
+###### eta 0.10: one-amplitude fits over its 10 cells (sec. 1.5 decision rule; excluded if p < 0.01)
+
+| hypothesis | shape | amplitude | chi2 | dof | p(chi2) | excluded? |
+|---|---|---|---|---|---|---|
+| A | a (2/H + 2/L_0) | 0.04674 +- 0.00258 | 13.56 | 9 | 0.139 | no |
+| B | b/H | 0.11797 +- 0.00642 | 4.45 | 9 | 0.88 | no |
+| C | c'/N_s | 0.49190 +- 0.02859 | 46.30 | 9 | 5.3e-07 | YES |
+| C_fixed | Delta_C, no free parameter | fixed | 83.65 | 10 | 9.62e-14 | YES |
+
+**Verdict, eta 0.10: not separated: A, B survive; Delta chi2 to the best (B): A +9.11.**
+
+###### eta 0.39: one-amplitude fits over its 9 cells (sec. 1.5 decision rule; excluded if p < 0.01)
+
+| hypothesis | shape | amplitude | chi2 | dof | p(chi2) | excluded? |
+|---|---|---|---|---|---|---|
+| A | a (2/H + 2/L_0) | 0.10159 +- 0.00134 | 480.97 | 8 | 8.51e-99 | YES |
+| B | b/H | 0.26256 +- 0.00336 | 141.94 | 8 | 9.38e-27 | YES |
+| C | c'/N_s | 2.54736 +- 0.03521 | 1018.12 | 8 | 1.83e-214 | YES |
+| C_fixed | Delta_C, no free parameter | fixed | 5493.24 | 9 | 0 | YES |
+
+**Verdict, eta 0.39: none survives.**
+
+Exploratory two-term forms (registered as exploratory only, not a verdict):
+
+| form | first amplitude | c' | chi2 | dof | p(chi2) |
+|---|---|---|---|---|---|
+| b/H + c'/N_s | 0.29114 +- 0.00978 | -0.31900 +- 0.10254 | 132.26 | 7 | 2.12e-25 |
+| a(2/H + 2/L_0) + c'/N_s | 0.15478 +- 0.00625 | -1.43370 +- 0.16460 | 405.10 | 7 | 1.92e-83 |
+
+**Reading.**
+- **η = 0.10.** A (p = 0.14) and B (p = 0.88) survive; C is excluded (p = 5×10⁻⁷, and 10⁻¹³ at its fixed amplitude) [DATA]. **Registered verdict: not separated.** Δχ² = +9.1 for A over B [DATA]. B is preferred by that Δχ² (likelihood ratio ≈ e^4.6), but the registered rule does not declare it [INFERENCE].
+  - The η = 0.10 L-scan is flat (+1.19, +0.99, +1.21 % at L₀ = 19.6, 39.25, 78.5) [DATA]. That is B's shape, and it is also why C (which would be 1/N_s, i.e. 1/L₀ here) is excluded [DERIVATION].
+  - The campaign's own anchor reads +0.99 ± 0.19 %; Paper 1's A1 v2 value, quoted only and never fitted (binary rule, § 1.5), is +1.01 % [DATA].
+- **η = π/8.** A, B and C, and C at its fixed amplitude, are all excluded (p ≤ 10⁻²⁶). The two exploratory two-term forms fail as well (p = 2×10⁻²⁵ and 2×10⁻⁸³) [DATA]. **Registered outcome: not resolved.**
+  - The anchor reads +1.98 ± 0.33 %; Paper 1's +1.675 % is quoted only [DATA].
+  - What no form contains [DATA]: at H = 10 the L-scan runs opposite to A, with −1.71 ± 0.67 %, +1.98 ± 0.33 % and +2.79 ± 0.15 % at L₀ = 5, 10, 20. The H-scan falls below zero at H = 40 (−0.79 ± 0.46 %). The aspect cells rise to +7.0 % at L₀/H = 8.
+  - [INFERENCE] The sign and the 1/L shape of the π/8 L-dependence are those of an offset in the length of the frequency formula, ν = c_s K/(2π L_eff), at high density; the length-free identity (§ 2.3) does not see it.
+  - **What would resolve it [OPEN]:**
+    - compare the length-free stiffness of every cell (method B, k_S^dyn) with the bulk KR stiffness, and read off the effective length that makes them agree, cell by cell, with no new runs;
+    - a finer L-scan at π/8 (L₀ = 5 … 40 at H = 10);
+    - the wall-contact density profile from the method-A event logs on KOA scratch.
+
+![confinement shift](../paper1_speedofsound/experiments/final/261004_p1_confinement_shift.png)
+
+`paper1_speedofsound/experiments/final/261004_p1_confinement_shift.png/.pdf`
+- Rows: η = 0.10 and π/8. Columns: the H-scan against 1/H, the L-scan against 1/L₀, and the aspect cells against L₀/H.
+- Error bars are `c_s_err_scaled`. KR is drawn in red (Δ = 0), the data in blue.
+- A, B and C are drawn with the free amplitudes of the fits above; C at its fixed amplitude is the thin line.
+
+### 2.3 Method A and the identity (C1)
+
+##### Method A per cell: F at L_0, k_T (5-point stencil, mirror faces averaged), kT, symmetry checks
+
+| eta | cell | dL | seeds/position | F(L_0) | sigma_F | kT (x = 0 seeds) | k_T | sigma(k_T) | sigma(k_T)/k_T [%] | symmetry z: x=0; x=+1,+2,-1,-2 dL | |z| > 2 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.10 | e0p10_H_H5_L39.25 | 1.5417 | 142 | 0.82215 | 0.00029 | 1.000000 | 0.02638 | 0.00018 | 0.69 | +0.36; +1.37, -0.13, +0.66, +0.02 | 0 |
+| 0.10 | e0p10_H_H10_L39.25 | 1.0833 | 144 | 1.63150 | 0.00037 | 1.000000 | 0.05272 | 0.00032 | 0.61 | -1.50; +1.12, -0.29, +0.84, +1.00 | 0 |
+| 0.10 | e0p10_H_H20_L39.25 | 0.7917 | 135 | 3.24996 | 0.00052 | 1.000000 | 0.10446 | 0.00065 | 0.62 | -2.46; +0.88, -0.32, -0.25, +0.67 | 1 |
+| 0.10 | e0p10_H_H40_L39.25 | 0.5417 | 144 | 6.48580 | 0.00068 | 1.000000 | 0.20819 | 0.00121 | 0.58 | -0.68; -0.38, -0.08, +0.34, -0.84 | 0 |
+| 0.10 | e0p10_L_H10_L19.625 | 0.7500 | 150 | 1.67176 | 0.00051 | 1.000000 | 0.10926 | 0.00063 | 0.57 | +0.32; +0.04, -1.23, +1.02, +1.71 | 0 |
+| 0.10 | e0p10_L_H10_L78.5 | 1.5833 | 135 | 1.61202 | 0.00031 | 1.000000 | 0.02575 | 0.00017 | 0.67 | +0.85; +1.87, +1.08, +0.01, -1.73 | 0 |
+| 0.10 | e0p10_aspect_H19.7917_L19.7917 | 0.5417 | 146 | 3.30693 | 0.00070 | 1.000000 | 0.21204 | 0.00122 | 0.58 | +0.94; -1.26, +0.88, +1.57, +1.29 | 0 |
+| 0.10 | e0p10_aspect_H14_L28 | 0.7917 | 137 | 2.30551 | 0.00052 | 1.000000 | 0.10472 | 0.00063 | 0.60 | +0.96; +1.05, -0.40, -0.16, +0.28 | 0 |
+| 0.10 | e0p10_aspect_H9.91667_L39.625 | 1.1250 | 136 | 1.61620 | 0.00038 | 1.000000 | 0.05064 | 0.00033 | 0.65 | +0.24; -0.81, +0.10, -0.28, +0.99 | 0 |
+| 0.10 | e0p10_aspect_H7_L56.0417 | 1.5833 | 137 | 1.13947 | 0.00027 | 1.000000 | 0.02554 | 0.00016 | 0.64 | -0.66; -0.75, +0.87, +1.87, +2.19 | 1 |
+| 0.39 | epi8_H_H5_L10 | 0.1667 | 26 | 8.21301 | 0.00238 | 1.000000 | 1.96591 | 0.01348 | 0.69 | +0.59; +1.52, +0.03, -0.02, -0.39 | 0 |
+| 0.39 | epi8_H_H10_L10 | 0.1250 | 23 | 15.92514 | 0.00359 | 1.000000 | 3.62779 | 0.02583 | 0.71 | +0.04; +1.24, +2.73, +1.85, +0.18 | 1 |
+| 0.39 | epi8_H_H20_L10 | 0.0833 | 26 | 31.34194 | 0.00391 | 1.000000 | 6.66234 | 0.05131 | 0.77 | -0.56; -1.82, -0.01, +0.99, +0.46 | 0 |
+| 0.39 | epi8_H_H40_L10 | 0.0417 | 51 | 62.17875 | 0.00433 | 1.000000 | 11.26896 | 0.10122 | 0.90 | +0.23; -0.63, -2.50, -0.43, +0.25 | 1 |
+| 0.39 | epi8_L_H10_L5 | 0.0833 | 26 | 17.56306 | 0.00468 | 1.000000 | 7.45739 | 0.05361 | 0.72 | -0.44; +0.45, -0.68, -0.45, +1.54 | 0 |
+| 0.39 | epi8_L_H10_L20 | 0.1667 | 26 | 15.13641 | 0.00236 | 1.000000 | 1.74548 | 0.01324 | 0.76 | +0.78; -0.70, +0.24, -0.06, -0.16 | 0 |
+| 0.39 | epi8_aspect_H7.08333_L14.125 | 0.1667 | 26 | 11.09669 | 0.00216 | 1.000000 | 1.86791 | 0.01361 | 0.73 | +0.79; -1.49, -1.62, -1.20, +0.80 | 0 |
+| 0.39 | epi8_aspect_H5_L20 | 0.2500 | 23 | 7.84468 | 0.00206 | 1.000000 | 0.93416 | 0.00696 | 0.74 | -0.12; -0.81, -0.81, -0.82, -1.66 | 0 |
+| 0.39 | epi8_aspect_H3.54167_L28.2917 | 0.3750 | 21 | 5.54406 | 0.00172 | 1.000000 | 0.45143 | 0.00333 | 0.74 | +0.04; -0.09, -1.94, +1.14, +1.04 | 0 |
+
+symmetry checks beyond 2 sigma: 4 of 95 (registered: each within 2 sigma; expected by chance if all hold: 4.3)
+
+The registered rule "each [symmetry check] within 2 σ" is formally violated by 4 of 95 checks. That is the rate chance alone gives (4.3 expected) [DATA, DERIVATION]. The F² term's own relative error is at most 0.071 % (the registration said < 0.05 %; it is neglected, as registered) [DATA].
+
+##### Identity, length-free form (amendment C1): k_S^dyn (heavy masses) vs k_T + F^2/(N_s kT)
+
+| eta | cell | N_s | k_S^dyn | sigma | chi2_red of the 5 heavy masses | k_T | F^2/(N_s kT) | its own sigma (neglected) | static = k_T + F^2/(N_s kT) | rho_I [%] | sigma(rho_I) [%] | rho_I/sigma | within 2 sigma? | 2 Delta_C (hyp. C) [%] |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.10 | e0p10_H_H5_L39.25 | 25 | 0.054596 | 0.000081 | 1.22 | 0.026383 | 0.027037 | 1.93e-05 | 0.053420 | +2.155 | 0.367 | +5.87 | **NO** | +2.537 |
+| 0.10 | e0p10_H_H10_L39.25 | 50 | 0.106551 | 0.000108 | 0.21 | 0.052725 | 0.053236 | 2.41e-05 | 0.105961 | +0.554 | 0.319 | +1.73 | yes | +1.269 |
+| 0.10 | e0p10_H_H20_L39.25 | 100 | 0.210768 | 0.000212 | 0.38 | 0.104463 | 0.105622 | 3.40e-05 | 0.210085 | +0.324 | 0.322 | +1.01 | yes | +0.634 |
+| 0.10 | e0p10_H_H40_L39.25 | 200 | 0.418797 | 0.000451 | 0.55 | 0.208185 | 0.210328 | 4.40e-05 | 0.418513 | +0.068 | 0.308 | +0.22 | yes | +0.317 |
+| 0.10 | e0p10_L_H10_L19.625 | 25 | 0.225581 | 0.000367 | 0.17 | 0.109264 | 0.111792 | 6.83e-05 | 0.221056 | +2.006 | 0.322 | +6.24 | **NO** | +2.537 |
+| 0.10 | e0p10_L_H10_L78.5 | 100 | 0.051781 | 0.000037 | 1.20 | 0.025753 | 0.025986 | 9.90e-06 | 0.051739 | +0.081 | 0.340 | +0.24 | yes | +0.634 |
+| 0.10 | e0p10_aspect_H19.7917_L19.7917 | 50 | 0.437882 | 0.000646 | 1.20 | 0.212043 | 0.218716 | 9.31e-05 | 0.430758 | +1.627 | 0.316 | +5.15 | **NO** | +1.268 |
+| 0.10 | e0p10_aspect_H14_L28 | 50 | 0.212795 | 0.000262 | 1.26 | 0.104717 | 0.106307 | 4.84e-05 | 0.211024 | +0.832 | 0.319 | +2.61 | **NO** | +1.268 |
+| 0.10 | e0p10_aspect_H9.91667_L39.625 | 50 | 0.104417 | 0.000092 | 1.12 | 0.050643 | 0.052242 | 2.47e-05 | 0.102885 | +1.467 | 0.326 | +4.51 | **NO** | +1.269 |
+| 0.10 | e0p10_aspect_H7_L56.0417 | 50 | 0.051878 | 0.000049 | 2.10 | 0.025541 | 0.025968 | 1.22e-05 | 0.051509 | +0.712 | 0.327 | +2.18 | **NO** | +1.269 |
+| 0.39 | epi8_H_H5_L10 | 25 | 4.772302 | 0.005708 | 1.37 | 1.965906 | 2.698141 | 1.56e-03 | 4.664047 | +2.268 | 0.307 | +7.39 | **NO** | +1.536 |
+| 0.39 | epi8_H_H10_L10 | 50 | 9.006886 | 0.011494 | 0.92 | 3.627794 | 5.072205 | 2.28e-03 | 8.699998 | +3.407 | 0.314 | +10.85 | **NO** | +0.768 |
+| 0.39 | epi8_H_H20_L10 | 100 | 17.503565 | 0.020399 | 1.67 | 6.662338 | 9.823171 | 2.45e-03 | 16.485510 | +5.816 | 0.315 | +18.44 | **NO** | +0.384 |
+| 0.39 | epi8_H_H40_L10 | 200 | 34.561988 | 0.046576 | 1.58 | 11.268959 | 19.330988 | 2.69e-03 | 30.599947 | +11.464 | 0.322 | +35.56 | **NO** | +0.192 |
+| 0.39 | epi8_L_H10_L5 | 25 | 21.654516 | 0.051033 | 1.18 | 7.457385 | 12.338453 | 6.57e-03 | 19.795838 | +8.583 | 0.342 | +25.11 | **NO** | +1.536 |
+| 0.39 | epi8_L_H10_L20 | 100 | 4.127295 | 0.003957 | 0.37 | 1.745481 | 2.291110 | 7.14e-04 | 4.036591 | +2.198 | 0.335 | +6.56 | **NO** | +0.384 |
+| 0.39 | epi8_aspect_H7.08333_L14.125 | 50 | 4.386889 | 0.004730 | 1.38 | 1.867908 | 2.462732 | 9.57e-04 | 4.330640 | +1.282 | 0.329 | +3.90 | **NO** | +0.768 |
+| 0.39 | epi8_aspect_H5_L20 | 50 | 2.202577 | 0.001810 | 1.58 | 0.934164 | 1.230779 | 6.45e-04 | 2.164943 | +1.709 | 0.326 | +5.24 | **NO** | +0.768 |
+| 0.39 | epi8_aspect_H3.54167_L28.2917 | 50 | 1.075638 | 0.000900 | 0.07 | 0.451427 | 0.614731 | 3.82e-04 | 1.066158 | +0.881 | 0.321 | +2.75 | **NO** | +0.769 |
+
+**Identity verdict (C1 rule: agreement within 2 sigma at every cell): FAIL** -- 4 of 19 cells within 2 sigma; outside: e0p10_H_H5_L39.25, e0p10_L_H10_L19.625, e0p10_aspect_H19.7917_L19.7917, e0p10_aspect_H14_L28, e0p10_aspect_H9.91667_L39.625, e0p10_aspect_H7_L56.0417, epi8_H_H5_L10, epi8_H_H10_L10, epi8_H_H20_L10, epi8_H_H40_L10, epi8_L_H10_L5, epi8_L_H10_L20, epi8_aspect_H7.08333_L14.125, epi8_aspect_H5_L20, epi8_aspect_H3.54167_L28.2917.
+(information, not the registered rule: sum of (rho_I/sigma)^2 over the 19 cells = 2636.6, p = 0; P(all 19 within 2 sigma | identity exact) = 0.41)
+
+**Registered verdict: FAIL.** 4 of 19 cells are within 2 σ [DATA].
+- At π/8 every cell fails, with ρ_I = +0.9 … +11.5 %, growing with H/L₀.
+- At η = 0.10 the failures are the small-N_s cells: N_s = 25 gives +2.0 and +2.2 %; the N_s = 50 aspect cells give +0.7 … +1.6 %. Every N_s ≥ 100 cell and the anchor pass.
+- § 1.5 registered how a failure concentrated at small N_s is to be read: "C's signature, and is read that way." The π/8 pattern is not that signature; § 2.8 finds its main cause (post-hoc).
+
+##### Standing-wave check at all alpha (C1, no verdict): k_S^SW(alpha)/k_S^dyn, k_S^SW = N_s m omega_1^2/K(alpha)^2
+
+| eta | cell | alpha 0.5 | alpha 1 | alpha 2 | alpha 3 | alpha 5 | alpha 7.5 | alpha 10 | alpha 15 | alpha 20 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0.10 | e0p10_H_H5_L39.25 | 1.0001 | 0.9974 | 1.0032 | 1.0056 | 1.0067 | 0.9950 | 0.9993 | 1.0005 | 1.0013 |
+| 0.10 | e0p10_H_H10_L39.25 | 0.9873 | 1.0027 | 1.0050 | 0.9999 | 1.0015 | 0.9999 | 0.9983 | 1.0007 | 1.0007 |
+| 0.10 | e0p10_H_H20_L39.25 | 0.9809 | 0.9987 | 0.9998 | 1.0010 | 1.0014 | 0.9995 | 0.9983 | 0.9995 | 1.0014 |
+| 0.10 | e0p10_H_H40_L39.25 | 0.9929 | 0.9933 | 0.9980 | 0.9972 | 1.0016 | 1.0028 | 0.9988 | 0.9980 | 0.9996 |
+| 0.10 | e0p10_L_H10_L19.625 | 0.9881 | 1.0027 | 1.0125 | 0.9980 | 1.0019 | 1.0035 | 0.9987 | 0.9999 | 0.9995 |
+| 0.10 | e0p10_L_H10_L78.5 | 1.0079 | 1.0004 | 1.0008 | 0.9973 | 1.0012 | 1.0024 | 0.9949 | 1.0004 | 0.9996 |
+| 0.10 | e0p10_aspect_H19.7917_L19.7917 | 1.0062 | 0.9967 | 0.9963 | 0.9994 | 1.0014 | 1.0026 | 1.0050 | 0.9963 | 0.9978 |
+| 0.10 | e0p10_aspect_H14_L28 | 1.0054 | 0.9975 | 1.0066 | 1.0113 | 0.9971 | 1.0050 | 0.9990 | 0.9983 | 0.9990 |
+| 0.10 | e0p10_aspect_H9.91667_L39.625 | 0.9993 | 0.9938 | 0.9970 | 1.0053 | 1.0041 | 1.0009 | 1.0013 | 0.9970 | 0.9989 |
+| 0.10 | e0p10_aspect_H7_L56.0417 | 1.0057 | 1.0061 | 1.0116 | 1.0030 | 1.0030 | 1.0026 | 1.0006 | 0.9959 | 1.0022 |
+| 0.39 | epi8_H_H5_L10 | 0.9861 | 0.9911 | 1.0021 | 0.9948 | 1.0072 | 0.9970 | 0.9995 | 0.9977 | 1.0006 |
+| 0.39 | epi8_H_H10_L10 | 1.0125 | 1.0046 | 0.9971 | 1.0061 | 1.0001 | 0.9997 | 1.0023 | 0.9948 | 1.0008 |
+| 0.39 | epi8_H_H20_L10 | 0.9966 | 1.0123 | 0.9947 | 1.0023 | 1.0081 | 1.0050 | 0.9989 | 0.9989 | 0.9977 |
+| 0.39 | epi8_H_H40_L10 | 0.9819 | 0.9998 | 0.9956 | 0.9914 | 1.0052 | 1.0028 | 1.0044 | 0.9979 | 0.9960 |
+| 0.39 | epi8_L_H10_L5 | 0.9699 | 1.0036 | 1.0009 | 1.0110 | 0.9936 | 0.9932 | 1.0036 | 1.0048 | 1.0029 |
+| 0.39 | epi8_L_H10_L20 | 0.9960 | 0.9971 | 0.9982 | 1.0012 | 1.0008 | 1.0001 | 0.9982 | 0.9994 | 1.0016 |
+| 0.39 | epi8_aspect_H7.08333_L14.125 | 0.9935 | 1.0057 | 1.0039 | 1.0027 | 0.9968 | 0.9979 | 1.0005 | 1.0042 | 0.9994 |
+| 0.39 | epi8_aspect_H5_L20 | 0.9979 | 1.0037 | 1.0008 | 0.9990 | 1.0004 | 0.9986 | 1.0030 | 0.9980 | 0.9986 |
+| 0.39 | epi8_aspect_H3.54167_L28.2917 | 0.9973 | 1.0016 | 1.0023 | 1.0020 | 1.0005 | 1.0005 | 1.0009 | 1.0002 | 0.9995 |
+
+The dynamic side is internally consistent: across the whole mass ladder, k_S^SW/k_S^dyn lies within 0.991–1.013 for α ≥ 1 (0.970–1.013 at α = 0.5) [DATA]. So the free-divider frequencies follow cot K = αK with one stiffness per cell.
+
+![identity](../paper1_speedofsound/experiments/final/261004_p1_identity.png)
+
+`paper1_speedofsound/experiments/final/261004_p1_identity.png/.pdf`
+- Left: k_S^dyn against k_T + F²/(N_s kT) on log axes, with the diagonal.
+- Right: ρ_I per cell (1 σ thick, 2 σ thin), with C's registered signature 2Δ_C.
+
+### 2.4 γ_box = k_S/k_T (§ 1.5, no pass/fail)
+
+##### gamma_box = k_S^dyn / k_T (no pass/fail; sec. 1.5)
+
+| eta | cell | scan | H | L_0 | N_s | gamma_box | sigma | bulk 1 + Z^2/(Z + eta Z') | 1 + F^2/(N_s kT k_T) (A alone) |
+|---|---|---|---|---|---|---|---|---|---|
+| 0.10 | e0p10_H_H5_L39.25 | H | 5 | 39.25 | 25 | 2.0694 | 0.0147 | 2.00930 | 2.0248 |
+| 0.10 | e0p10_H_H10_L39.25 | H | 10 | 39.25 | 50 | 2.0209 | 0.0125 | 2.00930 | 2.0097 |
+| 0.10 | e0p10_H_H20_L39.25 | H | 20 | 39.25 | 100 | 2.0176 | 0.0126 | 2.00930 | 2.0111 |
+| 0.10 | e0p10_H_H40_L39.25 | H | 40 | 39.25 | 200 | 2.0117 | 0.0119 | 2.00930 | 2.0103 |
+| 0.10 | e0p10_L_H10_L19.625 | L | 10 | 19.625 | 25 | 2.0646 | 0.0123 | 2.00930 | 2.0231 |
+| 0.10 | e0p10_L_H10_L78.5 | L | 10 | 78.5 | 100 | 2.0107 | 0.0135 | 2.00930 | 2.0091 |
+| 0.10 | e0p10_aspect_H19.7917_L19.7917 | aspect | 19.7917 | 19.7917 | 50 | 2.0651 | 0.0123 | 2.00934 | 2.0315 |
+| 0.10 | e0p10_aspect_H14_L28 | aspect | 14 | 28 | 50 | 2.0321 | 0.0124 | 2.00933 | 2.0152 |
+| 0.10 | e0p10_aspect_H9.91667_L39.625 | aspect | 9.91667 | 39.625 | 50 | 2.0618 | 0.0134 | 2.00928 | 2.0316 |
+| 0.10 | e0p10_aspect_H7_L56.0417 | aspect | 7 | 56.0417 | 50 | 2.0312 | 0.0131 | 2.00931 | 2.0167 |
+| 0.39 | epi8_H_H5_L10 | H | 5 | 10 | 25 | 2.4275 | 0.0169 | 2.18760 | 2.3725 |
+| 0.39 | epi8_H_H10_L10 | H | 10 | 10 | 50 | 2.4827 | 0.0180 | 2.18760 | 2.3982 |
+| 0.39 | epi8_H_H20_L10 | H | 20 | 10 | 100 | 2.6272 | 0.0205 | 2.18760 | 2.4744 |
+| 0.39 | epi8_H_H40_L10 | H | 40 | 10 | 200 | 3.0670 | 0.0279 | 2.18760 | 2.7154 |
+| 0.39 | epi8_L_H10_L5 | L | 10 | 5 | 25 | 2.9038 | 0.0220 | 2.18760 | 2.6545 |
+| 0.39 | epi8_L_H10_L20 | L | 10 | 20 | 100 | 2.3646 | 0.0181 | 2.18760 | 2.3126 |
+| 0.39 | epi8_aspect_H7.08333_L14.125 | aspect | 7.08333 | 14.125 | 50 | 2.3486 | 0.0173 | 2.18736 | 2.3184 |
+| 0.39 | epi8_aspect_H5_L20 | aspect | 5 | 20 | 50 | 2.3578 | 0.0177 | 2.18760 | 2.3175 |
+| 0.39 | epi8_aspect_H3.54167_L28.2917 | aspect | 3.54167 | 28.2917 | 50 | 2.3828 | 0.0177 | 2.18668 | 2.3618 |
+
+eta 0.10: gamma_box inverse-variance mean 2.0377 +- 0.0040 (chi2 31.2 / 9 dof), range 2.0107 .. 2.0694; bulk 2.00930; A-alone mean 2.0183
+
+eta 0.39: gamma_box inverse-variance mean 2.4926 +- 0.0063 (chi2 1050.1 / 8 dof), range 2.3486 .. 3.0670; bulk 2.18760; A-alone mean 2.4361
+
+- At η = 0.10, γ_box = 2.038 ± 0.004, against the bulk 2.009 [DATA]. It is highest in the small-N_s cells.
+- At π/8 the registered γ_box (2.35–3.07) inherits the biased k_T of § 2.8. With the drift correction (post-hoc) it is 2.26–2.41, against the bulk 2.188 [DATA].
+
+### 2.5 Damping (§ 1.4 (B), methods § 13)
+
+##### Damping per (cell, M): Gamma^-1 = tau_r/2 [sigma-time] +- jackknife (methods sec. 13 model, ACF to 20 periods)
+
+| eta | cell | alpha 0.5 | alpha 1 | alpha 2 | alpha 3 | alpha 5 | alpha 7.5 | alpha 10 | alpha 15 | alpha 20 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0.10 | e0p10_H_H5_L39.25 | 244 +- 20 | 422 +- 43 | 772 +- 48 | 1.3e+03 +- 95 | 1.79e+03 +- 2.3e+02 | 3.15e+03 +- 2.5e+02 | 3.86e+03 +- 4.4e+02 | 4.12e+03 +- 3.9e+02 | 6.53e+03 +- 9.9e+02 |
+| 0.10 | e0p10_H_H10_L39.25 | 322 +- 36 | 508 +- 42 | 1.07e+03 +- 1e+02 | 1.75e+03 +- 85 | 2.38e+03 +- 1.6e+02 | 3.29e+03 +- 3.3e+02 | 4.8e+03 +- 3.9e+02 | 7.28e+03 +- 4.8e+02 | 9.2e+03 +- 7.7e+02 |
+| 0.10 | e0p10_H_H20_L39.25 | 307 +- 18 | 554 +- 55 | 1.12e+03 +- 86 | 1.59e+03 +- 1.4e+02 | 2.67e+03 +- 2.7e+02 | 4.16e+03 +- 4.8e+02 | 5.59e+03 +- 6.2e+02 | 8.78e+03 +- 9.4e+02 | 1.27e+04 +- 1.8e+03 |
+| 0.10 | e0p10_H_H40_L39.25 | 361 +- 30 | 646 +- 52 | 1.23e+03 +- 1.3e+02 | 1.69e+03 +- 1.4e+02 | 2.67e+03 +- 1.8e+02 | 4.15e+03 +- 4e+02 | 6.86e+03 +- 7.9e+02 | 8.76e+03 +- 1.1e+03 | 8.55e+03 +- 7.9e+02 |
+| 0.10 | e0p10_L_H10_L19.625 | 79.6 +- 1.9 | 148 +- 9.3 | 273 +- 16 | 396 +- 29 | 679 +- 70 | 971 +- 36 | 1.15e+03 +- 86 | 1.88e+03 +- 1.1e+02 | 2.42e+03 +- 1.9e+02 |
+| 0.10 | e0p10_L_H10_L78.5 | 1.06e+03 +- 1.3e+02 | 1.86e+03 +- 1.2e+02 | 4.23e+03 +- 5.4e+02 | 5.78e+03 +- 4.9e+02 | 9.87e+03 +- 9.2e+02 | 1.45e+04 +- 2.1e+03 | 1.71e+04 +- 3.3e+03 | 2.45e+04 +- 2.9e+03 | 3.32e+04 +- 3.3e+03 |
+| 0.10 | e0p10_aspect_H19.7917_L19.7917 | 97.9 +- 6.1 | 158 +- 12 | 285 +- 15 | 449 +- 28 | 714 +- 73 | 1.15e+03 +- 75 | 1.46e+03 +- 1.1e+02 | 2.26e+03 +- 1.7e+02 | 2.39e+03 +- 2e+02 |
+| 0.10 | e0p10_aspect_H14_L28 | 162 +- 8.9 | 279 +- 23 | 621 +- 45 | 787 +- 47 | 1.38e+03 +- 1.3e+02 | 1.99e+03 +- 1.5e+02 | 2.77e+03 +- 2.7e+02 | 3.9e+03 +- 3.3e+02 | 5.87e+03 +- 6.5e+02 |
+| 0.10 | e0p10_aspect_H9.91667_L39.625 | 298 +- 13 | 555 +- 42 | 974 +- 89 | 1.59e+03 +- 1e+02 | 2.96e+03 +- 2.2e+02 | 4.17e+03 +- 3.1e+02 | 6.09e+03 +- 5.9e+02 | 6.49e+03 +- 5.8e+02 | 1.03e+04 +- 7.4e+02 |
+| 0.10 | e0p10_aspect_H7_L56.0417 | 484 +- 27 | 959 +- 47 | 1.98e+03 +- 2.1e+02 | 2.94e+03 +- 3.2e+02 | 4.69e+03 +- 5.9e+02 | 7.48e+03 +- 7.1e+02 | 9.18e+03 +- 8e+02 | 1.29e+04 +- 9.1e+02 | 1.56e+04 +- 2.1e+03 |
+| 0.39 | epi8_H_H5_L10 | 18.1 +- 0.53 | 30 +- 1.6 | 76.2 +- 6.1 | 107 +- 8.6 | 163 +- 11 | 240 +- 16 | 338 +- 21 | 451 +- 44 | 599 +- 40 |
+| 0.39 | epi8_H_H10_L10 | 20.8 +- 1 | 41.4 +- 2.9 | 78.1 +- 5.4 | 114 +- 10 | 163 +- 16 | 225 +- 17 | 400 +- 38 | 433 +- 31 | 734 +- 51 |
+| 0.39 | epi8_H_H20_L10 | 22.1 +- 1.4 | 39.2 +- 2.1 | 66 +- 7.4 | 103 +- 6.7 | 173 +- 16 | 336 +- 41 | 397 +- 37 | 517 +- 43 | 688 +- 32 |
+| 0.39 | epi8_H_H40_L10 | 21.1 +- 0.8 | 39.5 +- 2.1 | 74.3 +- 5.9 | 108 +- 8.7 | 192 +- 14 | 240 +- 16 | 316 +- 20 | 468 +- 40 | 899 +- 89 |
+| 0.39 | epi8_L_H10_L5 | 4.84 +- 0.22 | 8.17 +- 0.4 | 15.5 +- 0.93 | 23 +- 1.7 | 39.5 +- 2.7 | 54.7 +- 4.1 | 77.3 +- 4.7 | 113 +- 8.9 | 137 +- 11 |
+| 0.39 | epi8_L_H10_L20 | 77.3 +- 5.5 | 174 +- 21 | 334 +- 42 | 431 +- 37 | 751 +- 89 | 904 +- 80 | 1.33e+03 +- 2.2e+02 | 2.19e+03 +- 3.6e+02 | 2.97e+03 +- 4.8e+02 |
+| 0.39 | epi8_aspect_H7.08333_L14.125 | 43 +- 3.2 | 67.2 +- 5.2 | 148 +- 14 | 196 +- 17 | 334 +- 28 | 619 +- 45 | 746 +- 57 | 956 +- 89 | 1.28e+03 +- 85 |
+| 0.39 | epi8_aspect_H5_L20 | 81.5 +- 7.2 | 150 +- 8.3 | 288 +- 12 | 403 +- 24 | 593 +- 31 | 1.07e+03 +- 97 | 1.47e+03 +- 1.2e+02 | 1.99e+03 +- 2.2e+02 | 2.55e+03 +- 3.9e+02 |
+| 0.39 | epi8_aspect_H3.54167_L28.2917 | 113 +- 8 | 260 +- 16 | 532 +- 52 | 744 +- 54 | 1.19e+03 +- 88 | 1.81e+03 +- 1.1e+02 | 2.47e+03 +- 3.3e+02 | 3.11e+03 +- 3.5e+02 | 4.18e+03 +- 6.5e+02 |
+
+ACF fits: 171 of 171 converged
+
+### 2.6 Per-cell summary (X3 (a))
+
+##### X3 (a) -- per-cell table
+
+| eta | cell | H | L_0 | N_s | eta_true | c_s^B +- err (scaled) | k_S^dyn +- | k_T +- | F(L_0) | k_T + F^2/(N_s kT) | gamma_box = k_S/k_T | Gamma^-1 at alpha = 5 (M = 10 N_s) +- |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.10 | e0p10_H_H5_L39.25 | 5 | 39.25 | 25 | 0.100051 | 1.7868 +- 0.0035 | 0.054596 +- 8.1e-05 | 0.026383 +- 0.00018 | 0.82215 | 0.05342 | 2.069 +- 0.015 | 1788 +- 2.3e+02 |
+| 0.10 | e0p10_H_H10_L39.25 | 10 | 39.25 | 50 | 0.100051 | 1.7616 +- 0.0033 | 0.10655 +- 0.00011 | 0.052725 +- 0.00032 | 1.6315 | 0.10596 | 2.021 +- 0.013 | 2381 +- 1.6e+02 |
+| 0.10 | e0p10_H_H20_L39.25 | 20 | 39.25 | 100 | 0.100051 | 1.7485 +- 0.0083 | 0.21077 +- 0.00021 | 0.10446 +- 0.00065 | 3.25 | 0.21009 | 2.018 +- 0.013 | 2670 +- 2.7e+02 |
+| 0.10 | e0p10_H_H40_L39.25 | 40 | 39.25 | 200 | 0.100051 | 1.7451 +- 0.0036 | 0.4188 +- 0.00045 | 0.20819 +- 0.0012 | 6.4858 | 0.41851 | 2.012 +- 0.012 | 2674 +- 1.8e+02 |
+| 0.10 | e0p10_L_H10_L19.625 | 10 | 19.625 | 25 | 0.100051 | 1.7650 +- 0.0035 | 0.22558 +- 0.00037 | 0.10926 +- 0.00063 | 1.6718 | 0.22106 | 2.065 +- 0.012 | 678.9 +- 70 |
+| 0.10 | e0p10_L_H10_L78.5 | 10 | 78.5 | 100 | 0.100051 | 1.7655 +- 0.0031 | 0.051781 +- 3.7e-05 | 0.025753 +- 0.00017 | 1.612 | 0.051739 | 2.011 +- 0.014 | 9866 +- 9.2e+02 |
+| 0.10 | e0p10_aspect_H19.7917_L19.7917 | 19.7917 | 19.7917 | 50 | 0.100252 | 1.7572 +- 0.0039 | 0.43788 +- 0.00065 | 0.21204 +- 0.0012 | 3.3069 | 0.43076 | 2.065 +- 0.012 | 713.8 +- 73 |
+| 0.10 | e0p10_aspect_H14_L28 | 14 | 28 | 50 | 0.100178 | 1.7627 +- 0.0044 | 0.2128 +- 0.00026 | 0.10472 +- 0.00063 | 2.3055 | 0.21102 | 2.032 +- 0.012 | 1379 +- 1.3e+02 |
+| 0.10 | e0p10_aspect_H9.91667_L39.625 | 9.91667 | 39.625 | 50 | 0.099937 | 1.7628 +- 0.0035 | 0.10442 +- 9.2e-05 | 0.050643 +- 0.00033 | 1.6162 | 0.10289 | 2.062 +- 0.013 | 2963 +- 2.2e+02 |
+| 0.10 | e0p10_aspect_H7_L56.0417 | 7 | 56.0417 | 50 | 0.100104 | 1.7772 +- 0.0065 | 0.051878 +- 4.9e-05 | 0.025541 +- 0.00016 | 1.1395 | 0.051509 | 2.031 +- 0.013 | 4693 +- 5.9e+02 |
+| 0.39 | epi8_H_H5_L10 | 5 | 10 | 25 | 0.392699 | 3.9072 +- 0.0224 | 4.7723 +- 0.0057 | 1.9659 +- 0.013 | 8.213 | 4.664 | 2.428 +- 0.017 | 163.3 +- 11 |
+| 0.39 | epi8_H_H10_L10 | 10 | 10 | 50 | 0.392699 | 3.8203 +- 0.0124 | 9.0069 +- 0.011 | 3.6278 +- 0.026 | 15.925 | 8.7 | 2.483 +- 0.018 | 163.3 +- 16 |
+| 0.39 | epi8_H_H20_L10 | 20 | 10 | 100 | 0.392699 | 3.7581 +- 0.0091 | 17.504 +- 0.02 | 6.6623 +- 0.051 | 31.342 | 16.486 | 2.627 +- 0.020 | 173.2 +- 16 |
+| 0.39 | epi8_H_H40_L10 | 40 | 10 | 200 | 0.392699 | 3.7166 +- 0.0172 | 34.562 +- 0.047 | 11.269 +- 0.1 | 62.179 | 30.6 | 3.067 +- 0.028 | 192.2 +- 14 |
+| 0.39 | epi8_L_H10_L5 | 10 | 5 | 25 | 0.392699 | 3.6819 +- 0.0251 | 21.655 +- 0.051 | 7.4574 +- 0.054 | 17.563 | 19.796 | 2.904 +- 0.022 | 39.47 +- 2.7 |
+| 0.39 | epi8_L_H10_L20 | 10 | 20 | 100 | 0.392699 | 3.8506 +- 0.0055 | 4.1273 +- 0.004 | 1.7455 +- 0.013 | 15.136 | 4.0366 | 2.365 +- 0.018 | 751 +- 89 |
+| 0.39 | epi8_aspect_H7.08333_L14.125 | 7.08333 | 14.125 | 50 | 0.392495 | 3.8794 +- 0.0059 | 4.3869 +- 0.0047 | 1.8679 +- 0.014 | 11.097 | 4.3306 | 2.349 +- 0.017 | 333.8 +- 28 |
+| 0.39 | epi8_aspect_H5_L20 | 5 | 20 | 50 | 0.392699 | 3.9828 +- 0.0054 | 2.2026 +- 0.0018 | 0.93416 +- 0.007 | 7.8447 | 2.1649 | 2.358 +- 0.018 | 592.5 +- 31 |
+| 0.39 | epi8_aspect_H3.54167_L28.2917 | 3.54167 | 28.2917 | 50 | 0.391917 | 3.9992 +- 0.0045 | 1.0756 +- 0.0009 | 0.45143 +- 0.0033 | 5.5441 | 1.0662 | 2.383 +- 0.018 | 1186 +- 88 |
+
+tables -> 261004_p1_confinement_cells.csv, 261004_p1_confinement_damping.csv
+
+figure -> 261004_p1_confinement_shift.png/.pdf
+figure -> 261004_p1_identity.png/.pdf
+
+gates: inventory PASS, reduction PASS, determinism PASS
+
+Files: `paper1_speedofsound/experiments/final/261004_p1_confinement_cells.csv` (every column above plus η_rec, δ, L_eff,true, χ²_red, Δ, σ_Δ, Δ_C, ρ_I) and `261004_p1_confinement_damping.csv` (per (cell, M): τ_r, Γ, Γ⁻¹, P_1 = B, τ_T, the fitted ω, Q, with jackknife errors).
+
+### 2.7 POST-HOC diagnosis (not registered, no verdict): the "held" divider is released and returns towards the centre
+
+**Finding [DATA].** The full pilot cell (π/8 anchor) has the divider's trajectory. In all 16 off-centre runs, the divider is released at t = 200 with mass 10⁹ (`--wall-hold-steps=12000 --wall-mass-factors=1000000000`) and drifts back towards the centre: by the end of the window it stands at about 0.90 of its nominal offset.
+- Its window-mean offset is f = 0.9662 ± 0.0013 of nominal, the same at ±1 and ±2 dL and for every seed.
+- The registration's drift estimate (§ 1.4, Table A) covered only the random thermal wander. It missed this deterministic return, which is driven by the net restoring force at an off-centre position.
+
+**Why it biases k_T [DERIVATION].** Each compartment is closed, so the slow return compresses or expands each gas adiabatically. The time-averaged force is then F̄(j) = F_T(L₀ + x_j) − k_S (x̄_j − x_j), and the registered stencil, which uses nominal positions, returns k_T,meas = k_T − k_S(1 − f): too low.
+
+**Measured in every cell, without traces [DATA, DERIVATION].** Energy conservation in each compartment gives N_s(T̄_L − 1) = −F̄_L(x̄_j − x_j), so f follows from the recorded temperatures.
+- At the anchor this gives f = 0.9677 ± 0.0003, against 0.9662 ± 0.0013 from the trajectories.
+- The temperatures shift exactly as predicted: at x_m2, T_L − 1 = −0.00270 against a predicted −0.00268.
+- Across all 19 cells, 1 − f is proportional to k_S, as a harmonic return predicts.
+
+**Correction.** The corrected estimator, which was not registered, normalises each force to T = 1 (F/T, exact for hard disks, F = T g(L)) and uses the measured spacing f·dL. Printed by `python3 hspist3/validation/paper1_confinement_heldwall_posthoc_261004.py`:
+
+pilot traces (pi/8 anchor, 16 off-centre runs, W0_x_sigma over the window [200, end]): mean displacement / nominal = f = 0.9662 +- 0.0013 (min 0.9631, max 0.9689)
+same pilot runs, f from the temperatures (energy balance): 0.9677 +- 0.0003  (per position: -2dL 0.9679, -1dL 0.9665, +1dL 0.9680, +2dL 0.9678)
+
+##### Per cell: f from the temperatures, and the identity with the drift-corrected k_T (exploratory)
+
+| eta | cell | N_s | f (T balance) | sigma_f | k_T registered | k_T,c (F/T, spacing f dL) | sigma | k_T,c/k_T - 1 [%] | static,c = k_T,c + F^2/(N_s kT) | k_S^dyn | rho_I,c [%] | sigma [%] | rho_I,c/sigma | registered rho_I [%] | 2 Delta_C [%] | gamma_box,c | bulk gamma |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.10 | e0p10_H_H5_L39.25 | 25 | 0.9998 | 0.0000 | 0.02638 | 0.02639 | 0.00018 | +0.04 | 0.05343 | 0.05460 | +2.133 | 0.367 | +5.81 | +2.155 | +2.537 | 2.0685 | 2.00930 |
+| 0.10 | e0p10_H_H10_L39.25 | 50 | 0.9996 | 0.0000 | 0.05272 | 0.05277 | 0.00032 | +0.09 | 0.10601 | 0.10655 | +0.510 | 0.319 | +1.60 | +0.554 | +1.269 | 2.0191 | 2.00930 |
+| 0.10 | e0p10_H_H20_L39.25 | 100 | 0.9991 | 0.0000 | 0.10446 | 0.10464 | 0.00065 | +0.17 | 0.21027 | 0.21077 | +0.238 | 0.323 | +0.74 | +0.324 | +0.634 | 2.0141 | 2.00930 |
+| 0.10 | e0p10_H_H40_L39.25 | 200 | 0.9983 | 0.0000 | 0.20819 | 0.20891 | 0.00121 | +0.35 | 0.41924 | 0.41880 | -0.106 | 0.309 | -0.34 | +0.068 | +0.317 | 2.0047 | 2.00930 |
+| 0.10 | e0p10_L_H10_L19.625 | 25 | 0.9991 | 0.0000 | 0.10926 | 0.10947 | 0.00063 | +0.18 | 0.22126 | 0.22558 | +1.917 | 0.322 | +5.96 | +2.006 | +2.537 | 2.0608 | 2.00930 |
+| 0.10 | e0p10_L_H10_L78.5 | 100 | 0.9998 | 0.0000 | 0.02575 | 0.02576 | 0.00017 | +0.04 | 0.05175 | 0.05178 | +0.059 | 0.340 | +0.17 | +0.081 | +0.634 | 2.0098 | 2.00930 |
+| 0.10 | e0p10_aspect_H19.7917_L19.7917 | 50 | 0.9982 | 0.0000 | 0.21204 | 0.21281 | 0.00123 | +0.36 | 0.43152 | 0.43788 | +1.452 | 0.317 | +4.58 | +1.627 | +1.268 | 2.0576 | 2.00934 |
+| 0.10 | e0p10_aspect_H14_L28 | 50 | 0.9991 | 0.0000 | 0.10472 | 0.10490 | 0.00063 | +0.18 | 0.21121 | 0.21280 | +0.746 | 0.319 | +2.34 | +0.832 | +1.268 | 2.0285 | 2.00933 |
+| 0.10 | e0p10_aspect_H9.91667_L39.625 | 50 | 0.9996 | 0.0000 | 0.05064 | 0.05069 | 0.00033 | +0.09 | 0.10293 | 0.10442 | +1.425 | 0.326 | +4.37 | +1.467 | +1.269 | 2.0600 | 2.00928 |
+| 0.10 | e0p10_aspect_H7_L56.0417 | 50 | 0.9998 | 0.0000 | 0.02554 | 0.02555 | 0.00016 | +0.04 | 0.05152 | 0.05188 | +0.691 | 0.327 | +2.11 | +0.712 | +1.269 | 2.0303 | 2.00931 |
+| 0.39 | epi8_H_H5_L10 | 25 | 0.9830 | 0.0001 | 1.96591 | 2.04600 | 0.01390 | +4.07 | 4.74414 | 4.77230 | +0.590 | 0.315 | +1.87 | +2.268 | +1.536 | 2.3325 | 2.18760 |
+| 0.39 | epi8_H_H10_L10 | 50 | 0.9681 | 0.0002 | 3.62779 | 3.91532 | 0.02712 | +7.93 | 8.98752 | 9.00689 | +0.215 | 0.327 | +0.66 | +3.407 | +0.768 | 2.3004 | 2.18760 |
+| 0.39 | epi8_H_H20_L10 | 100 | 0.9390 | 0.0003 | 6.66234 | 7.74197 | 0.05715 | +16.20 | 17.56514 | 17.50357 | -0.352 | 0.347 | -1.01 | +5.816 | +0.384 | 2.2609 | 2.18760 |
+| 0.39 | epi8_H_H40_L10 | 200 | 0.8847 | 0.0005 | 11.26896 | 15.26485 | 0.12250 | +35.46 | 34.59584 | 34.56199 | -0.098 | 0.379 | -0.26 | +11.464 | +0.192 | 2.2642 | 2.18760 |
+| 0.39 | epi8_L_H10_L5 | 25 | 0.9279 | 0.0004 | 7.45739 | 8.97555 | 0.05936 | +20.36 | 21.31400 | 21.65452 | +1.572 | 0.361 | +4.35 | +8.583 | +1.536 | 2.4126 | 2.18760 |
+| 0.39 | epi8_L_H10_L20 | 100 | 0.9849 | 0.0001 | 1.74548 | 1.80702 | 0.01354 | +3.53 | 4.09813 | 4.12729 | +0.707 | 0.342 | +2.07 | +2.198 | +0.384 | 2.2840 | 2.18760 |
+| 0.39 | epi8_aspect_H7.08333_L14.125 | 50 | 0.9842 | 0.0001 | 1.86791 | 1.93752 | 0.01393 | +3.73 | 4.40026 | 4.38689 | -0.305 | 0.335 | -0.91 | +1.282 | +0.768 | 2.2642 | 2.18736 |
+| 0.39 | epi8_aspect_H5_L20 | 50 | 0.9921 | 0.0000 | 0.93416 | 0.95137 | 0.00703 | +1.84 | 2.18215 | 2.20258 | +0.928 | 0.330 | +2.81 | +1.709 | +0.768 | 2.3152 | 2.18760 |
+| 0.39 | epi8_aspect_H3.54167_L28.2917 | 50 | 0.9962 | 0.0000 | 0.45143 | 0.45552 | 0.00336 | +0.91 | 1.07025 | 1.07564 | +0.501 | 0.323 | +1.55 | +0.881 | +0.769 | 2.3614 | 2.18668 |
+
+eta 0.10: drift-corrected rho_I within 2 sigma in 4 of 10 cells; sum (rho/sigma)^2 = 122.6 (10 cells); inverse-variance mean rho_I,c = +0.878 +- 0.103 %
+
+eta 0.39: drift-corrected rho_I within 2 sigma in 6 of 9 cells; sum (rho/sigma)^2 = 39.4 (9 cells); inverse-variance mean rho_I,c = +0.421 +- 0.113 %
+eta 0.10: rho_I,c = a x 2 Delta_C: a = 0.75 +- 0.07, chi2 11.2 / 9 dof (rho_I,c = 0: chi2 122.6 / 10 dof)
+eta 0.39: rho_I,c = a x 2 Delta_C: a = 0.58 +- 0.12, chi2 17.2 / 8 dof (rho_I,c = 0: chi2 39.4 / 9 dof)
+
+**Reading [DATA; INFERENCE where marked].**
+- **Size of the bias.** The registered k_T is low by 0.9–35 % at π/8 (35 % at H = 40) and by ≤ 0.4 % at η = 0.10.
+- **π/8 after correction.** The residuals fall from +0.9 … +11.5 % to −0.35 … +1.57 %, with 6 of 9 cells within 2 σ. The remaining outliers are L₀ = 5 (+1.57 ± 0.36 %), H5/L20 (+0.93 ± 0.33 %) and L20 (+0.71 ± 0.34 %).
+- **η = 0.10.** Nothing changes.
+- **Pattern of what remains.** At both densities the residual follows C's registered 1/N_s signature, at 0.75 ± 0.07 (η = 0.10; χ² 11.2/9) and 0.58 ± 0.12 (π/8; χ² 17.2/8) of its fixed amplitude.
+- **[INFERENCE] A tension.** Hypothesis C predicts the same mode shift in Δ. In the η = 0.10 L-scan it would separate N_s = 25 from N_s = 100 by about 0.7 % at that amplitude, but they agree (+1.19 and +1.21 %). The source of the residual is therefore OPEN. Candidates: C acting on the heavy masses only, or a static-side effect of order 1/N_s.
+- **What this means for the verdict.** The registered verdict above stands. A corrected verdict would need an amendment, C4, which is a decision for the plan author: the k_T estimator with the measured f, applied once to the existing data.
+
+![held divider, post-hoc](../paper1_speedofsound/experiments/final/261004_p1_identity_heldwall_posthoc.png)
+
+`paper1_speedofsound/experiments/final/261004_p1_identity_heldwall_posthoc.png/.pdf`
+- Left: the pilot's 16 divider trajectories.
+- Middle: 1 − f against k_S for every cell, with the pilot trajectories as a star.
+- Right: ρ_I, registered (open markers) and drift-corrected (filled), with 2Δ_C.
+
+### 2.8 Verdicts at a glance
+
+| test (registration) | rule | result |
+|---|---|---|
+| confinement, η = 0.10 (§ 1.5) | one free amplitude each; excluded if p < 0.01 | **not separated**: A (p 0.14) and B (p 0.88) survive, C excluded; Δχ²(A − B) = +9.1 |
+| confinement, π/8 (§ 1.5) | same | **none survives** (A, B, C, C fixed); exploratory two-term forms fail too → **not resolved** |
+| identity, length-free (C1) | within 2 σ at every cell | **FAIL**, 4/19 [post-hoc drift-corrected: 10/19; the π/8 failures are mostly the released-divider bias] |
+| γ_box (§ 1.5) | no pass/fail | η 0.10: 2.038 ± 0.004 (bulk 2.009); π/8 registered 2.35–3.07, drift-corrected 2.26–2.41 (bulk 2.188) |
+| gates | inventory, reduction (§ 1.10), determinism (§ 1.12), health | all PASS; one trajectory excluded by the health rule (effect ≤ 0.008 σ on c_s) |
