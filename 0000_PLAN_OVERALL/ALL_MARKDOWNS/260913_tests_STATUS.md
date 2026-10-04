@@ -301,3 +301,4 @@ One line per step, newest at the bottom. Written automatically by `hspist3/valid
   - The dissertation map was copied from Claude outputs/ to ALL_MARKDOWNS (cmp identical).
   - Health line recorded in §2.1: overlap_repairs=1 (edmd.c:760), printed twice.
   - Correction of CC's post-hoc trajectory window (§2.7): the trace time is time since release, so f over the whole record is 0.9676 ± 0.0012 (was 0.9662, from a Time >= 200 cut). It now equals the temperature value 0.9677 ± 0.0003. The figure was redrawn; dated copies _pre_trwindow_261004.
+- **2026-10-04 01:23:18 HST** **A-FIXED GATE G1: PASS (261012 §3.8).** Pilot job 14972586 (build 279282b), 20 of 20 runs: (a) hold lines identical to method A; (b) u_wall = 0; (c) sum dE = 0; (d) record complete (t_last ~5220); (e) health 0; (f) |1 - f| = 1.7e-07, T constant to <= 3e-08. The arrays may run.

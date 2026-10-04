@@ -1897,3 +1897,45 @@ files written: tasks_AF_*.txt (19 cells + pilot), cells_Afix_{0.10,0.39,pilot}.t
 ### 3.7 What would change this registration
 
 Only gate G1. If any of (a)–(f) fails, the design is revised, and amended in writing, before any array runs. Nothing is tuned after array data.
+
+
+### 3.8 Gate G1 result (2026-10-04) [DATA]
+
+The A-fixed pilot ran on KOA as job 14972586 (sandbox, node cn-03-33-02, build 279282b). Its log ends with `cell pilot_epi8_H_H10_L10 done; failures: 0`. The cell was fetched with `fetch_afix.sh pilot` (121 files, 346 MB).
+
+Printed by `python3 hspist3/cluster/afix_pilot_check_261004.py` (verbatim; the pre-check part is as in § 3.2):
+
+##### GATE G1 -- the A-fixed pilot (sec. 3)
+
+| position | seed | (a) hold lines identical to method A | (b) max abs u_wall, t < t1 | (c) sum dE | (d) t_last | (e) health | max abs(T - 1) |
+|---|---|---|---|---|---|---|---|
+| x_m2 | 9700 | yes | 0 | 0 | 5219.98 | 0 | 2.03e-08 |
+| x_m2 | 9701 | yes | 0 | 0 | 5219.97 | 0 | 1.93e-08 |
+| x_m2 | 9702 | yes | 0 | 0 | 5219.98 | 0 | 2.32e-09 |
+| x_m2 | 9703 | yes | 0 | 0 | 5219.97 | 0 | 2.44e-08 |
+| x_m1 | 9700 | yes | 0 | 0 | 5219.96 | 0 | 1.57e-08 |
+| x_m1 | 9701 | yes | 0 | 0 | 5219.98 | 0 | 1.37e-08 |
+| x_m1 | 9702 | yes | 0 | 0 | 5219.96 | 0 | 3.29e-08 |
+| x_m1 | 9703 | yes | 0 | 0 | 5219.98 | 0 | 4.37e-09 |
+| x_0 | 9700 | yes | 0 | 0 | 5219.98 | 0 | 2.98e-09 |
+| x_0 | 9701 | yes | 0 | 0 | 5219.98 | 0 | 2.48e-08 |
+| x_0 | 9702 | yes | 0 | 0 | 5219.97 | 0 | 3.12e-09 |
+| x_0 | 9703 | yes | 0 | 0 | 5219.94 | 0 | 7.15e-09 |
+| x_p1 | 9700 | yes | 0 | 0 | 5219.94 | 0 | 1.34e-09 |
+| x_p1 | 9701 | yes | 0 | 0 | 5219.98 | 0 | 2.08e-08 |
+| x_p1 | 9702 | yes | 0 | 0 | 5219.95 | 0 | 1.00e-08 |
+| x_p1 | 9703 | yes | 0 | 0 | 5219.97 | 0 | 1.16e-08 |
+| x_p2 | 9700 | yes | 0 | 0 | 5219.93 | 0 | 2.44e-08 |
+| x_p2 | 9701 | yes | 0 | 0 | 5219.95 | 0 | 1.40e-08 |
+| x_p2 | 9702 | yes | 0 | 0 | 5219.94 | 0 | 5.84e-09 |
+| x_p2 | 9703 | yes | 0 | 0 | 5219.95 | 0 | 5.97e-09 |
+
+(f) drift check: |1 - f| = 1.74e-07 (must be < 0.002)
+
+**GATE G1: PASS**
+
+**Reading [DATA].**
+- The first 200 σ-time of all 20 runs are line-for-line identical to the method-A pilot's. So the two changed flags do not touch the trajectory before the record starts.
+- Before the release, the divider's velocity is exactly 0 in every one of these runs, and the divider does exactly zero work.
+- The temperatures stay at 1 to within 3×10⁻⁸, so f = 1 to 1.7×10⁻⁷.
+- **The arrays may run** (§ 3.5; the plan author's go is conditional on this PASS).
