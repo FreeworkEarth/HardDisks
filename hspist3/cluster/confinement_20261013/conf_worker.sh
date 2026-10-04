@@ -5,6 +5,7 @@
 #
 #   B <rel_cell_dir> <M> <r> <exact_seed> <L0> <H> <Ns> <stride> <base>     free divider, speed-of-sound mode
 #   A <rel_pos_dir> <x_wall> <seed> <L0> <H> <Ns> <steps> <every>           held divider, energy-transfer mode
+#   AF <rel_pos_dir> <x_wall> <seed> <L0> <H> <Ns> <hold> <post> <every>  divider held for the WHOLE record (sec. 3)
 #
 # Method B mirrors the A1v2 harness (validation/tests_20260913.py run_one): the binary writes run0 into a fresh
 # temporary .run<r>/, the trace is renamed to _run<r>.csv in the cell directory and its stdout appended to the
@@ -98,6 +99,30 @@ elif [ "$mode" = A ]; then
   rc=$?; h=$(grep -cE "$HEALTH" "$d/run_${seed}.log" 2>/dev/null) || true
   if [ "$rc" -ne 0 ] || [ "${h:-0}" -ne 0 ]; then echo "A $rel seed=$seed FAILED rc=$rc health=${h:-0}"; exit 1; fi
   python3 "$HERE/reduce_A.py" "$d/ev_${seed}.csv" "$d/tr_${seed}.csv" "$d/red_${seed}.csv" || { echo "A $rel seed=$seed reduction FAILED"; exit 1; }
+elif [ "$mode" = AF ]; then
+  # ##CHRIS 2026-10-04 (Task Y, 261012 sec. 3 "A-fixed"): method A with the divider HELD for the whole record. During
+  # --wall-hold-steps the divider has mass 0 = immovable (00ALLINONE.c:16890-16892, edmd.c:779, 1174-1183) and every
+  # divider collision is still logged (edmd.c:1183). hold = 12000 (equilibration, 200 sigma-time) + 300000 (record,
+  # 5000 sigma-time); post = a short released tail only so the trace (written after release only, 00ALLINONE.c:17069)
+  # records the temperatures. reduce_AF.py uses the HELD window [200, hold*dt) only.
+  rel=$1 xw=$2 seed=$3 L0=$4 H=$5 NS=$6 hold=$7 post=$8 every=$9
+  d="$HD_DATA/$rel"; mkdir -p "$d"
+  guard "$d" 'red_*.csv' || { echo "AF $rel seed=$seed FAILED build guard"; exit 3; }
+  [ -s "$d/red_${seed}.csv" ] && exit 0
+  if compgen -G "$d/*_${seed}.*" >/dev/null; then
+    st="$d/.stale_${seed}_$(date +%Y%m%d_%H%M%S)"; mkdir -p "$st"; mv "$d"/*_"${seed}".* "$st"/
+  fi
+  cd "$d" || exit 1
+  HD_PISTON_EVENTS="$d/ev_${seed}.csv" "$HD_BIN" --mode=edmd --experiment=energy_transfer --headless --quiet \
+     --edmd-acc=0 --seed-drift-order=drift-first --energy-transfer-summary="$d/summary_${seed}.csv" \
+     --energy-transfer-trace="$d/tr_${seed}.csv" --trace-every=$every --particles=$((2*NS)) \
+     --particles-boxes=$NS,$NS --particle-radius=0.5 --l0=$L0 --height=$H --num-walls=1 --wall-positions=$xw \
+     --wall-mass-factors=1000000000 --wall-thickness=0.05 --wall-thickness-vis=0.05 --eff-output=wall-ke \
+     --wall-hold-steps=$hold --steps=$post --fixed-dt=0.4 --kbt1 --seed=$seed > "$d/run_${seed}.log" 2>&1
+  rc=$?; h=$(grep -cE "$HEALTH" "$d/run_${seed}.log" 2>/dev/null) || true
+  if [ "$rc" -ne 0 ] || [ "${h:-0}" -ne 0 ]; then echo "AF $rel seed=$seed FAILED rc=$rc health=${h:-0}"; exit 1; fi
+  t1=$(awk -v h="$hold" 'BEGIN{printf "%.9f", h * 0.4 / 24.0}')
+  python3 "$HERE/reduce_AF.py" "$d/ev_${seed}.csv" "$d/tr_${seed}.csv" "$d/red_${seed}.csv" 200 "$t1" || { echo "AF $rel seed=$seed reduction FAILED"; exit 1; }
 else
-  echo "mode must be A or B"; exit 2
+  echo "mode must be A, AF or B"; exit 2
 fi

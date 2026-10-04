@@ -421,3 +421,76 @@ Set 2 starts while the two long B H40 tasks of set 1 may still run: 16 + set 2 =
 - **Set 1** is all six lines, submitted together. Finished cells exit in seconds; only the missing seeds and the three H = 40 cells run.
 - **Set 2** has three lines. Write down the two A_0.10 job numbers that `sbatch` prints in set 1: the line `--array=4 … conf_A_0.10` and the line `--array=1-3,5-10%1 … conf_A_0.10`. Put them into the `<…>` placeholders of set 2.
 - **No `git pull` and no rebuild** between the sets, or while any of them runs (rule 5).
+
+## 9. A-fixed (261012 § 3; written 2026-10-04; nothing is submitted before gate G1 and the go)
+
+**What it is.** Method A again, but with the divider **held for the whole record**. Same cells, positions and seeds; new output directory `experiments_energy_transfer/paper1_confinement_Afix_261004/`; the method-A directories are never written. The binary is unchanged.
+
+**Rules.** Those of step 8 apply:
+- one build for everything;
+- rule 4: a pull that touches no build input may be followed by a submission without a rebuild;
+- rule 5: no rebuild while any cell is incomplete.
+
+**1. On the Mac:** push (`bash _commit_scripts/commit_20261007.sh`).
+
+**2. On KOA, from a `login-0102` prompt:** check that nothing is queued, then open a sandbox session.
+
+```sh
+squeue -u charing
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+```
+
+`squeue` must list no jobs.
+
+**3. At the `cn-...` prompt:** pull, confirm that no build input changed, confirm that the binary is the recorded build.
+
+```sh
+cd ~/harddisks/hspist3
+git pull
+git log --oneline -1
+git diff --name-only 279282b..HEAD | grep -E '^hspist3/([^/]+\.(c|h)|Makefile|edmd_core/|kissfft)' || echo "no build input changed"
+sha256sum --status -c logs/BUILD_KOA_LAST.hash && echo "binary = recorded build"
+exit
+```
+
+**Expected:** `no build input changed`, then `binary = recorded build`.
+
+**4. The A-fixed pilot (gate G1), from `login-0102`:**
+
+```sh
+cd ~/harddisks/hspist3
+mkdir -p logs
+sbatch --array=1-1 cluster/confinement_20261013/conf_Afix_pilot.sbatch
+```
+
+It runs on `sandbox`: 20 trajectories (the method-A pilot's tasks, held). The last log line must be `cell pilot_epi8_H_H10_L10 done; failures: 0`.
+
+**5. On the Mac:** fetch the pilot cell in full and run gate G1.
+
+```sh
+cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks
+bash hspist3/cluster/confinement_20261013/fetch_afix.sh pilot
+cd hspist3 && python3 cluster/afix_pilot_check_261004.py
+```
+
+Paste the output. Its last line must be `**GATE G1: PASS**`. The fetch copies about 0.4 GB (the 20 event logs).
+
+**6. After G1 and the go, from `login-0102` (at most 64 cores at once):**
+
+```sh
+cd ~/harddisks/hspist3
+sbatch --array=4 --time=3:00:00 cluster/confinement_20261013/conf_Afix_0.10.sbatch
+sbatch --array=1,2,3,5,6,7,8,9,10%2 cluster/confinement_20261013/conf_Afix_0.10.sbatch
+sbatch --array=4 --time=17:30:00 cluster/confinement_20261013/conf_Afix_0.39.sbatch
+sbatch --array=1,2,3,5,6,7,8,9%2 cluster/confinement_20261013/conf_Afix_0.39.sbatch
+```
+
+The `--time` values are 3 × the predicted cell time (`python3 hspist3/cluster/gen_afix_sbatch_261004.py` prints them). The π/8 H = 40 prediction (5.8 h) is an extrapolation with p* = 2.99. If the Round-2 `sacct` of `conf-A_0.39` task 4 is pasted first, that measured time replaces it.
+
+**7. When `squeue -u charing` is empty:** run `bash cluster/check_cells.sh` in a sandbox session (it covers the A-fixed groups `Afix_*`) and paste its `== Afix_*` blocks and `SUMMARY:` line. Then, on the Mac, fetch the summaries:
+
+```sh
+bash hspist3/cluster/confinement_20261013/fetch_afix.sh
+```
+
+The analysis is a separate task (261012 § 3.4).

@@ -17,7 +17,7 @@ exec "$PY" - "$ROOT" <<'PYEOF'
 import os, re, sys, time
 from collections import defaultdict
 ROOT = sys.argv[1]; CONF = "cluster/confinement_20261013"
-GROUPS = ["B_0.10", "B_0.39", "A_0.10", "A_0.39", "A_pilot"]
+GROUPS = ["B_0.10", "B_0.39", "A_0.10", "A_0.39", "A_pilot", "Afix_0.10", "Afix_0.39", "Afix_pilot"]   # ##CHRIS 2026-10-04: + A-fixed (sec. 3)
 
 def ls(d):
     try: return {e.name: e for e in os.scandir(d)}
@@ -46,7 +46,8 @@ for g in GROUPS:
     if not os.path.exists(tsv): continue
     print(f"\n== {g}")
     for task, cell in enumerate(open(tsv).read().split(), 1):
-        lines = [l.split() for l in open(os.path.join(CONF, f"tasks_{'A' if g[0] == 'A' else 'B'}_{cell}.txt"))]
+        pre = "AF" if g.startswith("Afix") else ("A" if g[0] == "A" else "B")      # ##CHRIS 2026-10-04: AF lines = A layout
+        lines = [l.split() for l in open(os.path.join(CONF, f"tasks_{pre}_{cell}.txt"))]
         exp = defaultdict(list)                                  # dir -> expected ids
         for f in lines:
             exp[os.path.join(ROOT, f[1])].append((int(f[2]), int(f[3])) if f[0] == "B" else int(f[3]))
