@@ -5,7 +5,7 @@
 # One array task = one cell (cells_Afix_0.39.tsv line N); the cell's trajectories run 16 at a time.
 # Partition shared, account uh, scratch /mnt/lustre/koa/scratch/charing (files DELETED 90 days after last write).
 # Submit from ~/harddisks/hspist3 after `mkdir -p logs`; the binary must be the recorded build (logs/BUILD_KOA_LAST.hash).
-#   sbatch --array=1-9%2 cluster/confinement_20261013/conf_Afix_0.39.sbatch      (runsheet step 9 for --time overrides)
+#   sbatch --array=1-9%1 cluster/confinement_20261013/conf_Afix_0.39.sbatch      (runsheet step 9 for --time overrides)
 #SBATCH --job-name=conf-Afix_0.39
 #SBATCH --partition=shared
 #SBATCH --account=uh

@@ -480,12 +480,12 @@ Paste the output. Its last line must be `**GATE G1: PASS**`. The fetch copies ab
 ```sh
 cd ~/harddisks/hspist3
 sbatch --array=4 --time=1:10:00 cluster/confinement_20261013/conf_Afix_0.10.sbatch
-sbatch --array=1,2,3,5,6,7,8,9,10%2 cluster/confinement_20261013/conf_Afix_0.10.sbatch
+sbatch --array=1,2,3,5,6,7,8,9,10%1 cluster/confinement_20261013/conf_Afix_0.10.sbatch
 sbatch --array=4 --time=3:05:00 cluster/confinement_20261013/conf_Afix_0.39.sbatch
-sbatch --array=1,2,3,5,6,7,8,9%2 cluster/confinement_20261013/conf_Afix_0.39.sbatch
+sbatch --array=1,2,3,5,6,7,8,9%1 cluster/confinement_20261013/conf_Afix_0.39.sbatch
 ```
 
-(Amended 2026-10-04.) Every `--time` is 2 × the measured time of the identical method-A cell, rounded up to 5 min, with a minimum of 0:30. Round 1 and Round 2 ran these cells with the released divider: the same steps and the same collisions. In total the arrays use about 49 core-hours.
+(Corrected 2026-10-04: the two rest arrays run at `%1`. With `%2`, the four jobs could hold 96 cores at once, not the 64 stated; the H40 lines are separate jobs. Now: 4 × 16 = 64.) (Amended 2026-10-04.) Every `--time` is 2 × the measured time of the identical method-A cell, rounded up to 5 min, with a minimum of 0:30. Round 1 and Round 2 ran these cells with the released divider: the same steps and the same collisions. In total the arrays use about 49 core-hours.
 
 Printed by `python3 hspist3/cluster/gen_afix_sbatch_261004.py`:
 

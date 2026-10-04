@@ -33,7 +33,9 @@ REL_A = "experiments_energy_transfer/paper1_confinement_A_20261013"
 REL_AF = "experiments_energy_transfer/paper1_confinement_Afix_261004"
 SCRATCH = "/mnt/lustre/koa/scratch/charing"
 HOLD, POST, EVERY, CPUS = 312000, 1200, 600, 16
-THR = {"Afix_0.10": 2, "Afix_0.39": 2, "Afix_pilot": 1}
+# ##CHRIS 2026-10-04 (correction): the rest arrays run 1 task at a time. With %2 the four submission lines could hold
+# 16 + 32 + 16 + 32 = 96 cores at once (the two H40 lines are separate jobs), not the 64 the first version claimed.
+THR = {"Afix_0.10": 1, "Afix_0.39": 1, "Afix_pilot": 1}
 
 
 def af_lines(cid, src_cell=None):
@@ -138,7 +140,7 @@ def main():
     print(f"\nA-fixed pilot: {len(L)} trajectories (the method-A pilot's tasks, held), sandbox, 1:00:00")
     print(f"\ntotal (measured wall x 16 cores, an upper bound): Afix_0.10 {tot['Afix_0.10']:.1f} core-h, "
           f"Afix_0.39 {tot['Afix_0.39']:.1f} core-h, together {sum(tot.values()):.1f} core-h")
-    print("\nsubmission lines (runsheet step 9; at most 64 cores: 2 x 16 + 2 x 16):\n")
+    print("\nsubmission lines (runsheet step 9; at most 64 cores: the two H40 jobs + the two rest arrays at %1, 4 x 16):\n")
     print("    sbatch --array=1-1 cluster/confinement_20261013/conf_Afix_pilot.sbatch      (first, sandbox; gate G1)")
     for l in lines_out: print("    " + l)
     fetch = f"""#!/usr/bin/env bash
