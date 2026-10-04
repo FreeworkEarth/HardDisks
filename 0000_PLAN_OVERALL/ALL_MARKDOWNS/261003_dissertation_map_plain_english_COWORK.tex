@@ -1,0 +1,126 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=24mm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+\setlength{\parskip}{5pt}
+\setlength{\parindent}{0pt}
+\usepackage{url}\urlstyle{tt}\newcommand{\ttt}[1]{\path{#1}}
+
+\title{The HardDisks dissertation, in plain English\\
+\large What the three papers are, which experiment measures what, and how to read the results}
+\author{Chris Haring (notes written with Cowork/Fable 5.1)}
+\date{3 October 2026 (machine date)}
+
+\begin{document}
+\maketitle
+
+\section*{How to use this note}
+This is the map, not the territory. It says what each experiment is for and what its result will tell us, in simple words, with the formulas set apart so they can be skipped on a first read. The exact numbers, verdict rules and code references live in the repository notes (\ttt{0000_PLAN_OVERALL/ALL_MARKDOWNS/}, above all \ttt{261012_paper1_confinement.md}, \ttt{260912_paper1_methods.md}, \ttt{261010_paper2_effmap.md} and the STATUS log). A glossary of the words that keep coming up is at the end.
+
+\section{The system we simulate}
+Everything in the dissertation happens in one toy world: a two-dimensional box filled with hard disks. Hard disks are coins that fly in straight lines and bounce off each other and off the walls perfectly, with no friction and no stickiness. The only thing that matters about them is how densely they are packed. We write the packing as the \emph{packing fraction} $\eta$, the fraction of the box area covered by disks: $\eta = 0.10$ is a thin gas, $\eta = \pi/8 \approx 0.39$ is a dense gas, and around $\eta \approx 0.70$--$0.72$ the disks stop being a liquid and start to order (the melting region).
+
+Our simulation is event-driven: it does not take small time steps; it jumps exactly from one collision to the next. That makes the dynamics exact to machine precision, which is why we can demand that two runs with the same random seed produce byte-identical files, and why a different computer (KOA) must agree with the Mac only statistically, never byte for byte.
+
+The box has two movable parts. A \emph{divider} in the middle separates the gas into a left and a right compartment; it can be clamped in place or allowed to move freely. A \emph{piston} can push one of the outer walls inward. Paper~1 uses the divider only; Paper~2 uses the piston as well; Paper~3 will add feedback.
+
+Units: $k_B T = m = \sigma = 1$, where $\sigma$ is the disk diameter. ``$\sigma$-time'' means time in these units.
+
+\section{The three papers and the arc}
+The dissertation arc is \emph{characterize $\rightarrow$ transport $\rightarrow$ control}.
+
+\textbf{Paper 1 (characterize).} How fast does sound travel in this gas, as a function of density, and how do the walls of a small box change the answer? Sound speed is the property that ties everything else together: it is the stiffness of the gas as a spring, and that spring is what Paper~2 pushes energy through.
+
+\textbf{Paper 2 (transport).} If a piston pushes on the gas and the gas pushes on a divider held by a spring, how much of the piston's work ends up in the spring, and how does that depend on how fast we push and how stiff the spring is? This is the ``energy-transfer box'' and its main result is the \emph{efficiency map}.
+
+\textbf{Paper 3 (control).} Two pistons, feedback, and an information-theoretic objective: can a controller that is allowed to look at the gas do better than a blind protocol, and what does the information cost? Details are deliberately left out of this note.
+
+\section{Paper 1: sound in a small box}
+
+\subsection{What is measured and how}
+The quantity is the adiabatic sound speed $c_s(\eta)$. ``Adiabatic'' means a compression so fast that no heat has time to flow; this is the right one for sound. Theory predicts it from the equation of state $Z(\eta)$ (the pressure divided by the ideal-gas pressure):
+\begin{equation}
+c_s^2 \;=\; \frac{k_B T}{m}\left(Z + \eta Z' + Z^2\right), \qquad Z = \frac{P}{\rho k_B T}, \quad Z' = \frac{dZ}{d\eta}.
+\label{eq:cs}
+\end{equation}
+The reference formula for $Z(\eta)$ is the Kolafa--Rottner fit of 2006 (we use their $\rho_{\max}=0.90$ fit, Eq.~7 of their paper, fitted up to $\eta \le 0.7069$, and we compare data with it only up to $\eta = 0.69$).
+
+We measure $c_s$ in two completely different ways, and the words \emph{dynamic} and \emph{static} refer to these two methods.
+
+\textbf{Method B, dynamic, ``free divider''.} The divider is released; it swings back and forth like a mass on a spring, where the gas on both sides is the spring. The swing frequency $\omega$ gives the stiffness of the gas spring, and from that the sound speed. For a divider of mass $M$ between two compartments of length $L$ with $N_s$ disks each,
+\begin{equation}
+\hat M\,\omega_1^2 = 2 k_S, \qquad k_S = \frac{N_s m\, c_s^2}{L_{\mathrm{eff}}^2}, \qquad \hat M = M + \tfrac{2}{3} N_s m ,
+\end{equation}
+where $\hat M$ includes the part of the gas that moves along with the divider. One measurement uses nine divider masses and 25 random starts (``seeds'') per mass, 200 swings each. This is the method that produced the Paper~1 curve $c_s(\eta)$ for $N = 100$ disks.
+
+\textbf{Method A, static, ``held divider''.} The divider is clamped at five positions around the middle, $x_{-2}, x_{-1}, x_0, x_{+1}, x_{+2}$, and we measure the average force $F$ the gas exerts on it at each position. Force versus position is the spring constant directly:
+\begin{equation}
+k_T = -\frac{dF}{dx}, \qquad \text{estimated from the five positions by a finite-difference stencil.}
+\end{equation}
+The force jitters because disks hit the wall at random, so every position is repeated many times and averaged. How many repeats are needed is set by a noise coefficient $\epsilon_0$ that we measure in a short pilot before the real runs.
+
+\textbf{Why both.} For hard disks there is an exact relation between the static (slow, isothermal) and the dynamic (fast, adiabatic) stiffness:
+\begin{equation}
+k_S \;=\; k_T + \frac{F^2}{N k_B T}.
+\label{eq:identity}
+\end{equation}
+Checking this identity in the same box with the same code is the centrepiece of the Paper~1 extension. If the two methods obey it, both are right; if not, one of them has a hidden problem, and we find it before a referee does. The ratio $k_S/k_T$ should come out about $2.01$ at $\eta = 0.10$ and $2.19$ at $\eta = \pi/8$.
+
+\subsection{What Paper 1 already says}
+For $N = 100$ disks the measured $c_s$ sits about $1\,\%$ above Kolafa--Rottner over $\eta \le 0.4$, and a ``size ladder'' up to $N = 2500$ shows that this offset shrinks with system size: it is a small-box effect, not a disagreement with the physics. Two corrections were made in October: the box had been up to $0.04\,\sigma$ shorter than recorded (an integer-pixel rounding in the code; every affected number was recomputed under a rule written before the recomputation, and all shifts went \emph{toward} the reference), and the exact Kolafa--Rottner fit we use is now named and bounded.
+
+\subsection{The confinement campaign (running on KOA now)}
+The question: \emph{how exactly} do walls shift the sound speed? We measure $c_s$ in boxes of height $H \in \{5,10,20,40\}$ and length $\tfrac12\times, 1\times, 2\times$ the standard, plus three fixed aspect ratios, at $\eta = 0.10$ and $\eta = \pi/8$, with both methods. Three explanations were written down before the data:
+\begin{itemize}[nosep]
+\item[A] the shift grows like $2/H + 2/L_0$ (all four walls matter);
+\item[B] the shift grows like $1/H$ (only the long walls matter);
+\item[C] the shift is a thermal (anharmonic) effect that does not depend on the walls at all.
+\end{itemize}
+The result is one plot: the measured shift against $1/H$ and against $1/L_0$, with the three predicted lines; the points follow one of them or none. The second plot is the identity test, $k_S$ against $k_T + F^2/(N k_B T)$ for every box shape; if Eq.~\eqref{eq:identity} holds, the points lie on the diagonal.
+
+Status at the time of writing: Round~1 (the two dynamic arrays and the dilute static array) is complete except for a few seeds and the three tall $H=40$ cells, which are being finished; Round~2 (the dense static array) is queued behind them. The pilot showed that at $\pi/8$ the force noise is three times smaller than planned ($\epsilon_0 = 0.082 \pm 0.011$ instead of $0.271$), so the dense static runs need far fewer repeats; we use the upper error bound ($0.093$) to be safe.
+
+\subsection{The melting dip and the Bernard--Engel--Liu literature}
+Our $c_s(\eta)$ curve has a maximum at $\eta = 0.701$ and a minimum at $0.717$, a dip of about $25\,\%$ at $9.6\sigma$ statistical significance, and the seed-to-seed scatter is five times larger inside that window. This is exactly the window in which hard disks melt.
+
+What the literature says: Bernard's dissertation (2011) discovered, with a new Monte-Carlo method, that hard disks melt in two steps: a \emph{first-order} step from liquid to a ``hexatic'' phase (six-fold orientation order, no positional order) in a coexistence window $\eta \approx 0.700$--$0.716$, then a continuous step to the solid. Engel et al.\ (2013) confirmed it with three independent methods, including event-driven dynamics like ours, up to a million disks. Liu (2021) fitted one smooth formula for $Z(\eta)$ through all phases to the simulation results of others; it is a convenient interpolation, not independent evidence, and its derivative $Z'$ must not be used near the transition because Eq.~\eqref{eq:cs} amplifies any kink in a fit.
+
+What we may and may not say now: the $9.6\sigma$ proves that the dip exists; it does not prove its cause. Our box has 100 disks and hard walls; Engel's have $10^5$--$10^6$ disks and no walls. The honest sentence is that the dip \emph{coincides with} the established melting window and that transition-related dynamics is a strong hypothesis.
+
+There is a concrete, testable mechanism. In a finite system at coexistence the pressure--density curve has a loop (the Mayer--Wood loop): over a short range $P$ decreases with density because the interface between the two phases costs free energy. A decreasing $P$ means $Z' < 0$, and by Eq.~\eqref{eq:cs} a negative $Z'$ \emph{lowers} $c_s$ -- a weaker spring, a slower swing, a dip. The loop has a fingerprint: its depth shrinks with system size as $N^{-1/2}$. So the next Paper~1 campaign after confinement is a size sweep through the window, $\eta \in \{0.695, 0.700, 0.704, 0.708, 0.712, 0.716, 0.720\}$ at $N = 100, 400, 900, 1600$, with the prediction written in advance that the dip depth scales as $N^{-1/2}$ if the loop explains it. Every run already writes the six-fold order parameter $\psi_6$, so the hexatic signature comes for free. A full melting study with periodic boundaries and $256^2$ disks (reproducing Engel's pressure at $\eta = 0.698$ first) would be a separate, later paper and a decision for Susanne.
+
+\section{Paper 2: pushing energy through the gas}
+The energy-transfer box: a piston compresses the left gas by a distance $d$ at speed $u$; the pressure wave crosses the gas, moves the divider, and the divider compresses a spring of stiffness $k$ (with a second gas compartment on the other side). The efficiency is $\varepsilon = $ energy stored in the spring divided by the work the piston did.
+
+The main result, the \emph{efficiency map}: $\varepsilon$ depends on the spring stiffness $k$ alone, not on the divider mass; for slow pushes it reaches a plateau that equals the reversible (thermodynamic) limit to within $1$--$2\,\%$; the knee between slow and fast is at $d/u \approx 2L_0/c_s$, i.e.\ when the push lasts about one round trip of sound through the box -- which is how Paper~1's $c_s$ enters Paper~2. The small $1$--$2\,\%$ excess over the reversible limit is consistent with the gas in our box being slightly stiffer than the bulk formula (the same small-box effect as in Paper~1); a residual dependence on $k$ is still open.
+
+Earlier levels of Paper~2 established the bookkeeping (energy conserved to $10^{-5}\,k_B T$), the transmission of a pressure pulse through the divider, and the slow relaxation of the divider's temperature. Later extensions (a chain of several dividers, impedance matching, the shock regime at high push speed, and the Sivak--Crooks optimal-protocol ideas) build on the map.
+
+\section{Paper 3: control}
+Two pistons and a feedback controller that is allowed to measure the gas and act on it. The question is how much better a measuring controller can do than a blind protocol and what the measurement costs in information. This is where the dynamical information bottleneck enters. The detailed design stays in the private notes.
+
+\section{Where the work happens}
+The Mac holds the repository, the analysis scripts and the finished data; nothing large is run there any more (its disk is nearly full). KOA, the university cluster, runs the campaigns: the code is cloned from GitHub, built once inside a test session, and every run checks that the binary is the recorded build. Raw trajectories stay on KOA's scratch space (deleted 90 days after the last write; they are regenerable from binary, seed and command line); only the small summaries and the pilot cells are copied back. Every campaign is \emph{pre-registered}: the cells, the estimator and the verdict rules are committed before the data exist, and a result is written once, in one results section.
+
+\section*{Glossary}
+\begin{description}[style=nextline,nosep]
+\item[$\eta$, packing fraction] fraction of the box area covered by disks. Density knob.
+\item[$Z$, compressibility factor] $P/(\rho k_B T)$; equals 1 for an ideal gas. The equation of state is $Z(\eta)$.
+\item[$c_s$] adiabatic sound speed, Eq.~\eqref{eq:cs}.
+\item[$k_T$, $k_S$] static (isothermal) and dynamic (adiabatic) stiffness of the gas spring; related by Eq.~\eqref{eq:identity}.
+\item[$N$, $N_s$] total number of disks, and disks per compartment ($N = 2N_s$).
+\item[$L_0$, $H$, $L_{\mathrm{eff}}$] compartment length, box height, and the acoustic length (the geometric length minus the disk radius at each wall and half the divider thickness).
+\item[seed] the random number that fixes a run's starting configuration; same seed, same run, byte for byte.
+\item[cell] one point of a campaign (one geometry and density); a cell contains many seeds.
+\item[array, task] on KOA, one campaign is one job array; one task is one cell.
+\item[pilot] a short run whose only purpose is to measure something needed to size the real runs (here: the force-noise coefficient $\epsilon_0$).
+\item[pre-registration] writing cells, estimator and verdict rules into the repository before any data exist.
+\item[$\sigma$ (error)] one standard deviation; ``$2\sigma$'' means two of them.
+\item[degrees of freedom] the number of independent pieces of information behind an estimate. Four seeds tell you their scatter with $4-1=3$ pieces (one is used by the mean); ten groups of four give 30. A scatter estimated from 30 pieces is itself uncertain by about $1/\sqrt{2\cdot 30} \approx 13\,\%$.
+\item[Mayer--Wood loop] the finite-size pressure loop in a coexistence region; depth $\propto N^{-1/2}$.
+\item[$\psi_6$] six-fold bond-orientational order parameter; near 1 in a hexatic or solid, near 0 in a liquid.
+\end{description}
+\end{document}

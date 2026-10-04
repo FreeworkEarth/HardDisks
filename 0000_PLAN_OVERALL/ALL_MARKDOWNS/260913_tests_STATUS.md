@@ -287,3 +287,17 @@ One line per step, newest at the bottom. Written automatically by `hspist3/valid
 - **2026-10-04 00:16:14 HST** **CONFINEMENT VERDICT eta = pi/8 (§1.5 rule): NONE SURVIVES, NOT RESOLVED.** A chi2 481/8, B 141.9/8, C 1018/8, C fixed 5493/9 (all p < 1e-26). The exploratory two-term forms fail too (p 2e-25, 2e-83). The L-scan at H = 10 gives -1.71 ± 0.67, +1.98 ± 0.33 and +2.79 ± 0.15 % at L0 = 5, 10, 20: a 1/L shape with the sign no registered form has (INFERENCE: an effective-length offset at high density).
 - **2026-10-04 00:16:14 HST** **IDENTITY VERDICT (C1, within 2 sigma at every cell): FAIL, 4 of 19.** eta 0.10: the residual sits at small N_s (+2.0 and +2.2 % at N_s = 25; N_s >= 100 pass). pi/8: every cell fails, +0.9 ... +11.5 %. gamma_box: eta 0.10 2.038 ± 0.004 (bulk 2.009); pi/8 registered 2.35-3.07 (bulk 2.188).
 - **2026-10-04 00:16:14 HST** **POST-HOC (not registered): THE 'HELD' DIVIDER OF METHOD A IS RELEASED AND RETURNS TOWARDS THE CENTRE.** Pilot trajectories: mean offset 0.9662 ± 0.0013 of nominal; from the recorded temperatures (energy balance), 0.9677 ± 0.0003. The registered k_T is therefore low by 0.9-35 % at pi/8 and <= 0.4 % at eta 0.10. With F/T and the measured spacing f dL: pi/8 rho_I -0.35 ... +1.57 % (6/9 within 2 sigma); overall 10/19. The residual follows 2 Delta_C at 0.75 ± 0.07 (eta 0.10) and 0.58 ± 0.12 (pi/8). A corrected verdict needs amendment C4: decision for the plan author.
+- **2026-10-04 00:52:08 HST** **A-FIXED DESIGNED AND PRE-REGISTERED (Task Y; tooling a54766f, pre-registration 212eca1 alone, 261012 §3).**
+  - Code: during --wall-hold-steps the divider has mass 0 and velocity 0 (00ALLINONE.c:16890-16892), so its position update adds 0 (edmd.c:779). Every collision with it is logged as D0 (edmd.c:1174-1183).
+  - Data: in the hold phase of all 20 method-A pilot runs, u_wall = 0 and sum dE = 0 exactly.
+  - No code change, same binary 279282b. Flags: --wall-hold-steps=312000 --steps=1200; window [200, 5200).
+  - Same cells, positions and seeds; new output dir paper1_confinement_Afix_261004. Gates G1-G3; predictions P1-P3 with their outcomes declared.
+  - Cost upper bound 134 core-h (p* 2.99; 92 of them the pi/8 H40 extrapolation). Runsheet step 9.
+- **2026-10-04 00:52:08 HST** **EXPLORATORY Z1-Z3 (Task Z, 261012 §2.9, no verdicts).**
+  - Z1: eta 0.10 eps = -0.006 ± 0.064 sigma (chi2 2.0/4). pi/8 eps = +0.20 ± 0.03, but the form fails (chi2 67/3), so the single-length-offset reading is not confirmed.
+  - Z2: delta_H = 0.268 ± 0.015 (eta 0.10) vs 0.106 ± 0.006 sigma (pi/8): one value does not fit both (10 sigma).
+  - Z3: rho_I(C4) = c/N_s with c/A_C = 0.75 ± 0.07 at eta 0.10. Under C it would separate the L-scan by +0.72 %; measured -0.03 ± 0.27 % (2.7 sigma tension).
+- **2026-10-04 00:52:08 HST** **HOUSEKEEPING (Task AA).**
+  - The dissertation map was copied from Claude outputs/ to ALL_MARKDOWNS (cmp identical).
+  - Health line recorded in §2.1: overlap_repairs=1 (edmd.c:760), printed twice.
+  - Correction of CC's post-hoc trajectory window (§2.7): the trace time is time since release, so f over the whole record is 0.9676 ± 0.0012 (was 0.9662, from a Time >= 200 cut). It now equals the temperature value 0.9677 ± 0.0003. The figure was redrawn; dated copies _pre_trwindow_261004.

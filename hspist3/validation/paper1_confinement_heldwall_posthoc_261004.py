@@ -40,8 +40,12 @@ def pilot_positions():
     for lab, j in R.POS:
         if j == 0: continue
         for f in sorted(glob.glob(os.path.join(PILOT, f"x_{lab}", "tr_*.csv"))):
-            d = pd.read_csv(f, usecols=["Time", "W0_x_sigma"]); t = d["Time"].to_numpy(); x = d["W0_x_sigma"].to_numpy() - L0
-            w = t >= 200; out.append(x[w].mean() / (j * dL))
+            # ##CHRIS 2026-10-04 (correction, CC's error): the trace's Time is time SINCE RELEASE (00ALLINONE.c:17086,
+            # t = simulation_time - wall_release_time) and the trace has rows after the release only. The first version
+            # cut at Time >= 200, i.e. it dropped the first 200 sigma-time of the record and gave f = 0.9662. The record
+            # (the event-log window [200, 5200) absolute) is the WHOLE trace: all rows.
+            d = pd.read_csv(f, usecols=["Time", "W0_x_sigma"]); x = d["W0_x_sigma"].to_numpy() - L0
+            out.append(x.mean() / (j * dL))
     return np.array(out)
 
 
@@ -77,7 +81,7 @@ def main():
             R.method_B(c); R.method_A(c); R.identity(c)
     print("## POST-HOC (not registered, no verdict): the released 'held' divider of method A\n")
     fp = pilot_positions()
-    print(f"pilot traces (pi/8 anchor, 16 off-centre runs, W0_x_sigma over the window [200, end]): "
+    print(f"pilot traces (pi/8 anchor, 16 off-centre runs, W0_x_sigma over the whole record = all trace rows, time since release): "
           f"mean displacement / nominal = f = {fp.mean():.4f} +- {fp.std(ddof=1):.4f} (min {fp.min():.4f}, max {fp.max():.4f})")
     anc = [c for c in CS if c["cid"] == "epi8_H_H10_L10"][0]
     dp = drift(anc, cell_dir=PILOT)
@@ -123,8 +127,8 @@ def figure(rows):
         for f in sorted(glob.glob(os.path.join(PILOT, f"x_{lab}", "tr_*.csv"))):
             d = pd.read_csv(f, usecols=["Time", "W0_x_sigma"])
             a1.plot(d["Time"], (d["W0_x_sigma"] - 10.0) / (j * 0.125), color=R.BLUE, lw=0.6, alpha=0.6)
-    a1.axhline(1, color="k", ls="--", lw=1); a1.axvline(200, color="0.5", ls=":", lw=1)
-    a1.set_xlabel("time [sigma-time]  (released at 200)"); a1.set_ylabel("divider displacement / nominal x_j")
+    a1.axhline(1, color="k", ls="--", lw=1)
+    a1.set_xlabel("time since release [sigma-time]  (record = 5000; held before)"); a1.set_ylabel("divider displacement / nominal x_j")
     a1.set_title("pi/8 anchor pilot: 16 off-centre runs (DATA)", fontsize=10); a1.grid(True, ls=":", alpha=0.5)
     for lab, col, mk in (("0.10", R.BLUE, "o"), ("0.39", R.BLUE2, "s")):
         rr = [r for r in rows if r["c"]["lab"] == lab]

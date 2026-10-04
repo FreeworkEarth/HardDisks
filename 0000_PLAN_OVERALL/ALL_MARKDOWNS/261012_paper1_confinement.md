@@ -1279,6 +1279,14 @@ geometry vs registration (eta, dL from paper1_confinement_prereg_20261012): all 
 
   The canonical estimator would have discarded it as well (`tests_20260913.cell_runs`, `r in bad`).
 - **The health line itself is OPEN.** It is in `.failed_run5_*/stdout.log` on KOA scratch, which the fetch filter did not copy.
+  - **Recorded 2026-10-04 [DATA]** (Chris's KOA terminal, `grep -h "EDMD-HEALTH" …/epi8_H_H40_L10/m_3000/.failed_run5_*/stdout.log`):
+
+        ⚠️ [EDMD-HEALTH] L0=10.0 M=3000 run=0 seed=2552328379: forced_advance=0 wall_clamp_repairs=0 overlap_repairs=1 wall_overdue=0
+
+    - The line is printed twice in the same `stdout.log`, although the code has one print site (`00ALLINONE.c:16258`). Why it ran twice is not traced (OPEN, cosmetic).
+    - `run=0` is the binary's run index inside the worker's temporary `.run5`, i.e. the campaign's run 5.
+    - **The counter is `overlap_repairs`** [SOURCE, `edmd.c:760`, `if(ok == 2) S->overlap_repair_count++;   /* ##CHRIS: overdue (already-overlapping) pair */`]. Once in this trajectory, a disk–disk collision was scheduled for a pair that already overlapped, and it had to be rescued.
+    - It is the only health event in the 225 trajectories of this cell. The exclusion under § 1.7 item 6 stands as applied.
 - **What each counter means [SOURCE, `edmd_core/edmd.c`]:**
   - `forced_advance` (`:1457`, `S->forced_advance_count++;`): the event loop exceeded its event or stagnation guard, and time was advanced by force.
   - `wall_clamp_repairs` (`:365`, `S->clamp_repair_count++;`): `grid_build()` had to bounce a particle back into the box.
@@ -1622,6 +1630,16 @@ eta 0.39: rho_I,c = a x 2 Delta_C: a = 0.58 +- 0.12, chi2 17.2 / 8 dof (rho_I,c 
 - Middle: 1 − f against k_S for every cell, with the pilot trajectories as a star.
 - Right: ρ_I, registered (open markers) and drift-corrected (filled), with 2Δ_C.
 
+**Correction (2026-10-04, CC's error) [DATA].** The trajectory value f = 0.9662 ± 0.0013 above was computed over the trace rows with Time ≥ 200.
+- The trace's Time is time *since release* (`00ALLINONE.c:17086`, `double t = simulation_time - wall_release_time;`), and the trace has rows after the release only. So that cut dropped the first 200 σ-time of the record.
+- **Over the whole record (all trace rows), the trajectories give f = 0.9676 ± 0.0012.** That equals the temperature value, 0.9677 ± 0.0003. The two independent measurements of the drift therefore agree, and the 0.0015 "difference" quoted above was the window.
+- Printed by the corrected `paper1_confinement_heldwall_posthoc_261004.py`:
+
+      pilot traces (pi/8 anchor, 16 off-centre runs, W0_x_sigma over the whole record = all trace rows, time since release): mean displacement / nominal = f = 0.9676 +- 0.0012 (min 0.9646, max 0.9701)
+
+- No other number of § 2.7 changes: the per-cell f, k_T,c and ρ_I,c use the temperatures, not the trajectories.
+- In the figure, the left panel is redrawn against time since release, and the middle panel's star moves to 1 − 0.9676. The earlier figure is kept as `261004_p1_identity_heldwall_posthoc_pre_trwindow_261004.png/.pdf`.
+
 ### 2.8 Verdicts at a glance
 
 | test (registration) | rule | result |
@@ -1631,6 +1649,89 @@ eta 0.39: rho_I,c = a x 2 Delta_C: a = 0.58 +- 0.12, chi2 17.2 / 8 dof (rho_I,c 
 | identity, length-free (C1) | within 2 σ at every cell | **FAIL**, 4/19 [post-hoc drift-corrected: 10/19; the π/8 failures are mostly the released-divider bias] |
 | γ_box (§ 1.5) | no pass/fail | η 0.10: 2.038 ± 0.004 (bulk 2.009); π/8 registered 2.35–3.07, drift-corrected 2.26–2.41 (bulk 2.188) |
 | gates | inventory, reduction (§ 1.10), determinism (§ 1.12), health | all PASS; one trajectory excluded by the health rule (effect ≤ 0.008 σ on c_s) |
+
+
+### 2.9 EXPLORATORY analyses on the existing data (2026-10-04; no verdicts)
+
+Decided by the plan author on 2026-10-04, for the discussion section. Printed by `python3 hspist3/validation/paper1_confinement_exploratory_261004.py` (verbatim):
+
+
+##### Z1 (a): Delta = -eps/L_eff + b/H + c0 over the H = 10 cells and the aspect cells
+
+| eta | cells | eps [sigma] | b [sigma] | c0 [%] | chi2 / dof | p | errors scaled by sqrt(chi2/dof) (eps, b, c0) |
+|---|---|---|---|---|---|---|---|
+| 0.10 | 7 (H_H10_L39.25, L_H10_L19.625, L_H10_L78.5, aspect_H19.7917_L19.7917, aspect_H14_L28, aspect_H9.91667_L39.625, aspect_H7_L56.0417) | -0.0058 +- 0.0638 | +0.1015 +- 0.0466 | +0.131 +- 0.579 | 2.01 / 4 | 0.735 | 0.0638, 0.0466, 0.579 % |
+| 0.39 | 6 (H_H10_L10, L_H10_L5, L_H10_L20, aspect_H7.08333_L14.125, aspect_H5_L20, aspect_H3.54167_L28.2917) | +0.2005 +- 0.0303 | +0.2128 +- 0.0112 | +2.134 +- 0.343 | 67.14 / 3 | 1.75e-14 | 0.1433, 0.0528, 1.622 % |
+
+##### Z1 (b): per cell, the length L_KR that makes k_S^dyn equal the bulk KR stiffness N_s m c_KR^2/L^2
+
+| eta | cell | L_eff,true | L_KR = c_KR sqrt(N_s m/k_S^dyn) | offset L_KR - L_eff,true [sigma] | +- | Z1(a) model offset eps - (b/H + c0) L_eff | (offset - model)/sigma |
+|---|---|---|---|---|---|---|---|
+| 0.10 | e0p10_H_H5_L39.25 | 38.2250 | 37.3266 | -0.8984 | 0.0277 | -0.8318 | -2.4 |
+| 0.10 | e0p10_H_H10_L39.25 | 38.2250 | 37.7865 | -0.4385 | 0.0192 | -0.4439 | +0.3 |
+| 0.10 | e0p10_H_H20_L39.25 | 38.2250 | 37.9952 | -0.2298 | 0.0191 | -0.2499 | +1.1 |
+| 0.10 | e0p10_H_H40_L39.25 | 38.2250 | 38.1192 | -0.1058 | 0.0205 | -0.1529 | +2.3 |
+| 0.10 | e0p10_L_H10_L19.625 | 18.6000 | 18.3632 | -0.2368 | 0.0149 | -0.2190 | -1.2 |
+| 0.10 | e0p10_L_H10_L78.5 | 77.4750 | 76.6562 | -0.8188 | 0.0271 | -0.8937 | +2.8 |
+| 0.10 | e0p10_aspect_H19.7917_L19.7917 | 18.7667 | 18.6479 | -0.1188 | 0.0138 | -0.1267 | +0.6 |
+| 0.10 | e0p10_aspect_H14_L28 | 26.9750 | 26.7458 | -0.2292 | 0.0164 | -0.2367 | +0.5 |
+| 0.10 | e0p10_aspect_H9.91667_L39.625 | 38.6000 | 38.1610 | -0.4390 | 0.0169 | -0.4515 | +0.7 |
+| 0.10 | e0p10_aspect_H7_L56.0417 | 55.0167 | 54.1593 | -0.8574 | 0.0257 | -0.8756 | +0.7 |
+| 0.39 | epi8_H_H5_L10 | 8.9750 | 8.5740 | -0.4010 | 0.0051 | -0.3730 | -5.5 |
+| 0.39 | epi8_H_H10_L10 | 8.9750 | 8.8262 | -0.1488 | 0.0056 | -0.1820 | +5.9 |
+| 0.39 | epi8_H_H20_L10 | 8.9750 | 8.9539 | -0.0211 | 0.0052 | -0.0865 | +12.5 |
+| 0.39 | epi8_H_H40_L10 | 8.9750 | 9.0114 | +0.0364 | 0.0061 | -0.0388 | +12.4 |
+| 0.39 | epi8_L_H10_L5 | 3.9750 | 4.0251 | +0.0501 | 0.0047 | +0.0311 | +4.0 |
+| 0.39 | epi8_L_H10_L20 | 18.9750 | 18.4393 | -0.5357 | 0.0088 | -0.6082 | +8.2 |
+| 0.39 | epi8_aspect_H7.08333_L14.125 | 13.1000 | 12.6388 | -0.4612 | 0.0068 | -0.4726 | +1.7 |
+| 0.39 | epi8_aspect_H5_L20 | 18.9750 | 17.8483 | -1.1267 | 0.0073 | -1.0121 | -15.6 |
+| 0.39 | epi8_aspect_H3.54167_L28.2917 | 27.2667 | 25.4777 | -1.7889 | 0.0107 | -2.0199 | +21.7 |
+
+##### Z2: acoustic height deficit delta_H = b / (2 dln c_s/dln eta)
+
+| eta | s = dln c_KR/dln eta | b source | b [sigma] | +- raw | chi2/dof of that fit | delta_H [sigma] | +- raw | +- scaled |
+|---|---|---|---|---|---|---|---|---|
+| 0.10 | 0.2201 | registered B fit, all cells (sec. 2.2) | +0.11797 | 0.00642 | 4.45/9 | +0.2679 | 0.0146 | 0.0146 |
+| 0.10 | 0.2201 | H-scan only, b/H | +0.11533 | 0.00869 | 3.07/3 | +0.2619 | 0.0197 | 0.0199 |
+| 0.10 | 0.2201 | Z1(a) b (with eps, c0) | +0.10148 | 0.04658 | 2.01/4 | +0.2305 | 0.1058 | 0.1058 |
+| 0.39 | 1.2348 | registered B fit, all cells (sec. 2.2) | +0.26256 | 0.00336 | 141.94/8 | +0.1063 | 0.0014 | 0.0057 |
+| 0.39 | 1.2348 | H-scan only, b/H | +0.17669 | 0.02006 | 14.60/3 | +0.0715 | 0.0081 | 0.0179 |
+| 0.39 | 1.2348 | Z1(a) b (with eps, c0) | +0.21283 | 0.01117 | 67.14/3 | +0.0862 | 0.0045 | 0.0214 |
+
+one delta_H for both densities? (difference / combined sigma)
+
+| b source | delta_H(0.10) - delta_H(pi/8) [sigma] | / raw sigma | / scaled sigma |
+|---|---|---|---|
+| registered B fit, all cells (sec. 2.2) | +0.1616 | +11.0 | +10.3 |
+| H-scan only, b/H | +0.1904 | +8.9 | +7.1 |
+| Z1(a) b (with eps, c0) | +0.1443 | +1.4 | +1.3 |
+
+##### Z3: the identity residual rho_I(C4) = c/N_s, and what the same c would do to the L-scan under C
+
+| eta | c (rho_I = c/N_s) | +- | chi2/dof | c / A_C (A_C = 2 N_s Delta_C) | predicted Delta(N_s 25) - Delta(N_s 100) [%] | measured (L-scan) [%] | +- | (measured - predicted)/sigma |
+|---|---|---|---|---|---|---|---|---|
+| 0.10 | +0.4778 | 0.0453 | 11.2/9 | 0.75 +- 0.07 | +0.717 +- 0.068 | -0.028 | 0.269 | -2.7 |
+| 0.39 | +0.2220 | 0.0471 | 17.2/8 | 0.58 +- 0.12 | +0.333 +- 0.071 | -4.503 | 0.685 | -7.0 |
+
+(pi/8: the L-scan difference also carries the length effect of Z1, so the pi/8 row is confounded and shown for completeness only.)
+
+**Reading [DATA; INFERENCE where marked].**
+
+**Z1, the effective acoustic length.**
+- **η = 0.10.** The three-term form fits (χ² 2.0/4), and its length offset is zero: ε = −0.006 ± 0.064 σ. The 1/H amplitude b = 0.10 ± 0.05 agrees with the registered B amplitude, 0.118 ± 0.006. In the per-cell length picture, L_KR − L_eff,true runs from −0.1 to −0.9 σ, simply −Δ·L_eff, and the (a) model reproduces it within about 3σ.
+- **π/8.** The best fit has ε = +0.20 ± 0.03 σ (±0.14 with the errors scaled), i.e. an acoustic length longer than L₀ − 2r − t/2, together with b = 0.21 and a constant c₀ = +2.1 %. But the form does **not** describe the cells: χ² 67/3, p = 2×10⁻¹⁴. Per cell, the offsets run from +0.05 σ (L₀ = 5, H = 40) to −1.79 σ (the flattest aspect cell), and the model misses them by up to 22 σ.
+- **[INFERENCE]** The "single effective-length offset" reading of § 2.2 is therefore **not confirmed**. Whatever shifts the dense-gas sound speed depends on the box shape in a way that neither 1/H, 1/L, nor a constant captures with one parameter each.
+
+**Z2, the acoustic height deficit.**
+- At η = 0.10 the registered B amplitude gives δ_H = 0.268 ± 0.015 σ, about half a disk radius. At π/8 it gives 0.106 ± 0.006 σ (scaled error).
+- **One δ_H does not fit both densities:** they differ by 10 σ, and by 7 σ from the H-scans alone.
+- They agree (1.3 σ) only with Z1(a)'s b, which is weakly constrained at η = 0.10 and comes from a failed fit at π/8.
+
+**Z3, the tension.**
+- At η = 0.10 the drift-corrected identity residual follows ρ_I = c/N_s with c = 0.478 ± 0.045, which is 0.75 ± 0.07 of hypothesis C's amplitude (χ² 11.2/9).
+- If that were C's mode shift, it would also appear in c_s: the L-scan's N_s = 25 and N_s = 100 cells would differ by +0.72 ± 0.07 %. They differ by −0.03 ± 0.27 %, a **2.7 σ tension**.
+- The π/8 row (−7.0 σ) is confounded by the length effect of Z1 and is shown only for completeness.
+- **[INFERENCE]** Either the residual is not a mode shift (for example a static-side effect of order 1/N_s), or C acts on the heavy masses only. The A-fixed campaign (§ 3, P3) tests the first.
 
 
 ---
