@@ -2048,6 +2048,7 @@ tables -> 261005_p1_identity_afix_cells.csv; figure -> 261005_p1_identity_afix.p
   - **π/8:** c = 0.138 ± 0.047 (2.9 σ), r = 0.36 ± 0.12. The declared rule (c > 2 σ_c, r within 2 σ of C4's 0.58) also reads "physics". But ρ_I = 0 alone is not rejected at π/8: χ² 11.1/9, p ≈ 0.27 [DATA]. **[INFERENCE] The dense-gas residual is weak; the dilute one is unambiguous.**
 - **γ_box:** 2.01–2.07 at η = 0.10 (bulk 2.009), and 2.25–2.37 at π/8 (bulk 2.188).
 - **OPEN, as before:** the same 1/N_s shift is not visible in the dilute L-scan of c_s (§ 2.9 Z3, 2.7 σ).
+- **Correction (2026-10-05 13:34 HST) [DATA]:** the η = 0.10 reading above says "c = 0.483 ± 0.046"; the script's printed table (this section, row η = 0.10) gives σ_c = 0.0455, so **c = 0.483 ± 0.045**. A rounding slip in the reading only; c/σ_c = 10.6 and every verdict are unchanged. The STATUS line of 2026-10-05 12:13:44 carries the same slip and is corrected by a dated STATUS line. The paper draft has 0.045 since 01f5823.
 
 
 ### 3.10 Which side bends (2026-10-05) -- DIAGNOSTIC, no verdict
