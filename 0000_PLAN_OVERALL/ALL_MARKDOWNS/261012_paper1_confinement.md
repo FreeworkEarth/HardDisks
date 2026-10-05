@@ -2048,3 +2048,57 @@ tables -> 261005_p1_identity_afix_cells.csv; figure -> 261005_p1_identity_afix.p
   - **π/8:** c = 0.138 ± 0.047 (2.9 σ), r = 0.36 ± 0.12. The declared rule (c > 2 σ_c, r within 2 σ of C4's 0.58) also reads "physics". But ρ_I = 0 alone is not rejected at π/8: χ² 11.1/9, p ≈ 0.27 [DATA]. **[INFERENCE] The dense-gas residual is weak; the dilute one is unambiguous.**
 - **γ_box:** 2.01–2.07 at η = 0.10 (bulk 2.009), and 2.25–2.37 at π/8 (bulk 2.188).
 - **OPEN, as before:** the same 1/N_s shift is not visible in the dilute L-scan of c_s (§ 2.9 Z3, 2.7 σ).
+
+
+### 3.10 Which side bends (2026-10-05) -- DIAGNOSTIC, no verdict
+
+Printed by `python3 hspist3/validation/paper1_confinement_sides_261005.py` (verbatim):
+
+| eta | cell | N_s | H | k_KR (bulk) | k_S^dyn/k_KR - 1 [%] | +- | k_static/k_KR - 1 [%] | +- | 1/H factor (1 + b/H)^2 - 1 [%] | k_S^dyn/k_KR,B - 1 [%] | k_static/k_KR,B - 1 [%] |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.10 | e0p10_H_H5_L39.25 | 25 | 5 | 0.0520602 | +4.872 | 0.156 | +3.149 | 0.338 | +4.774 | +0.093 | -1.551 |
+| 0.10 | e0p10_H_H10_L39.25 | 50 | 10 | 0.10412 | +2.334 | 0.104 | +1.598 | 0.320 | +2.373 | -0.038 | -0.758 |
+| 0.10 | e0p10_H_H20_L39.25 | 100 | 20 | 0.208241 | +1.214 | 0.102 | +0.760 | 0.300 | +1.183 | +0.030 | -0.419 |
+| 0.10 | e0p10_H_H40_L39.25 | 200 | 40 | 0.416482 | +0.556 | 0.108 | +0.488 | 0.310 | +0.591 | -0.035 | -0.103 |
+| 0.10 | e0p10_L_H10_L19.625 | 25 | 10 | 0.219875 | +2.595 | 0.167 | +0.437 | 0.295 | +2.373 | +0.217 | -1.892 |
+| 0.10 | e0p10_L_H10_L78.5 | 100 | 10 | 0.0506918 | +2.148 | 0.072 | +1.599 | 0.332 | +2.373 | -0.220 | -0.757 |
+| 0.10 | e0p10_aspect_H19.7917_L19.7917 | 50 | 19.7917 | 0.432357 | +1.278 | 0.149 | -0.130 | 0.290 | +1.196 | +0.081 | -1.310 |
+| 0.10 | e0p10_aspect_H14_L28 | 50 | 14 | 0.209195 | +1.721 | 0.125 | +1.154 | 0.315 | +1.692 | +0.028 | -0.529 |
+| 0.10 | e0p10_aspect_H9.91667_L39.625 | 50 | 9.91667 | 0.102056 | +2.314 | 0.091 | +1.034 | 0.309 | +2.393 | -0.078 | -1.328 |
+| 0.10 | e0p10_aspect_H7_L56.0417 | 50 | 7 | 0.050274 | +3.191 | 0.098 | +2.106 | 0.328 | +3.399 | -0.201 | -1.250 |
+| 0.39 | epi8_H_H5_L10 | 25 | 5 | 4.35537 | +9.573 | 0.131 | +8.783 | 0.287 | +10.778 | -1.088 | -1.801 |
+| 0.39 | epi8_H_H10_L10 | 50 | 10 | 8.71075 | +3.400 | 0.132 | +3.277 | 0.376 | +5.320 | -1.823 | -1.940 |
+| 0.39 | epi8_H_H20_L10 | 100 | 20 | 17.4215 | +0.471 | 0.117 | +0.596 | 0.312 | +2.643 | -2.116 | -1.994 |
+| 0.39 | epi8_H_H40_L10 | 200 | 40 | 34.843 | -0.806 | 0.134 | -0.859 | 0.335 | +1.317 | -2.096 | -2.148 |
+| 0.39 | epi8_L_H10_L5 | 25 | 10 | 22.2034 | -2.472 | 0.230 | -3.200 | 0.307 | +5.320 | -7.399 | -8.090 |
+| 0.39 | epi8_L_H10_L20 | 100 | 10 | 3.89754 | +5.895 | 0.102 | +5.937 | 0.376 | +5.320 | +0.546 | +0.586 |
+| 0.39 | epi8_aspect_H7.08333_L14.125 | 50 | 7.08333 | 4.08341 | +7.432 | 0.116 | +7.270 | 0.368 | +7.551 | -0.111 | -0.261 |
+| 0.39 | epi8_aspect_H5_L20 | 50 | 5 | 1.94877 | +13.024 | 0.093 | +12.738 | 0.308 | +10.778 | +2.027 | +1.769 |
+| 0.39 | epi8_aspect_H3.54167_L28.2917 | 50 | 3.54167 | 0.939127 | +14.536 | 0.096 | +14.590 | 0.410 | +15.377 | -0.728 | -0.682 |
+
+##### Fits per density: ratio - 1 = a + s/N_s (weighted; free intercept)
+
+| eta | reference | side | intercept a [%] | slope s | +- | s/sigma | chi2/dof |
+|---|---|---|---|---|---|---|---|
+| 0.10 | bulk KR | dynamic | +0.822 +- 0.072 | +0.7675 | 0.0375 | +20.5 | 360.3/8 |
+| 0.10 | bulk KR | static | +0.658 +- 0.208 | +0.2351 | 0.0897 | +2.6 | 72.1/8 |
+| 0.10 | KR x (1 + b/H)^2 | dynamic | -0.186 +- 0.072 | +0.0694 | 0.0375 | +1.9 | 9.5/8 |
+| 0.10 | KR x (1 + b/H)^2 | static | -0.124 +- 0.208 | -0.4251 | 0.0897 | -4.7 | 7.7/8 |
+| 0.39 | bulk KR | dynamic | +3.605 +- 0.086 | +2.0766 | 0.0412 | +50.4 | 17190.0/7 |
+| 0.39 | bulk KR | static | +4.575 +- 0.225 | +0.2578 | 0.0892 | +2.9 | 2624.5/7 |
+| 0.39 | KR x (1 + b/H)^2 | dynamic | +0.011 +- 0.086 | -0.3168 | 0.0412 | -7.7 | 2154.8/7 |
+| 0.39 | KR x (1 + b/H)^2 | static | +0.695 +- 0.225 | -1.1446 | 0.0892 | -12.8 | 456.3/7 |
+
+(slope s in units of 1/N_s: a slope of 0.48 means +0.48/N_s, i.e. +1.9 % at N_s = 25)
+
+![which side](../paper1_speedofsound/experiments/final/261005_p1_identity_sides.png)
+
+**Reading [DATA; INFERENCE where marked].**
+- **η = 0.10, after removing the measured 1/H wall shift** (the registered B amplitude):
+  - **The dynamic stiffness is flat:** slope +0.07 ± 0.04, χ² 9.5/8; it sits on KR × (1 + b/H)² within 0.2 %.
+  - **The static stiffness carries the 1/N_s trend:** slope −0.43 ± 0.09 (4.7 σ), χ² 7.7/8. It sits 1.6–1.9 % below the reference at N_s = 25.
+  - The clean lever is the L-scan at fixed H = 10, N_s = 25 against 100. The static ratio changes by +1.2 ± 0.4 % (bulk reference), the dynamic one by −0.4 ± 0.2 %.
+  - The difference of the two slopes is the identity residual's slope (≈ 0.49, cf. c = 0.483). Only that difference is free of the L_eff convention.
+- **[INFERENCE] The 1/N_s term is a finite-size correction to the STATIC stiffness of a small closed compartment, not an anharmonic shift of the divider mode.** That also resolves the § 2.9 Z3 tension, since a static-side term does not move c_s.
+- **Caveat [DERIVATION].** The b of the correction was fitted to the same frequencies, so "dynamic flat after correction" is partly by construction. The static side's slope is not.
+- **π/8.** Both sides track each other cell by cell (the identity holds), but neither reference describes the shape dependence (χ² in the hundreds to thousands). As in § 2.2, it is not interpretable as a single 1/N_s term here.
