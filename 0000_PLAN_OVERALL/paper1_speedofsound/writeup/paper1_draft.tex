@@ -298,6 +298,89 @@ finite-size quantities, and the bulk relation between them does not hold at $N =
 this as a negative result: the wall pressure cannot be used to explain the offset.
 % TODO-source: appendix C2 of 260919_paper2_ramp_linewidth_fast_REPORT.md, 120 hold runs
 
+\section{Confinement and the static--dynamic identity}\label{sec:confinement}
+% TODO-source: 0000_PLAN_OVERALL/ALL_MARKDOWNS/261012_paper1_confinement.md (pre-registration sec. 1, results sec. 2-3);
+% 261004_p1_confinement_cells.csv, 261005_p1_identity_afix_cells.csv
+\paragraph{Design} To locate the $N = 100$ offset, a pre-registered campaign varied the box height
+$H$ and the compartment length $L_0$ separately at $\eta = 0.100$ and $\eta = \pi/8$: a height scan
+($H = 5$--$40$ at fixed $L_0$), a length scan ($\tfrac12$, $1$, $2\times L_0$ at $H = 10$) and an
+aspect scan (fixed $N_s = 50$ and area, $L_0/H = 1$--$8$), 19 cells in all, each measured twice. The
+dynamic side is the divider mode of this paper (nine masses with the same $\alpha = M/2N_sm$, 25 seeds,
+200 periods); the static side holds the divider at five positions and measures the force of each gas
+on it, $F$, and its slope. Three hypotheses for the shift $\Delta = c_s/c_s^{\rm KR} - 1$ were written
+down before any run: (A) $\Delta \propto 2/H + 2/L_0$, all four walls; (B) $\Delta \propto 1/H$, the
+walls parallel to the sound; (C) $\Delta \propto 1/N_s$, an anharmonic shift of the thermally excited
+divider mode. Each was fitted with one free amplitude and excluded if $p(\chi^2) < 0.01$. The runs
+used 12\,544 trajectories on the University of Hawai\`i KOA cluster.
+
+\begin{figure*}[t]\centering
+\includegraphics[width=0.92\textwidth]{261004_p1_confinement_shift.pdf}
+\caption{Confinement shift of the sound speed relative to Kolafa--Rottner (red, $\Delta = 0$).
+Top $\eta = 0.100$, bottom $\eta = \pi/8$; left the height scan against $1/H$, middle the length
+scan against $1/L_0$, right the aspect cells against $L_0/H$. Lines are the pre-registered forms with
+their fitted amplitudes. At $\eta = 0.100$ the data favour the $1/H$ form ($p = 0.88$); the
+pre-registered rule does not exclude $2/H + 2/L_0$ ($p = 0.14$); the $1/N_s$ form is excluded
+($p = 5\times10^{-7}$). At $\eta = \pi/8$ the outcome is \emph{not resolved}: every form is excluded,
+and no single-parameter form describes the shape dependence.}
+\label{fig:confinement}
+\end{figure*}
+
+\paragraph{Where the offset comes from} At $\eta = 0.100$ the offset is a wall effect of the long walls:
+it grows as $1/H$ ($+2.4$, $+1.0$, $+0.2$, $+0.05\,\%$ at $H = 5$--$40$) and does not change with $L_0$
+at fixed $H$ (Fig.~\ref{fig:confinement}); the campaign's own anchor, $+0.99 \pm 0.19\,\%$, reproduces the
+$+1.01\,\%$ of \S\ref{sec:results}. At $\eta = \pi/8$ the anchor reads $+1.98 \pm 0.33\,\%$, but the
+dependence on the box shape is stronger and partly of the opposite sign --- the shortest
+compartment, $L_0 = 5$, gives $\Delta = -1.7 \pm 0.7\,\%$ --- and none of the three forms, nor a
+length offset in the frequency formula, describes it. We report it as open.
+
+\paragraph{The identity} For hard disks $F \propto T$ at fixed length and the heat capacity is
+$N_s k_B$, so the adiabatic and isothermal stiffness of one compartment obey exactly
+\begin{equation}
+k_S = k_T + \frac{F^2}{N_s k_B T},\qquad k_T = -\Big(\frac{\partial F}{\partial L}\Big)_T .
+\label{eq:identity}
+\end{equation}
+The dynamic side is taken in a length-free form, $2k_S^{\rm dyn} = \hat M\omega_1^2$ with
+$\hat M = M + \tfrac23 N_s m$ for the five heaviest masses ($\alpha \ge 5$), so that no compartment
+length enters the comparison. With the divider held fixed for the whole record, the two sides agree
+in all 19 cells to within $2.1\,\%$, and within their errors wherever a compartment holds
+$N_s \ge 100$ disks (Fig.~\ref{fig:identity}). The residual
+$\rho_I = (k_S^{\rm dyn} - k_T - F^2/N_s k_BT)/k_S^{\rm dyn}$ is not zero in the small boxes: it
+scales as $1/N_s$, $\rho_I = c/N_s$ with $c = 0.483 \pm 0.045$ at $\eta = 0.100$ ($10.6\sigma$). That is
+$r = 0.76 \pm 0.07$ of the amplitude predicted in advance for the anharmonic mode shift (C), and
+$r = 1$ is excluded at $3.3\sigma$; at $\eta = \pi/8$ the residual is weak, $c = 0.14 \pm 0.05$, and
+compatible with zero. Its origin is open. A diagnostic places it on the static side: at
+$\eta = 0.100$, once the measured $1/H$ shift is removed, the dynamic stiffness is flat in $1/N_s$
+and the static stiffness carries the trend (slope $-0.43 \pm 0.09$, $4.7\sigma$) --- a finite-size
+correction to the stiffness of a small closed compartment rather than a shift of the mode.
+
+\begin{figure*}[t]\centering
+\includegraphics[width=0.92\textwidth]{261005_p1_identity_afix.pdf}
+\caption{The static--dynamic identity \eqref{eq:identity} in 19 boxes. Left: dynamic stiffness
+(divider mode, heavy masses) against static stiffness (held divider) with the diagonal. Right: the
+relative residual per cell (filled), the temperature-corrected first measurement (open, see
+\S\ref{sec:confinement}, ``The static measurement''), and the residual the anharmonic hypothesis (C)
+predicts, $2\Delta_C$ (bars).}
+\label{fig:identity}
+\end{figure*}
+
+\paragraph{The static measurement} The first static run held the divider for an equilibration of
+$200$ time units and then released it with mass $10^9 m$, on the assumption that so heavy a wall
+cannot move. At an off-centre position the net gas force is restoring, and over the $5000$-unit
+record the divider returned towards the centre by up to about $0.01\,\sigma$. Because the five clamp
+positions at $\eta = \pi/8$ are only $0.04$--$0.38\,\sigma$ apart, this biased $k_T$ low by up to
+$35\,\%$ there (below $0.4\,\%$ at $\eta = 0.100$). The return is adiabatic for each closed
+compartment, so it is recorded in the gas temperatures: energy balance,
+$N_s k_B\,\Delta T = -F\,\Delta x$, gives the mean displacement in every cell, and at the anchor it agrees
+with the divider's own trajectory ($0.9677 \pm 0.0003$ against $0.9676 \pm 0.0012$ of the nominal
+offset). A re-measurement with the divider held for the entire record reproduced the corrected
+values in 19 of 19 cells ($\chi^2 = 15.7$ for 19); it is the measurement shown in
+Fig.~\ref{fig:identity}.
+
+\paragraph{Adiabatic index and damping} The ratio $\gamma_{\rm box} = k_S^{\rm dyn}/k_T$ is
+$2.01$--$2.07$ at $\eta = 0.100$ (bulk $1 + Z^2/(Z + \eta Z') = 2.009$) and $2.25$--$2.37$ at $\eta = \pi/8$
+(bulk $2.188$). The energy-decay rate of the divider mode, $\Gamma = 2/\tau_r$ from the position
+autocorrelation, was recorded for every cell and mass (\texttt{261004\_p1\_confinement\_damping.csv}).
+
 \section{Comparison with Rom\'an \emph{et al.} (2002)}\label{sec:roman}
 % TODO-source: 260922_roman2002_remapped_vs_KR.csv; validation/roman2002_remapped_20260922.py
 Rom\'an \emph{et al.}~\cite{roman2002} measured the same observable in the same box ($N_s = 50$,
@@ -404,8 +487,11 @@ is claimed as nothing more. Engel \emph{et al.}
 work at $N = 256^2$ to $1024^2$; at $N = 100$ the Mayer--Wood loop is smeared over a width
 comparable to its own depth, the first-order character cannot be resolved, and their tabulated
 pressure exists at one density rather than as a table across the range, so no quantitative
-comparison is available. What the correspondence does establish is that the structure in our
-$c_s(\eta)$ above $0.69$ is the melting transition rather than an estimator artefact.
+comparison is available. The dip coincides with the liquid--hexatic coexistence window of
+Bernard and Krauth~\cite{bernard2011} and Engel \emph{et al.}~\cite{engel2013},
+$\eta \approx 0.700$--$0.716$; its cause is not established at $N = 100$ with hard walls. A finite-size
+Mayer--Wood loop would lower $c_s$ through a negative $Z'$ and predicts a dip depth
+$\propto N^{-1/2}$, which a size sweep will test.
 
 \section{Outlook}
 Two measurements remain. A size ladder at $N \approx 1000$ across the full density range would turn
@@ -430,6 +516,10 @@ doi:10.1080/00268970600967963.
 \bibitem{engel2013} M.~Engel, J.~A.~Anderson, S.~C.~Glotzer, M.~Isobe, E.~P.~Bernard and
 W.~Krauth, ``Hard-disk equation of state: first-order liquid--hexatic transition in two dimensions
 with three simulation methods,'' \emph{Phys.\ Rev.\ E}, vol.~87, p.~042134, 2013.
+\bibitem{bernard2011} E.~P.~Bernard and W.~Krauth, ``Two-step melting in two dimensions: first-order
+liquid--hexatic transition,'' \emph{Phys.\ Rev.\ Lett.}, vol.~107, p.~155704, 2011.
+% TODO-source: vol./page/year from Engel et al. (2013) ref. [7], ZZZ_PAPER/EOS (arXiv:1211.1645v2); the title is not
+% printed there -- verify against the PRL itself (PDF not in ZZZ_PAPER).
 \bibitem{roman2002} F.~L.~Rom\'an, J.~A.~White, A.~Gonz\'alez and S.~Velasco, ``The speed of sound
 in a hard disk gas: A computer simulation,'' \emph{Am.\ J.\ Phys.}, vol.~70, no.~8, pp.~847--851,
 2002.

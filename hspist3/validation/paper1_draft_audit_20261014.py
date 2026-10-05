@@ -400,5 +400,66 @@ def p():
             t = open(path(k, where)).read()
             print(f"{where}: old {'ABSENT' if o not in t else 'STILL PRESENT'}, new {'present' if n in t else 'MISSING'}")
 
+def conf():
+    """##CHRIS 2026-10-05 (Task CC3): every number of the new section "Confinement and the static-dynamic identity" and of the
+    softened melting sentence, recomputed from the committed result CSVs where they hold it, and found (or not) in the tex.
+    Numbers that live only in printed script outputs are marked QUOTED with the section that printed them."""
+    import math, numpy as np, pandas as pd
+    from scipy.stats import chi2 as C2
+    F = os.path.join(REPO, "0000_PLAN_OVERALL/paper1_speedofsound/experiments/final")
+    cells = pd.read_csv(os.path.join(F, "261004_p1_confinement_cells.csv")); af = pd.read_csv(os.path.join(F, "261005_p1_identity_afix_cells.csv"))
+    tex = open(TEX).read(); rows = []
+    def chk(claim, value, text, src="CSV"):
+        rows.append((claim, value, text, src, text in tex))
+    e10, e39 = cells[cells.eta_lab < 0.2], cells[cells.eta_lab > 0.2]
+    def fit(d, f):
+        w = 1 / d.sigma_Delta ** 2; a = (w * f * d.Delta).sum() / (w * f * f).sum(); ch = (w * (d.Delta - a * f) ** 2).sum()
+        return C2.sf(ch, len(d) - 1)
+    pA, pB, pC = fit(e10, 2 / e10.H + 2 / e10.L0), fit(e10, 1 / e10.H), fit(e10, 1 / e10.N_s)
+    chk("p(B), eta 0.10", f"{pB:.2f}", f"$p = {pB:.2f}$"); chk("p(A), eta 0.10", f"{pA:.2f}", f"$p = {pA:.2f}$")
+    chk("p(C), eta 0.10", f"{pC:.1e}", "$p = 5\\times10^{-7}$" if f"{pC:.0e}" == "5e-07" else "MISMATCH")
+    chk("trajectories (B used + A-fixed)", int(cells.trajectories_B.sum() + cells.trajectories_A.sum()),
+        f"{int(cells.trajectories_B.sum() + cells.trajectories_A.sum()):,}".replace(",", "\\,"))
+    hs = e10[e10.scan == "H"].sort_values("H")
+    chk("H-scan Delta, eta 0.10", ", ".join(f"{100 * v:+.2g}" for v in hs.Delta), "($+2.4$, $+1.0$, $+0.2$, $+0.05\\,\\%$ at $H = 5$--$40$)")
+    a10 = e10[(e10.scan == "H") & (e10.H == 10)].iloc[0]; a39 = e39[(e39.scan == "H") & (e39.H == 10)].iloc[0]
+    chk("anchor eta 0.10", f"{100 * a10.Delta:+.2f} +- {100 * a10.sigma_Delta:.2f}", "$+0.99 \\pm 0.19\\,\\%$")
+    chk("anchor pi/8", f"{100 * a39.Delta:+.2f} +- {100 * a39.sigma_Delta:.2f}", "$+1.98 \\pm 0.33\\,\\%$")
+    l5 = e39[(e39.scan == "L") & (e39.L0 == 5)].iloc[0]
+    chk("L0 = 5, pi/8", f"{100 * l5.Delta:+.2f} +- {100 * l5.sigma_Delta:.2f}", "$\\Delta = -1.7 \\pm 0.7\\,\\%$")
+    chk("max |rho_I| A-fixed", f"{100 * af.rho_I_afix.abs().max():.2f} %", "within $2.1\\,\\%$")
+    big = af[af.N_s >= 100]; chk("N_s >= 100 within 2 sigma", bool((big.rho_I_afix.abs() <= 2 * big.sigma_rho_I_afix).all()), "$N_s \\ge 100$ disks")
+    for lab, key in ((0.10, "c = 0.483 \\pm 0.045"), (0.39, "c = 0.14 \\pm 0.05")):
+        d = af[af.eta_lab.round(2) == lab]; x = 1 / d.N_s; w = 1 / d.sigma_rho_I_afix ** 2
+        c = (w * x * d.rho_I_afix).sum() / (w * x * x).sum(); sc = 1 / math.sqrt((w * x * x).sum())
+        AC = (d.two_Delta_C * d.N_s)[d.N_s == 50].iloc[0] if (d.N_s == 50).any() else float("nan")
+        chk(f"c, eta {lab}", f"{c:.3f} +- {sc:.3f} ({c / sc:.1f} sigma)", key)
+        if lab == 0.10:
+            r, sr = c / AC, sc / AC
+            chk("r, eta 0.10", f"{r:.2f} +- {sr:.2f}; (1 - r)/sr = {(1 - r) / sr:.1f}", "$r = 0.76 \\pm 0.07$")
+            chk("r = 1 excluded", f"{(1 - r) / sr:.1f} sigma", "excluded at $3.3\\sigma$")
+    chk("P1 chi2", f"{(af.z_P1 ** 2).sum():.1f} / {len(af)}", "$\\chi^2 = 15.7$ for 19")
+    for lab, txt in ((0.10, "$2.01$--$2.07$ at $\\eta = 0.100$"), (0.39, "$2.25$--$2.37$ at $\\eta = \\pi/8$")):
+        d = af[af.eta_lab.round(2) == lab]; chk(f"gamma_box range, eta {lab}", f"{d.gamma_box_afix.min():.3f}..{d.gamma_box_afix.max():.3f}", txt)
+    chk("bulk gamma", f"{cells[cells.eta_lab < 0.2].gamma_bulk.iloc[0]:.3f}, {cells[cells.eta_lab > 0.2].gamma_bulk.iloc[0]:.3f}", "(bulk $2.188$)")
+    p39 = cells[(cells.eta_lab > 0.2)]
+    chk("clamp spacing at pi/8 (dL)", "0.0417..0.375 (Table A)", "$0.04$--$0.38\\,\\sigma$", "QUOTED, 261012 Table A")
+    chk("k_T bias, pi/8 max / eta 0.10 max", "35.46 % / 0.36 %", "up to\n$35\\,\\%$" if "up to\n$35" in tex else "$35\\,\\%$", "QUOTED, 261012 sec. 2.7")
+    chk("f from T / from trajectories", "0.9677 +- 0.0003 / 0.9676 +- 0.0012", "($0.9677 \\pm 0.0003$ against $0.9676 \\pm 0.0012$", "QUOTED, 261012 sec. 2.7 + correction")
+    chk("which-side static slope", "-0.4251 +- 0.0897 (4.7 sigma)", "(slope $-0.43 \\pm 0.09$, $4.7\\sigma$)", "QUOTED, 261012 sec. 3.10")
+    chk("drift up to ~0.01 sigma", "(1-f) 2dL max = 0.012 (pi/8 L5)", "by up to about $0.01\\,\\sigma$", "QUOTED, sec. 2.7 f x Table A dL")
+    chk("damping file", os.path.exists(os.path.join(F, "261004_p1_confinement_damping.csv")), "261004\\_p1\\_confinement\\_damping.csv")
+    chk("melting window", "0.700-0.716 (Engel)", "$\\eta \\approx 0.700$--$0.716$", "SOURCE, engel2013")
+    chk("Bernard-Krauth bibitem", "PRL 107, 155704 (2011)", "vol.~107, p.~155704, 2011", "SOURCE, Engel ref. [7]")
+    print("### Draft audit, confinement section (Task CC3)\n")
+    print("| claim | value (recomputed or quoted) | text searched | source | in tex |\n|---|---|---|---|---|")
+    for cl, v, t, src, ok in rows:
+        print(f"| {cl} | {v} | `{t}` | {src} | {'yes' if ok else '**NO**'} |")
+    print(f"\n{sum(r[4] for r in rows)} of {len(rows)} found in the tex")
+
+
 if __name__ == "__main__":
-    a2() if "--a2" in sys.argv else (m() if "--m" in sys.argv else (p() if "--p" in sys.argv else main()))
+    if "--conf" in sys.argv:
+        conf()
+    else:
+        a2() if "--a2" in sys.argv else (m() if "--m" in sys.argv else (p() if "--p" in sys.argv else main()))
