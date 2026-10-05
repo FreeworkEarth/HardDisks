@@ -1939,3 +1939,112 @@ Printed by `python3 hspist3/cluster/afix_pilot_check_261004.py` (verbatim; the p
 - Before the release, the divider's velocity is exactly 0 in every one of these runs, and the divider does exactly zero work.
 - The temperatures stay at 1 to within 3×10⁻⁸, so f = 1 to 1.7×10⁻⁷.
 - **The arrays may run** (§ 3.5; the plan author's go is conditional on this PASS).
+
+
+### 3.9 A-fixed results (2026-10-05) -- the registered analysis, applied once
+
+The arrays ran as jobs 14977670–14977673: 19 tasks, all COMPLETED, every cell `failures: 0`, `check_cells.sh` COMPLETE for every Afix cell. The analysis script `paper1_confinement_afix_261005.py` was committed (707d4e9) before the summaries reached the Mac.
+
+Printed by `python3 hspist3/validation/paper1_confinement_afix_261005.py` (verbatim):
+
+##### G2/G3 -- inventory and drift checks per cell (A-fixed, build 279282b)
+
+| eta | cell | seeds present (exp.) | missing | geometry/flags differ | health | u_wall != 0 | W != 0 | window/t_last bad | build | 1 - f (T balance) | max abs(T - 1) | G3 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.10 | e0p10_H_H5_L39.25 | 710 (710) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +1.76e-09 | 4.9e-09 | PASS |
+| 0.10 | e0p10_H_H10_L39.25 | 720 (720) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +2.42e-09 | 5.1e-09 | PASS |
+| 0.10 | e0p10_H_H20_L39.25 | 675 (675) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +4.86e-09 | 6.1e-09 | PASS |
+| 0.10 | e0p10_H_H40_L39.25 | 720 (720) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +1.09e-08 | 7.3e-09 | PASS |
+| 0.10 | e0p10_L_H10_L19.625 | 750 (750) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +3.92e-09 | 8.0e-09 | PASS |
+| 0.10 | e0p10_L_H10_L78.5 | 675 (675) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +1.79e-09 | 2.9e-09 | PASS |
+| 0.10 | e0p10_aspect_H19.7917_L19.7917 | 730 (730) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +1.11e-08 | 1.4e-08 | PASS |
+| 0.10 | e0p10_aspect_H14_L28 | 685 (685) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +4.53e-09 | 5.8e-09 | PASS |
+| 0.10 | e0p10_aspect_H9.91667_L39.625 | 680 (680) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +3.43e-09 | 6.9e-09 | PASS |
+| 0.10 | e0p10_aspect_H7_L56.0417 | 685 (685) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +8.55e-10 | 3.5e-09 | PASS |
+| 0.39 | epi8_H_H5_L10 | 130 (130) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +9.24e-08 | 3.4e-08 | PASS |
+| 0.39 | epi8_H_H10_L10 | 115 (115) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +1.94e-07 | 4.1e-08 | PASS |
+| 0.39 | epi8_H_H20_L10 | 130 (130) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +4.13e-07 | 8.2e-08 | PASS |
+| 0.39 | epi8_H_H40_L10 | 255 (255) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +7.17e-07 | 7.2e-08 | PASS |
+| 0.39 | epi8_L_H10_L5 | 130 (130) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +4.68e-07 | 1.2e-07 | PASS |
+| 0.39 | epi8_L_H10_L20 | 130 (130) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +9.84e-08 | 2.4e-08 | PASS |
+| 0.39 | epi8_aspect_H7.08333_L14.125 | 130 (130) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +8.20e-08 | 2.5e-08 | PASS |
+| 0.39 | epi8_aspect_H5_L20 | 115 (115) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +4.93e-08 | 1.8e-08 | PASS |
+| 0.39 | epi8_aspect_H3.54167_L28.2917 | 105 (105) | 0 | 0 | 0 | 0 | 0 | 0 | 279282b | +2.55e-08 | 1.3e-08 | PASS |
+
+flagged cells: none
+
+##### Static stiffness with the divider held for the whole record, and the identity (sec. 3.4)
+
+| eta | cell | N_s | k_T (A-fixed) | sigma | k_T (C4) | k_T (registered, released) | F(L_0) | kT | static (A-fixed) | k_S^dyn | rho_I A-fixed [%] | sigma [%] | rho/sigma | rho_I C4 [%] | P1: (AF - C4)/sigma | 2 Delta_C [%] |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.10 | e0p10_H_H5_L39.25 | 25 | 0.0266792 | 0.00018 | 0.0263947 | 0.0263829 | 0.821894 | 1.00000000 | 0.0536996 | 0.0545963 | +1.643 | 0.355 | +4.63 | +2.133 | -1.05 | +2.537 |
+| 0.10 | e0p10_H_H10_L39.25 | 50 | 0.0525964 | 0.00033 | 0.0527715 | 0.0527249 | 1.63076 | 1.00000000 | 0.105784 | 0.106551 | +0.720 | 0.329 | +2.19 | +0.510 | +0.48 | +1.269 |
+| 0.10 | e0p10_H_H20_L39.25 | 100 | 0.104243 | 0.00063 | 0.104645 | 0.104463 | 3.24929 | 1.00000000 | 0.209823 | 0.210768 | +0.449 | 0.313 | +1.43 | +0.238 | +0.49 | +0.634 |
+| 0.10 | e0p10_H_H40_L39.25 | 200 | 0.208103 | 0.0013 | 0.208913 | 0.208185 | 6.48705 | 1.00000000 | 0.418512 | 0.418797 | +0.068 | 0.326 | +0.21 | -0.106 | +0.41 | +0.317 |
+| 0.10 | e0p10_L_H10_L19.625 | 25 | 0.109076 | 0.00065 | 0.109465 | 0.109264 | 1.67152 | 1.00000000 | 0.220834 | 0.225581 | +2.104 | 0.330 | +6.37 | +1.917 | +0.47 | +2.537 |
+| 0.10 | e0p10_L_H10_L78.5 | 100 | 0.0255158 | 0.00017 | 0.0257637 | 0.0257526 | 1.61203 | 1.00000000 | 0.0515022 | 0.0517805 | +0.537 | 0.333 | +1.61 | +0.059 | +1.03 | +0.634 |
+| 0.10 | e0p10_aspect_H19.7917_L19.7917 | 50 | 0.213011 | 0.0013 | 0.212808 | 0.212043 | 3.30746 | 1.00000000 | 0.431796 | 0.437882 | +1.390 | 0.322 | +4.32 | +1.452 | -0.16 | +1.268 |
+| 0.10 | e0p10_aspect_H14_L28 | 50 | 0.105336 | 0.00066 | 0.104901 | 0.104717 | 2.30514 | 1.00000000 | 0.211609 | 0.212795 | +0.557 | 0.333 | +1.67 | +0.746 | -0.44 | +1.268 |
+| 0.10 | e0p10_aspect_H9.91667_L39.625 | 50 | 0.0509323 | 0.00032 | 0.0506874 | 0.0506433 | 1.61522 | 1.00000000 | 0.103111 | 0.104417 | +1.251 | 0.315 | +3.97 | +1.425 | -0.40 | +1.269 |
+| 0.10 | e0p10_aspect_H7_L56.0417 | 50 | 0.0254069 | 0.00017 | 0.0255517 | 0.0255407 | 1.13855 | 1.00000000 | 0.051333 | 0.0518784 | +1.051 | 0.332 | +3.17 | +0.691 | +0.81 | +1.269 |
+| 0.39 | epi8_H_H5_L10 | 25 | 2.04062 | 0.013 | 2.046 | 1.96591 | 8.21174 | 1.00000000 | 4.73792 | 4.7723 | +0.720 | 0.288 | +2.50 | +0.590 | +0.33 | +1.536 |
+| 0.39 | epi8_H_H10_L10 | 50 | 3.91664 | 0.033 | 3.91532 | 3.62779 | 15.9367 | 1.00000000 | 8.9962 | 9.00689 | +0.119 | 0.385 | +0.31 | +0.215 | -0.20 | +0.768 |
+| 0.39 | epi8_H_H20_L10 | 100 | 7.70584 | 0.054 | 7.74197 | 6.66234 | 31.3361 | 1.00000000 | 17.5254 | 17.5036 | -0.125 | 0.332 | -0.38 | -0.352 | +0.50 | +0.384 |
+| 0.39 | epi8_H_H40_L10 | 200 | 15.2125 | 0.12 | 15.2649 | 11.269 | 62.179 | 1.00000000 | 34.5437 | 34.562 | +0.053 | 0.364 | +0.15 | -0.098 | +0.31 | +0.192 |
+| 0.39 | epi8_L_H10_L5 | 25 | 9.1457 | 0.068 | 8.97555 | 7.45739 | 17.5693 | 1.00000000 | 21.4929 | 21.6545 | +0.746 | 0.393 | +1.90 | +1.572 | -1.98 | +1.536 |
+| 0.39 | epi8_L_H10_L20 | 100 | 1.83718 | 0.015 | 1.80702 | 1.74548 | 15.1386 | 1.00000000 | 4.12895 | 4.12729 | -0.040 | 0.368 | -0.11 | +0.707 | -1.54 | +0.384 |
+| 0.39 | epi8_aspect_H7.08333_L14.125 | 50 | 1.91796 | 0.015 | 1.93752 | 1.86791 | 11.0958 | 1.00000000 | 4.38029 | 4.38689 | +0.150 | 0.359 | +0.42 | -0.305 | +0.97 | +0.768 |
+| 0.39 | epi8_aspect_H5_L20 | 50 | 0.965674 | 0.006 | 0.951366 | 0.934164 | 7.84641 | 1.00000000 | 2.197 | 2.20258 | +0.253 | 0.285 | +0.89 | +0.928 | -1.61 | +0.768 |
+| 0.39 | epi8_aspect_H3.54167_L28.2917 | 50 | 0.461695 | 0.0039 | 0.455517 | 0.451427 | 5.54277 | 1.00000000 | 1.07614 | 1.07564 | -0.047 | 0.368 | -0.13 | +0.501 | -1.15 | +0.769 |
+
+**P1 (A-fixed = C4 within 2 sigma at every cell): HOLDS** -- 19 of 19 cells; chi2 = 15.7 / 19 (p = 0.675)
+**P2 (identity, C1 rule: |rho_I| <= 2 sigma at every cell): FAILS** -- 12 of 19 cells; chi2 = 129.9 / 19 (p = 1.55e-18); outside: e0p10_H_H5_L39.25, e0p10_H_H10_L39.25, e0p10_L_H10_L19.625, e0p10_aspect_H19.7917_L19.7917, e0p10_aspect_H9.91667_L39.625, e0p10_aspect_H7_L56.0417, epi8_H_H5_L10
+
+##### P3 -- the 1/N_s residual: rho_I = c/N_s per density (sec. 3.6)
+
+| eta | cells | c (A-fixed) | sigma_c | c/sigma_c | A_C = 2 N_s Delta_C | r = c/A_C | chi2 fit / dof | chi2 (rho = 0) / dof | r of C4 (same fit) | (r - r_C4)/sigma | (r - 1)/sigma_r |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.10 | 10 | +0.4830 | 0.0455 | +10.6 | 0.6343 | 0.76 +- 0.07 | 5.9 / 9 | 118.8 / 10 | 0.75 +- 0.07 | +0.1 | -3.3 |
+| 0.39 | 9 | +0.1379 | 0.0471 | +2.9 | 0.3839 | 0.36 +- 0.12 | 2.5 / 8 | 11.1 / 9 | 0.58 +- 0.12 | -1.3 | -5.2 |
+
+Declared outcomes (sec. 3.6), evaluated:
+- eta 0.10: c > 2 sigma_c; r within 2 sigma of the C4 value -> the residual is physics (dynamic stiffness exceeds static, proportional to 1/N_s); r not within 2 sigma of 1 (C's mechanism at its predicted size).
+- eta 0.39: c > 2 sigma_c; r within 2 sigma of the C4 value -> the residual is physics (dynamic stiffness exceeds static, proportional to 1/N_s); r not within 2 sigma of 1 (C's mechanism at its predicted size).
+
+##### gamma_box = k_S^dyn / k_T(A-fixed) (no pass/fail)
+
+| eta | cell | gamma_box | sigma | bulk |
+|---|---|---|---|---|
+| 0.10 | e0p10_H_H5_L39.25 | 2.0464 | 0.0138 | 2.00930 |
+| 0.10 | e0p10_H_H10_L39.25 | 2.0258 | 0.0130 | 2.00930 |
+| 0.10 | e0p10_H_H20_L39.25 | 2.0219 | 0.0123 | 2.00930 |
+| 0.10 | e0p10_H_H40_L39.25 | 2.0124 | 0.0127 | 2.00930 |
+| 0.10 | e0p10_L_H10_L19.625 | 2.0681 | 0.0127 | 2.00930 |
+| 0.10 | e0p10_L_H10_L78.5 | 2.0294 | 0.0135 | 2.00930 |
+| 0.10 | e0p10_aspect_H19.7917_L19.7917 | 2.0557 | 0.0125 | 2.00934 |
+| 0.10 | e0p10_aspect_H14_L28 | 2.0202 | 0.0129 | 2.00933 |
+| 0.10 | e0p10_aspect_H9.91667_L39.625 | 2.0501 | 0.0128 | 2.00928 |
+| 0.10 | e0p10_aspect_H7_L56.0417 | 2.0419 | 0.0134 | 2.00931 |
+| 0.39 | epi8_H_H5_L10 | 2.3387 | 0.0146 | 2.18760 |
+| 0.39 | epi8_H_H10_L10 | 2.2996 | 0.0194 | 2.18760 |
+| 0.39 | epi8_H_H20_L10 | 2.2715 | 0.0162 | 2.18760 |
+| 0.39 | epi8_H_H40_L10 | 2.2719 | 0.0177 | 2.18760 |
+| 0.39 | epi8_L_H10_L5 | 2.3677 | 0.0185 | 2.18760 |
+| 0.39 | epi8_L_H10_L20 | 2.2465 | 0.0180 | 2.18760 |
+| 0.39 | epi8_aspect_H7.08333_L14.125 | 2.2873 | 0.0181 | 2.18736 |
+| 0.39 | epi8_aspect_H5_L20 | 2.2809 | 0.0143 | 2.18760 |
+| 0.39 | epi8_aspect_H3.54167_L28.2917 | 2.3298 | 0.0195 | 2.18668 |
+
+tables -> 261005_p1_identity_afix_cells.csv; figure -> 261005_p1_identity_afix.png/.pdf
+
+![A-fixed identity](../paper1_speedofsound/experiments/final/261005_p1_identity_afix.png)
+
+**Reading [DATA; INFERENCE where marked].**
+- **G2/G3:** all 19 cells pass. The held divider never moved (u_wall = 0, W = 0 in every seed), and |1 − f| ≤ 7×10⁻⁷.
+- **P1 HOLDS.** A-fixed reproduces the C4 drift-corrected values in all 19 cells (χ² 15.7/19). The post-hoc correction of § 2.7 is therefore validated.
+- **P2 FAILS: 12 of 19 cells are within 2 σ.** All 7 failures are cells with N_s ≤ 50: six at η = 0.10, and π/8 H5 at 2.5 σ.
+- **P3.**
+  - **η = 0.10:** c = 0.483 ± 0.046 (10.6 σ), r = 0.76 ± 0.07, the same as C4. Against ρ_I = 0, χ² is 118.8/10. **By the declared rule, the residual is physics:** the dynamic stiffness exceeds the static one in proportion to 1/N_s, at three quarters of hypothesis C's predicted size. r = 1 is excluded (3.3 σ).
+  - **π/8:** c = 0.138 ± 0.047 (2.9 σ), r = 0.36 ± 0.12. The declared rule (c > 2 σ_c, r within 2 σ of C4's 0.58) also reads "physics". But ρ_I = 0 alone is not rejected at π/8: χ² 11.1/9, p ≈ 0.27 [DATA]. **[INFERENCE] The dense-gas residual is weak; the dilute one is unambiguous.**
+- **γ_box:** 2.01–2.07 at η = 0.10 (bulk 2.009), and 2.25–2.37 at π/8 (bulk 2.188).
+- **OPEN, as before:** the same 1/N_s shift is not visible in the dilute L-scan of c_s (§ 2.9 Z3, 2.7 σ).
