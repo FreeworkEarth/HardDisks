@@ -2188,3 +2188,22 @@ total (a) current engine: 27719 core-h (p = 2.87), 9532 core-h (p = 2.37); (b) 1
   - If more than one holds: "not separated", with Δχ².
 - **Extrema.** The positions of the maximum and the minimum at each N, against Engel et al.'s loop extrema 0.702 and 0.714, on the 0.004 grid. Reported, no pass/fail.
 - **ψ₆ per cell:** reported, no pass/fail.
+
+
+### 4.3 Engine profile result (2026-10-05, KOA job 14983181) [DATA; INFERENCE where marked]
+
+Output of `cluster/profile_edmd_koa.sh` (runsheet step 10), build `279282b target koa`, Xeon E5-2680 v2, 1 core. `perf` was not usable on KOA, so the result is wall clock plus the event log's counts. Both runs: held divider, π/8, L₀ = 10, 700 σ-time.
+
+| run | N | wall [s] | divider events D0 | top/bottom wall events | side wall events |
+|---|---|---|---|---|---|
+| H10 | 100 | 2.3 | 8,984 | 17,800 | 8,886 |
+| H40 | 400 | 56.4 | 34,767 | 16,414 | 34,782 |
+
+- **[DATA]** Four times the disks cost 24.5× the wall time (exponent 2.31 at fixed L₀). The divider events grow only 4× (∝ H).
+- **[INFERENCE, a two-term cost model]** Each divider event re-schedules all N²/2 pairs (`edmd.c:1537–1539`, `:812–816`): 4,950 pairs at N = 100 and 79,800 at N = 400. Each disk–disk event costs O(N) (`:1529–1532`).
+  - With about 20 ns per pair evaluation, the divider term accounts for roughly 0.9 of the 2.3 s at N = 100 and essentially all of the 56 s at N = 400. The disk–disk term (Enskog rate, about 4 collisions per disk per σ-time at π/8) accounts for most of the rest at N = 100.
+  - In the sweep geometry the divider's share grows further, since its rate goes as √N and its cost as N².
+- **[INFERENCE] The fix.** Re-schedule only the divider events of all disks, an O(N) pass, plus the colliding disk's own events, and drop the all-pairs loop after a divider collision. Stale divider events are invalidated by a version counter.
+  - **Expected gain:** about 3–4× at N = 400 and about 5–10× at N = 900. Replacing the O(N) partner loop by the existing cell grid would add a further factor at large N.
+  - **Consequence for validation:** the event times are then no longer recomputed from scratch at every divider collision. Trajectories will therefore not be byte-identical to 279282b: a new build generation, validated statistically (c_s and the identity within errors on re-run cells), not by bytes.
+- **Decision for the plan author:** whether to implement the fix (variant (b), N ≤ 900) or to run variant (a), N ≤ 400, on the current engine.

@@ -311,3 +311,4 @@ One line per step, newest at the bottom. Written automatically by `hspist3/valid
   - The statistical error with 25 seeds suffices, but the chi2-scaled floor of 1.17 % caps the N = 900 dip at about 3 sigma.
   - Cost: current engine 9.5-28 thousand core-h; a 10x faster engine 0.95-2.8 thousand.
   - Variant (a) N <= 400, variant (b) N <= 900; the profile decides.
+- **2026-10-05 13:16:27 HST** **ENGINE PROFILE RESULT (261012 §4.3, KOA job 14983181).** pi/8 held divider, 700 sigma-time: N = 100 2.3 s, N = 400 56.4 s (x24.5, exponent 2.31); divider events x4 (8,984 to 34,767). INFERENCE: at N = 400 the O(N^2) re-scheduling after divider events dominates; an O(N) fix would give about 3-4x at N = 400 and 5-10x at N = 900; the result is a new build generation (statistical, not byte, validation). perf not usable on KOA.
