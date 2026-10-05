@@ -2102,3 +2102,89 @@ Printed by `python3 hspist3/validation/paper1_confinement_sides_261005.py` (verb
 - **[INFERENCE] The 1/N_s term is a finite-size correction to the STATIC stiffness of a small closed compartment, not an anharmonic shift of the divider mode.** That also resolves the § 2.9 Z3 tension, since a static-side term does not move c_s.
 - **Caveat [DERIVATION].** The b of the correction was fitted to the same frequencies, so "dynamic flat after correction" is partly by construction. The static side's slope is not.
 - **π/8.** Both sides track each other cell by cell (the identity holds), but neither reference describes the shape dependence (χ² in the hundreds to thousands). As in § 2.2, it is not interpretable as a single 1/N_s term here.
+
+
+---
+
+## 4. Melting size sweep — DRAFT design (2026-10-05; NOT a pre-registration, nothing launched)
+
+**Status: DRAFT.** It becomes a pre-registration only after the engine profile (runsheet step 10) has decided which variant applies, and after the go. Every number below is printed by `python3 hspist3/validation/paper1_melting_sweep_design_261005.py` (verbatim):
+
+
+##### Cells (H = 10 sqrt(N/100); L_0 on the 1/48 grid nearest the target eta)
+
+| N | N_s | H | eta target | L_0 | 2 L_0 x 24 (px) | eta_true | masses M = alpha 2 N_s |
+|---|---|---|---|---|---|---|---|
+| 100 | 50 | 10 | 0.695 | 5.645833 | 271.0 | 0.695556 | 50 ... 2000 |
+| 100 | 50 | 10 | 0.700 | 5.604167 | 269.0 | 0.700727 | 50 ... 2000 |
+| 100 | 50 | 10 | 0.704 | 5.583333 | 268.0 | 0.703342 | 50 ... 2000 |
+| 100 | 50 | 10 | 0.708 | 5.541667 | 266.0 | 0.708630 | 50 ... 2000 |
+| 100 | 50 | 10 | 0.712 | 5.520833 | 265.0 | 0.711304 | 50 ... 2000 |
+| 100 | 50 | 10 | 0.716 | 5.479167 | 263.0 | 0.716713 | 50 ... 2000 |
+| 100 | 50 | 10 | 0.720 | 5.458333 | 262.0 | 0.719449 | 50 ... 2000 |
+| 400 | 200 | 20 | 0.695 | 11.291667 | 542.0 | 0.695556 | 200 ... 8000 |
+| 400 | 200 | 20 | 0.700 | 11.229167 | 539.0 | 0.699427 | 200 ... 8000 |
+| 400 | 200 | 20 | 0.704 | 11.145833 | 535.0 | 0.704656 | 200 ... 8000 |
+| 400 | 200 | 20 | 0.708 | 11.083333 | 532.0 | 0.708630 | 200 ... 8000 |
+| 400 | 200 | 20 | 0.712 | 11.020833 | 529.0 | 0.712649 | 200 ... 8000 |
+| 400 | 200 | 20 | 0.716 | 10.979167 | 527.0 | 0.715353 | 200 ... 8000 |
+| 400 | 200 | 20 | 0.720 | 10.916667 | 524.0 | 0.719449 | 200 ... 8000 |
+| 900 | 450 | 30 | 0.695 | 16.958333 | 814.0 | 0.694701 | 450 ... 18000 |
+| 900 | 450 | 30 | 0.700 | 16.833333 | 808.0 | 0.699860 | 450 ... 18000 |
+| 900 | 450 | 30 | 0.704 | 16.729167 | 803.0 | 0.704218 | 450 ... 18000 |
+| 900 | 450 | 30 | 0.708 | 16.645833 | 799.0 | 0.707743 | 450 ... 18000 |
+| 900 | 450 | 30 | 0.712 | 16.541667 | 794.0 | 0.712200 | 450 ... 18000 |
+| 900 | 450 | 30 | 0.716 | 16.458333 | 790.0 | 0.715806 | 450 ... 18000 |
+| 900 | 450 | 30 | 0.720 | 16.354167 | 785.0 | 0.720365 | 450 ... 18000 |
+
+##### The N = 100 window (canonical table, 25 seeds x 9 masses)
+
+| eta_true | c_s | c_s_err (statistical) | rel. [%] | c_s_err_scaled | rel. [%] | chi2_red |
+|---|---|---|---|---|---|---|
+| 0.6956 | 17.7465 | 0.0512 | 0.29 | 0.1514 | 0.85 | 8.76 |
+| 0.7007 | 19.2203 | 0.0601 | 0.31 | 0.2259 | 1.18 | 14.13 |
+| 0.7060 | 18.3559 | 0.2003 | 1.09 | 0.6740 | 3.67 | 11.33 |
+| 0.7113 | 17.0728 | 0.1510 | 0.88 | 0.5117 | 3.00 | 11.48 |
+| 0.7167 | 16.3929 | 0.1412 | 0.86 | 0.1907 | 1.16 | 1.82 |
+| 0.7222 | 16.6959 | 0.1054 | 0.63 | 0.2313 | 1.39 | 4.82 |
+
+N = 100: maximum at eta_true 0.7007 (c_s 19.220), minimum at 0.7167 (c_s 16.393); depth D = (c_max - c_min)/c_max = 14.7 %
+
+##### Expected depth and the seeds for a >= 5 sigma dip
+
+| N | D under M1 [%] | sigma(D) needed [%] | per-cell rel. error needed [%] | seeds per mass (statistical error) | floor: N = 100 chi2-scaled rel. error [%] |
+|---|---|---|---|---|---|
+| 100 | 14.71 | 2.94 | 2.08 | 25 | 1.17 |
+| 400 | 7.36 | 1.47 | 1.04 | 25 | 1.17 |
+| 900 | 4.90 | 0.98 | 0.69 | 25 | 1.17 |
+
+cost per trajectory at N = 100 in the window: 20.0 s (Mac, 1350 A1v2 trajectories) x KOA factor 1.804 = 36.2 core-s
+
+##### Cost: 7 densities x 9 masses x seeds, per N (core-hours)
+
+| N | seeds per mass | trajectories | core-s per trajectory, p = 2.87 | p = 2.37 | (a) current engine, p = 2.87 | (a) p = 2.37 | (b) 10x faster, p = 2.87 | (b) p = 2.37 |
+|---|---|---|---|---|---|---|---|---|
+| 100 | 25 | 1575 | 36 | 36 | 16 | 16 | 2 | 2 |
+| 400 | 25 | 1575 | 3867 | 1933 | 1692 | 846 | 169 | 85 |
+| 900 | 25 | 1575 | 59454 | 19818 | 26011 | 8670 | 2601 | 867 |
+
+total (a) current engine: 27719 core-h (p = 2.87), 9532 core-h (p = 2.37); (b) 10x faster: 2772 / 953 core-h
+
+### 4.1 Design (draft)
+
+- **Cells.** The 7 densities × N = 100, 400, 900, as above: H = 10 √(N/100), L₀ on the 1/48 grid (no box truncation), η_true per cell.
+- **Method.** Method B with the canonical estimator (nine masses at the same α ladder, 200 periods), with the C1 length-free stiffness as a cross-check.
+- **One build.** All three N run on the SAME build. The N = 100 points are rerun (16 core-h); the old A1 v2 N = 100 melting points are quoted, never mixed into the figure or a fit.
+- **ψ₆.** Kept per trajectory without any change: the binary prints `psi6: hold=… end=… run_mean=…` to stdout (`00ALLINONE.c:16243–16247`), and the worker keeps stdout in `run.log`. A per-cell mean and spread will be reported next to c_s.
+- **Seeds.** At N = 100 the window's statistical error, with 25 seeds × 9 masses, already meets what a 5 σ dip at N = 900 needs (0.69 %). **But the χ²-scaled error is 1.17 %** there, set by the masses disagreeing, which more seeds do not reduce [DERIVATION]. If that disagreement persists at N = 900, the predicted 4.9 % dip would be resolved at about 3 σ, not 5. More seeds cannot fix this; a better estimator in the window could. Open, for the pre-registration.
+- **Cost.** With the current engine, 9,500–28,000 core-h (p = 2.37–2.87), almost all at N = 900. With a 10× faster engine, 950–2,800 core-h. **Variant (a), current engine:** limited to N ≤ 400 (about 0.9–1.7 thousand core-h). **Variant (b), after an engine fix:** N ≤ 900. The profile decides.
+
+### 4.2 Predictions and verdict rules (draft)
+
+- **Depth.** D(N) = (c_max − c_min)/c_max inside the window, at each N. Fit D(N) = D₀ (N/100)^(−β).
+  - **(M1) β = ½:** the finite-size Mayer–Wood loop. Holds if |β − ½| ≤ 2σ_β and β > 2σ_β.
+  - **(M2) β = 0:** the depth does not depend on N, i.e. a wall or layering artefact of the hard-walled box. Holds if |β| ≤ 2σ_β.
+  - **(M3) β > ½:** the depth vanishes faster. Holds if β − ½ > 2σ_β.
+  - If more than one holds: "not separated", with Δχ².
+- **Extrema.** The positions of the maximum and the minimum at each N, against Engel et al.'s loop extrema 0.702 and 0.714, on the 0.004 grid. Reported, no pass/fail.
+- **ψ₆ per cell:** reported, no pass/fail.
