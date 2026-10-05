@@ -522,3 +522,27 @@ bash hspist3/cluster/confinement_20261013/fetch_afix.sh
 ```
 
 The analysis is a separate task (261012 § 3.4).
+
+## 10. Engine cost profile (written 2026-10-05; one short sandbox job, no build, no code change)
+
+**What it is.** One held-divider trajectory at π/8 with N_s = 200 (H = 40) and one with N_s = 50 (H = 10), 700 σ-time each, run with the recorded build. It measures where the time goes, to decide how large the melting size sweep can be. The code itself already shows the expensive step (`edmd_core/edmd.c`):
+- **Every disk–disk collision** rebuilds the grid and re-schedules both disks against all N partners (`:1529–1532`, `:791–794`). That is O(N) per event.
+- **Every divider collision** calls `reschedule_all_internal(S)` (`:1537–1539`), which re-schedules all N²/2 pairs (`:812–816`). That is O(N²) per divider event, even though a held divider cannot move.
+
+**1. Mac:** push (`bash _commit_scripts/commit_20261007.sh`). On KOA nothing needs a rebuild (rule 4), but the script must be pulled: in a sandbox session, `cd ~/harddisks/hspist3 && git pull && exit`.
+
+**2. KOA, from a `login-…` prompt:**
+
+```sh
+cd ~/harddisks/hspist3
+sbatch cluster/profile_edmd_koa.sh
+squeue -u charing
+```
+
+**3. When `squeue` is empty** (a few minutes):
+
+```sh
+cat logs/profile-edmd_*.out
+```
+
+Paste the whole output. It shows, for each run, the wall time, the divider and wall events per second, and, if `perf` is usable on KOA, the top 15 functions.
