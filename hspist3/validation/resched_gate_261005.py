@@ -159,7 +159,7 @@ def g_e3(CS):
 def g_e4(CS):
     rec_c = pd.read_csv(os.path.join(T.PLOTS, "261004_p1_confinement_cells.csv"), dtype=str).set_index("cell")
     rec_a = pd.read_csv(os.path.join(T.PLOTS, "261005_p1_identity_afix_cells.csv"), dtype=str).set_index("cell")
-    rows = []; repro = []; builds_af = set()
+    rows = []; repro = []; builds_af = set(); permass = []
     for mode, cid in CELLS:
         with contextlib.redirect_stdout(io.StringIO()):
             c_old = dict(CS[cid]); c_new = dict(CS[cid])
@@ -167,6 +167,8 @@ def g_e4(CS):
                 R.method_A(c_old); old = b_values(c_old)
                 for k in ("static", "s_kT", "kT", "F2term"): c_new[k] = c_old[k]   # identity() needs the static side; only kS is used
                 with new_tree(): new = b_values(c_new)
+                for ro, rn in zip(c_old["B"], c_new["B"]):   # same masses, same order (c["Ms"])
+                    permass.append((cid, ro["M"], ro["alpha"], ro["nu"], ro["se"], ro["n"], rn["nu"], rn["se"], rn["n"]))
                 repro += [(cid, "c_s", old["cs"][0], rec_c.loc[cid, "c_s"]), (cid, "c_s_err", old["cs"][1], rec_c.loc[cid, "c_s_err"]),
                           (cid, "k_S_dyn", old["kS"][0], rec_c.loc[cid, "k_S_dyn"])]
                 names = (("cs", "c_s"), ("kS", "k_S^dyn"), ("G5", "Gamma(alpha=5)"))
@@ -197,6 +199,13 @@ def g_e4(CS):
     ok = bool(good.all() and np.all(np.abs(zs) < 2))
     print(f"\nG-E4 (as registered, all abs(z) < 2): {'PASS' if ok else 'FAIL'}; for information, all abs(z) < 2.77: "
           f"{'yes' if good.all() and np.all(np.abs(zs) < 2.77) else 'no'}")
+    print("\n### Per-mass divider frequency, old vs new (information only, added 2026-10-06 before the replay data; the failed KOA smoke")
+    print("### test (261012 sec. 4.4.7) had its deficit at alpha = 0.5 and 1, so those rows test a light-mass shift directly)\n")
+    print("| cell | M | alpha | old nu (25 seeds) | SE | new nu | SE | (new - old)/old [%] | z |\n|---|---|---|---|---|---|---|---|---|")
+    for cid, M, al, no, so, nno, nn, sn, nnn in permass:
+        sd = math.hypot(so, sn); z = (nn - no) / sd if fin(sd) and sd > 0 else float("nan")
+        print(f"| {cid} | {M} | {al:g} | {no:.6f} | {so:.6f} | {nn:.6f} | {sn:.6f} | {100 * (nn - no) / no:+.2f} | {z:+.2f}"
+              f"{' **light**' if al <= 1.0 else ''} |")
     print("\n### Reproduction: the old values recomputed here against the recorded CSVs (at the CSV's printed precision)\n")
     print("| cell | column | recomputed | recorded | equal at the recorded decimals |\n|---|---|---|---|---|")
     rep_ok = True
