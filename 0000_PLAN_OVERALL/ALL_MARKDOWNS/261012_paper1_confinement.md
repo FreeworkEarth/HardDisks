@@ -2530,3 +2530,63 @@ light masses of the 73fc07f pilot: z(M=50) = -1.77, z(M=100) = -2.50 against the
 1. Run **G-E2 as a diagnostic** (sandbox, 6 cores, about 5 min). Its smoke trajectory is this pilot's M = 50 trajectory. Its contact audit decides the stale-event class, and its legacy-vs-279282b comparison checks the legacy path.
 2. **If the contact audit is clean:** the replay (G-E3/G-E4) is the bias test with real power. At M = 50 the 25-seed SE of the mean ν is 0.00031 (0.4 %), so a 4 % shift would show at about 9 σ.
 3. **If it is not clean:** locate the defect, fix it, build anew, and restart the gate from G-E1.
+
+### 4.4.8 G-E2 run as a diagnostic after the smoke failure: PASS; contact audit clean; legacy = 279282b byte for byte (2026-10-06 00:42 HST) [DATA; INFERENCE where marked]
+
+KOA job 14986309 (sandbox, node cn-03-33-01, Xeon E5-2680 v2), build 73fc07f, run from ~/harddisks_resched. Output root `/mnt/lustre/koa/scratch/charing/harddisks_resched/resched_gate_261005/ge2_14986309`. Printed by `cluster/resched_gate_261005/ge2.py compare` (verbatim, from the log Chris pasted):
+
+```
+### Byte identity
+| smoke | wall_x_positions_L0_100_wallmassfactor_50_run0.csv | no | 847 / 847 | 2 |
+| smoke | speed_of_sound_psi6.csv | no | 3 / 3 | 2 |
+| afix | ev_9700.csv | no | 265893 / 265645 | 10 |
+| afix | tr_9700.csv | no | 4 / 4 | 2 |
+| afix | red_9700.csv | no | 3 / 3 | 2 |
+### Energy (E_tot = E_gas + E_divider)
+| smoke | minimal | 100 | 99.999999999999901 | 100 | 9.992e-16 | 8.882e-16 |
+| smoke | legacy | 100 | 100.00000000000006 | 100.00000000000031 | 6.661e-16 | 2.665e-15 |
+| afix | minimal | 100.00000000000003 | 100.00000000000084 | 100.00000000000091 | 7.994e-15 | 6.661e-16 |
+| afix | legacy | 100.00000000000003 | 99.999999999999275 | 99.999999999999346 | 7.550e-15 | 6.661e-16 |
+(every phase within max(10 x legacy, 1e-12): yes)
+### Divider ledger and forces, A-fixed cell (held window [200, 5200))
+| minimal | 15.950274 | 15.970915 | 31706 | 32008 | 1.000000000 | 0.999999999 | 0 | 0 | 5219.974 |
+| legacy | 15.930781 | 15.924822 | 32011 | 31932 | 0.999999997 | 1.000000003 | 0 | 0 | 5219.978 |
+### Contact audit (max abs(contact distance) at executed events, px; limit 1e-6 for minimal)
+| smoke_minimal | 104545 | 4.76e-12 | 2.78e-12 | 2.53e-12 | 0.00e+00 | yes |
+| smoke_legacy | 105052 | 5.41e-12 | 2.98e-12 | 2.53e-12 | 0.00e+00 | yes |
+| afix_minimal | 1363106 | 4.47e-11 | 3.00e-11 | 2.53e-11 | 0.00e+00 | yes |
+| afix_legacy | 1363205 | 4.50e-11 | 2.79e-11 | 3.02e-11 | 0.00e+00 | yes |
+### Health and policy lines: 0 health lines in all four runs; policy lines minimal / legacy as set
+### Legacy path of the new binary vs the 279282b binary (same seed; expectation IDENTICAL)
+| smoke | wall_x_positions_L0_100_wallmassfactor_50_run0.csv | IDENTICAL |
+| smoke | speed_of_sound_psi6.csv | IDENTICAL |
+| afix | ev_9700.csv | IDENTICAL |
+| afix | tr_9700.csv | IDENTICAL |
+| afix | red_9700.csv | IDENTICAL |
+G-E2: energy PASS; ledger PASS; health PASS; policy PASS; contact PASS (byte identity is reported, not gated: see the table)
+```
+
+**Reading.**
+- **[DATA] G-E2 passes all its registered checks.**
+- **[DATA] The registered expectation for the legacy path holds.** The new binary's legacy path reproduces the 279282b binary byte for byte, in all five files and in both modes. The refactor left the old physics untouched.
+- **[DATA] Minimal vs legacy differs from the first trace row on.**
+  - The psi6 line of the hold already differs (0.108 vs 0.029), so the microstates had decorrelated during the 2000-step hold, before the release.
+  - This is the expected chaotic divergence, not a step change.
+- **[DATA] The contact audit is clean.**
+  - At every executed event of the minimal path, the touching surfaces are at most 4.8 × 10⁻¹² px apart on the M = 50 smoke trajectory (104,545 events), and at most 4.5 × 10⁻¹¹ px on the A-fixed run (1.36 × 10⁶ events).
+  - These are the legacy path's own rounding levels.
+- **[INFERENCE] What follows for the minimal path.**
+  - It executed no stale event: the contact audit shows every executed event at a true contact.
+  - It missed none: the per-step validator would have stopped the run on an overlap, a wall penetration or a compartment change (§ 4.4.7).
+  - So it produces valid hard-disk trajectories.
+  - The smoke-test deficit (§ 4.4.7, p ≈ 0.6 % one-sided against the old engine's 25-seed spread) is then most likely a fluctuation. That is not established, because a dynamics that is valid event by event could in principle still differ in some way I have not thought of.
+
+**Registered now, before any replay data (proposal; the plan author confirms or amends).**
+- **Remaining steps.** Run steps 3 (cross-node), 5 (profile) and 6 (replay). The smoke FAIL stays recorded as a FAIL.
+- **New table.** `validation/resched_gate_261005.py` now also prints the per-mass ν, old vs new, with z = (new − old)/√(SE_old² + SE_new²) (information only).
+- **The light-mass test.** It uses the π/8 rows at α = 0.5 and α = 1 (M = 50, 100), where the smoke deficit sat (−3.8 % and −3.4 % against the campaign means).
+  - A real shift of that size would give z ≈ −6 and −9 (25-seed SE of the mean ν: 0.00031 and 0.00016).
+  - **A light-mass shift is CONFIRMED if either row has z < −3.** The engine change is then not accepted, despite the clean contact audit.
+  - **It is REFUTED if both rows have |z| < 2.** The smoke deficit is then reported as a fluctuation.
+  - Anything in between is unresolved and needs more seeds.
+- **The gate verdict itself** still follows the registered rule (G-E1 to G-E6). Whether the mis-calibrated smoke gate (about 14 % false-fail rate) may be superseded by G-E4 and this test is the plan author's decision, to be recorded before the replay data are fetched.
