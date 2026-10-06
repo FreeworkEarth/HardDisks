@@ -2386,3 +2386,98 @@ determinism self-test (same binary, same seed, run A on dhcp-168-105-254-255.wir
   - "Mulero et al., Mol. Phys. 122 (2024)" was not found; see row 12, and the plan author should say which paper was meant;
   - Hoover & Alder 1967 is correct, but it concerns pressure, not compressibility.
 - **For the draft [INFERENCE; not done, the tex was touched for Part 0 only]:** White et al. 2002 (row 7) belongs next to `roman2002`, in the damping paragraph.
+
+### 4.4.6 Branch review and amendments (2026-10-05 23:55 HST; after an adversarial review of 9cafd7f; still BEFORE any KOA run, so still registered before the data)
+
+**Review** [DATA: workflow wf_d6fb7d5b-0e0, 49 agents, read-only, no simulation].
+- Seven lenses: event invalidation, missed events, heap and avalanche accounting, legacy byte identity, driver and instrumentation, KOA scripts, Mac analysis. Every finding went to three verifiers (trace, refute, impact).
+- **The engine core had no finding.** Invalidation, missed events and the heap are clean. heap_compact was copied into a standalone test and fuzzed: about 6 × 10⁵ random compactions and pops, 0 heap-property violations, 0 out-of-order pops.
+- **Refuted (three of three verifiers, high confidence):**
+  - "--legacy-resched never reaches the engine in energy-transfer mode" (critical as filed), and "no policy line in energy-transfer logs". Both missed the macro `#define edmd_create edmd_backend_create` (00ALLINONE.c:1551).
+  - A NaN-SE "pass" path.
+  - An A1v2 health-parser gap.
+- **Confirmed and fixed here:**
+  - (major) Runsheet step 11.7 ran scripts that existed only on the branch while the Mac is on main. The Mac-side tooling is now on main too, as identical copies.
+  - (minor) replay.sbatch hid a reduce_B.py crash behind "failures: 0".
+  - (minor) G-E3 read only the logs of the trajectories the worker kept, and never matched trajectories to the task list.
+  - (minor) Nothing tied G-E2, the replay and the profile to one build.
+  - (minor) G-E5 used wall times of runs that exited non-zero.
+- **Plausible (minor), fixed in the text:**
+  - The campaign sbatch files on the branch still name `$SCRATCH/harddisks`. Only the gate scripts derive the root from the clone; the old campaign files are stopped by root_guard.
+  - The root_guard refusal message now names the 279282b record.
+- The completeness-critic step failed (session limit) and was not rerun.
+
+**Amendments to the registration** (all made before any KOA data exist):
+1. **past_events wording.** It counts events popped with a time before the current time, i.e. heap-order violations. Negative collision times cannot occur [SOURCE]. Every solver returns either t > 10⁻¹² or, for an OVERDUE contact, t = 0:
+   - an overlapping, approaching pair: `if(c<0.0){ *tcol = 0.0; return 2; }` in `collide_time_ab`;
+   - a disk at or past a wall face: `if (gap <= 0.0) { *tcol = 0.0; return 2; }` in `wall_time_from_gap`.
+
+   Anything smaller is "no event" (`if(t<=1e-12) return 0;`). The t = 0 cases are exactly what the overlap_repairs and wall_overdue counters count. So "no negative collision times" in G-E3 means: those two counters are 0 (health line), and past_events = 0 shows the heap order held.
+2. **Contact audit (new, read-only, HD_CONTACT_AUDIT=1).**
+   - What it does: right before an executed event is resolved, the engine measures the distance between the touching surfaces (`edmd_contact_audit`), and the driver prints the maxima once per run (`[EDMD-CONTACT]`).
+   - Why: it is the one direct check for the fix's main risk, a stale event accepted by mistake. Such an event conserves energy and need not overlap anything, so no other check sees it.
+   - **G-E2:** the minimal run's maxima must be ≤ 10⁻⁶ px (4 × 10⁻⁸ σ) in all four classes; the legacy run's are printed beside them.
+   - **G-E3:** every replay trajectory's maxima must be ≤ 10⁻⁶ px. The replay exports HD_CONTACT_AUDIT=1.
+3. **G-E3 tightened:**
+   - trajectories are matched to the campaign's task list by (run, seed) for B and by seed for AF;
+   - the number of B log sections must equal the number of trajectories, and the estimator window n must be finite and > 0;
+   - health lines are counted in every log, failed trajectories included (`.failed_run*/stdout.log` for B, every `run_<seed>.log` for AF);
+   - any value that cannot be evaluated FAILS.
+4. **BUILD:** every gate output must name one clean build: the B and AF `.build_git` files, the AF summaries, the replay root's `.build_generation`, the G-E2 `version.txt` files and the profile summaries. The analysis prints it beside the local branch head.
+5. **G-E5:** only runs that exited 0 are used, and an invalid row is marked as such.
+6. **G-E6 text corrected** as above (the root comes from the clone name only in the gate scripts).
+
+**Tests of the gate analysis** [DATA, printed by `validation/resched_gate_261005.py`; synthetic trees in the scratchpad, no simulation]:
+- **Dry run (old vs old):** all 225 + 225 + 115 trajectories matched to the task lists by run and seed; all 9 recorded values reproduced; G-E3 correctly FAILS on the 279282b data, which has no policy, energy or contact lines.
+- **Synthetic replay tree** (old data plus the new log lines): G-E3 PASS, G-E4 PASS, BUILD PASS.
+- **Five planted defects,** each detected:
+  - a contact gap of 4 × 10⁻³ px: G-E3 FAIL;
+  - a health line in a failed run: G-E3 FAIL;
+  - a duplicated trajectory: G-E3 FAIL;
+  - a foreign build in one .build_git: BUILD FAIL;
+  - an energy jump of 10⁻⁶: G-E3 FAIL.
+- The G-E2 comparator flags a planted divider gap of 3 × 10⁻³ px (contact FAIL) and a wrong policy line.
+
+**Risk noted [INFERENCE, OPEN].** Energy-transfer runs now print [EDMD-HEALTH]. Their counters were never visible before (§ 4.4.5). If they were sometimes non-zero, A-fixed replay seeds would fail for a reason that has nothing to do with the fix.
+- The driver reviewer bounds this from the 279282b B runs, with the same seeder and held-divider physics and 0 health lines: about 0.15 expected failing seeds in the replay.
+- **Procedure if it happens:** stop, and rerun the failed seed with --legacy-resched on the same binary. That separates an old counter from a new defect. It is the plan author's call.
+- After a merge, the Paper 2 energy-transfer scripts that grep EDMD-HEALTH will see real health lines for the first time.
+
+**Mac runs.** The two allowed determinism runs (G-E1 Mac, § 4.4.4) were used on the first engine state. Everything changed since is print/count-only, or the read-only contact audit. The final binary's determinism is the KOA G-E1 (same node and cross-node).
+
+## 5.1 Prior work — update (2026-10-05 23:55 HST) [SOURCE where verified; INFERENCE marked; OPEN marked]
+
+From a second, deeper search (eight agents, 52 further queries for (iii), full texts where reachable). § 5 above is left as written; this section corrects and extends it.
+
+- **Row 1, Rüchardt: verified on the original scan** [SOURCE: Internet Archive item per_physikalische-zeitschrift_physikalische-zeitschrift_1929-01-15_2, pp. 58–59].
+  - Citation: E. Rüchardt, "Eine einfache Methode zur Bestimmung von C_p/C_v", Physik. Z. **30** (Nr. 2, 15 Jan 1929), 58–59.
+  - The paper states the adiabatic assumption explicitly ("Da der Vorgang adiabatisch erfolgt") and shows "die adiabatische Elastizität der Gase".
+- **Row 7, White et al. 2002: full text read** (Chris's local copy, `ZZZ_PAPER/SIMPLE_GAS_BOX/adiabaticpistoninequilibriumwhite2002.pdf`).
+  - System: 2D hard disks in an isolated box with an "adiabatic" movable piston; σ = m = k_BT = 1. η ≈ 0.11 and 0.22 [INFERENCE: computed by the search from N/(LA); the paper prints no packing fraction].
+  - Content: the three-peak divider spectrum (thermal mode plus damped sound mode); C(t) fitted with exp(−t/τ_th) and exp(−t/τ_snd) cos(ω_p t + φ); the mass-dependent wavenumber with L − σ; τ_snd ∝ k⁻².
+  - Not in it: an adiabatic-vs-isothermal comparison, a held divider, or dispersion.
+  - **Direct prior art for Paper 1's spectrum, mass formula and damping (dilute only).** It should be cited next to roman2002.
+- **Row 14, Huerta et al. 2015: still OPEN.**
+  - Paywalled (ScienceDirect 403; no arXiv version). The abstract says "up to the freezing" and "positive sound dispersion ... was not detected". The maximum packing fraction is unknown.
+  - Chris can fetch the PDF through the UH library; it decides whether any state point lies in 0.700–0.716.
+- **Row 15, García-Rojo et al. 2006: verified,** doi:10.1103/PhysRevE.74.061305 [SOURCE, Crossref; published version read].
+  - "we have not been able to obtain reliable results for the bulk viscosity in the high density region".
+  - Their shear-viscosity fit diverges at ν_η = 0.71 ± 0.01, inside the coexistence window.
+- **Row 16, Zippelius, Halperin & Nelson 1980: verified,** Phys. Rev. B **22**, 2514–2541 [SOURCE, Crossref]. Content only from the abstract and citing papers (full text paywalled). The theory assumes continuous transitions, whereas the hard-disk liquid–hexatic transition is first order (rows 10–11).
+- **Cerino et al. 2014: verified.** L. Cerino, G. Gradenigo, A. Sarracino, D. Villamaina, A. Vulpiani, Phys. Rev. E **89**, 042105 (2014), doi:10.1103/PhysRevE.89.042105 [SOURCE, Crossref and arXiv:1403.2896].
+  - Setup: a piston under constant force on a few-particle 2D gas.
+  - Result: microcanonical and canonical fluctuations differ by a factor 2 even at large N.
+  - [INFERENCE] That factor is γ of the 2D ideal gas. There is no fixed-piston force: cite it for the ensemble dependence, not as prior art for the identity test.
+- **Correction:** arXiv:2002.00651 is S. A. Khrapak, "Lindemann melting criterion in two dimensions", Phys. Rev. Research **2**, 012040(R) (2020) [SOURCE, arXiv and Crossref]. It is a static theory paper. § 5's description of it as "density relaxation ... in the hexatic phase" was wrong; it came from the first search.
+- **New, direct for (iii), but not hard disks:** H. Shiba, A. Onuki, T. Araki, "Structural and dynamical heterogeneities in two-dimensional melting", EPL **86**, 66004 (2009), doi:10.1209/0295-5075/86/66004 [SOURCE, Crossref; full text read by the search].
+  - System: 2D Lennard-Jones, φ = 0.9, N = 36,000.
+  - Inside their hexatic, S(k,t) first shows "an oscillatory decay arising from the acoustic propagation", then decays slowly with "Γ_k ∼ k^z with z ∼ 2.6". In the liquid and the crystal the decay is thermal diffusion (Γ ∝ k²).
+  - [INFERENCE] A slow density mode that carries almost all of S(k) means the relaxed and unrelaxed compressibilities differ, i.e. a frequency-dependent compressibility in the hexatic. **This is the closest prior evidence for (iii)**, in a system whose transitions they call continuous.
+- **New, partial or background** [SOURCE, Crossref]:
+  - D. Mugita, M. Isobe, EPJ Web Conf. **249**, 14004 (2021): EDMD, anomalous slow equilibration when starting from the coexistence phase.
+  - J. L. Gallani et al., Phys. Rev. A **37**, 3638 (1988), with the theory of H. Pleiner, H. R. Brand, Phys. Rev. A **39**, 1563 (1989): a measured ultrasonic velocity and attenuation anomaly at the smectic-A–hexatic-B transition (3D liquid crystals). It is the only measured sound anomaly at a hexatic transition found.
+  - Y. Feng, J. Goree, B. Liu, Phys. Rev. E **87**, 013106 (2013): 2D Yukawa liquid, bulk viscosity "negligibly small or not a meaningful transport coefficient".
+  - Z. Ge et al., Phys. Rev. E **107**, 055211 (2023): fast sound in 2D dusty-plasma liquids.
+- **(iii) restated [OPEN]:**
+  - For hard disks, a frequency-dependent sound speed, compressibility or bulk viscosity across 0.700–0.716 is still **not found** (18 + 52 queries).
+  - A slow compressional relaxation inside a 2D hexatic is documented for Lennard-Jones (Shiba et al. 2009), and the hard-disk bulk viscosity at high density is explicitly unresolved (García-Rojo et al. 2006).
