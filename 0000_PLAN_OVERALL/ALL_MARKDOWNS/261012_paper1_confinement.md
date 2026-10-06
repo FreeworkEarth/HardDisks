@@ -2481,3 +2481,52 @@ From a second, deeper search (eight agents, 52 further queries for (iii), full t
 - **(iii) restated [OPEN]:**
   - For hard disks, a frequency-dependent sound speed, compressibility or bulk viscosity across 0.700–0.716 is still **not found** (18 + 52 queries).
   - A slow compressional relaxation inside a 2D hexatic is documented for Lennard-Jones (Shiba et al. 2009), and the hard-disk bulk viscosity at high density is explicitly unresolved (García-Rojo et al. 2006).
+
+### 4.4.7 G-E1 on KOA: the smoke test FAILED (2026-10-06 00:27 HST) [DATA; INFERENCE where marked]
+
+**Result** (conf-smoke log pasted by Chris; node cn-03-33-01, the same node as the passing 279282b smoke test 14966575; build 73fc07f, to be confirmed from the head of the log).
+- Same-node determinism: IDENTICAL (trace 104,302 bytes; psi6 349 bytes).
+- Health lines 0; η, L₀ and L_eff PASS.
+- **c_s = 3.74424 ± 0.06756 against the Mac target 3.85886: difference −0.11462, gate ±0.06903, so FAIL** ("SMOKE TEST FAILED -- STOP").
+- By the verdict rule: **stop**. Nothing else was submitted; the branch is not merged.
+
+**Diagnostic,** printed by `python3 hspist3/validation/resched_smoke_diag_261006.py` (analysis only). It compares the three one-seed-per-mass π/8 pilots with the 25-seed spread of the same cell (epi8_H_H10_L10, 279282b campaign):
+
+```
+| M | alpha | weight x^2 share | campaign mean nu (25 seeds) | campaign sd | Mac pilot (z) | KOA 279282b pilot (z) | KOA 73fc07f pilot (z) |
+|---|---|---|---|---|---|---|---|
+| 50 | 0.5 | 0.368 | 0.073196 | 0.001571 | 0.075192 (+1.27) | 0.072116 (-0.69) | 0.070407 (-1.77) |
+| 100 | 1 | 0.235 | 0.058248 | 0.000799 | 0.058707 (+0.57) | 0.058980 (+0.92) | 0.056250 (-2.50) |
+| 200 | 2 | 0.135 | 0.044063 | 0.000501 | 0.043956 (-0.22) | 0.044370 (+0.61) | 0.044785 (+1.44) |
+| 300 | 3 | 0.095 | 0.037073 | 0.000385 | 0.036642 (-1.12) | 0.037163 (+0.23) | 0.036642 (-1.12) |
+| 500 | 5 | 0.059 | 0.029239 | 0.000288 | 0.029124 (-0.40) | 0.029536 (+1.03) | 0.029673 (+1.51) |
+| 750 | 7.5 | 0.040 | 0.024127 | 0.000258 | 0.023923 (-0.79) | 0.024150 (+0.09) | 0.024150 (+0.09) |
+| 1000 | 10 | 0.031 | 0.021036 | 0.000117 | 0.020929 (-0.91) | 0.021028 (-0.07) | 0.021127 (+0.77) |
+| 1500 | 15 | 0.021 | 0.017205 | 0.000141 | 0.017425 (+1.56) | 0.017425 (+1.56) | 0.017182 (-0.16) |
+| 2000 | 20 | 0.016 | 0.014986 | 0.000084 | 0.015062 (+0.91) | 0.015062 (+0.91) | 0.015062 (+0.91) |
+
+through-origin c_s: campaign means 3.82030; Mac pilot 3.85886; KOA 279282b pilot 3.81894; KOA 73fc07f pilot 3.74424
+bootstrap of a one-seed-per-mass pilot from the 25 campaign seeds (200000 draws): mean 3.82031, sd 0.03283
+  Mac pilot: 3.85886  z = +1.17  fraction of draws <= it: 0.8810
+  KOA 279282b pilot: 3.81894  z = -0.04  fraction of draws <= it: 0.4808
+  KOA 73fc07f pilot: 3.74424  z = -2.32  fraction of draws <= it: 0.0056
+difference of two independent pilots: sd 0.04645; P(|diff| > 0.06903) = 0.1396; P(diff <= -0.11462) = 0.00756
+light masses of the 73fc07f pilot: z(M=50) = -1.77, z(M=100) = -2.50 against the 25-seed spread
+```
+
+**Reading.**
+- **[DATA] Where the three pilots sit.** Against the old engine's 25-seed spread of this cell:
+  - the new pilot is at z = −2.32; only 0.56 % of one-seed-per-mass pilots drawn from those data are this low;
+  - the 279282b KOA pilot is at −0.04;
+  - the Mac target is at +1.17.
+- **[DATA] Where the deficit is.** It sits in the two lightest masses (z = −1.77 at M = 50, −2.50 at M = 100), which carry 60 % of the through-origin weight. The heavier masses scatter on both sides.
+- **[INFERENCE] What that suggests.** A real downward shift at light divider masses, which is where the new free-divider rescheduling runs most (the divider velocity changes at every hit, and every hit triggers the O(N) divider pass). Not conclusive with one trajectory per mass.
+- **[DATA] The registered smoke gate is narrower than assumed.** The bootstrap gives a one-pilot spread of 0.0328; § 1.10.1 assumed an SE of 0.0244. So the 0.06903 limit fails a correct build about 14 % of the time, not 4.55 %. That does not explain this result: P(Δ ≤ −0.11462) = 0.76 %.
+- **[INFERENCE] Which defect classes remain.**
+  - **A missed collision is ruled out.** It leaves an overlap, a wall penetration or a compartment change, and `experiment_validator_check` tests all three after every engine advance in the release loop. Every trajectory exited 0.
+  - **A stale event accepted by mistake is not.** Example: a divider event computed for an old divider velocity. It conserves energy and momentum and need not overlap anything, but it moves momentum between a disk and the divider at the wrong place, which shifts the frequency, most at light masses. This is exactly what the contact audit measures (§ 4.4.6).
+
+**Proposed next step (decision for the plan author).**
+1. Run **G-E2 as a diagnostic** (sandbox, 6 cores, about 5 min). Its smoke trajectory is this pilot's M = 50 trajectory. Its contact audit decides the stale-event class, and its legacy-vs-279282b comparison checks the legacy path.
+2. **If the contact audit is clean:** the replay (G-E3/G-E4) is the bias test with real power. At M = 50 the 25-seed SE of the mean ν is 0.00031 (0.4 %), so a 4 % shift would show at about 9 σ.
+3. **If it is not clean:** locate the defect, fix it, build anew, and restart the gate from G-E1.
