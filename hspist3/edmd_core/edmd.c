@@ -13,6 +13,29 @@
 #endif
 static long g_edmd_avalanche_warning_count = 0;
 
+/* ##CHRIS 2026-10-05 (branch engine-divider-resched, 261012 sec. 4.4): minimal rescheduling
+   after a disk-divider collision.
+   LEGACY (g_edmd_legacy_resched = 1, --legacy-resched): every divider event clears the heap
+   and reschedules all N(N-1)/2 pairs (reschedule_all_internal) -- O(N^2) per divider event,
+   also for a held (mass 0) divider that cannot move.
+   MINIMAL (default): after a divider event of disk i, only disk i is rescheduled (walls,
+   dividers, pistons, all partners: schedule_for, the same call as after a disk-wall event);
+   if and only if the divider's velocity changed (a free divider), every other disk's event
+   with THAT divider is recomputed too (one O(N) pass). Pairs not involving i are untouched.
+   Invalidation: disk events keep the per-disk coll_count snapshots; divider events also carry
+   the divider's velocity epoch div_epoch[d] in Event.cb (unused for non-AB events before),
+   bumped whenever a collision changes divider_vx[d]. External changes of the divider state
+   (edmd_set_divider_motions etc.) are always followed by edmd_reschedule_all in the driver,
+   which flushes the heap, so they need no epoch. Without the periodic flush, stale events
+   accumulate: the heap is compacted (stale entries dropped, Floyd re-heapify) whenever it
+   exceeds max(2 x live entries at the last compaction, 64 N + 4096), and stale pops do not
+   count towards the EDMD_ADVANCE_MAX_EVENTS avalanche budget (they used to be few because
+   the heap was flushed at every divider event). Collision-time arithmetic is unchanged.
+   Pistons (EV_PL/EV_PR) keep the full reschedule in both modes. */
+static int g_edmd_legacy_resched = 0;
+void edmd_set_legacy_resched(int on){ g_edmd_legacy_resched = on ? 1 : 0; }
+int  edmd_legacy_resched(void){ return g_edmd_legacy_resched; }
+
 /* ------------------------ internal types ------------------------ */
 
 /* event kind: AB = particle-particle, WL/WR/WB/WT = walls (left/right/bottom/top) */
@@ -131,6 +154,11 @@ struct EDMD {
     double cell_size;
 
     Heap heap;
+    /* ##CHRIS 2026-10-05: minimal divider rescheduling (see top of file) */
+    int   div_epoch[EDMD_MAX_DIVIDERS]; /* bumped when a collision changes divider_vx[d] */
+    int   heap_compact_at;              /* compact the heap above this size (0 = not set yet) */
+    long  heap_compactions;             /* telemetry */
+    long  past_event_count;             /* events popped with e.t < S->t and skipped (G-E3: must stay 0) */
 };
 
 static inline int edmd_trace_active(const EDMD* S){
@@ -704,16 +732,55 @@ static int collide_time_divider_R(const EDMD* S, const EDMD_Particle* A, int d, 
     if(t<=1e-12) return 0; *tcol=t; return 1;
 }
 
+/* ##CHRIS 2026-10-05: one divider d for disk i; Event.cb carries the divider's velocity epoch
+   (was 0). The collision-time arithmetic is the unchanged collide_time_divider_L/R. */
+static void schedule_divider_one(EDMD* S, int i, int d){
+    double t;
+    if(collide_time_divider_L(S, &S->P[i], d, &t))
+        heap_push(&S->heap, (Event){ S->t+t, i, d, S->P[i].coll_count, S->div_epoch[d], EV_DL });
+    if(collide_time_divider_R(S, &S->P[i], d, &t))
+        heap_push(&S->heap, (Event){ S->t+t, i, d, S->P[i].coll_count, S->div_epoch[d], EV_DR });
+}
 static void schedule_divider(EDMD* S, int i){
     if(S->prm.divider_count <= 0) return;
     int dcount = clamp_dividers(S->prm.divider_count);
-    for (int d = 0; d < dcount; ++d) {
-        double t;
-        if(collide_time_divider_L(S, &S->P[i], d, &t))
-            heap_push(&S->heap, (Event){ S->t+t, i, d, S->P[i].coll_count,0, EV_DL });
-        if(collide_time_divider_R(S, &S->P[i], d, &t))
-            heap_push(&S->heap, (Event){ S->t+t, i, d, S->P[i].coll_count,0, EV_DR });
+    for (int d = 0; d < dcount; ++d) schedule_divider_one(S, i, d);
+}
+
+/* ##CHRIS 2026-10-05: is a queued event still valid? The same tests the event loop applies
+   at pop time (coll_count snapshots; divider velocity epoch for DL/DR). */
+static int event_live(const EDMD* S, const Event* e){
+    if(e->a < 0 || e->a >= S->prm.N) return 0;
+    if(S->P[e->a].coll_count != e->ca) return 0;
+    if(e->type == EV_AB){
+        if(e->b < 0 || e->b >= S->prm.N) return 0;
+        if(S->P[e->b].coll_count != e->cb) return 0;
+    } else if(e->type == EV_DL || e->type == EV_DR){
+        if(e->b >= 0 && e->b < EDMD_MAX_DIVIDERS && S->div_epoch[e->b] != e->cb) return 0;
     }
+    return 1;
+}
+
+/* ##CHRIS 2026-10-05: drop stale events (order of the survivors kept) and re-heapify
+   bottom-up (Floyd), with the comparisons of heap_pop. Deterministic. Minimal mode only. */
+static void heap_compact(EDMD* S){
+    Heap* H = &S->heap;
+    int n = 0;
+    for (int k = 0; k < H->n; ++k) if (event_live(S, &H->data[k])) H->data[n++] = H->data[k];
+    H->n = n;
+    for (int s0 = n/2 - 1; s0 >= 0; --s0) {
+        int i = s0;
+        for(;;){
+            int l=2*i+1, r=l+1, s=i;
+            if(l<H->n && H->data[l].t < H->data[s].t) s=l;
+            if(r<H->n && H->data[r].t < H->data[s].t) s=r;
+            if(s==i) break;
+            heap_swap(&H->data[i], &H->data[s]); i=s;
+        }
+    }
+    const int floor_n = 64*S->prm.N + 4096;
+    S->heap_compact_at = (2*n > floor_n) ? 2*n : floor_n;
+    S->heap_compactions++;
 }
 
 /* Pistons: left piston right face at xL, right piston left face at xR */
@@ -1190,7 +1257,9 @@ static void resolve_wall(EDMD* S, int i, EvType type, int b){
             double dE = 0.5 * M * (v2*v2 - u2*u2);
             S->work_divider[d] += dE;
             { char kb[8]; snprintf(kb, sizeof kb, "D%d", d); edmd_log_event(S, kb, u2, u1, v1, dE); }
-            A->vx = v1; S->prm.divider_vx[d] = v2; A->coll_count++; return;
+            A->vx = v1; S->prm.divider_vx[d] = v2; A->coll_count++;
+            S->div_epoch[d]++;   /* ##CHRIS 2026-10-05: every queued event with divider d is now stale */
+            return;
         }
     }
     if(type==EV_PL || type==EV_PR){
@@ -1448,6 +1517,12 @@ double edmd_advance_to(EDMD* S, double t_target){
             edmd_trace_check(S, "free-flight (heap empty)"); /* ##CHRIS */
             break;
         }
+        /* ##CHRIS 2026-10-05: minimal mode drops a stale event here, before the O(N) position
+           jump and the avalanche counters (legacy validates after the jump, below, unchanged). */
+        if (!g_edmd_legacy_resched && !event_live(S, &e)) {
+            edmd_trace_record(S, &e, 0);
+            continue;
+        }
         events_processed++;
         if (e.type >= EV_AB && e.type <= EV_PR) type_counts[(int)e.type]++;
         if (fabs(e.t - last_event_t) <= 1e-13) stagnant_events++;
@@ -1497,7 +1572,7 @@ double edmd_advance_to(EDMD* S, double t_target){
             heap_push(&S->heap, e);
             break;
         }
-        if(e.t < S->t) continue; /* guard (shouldn’t happen often) */
+        if(e.t < S->t){ S->past_event_count++; continue; } /* guard (shouldn’t happen often); ##CHRIS 2026-10-05: counted */
 
         /* jump all particles to event time */
         double dt = e.t - S->t;
@@ -1532,15 +1607,32 @@ double edmd_advance_to(EDMD* S, double t_target){
             schedule_for(S, e.b);
             reschedule_clamped(S);   /* ##CHRIS: cover particles grid_build had to bounce */
         } else {
+            const int is_div = (e.type==EV_DL || e.type==EV_DR);
+            const int d_ev = (is_div && e.b >= 0 && e.b < clamp_dividers(S->prm.divider_count)) ? e.b : -1;
+            const int epoch0 = (d_ev >= 0) ? S->div_epoch[d_ev] : 0;
             resolve_wall(S, e.a, e.type, e.b);
             /* moving boundary velocities may have changed (divider/pistons): rebuild and reschedule all */
-            if (e.type==EV_DL || e.type==EV_DR || e.type==EV_PL || e.type==EV_PR) {
+            if (e.type==EV_PL || e.type==EV_PR || (is_div && g_edmd_legacy_resched)) {
                 reschedule_all_internal(S);
+            } else if (is_div) {
+                /* ##CHRIS 2026-10-05: minimal rescheduling (top of file). Disk e.a as after a wall
+                   event; if the divider's velocity changed, every other disk's event with it. */
+                grid_build(S);
+                schedule_for(S, e.a);
+                if (d_ev >= 0 && S->div_epoch[d_ev] != epoch0) {
+                    for (int j = 0; j < S->prm.N; ++j) if (j != e.a) schedule_divider_one(S, j, d_ev);
+                }
+                reschedule_clamped(S);
             } else {
                 grid_build(S);
                 schedule_for(S, e.a);
                 reschedule_clamped(S);   /* ##CHRIS */
             }
+        }
+        /* ##CHRIS 2026-10-05: minimal mode has no periodic heap flush -- compact (top of file). */
+        if (!g_edmd_legacy_resched) {
+            if (S->heap_compact_at == 0) S->heap_compact_at = 64*S->prm.N + 4096;
+            if (S->heap.n > S->heap_compact_at) heap_compact(S);
         }
     }
     return S->t;
@@ -1614,6 +1706,7 @@ double edmd_compressibility_Z(const EDMD* S){
 long edmd_clamp_repair_count(const EDMD* S){
     return S ? S->clamp_repair_count : 0;
 }
+long edmd_past_event_count(const EDMD* S){ return S ? S->past_event_count : 0; }   /* ##CHRIS 2026-10-05 */
 long edmd_overlap_repair_count(const EDMD* S){
     return S ? S->overlap_repair_count : 0;
 }

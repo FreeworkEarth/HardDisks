@@ -23,7 +23,8 @@ python3 -c "import sys; sys.path[:0] = ['validation', '.']; import tests_2026091
 [ -x ./00ALLINONE ] || { echo "STOP: no ./00ALLINONE -- run the smoke test first (it builds)"; exit 2; }
 ./00ALLINONE --version | head -2
 ./00ALLINONE --version | head -1 | grep -q -- "git $(git rev-parse --short HEAD)  target koa" || { echo "STOP: binary is not the clean koa build of HEAD"; exit 2; }
-OUT="/mnt/lustre/koa/scratch/charing/harddisks/hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_pilot_20261013/koa_det_xnode_${SLURM_JOB_ID}"
+ROOT_NAME=$(basename "$(dirname "$SLURM_SUBMIT_DIR")")   # ##CHRIS 2026-10-05: data root follows the clone (koa_smoketest.sh)
+OUT="/mnt/lustre/koa/scratch/charing/$ROOT_NAME/hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_pilot_20261013/koa_det_xnode_${SLURM_JOB_ID}"
 echo "nodes: $SLURM_JOB_NODELIST"
 srun --nodes=1 --ntasks=1 --relative=0 --exact python3 cluster/confinement_pilot.py det1 --tag A --bin ./00ALLINONE --out "$OUT" &
 srun --nodes=1 --ntasks=1 --relative=1 --exact python3 cluster/confinement_pilot.py det1 --tag B --bin ./00ALLINONE --out "$OUT" &

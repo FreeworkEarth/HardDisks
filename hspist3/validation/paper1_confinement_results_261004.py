@@ -57,6 +57,20 @@ HEAVY = (5.0, 7.5, 10.0, 15.0, 20.0)
 BLUE, BLUE2, RED = "#2a78d6", "#0b3d91", "#e34948"
 HEALTH = re.compile(r"EDMD-HEALTH")
 P_EXCL = 0.01
+# ##CHRIS 2026-10-05 (engine gate G-E6, 261012 sec. 4.4): build-generation guard. This is the registered analysis of the 279282b
+# campaign; it must never read data of a later build generation without an explicit flag. Every build of the
+# engine-divider-resched generation prints "[EDMD-RESCHED]" into each run log (00ALLINONE.c, edmd_backend_create); 279282b never
+# did. method_B and method_A stop on a cell whose logs carry it, unless ALLOW_NEW_BUILD is set: env HD_ALLOW_BUILD_MIX=1, or the
+# caller sets the attribute (validation/resched_gate_261005.py does, to compare the two generations). No effect on 279282b data.
+ALLOW_NEW_BUILD = os.environ.get("HD_ALLOW_BUILD_MIX") == "1"
+
+
+def refuse_new_build(logs):
+    if ALLOW_NEW_BUILD: return
+    for p in logs:
+        if os.path.exists(p) and "[EDMD-RESCHED]" in open(p, errors="ignore").read():
+            sys.exit(f"STOP: {p} was written by a post-279282b build ([EDMD-RESCHED] line); the registered 279282b analysis "
+                     "does not mix build generations (HD_ALLOW_BUILD_MIX=1 overrides explicitly)")
 
 
 def cells():
@@ -180,6 +194,7 @@ def determinism_gate():
 # ------------------------------------------------------------------------------------------------ method B
 def method_B(c):
     rows = []
+    refuse_new_build([os.path.join(HS, REL_B, c["cid"], f"m_{M}", "run.log") for M in c["Ms"]])
     for M in c["Ms"]:
         d = pd.read_csv(os.path.join(HS, REL_B, c["cid"], f"m_{M}", "red_nu.csv"))
         nu = d["nu"].to_numpy(float); n = len(nu)
@@ -261,6 +276,7 @@ def confinement_verdict(CS):
 # ------------------------------------------------------------------------------------------------ method A
 def method_A(c):
     ad = os.path.join(HS, REL_A, c["cid"]); st = {}
+    refuse_new_build([os.path.join(ad, f"x_{lab}", f"run_{s}.log") for lab, _ in POS for s in c["seeds"][lab]])
     for lab, j in POS:
         R = pd.concat([pd.read_csv(os.path.join(ad, f"x_{lab}", f"red_{s}.csv")) for s in c["seeds"][lab]], ignore_index=True)
         n = len(R)

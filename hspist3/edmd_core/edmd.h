@@ -119,6 +119,14 @@ int    edmd_init_lattice_gas(EDMD* S, unsigned long long seed);
 void   edmd_set_event_log(const char* path, double time_scale);
 void   edmd_close_event_log(void);
 
+/* ##CHRIS 2026-10-05: divider rescheduling policy (process-wide; see edmd.c).
+   0 = minimal (default): after a divider event reschedule only that disk, plus every
+   disk's divider event if the divider's velocity changed. 1 = legacy full reschedule. */
+void   edmd_set_legacy_resched(int on);
+int    edmd_legacy_resched(void);
+/* events popped with a time before the current time and skipped (a time-ordering violation; must be 0) */
+long   edmd_past_event_count(const EDMD* S);
+
 /* access */
 double                edmd_time(const EDMD* S);
 const EDMD_Params*    edmd_params(const EDMD* S);

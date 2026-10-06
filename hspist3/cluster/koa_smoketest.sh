@@ -57,7 +57,11 @@ set -uo pipefail
 cd "${SLURM_SUBMIT_DIR:?submit with sbatch from ~/harddisks/hspist3}"
 SCRATCH="/mnt/lustre/koa/scratch/charing"
 REL=experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_pilot_20261013
-OUT="$SCRATCH/harddisks/hspist3/$REL/${SMOKE_TAG:-koa_pi8_H10_L10}"
+# ##CHRIS 2026-10-05 (engine gate, 261012 sec. 4.4): the data root follows the clone this job was submitted from
+# ($SCRATCH/harddisks for ~/harddisks, $SCRATCH/harddisks_resched for the engine-branch clone), so a second build
+# generation never writes into the 279282b tree. For ~/harddisks this is the old path, unchanged.
+ROOT_NAME=$(basename "$(dirname "$SLURM_SUBMIT_DIR")")
+OUT="$SCRATCH/$ROOT_NAME/hspist3/$REL/${SMOKE_TAG:-koa_pi8_H10_L10}"
 [ -e "$OUT" ] && { echo "$OUT exists -- not overwriting; choose a fresh name with SMOKE_TAG=..."; exit 2; }
 
 echo "== (0) node";    echo "$(hostname) | $(lscpu | awk -F: '/Model name/{gsub(/^ +/,"",$2); print $2; exit}') | job $SLURM_JOB_ID"

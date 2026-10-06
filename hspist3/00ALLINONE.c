@@ -1174,6 +1174,7 @@ static inline int pl_get_angle_bin(double angle) {
 static EDMD* g_edmd = NULL;
 static int   cli_edmd_acc = 0;          // --edmd-acc: use accelerated EDMD backend (if linked)
 static int   g_edmd_is_acc = 0;         // backend used for current g_edmd instance
+static int   cli_legacy_resched = 0;    // ##CHRIS 2026-10-05: --legacy-resched: full O(N^2) reschedule after divider events (pre-engine-divider-resched behaviour)
 static int   cli_force_kbt_one = 0; // --kbt1: force K_B*T == 1 (reduced units)
 /* ##CHRIS: --seed-drift-order=old|drift-first (default old).
    "old" is the historical order: rescale each compartment to N_s kT, THEN remove
@@ -1225,6 +1226,18 @@ static double dist_next_log_abs_time = 0.0;
 // EDMD backend dispatch (default vs accelerated). Only valid for the global g_edmd instance.
 static inline EDMD* edmd_backend_create(const EDMD_Params* prm) {
     g_edmd_is_acc = cli_edmd_acc ? 1 : 0;
+    /* ##CHRIS 2026-10-05: divider rescheduling policy of the default backend, recorded once per
+       process in the run log (the summary CSV also carries the full command line). */
+    edmd_set_legacy_resched(cli_legacy_resched);
+    {
+        static int resched_printed = 0;
+        if (!resched_printed) {
+            resched_printed = 1;
+            printf("[EDMD-RESCHED] divider events: %s%s\n",
+                   cli_legacy_resched ? "legacy (full reschedule, --legacy-resched)" : "minimal (default)",
+                   g_edmd_is_acc ? " -- NOTE: accelerated backend active, policy applies to the default backend only" : "");
+        }
+    }
     return g_edmd_is_acc ? edmd_acc_create(prm) : edmd_create(prm);
 }
 static inline void edmd_backend_destroy(EDMD* S) {
@@ -1308,6 +1321,9 @@ static inline long edmd_backend_overlap_repair_count(const EDMD* S) {
 }
 static inline long edmd_backend_wall_overdue_count(const EDMD* S) {
     return g_edmd_is_acc ? edmd_acc_wall_overdue_count(S) : edmd_wall_overdue_count(S);
+}
+static inline long edmd_backend_past_event_count(const EDMD* S) {   /* ##CHRIS 2026-10-05: default backend only */
+    return g_edmd_is_acc ? 0 : edmd_past_event_count(S);
 }
 
 /* ##CHRIS: diagnostic only, driver-side, gated by HD_OVERDUE_TRACE=1. Time-stamps
@@ -1964,6 +1980,23 @@ static void ke_audit(const char* where){
     }
     printf("[KE-AUDIT] %-28s N=%d  KE_tot=%.9g  KE_left=%.9g  KE_right=%.9g  Px=%.9g  kT_mean=%.9g\n",
            where, particles_active, ke, kel, ker, px, ke / (particles_active > 0 ? particles_active : 1));
+    fflush(stdout);
+}
+
+/* ##CHRIS 2026-10-05 (261012 sec. 4.4, engine gate G-E2): gated energy line of the EDMD state, HD_KE_TRACE=1 only.
+   Gas KE plus the KE of every finite-mass divider, at %.17g, in the engine's own convention (particle mass 1 in
+   resolve_wall, divider mass in particle-mass units; a held divider has mass 0 and holds no energy). Print only: reads
+   the state, changes nothing, draws no random numbers. Points: 0 = state loaded, 1 = release, 2 = end of record. */
+static void edmd_energy_audit(const char* where){
+    if (getenv("HD_KE_TRACE") == NULL || !g_edmd) return;
+    const EDMD_Params* ep = edmd_params(g_edmd);
+    const EDMD_Particle* P = edmd_particles(g_edmd);
+    double eg = 0.0, ed = 0.0;
+    for (int i = 0; i < ep->N; ++i) eg += 0.5 * (P[i].vx * P[i].vx + P[i].vy * P[i].vy);
+    for (int d = 0; d < ep->divider_count && d < EDMD_MAX_DIVIDERS; ++d)
+        if (ep->divider_mass[d] > 0.0) ed += 0.5 * ep->divider_mass[d] * ep->divider_vx[d] * ep->divider_vx[d];
+    printf("[EDMD-ENERGY] %-26s t=%.17g E_gas=%.17g E_div=%.17g E_tot=%.17g resched=%s\n",
+           where, edmd_time(g_edmd), eg, ed, eg + ed, edmd_legacy_resched() ? "legacy" : "minimal");
     fflush(stdout);
 }
 
@@ -3486,6 +3519,7 @@ static void print_cli_usage(const char *exe_name) {
     printf("  --time=value                Stop after this many sim units post-release (interactive)\n");
     printf("  --kbt1                      Force k_B*T = 1 (reduced units); adjusts k_B at runtime\n");
     printf("  --edmd-acc=0|1              Use accelerated EDMD backend (requires it built-in; default 0)\n");
+    printf("  --legacy-resched            EDMD: full O(N^2) reschedule after every divider event (old behaviour; default: minimal)\n");   /* ##CHRIS 2026-10-05 */
     printf("  --mode=NAME                 time (default) | rk4 | edmd | edmd-hybrid | hybrid | event-split\n");
     printf("  --help                      Show this help message and exit\n");
 }
@@ -4540,6 +4574,8 @@ static void parse_cli_options(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
             time_scale_runtime = v;
+        } else if (strcmp(arg, "--legacy-resched") == 0) {   /* ##CHRIS 2026-10-05 */
+            cli_legacy_resched = 1;
         } else if (strcmp(arg, "--edmd-acc") == 0) {
             cli_edmd_acc = 1;
         } else if (strncmp(arg, "--edmd-acc", strlen("--edmd-acc")) == 0) {
@@ -15958,6 +15994,7 @@ void run_speed_of_sound_experiments() {
                             P[i].coll_count = 0;
                         }
                         edmd_backend_reschedule_all(g_edmd);
+                        edmd_energy_audit("0 state loaded (hold)");   /* ##CHRIS 2026-10-05 */
 
                         build_speed_sound_edmd_validation_state(
                             &validation_state,
@@ -16028,6 +16065,7 @@ void run_speed_of_sound_experiments() {
                         const double vx = 0.0;
                         edmd_backend_set_divider_motions(g_edmd, 1, &mass, &vx);
                         edmd_backend_reschedule_all(g_edmd);
+                        edmd_energy_audit("1 release");   /* ##CHRIS 2026-10-05 */
                     }
                     if (!validator.failure.failed) {
                         wall_release_time = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
@@ -16113,6 +16151,7 @@ void run_speed_of_sound_experiments() {
 
                         recorded_steps++;
                     }
+                    edmd_energy_audit("2 end of record");   /* ##CHRIS 2026-10-05 */
                 } else {
                     build_speed_sound_time_validation_state(
                         &validation_state, &audit_wall_x, &audit_wall_vx);
@@ -16254,12 +16293,13 @@ void run_speed_of_sound_experiments() {
                     const long n_clamp   = edmd_backend_clamp_repair_count(g_edmd);
                     const long n_overlap = edmd_backend_overlap_repair_count(g_edmd);
                     const long n_overdue = edmd_backend_wall_overdue_count(g_edmd);
-                    if (n_forced || n_clamp || n_overlap || n_overdue) {
+                    const long n_past    = edmd_backend_past_event_count(g_edmd);   /* ##CHRIS 2026-10-05 */
+                    if (n_forced || n_clamp || n_overlap || n_overdue || n_past) {
                         printf("⚠️ [EDMD-HEALTH] L0=%.1f M=%d run=%d seed=%u: "
                                "forced_advance=%ld wall_clamp_repairs=%ld overlap_repairs=%ld "
-                               "wall_overdue=%ld\n",
+                               "wall_overdue=%ld past_events=%ld\n",
                                (double)L0, wall_mass_factor, r, run_seed,
-                               n_forced, n_clamp, n_overlap, n_overdue);
+                               n_forced, n_clamp, n_overlap, n_overdue, n_past);
                     }
                 }
 
@@ -16693,6 +16733,7 @@ static void run_energy_transfer_experiment(void) {
         if (sim_mode == MODE_EDMD) {
             edmd_reschedule_all(g_edmd);
             edmd_reset_work(g_edmd);
+            edmd_energy_audit("0 state loaded (hold)");   /* ##CHRIS 2026-10-05 */
             printf("[EDMD] initialized: N=%d  box=(%.1fσ,%.1fσ) -> (%.1fpx,%.1fpx)  R=%.4fσ -> %.3fpx  scale=%.1f px/σ\n",
                    prm.N,
                    prm.boxW / (double)PIXELS_PER_SIGMA,
@@ -17051,6 +17092,7 @@ static void run_energy_transfer_experiment(void) {
 
         if (steps_elapsed == wall_hold_steps && !wall_is_released) {
             ke_audit("3 end of hold (at release)");
+            edmd_energy_audit("1 end of hold (release)");   /* ##CHRIS 2026-10-05 */
             wall_release_time = simulation_time;
             wall_is_released  = true;
             recorded_steps    = 0;
@@ -17262,6 +17304,23 @@ static void run_energy_transfer_experiment(void) {
 
     if (!cli_quiet) {
         printf("✅ Energy transfer experiment done. Output → %s\n", trace_path);
+    }
+
+    /* ##CHRIS 2026-10-05 (261012 sec. 4.4, gate G-E3): the EDMD health counters in energy-transfer mode too. Until now
+       only the speed-of-sound branch printed them ([EDMD-HEALTH] above), so method A / A-fixed runs never reported
+       overlap repairs and their "health 0" checks could not fail. Same rule as there: printed only when a counter is
+       non-zero, so the workers' health grep (conf_worker.sh HEALTH) keeps its meaning. */
+    if (g_edmd && sim_mode == MODE_EDMD) {
+        edmd_energy_audit("2 end of run");
+        const long n_forced  = edmd_backend_forced_advance_count(g_edmd);
+        const long n_clamp   = edmd_backend_clamp_repair_count(g_edmd);
+        const long n_overlap = edmd_backend_overlap_repair_count(g_edmd);
+        const long n_overdue = edmd_backend_wall_overdue_count(g_edmd);
+        const long n_past    = edmd_backend_past_event_count(g_edmd);
+        if (n_forced || n_clamp || n_overlap || n_overdue || n_past) {
+            printf("⚠️ [EDMD-HEALTH] energy-transfer seed=%u: forced_advance=%ld wall_clamp_repairs=%ld overlap_repairs=%ld "
+                   "wall_overdue=%ld past_events=%ld\n", cli_seed, n_forced, n_clamp, n_overlap, n_overdue, n_past);
+        }
     }
 
 	    // Append per-run summary for quick parameter sweeps.

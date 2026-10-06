@@ -51,6 +51,42 @@ guard() {   # guard <dir> <glob of finished outputs, relative to dir>
   [ "$have" = "$BUILD" ] && return 0
   echo "REFUSED $dir: written by '$have', this binary is '$BUILD'"; return 1
 }
+# ##CHRIS 2026-10-05 (engine gate G-E6, 261012 sec. 4.4): build-GENERATION guard on the whole data root. guard() above keeps
+# two builds out of one directory; this keeps them out of one ROOT, so that cells of the 279282b campaign and cells of the
+# engine-divider-resched generation can never end up side by side in one tree (and later in one figure). The root records
+# its build in $HD_DATA/.build_generation, written by the first worker into an EMPTY root (no .build_git anywhere below).
+# A root that holds data but no record is refused: its build is unknown (the 279282b root on KOA is such a root -- write
+# its record by hand before using it again, runsheet). A different build is refused unless HD_ALLOW_BUILD_MIX=1 (explicit).
+# The sbatch files of the branch derive HD_DATA from the clone's name ($SCRATCH/<clone>/hspist3), so ~/harddisks_resched
+# writes to its own root by construction.
+root_guard() {
+  local f="$HD_DATA/.build_generation" lock="$HD_DATA/.build_generation.lock" have="" i=0
+  if [ ! -e "$f" ]; then
+    mkdir -p "$HD_DATA"
+    until mkdir "$lock" 2>/dev/null; do
+      i=$((i + 1)); [ "$i" -le 600 ] || { echo "REFUSED root $HD_DATA: lock $lock not free within 60 s"; return 1; }
+      sleep 0.1
+    done
+    trap 'rmdir "$lock" 2>/dev/null' EXIT
+    trap 'rmdir "$lock" 2>/dev/null; exit 143' TERM INT
+    if [ ! -e "$f" ]; then
+      if [ -n "$(find "$HD_DATA" -maxdepth 9 -name .build_git -print -quit 2>/dev/null)" ]; then
+        rmdir "$lock"; trap - EXIT TERM INT
+        echo "REFUSED root $HD_DATA: it holds data but no .build_generation record (build unknown); write the record by hand"
+        return 1
+      fi
+      printf '%s\n' "$BUILD" > "$f.tmp$$" && mv "$f.tmp$$" "$f"
+    fi
+    rmdir "$lock"; trap - EXIT TERM INT
+  fi
+  have=$(cat "$f")
+  [ "$have" = "$BUILD" ] && return 0
+  if [ "${HD_ALLOW_BUILD_MIX:-0}" = 1 ]; then
+    echo "WARNING root $HD_DATA: generation '$have', this binary '$BUILD' -- mixing ALLOWED by HD_ALLOW_BUILD_MIX=1"; return 0
+  fi
+  echo "REFUSED root $HD_DATA: build generation '$have', this binary is '$BUILD' (HD_ALLOW_BUILD_MIX=1 overrides)"; return 1
+}
+root_guard || { echo "$* FAILED root build guard"; exit 3; }
 mode=$1; shift
 if [ "$mode" = B ]; then
   rel=$1 M=$2 r=$3 seed=$4 L0=$5 H=$6 NS=$7 stride=$8 base=$9

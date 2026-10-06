@@ -13,11 +13,19 @@
 #                            reschedule_all_internal: for i < N, for j = i+1 .. N: schedule_ab(S, i, j);   (:812-816)
 #                            -> O(N^2) per divider event, also for a HELD (mass 0) divider that cannot move
 #   every event also drifts all N particles to the event time (:1504-1507) -> O(N)
-# usage (from ~/harddisks/hspist3 on login-0101/0102):  sbatch cluster/profile_edmd_koa.sh
+#
+# ##CHRIS 2026-10-05 (engine gate G-E5, 261012 sec. 4.4; branch engine-divider-resched): the same runs ONCE PER RESCHEDULING
+# POLICY with the same binary on the same node -- default (minimal: after a divider event only that disk, plus every disk's
+# divider event if the divider moved) and --legacy-resched (the old full reschedule) -- and a second kind, "free": held for
+# 200 sigma-time, then released with mass alpha 2 N_s, alpha = 5 (M = 500 / 2000), and 500 sigma-time free, so the
+# free-divider path of the fix (one O(N) pass over all disks' divider events per divider collision) is timed too.
+# Exponent per policy and kind: p = ln(t_H40 / t_H10) / ln 4 (N = 100 -> 400). Factor = t_legacy / t_minimal, same node.
+# The data root follows the clone: $SCRATCH/<clone name>/profile_edmd_<job>.
+# usage (from ~/<clone>/hspist3 on login-0101/0102):  sbatch cluster/profile_edmd_koa.sh
 #SBATCH --job-name=profile-edmd
 #SBATCH --partition=sandbox
 #SBATCH --account=uh
-#SBATCH --time=0:20:00
+#SBATCH --time=0:40:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
 #SBATCH --output=logs/%x_%j.out
@@ -28,29 +36,44 @@ source cluster/koa_env.sh || exit 1
 export HD_BIN="$PWD/00ALLINONE"
 [ -s logs/BUILD_KOA_LAST.hash ] && sha256sum --status -c logs/BUILD_KOA_LAST.hash || { echo "STOP: not the recorded build"; exit 1; }
 "$HD_BIN" --version | head -1
-OUT="/mnt/lustre/koa/scratch/charing/harddisks/profile_edmd_${SLURM_JOB_ID}"
-mkdir "$OUT" || { echo "STOP: $OUT exists"; exit 1; }
+ROOT_NAME=$(basename "$(dirname "$SLURM_SUBMIT_DIR")")
+OUT="/mnt/lustre/koa/scratch/charing/$ROOT_NAME/profile_edmd_${SLURM_JOB_ID}"
+mkdir -p "$(dirname "$OUT")"; mkdir "$OUT" || { echo "STOP: $OUT exists"; exit 1; }
 PERF=$(command -v perf || true)
 if [ -n "$PERF" ] && perf stat -e task-clock true >/dev/null 2>&1; then echo "perf: $PERF (usable)"; else echo "perf: not usable -- wall clock only"; PERF=""; fi
-lscpu | awk -F: '/Model name/{gsub(/^ +/,"",$2); print "cpu: " $2; exit}'
-for spec in "H40 10.000000 40.000000 200" "H10 10.000000 10.000000 50"; do
-  set -- $spec; tag=$1 L0=$2 H=$3 NS=$4; d="$OUT/$tag"; mkdir -p "$d"; cd "$d" || exit 1
-  CMD=("$HD_BIN" --mode=edmd --experiment=energy_transfer --headless --quiet --edmd-acc=0 --seed-drift-order=drift-first
-       --energy-transfer-summary="$d/summary.csv" --energy-transfer-trace="$d/tr.csv" --trace-every=600
-       --particles=$((2*NS)) --particles-boxes=$NS,$NS --particle-radius=0.5 --l0=$L0 --height=$H --num-walls=1
-       --wall-positions=$L0 --wall-mass-factors=1000000000 --wall-thickness=0.05 --wall-thickness-vis=0.05
-       --eff-output=wall-ke --wall-hold-steps=42000 --steps=60 --fixed-dt=0.4 --kbt1 --seed=9700)
-  t0=$(date +%s.%N)
-  if [ -n "$PERF" ]; then HD_PISTON_EVENTS="$d/ev.csv" perf record -g -o "$d/perf.data" -- "${CMD[@]}" > "$d/run.log" 2>&1
-  else HD_PISTON_EVENTS="$d/ev.csv" "${CMD[@]}" > "$d/run.log" 2>&1; fi
-  rc=$?; t1=$(date +%s.%N)
-  echo; echo "== $tag (N_s = $NS, H = $H, L0 = $L0): exit $rc, wall $(awk -v a=$t0 -v b=$t1 'BEGIN{printf "%.1f", b-a}') s for 700 sigma-time"
-  awk -F, -v a=$t0 -v b=$t1 'NR>1{n[$2]++; tot++} END{for(k in n) printf "   %-3s events %8d  (%.0f per wall-second)\n", k, n[k], n[k]/(b-a);
-       printf "   wall+divider events %d (%.0f per wall-second)\n", tot, tot/(b-a)}' "$d/ev.csv"
-  if [ -n "$PERF" ]; then
-    echo "   top 15 functions by self time:"
-    perf report -i "$d/perf.data" --stdio --no-children --sort symbol 2>/dev/null | grep -E '^ +[0-9.]+%' | head -15
-  fi
-  cd "$SLURM_SUBMIT_DIR" || exit 1
+lscpu | awk -F: '/Model name/{gsub(/^ +/,"",$2); print "cpu: " $2; exit}'; echo "node: $(hostname)"
+printf 'kind\ttag\tN\tpolicy\twall_s\tdiv_events\twall_events\texit\n' > "$OUT/times.tsv"
+for kind in held free; do
+ for spec in "H40 10.000000 40.000000 200" "H10 10.000000 10.000000 50"; do
+  for policy in minimal legacy; do
+   set -- $spec; tag=$1 L0=$2 H=$3 NS=$4; d="$OUT/${kind}_${tag}_${policy}"; mkdir -p "$d"; cd "$d" || exit 1
+   if [ "$kind" = held ]; then HOLD=42000 POST=60 MF=1000000000; else HOLD=12000 POST=30000 MF=$((5 * 2 * NS)); fi
+   EXTRA=(); [ "$policy" = legacy ] && EXTRA=(--legacy-resched)
+   CMD=("$HD_BIN" --mode=edmd --experiment=energy_transfer --headless --quiet --edmd-acc=0 --seed-drift-order=drift-first
+        --energy-transfer-summary="$d/summary.csv" --energy-transfer-trace="$d/tr.csv" --trace-every=600
+        --particles=$((2*NS)) --particles-boxes=$NS,$NS --particle-radius=0.5 --l0=$L0 --height=$H --num-walls=1
+        --wall-positions=$L0 --wall-mass-factors=$MF --wall-thickness=0.05 --wall-thickness-vis=0.05
+        --eff-output=wall-ke --wall-hold-steps=$HOLD --steps=$POST --fixed-dt=0.4 --kbt1 --seed=9700 ${EXTRA[@]+"${EXTRA[@]}"})
+   t0=$(date +%s.%N)
+   if [ -n "$PERF" ]; then HD_PISTON_EVENTS="$d/ev.csv" perf record -g -o "$d/perf.data" -- "${CMD[@]}" > "$d/run.log" 2>&1
+   else HD_PISTON_EVENTS="$d/ev.csv" "${CMD[@]}" > "$d/run.log" 2>&1; fi
+   rc=$?; t1=$(date +%s.%N)
+   w=$(awk -v a=$t0 -v b=$t1 'BEGIN{printf "%.2f", b-a}')
+   nd=$(awk -F, 'NR>1 && $2 ~ /^D/{n++} END{print n+0}' "$d/ev.csv"); nw=$(awk -F, 'NR>1 && $2 ~ /^W/{n++} END{print n+0}' "$d/ev.csv")
+   printf '%s\t%s\t%d\t%s\t%s\t%s\t%s\t%s\n' "$kind" "$tag" $((2*NS)) "$policy" "$w" "$nd" "$nw" "$rc" >> "$OUT/times.tsv"
+   echo; echo "== $kind $tag (N_s = $NS, H = $H, L0 = $L0) $policy: exit $rc, wall $w s; divider events $nd, outer-wall events $nw"
+   grep -h "EDMD-RESCHED\|EDMD-HEALTH" "$d/run.log" | sed 's/^/   /'
+   if [ -n "$PERF" ]; then
+     echo "   top 15 functions by self time:"
+     perf report -i "$d/perf.data" --stdio --no-children --sort symbol 2>/dev/null | grep -E '^ +[0-9.]+%' | head -15
+   fi
+   cd "$SLURM_SUBMIT_DIR" || exit 1
+  done
+ done
 done
+echo; echo "| kind | N = 100 minimal [s] | N = 100 legacy [s] | N = 400 minimal [s] | N = 400 legacy [s] | factor N=100 | factor N=400 | p minimal | p legacy |"
+echo "|---|---|---|---|---|---|---|---|---|"
+awk -F'\t' 'NR>1{t[$1" "$3" "$4]=$5; k[$1]=1}
+  END{for (q in k){a=t[q" 100 minimal"]; b=t[q" 100 legacy"]; c=t[q" 400 minimal"]; e=t[q" 400 legacy"];
+      printf "| %s | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f |\n", q, a, b, c, e, b/a, e/c, log(c/a)/log(4), log(e/b)/log(4)}}' "$OUT/times.tsv"
 echo; echo "profile done; output in $OUT"
