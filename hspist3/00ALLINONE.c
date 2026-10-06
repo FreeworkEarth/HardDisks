@@ -2000,6 +2000,17 @@ static void edmd_energy_audit(const char* where){
     fflush(stdout);
 }
 
+/* ##CHRIS 2026-10-05 (engine gate G-E2/G-E3): the engine's contact audit, printed once at the end of a run when
+   HD_CONTACT_AUDIT is set (default backend only; the accelerated backend has no audit). Print only. */
+static void edmd_contact_report(void){
+    if (getenv("HD_CONTACT_AUDIT") == NULL || !g_edmd || g_edmd_is_acc) return;
+    double g[4];
+    const long n = edmd_contact_audit_stats(g_edmd, g);
+    printf("[EDMD-CONTACT] executed events %ld; max abs(contact distance) [px]: disk-disk %.3e, outer walls %.3e, "
+           "divider %.3e, pistons %.3e\n", n, g[0], g[1], g[2], g[3]);
+    fflush(stdout);
+}
+
 /* ##CHRIS: optional per-compartment gas kinetic energy columns KE_L,KE_R in the
    speed-of-sound trace (HD_KE_COLUMNS=1), for the slow-wander / adiabatic-piston
    check. Logging only: reads velocities, changes no state and draws no random
@@ -16152,6 +16163,7 @@ void run_speed_of_sound_experiments() {
                         recorded_steps++;
                     }
                     edmd_energy_audit("2 end of record");   /* ##CHRIS 2026-10-05 */
+                    edmd_contact_report();                   /* ##CHRIS 2026-10-05 */
                 } else {
                     build_speed_sound_time_validation_state(
                         &validation_state, &audit_wall_x, &audit_wall_vx);
@@ -17312,6 +17324,7 @@ static void run_energy_transfer_experiment(void) {
        non-zero, so the workers' health grep (conf_worker.sh HEALTH) keeps its meaning. */
     if (g_edmd && sim_mode == MODE_EDMD) {
         edmd_energy_audit("2 end of run");
+        edmd_contact_report();
         const long n_forced  = edmd_backend_forced_advance_count(g_edmd);
         const long n_clamp   = edmd_backend_clamp_repair_count(g_edmd);
         const long n_overlap = edmd_backend_overlap_repair_count(g_edmd);

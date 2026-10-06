@@ -19,7 +19,14 @@ Registered before any KOA run (261012 sec. 4.4):
                  <= max(10 x the legacy run's value in the same phase, 1e-12) in every phase ("within legacy tolerance").
   divider ledger (b) u_wall_max = 0 and W_div = 0 in the held window, both runs. Forces F_L, F_R and the event counts are
                  printed new/legacy for information only (independent realisations once the runs diverge).
-  health         no [EDMD-HEALTH] line in any run (the new build prints it in both modes, with past_events).
+  health         no [EDMD-HEALTH] line in any run (the new build prints it in both modes, with past_events = events popped
+                 with a time before the current time, i.e. heap-order violations; negative collision times cannot occur:
+                 the solvers return t > 1e-12, or t = 0 for an overdue contact, and those are counted as overlap_repairs
+                 and wall_overdue).
+  contact        (added 2026-10-05 after the branch review, before any KOA run) HD_CONTACT_AUDIT=1 in every run: the engine
+                 measures the distance between the touching surfaces at every executed event ([EDMD-CONTACT]). PASS if the
+                 minimal run's maxima are <= 1e-6 px (4e-8 sigma) in all four classes; the legacy run's are printed beside
+                 them. This is the one direct check for a stale event accepted by mistake (which conserves energy).
   policy         each run printed the [EDMD-RESCHED] line of its policy.
   279282b        with --bin-old (the recorded 279282b binary of ~/harddisks): the same two runs with the OLD binary, and the
                  legacy path's outputs compared with them byte for byte. Registered expectation [INFERENCE]: IDENTICAL -- in
@@ -36,6 +43,8 @@ sys.path.insert(0, CL); sys.path.insert(0, os.path.join(HS, "validation")); sys.
 AF_TASKS = os.path.join(CL, "confinement_20261013", "tasks_AF_epi8_H_H10_L10.txt")
 POLICIES = (("minimal", []), ("legacy", ["--legacy-resched"]))
 EN = re.compile(r"\[EDMD-ENERGY\] (\d) .*?E_tot=(\S+) resched=(\w+)")
+CONTACT = re.compile(r"\[EDMD-CONTACT\] executed events (\d+); max abs\(contact distance\) \[px\]: disk-disk (\S+), "
+                     r"outer walls (\S+), divider (\S+), pistons (\S+)\n")
 
 
 def af_task():
@@ -51,15 +60,17 @@ def run(a):
     a.bin, a.out = os.path.abspath(a.bin), os.path.abspath(a.out)
     if os.path.exists(a.out): sys.exit(f"{a.out} exists -- not overwriting")
     t = af_task(); procs = []
-    env = dict(os.environ, HD_KE_TRACE="1")
+    env = dict(os.environ, HD_KE_TRACE="1", HD_CONTACT_AUDIT="1")
     runs = [(pol, a.bin, extra) for pol, extra in POLICIES]
     if a.bin_old: runs.append(("279282b", os.path.abspath(a.bin_old), []))
     for pol, binp, extra in runs:
         d = os.path.join(a.out, f"smoke_{pol}"); os.makedirs(d)
+        open(os.path.join(d, "version.txt"), "w").write(subprocess.run([binp, "--version"], capture_output=True, text=True).stdout)
         c = CP.cmd(binp, 50, 0, d, target=25) + extra
         open(os.path.join(d, "command.txt"), "w").write("HD_KE_TRACE=1 " + " ".join(c) + "\n")
         procs.append((d, subprocess.Popen(c, stdout=open(os.path.join(d, "run.log"), "w"), stderr=subprocess.STDOUT, env=env, cwd=d)))
         d = os.path.join(a.out, f"afix_{pol}"); os.makedirs(d); s = t["seed"]
+        open(os.path.join(d, "version.txt"), "w").write(subprocess.run([binp, "--version"], capture_output=True, text=True).stdout)
         c = [binp, "--mode=edmd", "--experiment=energy_transfer", "--headless", "--quiet", "--edmd-acc=0",
              "--seed-drift-order=drift-first", f"--energy-transfer-summary={d}/summary_{s}.csv",
              f"--energy-transfer-trace={d}/tr_{s}.csv", f"--trace-every={t['every']}", f"--particles={2 * t['NS']}",
@@ -97,7 +108,7 @@ def energies(log):
 
 
 def compare(a):
-    a.out = os.path.abspath(a.out); s = af_task()["seed"]; ok = dict(energy=True, ledger=True, health=True, policy=True)
+    a.out = os.path.abspath(a.out); s = af_task()["seed"]; ok = dict(energy=True, ledger=True, health=True, policy=True, contact=True)
     print(f"## G-E2 -- minimal vs legacy rescheduling, same binary, same seed ({a.out})\n")
     print("### Byte identity\n\n| cell | file | identical | lines (min / leg) | first differing line | minimal | legacy |\n|---|---|---|---|---|---|---|")
     pairs = [("smoke", os.path.basename(sorted(glob.glob(os.path.join(a.out, "smoke_minimal", "wall_x_positions_*_run0.csv")))[0])),
@@ -131,6 +142,22 @@ def compare(a):
         ok["ledger"] &= (r["u_wall_max"] == 0.0 and r["W_div"] == 0.0)
         print(f"| {pol} | {r['F_L']:.6f} | {r['F_R']:.6f} | {int(r['n_L'])} | {int(r['n_R'])} | {r['T_L']:.9f} | {r['T_R']:.9f} | "
               f"{r['u_wall_max']:g} | {r['W_div']:g} | {r['t_last']:.3f} |")
+    print("\n### Contact audit ([EDMD-CONTACT]; max abs(contact distance) at executed events, px; limit 1e-6 for minimal)\n")
+    print("| run | events | disk-disk | outer walls | divider | pistons | within limit |\n|---|---|---|---|---|---|---|")
+    for cell, log in (("smoke", "run.log"), ("afix", f"run_{s}.log")):
+        for pol, _ in POLICIES:
+            m = CONTACT.findall(open(os.path.join(a.out, f"{cell}_{pol}", log), errors="ignore").read())
+            if len(m) != 1:
+                ok["contact"] = False if pol == "minimal" else ok["contact"]
+                print(f"| {cell}_{pol} | **{len(m)} [EDMD-CONTACT] lines** | | | | | {'**NO**' if pol == 'minimal' else '-'} |"); continue
+            n, *g = m[0]; g = [float(x) for x in g]; good = all(math.isfinite(x) and x <= 1e-6 for x in g)
+            if pol == "minimal": ok["contact"] &= good
+            print(f"| {cell}_{pol} | {n} | " + " | ".join(f"{x:.2e}" for x in g) + f" | {'yes' if good else '**NO**'} |")
+    print("\n### Binaries (--version, recorded next to each run)\n")
+    for cell in ("smoke", "afix"):
+        for pol in [p for p, _ in POLICIES] + (["279282b"] if os.path.isdir(os.path.join(a.out, f"{cell}_279282b")) else []):
+            v = os.path.join(a.out, f"{cell}_{pol}", "version.txt")
+            print(f"- {cell}_{pol}: " + (open(v).read().split(chr(10))[0] if os.path.exists(v) else "(no version.txt)"))
     print("\n### Health and policy lines\n\n| run | [EDMD-HEALTH] lines | [EDMD-RESCHED] |\n|---|---|---|")
     for cell, log in (("smoke", "run.log"), ("afix", f"run_{s}.log")):
         for pol, _ in POLICIES:

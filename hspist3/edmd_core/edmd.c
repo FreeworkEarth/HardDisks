@@ -35,6 +35,14 @@ static long g_edmd_avalanche_warning_count = 0;
 static int g_edmd_legacy_resched = 0;
 void edmd_set_legacy_resched(int on){ g_edmd_legacy_resched = on ? 1 : 0; }
 int  edmd_legacy_resched(void){ return g_edmd_legacy_resched; }
+/* ##CHRIS 2026-10-05 (gate G-E2/G-E3, added after the branch review): CONTACT AUDIT, only when HD_CONTACT_AUDIT is set.
+   Right before an executed (accepted) event is resolved, the distance between the touching surfaces is measured:
+   AB |r_a - r_b| - 2R; outer walls x - R, (boxW - R) - x, y - R, (boxH - R) - y; divider faces (x_d - th/2) - (x + R) and
+   (x - R) - (x_d + th/2); pistons likewise; in px. A correctly scheduled event has a gap at rounding level (~1e-10 px); a
+   stale event accepted by mistake has a gap of the order of the displacement since its state changed. Such an event
+   conserves energy and need not produce an overlap, so no other gate check sees it directly. Read-only: the maxima are
+   kept in S and printed by the driver at the end of a run. */
+static int g_edmd_contact_audit = -1;
 
 /* ------------------------ internal types ------------------------ */
 
@@ -158,7 +166,10 @@ struct EDMD {
     int   div_epoch[EDMD_MAX_DIVIDERS]; /* bumped when a collision changes divider_vx[d] */
     int   heap_compact_at;              /* compact the heap above this size (0 = not set yet) */
     long  heap_compactions;             /* telemetry */
-    long  past_event_count;             /* events popped with e.t < S->t and skipped (G-E3: must stay 0) */
+    long  past_event_count;             /* events popped with e.t < S->t and skipped: a heap-order violation (must stay 0) */
+    /* ##CHRIS 2026-10-05 (gate G-E2/G-E3, after the branch review): contact audit, HD_CONTACT_AUDIT only */
+    double contact_max[4];              /* max |contact distance| [px] at executed events: AB, outer walls, divider, pistons */
+    long   contact_events;              /* executed events audited */
 };
 
 static inline int edmd_trace_active(const EDMD* S){
@@ -759,6 +770,30 @@ static int event_live(const EDMD* S, const Event* e){
         if(e->b >= 0 && e->b < EDMD_MAX_DIVIDERS && S->div_epoch[e->b] != e->cb) return 0;
     }
     return 1;
+}
+
+/* ##CHRIS 2026-10-05: contact audit of one executed event (see g_edmd_contact_audit). Reads state only. */
+static void edmd_contact_audit(EDMD* S, const Event* e){
+    const EDMD_Particle* A = &S->P[e->a]; const double R = S->prm.radius; double gap = 0.0; int k = 0;
+    switch (e->type) {
+        case EV_AB: { const EDMD_Particle* B = &S->P[e->b]; const double dx = B->x - A->x, dy = B->y - A->y;
+                      gap = sqrt(dx*dx + dy*dy) - 2.0*R; k = 0; break; }
+        case EV_WL: gap = A->x - R; k = 1; break;
+        case EV_WR: gap = (S->prm.boxW - R) - A->x; k = 1; break;
+        case EV_WB: gap = A->y - R; k = 1; break;
+        case EV_WT: gap = (S->prm.boxH - R) - A->y; k = 1; break;
+        case EV_DL: case EV_DR: {
+            const int d = e->b;
+            if (d < 0 || d >= clamp_dividers(S->prm.divider_count)) return;
+            const double th = S->prm.divider_thickness[d];
+            gap = (e->type == EV_DL) ? (S->prm.divider_x[d] - 0.5*th) - (A->x + R) : (A->x - R) - (S->prm.divider_x[d] + 0.5*th);
+            k = 2; break; }
+        case EV_PL: gap = (A->x - R) - S->prm.pistonL_x; k = 3; break;
+        case EV_PR: gap = S->prm.pistonR_x - (A->x + R); k = 3; break;
+        default: return;
+    }
+    if (fabs(gap) > S->contact_max[k]) S->contact_max[k] = fabs(gap);
+    S->contact_events++;
 }
 
 /* ##CHRIS 2026-10-05: drop stale events (order of the survivors kept) and re-heapify
@@ -1598,6 +1633,8 @@ double edmd_advance_to(EDMD* S, double t_target){
         edmd_trace_record(S, &e, ev_ok);      /* ##CHRIS */
         edmd_trace_check(S, "position jump to event time"); /* ##CHRIS */
         if(!ev_ok) continue;
+        if (g_edmd_contact_audit < 0) g_edmd_contact_audit = (getenv("HD_CONTACT_AUDIT") != NULL);   /* ##CHRIS 2026-10-05 */
+        if (g_edmd_contact_audit) edmd_contact_audit(S, &e);
 
         /* resolve */
         if(e.type==EV_AB) {
@@ -1707,6 +1744,11 @@ long edmd_clamp_repair_count(const EDMD* S){
     return S ? S->clamp_repair_count : 0;
 }
 long edmd_past_event_count(const EDMD* S){ return S ? S->past_event_count : 0; }   /* ##CHRIS 2026-10-05 */
+/* ##CHRIS 2026-10-05: contact audit results (HD_CONTACT_AUDIT); returns the number of audited events */
+long edmd_contact_audit_stats(const EDMD* S, double max_gap_px[4]){
+    for (int k = 0; k < 4; ++k) max_gap_px[k] = S ? S->contact_max[k] : 0.0;
+    return S ? S->contact_events : 0;
+}
 long edmd_overlap_repair_count(const EDMD* S){
     return S ? S->overlap_repair_count : 0;
 }

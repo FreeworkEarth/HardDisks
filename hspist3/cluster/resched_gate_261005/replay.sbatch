@@ -23,6 +23,8 @@ source cluster/koa_env.sh || exit 1
 ROOT_NAME=$(basename "$(dirname "$SLURM_SUBMIT_DIR")")
 [ "$ROOT_NAME" != harddisks ] || { echo "STOP: the engine gate runs from the branch clone ~/harddisks_resched, not ~/harddisks"; exit 2; }
 export HD_BIN="$PWD/00ALLINONE" HD_DATA="$SCRATCH/$ROOT_NAME/hspist3"
+# ##CHRIS 2026-10-05 (after the branch review): the engine's contact audit in every trajectory (print only; [EDMD-CONTACT])
+export HD_CONTACT_AUDIT=1
 gcc --version | head -1; "$HD_BIN" --version | head -2
 [ -s logs/BUILD_KOA_LAST.hash ] || { echo "STOP: no logs/BUILD_KOA_LAST.hash -- build with cluster/build_koa.sh first"; exit 1; }
 sha256sum --status -c logs/BUILD_KOA_LAST.hash || { echo "STOP: ./00ALLINONE is not the build recorded in logs/BUILD_KOA_LAST.hash"; exit 1; }
@@ -38,6 +40,7 @@ TASKS=cluster/confinement_20261013/tasks_${MODE}_${CELL}.txt
 echo "replay $MODE $CELL: $(wc -l < "$TASKS") trajectories (the 279282b campaign's task lines), 8 in parallel, into $HD_DATA"
 xargs -P 8 -L 1 bash cluster/confinement_20261013/conf_worker.sh < "$TASKS"
 if [ "$MODE" = B ]; then
-  python3 cluster/confinement_20261013/reduce_B.py "$HD_DATA/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/$CELL"
+  python3 cluster/confinement_20261013/reduce_B.py "$HD_DATA/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/$CELL" \
+    || echo "replay B $CELL reduce_B FAILED (exit $?)"   # ##CHRIS 2026-10-05: counted below, so 'failures: 0' cannot hide it
 fi
 echo "replay $MODE $CELL done; failures: $(grep -c FAILED logs/resched-replay_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}.out || true)"

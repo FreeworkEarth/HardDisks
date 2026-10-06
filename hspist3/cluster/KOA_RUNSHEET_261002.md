@@ -615,7 +615,7 @@ Then run `tail -5 logs/det-xnode_*.out`.
 
 - **Expected:** `... different nodes): IDENTICAL`.
 
-**4. Minimal vs legacy, same binary and same seed (G-E2).** About 5 min, 4 cores.
+**4. Minimal vs legacy, same binary and same seed (G-E2).** About 5 min, 6 cores (it also runs the 279282b binary of `~/harddisks`, read only).
 
 ```sh
 sbatch cluster/resched_gate_261005/ge2.sbatch
@@ -623,8 +623,9 @@ sbatch cluster/resched_gate_261005/ge2.sbatch
 
 Then run `cat logs/resched-ge2_*.out`.
 
-- **Expected:** a table and the last line `G-E2: energy PASS; ledger PASS; health PASS; policy PASS`.
-- Byte identity is expected to say `no` (261012 § 4.4).
+- **Expected:** a table and the last line `G-E2: energy PASS; ledger PASS; health PASS; policy PASS; contact PASS`.
+- Byte identity is expected to say `no` for minimal vs legacy, and `IDENTICAL` for legacy vs 279282b (261012 § 4.4).
+- **Stop here and paste the output** if any part says FAIL, or if an `afix_` run shows an `[EDMD-HEALTH]` line. Do not go on to step 6.
 
 **5. Profile, both policies on one node (G-E5).** About 5 min, 1 core.
 
@@ -645,14 +646,15 @@ sbatch --array=1-3 cluster/resched_gate_261005/replay.sbatch
 When done, run `grep -h "done; failures" logs/resched-replay_*.out`.
 
 - **Expected:** three lines, each ending `failures: 0`.
+- **If a line shows failures:** stop and paste `grep -h "FAILED" logs/resched-replay_*.out`. Do not resubmit. CC will propose rerunning the failed seed with `--legacy-resched` on the same binary, which tells an old counter from a new defect.
 
-**7. Mac (repo root): copy back.**
+**7. Mac (repo root, on main): copy back.** The fetch script and the analysis are on main too (identical copies), so no branch switch is needed.
 
 ```sh
 bash hspist3/cluster/resched_gate_261005/fetch_resched.sh
 ```
 
-Then tell CC. The analysis runs `python3 validation/resched_gate_261005.py`.
+Then tell CC. The analysis runs `cd hspist3 && python3 validation/resched_gate_261005.py`. It prints G-E2 to G-E5 and checks that every output comes from one clean build.
 
 **If the old root is ever written to again:** after a merge, the worker's root guard refuses a data root that holds data but has no `.build_generation` record. For the 279282b root the record is one line, written by hand on purpose:
 

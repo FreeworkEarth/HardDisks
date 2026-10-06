@@ -73,7 +73,8 @@ for kind in held free; do
 done
 echo; echo "| kind | N = 100 minimal [s] | N = 100 legacy [s] | N = 400 minimal [s] | N = 400 legacy [s] | factor N=100 | factor N=400 | p minimal | p legacy |"
 echo "|---|---|---|---|---|---|---|---|---|"
-awk -F'\t' 'NR>1{t[$1" "$3" "$4]=$5; k[$1]=1}
+awk -F'\t' 'NR>1{t[$1" "$3" "$4]=$5; k[$1]=1; if ($8 != 0) bad[$1]=bad[$1] " " $3 "/" $4 "(exit " $8 ")"}
   END{for (q in k){a=t[q" 100 minimal"]; b=t[q" 100 legacy"]; c=t[q" 400 minimal"]; e=t[q" 400 legacy"];
-      printf "| %s | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f |\n", q, a, b, c, e, b/a, e/c, log(c/a)/log(4), log(e/b)/log(4)}}' "$OUT/times.tsv"
+      printf "| %s | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f |\n", q, a, b, c, e, b/a, e/c, log(c/a)/log(4), log(e/b)/log(4);
+      if (q in bad) printf "  **INVALID row %s: a run exited non-zero:%s -- its time is not a profile**\n", q, bad[q]}}' "$OUT/times.tsv"
 echo; echo "profile done; output in $OUT"

@@ -6,7 +6,8 @@
 KOA_USER=charing; SCRATCH="/mnt/lustre/koa/scratch/charing"; DTN=$KOA_USER@koa-dtn.its.hawaii.edu; R=$SCRATCH/harddisks_resched
 LOC=hspist3/experiments_resched_gate_261005
 SUM=(--prune-empty-dirs --include='*/' --include='red_*.csv' --include='red_nu.csv' --include='acf_runs.npz'
-     --include='run.log' --include='run_*.log' --include='summary_*.csv' --include='command*.txt' --include='.build_git' --exclude='*')
+     --include='run.log' --include='run_*.log' --include='summary_*.csv' --include='command*.txt' --include='.build_git'
+     --include='stdout.log' --exclude='*')   # stdout.log: the logs of FAILED B trajectories (.failed_run*/), for G-E3
 rsync -av "${SUM[@]}" "$DTN:$R/hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/" \
           "$LOC/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/"
 rsync -av "${SUM[@]}" "$DTN:$R/hspist3/experiments_energy_transfer/paper1_confinement_Afix_261004/" \

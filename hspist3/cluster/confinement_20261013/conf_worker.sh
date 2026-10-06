@@ -57,8 +57,10 @@ guard() {   # guard <dir> <glob of finished outputs, relative to dir>
 # its build in $HD_DATA/.build_generation, written by the first worker into an EMPTY root (no .build_git anywhere below).
 # A root that holds data but no record is refused: its build is unknown (the 279282b root on KOA is such a root -- write
 # its record by hand before using it again, runsheet). A different build is refused unless HD_ALLOW_BUILD_MIX=1 (explicit).
-# The sbatch files of the branch derive HD_DATA from the clone's name ($SCRATCH/<clone>/hspist3), so ~/harddisks_resched
-# writes to its own root by construction.
+# The engine-gate sbatch files (cluster/resched_gate_261005) derive HD_DATA from the clone's name ($SCRATCH/<clone>/hspist3),
+# so they write to their own root by construction. The older campaign sbatch files (conf_*.sbatch and their generators)
+# still name $SCRATCH/harddisks/hspist3; submitted from a second clone they are stopped here (no record there, or another
+# build's record).  (corrected 2026-10-05 after the branch review)
 root_guard() {
   local f="$HD_DATA/.build_generation" lock="$HD_DATA/.build_generation.lock" have="" i=0
   if [ ! -e "$f" ]; then
@@ -72,7 +74,7 @@ root_guard() {
     if [ ! -e "$f" ]; then
       if [ -n "$(find "$HD_DATA" -maxdepth 9 -name .build_git -print -quit 2>/dev/null)" ]; then
         rmdir "$lock"; trap - EXIT TERM INT
-        echo "REFUSED root $HD_DATA: it holds data but no .build_generation record (build unknown); write the record by hand"
+        echo "REFUSED root $HD_DATA: it holds data but no .build_generation record (build unknown). Write the record by hand with the build that WROTE this root -- for the 279282b root on KOA that line is '00ALLINONE  git 279282b  target koa' (runsheet step 11) -- never the current binary's line unless it wrote the data"
         return 1
       fi
       printf '%s\n' "$BUILD" > "$f.tmp$$" && mv "$f.tmp$$" "$f"

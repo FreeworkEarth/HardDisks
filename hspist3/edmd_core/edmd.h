@@ -126,6 +126,9 @@ void   edmd_set_legacy_resched(int on);
 int    edmd_legacy_resched(void);
 /* events popped with a time before the current time and skipped (a time-ordering violation; must be 0) */
 long   edmd_past_event_count(const EDMD* S);
+/* contact audit (HD_CONTACT_AUDIT set): max |contact distance| in px at executed events, per class
+   [0] disk-disk, [1] outer walls, [2] divider faces, [3] pistons; returns the number of audited events */
+long   edmd_contact_audit_stats(const EDMD* S, double max_gap_px[4]);
 
 /* access */
 double                edmd_time(const EDMD* S);
