@@ -2208,3 +2208,181 @@ Output of `cluster/profile_edmd_koa.sh` (runsheet step 10), build `279282b targe
   - **Expected gain:** about 3–4× at N = 400 and about 5–10× at N = 900. Replacing the O(N) partner loop by the existing cell grid would add a further factor at large N.
   - **Consequence for validation:** the event times are then no longer recomputed from scratch at every divider collision. Trajectories will therefore not be byte-identical to 279282b: a new build generation, validated statistically (c_s and the identity within errors on re-run cells), not by bytes.
 - **Decision for the plan author:** whether to implement the fix (variant (b), N ≤ 900) or to run variant (a), N ≤ 400, on the current engine.
+
+### 4.4 Engine fix: minimal divider rescheduling, and its gate (2026-10-05 14:08 HST; branch `engine-divider-resched`; REGISTERED before any KOA run)
+
+**Plain summary.**
+- After a disk hits the divider, the engine now re-plans only that disk, plus every disk's divider collision when the divider itself moved. It no longer re-plans all N²/2 pairs.
+- `--legacy-resched` restores the old behaviour in the same binary.
+- This is a new build generation. It runs from a second KOA clone into a second data root, and it is not merged before this gate passes.
+- So far: the Mac determinism test is IDENTICAL, and the gate analysis passes a dry run on the old data. Everything else is pending on KOA (runsheet step 11).
+
+**4.4.1 What the old code does after each kind of collision** [SOURCE: `hspist3/edmd_core/edmd.c` at 86269ae, quoted]
+
+- Event loop `:1528–1544`:
+  - `if(e.type==EV_AB) { resolve_ab(S, e.a, e.b); grid_build(S); schedule_for(S, e.a); schedule_for(S, e.b); reschedule_clamped(S); }`
+  - `else { resolve_wall(S, e.a, e.type, e.b); if (e.type==EV_DL || e.type==EV_DR || e.type==EV_PL || e.type==EV_PR) { reschedule_all_internal(S); } else { grid_build(S); schedule_for(S, e.a); reschedule_clamped(S); } }`
+- `schedule_for` (`:787–796`) schedules walls, divider and pistons for disk i, then `for (int j = 0; j < S->prm.N; ++j) { if (j == i) continue; schedule_ab(S, i, j); }`. That is O(N).
+- `reschedule_all_internal` (`:807–821`) does `S->heap.n = 0; grid_build(S);`, then walls, divider and pistons for all i, then `for (int i ...) for (int j = i+1; ...) schedule_ab(S, i, j);`. That is O(N²).
+
+| collision | what follows (quoted) | cost |
+|---|---|---|
+| (a) disk–divider, free divider | `resolve_wall` finite-mass branch `:1186–1193`, ending `A->vx = v1; S->prm.divider_vx[d] = v2; A->coll_count++; return;`, then `reschedule_all_internal(S)` (`:1537–1538`) | O(N²) |
+| (b) disk–divider, held divider (mass 0, velocity 0, as in AF) | `resolve_wall` branch `if (M <= 0.0){ double v1 = 2.0 * u2 - u1; ... A->vx = v1; ... A->coll_count++; return; }` (`:1177–1185`), then the same `reschedule_all_internal(S)`, although only disk i changed | O(N²) |
+| (c) disk–outer wall | `resolve_wall` elastic branch (`:1111–1135`), then `grid_build(S); schedule_for(S, e.a); reschedule_clamped(S);` (`:1540–1542`) | O(N) |
+| (d) disk–disk | `resolve_ab(S, e.a, e.b); grid_build(S); schedule_for(S, e.a); schedule_for(S, e.b); reschedule_clamped(S);` (`:1529–1533`) | O(N) |
+
+- **Outer-wall collisions do NOT call `reschedule_all_internal`.** Divider and piston collisions do.
+- `reschedule_all_internal` is also called on a forced advance (`:1482`), at initialisation, and from the driver after every external change of the divider state, e.g. `edmd_set_divider_motions(...)` followed by `edmd_reschedule_all(g_edmd)` at release (`00ALLINONE.c`).
+- **Invalidation** [SOURCE]:
+  - every event carries its disk's `coll_count`, e.g. `heap_push(&S->heap, (Event){ S->t+t, i, d, S->P[i].coll_count,0, EV_DL });` (`:713`), and it is checked at pop (`:1516–1522`);
+  - a divider event carries NO record of the divider velocity it was computed with;
+  - **[DERIVATION]** so the old code relied on the full flush to invalidate the other disks' divider events after the divider moved. The fix therefore needs a counter. This was stated as an inference in § 4.3 and is confirmed here.
+
+**4.4.2 The change** [SOURCE: `git diff 86269ae -- hspist3/edmd_core hspist3/00ALLINONE.c`: edmd.c +111/−9, edmd.h +8, 00ALLINONE.c +65/−4]
+
+1. **After a divider event, minimal mode** (`edmd_advance_to`):
+   - `grid_build(S); schedule_for(S, e.a);`, the same as after a wall event;
+   - then `if (d_ev >= 0 && S->div_epoch[d_ev] != epoch0) { for (int j = 0; j < S->prm.N; ++j) if (j != e.a) schedule_divider_one(S, j, d_ev); }`, one O(N) pass, only when the divider's velocity changed (free divider);
+   - then `reschedule_clamped(S);`.
+   - Pairs not involving `e.a` are not touched. Pistons keep the full reschedule in both modes: `if (e.type==EV_PL || e.type==EV_PR || (is_div && g_edmd_legacy_resched)) { reschedule_all_internal(S); }`.
+2. **A divider velocity epoch.**
+   - `int div_epoch[EDMD_MAX_DIVIDERS]` is bumped in the finite-mass branch of `resolve_wall`: `A->vx = v1; S->prm.divider_vx[d] = v2; A->coll_count++; S->div_epoch[d]++;`.
+   - It is stored in `Event.cb` of DL/DR events, which was 0 and never read: `heap_push(&S->heap, (Event){ S->t+t, i, d, S->P[i].coll_count, S->div_epoch[d], EV_DL });`.
+   - It is checked by `event_live()`: `if(e->b >= 0 && e->b < EDMD_MAX_DIVIDERS && S->div_epoch[e->b] != e->cb) return 0;`.
+   - A held divider (mass 0) never bumps it.
+   - So no new counter type was needed: the existing per-disk `coll_count` plus this one epoch.
+3. **Stale events without the flush.**
+   - Minimal mode drops a stale event right after the pop, before the O(N) position jump of all disks and before the avalanche counters: `if (!g_edmd_legacy_resched && !event_live(S, &e)) { edmd_trace_record(S, &e, 0); continue; }`.
+   - The heap is compacted (stale entries removed, Floyd re-heapify, deterministic) when `S->heap.n > S->heap_compact_at`, with `S->heap_compact_at = (2*n > floor_n) ? 2*n : floor_n;` and `floor_n = 64*S->prm.N + 4096`.
+4. **`--legacy-resched`** (`00ALLINONE.c`, `cli_legacy_resched` → `edmd_set_legacy_resched()`): the old path.
+   - Old validation order, no early drop, no compaction, full reschedule after every divider event.
+   - Its value is recorded in every run log: `[EDMD-RESCHED] divider events: minimal (default)` or `legacy (full reschedule, --legacy-resched)`, printed once per process at the first `edmd_backend_create`.
+   - The energy-transfer summary also records it, in its `command` column.
+5. **Collision-time arithmetic unchanged.**
+   - `collide_time_ab`, `collide_time_divider_L/R`, the wall and piston solvers and `resolve_ab` are untouched.
+   - `schedule_divider` was split into `schedule_divider_one(S, i, d)` with the same calls in the same order.
+6. **Gate instrumentation, print or count only.**
+   - `[EDMD-ENERGY]`: under `HD_KE_TRACE=1`, at %.17g, E_gas + Σ ½M_d u_d² at 0 = state loaded, 1 = release, 2 = end.
+   - A `past_events` counter at the old guard: `if(e.t < S->t){ S->past_event_count++; continue; }`.
+   - `[EDMD-HEALTH]` is now printed in energy-transfer mode too (see 4.4.5), with `past_events`.
+
+**4.4.3 Gate registration** (before any KOA run; the plan author's items, with the definitions they need)
+
+- **G-E1 determinism within the build.**
+  - Mac: same seed twice, `cmp` IDENTICAL (done, 4.4.4).
+  - KOA: build in sandbox (`build_koa.sh`), then the smoke test with its 0.06903 gate, then `koa_crossnode_det.sh` IDENTICAL.
+- **G-E2 minimal vs legacy, same binary and seed** (`cluster/resched_gate_261005/ge2.py`, rules in its header):
+  - cells: the smoke trajectory (π/8, N_s = 50, M = 50, 25 periods) and the A-fixed cell epi8_H_H10_L10 at x₀, seed 9700, full protocol;
+  - byte identity is reported. **[INFERENCE] It is not expected:** the minimal path keeps pair events that legacy recomputes from drifted positions, so event times differ in the last bit, and the dynamics amplifies that;
+  - **energy:** per run and phase, |ΔE/E| of the minimal run ≤ max(10 × legacy's, 10⁻¹²);
+  - **ledger:** u_wall_max = 0 and W_div = 0 in the held window;
+  - no health line; the right policy line in each log;
+  - **added:** the legacy path of the new binary against the 279282b binary, same seed, same node. **Registered expectation [INFERENCE]: IDENTICAL.** In the legacy path the new code adds only integer counters, an `Event.cb` that path never reads for divider events, and prints; with `-ffp-contract=off` the floating-point operations and their order are unchanged. This is reported, not part of the verdict rule.
+- **G-E3 the replayed cells are clean** (`validation/resched_gate_261005.py`). Cells: B e0p10_H_H10_L39.25 and B epi8_H_H10_L10 (9 × 25 each), and AF epi8_H_H10_L10 (115); the 279282b task lines, i.e. the same seeds. Requirements:
+  - all trajectories present;
+  - no `[EDMD-HEALTH]` line, which covers overlap_repairs, wall_overdue, forced_advance, clamps and **past_events = the count of negative collision times**;
+  - every log carries the minimal policy line;
+  - **divider ledgers:**
+    - B: every trajectory's |ΔE/E| ≤ 10⁻¹⁰ in the hold and in the record;
+    - AF: u_wall_max = 0 and W_div = 0 in every seed.
+- **G-E4 the nine numbers.**
+  - The prompt names k_S^dyn, k_T and F but not nine numbers. **My reading [INFERENCE]: three per cell:**
+    - B cells: c_s (statistical seed error `c_s_err`), k_S^dyn (C1, heavy masses), and Γ at α = 5 (jackknife);
+    - AF cell: F(L₀), k_T, and k_T + F²/(N_s kT).
+  - Each comes from the registered estimators, on the 279282b data and on the replay.
+  - z = (new − old)/√(SE_old² + SE_new²). Same seeds but a different build: the trajectories decorrelate within the 200 σ-time equilibration, so old and new are independent realisations.
+  - **Why not 2 × SE_old alone [DERIVATION]:** that tests |z_true| < √2 per number, which a correct build fails with probability 79 % over nine numbers.
+  - **Why not the χ²-scaled error [INFERENCE]:** the mass-to-mass excess (χ²_red ≈ 3.2–3.4 in these cells) is the same in both runs, so it cancels in the difference.
+  - **Verdict rule as written:** PASS if all nine |z| < 2.
+  - **Flag for the plan author [DERIVATION, printed by the script]:** under the null, "all nine |z| < 2" fails a correct build with probability 1 − 0.9545⁹ = **0.342**, if the nine were independent; they are partly correlated (c_s with k_S^dyn, k_T with k_static), which lowers it somewhat. A per-number limit of 2.77 (Bonferroni, family-wise 5 %) gives 0.049. The script prints both. **The verdict follows the rule as written unless the plan author amends it before `fetch_resched.sh` runs.**
+- **G-E5** profile, both policies on one node, held and free divider, N = 100 and 400: the measured factor legacy/minimal and the exponent p = ln(t₄₀₀/t₁₀₀)/ln 4 per policy. 279282b job 14983181 (§ 4.3) is quoted beside them.
+- **G-E6 provenance.**
+  - New BUILD hash = the branch commit; `build_koa.sh` refuses `-dirty`.
+  - KOA, physical: second clone `~/harddisks_resched`, second data root `$SCRATCH/harddisks_resched/`, derived from the clone name in every branch script.
+  - KOA, guard: `conf_worker.sh root_guard`. A data root records its build generation in `.build_generation`; another build is refused unless `HD_ALLOW_BUILD_MIX=1`; a root with data but no record is refused (the 279282b root, until its record is written by hand: runsheet step 11).
+  - Mac:
+    - the replay goes to its own tree, `hspist3/experiments_resched_gate_261005/`;
+    - the registered 279282b analysis (`paper1_confinement_results_261004.py`, `refuse_new_build`) stops on any B or A cell whose logs carry `[EDMD-RESCHED]`, unless `HD_ALLOW_BUILD_MIX=1`; it passes on all 19 cells of the 279282b data [DATA];
+    - the A-fixed analysis already requires build 279282b (its G2).
+- **Verdict rule (the plan author's):** PASS only if G-E1 is IDENTICAL, G-E3 is clean, G-E4 has all nine |z| < 2, and the energy ledger is within legacy tolerance. Any FAIL: stop, report, do not merge.
+
+**4.4.4 Results so far** [DATA]
+
+- **G-E1, Mac.** The working tree of the branch, release flags (`00ALLINONE  git 11cbea8-dirty  target release`, `-O3 -march=native -ffp-contract=off`), built into the scratchpad. Two runs of the smoke determinism trajectory with `cluster/confinement_pilot.py det1`, about 0.5 s each. Printed by `confinement_pilot.py detcmp`:
+
+```
+wall_x_positions_L0_100_wallmassfactor_50_run0.csv: IDENTICAL (104048 bytes)
+speed_of_sound_psi6.csv: IDENTICAL (342 bytes)
+determinism self-test (same binary, same seed, run A on dhcp-168-105-254-255.wireless.manoa.hawaii.edu, run B on dhcp-168-105-254-255.wireless.manoa.hawaii.edu, same node): IDENTICAL
+[EDMD-RESCHED] divider events: minimal (default)
+[EDMD-ENERGY] 0 state loaded (hold)      t=0 E_gas=100 E_div=0 E_tot=100 resched=minimal
+[EDMD-ENERGY] 1 release                  t=800.00001192092896 E_gas=100.00000000000009 E_div=0 E_tot=100.00000000000009 resched=minimal
+[EDMD-ENERGY] 2 end of record            t=9577.6001427173615 E_gas=98.841035256528031 E_div=1.158964743471858 E_tot=99.999999999999886 resched=minimal
+```
+
+  - Energy over the held phase: |ΔE/E| = 8.9 × 10⁻¹⁶. Over the free-divider record: 2.0 × 10⁻¹⁵.
+  - After these two runs only print/count code changed: the energy-transfer health print and the `past_events` counter. The dynamics code is unchanged, and the final binary's determinism is tested by the KOA G-E1.
+- **G-E4 dry run** (`python3 validation/resched_gate_261005.py --dry-run-old`, new := old):
+  - all nine z = 0;
+  - the recomputed old values equal the recorded CSVs at their full printed precision in all 9 reproduction checks;
+  - G-E3 correctly fails on the 279282b data, which has no `[EDMD-RESCHED]` and no energy lines.
+  - This proves the plumbing, not the build.
+- **Pending (KOA, runsheet step 11):** G-E1 KOA, G-E2, G-E3, G-E4, G-E5. **No verdict yet.**
+
+**4.4.5 A gap found on the way: method A and A-fixed never printed their health counters** [DATA]
+
+- The only `[EDMD-HEALTH]` print in `00ALLINONE.c` sits in the speed-of-sound branch.
+- An A-fixed run log holds one line, `[EDMD] initialized: N=100  box=(20.0σ,10.0σ) -> ...` (`experiments_energy_transfer/paper1_confinement_Afix_261004/epi8_H_H10_L10/x_0/run_9700.log`).
+- So the "health 0" checks of method A (§ 2) and of A-fixed (G2, § 3.8–3.9) could not fail.
+- Overlaps were still guarded: the validator, called every step in the energy-transfer loop, ends in `check_overlaps` (`experiment_validation.c:350`) and stops a run on an overlap deeper than `fmax(1e-7, 1e-6 * diameter)` (`:159`), i.e. 10⁻⁶ σ; every trajectory exited 0.
+- **OPEN:** the overlap-repair and wall-overdue counts of the 279282b A and A-fixed runs are unknown.
+- The new build prints them in energy-transfer mode too, with the same rule: only when a counter is non-zero, so the workers' grep keeps its meaning.
+
+## 5. Prior work (2026-10-05 14:20 HST) [SOURCE where verified; INFERENCE for every overlap judgement; OPEN where marked]
+
+**How this was checked.**
+- One web literature search on 2026-10-05: Crossref records, arXiv abstract pages, and publisher or preprint PDFs where open.
+- "Verified" means the bibliographic fields were matched against the Crossref record (or arXiv for Bernard & Krauth).
+- I re-checked two records myself:
+  - Engel et al. on Crossref;
+  - Bernard & Krauth on arXiv:1102.4094. Crossref was rate-limited for this one.
+- "What was measured" comes from the abstract or the paper as read in that search. **The overlap columns are my judgement [INFERENCE].**
+- The three questions:
+  - (i) the piston (divider-mode) sound speed;
+  - (ii) the static–dynamic identity k_S = k_T + F²/(N_s kT) in a confined, finite box;
+  - (iii) a frequency-dependent compressibility, or sound dispersion, across the liquid–hexatic window (η ≈ 0.700–0.716).
+
+| # | reference | what was measured | (i) | (ii) | (iii) |
+|---|---|---|---|---|---|
+| 1 | E. Rüchardt, "Eine einfache Methode zur Bestimmung von C_p/C_v", Physik. Z. **30**, 58–59 (1929). **OPEN:** the primary source was not seen; title, volume and pages come only from secondary sources. | γ from the period of a ball oscillating on a gas column (adiabatic restoring force). | yes in principle: the same experiment, macroscopic | no | no |
+| 2 | E. Kestemont, C. Van den Broeck, M. Malek Mansour, "The 'adiabatic' piston: And yet it moves", EPL **49**, 143–149 (2000), doi:10.1209/epl/i2000-00129-8 [SOURCE, Crossref] | MD of a piston between two hard-disk gases at equal pressure and different temperatures: relaxation, heat flux, and a damped-oscillator equation for the piston. | partial: piston oscillations, no sound-speed measurement | no | no |
+| 3 | Ch. Gruber, A. Lesne, "Adiabatic Piston", in *Encyclopedia of Mathematical Physics* (Elsevier, 2006), pp. 160–174, doi:10.1016/B0-12-512666-2/00412-0 [SOURCE, Crossref; the authors' preprint says pp. 160–173] | Review: under weak damping the piston oscillates at the adiabatic frequency, under strong damping at the isothermal one. | partial | partial: adiabatic vs isothermal appears only as a damping regime, with no held-divider force and no identity | no |
+| 4 | W. G. Hoover, B. J. Alder, "Studies in Molecular Dynamics. IV. The Pressure, Collision Rate, and Their Number Dependence for Hard Disks", J. Chem. Phys. **46**, 686–691 (1967), doi:10.1063/1.1840726 [SOURCE, Crossref] | The citation is right, but the paper is about pressure and collision rate for N = 4–72 and the MD vs MC (fixed centre-of-mass) correction, not compressibility. | no | partial: precedent for finite-N, ensemble-dependent corrections | no |
+| 5 | F. L. Román, J. A. White, S. Velasco, "Fluctuations in an equilibrium hard-disk fluid: Explicit size effects", J. Chem. Phys. **107**, 4635–4641 (1997), doi:10.1063/1.474824 [SOURCE, Crossref] | Explicit finite-size corrections to particle-number fluctuations in subvolumes, i.e. to the isothermal compressibility. | no | partial: finite-N corrections to a static compressibility, not to k_S − k_T | no |
+| 6 | F. L. Román, A. González, J. A. White, S. Velasco, "The speed of sound in a hard disk gas: A computer simulation", Am. J. Phys. **70**, 847–851 (2002), doi:10.1119/1.1482060 [SOURCE, Crossref; already cited as `roman2002`] | **The piston experiment itself:** two hard-disk gases (N₀ = 100) with a zero-width piston, M = 20–1000, frequency from the power spectrum, c_s compared with √(γ/ρκ_T). Dilute gas only. | **yes: direct prior art** (dilute) | no | no |
+| 7 | J. A. White, F. L. Román, A. González, S. Velasco, "The 'adiabatic' piston at equilibrium: Spectral analysis and time-correlation function", EPL **59**, 479–485 (2002), doi:10.1209/epl/i2002-00132-1 [SOURCE, Crossref] | The piston's frequency, damping constant and relaxation time as functions of piston mass. | **yes** (also prior art for our damping Γ) | no | no |
+| 8 | S. Sengupta, P. Nielaba, K. Binder, "Elastic moduli, dislocation core energy, and melting of hard disks in two dimensions", Phys. Rev. E **61**, 6294–6301 (2000), doi:10.1103/PhysRevE.61.6294 [SOURCE, Crossref] | Constrained MC of the defect-free solid: static elastic moduli and dislocation parameters, a test of KTHNY (the dislocation-unbinding theory of 2D melting). | no | no | partial: static, isothermal moduli near melting |
+| 9 | M. A. Bates, D. Frenkel. **The citation "J. Chem. Phys. (2000)" points to JCP 112, 10034 (2000), which is about 2D hard RODS** [SOURCE, Crossref]. The hard-disk paper is "Influence of vacancies on the melting transition of hard disks in two dimensions", Phys. Rev. E **61**, 5223–5227 (2000), doi:10.1103/PhysRevE.61.5223 [SOURCE, Crossref]. | Hard-disk MD near melting: elastic constants, used to locate the dislocation-unbinding point; vacancies leave them unchanged. | no | no | partial: static |
+| 10 | E. P. Bernard, W. Krauth, "Two-step melting in two dimensions: First-order liquid-hexatic transition", Phys. Rev. Lett. **107**, 155704 (2011), doi:10.1103/PhysRevLett.107.155704 [SOURCE, arXiv:1102.4094 journal-ref; Crossref via the search] | ECMC on large systems: first-order liquid–hexatic transition (Mayer–Wood loop) and continuous hexatic–solid transition. | no | no | partial: defines the window; static |
+| 11 | M. Engel, J. A. Anderson, S. C. Glotzer, M. Isobe, E. P. Bernard, W. Krauth, "Hard-disk equation of state: First-order liquid-hexatic transition in two dimensions with three simulation methods", Phys. Rev. E **87**, 042134 (2013), doi:10.1103/PhysRevE.87.042134 [SOURCE, Crossref] | ECMC, parallel MC and EDMD agree on the equation of state; the coexistence window ends at η ≈ 0.716, and EDMD was impractical at the largest N because equilibration was too slow. | no | no | partial: static, but documents long relaxation near coexistence |
+| 12 | **"Mulero et al., Mol. Phys. 122 (2024)": not found under that attribution [OPEN]**. Mol. Phys. **122** (2024) carries L. Mier-y-Terán, "On the equation of state of the hard disk system: the fluid-hexatic phase transition", e2368147, doi:10.1080/00268976.2024.2368147 [SOURCE, Crossref]. The Mulero group's review is J. Tian, H. Jiang, A. Mulero, "Equations of state for the hard disk fluids", Mol. Phys. **118**, e1687948 (2020), doi:10.1080/00268976.2019.1687948 [SOURCE, Crossref]. | Equation-of-state approximants against MD, including the transition region (Mier-y-Terán); review of hard-disk fluid equations of state (Tian et al.). | partial: thermodynamic c_s to compare with | no | no: static |
+| 13 | P. Keim, G. Maret, U. Herz, H. H. von Grünberg, "Harmonic lattice behavior of two-dimensional colloidal crystals", Phys. Rev. Lett. **92**, 215504 (2004), doi:10.1103/PhysRevLett.92.215504. P. Keim, G. Maret, H. H. von Grünberg, "Frank's constant in the hexatic phase", Phys. Rev. E **75**, 031402 (2007), doi:10.1103/PhysRevE.75.031402. [SOURCE, Crossref] | Video microscopy: the q-dependent normal-mode stiffness from equipartition (static; the colloids are overdamped, so there are no propagating sound waves), and Frank's constant through the hexatic phase. | no | no | partial: static stiffness through melting, no ω dependence |
+| 14 | A. Huerta, T. Bryk, A. Trokhymchuk, "Collective excitations in 2D hard-disc fluid", J. Colloid Interface Sci. **449**, 357–363 (2015), doi:10.1016/j.jcis.2014.12.036 [SOURCE, Crossref; content from the abstract only] | MD of collective modes "up to freezing": no positive sound dispersion was found, short-wavelength shear waves appear, and γ rises towards freezing. | no | no | **closest found. OPEN:** whether its densities reach 0.700–0.716 (full text not read) |
+| 15 | R. García-Rojo, S. Luding, J. J. Brey, "Transport coefficients for dense hard-disk systems", Phys. Rev. E **74**, 061305 (2006) [SOURCE, arXiv:cond-mat/0511671 journal-ref; DOI not checked] | EDMD Helfand–Einstein transport coefficients up to ν ≈ 0.74. The shear viscosity diverges near the transition; **the bulk viscosity could not be obtained reliably at high density**. | no | no | relevant: the bulk viscosity, the zero-frequency side of (iii), is reported as open there |
+| 16 | A. Zippelius, B. I. Halperin, D. R. Nelson, "Dynamics of two-dimensional melting", Phys. Rev. B **22**, 2514 (1980), doi:10.1103/PhysRevB.22.2514 [SOURCE: DOI from the APS links; not checked on Crossref] | Hydrodynamics of the solid, hexatic and liquid phases, with the dynamic response near both transitions (theory). | no | no | theory for (iii); not a hard-disk measurement |
+
+**Statements.**
+- **(i) [SOURCE]** The piston sound speed of hard disks is published for a dilute gas (rows 6 and 7). Paper 1's dense-fluid range, nine masses, confinement study and error budget go beyond it.
+- **(ii) [DERIVATION]** k_S − k_T = T(∂F/∂T)²_L / C_L is textbook thermodynamics. For hard disks it is exactly F²/(N_s kT), because F ∝ T at fixed geometry and C_L = N_s k_B; the paper already states it that way. Partial precedents for finite-N and ensemble effects: rows 4 and 5; Lebowitz, Percus & Verlet, Phys. Rev. **153**, 250 (1967), doi:10.1103/PhysRev.153.250 [SOURCE, Crossref]; and Cerino et al., PRE **89**, 042105 (2014) [OPEN: author list not checked]. **[INFERENCE]** A test of the identity with a held divider in a confined box, and its 1/N_s residual, was not found.
+- **(iii) [OPEN]** **No measurement or simulation of a frequency-dependent sound speed, sound dispersion, bulk viscosity or compressibility relaxation time across the hard-disk liquid–hexatic window, or inside the hexatic phase, was found** (18 dedicated queries, 2026-10-05).
+  - "Not found" does not mean it does not exist.
+  - Before any novelty claim, three things must be read:
+    - Huerta et al. 2015 (row 14), for its density range;
+    - arXiv:2002.00651 (2D Lennard-Jones/Yukawa: density relaxation with an anomalous exponent in the hexatic phase; not opened);
+    - García-Rojo et al. 2006 (row 15), for the bulk-viscosity statement.
+- **Corrections to the list as given [SOURCE]:**
+  - item "Bates & Frenkel JCP 2000" is a hard-rod paper; the hard-disk one is PRE 61, 5223;
+  - "Mulero et al., Mol. Phys. 122 (2024)" was not found; see row 12, and the plan author should say which paper was meant;
+  - Hoover & Alder 1967 is correct, but it concerns pressure, not compressibility.
+- **For the draft [INFERENCE; not done, the tex was touched for Part 0 only]:** White et al. 2002 (row 7) belongs next to `roman2002`, in the damping paragraph.

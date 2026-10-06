@@ -546,3 +546,116 @@ cat logs/profile-edmd_*.out
 ```
 
 Paste the whole output. It shows, for each run, the wall time, the divider and wall events per second, and, if `perf` is usable on KOA, the top 15 functions.
+
+## 11. Engine gate for the minimal divider rescheduling (written 2026-10-05; branch `engine-divider-resched`; 261012 § 4.4)
+
+**What it is.** A new build generation: after a disk–divider collision the engine now re-schedules only that disk (plus every disk's divider event if the divider moved), instead of all N²/2 pairs. It runs from a **second clone**, `~/harddisks_resched`, and writes to a **second data root**, `/mnt/lustre/koa/scratch/charing/harddisks_resched/`. `~/harddisks`, its 279282b binary and its data are not touched. Nothing here may be merged into main before the plan author reads the gate.
+
+**Rules for this step.**
+- Before every `sbatch`: run `squeue -u charing` and `sacct -u charing -S today --format=JobID,JobName%20,State,Elapsed`, and never submit the same job twice.
+- At most about 32 cores at once: the replay uses 3 × 8 = 24.
+- On the login node, only `cd`, `ls`, `cat`, `tail`, `squeue`, `sacct` and `sbatch`.
+
+**0. Mac (repo root):** push main and the branch, and note the branch hash.
+
+```sh
+git push origin main
+git push origin engine-divider-resched
+git log --oneline -1 engine-divider-resched
+```
+
+**1. KOA, sandbox session (`cn-…` prompt): clone the branch and build it.** Do the clone exactly as in step 1, into a new folder:
+
+```sh
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+```
+
+then, at the `cn-...` prompt:
+
+```sh
+cd ~
+git clone --depth 1 --branch engine-divider-resched --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_resched
+cd harddisks_resched
+git sparse-checkout set --no-cone "/hspist3/*.c" "/hspist3/*.h" "/hspist3/*.py" "/hspist3/Makefile" "/hspist3/edmd_core/" "/hspist3/cluster/" "/hspist3/validation/" "/hspist3/kissfft"
+git clone https://github.com/mborgerding/kissfft.git hspist3/kissfft
+git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec
+git log --oneline -1
+cd hspist3 && mkdir -p logs
+bash cluster/build_koa.sh
+./00ALLINONE --version
+exit
+```
+
+- **Expected:**
+  - `git log` prints the hash of step 0;
+  - the build ends with `BUILD OK`;
+  - `--version` prints `00ALLINONE  git <that hash>  target koa`, with no `-dirty`.
+
+**2. KOA, login node: the smoke test (G-E1, 0.06903 gate).** It also rebuilds, and that is fine.
+
+```sh
+cd ~/harddisks_resched/hspist3
+sbatch cluster/koa_smoketest.sh
+```
+
+When `squeue -u charing` is empty, run `tail -30 logs/conf-smoke_*.out`.
+
+- **Expected:**
+  - `determinism self-test ...: IDENTICAL`;
+  - five `PASS` gate lines;
+  - `SMOKE TEST PASSED`.
+
+**3. Cross-node determinism (G-E1).**
+
+```sh
+sbatch cluster/koa_crossnode_det.sh
+```
+
+Then run `tail -5 logs/det-xnode_*.out`.
+
+- **Expected:** `... different nodes): IDENTICAL`.
+
+**4. Minimal vs legacy, same binary and same seed (G-E2).** About 5 min, 4 cores.
+
+```sh
+sbatch cluster/resched_gate_261005/ge2.sbatch
+```
+
+Then run `cat logs/resched-ge2_*.out`.
+
+- **Expected:** a table and the last line `G-E2: energy PASS; ledger PASS; health PASS; policy PASS`.
+- Byte identity is expected to say `no` (261012 § 4.4).
+
+**5. Profile, both policies on one node (G-E5).** About 5 min, 1 core.
+
+```sh
+sbatch cluster/profile_edmd_koa.sh
+```
+
+Then run `tail -12 logs/profile-edmd_*.out`.
+
+- **Expected:** the last table, with `factor` and `p` columns.
+
+**6. The three replayed cells (G-E3, G-E4).** Shared partition, 3 × 8 cores, up to 1 h.
+
+```sh
+sbatch --array=1-3 cluster/resched_gate_261005/replay.sbatch
+```
+
+When done, run `grep -h "done; failures" logs/resched-replay_*.out`.
+
+- **Expected:** three lines, each ending `failures: 0`.
+
+**7. Mac (repo root): copy back.**
+
+```sh
+bash hspist3/cluster/resched_gate_261005/fetch_resched.sh
+```
+
+Then tell CC. The analysis runs `python3 validation/resched_gate_261005.py`.
+
+**If the old root is ever written to again:** after a merge, the worker's root guard refuses a data root that holds data but has no `.build_generation` record. For the 279282b root the record is one line, written by hand on purpose:
+
+```sh
+printf '%s\n' "00ALLINONE  git 279282b  target koa" > /mnt/lustre/koa/scratch/charing/harddisks/hspist3/.build_generation
+```
