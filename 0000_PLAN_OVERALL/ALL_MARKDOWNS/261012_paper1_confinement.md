@@ -2765,3 +2765,368 @@ chi2 of the 9 per-mass z = 21.22 / 9, nominal p = 0.012
    - Anything between: unresolved.
    - Same binary and policy switch as G-E2; the replay tooling would need a two-policy task list (small, I would write it).
 3. **Amend the G-E4 rule now (Bonferroni) and pass.** Not recommended: the data have been seen.
+
+
+### 4.4.10 Plan-author decision of 2026-10-07: verdict, corrections, null calibration, deterministic tests, gate version 2 (2026-10-06 17:34 HST)
+
+Source of this section: the plan-author decision of 2026-10-07 (relayed by Chris), which supersedes the Cowork prompt of
+2026-10-06. That prompt never reached the repo.
+
+**A1. Verdict.**
+- Build 73fc07f: **FAIL stands** (the smoke c_s gate, § 4.4.7; G-E4 number 5, § 4.4.9). It is not merged.
+- **279282b remains the engine for all results.**
+
+**A2. Process notes [DATA].**
+- (i) On 2026-10-06, before G-E2 and before the replay, the plan author withdrew "all nine |z| < 2" (false-fail 34 %) and accepted 2.77. That happened in Cowork only and did not reach the repo before the fetch. So it is not counted, and stays "reported only" (§ 4.4.9).
+- (ii) The profile and the replay ran before a go.
+- (iii) Cross-node determinism of 73fc07f: **OPEN** until Chris pastes its output or says it did not run.
+- **New rule: a plan-author decision counts from the commit that records it.**
+
+**A3. Corrections to § 4.4.9** (appended; the old text stays). All numbers are printed by `python3 hspist3/validation/resched_null_calib_261007.py`, whose full output is under B.
+- **Quantization.** The argument does not hold as written. One seed moving one frequency bin changes a 25-seed mean by 0.47 %/25 = **0.019 %**, i.e. 0.04–0.21 of the per-mass SE (table "Size of one quantization step"). The [INFERENCE] of § 4.4.9 is replaced by the permutation result of B1: at π/8 the nine-mass χ² has permutation p = 0.019 (nominal 0.012), and k_S^dyn has permutation p = 0.034 (nominal 0.022). The nominal p-values are therefore about right; the error bars are not the issue.
+- **Light masses.** "REFUTED" was too strong. What is excluded: a shift of the smoke pilot's size (−3.81 % at α = 0.5, 4.0 SE from the replay estimate; −3.43 % at α = 1, 9.0 SE away). What is neither shown nor excluded: a shift near −1 % at α = 0.5. The replay estimate there is −1.05 ± 0.68 % (95 % interval [−2.39, +0.29] %).
+- **Smoke pilot.** Its seeds (run_seed(20261013, 0, m, 0)) are **not** among the campaign's 25 seeds of any mass, nor among all 225. So the pilot is one more new-engine trajectory per mass, and it is reported next to the replay (table "The smoke pilot reported next to the replay"), not dropped. With it, the M = 50 new-engine mean is 0.072353 ± 0.000382 (26 trajectories).
+- **§ 4.4.9 option 2 (25 seeds per path) is underpowered.** If the true k_S^dyn shift equals the observed +0.0356 (σ_diff 0.0155): P(|z| ≥ 3) = 0.241, P(|z| < 2) = 0.383, P(in between) = 0.376.
+- **What argues for noise** (printed):
+  - P(at least one of 9 independent |z| ≥ 2) = 0.342;
+  - P(max |z| ≥ 2.81) among 18 independent numbers = 0.086, and among 27 = 0.125;
+  - at π/8, c_s moved −0.28 % and k_S^dyn +0.40 %, in opposite directions;
+  - the signs of the nine per-mass differences at π/8, mass ascending, are − + + − + − − + +, with Spearman ρ(M, z) = +0.43 (p = 0.24), i.e. no monotonic trend.
+- **What argues against noise:** the nine-mass χ² at π/8 is 21.22/9 (nominal p = 0.012; permutation p = 0.019).
+
+**B. Null calibration** (analysis only, on the fetched replay). Printed by `python3 hspist3/validation/resched_null_calib_261007.py`, verbatim:
+
+```
+# Null calibration of the engine replay (261012 sec. 4.4.10) -- analysis only
+
+## A3 -- numbers for the corrections to sec. 4.4.9
+
+### Size of one quantization step in a 25-seed mean
+
+| cell | M | alpha | bin df/nu [%] | one seed moving one bin: change of the 25-seed mean [%] | per-mass SE of the old mean [%] | ratio |
+|---|---|---|---|---|---|---|
+| e0p10_H_H10_L39.25 | 50 | 0.5 | 0.496 | 0.0198 | 0.239 | 0.08 |
+| e0p10_H_H10_L39.25 | 100 | 1 | 0.492 | 0.0197 | 0.213 | 0.09 |
+| e0p10_H_H10_L39.25 | 200 | 2 | 0.492 | 0.0197 | 0.180 | 0.11 |
+| e0p10_H_H10_L39.25 | 300 | 3 | 0.493 | 0.0197 | 0.142 | 0.14 |
+| e0p10_H_H10_L39.25 | 500 | 5 | 0.492 | 0.0197 | 0.168 | 0.12 |
+| e0p10_H_H10_L39.25 | 750 | 7.5 | 0.493 | 0.0197 | 0.110 | 0.18 |
+| e0p10_H_H10_L39.25 | 1000 | 10 | 0.493 | 0.0197 | 0.128 | 0.15 |
+| e0p10_H_H10_L39.25 | 1500 | 15 | 0.493 | 0.0197 | 0.103 | 0.19 |
+| e0p10_H_H10_L39.25 | 2000 | 20 | 0.493 | 0.0197 | 0.094 | 0.21 |
+| epi8_H_H10_L10 | 50 | 0.5 | 0.467 | 0.0187 | 0.429 | 0.04 |
+| epi8_H_H10_L10 | 100 | 1 | 0.469 | 0.0188 | 0.274 | 0.07 |
+| epi8_H_H10_L10 | 200 | 2 | 0.471 | 0.0188 | 0.227 | 0.08 |
+| epi8_H_H10_L10 | 300 | 3 | 0.468 | 0.0187 | 0.208 | 0.09 |
+| epi8_H_H10_L10 | 500 | 5 | 0.470 | 0.0188 | 0.197 | 0.10 |
+| epi8_H_H10_L10 | 750 | 7.5 | 0.470 | 0.0188 | 0.214 | 0.09 |
+| epi8_H_H10_L10 | 1000 | 10 | 0.469 | 0.0188 | 0.111 | 0.17 |
+| epi8_H_H10_L10 | 1500 | 15 | 0.471 | 0.0188 | 0.164 | 0.11 |
+| epi8_H_H10_L10 | 2000 | 20 | 0.470 | 0.0188 | 0.112 | 0.17 |
+
+### Light masses: point estimates (new - old)/old with SE, and the smoke pilot's shift
+
+| cell | alpha | (new - old)/old [%] | SE [%] | 95 % interval [%] | smoke-pilot shift vs campaign mean [%] | its distance from the replay estimate [SE] |
+|---|---|---|---|---|---|---|
+| e0p10_H_H10_L39.25 | 0.5 | +0.40 | 0.42 | [-0.43, +1.22] | +nan | +nan |
+| e0p10_H_H10_L39.25 | 1 | -0.26 | 0.34 | [-0.92, +0.40] | +nan | +nan |
+| epi8_H_H10_L10 | 0.5 | -1.05 | 0.68 | [-2.39, +0.29] | -3.81 | -4.04 |
+| epi8_H_H10_L10 | 1 | +0.09 | 0.39 | [-0.67, +0.86] | -3.43 | -8.99 |
+
+### The smoke pilot's seeds against the campaign's (epi8_H_H10_L10)
+
+| M | smoke pilot seed (run_seed(20261013, 0, m, 0)) | among the campaign's 25 seeds of this mass | among all 225 |
+|---|---|---|---|
+| 50 | 57831576 | no | no |
+| 100 | 897305190 | no | no |
+| 200 | 2240002273 | no | no |
+| 300 | 982861368 | no | no |
+| 500 | 1623140680 | no | no |
+| 750 | 2119747490 | no | no |
+| 1000 | 475252609 | no | no |
+| 1500 | 2015650600 | no | no |
+| 2000 | 195343139 | no | no |
+
+### The smoke pilot reported next to the replay (one more new-engine trajectory per mass)
+
+| M | replay new mean nu (25) | SE | smoke pilot nu | pilot - replay mean [SD of one seed] | new mean with the pilot (26) | SE |
+|---|---|---|---|---|---|---|
+| 50 | 0.072431 | 0.000390 | 0.070407 | -1.04 | 0.072353 | 0.000382 |
+| 100 | 0.058303 | 0.000163 | 0.056250 | -2.52 | 0.058224 | 0.000176 |
+| 200 | 0.044321 | 0.000136 | 0.044785 | +0.69 | 0.044338 | 0.000131 |
+| 300 | 0.036927 | 0.000078 | 0.036642 | -0.73 | 0.036916 | 0.000075 |
+| 500 | 0.029421 | 0.000049 | 0.029673 | +1.02 | 0.029430 | 0.000048 |
+| 750 | 0.024118 | 0.000044 | 0.024150 | +0.15 | 0.024119 | 0.000042 |
+| 1000 | 0.021016 | 0.000029 | 0.021127 | +0.77 | 0.021020 | 0.000028 |
+| 1500 | 0.017302 | 0.000020 | 0.017182 | -1.20 | 0.017298 | 0.000020 |
+| 2000 | 0.015006 | 0.000015 | 0.015062 | +0.77 | 0.015008 | 0.000014 |
+
+### Power of a 25-seed confirmatory test (sec. 4.4.9 option 2) if the true k_S^dyn shift equals the observed one
+
+expected z = 0.0356 / 0.0155 = 2.297; P(|z| >= 3) = 0.241; P(|z| < 2) = 0.383; P(2 <= |z| < 3) = 0.376
+
+### Arguments for noise and against, each computed here
+
+P(at least one of 9 independent |z| >= 2) = 1 - (1 - 0.0455)^9 = 0.342
+P(max |z| >= 2.81 among 18 independent numbers) = 1 - (1 - 0.00495)^18 = 0.086
+P(max |z| >= 2.81 among 27 independent numbers) = 1 - (1 - 0.00495)^27 = 0.125
+e0p10_H_H10_L39.25: c_s +0.08 %, k_S^dyn +0.05 % (same directions)
+  signs of the nine per-mass differences, M ascending: +--+-++--; Spearman rho(M, z) = +0.00 (p = 1.00); against: chi2 = 9.05 / 9, nominal p = 0.4326
+epi8_H_H10_L10: c_s -0.28 %, k_S^dyn +0.40 % (opposite directions)
+  signs of the nine per-mass differences, M ascending: -++-+--++; Spearman rho(M, z) = +0.43 (p = 0.24); against: chi2 = 21.22 / 9, nominal p = 0.0117
+
+## B1 -- permutation test (100000 relabelings per cell, numpy default_rng(20261007))
+
+| cell | statistic | observed | nominal p | permutation p |
+|---|---|---|---|---|
+| e0p10_H_H10_L39.25 | chi2 of the nine per-mass z | 9.050 | 0.4326 | 0.4630 |
+| e0p10_H_H10_L39.25 | max |z| over nine masses | 1.672 | 0.5904 | 0.6572 |
+| e0p10_H_H10_L39.25 | k_S^dyn new - old (z) | +5.77027e-05 (+0.38) | 0.7063 | 0.7284 |
+| e0p10_H_H10_L39.25 | c_s new - old (z) | +0.00140961 (+0.45) | 0.6550 | 0.6586 |
+| epi8_H_H10_L10 | chi2 of the nine per-mass z | 21.216 | 0.0117 | 0.0191 |
+| epi8_H_H10_L10 | max |z| over nine masses | 2.812 | 0.0435 | 0.0668 |
+| epi8_H_H10_L10 | k_S^dyn new - old (z) | +0.0356141 (+2.29) | 0.0218 | 0.0344 |
+| epi8_H_H10_L10 | c_s new - old (z) | -0.0105733 (-1.00) | 0.3156 | 0.3253 |
+
+(estimator check: the vectorised c_s and k_S^dyn reproduce the registered values of both cells, old and new, to 1e-12)
+
+## B2 -- the registered single-c_s through-origin fit across the nine masses (slope_with_errors; dof = 8)
+
+| cell | data | c_s | chi2 (= chi2_red x 8) | chi2_red | per-mass residuals (y - c_s x)/SE, M ascending |
+|---|---|---|---|---|---|
+| e0p10_H_H10_L39.25 | old | 1.76165 | 25.5 | 3.19 | -2.0 +1.4 +2.3 +1.1 +1.4 +1.5 +0.6 +2.0 +2.1 |
+| e0p10_H_H10_L39.25 | new | 1.76306 | 18.9 | 2.37 | -0.5 -0.1 +1.0 +1.3 -0.6 +3.2 +2.3 -0.1 +0.5 |
+| epi8_H_H10_L10 | old | 3.82030 | 27.3 | 3.41 | +0.8 -0.2 -1.9 +0.1 -1.5 -1.4 -1.6 -3.4 -2.2 |
+| epi8_H_H10_L10 | new | 3.80973 | 26.3 | 3.28 | -0.8 +1.1 +1.4 -0.5 +3.6 -0.4 +0.1 +2.5 +1.6 |
+
+## B3 -- sorted per-seed nu at pi/8 (epi8_H_H10_L10), old and new
+
+alpha = 0.5, old (n = 25, mean 0.073196): 0.070407 0.070407 0.070749 0.071433 0.071774 0.072458 0.072458 0.072800 0.072800 0.073142 0.073142 0.073142 0.073142 0.073142 0.073483 0.073483 0.073483 0.073483 0.073825 0.073825 0.074167 0.074850 0.075534 0.075876 0.076901
+alpha = 0.5, new (n = 25, mean 0.072431): 0.068015 0.068698 0.069040 0.070407 0.070749 0.071774 0.071774 0.072116 0.072116 0.072458 0.072458 0.072458 0.072458 0.072800 0.072800 0.072800 0.072800 0.073142 0.073142 0.073825 0.073825 0.074850 0.075192 0.075534 0.075534
+
+alpha = 5, old (n = 25, mean 0.029239): 0.028574 0.028849 0.028849 0.028849 0.028986 0.029124 0.029124 0.029124 0.029124 0.029124 0.029124 0.029124 0.029261 0.029261 0.029261 0.029399 0.029399 0.029399 0.029536 0.029536 0.029536 0.029536 0.029536 0.029536 0.029811
+alpha = 5, new (n = 25, mean 0.029421): 0.028986 0.029124 0.029124 0.029124 0.029124 0.029261 0.029261 0.029261 0.029261 0.029399 0.029399 0.029399 0.029399 0.029399 0.029399 0.029399 0.029536 0.029536 0.029536 0.029673 0.029673 0.029673 0.029811 0.029811 0.029948
+
+alpha = 15, old (n = 25, mean 0.017205): 0.017020 0.017020 0.017020 0.017020 0.017101 0.017101 0.017101 0.017101 0.017101 0.017101 0.017182 0.017182 0.017182 0.017263 0.017263 0.017263 0.017263 0.017263 0.017263 0.017263 0.017344 0.017344 0.017344 0.017425 0.017588
+alpha = 15, new (n = 25, mean 0.017302): 0.017101 0.017101 0.017182 0.017182 0.017263 0.017263 0.017263 0.017263 0.017263 0.017263 0.017263 0.017263 0.017263 0.017344 0.017344 0.017344 0.017344 0.017344 0.017344 0.017344 0.017425 0.017425 0.017425 0.017425 0.017506
+
+## B4 -- contact audit by class over the replay trajectories (max abs(contact distance) at executed events, px)
+
+| cell | class | maximum | held by | trajectories with an audit line |
+|---|---|---|---|---|
+| e0p10_H_H10_L39.25 | disk-disk | 1.755e-09 | m_1000, 2026-10-06 11:29:53 run 10 seed 2514222824 (39 s) | 225 |
+| e0p10_H_H10_L39.25 | outer walls | 1.210e-09 | m_2000, 2026-10-06 11:34:01 run 1 seed 1047196591 (53 s) | 225 |
+| e0p10_H_H10_L39.25 | divider | 1.094e-09 | m_2000, 2026-10-06 11:35:48 run 17 seed 3878851483 (54 s) | 225 |
+| e0p10_H_H10_L39.25 | pistons | 0.000e+00 | m_100, 2026-10-06 11:22:39 run 0 seed 1717093276 (14 s) | 225 |
+| epi8_H_H10_L10 | disk-disk | 2.065e-10 | m_1500, 2026-10-06 11:35:14 run 16 seed 2677019920 (20 s) | 225 |
+| epi8_H_H10_L10 | outer walls | 1.355e-10 | m_2000, 2026-10-06 11:35:36 run 1 seed 3911707192 (22 s) | 225 |
+| epi8_H_H10_L10 | divider | 1.341e-10 | m_2000, 2026-10-06 11:36:26 run 20 seed 1964883929 (21 s) | 225 |
+| epi8_H_H10_L10 | pistons | 0.000e+00 | m_100, 2026-10-06 11:31:02 run 0 seed 4291586708 (6 s) | 225 |
+| AF epi8_H_H10_L10 | disk-disk | 5.232e-11 | x_m2/run_9701.log | 115 |
+| AF epi8_H_H10_L10 | outer walls | 3.476e-11 | x_p1/run_9707.log | 115 |
+| AF epi8_H_H10_L10 | divider | 3.325e-11 | x_0/run_9703.log | 115 |
+| AF epi8_H_H10_L10 | pistons | 0.000e+00 | x_0/run_9700.log | 115 |
+```
+
+**B reading.**
+- **[DATA] B1.** η = 0.10 is unremarkable in every statistic. At π/8 the permutation p-values (χ² 0.019, max |z| 0.067, k_S^dyn 0.034, c_s 0.33) match their nominal values. The vectorised estimators reproduce the registered c_s and k_S^dyn to 10⁻¹².
+- **[DATA] B2.** The single-c_s through-origin model is rejected in both plain-fluid cells, old and new alike: χ²_red = 3.19 and 2.37 at η = 0.10; 3.41 and 3.28 at π/8.
+  - [INFERENCE] The residual patterns are not the same in old and new; at π/8 the heavy masses lie below the fit in the old data and above it in the new. So part of the excess is scatter beyond the seed SE, not one fixed mass dependence.
+  - **This bears on the melting hint** ("masses disagree, χ²_red 1.8–14", § 4): plain fluids already give χ²_red ≈ 2.4–3.4 under the same estimator, so the weak end of the hint (≲ 3.4) is not evidence of dispersion. Only values well above that can be.
+- **[DATA] B3.** No two-peak behaviour of the argmax estimator.
+  - The α = 5 and α = 15 distributions are shifted by about one bin, new against old.
+  - At α = 0.5 the new set has three values below the old minimum: 0.0680, 0.0687 and 0.0690, against an old minimum of 0.0704 (the spread is 0.0016).
+- **[DATA] B4.** The e0p10_H_H10_L39.25 maximum of 1.76 × 10⁻⁹ px is in the **disk–disk** class (m_1000, run 10, seed 2514222824), not the divider class (divider maximum 1.09 × 10⁻⁹ px). The η = 0.10 maxima are larger than the π/8 ones because the absolute times are larger in the long low-density runs [INFERENCE: rounding grows with |t|].
+
+**C. Code read-back.**
+- The verbatim code of the build under review (73fc07f) is in the report to the plan author: the Event struct, every event-creating call, `schedule_divider_one`, `event_live`, the stale drop after the pop, the requeue, the minimal-path block, `heap_compact`, the finite-mass branch of `resolve_wall`, and `edmd_create`.
+- **Order of operations** after a disk–divider event of disk i on the minimal path:
+  1. `resolve_wall` sets `A->vx = v1; S->prm.divider_vx[d] = v2; A->coll_count++; S->div_epoch[d]++;` (edmd.c:1295–1296), in that order, in the finite-mass branch only.
+  2. `grid_build(S)` (:1657).
+  3. `schedule_for(S, e.a)`: the walls, all dividers with the new epoch, the pistons and all N−1 partners (:1658).
+  4. If the epoch changed: `schedule_divider_one(S, j, d)` for every j ≠ i (:1659–1661).
+  5. `reschedule_clamped(S)` (:1662).
+  6. Compaction if `heap.n > heap_compact_at` (:1670–1673).
+- **What the heap holds:** every live event, plus stale ones that are dropped when popped (:1557–1560) or at compaction (:804).
+- **Initialisation.**
+  - The EDMD struct is allocated with `calloc` (edmd.c:1330), so every added field (div_epoch, heap_compact_at, heap_compactions, past_event_count, contact_*) starts at zero.
+  - Every Event is created by a compound literal that sets all six fields:
+    - walls (:629–641, cb = 0);
+    - divider faces (:751–753, cb = epoch);
+    - pistons (:845–847, cb = 0);
+    - pairs (:863, cb = partner coll_count).
+  - The only other push is the requeue of a popped event, by value (:1607).
+- **Warnings and static analysis.**
+  - gcc-15 -Wall -Wextra (Mac, a stand-in for the KOA gcc 14.3 log): 4 warnings in edmd.c and 62 in 00ALLINONE.c, none in code the branch added or changed. The one flagged within ±3 lines, edmd.c:765, is pre-existing code (b4c962c4, 2026-07).
+  - The KOA build log's warnings are OPEN (one grep by Chris).
+  - clang --analyze: edmd.c 0 findings; 00ALLINONE.c 31, none within ±3 lines of branch code.
+
+**D. Deterministic tests on the Mac** (diagnostics only; nothing enters a figure).
+- **Build.** Branch commits b1a46bf (the audit) and 26604e5 (it prints every mismatch and adds a relative counter), release flags, built into the scratchpad. The Mac's validated binary is untouched.
+- **Version line:** `00ALLINONE  git 26604e5-dirty  target release`. The tree is dirty only through files outside the engine sources: .vscode/settings.json, the paper2 draft (tex, pdf), LAMMPS/log.lammps, deleted PDFs and LAMMPS files at the repo root, and in hspist3 `FINAL speed_of_sound_on_packing_fracture.pdf`, the Power_Freq/divider_x plots, energy_log.csv, experiments_energy_transfer/00_COMMAND.md and energy_transfer_trace.csv, kissfft, wall_position.csv and wall_x_FFT.py. None of edmd_core/, 00ALLINONE.c, experiment_validation.* or the Makefile.
+- **Reference:** 73fc07f built the same way (`73fc07f-ref`).
+
+**D1. The schedule-equivalence audit (`--resched-audit`).**
+- How it works: after every disk–divider event (mode 1), or after every event (mode 2, the controls), the legacy full schedule of the same state is computed in a scratch heap (no `grid_build`; the counters are restored) and compared with the live events of the real heap.
+- Printed by `python3 hspist3/cluster/resched_gate_261005/audit_runs_261007.py report --out <scratchpad>/audit_d1b_261007` (runs: `... run --bin <26604e5> --ref-bin <73fc07f-ref> --jobs 12`, 353 s), verbatim:
+
+```
+| case | version (audit run) | mode | audited events | matched | missing | extra | abs(dt) > 1e-9 | duplicate live disagreeing | max abs(dt) matched | abs(dt) > 1e-9 and > 1e-10 of horizon | max abs(dt)/horizon | max contact gap [px] (dd, wall, div, piston) | audit vs plain | plain vs ref |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| free_M50 | git 26604e5-dirty  target release | 1 | 38178 | 21230467 | 0 | 0 | 241 | 0 | 2.42e-08 | 0 | 5.33e-12 | 4.4e-11, 2.6e-11, 2.4e-11, 0.0e+00 | IDENTICAL | IDENTICAL |
+| free_M500 | git 26604e5-dirty  target release | 1 | 93194 | 51775985 | 0 | 0 | 582 | 0 | 1.19e-07 | 0 | 3.00e-13 | 8.9e-11, 6.1e-11, 6.0e-11, 0.0e+00 | IDENTICAL | IDENTICAL |
+| free_M1500 | git 26604e5-dirty  target release | 1 | 158132 | 87941108 | 0 | 0 | 1408 | 0 | 3.61e-07 | 0 | 1.73e-12 | 1.7e-10, 1.1e-10, 1.1e-10, 0.0e+00 | IDENTICAL | IDENTICAL |
+| free_M2000 | git 26604e5-dirty  target release | 1 | 182016 | 101162005 | 0 | 0 | 1450 | 0 | 1.64e-07 | 0 | 4.70e-11 | 1.7e-10, 1.1e-10, 1.1e-10, 0.0e+00 | IDENTICAL | IDENTICAL |
+| afix | git 26604e5-dirty  target release | 1 | 66625 | 43690078 | 0 | 0 | 816 | 0 | 1.19e-07 | 0 | 4.73e-13 | 4.3e-11, 3.1e-11, 2.7e-11, 0.0e+00 | IDENTICAL | IDENTICAL |
+| dense_M50 | git 26604e5-dirty  target release | 1 | 26489 | 17910261 | 0 | 0 | 158 | 0 | 2.98e-07 | 0 | 2.53e-13 | 2.4e-12, 1.7e-12, 1.6e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+| dense_M2000 | git 26604e5-dirty  target release | 1 | 41169 | 27946761 | 0 | 0 | 125 | 0 | 1.19e-07 | 0 | 7.49e-14 | 2.8e-12, 1.8e-12, 1.6e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+| ctrl_min | git 26604e5-dirty  target release | 2 | 104866 | 58275689 | 0 | 0 | 696 | 0 | 2.42e-08 | 0 | 1.84e-13 | 4.7e-12, 4.0e-12, 2.3e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+| ctrl_leg | git 26604e5-dirty  target release | 2 | 104776 | 58349834 | 0 | 0 | 423 | 0 | 2.86e-06 | 0 | 4.59e-12 | 5.2e-12, 3.0e-12, 3.0e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+
+RULE (mode-1 audits of the minimal path): missing + extra + (abs(dt) > 1e-9) summed over all runs = 4780 -> NON-ZERO: defect in the schedule logic by the rule
+same with the relative criterion (abs(dt) > 1e-9 AND > 1e-10 of the prediction horizon; information, not registered): 0
+```
+
+- **Every printed event, recomputed at 60 digits** (`validation/resched_audit_bruteforce_261007.py`; all 5899 mismatch lines of all runs), summary per run in the order of the table:
+
+```
+**free_M50**
+brute-force summary over 241 reported events: largest |t_heap - t_true| / horizon = 4.85e-12; largest |t_legacy - t_true| / horizon = 8.43e-13; longest horizon 4.116e+07 px-time; events with no true contact: 0
+**free_M500**
+brute-force summary over 582 reported events: largest |t_heap - t_true| / horizon = 3.04e-13; largest |t_legacy - t_true| / horizon = 8.12e-15; longest horizon 3.570e+08 px-time; events with no true contact: 0
+**free_M1500**
+brute-force summary over 1408 reported events: largest |t_heap - t_true| / horizon = 1.74e-12; largest |t_legacy - t_true| / horizon = 1.86e-13; longest horizon 5.791e+08 px-time; events with no true contact: 0
+**free_M2000**
+brute-force summary over 1450 reported events: largest |t_heap - t_true| / horizon = 4.65e-11; largest |t_legacy - t_true| / horizon = 6.82e-12; longest horizon 8.773e+08 px-time; events with no true contact: 0
+**afix**
+brute-force summary over 816 reported events: largest |t_heap - t_true| / horizon = 4.77e-13; largest |t_legacy - t_true| / horizon = 4.78e-15; longest horizon 3.150e+08 px-time; events with no true contact: 0
+**dense_M50**
+brute-force summary over 158 reported events: largest |t_heap - t_true| / horizon = 2.51e-13; largest |t_legacy - t_true| / horizon = 4.17e-15; longest horizon 6.114e+08 px-time; events with no true contact: 0
+**dense_M2000**
+brute-force summary over 125 reported events: largest |t_heap - t_true| / horizon = 7.65e-14; largest |t_legacy - t_true| / horizon = 5.23e-15; longest horizon 4.473e+08 px-time; events with no true contact: 0
+**ctrl_min**
+brute-force summary over 696 reported events: largest |t_heap - t_true| / horizon = 1.54e-12; largest |t_legacy - t_true| / horizon = 1.54e-12; longest horizon 4.116e+07 px-time; events with no true contact: 0
+**ctrl_leg**
+brute-force summary over 423 reported events: largest |t_heap - t_true| / horizon = 7.21e-11; largest |t_legacy - t_true| / horizon = 7.21e-11; longest horizon 5.396e+09 px-time; events with no true contact: 0
+brute-force summary over 12 reported events: largest |t_heap - t_true| / horizon = 6.82e-16; largest |t_legacy - t_true| / horizon = 2.25e-16; longest horizon 1.095e+07 px-time; events with no true contact: 0
+```
+
+```
+first 12 events in full:
+
+| kind | type | a | b/d | now | horizon t_true - now | t_legacy - t_true | t_heap - t_true | heap error / horizon | brute force |
+|---|---|---|---|---|---|---|---|---|---|
+| dt | WT | 16 | - | 1661.866321 | 1.0952e+07 | -8.864e-10 | +1.114e-09 | 1.02e-16 | gap 1.585e+2 px |
+| dt | WT | 16 | - | 1663.277690 | 1.0952e+07 | -5.590e-10 | +1.441e-09 | 1.32e-16 | gap 1.585e+2 px |
+| dt | WT | 79 | - | 3044.395259 | 4.3379e+06 | -8.095e-10 | +9.905e-10 | 2.28e-16 | gap 1.600e+2 px |
+| dt | WT | 79 | - | 3046.429678 | 4.3379e+06 | -9.742e-10 | +8.258e-10 | 1.90e-16 | gap 1.600e+2 px |
+| dt | WT | 79 | - | 3050.964179 | 4.3379e+06 | +4.504e-11 | +1.845e-09 | 4.25e-16 | gap 1.600e+2 px |
+| dt | WT | 79 | - | 3051.835812 | 4.3379e+06 | -3.867e-10 | +1.413e-09 | 3.26e-16 | gap 1.600e+2 px |
+| dt | WT | 79 | - | 3059.022667 | 4.3379e+06 | -7.872e-10 | +1.013e-09 | 2.33e-16 | gap 1.600e+2 px |
+| dt | WL | 99 | - | 3418.485171 | 3.7772e+06 | +1.641e-10 | -1.236e-09 | 3.27e-16 | gap 4.547e+2 px |
+| dt | WL | 99 | - | 3423.779579 | 3.7772e+06 | -2.761e-10 | -2.576e-09 | 6.82e-16 | gap 4.547e+2 px |
+| dt | WL | 99 | - | 3423.948575 | 3.7772e+06 | -4.151e-10 | -2.315e-09 | 6.13e-16 | gap 4.547e+2 px |
+| dt | WL | 99 | - | 3424.121683 | 3.7772e+06 | +1.125e-10 | -2.188e-09 | 5.79e-16 | gap 4.547e+2 px |
+| dt | WL | 99 | - | 3425.545500 | 3.7772e+06 | -7.810e-11 | -1.478e-09 | 3.91e-16 | gap 4.547e+2 px |
+
+brute-force summary over 12 reported events: largest |t_heap - t_true| / horizon = 6.82e-16; largest |t_legacy - t_true| / horizon = 2.25e-16; longest horizon 1.095e+07 px-time; events with no true contact: 0
+```
+
+**D1 reading.**
+- **[DATA] By the rule written before running** (any missing or extra event, or |dt| > 1e-9, in a mode-1 audit of the minimal path = a defect in the schedule logic): **NON-ZERO, 4780 events with |dt| > 1e-9.** By the rule, this is a defect in the schedule logic.
+- **[DATA] Against that:**
+  - zero missing and zero extra events, and zero disagreeing live duplicates, in about 6.1 × 10⁵ audits with about 3.5 × 10⁸ matched comparisons;
+  - every printed event (all 4780, plus the 1119 of the controls) has a true contact;
+  - the heap's time misses it by at most 4.7 × 10⁻¹¹ of the prediction horizon;
+  - the horizons run from 10⁶ to 9 × 10⁸ px-time; at t ≈ 10⁸ the spacing of neighbouring doubles alone is 1.5 × 10⁻⁸;
+  - with the relative criterion (|dt| > 1e-9 **and** > 1e-10 of the horizon) the count is **0** in every run;
+  - the legacy path, audited after every event (ctrl_leg), shows the same phenomenon: 423 events, max |dt| 2.9 × 10⁻⁶, 7.2 × 10⁻¹¹ of the horizon; it is larger than on the minimal path, because legacy also keeps old predictions between divider events.
+- **[INFERENCE] So the absolute 1e-9 limit lies below the double-precision floor of far-future predictions.** It flags any double-precision event-driven engine, the validated 279282b path included. The reported events are rounding of correct predictions, not schedule-logic defects.
+- **[DATA] Outputs.**
+  - The outputs with and without the audit are **byte-identical in all 9 cases**: the audit does not steer.
+  - The new binary without the audit is **byte-identical to 73fc07f in all 9 cases**. That is the Mac version of E0, minimal and legacy, free and held divider, dense.
+
+**D2. Sanitizers and static analysis.**
+- **ASan cannot run on this Mac.** Apple clang 17's ASan runtime deadlocks in its own initialisation under macOS 25.6: in `__asan::InitializeShadowMemory` → `get_dyld_hdr` → `dyld_shared_cache_iterate_text_swift` → its own `malloc`, before `main` (stack sample in the scratchpad). The earlier hang of `make`'s debug build (2026-10-05) was the same.
+- **Substitutes:**
+  - **UBSan** (`-fsanitize=undefined -fno-sanitize-recover=undefined`, -O1 -g): M = 50 smoke trajectory with `--resched-audit` on both paths, **0 runtime errors**, exit 0.
+  - **Guard Malloc** (`libgmalloc`; guard page after, before (`MALLOC_PROTECT_BEFORE=1`), and after with byte-exact sizes (`MALLOC_STRICT_SIZE=1`)): the same trajectory on both paths, **no fault**, exit 0. The audit was clean in every run (missing 0, extra 0).
+  - **clang --analyze:** edmd.c 0 findings; 00ALLINONE.c 31, none within ±3 lines of branch code.
+- **OPEN:** a full ASan run. It can run on KOA, where gcc 14.3 on Linux supports `-fsanitize=address,undefined`, with a scratch build that does not touch the recorded binary, if the plan author wants it.
+
+**E. Next build and gate, version 2.** Recorded in the repo by this commit, before any of its data. It replaces the verdict rule of § 4.4 for the next attempt. The replay's nine numbers and per-mass table are carried as information only; no verdict is taken from them, because their rule was not changed in the repo before they were seen. The text below is the plan author's, verbatim:
+
+> E0. Next build = 73fc07f plus the --resched-audit switch, nothing else in the engine. On KOA show that with the switch off the G-E2 smoke and afix trajectories are byte-identical to 73fc07f's. Only then do G-E2 and G-E3 of sec. 4.4.8/4.4.9 carry over.
+> E1. Determinism: same seed twice byte-identical on one node; cross-node IDENTICAL.
+> E2. Deterministic audits on the KOA build: contact audit at rounding level (<= 1e-6 px) in every class and trajectory; schedule-equivalence audit with zero missing, zero extra, zero |dt| > 1e-9 (free divider lightest and heaviest mass, at least 1e5 divider events each; held divider, at least 1e4 D0 events; one dense state near eta = 0.70).
+> E3. TEST T, statistical, same binary. Cell epi8_H_H10_L10, method B, the campaign's protocol; 100 FRESH seeds per mass (not among the campaign's and not the smoke seeds; print the seed list's hash), the same 100 seeds on both policies (minimal, and --legacy-resched), same partition, tasks interleaved so both policies share nodes, node recorded per trajectory, HD_CONTACT_AUDIT=1. 1800 trajectories; print the cost estimate from measured times (expected about 11 core-h). Eleven numbers, minimal minus legacy, registered estimators, z with both SEs: k_S^dyn, c_s, and the mean nu of each of the nine masses. RULE, fixed now, no extension and no "in between": PASS if all eleven |z| < z* (two-sided Bonferroni, family-wise false-fail 5 %, n = 11; print it, expected about 2.84) AND the permutation p of the nine-mass chi2 is >= 0.01. Otherwise FAIL. Hypotheses the replay generated, to be listed with the z each would give if real at the observed size: k_S^dyn +0.40 %, alpha = 5 +0.62 %, alpha = 15 +0.57 %, alpha = 0.5 -1.05 %. Print the power of the rule for each. Also print, as the stated bound on any bias of the new build: the 95 % interval of each of the eleven relative differences. Information only: (i) the same eleven numbers pooled with the 25 campaign/replay seeds; (ii) null calibration: split each policy's 100 seeds into four blocks of 25 in seed-list order and print the nine-mass chi2 for the six block pairs within each policy (legacy against legacy shows what pure repetition gives).
+> E4. Profile: sec. 4.4.9 carries over. Add one profile at a state near eta = 0.70, N = 100 and 400, both policies (the gain there is not yet measured and decides the sweep cost).
+> VERDICT: the new build is ACCEPTED FOR THE FLUID REGIME only if E0 byte-identical, E1 IDENTICAL, E2 clean with zero mismatches, E3 PASS, energy ledger within legacy tolerance, one clean build behind every output. Any FAIL: stop, report, no merge. Scope: Paper 1 divider runs. Use inside the melting window additionally needs a same-binary minimal-vs-legacy comparison at N = 100 inside the window; the plan author writes it into the melting pre-registration (stage 1), which runs its science on the legacy path in any case.
+
+**E design numbers**, printed by `python3 hspist3/validation/resched_testT_design_261007.py` (verbatim):
+
+```
+# Test T -- design numbers (gate version 2, 261012 sec. 4.4.10 E3), before any of its data
+
+z* = Phi^-1(1 - 0.05/(2 x 11)) = 2.8376   (two-sided Bonferroni, family-wise false-fail 5%, n = 11)
+chi2 part: PASS needs the permutation p of the nine-mass chi2 >= 0.01 (nominal 0.99 quantile of chi2_9 = 21.67)
+
+### Expected sigma_diff with 100 + 100 seeds, and the power of the rule for the replay's hypotheses
+
+| number | hypothesis (replay, observed size) | shift | sigma_diff (100 + 100) | expected z | P(abs(z) >= z*) |
+|---|---|---|---|---|---|
+| mean nu, M = 50 | alpha = 0.5 -1.05 % | -7.686e-04 | 2.503e-04 | -3.07 | 0.592 |
+| mean nu, M = 100 | none (null) | +0.000e+00 | 1.142e-04 | +0.00 | 0.005 |
+| mean nu, M = 200 | none (null) | +0.000e+00 | 8.431e-05 | +0.00 | 0.005 |
+| mean nu, M = 300 | none (null) | +0.000e+00 | 5.469e-05 | +0.00 | 0.005 |
+| mean nu, M = 500 | alpha = 5 +0.62 % | +1.813e-04 | 3.791e-05 | +4.78 | 0.974 |
+| mean nu, M = 750 | none (null) | +0.000e+00 | 3.378e-05 | +0.00 | 0.005 |
+| mean nu, M = 1000 | none (null) | +0.000e+00 | 1.852e-05 | +0.00 | 0.005 |
+| mean nu, M = 1500 | alpha = 15 +0.57 % | +9.807e-05 | 1.729e-05 | +5.67 | 0.998 |
+| mean nu, M = 2000 | none (null) | +0.000e+00 | 1.111e-05 | +0.00 | 0.005 |
+| k_S^dyn | observed in the replay | +0.0356 | 0.00775 | +4.59 | 0.960 |
+| c_s (replay shift, -0.28 %) | observed in the replay | -0.0106 | 0.00525 | -2.02 | 0.207 |
+
+chi2 part under the three per-mass hypotheses together: noncentrality 64.5; P(chi2_9 >= 21.67) = 1.000 (nominal quantile; the permutation threshold is printed by the Test T analysis)
+
+### Fresh seeds
+
+seeds: run_seed(20261007, 0, mass index, r), r = 0..99: 900 seeds, 900 distinct
+overlap with every seed of the campaign task lists (4425 seeds, B/A/AF): 0; with the smoke/pilot seeds: 0
+SHA-256 of the seed list (lines 'M r seed', mass ascending, r ascending): 5d03fafe9a5c6c4e9a77f2616816c8c1016634fbf8412918d55bcdcdd599a38b
+
+### Cost from measured KOA times (seconds per trajectory, mean over the 25 seeds)
+
+| M | minimal (replay, 73fc07f) [s] | legacy (279282b campaign) [s] | 100 + 100 trajectories [core-h] |
+|---|---|---|---|
+| 50 | 5.0 | 6.6 | 0.32 |
+| 100 | 6.0 | 7.8 | 0.38 |
+| 200 | 7.9 | 10.3 | 0.50 |
+| 300 | 9.4 | 12.3 | 0.60 |
+| 500 | 11.6 | 15.6 | 0.75 |
+| 750 | 14.0 | 18.8 | 0.91 |
+| 1000 | 15.9 | 21.4 | 1.04 |
+| 1500 | 19.2 | 26.2 | 1.26 |
+| 2000 | 22.0 | 30.2 | 1.45 |
+
+total: 7.2 core-h for 1800 trajectories
+```
+
+**Tooling, committed with this section, before any E data.** All files are under `hspist3/`.
+- E0/E2: `cluster/resched_gate_261005/e0e2.sbatch`, with `audit_runs_261007.py` (cases free_M50_long ≥ 10⁵ divider events, free_M2000, afix, afix_leg, dense_M50, dense_M2000, ctrl_min, ctrl_leg; "plain vs ref" against the 73fc07f binary of ~/harddisks_resched).
+- E1: `koa_smoketest.sh` and `koa_crossnode_det.sh` from the gate-v2 clone.
+- E3: `cluster/resched_gate_261005/gen_testT_261007.py` → `tasks_T_epi8_H_H10_L10.txt`.
+  - 1800 lines, minimal and legacy interleaved per (mass, seed).
+  - Task list SHA-256 ea0117b50992cad5293b67ea5531d533c9a4a734c27667a5497e8737a74308ab; seed list SHA-256 5d03fafe9a5c6c4e9a77f2616816c8c1016634fbf8412918d55bcdcdd599a38b.
+  - Job: `testT.sbatch` (array 1–9 = mass, %4, 8 cores each, the same node for both policies of a mass).
+  - Worker: `conf_worker.sh` takes an optional policy field and records the node in every ##RUN header; `reduce_B.py` can reduce a single mass.
+  - Analysis: `validation/resched_testT_261007.py`, the registered rule exactly. Its dry run on the replay (minimal := replay, legacy := campaign) reproduces every number computed independently above.
+- E4: `profile_edmd_koa.sh` (the "dense" kind: L₀ = 269/48, H = 10/40, N = 100/400, both policies).
+- Copy-back: `cluster/resched_gate_261005/fetch_resched2.sh`.
+- **Data root:** a third clone and root, `~/harddisks_resched2`, so gate-v2 data never share a root with the 73fc07f replay (root_guard).
+
+**CC flag on E2, for the plan author: a proposal, not adopted unless the plan author commits it.**
+- **The problem.** E2's third criterion, "zero |dt| > 1e-9", cannot be met by any double-precision engine on these trajectories. D1 shows it: the validated legacy path also produces |dt| up to 2.9 × 10⁻⁶ for far-future predictions, and every flagged event is a true contact within 4.7 × 10⁻¹¹ of its horizon.
+- **Proposed replacement:** zero events with |dt| > 1e-9 **and** |dt| > 1e-10 × (t − now), and every |dt| > 1e-9 event recomputed at 60 digits has a true contact with heap error ≤ 1e-10 of its horizon.
+- **Why it still detects defects:** a scheduling defect (a wrong event, or one predicted for a stale state) is off by order 1 of the horizon, and is counted as missing or extra.
+- **The cost of the change:** as written, E2 is a guaranteed FAIL.
