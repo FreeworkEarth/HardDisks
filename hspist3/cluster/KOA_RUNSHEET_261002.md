@@ -797,3 +797,107 @@ bash hspist3/cluster/resched_gate_261005/fetch_resched2.sh
 ```
 
 Then tell CC. The analysis is `python3 validation/resched_testT_261007.py` plus the audit report.
+
+## 13. Engine gate, version 3: Test T-prime and ASan (written 2026-10-07 HST; 261012 § 4.4.13)
+
+**What it is.** The last test of the faster engine, and a memory checker.
+- **Test T-prime:** the same comparison as Test T, but only at M = 300 and M = 1500, with 400 fresh seeds per path. That is 1600 trajectories, about 11 core-hours.
+- **ASan:** a separate debug build of the same code checks every memory access in four short runs.
+- **Where:** the same clone (`~/harddisks_resched2`) and the same binary as Test T. **Nothing is rebuilt.** The data go to the same data root.
+- **Untouched:** `~/harddisks` (279282b) and `~/harddisks_resched` (73fc07f). Never `git pull` in either.
+
+**Rules for this step.**
+- Run `squeue -u charing` before every `sbatch`, and never submit the same job twice.
+- At most 32 cores at once. This step uses 16 + 4.
+- On the login node, only `cd`, `ls`, `cat`, `tail`, `grep`, `squeue`, `sacct` and `sbatch`.
+- If anything below is not what is expected: stop and paste it, and do not resubmit.
+
+**0. Mac (repo root).**
+
+```sh
+git push origin main
+git push origin engine-divider-resched
+git log --oneline -1 engine-divider-resched
+```
+
+Note the hash from the last line; KOA must show the same hash in step 1.
+
+**1. KOA, sandbox session: bring the clone up to date; check that the binary is still Test T's.**
+
+```sh
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+```
+
+Then, at the `cn-...` prompt:
+
+```sh
+cd ~/harddisks_resched2
+git pull --ff-only origin engine-divider-resched
+git log --oneline -1
+git diff --stat 7b08827 HEAD -- hspist3/00ALLINONE.c hspist3/edmd_core hspist3/experiment_validation.c hspist3/experiment_validation.h hspist3/Makefile
+cd hspist3
+sha256sum -c logs/BUILD_KOA_LAST.hash
+./00ALLINONE --version | head -1
+sha256sum cluster/resched_gate_261005/tasks_Tprime_epi8_H_H10_L10.txt
+exit
+```
+
+- **Expected:**
+  - `git log` prints the hash of step 0;
+  - `git diff --stat` prints **nothing**: the engine is unchanged since 7b08827;
+  - `00ALLINONE: OK`;
+  - `00ALLINONE  git 7b08827  target koa`;
+  - `cdef566b2a74fd0ec9122eee2ed2fef271fa9ee75d9630de378819565831992f  cluster/resched_gate_261005/tasks_Tprime_epi8_H_H10_L10.txt`.
+- **Do not run `make` or `build_koa.sh`.** The binary of Test T must stay.
+
+**2. Test T-prime (login node).** Shared partition, 2 tasks × 8 cores.
+
+```sh
+squeue -u charing
+cd ~/harddisks_resched2/hspist3
+sbatch --array=1-2%2 cluster/resched_gate_261005/testTprime.sbatch
+squeue -u charing
+```
+
+- **Expected:**
+  - the first `squeue` shows only its header line;
+  - `Submitted batch job <id>`;
+  - the second `squeue` shows `<id>_1` and `<id>_2`.
+
+**3. ASan (login node).** Sandbox partition, 4 cores, up to 1 h.
+
+```sh
+squeue -u charing
+sbatch cluster/resched_gate_261005/asan.sbatch
+```
+
+- **Expected:** `squeue` shows only the two T-prime tasks; then `Submitted batch job <id>`.
+
+**4. Checks, when `squeue -u charing` is empty.** M = 1500 takes about 1 h; ASan about 10–20 min.
+
+```sh
+grep -h "task list SHA-256\|done; failures\|STOP" logs/resched-testTprime_*.out
+tail -n 40 logs/resched-asan_*.out
+```
+
+- **Expected, T-prime:**
+  - two `task list SHA-256 cdef566b… (expected cdef566b…)` lines;
+  - `testTprime M=300 done; failures: 0`;
+  - `testTprime M=1500 done; failures: 0`;
+  - no `STOP`.
+- **Expected, ASan:**
+  - `sanitizer build: 00ALLINONE  git 7b08827  target asan-scratch`;
+  - `recorded build:  00ALLINONE  git 7b08827  target koa`;
+  - four lines `smoke_min: exit 0 (… s)` … `tT300_leg: exit 0 (… s)`;
+  - `recorded binary and hash file unchanged`;
+  - a table whose rows all end `yes`;
+  - the last line `ASAN (decision 3, item 3): CLEAN -- zero sanitizer reports, exit 0, audit missing = extra = 0 in all four runs`.
+- **If any line shows a failure, `STOP`, `NOT CLEAN` or `WARNING`:** stop and paste it. Do not resubmit; any sanitizer report decides nothing until the plan author has read it.
+
+**5. Mac (repo root, on main): copy back.**
+
+```sh
+bash hspist3/cluster/resched_gate_261005/fetch_resched2.sh
+```
+
+Then tell CC. The verdict is printed by `python3 validation/resched_testTprime_261007.py`, by the registered rule, including the ASan report.

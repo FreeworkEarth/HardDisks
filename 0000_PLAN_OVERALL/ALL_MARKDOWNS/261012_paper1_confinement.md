@@ -3607,3 +3607,453 @@ TEST T: FAIL -- all eleven abs(z) < 2.8376: NO; permutation p of the nine-mass c
 1. **Stay on 279282b (legacy) for all Paper 1 work.** This costs nothing in validity. Speed is lost: 3.7–5.5× at N = 400. The melting study's science runs on the legacy path in any case (§ 4.4.10 E, verdict text).
 2. **A gate v3, registered before its data.** For example, a Test T′ on fresh seeds aimed at M = 300 (and M = 1500), with its own rule fixed in advance. Under the 5 % family-wise design, a true null passes such a test with high probability, and a real +0.475 % shift at M = 300 would give z ≈ 3.0 again with 100 + 100 seeds (≈ 4.3 with 200 + 200: 3.02 × √2). Test T's rule says "no extension", so this would be a new test, not a rescue of this one.
 3. **ASan on KOA first (item 4), then option 1 or 2.**
+
+### 4.4.13 Third plan-author decision of 2026-10-07: Test T verdict recorded; GATE V3 (Test T-prime and ASan) registered before its data; information on the Test T data (2026-10-07 02:10 HST) [DATA; SOURCE, DERIVATION and INFERENCE where marked]
+
+**Plain summary.**
+- **Verdict recorded (item 1).** Build 7b08827 is NOT ACCEPTED by the registered rule. It is not merged, and 279282b remains the engine.
+- **Tail probability (item 1, by simulation).** Under the null, the largest of Test T's eleven |z| reaches 3.02 with probability 2.6 % (Gaussian, 1e6 draws) or 2.9 % (1e5 relabelings).
+  - The joint event "largest ≥ 3.02 and second ≥ 2.56" has probability 0.64 % or 0.75 %, about 1 in 150, not the "roughly 1 in 50" of the decision's prose.
+  - This event was defined after seeing the data, so it is not a test level.
+  - The design's family-wise rate checks out: 4.7 % (Gaussian) and 5.1 % (relabeling) against 5 %.
+- **Gate v3 registered (items 2 and 3).** Nothing has gone to KOA yet.
+  - **Test T-prime:** 1600 trajectories, M = 300 and 1500, 400 + 400 fresh seeds each.
+  - **Its tooling** was tested on the Mac: the dry run on Test T's data reproduces +3.02 and −2.56, and six real T-prime lines went through the branch's worker and reduction.
+  - **Power:** P(BIAS CONFIRMED) = 0.9988 if the +0.475 % were real; the false-fail rate is 4.8 % if nothing is wrong.
+  - **Cost:** 11.4 core-h (measured), not the decision's "about 5"; `--time 2:10:00`.
+  - **The ASan job** builds a scratch sanitizer binary of 7b08827 and runs four audited trajectories. Mac pre-checks: the same four runs under UBSan alone are clean, and macOS `leaks` finds 0 leaks.
+- **Information, item 4.**
+  - **(a) Refined estimator.** A damped-cosine fit per trajectory has 1.2–1.6× smaller per-seed scatter than the argmax estimator. With it:
+    - the M = 300 shift is +0.311 %, z = +2.83 (argmax: +0.475 %, +3.02);
+    - M = 1500 is at z = −1.65;
+    - the nine-mass χ² is 13.6 (p 0.14);
+    - the spread difference at M = 300 (§ 4.4.12) disappears: it was the estimator.
+  - **(b) Halves of the seed list.** The two estimators place the M = 300 shift in opposite halves of the seed list. Same-seed correlation is ≈ 0.
+  - **(c) Campaign anchor.** Its high c_s is a fluctuation at M = 50, which carries 88 % of the difference (z = +2.75).
+  - **(c) Same engine path, other seeds.** Campaign vs Test T legacy, with the argmax estimator, reaches |z| = 3.25 (M = 1500) and χ² = 24.3 (p 0.004). With the refined estimator: largest |z| 2.14, χ² 15.4.
+- **Information, item 5 (methods § 16).**
+  - **[SOURCE] The gas inertia is already in the registered model, exactly.** x_M uses the root of cot K = αK; M + 2N_s m/3 is that root's α ≫ 1 limit. It is not the missing light-mass term.
+  - **Damping.** It shifts the argmax peak by −1/(4Q²) = −0.29 % at M = 50. The undamped frequency leaves −0.42 ± 0.08 % (5.4 SE): OPEN.
+
+**The decision**, as relayed by Chris, verbatim. It counts from this commit; nothing went to KOA before it.
+
+> PLAN-AUTHOR DECISION, third of 2026-10-07 -- reply to 261012 sec. 4.4.12 (Test T FAIL).
+> Standing rules apply: append, never edit old text; every threshold printed by script with
+> its false-fail rate; explicit-path git adds; delete nothing; no new markdown files; English
+> only; tags SOURCE/DERIVATION/INFERENCE/DATA/OPEN; no multi-agent workflow. Nothing goes to
+> KOA before the commit that records sections 2-4.
+>
+> 1. VERDICT. Build 7b08827 NOT ACCEPTED by the registered rule; not merged; 279282b remains
+>    the engine. Record in sec. 4.4.13 with this reading [INFERENCE, plan author]:
+>    - for noise: none of the four replay hypotheses persisted (alpha = 15 flipped sign);
+>      E2 found identical schedules at 5.3e5 divider events; no mass-dependent branch exists
+>      in the minimal path; the within-policy null calibration is ordinary;
+>    - against: max |z| 3.02 with a second number at 2.56 among eleven (print the joint
+>      tail probability under the null by simulation, 1e6 draws) and the nine-mass chi2
+>      permutation p 0.047.
+>    The rule stands; the hypothesis Test T generated is now tested on fresh data.
+>
+> 2. GATE V3 = TEST T-PRIME, registered before its data; a new test, not an extension of T.
+>    Same binary 7b08827 (hash check as before), same partition and interleaving, fresh
+>    seeds disjoint from campaign, smoke, replay, T (print the seed-list and task-list
+>    hashes), HD_CONTACT_AUDIT=1, node recorded per trajectory. Masses M = 300 and M = 1500
+>    only, 400 seeds per policy per mass (1600 trajectories; print the measured cost and
+>    --time). Registered estimator: mean nu per mass, SE = SD/sqrt(n), z with both SEs.
+>    RULE for M = 300 (the verdict number):
+>      BIAS CONFIRMED if z >= 3;
+>      NO BIAS if |z| < 2 AND the 95 % interval of the relative difference excludes +0.475 %;
+>      anything else, including z <= -2, = FAIL.
+>    RULE for M = 1500: FAIL if |z| >= 3; otherwise information (expected z if the Test T
+>    size -0.239 % were real: about -5.1).
+>    Print the power table: P(confirm), P(no bias), P(fail) for true shifts 0, +0.2, +0.3,
+>    +0.475 % at M = 300 with n = 400 + 400 (expected z for +0.475 %: about +6.0).
+>    STOPPING RULE, recorded now: T-prime is the last statistical test for this fix. FAIL or
+>    unresolved = the fix is shelved, 279282b stays, no further test. PASS = the build is
+>    ACCEPTED FOR THE FLUID REGIME on the combined record (T for ten numbers, T-prime for the
+>    eleventh; the second chance is disclosed), with the T and T-prime 95 % intervals as the
+>    stated bias bound. Use in the melting window still needs the same-binary A/B at N = 100
+>    inside the window (melting stage 1).
+>    Tooling: gen_testTprime_261007.py -> tasks_Tprime_epi8_H_H10_L10.txt; testTprime.sbatch
+>    (two array tasks, one per mass, %2); validation/resched_testTprime_261007.py with the
+>    rule above, dry-run on the Test T data for M = 300 and 1500 (must reproduce +3.02 and
+>    -2.56) before the commit; fetch via fetch_resched2.sh (add the T-prime path).
+>
+> 3. ASAN ON KOA (decision item 4, triggered). asan.sbatch: scratch build of 7b08827 with
+>    gcc -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer into a scratch
+>    directory (never touching ./00ALLINONE or BUILD_KOA_LAST.hash), then the smoke M = 50
+>    trajectory and one M = 300 Test T trajectory, each on both policies, with
+>    --resched-audit on. Requirement: zero sanitizer reports, exit 0, audit missing = extra
+>    = 0. Any report = stop and paste. Print the sanitizer-build version line so it can
+>    never be confused with the recorded binary.
+>
+> 4. INFORMATION ONLY, on existing Test T data (no verdict):
+>    a) refined frequency per trajectory from acf_runs.npz (fit a damped cosine, or the
+>       mean zero-crossing period over the first 10 periods) for all nine masses; the same
+>       eleven-number table with the refined estimator next to the argmax one. If the
+>       M = 300 shift is in the dynamics it survives; if it is an estimator artefact it
+>       changes. Print the per-seed SD of both estimators per mass.
+>    b) M = 300: the shift in the first 50 and the second 50 seeds (seed-list order), each
+>       with z; and the same-seed correlation of nu between policies.
+>    c) Per-mass c_s,M table: campaign anchor (25 seeds), replay minimal (25), Test T
+>       minimal, Test T legacy, with z between campaign and Test T legacy per mass and for
+>       the registered unweighted c_s (campaign 3.8203 +- 0.0067 vs Test T legacy 3.80072
+>       +- its SE). State whether the campaign's anchor value is a fluctuation at M = 50.
+>
+> 5. PAPER 1 ESTIMATOR NOTE (methods file 260912_paper1_methods.md, new dated subsection,
+>    OPEN, no change to any registered result): at pi/8 both policies give c_s,M at M = 50
+>    about 0.6 % below the other masses (quote the Test T numbers and SEs); the registered
+>    unweighted through-origin slope is dominated by the light masses; the gas-inertia
+>    correction M + 2N_s m/3 is +67 % at M = 50 and +1.7 % at M = 2000 (print the table of
+>    the correction per mass for this cell); weighted vs unweighted c_s differ by 0.25 %.
+>    Consequences to list, decision deferred to the plan author: report both estimators in
+>    Paper 1 with the difference as a systematic; pre-register a weighted estimator or a
+>    light-mass term for future campaigns; the melting pre-registration carries a
+>    plain-fluid baseline cell outside the window with the same masses.
+>
+> 6. Commit (branch and identical copies on main for notes and Mac-side tooling), push
+>    instructions, then the KOA lines for Chris in order with expected outputs: T-prime
+>    array, asan job, fetch. Stop rules as before.
+>
+> 7. REPORT: plain summary first; the T-prime table by the registered rule with the 95 %
+>    intervals; the ASan result; the item-4 tables with one paragraph of reading each; the
+>    item-5 subsection verbatim. No tool transcripts.
+
+**Item 1: the verdict, recorded.**
+- Build 7b08827 is NOT ACCEPTED by the registered rule of gate v2 (§ 4.4.12). It is not merged, and 279282b remains the engine.
+- The plan author's reading is quoted above (item 1).
+- **The tail probability.** Printed by `cd hspist3 && python3 validation/resched_testT_followup_261007.py` (the item-1 part), verbatim:
+
+```
+## Item 1 -- Test T's largest |z| under the null, by simulation
+
+observed: largest |z| = 3.0199 (nu M=300), second = 2.5597 (nu M=1500); nine-mass chi2 = 17.30; z* = 2.8376
+
+| event under the null | Gaussian, 1e+06 draws, registered estimators | relabelings, 1e+05 | eleven independent normal z |
+|---|---|---|---|
+| largest abs(z) >= 3.02 | 0.02644 (1 in 38) | 0.02940 (1 in 34) | 0.02746 (1 in 36) |
+| largest abs(z) >= 3.02 AND second largest >= 2.56 | 0.00643 (1 in 156) | 0.00748 (1 in 134) | 0.00243 (1 in 411) |
+| largest abs(z) >= z* = 2.8376 (the design's family-wise rate) | 0.04667 (1 in 21) | 0.05136 (1 in 19) | 0.04888 (1 in 20) |
+| nine-mass chi2 >= 17.30 | 0.04421 (1 in 23) | 0.04832 (1 in 21) | 0.04428 (1 in 23) |
+
+The joint event is defined from the observed values after seeing them (post hoc); its probability is not a test level.
+```
+
+**Reading of item 1 [DERIVATION from the table; INFERENCE where marked].**
+- **Largest |z| alone.** P(largest |z| ≥ 3.02 among the eleven) = 0.026 (Gaussian, the registered estimators applied to every draw) and 0.029 (relabelings). That is about 1 in 35.
+- **The joint event of the decision text.** P(largest ≥ 3.02 **and** second ≥ 2.56) = 0.0064 and 0.0075, about 1 in 150. The decision's prose said "roughly 1 in 50".
+  - The two numbers are correlated through c_s and k_S^dyn, which reuse the per-mass means. That makes the joint event 2.6–3× more likely than for eleven independent z (1 in 411).
+  - [INFERENCE] The joint event was defined from the observed values, so it is not a test level. The registered test levels are the family-wise 5 % (the simulation gives 4.7 % and 5.1 %, so z* is right) and the χ² permutation p.
+
+**Item 2: GATE V3 = TEST T-PRIME, registered here before any of its data.**
+- **The rule and the stopping rule** are the decision text above (item 2), verbatim. `validation/resched_testTprime_261007.py` implements both; its docstring repeats them.
+- **Tooling:**
+  - `cluster/resched_gate_261005/gen_testTprime_261007.py` writes `tasks_Tprime_epi8_H_H10_L10.txt`, 1600 lines.
+    - Seeds are `run_seed(20261007, 1, mass index, r)`, r = 0..399: Test T's base, stream index l = 1 (Test T used l = 0).
+    - Geometry, stride and command come from the campaign's task list, as in Test T.
+    - Each (mass, r) is two consecutive lines, minimal then legacy.
+  - `cluster/resched_gate_261005/testTprime.sbatch`: two array tasks (M = 300, M = 1500), `%2`, 8 cores each, shared partition, `--time 2:10:00`. It checks the following before running anything:
+    - **the binary:** it must match `logs/BUILD_KOA_LAST.hash` and print exactly `00ALLINONE  git 7b08827  target koa`;
+    - **the task list:** its hash must be `cdef566b…`;
+    - **the clone:** the job must run from `~/harddisks_resched2`.
+  - `validation/resched_testTprime_261007.py`, in three modes: `--design`, `--dry-run-T`, and the analysis.
+  - `cluster/resched_gate_261005/fetch_resched2.sh` gains the T-prime path and the ASan outputs.
+- **Design numbers**, printed by `cd hspist3 && python3 validation/resched_testTprime_261007.py --design`, verbatim:
+
+```
+# Test T-prime -- design numbers (gate v3, 261012 sec. 4.4.13), before any of its data
+
+### Thresholds and their false-fail rates under the null (no shift at either mass)
+
+| threshold | role | probability under the null |
+|---|---|---|
+| M = 300: z >= 3 | BIAS CONFIRMED (false confirmation) | 0.00135 |
+| M = 300: abs(z) >= 2 or the 95 % interval contains +0.475 % | FAIL or CONFIRMED (not NO BIAS) | 0.04550 (the interval condition binds only above z = 4.08, outside abs(z) < 2 at the design SE) |
+| M = 1500: abs(z) >= 3 | FAIL | 0.00270 |
+| Test T-prime as a whole | not PASS (false fail), the two masses independent | 0.04808 |
+
+### Expected precision with 400 + 400 seeds per mass (per-seed SDs of Test T, argmax estimator)
+
+| M | per-seed SD minimal | per-seed SD legacy | legacy mean nu (Test T) | SE of the relative difference [%] | 95 % half-width [%] |
+|---|---|---|---|---|---|
+| 300 | 3.558e-04 | 4.591e-04 | 0.0369218 | 0.0787 | 0.1542 |
+| 1500 | 1.093e-04 | 1.189e-04 | 0.0173047 | 0.0467 | 0.0914 |
+
+expected z if the Test T size were real: M = 300 +0.475 % -> +6.04; M = 1500 -0.239 % -> -5.12
+for comparison, Test T at M = 300 (100 + 100 seeds, same SDs): SE 0.1573 %, expected z for +0.475 % = +3.02, power P(abs(z) >= z* = 2.8376) = 0.572
+
+### Power at M = 300 (n = 400 + 400): probability of each outcome for a true shift
+
+| true shift [%] | expected z | P(BIAS CONFIRMED) | P(NO BIAS) | P(FAIL) |
+|---|---|---|---|---|
+| +0.000 | +0.00 | 0.0013 | 0.9545 | 0.0442 |
+| +0.200 | +2.54 | 0.3238 | 0.2936 | 0.3826 |
+| +0.300 | +3.81 | 0.7923 | 0.0348 | 0.1729 |
+| +0.475 | +6.04 | 0.9988 | 0.0000 | 0.0012 |
+
+M = 1500: P(FAIL) = P(abs(z) >= 3) = 0.0027 with no shift; 0.9831 if -0.239 % were real
+
+### Fresh seeds
+
+seeds: run_seed(20261007, 1, mass index, r), r = 0..399, M = 300 and 1500: 800 seeds, 800 distinct
+overlap with: the campaign task lists (B/A/AF; the replay re-ran these) 0 of 4425; Test T 0 of 1200; smoke/pilot/E2 seeds run_seed(20261013, 0, m, r < 4) 0; A-fixed 9700-9703 0
+SHA-256 of the seed list (lines 'M r seed', M ascending, r ascending): 01143aac529b7e9d963f40ef489b33b26ee6d1023256059038c6f1b970090381
+SHA-256 of the task list cluster/resched_gate_261005/tasks_Tprime_epi8_H_H10_L10.txt (1600 lines): cdef566b2a74fd0ec9122eee2ed2fef271fa9ee75d9630de378819565831992f
+
+### Cost from the measured KOA times of Test T (same binary, same cell; seconds per trajectory)
+
+| M | minimal [s] | legacy [s] | trajectories | core-h | array task wall time on 8 cores [min] |
+|---|---|---|---|---|---|
+| 300 | 10.9 | 16.0 | 800 | 2.99 | 22.4 |
+| 1500 | 30.6 | 44.8 | 800 | 8.38 | 62.9 |
+
+total 11.4 core-h for 1600 trajectories; --time = 2 x the longest task (62.9 min, M = 1500) rounded up to 10 min = 2:10:00; two array tasks, %2, 8 cores each = 16 cores
+```
+
+- **Dry run on Test T's data** (`--dry-run-T`, n = 100 + 100). Verbatim, up to its check line; after that comes a format test of the combined-record table, whose rows are Test T's eleven numbers of § 4.4.12:
+
+```
+# Test T-prime (gate v3, 261012 sec. 4.4.13)  [DRY RUN on Test T data, n = 100 + 100: a test of this script, no verdict]
+
+RULE: M = 300 BIAS CONFIRMED if z >= 3; NO BIAS if abs(z) < 2 and the 95 % interval excludes +0.475 %; else FAIL. M = 1500: FAIL if abs(z) >= 3, else information.
+
+
+## The registered numbers
+
+| mass | n minimal | n legacy | minimal mean nu | SE | legacy mean nu | SE | difference | relative [%] | 95 % interval [%] | z | outcome by the rule |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 300 | 100 | 100 | 0.0370972 | 3.56e-05 | 0.0369218 | 4.59e-05 | +1.754e-04 | +0.475 | [+0.167, +0.783] | +3.02 | **BIAS CONFIRMED** |
+| 1500 | 100 | 100 | 0.0172633 | 1.09e-05 | 0.0173047 | 1.19e-05 | -4.133e-05 | -0.239 | [-0.422, -0.056] | -2.56 | **information** |
+
+dry run: z(M = 300) = +3.02, z(M = 1500) = -2.56; Test T printed +3.02 and -2.56: REPRODUCED
+```
+
+- **The analysis path, tested on the Mac [DATA].**
+  - Six real T-prime lines (M = 300, r = 0, 1; M = 1500, r = 0; both policies) were run through the branch's `conf_worker.sh` and `reduce_B.py` (`git archive engine-divider-resched`). The binary was a Mac -O2 build of the 7b08827 sources.
+  - The worker accepted the lines, wrote `.build_generation`, and gave each trajectory its policy line and `[EDMD-CONTACT]` line.
+  - The analysis then ran end to end on that scratch root. As it must, it printed:
+    - inventory NOT CLEAN (2 of 400, and not the koa build);
+    - TEST T-PRIME: FAIL;
+    - ASan NOT CLEAN (the test report's binary is not an `asan` build);
+    - GATE V3: NOT ACCEPTED.
+  - One robustness fix came out of this test: a z that cannot be computed now counts as FAIL at M = 1500 (unresolved), not as information.
+- **Flags for the plan author [DERIVATION from the printed numbers].**
+  1. **Cost.** The measured cost is 11.4 core-h, not "about 5". M = 1500 alone is 8.4 core-h, because its trajectories are 2.8× longer than M = 300's (30.6 and 44.8 s against 10.9 and 16.0 s on KOA). The rule is not changed here.
+  2. **Test T's power.** At M = 300 it was 0.572 for a real +0.475 % shift (expected z 3.02 against z* 2.84), not "0.9". T-prime's is 0.9988.
+  3. **Test T's data under the T-prime rule.** Test T's own M = 300 data (100 + 100) would read BIAS CONFIRMED (z = 3.02 ≥ 3); the dry run shows it. T-prime does not pool with Test T; its verdict comes from its 400 + 400 fresh seeds only.
+  4. **Small real shifts.** A real shift of +0.2 % gives FAIL with probability 0.38, NO BIAS 0.29, CONFIRMED 0.32. Small real shifts therefore mostly end in "shelved", which is what the stopping rule intends.
+
+**Item 3: ASan on KOA, registered here.**
+- **`cluster/resched_gate_261005/asan.sbatch`** (sandbox partition, 4 cores, 8 GB, 1 h):
+  - **Checks before building:**
+    - `git diff --quiet 7b08827 -- 00ALLINONE.c experiment_validation.c experiment_validation.h edmd_core` must be empty (the compiled sources equal 7b08827);
+    - kissfft must be the pinned commit febd4ca.
+  - **The build:**
+    - `gcc $LDFLAGS -o $OUT/00ALLINONE_asan <the Makefile's six sources> -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer`, with the Makefile's include and library flags and `-DBUILD_TARGET="asan-scratch"`;
+    - `OUT = $SCRATCH/harddisks_resched2/asan_261007_<jobid>`, refused if it exists;
+    - the sanitizer build's version line and the recorded build's are printed one under the other;
+    - the sha256 of `./00ALLINONE` and `logs/BUILD_KOA_LAST.hash` is checked before and after.
+  - **Why not `git archive` or `make`.** The KOA clone is sparse, shallow and partial (`--filter=blob:none`): a `git archive` of the whole hspist3 tree would fetch every blob, data included. `make` would write `./00ALLINONE`.
+- **`cluster/resched_gate_261005/asan_runs_261007.py`** runs four trajectories with `--resched-audit` (mode 1), four at once:
+  - `smoke_min` and `smoke_leg`: the smoke trajectory, from `audit_runs_261007.sos_cmd`, as the ctrl cases of E2;
+  - `tT300_min` and `tT300_leg`: the first M = 300 line of Test T (r = 0, seed 863155646), run with the B-mode command of `conf_worker.sh`, which the script rebuilds from the line;
+  - settings: `HD_KE_TRACE=1`, `HD_CONTACT_AUDIT=1`, `ASAN_OPTIONS=detect_leaks=1:halt_on_error=1:abort_on_error=0:print_summary=1`, `UBSAN_OPTIONS=print_stacktrace=1:print_summary=1`.
+  - **What counts as a sanitizer report:** every output line containing "Sanitizer" or "runtime error", counted, never filtered. LeakSanitizer is on.
+  - **The last line of the report:** `ASAN (decision 3, item 3): CLEAN -- …` or `NOT CLEAN -- stop and paste this report`.
+- **Mac pre-checks [DATA].** These are not the requirement; ASan cannot run on this Mac (§ 4.4.10 D2).
+  - The same four runs, with the same runner, on a clang build of the same sources: `-O1 -g -fsanitize=undefined -fno-omit-frame-pointer`, i.e. UBSan only.
+  - Printed by `asan_runs_261007.py report`, verbatim (the NOT CLEAN line comes only from the version check, which requires an `asan` build):
+
+```
+## ASan/UBSan runs of gate v3 (<scratchpad>/asan_mac_test/runs_ubsan)
+
+binary: ['00ALLINONE  git 7b08827  target mac-ubsan-test']
+ASAN_OPTIONS=detect_leaks=1:halt_on_error=1:abort_on_error=0:print_summary=1
+UBSAN_OPTIONS=print_stacktrace=1:print_summary=1
+HD_KE_TRACE=1
+HD_CONTACT_AUDIT=1
+
+| run | exit | wall [s] | sanitizer report lines | audit mode | audited events | missing | extra | max contact [px] | ok |
+|---|---|---|---|---|---|---|---|---|---|
+| smoke_min | 0 | 2 | 0 | 1 | 5166 | 0 | 0 | 5.0e-12 | yes |
+| smoke_leg | 0 | 2 | 0 | 1 | 5142 | 0 | 0 | 4.5e-12 | yes |
+| tT300_min | 0 | 30 | 0 | 1 | 74175 | 0 | 0 | 8.1e-11 | yes |
+| tT300_leg | 0 | 33 | 0 | 1 | 73996 | 0 | 0 | 7.7e-11 | yes |
+
+ASAN (decision 3, item 3): NOT CLEAN -- stop and paste this report
+```
+
+  - **macOS `leaks --atExit`** on an -O2 build of the same sources, smoke_min and tT300_leg: `Process 58249: 0 leaks for 0 total leaked bytes.` and `Process 58296: 0 leaks for 0 total leaked bytes.` LeakSanitizer is therefore expected to have nothing to report at exit.
+  - **Timing:** -O2 without audit, 5 s at M = 300; with audit, 10–12 s; UBSan -O1 with audit, 30–33 s. KOA is about 2× slower than this Mac, and ASan adds about 2–3× more, so a few minutes per run → `--time 1:00:00`.
+
+**Item 4: information on the existing data (no verdict).**
+- Printed by `cd hspist3 && python3 validation/resched_testT_followup_261007.py`, items 4a–4c, verbatim:
+
+```
+## Item 4a -- refined frequency per trajectory (damped cosine with free phase plus slow mode) next to the argmax estimator
+
+campaign and replay nu_d fit failures: 0 and 0 of 225 each
+
+| policy | M | trajectories | fit failures | per-seed SD, argmax [% of nu] | per-seed SD, nu_d [% of nu] | SD ratio argmax/nu_d | zero crossings in the first 10 periods: median (min-max), expected 20 |
+|---|---|---|---|---|---|---|---|
+| minimal | 50 | 400 | 0 | 2.523 | 1.562 | 1.61 | 2 (0-21) |
+| minimal | 100 | 100 | 0 | 2.095 | 1.286 | 1.63 | 8 (0-20) |
+| minimal | 200 | 100 | 0 | 1.560 | 0.977 | 1.60 | 20 (0-20) |
+| minimal | 300 | 100 | 0 | 0.961 | 0.785 | 1.22 | 20 (0-20) |
+| minimal | 500 | 100 | 0 | 1.049 | 0.725 | 1.45 | 20 (8-20) |
+| minimal | 750 | 100 | 0 | 0.999 | 0.631 | 1.58 | 20 (20-20) |
+| minimal | 1000 | 100 | 0 | 0.882 | 0.606 | 1.45 | 20 (20-20) |
+| minimal | 1500 | 100 | 0 | 0.632 | 0.484 | 1.31 | 20 (20-20) |
+| minimal | 2000 | 100 | 0 | 0.589 | 0.438 | 1.35 | 20 (20-20) |
+| legacy | 50 | 400 | 0 | 2.537 | 1.566 | 1.62 | 2 (0-20) |
+| legacy | 100 | 100 | 0 | 2.088 | 1.609 | 1.30 | 7 (0-21) |
+| legacy | 200 | 100 | 0 | 1.232 | 0.997 | 1.24 | 20 (0-20) |
+| legacy | 300 | 100 | 0 | 1.240 | 0.766 | 1.62 | 20 (2-20) |
+| legacy | 500 | 100 | 0 | 1.058 | 0.727 | 1.46 | 20 (10-20) |
+| legacy | 750 | 100 | 0 | 0.884 | 0.562 | 1.57 | 20 (6-20) |
+| legacy | 1000 | 100 | 0 | 0.787 | 0.500 | 1.58 | 20 (20-20) |
+| legacy | 1500 | 100 | 0 | 0.688 | 0.492 | 1.40 | 20 (20-20) |
+| legacy | 2000 | 100 | 0 | 0.611 | 0.429 | 1.42 | 20 (20-20) |
+
+### The eleven numbers, minimal minus legacy, with both estimators (registered estimators of k_S^dyn and c_s applied to each)
+
+| number | argmax: relative [%] | 95 % interval [%] | z | nu_d: relative [%] | 95 % interval [%] | z |
+|---|---|---|---|---|---|---|
+| k_S^dyn | -0.051 | [-0.241, +0.138] | -0.53 | -0.077 | [-0.209, +0.056] | -1.14 |
+| c_s | +0.079 | [-0.119, +0.277] | +0.78 | +0.002 | [-0.129, +0.134] | +0.03 |
+| nu M=50 | +0.152 | [-0.198, +0.503] | +0.85 | +0.113 | [-0.104, +0.330] | +1.02 |
+| nu M=100 | -0.047 | [-0.627, +0.533] | -0.16 | -0.224 | [-0.627, +0.178] | -1.09 |
+| nu M=200 | -0.089 | [-0.479, +0.300] | -0.45 | -0.075 | [-0.348, +0.199] | -0.53 |
+| nu M=300 | +0.475 | [+0.167, +0.783] | +3.02 | +0.311 | [+0.096, +0.527] | +2.83 |
+| nu M=500 | +0.052 | [-0.240, +0.344] | +0.35 | -0.034 | [-0.235, +0.168] | -0.33 |
+| nu M=750 | +0.005 | [-0.257, +0.266] | +0.04 | -0.007 | [-0.172, +0.159] | -0.08 |
+| nu M=1000 | +0.070 | [-0.161, +0.302] | +0.60 | -0.036 | [-0.190, +0.118] | -0.46 |
+| nu M=1500 | -0.239 | [-0.422, -0.056] | -2.56 | -0.114 | [-0.249, +0.021] | -1.65 |
+| nu M=2000 | +0.038 | [-0.129, +0.204] | +0.44 | -0.005 | [-0.125, +0.116] | -0.07 |
+
+nine-mass chi2: argmax 17.30 (nominal p 0.044); nu_d 13.60 (nominal p 0.137)
+
+## Item 4b -- M = 300: the two halves of the seed list, and the same-seed correlation
+
+| estimator | seeds (r) | minimal mean | legacy mean | relative difference [%] | z |
+|---|---|---|---|---|---|
+| argmax (registered) | 0-49 | 0.0371007 | 0.0369895 | +0.300 | +1.38 |
+| argmax (registered) | 50-99 | 0.0370937 | 0.0368541 | +0.650 | +2.86 |
+| argmax (registered) | 0-99 | 0.0370972 | 0.0369218 | +0.475 | +3.02 |
+| nu_d (4a) | 0-49 | 0.0371123 | 0.0369471 | +0.447 | +2.87 |
+| nu_d (4a) | 50-99 | 0.0370144 | 0.0369496 | +0.175 | +1.14 |
+| nu_d (4a) | 0-99 | 0.0370633 | 0.0369483 | +0.311 | +2.83 |
+
+same-seed correlation of nu between the policies, M = 300, argmax: r = -0.018 (n = 100; |r| > 0.199 would be outside the 95 % range of r = 0, Fisher z)
+
+same-seed correlation of nu between the policies, M = 300, nu_d: r = -0.134 (n = 100; |r| > 0.199 would be outside the 95 % range of r = 0, Fisher z)
+
+## Item 4c -- per-mass implied sound speed: campaign anchor, replay, Test T
+
+| M | weight w_M of the unweighted slope [%] | campaign (legacy, 279282b): c_s,M +- SE (n) | replay (minimal, 73fc07f): c_s,M +- SE (n) | Test T minimal: c_s,M +- SE (n) | Test T legacy: c_s,M +- SE (n) | z campaign - Test T legacy | share of the c_s difference [%] |
+|---|---|---|---|---|---|---|---|
+| 50 | 36.8 | 3.83299 +- 0.01646 (25) | 3.79290 +- 0.02040 (25) | 3.79170 +- 0.00478 (400) | 3.78592 +- 0.00481 (400) | +2.75 | +88.4 |
+| 100 | 23.5 | 3.81796 +- 0.01047 (25) | 3.82154 +- 0.01069 (25) | 3.80292 +- 0.00797 (100) | 3.80471 +- 0.00794 (100) | +1.01 | +15.9 |
+| 200 | 13.5 | 3.80364 +- 0.00865 (25) | 3.82583 +- 0.01170 (25) | 3.81079 +- 0.00595 (100) | 3.81419 +- 0.00470 (100) | -1.07 | -7.3 |
+| 300 | 9.5 | 3.82081 +- 0.00795 (25) | 3.80578 +- 0.00800 (25) | 3.82332 +- 0.00367 (100) | 3.80524 +- 0.00473 (100) | +1.68 | +7.6 |
+| 500 | 5.9 | 3.80936 +- 0.00750 (25) | 3.83298 +- 0.00643 (25) | 3.81777 +- 0.00400 (100) | 3.81580 +- 0.00404 (100) | -0.76 | -2.0 |
+| 750 | 4.0 | 3.80864 +- 0.00814 (25) | 3.80721 +- 0.00689 (25) | 3.81115 +- 0.00381 (100) | 3.81097 +- 0.00337 (100) | -0.26 | -0.5 |
+| 1000 | 3.1 | 3.81365 +- 0.00425 (25) | 3.81007 +- 0.00520 (25) | 3.81365 +- 0.00336 (100) | 3.81097 +- 0.00300 (100) | +0.52 | +0.4 |
+| 1500 | 2.1 | 3.79934 +- 0.00624 (25) | 3.82081 +- 0.00440 (25) | 3.81222 +- 0.00241 (100) | 3.82135 +- 0.00263 (100) | -3.25 | -2.3 |
+| 2000 | 1.6 | 3.81079 +- 0.00425 (25) | 3.81580 +- 0.00373 (25) | 3.81473 +- 0.00225 (100) | 3.81329 +- 0.00233 (100) | -0.52 | -0.2 |
+
+campaign vs Test T legacy (both the legacy path, different seeds): largest abs(z) over the nine masses 3.25, P(largest >= that | nine independent normal z) = 0.0103; nine-mass chi2 24.28 (nominal p 0.0039)
+
+| data | registered c_s (unweighted slope) | c_s_err (unscaled) | chi2_red | c_s_err_scaled | weighted c_s +- SE | unweighted / weighted - 1 [%] |
+|---|---|---|---|---|---|---|
+| campaign (legacy, 279282b) | 3.82030 | 0.00671 | 3.41 | 0.01239 | 3.81087 +- 0.00218 | +0.248 |
+| replay (minimal, 73fc07f) | 3.80973 | 0.00812 | 3.28 | 0.01472 | 3.81661 +- 0.00204 | -0.180 |
+| Test T minimal | 3.80372 | 0.00273 | 12.20 | 0.00954 | 3.81307 +- 0.00115 | -0.245 |
+| Test T legacy | 3.80072 | 0.00270 | 18.09 | 0.01149 | 3.81224 +- 0.00116 | -0.302 |
+
+campaign minus Test T legacy, registered c_s: +0.01959; z = +2.71 with the unscaled errors, +1.16 with the scaled ones; sum over masses of w_M x (c_s,M difference) = +0.01959 (identity check)
+
+### The same per-mass comparison with the refined frequency nu_d (item 4a fit on the campaign's and the replay's own ACFs)
+
+| M | campaign nu_d (25) | Test T legacy nu_d | z campaign - Test T legacy, nu_d | z, argmax (above) | replay nu_d (25) | Test T minimal nu_d | z replay - Test T minimal, nu_d |
+|---|---|---|---|---|---|---|---|
+| 50 | 0.0727440 | 0.0723987 | +1.76 | +2.75 | 0.0724223 | 0.0724806 | -0.27 |
+| 100 | 0.0582791 | 0.0581609 | +0.74 | +1.01 | 0.0581613 | 0.0580304 | +0.84 |
+| 200 | 0.0440561 | 0.0442315 | -2.12 | -1.07 | 0.0441782 | 0.0441985 | -0.19 |
+| 300 | 0.0369998 | 0.0369483 | +0.92 | +1.68 | 0.0370100 | 0.0370633 | -0.88 |
+| 500 | 0.0292510 | 0.0292911 | -0.79 | -0.76 | 0.0293160 | 0.0292812 | +0.66 |
+| 750 | 0.0241643 | 0.0241457 | +0.46 | -0.26 | 0.0241393 | 0.0241441 | -0.11 |
+| 1000 | 0.0210206 | 0.0210401 | -0.99 | +0.52 | 0.0210438 | 0.0210326 | +0.48 |
+| 1500 | 0.0172395 | 0.0172827 | -2.14 | -3.25 | 0.0172783 | 0.0172630 | +0.89 |
+| 2000 | 0.0149930 | 0.0149934 | -0.03 | -0.52 | 0.0149997 | 0.0149927 | +0.46 |
+campaign vs Test T legacy, nu_d: largest abs(z) 2.14 (P(largest >= that | nine independent normal z) = 0.2559); nine-mass chi2 15.40 (nominal p 0.0804)
+replay vs Test T minimal, nu_d: largest abs(z) 0.89 (P(largest >= that | nine independent normal z) = 0.9850); nine-mass chi2 3.25 (nominal p 0.9533)
+```
+
+**Reading of 4a [DATA; INFERENCE where marked].**
+- **Convergence and precision.**
+  - The damped-cosine fit with free phase converged for every trajectory: 2400 of Test T, 225 of the campaign, 225 of the replay.
+  - Its per-seed SD is 1.2–1.6× smaller than the argmax estimator's.
+- **Zero crossings.** The ACF crosses zero a median of 2 times in the first 10 periods at M = 50, and 7–8 times at M = 100. At M = 50 the slow mode keeps the ACF positive after about one period, so the zero-crossing option cannot be used at the light masses.
+- **The eleven numbers with ν_d.**
+  - M = 300: +0.311 % [+0.096, +0.527], z = +2.83 (argmax: +0.475 %, z = +3.02).
+  - M = 1500: −0.114 %, z = −1.65 (argmax: −2.56).
+  - k_S^dyn −1.14, c_s +0.03; nine-mass χ² 13.6 (p 0.14).
+- **The spread difference at M = 300.** It was flagged in § 4.4.12 (argmax F-test p = 0.012); with ν_d it disappears (per-seed SD 0.785 vs 0.766 %). That was the estimator, not the dynamics.
+- [INFERENCE] The M = 300 shift keeps its sign and almost its significance with an estimator that does not see the FFT bins. So it is not merely an argmax artefact.
+- [INFERENCE] It is either in the dynamics, or a fluctuation of about 2.8σ that both estimators share because they read the same trajectories. The two estimators are not independent evidence. Test T-prime decides, with fresh seeds.
+
+**Reading of 4b [DATA; INFERENCE where marked].**
+- **Halves of the seed list.** Argmax: the first 50 seeds give +0.30 % (z = +1.38), the second 50 give +0.65 % (z = +2.86). With ν_d it is the other way round: +0.45 % (z = +2.87) and +0.18 % (z = +1.14).
+- **Same-seed correlation** of ν between the policies: −0.02 (argmax) and −0.13 (ν_d), both inside the ±0.20 band of r = 0.
+- [INFERENCE] No block of seeds carries the shift consistently: the two estimators place it in opposite halves.
+- [INFERENCE] The same seed on both policies gives uncorrelated frequencies, because the trajectories diverge. Pairing therefore adds no power, as the registered unpaired z assumes.
+
+**Reading of 4c [DATA; INFERENCE where marked].**
+- **The decision's question: is the campaign's anchor value a fluctuation at M = 50? Yes, mainly.**
+  - The campaign's registered c_s, 3.82030 ± 0.00671 (unscaled; it is the decision's "± 0.0067"), sits +0.01959 above Test T legacy, 3.80072 ± 0.00270: z = +2.71 with the unscaled errors, +1.16 with the scaled ones.
+  - The unweighted slope is Σ_M w_M c_s,M with w = x²/Σx², and M = 50 alone carries 88 % of this difference: weight 36.8 %, campaign 3.83299 ± 0.01646 (25 seeds) against Test T legacy 3.78592 ± 0.00481 (400 seeds), z = +2.75.
+  - Both data sets come from the same validated engine path (legacy; E0 and § 4.4.8), so the difference is seed statistics.
+- **New:**
+  - The same same-engine comparison, with the argmax estimator, also gives z = −3.25 at M = 1500 and a nine-mass χ² of 24.3 (nominal p 0.004).
+  - With ν_d it gives a largest |z| of 2.14 and χ² 15.4 (p 0.08).
+  - Replay against Test T minimal, both on the minimal path, gives χ² 3.25 with ν_d (p 0.95).
+  - [SOURCE] Test T had `HD_CONTACT_AUDIT=1` and the campaign did not. The contact audit only reads state (`edmd.c:797` "Reads state only"; it writes only its own counters, `edmd.c:817-818`), so it cannot be the difference.
+- [INFERENCE] Between two seed sets of the **same** engine path, the argmax estimator produced a larger |z| (3.25) than Test T's minimal-vs-legacy maximum (3.02). The refined estimator brings the same comparison back to ordinary values.
+- [INFERENCE] This is the strongest evidence so far that the masses flagged by the replay and by Test T are estimator scatter. It does not test M = 300 specifically; Test T-prime does.
+
+**Item 5:** the estimator note is methods § 16 (`260912_paper1_methods.md`, both copies). Its table is the item-5 part of the same script, verbatim:
+
+```
+## Item 5 -- the gas inertia in the registered model, and the light-mass deficit of the plain-fluid baseline (Test T legacy)
+
+| M | alpha = M/(2 N_s m) | gas inertia (2/3) N_s m / M [%] | K, cot K = alpha K (registered) | K_eff = (alpha + 1/3)^(-1/2) | K_eff/K - 1 [%] | w_M [%] | Q, campaign (sec. 13 model) | Q, Test T legacy (4a model, averaged ACF) | -1/(4Q^2) [%] (Test T Q) | deficit, argmax [%] | deficit, nu_d [%] | deficit, nu_0 [%] |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 50 | 0.5 | 66.7 | 1.07687 | 1.09545 | +1.725 | 36.8 | 9.6 | 9.3 | -0.288 | -0.690 +- 0.126 | -0.549 +- 0.078 | -0.424 +- 0.078 |
+| 100 | 1 | 33.3 | 0.86033 | 0.86603 | +0.662 | 23.5 | 15.2 | 13.5 | -0.138 | -0.197 +- 0.208 | +0.002 +- 0.161 | +0.052 +- 0.160 |
+| 200 | 2 | 16.7 | 0.65327 | 0.65465 | +0.212 | 13.5 | 21.6 | 20.3 | -0.061 | +0.051 +- 0.123 | +0.157 +- 0.100 | +0.169 +- 0.100 |
+| 300 | 3 | 11.1 | 0.54716 | 0.54772 | +0.103 | 9.5 | 26.6 | 25.5 | -0.038 | -0.183 +- 0.124 | -0.109 +- 0.077 | -0.109 +- 0.077 |
+| 500 | 5 | 6.7 | 0.43284 | 0.43301 | +0.040 | 5.9 | 30.0 | 32.2 | -0.024 | +0.093 +- 0.106 | +0.104 +- 0.073 | +0.097 +- 0.073 |
+| 750 | 7.5 | 4.4 | 0.35723 | 0.35729 | +0.018 | 4.0 | 34.2 | 40.3 | -0.015 | -0.033 +- 0.088 | -0.014 +- 0.056 | -0.025 +- 0.056 |
+| 1000 | 10 | 3.3 | 0.31105 | 0.31109 | +0.010 | 3.1 | 52.9 | 43.7 | -0.013 | -0.033 +- 0.079 | +0.059 +- 0.050 | +0.047 +- 0.050 |
+| 1500 | 15 | 2.2 | 0.25536 | 0.25538 | +0.005 | 2.1 | 46.9 | 54.9 | -0.008 | +0.239 +- 0.069 | +0.114 +- 0.049 | +0.100 +- 0.049 |
+| 2000 | 20 | 1.7 | 0.22176 | 0.22177 | +0.003 | 1.6 | 69.1 | 64.9 | -0.006 | +0.028 +- 0.061 | +0.014 +- 0.043 | -0.002 +- 0.043 |
+
+weighted slopes (Test T legacy): argmax 3.81224, nu_d 3.81215, nu_0 3.81286; deficit = c_s,M / (that slope) - 1, SE from the seeds; nu_0 = sqrt(nu_d^2 + (1/(2 pi tau_r))^2) with tau_r from the fit of the mass's seed-averaged ACF
+single-c_s chi2 at the weighted slope, argmax: 46.6 (8 dof, p 1.84e-07)
+single-c_s chi2 at the weighted slope, nu_d: 63.2 (8 dof, p 1.08e-10)
+single-c_s chi2 at the weighted slope, nu_0: 41.7 (8 dof, p 1.57e-06)
+```
+
+**Item 6: commits and KOA steps.**
+- **Commits.** The tooling, the task list and these notes are on the branch. Identical copies of the notes and of the gate and validation tooling are on main. The engine is unchanged (7b08827 = branch head for every engine file).
+- **KOA steps:** runsheet § 13, in this order:
+  1. update the clone in a sandbox and check that the binary is still the Test T binary;
+  2. the T-prime array;
+  3. the ASan job;
+  4. the checks;
+  5. the fetch.
+- **Stop rules as before:**
+  - `squeue -u charing` before every `sbatch`;
+  - never submit twice;
+  - at most 32 cores (here 16 + 4);
+  - anything unexpected: stop and paste, and do not resubmit.
