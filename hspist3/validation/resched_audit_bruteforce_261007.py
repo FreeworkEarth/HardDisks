@@ -60,16 +60,36 @@ def true_time(d):
     return None, "unknown type"
 
 
-def report(lines, out=print):
+def report(lines, out=print, table=True):
+    """Per reported event: the true earliest contact, both schedule times against it, and the error RELATIVE to the
+    prediction horizon (t_true - now): rounding of a double prediction gives ~1e-16 to 1e-13 of the horizon, a wrong event
+    gives order 1. Summary: the largest relative errors, and the number of events no true contact supports."""
     rows = [p for p in (parse(l) for l in lines) if p]
     if not rows:
         out("(no [EDMD-AUDIT-EV] lines: no mismatch was reported)"); return 0
-    out("| kind | type | a | b/d | now | t_legacy - t_true | t_heap - t_true | brute force |\n|---|---|---|---|---|---|---|---|")
+    if table:
+        out("| kind | type | a | b/d | now | horizon t_true - now | t_legacy - t_true | t_heap - t_true | heap error / horizon | brute force |")
+        out("|---|---|---|---|---|---|---|---|---|---|")
+    worst_h = worst_l = 0.0; unsupported = 0; hmax = 0.0
     for d in rows:
         tt, note = true_time(d)
-        f = lambda v: "absent" if str(v).lower() == "nan" else (f"{float(v - tt):+.3e}" if tt is not None else f"{float(v):.6f} (no true contact)")
-        out(f"| {d['kind']} | {d['type']} | {d['a']} | {d.get('b', d.get('d', '-'))} | {float(d['now']):.6f} | {f(d['t_legacy'])} | "
-            f"{f(d['t_heap'])} | {('t_true = ' + format(float(tt), '.9f') + '; ') if tt is not None else ''}{note} |")
+        if tt is None:
+            unsupported += 1
+            if table: out(f"| {d['kind']} | {d['type']} | {d['a']} | {d.get('b', d.get('d', '-'))} | {float(d['now']):.6f} | - | "
+                          f"{d['t_legacy']} | {d['t_heap']} | - | NO TRUE CONTACT: {note} |")
+            continue
+        hz = tt - d["now"]; hmax = max(hmax, float(hz))
+        el = None if str(d["t_legacy"]).lower() == "nan" else abs(d["t_legacy"] - tt)
+        eh = None if str(d["t_heap"]).lower() == "nan" else abs(d["t_heap"] - tt)
+        rel = lambda e: float(e / hz) if (e is not None and hz > 0) else float("nan")
+        if eh is not None and hz > 0: worst_h = max(worst_h, rel(eh))
+        if el is not None and hz > 0: worst_l = max(worst_l, rel(el))
+        if table:
+            out(f"| {d['kind']} | {d['type']} | {d['a']} | {d.get('b', d.get('d', '-'))} | {float(d['now']):.6f} | {float(hz):.4e} | "
+                f"{'absent' if el is None else format(float(d['t_legacy'] - tt), '+.3e')} | {'absent' if eh is None else format(float(d['t_heap'] - tt), '+.3e')} | "
+                f"{rel(eh):.2e} | {note} |")
+    out(f"\nbrute-force summary over {len(rows)} reported events: largest |t_heap - t_true| / horizon = {worst_h:.2e}; "
+        f"largest |t_legacy - t_true| / horizon = {worst_l:.2e}; longest horizon {hmax:.3e} px-time; events with no true contact: {unsupported}")
     return len(rows)
 
 

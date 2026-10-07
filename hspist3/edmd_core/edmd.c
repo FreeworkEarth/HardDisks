@@ -49,10 +49,12 @@ static int g_edmd_contact_audit = -1;
    scratch heap -- walls, dividers and pistons of every disk and all N(N-1)/2 pairs, as reschedule_all_internal does, but
    WITHOUT grid_build -- and compared event by event with the LIVE events of the real heap (event_live): legacy events the
    heap lacks ("missing"), live heap events the legacy schedule lacks ("extra"), and common events whose absolute times
-   differ by more than 1e-9 px-time. Read-only: the real heap is swapped out and back untouched, and the two counters the
-   scheduling functions bump (overlap_repair_count, wall_overdue_count) are restored, so the audit cannot steer. Counts are
-   kept in S and printed by the driver; the first 50 mismatches are printed with the particles' state at %.17g for an
-   independent high-precision recomputation (validation/resched_audit_bruteforce_261007.py). */
+   differ by more than 1e-9 px-time; of those, also the ones whose difference exceeds 1e-10 of the prediction horizon
+   (t_legacy - now): rounding of a correct prediction stays near 1e-16 to 1e-13 of its horizon, a wrong event is order 1.
+   Read-only: the real heap is swapped out and back untouched, and the two counters the scheduling functions bump
+   (overlap_repair_count, wall_overdue_count) are restored, so the audit cannot steer. Counts are kept in S and printed by
+   the driver; every mismatch (up to 100000 per run) is printed with the particles' state at %.17g for an independent
+   high-precision recomputation (validation/resched_audit_bruteforce_261007.py). */
 static int g_edmd_resched_audit = 0;
 void edmd_set_resched_audit(int mode){ g_edmd_resched_audit = mode; }
 int  edmd_resched_audit_mode(void){ return g_edmd_resched_audit; }
@@ -187,8 +189,9 @@ struct EDMD {
     Heap   audit_heap;                  /* scratch heap for the legacy schedule of the current state */
     double *audit_tl, *audit_tm;        /* per-key times: legacy schedule, live minimal heap (NAN = absent) */
     long   audit_cap;                   /* size of the two key tables */
-    long   audit_n, audit_cmp, audit_missing, audit_extra, audit_dt, audit_dupdis, audit_printed;
+    long   audit_n, audit_cmp, audit_missing, audit_extra, audit_dt, audit_dupdis, audit_printed, audit_dtrel;
     double audit_maxdt;                 /* max |t_legacy - t_heap| over matched events */
+    double audit_maxrel;                /* max |t_legacy - t_heap| / (t_legacy - now) over matched events with |dt| > 1e-9 */
 };
 
 static inline int edmd_trace_active(const EDMD* S){
@@ -893,9 +896,14 @@ static void edmd_resched_audit_run(EDMD* S){
         else {
             const double d = fabs(tl - tm); S->audit_cmp++;
             if (d > S->audit_maxdt) S->audit_maxdt = d;
-            if (d > 1e-9) { S->audit_dt++; kind = "dt"; }
+            if (d > 1e-9) {
+                const double hz = tl - S->t, rel = hz > 0.0 ? d / hz : INFINITY;
+                S->audit_dt++; kind = "dt";
+                if (rel > S->audit_maxrel) S->audit_maxrel = rel;
+                if (rel > 1e-10) { S->audit_dtrel++; kind = "dt_rel"; }
+            }
         }
-        if (kind && S->audit_printed < 50) { S->audit_printed++; audit_print(S, kind, k, tl, tm); }
+        if (kind && S->audit_printed < 100000) { S->audit_printed++; audit_print(S, kind, k, tl, tm); }
     }
     S->audit_n++;
 }
@@ -1854,10 +1862,11 @@ long edmd_clamp_repair_count(const EDMD* S){
 long edmd_past_event_count(const EDMD* S){ return S ? S->past_event_count : 0; }   /* ##CHRIS 2026-10-05 */
 /* ##CHRIS 2026-10-07: schedule-equivalence audit results (--resched-audit). out: audited events, matched comparisons,
    missing, extra, |dt| > 1e-9, duplicate live events disagreeing by > 1e-9; *maxdt = max |dt| over matched events. */
-void edmd_resched_audit_stats(const EDMD* S, long out[6], double* maxdt){
+void edmd_resched_audit_stats(const EDMD* S, long out[7], double* maxdt, double* maxrel){
     out[0] = S ? S->audit_n : 0; out[1] = S ? S->audit_cmp : 0; out[2] = S ? S->audit_missing : 0;
     out[3] = S ? S->audit_extra : 0; out[4] = S ? S->audit_dt : 0; out[5] = S ? S->audit_dupdis : 0;
-    *maxdt = S ? S->audit_maxdt : 0.0;
+    out[6] = S ? S->audit_dtrel : 0;
+    *maxdt = S ? S->audit_maxdt : 0.0; *maxrel = S ? S->audit_maxrel : 0.0;
 }
 /* ##CHRIS 2026-10-05: contact audit results (HD_CONTACT_AUDIT); returns the number of audited events */
 long edmd_contact_audit_stats(const EDMD* S, double max_gap_px[4]){

@@ -29,7 +29,8 @@ sys.path.insert(0, CL); sys.path.insert(0, os.path.join(HS, "validation")); sys.
 import tests_20260913 as T
 
 AUD = re.compile(r"\[EDMD-AUDIT\] mode (\d): audited events (\d+); matched comparisons (\d+); missing (\d+); extra (\d+); "
-                 r"\|dt\| > 1e-9 (\d+); duplicate live events disagreeing (\d+); max \|dt\| over matched (\S+)")
+                 r"\|dt\| > 1e-9 (\d+); duplicate live events disagreeing (\d+); max \|dt\| over matched (\S+); "
+                 r"\|dt\| > 1e-9 and > 1e-10 of the horizon (\d+); max \|dt\|/horizon (\S+)")
 CON = re.compile(r"\[EDMD-CONTACT\] executed events (\d+); max abs\(contact distance\) \[px\]: disk-disk (\S+), outer walls (\S+), "
                  r"divider (\S+), pistons (\S+)\n")
 CASES = ["free_M50", "free_M500", "free_M1500", "free_M2000", "afix", "dense_M50", "dense_M2000", "ctrl_min", "ctrl_leg"]
@@ -112,27 +113,31 @@ def report(a):
     a.out = os.path.abspath(a.out)
     print(f"## Schedule-equivalence audit and contact audit ({a.out})\n")
     print("| case | version (audit run) | mode | audited events | matched | missing | extra | abs(dt) > 1e-9 | duplicate live disagreeing | "
-          "max abs(dt) matched | max contact gap [px] (dd, wall, div, piston) | audit vs plain | plain vs ref |")
-    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
-    viol = 0; evlines = []
+          "max abs(dt) matched | abs(dt) > 1e-9 and > 1e-10 of horizon | max abs(dt)/horizon | max contact gap [px] (dd, wall, div, piston) | "
+          "audit vs plain | plain vs ref |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    viol = 0; viol_rel = 0; evlines = []
     for case in [c for c in CASES if os.path.isdir(os.path.join(a.out, c))]:
         da, dp, dr = (os.path.join(a.out, case, v) for v in ("audit", "plain", "ref"))
         log = open(os.path.join(da, "run.log"), errors="ignore").read(); m = AUD.search(log); c = CON.search(log)
         ver = open(os.path.join(da, "version.txt")).read().split("\n")[0].replace("00ALLINONE  ", "")
         if not m:
             print(f"| {case} | {ver} | **no [EDMD-AUDIT] line** | | | | | | | | | | |"); viol += 1; continue
-        mode, n, cmp_, miss, ext, dtn, dup, mx = m.groups()
-        if mode == "1" and case != "ctrl_leg": viol += int(miss) + int(ext) + int(dtn)
+        mode, n, cmp_, miss, ext, dtn, dup, mx, dtr, mr = m.groups()
+        if mode == "1" and case != "ctrl_leg": viol += int(miss) + int(ext) + int(dtn); viol_rel += int(miss) + int(ext) + int(dtr)
         evlines += [f"{case}: {l}" for l in log.split("\n") if l.startswith("[EDMD-AUDIT-EV]")]
         cg = ", ".join(f"{float(v):.1e}" for v in c.groups()[1:]) if c else "**none**"
-        print(f"| {case} | {ver} | {mode} | {n} | {cmp_} | {miss} | {ext} | {dtn} | {dup} | {float(mx):.2e} | {cg} | {same(da, dp)} | "
+        print(f"| {case} | {ver} | {mode} | {n} | {cmp_} | {miss} | {ext} | {dtn} | {dup} | {float(mx):.2e} | {dtr} | {float(mr):.2e} | {cg} | {same(da, dp)} | "
               f"{same(dp, dr) if os.path.isdir(dr) else 'n/a'} |")
     print(f"\nRULE (mode-1 audits of the minimal path): missing + extra + (abs(dt) > 1e-9) summed over all runs = {viol} -> "
           f"{'ZERO: the minimal schedule equals the legacy schedule on these trajectories' if viol == 0 else 'NON-ZERO: defect in the schedule logic by the rule'}")
+    print(f"same with the relative criterion (abs(dt) > 1e-9 AND > 1e-10 of the prediction horizon; information, not registered): {viol_rel}")
     print("\n### Every reported event, recomputed at 60 digits (validation/resched_audit_bruteforce_261007.py)\n")
     if evlines:
-        print("| case | " + "line |\n|---|---|"); [print(f"| {l[:240]} |") for l in evlines[:60]]
-        print(); bf([l.split(": ", 1)[1] for l in evlines])
+        print("(the first 50 reported events of each run; the engine counts all of them, see the table above)\n")
+        for case in sorted({l.split(": ", 1)[0] for l in evlines}, key=CASES.index):
+            print(f"**{case}**"); bf([l.split(": ", 1)[1] for l in evlines if l.startswith(case + ": ")], table=False)
+        print("\nfirst 12 events in full:\n"); bf([l.split(": ", 1)[1] for l in evlines[:12]])
     else:
         print("(no [EDMD-AUDIT-EV] line in any run)")
 

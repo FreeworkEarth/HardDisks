@@ -2009,10 +2009,11 @@ static void edmd_energy_audit(const char* where){
 static void edmd_contact_report(void){
     /* ##CHRIS 2026-10-07: the schedule-equivalence audit's counts (--resched-audit), printed at the same point */
     if (cli_resched_audit && g_edmd && !g_edmd_is_acc) {
-        long a[6]; double mx;
-        edmd_resched_audit_stats(g_edmd, a, &mx);
+        long a[7]; double mx, mr;
+        edmd_resched_audit_stats(g_edmd, a, &mx, &mr);
         printf("[EDMD-AUDIT] mode %d: audited events %ld; matched comparisons %ld; missing %ld; extra %ld; |dt| > 1e-9 %ld; "
-               "duplicate live events disagreeing %ld; max |dt| over matched %.3e\n", cli_resched_audit, a[0], a[1], a[2], a[3], a[4], a[5], mx);
+               "duplicate live events disagreeing %ld; max |dt| over matched %.3e; |dt| > 1e-9 and > 1e-10 of the horizon %ld; "
+               "max |dt|/horizon %.3e\n", cli_resched_audit, a[0], a[1], a[2], a[3], a[4], a[5], mx, a[6], mr);
         fflush(stdout);
     }
     if (getenv("HD_CONTACT_AUDIT") == NULL || !g_edmd || g_edmd_is_acc) return;
