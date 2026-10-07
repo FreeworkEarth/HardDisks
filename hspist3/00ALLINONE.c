@@ -1175,6 +1175,7 @@ static EDMD* g_edmd = NULL;
 static int   cli_edmd_acc = 0;          // --edmd-acc: use accelerated EDMD backend (if linked)
 static int   g_edmd_is_acc = 0;         // backend used for current g_edmd instance
 static int   cli_legacy_resched = 0;    // ##CHRIS 2026-10-05: --legacy-resched: full O(N^2) reschedule after divider events (pre-engine-divider-resched behaviour)
+static int   cli_resched_audit = 0;     // ##CHRIS 2026-10-07: --resched-audit[=all]: schedule-equivalence audit (1 divider events, 2 all events); diagnostics only
 static int   cli_force_kbt_one = 0; // --kbt1: force K_B*T == 1 (reduced units)
 /* ##CHRIS: --seed-drift-order=old|drift-first (default old).
    "old" is the historical order: rescale each compartment to N_s kT, THEN remove
@@ -1229,12 +1230,15 @@ static inline EDMD* edmd_backend_create(const EDMD_Params* prm) {
     /* ##CHRIS 2026-10-05: divider rescheduling policy of the default backend, recorded once per
        process in the run log (the summary CSV also carries the full command line). */
     edmd_set_legacy_resched(cli_legacy_resched);
+    edmd_set_resched_audit(cli_resched_audit);   /* ##CHRIS 2026-10-07 */
     {
         static int resched_printed = 0;
         if (!resched_printed) {
             resched_printed = 1;
-            printf("[EDMD-RESCHED] divider events: %s%s\n",
+            printf("[EDMD-RESCHED] divider events: %s%s%s\n",
                    cli_legacy_resched ? "legacy (full reschedule, --legacy-resched)" : "minimal (default)",
+                   cli_resched_audit == 0 ? "" : (cli_resched_audit == 1 ? "; schedule audit after divider events (--resched-audit)"
+                                                                         : "; schedule audit after every event (--resched-audit=all)"),
                    g_edmd_is_acc ? " -- NOTE: accelerated backend active, policy applies to the default backend only" : "");
         }
     }
@@ -2003,6 +2007,14 @@ static void edmd_energy_audit(const char* where){
 /* ##CHRIS 2026-10-05 (engine gate G-E2/G-E3): the engine's contact audit, printed once at the end of a run when
    HD_CONTACT_AUDIT is set (default backend only; the accelerated backend has no audit). Print only. */
 static void edmd_contact_report(void){
+    /* ##CHRIS 2026-10-07: the schedule-equivalence audit's counts (--resched-audit), printed at the same point */
+    if (cli_resched_audit && g_edmd && !g_edmd_is_acc) {
+        long a[6]; double mx;
+        edmd_resched_audit_stats(g_edmd, a, &mx);
+        printf("[EDMD-AUDIT] mode %d: audited events %ld; matched comparisons %ld; missing %ld; extra %ld; |dt| > 1e-9 %ld; "
+               "duplicate live events disagreeing %ld; max |dt| over matched %.3e\n", cli_resched_audit, a[0], a[1], a[2], a[3], a[4], a[5], mx);
+        fflush(stdout);
+    }
     if (getenv("HD_CONTACT_AUDIT") == NULL || !g_edmd || g_edmd_is_acc) return;
     double g[4];
     const long n = edmd_contact_audit_stats(g_edmd, g);
@@ -3531,6 +3543,7 @@ static void print_cli_usage(const char *exe_name) {
     printf("  --kbt1                      Force k_B*T = 1 (reduced units); adjusts k_B at runtime\n");
     printf("  --edmd-acc=0|1              Use accelerated EDMD backend (requires it built-in; default 0)\n");
     printf("  --legacy-resched            EDMD: full O(N^2) reschedule after every divider event (old behaviour; default: minimal)\n");   /* ##CHRIS 2026-10-05 */
+    printf("  --resched-audit[=all]       EDMD diagnostics: compare the live schedule with a legacy full schedule after divider (or all) events\n");   /* ##CHRIS 2026-10-07 */
     printf("  --mode=NAME                 time (default) | rk4 | edmd | edmd-hybrid | hybrid | event-split\n");
     printf("  --help                      Show this help message and exit\n");
 }
@@ -4587,6 +4600,10 @@ static void parse_cli_options(int argc, char **argv) {
             time_scale_runtime = v;
         } else if (strcmp(arg, "--legacy-resched") == 0) {   /* ##CHRIS 2026-10-05 */
             cli_legacy_resched = 1;
+        } else if (strcmp(arg, "--resched-audit") == 0) {    /* ##CHRIS 2026-10-07 */
+            cli_resched_audit = 1;
+        } else if (strcmp(arg, "--resched-audit=all") == 0) {
+            cli_resched_audit = 2;
         } else if (strcmp(arg, "--edmd-acc") == 0) {
             cli_edmd_acc = 1;
         } else if (strncmp(arg, "--edmd-acc", strlen("--edmd-acc")) == 0) {

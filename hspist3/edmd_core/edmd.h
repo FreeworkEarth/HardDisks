@@ -129,6 +129,11 @@ long   edmd_past_event_count(const EDMD* S);
 /* contact audit (HD_CONTACT_AUDIT set): max |contact distance| in px at executed events, per class
    [0] disk-disk, [1] outer walls, [2] divider faces, [3] pistons; returns the number of audited events */
 long   edmd_contact_audit_stats(const EDMD* S, double max_gap_px[4]);
+/* ##CHRIS 2026-10-07: schedule-equivalence audit (--resched-audit); mode 0 off, 1 after divider events, 2 after every event.
+   stats: out[0] audited events, [1] matched comparisons, [2] missing, [3] extra, [4] |dt| > 1e-9, [5] duplicate disagreements */
+void   edmd_set_resched_audit(int mode);
+int    edmd_resched_audit_mode(void);
+void   edmd_resched_audit_stats(const EDMD* S, long out[6], double* maxdt);
 
 /* access */
 double                edmd_time(const EDMD* S);
