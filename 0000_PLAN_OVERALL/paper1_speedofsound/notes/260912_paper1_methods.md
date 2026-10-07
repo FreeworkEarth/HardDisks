@@ -1412,3 +1412,92 @@ KR's own c_s maximum on 0.60 <= eta <= 0.7069 (analytic Z'): eta = 0.6834 -> cap
   - the overlay with the environment `paper1_canonical_20260919.py` gives it; its printed table is identical to the § 14.5 run;
   - the melting figure; its printed dip is unchanged (2.827, 9.6σ plotted, 18.4σ propagated), plus the new line `KR drawn: c_s 10.08 to 11.70 on 0.66 <= eta <= 0.705 -> y axis from 9.5`.
 - **Draft pdf rebuilt:** 6 pages, 640839 bytes, 0 undefined references, 6 warnings (all pre-existing), 1 overfull hbox.
+
+## 16. Estimator note: a light-mass term at π/8, and what it does to the unweighted slope (2026-10-07; OPEN; no registered result changes)
+
+Requested by the plan author's third decision of 2026-10-07, item 5 (261012 § 4.4.13). **Nothing below changes a registered estimator or a registered result**; it records what the best plain-fluid data so far say about them, and the choices the plan author has to make.
+
+**Plain summary.**
+- **The deficit.** At η = π/8 the lightest divider (M = 50, α = 0.5) gives an implied sound speed 0.56–0.69 % below the other masses, 4.5–5.5 standard errors. This holds on both rescheduling paths alike, so it is not an engine effect.
+- **The registered unweighted slope** gives the two lightest masses 60 % of the weight. It therefore sits 0.25–0.30 % below the weighted slope.
+- **Not the gas inertia.** The registered model already contains it, exactly: the root of cot K = αK. The decision suggested the effective-mass correction M + 2N_s m/3 as the missing term; it is not missing.
+- **Damping explains part of the deficit.** The spectral peak of a damped mode sits below its undamped frequency by 1/(4Q²): 0.29 % at M = 50. After removing it, −0.42 ± 0.08 % remains at M = 50. That remainder is OPEN.
+
+**Data [DATA].**
+- **Source and cell.** Test T (261012 §§ 4.4.12–4.4.13), cell epi8_H_H10_L10 (η = π/8, H = L_0 = 10, N_s = 50). There are 400 seeds per policy at M = 50 and 100 at each other mass. The quantity is the implied sound speed c_s,M = ν_M / x_M, with the registered x_M and the argmax ν.
+- **M = 50:** 3.79170 ± 0.00478 (minimal path) and 3.78592 ± 0.00481 (legacy path). The weighted single-c_s slopes are 3.81307 ± 0.00115 and 3.81224 ± 0.00116. That gives **−0.56 % (−4.5 SE) and −0.69 % (−5.5 SE)**.
+- **M = 100:** 3.80292 ± 0.00797 and 3.80471 ± 0.00794, i.e. −0.27 % and −0.20 % (−1.3 and −1.0 SE).
+- **M ≥ 200:** within about 2 SE of the weighted slope, with one exception: Test T legacy at M = 1500 sits at +0.24 % (+3.5 SE) with the argmax estimator, and +2.3 SE with the refined ν_d.
+- **Single-c_s fit.** The χ² at the weighted slope (8 dof) is 31.9 for minimal and 46.6 for legacy, both p < 0.001.
+
+**The unweighted slope and the light masses [DERIVATION].**
+- **The weights.** The registered c_s = Σ x_M ν_M / Σ x_M² = Σ_M w_M c_s,M, with w_M = x_M² / Σ x². For this cell w = 36.8 % at M = 50, 23.5 % at 100 and 13.5 % at 200, falling to 1.6 % at 2000 (table, column w_M). The two lightest masses carry 60 %.
+- **Effect at Test T precision.** Unweighted minus weighted is −0.245 % (minimal) and −0.302 % (legacy).
+- **Effect at 25 seeds.** The sign follows the M = 50 fluctuation: the campaign anchor gives +0.248 %, and its M = 50 sat 2.75 SE above Test T's; the replay gives −0.180 % (261012 § 4.4.13 item 4c).
+
+**The gas inertia is already in the registered model [SOURCE].**
+- **Decision 3's hypothesis.** It named the gas-inertia correction M + 2N_s m/3 (+67 % at M = 50, +1.7 % at M = 2000) as the likely missing light-mass term.
+- **What the registered estimators use** is the exact root:
+  - `validation/paper1_confinement_results_261004.py:8`: "x = K(alpha)/(2 pi L_eff,true), cot K = alpha K). alpha = M/(2 N_s m)".
+  - `:202`: `rows.append(dict(M=M, alpha=al, K=T.k_root(al), ...`.
+  - `:205`: `x = np.array([r["K"] / (2 * math.pi * LeT) for r in rows])`.
+  - `validation/tests_20260913.py:144-149`, `k_root`: bisection on `math.cos(mid) / math.sin(mid) - alpha * mid`.
+  - The same holds for the canonical A1 v2 table: `tests_20260913.py:182-183` (`x_of` = `k_root(M / (2.0 * N_SIDE)) / (2 * math.pi * l_eff(L0, wall_t))`), used at `paper1_populate_cs_err_20261002.py:136` and `:158`.
+- **What cot K = αK contains.** It is the eigenvalue condition of a piston between two gas columns in linear acoustics, and it contains the gas inertia to all orders.
+- **Where M + 2N_s m/3 comes from.** It is the α ≫ 1 limit of that root, K ≈ (α + 1/3)^(−1/2). It enters only the k_S^dyn identity, at α ≥ 5 (`paper1_confinement_results_261004.py:300`, `:303`: `Mh = r["M"] + 2.0 * c["Ns"] / 3.0`), where it is within 0.04 % of the exact root (table).
+- **At α = 0.5** the effective-mass root would be 1.725 % too high. The registered c_s does not use it.
+- So the light-mass deficit is a term **beyond** the continuum gas inertia. [INFERENCE] The project's own eigenvalue equation already covers α = 0.5. The effective-mass form is its heavy-divider limit, and taking it as the missing term would apply a formula outside its regime.
+
+**Table**, printed by `cd hspist3 && python3 validation/resched_testT_followup_261007.py` (the item-5 part), verbatim:
+
+```
+## Item 5 -- the gas inertia in the registered model, and the light-mass deficit of the plain-fluid baseline (Test T legacy)
+
+| M | alpha = M/(2 N_s m) | gas inertia (2/3) N_s m / M [%] | K, cot K = alpha K (registered) | K_eff = (alpha + 1/3)^(-1/2) | K_eff/K - 1 [%] | w_M [%] | Q, campaign (sec. 13 model) | Q, Test T legacy (4a model, averaged ACF) | -1/(4Q^2) [%] (Test T Q) | deficit, argmax [%] | deficit, nu_d [%] | deficit, nu_0 [%] |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 50 | 0.5 | 66.7 | 1.07687 | 1.09545 | +1.725 | 36.8 | 9.6 | 9.3 | -0.288 | -0.690 +- 0.126 | -0.549 +- 0.078 | -0.424 +- 0.078 |
+| 100 | 1 | 33.3 | 0.86033 | 0.86603 | +0.662 | 23.5 | 15.2 | 13.5 | -0.138 | -0.197 +- 0.208 | +0.002 +- 0.161 | +0.052 +- 0.160 |
+| 200 | 2 | 16.7 | 0.65327 | 0.65465 | +0.212 | 13.5 | 21.6 | 20.3 | -0.061 | +0.051 +- 0.123 | +0.157 +- 0.100 | +0.169 +- 0.100 |
+| 300 | 3 | 11.1 | 0.54716 | 0.54772 | +0.103 | 9.5 | 26.6 | 25.5 | -0.038 | -0.183 +- 0.124 | -0.109 +- 0.077 | -0.109 +- 0.077 |
+| 500 | 5 | 6.7 | 0.43284 | 0.43301 | +0.040 | 5.9 | 30.0 | 32.2 | -0.024 | +0.093 +- 0.106 | +0.104 +- 0.073 | +0.097 +- 0.073 |
+| 750 | 7.5 | 4.4 | 0.35723 | 0.35729 | +0.018 | 4.0 | 34.2 | 40.3 | -0.015 | -0.033 +- 0.088 | -0.014 +- 0.056 | -0.025 +- 0.056 |
+| 1000 | 10 | 3.3 | 0.31105 | 0.31109 | +0.010 | 3.1 | 52.9 | 43.7 | -0.013 | -0.033 +- 0.079 | +0.059 +- 0.050 | +0.047 +- 0.050 |
+| 1500 | 15 | 2.2 | 0.25536 | 0.25538 | +0.005 | 2.1 | 46.9 | 54.9 | -0.008 | +0.239 +- 0.069 | +0.114 +- 0.049 | +0.100 +- 0.049 |
+| 2000 | 20 | 1.7 | 0.22176 | 0.22177 | +0.003 | 1.6 | 69.1 | 64.9 | -0.006 | +0.028 +- 0.061 | +0.014 +- 0.043 | -0.002 +- 0.043 |
+
+weighted slopes (Test T legacy): argmax 3.81224, nu_d 3.81215, nu_0 3.81286; deficit = c_s,M / (that slope) - 1, SE from the seeds; nu_0 = sqrt(nu_d^2 + (1/(2 pi tau_r))^2) with tau_r from the fit of the mass's seed-averaged ACF
+single-c_s chi2 at the weighted slope, argmax: 46.6 (8 dof, p 1.84e-07)
+single-c_s chi2 at the weighted slope, nu_d: 63.2 (8 dof, p 1.08e-10)
+single-c_s chi2 at the weighted slope, nu_0: 41.7 (8 dof, p 1.57e-06)
+```
+
+**Damping accounts for part of the deficit [DERIVATION; INFERENCE where marked].**
+- **What the estimator measures.** The registered ν is the periodogram peak (argmax). The continuum model predicts the undamped frequency ν_0.
+- **Two shifts below ν_0** for a mode driven by thermal noise and damped at rate 1/τ_r, with Q = π ν τ_r (methods § 13):
+  - the displacement spectrum peaks at ν_0 √(1 − 1/(2Q²)) ≈ ν_0 (1 − 1/(4Q²));
+  - the ACF oscillates at ν_d = ν_0 √(1 − 1/(4Q²)) ≈ ν_0 (1 − 1/(8Q²)).
+- **Size.** Q is 9.3 at M = 50: from the fit of the seed-averaged ACF of Test T legacy; the campaign's § 13 table gives 9.6. Q rises to 65 at M = 2000. So the argmax peak sits **0.29 % low at M = 50**, 0.14 % at M = 100, 0.06 % at M = 200, and less above.
+- **Measured at M = 50 [DATA, table].** Each against its own weighted slope:
+  - argmax: −0.690 ± 0.126 %;
+  - ν_d (damped cosine with free phase, fitted per trajectory): −0.549 ± 0.078 %;
+  - ν_0 = √(ν_d² + (1/(2π τ_r))²): −0.424 ± 0.078 %.
+- [INFERENCE] The two steps (0.14 % and 0.13 %) are the predicted 1/(8Q²) = 0.14 % each.
+- **M = 100.** The deficit disappears after the correction: ν_0 gives +0.05 ± 0.16 %.
+- **M = 50 keeps −0.42 ± 0.08 % (5.4 SE).** The single-c_s χ² with ν_0 is 41.7 (8 dof).
+
+**OPEN.**
+- **The −0.42 % at α = 0.5 is unexplained.** It is not the gas inertia (in the model), not the damping (removed by ν_0), and not the rescheduling path (both paths alike).
+- [INFERENCE] Candidates, none tested yet:
+  - the length that carries the gas mass in α (the continuum assumes the N_s m spread over L_eff, and only small α feels a different inertial length);
+  - the light divider's own thermal speed, √(kT/M) = 0.14 of the gas's at M = 50 against 0.02 at M = 2000;
+  - a frequency dependence of the effective sound speed at the mode's wavelength, 2π/K ≈ 5.8 L_eff at α = 0.5.
+- **Also OPEN:** whether the melting-window "masses disagree" hint (χ²_red 1.8–14, unweighted) contains the same light-mass term. That needs the window cells' per-mass c_s,M against a plain-fluid baseline.
+
+**Consequences. The decision is the plan author's; nothing is changed here [INFERENCE].**
+1. **Paper 1 reports both estimators,** the registered unweighted slope and the weighted (minimum-χ²) slope, with their difference as a systematic. At Test T precision it is 0.25–0.30 %, unweighted lower. At 25 seeds per mass its sign is set by the M = 50 fluctuation.
+2. **Future campaigns pre-register a better estimator.** The options:
+   - the weighted slope;
+   - a light-mass term (or no α = 0.5 in the c_s fit);
+   - the frequency from the ACF fit instead of the periodogram peak. ν_d has 1.2–1.6× smaller per-seed scatter, needs no bins, and with τ_r gives ν_0, which removes the damping shift.
+3. **The melting pre-registration carries a plain-fluid baseline cell** outside the window, with the same masses. The "masses disagree" hint is judged against it.
+4. **The argmax peak's damping shift −1/(4Q²) can be computed** from the Q that § 13 already measures, and can be stated per cell.
