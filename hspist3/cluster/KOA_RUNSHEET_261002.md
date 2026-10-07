@@ -661,3 +661,139 @@ Then tell CC. The analysis runs `cd hspist3 && python3 validation/resched_gate_2
 ```sh
 printf '%s\n' "00ALLINONE  git 279282b  target koa" > /mnt/lustre/koa/scratch/charing/harddisks/hspist3/.build_generation
 ```
+
+## 12. Engine gate, version 2 (written 2026-10-06 HST = 2026-10-07 on the plan author's clock; 261012 § 4.4.10–4.4.11)
+
+**What it is.** The second, cleaner exam of the faster engine.
+- **The build:** 73fc07f plus one debugging switch (`--resched-audit`). Nothing else in the engine changed.
+- **Where it runs:** from a **third clone**, `~/harddisks_resched2`, into its own data root, `/mnt/lustre/koa/scratch/charing/harddisks_resched2/`.
+- **Untouched:** `~/harddisks` (279282b) and `~/harddisks_resched` (73fc07f). Never `git pull` in either.
+- **The plan author's go** applies once the amendments of § 4.4.11 are committed and pushed.
+
+**Rules for this step.**
+- Run `squeue -u charing` before every `sbatch`, and never submit the same job twice.
+- At most 32 cores at once.
+- On the login node, only `cd`, `ls`, `cat`, `tail`, `grep`, `squeue`, `sacct` and `sbatch`.
+- If anything below is not what is expected: stop and paste it.
+
+**0. Mac (repo root).**
+
+```sh
+git push origin main
+git push origin engine-divider-resched
+git log --oneline -1 engine-divider-resched
+```
+
+Note the hash from the last line; KOA must show the same hash.
+
+**1. KOA, sandbox session: clone and build.**
+
+```sh
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+```
+
+Then, at the `cn-...` prompt:
+
+```sh
+cd ~
+git clone --depth 1 --branch engine-divider-resched --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_resched2
+cd harddisks_resched2
+git sparse-checkout set --no-cone "/hspist3/*.c" "/hspist3/*.h" "/hspist3/*.py" "/hspist3/Makefile" "/hspist3/edmd_core/" "/hspist3/cluster/" "/hspist3/validation/" "/hspist3/kissfft"
+git clone https://github.com/mborgerding/kissfft.git hspist3/kissfft
+git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec
+git log --oneline -1
+cd hspist3 && mkdir -p logs
+bash cluster/build_koa.sh
+./00ALLINONE --version
+exit
+```
+
+- **Expected:**
+  - `git log` prints the hash of step 0;
+  - the build ends with `BUILD OK`;
+  - `--version` prints `00ALLINONE  git <that hash>  target koa`.
+
+**2. Same-node determinism (E1).** From `~/harddisks_resched2/hspist3`:
+
+```sh
+sbatch cluster/koa_smoketest.sh
+```
+
+When `squeue -u charing` is empty:
+
+```sh
+tail -30 logs/conf-smoke_*.out
+```
+
+- **Expected:** `determinism self-test ...: IDENTICAL`.
+- **Expected, and NOT a failure of gate v2:** `c_s = 3.74424 +- 0.06756`, the same per-mass table as the 73fc07f smoke test (M = 50: 0.07040729 … M = 2000: 0.01506197), and `SMOKE TEST FAILED -- STOP`. It is the identical trajectory, because the audit switch is off. Carry on to step 3.
+- **If c_s is any other number:** E0 is violated. Stop and paste.
+- **If determinism is not IDENTICAL:** stop.
+
+**3. Cross-node determinism (E1).**
+
+```sh
+sbatch cluster/koa_crossnode_det.sh
+```
+
+Then:
+
+```sh
+tail -5 logs/det-xnode_*.out
+```
+
+- **Expected:** `... different nodes): IDENTICAL`.
+
+**4. E0 and E2.** Sandbox, 8 cores, up to 1 h.
+
+```sh
+sbatch cluster/resched_gate_261005/e0e2.sbatch
+```
+
+Then:
+
+```sh
+cat logs/resched-e0e2_*.out
+```
+
+- **Expected:** a table whose judged rows all end `ok`, a line of minimum sizes all `yes`, and the last line `E2 (amended): PASS; E0 (...): PASS`.
+- Non-zero numbers in the column `abs(dt) > 1e-9 (engine)` are rounding and are allowed by the amended rule.
+
+**5. Profile (E4).**
+
+```sh
+sbatch cluster/profile_edmd_koa.sh
+```
+
+Then:
+
+```sh
+tail -14 logs/profile-edmd_*.out
+```
+
+- **Expected:** a table with rows `held`, `free` and `dense`, and no `INVALID` line.
+
+**6. Test T (E3).** Shared partition, at most 32 cores, about 8 core-hours.
+
+```sh
+sbatch --array=1-9%4 cluster/resched_gate_261005/testT.sbatch
+```
+
+When `squeue -u charing` is empty:
+
+```sh
+grep -h "task list SHA-256\|done; failures" logs/resched-testT_*.out
+```
+
+- **Expected:**
+  - nine `task list SHA-256 60a00704e168d95bde3bac28ecd7fd4257428d94989c724d3ca294d5076e6be1 (expected 60a00704…)` lines;
+  - nine `testT M=… done; failures: 0` lines.
+- **If any line shows failures:** stop, paste `grep -h FAILED logs/resched-testT_*.out`, and do not resubmit.
+
+**7. Mac (repo root, on main): copy back.**
+
+```sh
+bash hspist3/cluster/resched_gate_261005/fetch_resched2.sh
+```
+
+Then tell CC. The analysis is `python3 validation/resched_testT_261007.py` plus the audit report.

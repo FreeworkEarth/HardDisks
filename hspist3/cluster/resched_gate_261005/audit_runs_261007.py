@@ -21,6 +21,14 @@ energy-transfer ev_, tr_ and red_ files.
 RULE (plan author, written before running): any missing or extra event, or |dt| > 1e-9, in a mode-1 audit of the minimal
 path = a defect in the schedule logic; zero over all runs = the minimal schedule equals the legacy schedule on these
 trajectories. The mode-2 controls are information.
+E2 AS AMENDED (second plan-author decision of 2026-10-07, item 1; it replaces "zero |dt| > 1e-9" for E2 on KOA): zero missing,
+zero extra, zero disagreeing live duplicates; zero events with |dt| > 1e-9 AND |dt| > 1e-8 x (t - now); every event with
+|dt| > 1e-9 recomputed at 60 digits has a true contact with heap error <= 1e-8 of its horizon (all of them are printed by the
+engine, up to 100000 per run; the report checks that the printed count equals the engine's count); minimum sizes: free divider
+lightest and heaviest mass >= 1e5 divider events each (free_M50_long, free_M2000), held divider >= 1e4 (afix), one dense state
+near eta = 0.70 (dense_M50 or dense_M2000); the contact audit <= 1e-6 px in every class of every run. Information: the largest
+relative error per case next to the legacy control's (ctrl_leg), and the count above 1e-10.
+E0: in ctrl_min, ctrl_leg, afix and afix_leg (the G-E2 smoke and A-fixed trajectories on both paths), "plain vs ref" IDENTICAL.
 usage (from hspist3/):
   python3 cluster/resched_gate_261005/audit_runs_261007.py run --bin <new> [--ref-bin <ref>] --out <dir> [--jobs 8] [--cases a,b]
   python3 cluster/resched_gate_261005/audit_runs_261007.py report --out <dir>
@@ -112,6 +120,44 @@ def same(d1, d2):
     return "IDENTICAL" if all(subprocess.run(["cmp", "-s", x, y]).returncode == 0 for x, y in zip(f1, f2)) else "**DIFFERENT**"
 
 
+def e2_amended(out, evlines):
+    """E0 and E2 as amended (2026-10-07, item 1), from the run logs and the printed events."""
+    from resched_audit_bruteforce_261007 import check
+    print("\n### E2 as amended (2026-10-07, item 1) and E0\n")
+    print("| case | mode | audited events | missing | extra | dup. disagreeing | abs(dt) > 1e-9 (engine) | printed | above 1e-8 of horizon (dt) | "
+          "no true contact | heap error > 1e-8 of horizon | largest heap error / horizon | count above 1e-10 | max contact [px] | plain vs ref | E2 row |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    ok = True; worst = {}; seen = set()
+    for case in [c for c in CASES if os.path.isdir(os.path.join(out, c))]:
+        log = open(os.path.join(out, case, "audit", "run.log"), errors="ignore").read(); m = AUD.search(log); c = CON.search(log)
+        if not m: print(f"| {case} | **no audit line** |"); ok = False; continue
+        mode, n, cmp_, miss, ext, dtn, dup, mx, dtr, mr = m.groups()
+        lines = [l.split(": ", 1)[1] for l in evlines if l.startswith(case + ": ")]
+        nn, noc, above, w, r8, r10 = check(lines, 1e-8); worst[case] = w
+        cmax = max(float(v) for v in c.groups()[1:]) if c else float("nan")
+        dr = os.path.join(out, case, "ref"); ident = same(os.path.join(out, case, "plain"), dr) if os.path.isdir(dr) else "n/a"
+        judged = mode == "1" and case not in ("ctrl_leg", "afix_leg")
+        good = int(miss) == 0 and int(ext) == 0 and int(dup) == 0 and r8 == 0 and noc == 0 and above == 0 and nn == int(dtn) and (cmax <= 1e-6)
+        if judged: ok &= good; seen.add(case)
+        print(f"| {case} | {mode} | {n} | {miss} | {ext} | {dup} | {dtn} | {nn} | {r8} | {noc} | {above} | {w:.2e} | {r10} | {cmax:.1e} | {ident} | "
+              f"{'information' if not judged else ('ok' if good else '**NO**')} |")
+    need = {"free_M50_long": 1e5, "free_M2000": 1e5, "afix": 1e4}
+    sizes = {}
+    for case, lim in need.items():
+        m = AUD.search(open(os.path.join(out, case, "audit", "run.log"), errors="ignore").read()) if os.path.isdir(os.path.join(out, case)) else None
+        sizes[case] = (int(m.group(2)) if m else 0, lim)
+    dense = any(os.path.isdir(os.path.join(out, c)) for c in ("dense_M50", "dense_M2000"))
+    size_ok = all(v >= lim for v, lim in sizes.values()) and dense
+    e0 = [c for c in ("ctrl_min", "ctrl_leg", "afix", "afix_leg") if os.path.isdir(os.path.join(out, c, "ref"))]
+    e0_ok = len(e0) == 4 and all(same(os.path.join(out, c, "plain"), os.path.join(out, c, "ref")) == "IDENTICAL" for c in e0)
+    print(f"\nminimum sizes: " + "; ".join(f"{c} {v} audited (>= {lim:g}: {'yes' if v >= lim else 'NO'})" for c, (v, lim) in sizes.items())
+          + f"; dense state present: {'yes' if dense else 'NO'}")
+    print(f"largest heap error / horizon, minimal-path mode-1 cases: {max([worst[c] for c in seen], default=float('nan')):.2e}; "
+          f"legacy control (ctrl_leg): {worst.get('ctrl_leg', float('nan')):.2e}")
+    print(f"E2 (amended): {'PASS' if ok and size_ok else 'FAIL'}; E0 (plain vs ref IDENTICAL in {', '.join(e0) or 'none'}): "
+          f"{'PASS' if e0_ok else 'FAIL (or not run)'}")
+
+
 def report(a):
     from resched_audit_bruteforce_261007 import report as bf
     a.out = os.path.abspath(a.out)
@@ -133,6 +179,7 @@ def report(a):
         cg = ", ".join(f"{float(v):.1e}" for v in c.groups()[1:]) if c else "**none**"
         print(f"| {case} | {ver} | {mode} | {n} | {cmp_} | {miss} | {ext} | {dtn} | {dup} | {float(mx):.2e} | {dtr} | {float(mr):.2e} | {cg} | {same(da, dp)} | "
               f"{same(dp, dr) if os.path.isdir(dr) else 'n/a'} |")
+    e2_amended(a.out, evlines)
     print(f"\nRULE (mode-1 audits of the minimal path): missing + extra + (abs(dt) > 1e-9) summed over all runs = {viol} -> "
           f"{'ZERO: the minimal schedule equals the legacy schedule on these trajectories' if viol == 0 else 'NON-ZERO: defect in the schedule logic by the rule'}")
     print(f"same with the relative criterion (abs(dt) > 1e-9 AND > 1e-10 of the prediction horizon; information, not registered): {viol_rel}")
