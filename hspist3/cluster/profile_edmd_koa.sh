@@ -43,11 +43,14 @@ PERF=$(command -v perf || true)
 if [ -n "$PERF" ] && perf stat -e task-clock true >/dev/null 2>&1; then echo "perf: $PERF (usable)"; else echo "perf: not usable -- wall clock only"; PERF=""; fi
 lscpu | awk -F: '/Model name/{gsub(/^ +/,"",$2); print "cpu: " $2; exit}'; echo "node: $(hostname)"
 printf 'kind\ttag\tN\tpolicy\twall_s\tdiv_events\twall_events\texit\n' > "$OUT/times.tsv"
-for kind in held free; do
- for spec in "H40 10.000000 40.000000 200" "H10 10.000000 10.000000 50"; do
+# ##CHRIS 2026-10-07 (gate v2, E4): a third kind, "dense": a free divider (alpha = 5) near eta = 0.70 (L0 = 269/48 = 5.604167 on
+# the 1/48 grid; H = 10 and 40 at the same N_s/H, so the same eta_true 0.70075), 100 sigma-time held + 100 free (shorter: many more
+# collisions per sigma-time). Its N = 100 -> 400 gain decides the melting-sweep cost.
+for combo in "held H40 10.000000 40.000000 200" "held H10 10.000000 10.000000 50" "free H40 10.000000 40.000000 200" \
+             "free H10 10.000000 10.000000 50" "dense D40 5.604167 40.000000 200" "dense D10 5.604167 10.000000 50"; do
   for policy in minimal legacy; do
-   set -- $spec; tag=$1 L0=$2 H=$3 NS=$4; d="$OUT/${kind}_${tag}_${policy}"; mkdir -p "$d"; cd "$d" || exit 1
-   if [ "$kind" = held ]; then HOLD=42000 POST=60 MF=1000000000; else HOLD=12000 POST=30000 MF=$((5 * 2 * NS)); fi
+   set -- $combo; kind=$1 tag=$2 L0=$3 H=$4 NS=$5; d="$OUT/${kind}_${tag}_${policy}"; mkdir -p "$d"; cd "$d" || exit 1
+   case "$kind" in held) HOLD=42000 POST=60 MF=1000000000 ;; free) HOLD=12000 POST=30000 MF=$((5 * 2 * NS)) ;; dense) HOLD=6000 POST=6000 MF=$((5 * 2 * NS)) ;; esac
    EXTRA=(); [ "$policy" = legacy ] && EXTRA=(--legacy-resched)
    CMD=("$HD_BIN" --mode=edmd --experiment=energy_transfer --headless --quiet --edmd-acc=0 --seed-drift-order=drift-first
         --energy-transfer-summary="$d/summary.csv" --energy-transfer-trace="$d/tr.csv" --trace-every=600
@@ -69,7 +72,6 @@ for kind in held free; do
    fi
    cd "$SLURM_SUBMIT_DIR" || exit 1
   done
- done
 done
 echo; echo "| kind | N = 100 minimal [s] | N = 100 legacy [s] | N = 400 minimal [s] | N = 400 legacy [s] | factor N=100 | factor N=400 | p minimal | p legacy |"
 echo "|---|---|---|---|---|---|---|---|---|"

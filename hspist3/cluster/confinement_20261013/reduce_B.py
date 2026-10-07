@@ -5,7 +5,9 @@ paper1_populate_cs_err_20261002.cell (TD = 200, X_EDGE = 2.5, T._load/_prefix/_s
 so the Mac analysis can use the summaries instead of the traces. acf_runs.npz: the mean-removed position ACF of
 each trajectory to 20 predicted periods (for Gamma = 2/tau_r and P_1 = B, methods sec. 13).
 GATE before use: on the full pilot cell copied back, red_nu.csv must equal cell()'s per-run values exactly.
-usage (from hspist3/): python3 cluster/confinement_20261013/reduce_B.py <cell_dir>"""
+usage (from hspist3/): python3 cluster/confinement_20261013/reduce_B.py <cell_dir> [M ...]
+##CHRIS 2026-10-07 (gate v2, Test T): optional masses after the cell directory -- only those m_<M> directories are reduced, so
+array tasks that run one mass each never write the same red_nu.csv."""
 import glob, os, re, sys
 import numpy as np, pandas as pd
 HS = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -13,7 +15,9 @@ sys.path.insert(0, os.path.join(HS, "validation")); sys.path.insert(0, HS)
 import tests_20260913 as T
 from paper1_populate_cs_err_20261002 import TD, X_EDGE
 cell = sys.argv[1]
+only = {f"m_{m}" for m in sys.argv[2:]}
 for d in sorted(glob.glob(os.path.join(cell, "m_*"))):
+    if only and os.path.basename(d) not in only: continue
     rows, acfs = [], {}
     for p in sorted(glob.glob(os.path.join(d, "wall_x_positions_L0_*_run*.csv"))):
         r = int(re.search(r"_run(\d+)\.csv$", p).group(1))

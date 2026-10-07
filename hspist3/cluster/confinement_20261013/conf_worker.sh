@@ -92,6 +92,10 @@ root_guard || { echo "$* FAILED root build guard"; exit 3; }
 mode=$1; shift
 if [ "$mode" = B ]; then
   rel=$1 M=$2 r=$3 seed=$4 L0=$5 H=$6 NS=$7 stride=$8 base=$9
+  # ##CHRIS 2026-10-07 (gate v2, Test T): optional 10th field = rescheduling policy of this trajectory (minimal | legacy).
+  # Absent: the binary's default, as before. legacy adds --legacy-resched. Anything else refuses the line.
+  pol=${10:-}; EXTRA=()
+  case "$pol" in "" | minimal) ;; legacy) EXTRA=(--legacy-resched) ;; *) echo "B $rel M=$M r=$r FAILED unknown policy '$pol'"; exit 2 ;; esac
   cell="$HD_DATA/$rel"; mkdir -p "$cell"
   guard "$cell" 'wall_x_positions_L0_*_run*.csv' || { echo "B $rel M=$M r=$r FAILED build guard"; exit 3; }
   ls "$cell"/wall_x_positions_L0_*_wallmassfactor_${M}_run${r}.csv >/dev/null 2>&1 && exit 0     # done before
@@ -107,13 +111,13 @@ if [ "$mode" = B ]; then
      --wall-thickness=0.05 --wall-thickness-vis=0.05 --lengths=$L0 --wall-masses=$M --repeats=1 --seed=$base \
      --wall-hold-steps=2000 --fixed-dt=0.4 --target-oscillations=200 --oscillation-safety=1.0 \
      --oscillation-min-steps=10000 --oscillation-max-steps=400000000 --speed-sound-log-stride=$stride \
-     --speed-sound-run-dir="$tmp" --speed-sound-exact-seed=$seed > "$tmp/stdout.log" 2>&1
+     --speed-sound-run-dir="$tmp" --speed-sound-exact-seed=$seed ${EXTRA[@]+"${EXTRA[@]}"} > "$tmp/stdout.log" 2>&1
   rc=$?; cd "$cell" || exit 1; h=$(grep -cE "$HEALTH" "$tmp/stdout.log" 2>/dev/null) || true
   tr=$(ls "$tmp"/wall_x_positions_L0_*_wallmassfactor_${M}_run0.csv 2>/dev/null | head -1)
   if [ "$rc" -ne 0 ] || [ "${h:-0}" -ne 0 ] || [ -z "$tr" ]; then
     echo "B $rel M=$M r=$r FAILED rc=$rc health=${h:-0}"; mv "$tmp" "$cell/.failed_run${r}_$(date +%Y%m%d_%H%M%S)"; exit 1; fi
   mv "$tr" "$cell/$(basename "${tr%run0.csv}")run$r.csv"
-  ( flock 9; { printf '\n##RUN %s run %s seed %s (%s s)\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$r" "$seed" "$((SECONDS-t0))"
+  ( flock 9; { printf '\n##RUN %s run %s seed %s node %s (%s s)\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$r" "$seed" "$(hostname)" "$((SECONDS-t0))"
                sed -e "s/run = 0,/run = $r,/" "$tmp/stdout.log"; } >> "$cell/run.log" ) 9>"$cell/.runlog.lock"
   rm -rf "$tmp"
 elif [ "$mode" = A ]; then

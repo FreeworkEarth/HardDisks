@@ -13,6 +13,8 @@ Cases (all N = 100, fixed seeds):
   dense_M50, dense_M2000   eta ~ 0.70 (H = 10, L_0 = 269/48 = 5.604167, N_s = 50), the speed-of-sound protocol, 25 periods
   ctrl_min, ctrl_leg   the smoke trajectory (M = 50, 25 periods) with the audit after EVERY event (mode 2), minimal and
       legacy: the legacy row shows the |dt| that rounding alone gives for events kept in the heap
+  free_M50_long  (KOA, E2) as free_M50 over 600 periods, so the lightest mass has >= 1e5 divider events
+  afix_leg       (KOA, E0) the A-fixed trajectory on the legacy path
 Variants per case: "audit" (--resched-audit or =all, HD_CONTACT_AUDIT=1), "plain" (no audit flag, HD_CONTACT_AUDIT=1), and
 with --ref-bin "ref" (the reference binary, HD_CONTACT_AUDIT=1). Compared files: speed-of-sound wall trace and psi6 file;
 energy-transfer ev_, tr_ and red_ files.
@@ -33,7 +35,8 @@ AUD = re.compile(r"\[EDMD-AUDIT\] mode (\d): audited events (\d+); matched compa
                  r"\|dt\| > 1e-9 and > 1e-10 of the horizon (\d+); max \|dt\|/horizon (\S+)")
 CON = re.compile(r"\[EDMD-CONTACT\] executed events (\d+); max abs\(contact distance\) \[px\]: disk-disk (\S+), outer walls (\S+), "
                  r"divider (\S+), pistons (\S+)\n")
-CASES = ["free_M50", "free_M500", "free_M1500", "free_M2000", "afix", "dense_M50", "dense_M2000", "ctrl_min", "ctrl_leg"]
+CASES = ["free_M50", "free_M500", "free_M1500", "free_M2000", "afix", "dense_M50", "dense_M2000", "ctrl_min", "ctrl_leg",
+         "free_M50_long", "afix_leg"]   # the last two for KOA (E0/E2): M = 50 over 600 periods (>= 1e5 divider events), A-fixed legacy
 
 
 def sos_cmd(binp, M, out, L0, H, NS, target, eta):
@@ -58,11 +61,12 @@ def afix_cmd(binp, d):
 
 def case_cmd(case, binp, d, variant):
     eta8 = math.pi / 8; L0d = 269 / 48
-    if case.startswith("free_M"): c = sos_cmd(binp, int(case[6:]), d, 10.0, 10.0, 50, 200, eta8)
+    if case == "free_M50_long": c = sos_cmd(binp, 50, d, 10.0, 10.0, 50, 600, eta8)
+    elif case.startswith("free_M"): c = sos_cmd(binp, int(case[6:]), d, 10.0, 10.0, 50, 200, eta8)
     elif case.startswith("dense_M"): c = sos_cmd(binp, int(case[7:]), d, L0d, 10.0, 50, 25, 50 * math.pi * 0.25 / (10.0 * L0d))
-    elif case == "afix": c = afix_cmd(binp, d)
+    elif case in ("afix", "afix_leg"): c = afix_cmd(binp, d)
     else: c = sos_cmd(binp, 50, d, 10.0, 10.0, 50, 25, eta8)
-    if case == "ctrl_leg": c = c + ["--legacy-resched"]
+    if case in ("ctrl_leg", "afix_leg"): c = c + ["--legacy-resched"]
     if variant == "audit": c = c + (["--resched-audit=all"] if case.startswith("ctrl_") else ["--resched-audit"])
     return c
 
@@ -79,7 +83,7 @@ def run(a):
             c = case_cmd(case, binp, d, variant)
             open(os.path.join(d, "version.txt"), "w").write(subprocess.run([binp, "--version"], capture_output=True, text=True).stdout)
             env = dict(os.environ, HD_KE_TRACE="1", HD_CONTACT_AUDIT="1")
-            if case == "afix": env["HD_PISTON_EVENTS"] = os.path.join(d, "ev_9700.csv")
+            if case.startswith("afix"): env["HD_PISTON_EVENTS"] = os.path.join(d, "ev_9700.csv")
             open(os.path.join(d, "command.txt"), "w").write(" ".join(c) + "\n")
             jobs.append((d, c, env))
     procs = []; t0 = time.time()
@@ -90,7 +94,7 @@ def run(a):
         rc = p.wait(); print(f"{os.path.relpath(d, a.out)}: exit {rc}")
     t1 = 312000 * 0.4 / 24.0
     for case in cases:
-        if case != "afix": continue
+        if not case.startswith("afix"): continue
         for d in glob.glob(os.path.join(a.out, case, "*")):
             subprocess.run([sys.executable, os.path.join(CL, "confinement_20261013", "reduce_AF.py"), f"{d}/ev_9700.csv", f"{d}/tr_9700.csv",
                             f"{d}/red_9700.csv", "200", f"{t1:.9f}"])
@@ -124,7 +128,7 @@ def report(a):
         if not m:
             print(f"| {case} | {ver} | **no [EDMD-AUDIT] line** | | | | | | | | | | |"); viol += 1; continue
         mode, n, cmp_, miss, ext, dtn, dup, mx, dtr, mr = m.groups()
-        if mode == "1" and case != "ctrl_leg": viol += int(miss) + int(ext) + int(dtn); viol_rel += int(miss) + int(ext) + int(dtr)
+        if mode == "1" and case not in ("ctrl_leg", "afix_leg"): viol += int(miss) + int(ext) + int(dtn); viol_rel += int(miss) + int(ext) + int(dtr)
         evlines += [f"{case}: {l}" for l in log.split("\n") if l.startswith("[EDMD-AUDIT-EV]")]
         cg = ", ".join(f"{float(v):.1e}" for v in c.groups()[1:]) if c else "**none**"
         print(f"| {case} | {ver} | {mode} | {n} | {cmp_} | {miss} | {ext} | {dtn} | {dup} | {float(mx):.2e} | {dtr} | {float(mr):.2e} | {cg} | {same(da, dp)} | "
