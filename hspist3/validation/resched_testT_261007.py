@@ -14,8 +14,10 @@ Also printed: the inventory (every trajectory of the task list present, by run a
 trajectory; the policy line of every trajectory; the node of every trajectory; one build); the 95 % interval of each relative
 difference (the bound on any bias of the build); the z each hypothesis of the replay would give at its observed size; for
 information (i) the eleven numbers pooled with the 25 campaign (legacy, 279282b) and 25 replay (minimal, 73fc07f) seeds,
-(ii) the null calibration: each policy's 100 seeds in four blocks of 25 in seed-list order, the nine-mass chi2 of the six block
-pairs within each policy.
+(ii) the null calibration: the FIRST 100 seeds of every mass (seed-list order) in four blocks of 25 per policy, the nine-mass chi2
+of the six block pairs within each policy (fixed 2026-10-07 before the data: M = 50 has 400 seeds, the others 100); (iii) the
+plain-fluid baseline of the second decision of 2026-10-07, item 3: the per-mass implied sound speed c_s,M = nu_M / x_M with SE
+for both policies, and the chi2 of the single-c_s model at the registered unweighted slope and at the weighted slope (8 dof).
 usage (from hspist3/):  python3 validation/resched_testT_261007.py      [--dry-run-replay: minimal := the 73fc07f replay,
                         legacy := the 279282b campaign, 25 seeds each, no task-list check -- a test of this script only]
 """
@@ -31,7 +33,7 @@ from paper1_populate_cs_err_20261002 import slope_with_errors
 
 DRY = "--dry-run-replay" in sys.argv
 CID = "epi8_H_H10_L10"
-LOC = os.path.join(HS, "experiments_resched_gate2_261007")
+LOC = os.environ.get("HD_RESCHED2_LOC", os.path.join(HS, "experiments_resched_gate2_261007"))   # env: test hook only
 REL_T = "experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/resched_testT_261007"
 TASKS = os.path.join(HS, "cluster", "resched_gate_261005", f"tasks_T_{CID}.txt")
 NPERM, RNG_SEED, FW, NNUM, P_CHI = 100000, 20261008, 0.05, 11, 0.01
@@ -163,10 +165,10 @@ def main():
         print("| number | difference | relative [%] | z |\n|---|---|---|---|")
         for name, a, sa, b, sb in eleven({M: np.r_[nu["minimal"][M], rep[M]] for M in Ms}, {M: np.r_[nu["legacy"][M], old[M]] for M in Ms}, Ms, x, Ns):
             print(f"| {name} | {a - b:+.3g} | {100 * (a - b) / b:+.3f} | {(a - b) / math.hypot(sa, sb):+.2f} |")
-    print("\n## Information (ii): null calibration -- nine-mass chi2 between blocks of 25 seeds within each policy (seed-list order)\n")
+    print("\n## Information (ii): null calibration -- nine-mass chi2 between blocks of 25 of the first 100 seeds of every mass, per policy\n")
     print("| policy | block pair | chi2 (9 dof) | nominal p |\n|---|---|---|---|")
     for pol in ("minimal", "legacy"):
-        nb = len(nu[pol][Ms[0]]) // 25
+        nb = min(len(nu[pol][M]) for M in Ms) // 25; nb = min(nb, 4)   # the first 100 seeds of every mass: four blocks
         for i in range(nb):
             for j in range(i + 1, nb):
                 z = []
@@ -174,7 +176,18 @@ def main():
                     a, b = nu[pol][M][25 * i:25 * i + 25], nu[pol][M][25 * j:25 * j + 25]
                     z.append((a.mean() - b.mean()) / math.hypot(a.std(ddof=1) / 5, b.std(ddof=1) / 5))
                 c2 = float(np.sum(np.square(z))); print(f"| {pol} | {i + 1}-{j + 1} | {c2:.2f} | {CHI2.sf(c2, 9):.3f} |")
-        if nb < 2: print(f"| {pol} | (only {len(nu[pol][Ms[0]])} seeds: no block pair) | | |")
+        if nb < 2: print(f"| {pol} | (only {min(len(nu[pol][M]) for M in Ms)} seeds in some mass: no block pair) | | |")
+    print("\n## Information (iii): plain-fluid baseline -- per-mass implied sound speed and the single-c_s fit, per policy\n")
+    print("| policy | M | c_s,M = nu/x | SE |\n|---|---|---|---|")
+    for pol in ("minimal", "legacy"):
+        y = np.array([nu[pol][M].mean() for M in Ms]); sy = np.array([nu[pol][M].std(ddof=1) / math.sqrt(len(nu[pol][M])) for M in Ms])
+        for M, xm, ym, sm in zip(Ms, x, y, sy): print(f"| {pol} | {M} | {ym / xm:.5f} | {sm / xm:.5f} |")
+    print("\n| policy | unweighted c_s (registered) | chi2 at it (8 dof) | weighted c_s +- SE | chi2 at it (8 dof) | p (weighted) |\n|---|---|---|---|---|---|")
+    for pol in ("minimal", "legacy"):
+        y = np.array([nu[pol][M].mean() for M in Ms]); sy = np.array([nu[pol][M].std(ddof=1) / math.sqrt(len(nu[pol][M])) for M in Ms])
+        su = float((x * y).sum() / (x * x).sum()); w = 1.0 / sy ** 2; sw = float((w * x * y).sum() / (w * x * x).sum())
+        cu = float((((y - su * x) / sy) ** 2).sum()); cw = float((((y - sw * x) / sy) ** 2).sum())
+        print(f"| {pol} | {su:.5f} | {cu:.1f} | {sw:.5f} +- {1 / math.sqrt(float((w * x * x).sum())):.5f} | {cw:.1f} | {CHI2.sf(cw, 8):.3f} |")
 
 
 if __name__ == "__main__":

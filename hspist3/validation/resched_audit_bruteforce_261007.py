@@ -93,6 +93,26 @@ def report(lines, out=print, table=True):
     return len(rows)
 
 
+def check(lines, tol=1e-8):
+    """E2 as amended (second plan-author decision of 2026-10-07, item 1): every reported event (|dt| > 1e-9) must have a true
+    contact and a heap error <= tol of its horizon. Returns (events, without a true contact, above tol, largest heap error /
+    horizon, events with |dt| / horizon > tol, events with |dt| / horizon > 1e-10)."""
+    n = nocontact = above = rel_dt8 = rel_dt10 = 0; worst = 0.0
+    for d in (p for p in (parse(l) for l in lines) if p):
+        n += 1; tt, _ = true_time(d)
+        tl, th = d["t_legacy"], d["t_heap"]
+        if str(tl).lower() != "nan" and str(th).lower() != "nan":
+            hz_l = tl - d["now"]
+            if hz_l > 0:
+                r = abs(tl - th) / hz_l
+                rel_dt8 += r > Dec("1e-8"); rel_dt10 += r > Dec("1e-10")
+        if tt is None: nocontact += 1; continue
+        hz = tt - d["now"]
+        if str(th).lower() == "nan" or hz <= 0: continue
+        e = float(abs(th - tt) / hz); worst = max(worst, e); above += e > tol
+    return n, nocontact, above, worst, rel_dt8, rel_dt10
+
+
 if __name__ == "__main__":
     ls = []
     for p in sys.argv[1:]: ls += open(p, errors="ignore").read().split("\n")

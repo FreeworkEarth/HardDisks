@@ -3130,3 +3130,223 @@ total: 7.2 core-h for 1800 trajectories
 - **Proposed replacement:** zero events with |dt| > 1e-9 **and** |dt| > 1e-10 × (t − now), and every |dt| > 1e-9 event recomputed at 60 digits has a true contact with heap error ≤ 1e-10 of its horizon.
 - **Why it still detects defects:** a scheduling defect (a wrong event, or one predicted for a stale state) is off by order 1 of the horizon, and is counted as missing or extra.
 - **The cost of the change:** as written, E2 is a guaranteed FAIL.
+
+
+### 4.4.11 Second plan-author decision of 2026-10-07: E2 and Test T amended, a diagnosis of the single-c_s fit, the go for KOA (2026-10-06 19:18 HST)
+
+**The decision**, as relayed by Chris, verbatim in its operative parts. It counts from this commit, and nothing went to KOA before it.
+
+> 1. E2 AMENDED (plan-author error: an absolute tolerance without a scale; your flag is right). Replace "zero |dt| > 1e-9" by: zero events with |dt| > 1e-9 AND |dt| > 1e-8 x (t - now); every event with |dt| > 1e-9 is recomputed at 60 digits and must have a true contact with heap error <= 1e-8 of its horizon; zero missing, zero extra, zero disagreeing live duplicates, unchanged. Why 1e-8 and not your 1e-10: the validated legacy control already reaches 7.2e-11, so 1e-10 could fail a correct engine on a longer KOA run; 1e-8 is about 100 x the legacy control and still far below a prediction kept from a stale divider velocity (relative error of order dv/v_rel, about 1e-3 at M = 2000 and larger for lighter dividers). Print, as information, the largest relative error per case next to the legacy control's, and the count above 1e-10.
+> 2. TEST T AMENDED, before any of its data. M = 50 gets 400 fresh seeds per policy (the existing 100 plus 300 more, no overlap with any earlier seed); the other eight masses keep 100. Rule unchanged (eleven numbers, z* by script, permutation p of the nine-mass chi2 >= 0.01, no extension). Regenerate the task list and print: new task-list and seed-list hashes, the power table, the measured cost, the --time of the M = 50 array task. Fix in validation/resched_testT_261007.py before the data: the null-calibration block count is taken from the first mass; with 400 seeds at M = 50 it would index blocks the other masses do not have. Use the first 100 seeds of every mass for the four blocks. Re-run the dry run and show it still reproduces the replay numbers.
+> 3. ANALYSIS ADDITION (existing data only, in resched_null_calib_261007.py): per-mass implied sound speed c_s,M = nu_M / x_M with SE, old and new, both cells; the chi2 of the single-c_s model at the WEIGHTED (minimum-chi2) slope, 8 dof, next to the chi2 at the registered unweighted slope that B2 printed. Hypothesis to test [INFERENCE, plan author]: the registered c_s is an unweighted slope dominated by the light masses, so the heavy masses with their small SEs inherit its noise; that would explain chi2_red near 3 with residual patterns that differ between old and new; state which statistic the melting-window hint "chi2_red 1.8-14" (sec. 4) used. The registered estimator is NOT changed by this; it is a diagnosis. After Test T: print the same c_s,M table from its legacy runs. That is the plain-fluid baseline for the melting study.
+> 4. ASan on KOA: not now. UBSan, Guard Malloc, both analyzers, calloc and the six-field literals are enough for this gate. It is requested only if Test T fails.
+> 5. Record two facts in the notes: date labels ... the smoke test of the gate-v2 build runs the identical trajectory as 73fc07f, so it must print the same c_s (3.744...) and the same FAILED line. Not a v2 criterion. A different c_s = E0 violated: stop. Say this in the runsheet step so Chris expects it.
+> 6. GO for the KOA steps of your proposal (0 to 6, your order) once items 1, 2 and 5 are committed and pushed; give Chris the new branch head and the new hashes to expect. Stop rules as you wrote them. E2 on KOA is judged by the amended text of item 1.
+
+**Item 5, the two facts.**
+- **Date labels [DATA].** The file suffix "_261007" and "decision of 2026-10-07" come from the plan author's clock. The machine date here was 2026-10-06 HST when §§ 4.4.10–4.4.11 and these files were written. This is the same kind of note as methods § 14.4.
+- **The gate-v2 smoke test [DERIVATION].** The audit switch is off in the smoke test, and the Mac E0 check (§ 4.4.10 D1, "plain vs ref", 9/9) found the new binary byte-identical to 73fc07f. So the gate-v2 smoke test must reproduce the 73fc07f smoke test exactly: c_s = 3.74424 ± 0.06756, the same per-mass table, and "SMOKE TEST FAILED -- STOP". This is **not a criterion of gate v2**. A different c_s means E0 is violated, and everything stops. Runsheet step 12.2 says so.
+
+**Item 1, implemented.** `cluster/resched_gate_261005/audit_runs_261007.py` (`e2_amended`) evaluates E2 by the amended text:
+- zero missing, extra and disagreeing duplicates;
+- zero events with |dt| > 1e-9 and > 1e-8 of the horizon;
+- every event with |dt| > 1e-9 recomputed at 60 digits (`resched_audit_bruteforce_261007.check`): it must have a true contact with heap error ≤ 1e-8 of its horizon, and the printed count must equal the engine's count;
+- the minimum sizes;
+- the contact maximum ≤ 1e-6 px;
+- E0, as "plain vs ref" IDENTICAL in ctrl_min, ctrl_leg, afix and afix_leg;
+- as information, the largest relative error next to the legacy control's, and the count above 1e-10.
+
+`e0e2.sbatch` prints that section. On the Mac data of § 4.4.10, as a demonstration of the evaluation (not E2 data), it prints:
+
+```
+### E2 as amended (2026-10-07, item 1) and E0
+
+| case | mode | audited events | missing | extra | dup. disagreeing | abs(dt) > 1e-9 (engine) | printed | above 1e-8 of horizon (dt) | no true contact | heap error > 1e-8 of horizon | largest heap error / horizon | count above 1e-10 | max contact [px] | plain vs ref | E2 row |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| free_M50 | 1 | 38178 | 0 | 0 | 0 | 241 | 241 | 0 | 0 | 0 | 4.85e-12 | 0 | 4.4e-11 | IDENTICAL | ok |
+| free_M500 | 1 | 93194 | 0 | 0 | 0 | 582 | 582 | 0 | 0 | 0 | 3.04e-13 | 0 | 8.9e-11 | IDENTICAL | ok |
+| free_M1500 | 1 | 158132 | 0 | 0 | 0 | 1408 | 1408 | 0 | 0 | 0 | 1.74e-12 | 0 | 1.7e-10 | IDENTICAL | ok |
+| free_M2000 | 1 | 182016 | 0 | 0 | 0 | 1450 | 1450 | 0 | 0 | 0 | 4.65e-11 | 0 | 1.7e-10 | IDENTICAL | ok |
+| afix | 1 | 66625 | 0 | 0 | 0 | 816 | 816 | 0 | 0 | 0 | 4.77e-13 | 0 | 4.3e-11 | IDENTICAL | ok |
+| dense_M50 | 1 | 26489 | 0 | 0 | 0 | 158 | 158 | 0 | 0 | 0 | 2.51e-13 | 0 | 2.4e-12 | IDENTICAL | ok |
+| dense_M2000 | 1 | 41169 | 0 | 0 | 0 | 125 | 125 | 0 | 0 | 0 | 7.65e-14 | 0 | 2.8e-12 | IDENTICAL | ok |
+| ctrl_min | 2 | 104866 | 0 | 0 | 0 | 696 | 696 | 0 | 0 | 0 | 1.54e-12 | 0 | 4.7e-12 | IDENTICAL | information |
+| ctrl_leg | 2 | 104776 | 0 | 0 | 0 | 423 | 423 | 0 | 0 | 0 | 7.21e-11 | 0 | 5.2e-12 | IDENTICAL | information |
+
+minimum sizes: free_M50_long 0 audited (>= 100000: NO); free_M2000 182016 audited (>= 100000: yes); afix 66625 audited (>= 10000: yes); dense state present: yes
+largest heap error / horizon, minimal-path mode-1 cases: 4.65e-11; legacy control (ctrl_leg): 7.21e-11
+E2 (amended): FAIL; E0 (plain vs ref IDENTICAL in ctrl_min, ctrl_leg, afix): FAIL (or not run)
+```
+
+- Every Mac case passes the amended row criteria.
+- The overall FAIL there is the expected one: the Mac matrix has no `free_M50_long` (≥ 10⁵ divider events) and no `afix_leg`. Both are KOA cases.
+
+**Item 2, implemented.** M = 50: r = 0..399 (the first 100 are the earlier ones). Printed by `python3 hspist3/validation/resched_testT_design_261007.py`, verbatim:
+
+```
+# Test T -- design numbers (gate version 2, 261012 sec. 4.4.10 E3), before any of its data
+
+z* = Phi^-1(1 - 0.05/(2 x 11)) = 2.8376   (two-sided Bonferroni, family-wise false-fail 5%, n = 11)
+chi2 part: PASS needs the permutation p of the nine-mass chi2 >= 0.01 (nominal 0.99 quantile of chi2_9 = 21.67)
+
+### Expected sigma_diff with the amended seed numbers (n + n per mass), and the power of the rule for the replay's hypotheses
+
+| number | seeds per policy | hypothesis (replay, observed size) | shift | sigma_diff | expected z | P(abs(z) >= z*) |
+|---|---|---|---|---|---|---|
+| mean nu, M = 50 | 400 | alpha = 0.5 -1.05 % | -7.686e-04 | 1.252e-04 | -6.14 | 1.000 |
+| mean nu, M = 100 | 100 | none (null) | +0.000e+00 | 1.142e-04 | +0.00 | 0.005 |
+| mean nu, M = 200 | 100 | none (null) | +0.000e+00 | 8.431e-05 | +0.00 | 0.005 |
+| mean nu, M = 300 | 100 | none (null) | +0.000e+00 | 5.469e-05 | +0.00 | 0.005 |
+| mean nu, M = 500 | 100 | alpha = 5 +0.62 % | +1.813e-04 | 3.791e-05 | +4.78 | 0.974 |
+| mean nu, M = 750 | 100 | none (null) | +0.000e+00 | 3.378e-05 | +0.00 | 0.005 |
+| mean nu, M = 1000 | 100 | none (null) | +0.000e+00 | 1.852e-05 | +0.00 | 0.005 |
+| mean nu, M = 1500 | 100 | alpha = 15 +0.57 % | +9.807e-05 | 1.729e-05 | +5.67 | 0.998 |
+| mean nu, M = 2000 | 100 | none (null) | +0.000e+00 | 1.111e-05 | +0.00 | 0.005 |
+| k_S^dyn | - | observed in the replay | +0.0356 | 0.007894 | +4.51 | 0.953 |
+| c_s (replay shift, -0.28 %) | - | observed in the replay | -0.0106 | 0.003211 | -3.30 | 0.678 |
+
+chi2 part under the three per-mass hypotheses together: noncentrality 92.7; P(chi2_9 >= 21.67) = 1.000 (nominal quantile; the permutation threshold is printed by the Test T analysis)
+
+### Fresh seeds
+
+seeds: run_seed(20261007, 0, mass index, r), r = 0..n_M - 1 (n = 400 at M = 50, 100 otherwise): 1200 seeds, 1200 distinct
+overlap with every seed of the campaign task lists (4425 seeds, B/A/AF): 0; with the smoke/pilot seeds: 0
+SHA-256 of the seed list (lines 'M r seed', mass ascending, r ascending): 0123f894e13741c22d33b9146e3b3896d76175070220572d335e3223e96d45f4
+
+### Cost from measured KOA times (seconds per trajectory, mean over the 25 seeds)
+
+| M | seeds per policy | minimal (replay, 73fc07f) [s] | legacy (279282b campaign) [s] | n + n trajectories [core-h] | array task wall time on 8 cores [min] |
+|---|---|---|---|---|---|
+| 50 | 400 | 5.0 | 6.6 | 1.29 | 9.7 |
+| 100 | 100 | 6.0 | 7.8 | 0.38 | 2.9 |
+| 200 | 100 | 7.9 | 10.3 | 0.50 | 3.8 |
+| 300 | 100 | 9.4 | 12.3 | 0.60 | 4.5 |
+| 500 | 100 | 11.6 | 15.6 | 0.75 | 5.7 |
+| 750 | 100 | 14.0 | 18.8 | 0.91 | 6.8 |
+| 1000 | 100 | 15.9 | 21.4 | 1.04 | 7.8 |
+| 1500 | 100 | 19.2 | 26.2 | 1.26 | 9.4 |
+| 2000 | 100 | 22.0 | 30.2 | 1.45 | 10.9 |
+
+total: 8.2 core-h for 2400 trajectories
+--time of the array tasks: 2 x the longest measured task (10.9 min, M = 2000) = 21.7 min -> 0:30 for every task; the M = 50 task: 9.7 min measured, 2 x = 19.3 min
+```
+
+- The task list was regenerated: `python3 hspist3/cluster/resched_gate_261005/gen_testT_261007.py` → `tasks_T_epi8_H_H10_L10.txt`, 2400 lines, SHA-256 60a00704e168d95bde3bac28ecd7fd4257428d94989c724d3ca294d5076e6be1.
+- `testT.sbatch` checks and echoes that hash.
+- The null calibration of `validation/resched_testT_261007.py` now uses the first 100 seeds of every mass, in four blocks of 25.
+- Information (iii), the plain-fluid baseline table of item 3, was added before the data.
+
+The dry run still reproduces the replay numbers (`python3 hspist3/validation/resched_testT_261007.py --dry-run-replay`):
+
+```
+## The eleven numbers, minimal minus legacy
+
+| number | minimal | SE | legacy | SE | difference | relative [%] | 95 % interval of the relative difference [%] | z | abs(z) < z* |
+|---|---|---|---|---|---|---|---|---|---|
+| k_S^dyn | 9.0425 | 0.0104 | 9.00689 | 0.0115 | +0.0356 | +0.395 | [+0.058, +0.733] | +2.29 | yes |
+| c_s | 3.80973 | 0.00812 | 3.8203 | 0.00671 | -0.0106 | -0.277 | [-0.817, +0.264] | -1.00 | yes |
+| nu M=50 | 0.0724306 | 0.00039 | 0.0731962 | 0.000314 | -0.000766 | -1.046 | [-2.386, +0.295] | -1.53 | yes |
+| nu M=100 | 0.058303 | 0.000163 | 0.0582483 | 0.00016 | +5.46e-05 | +0.094 | [-0.675, +0.862] | +0.24 | yes |
+| nu M=200 | 0.0443205 | 0.000136 | 0.0440634 | 0.0001 | +0.000257 | +0.583 | [-0.167, +1.333] | +1.52 | yes |
+| nu M=300 | 0.036927 | 7.76e-05 | 0.0370729 | 7.71e-05 | -0.000146 | -0.393 | [-0.972, +0.185] | -1.33 | yes |
+| nu M=500 | 0.0294205 | 4.93e-05 | 0.0292392 | 5.76e-05 | +0.000181 | +0.620 | [+0.112, +1.128] | +2.39 | yes |
+| nu M=750 | 0.0241179 | 4.37e-05 | 0.024127 | 5.15e-05 | -9.07e-06 | -0.038 | [-0.586, +0.511] | -0.13 | yes |
+| nu M=1000 | 0.0210162 | 2.87e-05 | 0.0210359 | 2.34e-05 | -1.97e-05 | -0.094 | [-0.439, +0.251] | -0.53 | yes |
+| nu M=1500 | 0.0173022 | 1.99e-05 | 0.017205 | 2.83e-05 | +9.73e-05 | +0.565 | [+0.171, +0.959] | +2.81 | yes |
+| nu M=2000 | 0.0150057 | 1.47e-05 | 0.014986 | 1.67e-05 | +1.97e-05 | +0.132 | [-0.159, +0.422] | +0.89 | yes |
+
+nine-mass chi2 = 21.22 (nominal p 0.0117); permutation p = 0.0201 (100000 relabelings within each mass pool, default_rng(20261008))
+
+TEST T: (dry run, no verdict) PASS -- all eleven abs(z) < 2.8376: yes; permutation p of the nine-mass chi2 >= 0.01: yes; inventory clean
+```
+
+- The full path was also exercised on a synthetic 2400-trajectory tree in the scratchpad: inventory matched to the task list at 400 and 100 seeds, node parsing, one build, block calibration and the pooled numbers. That was a function test only.
+
+**Item 3: the diagnosis of the single-c_s fit.** Printed by `python3 hspist3/validation/resched_null_calib_261007.py`, section B5; sections A3–B4 are unchanged:
+
+```
+## B5 -- per-mass implied sound speed, and the single-c_s fit at the weighted vs the registered unweighted slope
+
+| cell | data | M | x_M | c_s,M = nu/x | SE |
+|---|---|---|---|---|---|
+| e0p10_H_H10_L39.25 | old | 50 | 0.004484 | 1.75337 | 0.00420 |
+| e0p10_H_H10_L39.25 | old | 100 | 0.003582 | 1.76693 | 0.00376 |
+| e0p10_H_H10_L39.25 | old | 200 | 0.002720 | 1.76902 | 0.00318 |
+| e0p10_H_H10_L39.25 | old | 300 | 0.002278 | 1.76449 | 0.00251 |
+| e0p10_H_H10_L39.25 | old | 500 | 0.001802 | 1.76589 | 0.00297 |
+| e0p10_H_H10_L39.25 | old | 750 | 0.001487 | 1.76449 | 0.00194 |
+| e0p10_H_H10_L39.25 | old | 1000 | 0.001295 | 1.76310 | 0.00226 |
+| e0p10_H_H10_L39.25 | old | 1500 | 0.001063 | 1.76519 | 0.00181 |
+| e0p10_H_H10_L39.25 | old | 2000 | 0.000923 | 1.76519 | 0.00167 |
+| e0p10_H_H10_L39.25 | new | 50 | 0.004484 | 1.76032 | 0.00605 |
+| e0p10_H_H10_L39.25 | new | 100 | 0.003582 | 1.76241 | 0.00462 |
+| e0p10_H_H10_L39.25 | new | 200 | 0.002720 | 1.76693 | 0.00395 |
+| e0p10_H_H10_L39.25 | new | 300 | 0.002278 | 1.76658 | 0.00264 |
+| e0p10_H_H10_L39.25 | new | 500 | 0.001802 | 1.76171 | 0.00219 |
+| e0p10_H_H10_L39.25 | new | 750 | 0.001487 | 1.76902 | 0.00188 |
+| e0p10_H_H10_L39.25 | new | 1000 | 0.001295 | 1.76728 | 0.00183 |
+| e0p10_H_H10_L39.25 | new | 1500 | 0.001063 | 1.76276 | 0.00204 |
+| e0p10_H_H10_L39.25 | new | 2000 | 0.000923 | 1.76415 | 0.00215 |
+| epi8_H_H10_L10 | old | 50 | 0.019096 | 3.83299 | 0.01646 |
+| epi8_H_H10_L10 | old | 100 | 0.015256 | 3.81796 | 0.01047 |
+| epi8_H_H10_L10 | old | 200 | 0.011585 | 3.80364 | 0.00865 |
+| epi8_H_H10_L10 | old | 300 | 0.009703 | 3.82081 | 0.00795 |
+| epi8_H_H10_L10 | old | 500 | 0.007676 | 3.80936 | 0.00750 |
+| epi8_H_H10_L10 | old | 750 | 0.006335 | 3.80864 | 0.00814 |
+| epi8_H_H10_L10 | old | 1000 | 0.005516 | 3.81365 | 0.00425 |
+| epi8_H_H10_L10 | old | 1500 | 0.004528 | 3.79934 | 0.00624 |
+| epi8_H_H10_L10 | old | 2000 | 0.003933 | 3.81079 | 0.00425 |
+| epi8_H_H10_L10 | new | 50 | 0.019096 | 3.79290 | 0.02040 |
+| epi8_H_H10_L10 | new | 100 | 0.015256 | 3.82154 | 0.01069 |
+| epi8_H_H10_L10 | new | 200 | 0.011585 | 3.82583 | 0.01170 |
+| epi8_H_H10_L10 | new | 300 | 0.009703 | 3.80578 | 0.00800 |
+| epi8_H_H10_L10 | new | 500 | 0.007676 | 3.83298 | 0.00643 |
+| epi8_H_H10_L10 | new | 750 | 0.006335 | 3.80721 | 0.00689 |
+| epi8_H_H10_L10 | new | 1000 | 0.005516 | 3.81007 | 0.00520 |
+| epi8_H_H10_L10 | new | 1500 | 0.004528 | 3.82081 | 0.00440 |
+| epi8_H_H10_L10 | new | 2000 | 0.003933 | 3.81580 | 0.00373 |
+
+| cell | data | unweighted c_s (registered) | chi2 at it (8 dof) | weighted c_s +- SE | chi2 at it (8 dof) | p (weighted) | (unweighted - weighted)/SE_w |
+|---|---|---|---|---|---|---|---|
+| e0p10_H_H10_L39.25 | old | 1.76165 | 25.5 | 1.76470 +- 0.00078 | 10.3 | 0.243 | -3.89 |
+| e0p10_H_H10_L39.25 | new | 1.76306 | 18.9 | 1.76533 +- 0.00081 | 11.1 | 0.198 | -2.81 |
+| epi8_H_H10_L10 | old | 3.82030 | 27.3 | 3.81087 +- 0.00218 | 8.5 | 0.387 | +4.34 |
+| epi8_H_H10_L10 | new | 3.80973 | 26.3 | 3.81661 +- 0.00204 | 14.9 | 0.061 | -3.37 |
+
+| cell | weighted c_s new - old | sigma_diff | z | relative [%] | unweighted (registered) c_s new - old | z | k_S^dyn new - old [%] |
+|---|---|---|---|---|---|---|---|
+| e0p10_H_H10_L39.25 | +0.00063 | 0.00113 | +0.56 | +0.036 | +0.00141 | +0.45 | +0.054 |
+| epi8_H_H10_L10 | +0.00574 | 0.00298 | +1.92 | +0.151 | -0.01057 | -1.00 | +0.395 |
+
+| cell | data | residuals at the unweighted slope, M ascending | residuals at the weighted slope |
+|---|---|---|---|
+| e0p10_H_H10_L39.25 | old | -2.0 +1.4 +2.3 +1.1 +1.4 +1.5 +0.6 +2.0 +2.1 | -2.7 +0.6 +1.4 -0.1 +0.4 -0.1 -0.7 +0.3 +0.3 |
+| e0p10_H_H10_L39.25 | new | -0.5 -0.1 +1.0 +1.3 -0.6 +3.2 +2.3 -0.1 +0.5 | -0.8 -0.6 +0.4 +0.5 -1.7 +2.0 +1.1 -1.3 -0.6 |
+| epi8_H_H10_L10 | old | +0.8 -0.2 -1.9 +0.1 -1.5 -1.4 -1.6 -3.4 -2.2 | +1.3 +0.7 -0.8 +1.3 -0.2 -0.3 +0.7 -1.8 -0.0 |
+| epi8_H_H10_L10 | new | -0.8 +1.1 +1.4 -0.5 +3.6 -0.4 +0.1 +2.5 +1.6 | -1.2 +0.5 +0.8 -1.4 +2.5 -1.4 -1.3 +1.0 -0.2 |
+
+The melting-window hint 'chi2_red 1.8-14' (sec. 4; STATUS 2026-09-23) is the column chi2_red of 260919_A1v2_final_cs_vs_eta.csv, written by validation/paper1_populate_cs_err_20261002.py:
+  :159  sT, scatT, _ = T.slope(xT, y)
+  :161  chi2T = float((((y - sT * xT) / sy) ** 2).sum()) / max(1, len(xT) - 1)
+i.e. the chi2 at the UNWEIGHTED through-origin slope T.slope, divided by n - 1 = 8: the statistic of B2, not the weighted one.
+```
+
+**Reading [DATA; INFERENCE where marked].**
+- **The plan author's hypothesis holds.**
+  - At the registered unweighted slope the single-c_s model gives χ² = 18.9–27.3 for 8 dof. At the weighted (minimum-χ²) slope it gives 8.5–14.9 (p = 0.061–0.387).
+  - The unweighted slope sits 2.8–4.3 weighted SEs away from the minimum-χ² slope, i.e. it is pulled by the light masses, whose x are largest.
+  - **The per-mass error bars are honest; the excess χ² in B2 is the estimator, not the data.**
+  - At the weighted slope the residual patterns are small, and old and new no longer show the systematic opposite-sign pattern of B2 at π/8.
+- **The melting-window hint** "χ²_red 1.8–14" is the same statistic as B2: `chi2_red` of 260919_A1v2_final_cs_vs_eta.csv, written by `paper1_populate_cs_err_20261002.py:161` at the unweighted slope `T.slope` (:159), divided by n − 1.
+  - [INFERENCE] Part of that range is this estimator effect.
+  - **OPEN:** the weighted χ² of the window cells. It needs the per-mass ν and SE of the A1v2 window cells (existing data, analysis only), and it is not done here.
+- **New, and it bears on § 4.4.10 A3's noise arguments [DATA].**
+  - At π/8 the weighted c_s moved +0.151 % from old to new (z = +1.92), **the same direction as k_S^dyn (+0.395 %, z = +2.29)**. The registered unweighted c_s moved −0.28 % (z = −1.00).
+  - So the argument "c_s and k_S^dyn moved in opposite directions" holds only for the unweighted estimator.
+  - [INFERENCE] Both weighted indicators are consistent with a common upward shift of about 0.15–0.2 % in the heavy-mass frequencies at π/8 (k_S^dyn ∝ ν² gives about twice that), or with a ~2σ fluctuation.
+  - At η = 0.10 the weighted c_s moved +0.036 % (z = +0.56).
+  - Test T, with σ_diff about half the replay's, decides.
+
+**Items 4 and 6.**
+- ASan: not now (only if Test T fails).
+- **GO for the KOA steps 0–6 of runsheet § 12** once this commit is pushed. E2 on KOA is judged by item 1 as implemented above.

@@ -16,6 +16,10 @@ B2  the chi2 of the registered single-c_s through-origin fit over the nine masse
 B3  the sorted per-seed nu, old and new, at pi/8 for alpha = 0.5, 5 and 15.
 B4  the contact audit resolved by class over the 565 replay trajectories: per cell and class the maximum and the trajectory
     that holds it.
+B5  (added 2026-10-07, second plan-author decision, item 3; a diagnosis, the registered estimator is NOT changed) the per-mass
+    implied sound speed c_s,M = nu_M / x_M with SE, old and new, both cells; the chi2 of the single-c_s model at the WEIGHTED
+    (minimum-chi2) slope, 8 dof, next to the chi2 at the registered UNWEIGHTED slope of B2, with the residuals at both; and the
+    statistic behind the melting-window hint "chi2_red 1.8-14" (sec. 4), read from the code that wrote it.
 usage (from hspist3/):  python3 validation/resched_null_calib_261007.py
 """
 import contextlib, glob, io, math, os, re, sys
@@ -205,10 +209,47 @@ def section_b4():
     for k in CLASSES: print(f"| AF epi8_H_H10_L10 | {k} | {best[k][0]:.3e} | {best[k][1]} | {n} |")
 
 
+def section_b5(D):
+    print("\n## B5 -- per-mass implied sound speed, and the single-c_s fit at the weighted vs the registered unweighted slope\n")
+    print("| cell | data | M | x_M | c_s,M = nu/x | SE |\n|---|---|---|---|---|---|")
+    fits = []
+    for cid in CELLS:
+        for lab in ("old", "new"):
+            c = D[cid][lab]; x = np.asarray(c["x"], float); y = np.array([r["nu"] for r in c["B"]]); sy = np.array([r["se"] for r in c["B"]])
+            for M, xm, ym, sm in zip([r["M"] for r in c["B"]], x, y, sy):
+                print(f"| {cid} | {lab} | {M} | {xm:.6f} | {ym / xm:.5f} | {sm / xm:.5f} |")
+            su = float((x * y).sum() / (x * x).sum())                       # registered: unweighted through-origin slope
+            w = 1.0 / sy ** 2; sw = float((w * x * y).sum() / (w * x * x).sum()); ssw = float(1.0 / math.sqrt((w * x * x).sum()))
+            ru, rw = (y - su * x) / sy, (y - sw * x) / sy
+            fits.append((cid, lab, su, float((ru * ru).sum()), sw, ssw, float((rw * rw).sum()), ru, rw))
+    print("\n| cell | data | unweighted c_s (registered) | chi2 at it (8 dof) | weighted c_s +- SE | chi2 at it (8 dof) | p (weighted) | "
+          "(unweighted - weighted)/SE_w |\n|---|---|---|---|---|---|---|---|")
+    for cid, lab, su, cu, sw, ssw, cw, ru, rw in fits:
+        print(f"| {cid} | {lab} | {su:.5f} | {cu:.1f} | {sw:.5f} +- {ssw:.5f} | {cw:.1f} | {CHI2.sf(cw, 8):.3f} | {(su - sw) / ssw:+.2f} |")
+    print("\n| cell | weighted c_s new - old | sigma_diff | z | relative [%] | unweighted (registered) c_s new - old | z | k_S^dyn new - old [%] |")
+    print("|---|---|---|---|---|---|---|---|")
+    F = {(f[0], f[1]): f for f in fits}
+    for cid in CELLS:
+        o, n = F[(cid, "old")], F[(cid, "new")]; dw = n[4] - o[4]; sd = math.hypot(o[5], n[5])
+        du = n[2] - o[2]; sdu = math.hypot(D[cid]["old"]["cs_err"], D[cid]["new"]["cs_err"])
+        print(f"| {cid} | {dw:+.5f} | {sd:.5f} | {dw / sd:+.2f} | {100 * dw / o[4]:+.3f} | {du:+.5f} | {du / sdu:+.2f} | "
+              f"{100 * (D[cid]['new']['kS'] / D[cid]['old']['kS'] - 1):+.3f} |")
+    print("\n| cell | data | residuals at the unweighted slope, M ascending | residuals at the weighted slope |\n|---|---|---|---|")
+    for cid, lab, su, cu, sw, ssw, cw, ru, rw in fits:
+        print(f"| {cid} | {lab} | {' '.join(f'{v:+.1f}' for v in ru)} | {' '.join(f'{v:+.1f}' for v in rw)} |")
+    src = os.path.join(HERE, "paper1_populate_cs_err_20261002.py"); L = open(src).read().split("\n")
+    k = next(i for i, l in enumerate(L) if "chi2T = float(" in l); j = next(i for i, l in enumerate(L) if "sT, scatT, _ = T.slope(xT, y)" in l)
+    print("\nThe melting-window hint 'chi2_red 1.8-14' (sec. 4; STATUS 2026-09-23) is the column chi2_red of 260919_A1v2_final_cs_vs_eta.csv, "
+          "written by validation/paper1_populate_cs_err_20261002.py:")
+    print(f"  :{j + 1}  {L[j].strip()}")
+    print(f"  :{k + 1}  {L[k].strip()}")
+    print("i.e. the chi2 at the UNWEIGHTED through-origin slope T.slope, divided by n - 1 = 8: the statistic of B2, not the weighted one.")
+
+
 def main():
     D = load()
     print("# Null calibration of the engine replay (261012 sec. 4.4.10) -- analysis only\n")
-    section_a3(D); section_b1(D); section_b2(D); section_b3(D); section_b4()
+    section_a3(D); section_b1(D); section_b2(D); section_b3(D); section_b4(); section_b5(D)
 
 
 if __name__ == "__main__":

@@ -1,11 +1,12 @@
 #!/bin/bash
 # ##CHRIS 2026-10-07 (261012 sec. 4.4.10 E3, gate version 2): TEST T, minimal against legacy on the SAME binary.
-# Cell epi8_H_H10_L10, method B, the campaign's protocol, 100 fresh seeds per mass (cluster/resched_gate_261005/tasks_T_*.txt,
-# written by gen_testT_261007.py; seed list SHA-256 5d03fafe9a5c6c4e9a77f2616816c8c1016634fbf8412918d55bcdcdd599a38b). One array
-# task per mass: its 200 trajectories (100 seeds x minimal and legacy, interleaved line by line) run 8 at a time on one node, so
-# both policies share that node; the worker records the node in every ##RUN header; HD_CONTACT_AUDIT=1 in every trajectory.
-# Measured cost (validation/resched_testT_design_261007.py): 7.2 core-h in all; the longest task (M = 2000) about 11 min on 8
-# cores -> --time 0:30 (2 x measured, rounded up); %4 -> at most 32 cores.
+# Cell epi8_H_H10_L10, method B, the campaign's protocol; fresh seeds, 400 per policy at M = 50 and 100 for the other masses
+# (amended 2026-10-07, second plan-author decision, item 2; cluster/resched_gate_261005/tasks_T_*.txt, written by
+# gen_testT_261007.py; seed list SHA-256 0123f894e13741c22d33b9146e3b3896d76175070220572d335e3223e96d45f4). One array task per
+# mass: its 2n trajectories (n seeds x minimal and legacy, interleaved line by line) run 8 at a time on one node, so both policies
+# share that node; the worker records the node in every ##RUN header; HD_CONTACT_AUDIT=1 in every trajectory.
+# Measured cost (validation/resched_testT_design_261007.py): 8.2 core-h in all; the longest task (M = 2000) 10.9 min and the M = 50
+# task 9.7 min on 8 cores -> --time 0:30 (2 x the longest, rounded up); %4 -> at most 32 cores.
 # Data root $SCRATCH/<clone>/hspist3 of the gate-v2 clone (~/harddisks_resched2): root_guard records its build there.
 #   cd ~/harddisks_resched2/hspist3 && sbatch --array=1-9%4 cluster/resched_gate_261005/testT.sbatch
 #SBATCH --job-name=resched-testT
@@ -29,7 +30,7 @@ sha256sum --status -c logs/BUILD_KOA_LAST.hash || { echo "STOP: ./00ALLINONE is 
 export HD_BUILD="$("$HD_BIN" --version | head -1)"
 echo "$HD_BUILD" | grep -Eq -- "git [0-9a-f]+  target koa" || { echo "STOP: not a clean koa build: $HD_BUILD"; exit 1; }
 TASKS=cluster/resched_gate_261005/tasks_T_epi8_H_H10_L10.txt
-echo "task list SHA-256 $(sha256sum "$TASKS" | cut -d' ' -f1) (expected ea0117b50992cad5293b67ea5531d533c9a4a734c27667a5497e8737a74308ab)"
+echo "task list SHA-256 $(sha256sum "$TASKS" | cut -d' ' -f1) (expected 60a00704e168d95bde3bac28ecd7fd4257428d94989c724d3ca294d5076e6be1)"
 MASSES=(50 100 200 300 500 750 1000 1500 2000)
 M=${MASSES[$((${SLURM_ARRAY_TASK_ID:-0} - 1))]:-}
 [ -n "$M" ] || { echo "STOP: submit with --array=1-9%4"; exit 2; }
