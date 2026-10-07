@@ -3355,3 +3355,255 @@ i.e. the chi2 at the UNWEIGHTED through-origin slope T.slope, divided by n - 1 =
 - **Cross-node determinism of 73fc07f: it ran.** `det1 A: host cn-03-33-01`, `det1 B: host cn-03-33-02`, wall trace IDENTICAL (104302 bytes), psi6 IDENTICAL (349 bytes): "different nodes): IDENTICAL". A2 (iii) is closed.
 - **KOA build warnings:** `grep -n "warning" logs/conf-smoke_14986284.out` returns no line. The KOA build (Makefile `CFLAGS_KOA`) does not enable -Wall, so this means no default-level gcc 14.3 warnings. The -Wall -Wextra check is the Mac gcc-15 one of § 4.4.10 C (none in branch code).
 - This addendum is on main only; the branch gets it after Test T, so the branch head 7b08827 that KOA builds stays as announced.
+
+### 4.4.12 Gate version 2 on KOA: E0, E1, E2 PASS; Test T FAIL by the registered rule; the build is NOT ACCEPTED (2026-10-07 01:15 HST) [DATA; DERIVATION and INFERENCE where marked]
+
+**Plain summary.**
+- **Build.** Every gate-v2 output on KOA comes from one clean build: `00ALLINONE  git 7b08827  target koa`.
+- **Deterministic tests: all pass.**
+  - E0: with the audit off, the new build gives byte-for-byte the same outputs as 73fc07f.
+  - E1: the same seed run twice gives identical output, on one node and across nodes.
+  - E2: 5.3 × 10⁵ events of the minimal path were checked (4.3 × 10⁵ in the mode-1 cases, 1.0 × 10⁵ in the mode-2 control), by the rule as amended. The new schedule equals the legacy one, with zero missing and zero extra events. The largest heap error was 1.7 × 10⁻¹² of the prediction horizon. The contact distance at every executed event stayed ≤ 1.9 × 10⁻¹⁰ px in E2 and ≤ 2.4 × 10⁻¹⁰ px in Test T.
+- **Test T (statistical): FAIL by the registered rule.**
+  - Ten of the eleven numbers pass, and so does the χ² part (permutation p = 0.047 ≥ 0.01).
+  - The mean ν at M = 300 does not: minimal − legacy = +0.475 %, 95 % interval [+0.167, +0.783] %, z = +3.02 against z* = 2.8376.
+  - None of the four effects the replay suggested shows up. Their expected z if real were +4.1 to +6.1 in size; the observed z are −0.53, +0.35, −2.56 and +0.85.
+- **Gate-v2 verdict by the registered rule: NOT ACCEPTED.** Stop, report, no merge. 279282b remains the engine, and the minimal path is used for nothing.
+- **Speed (E4, information).**
+  - N = 400: the minimal path is 3.7–3.8× faster (free and held divider) and 5.5× faster at η ≈ 0.70.
+  - N = 100: 1.4–1.9× faster.
+- **Plain-fluid baseline (information (iii)).** With 100 seeds (400 at M = 50), the single-c_s model is rejected in both policies alike: weighted χ² 31.9 (minimal) and 46.6 (legacy) for 8 dof. This is mainly because M = 50 sits low. The § 4.4.11 item-3 reading at 25 seeds ("the per-mass error bars are honest; the excess is the estimator") is therefore incomplete at this precision; see the reading below.
+
+**KOA jobs (from Chris's pastes; build 7b08827, gate-v2 clone `~/harddisks_resched2`).**
+
+| step | job | result |
+|---|---|---|
+| smoke (runsheet 12.2) | 15008268 | c_s = 3.74424 ± 0.06756 and the same per-mass table as the 73fc07f smoke test, as § 4.4.11 item 5 required (E0-consistent); same-node determinism IDENTICAL; "SMOKE TEST FAILED" as expected (not a v2 criterion). A second smoke submission (15008617) refused to run because its folder existed; nothing was overwritten |
+| cross-node (E1) | 15008312 | IDENTICAL, cn-03-33-01 vs cn-03-33-02 |
+| E0/E2 | 15008320 | "E2 (amended): PASS; E0 (plain vs ref IDENTICAL in ctrl_min, ctrl_leg, afix, afix_leg): PASS". The step was submitted twice by mistake; the second run, 15008329, printed the identical report |
+| profile (E4) | 15008378 | table below; every exit 0 |
+| Test T (E3) | 15008437_1–9 | all nine COMPLETED, failures 0, task-list SHA-256 60a00704… as expected; the fetched data of M = 2000 were incomplete at the first fetch, and the refetch gave 100 + 100 |
+
+**E0 and E2**, the report of job 15008320 (`resched_gate_261005/e0e2_15008320/report.txt`, written on KOA by `audit_runs_261007.py report`; 15008329 is identical), verbatim:
+
+```
+### E2 as amended (2026-10-07, item 1) and E0
+
+| case | mode | audited events | missing | extra | dup. disagreeing | abs(dt) > 1e-9 (engine) | printed | above 1e-8 of horizon (dt) | no true contact | heap error > 1e-8 of horizon | largest heap error / horizon | count above 1e-10 | max contact [px] | plain vs ref | E2 row |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| free_M2000 | 1 | 181795 | 0 | 0 | 0 | 1437 | 1437 | 0 | 0 | 0 | 1.71e-12 | 0 | 1.9e-10 | IDENTICAL | ok |
+| afix | 1 | 66602 | 0 | 0 | 0 | 1108 | 1108 | 0 | 0 | 0 | 1.19e-13 | 0 | 4.5e-11 | IDENTICAL | ok |
+| dense_M50 | 1 | 26565 | 0 | 0 | 0 | 128 | 128 | 0 | 0 | 0 | 8.51e-13 | 0 | 2.5e-12 | IDENTICAL | ok |
+| dense_M2000 | 1 | 40930 | 0 | 0 | 0 | 162 | 162 | 0 | 0 | 0 | 1.01e-12 | 0 | 2.8e-12 | IDENTICAL | ok |
+| ctrl_min | 2 | 104545 | 0 | 0 | 0 | 915 | 915 | 0 | 0 | 0 | 3.12e-13 | 0 | 4.8e-12 | IDENTICAL | information |
+| ctrl_leg | 2 | 105052 | 0 | 0 | 0 | 727 | 727 | 0 | 0 | 0 | 2.69e-13 | 0 | 5.4e-12 | IDENTICAL | information |
+| free_M50_long | 1 | 113384 | 0 | 0 | 0 | 950 | 950 | 0 | 0 | 0 | 3.37e-13 | 0 | 9.4e-11 | IDENTICAL | ok |
+| afix_leg | 1 | 66783 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0.00e+00 | 0 | 4.5e-11 | IDENTICAL | information |
+
+minimum sizes: free_M50_long 113384 audited (>= 100000: yes); free_M2000 181795 audited (>= 100000: yes); afix 66602 audited (>= 10000: yes); dense state present: yes
+largest heap error / horizon, minimal-path mode-1 cases: 1.71e-12; legacy control (ctrl_leg): 2.69e-13
+E2 (amended): PASS; E0 (plain vs ref IDENTICAL in ctrl_min, ctrl_leg, afix, afix_leg): PASS
+```
+
+**E4 profile**, `profile_edmd_15008378/times.tsv` (written on KOA by `profile_edmd_koa.sh`), verbatim:
+
+```
+kind	tag	N	policy	wall_s	div_events	wall_events	exit
+held	H40	400	minimal	14.73	34712	51361	0
+held	H40	400	legacy	56.30	34767	51196	0
+held	H10	100	minimal	1.64	8959	26648	0
+held	H10	100	legacy	2.34	8984	26686	0
+free	H40	400	minimal	15.19	35035	51356	0
+free	H40	400	legacy	56.38	34745	51402	0
+free	H10	100	minimal	1.71	8911	26757	0
+free	H10	100	legacy	2.35	8922	26703	0
+dense	D40	400	minimal	23.18	92193	109276	0
+dense	D40	400	legacy	127.50	92381	109799	0
+dense	D10	100	minimal	2.44	26752	48346	0
+dense	D10	100	legacy	4.68	26294	47283	0
+```
+
+[DERIVATION] Legacy divided by minimal: at N = 400, held 3.82, free 3.71, dense 5.50; at N = 100, 1.43, 1.37 and 1.92.
+
+**Test T**, printed by `cd hspist3 && python3 validation/resched_testT_261007.py` on the fetched data (`experiments_resched_gate2_261007/`), verbatim:
+
+```
+# Test T (gate version 2, 261012 sec. 4.4.10 E3)
+
+z* = 2.8376 (two-sided Bonferroni, family-wise false-fail 5%, n = 11); permutation chi2 criterion p >= 0.01
+
+## Inventory
+
+| policy | M | trajectories matched (expected) | n finite > 0 | log sections | health lines (failed runs incl.) | policy line wrong | max contact gap [px] | contact lines missing | nodes so far | ok |
+|---|---|---|---|---|---|---|---|---|---|---|
+| minimal | 50 | 400 (400) | 400 | 400 | 0 | 0 | 5.23e-11 | 0 | 1 | yes |
+| minimal | 100 | 100 (100) | 100 | 100 | 0 | 0 | 5.19e-11 | 0 | 1 | yes |
+| minimal | 200 | 100 (100) | 100 | 100 | 0 | 0 | 5.27e-11 | 0 | 1 | yes |
+| minimal | 300 | 100 (100) | 100 | 100 | 0 | 0 | 1.06e-10 | 0 | 1 | yes |
+| minimal | 500 | 100 (100) | 100 | 100 | 0 | 0 | 1.01e-10 | 0 | 1 | yes |
+| minimal | 750 | 100 (100) | 100 | 100 | 0 | 0 | 1.08e-10 | 0 | 2 | yes |
+| minimal | 1000 | 100 (100) | 100 | 100 | 0 | 0 | 1.11e-10 | 0 | 2 | yes |
+| minimal | 1500 | 100 (100) | 100 | 100 | 0 | 0 | 2.41e-10 | 0 | 2 | yes |
+| minimal | 2000 | 100 (100) | 100 | 100 | 0 | 0 | 2.28e-10 | 0 | 2 | yes |
+| legacy | 50 | 400 (400) | 400 | 400 | 0 | 0 | 4.99e-11 | 0 | 1 | yes |
+| legacy | 100 | 100 (100) | 100 | 100 | 0 | 0 | 5.54e-11 | 0 | 1 | yes |
+| legacy | 200 | 100 (100) | 100 | 100 | 0 | 0 | 5.29e-11 | 0 | 1 | yes |
+| legacy | 300 | 100 (100) | 100 | 100 | 0 | 0 | 1.02e-10 | 0 | 1 | yes |
+| legacy | 500 | 100 (100) | 100 | 100 | 0 | 0 | 1.06e-10 | 0 | 1 | yes |
+| legacy | 750 | 100 (100) | 100 | 100 | 0 | 0 | 1.14e-10 | 0 | 2 | yes |
+| legacy | 1000 | 100 (100) | 100 | 100 | 0 | 0 | 1.12e-10 | 0 | 2 | yes |
+| legacy | 1500 | 100 (100) | 100 | 100 | 0 | 0 | 2.15e-10 | 0 | 2 | yes |
+| legacy | 2000 | 100 (100) | 100 | 100 | 0 | 0 | 2.06e-10 | 0 | 2 | yes |
+
+nodes: minimal {'cn-15-09-01': 800, 'cn-04-21-00': 400}; legacy {'cn-15-09-01': 800, 'cn-04-21-00': 400}; shared by both policies: ['cn-04-21-00', 'cn-15-09-01']
+builds (.build_git): ['00ALLINONE  git 7b08827  target koa']; inventory clean
+
+## The eleven numbers, minimal minus legacy
+
+| number | minimal | SE | legacy | SE | difference | relative [%] | 95 % interval of the relative difference [%] | z | abs(z) < z* |
+|---|---|---|---|---|---|---|---|---|---|
+| k_S^dyn | 9.02639 | 0.00616 | 9.03104 | 0.00616 | -0.00465 | -0.051 | [-0.241, +0.138] | -0.53 | yes |
+| c_s | 3.80372 | 0.00273 | 3.80072 | 0.0027 | +0.003 | +0.079 | [-0.119, +0.277] | +0.78 | yes |
+| nu M=50 | 0.0724076 | 9.13e-05 | 0.0722974 | 9.18e-05 | +0.00011 | +0.152 | [-0.198, +0.503] | +0.85 | yes |
+| nu M=100 | 0.058019 | 0.000122 | 0.0580463 | 0.000121 | -2.73e-05 | -0.047 | [-0.627, +0.533] | -0.16 | yes |
+| nu M=200 | 0.0441463 | 6.89e-05 | 0.0441857 | 5.44e-05 | -3.94e-05 | -0.089 | [-0.479, +0.300] | -0.45 | yes |
+| nu M=300 | 0.0370972 | 3.56e-05 | 0.0369218 | 4.59e-05 | +0.000175 | +0.475 | [+0.167, +0.783] | +3.02 | **NO** |
+| nu M=500 | 0.0293038 | 3.07e-05 | 0.0292887 | 3.1e-05 | +1.51e-05 | +0.052 | [-0.240, +0.344] | +0.35 | yes |
+| nu M=750 | 0.0241429 | 2.41e-05 | 0.0241417 | 2.13e-05 | +1.13e-06 | +0.005 | [-0.257, +0.266] | +0.04 | yes |
+| nu M=1000 | 0.0210359 | 1.85e-05 | 0.0210211 | 1.66e-05 | +1.48e-05 | +0.070 | [-0.161, +0.302] | +0.60 | yes |
+| nu M=1500 | 0.0172633 | 1.09e-05 | 0.0173047 | 1.19e-05 | -4.13e-05 | -0.239 | [-0.422, -0.056] | -2.56 | yes |
+| nu M=2000 | 0.0150014 | 8.84e-06 | 0.0149958 | 9.16e-06 | +5.63e-06 | +0.038 | [-0.129, +0.204] | +0.44 | yes |
+
+nine-mass chi2 = 17.30 (nominal p 0.0443); permutation p = 0.0473 (100000 relabelings within each mass pool, default_rng(20261008))
+
+TEST T: FAIL -- all eleven abs(z) < 2.8376: NO; permutation p of the nine-mass chi2 >= 0.01: yes; inventory clean
+
+### The replay's hypotheses: the z each would give here at its observed size, and the observed z
+
+| hypothesis | observed size | expected z if real | observed z |
+|---|---|---|---|
+| k_S^dyn | +0.40 % | +4.14 | -0.53 |
+| nu M=500 | +0.62 % | +4.16 | +0.35 |
+| nu M=1500 | +0.57 % | +6.11 | -2.56 |
+| nu M=50 | -1.05 % | -5.87 | +0.85 |
+
+## Information (i): pooled with the 25 campaign (legacy, 279282b) and 25 replay (minimal, 73fc07f) seeds
+
+| number | difference | relative [%] | z |
+|---|---|---|---|
+| k_S^dyn | +0.00573 | +0.064 | +0.74 |
+| c_s | +0.00267 | +0.070 | +0.77 |
+| nu M=50 | +5.87e-05 | +0.081 | +0.47 |
+| nu M=100 | -1.09e-05 | -0.019 | -0.08 |
+| nu M=200 | +1.99e-05 | +0.045 | +0.26 |
+| nu M=300 | +0.000111 | +0.301 | +2.15 |
+| nu M=500 | +4.84e-05 | +0.165 | +1.27 |
+| nu M=750 | -9.07e-07 | -0.004 | -0.03 |
+| nu M=1000 | +7.9e-06 | +0.038 | +0.37 |
+| nu M=1500 | -1.36e-05 | -0.079 | -0.90 |
+| nu M=2000 | +8.45e-06 | +0.056 | +0.76 |
+
+## Information (ii): null calibration -- nine-mass chi2 between blocks of 25 of the first 100 seeds of every mass, per policy
+
+| policy | block pair | chi2 (9 dof) | nominal p |
+|---|---|---|---|
+| minimal | 1-2 | 6.77 | 0.661 |
+| minimal | 1-3 | 13.75 | 0.131 |
+| minimal | 1-4 | 7.48 | 0.587 |
+| minimal | 2-3 | 7.54 | 0.581 |
+| minimal | 2-4 | 10.39 | 0.320 |
+| minimal | 3-4 | 12.20 | 0.202 |
+| legacy | 1-2 | 6.21 | 0.719 |
+| legacy | 1-3 | 4.35 | 0.887 |
+| legacy | 1-4 | 8.84 | 0.453 |
+| legacy | 2-3 | 7.92 | 0.542 |
+| legacy | 2-4 | 8.10 | 0.524 |
+| legacy | 3-4 | 10.79 | 0.290 |
+
+## Information (iii): plain-fluid baseline -- per-mass implied sound speed and the single-c_s fit, per policy
+
+| policy | M | c_s,M = nu/x | SE |
+|---|---|---|---|
+| minimal | 50 | 3.79170 | 0.00478 |
+| minimal | 100 | 3.80292 | 0.00797 |
+| minimal | 200 | 3.81079 | 0.00595 |
+| minimal | 300 | 3.82332 | 0.00367 |
+| minimal | 500 | 3.81777 | 0.00400 |
+| minimal | 750 | 3.81115 | 0.00381 |
+| minimal | 1000 | 3.81365 | 0.00336 |
+| minimal | 1500 | 3.81222 | 0.00241 |
+| minimal | 2000 | 3.81473 | 0.00225 |
+| legacy | 50 | 3.78592 | 0.00481 |
+| legacy | 100 | 3.80471 | 0.00794 |
+| legacy | 200 | 3.81419 | 0.00470 |
+| legacy | 300 | 3.80524 | 0.00473 |
+| legacy | 500 | 3.81580 | 0.00404 |
+| legacy | 750 | 3.81097 | 0.00337 |
+| legacy | 1000 | 3.81097 | 0.00300 |
+| legacy | 1500 | 3.82135 | 0.00263 |
+| legacy | 2000 | 3.81329 | 0.00233 |
+
+| policy | unweighted c_s (registered) | chi2 at it (8 dof) | weighted c_s +- SE | chi2 at it (8 dof) | p (weighted) |
+|---|---|---|---|---|---|
+| minimal | 3.80372 | 97.6 | 3.81307 +- 0.00115 | 31.9 | 0.000 |
+| legacy | 3.80072 | 144.7 | 3.81224 +- 0.00116 | 46.6 | 0.000 |
+```
+
+**Information after the verdict**, printed by `cd hspist3 && python3 validation/resched_testT_quant_261007.py` (written after the verdict; it changes nothing in it), verbatim:
+
+```
+# Test T, information only: quantization and spread per mass (minimal vs legacy, same seeds)
+
+| M | n per policy | FFT bin of nu | mean difference [bins] | SD minimal [bins] | SD legacy [bins] | SD ratio min/leg | F-test p (two-sided) | distinct values min / leg | same-seed correlation |
+|---|---|---|---|---|---|---|---|---|---|
+| 50 | 400 | 3.4178e-04 | +0.323 | 5.34 | 5.37 | 0.994 | 0.910 | 32 / 30 | -0.013 |
+| 100 | 100 | 2.7306e-04 | -0.100 | 4.45 | 4.44 | 1.003 | 0.975 | 22 / 20 | +0.038 |
+| 200 | 100 | 2.0734e-04 | -0.190 | 3.32 | 2.62 | 1.266 | 0.020 | 17 / 12 | -0.128 |
+| 300 | 100 | 1.7366e-04 | +1.010 | 2.05 | 2.64 | 0.775 | 0.012 | 10 / 14 | -0.018 |
+| 500 | 100 | 1.3738e-04 | +0.110 | 2.24 | 2.26 | 0.991 | 0.932 | 12 / 13 | +0.228 |
+| 750 | 100 | 1.1338e-04 | +0.010 | 2.13 | 1.88 | 1.130 | 0.225 | 12 / 10 | -0.087 |
+| 1000 | 100 | 9.8723e-05 | +0.150 | 1.88 | 1.68 | 1.120 | 0.261 | 11 / 9 | -0.021 |
+| 1500 | 100 | 8.1049e-05 | -0.510 | 1.35 | 1.47 | 0.919 | 0.404 | 8 / 7 | -0.240 |
+| 2000 | 100 | 7.0383e-05 | +0.080 | 1.26 | 1.30 | 0.965 | 0.722 | 8 / 7 | -0.030 |
+```
+
+**Verdict by the registered rule (§ 4.4.10 E, as amended in § 4.4.11).**
+
+| part | result |
+|---|---|
+| E0 byte-identical | PASS (15008320; the smoke test reprinted 73fc07f's c_s) |
+| E1 IDENTICAL | PASS (smoke same-node; 15008312 cross-node) |
+| E2 clean, zero mismatches (amended) | PASS |
+| E3 Test T | **FAIL** (ν at M = 300, z = +3.02 > 2.8376; the χ² part passes) |
+| energy ledger | not re-measured in gate v2; it carries over from G-E2 (§ 4.4.8, energy and ledger PASS) through E0. Test T: health lines 0, contact ≤ 2.41e-10 px |
+| one clean build | PASS (`git 7b08827  target koa` behind every Test T trajectory; e0e2.sbatch checks the recorded hash and the version line) |
+| **gate v2** | **NOT ACCEPTED: stop, report, no merge** |
+
+**Reading [INFERENCE unless marked; none of it changes the verdict].**
+- **[DERIVATION] Chance alone.** z* was set so that, if the two policies are equivalent, at least one of the eleven reaches |z| ≥ z* with probability 5 %. One number at z = +3.02 is the kind of event that this 5 % allows. The rule says FAIL regardless, and so does this report.
+- **Against a real bias, from the deterministic tests.**
+  - A bias in ν of the minimal path would need its event schedule to differ from legacy's. E2 found no difference beyond 1.7e-12 of the horizon, with zero missing and zero extra events, in 4.3e5 mode-1 audited events (5.3e5 with the mode-2 control): free divider at M = 50 and 2000, held divider, and two dense states.
+  - E2 did not audit M = 300 directly. Its schedule logic is the same code path as M = 50 and M = 2000, so a defect that appears at M = 300 only, and at neither neighbour (M = 200: −0.45, M = 500: +0.35), would need a mass-specific mechanism. None is known.
+- **Against a real bias, from the pattern.**
+  - Each data set has flagged a different mass, with changing signs. The replay flagged α = 5 (+), α = 15 (+), k_S^dyn (+) and α = 0.5 (−). Test T finds none of those, and instead flags M = 300 (+) and M = 1500 (−2.56, opposite to the replay's +).
+  - Pooled with the replay and the campaign (information (i)), M = 300 is at z = +2.15.
+  - The within-policy null calibration (information (ii)) gives χ² 4.35–13.75 for 9 dof, which is ordinary.
+- **For a real effect, or at least not to be dismissed.**
+  - At M = 300 the whole distribution is shifted by +1.01 FFT bins: 10 distinct values for minimal and 14 for legacy. It is not driven by a few outliers.
+  - The spreads differ there too: SD ratio 0.775, F-test p = 0.012. At M = 200, p = 0.020 in the opposite direction. These F-tests are post hoc, and 9 were made.
+  - The permutation p of the nine-mass χ² is 0.047. It passes the registered 0.01, but it is not large.
+  - [INFERENCE] Taken together, a small mass-specific difference cannot be excluded by these data. Its 95 % bound at M = 300 is +0.17 % to +0.78 %.
+- **The plain-fluid baseline (§ 4.4.11 item 3, "after Test T").**
+  - With 100 seeds per mass (400 at M = 50), the single-c_s model fails in **both** policies: weighted χ² 31.9 and 46.6 for 8 dof, p < 0.001.
+  - [DERIVATION, from the table] M = 50 lies (3.79170 − 3.81307)/0.00478 = −4.47 SE below the weighted c_s for minimal, and (3.78592 − 3.81224)/0.00481 = −5.47 SE for legacy. At M = 100 it is −1.3 and −1.0.
+  - [INFERENCE] The lightest divider's implied sound speed sits 0.56 % (minimal) and 0.69 % (legacy) low in both policies alike, so this is not an engine effect. It is a property of the ν_M = c_s x_M model at α = 0.5: a light-mass correction the model does not contain, or a bias of the ν estimator at the largest ν.
+  - The § 4.4.11 reading at 25 seeds ("the excess χ² is the estimator, not the data") was right about the unweighted estimator. At four to sixteen times the seeds, it no longer covers everything: a light-mass deviation is resolved.
+  - OPEN: whether the melting-window χ²_red hint contains the same light-mass term. It needs the weighted χ² of the window cells with M = 50 excluded and included (existing data, analysis only).
+- **Speed.** The minimal path's gain at η ≈ 0.70 is 5.5× at N = 400 and 1.9× at N = 100. That is larger than in the fluid cells (3.7–3.8× and 1.4×).
+
+**Item 4 of the second decision now applies:** "ASan on KOA ... is requested only if Test T fails". Test T failed. Nothing has been built or run for it. It needs a scratch build on a compute node that does not touch the recorded binary; the plan author decides whether and when.
+
+**Options for the plan author [INFERENCE; CC does not choose].**
+1. **Stay on 279282b (legacy) for all Paper 1 work.** This costs nothing in validity. Speed is lost: 3.7–5.5× at N = 400. The melting study's science runs on the legacy path in any case (§ 4.4.10 E, verdict text).
+2. **A gate v3, registered before its data.** For example, a Test T′ on fresh seeds aimed at M = 300 (and M = 1500), with its own rule fixed in advance. Under the 5 % family-wise design, a true null passes such a test with high probability, and a real +0.475 % shift at M = 300 would give z ≈ 3.0 again with 100 + 100 seeds (≈ 4.3 with 200 + 200: 3.02 × √2). Test T's rule says "no extension", so this would be a new test, not a rescue of this one.
+3. **ASan on KOA first (item 4), then option 1 or 2.**
