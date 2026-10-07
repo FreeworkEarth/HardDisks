@@ -3350,3 +3350,8 @@ i.e. the chi2 at the UNWEIGHTED through-origin slope T.slope, divided by n - 1 =
 **Items 4 and 6.**
 - ASan: not now (only if Test T fails).
 - **GO for the KOA steps 0–6 of runsheet § 12** once this commit is pushed. E2 on KOA is judged by item 1 as implemented above.
+
+**Addendum to § 4.4.10 A2 (iii) and C, 2026-10-06 20:33 HST [DATA].** From Chris's KOA login node:
+- **Cross-node determinism of 73fc07f: it ran.** `det1 A: host cn-03-33-01`, `det1 B: host cn-03-33-02`, wall trace IDENTICAL (104302 bytes), psi6 IDENTICAL (349 bytes): "different nodes): IDENTICAL". A2 (iii) is closed.
+- **KOA build warnings:** `grep -n "warning" logs/conf-smoke_14986284.out` returns no line. The KOA build (Makefile `CFLAGS_KOA`) does not enable -Wall, so this means no default-level gcc 14.3 warnings. The -Wall -Wextra check is the Mac gcc-15 one of § 4.4.10 C (none in branch code).
+- This addendum is on main only; the branch gets it after Test T, so the branch head 7b08827 that KOA builds stays as announced.
