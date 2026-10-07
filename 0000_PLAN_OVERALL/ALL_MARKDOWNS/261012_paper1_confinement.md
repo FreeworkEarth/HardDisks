@@ -2590,3 +2590,178 @@ G-E2: energy PASS; ledger PASS; health PASS; policy PASS; contact PASS (byte ide
   - **It is REFUTED if both rows have |z| < 2.** The smoke deficit is then reported as a fluctuation.
   - Anything in between is unresolved and needs more seeds.
 - **The gate verdict itself** still follows the registered rule (G-E1 to G-E6). Whether the mis-calibrated smoke gate (about 14 % false-fail rate) may be superseded by G-E4 and this test is the plan author's decision, to be recorded before the replay data are fetched.
+
+### 4.4.9 Gate results: profile, replay, verdict (2026-10-06 16:42 HST) [DATA; INFERENCE where marked]
+
+**What ran.**
+- Profile: KOA job 14986345.
+- Replay: array 1–3, from ~/harddisks_resched, build 73fc07f.
+- Fetched with `fetch_resched.sh` into `hspist3/experiments_resched_gate_261005/` (untracked data, like the campaign trees).
+- Cross-node determinism (step 3): its output was not pasted; **OPEN**.
+- **Timing note:** the plan author's decision on superseding the smoke gate (§ 4.4.8, point 2) was not recorded before the fetch. Only the light-mass test and the per-mass table were registered before it (commit 1dac4ad).
+
+Printed by `cd hspist3 && python3 validation/resched_gate_261005.py` (verbatim from G-E4 on; G-E2 recomputed from the fetched job: `G-E2: energy PASS; ledger PASS; health PASS; policy PASS; contact PASS (byte identity is reported, not gated: see the table)`):
+
+```
+### G-E4 -- old (279282b) vs new (replay): the nine numbers
+
+| # | cell | quantity | old | SE old | new | SE new | new - old | sigma_diff | z | abs(z) < 2 | (new - old)/SE_old |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | B e0p10_H_H10_L39.25 | c_s | 1.76165 | 0.00186 | 1.76306 | 0.00255 | +0.00141 | 0.00315 | +0.45 | yes | +0.76 |
+| 2 | B e0p10_H_H10_L39.25 | k_S^dyn | 0.106551 | 0.000108 | 0.106609 | 0.000108 | +5.77e-05 | 0.000153 | +0.38 | yes | +0.53 |
+| 3 | B e0p10_H_H10_L39.25 | Gamma(alpha=5) | 0.000419915 | 2.91e-05 | 0.000406892 | 2.67e-05 | -1.3e-05 | 3.95e-05 | -0.33 | yes | -0.45 |
+| 4 | B epi8_H_H10_L10 | c_s | 3.8203 | 0.00671 | 3.80973 | 0.00812 | -0.0106 | 0.0105 | -1.00 | yes | -1.58 |
+| 5 | B epi8_H_H10_L10 | k_S^dyn | 9.00689 | 0.0115 | 9.0425 | 0.0104 | +0.0356 | 0.0155 | +2.29 | **NO** | +3.10 |
+| 6 | B epi8_H_H10_L10 | Gamma(alpha=5) | 0.00612514 | 0.000601 | 0.00619744 | 0.000554 | +7.23e-05 | 0.000818 | +0.09 | yes | +0.12 |
+| 7 | AF epi8_H_H10_L10 | F(L_0) | 15.9367 | 0.00312 | 15.9271 | 0.00393 | -0.00962 | 0.00502 | -1.92 | yes | -3.09 |
+| 8 | AF epi8_H_H10_L10 | k_T | 3.91664 | 0.0327 | 3.95157 | 0.0306 | +0.0349 | 0.0448 | +0.78 | yes | +1.07 |
+| 9 | AF epi8_H_H10_L10 | k_T + F^2/(N_s kT) | 8.9962 | 0.0328 | 9.025 | 0.0307 | +0.0288 | 0.0449 | +0.64 | yes | +0.88 |
+
+sum z^2 = 11.43 for 9 computable of 9 numbers (correlated: c_s with k_S^dyn, k_T with k_static)
+false-fail probability of 'all 9 abs(z) < 2' under the null, if independent: 1 - 0.9545^9 = 0.342; with the per-number limit 2.77 (Bonferroni, family-wise 5 %): 0.049
+
+G-E4 (as registered, all abs(z) < 2): FAIL; for information, all abs(z) < 2.77: yes
+
+### Per-mass divider frequency, old vs new (information only, added 2026-10-06 before the replay data; the failed KOA smoke
+### test (261012 sec. 4.4.7) had its deficit at alpha = 0.5 and 1, so those rows test a light-mass shift directly)
+
+| cell | M | alpha | old nu (25 seeds) | SE | new nu | SE | (new - old)/old [%] | z |
+|---|---|---|---|---|---|---|---|---|
+| e0p10_H_H10_L39.25 | 50 | 0.5 | 0.007862 | 0.000019 | 0.007893 | 0.000027 | +0.40 | +0.95 **light** |
+| e0p10_H_H10_L39.25 | 100 | 1 | 0.006329 | 0.000013 | 0.006313 | 0.000017 | -0.26 | -0.76 **light** |
+| e0p10_H_H10_L39.25 | 200 | 2 | 0.004812 | 0.000009 | 0.004806 | 0.000011 | -0.12 | -0.41 |
+| e0p10_H_H10_L39.25 | 300 | 3 | 0.004020 | 0.000006 | 0.004025 | 0.000006 | +0.12 | +0.57 |
+| e0p10_H_H10_L39.25 | 500 | 5 | 0.003182 | 0.000005 | 0.003175 | 0.000004 | -0.24 | -1.13 |
+| e0p10_H_H10_L39.25 | 750 | 7.5 | 0.002624 | 0.000003 | 0.002631 | 0.000003 | +0.26 | +1.67 |
+| e0p10_H_H10_L39.25 | 1000 | 10 | 0.002283 | 0.000003 | 0.002289 | 0.000002 | +0.24 | +1.44 |
+| e0p10_H_H10_L39.25 | 1500 | 15 | 0.001877 | 0.000002 | 0.001874 | 0.000002 | -0.14 | -0.89 |
+| e0p10_H_H10_L39.25 | 2000 | 20 | 0.001630 | 0.000002 | 0.001629 | 0.000002 | -0.06 | -0.38 |
+| epi8_H_H10_L10 | 50 | 0.5 | 0.073196 | 0.000314 | 0.072431 | 0.000390 | -1.05 | -1.53 **light** |
+| epi8_H_H10_L10 | 100 | 1 | 0.058248 | 0.000160 | 0.058303 | 0.000163 | +0.09 | +0.24 **light** |
+| epi8_H_H10_L10 | 200 | 2 | 0.044063 | 0.000100 | 0.044321 | 0.000136 | +0.58 | +1.52 |
+| epi8_H_H10_L10 | 300 | 3 | 0.037073 | 0.000077 | 0.036927 | 0.000078 | -0.39 | -1.33 |
+| epi8_H_H10_L10 | 500 | 5 | 0.029239 | 0.000058 | 0.029421 | 0.000049 | +0.62 | +2.39 |
+| epi8_H_H10_L10 | 750 | 7.5 | 0.024127 | 0.000052 | 0.024118 | 0.000044 | -0.04 | -0.13 |
+| epi8_H_H10_L10 | 1000 | 10 | 0.021036 | 0.000023 | 0.021016 | 0.000029 | -0.09 | -0.53 |
+| epi8_H_H10_L10 | 1500 | 15 | 0.017205 | 0.000028 | 0.017302 | 0.000020 | +0.57 | +2.81 |
+| epi8_H_H10_L10 | 2000 | 20 | 0.014986 | 0.000017 | 0.015006 | 0.000015 | +0.13 | +0.89 |
+
+### Reproduction: the old values recomputed here against the recorded CSVs (at the CSV's printed precision)
+
+| cell | column | recomputed | recorded | equal at the recorded decimals |
+|---|---|---|---|---|
+| e0p10_H_H10_L39.25 | c_s | 1.761649337 | 1.7616493372393234 | yes |
+| e0p10_H_H10_L39.25 | c_s_err | 0.001856917083 | 0.0018569170826014045 | yes |
+| e0p10_H_H10_L39.25 | k_S_dyn | 0.1065508365 | 0.1065508364941924 | yes |
+| epi8_H_H10_L10 | c_s | 3.820304395 | 3.8203043949744644 | yes |
+| epi8_H_H10_L10 | c_s_err | 0.006708066425 | 0.006708066425200613 | yes |
+| epi8_H_H10_L10 | k_S_dyn | 9.006886369 | 9.006886368512363 | yes |
+| epi8_H_H10_L10 | k_T_afix | 3.916635012 | 3.9166350120106856 | yes |
+| epi8_H_H10_L10 | F_L0 | 15.93669026 | 15.93669025885752 | yes |
+| epi8_H_H10_L10 | static_afix | 8.996196942 | 8.996196942081857 | yes |
+
+### G-E3 -- the replayed cells are clean
+
+| cell | method | trajectories matched (expected) | log sections | health lines (failed runs incl.) | logs without the minimal policy line | max abs(dE/E) hold | max abs(dE/E) record | max contact gap [px] | divider ledger | PASS |
+|---|---|---|---|---|---|---|---|---|---|---|
+| e0p10_H_H10_L39.25 | B | 225 (225) | 225 | 0 | 0 | 1.33e-15 | 3.89e-14 | 1.76e-09 | energy (above) | yes |
+| epi8_H_H10_L10 | B | 225 (225) | 225 | 0 | 0 | 2.44e-15 | 3.64e-14 | 2.07e-10 | energy (above) | yes |
+| epi8_H_H10_L10 | AF | 115 (115) | 115 | 0 | 0 | nan | nan | 5.23e-11 | yes | yes |
+
+G-E3: PASS
+
+### G-E5 -- profile (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_resched_gate_261005/profile_edmd_14986345)
+
+| kind | N | minimal [s] | legacy [s] | 279282b job 14983181 [s] | legacy / minimal |
+|---|---|---|---|---|---|
+| held | 100 | 1.61 | 2.31 | 2.3 | 1.43 |
+| held | 400 | 14.60 | 56.20 | 56.4 | 3.85 |
+| free | 100 | 1.67 | 2.36 | nan | 1.41 |
+| free | 400 | 15.07 | 56.33 | nan | 3.74 |
+exponent held minimal: p = ln(14.60/1.61)/ln 4 = 1.59
+exponent held legacy: p = ln(56.20/2.31)/ln 4 = 2.30
+exponent free minimal: p = ln(15.07/1.67)/ln 4 = 1.59
+exponent free legacy: p = ln(56.33/2.36)/ln 4 = 2.29
+
+### Build check -- one clean build behind every gate output
+
+| build | sources |
+|---|---|
+| 73fc07f | 37: experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/e0p10_H_H10_L39.25/m_100/.build_git, experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/e0p10_H_H10_L39.25/m_1000/.build_git, experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013/e0p10_H_H10_L39.25/m_1500/.build_git ... |
+
+local branch head engine-divider-resched: 7c828c3 (the commits after 73fc07f are notes and Mac analysis only)
+BUILD: PASS (one clean build: 73fc07f)
+
+SUMMARY: G-E2 PASS; G-E3 PASS; G-E4 FAIL; G-E5 printed; build PASS; reproduction of the recorded old values yes
+```
+
+Printed by `python3 hspist3/validation/resched_permass_quant_261006.py`:
+
+```
+
+e0p10_H_H10_L39.25
+| M | old distinct nu (of 25) | new distinct | bin df/nu [%] | per-seed sd / df | z (new - old) |
+|---|---|---|---|---|---|
+| 50 | 9 | 12 | 0.50 | 2.41 | +0.95 |
+| 100 | 9 | 9 | 0.49 | 2.16 | -0.76 |
+| 200 | 7 | 9 | 0.49 | 1.83 | -0.41 |
+| 300 | 6 | 7 | 0.49 | 1.44 | +0.57 |
+| 500 | 7 | 6 | 0.49 | 1.71 | -1.13 |
+| 750 | 5 | 5 | 0.49 | 1.12 | +1.67 |
+| 1000 | 6 | 4 | 0.49 | 1.30 | +1.44 |
+| 1500 | 5 | 5 | 0.49 | 1.04 | -0.89 |
+| 2000 | 4 | 6 | 0.49 | 0.96 | -0.38 |
+chi2 of the 9 per-mass z = 9.05 / 9, nominal p = 0.433
+
+epi8_H_H10_L10
+| M | old distinct nu (of 25) | new distinct | bin df/nu [%] | per-seed sd / df | z (new - old) |
+|---|---|---|---|---|---|
+| 50 | 14 | 14 | 0.47 | 4.60 | -1.53 |
+| 100 | 10 | 11 | 0.47 | 2.93 | +0.24 |
+| 200 | 10 | 12 | 0.47 | 2.42 | +1.52 |
+| 300 | 9 | 9 | 0.47 | 2.22 | -1.33 |
+| 500 | 8 | 8 | 0.47 | 2.10 | +2.39 |
+| 750 | 8 | 8 | 0.47 | 2.27 | -0.13 |
+| 1000 | 5 | 6 | 0.47 | 1.19 | -0.53 |
+| 1500 | 7 | 6 | 0.47 | 1.74 | +2.81 |
+| 2000 | 5 | 5 | 0.47 | 1.19 | +0.89 |
+chi2 of the 9 per-mass z = 21.22 / 9, nominal p = 0.012
+```
+
+**Verdict by the registered rule: FAIL.** Do not merge.
+- G-E1: same-node determinism IDENTICAL, but the smoke c_s gate FAILED (§ 4.4.7); cross-node not reported.
+- G-E3: clean.
+- **G-E4: 8 of 9 have |z| < 2. Number 5, π/8 k_S^dyn, has z = +2.29.**
+- Energy: within legacy tolerance.
+
+**Reading.**
+- **[DATA] The light-mass hypothesis from the smoke test is REFUTED** by the rule registered in § 4.4.8: the π/8 α = 0.5 and α = 1 rows have z = −1.53 and +0.24 (shift −1.05 % and +0.09 %, against the smoke pilot's −3.8 % and −3.4 %). The smoke deficit was a fluctuation of a one-trajectory-per-mass pilot.
+- **[DATA] The G-E4 failure sits elsewhere, and is small.**
+  - The π/8 heavy masses read higher: α = 5 by +0.62 % (z = +2.39), α = 15 by +0.57 % (z = +2.81).
+  - k_S^dyn, the weighted mean over α ≥ 5, is +0.40 % (z = +2.29).
+  - Across the 9 masses at π/8, χ² = 21.2/9 (nominal p = 0.012); at η = 0.10, χ² = 9.05/9 (p = 0.43).
+- **[DATA] The heavy-mass ν are coarsely quantized.** The 25 seeds take 5–8 distinct values; the per-seed spread is 1–2 frequency bins of 0.47 % each. So a per-mass mean moves in steps comparable to its SE, and Gaussian p-values for these z are optimistic [INFERENCE].
+- **[DATA] Family-wise view.** All nine G-E4 numbers are within the Bonferroni limit of 2.77 proposed in § 4.4.3. That amendment was not adopted before the data, so it is reported only.
+- **[DATA] Event-level checks.**
+  - Across the 565 replay trajectories plus G-E2: no health line; |ΔE/E| ≤ 3.9 × 10⁻¹⁴; contact distance ≤ 1.8 × 10⁻⁹ px at every executed event.
+  - The new path's legacy mode reproduces 279282b byte for byte (§ 4.4.8).
+  - **[INFERENCE] No mechanism is known by which a dynamics that is valid event by event would shift heavy-divider frequencies by 0.4 %.** The likeliest reading is a 2.3σ excursion of a lumpy estimator among many comparisons, but the registered test does not show that.
+- **[DATA] G-E5, the measured gain.**
+  - N = 400: 3.85× (held divider) and 3.74× (free divider).
+  - N = 100: 1.43× and 1.41×.
+  - The exponent N = 100 → 400 at fixed L₀ drops from 2.30 (legacy) to 1.59 (minimal).
+  - The legacy times reproduce the 279282b profile: 56.20 s vs 56.4 s; 2.31 s vs 2.3 s.
+  - **[INFERENCE, extrapolation]** With those exponents the factor grows as (N/400)^0.71, i.e. about 6.8× at N = 900, against the 10× assumed in § 4 option (b).
+
+**Options for the plan author (no step taken).**
+1. **Accept the FAIL and stay on 279282b.**
+   - The melting sweep then runs as variant (a), N ≤ 400 on the current engine.
+   - Or N = 900 at about 7× the cost estimated for the 10× engine.
+2. **A confirmatory test, pre-registered before it runs.**
+   - Design: the π/8 B cell epi8_H_H10_L10 with 25 FRESH seeds, minimal and --legacy-resched on the same binary and node pool. That is 2 × 225 trajectories, about 2–3 core-h, and it removes every build and node difference.
+   - The test: z of k_S^dyn and of c_s between the two policies.
+   - **|z| < 2 for both:** the § 4.4.9 excursion counts as a fluctuation, and the engine is accepted on the combined evidence.
+   - **|z| ≥ 3 in the same direction (+):** a real effect of the minimal path, not accepted.
+   - Anything between: unresolved.
+   - Same binary and policy switch as G-E2; the replay tooling would need a two-policy task list (small, I would write it).
+3. **Amend the G-E4 rule now (Bonferroni) and pass.** Not recommended: the data have been seen.
