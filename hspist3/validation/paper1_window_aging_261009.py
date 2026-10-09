@@ -21,6 +21,10 @@ trajectory nu1, nu2 from the first and second TD/2 periods of the same record an
 argmax resolution of one half is 2/TD (1 % at TD = 200, 8 % at TD = 25), printed per cell. Per cell: the mean of dnu with its
 SE (trajectories), the fraction with dnu = 0, and the within-mass Spearman of dnu against dpsi6 = psi6(end) - psi6(hold),
 combined over the masses as above.
+##CHRIS 2026-10-09 (261012 sec. 4.7.11, plan-author decision 7 ii; EXPLORATORY): the divider AMPLITUDE in the same split, same
+traces, no new runs: per half the RMS displacement about that half's mean, over the same samples as nu1 and nu2; dA = A2/A1 - 1.
+Table 2 gains two columns at its end (mean dA with its SE; within-mass Spearman of dnu against dA, combined as above); every
+other column and line is unchanged. Purpose: separate an amplitude-dependent frequency from structural aging.
 usage (from hspist3/):  python3 validation/paper1_window_aging_261009.py [--workers 10]
 """
 import math, os, re, sys
@@ -51,7 +55,8 @@ def traj2(p):
             P, df = T._spectrum(xx, dt); k = int(round(td / W.X_EDGE)); return (k + int(np.argmax(P[k:]))) * df
         nu = argmax_nu(x[:n], TD)
         h2 = n // 2
-        return dict(nu=nu, nu1=argmax_nu(x[:h2], TD / 2.0), nu2=argmax_nu(x[h2:2 * h2], TD / 2.0), TD=TD)
+        return dict(nu=nu, nu1=argmax_nu(x[:h2], TD / 2.0), nu2=argmax_nu(x[h2:2 * h2], TD / 2.0), TD=TD,
+                    a1=float(np.std(x[:h2])), a2=float(np.std(x[h2:2 * h2])))   # ##CHRIS 2026-10-09 (decision 7 ii)
     except edmd_acc_guard.AcceleratedRunError:
         return "refused"
     except Exception:
@@ -125,6 +130,7 @@ def main():
     for q in inv:
         R = res[q["cell"]]; rs, ns, pairs_nu, pairs_ps = [], [], [], []
         sp_d, n_d, dnu_all, dnu_zero = [], [], [], 0
+        da_all, sp_a, n_a = [], [], []                                   # ##CHRIS 2026-10-09 (decision 7 ii): amplitude
         for M in sorted(R):
             tr = [o for o in R[M] if (M, o["r"]) in q["pr"]]
             if len(R[M]) < 3: continue
@@ -135,6 +141,8 @@ def main():
             pairs_nu += list(nu / nu.mean() - 1); pairs_ps += list(ps - ps.mean())
             dn = np.array([o["nu2"] / o["nu1"] - 1 for o in tr]); dnu_all += list(dn); dnu_zero += int((dn == 0).sum())
             sd = spearmanr(dn, dps); sp_d.append(float(sd.correlation)); n_d.append(len(tr))
+            da = np.array([o["a2"] / o["a1"] - 1 for o in tr]); da_all += list(da)
+            sa = spearmanr(dn, da); sp_a.append(float(sa.correlation)); n_a.append(len(tr))
         if not rs: continue
         rc, lo, hi, Q, pQ = fisher(rs, ns)
         sp = spearmanr(pairs_nu, pairs_ps)
@@ -150,7 +158,7 @@ def main():
               f"{mine} (p {sp.pvalue:.1e}), {len(pairs_nu)} | {('%s (p %s), %d' % rr) if rr else 'not in the recorded table'} |")
         TDs = sorted({o["TD"] for M in R for o in R[M]})
         dn = np.array(dnu_all); dc, dlo, dhi, dQ, dpQ = fisher(sp_d, n_d)
-        rows_split.append((q, TDs, dn, dnu_zero, (dc, dlo, dhi, dQ, dpQ), len(sp_d)))
+        rows_split.append((q, TDs, dn, dnu_zero, (dc, dlo, dhi, dQ, dpQ), len(sp_d), np.array(da_all), fisher(sp_a, n_a)))
     gone = sorted(k for k in rec if k not in compared)
     print(f"\ngate: the pooled values recomputed here against sec. 4.6's printed table: {'IDENTICAL to the printed digits in every cell compared' if gate_bad == 0 else f'**{gate_bad} cells DIFFER**'} "
           f"({len(compared)} of its {len(rec)} rows compared)")
@@ -161,16 +169,20 @@ def main():
     # ---------------------------------------------------------------- table 2: the split
     print("\n## 2. First half against second half of each trajectory: dnu = nu2/nu1 - 1 (same estimator on TD/2 periods each)\n")
     print("| campaign | eta_true | in the window | TD (periods per half) | argmax resolution of a half | trajectories | mean dnu [%] (SE) | "
-          "dnu exactly 0 (one bin) | within-mass Spearman(dnu, psi6 end - hold), combined [95 % interval] | Cochran Q (dof, p) |\n"
-          "|---|---|---|---|---|---|---|---|---|---|")
-    for q, TDs, dn, nz, f, nm in rows_split:
+          "dnu exactly 0 (one bin) | within-mass Spearman(dnu, psi6 end - hold), combined [95 % interval] | Cochran Q (dof, p) | "
+          "mean dA [%] (SE) | within-mass Spearman(dnu, dA), combined [95 % interval] |\n"
+          "|---|---|---|---|---|---|---|---|---|---|---|---|")
+    for q, TDs, dn, nz, f, nm, da, fa in rows_split:
         inside = W.WIN_LO <= q["eta"] <= W.WIN_HI
         se = dn.std(ddof=1) / math.sqrt(len(dn)) if len(dn) > 1 else float("nan")
         print(f"| {q['camp']} | {q['eta']:.4f} | {'yes' if inside else 'no'} | {', '.join(str(t) for t in TDs)} ({', '.join('%g' % (t / 2) for t in TDs)}) | "
               f"{', '.join('%.1f %%' % (200.0 / t) for t in TDs)} | {len(dn)} | {100 * dn.mean():+.2f} ({100 * se:.2f}) | {nz} ({100.0 * nz / max(1, len(dn)):.0f} %) | "
-              f"{f[0]:+.2f} [{f[1]:+.2f}, {f[2]:+.2f}] | {f[3]:.1f} ({nm - 1}, {f[4]:.2g}) |")
+              f"{f[0]:+.2f} [{f[1]:+.2f}, {f[2]:+.2f}] | {f[3]:.1f} ({nm - 1}, {f[4]:.2g}) | "
+              f"{100 * da.mean():+.2f} ({100 * da.std(ddof=1) / math.sqrt(len(da)):.2f}) | {fa[0]:+.2f} [{fa[1]:+.2f}, {fa[2]:+.2f}] |")
     print("\n(EXPLORATORY: no verdict rule. A positive mean dnu means the frequency rises from the first to the second half of the record; "
           "psi6 end - hold is the structural change over the whole record, the only per-run time information psi6 has.)")
+    print("(decision 7 ii, 2026-10-09: dA = A2/A1 - 1, A = RMS displacement of the divider about the half's mean, the same samples "
+          "as nu1 and nu2. A negative mean dA means the swing shrinks from the first to the second half.)")
 
 
 if __name__ == "__main__":

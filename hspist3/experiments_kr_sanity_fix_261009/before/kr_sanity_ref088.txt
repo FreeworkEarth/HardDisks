@@ -1,0 +1,21 @@
+module functions: Z_kolafa_rottner_2006(eta: 'np.ndarray') -> 'np.ndarray', dZ_kolafa_rottner_2006(eta: 'np.ndarray') -> 'np.ndarray', cs_adiabatic_2d_monatomic(Z: 'np.ndarray', dZ: 'np.ndarray', eta: 'np.ndarray', *, kbt: 'float', m: 'float') -> 'np.ndarray'
+independent reference: rho_max = 0.88 version (eta_max = 0.6912)
+
+| eta | Z paper | Z module | rel diff | Z' paper (analytic) | Z' complex-step | Z' module | rel diff | c_s paper | c_s module | rel diff | tests_20260913.kr_cs | rel diff vs paper |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.05 | 1.10838774198968 | 1.10838774198985 | 1.6e-13 | 2.34761773305187 | 2.34761773305187 | 2.3476177330678 | 6.8e-12 | 1.56661801829139 | 1.56661801829183 | 2.8e-13 | 1.56661801830068 | 5.9e-12 |
+| 0.30 | 2.06326085484772 | 2.06326087957605 | 1.2e-08 | 6.03583224566138 | 6.03583224566138 | 6.03583334839163 | 1.8e-07 | 2.8515006371546 | 2.85150071739119 | 2.8e-08 | 2.85150071752567 | 2.8e-08 |
+| 0.50 | 4.10635800241687 | 4.10636394336527 | 1.4e-06 | 16.7336733246343 | 16.7336733246343 | 16.7336836142638 | 6.1e-07 | 5.41621368750783 | 5.41621921508607 | 1.0e-06 | 5.41621921569349 | 1.0e-06 |
+| 0.65 | 8.40804926299822 | 8.4080435277207 | 6.8e-07 | 45.9481747610299 | 45.9481747610299 | 45.9449284500896 | 7.1e-05 | 10.4388531585933 | 10.4387471941955 | 1.0e-05 | 10.4387471910944 | 1.0e-05 |
+
+largest relative difference module vs paper (Z, Z', c_s; and analytic vs complex-step Z'): 7.1e-05
+tests_20260913.kr_cs vs paper: largest relative difference 1.0e-05 (above 1e-10; reported, not part of the verdict -- see how kr_cs forms Z')
+
+for information (NOT the verdict) -- the other two published versions against the module, largest relative difference over the four eta:
+| version | Z | Z' (analytic) | c_s |
+|---|---|---|---|
+| rho_max = 0.89 | 6.8e-07 | 7.2e-06 | 1.5e-06 |
+| rho_max = 0.9 | 4.2e-16 | 1.5e-16 | 3.4e-16 |
+module comment, plot_speed_of_sound_edmd.py:620: '# Kolafa & Rottner (2006), rho_max=0.90 fit.  Their x is eta/(1-eta).'
+
+**VERDICT: FAIL -- STOP, the module is NOT edited** (criterion: relative difference <= 1e-10)
