@@ -1,0 +1,35 @@
+# gen3 band-edge cells: the numbers behind each schedule-audit finding (amendment a), printed by edmd_core/tests/gen3_band_edge_ties.c
+
+| cell | finding (first occurrence) | at t | quantities | class |
+|---|---|---|---|---|
+| held_right (exact) | missing PAIR a=1 b=32 | 42.666666666666664 | dv = (0.625, 0); r_x local -34.333333333334359 / absolute -34.333333333334338; r_y local -24 / absolute -24; disc local -5.68e-14 / absolute 5.68e-14; heap nan, brute force 97.599999389650748; K bound 4.09e-13; opposite sides of the divider: yes | G |
+| held_right (exact) | wrong-direction CROSS a=21 b=2 | 128.00000000537622 | cell (12,5), local (1.3440555335364479e-09, 24.000000000336016), v (0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 0 at 256; audit: direction 2 | C |
+| held_right (exact) | extra PAIR a=0 b=9 | 192.00000000000003 | dv = (-1.63258e-13, 0); r_x local 39.999999999989043 / absolute 39.999999999989029; r_y local 24 / absolute 24; disc local 1.18e-38 / absolute 0; heap 245010516292499.97, brute force nan; K bound 3.79e-38; opposite sides of the divider: no | G |
+| held_right (exact) | wrong-direction CROSS a=15 b=2 | 239.94644463885018 | cell (12,8), local (16.053555361149819, 28.989958369784411), v (-1, 0.1875); x and y crossing at 256 / 256 (from the stamp at 224: 256 / 256); heap: direction 1 at 256; audit: direction 2 | C |
+| held_right (exact) | occurrences of missing PAIR a=1 b=32: 6 |  |  |  |
+| held_right (exact) | occurrences of wrong-direction CROSS a=21 b=2: 3 |  |  |  |
+| held_right (exact) | occurrences of extra PAIR a=0 b=9: 1 |  |  |  |
+| held_right (exact) | occurrences of wrong-direction CROSS a=15 b=2: 1 |  |  |  |
+| held_left (exact) | missing PAIR a=25 b=36 | 42.666666666666664 | dv = (-0.125, 0); r_x local 39.666666666666607 / absolute 39.6666666666666; r_y local -24 / absolute -24; disc local 0 / absolute 7.11e-15; heap nan, brute force 359.99999460522201; K bound 2.18e-14; opposite sides of the divider: yes | G |
+| held_left (exact) | missing PAIR a=2 b=9 | 102.39999999999998 | dv = (4.19387e-14, 0); r_x local -39.999999999998373 / absolute -39.99999999999838; r_y local -24 / absolute -24; disc local 0 / absolute 3.67e-40; heap nan, brute force 953773570015439.25; K bound 2.5e-39; opposite sides of the divider: no | G |
+| held_left (exact) | extra PAIR a=0 b=9 | 127.99999999999994 | dv = (8.3461e-14, 0); r_x local -39.999999999996035 / absolute -39.999999999996021; r_y local 24 / absolute 24; disc local 2.94e-39 / absolute 0; heap 479265665898622.06, brute force nan; K bound 9.9e-39; opposite sides of the divider: no | G |
+| held_left (exact) | wrong-direction CROSS a=5 b=2 | 128.00000000000668 | cell (7,5), local (31.99999999999833, 24.000000000000419), v (-0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 1 at 256; audit: direction 2 | C |
+| held_left (exact) | wrong-direction CROSS a=21 b=2 | 128.00000000000668 | cell (4,5), local (31.99999999999833, 24.000000000000419), v (-0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 1 at 256; audit: direction 2 | C |
+| held_left (exact) | occurrences of missing PAIR a=25 b=36: 3 |  |  |  |
+| held_left (exact) | occurrences of missing PAIR a=2 b=9: 1 |  |  |  |
+| held_left (exact) | occurrences of extra PAIR a=0 b=9: 8 |  |  |  |
+| held_left (exact) | occurrences of wrong-direction CROSS a=5 b=2: 1 |  |  |  |
+| held_left (exact) | occurrences of wrong-direction CROSS a=21 b=2: 5 |  |  |  |
+| driven (exact) | missing PAIR a=25 b=36 | 42.666666666666664 | dv = (0.625, 0); r_x local -50.333333333333279 / absolute -50.333333333333258; r_y local -24 / absolute -24; disc local 0 / absolute 1.14e-13; heap nan, brute force 123.19999913683338; K bound 8.79e-13; opposite sides of the divider: yes | G |
+| driven (exact) | missing PAIR a=1 b=32 | 43.503617297951436 | dv = (0.625, 0); r_x local -49.810239188781381 / absolute -49.810239188781367; r_y local -24 / absolute -24; disc local 0 / absolute 1.14e-13; heap nan, brute force 123.19999913683519; K bound 8.61e-13; opposite sides of the divider: yes | G |
+| driven (exact) | wrong-direction CROSS a=21 b=2 | 128.00000000537622 | cell (12,5), local (1.3440555335364479e-09, 24.000000000336016), v (0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 0 at 256; audit: direction 2 | C |
+| driven (exact) | occurrences of missing PAIR a=25 b=36: 1 |  |  |  |
+| driven (exact) | occurrences of missing PAIR a=1 b=32: 3 |  |  |  |
+| driven (exact) | occurrences of wrong-direction CROSS a=21 b=2: 5 |  |  |  |
+| spring (exact) | wrong-direction CROSS a=21 b=2 | 137.16957229380884 | cell (12,5), local (2.2923930734522102, 24.573098268363054), v (0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 0 at 256; audit: direction 2 | C |
+| spring (exact) | dt_rel PAIR a=12 b=18 | 256.00000000000409 | dv = (-2.17326e-14, 0.1875); r_x local 23.999999999996703 / absolute 23.999999999996703; r_y local -47.999999999999233 / absolute -47.999999999999233; disc local 1.5e-11 / absolute 1.5e-11; heap 511.99988991508729, brute force 511.99988996732213; K bound 2.65e-07; opposite sides of the divider: no | K |
+| spring (exact) | occurrences of wrong-direction CROSS a=21 b=2: 18 |  |  |  |
+| spring (exact) | occurrences of dt_rel PAIR a=12 b=18: 5 |  |  |  |
+
+findings (audit lines, all cells): 61 occurrences, 14 distinct; by cell: held_right (exact) 11; held_left (exact) 18; driven (exact) 9; spring (exact) 23; held_right (generic y) 0; held_left (generic y) 0; driven (generic y) 0; spring (generic y) 0;
+distinct findings by class: G exact graze 7, K near graze within rounding 1, V rounding-level relative velocity 0, C corner tie 6, U unclassified 0

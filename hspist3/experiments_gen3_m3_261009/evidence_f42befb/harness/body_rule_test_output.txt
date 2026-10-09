@@ -1,0 +1,16 @@
+gen3 body_rule (spring divider) against an independent scan: 20000 cases: contact 13434 (of them beyond 64 periods: 5124), none 6566, at once 0; compared by the scan 14876; max |dt_engine - dt_scan| / max(1, dt) = 2.31e-15; slow cases max |g(dt)| = 1.66e-09 px, max |g(dt)| / |g'(dt)| = 8.91 ulp(dt); failures 0
+
+constructed cases (amendment b), 2000 per category; worst = max relative contact-time difference to the independent answer (for the slow approach: max |dt - expected minimum| / T, which is below 1 inside the expected stretch):
+
+| category | cases | failures | worst |
+|---|---|---|---|
+| near-tangent touching, drift 0 (first two periods) | 2000 | 0 | 5.89e-11 |
+| near-tangent missing, drift 0 | 2000 | 0 | 0 |
+| near-tangent touching at the k-th minimum (jump path) | 2000 | 0 | 1.9e-12 |
+| near-tangent missing at the k-th minimum (contact one period later) | 2000 | 0 | 1.11e-15 |
+| turning point, oscillating g, first period | 2000 | 0 | 1.49e-13 |
+| turning point, oscillating g, k-th period (jump path) | 2000 | 0 | 1.29e-15 |
+| turning point, monotone g (disk faster than the face) | 2000 | 0 | 4.92e-15 |
+| slow approach, k = 10 .. 1e9 periods (jump path) | 2000 | 0 | 0.234 |
+
+constructed failures: 0
