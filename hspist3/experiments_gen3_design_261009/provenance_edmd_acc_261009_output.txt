@@ -1,0 +1,371 @@
+# Provenance of the accelerated EDMD backend (261012 sec. 4.7.1, item 0)
+
+## PART A -- the data trees
+
+| file class | files scanned | files mentioning the flag/backend | occurrences by kind |
+|---|---|---|---|
+| run record | 26634 | 17944 | ACCELERATED: 443, default (explicit): 17501 |
+| run log | 21803 | 1765 | default (log line): 17636 |
+| summary csv | 19664 | 19504 | ACCELERATED: 4949, default (explicit): 24608 |
+| launcher | 13405 | 103 | ACCELERATED: 20, code/doc mention: 17, default (explicit): 107, other ($edmd_acc): 2, other ((\d+): 1, other ((default): 1, other (0")]): 1, other (0.): 1, other (can): 1 |
+| notes | 1146 | 88 | ACCELERATED: 316, code/doc mention: 90, default (explicit): 272, default (log line): 26, other ($edmd_acc): 2, other (0`).): 1, other (0`.): 4, other (0|1): 15, other (0|1`.): 9, other (0}): 9, other (1']): 4, other (1`).): 1, other (1`.): 2, other (1`:): 1, other (1}): 4, other (\): 71, other (enable): 2, other (true|false): 2 |
+
+## Campaigns whose recorded runs used the ACCELERATED backend, and who reads them
+
+(readers: every *.py, *.sh, *.tex and *.ipynb outside the data trees that names the campaign's directory; notes: 0000_PLAN_OVERALL/*.md)
+
+| campaign directory | files with the flag | example evidence | read by scripts / notebooks / LaTeX | named in notes |
+|---|---|---|---|---|
+| hspist3/experiments_energy_transfer/energy_transfer_runs_2walls.csv | 1 | `2026-03-04 13:35:51,energy_transfer,edmd,200,50,0.00199999996,20,10,60,0.1,nan,0.004712388` | 1: hspist3/plot_energy_transfer_runs.py | 9: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_03_PACKING_FRACTION_AND_THEORY.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md, RECOVERED_TOPIC_02_TEMPERATURE_UNITS_PSD_2026-04-09.md |
+| hspist3/experiments_energy_transfer/mass_sweep_eta02_N600 | 1 | `2026-03-27 12:25:29,energy_transfer,edmd,8000,1000,0.000833333315,20,10,600,0.145673126,na` | 0 | 12: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md, RECOVERED_TOPIC_02_TEMPERATURE_UNITS_PSD_2026-04-09.md, RECOVERED_TOPIC_01_SZILARD_PLOTS_2026-04-09.md |
+| hspist3/experiments_energy_transfer/unified_20260302_185128/control_radius | 2 | `2026-03-02 18:54:38,energy_transfer,edmd,30000,10000,0.00199999996,20,10,600,0.072836566,n` | 0 | 11: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_03_PACKING_FRACTION_AND_THEORY.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md |
+| hspist3/experiments_energy_transfer/unified_20260302_190255/control_radius | 2 | `2026-03-02 19:04:54,energy_transfer,edmd,8000,1000,0.00199999996,20,10,600,0.072836566,nan` | 0 | 11: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_03_PACKING_FRACTION_AND_THEORY.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md |
+| hspist3/experiments_energy_transfer/unified_20260305_112027/control_radius | 2 | `2026-03-05 11:21:21,energy_transfer,edmd,8000,1000,0.00199999996,20,10,600,0.072836566,nan` | 0 | 11: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_03_PACKING_FRACTION_AND_THEORY.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md |
+| hspist3/experiments_energy_transfer/unified_20260326_085956/control_radius | 2 | `2026-03-26 09:01:45,energy_transfer,edmd,8000,1000,0.00166666663,20,10,600,0.145673126,nan` | 0 | 11: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_03_PACKING_FRACTION_AND_THEORY.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md |
+| hspist3/experiments_energy_transfer/unified_20260326_090733/control_radius | 2 | `2026-03-26 09:08:36,energy_transfer,edmd,8000,1000,0.00166666663,20,10,600,0.145673126,nan` | 0 | 11: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_03_PACKING_FRACTION_AND_THEORY.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md |
+| hspist3/experiments_energy_transfer/unified_20260326_091821/control_radius | 2 | `2026-03-26 09:19:22,energy_transfer,edmd,8000,1000,0.00166666663,20,10,600,0.145673126,nan` | 0 | 11: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_03_PACKING_FRACTION_AND_THEORY.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md |
+| hspist3/experiments_energy_transfer/unified_20260326_092855/control_radius | 2 | `2026-03-26 09:29:56,energy_transfer,edmd,8000,1000,0.00166666663,20,10,600,0.145673126,nan` | 0 | 11: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_03_PACKING_FRACTION_AND_THEORY.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md |
+| hspist3/experiments_energy_transfer/unified_20260326_093925/control_radius | 2 | `2026-03-26 09:40:30,energy_transfer,edmd,8000,1000,0.00166666663,20,10,600,0.145673126,nan` | 0 | 11: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_03_PACKING_FRACTION_AND_THEORY.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md |
+| hspist3/experiments_energy_transfer/unified_20260326_095031/control_radius | 2 | `2026-03-26 09:51:38,energy_transfer,edmd,8000,1000,0.00166666663,20,10,600,0.145673126,nan` | 0 | 11: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_03_PACKING_FRACTION_AND_THEORY.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md |
+| hspist3/experiments_energy_transfer/unified_20260326_100146/control_radius | 2 | `2026-03-26 10:02:53,energy_transfer,edmd,8000,1000,0.00166666663,20,10,600,0.145673126,nan` | 0 | 11: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_03_PACKING_FRACTION_AND_THEORY.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md |
+| hspist3/experiments_energy_transfer/unified_20260326_101318/control_radius | 2 | `2026-03-26 10:14:31,energy_transfer,edmd,8000,1000,0.00166666663,20,10,600,0.145673126,nan` | 0 | 11: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_03_PACKING_FRACTION_AND_THEORY.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md |
+| hspist3/experiments_gen3_design_261009/eventcounts/acc_dense_D10 (sec. 4.7 diagnostic) | 2 | `2026-10-08 15:45:50,energy_transfer,edmd,6000,6000,0.0166666669,5.60417,10,100,0.5,nan,0.7` | 0 | 0 |
+| hspist3/experiments_gen3_design_261009/eventcounts/acc_dense_D40 (sec. 4.7 diagnostic) | 2 | `2026-10-08 15:46:06,energy_transfer,edmd,6000,6000,0.0166666669,5.60417,40,400,0.5,nan,0.7` | 0 | 0 |
+| hspist3/experiments_gen3_design_261009/eventcounts/acc_free_H10 (sec. 4.7 diagnostic) | 2 | `2026-10-08 15:45:45,energy_transfer,edmd,9700,322,5.36666695,"wall_hold","particle_particl` | 0 | 0 |
+| hspist3/experiments_gen3_design_261009/eventcounts/acc_free_H40 (sec. 4.7 diagnostic) | 2 | `2026-10-08 15:45:48,energy_transfer,edmd,9700,20746,345.766685,"post_release","particle_pa` | 0 | 0 |
+| hspist3/experiments_gen3_design_261009/eventcounts/acc_held_H10 (sec. 4.7 diagnostic) | 2 | `2026-10-08 15:45:38,energy_transfer,edmd,9700,322,5.36666695,"wall_hold","particle_particl` | 0 | 0 |
+| hspist3/experiments_gen3_design_261009/eventcounts/acc_held_H40 (sec. 4.7 diagnostic) | 2 | `2026-10-08 15:45:45,energy_transfer,edmd,60,42000,0.0166666669,10,40,400,0.5,nan,0.3926990` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/00_eta_sweep_ROMAN/simulation_eta_split_07_05_26_09_00_24 | 6 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 3: 20260822_COMPLETE_CODEX_thatswhatwetrytofindout.md, 260907_ChATharddisk speed sound Usage limit analysis.md, harddisk speed sound Usage limit analysis (2026-09-07).md |
+| hspist3/experiments_speed_of_sound/00_eta_sweep_ROMAN/validate_acc_N100_20260826 | 13 | `2026-08-26 00:27:39,speed_of_sound,edmd,2179500780,6.23330021,1000,7,23826,430.43334,"post` | 0 | 6: 260907_ChATharddisk speed sound Usage limit analysis.md, 260907_pressure_results_and_chat_export_review_COWORK.md, 260907_speedsound_recap_and_critical_review_COWORK.md |
+| hspist3/experiments_speed_of_sound/02_number_and_L0_sweep_const_eta/constant_eta_N_sweep_07_05_26_08_40_53 | 6 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/02_number_and_L0_sweep_const_eta/constant_eta_N_sweep_07_05_26_08_43_15 | 6 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/02_number_and_L0_sweep_const_eta/constant_eta_N_sweep_07_05_26_08_44_34 | 6 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/03_fixed_box_radius_sweep_const_eta/fixed_box_radius_sweep_12_05_26_16_59_44 | 16 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/constant_eta_N_sweep_07_05_26_08_15_49/N_0040_L0_10.000_simulation_07_05_26_08_15_49 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/constant_eta_N_sweep_07_05_26_08_15_49/N_0060_L0_15.000_simulation_07_05_26_08_15_50 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/constant_eta_N_sweep_07_05_26_08_15_49/N_0080_L0_20.000_simulation_07_05_26_08_15_52 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/constant_eta_N_sweep_07_05_26_08_23_22/N_0060_L0_15.000_simulation_07_05_26_08_23_22 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/constant_eta_N_sweep_07_05_26_08_23_22/N_0080_L0_20.000_simulation_07_05_26_08_23_37 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/constant_eta_N_sweep_07_05_26_08_23_22/N_0100_L0_25.000_simulation_07_05_26_08_24_00 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/constant_eta_N_sweep_07_05_26_08_23_22/N_0120_L0_30.000_simulation_07_05_26_08_24_32 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/constant_eta_N_sweep_07_05_26_08_23_22/N_0160_L0_40.000_simulation_07_05_26_08_25_16 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/number_and_L0_sweep_const_eta/constant_eta_N_sweep_07_05_26_09_00_32 | 12 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/number_and_L0_sweep_const_eta/constant_eta_N_sweep_07_05_26_09_04_24 | 12 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/number_and_L0_sweep_const_eta/constant_eta_N_sweep_07_05_26_09_07_45 | 18 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/number_and_L0_sweep_const_eta/constant_eta_N_sweep_12_05_26_15_26_41 | 10 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/number_and_L0_sweep_const_eta/constant_eta_N_sweep_12_05_26_15_43_06 | 14 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/number_and_L0_sweep_const_eta/constant_eta_N_sweep_12_05_26_15_55_21 | 14 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/number_and_L0_sweep_const_eta/constant_eta_N_sweep_12_05_26_16_08_57 | 16 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_152235_L0_20_N_100 | 1 | `hspist3/run_speed_of_sound_fixedL0_radius_sweep.py --mode edmd --edmd-acc --particles 100 ` | 0 | 7: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md, RECOVERED_TOPIC_01_SZILARD_PLOTS_2026-04-09.md |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_152235_L0_20_N_100/eta_0.078540 | 1 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_152235_L0_20_N_100/eta_0.112200 | 1 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 0 | 6: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md, RECOVERED_TOPIC_01_SZILARD_PLOTS_2026-04-09.md |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_152235_L0_20_N_100/eta_0.130900 | 1 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_152235_L0_20_N_100/eta_0.157080 | 1 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_152235_L0_20_N_100/eta_0.196350 | 1 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 1: hspist3/rebuild_speed_of_sound_fixedL0_radius_sweep.py | 6: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md, RECOVERED_TOPIC_01_SZILARD_PLOTS_2026-04-09.md |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_152235_L0_20_N_100/eta_0.261799 | 1 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 1: hspist3/rebuild_speed_of_sound_fixedL0_radius_sweep.py | 7: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md, RECOVERED_TOPIC_01_SZILARD_PLOTS_2026-04-09.md |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_152235_L0_20_N_100/eta_0.392699 | 1 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_152235_L0_20_N_100/eta_0.523599 | 1 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 3: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md, RECOVERED_TOPIC_03_PACKING_FRACTION_2026-04-09.md, 20260822_COMPLETE_CODEX_thatswhatwetrytofindout.md |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_153749_L0_20_N_100 | 1 | `hspist3/run_speed_of_sound_fixedL0_radius_sweep.py --mode edmd --edmd-acc --particles 100 ` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_153949_L0_20_N_600 | 1 | `hspist3/run_speed_of_sound_fixedL0_radius_sweep.py --mode edmd --edmd-acc --particles 600 ` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_19_48 | 1 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_20_15 | 1 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_20_29 | 1 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_20_35 | 1 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_21_03 | 1 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_21_18 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_21_19 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_21_20 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_21_22 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_21_23 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_21_39 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_21_40 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_21_55 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_21_57 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_22_07 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_22_12 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_22_13 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_22_15 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_22_16 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_22_17 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_22_18 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 1: 20260822_COMPLETE_CODEX_thatswhatwetrytofindout.md |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_22_28 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_22_48_48 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_22_51_35 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_06_05_26_22_54_23 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_13_31 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_15_49 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_15_50 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_15_52 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_23_22 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_23_37 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_24_00 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_24_32 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_25_16 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_30_02 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_40_53 | 4 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_40_55 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_40_57 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_43_15 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_43_17 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_43_19 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_44_34 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_44_35 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_44_37 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_08_54_34 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_00_24 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_00_32 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_00_35 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_00_40 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_00_48 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_00_58 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_01_13 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_04_24 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_04_29 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_04_37 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_04_49 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_05_06 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_05_29 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_07_45 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_07_47 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_07_49 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_07_53 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_08_00 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_08_16 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_08_48 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_09_36 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_12_20 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_16_47 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_19_09 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_20_59 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_07_05_26_09_33_02 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_26_41 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_26_47 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_26_58 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_27_23 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_28_14 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_43_06 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_43_33 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_44_36 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_46_41 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_49_50 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_54_26 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_55_21 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_55_26 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_55_39 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_56_04 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_56_41 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_57_36 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_15_58_58 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_16_01_13 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_16_08_57 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_16_09_13 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_16_09_51 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_16_11_06 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_16_12_58 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_16_15_43 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_16_19_48 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_16_26_11 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_16_59_44 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_16_59_54 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_17_00_17 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_17_01_07 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_17_02_28 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_17_04_41 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_17_08_13 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_12_05_26_17_14_32 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_19_08_26_16_04_53 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_25_02_26_13_25 | 1 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_25_02_26_13_31 | 1 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 0 | 3: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md, RECOVERED_TOPIC_03_PACKING_FRACTION_2026-04-09.md, 20260822_COMPLETE_CODEX_thatswhatwetrytofindout.md |
+| hspist3/experiments_speed_of_sound/simulation_25_02_26_13_54 | 1 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 0 | 5: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md, RECOVERED_TOPIC_01_SZILARD_PLOTS_2026-04-09.md, RECOVERED_TOPIC_03_PACKING_FRACTION_2026-04-09.md |
+| hspist3/experiments_speed_of_sound/simulation_25_02_26_14_32 | 1 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 0 | 6: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md, RECOVERED_TOPIC_02_TEMPERATURE_UNITS_PSD_2026-04-09.md, RECOVERED_TOPIC_01_SZILARD_PLOTS_2026-04-09.md |
+| hspist3/experiments_speed_of_sound/simulation_25_02_26_15_22 | 1 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_25_02_26_15_23 | 1 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 0 | 6: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md, RECOVERED_TOPIC_01_SZILARD_PLOTS_2026-04-09.md |
+| hspist3/experiments_speed_of_sound/simulation_25_02_26_15_24 | 1 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 0 | 6: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09_TOPIC_02_TEMPERATURE_UNITS_PSD_AND_SOUND.md, RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md, RECOVERED_TOPIC_01_SZILARD_PLOTS_2026-04-09.md |
+| hspist3/experiments_speed_of_sound/simulation_25_02_26_15_37 | 2 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_25_02_26_15_39 | 2 | `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/00ALLINONE -` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_26_08_26_00_10_57 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_26_08_26_00_26_42 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_speed_of_sound/simulation_eta_split_07_05_26_08_13_30/01_high_eta_simulation_07_05_26_08_13_31 | 2 | `./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --quiet --kbt1 --particles` | 0 | 0 |
+| hspist3/experiments_szilard/simulation_02_03_26_16_57 | 1 | `./00ALLINONE --mode=edmd --edmd-acc=1 --show-simulation --no-experiments --experiment=szil` | 0 | 0 |
+| hspist3/experiments_szilard/simulation_06_03_26_12_32 | 1 | `./00ALLINONE --mode=edmd --edmd-acc=1 --show-simulation --no-experiments --experiment=szil` | 0 | 0 |
+| hspist3/experiments_szilard/simulation_06_03_26_12_33 | 1 | `./00ALLINONE --mode=edmd --edmd-acc=1 --show-simulation --no-experiments --experiment=szil` | 0 | 6: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md, RECOVERED_TOPIC_01_SZILARD_PLOTS_2026-04-09.md, RECOVERED_TOPIC_03_PACKING_FRACTION_2026-04-09.md |
+| hspist3/experiments_szilard/simulation_06_03_26_12_40 | 1 | `./00ALLINONE --mode=edmd --edmd-acc=1 --show-simulation --no-experiments --experiment=szil` | 0 | 0 |
+| hspist3/experiments_szilard/simulation_06_03_26_13_00 | 1 | `./00ALLINONE --mode=edmd --edmd-acc=1 --show-simulation --no-experiments --experiment=szil` | 0 | 0 |
+| hspist3/experiments_szilard/simulation_27_03_26_12_27 | 1 | `./00ALLINONE --mode=edmd --edmd-acc=1 --show-simulation --no-experiments --experiment=szil` | 0 | 0 |
+| hspist3/experiments_szilard/simulation_27_03_26_12_28 | 1 | `./00ALLINONE --mode=edmd --edmd-acc=1 --show-simulation --no-experiments --experiment=szil` | 0 | 0 |
+| hspist3/experiments_szilard/simulation_27_03_26_12_39 | 1 | `./00ALLINONE --mode=edmd --edmd-acc=1 --show-simulation --no-experiments --experiment=szil` | 0 | 0 |
+| hspist3/hspist3/experiments_energy_transfer/mass_sweep_eta02_N600 | 1 | `2026-03-26 09:52:59,energy_transfer,edmd,8000,1000,0.000833333315,20,10,600,0.145673126,na` | 0 | 12: RECOVERED_FULL_CHAT_SO_THATS_WHAT_WE_TRY_TO_DISCOVER_2026-04-09.md, RECOVERED_TOPIC_02_TEMPERATURE_UNITS_PSD_2026-04-09.md, RECOVERED_TOPIC_01_SZILARD_PLOTS_2026-04-09.md |
+
+## Launchers that can select it
+
+- hspist3/run_energy_transfer_tests.py: `base.append("--edmd-acc=1")`
+- hspist3/run_overnight_highdensity_N1000.sh: `# Why the default core: the accelerated backend (--edmd-acc=1) was validated on`
+- hspist3/run_speed_of_sound_constant_eta_N_sweep.py: `"--edmd-acc=1",`
+- hspist3/run_speed_of_sound_fixedL0_radius_sweep.py: `ap.add_argument("--edmd-acc", action="store_true", help="Enable accelerated EDMD backend (edmd mode only).")`
+- hspist3/run_speed_of_sound_fixed_box_radius_sweep.py: `"--edmd-acc=1",`
+- hspist3/validation/test_sound_structure.py: `(self.parent/'00_COMMAND.md').write_text('--particles=100 --edmd-acc=1')`
+
+campaigns with accelerated-backend runs (outside the sec. 4.7 diagnostic): 173; of them named by any analysis script, notebook or LaTeX source: 3
+
+## The readers flagged above, resolved
+
+| campaign | reader | how it names the campaign | reader in the drafts' script closure (PART B) |
+|---|---|---|---|
+| hspist3/experiments_energy_transfer/energy_transfer_runs_2walls.csv | hspist3/plot_energy_transfer_runs.py | in code: READS IT | no |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_152235_L0_20_N_100/eta_0.196350 | hspist3/rebuild_speed_of_sound_fixedL0_radius_sweep.py | only in its module docstring (an example layout) | no |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_152235_L0_20_N_100/eta_0.261799 | hspist3/rebuild_speed_of_sound_fixedL0_radius_sweep.py | only in its module docstring (an example layout) | no |
+
+## PART B -- the figure provenance of the two drafts
+
+| draft | figure | scripts that name its file stem | note |
+|---|---|---|---|
+| paper1_draft.tex | 260922_apparatus_paper | - | the apparatus drawn by the simulation itself (caption, paper1_draft.tex:80-81): a picture of the geometry, no measured quantity |
+| paper1_draft.tex | 261001_p1_slowmode | hspist3/validation/paper1_figures_20261001.py |  |
+| paper1_draft.tex | 261001_p1_estimator_floor | hspist3/validation/paper1_figures_20261001.py |  |
+| paper1_draft.tex | 261001_p1_massladder_line | hspist3/validation/paper1_figures_20261001.py |  |
+| paper1_draft.tex | 261001_p1_massladder_residuals | hspist3/validation/paper1_figures_20261001.py |  |
+| paper1_draft.tex | 260919_cs_vs_eta | hspist3/validation/paper1_canonical_20260919.py |  |
+| paper1_draft.tex | 260919_cs_vs_eta_lowdensity_zoom | hspist3/validation/paper1_canonical_20260919.py |  |
+| paper1_draft.tex | 260919_cs_vs_eta_N100_vs_A2 | hspist3/validation/paper1_canonical_20260919.py |  |
+| paper1_draft.tex | 261004_p1_confinement_shift | hspist3/validation/paper1_confinement_results_261004.py |  |
+| paper1_draft.tex | 261005_p1_identity_afix | hspist3/validation/paper1_confinement_afix_261005.py, hspist3/validation/paper1_draft_audit_20261014.py, hspist3/validation/resched_gate_261005.py |  |
+| paper1_draft.tex | 260922_roman2002_remapped_vs_KR | hspist3/validation/roman2002_remapped_20260922.py |  |
+| paper1_draft.tex | 261002_p1_melting_region | hspist3/validation/paper1_melting_figure_20261002.py |  |
+| paper2_draft.tex | 260920_master_geomA_paper | 0000_PLAN_OVERALL/paper2_energytransfer/experiments/run_scripts/paper2_geometry_pictures.sh | paper2_geometry_pictures.sh runs the binary with: default (explicit) |
+| paper2_draft.tex | 260920_master_geomB_paper | 0000_PLAN_OVERALL/paper2_energytransfer/experiments/run_scripts/paper2_geometry_pictures.sh | paper2_geometry_pictures.sh runs the binary with: default (explicit) |
+| paper2_draft.tex | 260920_master_geomC_paper | 0000_PLAN_OVERALL/paper2_energytransfer/experiments/run_scripts/paper2_geometry_pictures.sh | paper2_geometry_pictures.sh runs the binary with: default (explicit) |
+| paper2_draft.tex | 260920_master_geomD_paper | 0000_PLAN_OVERALL/paper2_energytransfer/experiments/run_scripts/paper2_geometry_pictures.sh | paper2_geometry_pictures.sh runs the binary with: default (explicit) |
+| paper2_draft.tex | 261001_p2_level1_path | hspist3/validation/paper2_figures_20261001.py |  |
+| paper2_draft.tex | 260918_level2_A_of_u | hspist3/validation/level2_Au_figure_20260918.py |  |
+| paper2_draft.tex | 261001_p2_zeta_tcut | hspist3/validation/paper2_figures_20261001.py |  |
+| paper2_draft.tex | 260923_level3_settled_comparison | - | made for the 2026-09-23 figure pack (260913_tests_STATUS.md, 2026-09-22 12:34:44 HST; commit ba83144) from the Level-3 cells; no script on disk |
+| paper2_draft.tex | 261001_p2_level4_bars | hspist3/validation/paper2_figures_20261001.py |  |
+| paper2_draft.tex | 261001_p2_level4_acf | hspist3/validation/paper2_figures_20261001.py |  |
+
+script closure of the drafts (figure scripts, '% TODO-source' / '% FIGURES' scripts, their local imports): 22 files
+- hspist3/plot_speed_of_sound_edmd.py
+- hspist3/validation/damping_test_20260915.py
+- hspist3/validation/estimator_massladder_20260917.py
+- hspist3/validation/level2_Au_figure_20260918.py
+- hspist3/validation/paper1_A2_boxtrunc_261002.py
+- hspist3/validation/paper1_boxtrunc_20261014.py
+- hspist3/validation/paper1_canonical_20260919.py
+- hspist3/validation/paper1_confinement_afix_261005.py
+- hspist3/validation/paper1_confinement_heldwall_posthoc_261004.py
+- hspist3/validation/paper1_confinement_prereg_20261012.py
+- hspist3/validation/paper1_confinement_results_261004.py
+- hspist3/validation/paper1_draft_audit_20261014.py
+- hspist3/validation/paper1_figures_20261001.py
+- hspist3/validation/paper1_melting_figure_20261002.py
+- hspist3/validation/paper1_populate_cs_err_20261002.py
+- hspist3/validation/paper2_figures_20261001.py
+- hspist3/validation/paper2_geometry_fix_20260918.py
+- hspist3/validation/paper2_ramp_fast_20260918.py
+- hspist3/validation/resched_gate_261005.py
+- hspist3/validation/roman2002_remapped_20260922.py
+- hspist3/validation/tests_20260913.py
+- 0000_PLAN_OVERALL/paper2_energytransfer/experiments/run_scripts/paper2_geometry_pictures.sh
+
+### Test B1: constants of the closure that name a directory occurring only on accelerated-run paths
+
+accelerated run files outside the sec. 4.7 diagnostic: 465; distinctive directory names: 37; string constants in the closure: 7806; constants naming a distinctive directory: 0
+
+### Test B2: data roots named by the closure (directory names in its constants that exist in the data trees)
+
+| directory name | instances | run records | --edmd-acc=0 explicit | ACCELERATED records | run logs | logs 'backend: default' | logs 'backend: accelerated' | accelerated children: matched by a wildcard of the closure |
+|---|---|---|---|---|---|---|---|---|
+| 00_eta_sweep_ROMAN | 3 | 5734 | 4118 | 16 | 2149 | 1726 | 0 | simulation_eta_split_07_05_26_09_00_24: none; validate_acc_N100_20260826: none |
+| A1v2_20260914 | 2 | 0 | 0 | 0 | 315 | 315 | 0 | - |
+| A2_dilute50_20260917 | 1 | 1600 | 1200 | 0 | 400 | 400 | 0 | - |
+| A_length | 1 | 0 | 0 | 0 | 24 | 24 | 0 | - |
+| B_hold | 1 | 0 | 0 | 0 | 30 | 30 | 0 | - |
+| L0_20p0 | 3 | 40 | 30 | 0 | 37 | 37 | 0 | - |
+| L35p3125 | 1 | 1 | 1 | 0 | 1 | 0 | 0 | - |
+| L36p3125 | 1 | 1 | 1 | 0 | 1 | 0 | 0 | - |
+| L37p291667 | 1 | 1 | 1 | 0 | 1 | 0 | 0 | - |
+| L38p270833 | 1 | 1 | 1 | 0 | 1 | 0 | 0 | - |
+| Md10 | 5 | 5 | 5 | 0 | 163 | 0 | 0 | - |
+| _determinism | 2 | 20 | 12 | 0 | 4 | 4 | 0 | - |
+| _orchestration_tests_20260913 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | - |
+| an | 43 | 0 | 0 | 0 | 0 | 0 | 0 | - |
+| campaign_r25_psi6_20260823 | 2 | 96 | 64 | 0 | 32 | 0 | 0 | - |
+| confinement_B_20261013 | 2 | 0 | 0 | 0 | 189 | 189 | 0 | - |
+| confinement_pilot_20261013 | 1 | 128 | 84 | 0 | 22 | 22 | 0 | - |
+| e0p10_H_H10_L39.25 | 4 | 0 | 0 | 0 | 1458 | 18 | 0 | - |
+| epi8_H_H10_L10 | 8 | 1 | 1 | 0 | 389 | 43 | 0 | - |
+| epi8_H_H40_L10 | 3 | 0 | 0 | 0 | 519 | 9 | 0 | - |
+| estimator_tests | 1 | 0 | 0 | 0 | 0 | 0 | 0 | - |
+| experiments_energy_transfer | 1 | 0 | 0 | 0 | 115 | 0 | 0 | - |
+| experiments_speed_of_sound | 16 | 42 | 28 | 0 | 43 | 43 | 0 | - |
+| famB_20260911 | 1 | 300 | 200 | 0 | 100 | 100 | 0 | - |
+| koa_pi8_H10_L10 | 1 | 86 | 53 | 0 | 11 | 11 | 0 | - |
+| level0_Wqs_20260911 | 1 | 5 | 5 | 0 | 7 | 0 | 0 | - |
+| level1_Zwall_path_20260916 | 1 | 4 | 4 | 0 | 4 | 0 | 0 | - |
+| level2_fast1sigma_20260918 | 1 | 3 | 3 | 0 | 3 | 0 | 0 | - |
+| level2_fast_20260918 | 1 | 3 | 3 | 0 | 3 | 0 | 0 | - |
+| level2_fastdx_20260918 | 1 | 3 | 3 | 0 | 3 | 0 | 0 | - |
+| level2_ramp_20260918 | 1 | 7 | 7 | 0 | 7 | 0 | 0 | - |
+| level2_slope_20260917 | 1 | 8 | 8 | 0 | 8 | 0 | 0 | - |
+| level3_FofL_20260925 | 1 | 5 | 5 | 0 | 5 | 0 | 0 | - |
+| level4_equilibrium_20260929 | 1 | 1 | 1 | 0 | 1 | 0 | 0 | - |
+| paper1_confinement_A_20261013 | 1 | 10 | 5 | 0 | 8303 | 0 | 0 | - |
+| paper1_confinement_Afix_261004 | 2 | 10 | 5 | 0 | 8405 | 0 | 0 | - |
+| pilot_epi8_H_H10_L10 | 2 | 20 | 10 | 0 | 40 | 0 | 0 | - |
+| resched_gate_261005 | 2 | 81 | 69 | 0 | 54 | 39 | 0 | - |
+| routeA_lowdensity_20260912 | 1 | 9 | 6 | 0 | 3 | 0 | 0 | - |
+| runs | 2 | 0 | 0 | 0 | 0 | 0 | 0 | - |
+| step_u0.005 | 1 | 1 | 1 | 0 | 1 | 0 | 0 | - |
+| tests_20260913 | 1 | 0 | 0 | 0 | 54 | 54 | 0 | - |
+
+wildcard components in the closure's constants: 240; accelerated children matched by one: 0
+
+### Test B3: every directory-listing call of the closure (bases of the bare-wildcard calls to be checked by eye)
+
+- hspist3/plot_speed_of_sound_edmd.py:68: `candidates = [p for p in base_dir.iterdir() if p.is_dir() and p.name.startswith(prefix)]`
+- hspist3/plot_speed_of_sound_edmd.py:1323: `for d in base_dir.rglob(f"{pref}*"):`
+- hspist3/plot_speed_of_sound_edmd.py:1373: `for p in sorted(in_dir.glob("wall_x_positions_L0_*_wallmassfactor_*_run*.csv")):`
+- hspist3/validation/estimator_massladder_20260917.py:62: `for p in sorted(glob.glob(f"{DILUTE}/{tag}/N{N}/m_{M}/r*/wall_x_positions_*run0.csv")):`
+- hspist3/validation/level2_Au_figure_20260918.py:34: `tr = sorted(glob.glob(f"{d}/tr_*.csv") + glob.glob(f"{d}/tr_*.csv.gz"))[0]`
+- BARE WILDCARD hspist3/validation/paper1_A2_boxtrunc_261002.py:40: `cmds = [c for r in ROOTS for c in glob.glob(os.path.join(A2ROOT, r, tag, f"N{N}", "m_*", "**", "00_COMMAND.md"), recursive=True)]`
+- BARE WILDCARD hspist3/validation/paper1_A2_boxtrunc_261002.py:44: `trs = [t for r in ROOTS for t in glob.glob(os.path.join(A2ROOT, r, tag, f"N{N}", "m_*", "**", "wall_x_positions_*.csv"), recursive=True)]`
+- hspist3/validation/paper1_boxtrunc_20261014.py:33: `for d in os.listdir(T.DROOT):`
+- hspist3/validation/paper1_boxtrunc_20261014.py:52: `tr0 = sorted(glob.glob(os.path.join(d, "m_500", "wall_x_positions_*_run*.csv")))`
+- hspist3/validation/paper1_confinement_heldwall_posthoc_261004.py:42: `for f in sorted(glob.glob(os.path.join(PILOT, f"x_{lab}", "tr_*.csv"))):`
+- hspist3/validation/paper1_confinement_heldwall_posthoc_261004.py:56: `files = sorted(glob.glob(os.path.join(ad, f"x_{lab}", "red_*.csv"))) if cell_dir else \`
+- hspist3/validation/paper1_confinement_heldwall_posthoc_261004.py:127: `for f in sorted(glob.glob(os.path.join(PILOT, f"x_{lab}", "tr_*.csv"))):`
+- hspist3/validation/paper1_confinement_prereg_20261012.py:43: `for f in sorted(glob.glob(os.path.join(ET, "level3_FofL_20260925", "c0", "ev_*.csv"))):`
+- hspist3/validation/paper1_confinement_prereg_20261012.py:54: `for d in glob.glob(os.path.join(T.DROOT, f"eta_{tag}", "m_*")):`
+- hspist3/validation/paper1_confinement_results_261004.py:171: `for d in sorted(glob.glob(os.path.join(d0, "m_*")), key=lambda q: int(q.rsplit("_", 1)[1])):`
+- hspist3/validation/paper1_confinement_results_261004.py:173: `runs = [(int(q.rsplit("_run", 1)[1][:-4]), q, False) for q in sorted(glob.glob(os.path.join(d, "wall_x_positions_L0_*_run*.csv")))]`
+- hspist3/validation/paper2_figures_20261001.py:138: `fs = sorted(glob.glob(os.path.join(P, "red_*.csv")))`
+- hspist3/validation/paper2_geometry_fix_20260918.py:101: `fam = [(39.25, sorted(glob.glob(os.path.join(ET, "level0_Wqs_20260911", "u*", "ev_*.csv"))))]`
+- hspist3/validation/paper2_geometry_fix_20260918.py:104: `f = sorted(glob.glob(os.path.join(ET, "level1_Zwall_path_20260916", tag, "ev_*.csv")))`
+- hspist3/validation/paper2_ramp_fast_20260918.py:30: `pts = [(39.25 - FACE, *zwall(sorted(glob.glob(f"{ET}/level0_Wqs_20260911/u*/ev_*.csv")), 39.25 - FACE)[:2])]`
+- hspist3/validation/paper2_ramp_fast_20260918.py:33: `f = sorted(glob.glob(f"{ET}/level1_Zwall_path_20260916/{tag}/ev_*.csv"))`
+- hspist3/validation/paper2_ramp_fast_20260918.py:52: `fs = sorted(glob.glob(f"{d}/snap_*.csv"))`
+- hspist3/validation/paper2_ramp_fast_20260918.py:93: `fs = sorted(glob.glob(f"{d}/snap_*.csv"))`
+- hspist3/validation/paper2_ramp_fast_20260918.py:195: `tr = sorted(glob.glob(f"{d}/tr_*.csv") + glob.glob(f"{d}/tr_*.csv.gz"))[0]`
+- hspist3/validation/resched_gate_261005.py:131: `for f in glob.glob(os.path.join(d, ".failed_run*", "stdout.log")):`
+- hspist3/validation/resched_gate_261005.py:139: `for lg in glob.glob(os.path.join(d0, f"x_{lab}", "run_*.log")):`
+- hspist3/validation/resched_gate_261005.py:220: `ds = sorted(glob.glob(os.path.join(LOC, "resched_gate_261005", "ge2_*")))`
+- hspist3/validation/resched_gate_261005.py:227: `fs = sorted(glob.glob(os.path.join(LOC, "profile_edmd_*", "times.tsv")))`
+- BARE WILDCARD hspist3/validation/resched_gate_261005.py:255: `for f in sorted(glob.glob(os.path.join(base, "*", ".build_git"))): add(os.path.relpath(f, LOC), open(f).read())`
+- hspist3/validation/resched_gate_261005.py:259: `for f in sorted(glob.glob(os.path.join(LOC, "resched_gate_261005", "ge2_*", "*_m*", "version.txt"))`
+- hspist3/validation/resched_gate_261005.py:260: `+ glob.glob(os.path.join(LOC, "resched_gate_261005", "ge2_*", "*_legacy", "version.txt"))):`
+- BARE WILDCARD hspist3/validation/resched_gate_261005.py:262: `for f in sorted(glob.glob(os.path.join(LOC, "profile_edmd_*", "*", "summary.csv"))):`
+- BARE WILDCARD hspist3/validation/tests_20260913.py:171: `for f in _glob.glob(os.path.join(run_dir, "**", name), recursive=True)[:1]:`
+- hspist3/validation/tests_20260913.py:214: `leaves = sorted(glob.glob(f"{A1_DIR}/eta_*")) + sorted(glob.glob(f"{LOWETA_DIR}/eta_*"))`
+- hspist3/validation/tests_20260913.py:221: `f50 = sorted(glob.glob(f"{d}/wall_x_positions_*wallmassfactor_50_run0.csv"))[0]`
+- hspist3/validation/tests_20260913.py:315: `g = glob.glob(os.path.join(job["cell"], f"wall_x_positions_L0_*_wallmassfactor_{job['M']}_run{job['r']}.csv"))`
+- hspist3/validation/tests_20260913.py:347: `tr = glob.glob(os.path.join(tmp, f"wall_x_positions_L0_*_wallmassfactor_{M}_run0.csv"))`
+- hspist3/validation/tests_20260913.py:605: `for p in glob.glob(os.path.join(cell, f"wall_x_positions_L0_*_wallmassfactor_{M}_run*.csv")):`
+- BARE WILDCARD hspist3/validation/tests_20260913.py:1185: `a_traces = glob.glob(os.path.join(TROOT, "A_length", "*", "*", "wall_x_positions_*.csv"))[:20]`
+
+listing calls with a bare '*' or '**' argument: 6
+
+### Test B4: data trees of the figures without a producing script
+
+- 260922_apparatus_paper: the apparatus drawn by the simulation itself (caption, paper1_draft.tex:80-81): a picture of the geometry, no measured quantity
+- 260923_level3_settled_comparison: hspist3/experiments_energy_transfer/level3_*: 55 run records, 55 run logs, ACCELERATED 0
+
+VERDICT: no figure of either draft, and no script that feeds one, reads a run of the accelerated backend (A: flagged readers outside the closure or docstring-only; B1 0, B2 0, B4 0); 6 bare-wildcard listing calls are listed in B3 for a check of their bases by eye

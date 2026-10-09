@@ -5389,3 +5389,253 @@ All of them are printed in the `[EDMD-HEALTH]` line; each one fires 0 times in a
   7. **The solid EOS** in the cost table (Alder–Hoover–Young) is recalled, not checked.
 
 Stop here; waiting for review.
+
+
+### 4.7.1 Plan-author review of § 4.7: amendments, and item 0 (the accelerated backend guarded; its provenance) (2026-10-08 16:46 HST, machine date; the review is dated 2026-10-09 on the plan author's clock) [SOURCE for the decisions; DATA for the provenance, printed by script; INFERENCE where marked]
+
+**Plain summary.**
+- **§ 4.7 is approved with amendments.** The decisions are quoted verbatim below. Each comes with its reason: the plan author's where the review gives one, otherwise CC's (marked).
+- **Item 0, the guard [DATA].** Commit 14ba1f2 on `engine-gen3`. Every route that selects the accelerated backend stops with exit 2 and a message that cites § 4.7: `--edmd-acc=1|true|yes|on`, or the flag without a value.
+  - Only a study build compiled with `-DHD_ALLOW_ACC_BACKEND` accepts it.
+  - Tested: `--edmd-acc=1` and `--edmd-acc=yes` exit 2 with the message. An energy-transfer run with `--edmd-acc=0` exits 0. The help text says DISABLED.
+  - **Not guarded:** main, `engine-divider-resched`, and the KOA binaries 279282b, 73fc07f and 7b08827. They still accept the flag, but no launcher in the repository that runs on KOA passes it (Part A below).
+  - Porting the guard there would change those binaries and would need an E0-style byte check. That is the plan author's decision.
+- **Item 0, the provenance [DATA].** No figure of either draft rests on the accelerated backend, and no script that feeds one reads a run made with it.
+  - **Accelerated runs do exist,** outside the six § 4.7 diagnostic cells: 437 run records and 4,943 summary rows (in 28 summary files), in 173 campaign directories. The class table's 443 and 4,949 include the diagnostic cells. They are:
+    - the Feb–May 2026 speed-of-sound exploration;
+    - the March 2026 energy-transfer and Szilard runs;
+    - the validation campaign of 2026-08-26 and three single runs of 2026-08-19/26.
+  - **Three of those campaigns are named by an analysis script.**
+    - Two matches are only an example layout in a docstring.
+    - One is real. `plot_energy_transfer_runs.py` reads the shared `energy_transfer_runs_2walls.csv`, and 2 of that file's 4 rows are accelerated (2026-03-04, 2026-05-21). Its figure `energy_transfer_ratio.png` appears in no draft; it is named only in the April 2026 chat exports.
+  - **Traced from the paper side.** The 22 figures, their producing scripts and the scripts named in the drafts' source comments, plus their local imports, make 22 files.
+    - None of their 7,806 string constants names any of the 37 directories that occur only on accelerated paths.
+    - None of their 240 wildcards matches an accelerated directory.
+    - Their 50 directory listings start from production bases. Six have a bare `*` or `**`; those were checked by eye (listed under Method).
+  - **The canonical trees positively say "default":**
+    - A1 v2: 315 of 315 logs `EDMD backend: default`;
+    - confinement B: 189/189;
+    - famB: 100/100;
+    - A2 dilute: 400/400;
+    - confinement A and A-fix: the commands carry `--edmd-acc=0`.
+- **Two corrections of my own notes.**
+  1. **§ 4.7 presented the defect as a finding. It was known.** It was recorded on 2026-08-26 for `validate_acc_N100_20260826`: 181 of 450 trajectories INVALID (90 boundary escapes, 91 overlaps) against zero for the default core (`hspist3/run_overnight_highdensity_N1000.sh:9-12`).
+     - The Paper 2 notes of 2026-09-10/11 had already declared `mass_sweep_eta02_N600` (`--edmd-acc=1`) "not physics" (`260910_paper2_level0_energy_ledger_CC.md:124`, `260911_handoff_state_COWORK.md:19`).
+     - So the review's "something important that we did not know" rests on my omission. § 4.7 re-measured the defect (3 of 6 cells) and added one thing: at N = 400 the backend is no faster than 7b08827.
+     - The August note's "5x faster" compares with the default core of that time. The two are consistent, because 7b08827 is itself 4–5× faster than 279282b at N = 400 (§ 4.7 baseline).
+  2. **§ 4.6 (exploratory) included accelerated-backend data.** `validate_acc_N100_20260826` was one of its 11 campaigns, with 2 cells: η 0.7007 inside the window, 0.7222 outside. They appear in every table of `261008_window_explore_output.txt` and in their own figure folder.
+     - **These two cells are withdrawn.** The files stay as they are (append-only).
+     - No reading of § 4.6 rests on them. The dip slopes, the χ² values and the Spearman ranges are A1 v2 numbers, with the r25, transition-run, famA and N = 900 campaigns where those are named.
+     - The N = 100 period range 1.4–7.5 σ-time comes from the A1 v2 window rows; the two withdrawn cells give 1.4–7.6.
+
+**The review, as relayed by Chris, verbatim (the instruction block):**
+
+```
+PLAN-AUTHOR REVIEW OF 261012 sec. 4.7 (generation-3 design), 2026-10-09 (Cowork clock):
+APPROVED with the amendments below. Record them as sec. 4.7.1 (append), then start M1.
+T-prime pipeline untouched; its verdict is judged when the data arrive. Standing rules
+apply (append-only notes, tables by script, explicit-path adds, delete nothing, English,
+tags, no multi-agent workflow, no `rm` inside `bash -c`).
+
+0. PROVENANCE FIRST (before any gen-3 code): guard edmd_accelerated.c out of production
+   builds (compile-time define; the default build refuses --edmd-acc with a message that
+   cites sec. 4.7). Then grep every run_params.json / command.txt / 00_COMMAND.md in the
+   data trees and the figure provenance for edmd-acc / edmd_acc and print the result:
+   no production result may rest on it. STATUS line either way.
+
+1. Branch `engine-gen3` from engine-divider-resched. One binary, `--engine=gen2|gen3`;
+   gen2 = the legacy path, byte-identical to 279282b (E0-style check in the gate).
+
+2. Design amendments (each recorded, each with the reason):
+   a. cell width: default 32 px, runtime parameter, invariant w >= d checked at start,
+      gate times 32 vs 48 px;
+   b. the A/B against gen2 uses the identical grid-truncated box in both engines; the exact
+      box length is for new lattice cells only (sec. 14 correction = 0 there, printed);
+   c. determinism rule: no address-dependent ordering, no uninitialised field, tie-break
+      (t, type, a, b) the only arbiter; cross-node identity is a gate item;
+   d. lattice starts carry a stated seeded jitter in production; one jitter-free lattice
+      run is the tie-break stress test in the gate;
+   e. record time: equal T for all masses of a cell, T >= 20 periods of the heaviest mass
+      used in that cell; masses whose period does not fit are excluded from that cell,
+      never T shortened; printed per cell;
+   f. equilibration: lattice + jitter + held hold T_eq >= 10 tau_psi6 from a pilot at the
+      same eta and N; T_eq in the header;
+   g. psi6(t) global and per compartment every 0.25 sigma-time in every trajectory;
+      snapshots every 10 sigma-time for a stated seed subset; reductions on KOA, summaries
+      fetched;
+   h. validator: O(1) check of the event's own disks after every event; full overlap check
+      every 1 sigma-time and at every sync_all; counters in [EDMD-HEALTH];
+   i. Paul queue deferred; long-double x86 build kept as spot check; checkpoint/restart
+      with byte-identity only for the eta 0.90 cells;
+   j. literature checks: KR (eta <= 0.69) and Engel P* via the interior virial at N = 1600
+      with offsets stated beforehand are gate items; Sengupta-Nielaba-Binder moduli are a
+      consistency check only (confined uniaxial vs periodic bulk), reported not gated;
+   k. performance target: >= 2e5 events/s per core on KOA at N = 400 and 1600, pi/8 and
+      0.70, measured in the gate; below 1e5 = profile and fix before the gate continues.
+
+3. KOA cap (plan author, from the limits Chris printed): 64 cores standing, 128 only while
+   `sinfo -p shared -s` shows >= 10 % idle nodes; one trajectory per array task; arrays
+   chunked below 25001. Write it into the runsheet. Do not interpret the sshare value.
+
+4. M1 scope (core engine): cells with disk-local coordinates, crossing events carrying
+   the new cell, per-disk time stamps with sync_all, 9-cell predictions, outer walls via
+   edge cells, heap tie-break, floating dyadic origin, safety nets and counters, the
+   contact and brute-force schedule audits wired in from day one. No divider band yet
+   (M2); the held divider may run through the band code path with v = 0 once M2 exists.
+   Commit small; every commit builds with -Wall -Wextra clean in new code; keep a short
+   dated log of design decisions taken during implementation in sec. 4.7.2 (append).
+
+5. Report at the end of M1: plain summary, the audit results on three Mac cells (fluid,
+   dense, lattice start), events/s on the Mac against gen2, the sec. 4.7.2 log. Then
+   wait for the plan author's go for M2. No KOA runs until M6.
+```
+
+**The amendments, each with its reason.** The plan author's reasons are quoted from the review's cover text. Reasons marked [CC] are mine, from § 4.6 and § 4.7.
+- **0, the accelerated backend.**
+  - Reason (plan author): "this code path must become unreachable in production builds, not deleted (our rule) but guarded so that nobody can use it by accident, and CC must confirm from the recorded run parameters that no figure or table ever came from it."
+  - Done above.
+- **1, one binary with `--engine=gen2|gen3`, on branch `engine-gen3` cut from `engine-divider-resched`.**
+  - Reason (plan author): "cut from engine-divider-resched so the audits travel along".
+  - [CC] gen2 must reproduce 279282b byte for byte. The statistical A/B needs a reference that the new switch provably did not touch, and a byte comparison is the only proof that needs no statistics.
+  - In this code, `--legacy-resched` is the switch that reproduces 279282b (E0, § 4.4.12). So the E0-style item runs `--engine=gen2 --legacy-resched`. See § 4.7.2.
+- **2a, cell width.** 32 px is the default (1.33 diameters).
+  - [CC] It is the smallest dyadic width ≥ the 24 px diameter. w ≥ d is what makes "disks in non-adjacent cells cannot touch" true, so it is checked at start and a violating run refuses to start.
+  - [CC] 48 px is timed because wider cells give fewer crossings but more candidates per prediction. The optimum is measured, not assumed.
+- **2b, the A/B box.**
+  - Reason (plan author): the exact box length "is a feature for new lattice cells only, where the §14 truncation correction then becomes zero by construction".
+  - [CC] An A/B on different boxes would mix the engine change with a geometry change.
+- **2c, determinism.**
+  - [CC] Cross-node identity (73fc07f: IDENTICAL, § 4.4.10 addendum) is what makes a rerun a test. Ordering by memory address, or reading an uninitialised field, breaks it silently and differently on each node.
+- **2d, lattice jitter.**
+  - [CC] § 4.7, risk 1: a perfect lattice produces many exactly simultaneous events. The tie-break makes them deterministic but not benign.
+- **2e, record time.**
+  - Reason (plan author): "This keeps the aging lesson (equal physical time) and the statistics for heavy dividers together."
+  - [CC] § 4.6: a fixed number of periods made the record length proportional to the period, and the mass ordering in the window was an aging effect.
+- **2f, equilibration.**
+  - [CC] § 4.6: the structure is not stationary over the existing records, and the starting state switched between η 0.706 and 0.711. A hold measured in τ_ψ6 makes the starting state of the same kind at every η.
+- **2g, ψ6(t) and snapshots.**
+  - [CC] § 4.6: no ψ6 time series exists in any campaign, so the structural clock must be measured in every trajectory.
+  - [CC] Reductions run on KOA because snapshots are 7–115 MB per trajectory (§ 4.7, storage table).
+- **2h, the validator.** Zero findings are required in the gate (plan author).
+  - [CC] The accelerated backend's misses were caught only by the validator.
+  - [CC] The O(1) check after every event catches a miss at the event that causes it. The full check catches what a local check cannot see: a third disk.
+- **2i, deferred and kept.**
+  - [CC] The heap is about 16 levels deep at N = 1600 and is not the bottleneck, so Paul's queue is deferred.
+  - [CC] arm64 has no 80-bit long double, so the x86 build is the only extended-precision check.
+  - [CC] Only the η 0.90 cells (14 h per trajectory at 2e5 events/s, § 4.7) are long enough to need restarts.
+- **2j, literature checks.**
+  - Reason (plan author): "our confined uniaxial modulus is not their periodic bulk modulus."
+- **2k, the performance target.**
+  - [CC] § 4.7 cost table: at 2e5 events/s a 2e4 σ-time trajectory at N = 1600 costs 5.6 min at π/8 and 30 min at 0.70. Below 1e5 the campaign budget of § 4.7 does not hold.
+- **3, the KOA cap.**
+  - Reason (plan author): KOA has no per-user limit, "so the cap is ours: 64 cores standing (two percent of the partition)".
+  - The sshare value is not interpreted. The cap is in the runsheet, § 14.
+- **4 and 5, the M1 scope and the report.** As quoted. The log of § 4.7.2 starts below.
+
+**Provenance, as printed by** `cd hspist3 && python3 validation/provenance_edmd_acc_261009.py`.
+- The full output is `hspist3/experiments_gen3_design_261009/provenance_edmd_acc_261009_output.txt` (371 lines). It has every campaign, every figure, every data root and every listing call.
+- Quoted verbatim: the file classes, the flagged readers, the figure table, tests B1, B2 (the rows of the canonical trees and of the shared container), B4, and the verdict.
+- The notes row of the class table counts the notes as they were before this section was appended.
+
+```
+# Provenance of the accelerated EDMD backend (261012 sec. 4.7.1, item 0)
+
+## PART A -- the data trees
+
+| file class | files scanned | files mentioning the flag/backend | occurrences by kind |
+|---|---|---|---|
+| run record | 26634 | 17944 | ACCELERATED: 443, default (explicit): 17501 |
+| run log | 21803 | 1765 | default (log line): 17636 |
+| summary csv | 19664 | 19504 | ACCELERATED: 4949, default (explicit): 24608 |
+| launcher | 13405 | 103 | ACCELERATED: 20, code/doc mention: 17, default (explicit): 107, other ($edmd_acc): 2, other ((\d+): 1, other ((default): 1, other (0")]): 1, other (0.): 1, other (can): 1 |
+| notes | 1146 | 88 | ACCELERATED: 316, code/doc mention: 90, default (explicit): 272, default (log line): 26, other ($edmd_acc): 2, other (0`).): 1, other (0`.): 4, other (0|1): 15, other (0|1`.): 9, other (0}): 9, other (1']): 4, other (1`).): 1, other (1`.): 2, other (1`:): 1, other (1}): 4, other (\): 71, other (enable): 2, other (true|false): 2 |
+
+## The readers flagged above, resolved
+
+| campaign | reader | how it names the campaign | reader in the drafts' script closure (PART B) |
+|---|---|---|---|
+| hspist3/experiments_energy_transfer/energy_transfer_runs_2walls.csv | hspist3/plot_energy_transfer_runs.py | in code: READS IT | no |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_152235_L0_20_N_100/eta_0.196350 | hspist3/rebuild_speed_of_sound_fixedL0_radius_sweep.py | only in its module docstring (an example layout) | no |
+| hspist3/experiments_speed_of_sound/radius_sweep_fixedL0_20260225_152235_L0_20_N_100/eta_0.261799 | hspist3/rebuild_speed_of_sound_fixedL0_radius_sweep.py | only in its module docstring (an example layout) | no |
+
+## PART B -- the figure provenance of the two drafts
+
+| draft | figure | scripts that name its file stem | note |
+|---|---|---|---|
+| paper1_draft.tex | 260922_apparatus_paper | - | the apparatus drawn by the simulation itself (caption, paper1_draft.tex:80-81): a picture of the geometry, no measured quantity |
+| paper1_draft.tex | 261001_p1_slowmode | hspist3/validation/paper1_figures_20261001.py |  |
+| paper1_draft.tex | 261001_p1_estimator_floor | hspist3/validation/paper1_figures_20261001.py |  |
+| paper1_draft.tex | 261001_p1_massladder_line | hspist3/validation/paper1_figures_20261001.py |  |
+| paper1_draft.tex | 261001_p1_massladder_residuals | hspist3/validation/paper1_figures_20261001.py |  |
+| paper1_draft.tex | 260919_cs_vs_eta | hspist3/validation/paper1_canonical_20260919.py |  |
+| paper1_draft.tex | 260919_cs_vs_eta_lowdensity_zoom | hspist3/validation/paper1_canonical_20260919.py |  |
+| paper1_draft.tex | 260919_cs_vs_eta_N100_vs_A2 | hspist3/validation/paper1_canonical_20260919.py |  |
+| paper1_draft.tex | 261004_p1_confinement_shift | hspist3/validation/paper1_confinement_results_261004.py |  |
+| paper1_draft.tex | 261005_p1_identity_afix | hspist3/validation/paper1_confinement_afix_261005.py, hspist3/validation/paper1_draft_audit_20261014.py, hspist3/validation/resched_gate_261005.py |  |
+| paper1_draft.tex | 260922_roman2002_remapped_vs_KR | hspist3/validation/roman2002_remapped_20260922.py |  |
+| paper1_draft.tex | 261002_p1_melting_region | hspist3/validation/paper1_melting_figure_20261002.py |  |
+| paper2_draft.tex | 260920_master_geomA_paper | 0000_PLAN_OVERALL/paper2_energytransfer/experiments/run_scripts/paper2_geometry_pictures.sh | paper2_geometry_pictures.sh runs the binary with: default (explicit) |
+| paper2_draft.tex | 260920_master_geomB_paper | 0000_PLAN_OVERALL/paper2_energytransfer/experiments/run_scripts/paper2_geometry_pictures.sh | paper2_geometry_pictures.sh runs the binary with: default (explicit) |
+| paper2_draft.tex | 260920_master_geomC_paper | 0000_PLAN_OVERALL/paper2_energytransfer/experiments/run_scripts/paper2_geometry_pictures.sh | paper2_geometry_pictures.sh runs the binary with: default (explicit) |
+| paper2_draft.tex | 260920_master_geomD_paper | 0000_PLAN_OVERALL/paper2_energytransfer/experiments/run_scripts/paper2_geometry_pictures.sh | paper2_geometry_pictures.sh runs the binary with: default (explicit) |
+| paper2_draft.tex | 261001_p2_level1_path | hspist3/validation/paper2_figures_20261001.py |  |
+| paper2_draft.tex | 260918_level2_A_of_u | hspist3/validation/level2_Au_figure_20260918.py |  |
+| paper2_draft.tex | 261001_p2_zeta_tcut | hspist3/validation/paper2_figures_20261001.py |  |
+| paper2_draft.tex | 260923_level3_settled_comparison | - | made for the 2026-09-23 figure pack (260913_tests_STATUS.md, 2026-09-22 12:34:44 HST; commit ba83144) from the Level-3 cells; no script on disk |
+| paper2_draft.tex | 261001_p2_level4_bars | hspist3/validation/paper2_figures_20261001.py |  |
+| paper2_draft.tex | 261001_p2_level4_acf | hspist3/validation/paper2_figures_20261001.py |  |
+
+script closure of the drafts (figure scripts, '% TODO-source' / '% FIGURES' scripts, their local imports): 22 files
+
+### Test B1: constants of the closure that name a directory occurring only on accelerated-run paths
+accelerated run files outside the sec. 4.7 diagnostic: 465; distinctive directory names: 37; string constants in the closure: 7806; constants naming a distinctive directory: 0
+
+### Test B2: data roots named by the closure (directory names in its constants that exist in the data trees)
+(rows of the canonical trees and of the shared container; all 45 rows in the output file)
+
+| directory name | instances | run records | --edmd-acc=0 explicit | ACCELERATED records | run logs | logs 'backend: default' | logs 'backend: accelerated' | accelerated children: matched by a wildcard of the closure |
+| 00_eta_sweep_ROMAN | 3 | 5734 | 4118 | 16 | 2149 | 1726 | 0 | simulation_eta_split_07_05_26_09_00_24: none; validate_acc_N100_20260826: none |
+| A1v2_20260914 | 2 | 0 | 0 | 0 | 315 | 315 | 0 | - |
+| A2_dilute50_20260917 | 1 | 1600 | 1200 | 0 | 400 | 400 | 0 | - |
+| campaign_r25_psi6_20260823 | 2 | 96 | 64 | 0 | 32 | 0 | 0 | - |
+| confinement_B_20261013 | 2 | 0 | 0 | 0 | 189 | 189 | 0 | - |
+| confinement_pilot_20261013 | 1 | 128 | 84 | 0 | 22 | 22 | 0 | - |
+| famB_20260911 | 1 | 300 | 200 | 0 | 100 | 100 | 0 | - |
+| level3_FofL_20260925 | 1 | 5 | 5 | 0 | 5 | 0 | 0 | - |
+| paper1_confinement_A_20261013 | 1 | 10 | 5 | 0 | 8303 | 0 | 0 | - |
+| paper1_confinement_Afix_261004 | 2 | 10 | 5 | 0 | 8405 | 0 | 0 | - |
+| resched_gate_261005 | 2 | 81 | 69 | 0 | 54 | 39 | 0 | - |
+| routeA_lowdensity_20260912 | 1 | 9 | 6 | 0 | 3 | 0 | 0 | - |
+
+wildcard components in the closure's constants: 240; accelerated children matched by one: 0
+
+listing calls with a bare '*' or '**' argument: 6
+
+### Test B4: data trees of the figures without a producing script
+
+- 260922_apparatus_paper: the apparatus drawn by the simulation itself (caption, paper1_draft.tex:80-81): a picture of the geometry, no measured quantity
+- 260923_level3_settled_comparison: hspist3/experiments_energy_transfer/level3_*: 55 run records, 55 run logs, ACCELERATED 0
+
+VERDICT: no figure of either draft, and no script that feeds one, reads a run of the accelerated backend (A: flagged readers outside the closure or docstring-only; B1 0, B2 0, B4 0); 6 bare-wildcard listing calls are listed in B3 for a check of their bases by eye
+```
+
+**Method, and what it cannot see [INFERENCE].**
+- **Unclassifiable runs.** A run that recorded neither its command nor a backend log line cannot be classified. In the canonical trees every cell has one or the other (B2).
+- **Names and wildcards, not values.** The trace follows names and wildcards, not paths computed at run time. The six listing calls with a bare wildcard were therefore checked by eye; each starts from a production base:
+  - `paper1_A2_boxtrunc_261002.py:40, :44`: below `A2_*` or `famB_20260911`, then `m_*`;
+  - `resched_gate_261005.py:255, :262`: the gate's own output tree and the `profile_edmd_*` folders;
+  - `tests_20260913.py:171`: inside one run directory, for the wall-thickness check;
+  - `tests_20260913.py:1185`: `tests_20260913/A_length`.
+- **The shared plotting module.** Its directory scans (`find_latest_sim_dir`, `rglob`) belong to its own command-line mode. The paper scripts use only its equations of state and fit helpers (`Z_kolafa_rottner_2006`, `cs_adiabatic_2d_monatomic`, `weighted_linreg`, …).
+- **Data that exist only on KOA** were produced by the launchers in `hspist3/cluster/`. Part A scanned every launcher, and none passes the flag.
+- **The Level-3 comparison figure** has no script on disk. Its data tree has 0 accelerated records (B4).
+
+### 4.7.2 Generation 3: implementation log (dated decisions taken during implementation; appended as M1 proceeds)
+
+- **2026-10-08 16:46 HST, item 0 closed before any gen-3 code:**
+  - the guard 14ba1f2 is on `engine-gen3`;
+  - the provenance is clean (§ 4.7.1);
+  - the KOA cap is in the runsheet (§ 14).
+- **2026-10-08 16:46 HST, `--engine=gen2` is the default, and it keeps its existing switches.** In this code `--legacy-resched` is what reproduces 279282b byte for byte (E0, § 4.4.12); without it, gen2 is 7b08827's minimal policy.
+  - So the E0-style gate item runs `--engine=gen2 --legacy-resched` against 279282b.
+  - gen3 is selected only explicitly until the gate passes, so no existing command changes meaning.

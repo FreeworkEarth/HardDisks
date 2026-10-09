@@ -901,3 +901,20 @@ bash hspist3/cluster/resched_gate_261005/fetch_resched2.sh
 ```
 
 Then tell CC. The verdict is printed by `python3 validation/resched_testTprime_261007.py`, by the registered rule, including the ASan report.
+
+## 14. KOA cap (plan author's decision of 2026-10-09 on the plan author's clock, written 2026-10-08 HST; 261012 § 4.7.1 item 3)
+
+The cap is our own choice. KOA's limits (printed by Chris on 2026-10-08):
+- no per-user CPU or job limit;
+- MaxSubmit 60001;
+- MaxArraySize 25001;
+- `shared` has 3,012 CPUs on 90 nodes.
+
+The cap:
+- **64 cores standing.** This is the sum over every running job of `charing`.
+- **128 cores only while** `sinfo -p shared -s` shows at least 10 % of the nodes idle. In `NODES(A/I/O/T)`, I / T ≥ 0.10; with T = 90 that is I ≥ 9.
+- **One trajectory per array task,** one core per task.
+- **Arrays chunked below 25001 tasks.** Throttle with `%` so that the running tasks stay within the cap, e.g. `--array=1-20000%64` for one-core tasks.
+- **Before every sbatch:** run `squeue -u charing` (never submit twice). For the 128 cap, also run `sinfo -p shared -s`.
+- **The sshare value is not interpreted** (plan author).
+- **Generation 3:** no KOA runs until M6, the gate (261012 § 4.7.1 item 5).
