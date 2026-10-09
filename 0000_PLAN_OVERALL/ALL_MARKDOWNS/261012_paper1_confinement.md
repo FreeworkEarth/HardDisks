@@ -8863,3 +8863,40 @@ written files: all hashes identical
 - Unit tests after the fix: 33 tests, OK (`fixcheck_unit_tests_output.txt`). The working tree's status is identical before and after the run (`fixcheck_log.txt`).
 
 **Next:** Test G runs on this Mac with the frozen binary under `caffeinate -i`, 12 processes, in task order (`run_testG_mac.py`). Then the verdict script prints the verdict, unchanged.
+
+### 4.7.20 Stage G: the KOA package of the gen-3 gate — PREPARED, NOT RUN (2026-10-09 13:05 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Nothing was submitted and nothing touched KOA.** The package waits for the plan author's review and for Chris.
+- **Everything is in `hspist3/cluster/gen3_koa_261009/`, with a plain-text runsheet** (`runsheet_gen3_koa_261009.txt`, steps 0–6, every command for Chris to type, what to paste back).
+- **It covers the five items of stage G:**
+  - (a) gen2-path byte identity on KOA with the A-fixed cells (E0);
+  - (b) cross-node determinism of gen3;
+  - (c) the KOA rate table;
+  - (d) the long-double spot check;
+  - (e) Test G on KOA (one-core chunks, per-chunk folders, a merge job, at most 64 cores).
+- **Test G on KOA needs its own registration before it runs.** It has a new base seed (20261220), its task list's SHA-256 file and the build line in the verdict wrapper. Until then the wrapper refuses to run.
+
+**The files.**
+
+| file | role |
+|---|---|
+| `build_gen3_koa.sh` | inside a sandbox shell in the clean clone `~/harddisks_gen3` (engine-gen3 at the pushed commit): `make koa-ld` → `bin/00ALLINONE_ld` (`logs/BUILD_KOA_LD.hash`), then `make koa` → `./00ALLINONE` (`logs/BUILD_KOA_LAST.hash`); both must print `git <HEAD>` without -dirty; it prints the node's LDBL_MANT_DIG |
+| `g3_gate_koa.sbatch` | one node, 8 cores, sandbox, ≤ 3 h: (a) `audit_runs_261007.py` with the new binary against the 7b08827 reference of `~/harddisks_resched2` (hash- and version-checked) on ctrl_min, ctrl_leg, afix, afix_leg, default and `--engine=gen2`; then (c) and (d) through `g3_rate_ld_koa.py` |
+| `g3_rate_ld_koa.py` | (c) N = 100, 400, 900, 1600 × η = π/8, 0.70, 0.78, M4 seeding, exact box, 500 σ-time held + 100 released, one run at a time: events/s from the run records; (d) koa-ld against koa on N = 100 at π/8 (M = 300) and N = 400 at 0.70 (M = 500), 4 seeds each: clean, events, the event hash, the largest contact gap and gap / u_t with each build's own u_t (the engine's value in [EDMD3-GAP]), the argmax ν (information) |
+| `g3_det_xnode.sbatch` | (b) two nodes, one task each (`srun --relative`): the same command and seed on both, two cells (N = 400 at 0.70 with M4 seeding; the T′ cell); trace, ψ6(t), `speed_of_sound_psi6.csv` and the event hash must be byte-identical |
+| `gen_testG_koa_261009.py` | (e) the task list: stage B's blocks and order with BASE_KOA = 20261220 (never used; checked against every earlier list incl. the Mac's Test G); chunks of 25 lines |
+| `testG_koa.sbatch` | (e) array of one-core chunks (`--array=1-120%64`, partition shared): chunk j runs its 25 lines in order with `testG_worker_koa.sh`, writing only into `chunks/chunk_<j>`; refuses a task list that is not the registered one (SHA-256 file) |
+| `testG_worker_koa.sh` | the KOA copy of the registered Mac worker (which is not edited): `sha256sum` instead of `shasum -a 256`; every A-fixed event log kept on scratch (KEEP_EV=1) |
+| `merge_testG_koa.py`, `merge_testG_koa.sbatch` | (e) one process after the array (`--dependency=afterany`): moves each chunk's files into `merged/` (run.log sections appended in chunk order, `.failed_*` kept, one build line required, a name collision stops it), then `reduce_B.py` per cell and lossless compression of the traces with their SHA-256 |
+| `fetch_gen3_koa.sh` | (Mac, Chris types it) rsync through the DTN, read-only on KOA, without the compressed traces, into `hspist3/experiments_gen3_gate_koa_261009/` |
+| `testG_koa_verdict_261009.py` | the registered Mac verdict script, imported unchanged, with BUILD, LOC and TASKS set for the KOA data (BUILD at the registration) |
+
+**Decisions.**
+1. **A new clone `~/harddisks_gen3`** keeps the three existing clones untouched (KOA rules).
+2. **Test G on KOA cannot reuse the registered verdict script unchanged:** its build line is the Mac's. A wrapper that sets three constants keeps the registered logic byte-identical.
+3. **The KOA worker is a copy, not an edit,** of the registered Mac worker (rule 3).
+4. **On KOA the A-fixed event logs are kept** (scratch has the room); the Mac's FIFO path is not used there.
+5. **The long-double spot check reads each build's own time quantum** from the engine's [EDMD3-GAP] line. The driver's [EDMD3-RUN] header printed the double quantum in both builds; corrected in engine-gen3 78ff48d (default builds print the same value as before).
+
+**Syntax checks (no run):** `bash -n` on every shell and sbatch file, `ast.parse` on every Python file: OK. The package has never executed anywhere; its first run is step 1 of the runsheet, after the plan author's review.
