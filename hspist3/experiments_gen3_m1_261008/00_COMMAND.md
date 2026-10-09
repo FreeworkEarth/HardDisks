@@ -21,7 +21,9 @@ Runs, one process each, in this order (edmd.c reads `HD_CONTACT_AUDIT` once per 
 
 - **Speed ran first,** with no other run of mine on the machine.
 - **Other applications were running.** `uptime` load averages were 8.04 8.56 7.98 before and 6.82 8.07 7.84 after. Hence each rate is timed 3 times (median and range).
-- **The audit and divergence outputs are deterministic.** Two earlier full runs of the same engine code printed the same lines; one of them was before the z line and the timing repeats were added to the harness.
+- **The audit and divergence outputs are deterministic.** The two preceding full runs of the same engine code printed the same lines:
+  - one before the z lines were added to the harness (identical apart from them);
+  - one before the timing repeats were added (identical).
 
 ## E0 pre-check of the gen2 path (the gate's runner, on this Mac)
 
