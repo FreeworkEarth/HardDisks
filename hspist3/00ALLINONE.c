@@ -16190,10 +16190,16 @@ static void g3_dump_initial(const char* path, const EDMD_Particle* P, int N, int
     for (int i = 0; i < N; ++i) fprintf(f, "%a %a %a %a\n", P[i].x, P[i].y, P[i].vx, P[i].vy);
     if (fclose(f) != 0) g3_stop("cannot write --gen3-dump-initial");
 }
+/* ##CHRIS 2026-10-09 (stage E2): the engine's time quantum ulp(2^13) for this build (the driver is compiled with the same flags) */
+#ifdef EDMD3_LONG_DOUBLE
+#define G3_U_T_HEADER ldexp(1.0, 13 - (LDBL_MANT_DIG - 1))
+#else
+#define G3_U_T_HEADER ldexp(1.0, -39)
+#endif
 static void g3_run_header(const char* id, double boxW, double boxH, int N, int NL, double hold_sigma, int hold_steps, double record_sigma){
     printf("[EDMD3-RUN] %s: engine=gen3 build=\"%s\" target=%s cell_px=%g origin_shift=%g u_t=%a K=%g box=%.17g x %.17g px exact_box=%d "
            "eta=%.17g N=%d N_L=%d N_R=%d seeding=%s", id, BUILD_GIT, BUILD_TARGET, cli_gen3_cell_px > 0.0 ? cli_gen3_cell_px : EDMD3_DEFAULT_CELL_PX,
-           EDMD3_ORIGIN_SHIFT, ldexp(1.0, -39), EDMD3_TOL_K, boxW, boxH, cli_gen3_exact_box,
+           EDMD3_ORIGIN_SHIFT, G3_U_T_HEADER, EDMD3_TOL_K, boxW, boxH, cli_gen3_exact_box,
            (double)N * M_PI * (double)PARTICLE_RADIUS * (double)PARTICLE_RADIUS / (boxW * boxH), N, NL, N - NL, cli_gen3_seeding ? "lattice" : "driver");
     if (cli_gen3_seeding)
         for (int k = 0; k < 2; ++k) {
