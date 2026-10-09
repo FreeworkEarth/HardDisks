@@ -1,0 +1,45 @@
+# Every run-record line of this evidence folder's logs (run logs are .gitignored), extracted 2026-10-09 13:28 HST
+
+== ./e0/default/ctrl_leg/audit/run.log
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== ./e0/default/ctrl_leg/plain/run.log
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== ./e0/default/ctrl_leg/ref/run.log
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== ./e0/default/ctrl_min/audit/run.log
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== ./e0/default/ctrl_min/plain/run.log
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== ./e0/default/ctrl_min/ref/run.log
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== ./e0/gen2flag/ctrl_leg/audit/run.log
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== ./e0/gen2flag/ctrl_leg/plain/run.log
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== ./e0/gen2flag/ctrl_leg/ref/run.log
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== ./e0/gen2flag/ctrl_min/audit/run.log
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== ./e0/gen2flag/ctrl_min/plain/run.log
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== ./e0/gen2flag/ctrl_min/ref/run.log
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== ./e0/gen2flag_failed_relpath/ctrl_leg/audit/run.log
+
+== ./e0/gen2flag_failed_relpath/ctrl_leg/plain/run.log
+
+== ./e0/gen2flag_failed_relpath/ctrl_min/audit/run.log
+
+== ./e0/gen2flag_failed_relpath/ctrl_min/plain/run.log

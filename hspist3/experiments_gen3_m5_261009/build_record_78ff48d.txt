@@ -1,0 +1,59 @@
+# clean build of engine-gen3 78ff48d3ae765bad2ae4e98031d138476f40a44c (78ff48d), 2026-10-09 13:03:49 HST, Apple M3 Max, Apple clang version 17.0.0 (clang-1700.4.4.1)
+
+## kissfft (submodule; git archive does not carry it)
+
+submodule commit febd4caeed32e33ad8b2e0bb5ea77542c40f18ec; local change (the same in main's tree):
+    diff --git a/kiss_fft_log.h b/kiss_fft_log.h
+    index 5012474..48ac2e0 100644
+    --- a/kiss_fft_log.h
+    +++ b/kiss_fft_log.h
+    @@ -12,7 +12,10 @@
+     #define ERROR 1
+     #define WARNING 2
+     #define INFO 3
+    +
+    +#ifndef DEBUG
+     #define DEBUG 4
+    +#endif
+     
+     #define STRINGIFY(x) #x
+     #define TOSTRING(x) STRINGIFY(x)
+    dd1731891d0fff0e297198847de39216c5c8b9677ea4fe53160d1f6c74218d40  _kiss_fft_guts.h
+    3e8af99313c7e94f952ac12db46d3d5c5dd4a9bf93e0c32d43efa5fe39724051  kiss_fft.c
+    9d6c7ddf520932c0aad669c86c064a24e571e594681be9f1491c14c9c9c75693  kiss_fft.h
+    4c04367e1ce88f8382c611fed8a5ad62a956efa40bbf59632cd2df9930cba965  kiss_fft_log.h
+    128b651120725e8d55f6b9edf5d44b06dc022b260894eac078c6ff8aa7159561  kiss_fftr.c
+    a0f72c1bddc3126d7a51ad80e965b58f6af77e4419aa882a0b11951e783632a8  kiss_fftr.h
+
+## builds (from hspist3/ of the archive)
+
+- 00ALLINONE: `cc -o /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/e2/clean_78ff48d/00ALLINONE 00ALLINONE.c kissfft/kiss_fft.c kissfft/kiss_fftr.c edmd_core/edmd.c edmd_core/edmd_accelerated.c edmd_core/edmd_gen3.c experiment_validation.c -O3 -ffp-contract=off -I/opt/homebrew/include/SDL2 -I/opt/homebrew/include -D_THREAD_SAFE -I/opt/homebrew/Cellar/harfbuzz/12.2.0_1/include/harfbuzz -I/opt/homebrew/Cellar/glib/2.86.3/include/glib-2.0 -I/opt/homebrew/Cellar/glib/2.86.3/lib/glib-2.0/include -I/opt/homebrew/opt/gettext/include -I/opt/homebrew/Cellar/pcre2/10.47_1/include -I/opt/homebrew/Cellar/graphite2/1.3.14/include -I/opt/homebrew/opt/freetype/include/freetype2 -I/opt/homebrew/opt/libpng/include/libpng16 -DBUILD_GIT="78ff48d" -DBUILD_TARGET="mac-O3-e0pre" -DBUILD_CFLAGS="-O3 -ffp-contract=off" -L/opt/homebrew/Cellar/sdl2_ttf/2.24.0/lib -lSDL2_ttf -L/opt/homebrew/lib -lSDL2 -L/opt/homebrew/lib -lGLEW -framework OpenGL -framework CoreGraphics`
+  warnings: 0
+  -Wall -Wextra on the driver's sources (syntax only): 25 warnings, by file:  25 00ALLINONE.c;
+- gen3_m1: `cc -O3 -ffp-contract=off -Wall -Wextra -o /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/e2/clean_78ff48d/gen3_m1 edmd_core/tests/gen3_m1_harness.c edmd_core/edmd_gen3.c edmd_core/edmd.c -lm`
+  warnings: 0
+- gen3_m2: `cc -std=c11 -O3 -ffp-contract=off -Wall -Wextra -o /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/e2/clean_78ff48d/gen3_m2 edmd_core/tests/gen3_m2_harness.c edmd_core/edmd_gen3.c edmd_core/edmd.c -lm`
+  warnings: 0
+- gen3_body_rule_test: `cc -std=c11 -O2 -ffp-contract=off -Wall -Wextra -o /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/e2/clean_78ff48d/gen3_body_rule_test edmd_core/tests/gen3_body_rule_test.c -lm`
+  warnings: 0
+- gen3_band_edge_test: `cc -std=c11 -O2 -ffp-contract=off -Wall -Wextra -o /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/e2/clean_78ff48d/gen3_band_edge_test edmd_core/tests/gen3_band_edge_test.c edmd_core/edmd_gen3.c -lm`
+  warnings: 0
+- gen3_band_edge_ties: `cc -std=c11 -O2 -ffp-contract=off -Wall -Wextra -o /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/e2/clean_78ff48d/gen3_band_edge_ties edmd_core/tests/gen3_band_edge_ties.c -lm`
+  warnings: 0
+- edmd_gen3_alone: `cc -std=c11 -O3 -ffp-contract=off -Wall -Wextra -c edmd_core/edmd_gen3.c -o /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/e2/clean_78ff48d/edmd_gen3.o`
+  warnings: 0
+
+## SHA-256
+
+    c56169e4f03e069a38db12ff385cb042bbcf5021c352c98bcf02c0da8bb893e1  00ALLINONE
+    79a4375da64d33e10d2737297661cbbdfeb7e1c3cbe8b3a0b79cae598ac20093  gen3_m1
+    4c2be3b682addbb4811875384ec8f85d3daf61eec5e4e97d5649fecf23ce6c48  gen3_m2
+    5fcf8376996f357a23d0e157948392f921f5a23f99abfcd034deed61791a148e  gen3_body_rule_test
+    8a67af48c4cd436d43cbbc66f78ea06979023ce909d78d7f9dd9b09fb932d12d  gen3_band_edge_test
+    d57a7f5086357014950f784bf274db83bf6b255477cd3fb0cd40b147c8fe5008  gen3_band_edge_ties
+
+## long-double builds (the same archive, -DEDMD3_LONG_DOUBLE; cc as for the default builds above, BUILD_TARGET mac-O3-e0pre-ld)
+
+    5e188d708bfe10dff21868baea9ba292b6ff40b733b1315725bc9ce8babe2c41  00ALLINONE_ld
+    276644f12f0c61aa75c3ba11a4478c77c26539e7291f5e2c121583dbce16edc2  gen3_m1_ld
+    ee958c3f293ce2c54f30f6aaf68f4c15b15ee959b4eb34f701d1791ac4f1e744  gen3_m2_ld
