@@ -7478,3 +7478,401 @@ Ran 14 tests in 0.020s
 
 OK
 ```
+
+### 4.7.9 Plan-author review of reports 1, 2, 3 and 5: M2 accepted, go for M3 with amendments a–e; decisions 5–8 (2026-10-09 10:54 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 4: M2 is accepted; go for M3.**
+  - Both deviations from § 4.7 are approved on conditions a and b: the band margin (cell tolerance instead of ±w) and the spring band (arc reach within one cell width, expiring).
+  - M3 has amendments a–e: the no-miss argument and a band-edge stress cell; constructed cases for the spring search; the v_ref bound against prescribed speeds; one production-length run through the driver; the health flag in the run record with a loader refusal.
+  - M3 acceptance has items 1–6.
+  - M4 does not start before the plan author has seen the M3 report.
+- **Decision 5: a read-only provenance scan for the gen2 pass-through defect, before M3.** gen2 is not patched (frozen builds). A short report follows it. Done: § 4.7.10.
+- **Decision 6:** correct the x⁵⁷ coefficient of the ρmax = 0.89 fit in `paper1_kr_sanity_261002.py`, keep the old value in a comment, rerun, and record the output diff.
+- **Decision 7:** record three constraints, plus one exploratory add-on (divider amplitude, first half against second half). No edit of the paper draft; the plan author handles its wording and the summary for Susanne.
+- **Decision 8: the plan author's two errors**, recorded here as the plan author worded them:
+  - (1) "about three times more data" for T-prime vs Test T; it is four times (100 → 400 per policy).
+  - (2) "I compared production-length gen2 contact gaps with short gen3 harness cells; not like for like (see amendment d)."
+- **Order:** decision 5 (short report), decisions 6–7, then M3. No KOA actions, no multi-agent workflows, no new markdown files.
+
+**From the plan author's cover note to Chris (quoted):**
+- "M2 passes and CC gets the go for M3. The state-of-play note in the project is updated."
+- On the defect: "In a random gas CC estimates this at about once per 10¹² collisions, so probably never in our data. That is an estimate, not a measurement. The engine counts each such case in its own health line, so we can check. I ordered a read-only scan of all runs behind the paper. It comes before M3, and I do not expect a problem."
+- On the window: "inside the window the gas is still slowly rearranging while we measure, so the 'sound speed' depends on when we look. Our 25 % dip is the same size as this drift. The dip is real in those recordings, but its depth is not a property of the equilibrium material (INFERENCE). Paper 1 must say this, and Susanne should hear it."
+- "I added one cheap check on the same recordings: whether the swing amplitude also changes between the halves. That would be a second, more boring explanation."
+- "The equal error bars in T′ are a coincidence. The code computes them separately, so no action."
+
+**The decisions, relayed by Chris, verbatim:**
+
+```
+From the plan author (Cowork), relayed by Chris. Reports 1, 2, 3, 5 read.
+Record decisions 4-8 under §4.7.x of 261012_paper1_confinement.md
+(existing file), explicit-path git add, Chris pushes. No KOA actions,
+no multi-agent workflows, no new markdown files.
+Order: decision 5 (short report), decisions 6-7, then M3.
+
+DECISION 4 - M2 accepted. Go for M3.
+The two deviations from §4.7 (band margin = cell tolerance instead of
++-w; spring band = arc reach within one cell width, expiring) are
+approved on conditions a and b.
+
+M3 amendments
+a. Write the no-miss argument for the band margin into the notes, with
+   its assumptions listed (what bounds the difference between a disk's
+   cell membership and its position; where the disk radius and the
+   body's reach over one epoch enter). Add a band-edge stress cell:
+   dyadic geometry so that the body's reach ends exactly on a column
+   boundary, disks placed on that boundary and just on either side,
+   ties included; for a held, a driven and a spring body. Report bands
+   missing / extra / short and the health line.
+b. Spring contact search: add constructed cases to the white-box test,
+   counted per category: near-tangent (gap function with a double
+   root, just touching and just missing, within 1e-12 relative),
+   contact at a turning point of the divider, and the slow-approach
+   O(1) jump path. 20,000 random cases rarely hit these.
+c. v_ref = 2*sqrt(E): state whether it bounds the relative speed
+   against a driven divider or massless piston with prescribed speed u
+   (sqrt(2E) + |u|). If not for all allowed protocols, add |u_max|.
+d. One production-length run through the driver: N = 400, eta 0.70,
+   free divider, >= 2e4 sigma-time (>= 50 origin shifts), audits at
+   reduced cadence. Print max contact gap per class, gap / time
+   quantum, health, both ledgers. This replaces my unlike-for-like
+   comparison with DATA.
+e. Health flag: edmd3_health_clean() and all counters go into the run
+   record; loaders refuse a run with a dirty flag (same style as
+   edmd_acc_guard, unit test). State the record format.
+
+M3 acceptance (follow §4.7 where its M3 scope differs; say where)
+ 1. Default build and --engine=gen2 byte-identical to 7b08827
+    (ctrl_min, ctrl_leg) right after gen3 is linked.
+ 2. --engine=gen3 through the driver reproduces the harness event
+    hash from the same state: the three M1 cells and at least the
+    held, free and spring M2 cells.
+ 3. Observation does not steer: same event hash with all outputs on
+    vs off and for two output cadences (sync on demand; readers never
+    write).
+ 4. Driver validator cadence stated; health 0 in every run.
+ 5. The outputs both methods need exist under gen3: divider trace
+    (dynamic), impulses on the held divider and on each wall
+    (static), psi6(t). gen3 vs gen2 on one fluid cell: information.
+ 6. Same-seed determinism through the driver; 0 warnings under
+    -Wall -Wextra in new code; done/not-done table; decision log.
+M4 does not start before I have seen the M3 report.
+
+DECISION 5 - gen2 pass-through defect (edmd.c:494-498). Read-only
+provenance scan, before M3. gen2 is not patched (frozen builds).
+ 1. Which builds contain the cut-off: 279282b, 73fc07f, 7b08827 and
+    any older build behind paper data. Quote the lines per build.
+ 2. Per campaign that feeds a paper figure or table, plus the
+    confinement campaign, Test T and T-prime: number of runs, runs
+    with a health line, runs with overlap_repair > 0, largest count,
+    validator findings. Printed by a script.
+ 3. Runs with no health record at all: give the number as a coverage
+    gap. Do not infer that they are clean.
+ 4. Print the collision count per campaign, so the expected number of
+    hits at 1e-12 per collision stands next to the observed number.
+Short report after this, then continue.
+
+DECISION 6 - KR sanity script: correct the x^57 coefficient of the
+rho_max 0.89 fit to 5.577e-23 in paper1_kr_sanity_261002.py, keep the
+old value in a comment with date and page reference (p. 3439), rerun,
+show the output diff, record it.
+
+DECISION 7 - Record as constraints in the notes (no edit of the paper
+draft; the plan author handles wording and the summary for Susanne):
+ i.  Inside the window the frequency drifts within one record
+     (+7.5 / +10.4 / +7.8 % second half vs first half, A1 v2) and the
+     nu-psi6 correlation survives within each mass. Window c_s values
+     from the old data are protocol-dependent, not equilibrium values.
+ ii. Exploratory add-on, same recorded traces, no new runs: divider
+     amplitude (RMS displacement) first half vs second half for the
+     same cells and campaigns as the frequency split, in the same
+     table. Purpose: separate an amplitude-dependent frequency from
+     structural aging.
+ iii. The equal T-prime SEs: not pooled, coincidence noticed after the
+     fact; accepted, no action.
+
+DECISION 8 - Plan-author errors to record: (1) "about three times
+more data" for T-prime vs Test T; it is four times (100 -> 400 per
+policy). (2) I compared production-length gen2 contact gaps with
+short gen3 harness cells; not like for like (see amendment d).
+
+Report as usual, ending with "Written for: the plan author".
+```
+
+### 4.7.10 Decision 5 done: read-only provenance scan for the gen2 pass-through defect (2026-10-09 10:54 HST, machine date) [DATA, printed by script; SOURCE for the code; INFERENCE where marked]
+
+**Plain summary.**
+- **Item 1: every build behind the data has the cut-off.**
+  - `collide_time_ab` has had only two versions in git: 3bb8c42 (2025-09-11) and 20df8c1 (2026-09-10). Both contain `if(t<=1e-12) return 0;`. 20df8c1 also added the overlap safety net, `if(c<0.0){ *tcol = 0.0; return 2; }`.
+  - The named builds, both lines quoted in the output below: 279282b `edmd.c:433/437`, 73fc07f `:472/476`, 7b08827 `:494/498`.
+  - The builds recorded in the data have the same lines (`:433/437`): 05215ea (-dirty; Paper 2's newest campaigns and the confinement mode gate) and 70b2069 (20 confinement-A runs).
+  - The Mac speed-of-sound campaigns record no build. Their runs date from 2026-08-22 to 2026-09-17.
+    - The safety net and the health line come from the tunnelling fix of 2026-08-22/23, described in `01_improvements_bugsfxed_dev/26_08_23_EDMD_PP_TUNNELLING_FIX_AND_PHASE_AWARE_EOS.md` (§ 3.2–3.3; the file is untracked). They reached git in 20df8c1.
+    - [INFERENCE] These builds carry the cut-off too, since git has never held a `collide_time_ab` without it.
+  - **Information:** the same `<= 1e-12` drop exists for:
+    - the outer walls, which have an overdue branch since the fix;
+    - the divider faces and the pistons, which have none. A disk already at their face is dropped. The clamp-repair counter (`wall_clamp_repairs`) and the validator's wall checks cover that case.
+- **Item 2: per campaign, in the table below.**
+  - **Paper 1, speed of sound** (12 campaigns, 23,461 runs): 507 health lines.
+    - One run has overlap_repairs > 0: A2_topup, η 0.10, N 1600, M 2000, run 24, seed 2182233375, overlap_repairs = 1, finished valid.
+    - The paper's loader discards it by the health contract: `tests_20260913.cell_runs` returns [24]. Paper 1's A2 table has 34 runs in that cell, against 35 for the other masses.
+    - The other 506 lines are not pair events: wall_overdue in campaign_r25 (504 runs at L0 = 100, 150, 200) and wall_clamp_repairs in A1 v2 (2 runs, η ≤ 0.01).
+  - **Validator findings: 0 in every campaign but one.** The exception is Paper 2's superseded `level0b_masterbox_20260919`: 25 initialization failures (`initial_wall_position_mismatch`, not an overlap), and none of its runs was kept.
+  - **The gates:** Test T (2400 runs), T′ (1600) and the resched gate (565). 0 health lines, all with a health record.
+- **Item 3: the coverage gap is 24,431 runs with no health record.** These are all the energy-transfer runs behind the papers: Paper 1's confinement method A, A-fix and mode gate (16,581) and Paper 2's level series (7,850).
+  - Their builds never print the health line in energy-transfer mode: 279282b, 70b2069, 05215ea, and the unrecorded Mac builds before them. That print exists only from 9cafd7f on engine-divider-resched.
+  - They are not counted as clean. Their only overlap check is the fail-closed validator, which runs every step (1/60 σ-time) and found nothing.
+- **Item 4: collisions and expected hits.**
+  - **Measured** only where the contact audit ran (executed events of all kinds): Test T 4.14e9, T′ 3.80e9, the resched gate's speed-of-sound runs 1.09e9.
+  - **Estimated** everywhere else, as pair collisions N·Γ·t/2 with Γ = 4(Z − 1)/√π (2D Enskog rate; Z from Liu's global EOS; t = hold + record).
+  - **Check:** on the audited runs the measured events are 1.32 times the estimate (1.43 in the resched gate); walls and the divider account for the difference.
+  - **The papers:** 7.90e10 collisions and 0.079 expected hits at 1e-12 per collision, against 1 observed (the A2_topup run). By group:
+    - Paper 1 speed of sound: 4.56e10 collisions, 0.046 expected, 1 observed;
+    - Paper 1 confinement A: 7.19e9, 0.007 expected, no record;
+    - Paper 2: 2.62e10, 0.026 expected, no record.
+  - **The gates:** 9.15e9 collisions, 0.009 expected, 0 observed.
+  - [INFERENCE] One observed hit against 0.079 expected has a Poisson probability of 7.6 %, so it neither contradicts nor confirms the estimate. The scan cannot tell whether that repair came from the cut-off or from another route to an overlap. The run is excluded from every paper number.
+- **[OPEN] The cause of the one repair.** It could be classified by re-running seed 2182233375 with a gen2 build of 2026-09-11. Not done: this is a read-only scan, and that build is not recorded.
+
+**How the campaigns were chosen.**
+- **The data roots.** The scan covers the papers' data roots of § 4.7.5: 12 speed-of-sound and 41 energy-transfer campaigns. It adds Test T, T′ and the resched gate.
+- **What the paper scripts read directly: a guard trace.**
+  - The 20 paper scripts of `run_set.sh` ran unchanged, with `PYTHONPATH` set to `experiments_gen2_defect_scan_261009/guardhook/`. Its `usercustomize.py` logs every path the loaders pass to `edmd_acc_guard.guard()`, also inside multiprocessing workers.
+  - Result: 60,515 distinct paths in 23 campaigns (`paper_inputs_by_campaign.txt`). Each row of the table names the paper whose scripts read that campaign. Some roots feed the papers only through derived tables (A2_dilute, `tests_20260913`), and Paper 1's confinement scripts also read Paper 2's `level3_FofL`.
+  - **The trace is transparent.** 39 of the 40 stdout/stderr files equal this morning's run of the same code. The one difference is the gate script's printout of the branch head (7b32014 now, da89d39 then).
+  - All 45 outputs were restored, and `git status` is identical before and after (`trace_restore_log.txt`).
+- **The scan.** `validation/gen2_defect_scan_261009.py` writes nothing. Its output is `experiments_gen2_defect_scan_261009/gen2_defect_scan_output.txt`, identical on a second run. The health-record definition and the estimate are in its docstring.
+
+**The trace, printed by `experiments_gen2_defect_scan_261009/summarize_trace.py` (verbatim):**
+
+```
+# campaign | distinct files | distinct directories | paper scripts that read them (run_set.sh names)
+experiments_energy_transfer/level0_Wqs_20260911 | 50 | 5 | p2_geomfix,p2_level2Au,p2_rampfast
+experiments_energy_transfer/level1_Zwall_path_20260916 | 400 | 4 | p2_geomfix,p2_level2Au,p2_rampfast
+experiments_energy_transfer/level2_fast1sigma_20260918 | 6 | 3 | p2_level2Au,p2_rampfast
+experiments_energy_transfer/level2_fast_20260918 | 6 | 3 | p2_level2Au,p2_rampfast
+experiments_energy_transfer/level2_fastdx_20260918 | 6 | 3 | p2_level2Au
+experiments_energy_transfer/level2_ramp_20260918 | 426 | 7 | p2_level2Au,p2_rampfast
+experiments_energy_transfer/level2_slope_20260917 | 7 | 7 | p2_level2Au
+experiments_energy_transfer/level3_FofL_20260925 | 20 | 1 | conf_afix,conf_heldwall,conf_prereg,conf_results,resched_gate
+experiments_energy_transfer/level4_equilibrium_20260929 | 20 | 1 | p2_figures
+experiments_energy_transfer/paper1_confinement_A_20261013 | 24846 | 100 | conf_afix,conf_heldwall,conf_results,resched_gate
+experiments_energy_transfer/paper1_confinement_Afix_261004 | 24810 | 95 | conf_afix,resched_gate
+experiments_resched_gate_261005/experiments_energy_transfer | 345 | 5 | resched_gate
+experiments_resched_gate_261005/experiments_speed_of_sound | 54 | 18 | resched_gate
+experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/A1v2_20260914 | 8505 | 315 | boxtrunc,boxtrunc_tab,conf_afix,conf_heldwall,conf_prereg,conf_results,damping,figures,populate,resched_gate
+experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/A2_alpha2_20260912 | 4 | 4 | a2boxtrunc
+experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/A2_dilute50_20260917 | 408 | 400 | a2boxtrunc,massladder
+experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/A2_long200_20260915 | 3 | 3 | a2boxtrunc
+experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/A2_topup_20260912 | 2 | 2 | a2boxtrunc
+experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/campaign_r25_psi6_20260823 | 64 | 32 | damping,massladder,populate
+experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_B_20261013 | 513 | 171 | conf_afix,conf_heldwall,conf_results,resched_gate
+experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/confinement_pilot_20261013 | 1 | 1 | conf_results
+experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/famB_20260911 | 13 | 13 | a2boxtrunc
+experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/routeA_lowdensity_20260912 | 6 | 3 | damping,massladder,populate
+# distinct guarded paths outside hspist3 (temporary copies made by the scripts): 9
+```
+
+**The scan, printed by `validation/gen2_defect_scan_261009.py` (verbatim):**
+
+````text
+# gen2 pass-through defect: read-only provenance scan (261012 sec. 4.7.10, decision 5)
+
+## 1. The cut-offs per build (edmd.c, quoted), and what each build's 00ALLINONE.c prints
+
+### 3bb8c42 (first commit of edmd.c; 3bb8c42 2025-09-11 13:24)  health line: speed-of-sound NO, energy-transfer NO; contact audit no
+
+```
+edmd.c:137   collide_time_ab          if(t<=1e-12) return 0;
+edmd.c:147   collide_time_wall_L      if(t<=1e-12) return 0;
+edmd.c:155   collide_time_wall_R      if(t<=1e-12) return 0;
+edmd.c:164   collide_time_wall_B      if(t<=1e-12) return 0;
+edmd.c:172   collide_time_wall_T      if(t<=1e-12) return 0;
+```
+
+### 20df8c1 (safety net and health line first committed; 20df8c1 2026-09-10 11:14)  health line: speed-of-sound yes, energy-transfer NO; contact audit no
+
+```
+edmd.c:433   collide_time_ab          if(c<0.0){ *tcol = 0.0; return 2; }
+edmd.c:437   collide_time_ab          if(t<=1e-12) return 0;
+edmd.c:454   wall_time_from_gap       if (t <= 1e-12) return 0;
+edmd.c:655   collide_time_divider_L   if(num <= 1e-12) return 0;      /* not strictly left of face */
+edmd.c:658   collide_time_divider_L   if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:701   collide_time_divider_R   if(dist <= 1e-12) return 0;      /* not strictly right of face */
+edmd.c:704   collide_time_divider_R   if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:728   collide_time_piston_L    double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:737   collide_time_piston_R    if(num <= 1e-12) return 0;
+edmd.c:738   collide_time_piston_R    double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:1026  divider_gate_allows_pass if (t_ref <= 1e-12) return (t_hot > 0.0);
+```
+
+### 279282b (named: KOA ~/harddisks; 279282b 2026-10-02 22:12)  health line: speed-of-sound yes, energy-transfer NO; contact audit no
+
+```
+edmd.c:433   collide_time_ab          if(c<0.0){ *tcol = 0.0; return 2; }
+edmd.c:437   collide_time_ab          if(t<=1e-12) return 0;
+edmd.c:454   wall_time_from_gap       if (t <= 1e-12) return 0;
+edmd.c:655   collide_time_divider_L   if(num <= 1e-12) return 0;      /* not strictly left of face */
+edmd.c:658   collide_time_divider_L   if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:701   collide_time_divider_R   if(dist <= 1e-12) return 0;      /* not strictly right of face */
+edmd.c:704   collide_time_divider_R   if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:728   collide_time_piston_L    double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:737   collide_time_piston_R    if(num <= 1e-12) return 0;
+edmd.c:738   collide_time_piston_R    double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:1026  divider_gate_allows_pass if (t_ref <= 1e-12) return (t_hot > 0.0);
+```
+
+### 73fc07f (named: KOA ~/harddisks_resched; 73fc07f 2026-10-05 23:56)  health line: speed-of-sound yes, energy-transfer yes; contact audit yes
+
+```
+edmd.c:472   collide_time_ab          if(c<0.0){ *tcol = 0.0; return 2; }
+edmd.c:476   collide_time_ab          if(t<=1e-12) return 0;
+edmd.c:493   wall_time_from_gap       if (t <= 1e-12) return 0;
+edmd.c:694   collide_time_divider_L   if(num <= 1e-12) return 0;      /* not strictly left of face */
+edmd.c:697   collide_time_divider_L   if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:740   collide_time_divider_R   if(dist <= 1e-12) return 0;      /* not strictly right of face */
+edmd.c:743   collide_time_divider_R   if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:830   collide_time_piston_L    double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:839   collide_time_piston_R    if(num <= 1e-12) return 0;
+edmd.c:840   collide_time_piston_R    double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:1128  divider_gate_allows_pass if (t_ref <= 1e-12) return (t_hot > 0.0);
+```
+
+### 7b08827 (named: Test T and T-prime; 7b08827 2026-10-06 19:18)  health line: speed-of-sound yes, energy-transfer yes; contact audit yes
+
+```
+edmd.c:494   collide_time_ab          if(c<0.0){ *tcol = 0.0; return 2; }
+edmd.c:498   collide_time_ab          if(t<=1e-12) return 0;
+edmd.c:515   wall_time_from_gap       if (t <= 1e-12) return 0;
+edmd.c:716   collide_time_divider_L   if(num <= 1e-12) return 0;      /* not strictly left of face */
+edmd.c:719   collide_time_divider_L   if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:762   collide_time_divider_R   if(dist <= 1e-12) return 0;      /* not strictly right of face */
+edmd.c:765   collide_time_divider_R   if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:942   collide_time_piston_L    double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:951   collide_time_piston_R    if(num <= 1e-12) return 0;
+edmd.c:952   collide_time_piston_R    double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:1240  divider_gate_allows_pass if (t_ref <= 1e-12) return (t_hot > 0.0);
+```
+
+### 05215ea (recorded in the data; 05215ea 2026-09-30 11:36)  health line: speed-of-sound yes, energy-transfer NO; contact audit no
+
+```
+edmd.c:433   collide_time_ab          if(c<0.0){ *tcol = 0.0; return 2; }
+edmd.c:437   collide_time_ab          if(t<=1e-12) return 0;
+edmd.c:454   wall_time_from_gap       if (t <= 1e-12) return 0;
+edmd.c:655   collide_time_divider_L   if(num <= 1e-12) return 0;      /* not strictly left of face */
+edmd.c:658   collide_time_divider_L   if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:701   collide_time_divider_R   if(dist <= 1e-12) return 0;      /* not strictly right of face */
+edmd.c:704   collide_time_divider_R   if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:728   collide_time_piston_L    double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:737   collide_time_piston_R    if(num <= 1e-12) return 0;
+edmd.c:738   collide_time_piston_R    double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:1026  divider_gate_allows_pass if (t_ref <= 1e-12) return (t_hot > 0.0);
+```
+
+### 70b2069 (recorded in the data; 70b2069 2026-10-02 20:53)  health line: speed-of-sound yes, energy-transfer NO; contact audit no
+
+```
+edmd.c:433   collide_time_ab          if(c<0.0){ *tcol = 0.0; return 2; }
+edmd.c:437   collide_time_ab          if(t<=1e-12) return 0;
+edmd.c:454   wall_time_from_gap       if (t <= 1e-12) return 0;
+edmd.c:655   collide_time_divider_L   if(num <= 1e-12) return 0;      /* not strictly left of face */
+edmd.c:658   collide_time_divider_L   if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:701   collide_time_divider_R   if(dist <= 1e-12) return 0;      /* not strictly right of face */
+edmd.c:704   collide_time_divider_R   if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:728   collide_time_piston_L    double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:737   collide_time_piston_R    if(num <= 1e-12) return 0;
+edmd.c:738   collide_time_piston_R    double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;
+edmd.c:1026  divider_gate_allows_pass if (t_ref <= 1e-12) return (t_hot > 0.0);
+```
+
+recorded builds in the scanned data (runs or records): 05215ea x945, 279282b x16560, 70b2069 x20, 73fc07f x133, 7b08827 x22
+
+## 2. Per campaign
+
+| campaign | data root of | read directly by the scripts of | runs | with a health record | health lines | overlap_repairs > 0 | largest | other counters > 0 | validator findings | NO health record (gap) | health-print basis | collisions | expected hits at 1e-12 | observed (overlap_repairs > 0) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A1v2_20260914 | Paper 1 | Paper 1 | 7875 | 7875 | 2 | 0 | 0 | 2 | 0 | 0 | by date (runs from 2026-09-13), lines seen | 1.189e+10 estimated (7875 runs) | 1.19e-02 | 0 |
+| famB_20260911 | Paper 1 | Paper 1 | 1000 | 1000 | 0 | 0 | 0 | 0 | 0 | 0 | by date (runs from 2026-09-10) | 3.264e+09 estimated (1000 runs) | 3.26e-03 | 0 |
+| A2_dilute50_20260917 | Paper 1 | Paper 1 | 400 | 400 | 0 | 0 | 0 | 0 | 0 | 0 | by date (runs from 2026-09-17) | 1.910e+09 estimated (400 runs) | 1.91e-03 | 0 |
+| A2_dilute_20260916 | Paper 1 | no | 400 | 400 | 0 | 0 | 0 | 0 | 0 | 0 | by date (runs from 2026-09-16) | 1.433e+09 estimated (400 runs) | 1.43e-03 | 0 |
+| A2_long200_20260915 | Paper 1 | Paper 1 | 30 | 30 | 0 | 0 | 0 | 0 | 0 | 0 | by date (runs from 2026-09-16) | 1.629e+09 estimated (30 runs) | 1.63e-03 | 0 |
+| A2_topup_20260912 | Paper 1 | Paper 1 | 600 | 600 | 1 | 1 | 1 | 0 | 0 | 0 | by date (runs from 2026-09-11), lines seen | 4.280e+09 estimated (600 runs) | 4.28e-03 | 1 |
+| A2_alpha2_20260912 | Paper 1 | Paper 1 | 40 | 40 | 0 | 0 | 0 | 0 | 0 | 0 | by date (runs from 2026-09-14) | 7.879e+08 estimated (40 runs) | 7.88e-04 | 0 |
+| campaign_r25_psi6_20260823 | Paper 1 | Paper 1 | 7200 | 7200 | 504 | 0 | 0 | 504 | 0 | 0 | by date (runs from 2026-08-22), lines seen | 2.041e+09 estimated (7200 runs) | 2.04e-03 | 0 |
+| routeA_lowdensity_20260912 | Paper 1 | Paper 1 | 270 | 270 | 0 | 0 | 0 | 0 | 0 | 0 | by date (runs from 2026-09-11) | 9.767e+07 estimated (270 runs) | 9.77e-05 | 0 |
+| confinement_B_20261013 | Paper 1 | Paper 1 | 4274 | 4274 | 0 | 0 | 0 | 0 | 0 | 0 | by date (runs from 2026-10-03) | 1.277e+10 estimated (4274 runs) | 1.28e-02 | 0 |
+| confinement_pilot_20261013 | Paper 1 | Paper 1 | 22 | 22 | 0 | 0 | 0 | 0 | 0 | 0 | by date (runs from 2026-10-02) | 2.823e+07 estimated (22 runs) | 2.82e-05 | 0 |
+| tests_20260913 | Paper 1 | no | 1350 | 1350 | 0 | 0 | 0 | 0 | 0 | 0 | by date (runs from 2026-09-13) | 5.479e+09 estimated (1350 runs) | 5.48e-03 | 0 |
+| level0_Wqs_20260911 | Paper 2 | Paper 2 | 50 | 0 | 0 | 0 | 0 | 0 | 0 | 50 | builds (not recorded) x50; none prints the energy-transfer health line; 50 runs started (logs) | 9.421e+05 estimated (50 runs) | 9.42e-07 | 0 |
+| level0_pilot_20260910 | Paper 2 | no | 75 | 0 | 0 | 0 | 0 | 0 | 0 | 75 | builds (not recorded) x75; none prints the energy-transfer health line; 75 runs started (logs) | 6.499e+05 estimated (75 runs) | 6.50e-07 | 0 |
+| level0b_master30_20260920 | Paper 2 | no | 40 | 0 | 0 | 0 | 0 | 0 | 0 | 40 | builds (not recorded) x40; none prints the energy-transfer health line; 40 runs started (logs) | 5.117e+05 estimated (40 runs) | 5.12e-07 | 0 |
+| level0b_masterbox_20260919 | Paper 2 | no | 0 | 0 | 0 | 0 | 0 | 0 | 50 (ledger: initial_wall_position_mismatch 25, abort: initial_wall_position_mismatch 25) | 0 | no summaries; none prints the energy-transfer health line; 25 runs started (logs) | - | 0.00e+00 | 0 |
+| level0b_masterbox_v2_20260919 | Paper 2 | no | 25 | 0 | 0 | 0 | 0 | 0 | 0 | 25 | builds (not recorded) x25; none prints the energy-transfer health line; 25 runs started (logs) | 3.198e+05 estimated (25 runs) | 3.20e-07 | 0 |
+| level0b_masterbox_v3_20260919 | Paper 2 | no | 25 | 0 | 0 | 0 | 0 | 0 | 0 | 25 | builds (not recorded) x25; none prints the energy-transfer health line; 25 runs started (logs) | 3.198e+05 estimated (25 runs) | 3.20e-07 | 0 |
+| level1_Zwall_paper1geom_20260919 | Paper 2 | no | 120 | 0 | 0 | 0 | 0 | 0 | 0 | 120 | builds (not recorded) x120; none prints the energy-transfer health line; 120 runs started (logs) | 5.277e+06 estimated (120 runs) | 5.28e-06 | 0 |
+| level1_Zwall_path_20260916 | Paper 2 | Paper 2 | 400 | 0 | 0 | 0 | 0 | 0 | 0 | 400 | builds (not recorded) x400; none prints the energy-transfer health line; 400 runs started (logs) | 2.307e+06 estimated (400 runs) | 2.31e-06 | 0 |
+| level1_moreseeds_20260916 | Paper 2 | no | 120 | 0 | 0 | 0 | 0 | 0 | 0 | 120 | builds (not recorded) x120; none prints the energy-transfer health line; 120 runs started (logs) | 2.773e+06 estimated (120 runs) | 2.77e-06 | 0 |
+| level2_fast1sigma_20260918 | Paper 2 | Paper 2 | 300 | 0 | 0 | 0 | 0 | 0 | 0 | 300 | builds (not recorded) x300; none prints the energy-transfer health line; 300 runs started (logs) | 3.266e+06 estimated (300 runs) | 3.27e-06 | 0 |
+| level2_fast_20260918 | Paper 2 | Paper 2 | 300 | 0 | 0 | 0 | 0 | 0 | 0 | 300 | builds (not recorded) x300; none prints the energy-transfer health line; 300 runs started (logs) | 3.266e+06 estimated (300 runs) | 3.27e-06 | 0 |
+| level2_fastdx_20260918 | Paper 2 | Paper 2 | 300 | 0 | 0 | 0 | 0 | 0 | 0 | 300 | builds (not recorded) x300; none prints the energy-transfer health line; 300 runs started (logs) | 3.266e+06 estimated (300 runs) | 3.27e-06 | 0 |
+| level2_ramp_20260918 | Paper 2 | Paper 2 | 420 | 0 | 0 | 0 | 0 | 0 | 0 | 420 | builds (not recorded) x420; none prints the energy-transfer health line; 420 runs started (logs) | 6.266e+06 estimated (420 runs) | 6.27e-06 | 0 |
+| level2_slope_20260917 | Paper 2 | Paper 2 | 710 | 0 | 0 | 0 | 0 | 0 | 0 | 710 | builds (not recorded) x710; none prints the energy-transfer health line; 710 runs started (logs) | 1.173e+07 estimated (710 runs) | 1.17e-05 | 0 |
+| level3_FofL_20260925 | Paper 2 | Paper 1 | 100 | 0 | 0 | 0 | 0 | 0 | 0 | 100 | builds (not recorded) x100; none prints the energy-transfer health line; 100 runs started (logs) | 2.294e+06 estimated (100 runs) | 2.29e-06 | 0 |
+| level3_master_20260920 | Paper 2 | no | 600 | 0 | 0 | 0 | 0 | 0 | 0 | 600 | builds (not recorded) x600; none prints the energy-transfer health line; 600 runs started (logs) | 1.067e+07 estimated (600 runs) | 1.07e-05 | 0 |
+| level3_master_preload_20260921 | Paper 2 | no | 760 | 0 | 0 | 0 | 0 | 0 | 0 | 760 | builds (not recorded) x760; none prints the energy-transfer health line; 760 runs started (logs) | 1.364e+07 estimated (760 runs) | 1.36e-05 | 0 |
+| level3_spring_20260919 | Paper 2 | no | 125 | 0 | 0 | 0 | 0 | 0 | 0 | 125 | builds (not recorded) x125; none prints the energy-transfer health line; 125 runs started (logs) | 1.139e+06 estimated (125 runs) | 1.14e-06 | 0 |
+| level3_v4_20260922 | Paper 2 | no | 360 | 0 | 0 | 0 | 0 | 0 | 0 | 360 | builds (not recorded) x360; none prints the energy-transfer health line; 360 runs started (logs) | 1.673e+07 estimated (360 runs) | 1.67e-05 | 0 |
+| level3_v6_20260924 | Paper 2 | no | 80 | 0 | 0 | 0 | 0 | 0 | 0 | 80 | builds (not recorded) x80; none prints the energy-transfer health line; 80 runs started (logs) | 3.070e+06 estimated (80 runs) | 3.07e-06 | 0 |
+| level4_B3_20261010 | Paper 2 | no | 80 | 0 | 0 | 0 | 0 | 0 | 0 | 80 | builds 05215ea-dirty x80; none prints the energy-transfer health line; 80 runs started (logs) | 2.582e+08 estimated (80 runs) | 2.58e-04 | 0 |
+| level4_Rcollapse2_20261006 | Paper 2 | no | 240 | 0 | 0 | 0 | 0 | 0 | 0 | 240 | builds (not recorded) x240; none prints the energy-transfer health line; 240 runs started (logs) | 7.353e+09 estimated (240 runs) | 7.35e-03 | 0 |
+| level4_Rcollapse_20261005 | Paper 2 | no | 160 | 0 | 0 | 0 | 0 | 0 | 0 | 160 | builds (not recorded) x160; none prints the energy-transfer health line; 160 runs started (logs) | 4.873e+09 estimated (160 runs) | 4.87e-03 | 0 |
+| level4_demo_20261007 | Paper 2 | no | 168 | 0 | 0 | 0 | 0 | 0 | 0 | 168 | builds (not recorded) x168; none prints the energy-transfer health line; 168 runs started (logs) | 2.846e+08 estimated (168 runs) | 2.85e-04 | 0 |
+| level4_equilibrium_20260929 | Paper 2 | Paper 2 | 20 | 0 | 0 | 0 | 0 | 0 | 0 | 20 | builds (not recorded) x20; none prints the energy-transfer health line; 20 runs started (logs) | 5.546e+06 estimated (20 runs) | 5.55e-06 | 0 |
+| level4_equilibrium_KOAlength_20261002 | Paper 2 | no | 80 | 0 | 0 | 0 | 0 | 0 | 0 | 80 | builds (not recorded) x80; none prints the energy-transfer health line; 80 runs started (logs) | 7.028e+07 estimated (80 runs) | 7.03e-05 | 0 |
+| level4_ladderRfill_20261009 | Paper 2 | no | 160 | 0 | 0 | 0 | 0 | 0 | 0 | 160 | builds (not recorded) x160; none prints the energy-transfer health line; 160 runs started (logs) | 3.940e+08 estimated (160 runs) | 3.94e-04 | 0 |
+| level4_ladder_20261003 | Paper 2 | no | 320 | 0 | 0 | 0 | 0 | 0 | 0 | 320 | builds (not recorded) x320; none prints the energy-transfer health line; 320 runs started (logs) | 2.586e+09 estimated (320 runs) | 2.59e-03 | 0 |
+| level4_ladder_rerun_20261004 | Paper 2 | no | 240 | 0 | 0 | 0 | 0 | 0 | 0 | 240 | builds (not recorded) x240; none prints the energy-transfer health line; 240 runs started (logs) | 9.780e+09 estimated (240 runs) | 9.78e-03 | 0 |
+| level4_pilot_20260925 | Paper 2 | no | 40 | 0 | 0 | 0 | 0 | 0 | 0 | 40 | builds (not recorded) x40; none prints the energy-transfer health line; 40 runs started (logs) | 8.733e+05 estimated (40 runs) | 8.73e-07 | 0 |
+| level4_pilot_v2_20260925 | Paper 2 | no | 40 | 0 | 0 | 0 | 0 | 0 | 0 | 40 | builds (not recorded) x40; none prints the energy-transfer health line; 40 runs started (logs) | 8.799e+05 estimated (40 runs) | 8.80e-07 | 0 |
+| level4_thermal_20260928 | Paper 2 | no | 40 | 0 | 0 | 0 | 0 | 0 | 0 | 40 | builds (not recorded) x40; none prints the energy-transfer health line; 40 runs started (logs) | 9.305e+06 estimated (40 runs) | 9.31e-06 | 0 |
+| level4_topup_20261005 | Paper 2 | no | 160 | 0 | 0 | 0 | 0 | 0 | 0 | 160 | builds (not recorded) x160; none prints the energy-transfer health line; 160 runs started (logs) | 2.443e+08 estimated (160 runs) | 2.44e-04 | 0 |
+| level4_v3_20260926 | Paper 2 | no | 88 | 0 | 0 | 0 | 0 | 0 | 0 | 88 | builds (not recorded) x88; none prints the energy-transfer health line; 88 runs started (logs) | 3.456e+06 estimated (88 runs) | 3.46e-06 | 0 |
+| level4b_powerup_20261010 | Paper 2 | no | 528 | 0 | 0 | 0 | 0 | 0 | 0 | 528 | builds 05215ea-dirty x528; none prints the energy-transfer health line; 528 runs started (logs) | 7.113e+07 estimated (528 runs) | 7.11e-05 | 0 |
+| level4b_transmission_20261008 | Paper 2 | no | 120 | 0 | 0 | 0 | 0 | 0 | 0 | 120 | builds (not recorded) x120; none prints the energy-transfer health line; 120 runs started (logs) | 1.979e+07 estimated (120 runs) | 1.98e-05 | 0 |
+| level4b_transmission_20261008b | Paper 2 | no | 120 | 0 | 0 | 0 | 0 | 0 | 0 | 120 | builds (not recorded) x120; none prints the energy-transfer health line; 120 runs started (logs) | 1.979e+07 estimated (120 runs) | 1.98e-05 | 0 |
+| level5_effmap_20261010 | Paper 2 | no | 336 | 0 | 0 | 0 | 0 | 0 | 0 | 336 | builds 05215ea-dirty x336; none prints the energy-transfer health line; 336 runs started (logs) | 1.729e+08 estimated (336 runs) | 1.73e-04 | 0 |
+| paper1_confinement_A_20261013 | Paper 1 (confinement A) | Paper 1 | 8290 | 0 | 0 | 0 | 0 | 0 | 0 | 8290 | builds 279282b x8270,70b2069 x20; none prints the energy-transfer health line; 8290 runs started (logs) | 3.586e+09 estimated (8290 runs) | 3.59e-03 | 0 |
+| paper1_confinement_Afix_261004 | Paper 1 (confinement A) | Paper 1 | 8290 | 0 | 0 | 0 | 0 | 0 | 0 | 8290 | builds 279282b x8290; none prints the energy-transfer health line; 8290 runs started (logs) | 3.600e+09 estimated (8290 runs) | 3.60e-03 | 0 |
+| paper1_confinement_modegate_20261013 | Paper 1 (confinement A) | no | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | builds 05215ea-dirty x1; none prints the energy-transfer health line; 1 runs started (logs) | 7.946e+04 estimated (1 runs) | 7.95e-08 | 0 |
+| resched_gate_261005/speed_of_sound | gate (sec. 4.4) | gate script only | 450 | 450 | 0 | 0 | 0 | 0 | 0 | 0 | recorded build 73fc07f | 1.089e+09 measured (450 runs); 7.575e+08 estimated (450 runs) | 1.09e-03 | 0 |
+| resched_gate_261005/energy_transfer | gate (sec. 4.4) | gate script only | 115 | 115 | 0 | 0 | 0 | 0 | 0 | 0 | builds 73fc07f x115; 115 runs started (logs) | 1.193e+08 estimated (115 runs) | 1.19e-04 | 0 |
+| Test T (resched_testT_261007) | gate (sec. 4.4.12) | no | 2400 | 2400 | 0 | 0 | 0 | 0 | 0 | 0 | recorded build 7b08827 | 4.139e+09 measured (2400 runs); 3.144e+09 estimated (2400 runs) | 4.14e-03 | 0 |
+| Test T-prime (resched_testTprime_261007) | gate (sec. 4.4.15) | no | 1600 | 1600 | 0 | 0 | 0 | 0 | 0 | 0 | recorded build 7b08827 | 3.800e+09 measured (1600 runs); 2.887e+09 estimated (1600 runs) | 3.80e-03 | 0 |
+
+### Totals
+
+| group | campaigns | runs | with a health record | WITHOUT one (gap) | health lines | runs with overlap_repairs > 0 | collisions (measured or estimated) | expected hits at 1e-12 |
+|---|---|---|---|---|---|---|---|---|
+| Paper 1 | 12 | 23461 | 23461 | 0 | 507 | 1 | 4.560e+10 | 4.56e-02 |
+| Paper 1 (confinement A) | 3 | 16581 | 0 | 16581 | 0 | 0 | 7.186e+09 | 7.19e-03 |
+| Paper 2 | 38 | 7850 | 0 | 7850 | 0 | 0 | 2.624e+10 | 2.62e-02 |
+| gates (sec. 4.4) | 4 | 4565 | 4565 | 0 | 0 | 0 | 9.147e+09 | 9.15e-03 |
+
+### Every run with overlap_repairs > 0, and whether the paper loader uses it
+
+- A2_topup_20260912: experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/A2_topup_20260912/eta_0p10/N1600/m_2000, M = 2000, run 24, seed 2182233375, N = 1600; record 26717.8 sigma-time; forced_advance=0, wall_clamp_repairs=0, overlap_repairs=1, wall_overdue=0, past_events=0; finished: True; DISCARDED by the health contract (tests_20260913.cell_runs)
+
+### Health lines by counter (runs with that counter > 0)
+
+- A1v2_20260914: wall_clamp_repairs 2
+- A2_topup_20260912: overlap_repairs 1
+- campaign_r25_psi6_20260823: wall_overdue 504
+
+## 3. Check of the collision estimate on the audited runs (executed events, all kinds / estimated pair collisions)
+
+Test T (resched_testT_261007): 2400 runs, ratio median 1.317, range 1.313-1.322
+Test T-prime (resched_testTprime_261007): 1600 runs, ratio median 1.316, range 1.313-1.320
+resched_gate_261005/speed_of_sound: 450 runs, ratio median 1.429, range 1.314-1.548
+````
