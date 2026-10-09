@@ -60,7 +60,7 @@ LIBS            := $(if $(PKG_SDL_LIBS),$(PKG_SDL_LIBS),-lSDL2 -lSDL2_ttf) $(LIB
 # -----------------------------
 # Targets
 # -----------------------------
-.PHONY: all debug release koa clean tar
+.PHONY: all debug release koa release-ld koa-ld clean tar
 
 # Default target
 all: debug
@@ -100,6 +100,20 @@ koa: BUILD_TARGET=koa
 koa: BUILD_CF=-O2 -march=x86-64-v2 -mtune=generic -ffp-contract=off
 koa: CFLAGS=$(CFLAGS_KOA)
 koa: $(TG)
+
+# ##CHRIS 2026-10-09 (stage E2, M5; 261012 sec. 4.7.18): the long-double build option of the gen3 engine: edmd_gen3.c's internal
+# arithmetic in long double (x86-64: a 64-bit mantissa, the time quantum 2^-50 instead of 2^-39); every other source is unaffected by
+# the define. The default targets above are unchanged. On arm64 long double is the 8-byte double, so release-ld computes exactly what
+# release computes (a consistency check of the option); koa-ld is the numerical check (stage G, on KOA).
+release-ld: BUILD_TARGET=release-ld
+release-ld: BUILD_CF=-O3 -march=native -ffp-contract=off -DEDMD3_LONG_DOUBLE
+release-ld: CFLAGS=$(CFLAGS_RELEASE) -DEDMD3_LONG_DOUBLE
+release-ld: $(TG)
+
+koa-ld: BUILD_TARGET=koa-ld
+koa-ld: BUILD_CF=-O2 -march=x86-64-v2 -mtune=generic -ffp-contract=off -DEDMD3_LONG_DOUBLE
+koa-ld: CFLAGS=$(CFLAGS_KOA) -DEDMD3_LONG_DOUBLE
+koa-ld: $(TG)
 
 # Link rule (libs at the end)
 $(TG): $(TG).c $(KISSFFT_SRCS) $(EDMD_SRCS) $(VALIDATION_SRCS)
