@@ -1,0 +1,246 @@
+# Generation 3 -- design numbers (261012 sec. 4.7), printed by validation/gen3_design_numbers_261009.py
+
+## 1. Baseline: collisions per second per core on KOA (Xeon E5-2680 v2), measured
+
+event counts: ['00ALLINONE  git 7b08827  target mac-O3-gen3count'] on this Mac (same commands as cluster/profile_edmd_koa.sh, seed 9700, minimal policy, HD_CONTACT_AUDIT=1); KOA wall times: profile job 15008378 (git 7b08827 target koa)
+
+| kind | N | eta | sigma-time | executed events (Mac) | of which pair | divider (Mac / KOA) | outer wall (Mac / KOA) | pair collisions per disk per sigma-time | KOA s, 7b08827 minimal | KOA s, legacy = 279282b | sec. 4.3 (279282b) s | events/s 7b08827 | events/s 279282b | pair events/s 7b08827 | pair events/s 279282b |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| held | 100 | 0.3927 | 701 | 183386 | 147543 | 8948 / 8959 | 26895 / 26648 | 4.210 | 1.64 | 2.34 | 2.3 | 1.12e+05 | 7.84e+04 | 9e+04 | 6.31e+04 |
+| held | 400 | 0.3927 | 701 | 666162 | 579988 | 35053 / 34712 | 51121 / 51361 | 4.137 | 14.73 | 56.30 | 56.4 | 4.52e+04 | 1.18e+04 | 3.94e+04 | 1.03e+04 |
+| free | 100 | 0.3927 | 700 | 183163 | 147508 | 8901 / 8911 | 26754 / 26757 | 4.215 | 1.71 | 2.35 | - | 1.07e+05 | 7.79e+04 | 8.63e+04 | 6.28e+04 |
+| free | 400 | 0.3927 | 700 | 665478 | 579679 | 34531 / 35035 | 51268 / 51356 | 4.141 | 15.19 | 56.38 | - | 4.38e+04 | 1.18e+04 | 3.82e+04 | 1.03e+04 |
+| dense | 100 | 0.7007 | 200 | 349461 | 276312 | 26472 / 26752 | 46677 / 48346 | 27.631 | 2.44 | 4.68 | - | 1.43e+05 | 7.47e+04 | 1.13e+05 | 5.9e+04 |
+| dense | 400 | 0.7007 | 200 | 1194625 | 991673 | 92794 / 92193 | 110158 / 109276 | 24.792 | 23.18 | 127.50 | - | 5.15e+04 | 9.37e+03 | 4.28e+04 | 7.78e+03 |
+
+(collisions each disk undergoes = 2 x pair events / (N x sigma-time). The target of the decision: >= 2e5 events/s per core on KOA; Engel et al. Table II (Isobe's EDMD): 1.7e9 collisions/h = 4.7e5/s at N = 512^2.)
+
+### The same six cells on this Mac: the default backend (7b08827, minimal policy) against the accelerated backend (edmd_accelerated.c: 9-cell neighbour predictions and cell-crossing events, but still the global position jump and grid_build per event and a full reschedule after every divider event; never validated for production)
+
+| kind | N | default backend [s] | accelerated backend [s] | accelerated exit | first failure of the accelerated run (summary.failures.csv) |
+|---|---|---|---|---|---|
+| held | 100 | 0.84 | 0.08 (stopped) | 2 | t = 5.37 sigma-time (wall_hold): particle_particle_overlap, 0.644 px (tolerance 2.4e-05) |
+| held | 400 | 7.20 | 6.49 | 0 | none |
+| free | 100 | 0.79 | 0.02 (stopped) | 2 | t = 5.37 sigma-time (wall_hold): particle_particle_overlap, 0.644 px (tolerance 2.4e-05) |
+| free | 400 | 7.28 | 3.23 (stopped) | 2 | t = 345.77 sigma-time (post_release): particle_particle_overlap, 0.998 px (tolerance 2.4e-05) |
+| dense | 100 | 1.28 | 1.46 | 0 | none |
+| dense | 400 | 11.39 | 16.03 | 0 | none |
+
+### The collision-rate model against the measured counts
+
+| kind | N | eta | Z used (source) | model: pair collisions per disk per sigma-time | measured | measured/model | model outer+divider events per sigma-time | measured | measured/model |
+|---|---|---|---|---|---|---|---|---|---|
+| held | 100 | 0.3927 | 2.760 (KR (module)) | 3.972 | 4.210 | 1.060 | 44.0 | 51.1 | 1.161 |
+| held | 400 | 0.3927 | 2.760 (KR (module)) | 3.972 | 4.137 | 1.041 | 110.1 | 122.9 | 1.116 |
+| free | 100 | 0.3927 | 2.760 (KR (module)) | 3.972 | 4.215 | 1.061 | 44.0 | 50.9 | 1.156 |
+| free | 400 | 0.3927 | 2.760 (KR (module)) | 3.972 | 4.141 | 1.042 | 110.1 | 122.6 | 1.113 |
+| dense | 100 | 0.7007 | 10.278 (Engel plateau P* = 9.17) | 20.938 | 27.631 | 1.320 | 228.3 | 365.7 | 1.602 |
+| dense | 400 | 0.7007 | 10.278 (Engel plateau P* = 9.17) | 20.938 | 24.792 | 1.184 | 667.3 | 1014.8 | 1.521 |
+
+### Cost models fitted to the held-divider cells, checked on the free and dense cells
+
+(a) 279282b: t = alpha N E_non-divider + beta N^2 E_divider: alpha = 1.075e-07 s, beta = 5.201e-09 s
+(b) 7b08827: t = c N^q E_all: q = 0.653 (cost per event grows as N^q), c = 4.421e-07 s
+
+| kind | N | KOA 279282b [s] | model (a) [s] | KOA 7b08827 [s] | model (b) [s] |
+|---|---|---|---|---|---|
+| held | 100 | 2.34 | 2.34 | 1.64 | 1.64 |
+| held | 400 | 56.30 | 56.30 | 14.73 | 14.73 |
+| free | 100 | 2.35 | 2.34 | 1.71 | 1.64 |
+| free | 400 | 56.38 | 55.86 | 15.19 | 14.71 |
+| dense | 100 | 4.68 | 4.85 | 2.44 | 3.13 |
+| dense | 400 | 127.50 | 124.59 | 23.18 | 26.42 |
+
+### Time of one 2e+04 sigma-time trajectory, design geometry (H = 10 sqrt(N/100), L0 from eta, free divider), one KOA core
+
+| eta | Z (source) | N | pair events/sigma | outer-wall/sigma | divider/sigma | events per trajectory | (a) 279282b | (b) 7b08827 | (c) 2e5/s | (c) 5e5/s |
+|---|---|---|---|---|---|---|---|---|---|---|
+| pi/8 | 2.76 (KR) | 100 | 199 | 33 | 11 | 4.85e+06 | 61 s | 43 s | 24 s | 10 s |
+| pi/8 | 2.76 (KR) | 400 | 794 | 66.1 | 22 | 1.77e+07 | 18.4 min | 6.5 min | 88 s | 35 s |
+| pi/8 | 2.76 (KR) | 900 | 1.79e+03 | 99.1 | 33 | 3.84e+07 | 107.2 min | 24.0 min | 3.2 min | 77 s |
+| pi/8 | 2.76 (KR) | 1600 | 3.18e+03 | 132 | 44 | 6.71e+07 | 6.4 h | 61.1 min | 5.6 min | 2.2 min |
+| 0.70 | 10.29 (Engel plateau P* = 9.17) | 100 | 1.05e+03 | 155 | 73.2 | 2.55e+07 | 5.6 min | 3.8 min | 2.1 min | 51 s |
+| 0.70 | 10.29 (Engel plateau P* = 9.17) | 400 | 4.19e+03 | 311 | 146 | 9.3e+07 | 105.1 min | 34.3 min | 7.7 min | 3.1 min |
+| 0.70 | 10.29 (Engel plateau P* = 9.17) | 900 | 9.43e+03 | 466 | 219 | 2.02e+08 | 10.5 h | 2.1 h | 16.9 min | 6.7 min |
+| 0.70 | 10.29 (Engel plateau P* = 9.17) | 1600 | 1.68e+04 | 621 | 293 | 3.54e+08 | 38.3 h | 5.4 h | 29.5 min | 11.8 min |
+| 0.85 | 31.82 (Alder-Hoover-Young high-density form) | 100 | 3.48e+03 | 529 | 275 | 8.56e+07 | 19.1 min | 12.8 min | 7.1 min | 2.9 min |
+| 0.85 | 31.82 (Alder-Hoover-Young high-density form) | 400 | 1.39e+04 | 1.06e+03 | 550 | 3.1e+08 | 6.1 h | 114.4 min | 25.9 min | 10.3 min |
+| 0.85 | 31.82 (Alder-Hoover-Young high-density form) | 900 | 3.13e+04 | 1.59e+03 | 824 | 6.74e+08 | 37.0 h | 7.0 h | 56.2 min | 22.5 min |
+| 0.85 | 31.82 (Alder-Hoover-Young high-density form) | 1600 | 5.56e+04 | 2.11e+03 | 1.1e+03 | 1.18e+09 | 5.7 d | 17.9 h | 98.1 min | 39.2 min |
+| 0.90 | 262.79 (Alder-Hoover-Young high-density form) | 100 | 2.95e+04 | 4.5e+03 | 2.4e+03 | 7.29e+08 | 2.7 h | 108.6 min | 60.7 min | 24.3 min |
+| 0.90 | 262.79 (Alder-Hoover-Young high-density form) | 400 | 1.18e+05 | 9e+03 | 4.81e+03 | 2.64e+09 | 2.2 d | 16.2 h | 3.7 h | 88.0 min |
+| 0.90 | 262.79 (Alder-Hoover-Young high-density form) | 900 | 2.66e+05 | 1.35e+04 | 7.21e+03 | 5.73e+09 | 13.3 d | 2.5 d | 8.0 h | 3.2 h |
+| 0.90 | 262.79 (Alder-Hoover-Young high-density form) | 1600 | 4.73e+05 | 1.8e+04 | 9.61e+03 | 1e+10 | 49.2 d | 6.3 d | 13.9 h | 5.6 h |
+
+## 3. Exactness numbers
+
+### Double-precision spacing (ulp) at the engine's times; internal time unit = sigma-time / 24 (dt = 0.4 per step = 1/60 sigma-time)
+
+| absolute time [internal] | = sigma-time | ulp [internal] | position error of one ulp at thermal speed ~1 px per internal unit [px] | [sigma] |
+|---|---|---|---|---|
+| 1.0e+03 | 41.7 | 1.14e-13 | 1.14e-13 | 4.74e-15 |
+| 1.0e+04 | 417 | 1.82e-12 | 1.82e-12 | 7.58e-14 |
+| 4.8e+05 | 2e+04 | 5.82e-11 | 5.82e-11 | 2.43e-12 |
+| 1.0e+06 | 4.17e+04 | 1.16e-10 | 1.16e-10 | 4.85e-12 |
+| 1.0e+08 | 4.17e+06 | 1.49e-08 | 1.49e-08 | 6.21e-10 |
+| 9.0e+08 | 3.75e+07 | 1.19e-07 | 1.19e-07 | 4.97e-09 |
+(4.8e5 = the end of a 2e4 sigma-time trajectory; 1e6-9e8 = the prediction horizons the schedule audit met, sec. 4.4.10 D1. With a floating origin reset every 1e4 internal units, every stored time stays below ~2e4: ulp <= 3.6e-12)
+
+### The quadratic root near contact: current form t = (-b - sqrt(disc))/vv against the textbook stable form c/(-b + sqrt(disc))
+
+Random oblique approaches (2000 per gap): disk i at a random absolute position in [0, 960] px (the box), j at distance sigma + gap in a random direction, relative velocity of thermal size with r.v < 0 and impact parameter < sigma; rx = xj - xi etc. formed in double as the engine does. Reference: the exact root of the SAME double inputs at 50 digits (decimal). Errors in internal time units.
+
+| gap [px] | median exact root | current: median abs. error | current: max abs. error | stable: median abs. error | stable: max abs. error | floor: ulp(960 px) / closing speed, median |
+|---|---|---|---|---|---|---|
+| 1e-01 | 1.024e-01 | 8.3e-16 | 4.5e-14 | 6.1e-16 | 4.6e-14 | 1.2e-13 |
+| 1e-04 | 1.061e-04 | 9.1e-16 | 4.1e-13 | 6.9e-16 | 4.1e-13 | 1.2e-13 |
+| 1e-07 | 1.056e-07 | 8.7e-16 | 9.4e-12 | 6.6e-16 | 9.4e-12 | 1.2e-13 |
+| 1e-10 | 1.089e-10 | 8.7e-16 | 6.7e-12 | 6.5e-16 | 6.7e-12 | 1.2e-13 |
+
+### Every bare tolerance literal in edmd_core/edmd.c at 7b08827
+
+(code only: comments and string literals removed before matching)
+
+| line | literal(s) | code |
+|---|---|---|
+| 269 | 1e-6, 1e-7 | `const double tol = fmax(1e-7, 1e-6 * 2.0 * S->prm.radius);` |
+| 377 | 1e-9 | `double R=S->prm.radius; double eps=1e-9;` |
+| 498 | 1e-12 | `if(t<=1e-12) return 0;` |
+| 515 | 1e-12 | `if (t <= 1e-12) return 0;` |
+| 559 | 1e-12 | `const double root_tol = 1e-12;` |
+| 566 | 1e-15 | `if (derivative_amplitude > 1e-15 &&` |
+| 581 | 1e-14 | `offset_count = (fabs(offsets[1] - offsets[0]) <= 1e-14) ? 1 : 2;` |
+| 588 | 1e-14 | `if (current_t <= previous_t + 1e-14) continue;` |
+| 614 | 1e-15 | `if (current_t >= t_max - 1e-15) return 0;` |
+| 690 | 1e-9 | `if (gap < -1e-9) return 0;` |
+| 716 | 1e-12 | `if(num <= 1e-12) return 0;      /* not strictly left of face */` |
+| 719 | 1e-12 | `if(t<=1e-12) return 0; *tcol=t; return 1;` |
+| 737 | 1e-9 | `if (gap < -1e-9) return 0;` |
+| 762 | 1e-12 | `if(dist <= 1e-12) return 0;      /* not strictly right of face */` |
+| 765 | 1e-12 | `if(t<=1e-12) return 0; *tcol=t; return 1;` |
+| 888 | 1e-9 | `else { if (fabs(S->audit_tm[k] - e->t) > 1e-9) S->audit_dupdis++; if (e->t < S->audit_tm[k]) S->audit_tm[k] = ` |
+| 899 | 1e-9 | `if (d > 1e-9) {` |
+| 903 | 1e-10 | `if (rel > 1e-10) { S->audit_dtrel++; kind = "dt_rel"; }` |
+| 941 | 1e-12 | `if(num >= -1e-12) return 0; /* require particle to the right of face */` |
+| 942 | 1e-12 | `double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;` |
+| 951 | 1e-12 | `if(num <= 1e-12) return 0;` |
+| 952 | 1e-12 | `double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;` |
+| 984 | 1e-9 | `const double left_limit  = 0.5 * th + 1e-9;` |
+| 985 | 1e-9 | `const double right_limit = S->prm.boxW - 0.5 * th - 1e-9;` |
+| 1084 | 1e-12 | `if (u1 < 1e-12) u1 = 1e-12; /* avoid log(0) */` |
+| 1093 | 1e-12 | `if (rand1 < 1e-12) rand1 = 1e-12; /* avoid log(0) */` |
+| 1240 | 1e-12 | `if (t_ref <= 1e-12) return (t_hot > 0.0);` |
+| 1362 | 1e-9 | `const double eps = 1e-9;` |
+| 1513 | 1e-3 | `const double eps = 1e-3;                    /* separation margin */` |
+| 1519 | 1e-3 | `const double wmargin = 1e-3 * d;` |
+| 1677 | 1e-13 | `if (fabs(e.t - last_event_t) <= 1e-13) stagnant_events++;` |
+| 1961 | 1e-9 | `A->x = left_face - 1e-9;` |
+| 1963 | 1e-9 | `A->x = right_face + 1e-9;` |
+
+long double on this machine (arm64): 64 bits stored, eps = 2.220e-16 (= double: no extended precision); x86-64 (KOA) long double = 80-bit x87, eps = 1.08e-19
+
+### Heavy dividers in double precision (kT = m = 1, positions in px: sigma = 24 px)
+
+| divider mass M | thermal speed sqrt(kT/M) [sigma per sigma-time] | velocity kick per collision ~2 v_gas/M | kick / thermal speed | ulp of that speed | divider period at N = 100, eta 0.70 [sigma-time] (cot K = alpha K, c_s 15) | at N = 1600 |
+|---|---|---|---|---|---|---|
+| 1e+02 | 1.00e-01 | 2.0e-02 | 2.0e-01 | 1.4e-17 | 2.23 | 6.07 |
+| 1e+04 | 1.00e-02 | 2.0e-04 | 2.0e-02 | 1.7e-18 | 19.2 | 23 |
+| 1e+06 | 1.00e-03 | 2.0e-06 | 2.0e-03 | 2.2e-19 | 192 | 224 |
+| 4e+07 | 1.58e-04 | 5.0e-08 | 3.2e-04 | 2.7e-20 | 1.21e+03 | 1.42e+03 |
+| 1e+08 | 1.00e-04 | 2.0e-08 | 2.0e-04 | 1.4e-20 | 1.92e+03 | 2.24e+03 |
+
+## 4. Feature numbers
+
+### Commensurate triangular crystals in one compartment (hard walls; lattice constant a = sqrt(eta_cp/eta_lattice) sigma)
+
+The outermost rows sit at a distance r + g from each wall and from the divider face (r = 1/2, g = surface gap, here g = 0: rows touching). PARALLEL = columns of disks along the divider (y), spaced a sqrt(3)/2 in x, alternate columns shifted by a/2: L0 - t/2 = (n_x - 1) a sqrt(3)/2 + 1 + 2g, H = (n_y - 1/2) a + 1 + 2g. PERPENDICULAR = rows along x, spaced a sqrt(3)/2 in y: L0 - t/2 = (n_x - 1/2) a + 1 + 2g, H = (n_y - 1) a sqrt(3)/2 + 1 + 2g. N_s = n_x n_y (no vacancy). The nominal eta (N_s pi/4 / (H L0), the project's definition) is below the lattice's own eta because of the wall layers. The box is also rounded to the 1/24 sigma pixel grid (methods sec. 14); the column 'strain' is the lattice strain that rounding leaves.
+
+| eta_lattice | orientation | n_x x n_y | N_s | a | L0 exact | H exact | nominal eta | L0 on the 1/24 grid | strain from the grid [%] |
+|---|---|---|---|---|---|---|---|---|---|
+| 0.72 | parallel | 5 x 10 | 50 | 1.12231 | 4.912801 | 11.661958 | 0.6854 | 4.895833 | -0.436 |
+| 0.72 | parallel | 10 x 20 | 200 | 1.12231 | 9.772552 | 22.885072 | 0.7024 | 9.770833 | -0.020 |
+| 0.72 | parallel | 15 x 30 | 450 | 1.12231 | 14.632303 | 34.108186 | 0.7082 | 14.625000 | -0.054 |
+| 0.72 | parallel | 20 x 40 | 800 | 1.12231 | 19.492054 | 45.331301 | 0.7111 | 19.479167 | -0.070 |
+| 0.72 | perpendicular | 5 x 10 | 50 | 1.12231 | 6.075401 | 9.747552 | 0.6631 | 6.062500 | -0.255 |
+| 0.72 | perpendicular | 10 x 20 | 200 | 1.12231 | 11.686958 | 19.467054 | 0.6904 | 11.666667 | -0.190 |
+| 0.72 | perpendicular | 15 x 30 | 450 | 1.12231 | 17.298515 | 29.186555 | 0.7000 | 17.291667 | -0.042 |
+| 0.72 | perpendicular | 20 x 40 | 800 | 1.12231 | 22.910072 | 38.906057 | 0.7049 | 22.895833 | -0.065 |
+| 0.80 | parallel | 5 x 10 | 50 | 1.06472 | 4.713292 | 11.114822 | 0.7496 | 4.708333 | -0.134 |
+| 0.80 | parallel | 10 x 20 | 200 | 1.06472 | 9.323656 | 21.762003 | 0.7742 | 9.312500 | -0.134 |
+| 0.80 | parallel | 15 x 30 | 450 | 1.06472 | 13.934021 | 32.409184 | 0.7826 | 13.916667 | -0.134 |
+| 0.80 | parallel | 20 x 40 | 800 | 1.06472 | 18.544385 | 43.056364 | 0.7869 | 18.541667 | -0.016 |
+| 0.80 | perpendicular | 5 x 10 | 50 | 1.06472 | 5.816231 | 9.298656 | 0.7261 | 5.812500 | -0.078 |
+| 0.80 | perpendicular | 10 x 20 | 200 | 1.06472 | 11.139822 | 18.519385 | 0.7614 | 11.125000 | -0.147 |
+| 0.80 | perpendicular | 15 x 30 | 450 | 1.06472 | 16.463412 | 27.740114 | 0.7739 | 16.458333 | -0.033 |
+| 0.80 | perpendicular | 20 x 40 | 800 | 1.06472 | 21.787003 | 36.960844 | 0.7803 | 21.770833 | -0.078 |
+| 0.85 | parallel | 5 x 10 | 50 | 1.03293 | 4.603168 | 10.812819 | 0.7890 | 4.583333 | -0.554 |
+| 0.85 | parallel | 10 x 20 | 200 | 1.03293 | 9.075879 | 21.142101 | 0.8186 | 9.062500 | -0.166 |
+| 0.85 | parallel | 15 x 30 | 450 | 1.03293 | 13.548590 | 31.471384 | 0.8289 | 13.541667 | -0.055 |
+| 0.85 | parallel | 20 x 40 | 800 | 1.03293 | 18.021300 | 41.800667 | 0.8341 | 18.020833 | -0.003 |
+| 0.85 | perpendicular | 5 x 10 | 50 | 1.03293 | 5.673177 | 9.050879 | 0.7648 | 5.666667 | -0.140 |
+| 0.85 | perpendicular | 10 x 20 | 200 | 1.03293 | 10.837819 | 17.996300 | 0.8054 | 10.833333 | -0.046 |
+| 0.85 | perpendicular | 15 x 30 | 450 | 1.03293 | 16.002460 | 26.941721 | 0.8198 | 16.000000 | -0.016 |
+| 0.85 | perpendicular | 20 x 40 | 800 | 1.03293 | 21.167101 | 35.887143 | 0.8271 | 21.166667 | -0.002 |
+| 0.88 | parallel | 5 x 10 | 50 | 1.01517 | 4.541648 | 10.644104 | 0.8123 | 4.520833 | -0.592 |
+| 0.88 | parallel | 10 x 20 | 200 | 1.01517 | 8.937458 | 20.795793 | 0.8451 | 8.916667 | -0.263 |
+| 0.88 | parallel | 15 x 30 | 450 | 1.01517 | 13.333268 | 30.947481 | 0.8565 | 13.312500 | -0.169 |
+| 0.88 | parallel | 20 x 40 | 800 | 1.01517 | 17.729078 | 41.099170 | 0.8623 | 17.708333 | -0.124 |
+| 0.88 | perpendicular | 5 x 10 | 50 | 1.01517 | 5.593260 | 8.912458 | 0.7878 | 5.583333 | -0.217 |
+| 0.88 | perpendicular | 10 x 20 | 200 | 1.01517 | 10.669104 | 17.704078 | 0.8316 | 10.666667 | -0.025 |
+| 0.88 | perpendicular | 15 x 30 | 450 | 1.01517 | 15.744949 | 26.495699 | 0.8472 | 15.729167 | -0.107 |
+| 0.88 | perpendicular | 20 x 40 | 800 | 1.01517 | 20.820793 | 35.287319 | 0.8552 | 20.812500 | -0.042 |
+| 0.90 | parallel | 5 x 10 | 50 | 1.00383 | 4.502355 | 10.536345 | 0.8278 | 4.500000 | -0.068 |
+| 0.90 | parallel | 10 x 20 | 200 | 1.00383 | 8.849048 | 20.574604 | 0.8628 | 8.833333 | -0.201 |
+| 0.90 | parallel | 15 x 30 | 450 | 1.00383 | 13.195741 | 30.612862 | 0.8749 | 13.187500 | -0.068 |
+| 0.90 | parallel | 20 x 40 | 800 | 1.00383 | 17.542435 | 40.651121 | 0.8811 | 17.541667 | -0.005 |
+| 0.90 | perpendicular | 5 x 10 | 50 | 1.00383 | 5.542216 | 8.824048 | 0.8030 | 5.541667 | -0.012 |
+| 0.90 | perpendicular | 10 x 20 | 200 | 1.00383 | 10.561345 | 17.517435 | 0.8490 | 10.541667 | -0.206 |
+| 0.90 | perpendicular | 15 x 30 | 450 | 1.00383 | 15.580475 | 26.210822 | 0.8654 | 15.562500 | -0.123 |
+| 0.90 | perpendicular | 20 x 40 | 800 | 1.00383 | 20.599604 | 34.904208 | 0.8739 | 20.583333 | -0.083 |
+
+(the grid rounding is the binary's floor of 2 L0 x 24 px (box_delta, methods sec. 14); an exact box length removes it. Vacancies: N_s = n_x n_y - n_vac, positions removed by a stated rule)
+
+### Storage of the structural clock and snapshots per trajectory (text, ~18 bytes per number incl. separator)
+
+| N | psi6(t) every 0.25 sigma-time, 2e4 sigma-time | positions every 10 sigma-time | positions every 1 sigma-time |
+|---|---|---|---|
+| 100 | 2.88 MB | 7.2 MB | 72 MB |
+| 400 | 2.88 MB | 28.8 MB | 288 MB |
+| 900 | 2.88 MB | 64.8 MB | 648 MB |
+| 1600 | 2.88 MB | 115.2 MB | 1152 MB |
+
+## 5. Heavy-divider record design (261012 sec. 4.7.4, decision 3 item 3; appended 2026-10-09)
+
+### Periods in a record of 1e4 and of 2e4 sigma-time at eta 0.70, design geometry (H = 10 sqrt(N/100), L0 from eta), the period model of the heavy-divider table above (cot K = alpha K, alpha = M / N, L_eff = L0 - 1.025, c_s = 15)
+
+| divider mass M | N = 100: period [sigma-time] | periods in 1e4 | periods in 2e4 | N = 400: period [sigma-time] | periods in 1e4 | periods in 2e4 | N = 900: period [sigma-time] | periods in 1e4 | periods in 2e4 | N = 1600: period [sigma-time] | periods in 1e4 | periods in 2e4 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 50 | 1.783 | 5.61e+03 | 1.12e+04 | 3.055 | 3.27e+03 | 6.55e+03 | 4.448 | 2.25e+03 | 4.5e+03 | 5.889 | 1.7e+03 | 3.4e+03 |
+| 500 | 4.437 | 2.25e+03 | 4.51e+03 | 5.399 | 1.85e+03 | 3.7e+03 | 6.336 | 1.58e+03 | 3.16e+03 | 7.417 | 1.35e+03 | 2.7e+03 |
+| 2000 | 8.66 | 1.15e+03 | 2.31e+03 | 9.866 | 1.01e+03 | 2.03e+03 | 10.6 | 943 | 1.89e+03 | 11.34 | 882 | 1.76e+03 |
+| 10000 | 19.24 | 520 | 1.04e+03 | 21.49 | 465 | 930 | 22.4 | 446 | 893 | 23.02 | 434 | 869 |
+| 100000 | 60.74 | 165 | 329 | 67.57 | 148 | 296 | 69.89 | 143 | 286 | 71.11 | 141 | 281 |
+| 1e+06 | 192.1 | 52.1 | 104 | 213.5 | 46.8 | 93.7 | 220.7 | 45.3 | 90.6 | 224.3 | 44.6 | 89.2 |
+| 4e+07 | 1215 | 8.23 (< 20) | 16.5 (< 20) | 1350 | 7.4 (< 20) | 14.8 (< 20) | 1396 | 7.16 (< 20) | 14.3 (< 20) | 1418 | 7.05 (< 20) | 14.1 (< 20) |
+| 1e+08 | 1921 | 5.21 (< 20) | 10.4 (< 20) | 2135 | 4.68 (< 20) | 9.37 (< 20) | 2207 | 4.53 (< 20) | 9.06 (< 20) | 2243 | 4.46 (< 20) | 8.92 (< 20) |
+
+(< 20): fewer than the 20 periods that sec. 4.7.1 amendment e requires of the heaviest mass in a cell; such a mass is excluded from that cell, never T shortened. The counts scale with c_s: at N = 100 the A1 v2 value at eta 0.7007 is c_s = 19.2 (x 1.28), Kolafa-Rottner's at eta 0.69 is 11.6 (x 0.77). Masses 50-2000 are the A1 ladder, for orientation.
+
+### From the existing N = 100 data (A1 v2: 35 cells x 9 masses x 25 seeds, records of 200 periods): the per-trajectory relative frequency error against the number of periods
+
+Per (cell, mass): the SD of the per-trajectory frequency over the seeds, divided by its mean, from the first n periods of each record (the canonical estimator on that sub-record; it is the canonical one at n = 200: largest relative difference of the per-mass mean from paper1_populate_cs_err_20261002.cell, 0.0e+00). Median and 10-90 % range over the (cell, mass) groups. The argmax bin is 1/n of the frequency wide, so 1/(n sqrt 12) is its quantization floor. Bias: the median of mean(nu_n)/mean(nu_200) - 1.
+
+| n periods | quantization floor 1/(n sqrt 12) | fluid, eta_true <= 0.69: relative SD, median [10-90 %] | bias | window, 0.69 < eta_true < 0.72: relative SD, median [10-90 %] | bias | solid, eta_true >= 0.72: relative SD, median [10-90 %] | bias | eta_true 0.7007 alone (the heavy-divider campaign's eta): relative SD, median [10-90 %] | bias | fluid, 3-bin parabola: relative SD, median |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 5 | 0.0577 | 0.1003 [0.0697, 0.1511] | -0.0210 | 0.1142 [0.0771, 0.1709] | -0.0277 | 0.0649 [0.0421, 0.0945] | -0.0042 | 0.1139 [0.0814, 0.1403] | +0.0261 | 0.0877 |
+| 8 | 0.0361 | 0.0629 [0.0441, 0.1012] | -0.0112 | 0.0893 [0.0556, 0.1202] | -0.0171 | 0.0420 [0.0320, 0.0667] | -0.0035 | 0.0794 [0.0614, 0.1026] | +0.0172 | 0.0564 |
+| 10 | 0.0289 | 0.0561 [0.0365, 0.0794] | -0.0080 | 0.0799 [0.0475, 0.1152] | -0.0183 | 0.0378 [0.0252, 0.0562] | +0.0006 | 0.0836 [0.0553, 0.0977] | +0.0180 | 0.0491 |
+| 16 | 0.0180 | 0.0396 [0.0252, 0.0643] | -0.0039 | 0.0647 [0.0352, 0.1039] | -0.0178 | 0.0256 [0.0182, 0.0380] | -0.0004 | 0.0512 [0.0381, 0.0721] | +0.0006 | 0.0345 |
+| 20 | 0.0144 | 0.0331 [0.0226, 0.0557] | -0.0030 | 0.0598 [0.0277, 0.1038] | -0.0167 | 0.0204 [0.0147, 0.0334] | -0.0032 | 0.0492 [0.0365, 0.0709] | +0.0017 | 0.0300 |
+| 25 | 0.0115 | 0.0280 [0.0198, 0.0514] | -0.0033 | 0.0566 [0.0232, 0.1040] | -0.0146 | 0.0176 [0.0125, 0.0307] | -0.0026 | 0.0493 [0.0252, 0.0661] | -0.0043 | 0.0250 |
+| 32 | 0.0090 | 0.0247 [0.0158, 0.0465] | -0.0013 | 0.0545 [0.0214, 0.1028] | -0.0158 | 0.0152 [0.0110, 0.0296] | -0.0020 | 0.0320 [0.0194, 0.0584] | -0.0002 | 0.0228 |
+| 50 | 0.0058 | 0.0189 [0.0117, 0.0419] | -0.0012 | 0.0505 [0.0158, 0.1091] | -0.0110 | 0.0134 [0.0089, 0.0247] | -0.0014 | 0.0228 [0.0129, 0.0471] | -0.0028 | 0.0178 |
+| 100 | 0.0029 | 0.0145 [0.0076, 0.0344] | -0.0002 | 0.0553 [0.0129, 0.1096] | -0.0117 | 0.0096 [0.0058, 0.0242] | -0.0005 | 0.0166 [0.0106, 0.0550] | -0.0021 | 0.0143 |
+| 200 | 0.0014 | 0.0117 [0.0055, 0.0308] | +0.0000 | 0.0455 [0.0110, 0.1129] | +0.0000 | 0.0084 [0.0046, 0.0197] | +0.0000 | 0.0132 [0.0102, 0.0361] | +0.0000 | 0.0115 |
+
+(The seed-to-seed SD includes the true trajectory-to-trajectory variation of a finite record, not only the estimator's error: it is the error of ONE trajectory's frequency. A heavy divider with n periods per record has, per trajectory, the error of the row n.)

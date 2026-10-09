@@ -299,13 +299,99 @@ def section4():
         print(f"| {N} | {4 * T_TRAJ * 2 * 18 / 1e6:.2f} MB | {T_TRAJ / 10 * N * 2 * 18 / 1e6:.1f} MB | {T_TRAJ * N * 2 * 18 / 1e6:.0f} MB |")
 
 
+# ------------------------------------------------------------------------------------------------------------- section 5
+# ##CHRIS 2026-10-09 (261012 sec. 4.7.4, decision 3 item 3): the heavy-divider record design. Appended; sections 1-4 print as before.
+NPER = (5, 8, 10, 16, 20, 25, 32, 50, 100, 200)       # sub-record lengths in the trajectory's own predicted periods
+A1V2 = os.path.join(T.ROOT, "A1v2_20260914")
+
+
+def sub_record_nus(p):
+    """One A1 v2 trajectory: the canonical argmax frequency (reduce_B.py / paper1_populate_cs_err_20261002.cell: largest FFT bin at
+    f >= nu_pred / 2.5) over its first n predicted periods, for every n in NPER; and the 3-bin log-parabola refinement of that bin
+    (tests_20260913._peak's formula), for information."""
+    t, x, nup = T._load(p); dt = (t[-1] - t[0]) / (len(t) - 1)
+    out = []
+    for n in NPER:
+        m = T._prefix(t, nup, n)
+        if m is None: out.append((float("nan"), float("nan"))); continue
+        P, df = T._spectrum(x[:m], dt); k = int(round(n / 2.5)); kk = k + int(np.argmax(P[k:]))
+        d = 0.0
+        if 1 <= kk < len(P) - 1 and P[kk - 1] > 0 and P[kk + 1] > 0:
+            a, b, c = math.log(P[kk - 1]), math.log(P[kk]), math.log(P[kk + 1]); den = a - 2 * b + c
+            if den < 0: d = max(-0.5, min(0.5, 0.5 * (a - c) / den))
+        out.append((kk * df, (kk + d) * df))
+    return out
+
+
+def _cell_task(args):
+    cdir, M = args
+    from paper1_populate_cs_err_20261002 import box_delta
+    runs = [(r, p) for r, p, disc in T.cell_runs(os.path.join(cdir, f"m_{M}"), M) if not disc]
+    if not runs: return None
+    with open(runs[0][1], newline="") as fh: h = next(csv.DictReader(fh))
+    L0, eta = float(h["L0"]), float(h["eta"]); eta_t = eta * L0 / (L0 - box_delta(L0) / 2)
+    return dict(cell=os.path.basename(cdir), M=M, eta=eta_t, L0=L0, nus=np.array([sub_record_nus(p) for r, p in runs]), runs=runs)
+
+
+def section5():
+    print("\n## 5. Heavy-divider record design (261012 sec. 4.7.4, decision 3 item 3; appended 2026-10-09)\n")
+    print("### Periods in a record of 1e4 and of 2e4 sigma-time at eta 0.70, design geometry (H = 10 sqrt(N/100), L0 from eta), the period model "
+          "of the heavy-divider table above (cot K = alpha K, alpha = M / N, L_eff = L0 - 1.025, c_s = 15)\n")
+    print("| divider mass M | " + " | ".join(f"N = {N}: period [sigma-time] | periods in 1e4 | periods in 2e4" for N in NS_DESIGN) + " |\n|---|" +
+          "---|---|---|" * len(NS_DESIGN))
+    for M in (50, 500, 2000, 1e4, 1e5, 1e6, 4e7, 1e8):
+        cells = []
+        for N in NS_DESIGN:
+            Ns, H, L0 = geometry(N, 0.70); al = M / (2 * Ns); K = T.k_root(al); Le = L0 - 1.025
+            per = 2 * math.pi * Le / (15.0 * K)
+            f = lambda T_: f"{T_ / per:.3g}" + (" (< 20)" if T_ / per < 20 else "")
+            cells.append(f"{per:.4g} | {f(1e4)} | {f(2e4)}")
+        print(f"| {M:g} | " + " | ".join(cells) + " |")
+    print("\n(< 20): fewer than the 20 periods that sec. 4.7.1 amendment e requires of the heaviest mass in a cell; such a mass is excluded from "
+          "that cell, never T shortened. The counts scale with c_s: at N = 100 the A1 v2 value at eta 0.7007 is c_s = 19.2 (x 1.28), Kolafa-Rottner's "
+          "at eta 0.69 is 11.6 (x 0.77). Masses 50-2000 are the A1 ladder, for orientation.")
+    # ---------------------------------------------------------------- the N = 100 data: per-trajectory error against the number of periods
+    from multiprocessing import Pool
+    tasks = [(os.path.join(A1V2, c), M) for c in sorted(os.listdir(A1V2)) if c.startswith("eta_") for M in T.A1_MASSES]
+    with Pool(10) as pool:
+        res = [r for r in pool.map(_cell_task, tasks, chunksize=2) if r is not None]
+    # gate: n = 200 is the canonical estimator; its per-mass mean must equal paper1_populate_cs_err_20261002.cell's
+    from paper1_populate_cs_err_20261002 import cell as canon_cell
+    with Pool(10) as pool:
+        canon = pool.map(canon_cell, [(r["eta"], r["L0"], r["M"], T.cell_runs(os.path.join(A1V2, r["cell"], f"m_{r['M']}"), r["M"])) for r in res], chunksize=2)
+    worst = max(abs(r["nus"][:, -1, 0].mean() / c["nu"] - 1) for r, c in zip(res, canon))
+    groups = [("fluid, eta_true <= 0.69", lambda e: e <= 0.69), ("window, 0.69 < eta_true < 0.72", lambda e: 0.69 < e < 0.72),
+              ("solid, eta_true >= 0.72", lambda e: e >= 0.72), ("eta_true 0.7007 alone (the heavy-divider campaign's eta)", lambda e: abs(e - 0.7007) < 5e-4)]
+    ncell = len({r["cell"] for r in res})
+    print(f"\n### From the existing N = 100 data (A1 v2: {ncell} cells x 9 masses x 25 seeds, records of 200 periods): the per-trajectory relative "
+          f"frequency error against the number of periods\n")
+    print(f"Per (cell, mass): the SD of the per-trajectory frequency over the seeds, divided by its mean, from the first n periods of each record "
+          f"(the canonical estimator on that sub-record; it is the canonical one at n = 200: largest relative difference of the per-mass mean from "
+          f"paper1_populate_cs_err_20261002.cell, {worst:.1e}). Median and 10-90 % range over the (cell, mass) groups. The argmax bin is 1/n of the "
+          f"frequency wide, so 1/(n sqrt 12) is its quantization floor. Bias: the median of mean(nu_n)/mean(nu_200) - 1.\n")
+    print("| n periods | quantization floor 1/(n sqrt 12) | " + " | ".join(f"{g}: relative SD, median [10-90 %] | bias" for g, _ in groups) +
+          " | fluid, 3-bin parabola: relative SD, median |\n|---|---|" + "---|---|" * len(groups) + "---|")
+    for j, n in enumerate(NPER):
+        row = [f"{n}", f"{1 / (n * math.sqrt(12)):.4f}"]
+        for g, sel in groups:
+            rs = [r["nus"][:, j, 0].std(ddof=1) / r["nus"][:, j, 0].mean() for r in res if sel(r["eta"])]
+            bs = [r["nus"][:, j, 0].mean() / r["nus"][:, -1, 0].mean() - 1 for r in res if sel(r["eta"])]
+            if rs: row.append(f"{np.median(rs):.4f} [{np.percentile(rs, 10):.4f}, {np.percentile(rs, 90):.4f}] | {np.median(bs):+.4f}")
+            else: row.append("- | -")
+        rp = [r["nus"][:, j, 1].std(ddof=1) / r["nus"][:, j, 1].mean() for r in res if r["eta"] <= 0.69]
+        row.append(f"{np.median(rp):.4f}")
+        print("| " + " | ".join(row) + " |")
+    print("\n(The seed-to-seed SD includes the true trajectory-to-trajectory variation of a finite record, not only the estimator's error: it is "
+          "the error of ONE trajectory's frequency. A heavy divider with n periods per record has, per trajectory, the error of the row n.)")
+
+
 def main():
     if "--measure" in sys.argv:
         return measure(os.path.abspath(sys.argv[sys.argv.index("--measure") + 1]))
     if "--measure-acc" in sys.argv:
         return measure(os.path.abspath(sys.argv[sys.argv.index("--measure-acc") + 1]), acc=True)
     print("# Generation 3 -- design numbers (261012 sec. 4.7), printed by validation/gen3_design_numbers_261009.py\n")
-    rows = section1(); cost_table(rows); section3(); section4()
+    rows = section1(); cost_table(rows); section3(); section4(); section5()
 
 
 if __name__ == "__main__":
