@@ -1,0 +1,58 @@
+checks: edmd_acc_guard.py clean (HEAD d20360d9); the staged copy = HEAD + 3 hook lines; the guard files absent; the 41 tracked outputs clean, the 4 untracked absent
+before: HEAD code 12:01:48
+installed: edmd3_health_guard.py, test_edmd3_health_guard.py, edmd_acc_guard.py (hook) 12:04:58
+T-prime run g3guard_before wrote 0 files
+T-prime run g3guard_after wrote 0 files
+unit tests exit 0
+moved (new, untracked): 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260915_A1v2_damping_cells.json
+moved (new, untracked): 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260915_A1v2_damping_test.csv
+moved (new, untracked): 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260918_level2_A_of_u.pdf
+moved (new, untracked): 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260918_level2_A_of_u.png
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260919_A1v2_final_cs_vs_eta.csv
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260919_cs_vs_eta.pdf
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260919_cs_vs_eta.png
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260919_cs_vs_eta_N100_vs_A2.pdf
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260919_cs_vs_eta_N100_vs_A2.png
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260919_cs_vs_eta_lowdensity_zoom.pdf
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260919_cs_vs_eta_lowdensity_zoom.png
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260922_roman2002_remapped_vs_KR.csv
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260922_roman2002_remapped_vs_KR.pdf
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260922_roman2002_remapped_vs_KR.png
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261001_p1_estimator_floor.pdf
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261001_p1_estimator_floor.png
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261001_p1_massladder_line.pdf
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261001_p1_massladder_line.png
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261001_p1_massladder_residuals.pdf
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261001_p1_massladder_residuals.png
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261001_p1_slowmode.pdf
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261001_p1_slowmode.png
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261002_p1_melting_region.pdf
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261002_p1_melting_region.png
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261004_p1_confinement_cells.csv
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261004_p1_confinement_damping.csv
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261004_p1_confinement_shift.pdf
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261004_p1_confinement_shift.png
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261004_p1_identity.pdf
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261004_p1_identity.png
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261004_p1_identity_heldwall_posthoc.pdf
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261004_p1_identity_heldwall_posthoc.png
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261005_p1_identity_afix.pdf
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261005_p1_identity_afix.png
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261005_p1_identity_afix_cells.csv
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261014_p1_boxtrunc_shift.pdf
+restored from git: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/261014_p1_boxtrunc_shift.png
+restored from git: 0000_PLAN_OVERALL/paper2_energytransfer/experiments/final/261001_p2_level1_path.pdf
+restored from git: 0000_PLAN_OVERALL/paper2_energytransfer/experiments/final/261001_p2_level1_path.png
+restored from git: 0000_PLAN_OVERALL/paper2_energytransfer/experiments/final/261001_p2_level4_acf.pdf
+restored from git: 0000_PLAN_OVERALL/paper2_energytransfer/experiments/final/261001_p2_level4_acf.png
+restored from git: 0000_PLAN_OVERALL/paper2_energytransfer/experiments/final/261001_p2_level4_bars.pdf
+restored from git: 0000_PLAN_OVERALL/paper2_energytransfer/experiments/final/261001_p2_level4_bars.png
+restored from git: 0000_PLAN_OVERALL/paper2_energytransfer/experiments/final/261001_p2_zeta_tcut.pdf
+restored from git: 0000_PLAN_OVERALL/paper2_energytransfer/experiments/final/261001_p2_zeta_tcut.png
+working tree: status difference before -> after (expected: edmd_acc_guard.py modified, the two guard files new):
+16a17
+>  M hspist3/validation/edmd_acc_guard.py
+5212a5214,5215
+> ?? hspist3/validation/edmd3_health_guard.py
+> ?? hspist3/validation/test_edmd3_health_guard.py
+DONE 12:08:16
