@@ -6042,3 +6042,137 @@ Record as sec. 4.4.14 BEFORE Chris touches the queue; the amendment counts from 
 - **KOA:** nothing is rebuilt. The next planned build shows byte-identity on the smoke and afix cells (item 4).
 
 **Chris's KOA lines:** runsheet § 13b (`hspist3/cluster/KOA_RUNSHEET_261002.md`), with the expected output of every step. The order: squeue → RUNNING: do nothing; PENDING: sandbox update and checks → `scancel 15022392` → squeue empty → `sbatch` the array → `sbatch` the dependent reduction.
+
+### 4.7.4 Plan-author review of M1: M1 accepted, go for M2 with amendments a–f; the loader provenance guard (decision 2); the § 4.6 follow-up rewritten (decision 3) (2026-10-08 22:55 HST, machine date; the review is dated 2026-10-09 on the plan author's clock) [SOURCE]
+
+**Plain summary.**
+- **Decision 1: M1 is accepted, with a go for M2 and amendments a–f.** None of the amendments blocks M2.
+  - **a.** Rerun the gen2 byte-identity pre-check at engine-gen3 HEAD before any M2 code, and again on the Mac in M3, right after gen3 is linked.
+  - **b.** Derive the contact threshold `c_tol` from the time resolution, or show why that is wrong.
+  - **c.** A cell that provably runs the overlap-or-contact branch.
+  - **d.** A momentum ledger in the M2 harness.
+  - **e.** The audit prints max |dt| and max |dt|/horizon over all matched events.
+  - **f.** Correct the `edmd.c` warnings sentence in `experiments_gen3_m1_261008/00_COMMAND.md`.
+- **Decision 2: the loader provenance guard, go.** One shared check, using the provenance scan's own parsing, called from every loader that feeds a paper figure or table. A unit test per spelling, and the paper tables rerun before and after with an empty diff.
+- **Decision 3: the § 4.6 follow-up, rewritten.** The earlier text was never relayed to CC. It starts after the M2 report: a within-mass aging check, a KR range table for Paper 1, and heavy-divider numbers. The seeding rule is closed by § 4.7.1 (d, f).
+- **Order of work:** decision 2, amendment a, a short report, M2, the M2 report, then decision 3. M3 waits for the plan author's reading of the M2 report. No KOA actions.
+- **§ 4.7's M2 scope against the acceptance list [SOURCE: § 4.7, item 7].** § 4.7 defines M2 as "divider and pistons as bands: held, free and spring". The acceptance list has no spring divider. By the decision's rule ("where §4.7's M2 scope differs from this list, follow §4.7 and say where it differs"), M2 includes the spring divider and a spring cell. Everything else in the list lies within § 4.7's M2.
+
+**The reasons, from the review's cover text (plan author, quoted).**
+- **c_tol:** "The engine separates 'contact within rounding' from 'real overlap' with a threshold called c_tol, which works out to 8.2e-12 px². The measured contact gaps of 3e-12 px correspond to about 1.5e-10 px², which is 20 times larger. The reason is that the gap error comes from rounding of the clock, not of positions." "In the big campaign (dense, 10¹⁰ collisions per run) it will happen now and then. A harmless rounding contact would then be counted as an 'overlap repair' and spoil the 'health = 0' rule."
+- **Coverage:** "That code branch was never executed in the three printed cells (contact_now=0). I want to see a test that actually runs it."
+- **Momentum:** "The momentum ledger is missing. I asked for 'ledgers' and M1 has only energy. For us this matters because the static method (held divider) measures exactly the pushes of disks on a wall. It must be in M2, not postponed to the final gate."
+- **Byte identity:** "The byte-identity check was run on an earlier commit (2cdfe04). It should be repeated on the current branch head, which takes minutes."
+- **The § 4.6 follow-up:** "CC never got the text, and I do not have the old wording either, only the four item names. So the version in the prompt replaces it." "Heavy-divider numbers: partly there. What is still missing is how many swings fit into one record for each mass. At M = 4e7 one swing takes about 1,200 σ-time, so a 2e4 record holds only about 16 swings. I need that for the pre-registration." "All of this comes after M2, because the engine is your priority."
+
+**The decisions, as relayed by Chris, verbatim (the instruction block):**
+
+```
+From the plan author (Cowork), relayed by Chris.
+Record decisions 1-3 in 261012_paper1_confinement.md under §4.7.x
+(existing file, no new markdown files), explicit-path git add, Chris
+pushes. No multi-agent workflows. No KOA actions. Order of work:
+decision 2, then amendment a, then M2, then decision 3.
+
+DECISION 1 - M1 accepted. Go for M2 with amendments a-f.
+
+a. Before any M2 code: rerun the gen2 byte-identity pre-check
+   (audit_runs_261007.py, ctrl_min and ctrl_leg, plain vs the 7b08827
+   reference) at the current HEAD of engine-gen3. The table in the M1
+   report is from 2cdfe04. List the commits after it (a20f356, 8366369,
+   14ba1f2, any other) and which of them touch files outside
+   edmd_gen3.c and the harness. Repeat this check in M3 on the Mac
+   right after gen3 is linked, not only at the M6 gate.
+
+b. c_tol scale. c_tol = 64 * d2 * eps = 8.2e-12 px^2 (d = 24 px).
+   The M1 contact audit gives max |gap| 2.8-3.6e-12 px, i.e.
+   |c| ~ 2*d*gap = 1.4-1.7e-10 px^2, about 20 x c_tol. My reading:
+   the contact error is set by the time resolution (ulp(now) up to
+   9e-13 units below the 2^13 shift, times the normal relative speed),
+   not by ulp(d^2). So a pair that re-approaches while still inside
+   its rounding overlap (near-simultaneous events sharing a disk)
+   would be counted as overlap_repair, not contact_now. Either show
+   that this reading is wrong, or derive c_tol from the time
+   resolution, e.g. K * 2 * d * v_rel * ulp(EDMD3_ORIGIN_SHIFT), with
+   K and v_rel stated and the value printed by a script with its
+   scale. Do not tune it until counters are zero. Also state what
+   gen3 does on overlap_repair besides counting (dynamics, run flag).
+
+c. Coverage of the rc == 2 branch in predict_pair: contact_now = 0 and
+   overlap_repair = 0 in all three printed cells, so the branch did
+   not run there. Paste the health line of the exact-tie stress cell.
+   If the branch never ran in any M1 cell, add a cell that provably
+   runs it (ties that share a disk) and report both counters.
+
+d. Momentum ledger in the M2 harness, not deferred to the gate: per
+   axis, change of total momentum of all bodies = sum of impulses
+   recorded on each outer wall, on the divider when held, and on the
+   piston. Print the residual with its scale (rounding of the sum).
+   Reason: the static method's data are these impulses.
+
+e. Schedule audit print: add max |dt| and max |dt|/horizon over ALL
+   matched events per class (pairs, walls, crossings, divider,
+   piston), without the 1e-9 floor, next to the existing columns.
+
+f. Correct the sentence in experiments_gen3_m1_261008/00_COMMAND.md
+   about edmd.c warnings (measured: 0).
+
+M2 acceptance (I have not seen §4.7 in this chat; where §4.7's M2
+scope differs from this list, follow §4.7 and say where it differs):
+ 1. The three M1 cells rerun: event hashes 554d54d53b262d95,
+    05aff616919c73e7, 5c08787c3d718c66 unchanged, or the reason.
+ 2. New cells at N = 400, 400 sigma-time, audits on/off/again:
+    free divider at pi/8 and at eta 0.70 (M = 50 and one mid mass),
+    heavy free divider M = 4e7, held divider (static method), one
+    piston push (Paper 2 type).
+ 3. Each cell: schedule audit with divider and piston classes,
+    0 missing / 0 extra; contact audit for pair, wall, divider and
+    piston gaps beside gen2 from the same states; all health counters
+    0; audits do not steer; same-seed bit identity.
+ 4. Energy ledger including divider kinetic energy and piston work,
+    and the momentum ledger of amendment d, both with printed scale.
+ 5. Divider and piston tolerances each with a stated scale (same
+    standard as amendment b).
+ 6. gen3 vs gen2 observables (Z, divider period): information only.
+ 7. events/s vs gen2 with a divider at N = 400.
+ 8. 0 warnings under -Wall -Wextra; done/not-done table; decision log.
+M3 does not start before I have seen the M2 report.
+
+DECISION 2 - Loader provenance guard: go.
+One shared check, using the provenance scan's own parsing, that
+refuses every spelling of the flag (=1 or any non-zero digit, =yes,
+=true, =on, bare --edmd-acc). Call it from every loader that feeds a
+paper figure or table (at least tests_20260913._load and
+paper1_populate_cs_err_20261002.cell; list all). Unit test per
+spelling. Evidence that no number moves: rerun the paper tables
+before and after, diff empty.
+
+DECISION 3 - §4.6 follow-up. This text replaces the earlier one, which
+was never relayed. Start after the M2 report is written. Analysis on
+existing summaries only; no new runs; exploratory, no verdict rule.
+ 1. Within-mass aging check. For each window cell and each of the 9
+    masses separately (n = 25 seeds): correlation between the
+    per-trajectory sound-speed estimate and per-trajectory psi6.
+    Then one combined value per cell over the 9 masses with a 95 %
+    interval, next to the pooled n = 225 value of §4.6 item 4b. Say
+    whether the summaries allow a first-half vs second-half frequency
+    split per trajectory; if yes, add it; if no, do not regenerate.
+ 2. KR range table for Paper 1, printed by a script: eta ranges, which
+    reference applies (KR 2006, rho_max 0.90 fit, fitted to 0.7069,
+    compared to 0.69), the fit accuracy as stated in the source
+    (quoted), number of our data points per range, and what Paper 1
+    does above 0.69.
+ 3. Heavy-divider design numbers: extend the §4.7 table
+    (gen3_design_numbers_261009.py) by, for each mass and for N = 100,
+    400, 900, 1600 at eta 0.70: the number of periods in a record of
+    1e4 and of 2e4 sigma-time; and from the existing N = 100 data the
+    per-trajectory relative frequency error against number of periods.
+ 4. Seeding rule: closed by §4.7.1 amendments d and f; implementation
+    is M4. No task.
+
+T' unchanged: nothing until Chris has done the §13b checks and the
+fetch; then run validation/resched_testTprime_261007.py unchanged.
+
+Report as usual, ending with "Written for: the plan author". First
+report after decision 2 and amendment a (short), second after M2.
+```
