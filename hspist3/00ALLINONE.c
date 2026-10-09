@@ -16023,7 +16023,10 @@ static void g3_run_extras(void){
    clearance g from every wall and from the divider face (their centres at R + g). For each orientation (or the one asked) and each
    n_s, with n_r = ceil(N_s / n_s), the smallest centre distance of the arrangement is d = min(a_r, sqrt(a_s^2 + a_r^2/4), 2 a_s) (the
    only candidates in this family), the smallest surface gap s = d - 2R, and g = s/2 (the walls act as mirrors at half the gap;
-   fixed-point iteration). The arrangement with the largest s is taken (ties: fewer vacancies, then parallel). If no arrangement has
+   fixed-point iteration). TWO FORMS are searched: "equal" rows (every row n_r disks, so a shifted row needs a_r/2 more room:
+   a_r = (L_r - 2(R + g)) / (n_r - 1/2)) and "alternate" rows (the shifted rows hold n_r - 1 disks inside the same span:
+   a_r = (L_r - 2(R + g)) / (n_r - 1); the hexagonal packing of a box, denser near the limit: it lifts the largest feasible eta at
+   N = 100, H = 10 from 0.761 to 0.7815). The arrangement with the largest s is taken (ties: fewer vacancies, then parallel). If no arrangement has
    s > 0 the request is infeasible in this family and the run stops: hard walls cost a boundary layer, so for example no N_s = 50
    arrangement in a 10 sigma high compartment reaches the nominal eta 0.85.
    COMMENSURATE CALCULATOR: g3_lattice_fit gives the arrangement for a box; the reverse (the box of an n_s x n_r lattice of spacing
@@ -16042,7 +16045,7 @@ static void g3_run_extras(void){
    RUN HEADER: [EDMD3-RUN] at the start of every gen3 speed-of-sound trajectory: engine, build, cell width, origin shift, time
    quantum, K, the box, eta, the seeding (the lattice per compartment), T_eq (the held-divider time), the record time, the psi6
    interval, the validator cadence, the seed. */
-typedef struct { int ok, orient, ns, nr, nvac; double as, ar, g, gw, s, jit; } G3Lattice;
+typedef struct { int ok, orient, alt, ns, nr, nvac; double as, ar, g, gw, s, jit; } G3Lattice;   /* alt: shifted rows hold n_r - 1 disks */
 static G3Lattice g3_lat[2];
 static double g3_eta_achieved = NAN;
 static uint64_t g3_sm64(uint64_t* st){
@@ -16052,11 +16055,13 @@ static uint64_t g3_sm64(uint64_t* st){
 }
 static double g3_u01(uint64_t* st){ return (double)(g3_sm64(st) >> 11) * 0x1p-53; }
 /* one arrangement: spacings, the smallest surface gap and the wall clearance at clearance g */
-static double g3_lat_eval(int ns, int nr, double R, double Lr, double Ls, double g, double* as, double* ar, double* gw){
+static double g3_lat_eval(int ns, int nr, int alt, double R, double Lr, double Ls, double g, double* as, double* ar, double* gw){
     const double us = Ls - 2.0 * (R + g), ur = Lr - 2.0 * (R + g);
     if (!(us >= 0.0) || !(ur >= 0.0)) return -INFINITY;
+    if (alt && (ns < 2 || nr < 2)) return -INFINITY;
     *as = ns > 1 ? us / (double)(ns - 1) : 0.0;
-    *ar = nr > 1 ? ur / ((double)(nr - 1) + (ns > 1 ? 0.5 : 0.0)) : (ns > 1 ? 2.0 * ur : 0.0);
+    if (alt) *ar = ur / (double)(nr - 1);                      /* shifted rows: n_r - 1 disks inside the same span */
+    else *ar = nr > 1 ? ur / ((double)(nr - 1) + (ns > 1 ? 0.5 : 0.0)) : (ns > 1 ? 2.0 * ur : 0.0);
     double d = INFINITY;
     if (nr > 1) d = *ar;
     if (ns > 1) { const double dd = sqrt(*as * *as + 0.25 * *ar * *ar); if (dd < d) d = dd; }
@@ -16066,29 +16071,32 @@ static double g3_lat_eval(int ns, int nr, double R, double Lr, double Ls, double
     if (ns == 1 && nr == 1) *gw = fmin(0.5 * Ls - R, 0.5 * Lr - R);
     return d - 2.0 * R;
 }
+static int g3_lat_sites(int ns, int nr, int alt){ return alt ? ((ns + 1) / 2) * nr + (ns / 2) * (nr - 1) : ns * nr; }
 static int g3_lattice_fit(int n_disks, double R, double Wx, double Hy, int orient_req, G3Lattice* L){
     memset(L, 0, sizeof *L); L->s = -INFINITY;
     for (int o = 0; o < 2; ++o) {
         if (orient_req >= 0 && o != orient_req) continue;
         const double Lr = o == 0 ? Hy : Wx, Ls = o == 0 ? Wx : Hy;
+        for (int alt = 0; alt < 2; ++alt)
         for (int ns = 1; ns <= n_disks; ++ns) {
-            const int nr = (n_disks + ns - 1) / ns;
+            int nr = (n_disks + ns - 1) / ns;
+            if (alt) { if (ns < 2) continue; nr = 2; while (g3_lat_sites(ns, nr, 1) < n_disks) nr++; }
             double as = 0.0, ar = 0.0, gw = 0.0, g = 0.0;
-            double sv = g3_lat_eval(ns, nr, R, Lr, Ls, 0.0, &as, &ar, &gw);
+            double sv = g3_lat_eval(ns, nr, alt, R, Lr, Ls, 0.0, &as, &ar, &gw);
             if (!(sv > 0.0)) continue;
             if (isfinite(sv)) {
                 for (int it = 0; it < 200; ++it) {                /* g = s(g)/2: s decreases with g; a contraction */
-                    const double gn = 0.5 * g3_lat_eval(ns, nr, R, Lr, Ls, g, &as, &ar, &gw);
+                    const double gn = 0.5 * g3_lat_eval(ns, nr, alt, R, Lr, Ls, g, &as, &ar, &gw);
                     if (!(gn > 0.0)) { g = 0.0; break; }
                     if (fabs(gn - g) <= 1e-15 * (1.0 + gn)) { g = gn; break; }
                     g = gn;
                 }
             } else g = fmin(0.5 * Ls - R, 0.5 * Lr - R);       /* one disk: centred */
-            sv = g3_lat_eval(ns, nr, R, Lr, Ls, g, &as, &ar, &gw);
+            sv = g3_lat_eval(ns, nr, alt, R, Lr, Ls, g, &as, &ar, &gw);
             if (!(sv > 0.0) || !(gw > 0.0)) continue;
-            const int nvac = ns * nr - n_disks;
+            const int nvac = g3_lat_sites(ns, nr, alt) - n_disks;
             if (sv > L->s || (sv == L->s && nvac < L->nvac)) {
-                L->ok = 1; L->orient = o; L->ns = ns; L->nr = nr; L->nvac = nvac; L->as = as; L->ar = ar; L->g = g; L->gw = gw; L->s = sv;
+                L->ok = 1; L->orient = o; L->alt = alt; L->ns = ns; L->nr = nr; L->nvac = nvac; L->as = as; L->ar = ar; L->g = g; L->gw = gw; L->s = sv;
             }
         }
     }
@@ -16098,13 +16106,16 @@ static int g3_lattice_fit(int n_disks, double R, double Wx, double Hy, int orien
 static void g3_lattice_place(G3Lattice* L, double R, double x0, double Wx, double Hy, EDMD_Particle* P, int first, int n_disks,
                              uint64_t* st, double f){
     const double Lr = L->orient == 0 ? Hy : Wx, Ls = L->orient == 0 ? Wx : Hy;
-    const int nsite = L->ns * L->nr;
+    const int nsite = L->ns * L->nr;                              /* indexed k * n_r + j; a row of n_r - 1 leaves its last index free */
     char* vac = (char*)calloc((size_t)nsite, 1); int* cand = (int*)malloc((size_t)nsite * sizeof(int));
     if (!vac || !cand) g3_stop("out of memory (M4 seeding)");
     int nc = 0;
-    for (int k = 0; k < L->ns; ++k) for (int j = 0; j < L->nr; ++j)
-        if (k >= 2 && k <= L->ns - 3 && j >= 2 && j <= L->nr - 3) cand[nc++] = k * L->nr + j;
-    if (nc < L->nvac) { nc = 0; for (int q = 0; q < nsite; ++q) cand[nc++] = q; }
+    for (int k = 0; k < L->ns; ++k) {
+        const int nk = (L->alt && (k & 1)) ? L->nr - 1 : L->nr;
+        for (int j = 0; j < nk; ++j)
+            if (k >= 2 && k <= L->ns - 3 && j >= 2 && j <= nk - 3) cand[nc++] = k * L->nr + j;
+    }
+    if (nc < L->nvac) { nc = 0; for (int k = 0; k < L->ns; ++k) for (int j = 0; j < ((L->alt && (k & 1)) ? L->nr - 1 : L->nr); ++j) cand[nc++] = k * L->nr + j; }
     for (int v = 0; v < L->nvac; ++v) {
         int pick = v + (int)(g3_u01(st) * (double)(nc - v)); if (pick >= nc) pick = nc - 1;
         const int tmp = cand[v]; cand[v] = cand[pick]; cand[pick] = tmp; vac[cand[v]] = 1;
@@ -16112,7 +16123,7 @@ static void g3_lattice_place(G3Lattice* L, double R, double x0, double Wx, doubl
     }
     L->jit = f * fmin(L->s, 2.0 * L->gw);
     int i = first;
-    for (int k = 0; k < L->ns; ++k) for (int j = 0; j < L->nr; ++j) {
+    for (int k = 0; k < L->ns; ++k) for (int j = 0; j < ((L->alt && (k & 1)) ? L->nr - 1 : L->nr); ++j) {
         if (vac[k * L->nr + j]) continue;
         const double S = L->ns == 1 ? 0.5 * Ls : R + L->g + (double)k * L->as;
         const double T = (L->ns == 1 && L->nr == 1) ? 0.5 * Lr
@@ -16204,8 +16215,8 @@ static void g3_run_header(const char* id, double boxW, double boxH, int N, int N
     if (cli_gen3_seeding)
         for (int k = 0; k < 2; ++k) {
             const G3Lattice* L = &g3_lat[k];
-            printf(" %s=[orient %s n_s %d n_r %d a_s %.9g a_r %.9g g %.9g s %.9g n_vac %d jitter %.9g px]", k ? "right" : "left",
-                   L->orient ? "perpendicular" : "parallel", L->ns, L->nr, L->as, L->ar, L->g, L->s, L->nvac, L->jit);
+            printf(" %s=[orient %s rows %s n_s %d n_r %d a_s %.9g a_r %.9g g %.9g s %.9g n_vac %d jitter %.9g px]", k ? "right" : "left",
+                   L->orient ? "perpendicular" : "parallel", L->alt ? "alternate" : "equal", L->ns, L->nr, L->as, L->ar, L->g, L->s, L->nvac, L->jit);
         }
     printf(" jitter_f=%g T_eq=%.9g sigma-time (held divider, %d steps) record=%.9g sigma-time psi6_every=%g validator_every=%d\n",
            cli_gen3_seeding ? cli_gen3_jitter : 0.0, hold_sigma, hold_steps, record_sigma, cli_psi6_every, validator_every());
