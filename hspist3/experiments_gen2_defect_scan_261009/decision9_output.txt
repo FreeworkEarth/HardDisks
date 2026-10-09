@@ -1,0 +1,26 @@
+# Decision 9: the loader's health contract and the paper tables (261012 sec. 4.7.13), printed by validation/decision9_health_contract_261009.py
+
+## 1. The runs with a health line, and the loader's verdict (tests_20260913.cell_runs)
+
+| campaign | cell | M | run | non-zero counters | loader |
+|---|---|---|---|---|---|
+| A1v2_20260914 | eta_0p006545/m_100 | 100 | 10 | wall_clamp_repairs=1 | DISCARDED |
+| A1v2_20260914 | eta_0p009817/m_2000 | 2000 | 0 | wall_clamp_repairs=1 | DISCARDED |
+| A2_topup_20260912 | eta_0p10/N1600/m_2000 | 2000 | 24 | overlap_repairs=1 | DISCARDED |
+| campaign_r25_psi6_20260823 | 504 runs, by cell (below) | all | - | wall_overdue | DISCARDED 504 |
+
+campaign_r25 runs with a health line, by cell and loader verdict: eta_0p019635 (L0 200): DISCARDED 162; eta_0p026180 (L0 150): DISCARDED 180; eta_0p039270 (L0 100): DISCARDED 162
+
+## 2. The paper tables
+
+A1 v2 (260919_A1v2_final_cs_vs_eta.csv, 9 masses x 25 trajectories per cell):
+  eta 0.009817: trajectories_used 224, trajectories_discarded 1
+  eta 0.006545: trajectories_used 224, trajectories_discarded 1
+A2 (260919_A2_cs_per_mass.csv), eta 0.10, N = 1600: M 50: n_runs 35, M 200: n_runs 35, M 500: n_runs 35, M 1000: n_runs 35, M 2000: n_runs 34, M 3200: n_runs 10
+
+## 3. What the paper scripts read from campaign_r25 (the guard trace of sec. 4.7.10)
+
+  experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/campaign_r25_psi6_20260823 | 64 | 32 | damping,massladder,populate
+  files read, by kind: 00_COMMAND.md x32, wall_x_positions_*_*_*.csv x32
+  of the 504 campaign_r25 runs with a health line, traces among the files read: 1 (eta_0p026180 M 50 run 0)
+  the paper scripts use campaign_r25 for metadata only: tests_20260913.a1_leaf_table reads the L0 strings and the first trace row (eta, Predicted_Frequency) of one M = 50 run per cell; no paper number is computed from its trajectories.

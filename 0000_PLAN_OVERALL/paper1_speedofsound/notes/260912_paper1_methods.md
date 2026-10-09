@@ -1302,6 +1302,8 @@ module comment, plot_speed_of_sound_edmd.py:620: '# Kolafa & Rottner (2006), rho
 
 **VERDICT: FAIL -- STOP, the module is NOT edited** (criterion: relative difference <= 1e-10)
 
+*Erratum (2026-10-09, 261012 § 4.7.11; plan-author decision 10): the script typed the x⁵⁷ coefficient of the ρmax = 0.89 fit as 5.77730095e-23; Kolafa & Rottner print 5.57730095e-23 (p. 3439). After the correction the "rho_max = 0.89" row of the printout above reads 1.4e-06 instead of 1.5e-06 in its c_s column (Z and Z′ unchanged). The printout is left as recorded; the 0.89 fit is information only and no number of Paper 1 changes.*
+
 **L2, printed by `python3 hspist3/validation/untracked_imports_scan_261002.py`** (verbatim):
 
 tracked scripts scanned: 98 (of 98); local modules known: 123
@@ -1344,6 +1346,8 @@ for information (NOT the verdict) -- the other two published versions against th
 module comment, plot_speed_of_sound_edmd.py:620: '# Kolafa & Rottner (2006), rho_max=0.90 fit.  Their x is eta/(1-eta).'
 
 **VERDICT: PASS** (criterion: relative difference <= 1e-10)
+
+*Erratum (2026-10-09, 261012 § 4.7.11; plan-author decision 10): the script typed the x⁵⁷ coefficient of the ρmax = 0.89 fit as 5.77730095e-23; Kolafa & Rottner print 5.57730095e-23 (p. 3439). After the correction the "rho_max = 0.89" row of the printout above reads 1.4e-06 instead of 1.5e-06 in its c_s column (Z and Z′ unchanged). The printout is left as recorded; the 0.89 fit is information only and no number of Paper 1 changes.*
 
 **P2–P4: printed by `python3 hspist3/validation/paper1_draft_audit_20261014.py --p` before any edit** (verbatim). It contains:
 - the P3 table, i.e. the four Z′ values of the melting caption with the η at which each is evaluated and whether that η lies inside the fit range;
