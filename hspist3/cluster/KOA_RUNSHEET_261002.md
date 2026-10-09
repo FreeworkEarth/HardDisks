@@ -918,3 +918,120 @@ The cap:
 - **Before every sbatch:** run `squeue -u charing` (never submit twice). For the 128 cap, also run `sinfo -p shared -s`.
 - **The sshare value is not interpreted** (plan author).
 - **Generation 3:** no KOA runs until M6, the gate (261012 § 4.7.1 item 5).
+
+
+## 13b. Test T-prime in the amended job shape (written 2026-10-08 19:30 HST; 261012 § 4.4.14; replaces steps 2 and 4 of § 13 if, and only if, job 15022392 is still PENDING)
+
+**What changes: only the job shape.**
+- Unchanged: the clone (`~/harddisks_resched2`), the binary (Test T's; not rebuilt), the task list, the seeds, the data root, the verdict script and the fetch.
+- New: 32 one-core array tasks of 50 trajectories each, then one dependent job that merges and reduces. 32 + 1 cores.
+
+**Rules for this step.**
+- Run `squeue -u charing` before every `sbatch`, and never submit the same job twice.
+- On the login node, only `cd`, `ls`, `cat`, `tail`, `grep`, `squeue`, `sacct`, `scancel` and `sbatch`.
+- If anything below is not what is expected: stop and paste it. Do not resubmit and do not cancel anything else.
+
+**0. Mac (repo root).**
+
+```sh
+git push origin main
+git push origin engine-divider-resched
+git push -u origin engine-gen3
+git log --oneline -1 engine-divider-resched
+```
+
+Note the hash from the last line; KOA must show the same hash in step 2.
+
+**1. KOA, login node: what state is the registered job in?**
+
+```sh
+squeue -u charing
+```
+
+- **`15022392` with state `R` (running):** do nothing else. Let it run, and use § 13 steps 4–5 afterwards. Stop here.
+- **`15022392` with state `PD` (pending):** go on with step 2.
+- **`15022392` not listed:** run `sacct -j 15022392 --format=JobID,State,Elapsed`.
+  - `COMPLETED`: use § 13 steps 4–5. Stop here.
+  - Anything else: stop and paste.
+
+**2. KOA, sandbox session: bring the clone up to date and check it. Nothing is built.**
+
+```sh
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+```
+
+Then, at the `cn-...` prompt:
+
+```sh
+cd ~/harddisks_resched2
+git pull --ff-only origin engine-divider-resched
+git log --oneline -1
+git diff --stat 7b08827 HEAD -- hspist3/00ALLINONE.c hspist3/edmd_core hspist3/experiment_validation.c hspist3/experiment_validation.h hspist3/Makefile
+cd hspist3
+sha256sum -c logs/BUILD_KOA_LAST.hash
+./00ALLINONE --version | head -1
+sha256sum cluster/resched_gate_261005/tasks_Tprime_epi8_H_H10_L10.txt
+bash -n cluster/resched_gate_261005/testTprime_chunks.sbatch && bash -n cluster/resched_gate_261005/reduce_tprime.sbatch && echo SYNTAX OK
+exit
+```
+
+- **Expected:**
+  - `git log` prints the hash of step 0;
+  - `git diff --stat` prints exactly ` hspist3/00ALLINONE.c | 17 ++++++++++++++++-` and ` 1 file changed, 16 insertions(+), 1 deletion(-)`. That is the `--edmd-acc` guard in the source only (261012 § 4.4.14, item 4). The binary is not rebuilt for it, and the engine sources are unchanged;
+  - `00ALLINONE: OK`;
+  - `00ALLINONE  git 7b08827  target koa`;
+  - `cdef566b2a74fd0ec9122eee2ed2fef271fa9ee75d9630de378819565831992f  cluster/resched_gate_261005/tasks_Tprime_epi8_H_H10_L10.txt`;
+  - `SYNTAX OK`.
+- **Do not run `make` or `build_koa.sh`.**
+
+**3. KOA, login node: cancel the pending job, then submit the amended shape.**
+
+```sh
+squeue -u charing
+scancel 15022392
+squeue -u charing
+cd ~/harddisks_resched2/hspist3
+sbatch --array=1-32%32 cluster/resched_gate_261005/testTprime_chunks.sbatch
+```
+
+- **Expected:**
+  - the first `squeue` still shows `15022392` as `PD` (**if it now shows `R`, do not run `scancel`**: stop, and go to § 13 step 4 when it has finished);
+  - `scancel` prints nothing;
+  - the second `squeue` shows only its header line;
+  - `Submitted batch job <ARRAY_ID>`. Note the number.
+
+Then, with that number in place of `<ARRAY_ID>`:
+
+```sh
+sbatch --dependency=afterok:<ARRAY_ID> cluster/resched_gate_261005/reduce_tprime.sbatch
+squeue -u charing
+```
+
+- **Expected:**
+  - `Submitted batch job <REDUCE_ID>`;
+  - `squeue` shows `<ARRAY_ID>_[...]` pending or running (up to 32 tasks), and `<REDUCE_ID>` as `PD` with reason `(Dependency)`.
+
+**4. Checks, when `squeue -u charing` is empty.** An M = 300 chunk takes about 11 min, an M = 1500 chunk about 31 min; the merge and reduction take a few minutes after the last chunk.
+
+```sh
+grep -h "task list SHA-256" logs/resched-testTprime-chunks_<ARRAY_ID>_*.out | sort | uniq -c
+grep -h "done; failures" logs/resched-testTprime-chunks_<ARRAY_ID>_*.out | awk '{print $NF}' | sort | uniq -c
+grep -l "STOP" logs/resched-testTprime-chunks_<ARRAY_ID>_*.out
+tail -n 6 logs/resched-testTprime-reduce_<REDUCE_ID>.out
+```
+
+- **Expected:**
+  - `32 task list SHA-256 cdef566b… (expected cdef566b…)`;
+  - `32 0`: all 32 chunks report 0 failures;
+  - the `grep -l` prints nothing;
+  - the four lines `minimal M=300`, `minimal M=1500`, `legacy M=300`, `legacy M=1500`, each `traces 400, run.log sections 400, red_nu.csv rows 400, expected 400 -> yes`;
+  - then `reduce_tprime done; failures: 0`.
+- **If a chunk failed:** stop and paste. Signs are a chunk reporting failures, a STOP, a chunk shown as `TIMEOUT` or `FAILED` by `sacct -j <ARRAY_ID>`, or the reduction job pending with reason `DependencyNeverSatisfied`. Nothing is resubmitted without the plan author.
+
+**5. Mac (repo root, on main): copy back.**
+
+```sh
+bash hspist3/cluster/resched_gate_261005/fetch_resched2.sh
+```
+
+Then tell CC. The verdict is printed by `python3 validation/resched_testTprime_261007.py`, unchanged, by the registered rule.
