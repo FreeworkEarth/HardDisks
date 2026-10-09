@@ -1,0 +1,22 @@
+populate 10 s rc 0
+figures 3 s rc 0
+damping 24 s rc 0
+massladder 10 s rc 0
+a2boxtrunc 1 s rc 0
+boxtrunc 36 s rc 0
+boxtrunc_tab 35 s rc 0
+conf_results 30 s rc 0
+conf_afix 29 s rc 0
+conf_heldwall 10 s rc 0
+conf_prereg 1 s rc 0
+resched_gate 3 s rc 0
+p2_figures 2 s rc 0
+p2_geomfix 1 s rc 0
+p2_rampfast 2 s rc 0
+p2_level2Au 3 s rc 0
+canonical 2 s rc 0
+melting 1 s rc 0
+draft_audit 0 s rc 0
+roman 1 s rc 0
+DONE 10:05:29
+tprime 10 s rc 0
