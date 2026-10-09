@@ -7109,3 +7109,142 @@ Per (cell, mass): the SD of the per-trajectory frequency over the seeds, divided
 
 (The seed-to-seed SD includes the true trajectory-to-trajectory variation of a finite record, not only the estimator's error: it is the error of ONE trajectory's frequency. A heavy divider with n periods per record has, per trajectory, the error of the row n.)
 ```
+
+### 4.4.15 Test T-prime: the verdict (2026-10-09 09:22 HST, machine date) [DATA, printed by the registered script; the rule of § 4.4.13, the job shape of § 4.4.14]
+
+**Plain summary.**
+- **TEST T-PRIME: PASS. GATE V3: ACCEPTED FOR THE FLUID REGIME.** Printed by `validation/resched_testTprime_261007.py`, unchanged since it was registered before the data (commit 57895d1).
+- **M = 300, the verdict number: NO BIAS.** minimal − legacy = +0.043 % [−0.130, +0.217], z = +0.49. |z| < 2, and the interval excludes +0.475 % (Test T's size at this mass).
+- **M = 1500: information** (not FAIL): −0.021 % [−0.121, +0.078], z = −0.42.
+- **Inventory clean.**
+  - 400 of 400 trajectories in each of the four policy × mass groups.
+  - Health lines 0, policy lines right, max contact gap 1.1–2.4e-10 px.
+  - One build: `00ALLINONE  git 7b08827  target koa`.
+  - Both policies ran on the same six nodes, with identical counts per node: the registered interleaving inside each chunk.
+- **ASan (gate v3, item 3): CLEAN.** Job 15022393: zero sanitizer reports, exit 0, audit missing = extra = 0 in all four runs.
+- **What the PASS means, by the stopping rule registered in § 4.4.13:**
+  - the 7b08827 build is accepted for the fluid regime on the combined record: Test T for ten numbers, T-prime for ν at M = 300, with the second chance disclosed;
+  - the Test T and T-prime 95 % intervals are the stated bias bound;
+  - use in the melting window still needs the same-binary A/B at N = 100 inside the window (melting stage 1).
+- **Information (no verdict):** the refined frequency ν_d gives −0.025 % (z −0.43) at M = 300 and −0.011 % (z −0.32) at M = 1500.
+- **KOA.** Chunk array 15030655 (32 one-core tasks, 8–28 min each, all `COMPLETED 0:0`) and the dependent reduction 15030699 (`COMPLETED`, 1 min).
+  - The § 13b step-4 checks are all as expected: 32 × the registered task-list SHA-256, 0 failures in every chunk, no STOP, and 400/400/400 in every group.
+  - Fetched with `fetch_resched2.sh` into `hspist3/experiments_resched_gate2_261007/`, which stays untracked, as for Test T.
+  - The script's output is identical on a second run.
+- **Branches.** The loader provenance guard (§ 4.7.5) can now go to engine-divider-resched, which T-prime no longer reads. Not done in this commit.
+
+**The § 13b step-4 checks on KOA (Chris's paste), verbatim:**
+
+```
+[charing@login-0101 ~]$ cd ~/harddisks_resched2/hspist3
+sacct -X -j 15030655,15030699 --format=JobID,State,Elapsed,ExitCode
+grep -h "task list SHA-256" logs/resched-testTprime-chunks_15030655_*.out | sort | uniq -c
+grep -h "done; failures" logs/resched-testTprime-chunks_15030655_*.out | awk '{print $NF}' | sort | uniq -c 
+grep -l "STOP" logs/resched-testTprime-chunks_15030655_*.out
+tail -n 6 logs/resched-testTprime-reduce_15030699.out
+JobID             State    Elapsed ExitCode 
+------------ ---------- ---------- -------- 
+15030655_1    COMPLETED   00:08:31      0:0 
+15030655_2    COMPLETED   00:08:28      0:0 
+15030655_3    COMPLETED   00:08:30      0:0 
+15030655_4    COMPLETED   00:08:39      0:0 
+15030655_5    COMPLETED   00:08:38      0:0 
+15030655_6    COMPLETED   00:08:38      0:0 
+15030655_7    COMPLETED   00:08:38      0:0 
+15030655_8    COMPLETED   00:08:39      0:0 
+15030655_9    COMPLETED   00:13:28      0:0 
+15030655_10   COMPLETED   00:13:28      0:0 
+15030655_11   COMPLETED   00:13:28      0:0 
+15030655_12   COMPLETED   00:13:28      0:0 
+15030655_13   COMPLETED   00:13:28      0:0 
+15030655_14   COMPLETED   00:13:30      0:0 
+15030655_15   COMPLETED   00:08:28      0:0 
+15030655_16   COMPLETED   00:13:29      0:0 
+15030655_17   COMPLETED   00:28:01      0:0 
+15030655_18   COMPLETED   00:28:05      0:0 
+15030655_19   COMPLETED   00:28:03      0:0 
+15030655_20   COMPLETED   00:28:10      0:0 
+15030655_21   COMPLETED   00:17:52      0:0 
+15030655_22   COMPLETED   00:17:55      0:0 
+15030655_23   COMPLETED   00:17:57      0:0 
+15030655_24   COMPLETED   00:17:56      0:0 
+15030655_25   COMPLETED   00:18:00      0:0 
+15030655_26   COMPLETED   00:17:56      0:0 
+15030655_27   COMPLETED   00:18:01      0:0 
+15030655_28   COMPLETED   00:17:09      0:0 
+15030655_29   COMPLETED   00:17:53      0:0 
+15030655_30   COMPLETED   00:28:11      0:0 
+15030655_31   COMPLETED   00:28:09      0:0 
+15030655_32   COMPLETED   00:28:13      0:0 
+15030699      COMPLETED   00:01:09      0:0 
+     32 task list SHA-256 cdef566b2a74fd0ec9122eee2ed2fef271fa9ee75d9630de378819565831992f (expected cdef566b2a74fd0ec9122eee2ed2fef271fa9ee75d9630de378819565831992f)
+     32 0
+/mnt/lustre/koa/scratch/charing/harddisks_resched2/hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/resched_testTprime_261007/legacy/epi8_H_H10_L10/m_1500: 400 trajectories reduced
+minimal M=300: traces 400, run.log sections 400, red_nu.csv rows 400, expected 400 -> yes
+minimal M=1500: traces 400, run.log sections 400, red_nu.csv rows 400, expected 400 -> yes
+legacy M=300: traces 400, run.log sections 400, red_nu.csv rows 400, expected 400 -> yes
+legacy M=1500: traces 400, run.log sections 400, red_nu.csv rows 400, expected 400 -> yes
+reduce_tprime done; failures: 0
+[charing@login-0101 hspist3]$
+```
+
+**Test T-prime, printed by `cd hspist3 && python3 validation/resched_testTprime_261007.py` on the fetched data, verbatim:**
+
+```
+# Test T-prime (gate v3, 261012 sec. 4.4.13)
+
+RULE: M = 300 BIAS CONFIRMED if z >= 3; NO BIAS if abs(z) < 2 and the 95 % interval excludes +0.475 %; else FAIL. M = 1500: FAIL if abs(z) >= 3, else information.
+
+## Inventory
+
+| policy | M | trajectories matched (expected) | n finite > 0 | log sections | health lines (failed runs incl.) | policy line wrong | max contact gap [px] | contact lines missing | nodes | ok |
+|---|---|---|---|---|---|---|---|---|---|---|
+| minimal | 300 | 400 (400) | 400 | 400 | 0 | 0 | 1.13e-10 | 0 | 4 | yes |
+| minimal | 1500 | 400 (400) | 400 | 400 | 0 | 0 | 2.36e-10 | 0 | 6 | yes |
+| legacy | 300 | 400 (400) | 400 | 400 | 0 | 0 | 1.07e-10 | 0 | 4 | yes |
+| legacy | 1500 | 400 (400) | 400 | 400 | 0 | 0 | 2.17e-10 | 0 | 6 | yes |
+
+nodes: minimal {'cn-09-32-01': 175, 'cn-09-33-01': 250, 'cn-08-30-07': 225, 'cn-06-03-04': 100, 'cn-06-03-07': 25, 'vn-08-06-02': 25}; legacy {'cn-09-32-01': 175, 'cn-09-33-01': 250, 'cn-08-30-07': 225, 'cn-06-03-04': 100, 'cn-06-03-07': 25, 'vn-08-06-02': 25}; shared: ['cn-06-03-04', 'cn-06-03-07', 'cn-08-30-07', 'cn-09-32-01', 'cn-09-33-01', 'vn-08-06-02']
+builds (.build_git): ['00ALLINONE  git 7b08827  target koa'] (required: the Test T binary, 00ALLINONE  git 7b08827  target koa); inventory clean
+
+## The registered numbers
+
+| mass | n minimal | n legacy | minimal mean nu | SE | legacy mean nu | SE | difference | relative [%] | 95 % interval [%] | z | outcome by the rule |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 300 | 400 | 400 | 0.0370312 | 2.32e-05 | 0.0370152 | 2.32e-05 | +1.606e-05 | +0.043 | [-0.130, +0.217] | +0.49 | **NO BIAS** |
+| 1500 | 400 | 400 | 0.0172599 | 6.20e-06 | 0.0172635 | 6.20e-06 | -3.647e-06 | -0.021 | [-0.121, +0.078] | -0.42 | **information** |
+
+M = 300: NO BIAS; M = 1500: information (z = -0.42); inventory clean
+TEST T-PRIME: PASS
+ASan report experiments_resched_gate2_261007/asan_261007_15022393/report.txt: ASAN (decision 3, item 3): CLEAN -- zero sanitizer reports, exit 0, audit missing = extra = 0 in all four runs
+ASan (item 3): CLEAN
+
+GATE V3: ACCEPTED FOR THE FLUID REGIME (combined record below; second chance disclosed; E0, E1, E2 from gate v2, sec. 4.4.12)
+
+## The combined record: Test T for ten numbers, T-prime for nu at M = 300 (and M = 1500 as information) -- the stated bias bound on a PASS
+
+| number | source | relative difference [%] | 95 % interval [%] | z |
+|---|---|---|---|---|
+| k_S^dyn | Test T | -0.051 | [-0.241, +0.138] | -0.53 |
+| c_s | Test T | +0.079 | [-0.119, +0.277] | +0.78 |
+| nu M=50 | Test T | +0.152 | [-0.198, +0.503] | +0.85 |
+| nu M=100 | Test T | -0.047 | [-0.627, +0.533] | -0.16 |
+| nu M=200 | Test T | -0.089 | [-0.479, +0.300] | -0.45 |
+| nu M=300 | Test T (superseded by T-prime) | +0.475 | [+0.167, +0.783] | +3.02 |
+| nu M=500 | Test T | +0.052 | [-0.240, +0.344] | +0.35 |
+| nu M=750 | Test T | +0.005 | [-0.257, +0.266] | +0.04 |
+| nu M=1000 | Test T | +0.070 | [-0.161, +0.302] | +0.60 |
+| nu M=1500 | Test T | -0.239 | [-0.422, -0.056] | -2.56 |
+| nu M=2000 | Test T | +0.038 | [-0.129, +0.204] | +0.44 |
+| nu M=300 | Test T-prime | +0.043 | [-0.130, +0.217] | +0.49 |
+| nu M=1500 | Test T-prime | -0.021 | [-0.121, +0.078] | -0.42 |
+
+## Information (no verdict): the refined frequency nu_d of 261012 sec. 4.4.13 item 4a on the T-prime trajectories
+
+| M | estimator | minimal mean | legacy mean | relative [%] | z | same-seed correlation |
+|---|---|---|---|---|---|---|
+| 300 | argmax (registered) | 0.0370312 | 0.0370152 | +0.043 | +0.49 | -0.047 |
+| 300 | nu_d (sec. 4.4.13 item 4a) | 0.0370153 | 0.0370244 | -0.025 | -0.43 | +0.057 |
+| 1500 | argmax (registered) | 0.0172599 | 0.0172635 | -0.021 | -0.42 | +0.031 |
+| 1500 | nu_d (sec. 4.4.13 item 4a) | 0.0172635 | 0.0172653 | -0.011 | -0.32 | +0.066 |
+```
