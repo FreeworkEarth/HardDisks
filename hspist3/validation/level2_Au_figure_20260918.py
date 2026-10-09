@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import tests_20260913 as T
+import edmd_acc_guard   # ##CHRIS 2026-10-08 (261012 sec. 4.7.4, decision 2): the loader provenance guard (full name: no alias can be shadowed)
 from paper2_geometry_fix_20260918 import w_qs, ET, NS
 from paper2_ramp_fast_20260918 import path_points, cell, RAMP, FAST, FAST7, L_I, DIV_FACE
 
@@ -32,7 +33,7 @@ def gas_travel(d):
     first quarter sigma sweeps no gas. Measured per cell, never assumed (this is what was wrong in
     the first version of this figure, where the fast sets were scaled by the piston displacement)."""
     tr = sorted(glob.glob(f"{d}/tr_*.csv") + glob.glob(f"{d}/tr_*.csv.gz"))[0]
-    t = pd.read_csv(tr, usecols=["PistonR_x_sigma", "PistonR_v"], low_memory=False)
+    t = pd.read_csv(edmd_acc_guard.guard(tr), usecols=["PistonR_x_sigma", "PistonR_v"], low_memory=False)
     v = np.abs(t["PistonR_v"].to_numpy(float)); x = t["PistonR_x_sigma"].to_numpy(float)
     mv = np.nonzero(v > 1e-12)[0]
     return abs(x[mv[-1]] - x[mv[0]]) - 0.25

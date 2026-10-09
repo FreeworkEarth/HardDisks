@@ -1,0 +1,21 @@
+populate 9 s rc 0
+figures 3 s rc 0
+damping 18 s rc 0
+massladder 8 s rc 0
+a2boxtrunc 0 s rc 0
+boxtrunc 30 s rc 0
+boxtrunc_tab 30 s rc 0
+conf_results 24 s rc 0
+conf_afix 23 s rc 0
+conf_heldwall 9 s rc 0
+conf_prereg 0 s rc 0
+resched_gate 3 s rc 0
+p2_figures 1 s rc 0
+p2_geomfix 2 s rc 0
+p2_rampfast 1 s rc 0
+p2_level2Au 2 s rc 0
+canonical 2 s rc 0
+melting 0 s rc 0
+draft_audit 0 s rc 0
+roman 1 s rc 0
+DONE 23:02:12

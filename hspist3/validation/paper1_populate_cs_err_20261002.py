@@ -54,6 +54,7 @@ from multiprocessing import Pool
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.dirname(HERE))
 import tests_20260913 as T
+import edmd_acc_guard   # ##CHRIS 2026-10-08 (261012 sec. 4.7.4, decision 2): the loader provenance guard (full name: no alias can be shadowed)
 
 TD, X_EDGE = 200, 2.5           # identical to final_A1_figures_20260914.py
 RDISK, WALL_T = 0.5, 0.05
@@ -72,6 +73,8 @@ def box_delta(L0):
 def cell(task):
     """Per-(eta, M) frequency, byte-for-byte the estimator of final_A1_figures_20260914.cell()."""
     eta, L0, M, runs = task
+    for r, p, disc in runs:
+        edmd_acc_guard.guard(p)          # every trajectory of the cell, also the discarded ones
     nus, nd = [], 0
     for r, p, disc in runs:
         if disc:

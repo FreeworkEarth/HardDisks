@@ -29,6 +29,7 @@ from scipy.stats import chi2 as CHI2
 HERE = os.path.dirname(os.path.abspath(__file__)); HS = os.path.dirname(HERE)
 sys.path.insert(0, HERE); sys.path.insert(0, HS)
 import paper1_confinement_results_261004 as R
+import edmd_acc_guard   # ##CHRIS 2026-10-08 (261012 sec. 4.7.4, decision 2): the loader provenance guard (full name: no alias can be shadowed)
 import paper1_confinement_heldwall_posthoc_261004 as PH
 
 REL_AF = "experiments_energy_transfer/paper1_confinement_Afix_261004"
@@ -50,11 +51,11 @@ def inventory_and_static(c):
             f = os.path.join(d0, f"x_{lab}", f"red_{s}.csv")
             if not os.path.exists(f) or os.path.getsize(f) == 0:
                 miss += 1; continue
-            r = pd.read_csv(f).iloc[0]; rows.append(r)
+            r = pd.read_csv(edmd_acc_guard.guard(f)).iloc[0]; rows.append(r)
             uw += r["u_wall_max"] != 0.0; wd += r["W_div"] != 0.0
             win += abs(r["window"] - (T1 - T0)) > 1e-9 or r["t_last"] < T1
-            health += len(HEALTH.findall(open(os.path.join(d0, f"x_{lab}", f"run_{s}.log"), errors="ignore").read()))
-            sm = pd.read_csv(os.path.join(d0, f"x_{lab}", f"summary_{s}.csv")).iloc[-1]; builds.add(str(sm["build_git"]))
+            health += len(HEALTH.findall(open(edmd_acc_guard.guard(os.path.join(d0, f"x_{lab}", f"run_{s}.log")), errors="ignore").read()))
+            sm = pd.read_csv(edmd_acc_guard.guard(os.path.join(d0, f"x_{lab}", f"summary_{s}.csv"))).iloc[-1]; builds.add(str(sm["build_git"]))
             eta_rec = c["Ns"] * math.pi * 0.25 / (c["H"] * c["L0"])
             ok = [int(sm["wall_hold_steps"]) == HOLD, int(sm["steps_after_release"]) == POST,
                   abs(sm["L0"] - c["L0"]) < 5e-5, abs(float(sm["height"]) - c["H"]) < 5e-5,

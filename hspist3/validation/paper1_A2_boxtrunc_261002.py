@@ -17,6 +17,7 @@ from collections import defaultdict
 import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE); sys.path.insert(0, os.path.dirname(HERE))
 import tests_20260913 as T
+import edmd_acc_guard   # ##CHRIS 2026-10-08 (261012 sec. 4.7.4, decision 2): the loader provenance guard (full name: no alias can be shadowed)
 import plot_speed_of_sound_edmd as sos
 from paper1_populate_cs_err_20261002 import slope_with_errors
 R, TW = 0.5, T.WALL_T
@@ -39,12 +40,12 @@ def height(eta, N):
     tag = f"eta_{eta:.2f}".replace(".", "p")
     cmds = [c for r in ROOTS for c in glob.glob(os.path.join(A2ROOT, r, tag, f"N{N}", "m_*", "**", "00_COMMAND.md"), recursive=True)]
     for c in sorted(cmds):
-        m = re.search(r"--height=([\d.]+)", open(c, errors="ignore").read())
+        m = re.search(r"--height=([\d.]+)", open(edmd_acc_guard.guard(c), errors="ignore").read())
         if m: return float(m.group(1)), "command"
     trs = [t for r in ROOTS for t in glob.glob(os.path.join(A2ROOT, r, tag, f"N{N}", "m_*", "**", "wall_x_positions_*.csv"), recursive=True)]
     for tr in sorted(trs)[:1]:
         import pandas as pd
-        h = pd.read_csv(tr, nrows=1)
+        h = pd.read_csv(edmd_acc_guard.guard(tr), nrows=1)
         if "eta" in h and "L0" in h:
             return N * math.pi * R * R / (2 * float(h["L0"].iloc[0]) * float(h["eta"].iloc[0])), "read back"
     return float("nan"), "not found"

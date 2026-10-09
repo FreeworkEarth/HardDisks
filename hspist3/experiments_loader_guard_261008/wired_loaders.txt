@@ -1,0 +1,95 @@
+### Direct guard() calls (the loaders)
+
+| file | line | call |
+|---|---|---|
+| validation/estimator_massladder_20260917.py | 64 | `d = pd.read_csv(edmd_acc_guard.guard(p), usecols=["Time", "Displacement(σ)", "Predicted_Frequency", "L0"])` |
+| validation/level2_Au_figure_20260918.py | 36 | `t = pd.read_csv(edmd_acc_guard.guard(tr), usecols=["PistonR_x_sigma", "PistonR_v"], low_memory=False)` |
+| validation/paper1_A2_boxtrunc_261002.py | 43 | `m = re.search(r"--height=([\d.]+)", open(edmd_acc_guard.guard(c), errors="ignore").read())` |
+| validation/paper1_A2_boxtrunc_261002.py | 48 | `h = pd.read_csv(edmd_acc_guard.guard(tr), nrows=1)` |
+| validation/paper1_boxtrunc_20261014.py | 54 | `h = pd.read_csv(edmd_acc_guard.guard(tr0[0]), nrows=1).iloc[0]` |
+| validation/paper1_boxtrunc_20261014.py | 59 | `disp = np.mean([pd.read_csv(edmd_acc_guard.guard(p), usecols=["Displacement(σ)"])["Displacement(σ)"].mean() for p in tr0` |
+| validation/paper1_confinement_afix_261005.py | 54 | `r = pd.read_csv(edmd_acc_guard.guard(f)).iloc[0]; rows.append(r)` |
+| validation/paper1_confinement_afix_261005.py | 57 | `health += len(HEALTH.findall(open(edmd_acc_guard.guard(os.path.join(d0, f"x_{lab}", f"run_{s}.log")), errors="ignore").r` |
+| validation/paper1_confinement_afix_261005.py | 58 | `sm = pd.read_csv(edmd_acc_guard.guard(os.path.join(d0, f"x_{lab}", f"summary_{s}.csv"))).iloc[-1]; builds.add(str(sm["bu` |
+| validation/paper1_confinement_heldwall_posthoc_261004.py | 48 | `d = pd.read_csv(edmd_acc_guard.guard(f), usecols=["Time", "W0_x_sigma"]); x = d["W0_x_sigma"].to_numpy() - L0` |
+| validation/paper1_confinement_heldwall_posthoc_261004.py | 59 | `D = pd.concat([pd.read_csv(edmd_acc_guard.guard(f)) for f in files], ignore_index=True); n = len(D)` |
+| validation/paper1_confinement_heldwall_posthoc_261004.py | 129 | `d = pd.read_csv(edmd_acc_guard.guard(f), usecols=["Time", "W0_x_sigma"])` |
+| validation/paper1_confinement_prereg_20261012.py | 45 | `e = pd.read_csv(edmd_acc_guard.guard(f), usecols=["t_sigma", "kind", "dp"]); d = e[e["kind"] == "D0"]` |
+| validation/paper1_confinement_prereg_20261012.py | 56 | `s = open(edmd_acc_guard.guard(os.path.join(d, "run.log")), errors="ignore").read()` |
+| validation/paper1_confinement_results_261004.py | 72 | `if os.path.exists(p) and "[EDMD-RESCHED]" in open(edmd_acc_guard.guard(p), errors="ignore").read():` |
+| validation/paper1_confinement_results_261004.py | 121 | `r = pd.read_csv(edmd_acc_guard.guard(os.path.join(d, "red_nu.csv"))); nB += len(r); nmiss += int(r["n"].isna().sum())` |
+| validation/paper1_confinement_results_261004.py | 122 | `lg = open(edmd_acc_guard.guard(os.path.join(d, "run.log")), errors="ignore").read(); hB += len(HEALTH.findall(lg))` |
+| validation/paper1_confinement_results_261004.py | 135 | `nA += 1; wins.append(float(pd.read_csv(edmd_acc_guard.guard(rp))["window"].iloc[0]))` |
+| validation/paper1_confinement_results_261004.py | 136 | `hA += len(HEALTH.findall(open(edmd_acc_guard.guard(os.path.join(d, f"run_{s}.log")), errors="ignore").read()))` |
+| validation/paper1_confinement_results_261004.py | 137 | `sm = pd.read_csv(edmd_acc_guard.guard(os.path.join(d, f"summary_{s}.csv")))` |
+| validation/paper1_confinement_results_261004.py | 170 | `shutil.copytree(edmd_acc_guard.guard(src), d0, ignore=shutil.ignore_patterns("_determinism"))` |
+| validation/paper1_confinement_results_261004.py | 200 | `d = pd.read_csv(edmd_acc_guard.guard(os.path.join(HS, REL_B, c["cid"], f"m_{M}", "red_nu.csv")))` |
+| validation/paper1_confinement_results_261004.py | 282 | `R = pd.concat([pd.read_csv(edmd_acc_guard.guard(os.path.join(ad, f"x_{lab}", f"red_{s}.csv"))) for s in c["seeds"][lab]]` |
+| validation/paper1_confinement_results_261004.py | 331 | `z = np.load(edmd_acc_guard.guard(os.path.join(HS, REL_B, c["cid"], f"m_{r['M']}", "acf_runs.npz")))` |
+| validation/paper1_populate_cs_err_20261002.py | 77 | `edmd_acc_guard.guard(p)          # every trajectory of the cell, also the discarded ones` |
+| validation/paper2_figures_20261001.py | 145 | `e = pd.read_csv(edmd_acc_guard.guard(f))` |
+| validation/paper2_geometry_fix_20260918.py | 45 | `e = pd.read_csv(edmd_acc_guard.guard(ev))` |
+| validation/paper2_ramp_fast_20260918.py | 42 | `w = np.array([float(r) for r in pd.read_csv(edmd_acc_guard.guard(f"{d}/summary.csv"))["W_in_max"]])` |
+| validation/paper2_ramp_fast_20260918.py | 58 | `h = dict(re.findall(r"(\w+)=([-\d.]+)", open(edmd_acc_guard.guard(f)).readline()))` |
+| validation/paper2_ramp_fast_20260918.py | 60 | `d_ = pd.read_csv(edmd_acc_guard.guard(f), skiprows=1)` |
+| validation/paper2_ramp_fast_20260918.py | 97 | `h = dict(_re.findall(r"(\w+)=([-\d.]+)", open(edmd_acc_guard.guard(f)).readline()))` |
+| validation/paper2_ramp_fast_20260918.py | 99 | `dd = pd.read_csv(edmd_acc_guard.guard(f), skiprows=1)` |
+| validation/paper2_ramp_fast_20260918.py | 197 | `t = pd.read_csv(edmd_acc_guard.guard(tr), usecols=["PistonR_x_sigma", "PistonR_v"], low_memory=False)` |
+| validation/resched_gate_261005.py | 116 | `rn = pd.read_csv(edmd_acc_guard.guard(os.path.join(d, "red_nu.csv")))` |
+| validation/resched_gate_261005.py | 120 | `secs = open(edmd_acc_guard.guard(os.path.join(d, "run.log")), errors="ignore").read().split("##RUN")[1:]` |
+| validation/resched_gate_261005.py | 133 | `nh += open(edmd_acc_guard.guard(f), errors="ignore").read().count("[EDMD-HEALTH]")` |
+| validation/resched_gate_261005.py | 141 | `nh += open(edmd_acc_guard.guard(lg), errors="ignore").read().count("[EDMD-HEALTH]")` |
+| validation/resched_gate_261005.py | 145 | `matched += 1; r = pd.read_csv(edmd_acc_guard.guard(f)).iloc[0]; uw += (r["u_wall_max"] != 0.0) or (r["W_div"] != 0.0)` |
+| validation/resched_gate_261005.py | 146 | `log = open(edmd_acc_guard.guard(os.path.join(d0, f"x_{lab}", f"run_{s}.log")), errors="ignore").read()` |
+| validation/tests_20260913.py | 173 | `edmd_acc_guard.guard(run_dir)` |
+| validation/tests_20260913.py | 222 | `cmd = open(edmd_acc_guard.guard(f"{d}/00_COMMAND.md"), errors="replace").read()` |
+| validation/tests_20260913.py | 226 | `with open(edmd_acc_guard.guard(f50)) as fh:` |
+| validation/tests_20260913.py | 473 | `edmd_acc_guard.guard(path)` |
+| validation/tests_20260913.py | 601 | `for m in HEALTH_RE.finditer(open(edmd_acc_guard.guard(path_log), errors="replace").read()):` |
+| validation/tests_20260913.py | 608 | `edmd_acc_guard.guard(cell)` |
+
+45 guard() calls in 14 files
+
+### Loaders guarded through tests_20260913 (calls of T._load, T.cell_runs, T.a1_leaf_table, T.health_of, T.assert_wall_thickness, each of which calls guard())
+
+| file | line | call |
+|---|---|---|
+| cluster/confinement_20261013/reduce_B.py | 20 | `t, x, nup = T._load(p); dt = (t[-1] - t[0]) / (len(t) - 1)` |
+| cluster/confinement_pilot.py | 59 | `d = os.path.join(a.out, f"m_{M}"); runs = T.cell_runs(d, M)` |
+| cluster/smoketest_gate_width_20261014.py | 23 | `c = cell((0.392699, 10.0, M, T.cell_runs(os.path.join(OUT, f"m_{M}"), M))); x.append(T.x_of(M, 10.0)); nu.append(c["nu"]` |
+| validation/A2_long200_20260915.py | 129 | `ps = [p for _, p, disc in T.cell_runs(cell, M) if not disc]` |
+| validation/A2_slow_mode_20260915.py | 31 | `for r, p, disc in T.cell_runs(cdir, M):` |
+| validation/A3_scale_invariance_20260915.py | 116 | `for r, p, disc in T.cell_runs(os.path.join(a2cell, f"m_{M}"), M):` |
+| validation/analyze_A2_X2p5_20260914.py | 35 | `runs = list(T.cell_runs(cdir, M))` |
+| validation/damping_test_20260915.py | 61 | `t, x, nup = T._load(p); dt = (t[-1] - t[0]) / (len(t) - 1)` |
+| validation/damping_test_20260915.py | 79 | `table = T.a1_leaf_table(); tasks = []` |
+| validation/damping_test_20260915.py | 82 | `runs = T.cell_runs(os.path.join(T.DROOT, leaf["leaf"], f"m_{M}"), M)` |
+| validation/estimator_massladder_20260917.py | 37 | `for leaf in T.a1_leaf_table():` |
+| validation/estimator_massladder_20260917.py | 116 | `for leaf in T.a1_leaf_table():` |
+| validation/estimator_massladder_20260917.py | 139 | `for leaf in T.a1_leaf_table():` |
+| validation/final_A1_figures_20260914.py | 23 | `t, x, nup = T._load(p); dt = (t[-1] - t[0]) / (len(t) - 1)` |
+| validation/final_A1_figures_20260914.py | 29 | `table = T.a1_leaf_table(); tasks = []` |
+| validation/final_A1_figures_20260914.py | 32 | `runs = T.cell_runs(os.path.join(T.DROOT, leaf["leaf"], f"m_{M}"), M)` |
+| validation/interim_plots_20260913.py | 53 | `return [q for q in T.cell_runs(cell_dir(L0s, M), M) if not q[2]]` |
+| validation/interim_plots_20260913.py | 66 | `data = [(r, *T._load(p)) for r, p, _ in runs]` |
+| validation/interim_plots_20260913.py | 194 | `runs = T.cell_runs(cell_dir(L0s, M), M)` |
+| validation/paper1_boxtrunc_20261014.py | 51 | `c = cell((eta, L0t, M, T.cell_runs(os.path.join(d, f"m_{M}"), M)))` |
+| validation/paper1_confinement_prereg_20261012.py | 225 | `c = cell((eA, L0d, M, T.cell_runs(os.path.join(T.DROOT, tag, f"m_{M}"), M)))` |
+| validation/paper1_figures_20261001.py | 159 | `for r, p, disc in T.cell_runs(cell_dir, M):` |
+| validation/paper1_figures_20261001.py | 163 | `t, x, nup = T._load(p)` |
+| validation/paper1_figures_20261001.py | 250 | `runs = [(r, p) for r, p, disc in T.cell_runs(cell, M) if not disc]` |
+| validation/paper1_figures_20261001.py | 253 | `t, x, nup = T._load(runs[0][1])` |
+| validation/paper1_linewidth_20260918.py | 59 | `t, x, nup = T._load(p)` |
+| validation/paper1_linewidth_20260918.py | 81 | `table = T.a1_leaf_table()` |
+| validation/paper1_linewidth_20260918.py | 87 | `runs = T.cell_runs(os.path.join(T.DROOT, leaf["leaf"], f"m_{M}"), M)` |
+| validation/paper1_melting_sweep_design_261005.py | 63 | `for leaf in T.a1_leaf_table():` |
+| validation/paper1_nofuse_check_20261010.py | 33 | `runs = T.cell_runs(os.path.join(d, f"m_{M}"), M)` |
+| validation/paper1_populate_cs_err_20261002.py | 82 | `t, x, nup = T._load(p); dt = (t[-1] - t[0]) / (len(t) - 1)` |
+| validation/paper1_populate_cs_err_20261002.py | 119 | `table = T.a1_leaf_table()` |
+| validation/paper1_populate_cs_err_20261002.py | 123 | `runs = T.cell_runs(os.path.join(T.DROOT, leaf["leaf"], f"m_{M}"), M)` |
+| validation/paper1_window_explore_261008.py | 169 | `t, x, nup = T._load(p); dt = (t[-1] - t[0]) / (len(t) - 1)` |
+| validation/paper1_window_explore_261008.py | 517 | `same = all(abs(canon_cell((c["eta"], c["L0"], r["M"], T.cell_runs(os.path.join(c["cell"], f"m_{r['M']}"), r["M"])))["nu"` |
+| validation/resched_smoke_diag_261006.py | 25 | `out[M] = cell((CP.ETA, L0, M, T.cell_runs(os.path.join(d, f"m_{M}"), M)))["nu"]` |
+| validation/roman2002_tableII_20261012.py | 53 | `runs = T.cell_runs(os.path.join(T.DROOT, "eta_0p392699", f"m_{M}"), M)` |
+
+37 calls in 21 files

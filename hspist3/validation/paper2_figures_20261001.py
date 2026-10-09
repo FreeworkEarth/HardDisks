@@ -37,6 +37,7 @@ from scipy.optimize import curve_fit, brentq
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, ".."))
 import plot_speed_of_sound_edmd as sos
+import edmd_acc_guard   # ##CHRIS 2026-10-08 (261012 sec. 4.7.4, decision 2): the loader provenance guard (full name: no alias can be shadowed)
 
 BLUE, RED, GREY, ORANGE, GREEN = "#2a78d6", "#e34948", "#52514e", "#eb6834", "#1baf7a"
 REPO = os.path.dirname(os.path.dirname(HERE))
@@ -141,7 +142,7 @@ def fig_level4_acf():
     NS, dt = 50, 5.0
     D, X = [], []
     for f in fs:
-        e = pd.read_csv(f)
+        e = pd.read_csv(edmd_acc_guard.guard(f))
         D.append((e["KE_gas_left"].to_numpy(float) - e["KE_gas_right"].to_numpy(float)) / NS)
         X.append(e["W0_x_sigma"].to_numpy(float))
     n = min(len(a) for a in D); lo = int(2000 / dt)

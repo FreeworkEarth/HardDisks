@@ -1,0 +1,16 @@
+# ##CHRIS 2026-10-08 23:30 HST (261012 sec. 4.7.4, amendment a): engine-gen3 commits after 2cdfe04 and the build inputs each touches
+# build inputs = the files the Makefile compiles into 00ALLINONE: 00ALLINONE.c, edmd_core/edmd.[ch], edmd_core/edmd_accelerated.[ch], experiment_validation.[ch], Makefile, kissfft
+
+a20f356 2026-10-08 17:14: 2 files; build inputs touched: none
+8366369 2026-10-08 17:22: 6 files; build inputs touched: none
+54bfef5 2026-10-08 17:24: 3 files; build inputs touched: none
+b6b2dfd 2026-10-08 19:31: 5 files; build inputs touched: none
+7b3b11a 2026-10-08 19:52: 1 files; build inputs touched: none
+3d42d0b 2026-10-08 22:55: 1 files; build inputs touched: none
+
+$ git diff --stat 2cdfe04 HEAD -- <build inputs>   (HEAD = 3d42d0b)
+(end of output)
+$ git diff --stat 7b08827 HEAD -- <build inputs>   (HEAD = 3d42d0b)
+ hspist3/00ALLINONE.c | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+(end of output)

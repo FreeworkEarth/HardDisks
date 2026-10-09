@@ -43,6 +43,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 HSP = os.path.dirname(HERE)
 REPO = os.path.dirname(HSP)
 sys.path.insert(0, HSP)
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
+import edmd_acc_guard   # ##CHRIS 2026-10-08 (261012 sec. 4.7.4, decision 2): the loader provenance guard (full name: no alias can be shadowed)
 
 ROOT = os.path.join(HSP, "experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN")
 TROOT = os.path.join(ROOT, "tests_20260913")
@@ -167,6 +170,7 @@ def assert_wall_thickness(run_dir):
     that record nothing return None -- absence of evidence, reported as such, never assumed to agree.
     """
     import glob as _glob, re as _re
+    edmd_acc_guard.guard(run_dir)
     for name in ("00_COMMAND.md", "run.log"):
         for f in _glob.glob(os.path.join(run_dir, "**", name), recursive=True)[:1]:
             m = _re.search(r"--wall-thickness=([0-9.]+)", open(f, errors="replace").read())
@@ -215,11 +219,11 @@ def a1_leaf_table():
     for d in leaves:
         if not os.path.isdir(d) or not os.path.exists(f"{d}/speed_of_sound_psi6.csv"):
             continue
-        cmd = open(f"{d}/00_COMMAND.md", errors="replace").read()
+        cmd = open(edmd_acc_guard.guard(f"{d}/00_COMMAND.md"), errors="replace").read()
         L0s = re.search(r"--lengths=([\d.]+)", cmd).group(1)
         reps = int(re.search(r"--repeats=(\d+)", cmd).group(1))
         f50 = sorted(glob.glob(f"{d}/wall_x_positions_*wallmassfactor_50_run0.csv"))[0]
-        with open(f50) as fh:
+        with open(edmd_acc_guard.guard(f50)) as fh:
             r0 = next(csv.DictReader(fh))
         nu50 = float(r0["Predicted_Frequency"]); eta = float(r0["eta"])
         periods = float(r0["Planned_Duration"]) * nu50
@@ -466,6 +470,7 @@ def jobs_D(table, TD):
 # ------------------------------------------------------------------ analysis (worker side)
 def _load(path):
     import pandas as pd
+    edmd_acc_guard.guard(path)
     with open(path, newline="") as fh:
         r0 = next(csv.DictReader(fh))
     d = pd.read_csv(path, usecols=["Time", "Displacement(σ)"])
@@ -593,13 +598,14 @@ def slope(xs, ys):
 def health_of(path_log):
     bad = set()
     if os.path.exists(path_log):
-        for m in HEALTH_RE.finditer(open(path_log, errors="replace").read()):
+        for m in HEALTH_RE.finditer(open(edmd_acc_guard.guard(path_log), errors="replace").read()):
             if any(int(m.group(i)) for i in (4, 5, 6, 7)):
                 bad.add(int(m.group(2)))
     return bad
 
 
 def cell_runs(cell, M):
+    edmd_acc_guard.guard(cell)
     bad = health_of(os.path.join(cell, "run.log"))
     runs = []
     for p in glob.glob(os.path.join(cell, f"wall_x_positions_L0_*_wallmassfactor_{M}_run*.csv")):
