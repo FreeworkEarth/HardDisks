@@ -1,0 +1,38 @@
+test_build_without_record (validation.test_edmd3_health_guard.Gen3GuardTest.test_build_without_record) ... ok
+test_clean_energy_transfer_and_replay_ids (validation.test_edmd3_health_guard.Gen3GuardTest.test_clean_energy_transfer_and_replay_ids) ... ok
+test_clean_records (validation.test_edmd3_health_guard.Gen3GuardTest.test_clean_records) ... ok
+test_command_names_gen3_log_without_records (validation.test_edmd3_health_guard.Gen3GuardTest.test_command_names_gen3_log_without_records) ... ok
+test_command_names_gen3_no_log (validation.test_edmd3_health_guard.Gen3GuardTest.test_command_names_gen3_no_log) ... ok
+test_dirty_ancestor_log (validation.test_edmd3_health_guard.Gen3GuardTest.test_dirty_ancestor_log) ... ok
+test_dirty_other_run_refuses_whole_directory (validation.test_edmd3_health_guard.Gen3GuardTest.test_dirty_other_run_refuses_whole_directory) ... ok
+test_dirty_own_log (validation.test_edmd3_health_guard.Gen3GuardTest.test_dirty_own_log) ... ok
+test_experiments_root_not_scanned (validation.test_edmd3_health_guard.Gen3GuardTest.test_experiments_root_not_scanned) ... ok
+test_file_token_is_l0_times_10_truncated (validation.test_edmd3_health_guard.Gen3GuardTest.test_file_token_is_l0_times_10_truncated) ... ok
+test_gen2_no_markers (validation.test_edmd3_health_guard.Gen3GuardTest.test_gen2_no_markers) ... ok
+test_nearest_engine_record_decides (validation.test_edmd3_health_guard.Gen3GuardTest.test_nearest_engine_record_decides) ... ok
+test_never_advanced (validation.test_edmd3_health_guard.Gen3GuardTest.test_never_advanced) ... ok
+test_no_records_at_all (validation.test_edmd3_health_guard.Gen3GuardTest.test_no_records_at_all) ... ok
+test_parent_engine_record_applies (validation.test_edmd3_health_guard.Gen3GuardTest.test_parent_engine_record_applies) ... ok
+test_per_run_file_other_mass_or_L0 (validation.test_edmd3_health_guard.Gen3GuardTest.test_per_run_file_other_mass_or_L0) ... ok
+test_per_run_file_without_its_record (validation.test_edmd3_health_guard.Gen3GuardTest.test_per_run_file_without_its_record) ... ok
+test_sibling_campaign_does_not_decide (validation.test_edmd3_health_guard.Gen3GuardTest.test_sibling_campaign_does_not_decide) ... ok
+test_unreadable_clean_value (validation.test_edmd3_health_guard.Gen3GuardTest.test_unreadable_clean_value) ... ok
+test_ancestor_log_refuses (validation.test_edmd_acc_guard.GuardTest.test_ancestor_log_refuses) ... ok
+test_ancestor_run_record_refuses (validation.test_edmd_acc_guard.GuardTest.test_ancestor_run_record_refuses) ... ok
+test_ancestor_summary_with_command_column_refuses (validation.test_edmd_acc_guard.GuardTest.test_ancestor_summary_with_command_column_refuses) ... ok
+test_csv_without_command_column_is_not_a_record (validation.test_edmd_acc_guard.GuardTest.test_csv_without_command_column_is_not_a_record) ... ok
+test_directory_argument (validation.test_edmd_acc_guard.GuardTest.test_directory_argument) ... ok
+test_experiments_root_is_never_scanned (validation.test_edmd_acc_guard.GuardTest.test_experiments_root_is_never_scanned) ... ok
+test_notes_are_not_records (validation.test_edmd_acc_guard.GuardTest.test_notes_are_not_records) ... ok
+test_own_log_backend_line (validation.test_edmd_acc_guard.GuardTest.test_own_log_backend_line) ... ok
+test_own_summary_csv_with_command_column (validation.test_edmd_acc_guard.GuardTest.test_own_summary_csv_with_command_column) ... ok
+test_passed_spellings_in_own_record (validation.test_edmd_acc_guard.GuardTest.test_passed_spellings_in_own_record) ... ok
+test_refused_spellings_in_command_txt_and_run_params (validation.test_edmd_acc_guard.GuardTest.test_refused_spellings_in_command_txt_and_run_params) ... ok
+test_refused_spellings_in_own_record (validation.test_edmd_acc_guard.GuardTest.test_refused_spellings_in_own_record) ... ok
+test_returns_the_path_unchanged (validation.test_edmd_acc_guard.GuardTest.test_returns_the_path_unchanged) ... ok
+test_sibling_campaign_does_not_decide (validation.test_edmd_acc_guard.GuardTest.test_sibling_campaign_does_not_decide) ... ok
+
+----------------------------------------------------------------------
+Ran 33 tests in 0.050s
+
+OK

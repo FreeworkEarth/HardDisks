@@ -1,0 +1,25 @@
+script         rc     stdout  stderr  stdout lines
+populate       0/0    same    same    50
+figures        0/0    same    same    8
+damping        0/0    same    same    40
+massladder     0/0    same    same    20
+a2boxtrunc     0/0    same    same    100
+boxtrunc       0/0    same    same    49
+boxtrunc_tab   0/0    same    same    111
+conf_results   0/0    same    same    295
+conf_afix      0/0    same    same    89
+conf_heldwall  0/0    same    same    36
+conf_prereg    0/0    same    same    165
+resched_gate   0/0    DIFF    same    165
+p2_figures     0/0    same    same    9
+p2_geomfix     0/0    same    same    40
+p2_rampfast    0/0    same    same    49
+p2_level2Au    0/0    same    same    7
+canonical      0/0    same    same    11
+melting        0/0    same    same    24
+draft_audit    0/0    same    same    78
+roman          0/0    same    same    34
+tprime         0/0    same    same    56
+
+files written: before 45, after 45
+written files: all hashes identical

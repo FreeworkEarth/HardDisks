@@ -27,7 +27,7 @@ class Gen3GuardTest(unittest.TestCase):
         self.root = os.path.join(self.tmp.name, "experiments_test")
         self.cell = os.path.join(self.root, "testG", "gen3", "m_300")
         os.makedirs(self.cell)
-        self.trace = self.data("wall_x_positions_L0_10_wallmassfactor_300_run1.csv")
+        self.trace = self.data("wall_x_positions_L0_100_wallmassfactor_300_run1.csv")   # the driver's token: (int)(L0 * 10)
         self.summary = self.data("summary.csv")
 
     def tearDown(self):
@@ -123,14 +123,24 @@ class Gen3GuardTest(unittest.TestCase):
         self.log(BUILT + rec(SOS.format(r=0)) + BUILT + rec(SOS.format(r=2)))
         self.refused(self.trace)                     # run 1 has no record
         self.passed(self.summary)                    # the directory's records are complete and clean
-        self.passed(self.data("wall_x_positions_L0_10_wallmassfactor_300_run2.csv"))
-        self.passed(self.data("psi6_t_L0_10_wallmassfactor_300_run0.csv"))
+        self.passed(self.data("wall_x_positions_L0_100_wallmassfactor_300_run2.csv"))
+        self.passed(self.data("psi6_t_L0_100_wallmassfactor_300_run0.csv"))
 
     def test_per_run_file_other_mass_or_L0(self):
         self.log(BUILT + rec(SOS.format(r=1)))
-        self.refused(self.data("wall_x_positions_L0_10_wallmassfactor_1500_run1.csv"))
-        self.refused(self.data("wall_x_positions_L0_20_wallmassfactor_300_run1.csv"))
+        self.refused(self.data("wall_x_positions_L0_100_wallmassfactor_1500_run1.csv"))
+        self.refused(self.data("wall_x_positions_L0_200_wallmassfactor_300_run1.csv"))
+        self.refused(self.data("wall_x_positions_L0_10_wallmassfactor_300_run1.csv"))     # L0 = 1.0: not this run's
         self.passed(self.trace)
+
+    def test_file_token_is_l0_times_10_truncated(self):
+        # regression (sec. 4.7.15): the driver's file token is (int)(L0 * 10), the run id has L0 with %.1f
+        for l0_id, k in (("10.0", 100), ("11.2", 112), ("22.4", 224), ("11.0", 109), ("5.6", 56)):
+            with self.subTest(L0_id=l0_id, token=k):
+                rel = f"testG/gen3/c{k}/m_300"
+                self.write(rel + "/run.log", BUILT + rec(f"L0={l0_id} M=300 run=0 seed=1"))
+                self.passed(self.data(f"wall_x_positions_L0_{k}_wallmassfactor_300_run0.csv", rel))
+                self.refused(self.data(f"wall_x_positions_L0_{k + 3}_wallmassfactor_300_run0.csv", rel))
 
     # ---- the engine named by command records: the nearest directory decides
     def test_nearest_engine_record_decides(self):
