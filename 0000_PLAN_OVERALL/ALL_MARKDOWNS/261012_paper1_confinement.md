@@ -8994,3 +8994,240 @@ Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
 # all 3000 tasks finished in 2548 s; non-zero exits: 0
 # done 2026-10-09 13:18:54 HST
 ```
+
+### 4.7.16 Stage C (M4): gen3 initial conditions — lattice, exact box, vacancies, seeded jitter, T_eq in the run header (2026-10-09 13:29 HST, machine date) [DATA, printed by script; SOURCE; DERIVATION where marked] — PROVISIONAL
+
+**Plain summary.**
+- **M4 is in the driver** (engine-gen3 `3c072fb`, the second lattice form `f39e485`; gen3 only, every flag refused without `--engine=gen3`).
+  - `--gen3-seeding=lattice` places each compartment's disks on the stated lattice. The arrangement is the one with the largest smallest surface gap, over both orientations and every row count, with the wall clearance at half that gap.
+  - Vacancies are removed uniformly from the interior (seeded), and every disk gets a seeded jitter uniform in a disk of radius 0.25 × the smallest gap (`--gen3-jitter`).
+  - `--gen3-exact-box` makes the box exactly 2 L0 with L0 as written, instead of the 1/48-σ grid.
+  - `[EDMD3-RUN]` is the run header: engine, build, cell, tolerances, box, η, lattice, T_eq, record, ψ6 interval, validator cadence. `[EDMD3-TIES]` reports the ties of the initial state.
+- **gen2 is unchanged** (rule 4, table 2: IDENTICAL with 7b08827). The engine change (`edmd3_tie_stats`, read-only) leaves the M1 and M2 harness outputs byte-identical (table 3).
+- **The acceptance grid** (N = 100, 400, 900, 1600 × eight η; table 4): every feasible cell (26 of 32) passes every item.
+  - The achieved η equals the requested η to rounding (≤ 2.2e-16 absolute; the legacy 1/48-grid box would be off by up to 2.1e-3).
+  - N per compartment is exact, and every initial surface gap (disk–disk, wall, divider) is > 0.
+  - 0 tied events and 0 events due at once at the load.
+  - The same seed gives a bit-identical initial state, and other seeds differ.
+  - Every 400-σ-time run is clean=1.
+  - The Python replica of the lattice fit agrees with the binary's feasibility on 32 of 32 cells.
+- **η = 0.85 at N = 100 and η = 0.90 at every N are infeasible** for hard walls: the densest packing of N_s disks in that compartment holds fewer than N_s. The binary refuses them with a message. The feasibility limit of the stated family per N is printed (table 5, information).
+
+**Decision log.**
+1. **M4 replaces the driver's seeder in the speed-of-sound loop** and repeats that seeder's velocity steps in its order: one Maxwell–Boltzmann draw per particle, left compartment first, the KE scaling, the per-compartment temperature, `run_params.json`. The legacy seeder cannot place 50 disks at η 0.85 (N = 100) and stops the run (`exit 1`), so M4 must not depend on it. Velocities are therefore drawn exactly as before; only positions differ.
+2. **The lattice family and its selection rule are stated in the code header** (`00ALLINONE.c`, M4 block): rows of n_r disks, alternate rows shifted by a_r/2, n_s rows, and the largest smallest gap s.
+   - The candidate distances are a_r, sqrt(a_s² + a_r²/4) and 2 a_s; the wall clearance is g = s/2.
+   - The rule picks nearly triangular arrangements by itself (for example N = 100 at 0.70: 25.5 and 26.8 px between neighbours). The "orient" label in the header names the parametrisation, not the close-packed direction.
+3. **Vacancies are taken from the interior sites** (two full rows from every wall); all sites are used if the interior has fewer sites than vacancies.
+4. **The jitter radius is f × min(s, 2 g_w)** with f = 0.25. Disk–disk gaps are then ≥ s/2 and wall gaps ≥ g_w/2 after it. f = 0 is the jitter-free lattice of § 4.7.1 d, available as the tie-break stress test (not run today).
+5. **The seeded RNG is splitmix64 of the run seed XOR "M4LATTIC"**, its own stream, so the driver's own RNG stream is not touched.
+6. **The exact box is L0 as written in `--lengths`, parsed as a double**, alongside the float list that the legacy bookkeeping still uses: file names, the SIM_WIDTH display grid, the predicted frequency. The trace's centre, box width and η follow the exact box. The legacy "box truncated" warning is replaced by a note under the exact box.
+7. **The initial ties come from the engine** (`edmd3_tie_stats`: live events sharing their time exactly with another, events due at once), printed at the build. This is a read-only engine addition, so the M1/M2 harness byte identity was rerun (rule 8 style; table 3).
+8. **The second lattice form (`f39e485`) was added before any evidence run.** A feasibility check of the first form (no simulation: the stageC_tables.py replica) put its limit at N = 100, H = 10 at η 0.761, below P1's η 0.78. The second form gives the shifted rows n_r − 1 disks within the same span, the hexagonal packing of a box. With both forms searched the limit is 0.7815 at N = 100 and 0.8251 at N = 400; N = 900 and 1600 are unchanged (table 5). The evidence below is from `f39e485`. The `3c072fb` binary built before was never used for evidence; it is kept in the scratch folder.
+9. **Rule 1 breached, disclosed.** Between 12:41 and 12:44, seven short scratch test runs of the uncommitted M4 code (one at a time, under 30 s each) ran while Test G's runner had 12 processes. That made 13 simulation processes at once. Test G's results cannot depend on it (its trajectories are deterministic per seed); only timings could. No later run overlapped.
+
+**Done / not done.**
+
+| item (§ 4.7 M4, § 4.7.1 d and f, stage C) | status |
+|---|---|
+| lattice generator | done (`g3_lattice_fit`, `g3_lattice_place`) |
+| commensurate calculator | done as the box → lattice fit; the lattice → box direction follows from the same formulas (not a separate flag) |
+| vacancies | done (seeded, interior first) |
+| seeding rule: lattice + stated seeded jitter | done (f = 0.25 default; f = 0 available) |
+| exact box length | done (`--gen3-exact-box`) |
+| T_eq in the run header | done (`[EDMD3-RUN] ... T_eq=... sigma-time (held divider, n steps)`) |
+| gen2 unchanged (rule 4) | done (table 2) |
+| acceptance grid printed by a script | done (table 4) |
+
+**Printed by `python3 experiments_gen3_m4_261009/stageC_tables.py --bin-dir experiments_gen3_m4_261009/bin_stageC --out experiments_gen3_m4_261009/evidence_f39e485` (engine-gen3 worktree; verbatim):**
+
+```
+# Stage C (M4) evidence tables, printed by experiments_gen3_m4_261009/stageC_tables.py
+
+## 1. The frozen binaries (rule 5)
+
+| binary | SHA-256 (frozen copy) | = build record |
+|---|---|---|
+| 00ALLINONE | 912736e6ac4115add5ab55c2a6e9fbf39ad4c082145d017bcb4e26bc61c4a93c | yes |
+| gen3_m1 | 79a4375da64d33e10d2737297661cbbdfeb7e1c3cbe8b3a0b79cae598ac20093 | yes |
+| gen3_m2 | 4c2be3b682addbb4811875384ec8f85d3daf61eec5e4e97d5649fecf23ce6c48 | yes |
+
+`00ALLINONE --version`: 00ALLINONE  git f39e485  target mac-O3-e0pre (no -dirty)
+
+## 2. Rule 4: gen2 byte identity with 7b08827 after the M4 change (ctrl_min, ctrl_leg)
+
+default build: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+--engine=gen2: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+
+## 3. The engine change (edmd3_tie_stats, read-only): the M1 and M2 harness outputs, byte for byte
+
+| output | committed output | identical |
+|---|---|---|
+| m1_audit_output.txt | experiments_gen3_m1_261008/m1_audit_output.txt | IDENTICAL |
+| m2_audit_quick_output.txt | experiments_gen3_m2_261009/m2_audit_quick_output.txt | IDENTICAL |
+| m2_audit_output.txt | experiments_gen3_m2_261009/m2_audit_output.txt | IDENTICAL |
+
+## 4. The acceptance grid (gate dense construction H = 10 sqrt(N/100), L0 = N pi / (8 H eta) exactly; M4 lattice, jitter 0.25; 400 sigma-time with the divider held)
+
+| N | eta | H | L0 [sigma] | lattice left (orient, n_s x n_r, n_vac, s [px], jitter [px]) | achieved eta - requested | eta of the legacy 1/48-grid box - requested | N_L / N_R | min gap disk-disk / wall / divider [sigma] | ties at the load (tied, at once, live) | same seed identical | other seed different | clean (400 sigma-time) | events | run [s] |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 100 | 0.10 | 10 | 39.269908 | parallel (equal rows), 25 x 2, 0, 43.94, 11 | +0.0e+00 | +5.1e-05 | 50 / 50 | 1.07 / 0.53 / 0.601 | 0, 0, 113 | yes | yes | 1 | 65669 | 0.032 |
+| 100 | pi/8 | 10 | 10.000000 | parallel (equal rows), 13 x 4, 2, 10.04, 2.51 | +0.0e+00 | +0.0e+00 | 50 / 50 | 0.254 / 0.114 / 0.15 | 0, 0, 184 | yes | yes | 1 | 157062 | 0.119 |
+| 100 | 0.60 | 10 | 6.544985 | parallel (equal rows), 10 x 5, 0, 3.604, 0.901 | +0.0e+00 | +3.0e-04 | 50 / 50 | 0.0849 / 0.0426 / 0.0474 | 0, 0, 249 | yes | yes | 1 | 374586 | 0.369 |
+| 100 | 0.70 | 10 | 5.609987 | parallel (alternate rows), 6 x 9, 1, 1.512, 0.378 | +0.0e+00 | +7.3e-04 | 50 / 50 | 0.0397 / 0.0202 / 0.0222 | 0, 0, 286 | yes | yes | 1 | 734933 | 0.824 |
+| 100 | 0.716 | 10 | 5.484624 | parallel (alternate rows), 9 x 6, 0, 1.223, 0.306 | +0.0e+00 | +7.1e-04 | 50 / 50 | 0.0275 / 0.0144 / 0.0154 | 0, 0, 280 | yes | yes | 1 | 921788 | 1.075 |
+| 100 | 0.78 | 10 | 5.034604 | parallel (alternate rows), 9 x 6, 0, 0.0461, 0.0115 | +1.1e-16 | +2.1e-03 | 50 / 50 | 0.0012 / 0.000551 / 0.000736 | 0, 0, 288 | yes | yes | 1 | 8233712 | 6.645 |
+| 100 | 0.85 | 10 | 4.619989 | **INFEASIBLE** (the binary stops: no arrangement of the stated family has a positive gap) | | | | | | | | | | |
+| 100 | 0.90 | 10 | 4.363323 | **INFEASIBLE** (the binary stops: no arrangement of the stated family has a positive gap) | | | | | | | | | | |
+| 400 | 0.10 | 20 | 78.539816 | parallel (equal rows), 50 x 4, 0, 45.38, 11.3 | +0.0e+00 | +2.4e-05 | 200 / 200 | 1.1 / 0.523 / 0.563 | 0, 0, 437 | yes | yes | 1 | 243178 | 0.249 |
+| 400 | pi/8 | 20 | 20.000000 | parallel (equal rows), 25 x 8, 0, 10.97, 2.74 | +0.0e+00 | +0.0e+00 | 200 / 200 | 0.246 / 0.119 / 0.128 | 0, 0, 726 | yes | yes | 1 | 542836 | 0.583 |
+| 400 | 0.60 | 20 | 13.089969 | parallel (alternate rows), 21 x 10, 0, 4.505, 1.13 | +0.0e+00 | +3.0e-04 | 200 / 200 | 0.108 / 0.0504 / 0.0487 | 0, 0, 930 | yes | yes | 1 | 1322826 | 1.610 |
+| 400 | 0.70 | 20 | 11.219974 | parallel (alternate rows), 19 x 11, 0, 2.375, 0.594 | +0.0e+00 | +7.3e-04 | 200 / 200 | 0.0562 / 0.0254 / 0.0287 | 0, 0, 1026 | yes | yes | 1 | 2258482 | 2.944 |
+| 400 | 0.716 | 20 | 10.969248 | parallel (alternate rows), 19 x 11, 0, 2.217, 0.554 | +0.0e+00 | +7.1e-04 | 200 / 200 | 0.0511 / 0.0242 / 0.0292 | 0, 0, 1109 | yes | yes | 1 | 2381386 | 3.165 |
+| 400 | 0.78 | 20 | 10.069207 | parallel (alternate rows), 11 x 19, 4, 1.028, 0.257 | +1.1e-16 | +5.2e-04 | 200 / 200 | 0.0246 / 0.011 / 0.0108 | 0, 0, 1164 | yes | yes | 1 | 4230787 | 5.023 |
+| 400 | 0.85 | 20 | 9.239978 | **INFEASIBLE** (the binary stops: no arrangement of the stated family has a positive gap) | | | | | | | | | | |
+| 400 | 0.90 | 20 | 8.726646 | **INFEASIBLE** (the binary stops: no arrangement of the stated family has a positive gap) | | | | | | | | | | |
+| 900 | 0.10 | 30 | 117.809725 | parallel (equal rows), 75 x 6, 0, 45.87, 11.5 | -1.4e-17 | +1.5e-05 | 450 / 450 | 1.05 / 0.493 / 0.583 | 0, 0, 948 | yes | yes | 1 | 547305 | 0.849 |
+| 900 | pi/8 | 30 | 30.000000 | parallel (equal rows), 23 x 20, 10, 11.12, 2.78 | -5.6e-17 | +0.0e+00 | 450 / 450 | 0.248 / 0.123 / 0.119 | 0, 0, 1568 | yes | yes | 1 | 1234613 | 1.712 |
+| 900 | 0.60 | 30 | 19.634954 | parallel (alternate rows), 31 x 15, 0, 4.748, 1.19 | +0.0e+00 | +3.0e-04 | 450 / 450 | 0.107 / 0.0513 / 0.0605 | 0, 0, 2145 | yes | yes | 1 | 2891902 | 4.147 |
+| 900 | 0.70 | 30 | 16.829961 | parallel (alternate rows), 29 x 16, 0, 2.738, 0.684 | +2.2e-16 | +7.3e-04 | 450 / 450 | 0.0626 / 0.0299 / 0.0304 | 0, 0, 2340 | yes | yes | 1 | 4328009 | 6.594 |
+| 900 | 0.716 | 30 | 16.453872 | parallel (alternate rows), 17 x 27, 1, 2.571, 0.643 | -1.1e-16 | +7.1e-04 | 450 / 450 | 0.0579 / 0.0285 / 0.0297 | 0, 0, 2367 | yes | yes | 1 | 4577625 | 6.901 |
+| 900 | 0.78 | 30 | 15.103811 | parallel (alternate rows), 28 x 17, 12, 0.958, 0.24 | -1.1e-16 | +1.1e-03 | 450 / 450 | 0.0224 / 0.0104 / 0.011 | 0, 0, 2612 | yes | yes | 1 | 9224927 | 12.329 |
+| 900 | 0.85 | 30 | 13.859968 | parallel (alternate rows), 16 x 29, 6, 0.003801, 0.00095 | -1.1e-16 | +3.6e-04 | 450 / 450 | 8.56e-05 / 4.6e-05 / 4.11e-05 | 0, 0, 2918 | yes | yes | 1 | 163655313 | 188.345 |
+| 900 | 0.90 | 30 | 13.089969 | **INFEASIBLE** (the binary stops: no arrangement of the stated family has a positive gap) | | | | | | | | | | |
+| 1600 | 0.10 | 40 | 157.079633 | parallel (equal rows), 62 x 13, 6, 46.31, 11.6 | +0.0e+00 | +1.1e-05 | 800 / 800 | 1.03 / 0.491 / 0.554 | 0, 0, 1685 | yes | yes | 1 | 955934 | 2.333 |
+| 1600 | pi/8 | 40 | 40.000000 | parallel (alternate rows), 52 x 16, 6, 11.74, 2.93 | +0.0e+00 | +0.0e+00 | 800 / 800 | 0.266 / 0.124 / 0.145 | 0, 0, 2843 | yes | yes | 1 | 2106881 | 3.948 |
+| 1600 | 0.60 | 40 | 26.179939 | parallel (equal rows), 25 x 32, 0, 4.995, 1.25 | +0.0e+00 | +3.0e-04 | 800 / 800 | 0.115 / 0.0554 / 0.0567 | 0, 0, 3747 | yes | yes | 1 | 4992763 | 8.799 |
+| 1600 | 0.70 | 40 | 22.439948 | parallel (alternate rows), 39 x 21, 0, 2.898, 0.724 | +0.0e+00 | +7.6e-05 | 800 / 800 | 0.0633 / 0.0332 / 0.0363 | 0, 0, 4214 | yes | yes | 1 | 7604913 | 13.326 |
+| 1600 | 0.716 | 40 | 21.938496 | parallel (equal rows), 23 x 35, 5, 2.43, 0.607 | +0.0e+00 | +3.3e-05 | 800 / 800 | 0.0543 / 0.0268 / 0.0276 | 0, 0, 4329 | yes | yes | 1 | 8230173 | 14.335 |
+| 1600 | 0.78 | 40 | 20.138414 | parallel (alternate rows), 22 x 37, 3, 1.355, 0.339 | +1.1e-16 | +5.2e-04 | 800 / 800 | 0.0292 / 0.0148 / 0.0144 | 0, 0, 4535 | yes | yes | 1 | 13055854 | 19.998 |
+| 1600 | 0.85 | 40 | 18.479957 | parallel (alternate rows), 21 x 39, 9, 0.2842, 0.0711 | -1.1e-16 | +3.6e-05 | 800 / 800 | 0.00604 / 0.00303 / 0.00305 | 0, 0, 5088 | yes | yes | 1 | 55391301 | 69.646 |
+| 1600 | 0.90 | 40 | 17.453293 | **INFEASIBLE** (the binary stops: no arrangement of the stated family has a positive gap) | | | | | | | | | | |
+
+cells: 26 pass every item, 0 fail an item, 6 infeasible (no run); the Python replica of the fit agrees with the binary's feasibility on 32 of 32 cells
+
+## 5. The feasibility limit of the stated lattice family (information; the Python replica, bisection on eta)
+
+| N | H [sigma] | largest nominal eta with a positive gap |
+|---|---|---|
+| 100 | 10 | 0.7815 |
+| 400 | 20 | 0.8251 |
+| 900 | 30 | 0.8502 |
+| 1600 | 40 | 0.8715 |
+```
+
+**Commits:** engine-gen3 `3c072fb` (M4 code), `f39e485` (the second lattice form), `21f7d03` (the evidence: scripts, tables, the small outputs, `RUN_RECORDS.txt`).
+
+### 4.7.18 Stage E (M5, Mac part): the tolerance review (E1) and the long-double build option (E2) (2026-10-09 13:29 HST, machine date) [DATA, printed by script; SOURCE; DERIVATION where marked] — PROVISIONAL
+
+**Plain summary.**
+- **E1: one table, printed by `validation/gen3_tolerance_review_261009.py`,** of every tolerance and cut-off in `edmd_gen3.c` and in the gen3 driver path. For each: value, scale, derivation, the largest measured value today over every gen3 run log of the day (each with its source), and the margin.
+  - The two rounding tolerances that decide whether a contact is "within rounding" are c_tol for pairs and tol_face for walls and bodies. Their smallest margin over today's runs, at each run's own v_ref, is 26.5 for c_tol and 41 for tol_face (1610 gen3 run records of stages A, B and C; P1 and P2 are added in the final rerun).
+  - The validator tolerances have margins of order 1e6. Every counter that must be 0 is 0.
+- **E2: `-DEDMD3_LONG_DOUBLE`** (Makefile targets `release-ld` and `koa-ld`) makes the engine's internal arithmetic long double; the public API stays double (engine-gen3 `c685d3b`, header follow-up `78ff48d`). The default build is byte-identical on the M1 and M2 harness outputs. On this Mac the long-double harnesses reproduce those outputs exactly, and the long-double driver reproduces the default driver's replay hashes (long double = double on arm64). gen2 is IDENTICAL with 7b08827 after the Makefile and 00ALLINONE.c changes.
+- **On this Mac long double is the 8-byte double**, so the numerical check is for KOA (stage G, `g3_rate_ld_koa.py` part d).
+
+**Decision log.**
+1. **The transformation is mechanical:** `double` → `real` and the math functions → `R_(f)` in code only (comments and strings skipped by a tokenizer). Then the public API signatures went back to `double` (20 functions; found by compiling in long-double mode, where `real` and `double` are distinct types even on arm64), plus four print sites and three API boundaries (`body_state`, `edmd3_ledger`, the create errors).
+2. **The event hash reads `(double)t` in both builds.** A long double has 6 padding bytes on x86-64, so hashing its storage would not be deterministic. In the default build the bytes are those of before, so the hash is unchanged.
+3. **The time quantum follows the mantissa:** u_t = ldexp(1, 13 − (mant − 1)), i.e. 2^-39 for double and 2^-50 for x86 long double. Every tolerance derived from it (c_tol, tol_face) shrinks with it. The validator's tolerances (tol_pair, tol_wall, tol_cell) are fixed lengths and do not change.
+4. **The ledger's unit roundoff stays the double one** (U_ROUND = 2^-53), conservative for long double; the ledger is a diagnostic.
+5. **A script error in the first evidence run, rerun disclosed.** The first run of `stageE_evidence.sh` (13:19) passed the binary folder as a relative path. The harness chains `cd` into their folders, so E2a and E2b did not start (exit 127), and the `--engine=gen2` wrapper exec'd a relative path (E0 exit 126). The default-build E0 and the E2c replays ran correctly from the right directory. Those folders are kept as `*_failed_relpath`. The script now makes the paths absolute and skips the parts that completed; its second run (13:20) did E2a, E2b and the `--engine=gen2` E0.
+6. **The driver's run header now prints the build's quantum** (`78ff48d`); default builds print the same value as before.
+
+**Done / not done.**
+
+| item (stage E) | status |
+|---|---|
+| E1 tolerance review table | done (table below) |
+| E2 option compiles with 0 warnings | done: engine and harnesses 0; the driver keeps its 25 pre-existing warnings, the same set as its parent in both modes |
+| E2 default build byte-identical on the M1 and M2 harness outputs | done: IDENTICAL (3 of 3; table 2) |
+| E2 numerical check | for KOA (stage G, prepared); on this Mac the long-double build reproduces the default build exactly (tables 3 and 4: identical outputs and hashes) |
+| rule 4 after the Makefile and 00ALLINONE.c changes | done: IDENTICAL, default and --engine=gen2 (table 5) |
+
+**E1, printed by `python3 validation/gen3_tolerance_review_261009.py <the gen3 run logs of stages A, B, C>` (engine-gen3 worktree; verbatim):**
+
+```
+# gen3 tolerance review (261012 sec. 4.7.18, stage E1), printed by validation/gen3_tolerance_review_261009.py
+
+Inputs: 316 files, 1610 gen3 run records. Values at the production run (v_ref = 40 px/unit, box 538 px); u_t = 2^-39 = 1.819e-12 units; K = 4.
+
+| quantity | where | value | scale | derivation / role | largest measured today | source | margin (value / measured) | kind |
+|---|---|---|---|---|---|---|---|---|
+| u_t (time quantum) | edmd_gen3.c `S->u_time = ldexp(1.0, -39)` | 1.819e-12 | units | ulp(2^13): the origin shift keeps now < 2^13 + one event, so every event time is resolved to u_t/2 | - | - | - | constant |
+| origin shift interval | edmd_gen3.h `EDMD3_ORIGIN_SHIFT` | 8192 | units (341.3 sigma-time) | 2^13: the largest time with ulp = u_t | - | - | - | constant |
+| K | edmd_gen3.h `EDMD3_TOL_K` | 4 | - | the derived bound is 2.5 (sec. 4.7.6); K = 4 is the stated safety factor | - | - | - | constant |
+| v_ref | edmd_gen3.c `tol_update` | 40 | px/unit | sqrt(2 E_bound (1 + 1/m_min)) + max abs(u) of mass-0 bodies: bounds every relative speed (amendment c, sec. 4.7.14) | - | - | - | scale |
+| c_tol | edmd_gen3.c `tol_update`: K 2 d v_ref u_t | 1.397e-08 | px^2 (c = r^2 - d^2) | a contact found with c in [-c_tol, 0] is within the time rounding (counted, executed); below it an overlap repair. c error <= 2 d x (gap error), gap error <= 2.5 v_ref u_t | 2.64e-10 | 2 d x the largest pair contact gap (../../HardDisks/hspist3/experiments_gen3_gate_261009/testG/gen3/epi8_H_H10_L10/m_2000/run.log); margin: the smallest over the runs of K v_ref / (gap / u_t) at each run's own v_ref (../../HardDisks/hspist3/experiments_gen3_gate_261009/testG/gen3/epi8_H_H10_L10/m_2000/run.log) | 26.5 | tolerance |
+| tol_face | edmd_gen3.c `tol_update`: K v_ref u_t + 8 ulp(boxW) | 2.919e-10 | px | a wall or body face gap in [-tol_face, 0] at a contact is within rounding; below it wall_overdue / obj_overlap_repair | 3.69e-12 | the largest wall / divider contact gap (../../HardDisks/hspist3/experiments_gen3_gate_261009/testG/gen3/epi8_H_H10_L10/m_1500/run.log; ../../HardDisks/hspist3/experiments_gen3_gate_261009/testG/gen3/epi8_N400_H20_L20/m_300/run.log); margin: the smallest over the runs of K v_ref / (gap / u_t) at each run's own v_ref, walls and divider (the 8 ulp(box) term only adds) (../../HardDisks/hspist3/experiments_gen3_gate_261009/testG/gen3/epi8_H_H10_L10/m_1500/run.log; ../../HardDisks/hspist3/experiments_gen3_gate_261009/testG/gen3/epi8_H_H10_L10/m_1500/run.log) | 41 | tolerance |
+| tol_pair (validator) | edmd_gen3.c `S->tol_pair = fmax(1e-7, 1e-6 d)` | 2.4e-05 | px | experiment_validation.c's pair tolerance, so a local or full check finding means the same as the driver's validator | 5.49e-12 | -local_worst (../../HardDisks/hspist3/experiments_gen3_gate_261009/testG/gen3/epi8_H_H10_L10/m_2000/run.log) | 4.37e+06 | tolerance |
+| tol_wall (validator) | edmd_gen3.c `S->tol_wall = fmax(1e-6, 1e-6 max(1, R))` | 1.2e-05 | px | experiment_validation.c's wall tolerance; also the body checks of full_check | 5.15e-12 | -full_worst (../../HardDisks/hspist3/experiments_gen3_gate_261009/testG/gen3/epi8_N400_H20_L20/m_300/run.log) | 2.33e+06 | tolerance |
+| tol_cell | edmd_gen3.c `S->tol_cell = 1e-9` | 1e-09 | px | a local coordinate outside [-tol_cell, w + tol_cell] is a cell repair (bookkeeping failure); crossings leave a residual of a few ulp(w) | 4.21e-12 | cross_residual_max (../../HardDisks/hspist3/experiments_gen3_gate_261009/testG/gen3/epi8_N400_H20_L20/m_300/run.log) | 238 | tolerance |
+| band margin | edmd_gen3.c `S->band_margin = S->tol_wall` | 1.2e-05 | px | the closed band test's margin; needs >= the membership error (tol_cell) + rounding of [lo, hi] and h (a few ulp(box)) + v_ref u_t, about 1.2e-9 px (the no-miss argument, sec. 4.7.14) | 4.21e-12 | the membership error measured as cross_residual_max (../../HardDisks/hspist3/experiments_gen3_gate_261009/testG/gen3/epi8_N400_H20_L20/m_300/run.log) | 2.85e+06 | tolerance |
+| check interval | edmd_gen3.c `S->check_interval = 24.0` | 24 | units (1 sigma-time) | the full overlap check's cadence (sec. 4.7.1 h) | - | - | - | cadence |
+| same-time limit | edmd_gen3.c `same_limit = max(5000, 4 N)` | 5000 | events at one time | more events at one time than this stops the run (stagnation): a perfect lattice has at most ~4 N simultaneous events | 0 | stagnation stops (experiments_gen3_m3_261009/evidence_f42befb/a3/default/run.log) | - | cut-off |
+| heap compaction | edmd_gen3.c `compact_at = 64 N + 4096` | - | heap entries | performance only (stale entries removed); no effect on the schedule (the hash is unchanged by it) | - | - | - | performance |
+| pair rule | edmd_gen3.c `pair_rule` | - | - | b >= 0 or disc <= 0: no event; dt < 0 -> 0. NO time cut-off (gen2's `t <= 1e-12` is not in gen3) | - | - | - | rule |
+| body rule (spring) | edmd_gen3.c `body_rule` | - | - | the first downward zero of the gap, bracketed between the closed-form zeros of g', safeguarded Newton; the slow-approach O(1) jump with rounding guards (j -+ 1); no tolerance other than the bracket (amendment b: 0 failures in 8 x 2000 constructed cases) | - | - | - | rule |
+| audit abs(dt) | edmd_gen3.c `audit_cmp`: 1e-9 abs, 1e-10 of the horizon | 1e-09 | units | diagnostic only (the schedule audit); not read by the dynamics | - | - | - | diagnostic |
+| validator cadence | 00ALLINONE.c `G3_VALIDATOR_EVERY = 60` | 60 | steps (1 sigma-time) | the driver's validator every 60 steps under gen3 (--validator-every); gen2 every step | - | - | - | cadence |
+| psi6 sample time | 00ALLINONE.c `g3_psi6_series_sample`: t + 1e-9 < next | 1e-09 | sigma-time | a reader's comparison; does not steer | - | - | - | reader |
+| M4 fixed point | 00ALLINONE.c `g3_lattice_fit`: abs(g_new - g) <= 1e-15 (1 + g), 200 iterations | 1e-15 | relative | the wall clearance g = s(g)/2 (a contraction); a positive gap is required after it | - | - | - | rule |
+
+Counters that must be 0 (largest over every record read): overlap_repair 0, wall_overdue 0, obj_overlap_repair 0, cell_repair 0, local_findings 0, full_findings 0, body_findings 0, stagnation 0
+```
+
+**E2, printed by `python3 experiments_gen3_m5_261009/stageE_tables.py --bin-dir experiments_gen3_m5_261009/bin_stageE --out experiments_gen3_m5_261009/evidence_78ff48d` (verbatim):**
+
+```
+# Stage E2 (M5) evidence tables, printed by experiments_gen3_m5_261009/stageE_tables.py
+
+## 1. The frozen binaries
+
+| binary | --version | SHA-256 | = build record |
+|---|---|---|---|
+| 00ALLINONE | 00ALLINONE  git 78ff48d  target mac-O3-e0pre | c56169e4f03e069a38db12ff385cb042bbcf5021c352c98bcf02c0da8bb893e1 | yes |
+| 00ALLINONE_ld | 00ALLINONE  git 78ff48d  target mac-O3-e0pre-ld | 5e188d708bfe10dff21868baea9ba292b6ff40b733b1315725bc9ce8babe2c41 | yes |
+| gen3_m1 | - | 79a4375da64d33e10d2737297661cbbdfeb7e1c3cbe8b3a0b79cae598ac20093 | yes |
+| gen3_m1_ld | - | 276644f12f0c61aa75c3ba11a4478c77c26539e7291f5e2c121583dbce16edc2 | yes |
+| gen3_m2 | - | 4c2be3b682addbb4811875384ec8f85d3daf61eec5e4e97d5649fecf23ce6c48 | yes |
+| gen3_m2_ld | - | ee958c3f293ce2c54f30f6aaf68f4c15b15ee959b4eb34f701d1791ac4f1e744 | yes |
+
+## 2. E2a: the default build on the M1 and M2 harness outputs (the committed ones)
+
+| output | identical |
+|---|---|
+| m1_audit_output.txt | IDENTICAL |
+| m2_audit_quick_output.txt | IDENTICAL |
+| m2_audit_output.txt | IDENTICAL |
+
+## 3. E2b: the long-double harnesses against the default build's outputs (this Mac: long double = double)
+
+| output | identical |
+|---|---|
+| m1_audit_output.txt | IDENTICAL |
+| m2_audit_quick_output.txt | IDENTICAL |
+| m2_audit_output.txt | IDENTICAL |
+
+## 4. E2c: the long-double driver against the default driver, two harness cells replayed
+
+```
+default m1_fluid: [EDMD3-REPLAY] fluid: hash 554d54d53b262d95, harness 554d54d53b262d95; events 522304, harness 522304: MATCH; targets 400, changes 0, advance stops 400 (substeps 1), reader passes 400 (every 1 targets), smallest surface gap seen by the readers
+default m1_fluid: [EDMD3-HEALTH] replay fluid: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wa
+ld m1_fluid: [EDMD3-REPLAY] fluid: hash 554d54d53b262d95, harness 554d54d53b262d95; events 522304, harness 522304: MATCH; targets 400, changes 0, advance stops 400 (substeps 1), reader passes 400 (every 1 targets), smallest surface gap seen by the readers 4.76
+ld m1_fluid: [EDMD3-HEALTH] replay fluid: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_co
+default m2_spring_pi8: [EDMD3-REPLAY] spring_pi8: hash f5acedfa3635e766, harness f5acedfa3635e766; events 527607, harness 527607: MATCH; targets 1600, changes 1, advance stops 1600 (substeps 1), reader passes 1600 (every 1 targets), smallest surface gap seen b
+default m2_spring_pi8: [EDMD3-HEALTH] replay spring_pi8: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contac
+ld m2_spring_pi8: [EDMD3-REPLAY] spring_pi8: hash f5acedfa3635e766, harness f5acedfa3635e766; events 527607, harness 527607: MATCH; targets 1600, changes 1, advance stops 1600 (substeps 1), reader passes 1600 (every 1 targets), smallest surface gap seen by the
+ld m2_spring_pi8: [EDMD3-HEALTH] replay spring_pi8: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now
+```
+m1_fluid: default ('554d54d53b262d95', '522304', 'MATCH'), long double ('554d54d53b262d95', '522304', 'MATCH'): IDENTICAL hash and events, both MATCH
+m2_spring_pi8: default ('f5acedfa3635e766', '527607', 'MATCH'), long double ('f5acedfa3635e766', '527607', 'MATCH'): IDENTICAL hash and events, both MATCH
+
+## 5. Rule 4: gen2 byte identity with 7b08827 after the Makefile and 00ALLINONE.c changes (ctrl_min, ctrl_leg)
+
+default build: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+--engine=gen2: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+```
+
+**Commits:** engine-gen3 `c685d3b` (E2), `78ff48d` (the header's time quantum), `21f7d03` (the evidence).
