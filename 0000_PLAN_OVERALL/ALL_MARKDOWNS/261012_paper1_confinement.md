@@ -8900,3 +8900,97 @@ written files: all hashes identical
 5. **The long-double spot check reads each build's own time quantum** from the engine's [EDMD3-GAP] line. The driver's [EDMD3-RUN] header printed the double quantum in both builds; corrected in engine-gen3 78ff48d (default builds print the same value as before).
 
 **Syntax checks (no run):** `bash -n` on every shell and sbatch file, `ast.parse` on every Python file: OK. The package has never executed anywhere; its first run is step 1 of the runsheet, after the plan author's review.
+
+### 4.7.15 addendum: Test G (Mac) — the verdict (2026-10-09 13:22 HST, machine date) [DATA, printed by the registered script] — PROVISIONAL
+
+**Plain summary.**
+- **Test G (Mac): PASS.** NO DIFFERENCE at both masses without an extension:
+  - M = 300: gen3 − gen2 = +0.075 %, z = +0.82, 95 % interval [−0.105, +0.255] %;
+  - M = 1500: +0.002 %, z = +0.05, [−0.097, +0.102] %.
+  - Those intervals are the stated bound. The smallest true difference that would have given z = 3 with the observed SEs is 0.276 % (M = 300) and 0.152 % (M = 1500).
+- **The inventory is clean:** 1600 of 1600 trajectories; every gen3 record clean=1; no gen2 health line; one build; max contact gap 5.4e-12 px (gen3) and 2.2e-10 px (gen2).
+- **Information rows** (no verdict): every |z| < 1.2. M = 50: +0.39 %; M = 2000: −0.02 %; the dense cell: −0.19 %; N = 400: +0.16 %. The static method's mean face forces agree within 0.01 % (F_L +0.008 %, z = +0.57; F_R −0.011 %, z = −0.70; 200 runs per engine). ν_d: +0.03 % and +0.02 %.
+- **The run:** 3000 tasks of the registered list, 12 processes in task order, from 12:34:49 to 13:18:54 HST (the tasks 2548 s), with the frozen binary (SHA-256 `bc6e8170…`, `00ALLINONE  git f42befb  target mac-O3-e0pre`). Non-zero exits: 0; failed trajectories: 0. The A-fixed row: 200 runs per engine, all reduced; 190 per engine through the FIFO (af_stream_reduce exit 0 in all 380), 10 per engine with the event log kept (compressed).
+- **The inventory and the registered numbers** are printed below by `validation/testG_verdict_261009.py`, the registered script, unchanged (SHA-256 at the run = the registered `3fbce2df…`).
+- **Information rows** (no verdict): the same script's tables below.
+
+**Notes on the run.**
+- **Rule 1** was breached for three minutes (12:41–12:44): seven short scratch tests of the uncommitted M4 code ran next to Test G's 12 processes (§ 4.7.16, decision 9). Test G's trajectories are deterministic per seed, so its numbers cannot depend on it; only its timings could.
+- **Disk:** free space went down to 3.1 GiB during the run (the traces stay uncompressed until their cell's reduction; the Mac's swap and other processes moved it too). The runner then compressed the traces, and free space after it was 9.1 GiB. Test G's data after compression: 939 MB (`hspist3/experiments_gen3_gate_261009/`, untracked).
+
+**Printed by `python3 validation/testG_verdict_261009.py` (verbatim):**
+
+```
+# Test G, the Mac part of the gen-3 gate (261012 sec. 4.7.15)
+
+RULE per mass: NO DIFFERENCE if abs(z) < 2; DIFFERENCE if abs(z) >= 3; otherwise one extension (400 more per engine), judged on 800 with the same thresholds, still between -> UNRESOLVED. PASS = NO DIFFERENCE at both masses.
+
+## Inventory
+
+| engine | M | trajectories matched (expected) | n finite > 0 | log sections | health findings (failed runs incl.) | engine line wrong | max contact gap [px] | contact lines missing | nodes | ok |
+|---|---|---|---|---|---|---|---|---|---|---|
+| gen3 | 300 | 400 (400) | 400 | 400 | 0 | 0 | 5.37e-12 | 0 | 1 | yes |
+| gen3 | 1500 | 400 (400) | 400 | 400 | 0 | 0 | 5.24e-12 | 0 | 1 | yes |
+| gen2 | 300 | 400 (400) | 400 | 400 | 0 | 0 | 1.01e-10 | 0 | 1 | yes |
+| gen2 | 1500 | 400 (400) | 400 | 400 | 0 | 0 | 2.16e-10 | 0 | 1 | yes |
+
+nodes: gen3 {'Christophs-MacBook-Pro-875': 800}; gen2 {'Christophs-MacBook-Pro-875': 800}
+builds (.build_git): ['00ALLINONE  git f42befb  target mac-O3-e0pre'] (required: 00ALLINONE  git f42befb  target mac-O3-e0pre); inventory clean
+
+## The registered numbers
+
+| mass | judged on (per engine) | n gen3 | n gen2 | gen3 mean nu | SE | gen2 mean nu | SE | difference | relative [%] | 95 % interval [%] | z | outcome by the rule |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 300 | 400 | 400 | 400 | 0.0370173 | 2.37e-05 | 0.0369895 | 2.44e-05 | +2.779e-05 | +0.075 | [-0.105, +0.255] | +0.82 | **NO DIFFERENCE** |
+| 1500 | 400 | 400 | 400 | 0.0172660 | 6.12e-06 | 0.0172656 | 6.28e-06 | +4.052e-07 | +0.002 | [-0.097, +0.102] | +0.05 | **NO DIFFERENCE** |
+
+## The thresholds' false-alarm rates (no true difference)
+
+| quantity (no true difference) | one mass | two masses (independent) |
+|---|---|---|
+| P(abs(z) >= 3 at 400) | 0.00270 | 0.00539 |
+| P(extension: 2 <= abs(z) < 3 at 400) | 0.04280 | 0.08377 (at least one) |
+| P(DIFFERENCE), extension path included | 0.00403 | 0.00804 (at least one) |
+| P(UNRESOLVED) | 0.01189 | 0.02364 (at least one) |
+| P(NO DIFFERENCE) | 0.98408 | P(PASS) = 0.96841; false alarm (not PASS) = 0.03159 |
+
+## The smallest true difference that would give z = 3 with the observed SEs
+
+| mass | judged on | SE of the difference | 3 x SE | relative to gen2's mean [%] |
+|---|---|---|---|---|
+| 300 | 400 | 3.40e-05 | 1.02e-04 | 0.276 |
+| 1500 | 400 | 8.77e-06 | 2.63e-05 | 0.152 |
+
+M = 300: NO DIFFERENCE; M = 1500: NO DIFFERENCE; no extension
+95 % intervals of the relative difference (the stated bound): M = 300: [-0.105, +0.255] %; M = 1500: [-0.097, +0.102] %
+TEST G (Mac): PASS
+
+## Information (no verdict): nu_d on the main masses
+
+| M | estimator | gen3 mean | gen2 mean | relative [%] | z | same-seed correlation |
+|---|---|---|---|---|---|---|
+| 300 | argmax (registered) | 0.0370173 | 0.0369895 | +0.075 | +0.82 | +0.038 |
+| 300 | nu_d (sec. 4.4.13 item 4a) | 0.0370095 | 0.0369974 | +0.033 | +0.54 | +0.095 |
+| 1500 | argmax (registered) | 0.0172660 | 0.0172656 | +0.002 | +0.05 | -0.066 |
+| 1500 | nu_d (sec. 4.4.13 item 4a) | 0.0172665 | 0.0172632 | +0.019 | +0.60 | -0.090 |
+
+## Information (no verdict): the other rows
+
+| row | n gen3 | n gen2 | gen3 mean | SE | gen2 mean | SE | relative [%] | 95 % interval [%] | z | clean (both engines) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| nu, M = 50 | 100 | 100 | 0.0729194 | 1.69e-04 | 0.0726391 | 1.87e-04 | +0.386 | [-0.294, +1.066] | +1.11 | failed 0; gen3 records 100, clean=1 100; gen2 health lines 0 |
+| nu, M = 2000 | 100 | 100 | 0.0149916 | 1.09e-05 | 0.0149944 | 9.90e-06 | -0.019 | [-0.211, +0.174] | -0.19 | failed 0; gen3 records 100, clean=1 100; gen2 health lines 0 |
+| nu, dense cell, M = 300 | 200 | 200 | 0.3685046 | 5.02e-04 | 0.3691975 | 5.16e-04 | -0.188 | [-0.570, +0.195] | -0.96 | failed 0; gen3 records 200, clean=1 200; gen2 health lines 0 |
+| nu, N = 400 at pi/8, M = 300 | 100 | 100 | 0.0302537 | 3.40e-05 | 0.0302051 | 3.95e-05 | +0.161 | [-0.177, +0.499] | +0.93 | failed 0; gen3 records 100, clean=1 100; gen2 health lines 0 |
+| static method, A-fixed at x_0, mean F_L | 200 | 200 | 15.930301 | 1.59e-03 | 15.929027 | 1.55e-03 | +0.008 | [-0.019, +0.035] | +0.57 | failed gen3 0, gen2 0 |
+| static method, A-fixed at x_0, mean F_R | 200 | 200 | 15.927180 | 1.56e-03 | 15.928859 | 1.84e-03 | -0.011 | [-0.040, +0.019] | -0.70 | failed gen3 0, gen2 0 |
+```
+
+**The runner's log** (`experiments_gen3_gate_261009/runner_tasks_testG_261009.txt.log`, its first and last lines):
+
+```
+# 2026-10-09 12:34:49 HST run_testG_mac.py: tasks cluster/gen3_gate_261009/tasks_testG_261009.txt (SHA-256 872c39303e7b06a29e8dc393af474130bcb13ba5492ae4dbb3ee8cbd15389e60); binary /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_gate_261009/bin/00ALLINONE (SHA-256 bc6e8170741bb0a4c301f3c9d77a769f3cf9bbc9d80b6256d5758861e63eb58d; 00ALLINONE  git f42bef
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+# all 3000 tasks finished in 2548 s; non-zero exits: 0
+# done 2026-10-09 13:18:54 HST
+```
