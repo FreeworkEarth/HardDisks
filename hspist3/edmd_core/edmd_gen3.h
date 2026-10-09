@@ -170,6 +170,8 @@ void   edmd3_set_event_log(EDMD3* S, FILE* f, double time_scale);
 /* read-only audits: neither changes any stored number, so outputs are identical with and without them */
 void   edmd3_set_contact_audit(EDMD3* S, int on);
 long   edmd3_contact_audit_stats(const EDMD3* S, double max_gap_px[2]);   /* [0] pairs, [1] outer walls */
+/* ##CHRIS 2026-10-09 (stage C, M4): read-only; live events, those sharing their time exactly with another, those due at once */
+long   edmd3_tie_stats(const EDMD3* S, long* n_live, long* n_now);
 long   edmd3_contact_audit_stats4(const EDMD3* S, double max_gap_px[4]);  /* [0] pairs, [1] outer walls, [2] divider faces, [3] pistons */
 void   edmd3_set_schedule_audit(EDMD3* S, long every);                   /* after every k-th executed event; 0 off */
 void   edmd3_set_schedule_audit_bodies(EDMD3* S, int on);              /* M2: also after every BAND event and API body change */

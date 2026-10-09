@@ -1290,6 +1290,27 @@ void   edmd3_set_schedule_audit_bodies(EDMD3* S, int on){ S->audit_bodies = on ?
 void   edmd3_schedule_audit_now(EDMD3* S){ schedule_audit(S); }
 const EDMD3_Audit* edmd3_schedule_audit_stats(const EDMD3* S){ return &S->A; }
 
+/* ##CHRIS 2026-10-09 (stage C, M4; 261012 sec. 4.7.16): read-only. The live events now: how many, how many share their time
+   EXACTLY with another live event (the tie count of an initial state), how many are due at once (t == now). */
+static int cmp_double_asc(const void* a, const void* b){ const double x = *(const double*)a, y = *(const double*)b; return (x > y) - (x < y); }
+long edmd3_tie_stats(const EDMD3* S, long* n_live, long* n_now){
+    long n = 0, now = 0, tied = 0;
+    double* t = (double*)malloc((size_t)(S->heap.n > 0 ? S->heap.n : 1) * sizeof(double));
+    if (!t) { if (n_live) *n_live = -1; if (n_now) *n_now = -1; return -1; }
+    for (long q = 0; q < S->heap.n; ++q) {
+        const Ev3* e = &S->heap.d[q];
+        if (!ev_live(S, e)) continue;
+        t[n++] = e->t;
+        if (e->t == S->now) now++;
+    }
+    qsort(t, (size_t)n, sizeof(double), cmp_double_asc);
+    for (long k = 0; k < n; ++k) if ((k > 0 && t[k] == t[k - 1]) || (k + 1 < n && t[k] == t[k + 1])) tied++;
+    free(t);
+    if (n_live) *n_live = n;
+    if (n_now) *n_now = now;
+    return tied;
+}
+
 /* ------------------------------------------------------------------ M2: bodies, ledgers, tolerances (public) */
 
 long edmd3_contact_audit_stats4(const EDMD3* S, double max_gap_px[4]){
