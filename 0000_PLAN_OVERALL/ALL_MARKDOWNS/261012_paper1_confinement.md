@@ -6872,3 +6872,240 @@ observables (information, not a test):
 
 static method (gen3 run B, 531 + 523 divider events over 360 sigma-time; information): F_left = 0.157866 kT/px (Z = F L / (N kT) = 1.18069, kT_left = 1.15046, N = 200), F_right = 0.156908 kT/px (Z = 1.45550, kT_right = 1.07756, N = 200)
 ```
+
+### 4.7.7 Decision 3 done: the § 4.6 follow-up (2026-10-09 09:02 HST, machine date) [POST HOC, EXPLORATORY: no verdict rule, decides nothing; DATA, printed by script; SOURCE for the quotes; DERIVATION and INFERENCE where marked]
+
+**Plain summary.**
+- **Existing data only; no new runs.** The task is recorded verbatim in § 4.7.4 (decision 3). Item 4 (seeding rule) is closed by § 4.7.1 (d, f) and implemented in M4; no task.
+- **Item 1, the within-mass aging check [DATA].** Cells: those of § 4.6 item 4b (η_true 0.69–0.725 with per-run ψ₆ summaries: A1 v2, the transition run, three ladders, route B).
+  - **Method.** Per mass, Spearman(per-trajectory ν, per-trajectory ψ₆ run mean), n = 25 (10 in the ladders). Within one mass the per-trajectory sound-speed estimate ν/x_M has the ranks of ν.
+    - Combined over the 9 masses by Fisher's z, with the Spearman variance 1.06/(n − 3) (Fieller, Hartley and Pearson 1957), a 95 % interval, and Cochran's Q (do the masses agree?).
+  - **Gate:** the pooled values recomputed with § 4.6's own code path equal its printed table in 28 of 30 rows. The other 2 are the accelerated-backend cells withdrawn in § 4.7.1, which the loader guard now refuses.
+  - **The correlation survives within each mass in the window**, where § 4.6 saw it pooled:
+    - **A1 v2 η 0.7060:** combined +0.68 [+0.60, +0.75]. All 9 masses are positive (+0.54 to +0.84) and they agree (Q p 0.46). Pooled: +0.84.
+    - **A1 v2 0.7113:** −0.48 [−0.58, −0.36], but the masses disagree (Q p 0.0003): the four lightest −0.63 to −0.80, the five heavier −0.01 to −0.37. Pooled: −0.56.
+    - **A1 v2 0.7167:** −0.53 [−0.62, −0.42]. Pooled: −0.65.
+    - **A1 v2 0.7007 (window entry):** −0.04 [−0.19, +0.10].
+    - **A1 v2 outside the window:** −0.18 [−0.32, −0.04] (0.6905), −0.09 (0.6956), and −0.15 [−0.29, −0.01] at 0.7222. At 0.7222 the pooled value is −0.52, so the pooled correlation there is not a within-mass effect.
+    - **Transition run (records of 37–83 periods):** +0.41 at 0.7060 and −0.62 at 0.7113.
+    - **Route B:** −0.40 to −0.64 inside the window, −0.21 and −0.22 below it, −0.49 and −0.56 above it.
+    - **Ladders (10 seeds):** consistent with 0, except N = 400 at 0.7001 (−0.37 [−0.57, −0.14]).
+  - **The first-half/second-half split: possible, and added.** Not from the summaries alone, which hold one frequency per trajectory. It comes from the recorded divider traces, which are existing data on this Mac, so nothing is regenerated. ψ₆ has no halves (hold, end and run mean only).
+    - **A1 v2** (100 periods per half, 1 % resolution): the second half's frequency is above the first half's by +7.5 ± 0.8 % (0.7060), +10.4 ± 0.9 % (0.7113) and +7.8 ± 0.9 % (0.7167). The other four cells (0.6905, 0.6956, 0.7007, 0.7222) lie at −0.4 to +1.1 %.
+    - **Transition run** (18–42 periods per half): +3.1, +6.7 and +1.6 % in the same three cells.
+    - **Route B** (18.5 periods per half, 5.4 % resolution): −4.7 to +1.4 %, mixed.
+    - **Within mass, the change Δν against ψ₆(end) − ψ₆(hold):**
+      - A1 v2: +0.29 [+0.15, +0.42] at 0.7060 and −0.31 [−0.43, −0.18] at 0.7167;
+      - transition: −0.41 [−0.52, −0.28] at 0.7113;
+      - ladder N = 200: +0.39 [+0.16, +0.58] at 0.7208;
+      - everything else small (|ρ| ≤ 0.2) or consistent with 0.
+  - [INFERENCE] In the window, a trajectory's frequency drifts by up to 10 % within its own record, in the same cells where it tracks ψ₆ within each mass. So § 4.6's aging confound is present within a mass and within one trajectory, not only between masses of different record lengths. The existing data still cannot separate relaxation from aging (§ 4.6).
+- **Item 2, the KR range table [SOURCE, DATA]**, printed by `validation/paper1_kr_ranges_261009.py`, with the quotes read from the PDF's page images and from pdftotext.
+  - **η ≤ 0.69 (ρ ≤ 0.8785): the ρmax = 0.90 fit, compared with data.**
+    - The source: s = 0.927, and s ≈ 1 means the fit is within the input standard errors, "determined with an accuracy (error of the error) of a few percent".
+    - Its MD data in this range (ρ 0.40–0.87) have σ(Z)/Z ≤ 1.3e-5. The source gives no accuracy for Z′, which c_s uses.
+    - Our A1 v2 points: 23 by η_true, 24 by recorded η. Every A2, confinement and identity point lies here.
+  - **0.69 < η ≤ 0.7069: the same fit, not compared.**
+    - The source: "region ρ ∈ [0.89, 0.90] of this equation may be affected by finite-size effects"; the finite-size correction is "not applicable for ρ ≥ 0.89 … the final results thus lack precision"; and their ρ = 0.9 point disagrees with the N = 1024² Monte Carlo value (10.206 against 10.212).
+    - Our A1 v2 points: 4 by η_true, 3 by recorded η.
+    - Paper 1 shows these points, does not count them as deviations, draws KR dashed to 0.705, and compares with Engel et al. qualitatively.
+  - **η > 0.7069: beyond the fit.**
+    - The source: "Any extrapolation to ρ > ρ_c should be done with caution".
+    - Our points: 8. Paper 1 draws no KR there and uses Engel et al.'s landmarks.
+  - **The boundary row** (η_true 0.690460, recorded 0.689999) is compared by its recorded η. It is one of the draft's "24 densities with η ≤ 0.69".
+  - **[DERIVATION] The 0.69 cutoff in numbers.** c_s from the paper's three published fits agrees to ≤ 1e-5 up to η 0.65, then differs by 2.3e-4 at 0.69, 4.5e-3 at 0.695, 3.3 % at 0.700 and 36 % at 0.7069.
+  - **A transcription error, found on the way [SOURCE].** `validation/paper1_kr_sanity_261002.py` types the x⁵⁷ coefficient of the ρmax = 0.89 fit as 5.77730095e-23. The paper prints 5.57730095e-23 (p. 3439; the page image and pdftotext agree).
+    - Paper 1 uses the 0.90 fit, whose coefficients match the page; the 0.88 fit's also match. The 0.89 fit is printed by the sanity script for information only.
+    - Effect on that fit's c_s: 3.5e-9 at η 0.65, 1e-4 at 0.69, 1.2 % at 0.7069. No paper number moves.
+    - The recorded script is not edited here; that is the plan author's call.
+- **Item 3, heavy-divider design numbers [DERIVATION, DATA]**, appended to `validation/gen3_design_numbers_261009.py` as section 5. Sections 1–4 print byte-identical to before.
+  - **Periods at η 0.70** (the § 4.7 table's model, c_s = 15):
+    - **M = 4e7:** a period of 1215 σ-time (N = 100) to 1418 (N = 1600), so 8.2–7.1 periods in 1e4 σ-time and 16.5–14.1 in 2e4.
+    - **M = 1e8:** 10.4–8.9 periods in 2e4.
+    - **Both are below § 4.7.1 amendment e's 20 periods at every N at 2e4 σ-time.** The counts scale with c_s: at the N = 100 measured value, 19.2 at η 0.7007, M = 4e7 reaches about 21 periods at N = 100.
+    - **M = 1e6:** 89–104 periods in 2e4.
+  - **Per-trajectory relative frequency error** (A1 v2, N = 100: the canonical estimator on the first n periods of each record; median over cells and masses), at 5 / 16 / 20 / 50 / 200 periods:
+    - fluid: 10 / 4.0 / 3.3 / 1.9 / 1.2 %;
+    - η 0.7007: 11 / 5.1 / 4.9 / 2.3 / 1.3 %;
+    - window, 0.69–0.72: 11 / 6.5 / 6.0 / 5.1 / 4.6 %.
+    - The argmax quantization floor 1/(n√12) is 1.8 % at 16 periods.
+    - Bias of the short-record mean: up to ±3 % at 5 periods; at ≥ 16 periods, within 0.4 % in the fluid and −1 to −2 % in the window.
+    - **Gate:** at n = 200 the per-mass means equal the canonical estimator (`paper1_populate_cs_err_20261002.cell`) exactly.
+  - [INFERENCE] A 2e4 σ-time record gives one M = 4e7 trajectory a frequency error of about 5 % at η 0.70 (5.1 % at 16 periods), from its 14–16 periods. The window's within-record drift (item 1, 7.5–10.4 % in A1 v2) is larger.
+
+**What was run.**
+- **Scripts:**
+  - `validation/paper1_window_aging_261009.py` (item 1; it uses `paper1_window_explore_261008.py`'s inventory, trajectory selection and estimator);
+  - `validation/paper1_kr_ranges_261009.py` (item 2);
+  - `validation/gen3_design_numbers_261009.py`, section 5 (item 3).
+- **Outputs**, each reproduced byte for byte by a second run:
+  - `0000_PLAN_OVERALL/paper1_speedofsound/experiments/exploratory_261009_followup/261009_window_aging_output.txt` and `261009_kr_ranges_output.txt`;
+  - `hspist3/experiments_gen3_design_261009/261009_design_numbers_output.txt`.
+- The scripts and outputs are on main and engine-gen3. engine-divider-resched gets these notes only, because the scripts need the guarded loaders and T′ still reads that branch.
+
+**Item 1, printed by `validation/paper1_window_aging_261009.py`, verbatim:**
+
+```
+# Decision 3 item 1: the within-mass aging check (261012 sec. 4.7.4; EXPLORATORY, POST HOC, no verdict rule), printed by validation/paper1_window_aging_261009.py
+
+refused by the loader provenance guard (accelerated backend; sec. 4.7.1, 4.7.5): validate_acc_N100_20260826 eta_0p700: 90, validate_acc_N100_20260826 eta_0p720: 90
+
+## 1. Per mass: Spearman(per-trajectory nu, per-trajectory psi6 run mean); combined over the masses; the pooled value of sec. 4.6 item 4b
+
+| campaign | eta_true | in the window | seeds per mass | Spearman per mass, M ascending | combined over masses [95 % interval] | Cochran Q (dof, p) | pooled, recomputed (n) | pooled, recorded in sec. 4.6 |
+|---|---|---|---|---|---|---|---|---|
+| A1v2_20260914 | 0.6905 | no | 25 | +0.01, +0.44, -0.38, -0.45, -0.26, -0.55, -0.25, -0.14, +0.03 | -0.18 [-0.32, -0.04] | 17.8 (8, 0.023) | -0.16 (p 1.5e-02), 225 | -0.16 (p 1.5e-02), 225 |
+| A1v2_20260914 | 0.6956 | no | 25 | +0.00, -0.26, -0.13, -0.20, -0.17, +0.12, -0.00, +0.04, -0.17 | -0.09 [-0.23, +0.06] | 2.9 (8, 0.94) | -0.11 (p 1.0e-01), 225 | -0.11 (p 1.0e-01), 225 |
+| A1v2_20260914 | 0.7007 | yes | 25 | +0.26, -0.25, +0.18, -0.30, +0.02, -0.29, +0.09, -0.14, +0.06 | -0.04 [-0.19, +0.10] | 7.7 (8, 0.46) | -0.03 (p 6.7e-01), 225 | -0.03 (p 6.7e-01), 225 |
+| A1v2_20260914 | 0.7060 | yes | 25 | +0.65, +0.60, +0.80, +0.72, +0.84, +0.58, +0.74, +0.57, +0.54 | +0.68 [+0.60, +0.75] | 7.7 (8, 0.46) | +0.84 (p 5.2e-62), 225 | +0.84 (p 5.2e-62), 225 |
+| A1v2_20260914 | 0.7113 | yes | 25 | -0.80, -0.74, -0.74, -0.63, -0.01, -0.14, -0.27, -0.37, -0.14 | -0.48 [-0.58, -0.36] | 28.8 (8, 0.00034) | -0.56 (p 8.7e-20), 225 | -0.56 (p 8.7e-20), 225 |
+| A1v2_20260914 | 0.7167 | yes | 25 | -0.56, -0.11, -0.69, -0.39, -0.30, -0.41, -0.60, -0.78, -0.67 | -0.53 [-0.62, -0.42] | 14.4 (8, 0.072) | -0.65 (p 1.2e-28), 225 | -0.65 (p 1.2e-28), 225 |
+| A1v2_20260914 | 0.7222 | no | 25 | -0.29, -0.22, -0.48, -0.09, -0.07, +0.21, +0.25, -0.28, -0.35 | -0.15 [-0.29, -0.01] | 11.3 (8, 0.19) | -0.52 (p 6.8e-17), 225 | -0.52 (p 6.8e-17), 225 |
+| campaign_transition_psi6run_20260823 | 0.6905 | no | 25 | +0.17, -0.06, -0.36, -0.21, +0.28, -0.09, -0.24, -0.11, +0.02 | -0.07 [-0.21, +0.07] | 7.0 (8, 0.53) | -0.08 (p 2.3e-01), 225 | -0.08 (p 2.3e-01), 225 |
+| campaign_transition_psi6run_20260823 | 0.6956 | no | 25 | -0.12, -0.44, -0.13, -0.39, +0.02, -0.10, -0.09, +0.17, -0.39 | -0.17 [-0.31, -0.03] | 7.9 (8, 0.44) | -0.18 (p 8.0e-03), 225 | -0.18 (p 8.0e-03), 225 |
+| campaign_transition_psi6run_20260823 | 0.7007 | yes | 25 | +0.16, -0.33, +0.29, +0.31, -0.04, -0.55, +0.02, -0.26, -0.27 | -0.08 [-0.22, +0.06] | 16.6 (8, 0.035) | +0.06 (p 3.6e-01), 225 | +0.06 (p 3.6e-01), 225 |
+| campaign_transition_psi6run_20260823 | 0.7060 | yes | 25 | +0.06, +0.53, +0.39, +0.06, +0.25, +0.64, +0.64, +0.43, +0.54 | +0.41 [+0.29, +0.52] | 11.9 (8, 0.16) | +0.44 (p 7.8e-12), 225 | +0.44 (p 7.8e-12), 225 |
+| campaign_transition_psi6run_20260823 | 0.7113 | yes | 25 | -0.69, -0.61, -0.58, -0.34, -0.44, -0.56, -0.87, -0.57, -0.69 | -0.62 [-0.70, -0.53] | 13.3 (8, 0.1) | -0.68 (p 2.2e-31), 225 | -0.68 (p 2.2e-31), 225 |
+| campaign_transition_psi6run_20260823 | 0.7167 | yes | 25 | -0.53, +0.07, -0.17, -0.11, +0.21, -0.32, -0.03, -0.28, +0.03 | -0.13 [-0.27, +0.01] | 9.9 (8, 0.27) | -0.37 (p 1.3e-08), 225 | -0.37 (p 1.3e-08), 225 |
+| campaign_transition_psi6run_20260823 | 0.7222 | no | 25 | -0.15, +0.19, +0.25, -0.09, +0.01, -0.05, -0.07, -0.21, +0.13 | +0.00 [-0.14, +0.14] | 4.2 (8, 0.84) | +0.06 (p 3.7e-01), 225 | +0.06 (p 3.7e-01), 225 |
+| ladder_N100_20260825 | 0.7007 | yes | 10 | -0.27, +0.34, +0.14, -0.04, -0.48, +0.49, +0.00, -0.31, +0.03 | -0.01 [-0.26, +0.24] | 5.9 (8, 0.66) | -0.05 (p 6.7e-01), 90 | -0.05 (p 6.7e-01), 90 |
+| ladder_N100_20260825 | 0.7222 | no | 10 | -0.28, -0.33, -0.21, -0.28, +0.09, +0.00, -0.58, +0.75, +0.52 | -0.02 [-0.27, +0.23] | 13.7 (8, 0.091) | -0.08 (p 4.7e-01), 90 | -0.08 (p 4.7e-01), 90 |
+| ladder_N200_20260825 | 0.7007 | yes | 10 | +0.43, -0.53, +0.38, -0.47, +0.18, +0.23, +0.19, -0.74, +0.05 | -0.06 [-0.30, +0.19] | 13.1 (8, 0.11) | -0.04 (p 7.0e-01), 90 | -0.04 (p 7.0e-01), 90 |
+| ladder_N200_20260825 | 0.7208 | no | 10 | +0.37, +0.05, +0.19, -0.26, -0.20, -0.30, +0.17, +0.31, -0.66 | -0.05 [-0.30, +0.20] | 7.5 (8, 0.48) | +0.11 (p 2.9e-01), 90 | +0.11 (p 2.9e-01), 90 |
+| ladder_N400_20260825 | 0.7001 | yes | 10 | +0.27, -0.14, -0.72, -0.34, -0.46, -0.38, -0.42, -0.25, -0.65 | -0.37 [-0.57, -0.14] | 6.3 (8, 0.61) | -0.37 (p 3.5e-04), 90 | -0.37 (p 3.5e-04), 90 |
+| ladder_N400_20260825 | 0.7201 | no | 10 | +0.01, -0.24, +0.14, -0.12, +0.23, +0.16, +0.61, +0.65, +0.36 | +0.22 [-0.03, +0.45] | 6.4 (8, 0.61) | +0.26 (p 1.3e-02), 90 | +0.26 (p 1.3e-02), 90 |
+| routeB_radius_N100_L0_20_20260825 | 0.6900 | no | 25 | -0.34, -0.51, -0.21, -0.40, -0.02, -0.28, -0.10, +0.17, -0.16 | -0.22 [-0.35, -0.07] | 8.1 (8, 0.43) | -0.25 (p 1.7e-04), 225 | -0.25 (p 1.7e-04), 225 |
+| routeB_radius_N100_L0_20_20260825 | 0.6950 | no | 25 | -0.35, -0.43, -0.15, -0.36, +0.06, -0.26, +0.02, -0.30, -0.04 | -0.21 [-0.34, -0.07] | 5.9 (8, 0.66) | -0.25 (p 1.3e-04), 225 | -0.25 (p 1.3e-04), 225 |
+| routeB_radius_N100_L0_20_20260825 | 0.7000 | yes | 25 | -0.28, -0.40, -0.37, -0.68, -0.35, -0.42, -0.08, -0.32, -0.56 | -0.40 [-0.51, -0.27] | 7.7 (8, 0.46) | -0.39 (p 1.1e-09), 225 | -0.39 (p 1.1e-09), 225 |
+| routeB_radius_N100_L0_20_20260825 | 0.7050 | yes | 25 | -0.43, -0.60, -0.66, -0.83, -0.45, -0.34, -0.77, -0.05, -0.48 | -0.55 [-0.64, -0.44] | 19.7 (8, 0.012) | -0.54 (p 2.8e-18), 225 | -0.54 (p 2.8e-18), 225 |
+| routeB_radius_N100_L0_20_20260825 | 0.7100 | yes | 25 | -0.71, -0.76, -0.44, -0.59, -0.70, -0.51, -0.53, -0.77, -0.64 | -0.64 [-0.72, -0.55] | 6.3 (8, 0.61) | -0.65 (p 1.9e-28), 225 | -0.65 (p 1.9e-28), 225 |
+| routeB_radius_N100_L0_20_20260825 | 0.7150 | yes | 25 | -0.86, -0.81, -0.66, -0.45, -0.54, -0.32, -0.58, -0.31, -0.16 | -0.57 [-0.66, -0.46] | 23.8 (8, 0.0025) | -0.64 (p 1.2e-27), 225 | -0.64 (p 1.2e-27), 225 |
+| routeB_radius_N100_L0_20_20260825 | 0.7200 | no | 25 | -0.66, -0.70, -0.66, -0.49, -0.18, -0.55, -0.32, -0.36, -0.37 | -0.49 [-0.60, -0.38] | 9.6 (8, 0.3) | -0.57 (p 1.5e-20), 225 | -0.57 (p 1.5e-20), 225 |
+| routeB_radius_N100_L0_20_20260825 | 0.7250 | no | 25 | -0.79, -0.74, -0.73, -0.33, -0.55, -0.55, -0.53, -0.28, -0.34 | -0.56 [-0.65, -0.46] | 13.4 (8, 0.098) | -0.64 (p 7.0e-27), 225 | -0.64 (p 7.0e-27), 225 |
+
+gate: the pooled values recomputed here against sec. 4.6's printed table: IDENTICAL to the printed digits in every cell compared (28 of its 30 rows compared)
+rows of sec. 4.6's table not recomputed here: validate_acc_N100_20260826 0.7007, validate_acc_N100_20260826 0.7222 (refused by the loader provenance guard: the accelerated backend, withdrawn in sec. 4.7.1)
+
+## 2. First half against second half of each trajectory: dnu = nu2/nu1 - 1 (same estimator on TD/2 periods each)
+
+| campaign | eta_true | in the window | TD (periods per half) | argmax resolution of a half | trajectories | mean dnu [%] (SE) | dnu exactly 0 (one bin) | within-mass Spearman(dnu, psi6 end - hold), combined [95 % interval] | Cochran Q (dof, p) |
+|---|---|---|---|---|---|---|---|---|---|
+| A1v2_20260914 | 0.6905 | no | 200 (100) | 1.0 % | 225 | -0.41 (0.22) | 33 (15 %) | -0.06 [-0.20, +0.08] | 12.2 (8, 0.14) |
+| A1v2_20260914 | 0.6956 | no | 200 (100) | 1.0 % | 225 | -0.19 (0.20) | 30 (13 %) | +0.09 [-0.05, +0.23] | 7.2 (8, 0.52) |
+| A1v2_20260914 | 0.7007 | yes | 200 (100) | 1.0 % | 225 | +0.19 (0.28) | 24 (11 %) | +0.14 [-0.00, +0.27] | 7.8 (8, 0.45) |
+| A1v2_20260914 | 0.7060 | yes | 200 (100) | 1.0 % | 225 | +7.45 (0.78) | 15 (7 %) | +0.29 [+0.15, +0.42] | 6.1 (8, 0.64) |
+| A1v2_20260914 | 0.7113 | yes | 200 (100) | 1.0 % | 225 | +10.37 (0.85) | 18 (8 %) | +0.05 [-0.10, +0.19] | 15.5 (8, 0.051) |
+| A1v2_20260914 | 0.7167 | yes | 200 (100) | 1.0 % | 225 | +7.78 (0.85) | 23 (10 %) | -0.31 [-0.43, -0.18] | 6.8 (8, 0.56) |
+| A1v2_20260914 | 0.7222 | no | 200 (100) | 1.0 % | 225 | +1.13 (0.38) | 52 (23 %) | -0.17 [-0.30, -0.03] | 8.4 (8, 0.39) |
+| campaign_transition_psi6run_20260823 | 0.6905 | no | 37, 40, 53, 67 (18.5, 20, 26.5, 33.5) | 5.4 %, 5.0 %, 3.8 %, 3.0 % | 225 | -0.59 (0.36) | 64 (28 %) | -0.06 [-0.20, +0.08] | 4.8 (8, 0.77) |
+| campaign_transition_psi6run_20260823 | 0.6956 | no | 37, 42, 55, 69 (18.5, 21, 27.5, 34.5) | 5.4 %, 4.8 %, 3.6 %, 2.9 % | 225 | -0.77 (0.37) | 66 (29 %) | -0.06 [-0.20, +0.09] | 1.9 (8, 0.98) |
+| campaign_transition_psi6run_20260823 | 0.7007 | yes | 37, 43, 57, 72 (18.5, 21.5, 28.5, 36) | 5.4 %, 4.7 %, 3.5 %, 2.8 % | 225 | -0.32 (0.39) | 53 (24 %) | -0.06 [-0.20, +0.09] | 8.0 (8, 0.43) |
+| campaign_transition_psi6run_20260823 | 0.7060 | yes | 37, 38, 45, 59, 74 (18.5, 19, 22.5, 29.5, 37) | 5.4 %, 5.3 %, 4.4 %, 3.4 %, 2.7 % | 225 | +3.10 (0.71) | 56 (25 %) | +0.22 [+0.08, +0.36] | 2.7 (8, 0.95) |
+| campaign_transition_psi6run_20260823 | 0.7113 | yes | 37, 39, 47, 62, 77 (18.5, 19.5, 23.5, 31, 38.5) | 5.4 %, 5.1 %, 4.3 %, 3.2 %, 2.6 % | 225 | +6.68 (0.81) | 54 (24 %) | -0.41 [-0.52, -0.28] | 16.0 (8, 0.042) |
+| campaign_transition_psi6run_20260823 | 0.7167 | yes | 37, 40, 48, 64, 80 (18.5, 20, 24, 32, 40) | 5.4 %, 5.0 %, 4.2 %, 3.1 %, 2.5 % | 225 | +1.56 (0.50) | 91 (40 %) | -0.07 [-0.21, +0.07] | 10.1 (8, 0.26) |
+| campaign_transition_psi6run_20260823 | 0.7222 | no | 37, 42, 50, 66, 83 (18.5, 21, 25, 33, 41.5) | 5.4 %, 4.8 %, 4.0 %, 3.0 %, 2.4 % | 225 | +0.24 (0.28) | 94 (42 %) | +0.02 [-0.12, +0.17] | 5.2 (8, 0.73) |
+| ladder_N100_20260825 | 0.7007 | yes | 37, 43, 57, 72 (18.5, 21.5, 28.5, 36) | 5.4 %, 4.7 %, 3.5 %, 2.8 % | 90 | +0.70 (0.87) | 18 (20 %) | -0.11 [-0.35, +0.14] | 3.4 (8, 0.91) |
+| ladder_N100_20260825 | 0.7222 | no | 37, 42, 50, 66, 83 (18.5, 21, 25, 33, 41.5) | 5.4 %, 4.8 %, 4.0 %, 3.0 %, 2.4 % | 90 | +0.43 (0.39) | 38 (42 %) | -0.03 [-0.27, +0.22] | 5.7 (8, 0.68) |
+| ladder_N200_20260825 | 0.7007 | yes | 37, 38 (18.5, 19) | 5.4 %, 5.3 % | 90 | +0.57 (0.70) | 26 (29 %) | -0.21 [-0.43, +0.04] | 22.5 (8, 0.0041) |
+| ladder_N200_20260825 | 0.7208 | no | 37, 44 (18.5, 22) | 5.4 %, 4.5 % | 90 | -4.57 (1.56) | 9 (10 %) | +0.39 [+0.16, +0.58] | 7.1 (8, 0.53) |
+| ladder_N400_20260825 | 0.7001 | yes | 37 (18.5) | 5.4 % | 90 | -0.18 (0.54) | 25 (28 %) | -0.07 [-0.31, +0.18] | 10.7 (8, 0.22) |
+| ladder_N400_20260825 | 0.7201 | no | 37 (18.5) | 5.4 % | 90 | +0.26 (0.50) | 33 (37 %) | +0.23 [-0.02, +0.45] | 17.7 (8, 0.024) |
+| routeB_radius_N100_L0_20_20260825 | 0.6900 | no | 37 (18.5) | 5.4 % | 225 | -1.15 (0.74) | 31 (14 %) | -0.10 [-0.24, +0.05] | 8.3 (8, 0.4) |
+| routeB_radius_N100_L0_20_20260825 | 0.6950 | no | 37 (18.5) | 5.4 % | 225 | +1.38 (1.52) | 27 (12 %) | -0.01 [-0.15, +0.13] | 11.0 (8, 0.2) |
+| routeB_radius_N100_L0_20_20260825 | 0.7000 | yes | 37 (18.5) | 5.4 % | 225 | -1.17 (0.67) | 28 (12 %) | -0.11 [-0.24, +0.04] | 5.7 (8, 0.68) |
+| routeB_radius_N100_L0_20_20260825 | 0.7050 | yes | 37 (18.5) | 5.4 % | 225 | -0.62 (0.85) | 29 (13 %) | -0.16 [-0.29, -0.01] | 2.1 (8, 0.98) |
+| routeB_radius_N100_L0_20_20260825 | 0.7100 | yes | 37 (18.5) | 5.4 % | 225 | -2.23 (0.86) | 38 (17 %) | -0.10 [-0.24, +0.05] | 6.1 (8, 0.64) |
+| routeB_radius_N100_L0_20_20260825 | 0.7150 | yes | 37 (18.5) | 5.4 % | 225 | -1.34 (1.53) | 34 (15 %) | -0.20 [-0.33, -0.06] | 5.6 (8, 0.7) |
+| routeB_radius_N100_L0_20_20260825 | 0.7200 | no | 37 (18.5) | 5.4 % | 225 | -4.44 (0.75) | 46 (20 %) | -0.17 [-0.30, -0.03] | 3.6 (8, 0.89) |
+| routeB_radius_N100_L0_20_20260825 | 0.7250 | no | 37 (18.5) | 5.4 % | 225 | -4.69 (1.77) | 52 (23 %) | -0.04 [-0.18, +0.10] | 7.4 (8, 0.49) |
+
+(EXPLORATORY: no verdict rule. A positive mean dnu means the frequency rises from the first to the second half of the record; psi6 end - hold is the structural change over the whole record, the only per-run time information psi6 has.)
+```
+
+**Item 2, printed by `validation/paper1_kr_ranges_261009.py`, verbatim:**
+
+```
+# The Kolafa-Rottner range table for Paper 1 (261012 sec. 4.7.4 decision 3 item 2), printed by validation/paper1_kr_ranges_261009.py
+
+The module's rho_max = 0.90 fit against the coefficients typed here from the page: largest relative difference in Z 4.4e-16 (eta 0.1-0.7069). Fit range eta <= pi 0.90/4 = 0.7069; comparison range eta <= 0.69 (rho <= 0.8785).
+
+## 1. The ranges
+
+| range | rho = 4 eta / pi | reference that applies | fit accuracy as stated in the source (quoted) | the source's MD data in the range (Table 1, p. 3436: rho, Z, sigma(Z)) | our data points (A1 v2 c_s(eta), by eta_true / by recorded eta) | what Paper 1 does (draft) |
+|---|---|---|---|---|---|---|
+| eta <= 0.69 (compared) | <= 0.8785 | Kolafa-Rottner 2006, rho_max = 0.90 fit (Eq. 7, sec. 3.2), fitted to eta <= 0.7069: compared with data | "The value of s for an optimum fit is around unity provided that the input standard errors sigma are reliable, which is the case for our simulations where sigma is determined with an accuracy (error of the error) of a few percent [21]." (p. 3438); "rho_max = 0.90, s = 0.927" (p. 3439). The source states no accuracy for Z', which c_s uses. | 14 points (rho 0.40-0.87; relative sigma(Z) <= 1.3e-05) | 23 / 24 | compares (dev_KR_pct column of the table; draft:126-129: "fitted to $\eta \le 0.7069$. $Z'$ is taken from the same fit, and data are compared with it only for $\eta \le 0.69$."); the mass-independence test averages "the 24 densities with $\eta \leq 0.69$" (draft:248), counted by recorded eta |
+| 0.69 < eta <= 0.7069 (fit range, not compared) | (0.8785, 0.90] | the same fit, inside its fit range but NOT compared (decision of 2026-10-02); the comparison is Engel et al. 2013 (qualitative) | "rho_max = 0.90, s = 0.927; region rho in [0.89, 0.90] of this equation may be affected by finite-size effects" (p. 3439); "Correction term (5) is not applicable for rho >= 0.89 because it contains the second derivative of the EOS and therefore the correction term is large and not available with sufficient precision. Linear extrapolation of Z(1/N) was used instead; the final results thus lack precision." (p. 3438); "The data in the 'difficult' region close to the phase transition agree well with recent extensive Monte Carlo data [3, 4] with the exception of density rho = 0.9 closest to rho_c where the N = 1024^2 result Z = 10.212 [3] is significantly larger than our Z = 10.206" (p. 3438) | 3 points: 0.88: 10.2309 +- 0.0003 (rel. 2.9e-05); 0.89: 10.3176 +- 0.0011 (rel. 1.1e-04); 0.90: 10.2059 +- 0.0011 (rel. 1.1e-04) | 4 / 3 | shows the points, "not counted as a deviation from it" (draft:263-264); KR "dashed from there to $\eta = 0.705$, inside its fit range" (draft:476-477); the comparison is with Engel et al., qualitative (draft:433-466) |
+| eta > 0.7069 (beyond the fit) | > 0.90 | none of the KR fits (extrapolation); Engel et al. 2013 landmarks; a global EOS with hexatic and solid branches (Liu 2021) is OPEN | "Any extrapolation to rho > rho_c should be done with caution because function p(rho) is likely to be non-analytical at rho_c." (p. 3439); "both equations with rho_max >= 0.89 predict to some extent the loop (with the 'classical' critical exponent alpha' = 3) at the critical (fluid/hexatic) point, even if this is not the aim of the present work which focuses rather on the low-density region." (p. 3439) | 0 points: none | 8 / 8 | no KR curve: "Beyond its fit range the fluid-branch fit is an extrapolation and its derivative carries no information." (draft:478-479); Engel et al.'s landmarks; a quantitative comparison "needs a global equation of state with hexatic and solid branches" (draft:503) |
+
+The boundary: one A1 v2 row, eta_true = 0.690460, has recorded eta 0.689999. It carries a KR deviation in the table (+43.191 %) and is one of the draft's '24 densities with eta <= 0.69': the comparison range is applied by the recorded eta. By eta_true it lies in the second range. Above: by eta_true / by recorded eta.
+
+## 2. Our data points per Paper 1 table and range
+
+| table | eta <= 0.69 | 0.69 < eta <= 0.7069 | eta > 0.7069 |
+|---|---|---|---|
+| A1 v2 c_s(eta), N = 100 (260919_A1v2_final_cs_vs_eta.csv), by eta_true | 23 | 4 | 8 |
+| the same, by the recorded (nominal) eta | 24 | 3 | 8 |
+| A2 N -> infinity extrapolation (eta) | 7 | 0 | 0 |
+| A2 finite-size forms (distinct eta) | 5 | 0 | 0 |
+| confinement cells (eta_true) | 8 | 0 | 0 |
+| identity cells, A-fixed (eta_lab; no eta_true column) | 2 | 0 | 0 |
+| A2 per mass, (eta, N) state points | 30 | 0 | 0 |
+| A2 famB per mass, (eta, N) state points | 30 | 0 | 0 |
+
+## 3. [DERIVATION] c_s from the paper's three published fits (kT = m = 1), and the 0.89 coefficient in the sanity script
+
+| eta | rho | c_s, rho_max 0.88 | c_s, 0.89 | c_s, 0.90 (Paper 1) | largest relative difference to the 0.90 fit | c_s, 0.89 with the sanity script's x^57 coefficient | its relative change |
+|---|---|---|---|---|---|---|---|
+| 0.4000 | 0.5093 | 3.833563 | 3.833565 | 3.833565 | 5.6e-07 | 3.833565 | 0.0e+00 |
+| 0.5500 | 0.7003 | 6.601892 | 6.601875 | 6.601874 | 2.7e-06 | 6.601875 | 0.0e+00 |
+| 0.6000 | 0.7639 | 8.222594 | 8.222605 | 8.222613 | 2.3e-06 | 8.222605 | 2.5e-14 |
+| 0.6500 | 0.8276 | 10.438853 | 10.438762 | 10.438747 | 1.0e-05 | 10.438762 | 3.5e-09 |
+| 0.6700 | 0.8531 | 11.373083 | 11.373306 | 11.373363 | 2.5e-05 | 11.373312 | 5.1e-07 |
+| 0.6800 | 0.8658 | 11.671701 | 11.671273 | 11.671208 | 4.2e-05 | 11.671351 | 6.7e-06 |
+| 0.6900 | 0.8785 | 11.548307 | 11.551452 | 11.550975 | 2.3e-04 | 11.552591 | 9.9e-05 |
+| 0.6950 | 0.8849 | 11.118033 | 11.167221 | 11.168467 | 4.5e-03 | 11.171782 | 4.1e-04 |
+| 0.7000 | 0.8913 | 10.167231 | 10.499564 | 10.514619 | 3.3e-02 | 10.518560 | 1.8e-03 |
+| 0.7069 | 0.9001 | 6.734553 | 10.329118 | 10.484935 | 3.6e-01 | 10.458219 | 1.2e-02 |
+
+(the sanity script's rho_max = 0.89 x^57 coefficient: 5.77730095e-23; the paper, p. 3439: 5.57730095e-23. Paper 1 uses the 0.90 fit: the sanity script's 0.90 coefficients equal the page's: yes; its 0.88 coefficients: yes.)
+```
+
+**Item 3, section 5 of `validation/gen3_design_numbers_261009.py`, verbatim:**
+
+```
+## 5. Heavy-divider record design (261012 sec. 4.7.4, decision 3 item 3; appended 2026-10-09)
+
+### Periods in a record of 1e4 and of 2e4 sigma-time at eta 0.70, design geometry (H = 10 sqrt(N/100), L0 from eta), the period model of the heavy-divider table above (cot K = alpha K, alpha = M / N, L_eff = L0 - 1.025, c_s = 15)
+
+| divider mass M | N = 100: period [sigma-time] | periods in 1e4 | periods in 2e4 | N = 400: period [sigma-time] | periods in 1e4 | periods in 2e4 | N = 900: period [sigma-time] | periods in 1e4 | periods in 2e4 | N = 1600: period [sigma-time] | periods in 1e4 | periods in 2e4 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 50 | 1.783 | 5.61e+03 | 1.12e+04 | 3.055 | 3.27e+03 | 6.55e+03 | 4.448 | 2.25e+03 | 4.5e+03 | 5.889 | 1.7e+03 | 3.4e+03 |
+| 500 | 4.437 | 2.25e+03 | 4.51e+03 | 5.399 | 1.85e+03 | 3.7e+03 | 6.336 | 1.58e+03 | 3.16e+03 | 7.417 | 1.35e+03 | 2.7e+03 |
+| 2000 | 8.66 | 1.15e+03 | 2.31e+03 | 9.866 | 1.01e+03 | 2.03e+03 | 10.6 | 943 | 1.89e+03 | 11.34 | 882 | 1.76e+03 |
+| 10000 | 19.24 | 520 | 1.04e+03 | 21.49 | 465 | 930 | 22.4 | 446 | 893 | 23.02 | 434 | 869 |
+| 100000 | 60.74 | 165 | 329 | 67.57 | 148 | 296 | 69.89 | 143 | 286 | 71.11 | 141 | 281 |
+| 1e+06 | 192.1 | 52.1 | 104 | 213.5 | 46.8 | 93.7 | 220.7 | 45.3 | 90.6 | 224.3 | 44.6 | 89.2 |
+| 4e+07 | 1215 | 8.23 (< 20) | 16.5 (< 20) | 1350 | 7.4 (< 20) | 14.8 (< 20) | 1396 | 7.16 (< 20) | 14.3 (< 20) | 1418 | 7.05 (< 20) | 14.1 (< 20) |
+| 1e+08 | 1921 | 5.21 (< 20) | 10.4 (< 20) | 2135 | 4.68 (< 20) | 9.37 (< 20) | 2207 | 4.53 (< 20) | 9.06 (< 20) | 2243 | 4.46 (< 20) | 8.92 (< 20) |
+
+(< 20): fewer than the 20 periods that sec. 4.7.1 amendment e requires of the heaviest mass in a cell; such a mass is excluded from that cell, never T shortened. The counts scale with c_s: at N = 100 the A1 v2 value at eta 0.7007 is c_s = 19.2 (x 1.28), Kolafa-Rottner's at eta 0.69 is 11.6 (x 0.77). Masses 50-2000 are the A1 ladder, for orientation.
+
+### From the existing N = 100 data (A1 v2: 35 cells x 9 masses x 25 seeds, records of 200 periods): the per-trajectory relative frequency error against the number of periods
+
+Per (cell, mass): the SD of the per-trajectory frequency over the seeds, divided by its mean, from the first n periods of each record (the canonical estimator on that sub-record; it is the canonical one at n = 200: largest relative difference of the per-mass mean from paper1_populate_cs_err_20261002.cell, 0.0e+00). Median and 10-90 % range over the (cell, mass) groups. The argmax bin is 1/n of the frequency wide, so 1/(n sqrt 12) is its quantization floor. Bias: the median of mean(nu_n)/mean(nu_200) - 1.
+
+| n periods | quantization floor 1/(n sqrt 12) | fluid, eta_true <= 0.69: relative SD, median [10-90 %] | bias | window, 0.69 < eta_true < 0.72: relative SD, median [10-90 %] | bias | solid, eta_true >= 0.72: relative SD, median [10-90 %] | bias | eta_true 0.7007 alone (the heavy-divider campaign's eta): relative SD, median [10-90 %] | bias | fluid, 3-bin parabola: relative SD, median |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 5 | 0.0577 | 0.1003 [0.0697, 0.1511] | -0.0210 | 0.1142 [0.0771, 0.1709] | -0.0277 | 0.0649 [0.0421, 0.0945] | -0.0042 | 0.1139 [0.0814, 0.1403] | +0.0261 | 0.0877 |
+| 8 | 0.0361 | 0.0629 [0.0441, 0.1012] | -0.0112 | 0.0893 [0.0556, 0.1202] | -0.0171 | 0.0420 [0.0320, 0.0667] | -0.0035 | 0.0794 [0.0614, 0.1026] | +0.0172 | 0.0564 |
+| 10 | 0.0289 | 0.0561 [0.0365, 0.0794] | -0.0080 | 0.0799 [0.0475, 0.1152] | -0.0183 | 0.0378 [0.0252, 0.0562] | +0.0006 | 0.0836 [0.0553, 0.0977] | +0.0180 | 0.0491 |
+| 16 | 0.0180 | 0.0396 [0.0252, 0.0643] | -0.0039 | 0.0647 [0.0352, 0.1039] | -0.0178 | 0.0256 [0.0182, 0.0380] | -0.0004 | 0.0512 [0.0381, 0.0721] | +0.0006 | 0.0345 |
+| 20 | 0.0144 | 0.0331 [0.0226, 0.0557] | -0.0030 | 0.0598 [0.0277, 0.1038] | -0.0167 | 0.0204 [0.0147, 0.0334] | -0.0032 | 0.0492 [0.0365, 0.0709] | +0.0017 | 0.0300 |
+| 25 | 0.0115 | 0.0280 [0.0198, 0.0514] | -0.0033 | 0.0566 [0.0232, 0.1040] | -0.0146 | 0.0176 [0.0125, 0.0307] | -0.0026 | 0.0493 [0.0252, 0.0661] | -0.0043 | 0.0250 |
+| 32 | 0.0090 | 0.0247 [0.0158, 0.0465] | -0.0013 | 0.0545 [0.0214, 0.1028] | -0.0158 | 0.0152 [0.0110, 0.0296] | -0.0020 | 0.0320 [0.0194, 0.0584] | -0.0002 | 0.0228 |
+| 50 | 0.0058 | 0.0189 [0.0117, 0.0419] | -0.0012 | 0.0505 [0.0158, 0.1091] | -0.0110 | 0.0134 [0.0089, 0.0247] | -0.0014 | 0.0228 [0.0129, 0.0471] | -0.0028 | 0.0178 |
+| 100 | 0.0029 | 0.0145 [0.0076, 0.0344] | -0.0002 | 0.0553 [0.0129, 0.1096] | -0.0117 | 0.0096 [0.0058, 0.0242] | -0.0005 | 0.0166 [0.0106, 0.0550] | -0.0021 | 0.0143 |
+| 200 | 0.0014 | 0.0117 [0.0055, 0.0308] | +0.0000 | 0.0455 [0.0110, 0.1129] | +0.0000 | 0.0084 [0.0046, 0.0197] | +0.0000 | 0.0132 [0.0102, 0.0361] | +0.0000 | 0.0115 |
+
+(The seed-to-seed SD includes the true trajectory-to-trajectory variation of a finite record, not only the estimator's error: it is the error of ONE trajectory's frequency. A heavy divider with n periods per record has, per trajectory, the error of the row n.)
+```
