@@ -4829,3 +4829,563 @@ figures: 100 (PNG; PDF too for A1 v2 and item 3) under 0000_PLAN_OVERALL/paper1_
 4. **Place the probe frequencies near the structural rate.** With periods of 1.4–7.5 σ-time against τ_structure ≳ 10² σ-time, ωτ ≈ 1 needs either much slower probes (larger boxes or N; the L₀ lever helps) or a structural clock measured to be faster than these records suggest.
 
 In addition, the baseline cell outside the window and the L₀ lever remain as the plan author proposed. The depth hypotheses of § 4.2 should be read against the exploratory famA numbers: N = 400 9.3 ± 2.3 %, N = 900 no dip.
+
+### 4.7 Generation 3: design (2026-10-08 15:50 HST = 2026-10-09 on the plan author's clock; DESIGN NOTE, no engine code; waits for review) [DATA, DERIVATION, SOURCE, INFERENCE and OPEN where marked]
+
+**Plain summary.**
+- **Where we are [DATA, KOA, measured].** Events per second per core:
+
+  | engine | N = 100, π/8 | N = 400, π/8 | N = 100, η 0.70 | N = 400, η 0.70 |
+  |---|---|---|---|---|
+  | 7b08827 (the fix) | 1.1e5 | 4.5e4 | 1.4e5 | 5.2e4 |
+  | 279282b (validated) | 7.8e4 | 1.2e4 | 7.5e4 | 9.4e3 |
+
+  - The target is ≥ 2e5. Isobe's EDMD in Engel et al. (Table II) reaches 4.7e5 at N = 512².
+  - **Collision rates.** Each disk undergoes 4.1–4.2 collisions per σ-time at π/8 and 25–28 at 0.70.
+- **Cost of one 2e4 σ-time trajectory at N = 1600 [DERIVATION, models fitted to the measured times]:**
+
+  | engine | π/8 | 0.70 | 0.85 | 0.90 |
+  |---|---|---|---|---|
+  | 279282b | 6.4 h | 38 h | 5.7 d | 49 d |
+  | 7b08827 | 61 min | 5.4 h | 18 h | 6.3 d |
+  | constant-work engine at 2e5/s | 5.6 min | 30 min | 98 min | 14 h |
+  | constant-work engine at 5e5/s | 2.2 min | 12 min | 39 min | 5.6 h |
+
+- **A second engine already exists, and it is not usable [DATA].** The repo's accelerated backend (`edmd_accelerated.c`, `--edmd-acc=1`) already has cells, cell-crossing events and neighbour-only predictions. On the same six cells:
+  - it **fails the overlap validator in 3 of 6 runs** (overlaps of 0.64 and 1.0 px, i.e. missed collisions);
+  - **where it ran, it is no faster** (0.7–1.1× at N = 400).
+  - It still moves every disk and rebuilds the grid at every event. Generation 3 reuses its idea, not its code.
+- **The design: five structural changes**, which remove every O(N) step per event. What remains is the heap's O(log N), about 16 levels at N = 1600.
+  1. Cells of a dyadic width ≥ one diameter, with disk-local coordinates.
+  2. Cell-crossing events that carry the cell membership incrementally (no `grid_build`).
+  3. A time stamp per disk (no global position jump).
+  4. Predictions only among the 9 neighbouring cells.
+  5. The divider, and the pistons, tracked as a band of cell columns whose disks alone carry divider events (O(√N) after a divider hit).
+
+  The heap with lazy invalidation is kept, with a deterministic tie-break. The driver's per-step O(N) loop is the sixth item.
+- **Exactness.**
+  - **Floating time origin:** at the end of a 2e4 σ-time trajectory a time's ulp is 5.8e-11; at the audit's prediction horizons it is up to 1.2e-7. With a dyadic origin shift every 8192 internal units it stays ≤ 3.6e-12.
+  - **The stable quadratic root: measured, no gain.** Over 8000 random oblique approaches, the current and the textbook form have the same error distribution. The rounding sits in c = |r|² − σ² and in the absolute coordinates. **Replaced by disk-local coordinates,** as Engel et al. use (SOURCE).
+  - **Tolerances:** 33 bare tolerance literals, listed with lines, become scale-aware.
+  - **Long double:** an 80-bit build for KOA spot checks. arm64 has no 80-bit long double (printed).
+  - **Heavy dividers to M = 1e8 are no precision problem.** The kick per collision is ~1e12 ulps of the divider's velocity. The limit is statistical: its period is about 2000 σ-time, so about 10 periods per 2e4 σ-time.
+- **Features.**
+  - A triangular-lattice generator with a commensurate-box calculator. The wall layers put the nominal η 1–10 % below the lattice η at N_s = 50–800, and the 1/24-σ grid strains the lattice by up to 0.55 %, so an exact box length replaces the grid.
+  - Vacancies, one seeding rule, equal record time.
+  - ψ₆(t) (2.9 MB per trajectory) and position snapshots (7–115 MB every 10 σ-time).
+  - Virial pressure per compartment, the audits as switches, and every parameter in the header.
+- **Plan:** about three weeks of CC time, then the gate; the KOA gate runs take about one more week.
+
+**The task**, as relayed by Chris, verbatim:
+
+> CC TASK, 2026-10-09 (Cowork clock): GENERATION-3 ENGINE DESIGN NOTE. Notes and numbers only;
+> NO engine code until the plan author approves the design. T-prime pipeline and the sec. 4.6
+> follow-up task are untouched. Write the note as a new dated section "4.7 Generation 3:
+> design" in 261012_paper1_confinement.md (append), with tags; every number printed by a
+> script; quote code lines of the current engine where the design replaces them.
+>
+> Context (plan author, 2026-10-09): priority is exactness and an all-phase campaign (eta up
+> to ~0.9; N = 100, 400, 900, 1600; held-wall vs free-divider stiffness everywhere; heavy
+> dividers to 4e7). Target: constant work per collision as in Isobe's EDMD (Engel et al.
+> 2013 Table II: 1.7e9 collisions/h = 4.7e5/s per core at N = 512^2); at least 2e5/s on KOA.
+>
+> 1. BASELINE NUMBERS. From the existing profile logs (279282b job 14983181; 7b08827 job
+>    15008378) print collisions per second per core for N = 100 and 400 at pi/8 and at the
+>    dense state, both engines, and the implied collisions per disk per sigma-time. Then the
+>    cost model: for eta = pi/8, 0.70, 0.85, 0.90 give the collision rate per disk per
+>    sigma-time (Enskog with the KR/Henderson Z, state which) and the time of a 2e4 sigma-time
+>    trajectory at N = 100/400/900/1600 for (a) 279282b, (b) 7b08827 with its measured
+>    exponent, (c) a constant-work engine at 2e5 and 5e5 collisions/s.
+>
+> 2. ALGORITHM (text + pseudocode, no C yet), item by item, each with the current code it
+>    replaces (file:line):
+>    a. cell list, cell width >= 2 sigma (one diameter plus margin), predictions only among
+>       the 9 neighbouring cells; the exactness argument (two objects in non-adjacent cells
+>       cannot touch before one crosses a cell boundary, and every crossing is an event);
+>    b. cell-crossing events for disks;
+>    c. per-disk time stamps: positions advanced only for disks involved in an event or a
+>       prediction; the global advance loop (edmd.c, the O(N) position jump) is removed;
+>    d. event queue: keep the binary heap with lazy invalidation (coll_count/epoch), state
+>       its O(log N); describe Paul 2007 (J. Comput. Phys. 221, 615) as an optional O(1)
+>       replacement and when it would pay;
+>    e. the divider: a tracked cell column with its own crossing events; disk-divider
+>       predictions only for disks in the adjacent columns; after a divider collision only
+>       those disks are rescheduled (O(sqrt N)); the held divider as the zero-velocity case;
+>       pistons and outer walls likewise; show that the crossing argument still holds for
+>       a moving column;
+>    f. grid_build and reschedule_clamped: what they do today (quote), what replaces them;
+>    g. overlap safety nets (the t = 0 overdue branches) and their counters, kept.
+>
+> 3. EXACTNESS ITEMS: floating time origin (periodic shift of all stored times and stamps;
+>    show the current absolute times, 1e6-9e8, and the resulting ulp); the stable quadratic
+>    root c/(-b + sqrt(disc)) for near-touching pairs; scale-aware tolerances replacing every
+>    bare 1e-12 (list them with lines); a long-double (x86 80-bit) build option for KOA spot
+>    checks (document that arm64 Macs have no 80-bit long double); the double-precision
+>    budget for divider masses up to 1e8 (velocity ~ 1e-4, displacement per collision).
+>
+> 4. FEATURES THE CAMPAIGN NEEDS: triangular-lattice initial conditions with a commensurate
+>    box calculator (rows along the divider or perpendicular, stated; wall gap; the 1/24 sigma
+>    grid truncation rule of methods sec. 14 respected or replaced by an exact box length);
+>    controlled vacancy count; one seeding rule for all eta (hold-equilibrated from a stated
+>    start); equal record time in sigma-time for all masses; psi6(t) and position snapshots
+>    at a fixed sigma-time interval with their storage cost; collision-rate (virial) pressure
+>    per compartment as in Engel eq. (7), printed with the wall force so both are compared;
+>    the contact and schedule audits carried over as switches; every parameter in the run
+>    header.
+>
+> 5. GATE PLAN (to be registered before the first production run; list only):
+>    determinism (same node, cross node); brute-force all-pairs schedule audit on the new
+>    engine's states (missing/extra/relative dt); contact audit; ledgers; long-double spot
+>    check of the rounding floor; statistical A/B against 279282b at three fluid cells
+>    (Test T design, both SEs, Bonferroni by script); literature checks: KR c_s in the fluid
+>    (state the eta range), Engel plateau P* = 9.17 at eta 0.698 from the virial pressure at
+>    N = 1600 (expected finite-size and wall offsets stated beforehand), hard-disk solid
+>    elastic constants vs Sengupta, Nielaba, Binder PRE 61, 6294 (2000) at one eta.
+>
+> 6. KOA PARALLELISM: check the QOS/fairshare limits that apply to account uh (sacctmgr /
+>    scontrol show partition, read-only; give Chris the lines) and state what a safe cap
+>    above 64 cores would be and how the array scripts change (one trajectory per core,
+>    checkpoints not needed if a trajectory is < 1 h; otherwise say what is).
+>
+> 7. PLAN: milestones with CC time estimates (design review, core engine, divider/walls,
+>    features, gate), what stays byte-identical to today (I/O formats, estimators, seeds)
+>    and what cannot (trajectories; statistical validation), and the risks you see.
+>
+> 8. REPORT: plain summary first, then the cost table, the design in order, the gate list,
+>    the KOA limits, the plan. No tool transcripts. Stop after the note; wait for review.
+
+**Numbers.** Printed by `cd hspist3 && python3 validation/gen3_design_numbers_261009.py`, verbatim.
+- **Inputs:**
+  - the KOA profile job 15008378 (times.tsv);
+  - the event counts of the same six commands on the Mac, `--measure` with a build of the 7b08827 sources, stored in `hspist3/experiments_gen3_design_261009/eventcounts/`;
+  - the accelerated backend on the same six cells (`--measure-acc`).
+- **What the counts mean.** They are rates of the same cells. A different binary gives a different trajectory, so the Mac's divider and wall counts are printed next to KOA's as the check: they agree to within 3.5 %.
+
+```
+# Generation 3 -- design numbers (261012 sec. 4.7), printed by validation/gen3_design_numbers_261009.py
+
+## 1. Baseline: collisions per second per core on KOA (Xeon E5-2680 v2), measured
+
+event counts: ['00ALLINONE  git 7b08827  target mac-O3-gen3count'] on this Mac (same commands as cluster/profile_edmd_koa.sh, seed 9700, minimal policy, HD_CONTACT_AUDIT=1); KOA wall times: profile job 15008378 (git 7b08827 target koa)
+
+| kind | N | eta | sigma-time | executed events (Mac) | of which pair | divider (Mac / KOA) | outer wall (Mac / KOA) | pair collisions per disk per sigma-time | KOA s, 7b08827 minimal | KOA s, legacy = 279282b | sec. 4.3 (279282b) s | events/s 7b08827 | events/s 279282b | pair events/s 7b08827 | pair events/s 279282b |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| held | 100 | 0.3927 | 701 | 183386 | 147543 | 8948 / 8959 | 26895 / 26648 | 4.210 | 1.64 | 2.34 | 2.3 | 1.12e+05 | 7.84e+04 | 9e+04 | 6.31e+04 |
+| held | 400 | 0.3927 | 701 | 666162 | 579988 | 35053 / 34712 | 51121 / 51361 | 4.137 | 14.73 | 56.30 | 56.4 | 4.52e+04 | 1.18e+04 | 3.94e+04 | 1.03e+04 |
+| free | 100 | 0.3927 | 700 | 183163 | 147508 | 8901 / 8911 | 26754 / 26757 | 4.215 | 1.71 | 2.35 | - | 1.07e+05 | 7.79e+04 | 8.63e+04 | 6.28e+04 |
+| free | 400 | 0.3927 | 700 | 665478 | 579679 | 34531 / 35035 | 51268 / 51356 | 4.141 | 15.19 | 56.38 | - | 4.38e+04 | 1.18e+04 | 3.82e+04 | 1.03e+04 |
+| dense | 100 | 0.7007 | 200 | 349461 | 276312 | 26472 / 26752 | 46677 / 48346 | 27.631 | 2.44 | 4.68 | - | 1.43e+05 | 7.47e+04 | 1.13e+05 | 5.9e+04 |
+| dense | 400 | 0.7007 | 200 | 1194625 | 991673 | 92794 / 92193 | 110158 / 109276 | 24.792 | 23.18 | 127.50 | - | 5.15e+04 | 9.37e+03 | 4.28e+04 | 7.78e+03 |
+
+(collisions each disk undergoes = 2 x pair events / (N x sigma-time). The target of the decision: >= 2e5 events/s per core on KOA; Engel et al. Table II (Isobe's EDMD): 1.7e9 collisions/h = 4.7e5/s at N = 512^2.)
+
+### The same six cells on this Mac: the default backend (7b08827, minimal policy) against the accelerated backend (edmd_accelerated.c: 9-cell neighbour predictions and cell-crossing events, but still the global position jump and grid_build per event and a full reschedule after every divider event; never validated for production)
+
+| kind | N | default backend [s] | accelerated backend [s] | accelerated exit | first failure of the accelerated run (summary.failures.csv) |
+|---|---|---|---|---|---|
+| held | 100 | 0.84 | 0.08 (stopped) | 2 | t = 5.37 sigma-time (wall_hold): particle_particle_overlap, 0.644 px (tolerance 2.4e-05) |
+| held | 400 | 7.20 | 6.49 | 0 | none |
+| free | 100 | 0.79 | 0.02 (stopped) | 2 | t = 5.37 sigma-time (wall_hold): particle_particle_overlap, 0.644 px (tolerance 2.4e-05) |
+| free | 400 | 7.28 | 3.23 (stopped) | 2 | t = 345.77 sigma-time (post_release): particle_particle_overlap, 0.998 px (tolerance 2.4e-05) |
+| dense | 100 | 1.28 | 1.46 | 0 | none |
+| dense | 400 | 11.39 | 16.03 | 0 | none |
+
+### The collision-rate model against the measured counts
+
+| kind | N | eta | Z used (source) | model: pair collisions per disk per sigma-time | measured | measured/model | model outer+divider events per sigma-time | measured | measured/model |
+|---|---|---|---|---|---|---|---|---|---|
+| held | 100 | 0.3927 | 2.760 (KR (module)) | 3.972 | 4.210 | 1.060 | 44.0 | 51.1 | 1.161 |
+| held | 400 | 0.3927 | 2.760 (KR (module)) | 3.972 | 4.137 | 1.041 | 110.1 | 122.9 | 1.116 |
+| free | 100 | 0.3927 | 2.760 (KR (module)) | 3.972 | 4.215 | 1.061 | 44.0 | 50.9 | 1.156 |
+| free | 400 | 0.3927 | 2.760 (KR (module)) | 3.972 | 4.141 | 1.042 | 110.1 | 122.6 | 1.113 |
+| dense | 100 | 0.7007 | 10.278 (Engel plateau P* = 9.17) | 20.938 | 27.631 | 1.320 | 228.3 | 365.7 | 1.602 |
+| dense | 400 | 0.7007 | 10.278 (Engel plateau P* = 9.17) | 20.938 | 24.792 | 1.184 | 667.3 | 1014.8 | 1.521 |
+
+### Cost models fitted to the held-divider cells, checked on the free and dense cells
+
+(a) 279282b: t = alpha N E_non-divider + beta N^2 E_divider: alpha = 1.075e-07 s, beta = 5.201e-09 s
+(b) 7b08827: t = c N^q E_all: q = 0.653 (cost per event grows as N^q), c = 4.421e-07 s
+
+| kind | N | KOA 279282b [s] | model (a) [s] | KOA 7b08827 [s] | model (b) [s] |
+|---|---|---|---|---|---|
+| held | 100 | 2.34 | 2.34 | 1.64 | 1.64 |
+| held | 400 | 56.30 | 56.30 | 14.73 | 14.73 |
+| free | 100 | 2.35 | 2.34 | 1.71 | 1.64 |
+| free | 400 | 56.38 | 55.86 | 15.19 | 14.71 |
+| dense | 100 | 4.68 | 4.85 | 2.44 | 3.13 |
+| dense | 400 | 127.50 | 124.59 | 23.18 | 26.42 |
+
+### Time of one 2e+04 sigma-time trajectory, design geometry (H = 10 sqrt(N/100), L0 from eta, free divider), one KOA core
+
+| eta | Z (source) | N | pair events/sigma | outer-wall/sigma | divider/sigma | events per trajectory | (a) 279282b | (b) 7b08827 | (c) 2e5/s | (c) 5e5/s |
+|---|---|---|---|---|---|---|---|---|---|---|
+| pi/8 | 2.76 (KR) | 100 | 199 | 33 | 11 | 4.85e+06 | 61 s | 43 s | 24 s | 10 s |
+| pi/8 | 2.76 (KR) | 400 | 794 | 66.1 | 22 | 1.77e+07 | 18.4 min | 6.5 min | 88 s | 35 s |
+| pi/8 | 2.76 (KR) | 900 | 1.79e+03 | 99.1 | 33 | 3.84e+07 | 107.2 min | 24.0 min | 3.2 min | 77 s |
+| pi/8 | 2.76 (KR) | 1600 | 3.18e+03 | 132 | 44 | 6.71e+07 | 6.4 h | 61.1 min | 5.6 min | 2.2 min |
+| 0.70 | 10.29 (Engel plateau P* = 9.17) | 100 | 1.05e+03 | 155 | 73.2 | 2.55e+07 | 5.6 min | 3.8 min | 2.1 min | 51 s |
+| 0.70 | 10.29 (Engel plateau P* = 9.17) | 400 | 4.19e+03 | 311 | 146 | 9.3e+07 | 105.1 min | 34.3 min | 7.7 min | 3.1 min |
+| 0.70 | 10.29 (Engel plateau P* = 9.17) | 900 | 9.43e+03 | 466 | 219 | 2.02e+08 | 10.5 h | 2.1 h | 16.9 min | 6.7 min |
+| 0.70 | 10.29 (Engel plateau P* = 9.17) | 1600 | 1.68e+04 | 621 | 293 | 3.54e+08 | 38.3 h | 5.4 h | 29.5 min | 11.8 min |
+| 0.85 | 31.82 (Alder-Hoover-Young high-density form) | 100 | 3.48e+03 | 529 | 275 | 8.56e+07 | 19.1 min | 12.8 min | 7.1 min | 2.9 min |
+| 0.85 | 31.82 (Alder-Hoover-Young high-density form) | 400 | 1.39e+04 | 1.06e+03 | 550 | 3.1e+08 | 6.1 h | 114.4 min | 25.9 min | 10.3 min |
+| 0.85 | 31.82 (Alder-Hoover-Young high-density form) | 900 | 3.13e+04 | 1.59e+03 | 824 | 6.74e+08 | 37.0 h | 7.0 h | 56.2 min | 22.5 min |
+| 0.85 | 31.82 (Alder-Hoover-Young high-density form) | 1600 | 5.56e+04 | 2.11e+03 | 1.1e+03 | 1.18e+09 | 5.7 d | 17.9 h | 98.1 min | 39.2 min |
+| 0.90 | 262.79 (Alder-Hoover-Young high-density form) | 100 | 2.95e+04 | 4.5e+03 | 2.4e+03 | 7.29e+08 | 2.7 h | 108.6 min | 60.7 min | 24.3 min |
+| 0.90 | 262.79 (Alder-Hoover-Young high-density form) | 400 | 1.18e+05 | 9e+03 | 4.81e+03 | 2.64e+09 | 2.2 d | 16.2 h | 3.7 h | 88.0 min |
+| 0.90 | 262.79 (Alder-Hoover-Young high-density form) | 900 | 2.66e+05 | 1.35e+04 | 7.21e+03 | 5.73e+09 | 13.3 d | 2.5 d | 8.0 h | 3.2 h |
+| 0.90 | 262.79 (Alder-Hoover-Young high-density form) | 1600 | 4.73e+05 | 1.8e+04 | 9.61e+03 | 1e+10 | 49.2 d | 6.3 d | 13.9 h | 5.6 h |
+
+## 3. Exactness numbers
+
+### Double-precision spacing (ulp) at the engine's times; internal time unit = sigma-time / 24 (dt = 0.4 per step = 1/60 sigma-time)
+
+| absolute time [internal] | = sigma-time | ulp [internal] | position error of one ulp at thermal speed ~1 px per internal unit [px] | [sigma] |
+|---|---|---|---|---|
+| 1.0e+03 | 41.7 | 1.14e-13 | 1.14e-13 | 4.74e-15 |
+| 1.0e+04 | 417 | 1.82e-12 | 1.82e-12 | 7.58e-14 |
+| 4.8e+05 | 2e+04 | 5.82e-11 | 5.82e-11 | 2.43e-12 |
+| 1.0e+06 | 4.17e+04 | 1.16e-10 | 1.16e-10 | 4.85e-12 |
+| 1.0e+08 | 4.17e+06 | 1.49e-08 | 1.49e-08 | 6.21e-10 |
+| 9.0e+08 | 3.75e+07 | 1.19e-07 | 1.19e-07 | 4.97e-09 |
+(4.8e5 = the end of a 2e4 sigma-time trajectory; 1e6-9e8 = the prediction horizons the schedule audit met, sec. 4.4.10 D1. With a floating origin reset every 1e4 internal units, every stored time stays below ~2e4: ulp <= 3.6e-12)
+
+### The quadratic root near contact: current form t = (-b - sqrt(disc))/vv against the textbook stable form c/(-b + sqrt(disc))
+
+Random oblique approaches (2000 per gap): disk i at a random absolute position in [0, 960] px (the box), j at distance sigma + gap in a random direction, relative velocity of thermal size with r.v < 0 and impact parameter < sigma; rx = xj - xi etc. formed in double as the engine does. Reference: the exact root of the SAME double inputs at 50 digits (decimal). Errors in internal time units.
+
+| gap [px] | median exact root | current: median abs. error | current: max abs. error | stable: median abs. error | stable: max abs. error | floor: ulp(960 px) / closing speed, median |
+|---|---|---|---|---|---|---|
+| 1e-01 | 1.024e-01 | 8.3e-16 | 4.5e-14 | 6.1e-16 | 4.6e-14 | 1.2e-13 |
+| 1e-04 | 1.061e-04 | 9.1e-16 | 4.1e-13 | 6.9e-16 | 4.1e-13 | 1.2e-13 |
+| 1e-07 | 1.056e-07 | 8.7e-16 | 9.4e-12 | 6.6e-16 | 9.4e-12 | 1.2e-13 |
+| 1e-10 | 1.089e-10 | 8.7e-16 | 6.7e-12 | 6.5e-16 | 6.7e-12 | 1.2e-13 |
+
+### Every bare tolerance literal in edmd_core/edmd.c at 7b08827
+
+(code only: comments and string literals removed before matching)
+
+| line | literal(s) | code |
+|---|---|---|
+| 269 | 1e-6, 1e-7 | `const double tol = fmax(1e-7, 1e-6 * 2.0 * S->prm.radius);` |
+| 377 | 1e-9 | `double R=S->prm.radius; double eps=1e-9;` |
+| 498 | 1e-12 | `if(t<=1e-12) return 0;` |
+| 515 | 1e-12 | `if (t <= 1e-12) return 0;` |
+| 559 | 1e-12 | `const double root_tol = 1e-12;` |
+| 566 | 1e-15 | `if (derivative_amplitude > 1e-15 &&` |
+| 581 | 1e-14 | `offset_count = (fabs(offsets[1] - offsets[0]) <= 1e-14) ? 1 : 2;` |
+| 588 | 1e-14 | `if (current_t <= previous_t + 1e-14) continue;` |
+| 614 | 1e-15 | `if (current_t >= t_max - 1e-15) return 0;` |
+| 690 | 1e-9 | `if (gap < -1e-9) return 0;` |
+| 716 | 1e-12 | `if(num <= 1e-12) return 0;      /* not strictly left of face */` |
+| 719 | 1e-12 | `if(t<=1e-12) return 0; *tcol=t; return 1;` |
+| 737 | 1e-9 | `if (gap < -1e-9) return 0;` |
+| 762 | 1e-12 | `if(dist <= 1e-12) return 0;      /* not strictly right of face */` |
+| 765 | 1e-12 | `if(t<=1e-12) return 0; *tcol=t; return 1;` |
+| 888 | 1e-9 | `else { if (fabs(S->audit_tm[k] - e->t) > 1e-9) S->audit_dupdis++; if (e->t < S->audit_tm[k]) S->audit_tm[k] = ` |
+| 899 | 1e-9 | `if (d > 1e-9) {` |
+| 903 | 1e-10 | `if (rel > 1e-10) { S->audit_dtrel++; kind = "dt_rel"; }` |
+| 941 | 1e-12 | `if(num >= -1e-12) return 0; /* require particle to the right of face */` |
+| 942 | 1e-12 | `double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;` |
+| 951 | 1e-12 | `if(num <= 1e-12) return 0;` |
+| 952 | 1e-12 | `double t = num / rel; if(t<=1e-12) return 0; *tcol=t; return 1;` |
+| 984 | 1e-9 | `const double left_limit  = 0.5 * th + 1e-9;` |
+| 985 | 1e-9 | `const double right_limit = S->prm.boxW - 0.5 * th - 1e-9;` |
+| 1084 | 1e-12 | `if (u1 < 1e-12) u1 = 1e-12; /* avoid log(0) */` |
+| 1093 | 1e-12 | `if (rand1 < 1e-12) rand1 = 1e-12; /* avoid log(0) */` |
+| 1240 | 1e-12 | `if (t_ref <= 1e-12) return (t_hot > 0.0);` |
+| 1362 | 1e-9 | `const double eps = 1e-9;` |
+| 1513 | 1e-3 | `const double eps = 1e-3;                    /* separation margin */` |
+| 1519 | 1e-3 | `const double wmargin = 1e-3 * d;` |
+| 1677 | 1e-13 | `if (fabs(e.t - last_event_t) <= 1e-13) stagnant_events++;` |
+| 1961 | 1e-9 | `A->x = left_face - 1e-9;` |
+| 1963 | 1e-9 | `A->x = right_face + 1e-9;` |
+
+long double on this machine (arm64): 64 bits stored, eps = 2.220e-16 (= double: no extended precision); x86-64 (KOA) long double = 80-bit x87, eps = 1.08e-19
+
+### Heavy dividers in double precision (kT = m = 1, positions in px: sigma = 24 px)
+
+| divider mass M | thermal speed sqrt(kT/M) [sigma per sigma-time] | velocity kick per collision ~2 v_gas/M | kick / thermal speed | ulp of that speed | divider period at N = 100, eta 0.70 [sigma-time] (cot K = alpha K, c_s 15) | at N = 1600 |
+|---|---|---|---|---|---|---|
+| 1e+02 | 1.00e-01 | 2.0e-02 | 2.0e-01 | 1.4e-17 | 2.23 | 6.07 |
+| 1e+04 | 1.00e-02 | 2.0e-04 | 2.0e-02 | 1.7e-18 | 19.2 | 23 |
+| 1e+06 | 1.00e-03 | 2.0e-06 | 2.0e-03 | 2.2e-19 | 192 | 224 |
+| 4e+07 | 1.58e-04 | 5.0e-08 | 3.2e-04 | 2.7e-20 | 1.21e+03 | 1.42e+03 |
+| 1e+08 | 1.00e-04 | 2.0e-08 | 2.0e-04 | 1.4e-20 | 1.92e+03 | 2.24e+03 |
+
+## 4. Feature numbers
+
+### Commensurate triangular crystals in one compartment (hard walls; lattice constant a = sqrt(eta_cp/eta_lattice) sigma)
+
+The outermost rows sit at a distance r + g from each wall and from the divider face (r = 1/2, g = surface gap, here g = 0: rows touching). PARALLEL = columns of disks along the divider (y), spaced a sqrt(3)/2 in x, alternate columns shifted by a/2: L0 - t/2 = (n_x - 1) a sqrt(3)/2 + 1 + 2g, H = (n_y - 1/2) a + 1 + 2g. PERPENDICULAR = rows along x, spaced a sqrt(3)/2 in y: L0 - t/2 = (n_x - 1/2) a + 1 + 2g, H = (n_y - 1) a sqrt(3)/2 + 1 + 2g. N_s = n_x n_y (no vacancy). The nominal eta (N_s pi/4 / (H L0), the project's definition) is below the lattice's own eta because of the wall layers. The box is also rounded to the 1/24 sigma pixel grid (methods sec. 14); the column 'strain' is the lattice strain that rounding leaves.
+
+| eta_lattice | orientation | n_x x n_y | N_s | a | L0 exact | H exact | nominal eta | L0 on the 1/24 grid | strain from the grid [%] |
+|---|---|---|---|---|---|---|---|---|---|
+| 0.72 | parallel | 5 x 10 | 50 | 1.12231 | 4.912801 | 11.661958 | 0.6854 | 4.895833 | -0.436 |
+| 0.72 | parallel | 10 x 20 | 200 | 1.12231 | 9.772552 | 22.885072 | 0.7024 | 9.770833 | -0.020 |
+| 0.72 | parallel | 15 x 30 | 450 | 1.12231 | 14.632303 | 34.108186 | 0.7082 | 14.625000 | -0.054 |
+| 0.72 | parallel | 20 x 40 | 800 | 1.12231 | 19.492054 | 45.331301 | 0.7111 | 19.479167 | -0.070 |
+| 0.72 | perpendicular | 5 x 10 | 50 | 1.12231 | 6.075401 | 9.747552 | 0.6631 | 6.062500 | -0.255 |
+| 0.72 | perpendicular | 10 x 20 | 200 | 1.12231 | 11.686958 | 19.467054 | 0.6904 | 11.666667 | -0.190 |
+| 0.72 | perpendicular | 15 x 30 | 450 | 1.12231 | 17.298515 | 29.186555 | 0.7000 | 17.291667 | -0.042 |
+| 0.72 | perpendicular | 20 x 40 | 800 | 1.12231 | 22.910072 | 38.906057 | 0.7049 | 22.895833 | -0.065 |
+| 0.80 | parallel | 5 x 10 | 50 | 1.06472 | 4.713292 | 11.114822 | 0.7496 | 4.708333 | -0.134 |
+| 0.80 | parallel | 10 x 20 | 200 | 1.06472 | 9.323656 | 21.762003 | 0.7742 | 9.312500 | -0.134 |
+| 0.80 | parallel | 15 x 30 | 450 | 1.06472 | 13.934021 | 32.409184 | 0.7826 | 13.916667 | -0.134 |
+| 0.80 | parallel | 20 x 40 | 800 | 1.06472 | 18.544385 | 43.056364 | 0.7869 | 18.541667 | -0.016 |
+| 0.80 | perpendicular | 5 x 10 | 50 | 1.06472 | 5.816231 | 9.298656 | 0.7261 | 5.812500 | -0.078 |
+| 0.80 | perpendicular | 10 x 20 | 200 | 1.06472 | 11.139822 | 18.519385 | 0.7614 | 11.125000 | -0.147 |
+| 0.80 | perpendicular | 15 x 30 | 450 | 1.06472 | 16.463412 | 27.740114 | 0.7739 | 16.458333 | -0.033 |
+| 0.80 | perpendicular | 20 x 40 | 800 | 1.06472 | 21.787003 | 36.960844 | 0.7803 | 21.770833 | -0.078 |
+| 0.85 | parallel | 5 x 10 | 50 | 1.03293 | 4.603168 | 10.812819 | 0.7890 | 4.583333 | -0.554 |
+| 0.85 | parallel | 10 x 20 | 200 | 1.03293 | 9.075879 | 21.142101 | 0.8186 | 9.062500 | -0.166 |
+| 0.85 | parallel | 15 x 30 | 450 | 1.03293 | 13.548590 | 31.471384 | 0.8289 | 13.541667 | -0.055 |
+| 0.85 | parallel | 20 x 40 | 800 | 1.03293 | 18.021300 | 41.800667 | 0.8341 | 18.020833 | -0.003 |
+| 0.85 | perpendicular | 5 x 10 | 50 | 1.03293 | 5.673177 | 9.050879 | 0.7648 | 5.666667 | -0.140 |
+| 0.85 | perpendicular | 10 x 20 | 200 | 1.03293 | 10.837819 | 17.996300 | 0.8054 | 10.833333 | -0.046 |
+| 0.85 | perpendicular | 15 x 30 | 450 | 1.03293 | 16.002460 | 26.941721 | 0.8198 | 16.000000 | -0.016 |
+| 0.85 | perpendicular | 20 x 40 | 800 | 1.03293 | 21.167101 | 35.887143 | 0.8271 | 21.166667 | -0.002 |
+| 0.88 | parallel | 5 x 10 | 50 | 1.01517 | 4.541648 | 10.644104 | 0.8123 | 4.520833 | -0.592 |
+| 0.88 | parallel | 10 x 20 | 200 | 1.01517 | 8.937458 | 20.795793 | 0.8451 | 8.916667 | -0.263 |
+| 0.88 | parallel | 15 x 30 | 450 | 1.01517 | 13.333268 | 30.947481 | 0.8565 | 13.312500 | -0.169 |
+| 0.88 | parallel | 20 x 40 | 800 | 1.01517 | 17.729078 | 41.099170 | 0.8623 | 17.708333 | -0.124 |
+| 0.88 | perpendicular | 5 x 10 | 50 | 1.01517 | 5.593260 | 8.912458 | 0.7878 | 5.583333 | -0.217 |
+| 0.88 | perpendicular | 10 x 20 | 200 | 1.01517 | 10.669104 | 17.704078 | 0.8316 | 10.666667 | -0.025 |
+| 0.88 | perpendicular | 15 x 30 | 450 | 1.01517 | 15.744949 | 26.495699 | 0.8472 | 15.729167 | -0.107 |
+| 0.88 | perpendicular | 20 x 40 | 800 | 1.01517 | 20.820793 | 35.287319 | 0.8552 | 20.812500 | -0.042 |
+| 0.90 | parallel | 5 x 10 | 50 | 1.00383 | 4.502355 | 10.536345 | 0.8278 | 4.500000 | -0.068 |
+| 0.90 | parallel | 10 x 20 | 200 | 1.00383 | 8.849048 | 20.574604 | 0.8628 | 8.833333 | -0.201 |
+| 0.90 | parallel | 15 x 30 | 450 | 1.00383 | 13.195741 | 30.612862 | 0.8749 | 13.187500 | -0.068 |
+| 0.90 | parallel | 20 x 40 | 800 | 1.00383 | 17.542435 | 40.651121 | 0.8811 | 17.541667 | -0.005 |
+| 0.90 | perpendicular | 5 x 10 | 50 | 1.00383 | 5.542216 | 8.824048 | 0.8030 | 5.541667 | -0.012 |
+| 0.90 | perpendicular | 10 x 20 | 200 | 1.00383 | 10.561345 | 17.517435 | 0.8490 | 10.541667 | -0.206 |
+| 0.90 | perpendicular | 15 x 30 | 450 | 1.00383 | 15.580475 | 26.210822 | 0.8654 | 15.562500 | -0.123 |
+| 0.90 | perpendicular | 20 x 40 | 800 | 1.00383 | 20.599604 | 34.904208 | 0.8739 | 20.583333 | -0.083 |
+
+(the grid rounding is the binary's floor of 2 L0 x 24 px (box_delta, methods sec. 14); an exact box length removes it. Vacancies: N_s = n_x n_y - n_vac, positions removed by a stated rule)
+
+### Storage of the structural clock and snapshots per trajectory (text, ~18 bytes per number incl. separator)
+
+| N | psi6(t) every 0.25 sigma-time, 2e4 sigma-time | positions every 10 sigma-time | positions every 1 sigma-time |
+|---|---|---|---|
+| 100 | 2.88 MB | 7.2 MB | 72 MB |
+| 400 | 2.88 MB | 28.8 MB | 288 MB |
+| 900 | 2.88 MB | 64.8 MB | 648 MB |
+| 1600 | 2.88 MB | 115.2 MB | 1152 MB |
+```
+
+**Reading of the numbers [DATA; DERIVATION and INFERENCE where marked].**
+- **Collision counts.** The profile logs do not count disk–disk collisions. They come from the Mac re-runs (contact audit), and the Mac's divider and outer-wall counts agree with KOA's to within 3.5 % (0.0–3.5 % per count).
+- **Rates per core [DATA].**
+  - The fix (7b08827) reaches 1.1–1.4e5 events/s at N = 100 and 4.4–5.2e4 at N = 400.
+  - 279282b reaches 7.5–7.8e4 at N = 100 and 0.9–1.2e4 at N = 400.
+  - The decision's estimate ("a tenth of 2e5 at N = 400") holds for 279282b (0.06); the fix is at 0.22.
+- **Collision-rate model.** With the virial form ν = 4(Z − 1)/√π and KR's Z at π/8, the measured rate is 4–6 % above the model. With the plateau Z at 0.70 it is 18–32 % above; the N = 100 box at 0.70 is ordered, so its Z is higher. For the wall-theorem rate the measured excess is 11–16 % in the fluid and 52–60 % at 0.70.
+  - [INFERENCE] The cost table therefore understates events by about 5 % in the fluid and 20–30 % at 0.70. In the solid it uses the Alder–Hoover–Young form, recalled, not checked against a PDF (OPEN).
+- **Costs.** The two engine models reproduce the measured free and dense times within 4 % for 279282b and within 28 % for 7b08827.
+  - The fix's per-event cost grows as N^0.65 between N = 100 and 400.
+  - [INFERENCE] Asymptotically it is O(N) per event (the position jump, `grid_build` and the partner loop are each O(N)), so its large-N column is optimistic.
+- **The accelerated backend.** It fails the overlap validator at t = 5.37 σ-time in two N = 100 cells and at t = 346 σ-time in one N = 400 cell, and where it runs it is not faster.
+  - [INFERENCE] Neighbour-only predictions alone buy nothing while each event still costs O(N) in the position jump and `grid_build`.
+  - The missed collisions are not debugged here (OPEN). A plausible cause is the crossing guard `if (!(t > eps) || !isfinite(t)) return;` together with a cell assignment recomputed from the floating-point position (`edmd_accelerated.c:585–621`).
+  - The generation-3 design below removes both: cell membership is carried by the crossing events themselves, and every disk always has its next crossing scheduled.
+
+**2. Algorithm.** Pseudocode, no C. Each item names the 7b08827 code it replaces. All line numbers are `hspist3/edmd_core/edmd.c` at 7b08827 unless marked.
+
+*State.*
+- **Disk i:**
+  - cell c_i = (cx, cy);
+  - position (ξ_i, ζ_i) **relative to the corner of c_i** (disk-local coordinates);
+  - velocity (vx_i, vy_i);
+  - time stamp τ_i, relative to the floating origin T₀;
+  - collision counter k_i (as `coll_count` today).
+- **Divider d:** x_d(τ_d) and v_d (free, held, or harmonic as today), the velocity epoch e_d (as `div_epoch` today), and the band B_d, a range of cell columns.
+- **Event:** (t, type, a, b, k_a, k_b or e_d), ordered by **(t, type, a, b)**. The tie-break makes simultaneous events, common in perfect lattices, run in the same order on every machine.
+- **Position at time t:** pos(i, t) = corner(c_i) + (ξ_i, ζ_i) + v_i (t − τ_i), with corner(c) = (cx·w, cy·w).
+- **advance(i, t):** stores pos(i, t) − corner(c_i) and sets τ_i = t.
+
+*a. Cells.*
+- **Width.** Square cells of width w ≥ d, the disk diameter (= 24 px; the decision's "2σ" is Engel's σ, the radius). Proposed: **w = 32 px = 1.333 d.** The width is dyadic, so the offset (cx_j − cx_i)·w between two cells is exact in binary. Today: `cell_size = 2.5·radius = 30 px` (`:1462`).
+- **Predictions** for disk i only with disks in c_i and its 8 neighbours.
+- **Replaces** the all-N partner loop of `schedule_for` (`:1001–1011`): `/* Robust: schedule walls and AB with all others. For N up to a few thousands this is fine. */ ... for (int j = 0; j < S->prm.N; ++j) { if (j == i) continue; schedule_ab(S, i, j); }`. The accelerated backend's `schedule_ab_neighbors_9cell` (`edmd_accelerated.c:624–641`) is the template.
+- **Pair separation:** r = (ξ_j − ξ_i, ζ_j − ζ_i) + (cx_j − cx_i, cy_j − cy_i)·w + (v_j − v_i)(t − …). Small numbers minus small numbers, plus an exact offset. Engel et al. use the same device against cancellation (SOURCE: "We mitigate floating-point cancellation errors by placing each particle in a coordinate system local to its cell").
+- **Exactness argument [DERIVATION]:**
+  - **Separation.** Cells are half-open, [k·w, (k+1)·w). If c_i and c_j are not neighbours, their indices differ by ≥ 2 in x or in y, so the centres differ by > w ≥ d in that coordinate. The disks cannot touch.
+  - **No miss.** To touch, the two cells must first become neighbours, which needs one of the two disks to cross a cell boundary. Every disk always has its next crossing in the queue (item b). That crossing executes at a time ≤ the contact time, and the pair is predicted then from the current straight lines.
+  - **Later changes.** If a later event changes either velocity, k invalidates the prediction and the disk is re-predicted, exactly as today.
+  - **Same time.** A contact at exactly the crossing time is ordered after the crossing by the tie-break (CROSS < PAIR).
+  - **Outer walls.** A disk whose cell is not an edge cell is more than w ≥ d > r from the box edge, so it can predict no wall event until it crosses into an edge cell.
+
+*b. Cell-crossing events.*
+- **Prediction.** For disk i, t_cross = the first time pos(i, t) leaves c_i: the smaller of the x and y boundary times, computed in local coordinates as (w − ξ_i)/vx_i or −ξ_i/vx_i. The **new cell is part of the event** (c_i ± one in x or y); it is never recomputed from a rounded position. This removes the failure mode of the accelerated backend.
+- **Execution:**
+  - advance(i, t);
+  - re-express (ξ_i, ζ_i) in the new cell. One coordinate becomes exactly 0 or w, so there is no drift.
+  - move i between the two cells' index lists in O(1) (swap-remove, with a slot index per disk);
+  - predict pairs of i with the disks of the 3 cells that just became neighbours;
+  - schedule i's next crossing;
+  - if i entered an edge cell, a divider band or a piston band, predict those events too.
+- **Validity.** The velocity is unchanged, so k_i is **not** incremented and i's other events stay valid. The accelerated backend increments it (`edmd_accelerated.c:1195–1199`), which costs a full re-prediction per crossing.
+- **Corner crossings.** If x and y are crossed at the same time (a corner), there are two events at the same t, ordered by the tie-break.
+- **Replaces** the per-event `grid_build` (`:1756`, `:1771`, `:1778`; definition `:371–442`).
+
+*c. Per-disk time stamps.*
+- **Lazy advancing.** Only the disks of the executing event are advanced. The global loop goes:
+  - `/* jump all particles to event time */ ... for(int i=0;i<S->prm.N;i++){ S->P[i].x += S->P[i].vx*dt; ...}` (`:1726–1730`);
+  - and the free-flight loops at `:1660`, `:1696`, `:1712`.
+- **Output.** A request for all positions (the driver's ψ₆ samples, snapshots, the validator) calls `sync_all(t)`, which is O(N) per output, not per event.
+- **API.** `edmd_particles()` returns synchronised copies. A new call, `edmd_divider_state()`, returns only what the per-step loop needs.
+- **The driver** (`00ALLINONE.c:17001–17007` and the speed-of-sound loop `:16110–16135`) copies all N positions every step and runs the validator's overlap check every step. That is O(N) × 60 per σ-time.
+  - Proposed: the copy only on output steps; the validator every K steps (K stated, e.g. every σ-time) plus at the end; the compartment counts from the engine's per-compartment counters.
+  - [DERIVATION] At N = 1600 and π/8 this per-step work is about 10 % of a 2e5/s engine's time. It is not negligible.
+
+*d. Event queue.*
+- **Kept:** the binary heap (`heap_push`/`heap_pop`, `:318–350`) with lazy invalidation (`event_live`, `:785–796`: `coll_count` snapshots and the divider epoch) and periodic compaction (`heap_compact`, `:913–931`).
+- **Cost:** O(log M) per push and pop, with M ≈ 10–30 events per disk; that is about 16 levels at N = 1600.
+- **New:** the comparison key (t, type, a, b).
+- **Paul (2007), J. Comput. Phys. 221, 615** (SOURCE as cited by the plan author; not checked against the paper): a calendar queue with O(1) average cost.
+  - [INFERENCE] It pays only once the heap dominates the per-event cost. A prediction over 9 cells × ~2–4 disks costs about 20–40 pair solves, against about 16 heap compares, so the heap is roughly 10–30 %.
+  - Optional, after the gate, if a profile shows it.
+
+*e. Divider, pistons, outer walls.*
+- **The band.** For divider d, the band B_d is the set of cell columns that intersects [x_lo − t/2 − r − w, x_hi + t/2 + r + w]. Here [x_lo, x_hi] is a guaranteed bound on the divider's centre until the band's expiry time T_d:
+  - held divider: its fixed position, T_d = ∞;
+  - free divider at constant v_d: the swept interval up to T_d = now + (k columns)·w/|v_d|, with k = 1;
+  - harmonic divider: x_eq ± its current amplitude, T_d = ∞ until the next divider collision.
+- **Only band disks carry divider events.** A disk outside B_d is more than w from the divider face, so it must cross into B_d (a crossing event) before it can touch the face. The crossing argument of item a holds unchanged, because B_d is fixed in the lab frame between band updates and the divider stays inside it until T_d.
+- **BAND event at T_d:** recompute B_d and predict divider events for the disks in newly added columns.
+- **A divider collision** changes v_d. Then e_d is incremented (as now) and B_d is recomputed, and divider events are predicted for the disks of B_d only. That is about (H/w) × 3 columns × occupancy, i.e. O(√N) disks, instead of all N.
+- **Replaces:**
+  - the minimal path's O(N) epoch pass: `for (int j = 0; j < S->prm.N; ++j) if (j != e.a) schedule_divider_one(S, j, d_ev);` (`:1774`);
+  - the legacy `reschedule_all_internal(S)` (`:1767`, definition `:1021–1036`), which is O(N²).
+- **Held divider:** v_d = 0; the band is static and only the hitting disk is re-predicted, as today.
+- **Pistons:** moving bands, the same as a free divider.
+- **Outer walls:** static. Wall events only for disks in edge cells (item a).
+- **The spring divider** keeps its root finder (`harmonic_first_contact`, `:551–642`), now evaluated only for band disks.
+
+*f. `grid_build` and `reschedule_clamped` today, and their replacement.*
+- **Today.** `grid_build` (`:371–442`) rebuilds every cell from all positions at every event. On the way it clamps any disk found outside the box or inside the divider slab: it reflects the velocity, increments `coll_count` and `clamp_repair_count`, and records the index. `reschedule_clamped` (`:445–454`) then re-predicts those disks.
+- **Replacement.**
+  - Incremental cell membership through crossing events (item b).
+  - The clamp check becomes a check of the event's own disks after each resolution, O(1): the same reflection and counters, and it should never fire.
+  - A full O(N) check at every `sync_all`, also counted.
+
+*g. Safety nets, kept with their counters.*
+- the overdue pair branch `if(c<0.0){ *tcol = 0.0; return 2; }` (`:494`), with `overlap_repair_count` (`:974`);
+- the overdue wall branch of `wall_time_from_gap` (rc = 2), with `wall_overdue_count` (`:650–662`);
+- `past_event_count` (`:1724`);
+- the avalanche guard with `forced_advance_count` (`:1681`);
+- the clamp counter (item f).
+
+All of them are printed in the `[EDMD-HEALTH]` line; each one fires 0 times in a correct run.
+
+**3. Exactness items.**
+- **Floating time origin.** Times are stored relative to T₀. Every 2¹³ = 8192 internal units (341 σ-time), T₀ += 8192, and 8192 is subtracted from every heap time and every τ_i. That costs O(M + N) per 341 σ-time and is exact for values in [8192, 2·8192) (Sterbenz).
+  - [DATA, above] ulp at 4.8e5 internal (the end of a 2e4 σ-time run) is 5.8e-11; at the audit's horizons up to 9e8 it is 1.2e-7. With the origin, every executed time stays below ~2e4, so ulp ≤ 3.6e-12.
+- **Quadratic root [DATA, above].** The textbook "stable" form c/(−b + √disc) has the **same** error distribution as the current form (`:497`) at every gap from 1e-1 to 1e-10 px: medians 6–9e-16, identical maxima at grazing incidence.
+  - The rounding is in c = |r|² − σ² and in the absolute coordinates; the floor is ulp(960 px)/closing speed ≈ 1.2e-13.
+  - **Dropped as an item.** Disk-local coordinates (item a) lower the floor about 16× (ulp of ~32 px instead of ~960 px).
+- **Scale-aware tolerances.** The 33 literals listed above become named constants with a stated scale:
+  - **Times:** k·ulp(horizon), e.g. `t <= 1e-12` (`:498`, `:515`, `:719`, `:765`, `:942`, `:952`) becomes "t ≤ 8 ulp(t_now + t)" against the origin-relative time.
+  - **Positions:** k·ulp(32 px) in local coordinates, e.g. `num <= 1e-12` (`:716`, `:762`, `:941`, `:951`) and `gap < -1e-9` (`:690`, `:737`).
+  - **Repairs:** `eps = 1e-9` (`:377`, `:1362`, `:1961`, `:1963`) and the divider limits (`:984–985`) as one named `REPAIR_PX`, counted wherever used.
+  - **Not changed:** the RNG guards (`:1084`, `:1093`), the heat-bath and gate thresholds (`:1240`), and the seeding margins (`:1513`, `:1519`). They are not collision arithmetic.
+  - **Audits:** the audit's own thresholds (`:888–903`) stay as registered.
+- **Long double build option.** A compile-time `EDMD_REAL` (double | long double) for KOA spot checks: x86-64 80-bit, eps 1.08e-19. On arm64 Macs, long double = double (printed above), so the Mac reference stays double.
+  - **Spot check:** the same seed in double and in long double. Compare the contact audit maxima, the energy drift, and the time at which the trajectories decorrelate. Chaos makes them decorrelate; it shows the rounding floor, not an error.
+- **Heavy dividers [DATA, above].** At M = 1e8 the thermal speed is 1e-4 σ per σ-time and the kick per collision 2e-8. The kick is about 1e12 ulps of the velocity, so double precision is ample.
+  - The divider's period is ~1900 σ-time at N = 100 (η 0.70) and ~2200 at N = 1600, so 2e4 σ-time holds ~10 periods. The limit for heavy dividers is statistics, not precision.
+
+**4. Features the campaign needs.**
+- **Triangular-lattice initial conditions with a commensurate-box calculator** [DERIVATION; the table above].
+  - **Geometry.** Rows parallel or perpendicular to the divider (stated per run). The outermost rows sit r + g from the walls (g = surface gap, a parameter).
+  - **Box.** L0 and H are computed exactly from (n_x, n_y, a, g).
+  - **Wall layers.** Hard walls make the nominal η (the project's box-based definition) 1–10 % lower than the lattice's own η at N_s = 50–800. Both are printed.
+  - **The 1/24-σ pixel grid of the box width** (`00ALLINONE.c:323`: `SIM_WIDTH = (int)(2 * L0_UNITS * PIXELS_PER_SIGMA);`, methods § 14) strains such a lattice by up to 0.55 %. Proposed: **an exact box length (double) for generation 3.** The grid is kept only in the legacy path, and `box_delta` becomes 0 by construction.
+- **Vacancies:** n_vac disks removed by a stated, seeded rule (e.g. uniformly among sites more than 2 rows from any wall). N_s = n_x n_y − n_vac, printed.
+- **One seeding rule for all η.** Every run starts from the same stated lattice protocol, then a held-divider equilibration of stated length T_eq, then release.
+  - **The rule:** T_eq ≥ 10 × the structural correlation time measured by ψ₆(t) in a pilot at the same η and N.
+  - **Why:** § 4.6 found the present start switching from disordered to lattice-like between η 0.706 and 0.711.
+- **Equal record time.** `--record-sigma-time T` replaces `--target-oscillations`: the same T (σ-time) for every mass (§ 4.6).
+- **ψ₆(t) and snapshots** at fixed σ-time intervals [DATA, above, per 2e4 σ-time]:
+  - global ψ₆ every 0.25 σ-time: 2.9 MB at any N;
+  - positions every 10 σ-time: 7.2 / 29 / 65 / 115 MB at N = 100 / 400 / 900 / 1600;
+  - positions every 1 σ-time: 10× that.
+  - Proposed: ψ₆(t) always on; positions every 10 σ-time for a stated subset of seeds.
+- **Virial pressure per compartment** (Engel et al. Eq. (7): βP = (N/A)[1 + (m/(2NkT t)) Σ b_ij], with b_ij the virial of each collision).
+  - The engine already sums `virial_accum` and `virial_pair_events` (`:1065–1066`) globally. They become per-compartment sums.
+  - Printed next to the wall force on the divider and on the outer walls (impulse per time per length), so the two pressures are compared in every run.
+- **Audits as switches.**
+  - `--resched-audit`: generation 3's live heap against a brute-force all-pairs prediction from the synchronised state; missing, extra and relative dt, as in E2.
+  - `HD_CONTACT_AUDIT`: the contact distance at every executed event.
+  - Both are read-only, and the gate shows they do not steer (byte-identical outputs with and without them).
+- **Run header:** every parameter:
+  - engine generation and build line;
+  - cell width, origin interval, tolerance constants;
+  - lattice (orientation, n_x, n_y, a, g, n_vac), T_eq, record time;
+  - ψ₆ and snapshot intervals;
+  - seeds (run_seed and the exact seed, unchanged).
+
+**5. Gate plan** (list only; registered before the first production run).
+1. **Determinism:** the same seed twice on one node, and across two nodes, byte-identical (traces, ψ₆(t), summary).
+2. **Schedule audit:** brute-force all-pairs predictions against the live heap at every divider event (mode 1) and at every event for short controls (mode 2). Zero missing and zero extra; |dt| > 1e-9 only at rounding level relative to the horizon (the E2 rule as amended); minimum audited counts per class as in gate v2, including a lattice start and η ≥ 0.85.
+3. **Contact audit:** ≤ 1e-6 px in every class and run (expected ~1e-11, as today).
+4. **Ledgers:** energy (gas + divider) conserved to rounding over the record, as G-E2 (§ 4.4.8); momentum against the wall impulses.
+5. **Long-double spot check:** the double run's contact maxima and energy drift within the 80-bit run's by the floor of item 3, at one fluid and one solid cell; decorrelation time reported.
+6. **Statistical A/B against 279282b** at three fluid cells (π/8 anchor, η 0.10, one more), the Test T design: per-seed estimators, z with both SEs, Bonferroni z* and the permutation χ² computed by script, fresh seeds, registered before the data. Generation 3 and the legacy path in **one binary** (`--engine=gen2|gen3`) so no build differs.
+7. **Literature checks:**
+   - KR c_s in the fluid, η ≤ 0.69 (the comparison range of methods § 15).
+   - Engel's P* = 9.17 at η 0.698 from the virial pressure at N = 1600. The expected offset from the finite box and the hard walls is stated beforehand from the confinement law of Paper 1 (sign and size printed by script before the run). The interior (bulk) virial in a central region is compared as well as the global one.
+   - The solid's elastic constants against Sengupta, Nielaba and Binder, PRE 61, 6294 (2000), at one η (SOURCE as cited by the plan author; not checked against the paper: OPEN).
+8. **The driver:** the validator at its new cadence finds 0 overlaps, and the per-step loop's share of the time is measured.
+
+**6. KOA parallelism.**
+- **Limits.** To be read by Chris (read-only queries, as light as `sacct`):
+  ```
+  sacctmgr show assoc where user=charing format=Cluster,Account,User,Partition,QOS,DefaultQOS,GrpTRES,MaxTRES,MaxJobs,MaxSubmit -p
+  sacctmgr show qos format=Name,Priority,GrpTRES,MaxTRESPerUser,MaxJobsPerUser,MaxSubmitJobsPerUser,MaxWall -p
+  scontrol show partition shared
+  scontrol show config | grep -i -E "MaxArraySize|MaxJobCount"
+  sshare -u charing -l
+  ```
+- **The cap [INFERENCE].** The standing rule is **at most 32 cores at once**; the decision's text speaks of a 64-core politeness cap.
+  - The `shared` partition had 90 nodes, 86 of them allocated (§ 4.4.13 runsheet session), at mostly 20 cores per node, so 64 cores is ≈ 3–4 % of the partition.
+  - **Proposal:** 64 as the new cap if `MaxTRESPerUser` and the QOS allow it, and 128 only when `sinfo -p shared -s` shows ≥ 10 % of nodes idle. **The decision is Chris's**, with KOA's rules.
+- **How the array scripts change.**
+  - One trajectory per array task (`--cpus-per-task=1`), instead of 8-core tasks with `xargs -P 8`, throttled with `%64`.
+  - Task lists stay one line per trajectory (the worker format is unchanged).
+  - The array size must stay below `MaxArraySize`; larger campaigns are split into chunks submitted one after another.
+- **Checkpoints.**
+  - Not needed below ~4 h per trajectory. At ≥ 2e5/s that covers everything up to η = 0.85 at N = 1600 (98 min).
+  - Needed at η 0.90 for N ≥ 400 (3.7–14 h at 2e5/s). The checkpoint is the full state at an event boundary: disks, cells, τ_i, k_i, divider state, epoch, T₀, counters, RNG state.
+  - On restart the heap is rebuilt in canonical order. Byte-identity of a restarted against an uninterrupted run is a gate item. `shared`'s 3-day limit is not the constraint; robustness is.
+
+**7. Plan.**
+- **Milestones, with CC time estimates:**
+  - **M0, design review:** the plan author; this note.
+  - **M1, core:** cells, crossing events, disk-local coordinates, time stamps, `sync_all`, neighbour predictions, outer walls, heap tie-break, floating origin, safety nets; Mac audits wired in. **4–5 CC days.**
+  - **M2, divider and pistons as bands:** held, free and spring. **2–3 days.**
+  - **M3, driver:** sync on demand, validator cadence, ψ₆(t), snapshots, equal record time, virial per compartment, run header. **2–3 days.**
+  - **M4, initial conditions:** lattice generator, commensurate calculator, vacancies, seeding rule, exact box length. **2 days.**
+  - **M5, exactness:** tolerance constants, long-double build option. **1–2 days.**
+  - **M6, gate:** Mac part 2 days; KOA part about 1 week of wall time, including queue.
+  - **In total about 3 weeks of CC time,** somewhat above the decision's 2 + 1.
+- **What stays byte-identical:**
+  - the I/O formats: trace CSV columns, summary CSV, run.log lines, the `##RUN` worker format, `red_nu.csv` and `acf_runs.npz` via `reduce_B.py`;
+  - the estimators: `cell()`, `slope_with_errors`, the damping fit;
+  - the seeds: `run_seed` and the exact seed;
+  - the legacy engine, selectable in the same binary.
+- **What cannot stay byte-identical:**
+  - the trajectories, because of the order of simultaneous events, local coordinates and the floating origin, so validation is statistical;
+  - lattice-started runs, which have no predecessor;
+  - the 1/24-σ box rounding, which goes away.
+- **Risks [INFERENCE]:**
+  1. **Perfect lattices.** They produce many exactly simultaneous events. The tie-break makes them deterministic but not benign; a start with g > 0 and a stated small random displacement may be needed.
+  2. **Band bookkeeping** for moving dividers and pistons is the most error-prone part. The audits cover it.
+  3. **Lazy positions** must never leak to a reader without `sync_all`. One API, and the validator checks it.
+  4. **The driver's per-step loops** must follow, or they dominate.
+  5. **Effort:** three weeks is a CC estimate, not a measurement.
+  6. **Statistics for heavy dividers** (~10 periods per 2e4 σ-time) may need longer records, which affects cost.
+  7. **The solid EOS** in the cost table (Alder–Hoover–Young) is recalled, not checked.
+
+Stop here; waiting for review.
