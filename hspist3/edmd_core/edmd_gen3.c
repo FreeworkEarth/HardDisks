@@ -386,8 +386,8 @@ static void exec_pair(EDMD3* S, const Ev3* e){
     B->vx -= dvn * nx; B->vy -= dvn * ny;
     A->cnt++; B->cnt++; A->last = j; B->last = i;
     S->H.ev_pair++;
-    local_check(S, i); local_check(S, j);
     predict_all(S, i); predict_all(S, j);
+    local_check(S, i); local_check(S, j);    /* after the predictions: a repair bumps cnt and so retires them */
 }
 static void exec_wall(EDMD3* S, const Ev3* e){
     const int i = e->a, s = e->b;
@@ -399,8 +399,8 @@ static void exec_wall(EDMD3* S, const Ev3* e){
     S->wall_events[s]++;
     A->cnt++; A->last = -1;
     S->H.ev_wall++;
-    local_check(S, i);
     predict_all(S, i);
+    local_check(S, i);
 }
 static void exec_cross(EDMD3* S, const Ev3* e){
     const int i = e->a; Disk3* A = &S->D[i];
@@ -433,8 +433,8 @@ static void exec_cross(EDMD3* S, const Ev3* e){
     }
     for (int s = 0; s < 4; ++s)
         if (wall_candidate(S, A->cx, A->cy, s) && !wall_candidate(S, ocx, ocy, s)) predict_wall(S, i, s);
-    local_check(S, i);
     predict_cross(S, i);
+    local_check(S, i);
 }
 
 /* ------------------------------------------------------------------ origin, synchronisation */
@@ -505,7 +505,10 @@ static void schedule_audit(EDMD3* S){
         const Ev3* e = &S->heap.d[q];
         if (!ev_live(S, e)) continue;
         double* slot = NULL;
-        if (e->type == T_CROSS) { slot = &S->acr[e->a]; if (isnan(*slot)) S->acd[e->a] = e->b; else if (S->acd[e->a] != e->b) A->dup_disagree++; }
+        if (e->type == T_CROSS) {   /* a disk has at most ONE live crossing: a second one would be executed twice */
+            slot = &S->acr[e->a];
+            if (isnan(*slot)) S->acd[e->a] = e->b; else { A->cross_dup++; audit_print(S, "duplicate", "CROSS", e->a, e->b, NAN, e->t); }
+        }
         else if (e->type == T_WALL) slot = &S->awl[4L * e->a + e->b];
         else if (e->type == T_PAIR) {
             const long p = atable_slot(S, akey(e->a, e->b));
@@ -541,7 +544,11 @@ static void schedule_audit(EDMD3* S){
             const double th = S->awl[4L * i + s];
             if (isnan(th)) {
                 if (wall_candidate(S, D->cx, D->cy, s)) { A->wall_missing++; audit_print(S, "missing", "WALL", i, s, tbf, NAN); }
-                else A->wall_deferred++;
+                else {
+                    A->wall_deferred++;
+                    const double tc = isnan(S->acr[i]) ? INFINITY : S->acr[i];
+                    if (tbf < tc - 1e-9 * fmax(1.0, tc - S->now)) { A->wall_deferred_early++; audit_print(S, "deferred-early", "WALL", i, s, tbf, tc); }
+                }
             } else audit_cmp(S, tbf, th, &A->wall_cmp, &A->wall_dt, &A->wall_dt_rel, "WALL", i, s);
             S->awl[4L * i + s] = NAN;     /* consumed: what is left afterwards is extra */
         }
@@ -563,7 +570,12 @@ static void schedule_audit(EDMD3* S){
             if (!inheap) {
                 const int nb = abs(Di->cx - Dj->cx) <= 1 && abs(Di->cy - Dj->cy) <= 1;
                 if (nb) { A->pair_missing++; audit_print(S, "missing", "PAIR", i, j, tbf, NAN); }
-                else A->pair_deferred++;
+                else {
+                    A->pair_deferred++;
+                    const double ci = isnan(S->acr[i]) ? INFINITY : S->acr[i], cj = isnan(S->acr[j]) ? INFINITY : S->acr[j];
+                    const double tc = ci < cj ? ci : cj;
+                    if (tbf < tc - 1e-9 * fmax(1.0, tc - S->now)) { A->pair_deferred_early++; audit_print(S, "deferred-early", "PAIR", i, j, tbf, tc); }
+                }
                 continue;
             }
             S->ahm[p] = 1;

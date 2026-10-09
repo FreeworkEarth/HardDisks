@@ -53,8 +53,11 @@ typedef struct {
     long audits;                                               /* audited states */
     long pair_cmp, pair_missing, pair_extra, pair_dt, pair_dt_rel, pair_deferred;
     long wall_cmp, wall_missing, wall_extra, wall_dt, wall_dt_rel, wall_deferred;
-    long cross_cmp, cross_missing, cross_extra, cross_dt, cross_dt_rel;
+    long cross_cmp, cross_missing, cross_extra, cross_dt, cross_dt_rel, cross_dup;   /* cross_dup: a second live crossing of one disk */
     long dup_disagree, cell_inconsistent;
+    /* a true event not yet scheduled ("deferred") must come after the next crossing of one of its disks (the crossing
+       that will make it eligible); these count deferred events EARLIER than that crossing: 0 in a correct engine */
+    long pair_deferred_early, wall_deferred_early;
     double max_dt, max_rel;     /* max |t_bruteforce - t_heap|, and that over the horizon, over matched events */
 } EDMD3_Audit;
 
