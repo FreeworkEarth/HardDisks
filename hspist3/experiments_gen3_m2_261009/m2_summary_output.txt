@@ -1,0 +1,111 @@
+# M2 harness summary, printed by validation/gen3_m2_summary_261009.py from experiments_gen3_m2_261009/m2_audit_output.txt
+
+## 1. Reproducibility and the schedule audit (gen3)
+
+| cell | N | T | events A: pair / wall / divider / piston / band / crossings | A = B (audits do not steer) | B = C (same seed) | audited states | missing (all classes) | extra | deferred earlier than eligible | bands missing / extra / short | second live crossing, duplicate disagreements, disks outside their cell |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| cradle_exact | 300 | 100 | 21740 / 1106 / 0 / 0 / 0 / 18906 | YES | YES | 10130 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| cradle_round | 300 | 100 | 15240 / 780 / 0 / 0 / 0 / 10722 | YES | YES | 10090 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| cradle_round_late | 300 | 100 | 15240 / 780 / 0 / 0 / 0 / 10722 | YES | YES | 10090 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| free_pi8_M50 | 400 | 400 | 335769 / 29656 / 20205 / 0 / 0 / 191520 | YES | YES | 11289 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| free_pi8_M500 | 400 | 400 | 327362 / 28767 / 19700 / 0 / 0 / 189977 | YES | YES | 11406 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| free_070_M50 | 400 | 400 | 1767192 / 199600 / 170164 / 0 / 0 / 197803 | YES | YES | 15050 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| free_070_M500 | 400 | 400 | 1880789 / 210205 / 177876 / 0 / 0 / 204523 | YES | YES | 15597 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| heavy_070_M4e7 | 400 | 400 | 1801382 / 201894 / 169527 / 0 / 0 / 193756 | YES | YES | 14976 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| held_pi8 | 400 | 400 | 337991 / 29975 / 20165 / 0 / 0 / 201554 | YES | YES | 11450 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| held_070 | 400 | 400 | 1872262 / 209415 / 176545 / 0 / 0 / 208774 | YES | YES | 15568 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| driven_pi8 | 400 | 400 | 497377 / 43961 / 30738 / 0 / 36 / 246409 | YES | YES | 11757 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| spring_pi8 | 400 | 400 | 320190 / 18327 / 9277 / 0 / 0 / 179813 | YES | YES | 11143 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| piston_push | 400 | 400 | 48118 / 9379 / 1159 / 533 / 5 / 197848 | YES | YES | 10655 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+
+## 2. Amendment e: per class, over ALL matched events: max |dt| [units] (at the horizon of that event); max |dt| / horizon (at that horizon); horizon = max(t_bruteforce, t_heap) - now [units]
+
+| cell | pairs | outer walls | crossings | divider faces | pistons |
+|---|---|---|---|---|---|
+| cradle_exact | 0 (horizon 0); 0 (horizon 0) | 0 (horizon 0); 0 (horizon 0) | 0 (horizon 0); 0 (horizon 0) | - | - |
+| cradle_round | 4.55e-13 (horizon 18.4); 1 (horizon 1.67e-13) | 4.55e-13 (horizon 24.5); 1 (horizon 9.95e-14) | 4.55e-13 (horizon 27.8); 4.77e-12 (horizon 0.0238) | - | - |
+| cradle_round_late | 1.82e-12 (horizon 40); 1 (horizon 3.26e-13) | 9.09e-13 (horizon 28.5); 1 (horizon 1.35e-13) | 9.09e-13 (horizon 14.5); 3.93e-11 (horizon 0.019) | - | - |
+| free_pi8_M50 | 2.41e-11 (horizon 63.6); 1.09e-08 (horizon 1.3e-06) | 6.52e-09 (horizon 3.63e+06); 6.3e-10 (horizon 0.000135) | 1.46e-11 (horizon 6.88e+04); 1.4e-10 (horizon 5.06e-05) | 2.69e-10 (horizon 5.73e+04); 1.58e-10 (horizon 8.99e-05) | - |
+| free_pi8_M500 | 2.36e-11 (horizon 1.08e+03); 5.73e-08 (horizon 2.48e-07) | 1.98e-09 (horizon 9.78e+05); 7.75e-09 (horizon 3.67e-06) | 1.46e-11 (horizon 7.16e+04); 7.35e-11 (horizon 0.000193) | 4.66e-10 (horizon 1.01e+06); 2e-09 (horizon 6.05e-05) | - |
+| free_070_M50 | 2e-10 (horizon 1.33e+04); 1.56e-07 (horizon 2.28e-07) | 5.53e-10 (horizon 1.47e+05); 4.39e-09 (horizon 4.98e-06) | 2.33e-10 (horizon 1.75e+06); 1.26e-10 (horizon 0.00724) | 3.73e-09 (horizon 1.44e+07); 9.81e-09 (horizon 9.27e-05) | - |
+| free_070_M500 | 5.64e-11 (horizon 2.46e+03); 1.08e-06 (horizon 1.64e-08) | 1.13e-09 (horizon 4.64e+04); 1.41e-07 (horizon 6.03e-07) | 1.86e-09 (horizon 1.31e+07); 1.63e-10 (horizon 5.45e-06) | 1.7e-09 (horizon 5.53e+04); 1.15e-09 (horizon 0.000395) | - |
+| heavy_070_M4e7 | 6.73e-11 (horizon 369); 4.43e-08 (horizon 6.9e-06) | 8.29e-10 (horizon 6.92e+04); 4.87e-09 (horizon 8.02e-06) | 2.33e-10 (horizon 1.2e+06); 3.09e-10 (horizon 0.000368) | 1.12e-08 (horizon 1.36e+07); 7.83e-09 (horizon 1.89e-05) | - |
+| held_pi8 | 7.69e-11 (horizon 126); 8.09e-09 (horizon 3.69e-05) | 6.69e-10 (horizon 2.65e+04); 3.39e-09 (horizon 5.25e-06) | 1.46e-11 (horizon 7.07e+04); 2.16e-10 (horizon 0.000131) | 1.53e-10 (horizon 3.28e+04); 3.39e-10 (horizon 0.000419) | - |
+| held_070 | 1.06e-10 (horizon 3.47e+03); 1.21e-07 (horizon 1.47e-07) | 8.73e-10 (horizon 2.99e+05); 1.07e-08 (horizon 1.33e-06) | 2.33e-10 (horizon 1.43e+06); 4.36e-09 (horizon 5.21e-05) | 9.54e-07 (horizon 2.22e+09); 9.14e-07 (horizon 1.17e-08) | - |
+| driven_pi8 | 5.12e-11 (horizon 278); 1.4e-08 (horizon 5.06e-06) | 3.78e-10 (horizon 1.55e+05); 1.45e-09 (horizon 1.95e-05) | 1.16e-10 (horizon 6.03e+05); 7.92e-11 (horizon 4.48e-05) | 3.46e-10 (horizon 1.66e+04); 5.79e-10 (horizon 0.00157) | - |
+| spring_pi8 | 3.84e-11 (horizon 154); 1.62e-09 (horizon 0.000289) | 5.59e-09 (horizon 7.56e+05); 1.28e-10 (horizon 0.000111) | 2.91e-11 (horizon 2.08e+05); 6.78e-11 (horizon 0.000105) | 5.55e-11 (horizon 6.79e+03); 1.19e-10 (horizon 0.000359) | - |
+| piston_push | 2.73e-11 (horizon 1.99e+03); 2.29e-09 (horizon 6.19e-05) | 2.91e-11 (horizon 3.43e+04); 3.53e-10 (horizon 0.000161) | 3.64e-12 (horizon 1.95e+04); 2.53e-09 (horizon 5.62e-06) | 2.29e-10 (horizon 2.45e+04); 1.21e-10 (horizon 0.00375) | 1.23e-10 (horizon 621); 4.67e-11 (horizon 0.00608) |
+
+## 3. Health (gen3 run A; safety nets and validator must be 0), contact audit beside gen2 (max |gap| at executed events, px)
+
+| cell | safety nets and validator (sum) | run flag A, B, C | contact_now / wall / body (c_min px^2) | gen3: pairs / walls / divider / pistons | gen2: pairs / walls / divider / pistons | gen2 safety nets: overlap_repair, clamp_repair, wall_overdue, forced, past | gen2 sampled states with an overlap (worst gap px) |
+|---|---|---|---|---|---|---|---|
+| cradle_exact | 0 | 1, 1, 1 | 1384 / 0 / 0 (0) | 0 / 0 / 0 / 0 | 23 / 0 / 0 / 0 | 330, 0, 1, 0, 0 | 346 of 400 (-24) |
+| cradle_round | 0 | 1, 1, 1 | 197 / 0 / 0 (-3.75e-12) | 3.3e-13 / 2.27e-13 / 0 / 0 | 16.6 / 6.14e-12 / 0 / 0 | 11, 4, 0, 0, 0 | 25 of 400 (-24) |
+| cradle_round_late | 0 | 1, 1, 1 | 128 / 0 / 0 (-1.31e-11) | 1.18e-12 / 6.34e-13 / 0 / 0 | 16.6 / 6.14e-12 / 0 / 0 | 11, 4, 0, 0, 0 | 25 of 400 (-24) |
+| free_pi8_M50 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 3.18e-12 / 1.71e-12 / 1.67e-12 / 0 | 5.05e-12 / 3.47e-12 / 3.04e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| free_pi8_M500 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 2.86e-12 / 1.67e-12 / 1.53e-12 / 0 | 5.76e-12 / 3.68e-12 / 3.33e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| free_070_M50 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 3.23e-12 / 1.8e-12 / 1.79e-12 / 0 | 6.21e-12 / 3.87e-12 / 3.47e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| free_070_M500 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 2.94e-12 / 1.95e-12 / 1.84e-12 / 0 | 6.42e-12 / 4.66e-12 / 3.44e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| heavy_070_M4e7 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 3.16e-12 / 1.76e-12 / 1.79e-12 / 0 | 5.23e-12 / 3.64e-12 / 3.15e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| held_pi8 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 2.76e-12 / 1.78e-12 / 1.98e-12 / 0 | 5.88e-12 / 2.96e-12 / 3.44e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| held_070 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 3.22e-12 / 2.16e-12 / 2.01e-12 / 0 | 6.05e-12 / 4.21e-12 / 3.33e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| driven_pi8 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 5.48e-12 / 3.3e-12 / 3.15e-12 / 0 | 1.07e-11 / 7.11e-12 / 7.22e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| spring_pi8 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 2.88e-12 / 1.48e-12 / 1.4e-12 / 0 | 5.3e-12 / 3.79e-12 / 3.52e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| piston_push | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 2.51e-12 / 1.84e-12 / 1.27e-12 / 1.36e-12 | 9.5e-12 / 3.2e-12 / 3.18e-12 / 6.37e-12 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+
+## 4. Ledgers (gen3 run B, end of run): residual and its rounding scale
+
+| cell | x: P - P0 | x: residual / scale | y: P - P0 | y: residual / scale | E - E0 [kT] | W [kT] | energy: residual / scale |
+|---|---|---|---|---|---|---|---|
+| cradle_exact | -12 | 0 / 5.03e-12 | 0 | 0 / 0 | 0 | 0 | 0 / 1.77e-11 |
+| cradle_round | 0 | -4.44e-16 / 2.4e-12 | 0 | 0 / 0 | 0 | 0 | 0 / 6.59e-12 |
+| cradle_round_late | 0 | -4.44e-16 / 2.4e-12 | 0 | 0 / 0 | 0 | 0 | 0 / 6.59e-12 |
+| free_pi8_M50 | -12.7739 | -2.84e-14 / 2.17e-10 | -18.8499 | 2.84e-14 / 8.69e-11 | 3.41061e-13 | 0 | 3.41e-13 / 8.32e-10 |
+| free_pi8_M500 | 38.945 | -3.2e-13 / 4.26e-10 | -72.0458 | -7.11e-14 / 9.21e-11 | 1.98952e-12 | 0 | 1.99e-12 / 7.81e-10 |
+| free_070_M50 | 18.807 | 2.77e-13 / 1.79e-09 | -37.7662 | -2.34e-13 / 4.11e-10 | 1.13687e-12 | 0 | 1.14e-12 / 4.1e-09 |
+| free_070_M500 | 12.7186 | 9.77e-13 / 3.43e-09 | -49.8297 | -1.28e-13 / 4.51e-10 | -2.89901e-12 | 0 | -2.9e-12 / 4.73e-09 |
+| heavy_070_M4e7 | -4896.97 | 2.96e-10 / 6.13e-07 | -7.48585 | -1.85e-13 / 4.21e-10 | 9.09495e-13 | 0 | 9.09e-13 / 4.13e-09 |
+| held_pi8 | -10.303 | -1.08e-13 / 1.92e-10 | 3.07947 | 3.73e-14 / 8.57e-11 | 1.7053e-13 | 0 | 1.71e-13 / 8.11e-10 |
+| held_070 | -22.7804 | -1.79e-12 / 1.52e-09 | 28.3056 | -3.8e-13 / 5.04e-10 | -1.53477e-12 | 0 | -1.53e-12 / 4.41e-09 |
+| driven_pi8 | -33.3506 | -3.41e-13 / 4.63e-10 | 9.19354 | 3.2e-14 / 1.81e-10 | 673.003 | 673.003 | 8.75e-12 / 4.1e-09 |
+| spring_pi8 | 43.0769 | 1.42e-13 / 1.04e-09 | 20.025 | 2.49e-13 / 8.3e-11 | 132.25 | 132.25 | 4.92e-12 / 2.86e-09 |
+| piston_push | 18.72 | -1.42e-14 / 2.36e-11 | 47.5968 | 0 / 4.72e-11 | 28.1351 | 28.1351 | 8.24e-13 / 1.41e-10 |
+
+largest |residual| / scale: 0.00584 (piston_push, energy)
+
+## 5. Tolerances in force (end of run A) against the measured contact errors
+
+| cell | v_ref [px/unit] | c_tol [px^2] | 2 d x max pair gap / c_tol | tol_face [px] | max face gap / tol_face |
+|---|---|---|---|---|---|
+| cradle_exact | 20 | 6.985e-09 | 0 | 1.473e-10 | 0 |
+| cradle_round | 14 | 4.889e-09 | 0.00324 | 1.037e-10 | 0.00219 |
+| cradle_round_late | 14 | 4.889e-09 | 0.0116 | 1.037e-10 | 0.00611 |
+| free_pi8_M50 | 40.57 | 1.417e-08 | 0.0108 | 2.957e-10 | 0.00578 |
+| free_pi8_M500 | 39.65 | 1.385e-08 | 0.00991 | 2.889e-10 | 0.00578 |
+| free_070_M50 | 38.82 | 1.356e-08 | 0.0114 | 2.829e-10 | 0.00636 |
+| free_070_M500 | 40.59 | 1.417e-08 | 0.00996 | 2.958e-10 | 0.00659 |
+| heavy_070_M4e7 | 38.87 | 1.358e-08 | 0.0112 | 2.833e-10 | 0.00632 |
+| held_pi8 | 40.92 | 1.429e-08 | 0.00927 | 2.982e-10 | 0.00664 |
+| held_070 | 40.73 | 1.423e-08 | 0.0109 | 2.968e-10 | 0.00728 |
+| driven_pi8 | 75.8 | 2.647e-08 | 0.00994 | 5.52e-10 | 0.00598 |
+| spring_pi8 | 46.6 | 1.627e-08 | 0.0085 | 3.399e-10 | 0.00435 |
+| piston_push | 42.23 | 1.475e-08 | 0.00817 | 3.109e-10 | 0.00592 |
+
+## 6. Observables, information only (single trajectories; block SEs ignore slow correlations)
+
+| cell | Z gen3 (SE) | Z gen2 (SE) | divider mean x gen3 / gen2 [px] | divider SD gen3 / gen2 [px] | divider period gen3 / gen2 [sigma-time] (periods in the record) | static method Z left / right (gen3) | right piston work gen3 / gen2 [kT] |
+|---|---|---|---|---|---|---|---|
+| cradle_exact | 2.61233 (0.00842) | 2.42263 (0.02160) | - | - | - | - | - |
+| cradle_round | 2.60444 (0.00643) | 2.61423 (0.01397) | - | - | - | - | - |
+| cradle_round_late | 2.60444 (0.00643) | 2.61423 (0.01397) | - | - | - | - | - |
+| free_pi8_M50 | 2.83604 (0.00450) | 2.83183 (0.00338) | 237.2092 / 236.3183 | 3.1904 / 4.0404 | 10.29 (35) / 10.6 (34) | 3.293 / 2.934 | - |
+| free_pi8_M500 | 2.83397 (0.00456) | 2.83692 (0.00416) | 241.5612 / 241.3606 | 3.0505 / 3.8369 | 18.01 (20) / 20.01 (18) | 3.389 / 2.844 | - |
+| free_070_M50 | 11.02628 (0.03214) | 11.12963 (0.02018) | 134.9526 / 135.2634 | 0.4798 / 0.5896 | not resolved (peak at the 3-period bound) / not resolved (peak at the 3-period bound) | 15.37 / 15.05 | - |
+| free_070_M500 | 11.19933 (0.01458) | 11.12774 (0.04127) | 135.1063 / 134.8614 | 0.3109 / 0.3635 | 2.132 (169) / 2.144 (168) | 15.31 / 15.29 | - |
+| heavy_070_M4e7 | 11.19744 (0.02326) | 11.10473 (0.05215) | 135.5476 / 135.5194 | 0.2841 / 0.2568 | 90.06 (4) / not resolved (peak at the 3-period bound) | 15.26 / 15.32 | - |
+| held_pi8 | 2.83202 (0.00438) | 2.82489 (0.00426) | 240.6000 / 240.6000 | 0.0000 / 0.0000 | - (does not move) / - (does not move) | 3.086 / 3.113 | - |
+| held_070 | 11.08263 (0.02962) | 11.20888 (0.02411) | 135.1000 / 135.1000 | 0.0000 / 0.0000 | - (does not move) / - (does not move) | 15.19 / 15.17 | - |
+| driven_pi8 | 3.02271 (0.06569) | 3.06404 (0.07853) | 264.5833 / 264.5833 | 13.8795 / 13.8795 | 20.01 (18) / 20.01 (18) | - | - |
+| spring_pi8 | 2.78797 (0.01140) | 2.76877 (0.01781) | 484.9627 / 485.0704 | 4.1974 / 4.6739 | 18.96 (19) / 18.01 (20) | - | - |
+| piston_push | 1.25551 (0.00267) | 1.25802 (0.00311) | 1791.9417 / 1795.5344 | 66.0111 / 76.0865 | not resolved (peak at the 3-period bound) / not resolved (peak at the 3-period bound) | 1.181 / 1.456 | 28.1351 / 28.4547 |

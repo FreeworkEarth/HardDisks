@@ -6359,3 +6359,516 @@ $ git diff --stat 7b08827 HEAD -- <build inputs>   (HEAD = 3d42d0b)
 | ctrl_min | git 3d42d0b  target mac-O3-e0pre | 2 | 104866 | 58275689 | 0 | 0 | 696 | 0 | 2.42e-08 | 0 | 1.84e-13 | 4.7e-12, 4.0e-12, 2.3e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
 | ctrl_leg | git 3d42d0b  target mac-O3-e0pre | 2 | 104776 | 58349834 | 0 | 0 | 423 | 0 | 2.86e-06 | 0 | 4.59e-12 | 5.2e-12, 3.0e-12, 3.0e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
 ```
+
+### 4.7.6 M2 done: dividers and pistons as bands; amendments b–f (2026-10-09 00:43 HST, machine date; engine-gen3 ddae96c: the code; the evidence and these notes are the commit after it) [DATA, printed by the harness and the scripts named; DERIVATION for the tolerances; INFERENCE and OPEN where marked]
+
+**Plain summary.**
+- **M2 is done on this Mac. The code is on engine-gen3 only; gen3 is not in the binary yet (M3).**
+  - Dividers and pistons are bodies with a band of cell columns. Only the disks of a band carry the body's events, and a velocity change of a body re-predicts its band (O(√N)), not all N.
+  - Supported: held dividers (mass 0, velocity 0), driven (mass 0, velocity ≠ 0), free (mass > 0) and spring dividers (mass > 0 and k > 0, harmonic as in edmd.c), and pistons of either kind.
+  - Hold, release and piston protocols act through `edmd3_set_divider_motion` and `edmd3_set_piston_motion` at the current time.
+- **Acceptance [DATA].**
+  - **Cells.** 13 harness cells:
+    - the seven of § 4.7.4: free divider at π/8 and η 0.70 with M = 50 and 500, heavy M = 4e7, held at π/8, and the piston push;
+    - § 4.7's spring cell;
+    - five more, explained below: three cradles, held at 0.70, and a driven divider.
+  - **Runs.** Each cell runs three times in gen3 (audits on, off, and again) and once in gen2 from the same state with the same protocol.
+  - **Schedule audit:** 0 missing, 0 extra and 0 deferred-early in all five classes (pairs, outer walls, crossings, divider faces, pistons), and bands 0 missing, 0 extra, 0 short, on 10,090–15,597 audited states per cell.
+  - **Health:** every safety net and validator count is 0, and the run flag is clean in every run.
+  - **Reproducibility:** the audits do not steer (A = B), and the same seed gives the same run bit for bit (B = C), in every cell.
+  - **Ledgers:** momentum (x, y) and energy close to at most 0.0058 of their rounding scale (piston push, energy).
+  - **Acceptance 1 [DATA]:** the M1 harness, unchanged, prints its committed output byte for byte on the M2 engine (SHA-256 3b134774…). That covers the three hashes 554d54d53b262d95, 05aff616919c73e7 and 5c08787c3d718c66 and every other line.
+- **Amendment b: the plan author's reading is right [DATA, DERIVATION].** The contact error is set by the time resolution, not by ulp(d²).
+  - **The error is a speed times the time quantum.** In the 29 runs with a non-zero gap (M1, M2 quick and M2 full; the exact-arithmetic cells have gap 0), the time quantum u_run spans 32×, from 5.7e-14 to 1.8e-12 units. The largest pair contact gap divided by u_run stays at 0.65–3.9 px per unit: a speed of the order of the contact speeds, not a fixed length. The ten 400 σ-time cells have a 16× larger quantum in their full runs than in their quick runs, and 8.0–12.2× larger gaps (the cradle: 8× and 6.6×).
+  - **M1's threshold fails exactly as predicted.** The cradle loaded at t = 8100 units puts contacts next to 2¹³. One `contact_now` there had c = −1.31e-11 px², 1.6 × M1's c_tol (8.2e-12 px²). M1's rule would have counted that harmless rounding contact as an `overlap_repair`, which breaks the "health = 0" rule.
+  - **The new threshold.** c_tol = K · 2d · v_ref · u_t, with u_t = ulp(2¹³) = 1.82e-12 units, v_ref = 2√E (the largest relative speed energy allows) and K = 4 (the derived bound is 2.5).
+    - At N = 400 and kT = 1 that is 1.4e-8 px², i.e. a gap of 2.9e-10 px.
+    - Every measured contact lies at ≤ 0.012 c_tol. The validator's overlap scale is 8e4 c_tol, so a missed collision cannot hide below the threshold.
+  - **What gen3 does on an `overlap_repair` besides counting.**
+    - Dynamics: the pair is scheduled at the current time and collides by the normal rule, along the current line of centres. Positions are not corrected, and the pair then separates.
+    - Run flag: `edmd3_health_clean()` returns 0 from then on (new in M2).
+    - Plan for M3, not done: the driver writes the flag and the counters into the run record, and the loaders refuse such a run, as for the provenance guard.
+- **Amendment c [DATA]:** the exact-tie cell of M1 never ran the branch; its health line, pasted below, has `contact_now=0 overlap_repair=0`. Its ties never share a disk.
+  - The three cradle cells (A → B ← C with B at rest, so the contacts A–B and B–C share disk B) run it:
+    - `contact_now` = 1384 on dyadic positions, with c = 0 exactly;
+    - 197 and 128 on non-dyadic positions, with c down to −3.75e-12 and −1.31e-11 px²;
+    - `overlap_repair` = 0 in all three.
+- **Amendment d [DATA]: momentum and energy ledgers in every cell.**
+  - Per axis, the change of total momentum of the bodies of finite mass equals the impulses of the outer walls, of the divider while held or driven, of the pistons, of the spring anchor (the spring divider) and of API changes.
+  - The largest |residual| / scale is 0.0058; the scale is u × the sum of the rounded terms.
+- **Amendment e [DATA]:** per class and over all matched events, max |dt| and max |dt|/horizon, each printed with its horizon.
+  - The largest |dt| (9.5e-7 units) belongs to a prediction 2.2e9 units ahead (a disk whose x-velocity is below 1e-7 px per unit, against the held divider: the gap is at most the compartment width): a relative error of 4e-16.
+  - |dt|/horizon reaches 1 only for events due now (horizon ≤ 3.3e-13 units). Otherwise it is ≤ 1.1e-6, where |dt| is at the time resolution.
+- **Amendment f:** the sentence in `experiments_gen3_m1_261008/00_COMMAND.md` is corrected, with the old wording kept in the correction note: edmd.c has 0 warnings under `-Wall -Wextra`, measured.
+- **Speed with a divider at N = 400 [DATA]:**
+  - gen3 7.2e5–1.12e6 physical events/s, gen2 (7b08827 code, minimal policy) 1.20e5–1.50e5;
+  - gen3/gen2 = 8.4 (held, π/8), 7.7 (free M = 500, π/8), 5.6 (held, 0.70) and 5.2 (free M = 500, 0.70);
+  - medians of 3. Other applications were running (load averages before and after: 12.5/22.0/18.9 and 14.8/21.6/18.8), so the absolute rates are low; the ratios come from the same conditions.
+- **Information: gen2 in the cradle cells [DATA; INFERENCE for production].** From the same states, gen2 lets disks pass through each other.
+  - The sampled states contain overlaps down to −24 px, a full diameter: in 346 of 400 states (exact cradles) and 25 of 400 (rounded).
+  - gen2's own counters show 330 and 11 `overlap_repair`.
+  - Mechanism, read from edmd.c:494–498: c < 0 is scheduled at once. c = 0 and a rounding-positive c give t ≤ 1e-12, which is dropped. The case is a disk re-predicted at contact with one partner while it is changing velocity with another.
+  - [INFERENCE] In a random fluid this needs two contacts of one disk within about 1e-12 time units. That is about 1e-12 per collision, i.e. about 0.01 per 1e10-collision trajectory.
+  - [OPEN] Whether any production run had one is answered by its `[EDMD-HEALTH]` line (`overlap_repair`) and its validator, not by this note. No run was looked at here.
+- **Where M2 differs from the acceptance list.**
+  - § 4.7 includes the spring divider (cell `spring_pi8`; Paper 2 geometry C type).
+  - Five cells were added: `cradle_exact`, `cradle_round` (amendment c), `cradle_round_late` (amendment b), `held_070` (a second held cell, at the dense state), and `driven_pi8`. The driven cell exists because no acceptance cell lets a band expire often: it has 36 expiries and 36 API velocity changes, against 5 expiries in the piston push.
+  - The cradles are N = 300 and 100 σ-time; every other cell is N = 400 and 400 σ-time.
+- **Not done in M2, and open.**
+  1. The driver, `--engine=gen2|gen3`, the run flag in the run record, and the M3 byte-identity recheck of gen2 right after linking (§ 4.7.4 a).
+  2. KOA: no gen3 run before M6.
+  3. [OPEN] The schedule audit uses the engine's own contact rule (`body_rule`), evaluated on absolute positions. The spring's root search is therefore tested separately: `gen3_body_rule_test.c` checks it against an independent scan on 20,000 random cases with 0 failures (output below).
+  4. The divider periods of single 360 σ-time records are information only. At M = 4e7 the expected period (about 1200 σ-time, § 4.7) is longer than the record.
+
+**Done and not done, item by item (§ 4.7.4).** Evidence in `hspist3/experiments_gen3_m2_261009/` unless named.
+- **a. gen2 byte identity at engine-gen3 HEAD.** Done (§ 4.7.5). The repeat in M3 right after gen3 is linked is not done (M3).
+- **b. c_tol from the time resolution.** Done: derived below, printed by `validation/gen3_tolerances_261009.py`. The reading is confirmed by data (summary above). What gen3 does on an `overlap_repair` is stated above. The run flag exists (`edmd3_health_clean`); writing it into the run record is M3.
+- **c. Coverage of the contact-or-overlap branch.** Done: the tie cell's health line is pasted below, and the three cradle cells run the branch (`contact_now` 1384, 197, 128; `overlap_repair` 0).
+- **d. Momentum ledger in the harness.** Done for every cell, with the energy ledger; residual and scale printed (summary section 4).
+- **e. max |dt| and max |dt|/horizon per class over all matched events.** Done, each with its horizon (summary section 2).
+- **f. The `edmd.c` warnings sentence.** Corrected on main and engine-gen3.
+- **Acceptance 1, the M1 hashes.** Done: byte-identical M1 output (`m1_identity.txt`).
+- **Acceptance 2, the new cells.** Done, with the additions listed above.
+- **Acceptance 3, per cell.** Done:
+  - schedule audit with the divider and piston classes: 0 missing, 0 extra;
+  - contact audit beside gen2;
+  - health 0;
+  - A = B (audits do not steer) and B = C (same seed).
+- **Acceptance 4, the ledgers.** Done: the energy ledger includes the divider's kinetic energy, the spring's energy and the work of driven bodies and pistons; the momentum ledger is amendment d.
+- **Acceptance 5, divider and piston tolerances with a stated scale.** Done:
+  - tol_face = K v_ref u_t + 8 ulp(box), the same standard as c_tol;
+  - the band margin 1.2e-5 px, stated against the crossing residual and the validator's cell tolerance;
+  - printed per cell with the measured gaps beside them (summary section 5).
+- **Acceptance 6, observables gen3 against gen2.** Done, information only (summary section 6).
+- **Acceptance 7, events/s with a divider at N = 400.** Done (`m2_speed_output.txt`).
+- **Acceptance 8.**
+  - 0 warnings under `-Wall -Wextra`: done, for the engine, both harnesses and the unit test, and for edmd.c.
+  - This list and the decision log below: done.
+- **Not done (not M2):** the driver and `--engine` (M3), KOA (M6), the long-double spot check and cross-node identity (gate).
+
+**Implementation log (dated decisions taken during M2, each with its reason).**
+- **2026-10-08 23:51 – 2026-10-09 00:02 HST (the first M2 engine, compiled at 00:02), the bodies are a table beside the disks.** Index: dividers 0–31, then the left and the right piston.
+  - Events: DIV (a = disk, b = 2 d + face), PISTON (a = disk, b = side) and BAND (a = body), in the type slots 3, 4 and 1 that M1 kept free. CROSS 0, WALL 2 and PAIR 5 keep their codes and their order.
+  - Each DIV or PISTON event carries the body's velocity epoch, and each BAND event carries the band's generation, so a velocity change retires all of the body's events at once (lazy invalidation, as `div_epoch` in edmd.c).
+  - Reason: an object-free run must execute exactly M1's events. It does: the M1 harness prints its committed output byte for byte (below).
+- **Same, the band test is § 4.7's, without the w margin on each side.** A column belongs to the band if it meets the contact positions of a disk centre, [lo − h, hi + h] for a divider (h = th/2 + R; one side for a piston). [lo, hi] bounds the body's position from now to the band's expiry. The test is closed, as `wall_candidate`, plus a margin m.
+  - m = the validator's wall tolerance, 1.2e-5 px. That is 5e6 times the largest crossing residual measured in M1 (2.4e-12 px) and 1.2e4 times the cell tolerance the validator enforces (1e-9 px).
+  - Reason: the no-miss argument needs only m ≥ the distance by which a disk can sit outside its filed column (the cell tolerance). § 4.7's extra w on each side would roughly double the band, and with it the cost of every epoch pass.
+  - The schedule audit checks the argument on every audited state: missing (a band disk without its event), deferred-early (an event of a disk outside the band that is due before its next crossing or the band's expiry), and band_short (the band misses a column the body can reach before its expiry).
+- **Same, the band expires; § 4.7 had a spring band of x_eq ± amplitude that never expires.**
+  - Held body, or a spring at rest: it never expires. Constant velocity: after the body has moved one cell width, w/|v|.
+  - Spring: after the arc can have moved one cell width, |v| Δ + ω² A Δ²/2 = w (|x''| ≤ ω² A). The band is the arc's reach intersected with x_eq ± A.
+  - Reason: the pre-loaded spring of Paper 2 geometry C has a free-arc amplitude of F/k ≈ 115 px about x_eq, so a band of x_eq ± A spans about 8 columns; the arc band spans about 3.
+- **Same, a body's velocity change re-predicts its band's disks only.** A collision with a body of finite mass, or an API change, bumps the epoch, recomputes the band and predicts the body for every disk in it (`obj_changed`): O(√N), not O(N).
+  - Held and driven bodies (mass 0) never change velocity in a collision, so only the hit disk is re-predicted, as in gen2's minimal policy.
+- **Same, the contact rule for bodies has no time cut-off.** A gap g ≤ 0 while approaching runs at once: a contact within rounding if g ≥ −tol_face, else an overlap repair (counted).
+  - Right after a collision of the same disk and body ("mutual last", as for pairs), the t = 0 root is not scheduled again.
+  - Reason: the spring divider can re-catch a disk with no other event in between, so a receding-lines argument does not exist for it. gen2 skips roots below `root_tol = 1e-12` instead (edmd.c:559, :606).
+- **Same, the spring divider keeps gen2's idea, not its code.** gen3 searches the face gap g(t) in monotone pieces between the zeros of g′, which are known in closed form, as `harmonic_first_contact` (edmd.c:551–640) does. Three changes:
+  1. no `root_tol` (the mutual-last rule above);
+  2. safeguarded Newton in place of 80 bisections;
+  3. an O(1) jump for slow approaches. g(t + T) = g(t) − σ v_p T exactly, so the local minima fall by a fixed step per period, and the search jumps to the period of the first minimum ≤ 0. gen2 scans every period up to its horizon: a disk approaching at 1e-9 px per unit would take about 1e9 periods.
+  - The third change came from my own review at about 00:16 HST, while the first full run of the harness was running on the earlier version. Only contacts more than two periods ahead can differ, and every M2 output below is from the final version.
+  - Validated against an independent scan by `gen3_body_rule_test.c` (results below).
+- **Same first engine, outer walls get the same split as pairs and bodies:** `wall_overdue` (gap < −tol_face, a safety net) and `wall_contact_now` (within rounding, not a repair). M1 counted any gap ≤ 0 as overdue; it had 0 of either.
+- **Same, the tolerances are derived from the time resolution (amendment b; the derivation is printed below).**
+  - c_tol = K · 2d · v_ref · u_t and tol_face = K · v_ref · u_t + 8 ulp(box width), with u_t = ulp(2¹³) and K = 4 (derived bound 2.5).
+  - v_ref = √(2 E_bound (1 + 1/m_min)) + the fastest body of mass 0. E_bound is the largest mechanical energy so far, so it only grows.
+  - Both are recomputed when the bound rises (work of driven bodies, API changes); they classify counters only and never touch the dynamics.
+- **Same, the ledgers (amendment d).**
+  - External to the bodies of finite mass: the outer walls, bodies of mass 0 (held or driven), the spring anchors (the momentum change of a spring divider between its collisions), and velocity or mass changes through the API.
+  - The rounding scale is u × (the sum of |result| over every rounded operation of the dynamics and of the ledger sums), u = 2⁻⁵³: a first-order bound.
+- **Same, amendment e: horizon = max(t_bruteforce, t_heap) − now.** Then |dt| ≤ horizon, so the ratio is at most 1; it is 1 only for an event due now in one of the two computations (a contact at once against a rounding-positive gap). The horizon of each class's largest |dt| is printed too (added 00:22 HST): large |dt| belong to far-future predictions.
+- **00:12 HST, the schedule audit also runs after every band expiry and every API change of a body (run A).** Reason: those code paths are otherwise sampled only by the every-500th audit. Added together with the driven cell, after the quick runs showed that no acceptance cell lets a band expire (0 BAND events).
+- **Same, the run flag.** `edmd3_health_clean()` is 1 until any safety net, validator or body count is non-zero.
+- **gen2 in the harness receives the protocol as the driver passes it:** `edmd_set_divider_motions` or `edmd_config_pistons`, then `edmd_reschedule_all` (00ALLINONE.c:16999–17012).
+- **The piston cell has both pistons at the outer walls, as the driver configures them in EDMD mode** (00ALLINONE.c:16742–16747: hasL = hasR = 1, mass 0). Coincident wall and piston events tie, and the tie-break (WALL 2 < PISTON 4) decides. The left piston therefore received no event.
+- **Refused by gen3:** a divider of thickness ≤ 0, because edmd.c silently ignores such a divider (`collide_time_divider_L/R` return 0), and semipermeable gates.
+
+**Amendment b, the derivation [DERIVATION].** From the docstring of `validation/gen3_tolerances_261009.py`; the values follow.
+- Let u_t = ulp(2¹³) = 2⁻³⁹ units. The origin shift keeps every executed time below 2¹³ plus one event, so a time's rounding is ≤ u_t/2.
+- **One executed contact.**
+  - The contact time is stored rounded: gap error ≤ v_n u_t/2 (v_n = the closing speed).
+  - At execution, each disk is evaluated at that time from its own stamp (t − τ rounded): ≤ (|v_i| + |v_j|) u_t/2.
+  - At the prediction, the partner was evaluated the same way: ≤ |v_j| u_t/2.
+  - Products and sums in cell-local coordinates add a few ulp(32 px) = 7e-15 px, which is negligible.
+  - Total: |gap| ≤ (v_n + |v_i| + 2|v_j|) u_t/2 ≤ 1.5 v_ref u_t.
+- **A pair re-predicted inside the overlap its own contact left** (a third disk turns one of them at nearly the same time), with both evaluated again: |gap| ≤ 2.5 v_ref u_t.
+- **v_ref bounds every relative speed.**
+  - Two unit-mass disks with total mechanical energy E have |v_i| + |v_j| ≤ 2√E.
+  - A disk and a body of mass M ≥ 1: ≤ √(2E(1 + 1/M)).
+  - A body of mass 0 adds its prescribed speed.
+- **The thresholds.** c = |r|² − d² ≈ 2d · gap, so c_tol = K · 2d · v_ref · u_t with K = 4 > 2.5.
+  - Faces compare absolute positions (up to the box width) as well, so tol_face = K · v_ref · u_t + 8 ulp(box width).
+  - At N = 400 and kT = 1: c_tol = 1.4e-8 px² and tol_face = 2.9e-10 px (table below).
+- **Why not tuned [INFERENCE from the numbers].** The thresholds sit about two orders above every measured contact (≤ 0.012 c_tol, ≤ 0.0073 tol_face) and about 4–5 orders below the validator's overlap tolerance (8e4 c_tol, 4e4 tol_face at N = 400). A rounding contact cannot reach them, and a missed collision cannot hide below them.
+
+**Amendment c, the health line of the exact-tie stress cell (M1, `experiments_gen3_m1_261008/m1_audit_output.txt`, cell tie), verbatim:**
+
+```
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 contact_now=0 local_checks=155200 local_findings=0 full_checks=101 full_findings=0 local_worst=0 full_worst=0 cross_residual_max=0 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=1841
+```
+
+**What was run.**
+- Builds, commands and run order: `hspist3/experiments_gen3_m2_261009/00_COMMAND.md`.
+- Outputs, in the same folder on main and on engine-gen3:
+  - `m2_audit_output.txt` and `m2_audit_quick_output.txt`: the harness, 751 lines each;
+  - `m2_summary_output.txt` and `gen3_tolerances_output.txt`: the two scripts;
+  - `body_rule_test_output.txt`, `m1_identity.txt`, `m2_speed_output.txt` and `m2_speed_load.txt`.
+- The engine, the harnesses and the unit test are on engine-gen3 only.
+- **Changes after the harness's first full run (00:13–00:38 HST, scratch only):**
+  - the engine changed once (the O(1) jump of the spring search, logged above);
+  - the harness gained the late cradle cell and the horizon of the max |dt|;
+  - the information-only period estimator was then improved twice: a detrended, windowed spectrum, and "does not move" for a held divider.
+  - The two estimator edits changed no other line of the output (line diffs in scratch). Every output quoted here is from the final sources (SHA-256 in `m1_identity.txt` for the engine).
+
+**The summary, printed by `validation/gen3_m2_summary_261009.py`, verbatim:**
+
+```
+# M2 harness summary, printed by validation/gen3_m2_summary_261009.py from experiments_gen3_m2_261009/m2_audit_output.txt
+
+## 1. Reproducibility and the schedule audit (gen3)
+
+| cell | N | T | events A: pair / wall / divider / piston / band / crossings | A = B (audits do not steer) | B = C (same seed) | audited states | missing (all classes) | extra | deferred earlier than eligible | bands missing / extra / short | second live crossing, duplicate disagreements, disks outside their cell |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| cradle_exact | 300 | 100 | 21740 / 1106 / 0 / 0 / 0 / 18906 | YES | YES | 10130 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| cradle_round | 300 | 100 | 15240 / 780 / 0 / 0 / 0 / 10722 | YES | YES | 10090 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| cradle_round_late | 300 | 100 | 15240 / 780 / 0 / 0 / 0 / 10722 | YES | YES | 10090 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| free_pi8_M50 | 400 | 400 | 335769 / 29656 / 20205 / 0 / 0 / 191520 | YES | YES | 11289 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| free_pi8_M500 | 400 | 400 | 327362 / 28767 / 19700 / 0 / 0 / 189977 | YES | YES | 11406 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| free_070_M50 | 400 | 400 | 1767192 / 199600 / 170164 / 0 / 0 / 197803 | YES | YES | 15050 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| free_070_M500 | 400 | 400 | 1880789 / 210205 / 177876 / 0 / 0 / 204523 | YES | YES | 15597 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| heavy_070_M4e7 | 400 | 400 | 1801382 / 201894 / 169527 / 0 / 0 / 193756 | YES | YES | 14976 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| held_pi8 | 400 | 400 | 337991 / 29975 / 20165 / 0 / 0 / 201554 | YES | YES | 11450 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| held_070 | 400 | 400 | 1872262 / 209415 / 176545 / 0 / 0 / 208774 | YES | YES | 15568 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| driven_pi8 | 400 | 400 | 497377 / 43961 / 30738 / 0 / 36 / 246409 | YES | YES | 11757 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| spring_pi8 | 400 | 400 | 320190 / 18327 / 9277 / 0 / 0 / 179813 | YES | YES | 11143 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+| piston_push | 400 | 400 | 48118 / 9379 / 1159 / 533 / 5 / 197848 | YES | YES | 10655 | 0 | 0 | 0 | 0 / 0 / 0 | 0, 0, 0 |
+
+## 2. Amendment e: per class, over ALL matched events: max |dt| [units] (at the horizon of that event); max |dt| / horizon (at that horizon); horizon = max(t_bruteforce, t_heap) - now [units]
+
+| cell | pairs | outer walls | crossings | divider faces | pistons |
+|---|---|---|---|---|---|
+| cradle_exact | 0 (horizon 0); 0 (horizon 0) | 0 (horizon 0); 0 (horizon 0) | 0 (horizon 0); 0 (horizon 0) | - | - |
+| cradle_round | 4.55e-13 (horizon 18.4); 1 (horizon 1.67e-13) | 4.55e-13 (horizon 24.5); 1 (horizon 9.95e-14) | 4.55e-13 (horizon 27.8); 4.77e-12 (horizon 0.0238) | - | - |
+| cradle_round_late | 1.82e-12 (horizon 40); 1 (horizon 3.26e-13) | 9.09e-13 (horizon 28.5); 1 (horizon 1.35e-13) | 9.09e-13 (horizon 14.5); 3.93e-11 (horizon 0.019) | - | - |
+| free_pi8_M50 | 2.41e-11 (horizon 63.6); 1.09e-08 (horizon 1.3e-06) | 6.52e-09 (horizon 3.63e+06); 6.3e-10 (horizon 0.000135) | 1.46e-11 (horizon 6.88e+04); 1.4e-10 (horizon 5.06e-05) | 2.69e-10 (horizon 5.73e+04); 1.58e-10 (horizon 8.99e-05) | - |
+| free_pi8_M500 | 2.36e-11 (horizon 1.08e+03); 5.73e-08 (horizon 2.48e-07) | 1.98e-09 (horizon 9.78e+05); 7.75e-09 (horizon 3.67e-06) | 1.46e-11 (horizon 7.16e+04); 7.35e-11 (horizon 0.000193) | 4.66e-10 (horizon 1.01e+06); 2e-09 (horizon 6.05e-05) | - |
+| free_070_M50 | 2e-10 (horizon 1.33e+04); 1.56e-07 (horizon 2.28e-07) | 5.53e-10 (horizon 1.47e+05); 4.39e-09 (horizon 4.98e-06) | 2.33e-10 (horizon 1.75e+06); 1.26e-10 (horizon 0.00724) | 3.73e-09 (horizon 1.44e+07); 9.81e-09 (horizon 9.27e-05) | - |
+| free_070_M500 | 5.64e-11 (horizon 2.46e+03); 1.08e-06 (horizon 1.64e-08) | 1.13e-09 (horizon 4.64e+04); 1.41e-07 (horizon 6.03e-07) | 1.86e-09 (horizon 1.31e+07); 1.63e-10 (horizon 5.45e-06) | 1.7e-09 (horizon 5.53e+04); 1.15e-09 (horizon 0.000395) | - |
+| heavy_070_M4e7 | 6.73e-11 (horizon 369); 4.43e-08 (horizon 6.9e-06) | 8.29e-10 (horizon 6.92e+04); 4.87e-09 (horizon 8.02e-06) | 2.33e-10 (horizon 1.2e+06); 3.09e-10 (horizon 0.000368) | 1.12e-08 (horizon 1.36e+07); 7.83e-09 (horizon 1.89e-05) | - |
+| held_pi8 | 7.69e-11 (horizon 126); 8.09e-09 (horizon 3.69e-05) | 6.69e-10 (horizon 2.65e+04); 3.39e-09 (horizon 5.25e-06) | 1.46e-11 (horizon 7.07e+04); 2.16e-10 (horizon 0.000131) | 1.53e-10 (horizon 3.28e+04); 3.39e-10 (horizon 0.000419) | - |
+| held_070 | 1.06e-10 (horizon 3.47e+03); 1.21e-07 (horizon 1.47e-07) | 8.73e-10 (horizon 2.99e+05); 1.07e-08 (horizon 1.33e-06) | 2.33e-10 (horizon 1.43e+06); 4.36e-09 (horizon 5.21e-05) | 9.54e-07 (horizon 2.22e+09); 9.14e-07 (horizon 1.17e-08) | - |
+| driven_pi8 | 5.12e-11 (horizon 278); 1.4e-08 (horizon 5.06e-06) | 3.78e-10 (horizon 1.55e+05); 1.45e-09 (horizon 1.95e-05) | 1.16e-10 (horizon 6.03e+05); 7.92e-11 (horizon 4.48e-05) | 3.46e-10 (horizon 1.66e+04); 5.79e-10 (horizon 0.00157) | - |
+| spring_pi8 | 3.84e-11 (horizon 154); 1.62e-09 (horizon 0.000289) | 5.59e-09 (horizon 7.56e+05); 1.28e-10 (horizon 0.000111) | 2.91e-11 (horizon 2.08e+05); 6.78e-11 (horizon 0.000105) | 5.55e-11 (horizon 6.79e+03); 1.19e-10 (horizon 0.000359) | - |
+| piston_push | 2.73e-11 (horizon 1.99e+03); 2.29e-09 (horizon 6.19e-05) | 2.91e-11 (horizon 3.43e+04); 3.53e-10 (horizon 0.000161) | 3.64e-12 (horizon 1.95e+04); 2.53e-09 (horizon 5.62e-06) | 2.29e-10 (horizon 2.45e+04); 1.21e-10 (horizon 0.00375) | 1.23e-10 (horizon 621); 4.67e-11 (horizon 0.00608) |
+
+## 3. Health (gen3 run A; safety nets and validator must be 0), contact audit beside gen2 (max |gap| at executed events, px)
+
+| cell | safety nets and validator (sum) | run flag A, B, C | contact_now / wall / body (c_min px^2) | gen3: pairs / walls / divider / pistons | gen2: pairs / walls / divider / pistons | gen2 safety nets: overlap_repair, clamp_repair, wall_overdue, forced, past | gen2 sampled states with an overlap (worst gap px) |
+|---|---|---|---|---|---|---|---|
+| cradle_exact | 0 | 1, 1, 1 | 1384 / 0 / 0 (0) | 0 / 0 / 0 / 0 | 23 / 0 / 0 / 0 | 330, 0, 1, 0, 0 | 346 of 400 (-24) |
+| cradle_round | 0 | 1, 1, 1 | 197 / 0 / 0 (-3.75e-12) | 3.3e-13 / 2.27e-13 / 0 / 0 | 16.6 / 6.14e-12 / 0 / 0 | 11, 4, 0, 0, 0 | 25 of 400 (-24) |
+| cradle_round_late | 0 | 1, 1, 1 | 128 / 0 / 0 (-1.31e-11) | 1.18e-12 / 6.34e-13 / 0 / 0 | 16.6 / 6.14e-12 / 0 / 0 | 11, 4, 0, 0, 0 | 25 of 400 (-24) |
+| free_pi8_M50 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 3.18e-12 / 1.71e-12 / 1.67e-12 / 0 | 5.05e-12 / 3.47e-12 / 3.04e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| free_pi8_M500 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 2.86e-12 / 1.67e-12 / 1.53e-12 / 0 | 5.76e-12 / 3.68e-12 / 3.33e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| free_070_M50 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 3.23e-12 / 1.8e-12 / 1.79e-12 / 0 | 6.21e-12 / 3.87e-12 / 3.47e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| free_070_M500 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 2.94e-12 / 1.95e-12 / 1.84e-12 / 0 | 6.42e-12 / 4.66e-12 / 3.44e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| heavy_070_M4e7 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 3.16e-12 / 1.76e-12 / 1.79e-12 / 0 | 5.23e-12 / 3.64e-12 / 3.15e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| held_pi8 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 2.76e-12 / 1.78e-12 / 1.98e-12 / 0 | 5.88e-12 / 2.96e-12 / 3.44e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| held_070 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 3.22e-12 / 2.16e-12 / 2.01e-12 / 0 | 6.05e-12 / 4.21e-12 / 3.33e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| driven_pi8 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 5.48e-12 / 3.3e-12 / 3.15e-12 / 0 | 1.07e-11 / 7.11e-12 / 7.22e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| spring_pi8 | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 2.88e-12 / 1.48e-12 / 1.4e-12 / 0 | 5.3e-12 / 3.79e-12 / 3.52e-12 / 0 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+| piston_push | 0 | 1, 1, 1 | 0 / 0 / 0 (0) | 2.51e-12 / 1.84e-12 / 1.27e-12 / 1.36e-12 | 9.5e-12 / 3.2e-12 / 3.18e-12 / 6.37e-12 | 0, 0, 0, 0, 0 | 0 of 1600 (0) |
+
+## 4. Ledgers (gen3 run B, end of run): residual and its rounding scale
+
+| cell | x: P - P0 | x: residual / scale | y: P - P0 | y: residual / scale | E - E0 [kT] | W [kT] | energy: residual / scale |
+|---|---|---|---|---|---|---|---|
+| cradle_exact | -12 | 0 / 5.03e-12 | 0 | 0 / 0 | 0 | 0 | 0 / 1.77e-11 |
+| cradle_round | 0 | -4.44e-16 / 2.4e-12 | 0 | 0 / 0 | 0 | 0 | 0 / 6.59e-12 |
+| cradle_round_late | 0 | -4.44e-16 / 2.4e-12 | 0 | 0 / 0 | 0 | 0 | 0 / 6.59e-12 |
+| free_pi8_M50 | -12.7739 | -2.84e-14 / 2.17e-10 | -18.8499 | 2.84e-14 / 8.69e-11 | 3.41061e-13 | 0 | 3.41e-13 / 8.32e-10 |
+| free_pi8_M500 | 38.945 | -3.2e-13 / 4.26e-10 | -72.0458 | -7.11e-14 / 9.21e-11 | 1.98952e-12 | 0 | 1.99e-12 / 7.81e-10 |
+| free_070_M50 | 18.807 | 2.77e-13 / 1.79e-09 | -37.7662 | -2.34e-13 / 4.11e-10 | 1.13687e-12 | 0 | 1.14e-12 / 4.1e-09 |
+| free_070_M500 | 12.7186 | 9.77e-13 / 3.43e-09 | -49.8297 | -1.28e-13 / 4.51e-10 | -2.89901e-12 | 0 | -2.9e-12 / 4.73e-09 |
+| heavy_070_M4e7 | -4896.97 | 2.96e-10 / 6.13e-07 | -7.48585 | -1.85e-13 / 4.21e-10 | 9.09495e-13 | 0 | 9.09e-13 / 4.13e-09 |
+| held_pi8 | -10.303 | -1.08e-13 / 1.92e-10 | 3.07947 | 3.73e-14 / 8.57e-11 | 1.7053e-13 | 0 | 1.71e-13 / 8.11e-10 |
+| held_070 | -22.7804 | -1.79e-12 / 1.52e-09 | 28.3056 | -3.8e-13 / 5.04e-10 | -1.53477e-12 | 0 | -1.53e-12 / 4.41e-09 |
+| driven_pi8 | -33.3506 | -3.41e-13 / 4.63e-10 | 9.19354 | 3.2e-14 / 1.81e-10 | 673.003 | 673.003 | 8.75e-12 / 4.1e-09 |
+| spring_pi8 | 43.0769 | 1.42e-13 / 1.04e-09 | 20.025 | 2.49e-13 / 8.3e-11 | 132.25 | 132.25 | 4.92e-12 / 2.86e-09 |
+| piston_push | 18.72 | -1.42e-14 / 2.36e-11 | 47.5968 | 0 / 4.72e-11 | 28.1351 | 28.1351 | 8.24e-13 / 1.41e-10 |
+
+largest |residual| / scale: 0.00584 (piston_push, energy)
+
+## 5. Tolerances in force (end of run A) against the measured contact errors
+
+| cell | v_ref [px/unit] | c_tol [px^2] | 2 d x max pair gap / c_tol | tol_face [px] | max face gap / tol_face |
+|---|---|---|---|---|---|
+| cradle_exact | 20 | 6.985e-09 | 0 | 1.473e-10 | 0 |
+| cradle_round | 14 | 4.889e-09 | 0.00324 | 1.037e-10 | 0.00219 |
+| cradle_round_late | 14 | 4.889e-09 | 0.0116 | 1.037e-10 | 0.00611 |
+| free_pi8_M50 | 40.57 | 1.417e-08 | 0.0108 | 2.957e-10 | 0.00578 |
+| free_pi8_M500 | 39.65 | 1.385e-08 | 0.00991 | 2.889e-10 | 0.00578 |
+| free_070_M50 | 38.82 | 1.356e-08 | 0.0114 | 2.829e-10 | 0.00636 |
+| free_070_M500 | 40.59 | 1.417e-08 | 0.00996 | 2.958e-10 | 0.00659 |
+| heavy_070_M4e7 | 38.87 | 1.358e-08 | 0.0112 | 2.833e-10 | 0.00632 |
+| held_pi8 | 40.92 | 1.429e-08 | 0.00927 | 2.982e-10 | 0.00664 |
+| held_070 | 40.73 | 1.423e-08 | 0.0109 | 2.968e-10 | 0.00728 |
+| driven_pi8 | 75.8 | 2.647e-08 | 0.00994 | 5.52e-10 | 0.00598 |
+| spring_pi8 | 46.6 | 1.627e-08 | 0.0085 | 3.399e-10 | 0.00435 |
+| piston_push | 42.23 | 1.475e-08 | 0.00817 | 3.109e-10 | 0.00592 |
+
+## 6. Observables, information only (single trajectories; block SEs ignore slow correlations)
+
+| cell | Z gen3 (SE) | Z gen2 (SE) | divider mean x gen3 / gen2 [px] | divider SD gen3 / gen2 [px] | divider period gen3 / gen2 [sigma-time] (periods in the record) | static method Z left / right (gen3) | right piston work gen3 / gen2 [kT] |
+|---|---|---|---|---|---|---|---|
+| cradle_exact | 2.61233 (0.00842) | 2.42263 (0.02160) | - | - | - | - | - |
+| cradle_round | 2.60444 (0.00643) | 2.61423 (0.01397) | - | - | - | - | - |
+| cradle_round_late | 2.60444 (0.00643) | 2.61423 (0.01397) | - | - | - | - | - |
+| free_pi8_M50 | 2.83604 (0.00450) | 2.83183 (0.00338) | 237.2092 / 236.3183 | 3.1904 / 4.0404 | 10.29 (35) / 10.6 (34) | 3.293 / 2.934 | - |
+| free_pi8_M500 | 2.83397 (0.00456) | 2.83692 (0.00416) | 241.5612 / 241.3606 | 3.0505 / 3.8369 | 18.01 (20) / 20.01 (18) | 3.389 / 2.844 | - |
+| free_070_M50 | 11.02628 (0.03214) | 11.12963 (0.02018) | 134.9526 / 135.2634 | 0.4798 / 0.5896 | not resolved (peak at the 3-period bound) / not resolved (peak at the 3-period bound) | 15.37 / 15.05 | - |
+| free_070_M500 | 11.19933 (0.01458) | 11.12774 (0.04127) | 135.1063 / 134.8614 | 0.3109 / 0.3635 | 2.132 (169) / 2.144 (168) | 15.31 / 15.29 | - |
+| heavy_070_M4e7 | 11.19744 (0.02326) | 11.10473 (0.05215) | 135.5476 / 135.5194 | 0.2841 / 0.2568 | 90.06 (4) / not resolved (peak at the 3-period bound) | 15.26 / 15.32 | - |
+| held_pi8 | 2.83202 (0.00438) | 2.82489 (0.00426) | 240.6000 / 240.6000 | 0.0000 / 0.0000 | - (does not move) / - (does not move) | 3.086 / 3.113 | - |
+| held_070 | 11.08263 (0.02962) | 11.20888 (0.02411) | 135.1000 / 135.1000 | 0.0000 / 0.0000 | - (does not move) / - (does not move) | 15.19 / 15.17 | - |
+| driven_pi8 | 3.02271 (0.06569) | 3.06404 (0.07853) | 264.5833 / 264.5833 | 13.8795 / 13.8795 | 20.01 (18) / 20.01 (18) | - | - |
+| spring_pi8 | 2.78797 (0.01140) | 2.76877 (0.01781) | 484.9627 / 485.0704 | 4.1974 / 4.6739 | 18.96 (19) / 18.01 (20) | - | - |
+| piston_push | 1.25551 (0.00267) | 1.25802 (0.00311) | 1791.9417 / 1795.5344 | 66.0111 / 76.0865 | not resolved (peak at the 3-period bound) / not resolved (peak at the 3-period bound) | 1.181 / 1.456 | 28.1351 / 28.4547 |
+```
+
+**The tolerances against the measured contact errors, printed by `validation/gen3_tolerances_261009.py`, verbatim:**
+
+```
+# Generation-3 contact tolerances from the time resolution (261012 sec. 4.7.4 amendment b, sec. 4.7.6), printed by validation/gen3_tolerances_261009.py
+
+## 1. The time resolution
+
+| origin-relative time [units] | ulp [units] |
+|---|---|
+| 480 | 5.684e-14 |
+| 960 | 1.137e-13 |
+| 2400 | 4.547e-13 |
+| 4096 | 9.095e-13 |
+| 8191.9999999999991 | 9.095e-13 |
+| 8192 | 1.819e-12 |
+| 16383 | 1.819e-12 |
+
+u_t = ulp(EDMD3_ORIGIN_SHIFT) = ulp(2^13) = 2^-39 = 1.81899e-12 units: every executed time is below 2^13 + one event, so below 2^14 (a time predicted more than 2^13 ahead keeps the ulp it was stored with: 3.6e-12 up to 2^15).
+M1's threshold: c_tol = 64 ulp(d^2) = 64 x 1.14e-13 = 8.185e-12 px^2, i.e. a gap of 1.71e-13 px; the rounding of c itself (ulp(d^2) = 1.14e-13 px^2) is that scale, the time rounding (v u_t ~ 1.8e-12 px at v = 1 px/unit) is not.
+
+## 2. The measured contact errors against the time quantum of each run
+
+u_run = ulp of the largest event time the run reaches (the origin shift caps it at ulp(2^13)). If the reading holds, max |gap| / u_run is a speed [px/unit] of the order of the contact speeds (thermal speed sqrt(2) px/unit at kT = 1), whatever u_run is.
+
+| run | cell | N | T [sigma-time] (start) | u_run [units] | gen3 max pair gap [px] | / u_run [px/unit] | gen3 max face gap [px] | / u_run | gen2 max pair gap [px] | / u_run | 2 d gap [px^2] | / M1 c_tol | / M2 c_tol | most negative c of a contact_now [px^2] | its |c| / M1 c_tol (> 1: M1 would count an overlap repair) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M1 | fluid | 400 | 400 | 1.82e-12 | 2.83e-12 | 1.56 | 1.71e-12 | 0.94 | 5.38e-12 | 2.96 | 1.36e-10 | 16.6 | 0.00972 | - | - |
+| M1 | dense | 400 | 400 | 1.82e-12 | 3.26e-12 | 1.79 | 1.79e-12 | 0.984 | 5.7e-12 | 3.13 | 1.56e-10 | 19.1 | 0.0112 | - | - |
+| M1 | lattice | 400 | 400 | 1.82e-12 | 3.56e-12 | 1.96 | 1.88e-12 | 1.03 | 5.26e-12 | 2.89 | 1.71e-10 | 20.9 | 0.0122 | - | - |
+| M1 | tie | 400 | 100 | 4.55e-13 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | - | - |
+| M1 | solid | 400 | 100 | 4.55e-13 | 1.4e-12 | 3.08 | 9.66e-13 | 2.12 | 2.49e-12 | 5.48 | 6.72e-11 | 8.21 | 0.00481 | - | - |
+| M1 | dense (48 px cells) | 400 | 100 | 4.55e-13 | 1.28e-12 | 2.81 | 8.72e-13 | 1.92 | 2.77e-12 | 6.09 | 6.14e-11 | 7.51 | 0.0044 | - | - |
+| M2 quick | cradle_exact | 300 | 20 | 5.68e-14 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| M2 quick | cradle_round | 300 | 20 | 5.68e-14 | 4.97e-14 | 0.874 | 1.42e-14 | 0.25 | 5.23e-12 | 92 | 2.39e-12 | 0.291 | 0.000488 | -1.14e-13 | 0.0139 |
+| M2 quick | cradle_round_late | 300 | 20 (t0 = 8100 units) | 1.82e-12 | 1.18e-12 | 0.649 | 6.34e-13 | 0.349 | 5.23e-12 | 2.88 | 5.66e-11 | 6.92 | 0.0116 | -1.31e-11 | 1.6 |
+| M2 quick | free_pi8_M50 | 400 | 40 | 1.14e-13 | 2.95e-13 | 2.59 | 2.27e-13 | 2 | 3.06e-12 | 26.9 | 1.42e-11 | 1.73 | 0.000999 | 0 | 0 |
+| M2 quick | free_pi8_M500 | 400 | 40 | 1.14e-13 | 3.09e-13 | 2.72 | 1.71e-13 | 1.5 | 4.09e-12 | 36 | 1.48e-11 | 1.81 | 0.00107 | 0 | 0 |
+| M2 quick | free_070_M50 | 400 | 40 | 1.14e-13 | 3.02e-13 | 2.66 | 2.33e-13 | 2.05 | 4.46e-12 | 39.2 | 1.45e-11 | 1.77 | 0.00107 | 0 | 0 |
+| M2 quick | free_070_M500 | 400 | 40 | 1.14e-13 | 3.45e-13 | 3.03 | 2.33e-13 | 2.05 | 4.61e-12 | 40.5 | 1.66e-11 | 2.02 | 0.00117 | 0 | 0 |
+| M2 quick | heavy_070_M4e7 | 400 | 40 | 1.14e-13 | 3.23e-13 | 2.84 | 2.27e-13 | 2 | 3.28e-12 | 28.9 | 1.55e-11 | 1.89 | 0.00114 | 0 | 0 |
+| M2 quick | held_pi8 | 400 | 40 | 1.14e-13 | 3.45e-13 | 3.03 | 2.27e-13 | 2 | 2.9e-12 | 25.5 | 1.66e-11 | 2.02 | 0.00116 | 0 | 0 |
+| M2 quick | held_070 | 400 | 40 | 1.14e-13 | 3.66e-13 | 3.22 | 2.27e-13 | 2 | 3.64e-12 | 32 | 1.76e-11 | 2.15 | 0.00123 | 0 | 0 |
+| M2 quick | driven_pi8 | 400 | 40 | 1.14e-13 | 4.48e-13 | 3.94 | 3.64e-13 | 3.2 | 3.74e-12 | 32.9 | 2.15e-11 | 2.63 | 0.00122 | 0 | 0 |
+| M2 quick | spring_pi8 | 400 | 40 | 1.14e-13 | 3.3e-13 | 2.9 | 2.04e-13 | 1.79 | 2.95e-12 | 25.9 | 1.58e-11 | 1.94 | 0.000974 | 0 | 0 |
+| M2 quick | piston_push | 400 | 40 | 1.14e-13 | 2.27e-13 | 2 | 4.55e-13 | 4 | 5.27e-12 | 46.4 | 1.09e-11 | 1.33 | 0.000761 | 0 | 0 |
+| M2 | cradle_exact | 300 | 100 | 4.55e-13 | 0 | 0 | 0 | 0 | 23 | 5.06e+13 | 0 | 0 | 0 | 0 | 0 |
+| M2 | cradle_round | 300 | 100 | 4.55e-13 | 3.3e-13 | 0.726 | 2.27e-13 | 0.499 | 16.6 | 3.65e+13 | 1.58e-11 | 1.94 | 0.00324 | -3.75e-12 | 0.458 |
+| M2 | cradle_round_late | 300 | 100 (t0 = 8100 units) | 1.82e-12 | 1.18e-12 | 0.649 | 6.34e-13 | 0.349 | 16.6 | 9.13e+12 | 5.66e-11 | 6.92 | 0.0116 | -1.31e-11 | 1.6 |
+| M2 | free_pi8_M50 | 400 | 400 | 1.82e-12 | 3.18e-12 | 1.75 | 1.71e-12 | 0.94 | 5.05e-12 | 2.78 | 1.53e-10 | 18.6 | 0.0108 | 0 | 0 |
+| M2 | free_pi8_M500 | 400 | 400 | 1.82e-12 | 2.86e-12 | 1.57 | 1.67e-12 | 0.918 | 5.76e-12 | 3.17 | 1.37e-10 | 16.8 | 0.00991 | 0 | 0 |
+| M2 | free_070_M50 | 400 | 400 | 1.82e-12 | 3.23e-12 | 1.78 | 1.8e-12 | 0.99 | 6.21e-12 | 3.41 | 1.55e-10 | 18.9 | 0.0114 | 0 | 0 |
+| M2 | free_070_M500 | 400 | 400 | 1.82e-12 | 2.94e-12 | 1.62 | 1.95e-12 | 1.07 | 6.42e-12 | 3.53 | 1.41e-10 | 17.2 | 0.00996 | 0 | 0 |
+| M2 | heavy_070_M4e7 | 400 | 400 | 1.82e-12 | 3.16e-12 | 1.74 | 1.79e-12 | 0.984 | 5.23e-12 | 2.88 | 1.52e-10 | 18.5 | 0.0112 | 0 | 0 |
+| M2 | held_pi8 | 400 | 400 | 1.82e-12 | 2.76e-12 | 1.52 | 1.98e-12 | 1.09 | 5.88e-12 | 3.23 | 1.32e-10 | 16.2 | 0.00927 | 0 | 0 |
+| M2 | held_070 | 400 | 400 | 1.82e-12 | 3.22e-12 | 1.77 | 2.16e-12 | 1.19 | 6.05e-12 | 3.33 | 1.55e-10 | 18.9 | 0.0109 | 0 | 0 |
+| M2 | driven_pi8 | 400 | 400 | 1.82e-12 | 5.48e-12 | 3.01 | 3.3e-12 | 1.81 | 1.07e-11 | 5.88 | 2.63e-10 | 32.1 | 0.00994 | 0 | 0 |
+| M2 | spring_pi8 | 400 | 400 | 1.82e-12 | 2.88e-12 | 1.58 | 1.48e-12 | 0.814 | 5.3e-12 | 2.91 | 1.38e-10 | 16.9 | 0.0085 | 0 | 0 |
+| M2 | piston_push | 400 | 400 | 1.82e-12 | 2.51e-12 | 1.38 | 1.84e-12 | 1.01 | 9.5e-12 | 5.22 | 1.2e-10 | 14.7 | 0.00817 | 0 | 0 |
+
+(gen2 is not cell-local: its positions are absolute (ulp(box) ~ 1e-13 px) and its time is not origin-relative, so its errors scale with the absolute time and box; printed for comparison only.)
+
+## 3. The derived tolerances at kT = 1 (E = N kT in two dimensions, no driven body, m_min = 1)
+
+| N | E [kT] | v_ref = 2 sqrt(E) [px/unit] | c_tol = 4 x 2 d v_ref u_t [px^2] | as a gap c_tol / 2d [px] | tol_face at box 481.2 px [px] | at 3721.2 px [px] | validator: c at tol_pair / c_tol |
+|---|---|---|---|---|---|---|---|
+| 100 | 100 | 20 | 6.985e-09 | 1.455e-10 | 1.46e-10 | 1.492e-10 | 1.65e+05 |
+| 400 | 400 | 40 | 1.397e-08 | 2.91e-10 | 2.915e-10 | 2.947e-10 | 8.25e+04 |
+| 900 | 900 | 60 | 2.095e-08 | 4.366e-10 | 4.37e-10 | 4.402e-10 | 5.5e+04 |
+| 1600 | 1600 | 80 | 2.794e-08 | 5.821e-10 | 5.825e-10 | 5.857e-10 | 4.12e+04 |
+
+The validator's pair tolerance 2.4e-05 px corresponds to c = 0.00115 px^2: the derived c_tol lies between the rounding scale (section 2, at most ~1e-10 px^2) and a missed collision (>= the validator scale) by more than an order of magnitude on each side.
+```
+
+**The spring divider's contact rule against an independent scan (`edmd_core/tests/gen3_body_rule_test.c`), verbatim:**
+
+```
+gen3 body_rule (spring divider) against an independent scan: 20000 cases: contact 13434 (of them beyond 64 periods: 5124), none 6566, at once 0; compared by the scan 14876; max |dt_engine - dt_scan| / max(1, dt) = 2.31e-15; slow cases max |g(dt)| = 1.66e-09 px, max |g(dt)| / |g'(dt)| = 8.91 ulp(dt); failures 0
+exit=0
+```
+
+**The M1 cells on the M2 engine (`m1_identity.txt`), verbatim:**
+
+```
+# M1 harness (edmd_core/tests/gen3_m1_harness.c, unchanged) built against the M2 engine and run in audit mode, 2026-10-09 00:23-00:26 HST
+# (sources: edmd_gen3.c sha256 c5f3b51785002fdb88ec9af57a34049aecc3e8c17d5a65f01beb2016507d157c, edmd_gen3.h 899c056b317d12ca3abdccfae7a78f2598ebd8e5de7ffd974329b1b2b55dce6d)
+
+3b1347742ac82881023f882b30b1e23bbc1815c99aeef7bcd8c72f32ada00a8b  m1_audit_on_m2.txt
+3b1347742ac82881023f882b30b1e23bbc1815c99aeef7bcd8c72f32ada00a8b  ../experiments_gen3_m1_261008/m1_audit_output.txt
+
+cmp: IDENTICAL (every byte: the six cells' event hashes, counts, audits, contact gaps, health lines, Z)
+```
+
+**Events per second with a divider (`m2_speed_output.txt`), verbatim:**
+
+```
+# gen3 M2 harness: speed
+
+build: Apple LLVM 17.0.0 (clang-1700.4.4.1), double 8 bytes; cell width 32 px, origin shift 8192 units, tolerance factor K = 4
+
+## Events per second on this Mac with a divider at N = 400, same initial state and protocol for both engines (gen2 = edmd.c, minimal policy; no audits)
+
+events = physical events (pair + outer wall + divider + piston); gen2's divider and wall events counted from its event log in a separate untimed run; each rate timed 3 times: median (min-max)
+
+| cell | T [sigma-time] | gen2 events | gen2 events/s | gen3 events | of them divider | gen3 crossings per event | gen3 stale pops per event | gen3 events/s | gen3 / gen2 (medians) |
+|---|---|---|---|---|---|---|---|---|---|
+| held_pi8 | 200 | 195066 | 1.34e+05 (1.33e+05-1.34e+05) | 194831 | 10218 | 0.52 | 4.24 | 1.12e+06 (1.12e+06-1.12e+06) | 8.4 |
+| free_pi8_M500 | 200 | 192419 | 1.2e+05 (1.19e+05-1.28e+05) | 191325 | 10097 | 0.51 | 5.47 | 9.23e+05 (8.84e+05-9.39e+05) | 7.7 |
+| held_070 | 50 | 285144 | 1.5e+05 (1.44e+05-1.5e+05) | 284758 | 22028 | 0.09 | 6.55 | 8.39e+05 (8.36e+05-8.4e+05) | 5.6 |
+| free_070_M500 | 50 | 291870 | 1.38e+05 (1.38e+05-1.38e+05) | 288217 | 22025 | 0.09 | 5.76 | 7.18e+05 (7.13e+05-7.21e+05) | 5.2 |
+
+# uptime before and after the speed run (2026-10-09, this Mac; other applications were running)
+ 0:35  up 1 day, 10:49, 1 user, load averages: 12.53 22.00 18.87
+ 0:36  up 1 day, 10:50, 1 user, load averages: 14.84 21.61 18.84
+```
+
+**Two complete cells of `m2_audit_output.txt`, verbatim: the held divider at π/8 (the static method) and the piston push.**
+
+```
+### Cell held_pi8: held divider (static method), pi/8
+
+N = 400, box 481.2000 x 960.0000 px (20.0500 x 40.0000 sigma), T = 400 sigma-time, cell width 32 px; divider at 240.6000 px, thickness 1.20 px, held (mass 0, velocity 0) throughout
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | cdecc4ad3c415368 | 337991 | 29975 | 20165 | 0 | 0 | 201554 | 1646738 | - |
+| B gen3, audits off | cdecc4ad3c415368 | 337991 | 29975 | 20165 | 0 | 0 | 201554 | 1646738 | yes |
+| C gen3, audits off, again | cdecc4ad3c415368 | 337991 | 29975 | 20165 | 0 | 0 | 201554 | 1646738 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 11450 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 3595352 | 0 | 0 | 0 | 0 | 25149589 | 0 | 7.69e-11 (at horizon 126) | 8.09e-09 (at horizon 3.69e-05) |
+| outer walls | 389328 | 0 | 0 | 0 | 0 | 8770672 | 0 | 6.69e-10 (at horizon 2.65e+04) | 3.39e-09 (at horizon 5.25e-06) |
+| crossings | 4577035 | 0 | 0 | 0 | 0 | - | - | 1.46e-11 (at horizon 7.07e+04) | 2.16e-10 (at horizon 0.000131) |
+| divider faces | 88770 | 0 | 0 | 0 | 0 | 2257575 | 0 | 1.53e-10 (at horizon 3.28e+04) | 3.39e-10 (at horizon 0.000419) |
+| pistons | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 388131 | 2.76e-12 | 1.78e-12 | 1.98e-12 | 0 |
+| gen2 | 387509 | 5.88e-12 | 2.96e-12 | 3.44e-12 | 0 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=0 wall_contact_now=0 obj_contact_now=0 contact_c_min=0 obj_contact_gap_min=0 | local_checks=927676 full_checks=402 local_worst=-2.68e-12 full_worst=-1.03e-12 cross_residual_max=2.31e-12 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=4123
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0 | overlap check of 1600 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap 0 px, states with a gap below -2.4e-5 px: 0
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 418.621 kT, m_min = 1, v_ref = 40.9205 px/unit, K = 4 -> c_tol = 1.429e-08 px^2 (= 2 d x 2.977e-10 px), tol_face = 2.982e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 2.76e-12 px -> |c| ~ 2 d |gap| = 1.32e-10 px^2 = 0.00926 c_tol; most negative c of a contact_now 0 px^2 (-0 c_tol); face contacts max |gap| 1.98e-12 px (0.00665 tol_face) [walls 1.78e-12, divider 1.98e-12, pistons 0]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 8.06e+04 c_tol), tol_wall = 1.2e-05 px (4.02e+04 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | -10.30303131 | -10.30303131 | -1.08e-13 | 1.92e-10 | 0.000563 |
+| y | 3.079467207 | 3.079467207 | 3.73e-14 | 8.57e-11 | 0.000435 |
+| energy | 1.705302566e-13 (E - E0) | 0 (W) | 1.71e-13 | 8.11e-10 | 0.00021 |
+
+impulses from outside (x unless named): walls L 26272.5, R -25616.6, B (y) 12339.5, T (y) -12336.4; divider of mass 0 -666.229; spring anchor 0; pistons L 0, R 0; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE | divider mean x [px] | SD [px] | period [sigma-time] (periods in the record; peak of the detrended, windowed spectrum, >= 3) |
+|---|---|---|---|---|---|
+| gen3 (B) | 2.83202 | 0.00438 | 240.6000 | 0.0000 | - (does not move) |
+| gen2 | 2.82489 | 0.00426 | 240.6000 | 0.0000 | - (does not move) |
+
+static method (gen3 run B, 9124 + 8995 divider events over 360 sigma-time; information): F_left = 2.73405 kT/px (Z = F L / (N kT) = 3.08645, kT_left = 1.06299, N = 200), F_right = 2.67201 kT/px (Z = 3.11267, kT_right = 1.03012, N = 200)
+
+### Cell piston_push: two gases of 200 at eta 0.1013, free divider M = 100, right piston pushes 7.75 sigma (Paper 2 geometry B type)
+
+N = 400, box 3721.2000 x 480.0000 px (155.0500 x 20.0000 sigma), T = 400 sigma-time, cell width 32 px; divider at 1860.6000 px, thickness 1.20 px, held (mass 0, velocity 0) until 40 sigma-time, then free with mass 100; pistons of mass 0 at x = 0 and x = 3721.2000 px, the right one at -0.05 px/unit from 40 to 195 sigma-time
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | f4d6058229b68adb | 48118 | 9379 | 1159 | 533 | 5 | 197848 | 147116 | - |
+| B gen3, audits off | f4d6058229b68adb | 48118 | 9379 | 1159 | 533 | 5 | 197848 | 147116 | yes |
+| C gen3, audits off, again | f4d6058229b68adb | 48118 | 9379 | 1159 | 533 | 5 | 197848 | 147116 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 10655 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 776124 | 0 | 0 | 0 | 0 | 10259705 | 0 | 2.73e-11 (at horizon 1.99e+03) | 2.29e-09 (at horizon 6.19e-05) |
+| outer walls | 250354 | 0 | 0 | 0 | 0 | 8273646 | 0 | 2.91e-11 (at horizon 3.43e+04) | 3.53e-10 (at horizon 0.000161) |
+| crossings | 4260359 | 0 | 0 | 0 | 0 | - | - | 3.64e-12 (at horizon 1.95e+04) | 2.53e-09 (at horizon 5.62e-06) |
+| divider faces | 26919 | 0 | 0 | 0 | 0 | 2024222 | 0 | 2.29e-10 (at horizon 2.45e+04) | 1.21e-10 (at horizon 0.00375) |
+| pistons | 30771 | 0 | 0 | 0 | 0 | 4233007 | 0 | 1.23e-10 (at horizon 621) | 4.67e-11 (at horizon 0.00608) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 59189 | 2.51e-12 | 1.84e-12 | 1.27e-12 | 1.36e-12 |
+| gen2 | 59519 | 9.5e-12 | 3.2e-12 | 3.18e-12 | 6.37e-12 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=0 wall_contact_now=0 obj_contact_now=0 contact_c_min=0 obj_contact_gap_min=0 | local_checks=305155 full_checks=402 local_worst=-2.51e-12 full_worst=-1.34e-12 cross_residual_max=2.64e-12 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=1137
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0 | overlap check of 1600 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap 0 px, states with a gap below -2.4e-5 px: 0
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 445.947 kT, m_min = 1, v_ref = 42.2349 px/unit, K = 4 -> c_tol = 1.475e-08 px^2 (= 2 d x 3.073e-10 px), tol_face = 3.109e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 2.51e-12 px -> |c| ~ 2 d |gap| = 1.21e-10 px^2 = 0.00817 c_tol; most negative c of a contact_now 0 px^2 (-0 c_tol); face contacts max |gap| 1.84e-12 px (0.00591 tol_face) [walls 1.84e-12, divider 1.27e-12, pistons 1.36e-12]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 7.81e+04 c_tol), tol_wall = 1.2e-05 px (3.86e+04 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | 18.7200376 | 18.7200376 | -1.42e-14 | 2.36e-11 | 0.000602 |
+| y | 47.59681222 | 47.59681222 | 0 | 4.72e-11 | 0 |
+| energy | 28.13507657 (E - E0) | 28.13507657 (W) | 8.24e-13 | 1.41e-10 | 0.00586 |
+
+impulses from outside (x unless named): walls L 1504.79, R -100.342, B (y) 11597.2, T (y) -11549.6; divider of mass 0 -11.9246; spring anchor 0; pistons L 0, R -1373.8; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE | divider mean x [px] | SD [px] | period [sigma-time] (periods in the record; peak of the detrended, windowed spectrum, >= 3) | work of the right piston [kT] |
+|---|---|---|---|---|---|---|
+| gen3 (B) | 1.25551 | 0.00267 | 1791.9417 | 66.0111 | 120.1 (3) | 28.1351 |
+| gen2 | 1.25802 | 0.00311 | 1795.5344 | 76.0865 | 120.1 (3) | 28.4547 |
+
+static method (gen3 run B, 531 + 523 divider events over 360 sigma-time; information): F_left = 0.157866 kT/px (Z = F L / (N kT) = 1.18069, kT_left = 1.15046, N = 200), F_right = 0.156908 kT/px (Z = 1.45550, kT_right = 1.07756, N = 200)
+```

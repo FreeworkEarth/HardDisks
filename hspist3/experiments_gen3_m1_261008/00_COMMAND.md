@@ -9,7 +9,7 @@ cc -O3 -ffp-contract=off -Wall -Wextra -o gen3_m1 edmd_core/tests/gen3_m1_harnes
 ```
 
 - The harness and `edmd_gen3.c` compile without warnings under `-Wall -Wextra`.
-- `edmd.c` (the gen2 engine, unchanged) has its pre-existing warnings.
+- `edmd.c` (the gen2 engine, unchanged) also compiles without warnings: 0 under `-Wall -Wextra`, measured 2026-10-08 23:46 HST with Apple clang 17.0.0, with and without `-std=c11`. (##CHRIS 2026-10-09, correction: 261012 § 4.7.4, amendment f. This line said "has its pre-existing warnings"; that was never measured.)
 
 Runs, one process each, in this order (edmd.c reads `HD_CONTACT_AUDIT` once per process):
 

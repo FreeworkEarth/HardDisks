@@ -1,0 +1,7 @@
+# M1 harness (edmd_core/tests/gen3_m1_harness.c, unchanged) built against the M2 engine and run in audit mode, 2026-10-09 00:23-00:26 HST
+# (sources: edmd_gen3.c sha256 c5f3b51785002fdb88ec9af57a34049aecc3e8c17d5a65f01beb2016507d157c, edmd_gen3.h 899c056b317d12ca3abdccfae7a78f2598ebd8e5de7ffd974329b1b2b55dce6d)
+
+3b1347742ac82881023f882b30b1e23bbc1815c99aeef7bcd8c72f32ada00a8b  m1_audit_on_m2.txt
+3b1347742ac82881023f882b30b1e23bbc1815c99aeef7bcd8c72f32ada00a8b  ../experiments_gen3_m1_261008/m1_audit_output.txt
+
+cmp: IDENTICAL (every byte: the six cells' event hashes, counts, audits, contact gaps, health lines, Z)

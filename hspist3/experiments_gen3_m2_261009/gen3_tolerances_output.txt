@@ -1,0 +1,68 @@
+# Generation-3 contact tolerances from the time resolution (261012 sec. 4.7.4 amendment b, sec. 4.7.6), printed by validation/gen3_tolerances_261009.py
+
+## 1. The time resolution
+
+| origin-relative time [units] | ulp [units] |
+|---|---|
+| 480 | 5.684e-14 |
+| 960 | 1.137e-13 |
+| 2400 | 4.547e-13 |
+| 4096 | 9.095e-13 |
+| 8191.9999999999991 | 9.095e-13 |
+| 8192 | 1.819e-12 |
+| 16383 | 1.819e-12 |
+
+u_t = ulp(EDMD3_ORIGIN_SHIFT) = ulp(2^13) = 2^-39 = 1.81899e-12 units: every executed time is below 2^13 + one event, so below 2^14 (a time predicted more than 2^13 ahead keeps the ulp it was stored with: 3.6e-12 up to 2^15).
+M1's threshold: c_tol = 64 ulp(d^2) = 64 x 1.14e-13 = 8.185e-12 px^2, i.e. a gap of 1.71e-13 px; the rounding of c itself (ulp(d^2) = 1.14e-13 px^2) is that scale, the time rounding (v u_t ~ 1.8e-12 px at v = 1 px/unit) is not.
+
+## 2. The measured contact errors against the time quantum of each run
+
+u_run = ulp of the largest event time the run reaches (the origin shift caps it at ulp(2^13)). If the reading holds, max |gap| / u_run is a speed [px/unit] of the order of the contact speeds (thermal speed sqrt(2) px/unit at kT = 1), whatever u_run is.
+
+| run | cell | N | T [sigma-time] (start) | u_run [units] | gen3 max pair gap [px] | / u_run [px/unit] | gen3 max face gap [px] | / u_run | gen2 max pair gap [px] | / u_run | 2 d gap [px^2] | / M1 c_tol | / M2 c_tol | most negative c of a contact_now [px^2] | its |c| / M1 c_tol (> 1: M1 would count an overlap repair) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M1 | fluid | 400 | 400 | 1.82e-12 | 2.83e-12 | 1.56 | 1.71e-12 | 0.94 | 5.38e-12 | 2.96 | 1.36e-10 | 16.6 | 0.00972 | - | - |
+| M1 | dense | 400 | 400 | 1.82e-12 | 3.26e-12 | 1.79 | 1.79e-12 | 0.984 | 5.7e-12 | 3.13 | 1.56e-10 | 19.1 | 0.0112 | - | - |
+| M1 | lattice | 400 | 400 | 1.82e-12 | 3.56e-12 | 1.96 | 1.88e-12 | 1.03 | 5.26e-12 | 2.89 | 1.71e-10 | 20.9 | 0.0122 | - | - |
+| M1 | tie | 400 | 100 | 4.55e-13 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | - | - |
+| M1 | solid | 400 | 100 | 4.55e-13 | 1.4e-12 | 3.08 | 9.66e-13 | 2.12 | 2.49e-12 | 5.48 | 6.72e-11 | 8.21 | 0.00481 | - | - |
+| M1 | dense (48 px cells) | 400 | 100 | 4.55e-13 | 1.28e-12 | 2.81 | 8.72e-13 | 1.92 | 2.77e-12 | 6.09 | 6.14e-11 | 7.51 | 0.0044 | - | - |
+| M2 quick | cradle_exact | 300 | 20 | 5.68e-14 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| M2 quick | cradle_round | 300 | 20 | 5.68e-14 | 4.97e-14 | 0.874 | 1.42e-14 | 0.25 | 5.23e-12 | 92 | 2.39e-12 | 0.291 | 0.000488 | -1.14e-13 | 0.0139 |
+| M2 quick | cradle_round_late | 300 | 20 (t0 = 8100 units) | 1.82e-12 | 1.18e-12 | 0.649 | 6.34e-13 | 0.349 | 5.23e-12 | 2.88 | 5.66e-11 | 6.92 | 0.0116 | -1.31e-11 | 1.6 |
+| M2 quick | free_pi8_M50 | 400 | 40 | 1.14e-13 | 2.95e-13 | 2.59 | 2.27e-13 | 2 | 3.06e-12 | 26.9 | 1.42e-11 | 1.73 | 0.000999 | 0 | 0 |
+| M2 quick | free_pi8_M500 | 400 | 40 | 1.14e-13 | 3.09e-13 | 2.72 | 1.71e-13 | 1.5 | 4.09e-12 | 36 | 1.48e-11 | 1.81 | 0.00107 | 0 | 0 |
+| M2 quick | free_070_M50 | 400 | 40 | 1.14e-13 | 3.02e-13 | 2.66 | 2.33e-13 | 2.05 | 4.46e-12 | 39.2 | 1.45e-11 | 1.77 | 0.00107 | 0 | 0 |
+| M2 quick | free_070_M500 | 400 | 40 | 1.14e-13 | 3.45e-13 | 3.03 | 2.33e-13 | 2.05 | 4.61e-12 | 40.5 | 1.66e-11 | 2.02 | 0.00117 | 0 | 0 |
+| M2 quick | heavy_070_M4e7 | 400 | 40 | 1.14e-13 | 3.23e-13 | 2.84 | 2.27e-13 | 2 | 3.28e-12 | 28.9 | 1.55e-11 | 1.89 | 0.00114 | 0 | 0 |
+| M2 quick | held_pi8 | 400 | 40 | 1.14e-13 | 3.45e-13 | 3.03 | 2.27e-13 | 2 | 2.9e-12 | 25.5 | 1.66e-11 | 2.02 | 0.00116 | 0 | 0 |
+| M2 quick | held_070 | 400 | 40 | 1.14e-13 | 3.66e-13 | 3.22 | 2.27e-13 | 2 | 3.64e-12 | 32 | 1.76e-11 | 2.15 | 0.00123 | 0 | 0 |
+| M2 quick | driven_pi8 | 400 | 40 | 1.14e-13 | 4.48e-13 | 3.94 | 3.64e-13 | 3.2 | 3.74e-12 | 32.9 | 2.15e-11 | 2.63 | 0.00122 | 0 | 0 |
+| M2 quick | spring_pi8 | 400 | 40 | 1.14e-13 | 3.3e-13 | 2.9 | 2.04e-13 | 1.79 | 2.95e-12 | 25.9 | 1.58e-11 | 1.94 | 0.000974 | 0 | 0 |
+| M2 quick | piston_push | 400 | 40 | 1.14e-13 | 2.27e-13 | 2 | 4.55e-13 | 4 | 5.27e-12 | 46.4 | 1.09e-11 | 1.33 | 0.000761 | 0 | 0 |
+| M2 | cradle_exact | 300 | 100 | 4.55e-13 | 0 | 0 | 0 | 0 | 23 | 5.06e+13 | 0 | 0 | 0 | 0 | 0 |
+| M2 | cradle_round | 300 | 100 | 4.55e-13 | 3.3e-13 | 0.726 | 2.27e-13 | 0.499 | 16.6 | 3.65e+13 | 1.58e-11 | 1.94 | 0.00324 | -3.75e-12 | 0.458 |
+| M2 | cradle_round_late | 300 | 100 (t0 = 8100 units) | 1.82e-12 | 1.18e-12 | 0.649 | 6.34e-13 | 0.349 | 16.6 | 9.13e+12 | 5.66e-11 | 6.92 | 0.0116 | -1.31e-11 | 1.6 |
+| M2 | free_pi8_M50 | 400 | 400 | 1.82e-12 | 3.18e-12 | 1.75 | 1.71e-12 | 0.94 | 5.05e-12 | 2.78 | 1.53e-10 | 18.6 | 0.0108 | 0 | 0 |
+| M2 | free_pi8_M500 | 400 | 400 | 1.82e-12 | 2.86e-12 | 1.57 | 1.67e-12 | 0.918 | 5.76e-12 | 3.17 | 1.37e-10 | 16.8 | 0.00991 | 0 | 0 |
+| M2 | free_070_M50 | 400 | 400 | 1.82e-12 | 3.23e-12 | 1.78 | 1.8e-12 | 0.99 | 6.21e-12 | 3.41 | 1.55e-10 | 18.9 | 0.0114 | 0 | 0 |
+| M2 | free_070_M500 | 400 | 400 | 1.82e-12 | 2.94e-12 | 1.62 | 1.95e-12 | 1.07 | 6.42e-12 | 3.53 | 1.41e-10 | 17.2 | 0.00996 | 0 | 0 |
+| M2 | heavy_070_M4e7 | 400 | 400 | 1.82e-12 | 3.16e-12 | 1.74 | 1.79e-12 | 0.984 | 5.23e-12 | 2.88 | 1.52e-10 | 18.5 | 0.0112 | 0 | 0 |
+| M2 | held_pi8 | 400 | 400 | 1.82e-12 | 2.76e-12 | 1.52 | 1.98e-12 | 1.09 | 5.88e-12 | 3.23 | 1.32e-10 | 16.2 | 0.00927 | 0 | 0 |
+| M2 | held_070 | 400 | 400 | 1.82e-12 | 3.22e-12 | 1.77 | 2.16e-12 | 1.19 | 6.05e-12 | 3.33 | 1.55e-10 | 18.9 | 0.0109 | 0 | 0 |
+| M2 | driven_pi8 | 400 | 400 | 1.82e-12 | 5.48e-12 | 3.01 | 3.3e-12 | 1.81 | 1.07e-11 | 5.88 | 2.63e-10 | 32.1 | 0.00994 | 0 | 0 |
+| M2 | spring_pi8 | 400 | 400 | 1.82e-12 | 2.88e-12 | 1.58 | 1.48e-12 | 0.814 | 5.3e-12 | 2.91 | 1.38e-10 | 16.9 | 0.0085 | 0 | 0 |
+| M2 | piston_push | 400 | 400 | 1.82e-12 | 2.51e-12 | 1.38 | 1.84e-12 | 1.01 | 9.5e-12 | 5.22 | 1.2e-10 | 14.7 | 0.00817 | 0 | 0 |
+
+(gen2 is not cell-local: its positions are absolute (ulp(box) ~ 1e-13 px) and its time is not origin-relative, so its errors scale with the absolute time and box; printed for comparison only.)
+
+## 3. The derived tolerances at kT = 1 (E = N kT in two dimensions, no driven body, m_min = 1)
+
+| N | E [kT] | v_ref = 2 sqrt(E) [px/unit] | c_tol = 4 x 2 d v_ref u_t [px^2] | as a gap c_tol / 2d [px] | tol_face at box 481.2 px [px] | at 3721.2 px [px] | validator: c at tol_pair / c_tol |
+|---|---|---|---|---|---|---|---|
+| 100 | 100 | 20 | 6.985e-09 | 1.455e-10 | 1.46e-10 | 1.492e-10 | 1.65e+05 |
+| 400 | 400 | 40 | 1.397e-08 | 2.91e-10 | 2.915e-10 | 2.947e-10 | 8.25e+04 |
+| 900 | 900 | 60 | 2.095e-08 | 4.366e-10 | 4.37e-10 | 4.402e-10 | 5.5e+04 |
+| 1600 | 1600 | 80 | 2.794e-08 | 5.821e-10 | 5.825e-10 | 5.857e-10 | 4.12e+04 |
+
+The validator's pair tolerance 2.4e-05 px corresponds to c = 0.00115 px^2: the derived c_tol lies between the rounding scale (section 2, at most ~1e-10 px^2) and a missed collision (>= the validator scale) by more than an order of magnitude on each side.
