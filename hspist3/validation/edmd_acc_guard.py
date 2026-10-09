@@ -30,6 +30,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 from provenance_edmd_acc_261009 import FLAG, BACKEND, klass   # the provenance scan's own parsing
+import edmd3_health_guard   # ##CHRIS 2026-10-09 (261012 sec. 4.7.14, M3 amendment e): gen3 runs with a dirty or missing run record
 
 DEFAULT_VALUES = frozenset({"0", "false", "no", "off"})
 
@@ -109,11 +110,13 @@ def guard(path):
         if parent == d:
             break
         d = parent
+    edmd3_health_guard.check(path)    # ##CHRIS 2026-10-09 (sec. 4.7.14, amendment e): raises Gen3RunError; gen2 data untouched
     return path
 
 
 def clear_cache():
     _dir_refusal.cache_clear()
+    edmd3_health_guard.clear_cache()
 
 
 INDIRECT = re.compile(r"\bT\.(_load|cell_runs|a1_leaf_table|health_of|assert_wall_thickness)\(")

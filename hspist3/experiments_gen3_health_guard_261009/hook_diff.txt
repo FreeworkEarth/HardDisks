@@ -1,0 +1,6 @@
+32a33
+> import edmd3_health_guard   # ##CHRIS 2026-10-09 (261012 sec. 4.7.14, M3 amendment e): gen3 runs with a dirty or missing run record
+111a113
+>     edmd3_health_guard.check(path)    # ##CHRIS 2026-10-09 (sec. 4.7.14, amendment e): raises Gen3RunError; gen2 data untouched
+116a119
+>     edmd3_health_guard.clear_cache()
