@@ -23,6 +23,7 @@
    (24 px = 1 sigma; 24 units = 1 sigma-time); unit disk mass. */
 
 #include <stddef.h>
+#include <stdio.h>
 #include <stdint.h>
 #include "edmd.h"
 
@@ -162,6 +163,9 @@ long   edmd3_virial_pair_events(const EDMD3* S);
 double edmd3_wall_impulse(const EDMD3* S, int wall); /* L, R, B, T */
 long   edmd3_wall_events(const EDMD3* S, int wall);
 void   edmd3_set_check_interval(EDMD3* S, double units); /* full validator cadence (default 24 = 1 sigma-time); <= 0 off */
+/* ##CHRIS 2026-10-09 (M3): edmd.c's gated event log (t_sigma, kind, u_wall, v_before, v_after, dE, dp) per wall, divider-face and
+   piston collision; f NULL = off (the default); time_scale converts internal time to sigma-time (the driver passes 24) */
+void   edmd3_set_event_log(EDMD3* S, FILE* f, double time_scale);
 
 /* read-only audits: neither changes any stored number, so outputs are identical with and without them */
 void   edmd3_set_contact_audit(EDMD3* S, int on);

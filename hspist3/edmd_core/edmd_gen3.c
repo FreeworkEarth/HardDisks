@@ -149,7 +149,17 @@ struct EDMD3 {
     double P0[2], E0, P0s[2], E0s;  /* at load, and the rounding scale of those sums */
     double contact_max_obj[2];       /* contact audit: [0] divider faces, [1] pistons */
     double *aot; int *aob;           /* body audit: live heap time and event code per (disk, active body) */
+    /* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14): edmd.c's gated event log (edmd_set_event_log), same columns and values,
+       one row per outer-wall, divider-face and piston collision. PRINT ONLY: written from the values the collision rule
+       already computed; NULL (off) unless the driver sets it. */
+    FILE*  evlog; double evlog_tscale;
 };
+
+/* M3: one row of edmd.c's edmd_log_event (t_sigma, kind, u_wall, v_before, v_after, dE, dp), the same format */
+static const char* const WALL_NAME[4] = {"WL", "WR", "WB", "WT"};
+static void evlog_row(const EDMD3* S, const char* kind, double u, double v0, double v1, double dE){
+    fprintf(S->evlog, "%.12g,%s,%.12g,%.12g,%.12g,%.12g,%.12g\n", (S->T0 + S->now) / S->evlog_tscale, kind, u, v0, v1, dE, 1.0 * (v1 - v0));
+}
 
 /* ------------------------------------------------------------------ heap, ordered by (t, type, a, b) */
 
@@ -621,7 +631,13 @@ static void full_check(EDMD3* S){
         for (int q = 0; q < S->nobj; ++q) {
             const int o = S->objs[q]; const Obj3* O = &S->obj[o]; double c, vo; obj_at(O, S->now, &c, &vo);
             l[q] = c - 0.5 * O->th; r[q] = c + 0.5 * O->th;
-            if (l[q] < -S->tol_wall || r[q] > S->boxW + S->tol_wall) S->H.body_findings++;
+            /* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14, decision log): a piston PARKED behind its own wall is valid -- the
+               driver's energy-transfer setup parks them at x = -1 px and boxW + 6 px, as edmd.c allows: no disk can reach
+               such a face before its wall, which reflects it first. The left piston only must not be right of the box, the
+               right one not left of it; dividers stay inside the box; the order checks below are unchanged. */
+            if (o == OBJ_PL) { if (r[q] > S->boxW + S->tol_wall) S->H.body_findings++; }
+            else if (o == OBJ_PR) { if (l[q] < -S->tol_wall) S->H.body_findings++; }
+            else if (l[q] < -S->tol_wall || r[q] > S->boxW + S->tol_wall) S->H.body_findings++;
         }
         for (int q = 0; q < S->nobj; ++q) for (int p = q + 1; p < S->nobj; ++p) {
             const int a = S->objs[q], b = S->objs[p];
@@ -688,8 +704,10 @@ static void exec_wall(EDMD3* S, const Ev3* e){
     advance(S, i);
     if (S->contact_audit) contact_audit(S, e);
     Disk3* A = &S->D[i];
-    if (s < 2) { const double v0 = A->vx; A->vx = -A->vx; S->wall_impulse[s] += fabs(A->vx - v0); S->ledJw[s] += A->vx - v0; S->ledJ[0] += A->vx - v0; S->ledSP[0] += fabs(S->ledJ[0]); }
-    else       { const double v0 = A->vy; A->vy = -A->vy; S->wall_impulse[s] += fabs(A->vy - v0); S->ledJw[s] += A->vy - v0; S->ledJ[1] += A->vy - v0; S->ledSP[1] += fabs(S->ledJ[1]); }
+    if (s < 2) { const double v0 = A->vx; A->vx = -A->vx; S->wall_impulse[s] += fabs(A->vx - v0); S->ledJw[s] += A->vx - v0; S->ledJ[0] += A->vx - v0; S->ledSP[0] += fabs(S->ledJ[0]);
+                 if (S->evlog) evlog_row(S, WALL_NAME[s], 0.0, v0, A->vx, 0.0); }
+    else       { const double v0 = A->vy; A->vy = -A->vy; S->wall_impulse[s] += fabs(A->vy - v0); S->ledJw[s] += A->vy - v0; S->ledJ[1] += A->vy - v0; S->ledSP[1] += fabs(S->ledJ[1]);
+                 if (S->evlog) evlog_row(S, WALL_NAME[s], 0.0, v0, A->vy, 0.0); }
     S->wall_events[s]++;
     A->cnt++; A->last = -1;
     S->H.ev_wall++;
@@ -779,6 +797,11 @@ static void exec_obj(EDMD3* S, const Ev3* e){
         if (u2 != 0.0) energy_bound_update(S);
     }
     O->Jf[f] -= v1 - u1; O->nf[f]++;
+    if (S->evlog) {                                      /* M3: edmd.c's row; dE as edmd.c books it (the body's KE change if M > 0) */
+        char kb[8];
+        if (e->type == T_DIV) snprintf(kb, sizeof kb, "D%d", o); else snprintf(kb, sizeof kb, "%s", e->b == 0 ? "PL" : "PR");
+        evlog_row(S, kb, u2, u1, v1, O->M > 0.0 ? 0.5 * O->M * (v2 * v2 - u2 * u2) : 0.5 * (v1 * v1 - u1 * u1));
+    }
     A->vx = v1; A->cnt++; A->last = -2 - o; O->last = i;
     if (e->type == T_DIV) S->H.ev_div++; else S->H.ev_piston++;
     if (v2 != u2) { O->v = v2; obj_changed(S, o, i); }
@@ -815,6 +838,11 @@ static void origin_shift(EDMD3* S){
 /* ------------------------------------------------------------------ schedule audit (read-only) */
 
 static void audit_print(EDMD3* S, const char* kind, const char* what, int a, int b, double tbf, double theap){
+#ifdef EDMD3_AUDIT_HOOK
+    /* ##CHRIS 2026-10-09 (M3, amendment a): a white-box test that includes this file sees every finding at the moment it is
+       found (tests/gen3_band_edge_ties.c); compiled out otherwise */
+    EDMD3_AUDIT_HOOK(S, kind, what, a, b, tbf, theap);
+#endif
     if (S->aprinted >= 50) return;
     S->aprinted++;
     printf("[EDMD3-AUDIT] %s %s a=%d b=%d now=%.17g t_bruteforce=%.17g t_heap=%.17g\n", kind, what, a, b, S->now, tbf, theap);
@@ -1254,6 +1282,7 @@ long   edmd3_virial_pair_events(const EDMD3* S){ return S->virial_pair_events; }
 double edmd3_wall_impulse(const EDMD3* S, int wall){ return (wall >= 0 && wall < 4) ? S->wall_impulse[wall] : NAN; }
 long   edmd3_wall_events(const EDMD3* S, int wall){ return (wall >= 0 && wall < 4) ? S->wall_events[wall] : 0; }
 void   edmd3_set_check_interval(EDMD3* S, double units){ S->check_interval = units; S->next_check = S->now + (units > 0.0 ? units : 0.0); }
+void   edmd3_set_event_log(EDMD3* S, FILE* f, double time_scale){ if (!S) return; S->evlog = f; S->evlog_tscale = time_scale > 0.0 ? time_scale : 1.0; }
 void   edmd3_set_contact_audit(EDMD3* S, int on){ S->contact_audit = on ? 1 : 0; }
 long   edmd3_contact_audit_stats(const EDMD3* S, double max_gap_px[2]){ max_gap_px[0] = S->contact_max[0]; max_gap_px[1] = S->contact_max[1]; return S->contact_events; }
 void   edmd3_set_schedule_audit(EDMD3* S, long every){ S->audit_every = every; S->audit_count = 0; }

@@ -43,6 +43,7 @@
 #include <stdint.h>
 #include "../edmd.h"
 #include "../edmd_gen3.h"
+#include "gen3_state_io.h"   /* ##CHRIS 2026-10-09 (M3): dump mode */
 
 #define PX 24.0            /* px per sigma */
 #define SIGT 24.0          /* internal units per sigma-time */
@@ -198,10 +199,11 @@ static int run3(const Cell* c, int audits, long full, long every, R3* r){
     for (int k = 1; k * DTS <= T + 1e-9; ++k) {
         const double t = k * DTS;
         edmd3_advance_to(S, c->t0 + t);
+        g3rec_target(c->t0 + t);                          /* ##CHRIS (M3): the dump mode records targets and changes; no-op otherwise */
         while (ich < nch && fabs(ch[ich].t - t) < 1e-9) {
-            if (ch[ich].kind == 0) edmd3_set_divider_motion(S, 0, c->dM, 0.0);
-            else if (ch[ich].kind == 3) edmd3_set_divider_motion(S, 0, 0.0, ch[ich].val);
-            else edmd3_set_piston_motion(S, 1, 0.0, ch[ich].val);
+            if (ch[ich].kind == 0) { edmd3_set_divider_motion(S, 0, c->dM, 0.0); g3rec_change("D", c->dM, 0.0); }
+            else if (ch[ich].kind == 3) { edmd3_set_divider_motion(S, 0, 0.0, ch[ich].val); g3rec_change("D", 0.0, ch[ich].val); }
+            else { edmd3_set_piston_motion(S, 1, 0.0, ch[ich].val); g3rec_change("PR", 0.0, ch[ich].val); }
             ++ich;
         }
         if (c->ndiv && (c->t_rel < 0.0 || t >= c->t_rel)) { double x; edmd3_divider_state(S, 0, &x, NULL); r->xs[r->nxs++] = x; }
@@ -309,6 +311,21 @@ static void period(const double* x, int n, double* mean, double* sd, double* p_d
 }
 static int same_state(const EDMD_Particle* a, const EDMD_Particle* b, int N){ return memcmp(a, b, (size_t)N * sizeof(EDMD_Particle)) == 0; }
 
+/* ##CHRIS 2026-10-09 (M3, acceptance 2): dump mode -- the cell as a replay file for the driver (gen3_state_io.h): one run
+   without audits, as run B of audit_cell, with its targets and changes recorded */
+static const char* g_dump_dir = ".";
+static void dump_cell(Cell* c, long full, long every){
+    (void)full; (void)every;
+    G3Rec rec; memset(&rec, 0, sizeof rec); g3rec = &rec; R3 r;
+    if (!run3(c, 0, 0, 0, &r)) { g3rec = NULL; printf("%s: run failed\n", c->name); return; }
+    g3rec = NULL;
+    char path[600]; snprintf(path, sizeof path, "%s/m2_%s.g3state", g_dump_dir, c->name);
+    const EDMD_Params p = params(c);
+    const long ev = r.H.ev_pair + r.H.ev_wall + r.H.ev_cross + r.H.ev_div + r.H.ev_piston + r.H.ev_band;
+    if (!g3state_write(path, c->name, &p, c->P, g_cell_px > 0.0 ? g_cell_px : EDMD3_DEFAULT_CELL_PX, c->t0, &rec, r.hash, ev)) printf("%s: write failed\n", c->name);
+    else printf("%s: %ld targets, %ld changes, hash %016llx, events %ld -> %s\n", c->name, rec.nt, rec.nch, (unsigned long long)r.hash, ev, path);
+    free(rec.t); free(rec.ch); free(r.fin); free(r.xs);
+}
 static void audit_cell(Cell* c, long full, long every){
     R3 A, B, C; R2 D;
     printf("\n### Cell %s: %s\n\nN = %d, box %.4f x %.4f px (%.4f x %.4f sigma), T = %.0f sigma-time, cell width %.0f px", c->name, c->what,
@@ -448,22 +465,27 @@ static Cell divided(const char* name, const char* what, double L0px, int dense, 
 int main(int argc, char** argv){
     const char* mode = argc > 1 ? argv[1] : "";
     const int quick = argc > 2 && strcmp(argv[2], "--quick") == 0;
-    if (strcmp(mode, "audit") && strcmp(mode, "speed")) { fprintf(stderr, "usage: %s audit|speed [--quick]\n", argv[0]); return 2; }
+    if (strcmp(mode, "audit") && strcmp(mode, "speed") && strcmp(mode, "dump")) { fprintf(stderr, "usage: %s audit|speed [--quick] | dump <dir>\n", argv[0]); return 2; }
+    const int dump = !strcmp(mode, "dump");          /* ##CHRIS 2026-10-09 (M3): the audit cells, dumped instead of audited */
+    if (dump) g_dump_dir = argc > 2 ? argv[2] : ".";
+    void (*cell_action)(Cell*, long, long) = dump ? dump_cell : audit_cell;
     const double T = quick ? 40 * SIGT : 400 * SIGT, trel = quick ? 4 * SIGT : 40 * SIGT;
     const long full = quick ? 2000 : 10000, every = 500;
     printf("# gen3 M2 harness: %s%s\n\nbuild: %s, double %zu bytes; cell width %.0f px, origin shift %.0f units, tolerance factor K = %g\n",
            mode, quick ? " (quick)" : "", __VERSION__, sizeof(double), EDMD3_DEFAULT_CELL_PX, EDMD3_ORIGIN_SHIFT, EDMD3_TOL_K);
     const double L8 = 10.0 * PX, L70 = 5.604167 * PX;     /* the profile cells' compartments (cluster/profile_edmd_koa.sh) */
-    if (!strcmp(mode, "audit")) {
+    if (!strcmp(mode, "audit") || dump) {
+        if (!dump) {
         setenv("HD_CONTACT_AUDIT", "1", 1);               /* gen2's contact audit, read once per process */
         g_check2 = 1;
         printf("\n## Audit cells\n");
+        }
         Cell ce; memset(&ce, 0, sizeof ce); ce.name = "cradle_exact"; ce.what = "100 three-disk cradles on dyadic positions, speeds 1 (amendment c)";
-        make_cradle(&ce, 1); ce.T = quick ? 20 * SIGT : 100 * SIGT; audit_cell(&ce, full, every); free(ce.P);
+        make_cradle(&ce, 1); ce.T = quick ? 20 * SIGT : 100 * SIGT; cell_action(&ce, full, every); free(ce.P);
         Cell cr; memset(&cr, 0, sizeof cr); cr.name = "cradle_round"; cr.what = "100 three-disk cradles on non-dyadic positions, speeds 0.7 (amendment c)";
-        make_cradle(&cr, 0); cr.T = quick ? 20 * SIGT : 100 * SIGT; audit_cell(&cr, full, every); free(cr.P);
+        make_cradle(&cr, 0); cr.T = quick ? 20 * SIGT : 100 * SIGT; cell_action(&cr, full, every); free(cr.P);
         Cell cl; memset(&cl, 0, sizeof cl); cl.name = "cradle_round_late"; cl.what = "the same, gen3 loaded at t = 8100 units: the contacts at the full time quantum near 2^13 (amendments b, c)";
-        make_cradle(&cl, 0); cl.T = quick ? 20 * SIGT : 100 * SIGT; cl.t0 = 8100.0; audit_cell(&cl, full, every); free(cl.P);
+        make_cradle(&cl, 0); cl.T = quick ? 20 * SIGT : 100 * SIGT; cl.t0 = 8100.0; cell_action(&cl, full, every); free(cl.P);
         struct { const char* n; const char* w; double L; int dense; uint64_t seed; double M, trel; } dv[7] = {
             {"free_pi8_M50",   "free divider, pi/8, M = 50",            L8,  0, 0xA11CE1ULL, 50.0,  trel},
             {"free_pi8_M500",  "free divider, pi/8, M = 500",           L8,  0, 0xA11CE2ULL, 500.0, trel},
@@ -472,11 +494,11 @@ int main(int argc, char** argv){
             {"heavy_070_M4e7", "heavy free divider, eta 0.70, M = 4e7", L70, 1, 0xA11CE5ULL, 4e7,   trel},
             {"held_pi8",       "held divider (static method), pi/8",    L8,  0, 0xA11CE6ULL, 0.0,  -1.0},
             {"held_070",       "held divider (static method), eta 0.70", L70, 1, 0xA11CE7ULL, 0.0, -1.0}};
-        for (int k = 0; k < 7; ++k) { Cell c = divided(dv[k].n, dv[k].w, dv[k].L, dv[k].dense, dv[k].seed, dv[k].M, dv[k].trel, T); audit_cell(&c, full, every); free(c.P); }
+        for (int k = 0; k < 7; ++k) { Cell c = divided(dv[k].n, dv[k].w, dv[k].L, dv[k].dense, dv[k].seed, dv[k].M, dv[k].trel, T); cell_action(&c, full, every); free(c.P); }
         {   /* band expiries and API changes: a divider of mass 0 driven back and forth (the driver's extra_wall_velocity path) */
             Cell c = divided("driven_pi8", "divider driven back and forth, pi/8 (band expiries and API velocity changes)", L8, 0, 0xA11CEAULL, 0.0, trel, T);
             c.v_drive = 0.2; c.t_switch = 10.0 * SIGT;
-            audit_cell(&c, full, every); free(c.P);
+            cell_action(&c, full, every); free(c.P);
         }
         {   /* Paper 2 geometry C type: one gas against a pre-loaded spring divider, an empty compartment behind it */
             Cell c; memset(&c, 0, sizeof c); c.name = "spring_pi8"; c.what = "one gas (N = 400, pi/8) against a pre-loaded spring divider (Paper 2 geometry C type)";
@@ -486,7 +508,7 @@ int main(int argc, char** argv){
             if (!rsa(c.P, 0, 400, 0.0, Lg, c.H)) { fprintf(stderr, "spring: seeding failed\n"); return 1; }
             /* pre-load: k (x - x_eq) = the gas force N kT Z / L, Z = 2.76 (KR at pi/8): x_eq = x - N Z / (k L) */
             c.dk = 0.02; c.dxeq = c.dx - 400.0 * 2.76 / (c.dk * Lg); c.dM = 50.0; c.t_rel = trel; c.T = T;
-            audit_cell(&c, full, every); free(c.P);
+            cell_action(&c, full, every); free(c.P);
         }
         {   /* Paper 2 geometry B type: the piston push */
             Cell c; memset(&c, 0, sizeof c); c.name = "piston_push"; c.what = "two gases of 200 at eta 0.1013, free divider M = 100, right piston pushes 7.75 sigma (Paper 2 geometry B type)";
@@ -497,7 +519,7 @@ int main(int argc, char** argv){
             if (!rsa(c.P, 0, 200, 0.0, Lp, c.H) || !rsa(c.P, 200, 400, Lp + TH, c.W, c.H)) { fprintf(stderr, "piston: seeding failed\n"); return 1; }
             c.dM = 100.0; c.t_rel = trel; c.T = T;
             c.pistons = 1; c.u_p = 0.05; c.t_p0 = trel; c.t_p1 = trel + (quick ? 15.5 : 155.0) * SIGT;
-            audit_cell(&c, full, every); free(c.P);
+            cell_action(&c, full, every); free(c.P);
         }
     }
     if (!strcmp(mode, "speed")) {

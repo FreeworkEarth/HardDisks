@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include "../edmd.h"
 #include "../edmd_gen3.h"
+#include "gen3_state_io.h"   /* ##CHRIS 2026-10-09 (M3): dump mode */
 
 #define PX 24.0            /* px per sigma */
 #define SIGT 24.0          /* internal units per sigma-time */
@@ -125,6 +126,7 @@ static int run3(const Cell* c, double T, int audits, long full, long every, R3* 
     while (t < T) {
         t = fmin(T, t + SIGT);
         edmd3_advance_to(S, t);
+        g3rec_target(t);                                  /* ##CHRIS (M3): the dump mode records the targets; no-op otherwise */
         const EDMD3_Health* H = edmd3_health(S);
         if (audits && nev_switch > 0 && H->ev_pair + H->ev_wall + H->ev_cross >= nev_switch) { edmd3_set_schedule_audit(S, every); nev_switch = 0; }
         if (!vir_on && t >= teq) { edmd3_reset_virial(S); vir_on = 1; }
@@ -276,7 +278,7 @@ static void divergence(Cell* c, double T){
 int main(int argc, char** argv){
     const char* mode = argc > 1 ? argv[1] : "";
     const int quick = argc > 2 && strcmp(argv[2], "--quick") == 0;
-    if (strcmp(mode, "audit") && strcmp(mode, "speed") && strcmp(mode, "diverge")) { fprintf(stderr, "usage: %s audit|speed|diverge [--quick]\n", argv[0]); return 2; }
+    if (strcmp(mode, "audit") && strcmp(mode, "speed") && strcmp(mode, "diverge") && strcmp(mode, "dump")) { fprintf(stderr, "usage: %s audit|speed|diverge [--quick] | dump <dir>\n", argv[0]); return 2; }
     const double Ta = quick ? 40 * SIGT : 400 * SIGT;      /* the audit cells cross one origin shift (341 sigma-time) unless --quick */
     const long full = quick ? 2000 : 10000, every = 500;
     printf("# gen3 M1 harness: %s%s\n\nbuild: %s, double %zu bytes, long double %zu bytes; cell width %.0f px, origin shift %.0f units\n",
@@ -303,6 +305,22 @@ int main(int argc, char** argv){
     }
     if (!make_hex(&solid, 20, 20, 0.2, 0x501DULL)) { printf("lattice failed\n"); return 1; }
     solid.eta = box_eta(solid.N, solid.W, solid.H);
+    if (!strcmp(mode, "dump")) {   /* ##CHRIS 2026-10-09 (M3, acceptance 2): the three M1 cells as replay files for the driver */
+        const char* dir = argc > 2 ? argv[2] : ".";
+        Cell* cs[3] = { &fluid, &dense, &lat };
+        for (int k = 0; k < 3; ++k) {
+            G3Rec rec; memset(&rec, 0, sizeof rec); g3rec = &rec; R3 r;
+            if (!run3(cs[k], 400 * SIGT, 0, 0, 0, &r)) return 1;
+            g3rec = NULL;
+            char path[600]; snprintf(path, sizeof path, "%s/m1_%s.g3state", dir, cs[k]->name);
+            const EDMD_Params p = params(cs[k]);
+            const long ev = r.H.ev_pair + r.H.ev_wall + r.H.ev_cross + r.H.ev_div + r.H.ev_piston + r.H.ev_band;
+            if (!g3state_write(path, cs[k]->name, &p, cs[k]->P, g_cell_px > 0.0 ? g_cell_px : EDMD3_DEFAULT_CELL_PX, 0.0, &rec, r.hash, ev)) return 1;
+            printf("%s: %ld targets, hash %016llx, events %ld -> %s\n", cs[k]->name, rec.nt, (unsigned long long)r.hash, ev, path);
+            free(rec.t); free(rec.ch); free(r.fin);
+        }
+        return 0;
+    }
     if (!strcmp(mode, "audit")) {
         printf("\n## Audit cells\n");
         audit_cell(&fluid, Ta, full, every);

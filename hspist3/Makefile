@@ -8,7 +8,8 @@ KISSFFT_SRCS    := kissfft/kiss_fft.c kissfft/kiss_fftr.c
 # You can still override, e.g.:
 #   make EDMD_SRCS=edmd_core/edmd.c
 #   make EDMD_SRCS=edmd_core/edmd_accelerated.c
-EDMD_SRCS       ?= edmd_core/edmd.c edmd_core/edmd_accelerated.c
+# ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14): the generation-3 engine is linked into every build; --engine=gen3 selects it
+EDMD_SRCS       ?= edmd_core/edmd.c edmd_core/edmd_accelerated.c edmd_core/edmd_gen3.c
 VALIDATION_SRCS := experiment_validation.c
 
 # Compiler

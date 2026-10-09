@@ -18,6 +18,7 @@
 #include "kissfft/kiss_fftr.h"
 #include "edmd_core/edmd.h"
 #include "edmd_core/edmd_accelerated.h"
+#include "edmd_core/edmd_gen3.h"   /* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14): --engine=gen3 */
 #include "experiment_validation.h"
 
 
@@ -1235,8 +1236,122 @@ static double dist_box_w_sigma = 0.0;
 static double dist_box_h_sigma = 0.0;
 static double dist_next_log_abs_time = 0.0;
 
+/* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14): the generation-3 engine (edmd_core/edmd_gen3.c) behind --engine=gen3.
+   --engine=gen2 (the default) changes nothing: every gen3 branch below sits behind cli_engine == 3.
+   DESIGN. g_edmd stays the driver's gen2 container: the driver builds it as always (parameters, seeding, setup) and reads it
+   until the dynamics start. At the first advance the gen3 state is built from the container's parameters and particles at
+   the container's time (edmd3_create + edmd3_load, the same calls as the harnesses). From then on:
+   - advancing goes to gen3; the container is never advanced again;
+   - readers get the bodies' current state through edmd_params() (divider and piston position and velocity, O(1) per body)
+     and the disks through edmd_particles(), a copy synchronised ON DEMAND with edmd3_particles() (computed, not stored, so
+     reading does not steer). The copy is handed out read-only: a reader that writes into it stops the run at the next advance;
+   - body changes go through the engine API (edmd3_set_divider_motion, edmd3_set_piston_motion), only when a mass or a
+     velocity really changes; repositioning a body, rescheduling the pair list, the GUI's repairs stop the run (fail-closed);
+   - work, the health counters and the event log come from gen3; the heat bath and gates are refused by edmd3_create.
+   The validator cadence and the run record are in the experiment loops (sec. 4.7.14). */
+static int    cli_engine = 2;                  /* --engine=gen2 | gen3 */
+static double cli_gen3_cell_px = 0.0;          /* --gen3-cell-px=W (0: the engine default, EDMD3_DEFAULT_CELL_PX) */
+static EDMD3* g_edmd3 = NULL;                  /* the gen3 state of the current run (NULL until its first advance) */
+static const EDMD* g3_owner = NULL;            /* the container it was built from */
+static EDMD_Params g3_prm;                     /* the container's parameters with the bodies' current masses and states */
+static EDMD_Particle* g3_copy = NULL;          /* the synchronised copy handed to readers */
+static EDMD_Particle* g3_seen = NULL;          /* the copy as handed out: a reader that wrote into it is caught */
+static int    g3_n = 0, g3_stale = 1, g3_handed = 0;
+static double g3_work0[EDMD_MAX_DIVIDERS], g3_work0_p[2];   /* edmd_reset_work: the engine's work at the reset */
+static double g3_load_time = NAN;              /* the absolute load time (replay of a harness cell); NAN: the container's time */
+static FILE*  g3_evlog = NULL; static double g3_evlog_scale = 1.0;
+static long   g3_builds = 0;                   /* gen3 states built in this process (the run record numbers them) */
+static int    cli_validator_every = 0;         /* --validator-every=K: the driver's validator every K-th step of the speed-of-sound
+                                                  record (0: the default, 1 under gen2, G3_VALIDATOR_EVERY under gen3) */
+static double cli_record_sigma_time = 0.0;      /* --record-sigma-time=T: speed-of-sound record of T sigma-time for every mass
+                                                  (sec. 4.7 "equal record time"); 0: the cycle-based planning, unchanged */
+static long   cli_gen3_audit_every = 0;        /* --gen3-audit-every=K: gen3's schedule audit after every K-th event (0: off) */
+static const char* cli_engine_replay = NULL;   /* --engine-replay=FILE: a harness cell through the driver (acceptances 2, 3) */
+static int    cli_replay_read_every = 1;       /* --replay-read-every=m: the readers every m-th target (0: none) */
+static int    cli_replay_substeps = 1;         /* --replay-substeps=n: n advance stops per target interval */
+static double cli_psi6_every = 0.25;           /* --psi6-every=T: gen3's psi6(t) interval in sigma-time (stage A1) */
+static double g3_engine_s = 0.0, g3_run_t0 = 0.0;   /* stage A4: seconds inside the engine; the run's start (monotonic) */
+static double g3_mono(void){ struct timespec ts; clock_gettime(CLOCK_MONOTONIC, &ts); return (double)ts.tv_sec + 1e-9 * (double)ts.tv_nsec; }
+#define G3_VALIDATOR_EVERY 60                  /* 60 steps of 1/60 sigma-time = once per sigma-time (sec. 4.7.14) */
+static inline int validator_every(void){ return cli_validator_every > 0 ? cli_validator_every : (cli_engine == 3 ? G3_VALIDATOR_EVERY : 1); }
+
+static void g3_stop(const char* what){
+    fflush(stdout);
+    fprintf(stderr, "STOP (--engine=gen3): %s\n", what);
+    exit(2);
+}
+static void g3_free(void){
+    if (g_edmd3) edmd3_destroy(g_edmd3);
+    g_edmd3 = NULL; g3_owner = NULL;
+    free(g3_copy); free(g3_seen); g3_copy = NULL; g3_seen = NULL;
+    g3_n = 0; g3_stale = 1; g3_handed = 0;
+}
+static void g3_build(const EDMD* S){
+    char err[256];
+    const EDMD_Params* p = edmd_params(S);
+    g_edmd3 = edmd3_create(p, cli_gen3_cell_px, err, sizeof err);
+    if (!g_edmd3) g3_stop(err);
+    const double t0 = isnan(g3_load_time) ? edmd_time(S) : g3_load_time;
+    if (!edmd3_load(g_edmd3, edmd_particles(S), t0, err, sizeof err)) {
+        printf("[EDMD3] load refused: box %.17g x %.17g px, R %.17g px; dividers %d:", p->boxW, p->boxH, p->radius, p->divider_count);
+        for (int d = 0; d < p->divider_count && d < EDMD_MAX_DIVIDERS; ++d)
+            printf(" [x %.17g th %.17g M %.17g v %.17g k %.17g]", p->divider_x[d], p->divider_thickness[d], p->divider_mass[d], p->divider_vx[d], p->divider_k[d]);
+        printf("; piston L %d (x %.17g v %.17g M %.17g), R %d (x %.17g v %.17g M %.17g)\n", p->has_pistonL, p->pistonL_x, p->pistonL_vx,
+               p->pistonL_mass, p->has_pistonR, p->pistonR_x, p->pistonR_vx, p->pistonR_mass);
+        g3_stop(err);
+    }
+    g3_owner = S; g3_prm = *p; g3_n = p->N; g3_stale = 1; g3_handed = 0;
+    g3_copy = (EDMD_Particle*)malloc((size_t)g3_n * sizeof *g3_copy);
+    g3_seen = (EDMD_Particle*)malloc((size_t)g3_n * sizeof *g3_seen);
+    if (!g3_copy || !g3_seen) g3_stop("out of memory");
+    memset(g3_work0, 0, sizeof g3_work0); g3_work0_p[0] = g3_work0_p[1] = 0.0;
+    edmd3_set_contact_audit(g_edmd3, getenv("HD_CONTACT_AUDIT") != NULL);
+    if (cli_gen3_audit_every > 0) edmd3_set_schedule_audit(g_edmd3, cli_gen3_audit_every);   /* read-only; does not steer (sec. 4.7.3) */
+    if (g3_evlog) edmd3_set_event_log(g_edmd3, g3_evlog, g3_evlog_scale);
+    EDMD3_Tol tol; edmd3_tolerances(g_edmd3, &tol);
+    g3_builds++;
+    g3_engine_s = 0.0; g3_run_t0 = g3_mono();   /* stage A4 */
+    printf("[EDMD3] built #%ld at t = %.17g (internal units): N = %d, box %.17g x %.17g px, cell %.17g px, dividers %d, pistons %d/%d; "
+           "c_tol %.6g px^2, tol_face %.6g px, band margin %.6g px, v_ref %.6g px/unit\n",
+           g3_builds, t0, g3_n, p->boxW, p->boxH, edmd3_cell_px(g_edmd3), p->divider_count, p->has_pistonL, p->has_pistonR,
+           tol.c_tol, tol.tol_face, tol.band_margin, tol.v_ref);
+}
+static void g3_check_untouched(void){                 /* readers never write */
+    if (g3_handed && memcmp(g3_copy, g3_seen, (size_t)g3_n * sizeof *g3_copy) != 0)
+        g3_stop("a reader wrote into the synchronised particle copy; under gen3 disks change only through the engine");
+}
+static const EDMD_Particle* g3_particles(void){
+    if (g3_stale) {
+        memcpy(g3_copy, edmd3_particles(g_edmd3), (size_t)g3_n * sizeof *g3_copy);
+        memcpy(g3_seen, g3_copy, (size_t)g3_n * sizeof *g3_seen);
+        g3_stale = 0;
+    }
+    g3_handed = 1;
+    return g3_copy;
+}
+static const EDMD_Params* g3_params(void){
+    for (int d = 0; d < g3_prm.divider_count && d < EDMD_MAX_DIVIDERS; ++d)
+        edmd3_divider_state(g_edmd3, d, &g3_prm.divider_x[d], &g3_prm.divider_vx[d]);
+    if (g3_prm.has_pistonL) edmd3_piston_state(g_edmd3, 0, &g3_prm.pistonL_x, &g3_prm.pistonL_vx);
+    if (g3_prm.has_pistonR) edmd3_piston_state(g_edmd3, 1, &g3_prm.pistonR_x, &g3_prm.pistonR_vx);
+    return &g3_prm;
+}
+static inline int g3_live(const EDMD* S){ return cli_engine == 3 && g_edmd3 && g3_owner == S; }
+static void g3_piston(int side, int has_now, int has, double x, double vx, double m){
+    if (has != has_now) g3_stop("a piston was added or removed during the run");
+    if (!has) return;
+    double xc, vc; edmd3_piston_state(g_edmd3, side, &xc, &vc);
+    const double mc = side == 0 ? g3_prm.pistonL_mass : g3_prm.pistonR_mass;
+    if (x != xc) g3_stop("a piston was repositioned during the run (only its mass and velocity can change)");
+    if (vx == vc && m == mc) return;
+    if (!edmd3_set_piston_motion(g_edmd3, side, m, vx)) g3_stop("the engine refused a piston mass/velocity change");
+    if (side == 0) g3_prm.pistonL_mass = m; else g3_prm.pistonR_mass = m;
+    g3_stale = 1;
+}
+
 // EDMD backend dispatch (default vs accelerated). Only valid for the global g_edmd instance.
 static inline EDMD* edmd_backend_create(const EDMD_Params* prm) {
+    if (cli_engine == 3) g3_free();                /* ##CHRIS 2026-10-09 (M3): a new container, so a new gen3 state */
     if (cli_edmd_acc) refuse_edmd_acc_backend();   /* ##CHRIS 2026-10-09: defensive second guard (sec. 4.7.1, item 0) */
     g_edmd_is_acc = cli_edmd_acc ? 1 : 0;
     /* ##CHRIS 2026-10-05: divider rescheduling policy of the default backend, recorded once per
@@ -1252,44 +1367,70 @@ static inline EDMD* edmd_backend_create(const EDMD_Params* prm) {
                    cli_resched_audit == 0 ? "" : (cli_resched_audit == 1 ? "; schedule audit after divider events (--resched-audit)"
                                                                          : "; schedule audit after every event (--resched-audit=all)"),
                    g_edmd_is_acc ? " -- NOTE: accelerated backend active, policy applies to the default backend only" : "");
+            if (cli_engine == 3)   /* ##CHRIS 2026-10-09 (M3) */
+                printf("[EDMD-ENGINE] gen3 (edmd_core/edmd_gen3.c; the gen2 core only holds the setup): the line above does not apply\n");
         }
     }
     return g_edmd_is_acc ? edmd_acc_create(prm) : edmd_create(prm);
 }
 static inline void edmd_backend_destroy(EDMD* S) {
     if (!S) return;
+    if (cli_engine == 3 && g3_owner == S) g3_free();   /* ##CHRIS 2026-10-09 (M3) */
     if (g_edmd_is_acc) edmd_acc_destroy(S);
     else               edmd_destroy(S);
 }
 static inline double edmd_backend_time(const EDMD* S) {
+    if (g3_live(S)) return edmd3_time(g_edmd3);        /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? edmd_acc_time(S) : edmd_time(S);
 }
 static inline const EDMD_Params* edmd_backend_params(const EDMD* S) {
+    if (g3_live(S)) return g3_params();                /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? edmd_acc_params(S) : edmd_params(S);
 }
 static inline EDMD_Params* edmd_backend_params_mut(const EDMD* S) {
+    if (g3_live(S)) g3_stop("edmd_params_mut during the run (parameters would change outside the engine)");   /* ##CHRIS (M3) */
     return (EDMD_Params*)(g_edmd_is_acc ? edmd_acc_params(S) : edmd_params(S));
 }
 static inline const EDMD_Particle* edmd_backend_particles(const EDMD* S) {
+    if (g3_live(S)) return g3_particles();             /* ##CHRIS 2026-10-09 (M3): synchronised on demand */
     return g_edmd_is_acc ? edmd_acc_particles(S) : edmd_particles(S);
 }
 static inline void edmd_backend_reschedule_all(EDMD* S) {
+    if (g3_live(S)) { g3_check_untouched(); return; }  /* ##CHRIS 2026-10-09 (M3): gen3 keeps its own schedule; nothing to do */
     if (g_edmd_is_acc) edmd_acc_reschedule_all(S);
     else               edmd_reschedule_all(S);
 }
 static inline void edmd_backend_reschedule_all_pp_only(EDMD* S) {
+    if (g3_live(S)) g3_stop("pair-only rescheduling (GUI and gate paths) is not supported");   /* ##CHRIS (M3) */
     if (g_edmd_is_acc) edmd_acc_reschedule_all_pp_only(S);
     else               edmd_reschedule_all_pp_only(S);
 }
 static inline void edmd_backend_reset_work(EDMD* S) {
+    if (g3_live(S)) {                                  /* ##CHRIS 2026-10-09 (M3): the work from now on */
+        for (int d = 0; d < EDMD_MAX_DIVIDERS; ++d) g3_work0[d] = d < g3_prm.divider_count ? edmd3_work_divider(g_edmd3, d) : 0.0;
+        g3_work0_p[0] = edmd3_work_piston(g_edmd3, 0); g3_work0_p[1] = edmd3_work_piston(g_edmd3, 1);
+        return;
+    }
     if (g_edmd_is_acc) edmd_acc_reset_work(S);
     else               edmd_reset_work(S);
 }
 static inline void edmd_backend_config_dividers(EDMD* S, int count, const double* cx, const double* thickness) {
+    if (g3_live(S)) g3_stop("dividers were reconfigured during the run");   /* ##CHRIS 2026-10-09 (M3) */
     if (g_edmd_is_acc) edmd_acc_config_dividers(S, count, cx, thickness);
     else               edmd_config_dividers(S, count, cx, thickness);
 }
 static inline void edmd_backend_set_divider_motions(EDMD* S, int count, const double* mass, const double* vx) {
+    if (g3_live(S)) {                                  /* ##CHRIS 2026-10-09 (M3): only real changes reach the engine */
+        if (count > g3_prm.divider_count) g3_stop("divider motions for more dividers than the run has");
+        for (int d = 0; d < count; ++d) {
+            double x, v; edmd3_divider_state(g_edmd3, d, &x, &v);
+            if (mass[d] == g3_prm.divider_mass[d] && vx[d] == v) continue;
+            if (!edmd3_set_divider_motion(g_edmd3, d, mass[d], vx[d])) g3_stop("the engine refused a divider mass/velocity change");
+            g3_prm.divider_mass[d] = mass[d];
+            g3_stale = 1;
+        }
+        return;
+    }
     if (g_edmd_is_acc) edmd_acc_set_divider_motions(S, count, mass, vx);
     else               edmd_set_divider_motions(S, count, mass, vx);
 }
@@ -1297,49 +1438,98 @@ static inline void edmd_backend_config_pistons(EDMD* S,
                                               int hasL, double xL, double vxL, double mL,
                                               int hasR, double xR, double vxR, double mR)
 {
+    if (g3_live(S)) {                                  /* ##CHRIS 2026-10-09 (M3) */
+        g3_piston(0, g3_prm.has_pistonL, hasL, xL, vxL, mL);
+        g3_piston(1, g3_prm.has_pistonR, hasR, xR, vxR, mR);
+        return;
+    }
     if (g_edmd_is_acc) edmd_acc_config_pistons(S, hasL, xL, vxL, mL, hasR, xR, vxR, mR);
     else               edmd_config_pistons(S, hasL, xL, vxL, mL, hasR, xR, vxR, mR);
 }
 static inline double edmd_backend_advance_to(EDMD* S, double t_target) {
+    if (cli_engine == 3) {                             /* ##CHRIS 2026-10-09 (M3) */
+        if (!g3_live(S)) { g3_free(); g3_build(S); }
+        g3_check_untouched();
+        const double ta = g3_mono();                                       /* stage A4: the engine's share */
+        const double t = edmd3_advance_to(g_edmd3, t_target);
+        g3_engine_s += g3_mono() - ta;
+        g3_stale = 1; g3_handed = 0;
+        const char* msg = NULL;
+        if (edmd3_fatal(g_edmd3, &msg)) g3_stop(msg ? msg : "the engine stopped");
+        return t;
+    }
     return g_edmd_is_acc ? edmd_acc_advance_to(S, t_target) : edmd_advance_to(S, t_target);
 }
 static inline double edmd_backend_advance_pp_only_to(EDMD* S, double t_target) {
+    if (cli_engine == 3) g3_stop("pair-only advancing (GUI and gate paths) is not supported");   /* ##CHRIS (M3) */
     return g_edmd_is_acc ? edmd_acc_advance_pp_only_to(S, t_target) : edmd_advance_pp_only_to(S, t_target);
 }
 static inline void edmd_backend_divider_resolve_overlaps(EDMD* S) {
+    if (g3_live(S)) g3_stop("divider overlap repair (GUI and gate paths) is not supported");   /* ##CHRIS (M3) */
     if (g_edmd_is_acc) edmd_acc_divider_resolve_overlaps(S);
     else               edmd_divider_resolve_overlaps(S);
 }
 static inline double edmd_backend_work_divider(const EDMD* S) {
+    if (g3_live(S)) {                                  /* ##CHRIS 2026-10-09 (M3): as edmd_work_divider, the sum over dividers */
+        double w = 0.0;
+        for (int d = 0; d < g3_prm.divider_count && d < EDMD_MAX_DIVIDERS; ++d) w += edmd3_work_divider(g_edmd3, d) - g3_work0[d];
+        return w;
+    }
     return g_edmd_is_acc ? edmd_acc_work_divider(S) : edmd_work_divider(S);
 }
 static inline double edmd_backend_work_divider_i(const EDMD* S, int divider_index) {
+    if (g3_live(S)) return (divider_index >= 0 && divider_index < g3_prm.divider_count && divider_index < EDMD_MAX_DIVIDERS)
+                           ? edmd3_work_divider(g_edmd3, divider_index) - g3_work0[divider_index] : 0.0;   /* ##CHRIS (M3) */
     return g_edmd_is_acc ? edmd_acc_work_divider_i(S, divider_index) : edmd_work_divider_i(S, divider_index);
 }
 static inline double edmd_backend_work_pistonL(const EDMD* S) {
+    if (g3_live(S)) return edmd3_work_piston(g_edmd3, 0) - g3_work0_p[0];   /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? edmd_acc_work_pistonL(S) : edmd_work_pistonL(S);
 }
 static inline double edmd_backend_work_pistonR(const EDMD* S) {
+    if (g3_live(S)) return edmd3_work_piston(g_edmd3, 1) - g3_work0_p[1];   /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? edmd_acc_work_pistonR(S) : edmd_work_pistonR(S);
 }
 static inline double edmd_backend_heat_bath(const EDMD* S) {
+    if (g3_live(S)) return 0.0;                        /* ##CHRIS 2026-10-09 (M3): edmd3_create refuses the heat bath */
     return g_edmd_is_acc ? edmd_acc_heat_bath(S) : edmd_heat_bath(S);
 }
 static inline long edmd_backend_forced_advance_count(const EDMD* S) {
+    if (g3_live(S)) return 0;                          /* ##CHRIS 2026-10-09 (M3): gen3 has no forced advance */
     return g_edmd_is_acc ? edmd_acc_forced_advance_count(S) : edmd_forced_advance_count(S);
 }
 // ##CHRIS: engine health counters; both stay 0 in a correct run.
 static inline long edmd_backend_clamp_repair_count(const EDMD* S) {
+    if (g3_live(S)) return edmd3_health(g_edmd3)->clamp_repair;     /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? edmd_acc_clamp_repair_count(S) : edmd_clamp_repair_count(S);
 }
 static inline long edmd_backend_overlap_repair_count(const EDMD* S) {
+    if (g3_live(S)) return edmd3_health(g_edmd3)->overlap_repair;   /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? edmd_acc_overlap_repair_count(S) : edmd_overlap_repair_count(S);
 }
 static inline long edmd_backend_wall_overdue_count(const EDMD* S) {
+    if (g3_live(S)) return edmd3_health(g_edmd3)->wall_overdue;     /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? edmd_acc_wall_overdue_count(S) : edmd_wall_overdue_count(S);
 }
 static inline long edmd_backend_past_event_count(const EDMD* S) {   /* ##CHRIS 2026-10-05: default backend only */
+    if (g3_live(S)) return edmd3_health(g_edmd3)->past_event;       /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? 0 : edmd_past_event_count(S);
+}
+/* ##CHRIS 2026-10-09 (M3): the gated event log. gen2: edmd_set_event_log, unchanged. gen3: the driver opens the file with
+   edmd.c's header and the engine writes edmd.c's rows (edmd3_set_event_log); attached at the build if set before it. */
+static void g3_close_event_log(void){ if (g3_evlog) { fflush(g3_evlog); fclose(g3_evlog); g3_evlog = NULL; } }
+static void edmd_backend_set_event_log(const char* path, double time_scale){
+    if (cli_engine != 3) { edmd_set_event_log(path, time_scale); return; }
+    static int registered = 0;
+    if (!registered) { registered = 1; atexit(g3_close_event_log); }
+    if (g_edmd3) edmd3_set_event_log(g_edmd3, NULL, 1.0);
+    g3_close_event_log();
+    g3_evlog_scale = time_scale > 0.0 ? time_scale : 1.0;
+    if (!path || !*path) return;
+    g3_evlog = fopen(path, "w");
+    if (!g3_evlog) g3_stop("cannot open the event log");
+    fprintf(g3_evlog, "t_sigma,kind,u_wall,v_before,v_after,dE,dp\n");
+    if (g_edmd3) edmd3_set_event_log(g_edmd3, g3_evlog, g3_evlog_scale);
 }
 
 /* ##CHRIS: diagnostic only, driver-side, gated by HD_OVERDUE_TRACE=1. Time-stamps
@@ -2012,7 +2202,8 @@ static void edmd_energy_audit(const char* where){
     for (int d = 0; d < ep->divider_count && d < EDMD_MAX_DIVIDERS; ++d)
         if (ep->divider_mass[d] > 0.0) ed += 0.5 * ep->divider_mass[d] * ep->divider_vx[d] * ep->divider_vx[d];
     printf("[EDMD-ENERGY] %-26s t=%.17g E_gas=%.17g E_div=%.17g E_tot=%.17g resched=%s\n",
-           where, edmd_time(g_edmd), eg, ed, eg + ed, edmd_legacy_resched() ? "legacy" : "minimal");
+           where, edmd_time(g_edmd), eg, ed, eg + ed,
+           cli_engine == 3 ? "gen3" : (edmd_legacy_resched() ? "legacy" : "minimal"));   /* ##CHRIS 2026-10-09 (M3): gen3 label */
     fflush(stdout);
 }
 
@@ -2030,7 +2221,8 @@ static void edmd_contact_report(void){
     }
     if (getenv("HD_CONTACT_AUDIT") == NULL || !g_edmd || g_edmd_is_acc) return;
     double g[4];
-    const long n = edmd_contact_audit_stats(g_edmd, g);
+    /* ##CHRIS 2026-10-09 (M3): under gen3 its own contact audit, printed in the same line format */
+    const long n = g3_live(g_edmd) ? edmd3_contact_audit_stats4(g_edmd3, g) : edmd_contact_audit_stats(g_edmd, g);
     printf("[EDMD-CONTACT] executed events %ld; max abs(contact distance) [px]: disk-disk %.3e, outer walls %.3e, "
            "divider %.3e, pistons %.3e\n", n, g[0], g[1], g[2], g[3]);
     fflush(stdout);
@@ -2805,6 +2997,16 @@ static void write_speed_of_sound_plot_commands_to_dir(const char *dir_path) {
     if (!g) return;
 
     fprintf(g, "# Command and Plot Commands\n\n");
+    if (cli_engine == 3) {   /* ##CHRIS 2026-10-09 (M3, stage A2): the trace documentation under gen3 */
+        fprintf(g, "## Trace columns under --engine=gen3\n\n"
+                   "- `Left_Count`, `Right_Count`: computed from a synchronised particle copy at the driver's validator steps "
+                   "(every --validator-every steps, default %d = 1 sigma-time), at the first recorded row and at the last step; "
+                   "in the rows between they carry the last computed values. No disk can cross the divider, and the validator "
+                   "checks every disk's compartment against its initial one at each of its steps.\n"
+                   "- `psi6_t_L0_<L>_wallmassfactor_<M>_run<r>.csv`: psi6(t) every %g sigma-time (--psi6-every) through hold and record.\n"
+                   "- The run log holds each trajectory's run record `[EDMD3-HEALTH] ...: clean=...` (every health counter, the engine "
+                   "and the build line).\n\n", G3_VALIDATOR_EVERY, cli_psi6_every);
+    }
     fprintf(g, "## Simulation Command\n\n");
     fprintf(g, "```sh\n");
     for (int i = 0; i < g_main_argc; ++i) {
@@ -4611,6 +4813,43 @@ static void parse_cli_options(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
             time_scale_runtime = v;
+        } else if (strncmp(arg, "--psi6-every=", strlen("--psi6-every=")) == 0) {   /* ##CHRIS 2026-10-09 (M3, stage A1) */
+            char *endptr = NULL; const double v = strtod(arg + strlen("--psi6-every="), &endptr);
+            if (!endptr || *endptr != '\0' || !(v > 0.0) || v > 1e6) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_psi6_every = v;
+        } else if (strncmp(arg, "--record-sigma-time=", strlen("--record-sigma-time=")) == 0) {   /* ##CHRIS 2026-10-09 (M3) */
+            char *endptr = NULL; const double v = strtod(arg + strlen("--record-sigma-time="), &endptr);
+            if (!endptr || *endptr != '\0' || !(v > 0.0) || v > 1e9) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_record_sigma_time = v;
+        } else if (strncmp(arg, "--gen3-audit-every=", strlen("--gen3-audit-every=")) == 0) {
+            char *endptr = NULL; const long v = strtol(arg + strlen("--gen3-audit-every="), &endptr, 10);
+            if (!endptr || *endptr != '\0' || v < 1) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_gen3_audit_every = v;
+        } else if (strncmp(arg, "--engine-replay=", strlen("--engine-replay=")) == 0) {   /* ##CHRIS 2026-10-09 (M3) */
+            cli_engine_replay = arg + strlen("--engine-replay="); cli_engine = 3;
+        } else if (strncmp(arg, "--replay-read-every=", strlen("--replay-read-every=")) == 0) {
+            char *endptr = NULL; const long v = strtol(arg + strlen("--replay-read-every="), &endptr, 10);
+            if (!endptr || *endptr != '\0' || v < 0 || v > 100000000L) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_replay_read_every = (int)v;
+        } else if (strncmp(arg, "--replay-substeps=", strlen("--replay-substeps=")) == 0) {
+            char *endptr = NULL; const long v = strtol(arg + strlen("--replay-substeps="), &endptr, 10);
+            if (!endptr || *endptr != '\0' || v < 1 || v > 1000000L) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_replay_substeps = (int)v;
+        } else if (strcmp(arg, "--engine=gen2") == 0) {      /* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14) */
+            cli_engine = 2;
+        } else if (strcmp(arg, "--engine=gen3") == 0) {
+            cli_engine = 3;
+        } else if (strncmp(arg, "--engine", strlen("--engine")) == 0 && (arg[8] == '=' || arg[8] == '\0')) {
+            fprintf(stderr, "Invalid --engine '%s': use --engine=gen2 (default) or --engine=gen3.\n", arg);
+            exit(EXIT_FAILURE);
+        } else if (strncmp(arg, "--gen3-cell-px=", strlen("--gen3-cell-px=")) == 0) {
+            char *endptr = NULL; const double v = strtod(arg + strlen("--gen3-cell-px="), &endptr);
+            if (!endptr || *endptr != '\0' || !(v > 0.0)) { fprintf(stderr, "Invalid --gen3-cell-px '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_gen3_cell_px = v;
+        } else if (strncmp(arg, "--validator-every=", strlen("--validator-every=")) == 0) {
+            char *endptr = NULL; const long v = strtol(arg + strlen("--validator-every="), &endptr, 10);
+            if (!endptr || *endptr != '\0' || v < 1 || v > 100000000L) { fprintf(stderr, "Invalid --validator-every '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_validator_every = (int)v;
         } else if (strcmp(arg, "--legacy-resched") == 0) {   /* ##CHRIS 2026-10-05 */
             cli_legacy_resched = 1;
         } else if (strcmp(arg, "--resched-audit") == 0) {    /* ##CHRIS 2026-10-07 */
@@ -15673,6 +15912,81 @@ static int write_speed_sound_batch_status(const char *folder,
     return 1;
 }
 
+/* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14; sec. 4.7 "psi6(t)"): under gen3 the structural clock psi6(t) every
+   --psi6-every sigma-time (default 0.25; stage A1) through hold and record, one CSV per trajectory next to its trace
+   (psi6_t_L0_<L>_wallmassfactor_<M>_run<r>.csv: t_sigma since the start of the hold, phase, psi6 global, local, neighbours).
+   A reader of the synchronised copy, like every psi6 sample. gen2 writes no such file (its outputs stay as they were). */
+static void g3_psi6_series_sample(FILE* f, double* next_t, const char* phase){
+    if (!f || !g_edmd) return;
+    const double t = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
+    if (t + 1e-9 < *next_t) return;
+    const Psi6Result pr = compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
+    fprintf(f, "%.6f,%s,%.6f,%.6f,%.4f\n", t, phase, pr.global_abs, pr.local_mean, pr.mean_neighbors);
+    while (*next_t <= t + 1e-9) *next_t += cli_psi6_every;
+}
+/* ##CHRIS 2026-10-09 (M3, amendments d and e): with the run record, three information lines.
+   [EDMD3-LEDGER] momentum per axis and energy: (P - P0) - J and (E - E0) - W against their rounding scale (u x the sum of the
+                  rounded terms), as the M2 harness prints them; [EDMD3-GAP] (HD_CONTACT_AUDIT) the largest contact gap per class
+                  and that over the time quantum u_t = ulp(2^13), which gen3's origin shift keeps constant over the run;
+   [EDMD3-AUDIT]  (--gen3-audit-every) the schedule audit's counts. */
+static void g3_run_extras(void){
+    if (!g_edmd3) return;
+    EDMD3_Ledger L; edmd3_ledger(g_edmd3, &L);
+    EDMD3_Tol T; edmd3_tolerances(g_edmd3, &T);
+    const double rx = (L.P[0] - L.P0[0]) - L.J[0], ry = (L.P[1] - L.P0[1]) - L.J[1], re = (L.E - L.E0) - L.W;
+    printf("[EDMD3-LEDGER] momentum x: residual %.3g, scale %.3g, ratio %.3g; y: residual %.3g, scale %.3g, ratio %.3g; "
+           "energy: residual %.3g, scale %.3g, ratio %.3g (E0 %.12g, E %.12g, W %.6g)\n",
+           rx, L.scale_P[0], fabs(rx) / L.scale_P[0], ry, L.scale_P[1], fabs(ry) / L.scale_P[1], re, L.scale_E, fabs(re) / L.scale_E,
+           L.E0, L.E, L.W);
+    double g[4] = {0, 0, 0, 0};
+    const long n = edmd3_contact_audit_stats4(g_edmd3, g);
+    if (n > 0)
+        printf("[EDMD3-GAP] contact audit over %ld events: max gap [px] pair %.3g, wall %.3g, divider %.3g, piston %.3g; "
+               "time quantum u_t %.6g units; max gap / u_t [px/unit] pair %.3g, wall %.3g, divider %.3g, piston %.3g; v_ref %.6g px/unit\n",
+               n, g[0], g[1], g[2], g[3], T.u_time, g[0] / T.u_time, g[1] / T.u_time, g[2] / T.u_time, g[3] / T.u_time, T.v_ref);
+    if (cli_gen3_audit_every > 0) edmd3_schedule_audit_now(g_edmd3);   /* a last audit at the end of the run (read-only) */
+    const EDMD3_Audit* A = edmd3_schedule_audit_stats(g_edmd3);
+    if (A->audits > 0)
+        printf("[EDMD3-AUDIT] audited states %ld; missing pair/wall/cross/div/piston %ld/%ld/%ld/%ld/%ld; extra %ld/%ld/%ld/%ld/%ld; "
+               "deferred earlier than eligible pair/wall/div/piston %ld/%ld/%ld/%ld; bands missing/extra/short %ld/%ld/%ld; "
+               "duplicate disagreeing %ld; cells inconsistent %ld; max |dt| %.3g; max |dt|/horizon (|dt| > 1e-9 only) %.3g\n",
+               A->audits, A->pair_missing, A->wall_missing, A->cross_missing, A->div_missing, A->pis_missing,
+               A->pair_extra, A->wall_extra, A->cross_extra, A->div_extra, A->pis_extra,
+               A->pair_deferred_early, A->wall_deferred_early, A->div_deferred_early, A->pis_deferred_early,
+               A->band_missing, A->band_extra, A->band_short, A->dup_disagree, A->cell_inconsistent, A->max_dt, A->max_rel);
+    fflush(stdout);
+}
+/* ##CHRIS 2026-10-09 (M3, amendment e): THE RUN RECORD of a gen3 trajectory, printed once at its end into the run log
+   (stdout) ALWAYS, also when every counter is 0, so a missing line is itself a finding. One line:
+     [EDMD3-HEALTH] <run id>: clean=<1|0> <every EDMD3_Health counter as name=value> validator_every=<K> hash=<16 hex digits>
+       t_end=<internal units>
+   clean = edmd3_health_clean(): 1 iff every safety net, validator and body count is 0. contact_now, obj_contact_now and
+   wall_contact_now count contacts within rounding (not repairs). The loaders refuse a gen3 run whose line says clean=0, or
+   that has no such line (validation/edmd3_health_guard.py). The line ends with the engine, the build line (stage A5) and the
+   run's wall time split: run_s from the build to the record, engine_s inside edmd3_advance_to, driver_share = 1 - engine_s /
+   run_s, the share of the driver's own loop (stage A4). */
+static void g3_run_record(const char* id){
+    if (!g_edmd3) { printf("[EDMD3-HEALTH] %s: clean=0 no gen3 state (the run never advanced)\n", id); return; }
+    const EDMD3_Health* H = edmd3_health(g_edmd3);
+    g3_run_extras();
+    printf("[EDMD3-HEALTH] %s: clean=%d overlap_repair=%ld wall_overdue=%ld past_event=%ld clamp_repair=%ld cell_repair=%ld "
+           "grid_escape=%ld stagnation=%ld obj_overlap_repair=%ld body_findings=%ld local_findings=%ld full_findings=%ld "
+           "contact_now=%ld obj_contact_now=%ld wall_contact_now=%ld local_checks=%ld full_checks=%ld local_worst=%.3g "
+           "full_worst=%.3g contact_c_min=%.3g obj_contact_gap_min=%.3g cross_residual_max=%.3g ev_pair=%ld ev_wall=%ld "
+           "ev_cross=%ld ev_div=%ld ev_piston=%ld ev_band=%ld ev_stale=%ld origin_shifts=%ld syncs=%ld heap_compactions=%ld "
+           "heap_max=%ld validator_every=%d hash=%016llx t_end=%.17g engine=gen3 build=\"%s\" target=%s "
+           "run_s=%.3f engine_s=%.3f driver_share=%.4f\n",
+           id, edmd3_health_clean(g_edmd3), H->overlap_repair, H->wall_overdue, H->past_event, H->clamp_repair, H->cell_repair,
+           H->grid_escape, H->stagnation, H->obj_overlap_repair, H->body_findings, H->local_findings, H->full_findings,
+           H->contact_now, H->obj_contact_now, H->wall_contact_now, H->local_checks, H->full_checks, H->local_worst,
+           H->full_worst, H->contact_c_min, H->obj_contact_gap_min, H->cross_residual_max, H->ev_pair, H->ev_wall,
+           H->ev_cross, H->ev_div, H->ev_piston, H->ev_band, H->ev_stale, H->origin_shifts, H->syncs, H->heap_compactions,
+           H->heap_max, validator_every(), (unsigned long long)edmd3_event_hash(g_edmd3), edmd3_time(g_edmd3),
+           BUILD_GIT, BUILD_TARGET, g3_mono() - g3_run_t0, g3_engine_s,
+           (g3_mono() - g3_run_t0) > 0.0 ? 1.0 - g3_engine_s / (g3_mono() - g3_run_t0) : 0.0);
+    fflush(stdout);
+}
+
 /*
  * run_speed_of_sound_experiments
  * -------------------------------
@@ -15835,6 +16149,7 @@ void run_speed_of_sound_experiments() {
                 char filename[640];
                 char partial_filename[640];
                 char invalid_filename[640];
+                FILE* psi6_series = NULL; double psi6_next = 0.0;   /* ##CHRIS 2026-10-09 (M3): gen3's psi6(t) file */
                 /* Keep the legacy filename token for compatibility.  Exact L0
                    is written in every CSV row and is canonical for analysis. */
                 int L0_int = (int)(L0 * 10);
@@ -15926,8 +16241,9 @@ void run_speed_of_sound_experiments() {
                 }
                 if (log_stride < 1) log_stride = 1;
 
-                const int target_recorded_steps =
-                    speed_sound_steps_for_target_cycles(
+                const int target_recorded_steps = cli_record_sigma_time > 0.0   /* ##CHRIS 2026-10-09 (M3): equal record time */
+                    ? (int)llround(cli_record_sigma_time / sample_dt_sigma)
+                    : speed_sound_steps_for_target_cycles(
                         predicted_frequency, sample_dt_sigma);
                 int psi6_sample_stride = target_recorded_steps / PSI6_RUN_SAMPLES;
                 if (psi6_sample_stride < 1) psi6_sample_stride = 1;
@@ -16081,10 +16397,24 @@ void run_speed_of_sound_experiments() {
                     wall_is_released = false;
                     wall_hold_enabled = true;
                     speed_sound_overdue_scan_t0(g_edmd);
+                    /* ##CHRIS 2026-10-09 (M3): under gen3 the psi6(t) series of this trajectory (see g3_psi6_series_sample) */
+                    if (cli_engine == 3) {
+                        char ps_path[700];
+                        snprintf(ps_path, sizeof ps_path, "%s/psi6_t_L0_%d_wallmassfactor_%d_run%d.csv", mode_folder, L0_int, wall_mass_factor, r);
+                        psi6_series = fopen(ps_path, "w");
+                        if (!psi6_series) g3_stop("cannot open the psi6(t) file");
+                        fprintf(psi6_series, "t_sigma,phase,psi6_global,psi6_local,mean_neighbors\n");
+                        psi6_next = 0.0;
+                        g3_psi6_series_sample(psi6_series, &psi6_next, "hold");
+                    }
                     for (int s = 0; !validator.failure.failed && s < wall_hold_steps; ++s) {
                         double t0 = edmd_backend_time(g_edmd);
                         edmd_backend_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
                         speed_sound_overdue_poll(g_edmd, "wall_hold", s + 1);
+                        g3_psi6_series_sample(psi6_series, &psi6_next, "hold");   /* ##CHRIS (M3): NULL under gen2 */
+                        /* ##CHRIS 2026-10-09 (M3): the validator every validator_every() steps and at the last hold step;
+                           validator_every() is 1 under gen2, so gen2 checks every step exactly as before */
+                        if ((s + 1) % validator_every() != 0 && s + 1 != wall_hold_steps) continue;
                         build_speed_sound_edmd_validation_state(
                             &validation_state,
                             audit_storage,
@@ -16127,6 +16457,13 @@ void run_speed_of_sound_experiments() {
                         edmd_backend_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
                         speed_sound_overdue_poll(g_edmd, "post_release", recorded_steps + 1);
 
+                        /* ##CHRIS 2026-10-09 (M3): the validator, and the compartment counts that need every disk, at the
+                           validator's cadence and at the last step; under gen2 (cadence 1) every step exactly as before.
+                           Between two checks the counts carry over: no disk can cross the divider, and the validator checks
+                           every disk's compartment against its initial one at each of its steps. */
+                        const int validator_due = ((recorded_steps + 1) % validator_every() == 0)
+                                                  || (recorded_steps + 1 == target_recorded_steps);
+                        if (validator_due) {
                         build_speed_sound_edmd_validation_state(
                             &validation_state,
                             audit_storage,
@@ -16140,10 +16477,13 @@ void run_speed_of_sound_experiments() {
                             edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA,
                             1);
                         if (validator.failure.failed) break;
+                        }
 
                         const EDMD_Params* ep = edmd_backend_params(g_edmd);
-                        const EDMD_Particle* Pnow = edmd_backend_particles(g_edmd);
+                        const EDMD_Particle* Pnow = NULL;
                         const double div_x_px = ep->divider_x[0];
+                        if (validator_due || recorded_steps == 0) {   /* ##CHRIS (M3): and the first row; gen2: every step */
+                        Pnow = edmd_backend_particles(g_edmd);
                         int leftN = 0, rightN = 0;
                         for (int i = 0; i < particles_active; ++i) {
                             if (Pnow[i].x < div_x_px) leftN++;
@@ -16151,6 +16491,7 @@ void run_speed_of_sound_experiments() {
                         }
                         left_particles = leftN;
                         right_particles = rightN;
+                        }
 
                         // Convert to σ-units for logging (Time is σ-time after release).
                         const double t_sigma = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
@@ -16174,6 +16515,7 @@ void run_speed_of_sound_experiments() {
                                     planned_duration_sigma);
                             if (speed_sound_ke_columns_enabled()) {
                                 /* ##CHRIS: same side convention as Left_Count/Right_Count. */
+                                if (!Pnow) Pnow = edmd_backend_particles(g_edmd);   /* ##CHRIS 2026-10-09 (M3): gen3, off-cadence rows */
                                 double ke_l = 0.0, ke_r = 0.0;
                                 for (int i = 0; i < particles_active; ++i) {
                                     const double e = 0.5 * (double)PARTICLE_MASS
@@ -16192,6 +16534,7 @@ void run_speed_of_sound_experiments() {
                                 compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
                             psi6_accum_add(&psi6_run, pr.global_abs);
                         }
+                        g3_psi6_series_sample(psi6_series, &psi6_next, "record");   /* ##CHRIS (M3): NULL under gen2 */
 
                         recorded_steps++;
                     }
@@ -16347,6 +16690,12 @@ void run_speed_of_sound_experiments() {
                                n_forced, n_clamp, n_overlap, n_overdue, n_past);
                     }
                 }
+                if (cli_engine == 3) {   /* ##CHRIS 2026-10-09 (M3, amendment e): the gen3 run record, always printed */
+                    char rid[200];
+                    snprintf(rid, sizeof rid, "L0=%.1f M=%d run=%d seed=%u", (double)L0, wall_mass_factor, r, run_seed);
+                    g3_run_record(rid);
+                }
+                if (psi6_series) { fclose(psi6_series); psi6_series = NULL; }   /* ##CHRIS (M3) */
 
                 if (!validator.failure.failed && recorded_steps != target_recorded_steps) {
                     experiment_validator_record_failure(
@@ -16576,6 +16925,19 @@ static void build_energy_transfer_validation_state(ExperimentValidationState *st
         ? edmd_forced_advance_count(g_edmd) : 0;
 }
 
+/* ##CHRIS 2026-10-09 (M3b, 261012 sec. 4.7.14, stage A3): the energy-transfer steps that read the particle arrays (X, Y, Vx,
+   Vy, the segment statistics, the validator), so that under gen3 the synchronised copy is made only there: the validator's
+   steps (every validator_every()), the first step, the release step (its energy audit), every trace row (--trace-every), the
+   last step, and every step while the distribution log is on. Under gen2: every step, as before. */
+static int et_particles_due(int steps_elapsed, int recorded_steps, int target_steps, int wall_hold_steps, bool wall_is_released){
+    if (cli_engine != 3) return 1;
+    if (steps_elapsed % validator_every() == 0 || steps_elapsed == 1) return 1;
+    if (!wall_is_released && steps_elapsed == wall_hold_steps) return 1;
+    if (wall_is_released && (cli_trace_every <= 1 || (recorded_steps % cli_trace_every) == 0)) return 1;
+    if (wall_is_released && recorded_steps + 1 >= target_steps) return 1;
+    if (dist_log) return 1;
+    return 0;
+}
 static void run_energy_transfer_experiment(void) {
     mkdir_p(g_energy_transfer_dir);
     /* ##CHRIS: write the provenance file next to the trace the caller asked for.
@@ -16754,7 +17116,7 @@ static void run_energy_transfer_experiment(void) {
         {
             const char* ev_path = getenv("HD_PISTON_EVENTS");
             if (ev_path && *ev_path) {
-                edmd_set_event_log(ev_path, (double)PIXELS_PER_SIGMA);
+                edmd_backend_set_event_log(ev_path, (double)PIXELS_PER_SIGMA);   /* ##CHRIS 2026-10-09 (M3): gen2 or gen3 */
                 if (!cli_quiet) printf("[EVENTLOG] piston/divider events -> %s\n", ev_path);
             }
         }
@@ -16937,9 +17299,11 @@ static void run_energy_transfer_experiment(void) {
         }
     }
 
+    int et_need = 1;   /* ##CHRIS 2026-10-09 (M3b): 1 = this step reads the particles (always under gen2) */
     while (!validator.failure.failed && recorded_steps < target_steps) {
         wall_x_old = wall_x;
         steps_elapsed++;
+        et_need = 1;
 
         wall_impulse_x_accum = 0.f;
         if (sim_mode == MODE_EDMD || sim_mode == MODE_EDMD_HYBRID) {
@@ -17014,12 +17378,17 @@ static void run_energy_transfer_experiment(void) {
 
                 double t0 = edmd_time(g_edmd);
                 edmd_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
+                /* ##CHRIS 2026-10-09 (M3b, 261012 sec. 4.7.14, stage A3): under gen3 the particle copy, the segment statistics and
+                   the validator run only on the steps that read them (et_particles_due); under gen2 on every step, as before. */
+                et_need = et_particles_due(steps_elapsed, recorded_steps, target_steps, wall_hold_steps, wall_is_released);
+                if (et_need) {
                 const EDMD_Particle* P = edmd_particles(g_edmd);
                 for (int i=0;i<particles_active;i++) {
                     X[i] = (double)XW1 + (double)P[i].x;
                     Y[i] = (double)YW1 + (double)P[i].y;
                     Vx[i] = (double)P[i].vx;
                     Vy[i] = (double)P[i].vy;
+                }
                 }
                 const EDMD_Params* ep = edmd_params(g_edmd);
                 int dcount2 = ep->divider_count;
@@ -17048,10 +17417,12 @@ static void run_energy_transfer_experiment(void) {
                 edmd_prev_work_L = wL;
                 edmd_prev_work_R = wR;
                 edmd_prev_work_div = wD;
+                if (et_need) {   /* ##CHRIS (M3b): gen3 carries the counts between its synchronised steps */
                 recompute_segment_stats_counts_and_temperature();
                 if (segment_counts && segment_count >= 2) {
                     left_particles = segment_counts[0];
                     right_particles = segment_counts[1];
+                }
                 }
             } else {
                 // EDMD-HYBRID
@@ -17104,6 +17475,7 @@ static void run_energy_transfer_experiment(void) {
         // ##CHRIS: Convert pixel-time to σ-time units (TIME mode fix)
         simulation_time += fixed_dt_runtime / PIXELS_PER_SIGMA;
 
+        if (et_need)   /* ##CHRIS (M3b): gen2 every step */
         build_energy_transfer_validation_state(&validation_state,
                                                validation_wall_x,
                                                validation_wall_vx);
@@ -17130,6 +17502,7 @@ static void run_energy_transfer_experiment(void) {
                 }
             }
         }
+        if (et_need)   /* ##CHRIS (M3b): gen2 every step */
         experiment_validator_check(&validator, &validation_state,
                                    wall_is_released ? "post_release" : "wall_hold",
                                    steps_elapsed, (double)simulation_time, 1);
@@ -17366,6 +17739,12 @@ static void run_energy_transfer_experiment(void) {
         if (n_forced || n_clamp || n_overlap || n_overdue || n_past) {
             printf("⚠️ [EDMD-HEALTH] energy-transfer seed=%u: forced_advance=%ld wall_clamp_repairs=%ld overlap_repairs=%ld "
                    "wall_overdue=%ld past_events=%ld\n", cli_seed, n_forced, n_clamp, n_overlap, n_overdue, n_past);
+        }
+        if (cli_engine == 3) {   /* ##CHRIS 2026-10-09 (M3, amendment e): the gen3 run record, always printed */
+            char rid[64];
+            snprintf(rid, sizeof rid, "energy-transfer seed=%u", cli_seed);
+            g3_run_record(rid);
+            if (g3_evlog) fflush(g3_evlog);
         }
     }
 
@@ -20864,12 +21243,127 @@ void run_single_test_headless() {
 
 /////////////// MAIN FUNCTION /////////////
 // Main Function
+/* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14, acceptances 2 and 3): --engine-replay=FILE runs a harness cell (a state file
+   written by gen3_m1 / gen3_m2 dump, edmd_core/tests/gen3_state_io.h) THROUGH THE DRIVER'S DISPATCH LAYER: the gen2 container is
+   created with the cell's parameters (built as the harnesses build them), the cell's particles are written into it, and the
+   run goes through edmd_backend_advance_to (gen3 built at the first advance, loaded at the cell's t0), the body changes through
+   edmd_backend_set_divider_motions / edmd_backend_config_pistons, the readers through edmd_backend_params / particles and
+   compute_psi6_from_edmd. It advances to the harness's own targets, applies the harness's changes after the same targets,
+   and prints its event hash next to the harness's.
+     --replay-read-every=m  the readers every m-th target (0: none; default 1): the bodies' state, a synchronised particle copy
+                            (checksum and the smallest surface gap over all pairs, an O(N^2) check), psi6
+     --replay-substeps=n    n advance stops per target interval (the harness's targets themselves are kept exactly); default 1
+   Acceptance 3 replays the same file with other m and n: readers and stops must not change the hash. */
+static int run_gen3_replay(const char* path){
+    FILE* f = fopen(path, "r");
+    if (!f) { fprintf(stderr, "replay: cannot open %s\n", path); return 2; }
+    EDMD_Params prm; memset(&prm, 0, sizeof prm);
+    prm.pp_collisions_enabled = 1; prm.particle_mass = 1.0; prm.kB = 1.0;          /* as the harnesses' params() */
+    char key[64], name[160] = "?", hexs[40] = "";
+    double cell_px = 0.0, t0 = 0.0; long nt = 0, nch = 0, expect_events = -1; int N = 0, ok = 1;
+    double* tg = NULL; long* ch_after = NULL; char (*ch_what)[4] = NULL; double *ch_m = NULL, *ch_v = NULL;
+    EDMD_Particle* P = NULL;
+    if (fscanf(f, "%63s %63s", key, name) != 2 || strcmp(key, "gen3-state") || strcmp(name, "v1")) { fclose(f); fprintf(stderr, "replay: not a gen3-state v1 file\n"); return 2; }
+    while (ok && fscanf(f, "%63s", key) == 1) {
+        if (!strcmp(key, "end")) break;
+        else if (!strcmp(key, "name")) ok = fscanf(f, "%159s", name) == 1;
+        else if (!strcmp(key, "N")) { ok = fscanf(f, "%d", &N) == 1; prm.N = N; }
+        else if (!strcmp(key, "boxW")) ok = fscanf(f, "%la", &prm.boxW) == 1;
+        else if (!strcmp(key, "boxH")) ok = fscanf(f, "%la", &prm.boxH) == 1;
+        else if (!strcmp(key, "radius")) ok = fscanf(f, "%la", &prm.radius) == 1;
+        else if (!strcmp(key, "cell_px")) ok = fscanf(f, "%la", &cell_px) == 1;
+        else if (!strcmp(key, "t0")) ok = fscanf(f, "%la", &t0) == 1;
+        else if (!strcmp(key, "divider_count")) ok = fscanf(f, "%d", &prm.divider_count) == 1 && prm.divider_count >= 0 && prm.divider_count <= EDMD_MAX_DIVIDERS;
+        else if (!strcmp(key, "divider")) {
+            int d = -1; ok = fscanf(f, "%d", &d) == 1 && d >= 0 && d < EDMD_MAX_DIVIDERS
+                 && fscanf(f, "%la %la %la %la %la %la", &prm.divider_x[d], &prm.divider_thickness[d], &prm.divider_mass[d],
+                           &prm.divider_vx[d], &prm.divider_k[d], &prm.divider_xeq[d]) == 6;
+        } else if (!strcmp(key, "pistonL")) ok = fscanf(f, "%d %la %la %la", &prm.has_pistonL, &prm.pistonL_x, &prm.pistonL_vx, &prm.pistonL_mass) == 4;
+        else if (!strcmp(key, "pistonR")) ok = fscanf(f, "%d %la %la %la", &prm.has_pistonR, &prm.pistonR_x, &prm.pistonR_vx, &prm.pistonR_mass) == 4;
+        else if (!strcmp(key, "particles")) {
+            int n = 0; ok = fscanf(f, "%d", &n) == 1 && n == N && N > 0;
+            if (ok) { P = (EDMD_Particle*)calloc((size_t)N, sizeof *P); ok = P != NULL; }
+            for (int i = 0; ok && i < N; ++i) ok = fscanf(f, "%la %la %la %la", &P[i].x, &P[i].y, &P[i].vx, &P[i].vy) == 4;
+        } else if (!strcmp(key, "targets")) {
+            ok = fscanf(f, "%ld", &nt) == 1 && nt > 0 && nt < 100000000L;
+            if (ok) { tg = (double*)malloc((size_t)nt * sizeof *tg); ok = tg != NULL; }
+            for (long k = 0; ok && k < nt; ++k) ok = fscanf(f, "%la", &tg[k]) == 1;
+        } else if (!strcmp(key, "changes")) {
+            ok = fscanf(f, "%ld", &nch) == 1 && nch >= 0 && nch < 10000000L;
+            if (ok && nch) { ch_after = (long*)malloc((size_t)nch * sizeof *ch_after); ch_what = (char (*)[4])malloc((size_t)nch * 4);
+                             ch_m = (double*)malloc((size_t)nch * sizeof(double)); ch_v = (double*)malloc((size_t)nch * sizeof(double));
+                             ok = ch_after && ch_what && ch_m && ch_v; }
+            for (long k = 0; ok && k < nch; ++k) ok = fscanf(f, "%ld %3s %la %la", &ch_after[k], ch_what[k], &ch_m[k], &ch_v[k]) == 4;
+        } else if (!strcmp(key, "expect_hash")) ok = fscanf(f, "%39s", hexs) == 1;
+        else if (!strcmp(key, "expect_events")) ok = fscanf(f, "%ld", &expect_events) == 1;
+        else ok = 0;
+    }
+    fclose(f);
+    if (!ok || !P || !tg) { fprintf(stderr, "replay: malformed state file %s (at '%s')\n", path, key); return 2; }
+    /* the container, as the experiments build it; the cell's particles written into it; gen3 at the cell's t0 and cell width */
+    cli_gen3_cell_px = cell_px; g3_load_time = t0;
+    g_edmd = edmd_backend_create(&prm);
+    if (!g_edmd) { fprintf(stderr, "replay: the container could not be created\n"); return 2; }
+    {
+        EDMD_Particle* C = (EDMD_Particle*)edmd_backend_particles(g_edmd);
+        for (int i = 0; i < N; ++i) { C[i] = P[i]; C[i].coll_count = 0; }
+    }
+    long reads = 0, stops = 0, ich = 0; double gap_min = INFINITY, chk = 0.0;
+    const double t_wall0 = (double)clock() / CLOCKS_PER_SEC;
+    double prev = t0;
+    for (long k = 0; k < nt; ++k) {
+        for (int j = 1; j < cli_replay_substeps; ++j) { edmd_backend_advance_to(g_edmd, prev + (tg[k] - prev) * ((double)j / (double)cli_replay_substeps)); ++stops; }
+        edmd_backend_advance_to(g_edmd, tg[k]); ++stops; prev = tg[k];
+        while (ich < nch && ch_after[ich] == k) {
+            if (!strcmp(ch_what[ich], "D")) { const double m = ch_m[ich], v = ch_v[ich]; edmd_backend_set_divider_motions(g_edmd, 1, &m, &v); }
+            else if (!strcmp(ch_what[ich], "PR")) {
+                const EDMD_Params* q = edmd_backend_params(g_edmd);
+                edmd_backend_config_pistons(g_edmd, q->has_pistonL, q->pistonL_x, q->pistonL_vx, q->pistonL_mass,
+                                            q->has_pistonR, q->pistonR_x, ch_v[ich], ch_m[ich]);
+            } else { fprintf(stderr, "replay: unknown change '%s'\n", ch_what[ich]); return 2; }
+            ++ich;
+        }
+        if (cli_replay_read_every > 0 && (k + 1) % cli_replay_read_every == 0) {   /* the readers */
+            const EDMD_Params* q = edmd_backend_params(g_edmd);
+            for (int d = 0; d < q->divider_count; ++d) chk += q->divider_x[d];
+            const EDMD_Particle* Q = edmd_backend_particles(g_edmd);
+            for (int i = 0; i < N; ++i) {
+                chk += Q[i].x + Q[i].y;
+                for (int jj = i + 1; jj < N; ++jj) {
+                    const double dx = Q[i].x - Q[jj].x, dy = Q[i].y - Q[jj].y;
+                    const double g = sqrt(dx * dx + dy * dy) - 2.0 * prm.radius;
+                    if (g < gap_min) gap_min = g;
+                }
+            }
+            const Psi6Result pr = compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
+            chk += pr.global_abs;
+            ++reads;
+        }
+    }
+    const double secs = (double)clock() / CLOCKS_PER_SEC - t_wall0;
+    const EDMD3_Health* H = edmd3_health(g_edmd3);
+    const long ev = H->ev_pair + H->ev_wall + H->ev_cross + H->ev_div + H->ev_piston + H->ev_band;
+    char got[40]; snprintf(got, sizeof got, "%016llx", (unsigned long long)edmd3_event_hash(g_edmd3));
+    const int match = !strcmp(got, hexs) && ev == expect_events;
+    printf("[EDMD3-REPLAY] %s: hash %s, harness %s; events %ld, harness %ld: %s; targets %ld, changes %ld, advance stops %ld "
+           "(substeps %d), reader passes %ld (every %d targets), smallest surface gap seen by the readers %.3g px, %.1f s\n",
+           name, got, hexs, ev, expect_events, match ? "MATCH" : "**MISMATCH**", nt, nch, stops, cli_replay_substeps, reads,
+           cli_replay_read_every, gap_min, secs);
+    (void)chk;
+    char rid[200]; snprintf(rid, sizeof rid, "replay %s", name);
+    g3_run_record(rid);
+    edmd_backend_destroy(g_edmd); g_edmd = NULL;
+    free(P); free(tg); free(ch_after); free(ch_what); free(ch_m); free(ch_v);
+    return match ? 0 : 1;
+}
+
 int main(int argc, char* argv[]) {
 
     g_main_argc = argc;
     g_main_argv = argv;
 
     parse_cli_options(argc, argv);
+    if (cli_engine_replay) return run_gen3_replay(cli_engine_replay);   /* ##CHRIS 2026-10-09 (M3): acceptances 2, 3 */
     init_output_dirs_from_argv0(argv[0]);
     // Record the invoking command in the current working directory as well
     // (useful when external scripts set cwd to a per-run output folder).
@@ -20944,6 +21438,24 @@ int main(int argc, char* argv[]) {
         if (cli_spring_k_set)
             fprintf(stderr, "[warn] --spring-k ignored: no --spring-wall declared, so no wall carries a spring.\n");
         energy_measurement.spring_constant = 0.0f;
+    }
+
+    /* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14): --engine=gen3 runs only where it is wired and tested -- headless, pure EDMD,
+       the speed-of-sound or the energy-transfer experiment -- and the gen2 schedule options do not apply to it. Anything else
+       stops here instead of running a path the engine never saw. */
+    if (cli_engine == 3) {
+        const char* why = NULL;
+        const int sos = !cli_force_no_experiments && enable_speed_of_sound_experiments
+                        && cli_experiment_preset != EXPERIMENT_PRESET_SIMPLE_BOX_PREDICTION
+                        && cli_experiment_preset != EXPERIMENT_PRESET_ENERGY_TRANSFER
+                        && cli_experiment_preset != EXPERIMENT_PRESET_SZILARD_ENGINE;
+        const int et = !cli_force_no_experiments && cli_experiment_preset == EXPERIMENT_PRESET_ENERGY_TRANSFER;
+        if (!cli_headless) why = "the GUI is not wired to gen3 (use --headless)";
+        else if (sim_mode != MODE_EDMD) why = "gen3 is an event-driven engine (use --mode=edmd)";
+        else if (cli_single_test_mode) why = "--single-test is not wired to gen3";
+        else if (!sos && !et) why = "only the speed-of-sound and the energy-transfer experiments are wired to gen3";
+        else if (cli_legacy_resched || cli_resched_audit) why = "--legacy-resched and --resched-audit are gen2 schedule options";
+        if (why) g3_stop(why);
     }
 
     // Single-test mode takes priority over experiment modes
