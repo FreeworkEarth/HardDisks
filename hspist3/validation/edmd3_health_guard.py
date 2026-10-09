@@ -27,8 +27,11 @@ RULE for gen3 data, refusal on the first of:
   1. a governing run log holds a run record whose clean value is not exactly 1 (0, or unreadable);
   2. a governing run log holds more build lines than run records (a trajectory ended without its record), or no governing
      run log holds any run record at all;
-  3. the data file is a per-run file (<name>_L0_<L0>_wallmassfactor_<M>_run<r>.<ext>) and no governing run record has the run
-     id L0 = <L0>, M = <M>, run = <r>.
+  3. the data file is a per-run file (<name>_L0_<k>_wallmassfactor_<M>_run<r>.<ext>) and no governing run record has M = <M>,
+     run = <r> and an L0 that fits k: the driver writes k = (int)(L0 * 10) (00ALLINONE.c, truncated) into the file name and L0 with
+     %.1f (rounded) into the run id, so |round(10 L0_id) - k| <= 1.
+     (Fix of 2026-10-09 12:30, sec. 4.7.15: the first version compared L0_id with k itself and refused every gen3 per-run file;
+     found by the Test G pipeline test before any Test G trajectory; it refused, it never passed.)
 LIMIT: data whose run left no record and no log in its directory chain (stdout not kept) cannot be recognised as gen3; the run
 scripts of the gen3 campaigns keep the run log next to the data (sec. 4.7.14).
 
@@ -124,15 +127,16 @@ def check(path):
         raise Gen3RunError(f"{where} without a run record: no governing run log holds an [EDMD3-HEALTH] line (261012 sec. 4.7.14)")
     m = PER_RUN.search(os.path.basename(p))
     if m:
-        L0, M, r = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        k, M, r = int(m.group(1)), int(m.group(2)), int(m.group(3))
         ok = False
         for rid in allrecs:
             s = SOS_ID.match(rid)
-            if s and int(round(float(s.group(1)))) == L0 and int(s.group(2)) == M and int(s.group(3)) == r:
+            if s and abs(int(round(10.0 * float(s.group(1)))) - k) <= 1 and int(s.group(2)) == M and int(s.group(3)) == r:
                 ok = True
                 break
         if not ok:
-            raise Gen3RunError(f"{where} without a run record: no run record with L0={L0} M={M} run={r} (261012 sec. 4.7.14)")
+            raise Gen3RunError(f"{where} without a run record: no run record with L0 ~ {k / 10:g} (file token {k}) M={M} run={r} "
+                               f"(261012 sec. 4.7.14)")
     return path
 
 

@@ -8686,3 +8686,180 @@ files written: before 45, after 45
 Unit tests (`python3 -m unittest validation/test_edmd3_health_guard.py validation/test_edmd_acc_guard.py -v`): Ran 32 tests in 0.042s OK (32 tests, each `ok`).
 
 **Commits:** engine-gen3 `f42befb` (M3 code) and `099c937` (the evidence: scripts, tables, the small outputs, `RUN_RECORDS.txt`; run logs and traces are .gitignored and stay on disk, the raw files above 256 kB compressed); main: this note with the guard (`validation/edmd3_health_guard.py`, its unit tests, the hook in `edmd_acc_guard.py`, `experiments_gen3_health_guard_261009/`); the notes and the guard files go to engine-gen3, the notes to engine-divider-resched. Push line for Chris: `git push origin main engine-gen3 engine-divider-resched`.
+
+### 4.7.15 Stage B: Test G REGISTERED (the Mac part of the gen-3 gate) — design, task list, verdict script, before any of its trajectories (2026-10-09 12:34 HST, machine date) [SOURCE; DATA where printed by script]
+
+**Plain summary.**
+- **Test G is registered by this commit, before any Test G trajectory exists.** It comprises: the text (the programme's stage B, verbatim in § 4.7.12, with the concrete choices below), the task list with its SHA-256, the verdict script, the worker and the runner. The verdict script is not edited after this commit.
+- **Test G compares the engines** on the T′ cell (epi8_H_H10_L10, η = π/8, H = L0 = 10, N = 100) with T′'s speed-of-sound command, at M = 300 and M = 1500.
+  - 400 trajectories per engine per mass, gen2 against gen3, from one frozen binary (engine-gen3 f42befb).
+  - The seeds come from a new base, 20261209, and are the same for both engines; the engines are interleaved line by line.
+- **Verdict:** z = (mean_gen3 − mean_gen2) / sqrt(SE_gen3² + SE_gen2²) per mass, on reduce_B.py's registered argmax ν.
+  - NO DIFFERENCE if |z| < 2; DIFFERENCE if |z| ≥ 3; otherwise one extension (400 more per engine, judged on 800; still in between = UNRESOLVED).
+  - PASS = NO DIFFERENCE at both masses. The inventory decides INVALID before any number.
+- **The verdict script's dry run on T′'s data reproduces T′'s z = +0.49 and −0.42** (gen3 in minimal's place, gen2 in legacy's).
+- **Under the null, P(PASS) = 0.968:** the false alarm is 0.032 for two masses, P(DIFFERENCE) 0.008, P(UNRESOLVED) 0.024 (printed below).
+- **The expected smallest difference giving z = 3 is 0.27 % at M = 300 and 0.15 % at M = 1500** (T′'s per-seed SDs).
+- **Two pipeline faults were found and fixed before registration**, on trajectories with seeds outside Test G's list:
+  - the loader guard of § 4.7.14 refused every gen3 per-run file (its L0 token is ten times L0); it refused, it never passed;
+  - macOS has no `flock`, so the worker now locks with mkdir.
+
+**Registration items.**
+
+| item | value |
+|---|---|
+| cell, protocol | epi8_H_H10_L10: η = π/8, H = L0 = 10, N = 100 (50 + 50); Test T′'s speed-of-sound command, the campaign worker's B command (`cluster/confinement_20261013/conf_worker.sh`): `--target-oscillations=200`, `--wall-hold-steps=2000`, `--fixed-dt=0.4`, stride per mass from the campaign's task list (M = 300: 51, M = 1500: 110), `HD_KE_TRACE=1`, `HD_CONTACT_AUDIT=1`; plus `--engine=gen2` or `--engine=gen3`; the seeds from the task list |
+| engines | gen2 (the default policy, minimal rescheduling) and gen3; one binary |
+| binary | engine-gen3 `f42befb` built by `build_clean.sh` from the committed tree: `00ALLINONE  git f42befb  target mac-O3-e0pre`, SHA-256 `bc6e8170741bb0a4c301f3c9d77a769f3cf9bbc9d80b6256d5758861e63eb58d` (= stage A's); frozen copy `hspist3/experiments_gen3_gate_261009/bin/00ALLINONE`; `run_testG_mac.py` refuses another binary or version line; every cell's `.build_git` must be that line |
+| seeds | base 20261209, never used before: no file of main, engine-gen3 or this session's scratch held the number. `run_seed(20261209, l, mass index, r)`, stream l per block (main and M = 50/2000: l = 0, dense: 1, N = 400: 2, A-fixed: 3, as `--seed`). 1500 seeds, all distinct, 0 overlap with the 6469 seeds of every earlier task list and today's stage A runs |
+| seed list | SHA-256 `d775c06159de75f5db893d7c067bddef9c4938af2d9b77d20a7eec25fb7aedfd` (`gen_testG_261009.seed_text()`) |
+| task list | `hspist3/cluster/gen3_gate_261009/tasks_testG_261009.txt`, 3000 lines, SHA-256 `872c39303e7b06a29e8dc393af474130bcb13ba5492ae4dbb3ee8cbd15389e60`. Order: main M = 300 r = 0..399, then M = 1500, then M = 50, M = 2000, dense, N = 400, A-fixed; each seed as two lines, gen2 then gen3 |
+| extension (only if the rule asks) | r = 400..799 of the same stream at that mass: `gen_testG_261009.py --extension M`; seed lists M = 300 `a16a19bcd2a27488404087febb086fdef05e27f13f97265641f05625a0b42a0c`, M = 1500 `8567f9ef08670267938cbe3b7bc3d1375c7a18262e8fd660db4cfcf37f56cdaa` (0 overlap) |
+| estimator | `cluster/confinement_20261013/reduce_B.py`, unchanged: the argmax ν per trajectory (`red_nu.csv`) and the position ACF (`acf_runs.npz`) |
+| verdict script | `hspist3/validation/testG_verdict_261009.py`, SHA-256 at registration in the table below; the T′ logic with policy → engine, the programme's rule, the inventory, the false-alarm rates, the smallest z = 3 difference, the 95 % interval as the stated bound, the information rows |
+| runner, worker | `run_testG_mac.py` (at most 12 processes, task order, then `reduce_B.py` per cell and lossless compression of the traces); `testG_worker.sh` (conf_worker.sh's B and AF commands plus `--engine`; one folder per trajectory; health rule per engine; a failing trajectory is kept in `.failed_*` and counted, never rerun); `af_stream_reduce.py` |
+| data | `hspist3/experiments_gen3_gate_261009/testG/<engine>/<cell>/m_<M>/` (B) and `.../x_0/` (A-fixed); untracked |
+
+**Information rows (no verdict), same task list, same script.**
+- **M = 50 and M = 2000** in the T′ cell: 100 per engine (strides 26 and 127).
+- **The dense cell** (the gate's dense geometry, `audit_runs_261007.case_cmd` "dense_M": L0 = 269/48, H = 10, Ns = 50, η = 0.70073), M = 300, 200 per engine.
+  - Test G's protocol (200 oscillations, not the gate's 25); stride 9 from T.d_stride(KR ν).
+- **N = 400 at π/8** (H = L0 = 20), M = 300, 100 per engine; stride 109.
+- **The static method:** the A-fixed cell at x_0 = 10, 200 runs per engine. It uses the campaign's AF command (hold 312,000 steps, post 1200, trace every 600) and the registered Method A estimator `reduce_AF.py` (window [200, 5200) σ-time).
+  - Printed: mean F_L and F_R per engine with SE, relative difference, 95 % interval and z.
+- **ν_d** (§ 4.4.13 item 4a) on the main masses, as in T′.
+
+**Decisions and deviations for stage B, disclosed.**
+1. **Disk (rule 6) against rule 3 (decision 9 of § 4.7.14).**
+   - **The scale.** Test G's traces at the T′ protocol are about 0.8 MB each, 1.3 GB for the main part. gen3's psi6(t) files add 1–2 MB per gen3 trajectory. One A-fixed event log is 17 MB, 6.8 GB for 400 runs.
+   - **Traces and psi6(t) files** are compressed losslessly (gzip -9): the psi6(t) file right after its trajectory (no reduction reads it), each trace after its cell's reduction. The SHA-256 of every uncompressed file is in the cell's `.sha256_uncompressed` first.
+   - **The A-fixed event log** of all but the first 10 seeds per engine goes through a FIFO into `af_stream_reduce.py`. That script reads it into memory, waits until the binary has exited (so the trace is complete), and runs the registered `reduce_AF.py` unchanged on it (`/dev/stdin`). These event logs are not kept.
+   - **Check before registration:** for both engines, the streamed path gives a `red_` row byte-identical to the file path (seed 9700).
+   - **Expected retained data:** about 0.5 GB without an extension.
+2. **The dense row's protocol** is Test G's (200 oscillations) on the gate's dense geometry; the gate's own dense case ran 25 oscillations.
+3. **Pre-registration pipeline tests (no Test G seed), disclosed:**
+   - 1 + 1 B trajectories (seed `run_seed(20261091, 7, 3, 0)`) and 6 + 6 B trajectories at M = 300 (`run_seed(20261091, 7, 3, 10..15)`), through the worker and the runner;
+   - A-fixed seeds 9700–9702 for both engines.
+   - The smoke test of the verdict script's code paths printed their numbers (M = 300, 6 + 6: argmax −0.155 %, z = −0.31; A-fixed 2 + 2: F_L +0.083 %, z = +0.99). These trajectories are not part of Test G and enter nothing.
+4. **Faults found by those tests and fixed before registration:**
+   - (a) **The guard of § 4.7.14** refused every gen3 per-run file. The driver's file token is `(int)(L0 * 10)`, the run id prints `%.1f` of L0, and the guard compared L0 with the token itself.
+     - Fix: |round(10 L0_id) − token| ≤ 1. A regression unit test was added (33 tests OK); the stage A gen3 traces now pass (7 of 7).
+     - The paper scripts with the fixed guard are identical to the first version's outputs (`experiments_gen3_health_guard_261009/run_fix_check.sh`, output below).
+     - The first version could only refuse, never pass, and only gen3 data.
+   - (b) **macOS has no `flock`.** The worker locks the run.log append and the hash record with an atomic mkdir, as the build guard does.
+   - (c) **The worker writes the cell's run index into gen3's run record** (`run=0` → `run=<r>`), as conf_worker.sh does for gen2's `run = 0,`. Without it the guard cannot match a trace to its record. The raw stdout is kept in `.done_runs/run<r>/`.
+5. **Stages D and F wait for the verdict.** If it is DIFFERENCE or INVALID, they do not run; stages C, E and G may continue.
+
+**Printed by `python3 validation/testG_verdict_261009.py --design` (verbatim):**
+
+```
+# Test G -- design numbers (261012 sec. 4.7.15), before any of its data
+
+### The thresholds' false-alarm rates under the null
+
+| quantity (no true difference) | one mass | two masses (independent) |
+|---|---|---|
+| P(abs(z) >= 3 at 400) | 0.00270 | 0.00539 |
+| P(extension: 2 <= abs(z) < 3 at 400) | 0.04280 | 0.08377 (at least one) |
+| P(DIFFERENCE), extension path included | 0.00403 | 0.00804 (at least one) |
+| P(UNRESOLVED) | 0.01189 | 0.02364 (at least one) |
+| P(NO DIFFERENCE) | 0.98408 | P(PASS) = 0.96841; false alarm (not PASS) = 0.03159 |
+
+### Expected precision with 400 + 400 per mass (per-seed SDs of T-prime, gen3 <- minimal, gen2 <- legacy; an assumption for gen3)
+
+| M | SD (T-prime minimal) | SD (T-prime legacy) | mean nu (T-prime legacy) | SE of the difference | smallest true difference with z = 3 (expected) [%] |
+|---|---|---|---|---|---|
+| 300 | 4.642e-04 | 4.635e-04 | 0.0370152 | 3.28e-05 | 0.266 |
+| 1500 | 1.240e-04 | 1.241e-04 | 0.0172635 | 8.77e-06 | 0.152 |
+
+### Seeds and task list
+
+seed list SHA-256 d775c06159de75f5db893d7c067bddef9c4938af2d9b77d20a7eec25fb7aedfd; task list cluster/gen3_gate_261009/tasks_testG_261009.txt SHA-256 872c39303e7b06a29e8dc393af474130bcb13ba5492ae4dbb3ee8cbd15389e60 (3000 lines)
+```
+
+**Printed by `python3 validation/testG_verdict_261009.py --dry-run-Tp` (verbatim; T′'s data, the dry run of this script):**
+
+```
+# Test G, the Mac part of the gen-3 gate (261012 sec. 4.7.15)  [DRY RUN on T-prime data: a test of this script, no verdict]
+
+RULE per mass: NO DIFFERENCE if abs(z) < 2; DIFFERENCE if abs(z) >= 3; otherwise one extension (400 more per engine), judged on 800 with the same thresholds, still between -> UNRESOLVED. PASS = NO DIFFERENCE at both masses.
+
+
+## The registered numbers
+
+| mass | judged on (per engine) | n gen3 | n gen2 | gen3 mean nu | SE | gen2 mean nu | SE | difference | relative [%] | 95 % interval [%] | z | outcome by the rule |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 300 | 400 | 400 | 400 | 0.0370312 | 2.32e-05 | 0.0370152 | 2.32e-05 | +1.606e-05 | +0.043 | [-0.130, +0.217] | +0.49 | **NO DIFFERENCE** |
+| 1500 | 400 | 400 | 400 | 0.0172599 | 6.20e-06 | 0.0172635 | 6.20e-06 | -3.647e-06 | -0.021 | [-0.121, +0.078] | -0.42 | **NO DIFFERENCE** |
+
+dry run: z(M = 300) = +0.49, z(M = 1500) = -0.42; T-prime printed +0.49 and -0.42: REPRODUCED
+
+## The thresholds' false-alarm rates (no true difference)
+
+| quantity (no true difference) | one mass | two masses (independent) |
+|---|---|---|
+| P(abs(z) >= 3 at 400) | 0.00270 | 0.00539 |
+| P(extension: 2 <= abs(z) < 3 at 400) | 0.04280 | 0.08377 (at least one) |
+| P(DIFFERENCE), extension path included | 0.00403 | 0.00804 (at least one) |
+| P(UNRESOLVED) | 0.01189 | 0.02364 (at least one) |
+| P(NO DIFFERENCE) | 0.98408 | P(PASS) = 0.96841; false alarm (not PASS) = 0.03159 |
+
+## The smallest true difference that would give z = 3 with the observed SEs
+
+| mass | judged on | SE of the difference | 3 x SE | relative to gen2's mean [%] |
+|---|---|---|---|---|
+| 300 | 400 | 3.28e-05 | 9.84e-05 | 0.266 |
+| 1500 | 400 | 8.77e-06 | 2.63e-05 | 0.152 |
+
+M = 300: NO DIFFERENCE; M = 1500: NO DIFFERENCE; no extension
+95 % intervals of the relative difference (the stated bound): M = 300: [-0.130, +0.217] %; M = 1500: [-0.121, +0.078] %
+TEST G (Mac) [dry run]: PASS
+```
+
+**The registered files (SHA-256 at this commit; `hspist3/`):**
+
+| file | SHA-256 |
+|---|---|
+| `cluster/gen3_gate_261009/gen_testG_261009.py` | `505e16405c37d2c4932c0a323bafe3f124674b1c18bf2dce2023c0983aea18d6` |
+| `cluster/gen3_gate_261009/testG_worker.sh` | `620cf568843694df144df515cd56bdbcda1eb3da02c2acbdc6fc94fd75184ae2` |
+| `cluster/gen3_gate_261009/run_testG_mac.py` | `e71daa7767c4e82aadf7f9284811c097355f30ecda3673d9e88e6acdaa4d82df` |
+| `cluster/gen3_gate_261009/af_stream_reduce.py` | `11ca815f5e6ef43cd46daaa8fc6fc2e47b5d0bfa9b8d798adc6c98ee66a79aed` |
+| `cluster/gen3_gate_261009/tasks_testG_261009.txt` | `872c39303e7b06a29e8dc393af474130bcb13ba5492ae4dbb3ee8cbd15389e60` |
+| `validation/testG_verdict_261009.py` | `3fbce2df3fc3706e4375fc2b635eb0beaafc90951f12ebafc4862d9c5d6ad8b0` |
+| `validation/edmd3_health_guard.py` | `c76ce6e32a43b6926bad3cd9cb1781c4fddd2d720c3685933b410d40475142da` |
+| `validation/test_edmd3_health_guard.py` | `9fe62464123e699bb51eb775d34df4bd803c36333de3bd2c7d5cf294e7571a17` |
+
+**The guard fix against the paper scripts** (`hspist3/experiments_gen3_health_guard_261009/run_fix_check.sh`: the 20 paper scripts and the T′ verdict script with the fixed guard, compared with the first version's run of § 4.7.14; `fixcheck_compare_output.txt`, verbatim):
+
+```
+script         rc     stdout  stderr  stdout lines
+populate       0/0    same    same    50
+figures        0/0    same    same    8
+damping        0/0    same    same    40
+massladder     0/0    same    same    20
+a2boxtrunc     0/0    same    same    100
+boxtrunc       0/0    same    same    49
+boxtrunc_tab   0/0    same    same    111
+conf_results   0/0    same    same    295
+conf_afix      0/0    same    same    89
+conf_heldwall  0/0    same    same    36
+conf_prereg    0/0    same    same    165
+resched_gate   0/0    DIFF    same    165
+p2_figures     0/0    same    same    9
+p2_geomfix     0/0    same    same    40
+p2_rampfast    0/0    same    same    49
+p2_level2Au    0/0    same    same    7
+canonical      0/0    same    same    11
+melting        0/0    same    same    24
+draft_audit    0/0    same    same    78
+roman          0/0    same    same    34
+tprime         0/0    same    same    56
+
+files written: before 45, after 45
+written files: all hashes identical
+```
+
+- The one stdout difference (`resched_gate`) is one line, `fixcheck_resched_gate_stdout_diff.txt`. The script prints the local head of engine-divider-resched, which my stage A propagation moved from be540fbd to a31e0ef0. It is not a guard effect.
+- Unit tests after the fix: 33 tests, OK (`fixcheck_unit_tests_output.txt`). The working tree's status is identical before and after the run (`fixcheck_log.txt`).
+
+**Next:** Test G runs on this Mac with the frozen binary under `caffeinate -i`, 12 processes, in task order (`run_testG_mac.py`). Then the verdict script prints the verdict, unchanged.
