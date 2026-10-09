@@ -8029,3 +8029,233 @@ resched_gate_261005/speed_of_sound: 450 runs, ratio median 1.429, range 1.314-1.
 (EXPLORATORY: no verdict rule. A positive mean dnu means the frequency rises from the first to the second half of the record; psi6 end - hold is the structural change over the whole record, the only per-run time information psi6 has.)
 (decision 7 ii, 2026-10-09: dA = A2/A1 - 1, A = RMS displacement of the divider about the half's mean, the same samples as nu1 and nu2. A negative mean dA means the swing shrinks from the first to the second half.)
 ```
+
+### 4.7.12 Plan-author work programme for the afternoon of 2026-10-09: stages A–H, decisions 9–11 (2026-10-09 11:32 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Status of the programme.** It replaces "M4 does not start before I have seen the M3 report" by a conditional go: a stage may start once the stages it depends on have passed their acceptance as printed by their scripts. Everything after M3 is provisional until the plan author's review; no stage is written "accepted"; nothing produced today enters a paper figure or table.
+- **Ground rules 1–10:**
+  - one agent;
+  - at most 12 parallel simulation processes, long batches under `caffeinate -i`;
+  - no KOA, ssh or push;
+  - delete nothing;
+  - registered scripts stay unedited;
+  - gen2 stays byte-identical to 7b08827 on ctrl_min and ctrl_leg after every stage that touches the driver, the Makefile or `edmd.c`;
+  - evidence only from committed-tree builds, with a frozen binary and its SHA-256 per run stage;
+  - `df` before every run stage, at most 1.5 GB of new data;
+  - no weakened criteria;
+  - an engine-bug fix comes with a decision log entry and reruns of the harnesses;
+  - per stage: decision log, done/not-done table, tables by script, STATUS line, three-head commit;
+  - a gen3 run with clean=0 or without a run record is a finding.
+- **Decisions on report 6 and § 4.7.11:**
+  - 9: the coverage gap stands; the plan author's third error today is recorded; a question about the loader's health contract (answered in a later section);
+  - 10: one dated erratum line under each of the two verbatim KR printouts in the Paper 1 methods (both copies);
+  - 11: no further exploratory analysis of the old window data.
+- **Stages:**
+  - A: finish M3, with additions A1–A5;
+  - B: Test G, the Mac part of the gen-3 gate, registered before any trajectory;
+  - C: M4, initial conditions;
+  - D: pilot P1, the structural clock;
+  - E: M5, Mac part;
+  - F: pilot P2, the drift with an equilibrated start;
+  - G: the KOA gate package, prepared, not run;
+  - H: checkpoint and restart.
+- **Before this commit:** decision 5 (§ 4.7.10) and decisions 6–7 (§ 4.7.11) were done. M3 was in progress on engine-gen3 (uncommitted): the driver dispatch to gen3, gen2 byte identity on ctrl_min and ctrl_leg, and the replay of all 16 harness cells through the driver, 64 of 64 matches with clean=1. Those runs used uncommitted builds, so by rule 5 they are not evidence and are repeated with a committed build in stage A.
+
+**From the plan author's cover note to Chris (quoted):**
+- "the real campaign (the KOA runs that go into the paper) cannot start today. Three things block it: gen3 has not passed its gate, the pre-registration is not written, and only you type KOA commands."
+- "I loosened one of my own rules for this. I had said M4 waits until I have read the M3 report. Now CC may continue if every check passes, but everything after M3 is provisional until I review it, and nothing from today goes into a paper. The worst case is that CC redoes some work."
+- "I kept the one-agent rule, so no sub-agents. Several agents editing the same repository is how commits get mixed up. CC may run up to 12 simulations in parallel, which is where the hours go anyway."
+- On decision 5: "With about 0.08 expected hits in all paper data, I accept this, and it goes into the methods text as a stated limit."
+- On the amplitude check: "inside the window the swing gets smaller while the frequency rises, by about as much as a stiffening gas would cause. So the drift looks like real structural change, not a measurement artefact. The old window data are closed for analysis; the new engine decides."
+
+**The programme, relayed by Chris, verbatim:**
+
+```
+From the plan author (Cowork), relayed by Chris. Chris is away for
+several hours. This is a work programme for the whole afternoon.
+Record this message verbatim in a new §4.7.x of
+261012_paper1_confinement.md BEFORE starting; its decisions count
+from that commit.
+
+STATUS OF THIS PROGRAMME
+It replaces "M4 does not start before I have seen the M3 report" by
+a conditional go: a stage may start when the stages it depends on
+have passed their acceptance as printed by their scripts. Everything
+after M3 is PROVISIONAL until I have reviewed it. Do not write
+"accepted" for any stage. Nothing produced today enters a paper
+figure or table. All runs are Mac diagnostics, gate tests or pilots.
+
+GROUND RULES
+ 1. One agent. No sub-agents, no multi-agent workflows (one writer to
+    the repo). Parallel simulation processes are allowed: at most 12
+    at once, each writing its own folder, long batches under
+    caffeinate -i.
+ 2. No KOA, no ssh, no git push, no credentials. Commit locally on the
+    three heads as before; Chris pushes later.
+ 3. Delete nothing. No rm inside bash -c. A registered script is not
+    edited after its registration commit.
+ 4. gen2 stays frozen: after every stage that touches 00ALLINONE.c,
+    the Makefile or edmd.c, the default build and --engine=gen2 must
+    be byte-identical to 7b08827 on ctrl_min and ctrl_leg. If not:
+    stop all code stages and report. Do not explain it away.
+ 5. Evidence only from binaries built from a committed tree (no
+    "-dirty" in the build line). Keep a frozen copy of the binary per
+    run stage and record its build line and SHA-256.
+ 6. Disk: print df before every run stage. New data this afternoon
+    <= 1.5 GB in total. If free space is below 3 GB, do code stages
+    only and say so.
+ 7. Do not weaken a criterion to pass it. If a stage fails, record
+    what failed and continue only with stages that do not depend on
+    it (dependencies are given per stage).
+ 8. If you find an engine bug: fixing it is allowed, with a decision-
+    log entry. Then rerun the M1 and M2 harnesses and this stage's
+    tests, and state whether the harness outputs stayed byte-identical.
+ 9. Per stage: decision log, done/not-done table, every table printed
+    by its script, STATUS line, commit on the three heads. No new
+    markdown files except the usual command records inside experiment
+    folders. No edit of the paper draft or the methods wording, except
+    decision 10 below.
+10. Any gen3 run with clean=0, or without a run record, is a finding:
+    report it, do not rerun it silently, do not drop it silently.
+
+DECISIONS ON REPORT 6 AND §4.7.11
+ 9. Decision 5 read. The coverage gap stands as recorded: 24,431
+    energy-transfer runs without a health record, protected only by
+    the per-step validator. Plan-author error to record (third today):
+    my sentence "the engine counts each such case in its own health
+    line, so we can check" holds for speed-of-sound runs only.
+    One question, answer with numbers: are the 2 A1 v2 runs with
+    wall_clamp_repairs and the 504 campaign_r25 runs with wall_overdue
+    excluded by the loader's health contract like the A2_topup run,
+    and do the affected cells show the reduced n in the paper tables?
+10. Decision 6 read. In 260912_paper1_methods.md (both copies), leave
+    the two verbatim printouts as recorded and add one dated erratum
+    line under each (1.5e-06 -> 1.4e-06 after the coefficient
+    correction, §4.7.11).
+11. Decision 7 read. No further exploratory analysis of the old window
+    data. The amplitude result is recorded as it stands.
+
+STAGE A - finish M3 (depends on nothing)
+As §4.7.9: amendments a-e, acceptance 1-6. In addition, from your
+work so far:
+ A1. Make the psi6(t) interval a flag (--psi6-every=, default 0.25
+     sigma-time).
+ A2. The carried-over Left/Right counts between validator steps under
+     gen3: state it in the trace documentation.
+ A3. M3b: the energy-transfer loop under gen3 gets the same treatment
+     as the speed-of-sound loop (sync on demand, validator and trace
+     cadence), because the static method must scale to N = 1600.
+     Acceptance: same event hash with per-step and with reduced
+     cadence; gen2 unchanged.
+ A4. §4.7 gate item 8: print the driver's share of the run time for
+     both loops at N = 400 and N = 1600 (pi/8 and eta 0.70).
+ A5. The run record also names the engine and the build line.
+
+STAGE B - Test G, Mac part of the gen-3 gate (depends on A)
+REGISTRATION FIRST: commit this text, the task list with its SHA-256
+and the verdict script before any trajectory exists. The verdict
+script is the logic of resched_testTprime_261007.py with "policy"
+replaced by "engine"; it is not edited afterwards.
+ Cell: epi8_H_H10_L10 (eta = pi/8, H = L0 = 10, N = 100), the
+   speed-of-sound protocol and command of Test T-prime, except seeds
+   and --engine.
+ Engines: --engine=gen2 (default policy) and --engine=gen3, one
+   binary, one build.
+ Masses: M = 300 and M = 1500. 400 trajectories per engine per mass.
+ Seeds: a new base seed never used before; the same seed list for both
+   engines; engines interleaved in the task order.
+ Estimator: the registered argmax nu through the T-prime reduction,
+   unchanged.
+ Inventory (else INVALID, no verdict): all 1600 trajectories present;
+   every gen3 run record clean=1; no gen2 health line; one build.
+ Rule per mass, z = difference / sqrt(SE_gen3^2 + SE_gen2^2), each
+   engine with its own SE:
+     NO DIFFERENCE if |z| < 2;
+     DIFFERENCE    if |z| >= 3;
+     otherwise ONE extension: 400 more trajectories per engine at that
+     mass, fresh seeds from the same base, judged on all 800 with the
+     same two thresholds; still 2 <= |z| < 3 -> UNRESOLVED.
+ TEST G (Mac) PASS = NO DIFFERENCE at both masses. The extension is
+   disclosed. The 95 % interval is the stated bound.
+ The script also prints: the false-alarm rates of the thresholds for
+   one and for two masses, and the smallest true difference that would
+   give z = 3 with the observed SEs.
+ Information rows, no verdict, same script: nu_d; M = 50 and M = 2000
+   (100 per engine); a dense cell (the gate's dense geometry,
+   eta ~ 0.70, M = 300, 200 per engine); N = 400 at pi/8 (H = L0 = 20,
+   M = 300, 100 per engine); the static method: the A-fixed cell at
+   x_0, 200 runs per engine, mean force per face with the registered
+   Method A estimator.
+ If the verdict is DIFFERENCE or INVALID: stop stages D and F,
+   diagnose, report. Stages C, E, G may continue.
+
+STAGE C - M4, initial conditions (depends on A)
+§4.7 M4 and §4.7.1 amendments d and f: lattice generator,
+commensurate calculator, vacancies, the seeding rule (lattice plus a
+stated seeded jitter), exact box length, T_eq in the run header.
+gen3 only; gen2's seeding and outputs unchanged (rule 4).
+Acceptance, printed by a script for N = 100, 400, 900, 1600 and
+eta = 0.10, pi/8, 0.60, 0.70, 0.716, 0.78, 0.85, 0.90:
+ requested vs achieved eta (difference at rounding level, the
+ 1/24-sigma rounding gone); N per compartment exact; smallest initial
+ gap > 0 for disks, walls and divider; same seed bit-identical,
+ different seeds different; no exact ties at t = 0 (count of equal
+ first event times); health clean over a 400 sigma-time run per cell
+ (skip 0.90 at N >= 900 if it exceeds 20 min).
+
+STAGE D - pilot P1, the structural clock (depends on C; not if B
+says DIFFERENCE or INVALID). A PILOT: sizes the campaign, is not a
+result.
+ gen3, M4 seeding, divider held throughout. Geometry: the gate's
+ dense construction, H = 10*sqrt(N/100), L0 from eta, exact length.
+ N = 100, 400, 1600. eta = 0.60, 0.66, 0.68, 0.70, 0.704, 0.708,
+ 0.712, 0.716, 0.72, 0.74, 0.78. 6 seeds. Hold 2e4 sigma-time.
+ --psi6-every=1.
+ Printed per cell: mean psi6 in the first and in the last quarter with
+ SE over seeds (drift); integrated autocorrelation time of psi6 in
+ the second half with its seed-to-seed spread; "not stationary within
+ 2e4" if the drift exceeds 2 SE; "tau not resolved" if tau > record
+ / 20; proposed T_eq = 10 tau. Also events/s through the driver per
+ cell (the cost table for the pre-registration).
+
+STAGE E - M5, Mac part (depends on A; independent of B-D)
+ E1. Tolerance review: one script-printed table of every tolerance
+     and cut-off in edmd_gen3.c and in the gen3 driver path: value,
+     scale, derivation, largest measured value today, margin.
+ E2. Long-double build option. The default build must stay byte-
+     identical on the M1 and M2 harness outputs after the change;
+     the option must compile with 0 warnings. On this Mac long double
+     is 8 bytes, so the numerical check is for KOA (stage G).
+
+STAGE F - pilot P2, drift with an equilibrated start (depends on D).
+A PILOT, no paper use.
+ gen3, M4 seeding, N = 100, the A1 v2 geometry at eta_true 0.6905,
+ 0.7060, 0.7113, 0.7167; M = 50, 300, 2000; 12 seeds. Hold
+ T_eq = min(max(1e4, 10 tau_psi6 from P1), 5e4) sigma-time, then
+ release, record 200 periods.
+ Printed: the first-half / second-half table of §4.7.11 (dnu, dA,
+ psi6 at hold, end), next to the A1 v2 rows. Question it answers:
+ does the +7.5 / +10.4 / +7.8 % drift survive a settled start?
+
+STAGE G - KOA gate package, PREPARED, NOT RUN (depends on A and C)
+ sbatch files, task generators, fetch script and a runsheet section
+ for: gen2-path byte identity on KOA (E0 with the A-fixed cells);
+ cross-node determinism of gen3 (same seed on two nodes: traces,
+ psi6(t), summary byte-identical); the KOA rate table; the long-
+ double spot check; Test G on KOA (same design as stage B: one-core
+ chunks, per-chunk folders, merge job, no two nodes writing one file,
+ at most 64 cores). Nothing is submitted. It waits for my review and
+ for Chris.
+
+STAGE H - only if A-G are done: checkpoint and restart at an event
+ boundary (§4.7 item 6). Acceptance: a restarted run is byte-
+ identical to the uninterrupted one (traces, psi6(t), event hash).
+
+FINAL REPORT (and a short one after each stage, appended to the
+notes): per stage done / not done / failed with the printed tables;
+Test G verdict verbatim; P1 and P2 tables; every decision you took;
+every deviation from this message; disk used; the commits on the
+three heads; the push line for Chris. End with "Written for: the
+plan author".
+```
