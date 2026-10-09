@@ -7876,3 +7876,156 @@ Test T (resched_testT_261007): 2400 runs, ratio median 1.317, range 1.313-1.322
 Test T-prime (resched_testTprime_261007): 1600 runs, ratio median 1.316, range 1.313-1.320
 resched_gate_261005/speed_of_sound: 450 runs, ratio median 1.429, range 1.314-1.548
 ````
+
+### 4.7.11 Decisions 6 and 7 done: the KR sanity coefficient corrected; the window constraints recorded; the amplitude add-on (2026-10-09 11:00 HST, machine date) [DATA, printed by script; SOURCE; DERIVATION and INFERENCE where marked]
+
+**Plain summary.**
+- **Decision 6: the x⁵⁷ coefficient of the ρmax = 0.89 fit is corrected.** In `validation/paper1_kr_sanity_261002.py` it now reads 5.57730095e-23, as the paper prints it (p. 3439). The old value, 5.77730095e-23, is kept in a comment with the date and the page.
+  - **Output diff.** Four outputs read the coefficient. They were run before and after (`hspist3/experiments_kr_sanity_fix_261009/`, `run_outputs.sh`); the diff is below.
+    - **The sanity script** in its three modes (default, `--ref 0.88`, `--ref 0.89`); exit codes 0/1/1, unchanged. Only the 0.89 information rows change: the largest relative c_s difference to the module is now 1.4e-06 instead of 1.5e-06. With `--ref 0.89`, the η 0.65 values change at the 1e-8 relative level.
+    - **Decision 3's KR range table.** Its "sanity script's coefficient" column now equals the page's 0.89 fit at every η (relative change 0), and its closing line prints equal coefficients.
+  - **No paper number moves.** Paper 1 uses the 0.90 fit; the 0.88 and 0.90 entries are unchanged.
+    - The other importer, `paper1_window_explore_261008`, reads only the 0.88 fit.
+    - `paper1_draft_audit_20261014` names the script in a string and does not import it.
+  - **A stale record, not edited.** The Paper 1 methods print the sanity script's output verbatim twice: `260912_paper1_methods.md` lines 1299 and 1343, in both copies.
+    - Their "rho_max = 0.89" information row shows 1.5e-06, the old value; a rerun now prints 1.4e-06.
+    - Left as recorded, because the methods' wording is the plan author's.
+  - Decision 3's recorded output `261009_kr_ranges_output.txt` also stays as recorded; the rerun is `experiments_kr_sanity_fix_261009/after/kr_ranges.txt`.
+- **Decision 7: three constraints, recorded as the plan author worded them.** No edit of the paper draft; the plan author handles the wording and the summary for Susanne.
+  - **i. Window drift.** Inside the window, the frequency drifts within one record. In A1 v2 the second half's frequency is above the first half's by +7.5 / +10.4 / +7.8 % at η 0.7060 / 0.7113 / 0.7167. The ν–ψ₆ correlation survives within each mass (§ 4.7.7). **Window c_s values from the old data are protocol-dependent, not equilibrium values.**
+  - **ii. The amplitude add-on** (exploratory): done, below.
+  - **iii. The equal T′ SEs:** not pooled; a coincidence noticed after the fact; accepted, no action (§ 4.7.8).
+- **Decision 7 ii: the divider amplitude, first half against second half [DATA, EXPLORATORY].**
+  - **Method.** Two columns were added to table 2 of `validation/paper1_window_aging_261009.py`. Same traces, no new runs. dA = A2/A1 − 1, where A is the divider's RMS displacement about the half's mean, over the same samples as ν1 and ν2.
+  - **A1 v2, inside the window:**
+    - dA = −9.63 ± 1.21 % (0.7060), −13.87 ± 1.49 % (0.7113), −2.31 ± 1.76 % (0.7167), +0.96 ± 1.13 % (0.7007);
+    - within each mass, dν and dA are anticorrelated: Spearman −0.16 [−0.30, −0.02], −0.29 [−0.42, −0.16] and −0.19 [−0.32, −0.05] at the first three.
+  - **A1 v2, outside the window:** dA = +2.85 ± 1.12 % (0.6905), +2.56 ± 1.12 % (0.6956) and +4.89 ± 1.70 % (0.7222), while dν stays between −0.4 and +1.1 %.
+  - **Transition run** (18.5–41.5 periods per half):
+    - inside the window: dA = −0.03 ± 1.99 % (0.7060), +2.51 ± 2.20 % (0.7113), +20.07 ± 2.93 % (0.7167);
+    - outside: +6.18, +7.39 and +22.75 %.
+  - **Ladders and route B:** dA from −6.8 to +14.5 %, mostly positive (table below).
+  - **[DERIVATION] Equipartition reference.** A divider in thermal equilibrium has ⟨x²⟩ = kT / K_eff with K_eff ∝ ν², so A_rms ∝ 1/ν at fixed mass and temperature. A1 v2's frequency rise of +7.45 / +10.37 / +7.78 % alone would lower the amplitude by 6.9 / 9.4 / 7.2 %.
+  - **[INFERENCE] Reading.**
+    - At 0.7060 and 0.7113 the amplitude falls by that much or more, which is what a stiffening gas would do; at 0.7167 it falls less.
+    - Outside the window the amplitude grows by 2.5–5 % at constant frequency. That fits a divider released from rest at the hold position, which has not yet reached its thermal amplitude in the first half. It is a bias towards positive dA in every cell.
+    - So the window's frequency rise does not need an amplitude-dependent frequency to explain it, but these data cannot exclude one.
+    - The transition run, with records 2.4–5.4 times shorter, does not follow the A1 v2 pattern.
+  - **Gate.** Every line before table 2, and every old cell of table 2, is byte-identical to decision 3's recorded output. The new output is a separate file next to it: `exploratory_261009_followup/261009_window_aging_amplitude_output.txt`.
+
+**Decision 6, the code change (`git diff -U0`):**
+
+```diff
+@@ -36 +36,3 @@ KR = {
+-           12: 0.000336036442, 22: -5.15282664e-9, 57: 5.77730095e-23},
++           12: 0.000336036442, 22: -5.15282664e-9, 57: 5.57730095e-23},
++    # ##CHRIS 2026-10-09 (261012 sec. 4.7.11, plan-author decision 6): x^57 was typed 5.77730095e-23, a transcription error;
++    # Kolafa & Rottner (2006) print 5.57730095e-23 (p. 3439). Found by validation/paper1_kr_ranges_261009.py (sec. 4.7.7).
+```
+
+**Decision 6, the output diff, printed by `diff -u` on `experiments_kr_sanity_fix_261009/before` and `after` (verbatim):**
+
+```diff
+--- before/kr_sanity_default.txt
++++ after/kr_sanity_default.txt
+@@ -15,7 +15,7 @@
+ | version | Z | Z' (analytic) | c_s |
+ |---|---|---|---|
+ | rho_max = 0.88 | 1.4e-06 | 7.1e-05 | 1.0e-05 |
+-| rho_max = 0.89 | 6.8e-07 | 7.2e-06 | 1.5e-06 |
++| rho_max = 0.89 | 6.8e-07 | 7.2e-06 | 1.4e-06 |
+ module comment, plot_speed_of_sound_edmd.py:620: '# Kolafa & Rottner (2006), rho_max=0.90 fit.  Their x is eta/(1-eta).'
+ 
+ **VERDICT: PASS** (criterion: relative difference <= 1e-10)
+--- before/kr_sanity_ref088.txt
++++ after/kr_sanity_ref088.txt
+@@ -14,7 +14,7 @@
+ for information (NOT the verdict) -- the other two published versions against the module, largest relative difference over the four eta:
+ | version | Z | Z' (analytic) | c_s |
+ |---|---|---|---|
+-| rho_max = 0.89 | 6.8e-07 | 7.2e-06 | 1.5e-06 |
++| rho_max = 0.89 | 6.8e-07 | 7.2e-06 | 1.4e-06 |
+ | rho_max = 0.9 | 4.2e-16 | 1.5e-16 | 3.4e-16 |
+ module comment, plot_speed_of_sound_edmd.py:620: '# Kolafa & Rottner (2006), rho_max=0.90 fit.  Their x is eta/(1-eta).'
+ 
+--- before/kr_sanity_ref089.txt
++++ after/kr_sanity_ref089.txt
+@@ -6,10 +6,10 @@
+ | 0.05 | 1.10838774198994 | 1.10838774198985 | 7.6e-14 | 2.34761773307567 | 2.34761773307567 | 2.3476177330678 | 3.4e-12 | 1.56661801829204 | 1.56661801829183 | 1.4e-13 | 1.56661801830068 | 5.5e-12 |
+ | 0.30 | 2.06326087045481 | 2.06326087957605 | 4.4e-09 | 6.03583308602718 | 6.03583308602718 | 6.03583334839163 | 4.3e-08 | 2.85150069539057 | 2.85150071739119 | 7.7e-09 | 2.85150071752567 | 7.8e-09 |
+ | 0.50 | 4.10636461527917 | 4.10636394336527 | 1.6e-07 | 16.7337044366473 | 16.7337044366472 | 16.7336836142638 | 1.2e-06 | 5.41622074764495 | 5.41621921508607 | 2.8e-07 | 5.41621921569349 | 2.8e-07 |
+-| 0.65 | 8.4080492695403 | 8.4080435277207 | 6.8e-07 | 45.9452582463802 | 45.9452582463801 | 45.9449284500896 | 7.2e-06 | 10.4387623619232 | 10.4387471941955 | 1.5e-06 | 10.4387471910944 | 1.5e-06 |
++| 0.65 | 8.40804926532127 | 8.4080435277207 | 6.8e-07 | 45.9452571893041 | 45.9452571893041 | 45.9449284500896 | 7.2e-06 | 10.4387623254119 | 10.4387471941955 | 1.4e-06 | 10.4387471910944 | 1.4e-06 |
+ 
+ largest relative difference module vs paper (Z, Z', c_s; and analytic vs complex-step Z'): 7.2e-06
+-tests_20260913.kr_cs vs paper: largest relative difference 1.5e-06 (above 1e-10; reported, not part of the verdict -- see how kr_cs forms Z')
++tests_20260913.kr_cs vs paper: largest relative difference 1.4e-06 (above 1e-10; reported, not part of the verdict -- see how kr_cs forms Z')
+ 
+ for information (NOT the verdict) -- the other two published versions against the module, largest relative difference over the four eta:
+ | version | Z | Z' (analytic) | c_s |
+--- before/kr_ranges.txt
++++ after/kr_ranges.txt
+@@ -31,13 +31,13 @@
+ |---|---|---|---|---|---|---|---|
+ | 0.4000 | 0.5093 | 3.833563 | 3.833565 | 3.833565 | 5.6e-07 | 3.833565 | 0.0e+00 |
+ | 0.5500 | 0.7003 | 6.601892 | 6.601875 | 6.601874 | 2.7e-06 | 6.601875 | 0.0e+00 |
+-| 0.6000 | 0.7639 | 8.222594 | 8.222605 | 8.222613 | 2.3e-06 | 8.222605 | 2.5e-14 |
+-| 0.6500 | 0.8276 | 10.438853 | 10.438762 | 10.438747 | 1.0e-05 | 10.438762 | 3.5e-09 |
+-| 0.6700 | 0.8531 | 11.373083 | 11.373306 | 11.373363 | 2.5e-05 | 11.373312 | 5.1e-07 |
+-| 0.6800 | 0.8658 | 11.671701 | 11.671273 | 11.671208 | 4.2e-05 | 11.671351 | 6.7e-06 |
+-| 0.6900 | 0.8785 | 11.548307 | 11.551452 | 11.550975 | 2.3e-04 | 11.552591 | 9.9e-05 |
+-| 0.6950 | 0.8849 | 11.118033 | 11.167221 | 11.168467 | 4.5e-03 | 11.171782 | 4.1e-04 |
+-| 0.7000 | 0.8913 | 10.167231 | 10.499564 | 10.514619 | 3.3e-02 | 10.518560 | 1.8e-03 |
+-| 0.7069 | 0.9001 | 6.734553 | 10.329118 | 10.484935 | 3.6e-01 | 10.458219 | 1.2e-02 |
++| 0.6000 | 0.7639 | 8.222594 | 8.222605 | 8.222613 | 2.3e-06 | 8.222605 | 0.0e+00 |
++| 0.6500 | 0.8276 | 10.438853 | 10.438762 | 10.438747 | 1.0e-05 | 10.438762 | 0.0e+00 |
++| 0.6700 | 0.8531 | 11.373083 | 11.373306 | 11.373363 | 2.5e-05 | 11.373306 | 0.0e+00 |
++| 0.6800 | 0.8658 | 11.671701 | 11.671273 | 11.671208 | 4.2e-05 | 11.671273 | 0.0e+00 |
++| 0.6900 | 0.8785 | 11.548307 | 11.551452 | 11.550975 | 2.3e-04 | 11.551452 | 0.0e+00 |
++| 0.6950 | 0.8849 | 11.118033 | 11.167221 | 11.168467 | 4.5e-03 | 11.167221 | 0.0e+00 |
++| 0.7000 | 0.8913 | 10.167231 | 10.499564 | 10.514619 | 3.3e-02 | 10.499564 | 0.0e+00 |
++| 0.7069 | 0.9001 | 6.734553 | 10.329118 | 10.484935 | 3.6e-01 | 10.329118 | 0.0e+00 |
+ 
+-(the sanity script's rho_max = 0.89 x^57 coefficient: 5.77730095e-23; the paper, p. 3439: 5.57730095e-23. Paper 1 uses the 0.90 fit: the sanity script's 0.90 coefficients equal the page's: yes; its 0.88 coefficients: yes.)
++(the sanity script's rho_max = 0.89 x^57 coefficient: 5.57730095e-23; the paper, p. 3439: 5.57730095e-23. Paper 1 uses the 0.90 fit: the sanity script's 0.90 coefficients equal the page's: yes; its 0.88 coefficients: yes.)
+```
+
+**Decision 7 ii, table 2 as printed now by `validation/paper1_window_aging_261009.py` (verbatim; the last two columns are new):**
+
+```
+## 2. First half against second half of each trajectory: dnu = nu2/nu1 - 1 (same estimator on TD/2 periods each)
+
+| campaign | eta_true | in the window | TD (periods per half) | argmax resolution of a half | trajectories | mean dnu [%] (SE) | dnu exactly 0 (one bin) | within-mass Spearman(dnu, psi6 end - hold), combined [95 % interval] | Cochran Q (dof, p) | mean dA [%] (SE) | within-mass Spearman(dnu, dA), combined [95 % interval] |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| A1v2_20260914 | 0.6905 | no | 200 (100) | 1.0 % | 225 | -0.41 (0.22) | 33 (15 %) | -0.06 [-0.20, +0.08] | 12.2 (8, 0.14) | +2.85 (1.12) | -0.03 [-0.17, +0.11] |
+| A1v2_20260914 | 0.6956 | no | 200 (100) | 1.0 % | 225 | -0.19 (0.20) | 30 (13 %) | +0.09 [-0.05, +0.23] | 7.2 (8, 0.52) | +2.56 (1.12) | -0.01 [-0.15, +0.13] |
+| A1v2_20260914 | 0.7007 | yes | 200 (100) | 1.0 % | 225 | +0.19 (0.28) | 24 (11 %) | +0.14 [-0.00, +0.27] | 7.8 (8, 0.45) | +0.96 (1.13) | +0.09 [-0.05, +0.23] |
+| A1v2_20260914 | 0.7060 | yes | 200 (100) | 1.0 % | 225 | +7.45 (0.78) | 15 (7 %) | +0.29 [+0.15, +0.42] | 6.1 (8, 0.64) | -9.63 (1.21) | -0.16 [-0.30, -0.02] |
+| A1v2_20260914 | 0.7113 | yes | 200 (100) | 1.0 % | 225 | +10.37 (0.85) | 18 (8 %) | +0.05 [-0.10, +0.19] | 15.5 (8, 0.051) | -13.87 (1.49) | -0.29 [-0.42, -0.16] |
+| A1v2_20260914 | 0.7167 | yes | 200 (100) | 1.0 % | 225 | +7.78 (0.85) | 23 (10 %) | -0.31 [-0.43, -0.18] | 6.8 (8, 0.56) | -2.31 (1.76) | -0.19 [-0.32, -0.05] |
+| A1v2_20260914 | 0.7222 | no | 200 (100) | 1.0 % | 225 | +1.13 (0.38) | 52 (23 %) | -0.17 [-0.30, -0.03] | 8.4 (8, 0.39) | +4.89 (1.70) | -0.11 [-0.25, +0.03] |
+| campaign_transition_psi6run_20260823 | 0.6905 | no | 37, 40, 53, 67 (18.5, 20, 26.5, 33.5) | 5.4 %, 5.0 %, 3.8 %, 3.0 % | 225 | -0.59 (0.36) | 64 (28 %) | -0.06 [-0.20, +0.08] | 4.8 (8, 0.77) | +6.18 (2.05) | -0.13 [-0.26, +0.02] |
+| campaign_transition_psi6run_20260823 | 0.6956 | no | 37, 42, 55, 69 (18.5, 21, 27.5, 34.5) | 5.4 %, 4.8 %, 3.6 %, 2.9 % | 225 | -0.77 (0.37) | 66 (29 %) | -0.06 [-0.20, +0.09] | 1.9 (8, 0.98) | +7.39 (2.13) | -0.13 [-0.27, +0.01] |
+| campaign_transition_psi6run_20260823 | 0.7007 | yes | 37, 43, 57, 72 (18.5, 21.5, 28.5, 36) | 5.4 %, 4.7 %, 3.5 %, 2.8 % | 225 | -0.32 (0.39) | 53 (24 %) | -0.06 [-0.20, +0.09] | 8.0 (8, 0.43) | +0.27 (1.71) | +0.06 [-0.09, +0.20] |
+| campaign_transition_psi6run_20260823 | 0.7060 | yes | 37, 38, 45, 59, 74 (18.5, 19, 22.5, 29.5, 37) | 5.4 %, 5.3 %, 4.4 %, 3.4 %, 2.7 % | 225 | +3.10 (0.71) | 56 (25 %) | +0.22 [+0.08, +0.36] | 2.7 (8, 0.95) | -0.03 (1.99) | -0.14 [-0.28, +0.00] |
+| campaign_transition_psi6run_20260823 | 0.7113 | yes | 37, 39, 47, 62, 77 (18.5, 19.5, 23.5, 31, 38.5) | 5.4 %, 5.1 %, 4.3 %, 3.2 %, 2.6 % | 225 | +6.68 (0.81) | 54 (24 %) | -0.41 [-0.52, -0.28] | 16.0 (8, 0.042) | +2.51 (2.20) | -0.13 [-0.27, +0.01] |
+| campaign_transition_psi6run_20260823 | 0.7167 | yes | 37, 40, 48, 64, 80 (18.5, 20, 24, 32, 40) | 5.4 %, 5.0 %, 4.2 %, 3.1 %, 2.5 % | 225 | +1.56 (0.50) | 91 (40 %) | -0.07 [-0.21, +0.07] | 10.1 (8, 0.26) | +20.07 (2.93) | -0.02 [-0.16, +0.12] |
+| campaign_transition_psi6run_20260823 | 0.7222 | no | 37, 42, 50, 66, 83 (18.5, 21, 25, 33, 41.5) | 5.4 %, 4.8 %, 4.0 %, 3.0 %, 2.4 % | 225 | +0.24 (0.28) | 94 (42 %) | +0.02 [-0.12, +0.17] | 5.2 (8, 0.73) | +22.75 (3.05) | +0.07 [-0.07, +0.21] |
+| ladder_N100_20260825 | 0.7007 | yes | 37, 43, 57, 72 (18.5, 21.5, 28.5, 36) | 5.4 %, 4.7 %, 3.5 %, 2.8 % | 90 | +0.70 (0.87) | 18 (20 %) | -0.11 [-0.35, +0.14] | 3.4 (8, 0.91) | +1.46 (2.90) | +0.03 [-0.22, +0.28] |
+| ladder_N100_20260825 | 0.7222 | no | 37, 42, 50, 66, 83 (18.5, 21, 25, 33, 41.5) | 5.4 %, 4.8 %, 4.0 %, 3.0 %, 2.4 % | 90 | +0.43 (0.39) | 38 (42 %) | -0.03 [-0.27, +0.22] | 5.7 (8, 0.68) | +14.53 (4.26) | +0.34 [+0.10, +0.54] |
+| ladder_N200_20260825 | 0.7007 | yes | 37, 38 (18.5, 19) | 5.4 %, 5.3 % | 90 | +0.57 (0.70) | 26 (29 %) | -0.21 [-0.43, +0.04] | 22.5 (8, 0.0041) | +9.50 (3.07) | +0.12 [-0.13, +0.36] |
+| ladder_N200_20260825 | 0.7208 | no | 37, 44 (18.5, 22) | 5.4 %, 4.5 % | 90 | -4.57 (1.56) | 9 (10 %) | +0.39 [+0.16, +0.58] | 7.1 (8, 0.53) | +4.98 (2.70) | -0.21 [-0.43, +0.04] |
+| ladder_N400_20260825 | 0.7001 | yes | 37 (18.5) | 5.4 % | 90 | -0.18 (0.54) | 25 (28 %) | -0.07 [-0.31, +0.18] | 10.7 (8, 0.22) | +11.71 (3.78) | +0.27 [+0.03, +0.49] |
+| ladder_N400_20260825 | 0.7201 | no | 37 (18.5) | 5.4 % | 90 | +0.26 (0.50) | 33 (37 %) | +0.23 [-0.02, +0.45] | 17.7 (8, 0.024) | +13.94 (3.95) | +0.04 [-0.21, +0.29] |
+| routeB_radius_N100_L0_20_20260825 | 0.6900 | no | 37 (18.5) | 5.4 % | 225 | -1.15 (0.74) | 31 (14 %) | -0.10 [-0.24, +0.05] | 8.3 (8, 0.4) | +4.98 (1.52) | -0.19 [-0.32, -0.04] |
+| routeB_radius_N100_L0_20_20260825 | 0.6950 | no | 37 (18.5) | 5.4 % | 225 | +1.38 (1.52) | 27 (12 %) | -0.01 [-0.15, +0.13] | 11.0 (8, 0.2) | +3.72 (1.71) | -0.16 [-0.30, -0.02] |
+| routeB_radius_N100_L0_20_20260825 | 0.7000 | yes | 37 (18.5) | 5.4 % | 225 | -1.17 (0.67) | 28 (12 %) | -0.11 [-0.24, +0.04] | 5.7 (8, 0.68) | +2.49 (1.74) | -0.14 [-0.27, +0.00] |
+| routeB_radius_N100_L0_20_20260825 | 0.7050 | yes | 37 (18.5) | 5.4 % | 225 | -0.62 (0.85) | 29 (13 %) | -0.16 [-0.29, -0.01] | 2.1 (8, 0.98) | +1.99 (1.84) | -0.18 [-0.32, -0.04] |
+| routeB_radius_N100_L0_20_20260825 | 0.7100 | yes | 37 (18.5) | 5.4 % | 225 | -2.23 (0.86) | 38 (17 %) | -0.10 [-0.24, +0.05] | 6.1 (8, 0.64) | +1.33 (1.76) | -0.02 [-0.16, +0.13] |
+| routeB_radius_N100_L0_20_20260825 | 0.7150 | yes | 37 (18.5) | 5.4 % | 225 | -1.34 (1.53) | 34 (15 %) | -0.20 [-0.33, -0.06] | 5.6 (8, 0.7) | +2.15 (1.94) | -0.01 [-0.15, +0.13] |
+| routeB_radius_N100_L0_20_20260825 | 0.7200 | no | 37 (18.5) | 5.4 % | 225 | -4.44 (0.75) | 46 (20 %) | -0.17 [-0.30, -0.03] | 3.6 (8, 0.89) | -2.07 (1.96) | -0.09 [-0.23, +0.05] |
+| routeB_radius_N100_L0_20_20260825 | 0.7250 | no | 37 (18.5) | 5.4 % | 225 | -4.69 (1.77) | 52 (23 %) | -0.04 [-0.18, +0.10] | 7.4 (8, 0.49) | -6.78 (2.01) | -0.18 [-0.31, -0.04] |
+
+(EXPLORATORY: no verdict rule. A positive mean dnu means the frequency rises from the first to the second half of the record; psi6 end - hold is the structural change over the whole record, the only per-run time information psi6 has.)
+(decision 7 ii, 2026-10-09: dA = A2/A1 - 1, A = RMS displacement of the divider about the half's mean, the same samples as nu1 and nu2. A negative mean dA means the swing shrinks from the first to the second half.)
+```
