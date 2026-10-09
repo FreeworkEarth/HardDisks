@@ -7248,3 +7248,233 @@ GATE V3: ACCEPTED FOR THE FLUID REGIME (combined record below; second chance dis
 | 1500 | argmax (registered) | 0.0172599 | 0.0172635 | -0.021 | -0.42 | +0.031 |
 | 1500 | nu_d (sec. 4.4.13 item 4a) | 0.0172635 | 0.0172653 | -0.011 | -0.32 | +0.066 |
 ```
+
+### 4.7.8 Plan-author reading of T′ accepted; the SE question answered; the loader provenance guard on engine-divider-resched (2026-10-09 10:14 HST, machine date) [SOURCE; DATA, printed by script; INFERENCE where marked]
+
+**Plain summary.**
+- **Item 1: the T′ verdict is accepted as recorded in § 4.4.15.** The plan author re-derived the difference, z and interval from the printed means and SEs and got the same values. No action.
+- **Item 2: the SE is not pooled.** In `validation/resched_testTprime_261007.py` (quoted below):
+  - line 77 divides each policy's own SD by √n;
+  - line 78 combines the two SEs as √(SE_min² + SE_leg²);
+  - line 89 prints each SE with the format `.2e`, which shows three significant digits.
+  - **The SDs (ddof 1) with more digits [DATA]:**
+    - M = 300: minimal 4.6420363337e-04, legacy 4.6349786704e-04 (ratio 1.001523);
+    - M = 1500: minimal 1.2402143487e-04, legacy 1.2406921416e-04 (ratio 0.999615).
+    - The SEs therefore differ in the fourth digit: 2.3210e-05 against 2.3175e-05, and 6.2011e-06 against 6.2035e-06.
+  - **The two samples are not copies [DATA, information].**
+    - ν takes 20 distinct values at M = 300 and 13 at M = 1500. These are the argmax bins, spaced 4.69e-3 of ν apart.
+    - The bin counts differ between the policies, at most 46 against 66 (ν = 0.036816, M = 300) and 105 against 137 (ν = 0.017263, M = 1500).
+    - The same-seed correlation of ν is −0.047 and +0.031 (§ 4.4.15).
+  - **How rare is agreement this close? [DATA, information]**
+    - Draw two samples of 400 from the pooled values: the ratio of their SDs has a spread (SD) of 0.057 at M = 300 and 0.062 at M = 1500.
+    - It falls as close to 1 as observed in 2.3 % and 0.5 % of draws (20000 draws, seed 20261009).
+  - [INFERENCE] The three-digit agreement is a coincidence, noticed after the fact. No mechanism links the two SDs: they come from different trajectories with different bin counts, and the arithmetic keeps them apart.
+  - **No code was changed.** The numbers come from a one-off read-only snippet, quoted below with its output, which imports the registered script's own `load` and `compare`.
+- **Item 3: the loader provenance guard is now on engine-divider-resched**, to decision 2's standard (§ 4.7.4–4.7.5).
+  - **What the branch gets.** All of these are main's blobs:
+    - `validation/edmd_acc_guard.py` and its unit test `validation/test_edmd_acc_guard.py`;
+    - the 14 wired loader files;
+    - decision 2's evidence folder `experiments_loader_guard_261008/`;
+    - this item's evidence folder `experiments_loader_guard_edr_261009/`;
+    - the notes.
+  - **Starting point.** The branch's 14 loader files were main's pre-guard versions (0b21270~1), blob for blob. The provenance module the guard imports was already on the branch, with the same blob as main's. So the branch now has exactly main's guard state.
+  - **Unit tests: 14, all OK**, with every spelling as a subtest (15 refused, 9 accepted).
+  - **Before and after: empty diff [DATA].** The 20 paper scripts ran twice in main's working tree, the only tree that holds the data:
+    - first with the branch's code (its 14 loader files and its `reduce_B.py`), then with the branch plus the guard;
+    - exit codes, stdout, stderr and the SHA-256 of all 45 written files are identical.
+  - **Added: the T′ verdict script**, which imports `tests_20260913`. Its output is identical before and after, it writes no file, and it reproduces the output recorded in § 4.4.15 byte for byte.
+  - **Branch-specific code the paper scripts see: only `cluster/confinement_20261013/reduce_B.py`.**
+    - Its optional mass filter does nothing without mass arguments, and `paper1_confinement_results_261004.py` runs it without any. Both runs used the branch's copy.
+    - The branch's other code differences from main are its engine (`00ALLINONE.c`, `edmd.c`, `edmd.h`) and four KOA shell scripts. No paper script reads them.
+  - **Cross-checks [DATA, information; `crosscheck.sh`]:**
+    - The 45 written files equal decision 2's committed hashes.
+    - The stdout differs from decision 2's run in one line only, where the gate script prints the branch's current head (3a2c9bd then, da89d39 now).
+    - The CSV tables and PNGs equal the committed blobs. The 18 PDFs differ from git only by their embedded creation date, as in § 4.7.5.
+    - The guard accepts all 86 directories of the fetched resched data (Test T, T′, ASan, profile and gate runs) and refuses none. Their run logs carry no `--edmd-acc` and print `EDMD backend: default` where they print a backend line.
+  - **The working tree is as before.** The 41 rewritten tracked outputs were checked out from git, and the 4 new untracked outputs were moved to scratch. `git status` is identical before and after.
+  - **KOA (no action).** The clone `~/harddisks_resched2` gets the guard when it next pulls this branch. From then on its `reduce_B.py` reads traces through the guarded `tests_20260913`, which refuses any run whose records show a non-default `--edmd-acc` value.
+- **Item 4: reports 1, 2 and 3 were printed again in the chat**, unchanged, from "Written for: the plan author" downward. M3 stays stopped until the plan author has answered report 2.
+
+**The message, relayed by Chris, verbatim:**
+
+```
+From the plan author (Cowork), relayed by Chris.
+
+1. T-prime verdict read and accepted as recorded in §4.4.15 (main
+   524f21e). Numbers re-derived from the printed means and SEs: same
+   difference, z and interval. No action.
+
+2. One question, answer only, no code change: in the T-prime table the
+   two policies have the same SE to three digits at both masses
+   (2.32e-05 / 2.32e-05 and 6.20e-06 / 6.20e-06). Is the SE pooled by
+   construction in resched_testTprime_261007.py? Quote the lines.
+   If it is not pooled, print the two standard deviations per mass
+   with more digits.
+
+3. Housekeeping decision: go for the loader provenance guard on
+   engine-divider-resched, same standard as on the other branches
+   (shared check, unit test per spelling, paper tables before/after
+   with empty diff). Record it in the notes; explicit-path git add;
+   Chris pushes.
+
+4. Reports 1, 2 and 3 have not reached me yet. Chris will paste them.
+   If he cannot find them, print each again from "Written for: the
+   plan author" downward, unchanged. M3 stays stopped until I have
+   answered report 2.
+
+No KOA actions. No multi-agent workflows. No new markdown files.
+```
+
+**Item 2: the lines, quoted from `validation/resched_testTprime_261007.py`** (unchanged since 57895d1; the same blob on main and engine-divider-resched):
+
+```python
+ 72  def compare(D):
+ 73      """The registered numbers per mass: means, SEs, difference, relative difference with its 95 % interval, z, outcome."""
+ 74      rows = {}
+ 75      for M in MASSES:
+ 76          a = D[("minimal", M)]["red"]["nu"].to_numpy(float); b = D[("legacy", M)]["red"]["nu"].to_numpy(float)
+ 77          sa, sb = a.std(ddof=1) / math.sqrt(len(a)), b.std(ddof=1) / math.sqrt(len(b))
+ 78          d = a.mean() - b.mean(); s = math.hypot(sa, sb); z = d / s
+ 79          lo, hi = 100 * (d - Z95 * s) / b.mean(), 100 * (d + Z95 * s) / b.mean()
+ 80          out = rule_300(z, lo, hi) if M == 300 else ("FAIL" if not math.isfinite(z) or abs(z) >= Z_1500 else "information")   # no z = unresolved
+ 81          rows[M] = dict(na=len(a), nb=len(b), ma=a.mean(), sa=sa, mb=b.mean(), sb=sb, d=d, rel=100 * d / b.mean(), lo=lo, hi=hi, z=z, out=out)
+ 82      return rows
+ 83
+ 84
+ 85  def print_rule(rows):
+ 86      print("| mass | n minimal | n legacy | minimal mean nu | SE | legacy mean nu | SE | difference | relative [%] | 95 % interval [%] | "
+ 87            "z | outcome by the rule |\n|---|---|---|---|---|---|---|---|---|---|---|---|")
+ 88      for M, r in rows.items():
+ 89          print(f"| {M} | {r['na']} | {r['nb']} | {r['ma']:.7f} | {r['sa']:.2e} | {r['mb']:.7f} | {r['sb']:.2e} | {r['d']:+.3e} | {r['rel']:+.3f} | "
+ 90                f"[{r['lo']:+.3f}, {r['hi']:+.3f}] | {r['z']:+.2f} | **{r['out']}** |")
+```
+
+**Item 2: the snippet** (one-off, not in the repository; run from `hspist3/` as `python3 tprime_sd_check.py`):
+
+```python
+# One-off and read-only (261012 sec. 4.7.8, item 2), run from hspist3/: the T-prime standard deviations per policy and mass with
+# more digits, from the registered script's own loader and arithmetic (resched_testTprime_261007.py lines 76-78). Writes nothing.
+import sys, numpy as np
+sys.path.insert(0, "validation"); import resched_testTprime_261007 as S
+D = S.load("Tprime"); rows = S.compare(D)
+for M in S.MASSES:
+    a = D[("minimal", M)]["red"]["nu"].to_numpy(float); b = D[("legacy", M)]["red"]["nu"].to_numpy(float); r = rows[M]
+    print(f"M = {M}: n = {len(a)} / {len(b)}; SD (ddof 1) minimal {a.std(ddof=1):.10e}, legacy {b.std(ddof=1):.10e}, ratio {a.std(ddof=1) / b.std(ddof=1):.6f}")
+    print(f"  SE = SD/sqrt(n): minimal {r['sa']:.10e}, legacy {r['sb']:.10e}; the table prints {r['sa']:.2e} and {r['sb']:.2e}")
+    u = np.unique(np.concatenate([a, b])); ca = np.array([(a == x).sum() for x in u]); cb = np.array([(b == x).sum() for x in u])
+    k = int(np.argmax(np.abs(ca - cb)))
+    print(f"  information: {len(u)} distinct nu values (argmax bins), spacing {np.diff(u).min():.4e} = {np.diff(u).min() / b.mean():.2e} of nu; "
+          f"largest count difference at nu = {u[k]:.6f}: {ca[k]} minimal, {cb[k]} legacy")
+    g = np.random.default_rng(20261009); p = np.concatenate([a, b]); obs = abs(a.std(ddof=1) / b.std(ddof=1) - 1)
+    q = np.array([g.choice(p, len(a)).std(ddof=1) / g.choice(p, len(b)).std(ddof=1) for _ in range(20000)])
+    print(f"  information: two samples of {len(a)} drawn from the pooled values (20000 draws, seed 20261009): SD ratio within 1 +- {obs:.4%} "
+          f"in a fraction {np.mean(np.abs(q - 1) <= obs):.4f}; SD of the ratio {q.std():.4f}")
+```
+
+**Its output, verbatim:**
+
+```
+M = 300: n = 400 / 400; SD (ddof 1) minimal 4.6420363337e-04, legacy 4.6349786704e-04, ratio 1.001523
+  SE = SD/sqrt(n): minimal 2.3210181668e-05, legacy 2.3174893352e-05; the table prints 2.32e-05 and 2.32e-05
+  information: 20 distinct nu values (argmax bins), spacing 1.7366e-04 = 4.69e-03 of nu; largest count difference at nu = 0.036816: 46 minimal, 66 legacy
+  information: two samples of 400 drawn from the pooled values (20000 draws, seed 20261009): SD ratio within 1 +- 0.1523% in a fraction 0.0225; SD of the ratio 0.0565
+M = 1500: n = 400 / 400; SD (ddof 1) minimal 1.2402143487e-04, legacy 1.2406921416e-04, ratio 0.999615
+  SE = SD/sqrt(n): minimal 6.2010717434e-06, legacy 6.2034607080e-06; the table prints 6.20e-06 and 6.20e-06
+  information: 13 distinct nu values (argmax bins), spacing 8.1049e-05 = 4.69e-03 of nu; largest count difference at nu = 0.017263: 105 minimal, 137 legacy
+  information: two samples of 400 drawn from the pooled values (20000 draws, seed 20261009): SD ratio within 1 +- 0.0385% in a fraction 0.0052; SD of the ratio 0.0618
+```
+
+**Item 3: what was run.**
+- **Runner:** `experiments_loader_guard_edr_261009/run_edr_before_after.sh`. It checks, by blob hash, that the 15 files it swaps are clean, that the branch's 14 loader files equal 0b21270~1, and that main's equal 0b21270. It then runs:
+  - decision 2's `run_set.sh` and the T′ script with the branch's code, then again with the branch plus the guard;
+  - decision 2's `compare_before_after.sh`;
+  - the unit tests.
+- **Restore.** Only the 45 known outputs of § 4.7.5 are restored (any other written file would be reported, not touched), and the 15 swapped files go back to main's on any exit.
+- **Times:** 10:01:58–10:09:52 HST. Outputs: `run_log.txt`, `times_*.txt`, `written_*.sha256`, `compare_before_after_output.txt`, `unit_tests_output.txt`, `crosscheck_output.txt`.
+
+**Before and after, printed by `experiments_loader_guard_261008/compare_before_after.sh` (verbatim; the line `tprime` is the T′ verdict script):**
+
+```
+script         rc     stdout  stderr  stdout lines
+populate       0/0    same    same    50
+figures        0/0    same    same    8
+damping        0/0    same    same    40
+massladder     0/0    same    same    20
+a2boxtrunc     0/0    same    same    100
+boxtrunc       0/0    same    same    49
+boxtrunc_tab   0/0    same    same    111
+conf_results   0/0    same    same    295
+conf_afix      0/0    same    same    89
+conf_heldwall  0/0    same    same    36
+conf_prereg    0/0    same    same    165
+resched_gate   0/0    same    same    165
+p2_figures     0/0    same    same    9
+p2_geomfix     0/0    same    same    40
+p2_rampfast    0/0    same    same    49
+p2_level2Au    0/0    same    same    7
+canonical      0/0    same    same    11
+melting        0/0    same    same    24
+draft_audit    0/0    same    same    78
+roman          0/0    same    same    34
+tprime         0/0    same    same    56
+
+files written: before 45, after 45
+written files: all hashes identical
+```
+
+**Cross-checks, printed by `experiments_loader_guard_edr_261009/crosscheck.sh` (verbatim):**
+
+```
+0. blob identity (git rev-parse, 10 digits) of the files the paper scripts run that the guard commit touches or depends on:
+| file (hspist3/...) | engine-divider-resched da89d39 (before) | main 0b21270~1 (before the guard) | main 524f21e (with the guard) |
+|---|---|---|---|
+| validation/estimator_massladder_20260917.py | 79371cedfd | 79371cedfd | f120a0e26d |
+| validation/level2_Au_figure_20260918.py | 25238aa770 | 25238aa770 | 1edbb0f092 |
+| validation/paper1_A2_boxtrunc_261002.py | 7c2525d95e | 7c2525d95e | 00e5d18962 |
+| validation/paper1_boxtrunc_20261014.py | f873af5540 | f873af5540 | b11a073ef6 |
+| validation/paper1_confinement_afix_261005.py | b869305ec1 | b869305ec1 | e21cbcc1b1 |
+| validation/paper1_confinement_heldwall_posthoc_261004.py | b80218637c | b80218637c | 9aa905bd87 |
+| validation/paper1_confinement_prereg_20261012.py | ecd40309cc | ecd40309cc | 489ed935fb |
+| validation/paper1_confinement_results_261004.py | 31db0fb762 | 31db0fb762 | c42b13e869 |
+| validation/paper1_populate_cs_err_20261002.py | 1edb1f965b | 1edb1f965b | bb5f3783aa |
+| validation/paper2_figures_20261001.py | 178d3d4a29 | 178d3d4a29 | 644ef6763f |
+| validation/paper2_geometry_fix_20260918.py | c498cea634 | c498cea634 | e637d42af3 |
+| validation/paper2_ramp_fast_20260918.py | 5077053f61 | 5077053f61 | b7e9537dc4 |
+| validation/resched_gate_261005.py | 485c325c93 | 485c325c93 | 06946cd4f9 |
+| validation/tests_20260913.py | 5923307a56 | 5923307a56 | dd5544f4cc |
+| validation/edmd_acc_guard.py | (absent) | (absent) | 41bea2b9bc |
+| validation/test_edmd_acc_guard.py | (absent) | (absent) | 4171921658 |
+| validation/provenance_edmd_acc_261009.py | b4892cefbb | b4892cefbb | b4892cefbb |
+| cluster/confinement_20261013/reduce_B.py | 979bb3c14e | 85e9de19d6 | 85e9de19d6 |
+1. the written files (before and after) against decision 2's committed hashes (experiments_loader_guard_261008/written_before.sha256):
+   before: 45 files, identical
+   after: 45 files, identical
+2. stdout and stderr of the branch's code (edr_before) against decision 2's before run of 2026-10-08 (main's pre-guard code):
+   differs: resched_gate.out
+     162c162
+     < local branch head engine-divider-resched: 3a2c9bd; the gate's build is NOT the local branch head -- check which commit KOA built
+     ---
+     > local branch head engine-divider-resched: da89d39; the gate's build is NOT the local branch head -- check which commit KOA built
+   1 of 40 files differ
+3. the written files against the committed blobs (git HEAD):
+   18 differs from committed: .pdf
+   1 not tracked: .csv
+   1 not tracked: .json
+   1 not tracked: .pdf
+   1 not tracked: .png
+   5 same as committed: .csv
+   18 same as committed: .png
+4. the T-prime script's stdout (before = after) against the output recorded in 261012 sec. 4.4.15:
+   56 lines: identical, byte for byte
+5. the guard on the fetched resched data (hspist3/experiments_resched_gate2_261007; each directory that holds a run.log):
+   directories: Test T 18, Test T-prime 4, asan_261007_15022393 4, profile_edmd_15008378 12, resched_gate_261005 48; accepted 86, refused 0
+```
+
+**Unit tests, printed by `python3 -m unittest validation/test_edmd_acc_guard.py -v` (the last lines, verbatim; the full listing is in `unit_tests_output.txt` and equals § 4.7.5's test names):**
+
+```
+----------------------------------------------------------------------
+Ran 14 tests in 0.020s
+
+OK
+```
