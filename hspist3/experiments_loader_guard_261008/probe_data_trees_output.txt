@@ -1,0 +1,18 @@
+directories holding an accelerated record: 256 (1 of them an experiments root, never scanned by design)
+  of the others refused by the guard: 255 / 255
+  experiments root with an accelerated record: hspist3/experiments_energy_transfer
+  (missing root) experiments_energy_transfer/level4_B3_20261010_driver.log
+  (missing root) experiments_energy_transfer/level4_Rcollapse2_20261006_driver.log
+  (missing root) experiments_energy_transfer/level4_Rcollapse_20261005_driver.log
+  (missing root) experiments_energy_transfer/level4_demo_20261007_driver.log
+  (missing root) experiments_energy_transfer/level4_equilibrium_KOAlength_20261002_driver.log
+  (missing root) experiments_energy_transfer/level4_ladderRfill_20261009_driver.log
+  (missing root) experiments_energy_transfer/level4_ladder_20261003_driver.log
+  (missing root) experiments_energy_transfer/level4_ladder_rerun_20261004_driver.log
+  (missing root) experiments_energy_transfer/level4_topup_20261005_driver.log
+  (missing root) experiments_energy_transfer/level4b_powerup_20261010_driver.log
+  (missing root) experiments_energy_transfer/level4b_transmission_20261008_driver.log
+  (missing root) experiments_energy_transfer/level4b_transmission_20261008_driver2.log
+  (missing root) experiments_energy_transfer/level4b_transmission_20261008b_driver.log
+
+paper data roots: 67; directories under them: 2476; refused: 0

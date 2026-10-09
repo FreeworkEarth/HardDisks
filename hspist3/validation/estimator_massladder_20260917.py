@@ -17,6 +17,7 @@ import numpy as np, pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import tests_20260913 as T
+import edmd_acc_guard   # ##CHRIS 2026-10-08 (261012 sec. 4.7.4, decision 2): the loader provenance guard (full name: no alias can be shadowed)
 from damping_test_20260915 import fit_one
 
 DILUTE = os.path.join(T.ROOT, "A2_dilute50_20260917")
@@ -60,7 +61,7 @@ def dilute():
             for M in (50, 200, 500, 1000, 2000):
                 p_, f_, L0 = [], [], None
                 for p in sorted(glob.glob(f"{DILUTE}/{tag}/N{N}/m_{M}/r*/wall_x_positions_*run0.csv")):
-                    d = pd.read_csv(p, usecols=["Time", "Displacement(σ)", "Predicted_Frequency", "L0"])
+                    d = pd.read_csv(edmd_acc_guard.guard(p), usecols=["Time", "Displacement(σ)", "Predicted_Frequency", "L0"])
                     t = d["Time"].to_numpy(float); x = d["Displacement(σ)"].to_numpy(float)
                     nup = float(d["Predicted_Frequency"].iloc[0]); L0 = float(d["L0"].iloc[0])
                     dt = (t[-1] - t[0]) / (len(t) - 1)

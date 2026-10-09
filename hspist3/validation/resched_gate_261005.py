@@ -41,6 +41,7 @@ sys.path.insert(0, HERE); sys.path.insert(0, HS); sys.path.insert(0, os.path.joi
 import paper1_confinement_results_261004 as R
 import paper1_confinement_afix_261005 as AF
 import tests_20260913 as T
+import edmd_acc_guard   # ##CHRIS 2026-10-08 (261012 sec. 4.7.4, decision 2): the loader provenance guard (full name: no alias can be shadowed)
 
 DRY = "--dry-run-old" in sys.argv
 LOC = HS if DRY else os.environ.get("HD_RESCHED_LOC", os.path.join(HS, "experiments_resched_gate_261005"))   # env: test hook only
@@ -112,11 +113,11 @@ def g_e3(CS):
             d0 = os.path.join(LOC, R.REL_B, cid); matched = exp = nsec = nh = nores = bad = 0; eh = er = cg = 0.0
             for M, want in tk.items():
                 exp += len(want); d = os.path.join(d0, f"m_{M}")
-                rn = pd.read_csv(os.path.join(d, "red_nu.csv"))
+                rn = pd.read_csv(edmd_acc_guard.guard(os.path.join(d, "red_nu.csv")))
                 have = {(int(r), int(s)) for r, s in zip(rn["run"], rn["seed"])}
                 matched += len(want & have) if len(rn) == len(have) else 0
                 bad += int((~np.isfinite(rn["n"].astype(float)) | (rn["n"].astype(float) <= 0)).sum())
-                secs = open(os.path.join(d, "run.log"), errors="ignore").read().split("##RUN")[1:]
+                secs = open(edmd_acc_guard.guard(os.path.join(d, "run.log")), errors="ignore").read().split("##RUN")[1:]
                 nsec += len(secs); bad += abs(len(secs) - len(rn))
                 for sec in secs:
                     nh += sec.count("[EDMD-HEALTH]"); nores += "[EDMD-RESCHED] divider events: minimal" not in sec
@@ -129,7 +130,7 @@ def g_e3(CS):
                         eh, er = max(eh, h), max(er, r)
                     if fin(c_max): cg = max(cg, c_max)
                 for f in glob.glob(os.path.join(d, ".failed_run*", "stdout.log")):
-                    nh += open(f, errors="ignore").read().count("[EDMD-HEALTH]")
+                    nh += open(edmd_acc_guard.guard(f), errors="ignore").read().count("[EDMD-HEALTH]")
             led = "energy (above)"
             ok = matched == exp and nsec == exp and nh == 0 and nores == 0 and bad == 0 and eh <= E_TOL and er <= E_TOL
         else:
@@ -137,12 +138,12 @@ def g_e3(CS):
             cg = 0.0; eh = er = float("nan")
             for lab, seeds in tk.items():
                 for lg in glob.glob(os.path.join(d0, f"x_{lab}", "run_*.log")):
-                    nh += open(lg, errors="ignore").read().count("[EDMD-HEALTH]")
+                    nh += open(edmd_acc_guard.guard(lg), errors="ignore").read().count("[EDMD-HEALTH]")
                 for s in seeds:
                     f = os.path.join(d0, f"x_{lab}", f"red_{s}.csv")
                     if not os.path.exists(f): continue
-                    matched += 1; r = pd.read_csv(f).iloc[0]; uw += (r["u_wall_max"] != 0.0) or (r["W_div"] != 0.0)
-                    log = open(os.path.join(d0, f"x_{lab}", f"run_{s}.log"), errors="ignore").read()
+                    matched += 1; r = pd.read_csv(edmd_acc_guard.guard(f)).iloc[0]; uw += (r["u_wall_max"] != 0.0) or (r["W_div"] != 0.0)
+                    log = open(edmd_acc_guard.guard(os.path.join(d0, f"x_{lab}", f"run_{s}.log")), errors="ignore").read()
                     nores += "[EDMD-RESCHED] divider events: minimal" not in log
                     c_ok, c_max = contact_ok(log)
                     if not c_ok and not DRY: bad += 1

@@ -16,6 +16,7 @@ import numpy as np
 from scipy.optimize import brentq
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE); sys.path.insert(0, os.path.dirname(HERE))
 import tests_20260913 as T
+import edmd_acc_guard   # ##CHRIS 2026-10-08 (261012 sec. 4.7.4, decision 2): the loader provenance guard (full name: no alias can be shadowed)
 import plot_speed_of_sound_edmd as sos
 ET = os.path.join(os.path.dirname(HERE), "experiments_energy_transfer")
 
@@ -41,7 +42,7 @@ def noise_eps0():
     import pandas as pd
     F, Tr = [], []
     for f in sorted(glob.glob(os.path.join(ET, "level3_FofL_20260925", "c0", "ev_*.csv"))):
-        e = pd.read_csv(f, usecols=["t_sigma", "kind", "dp"]); d = e[e["kind"] == "D0"]
+        e = pd.read_csv(edmd_acc_guard.guard(f), usecols=["t_sigma", "kind", "dp"]); d = e[e["kind"] == "D0"]
         t0, t1 = e["t_sigma"].min(), e["t_sigma"].max()
         F.append(d["dp"].abs().sum() / (t1 - t0)); Tr.append(t1 - t0)
     F = np.array(F); return F.std(ddof=1) / F.mean() * math.sqrt(np.mean(Tr)), len(F), float(np.mean(Tr)), float(F.mean())
@@ -52,7 +53,7 @@ def cost_rate():
     for tag, e in (("0p392699", 0.392699), ("0p112200", 0.112200)):
         secs = tot = 0.0
         for d in glob.glob(os.path.join(T.DROOT, f"eta_{tag}", "m_*")):
-            s = open(os.path.join(d, "run.log"), errors="ignore").read()
+            s = open(edmd_acc_guard.guard(os.path.join(d, "run.log")), errors="ignore").read()
             secs += sum(int(x) for x in re.findall(r"##RUN .*?\((\d+) s\)", s))
             tot += sum(float(x) for x in re.findall(r"T=([\d.]+) sigma-time", s))
         out[e] = 1000 * secs / tot

@@ -30,6 +30,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); HS = os.path.dirname(HERE)
 sys.path.insert(0, HERE); sys.path.insert(0, HS)
 import contextlib, io
 import paper1_confinement_results_261004 as R
+import edmd_acc_guard   # ##CHRIS 2026-10-08 (261012 sec. 4.7.4, decision 2): the loader provenance guard (full name: no alias can be shadowed)
 
 PILOT = os.path.join(HS, R.REL_A, "pilot_epi8_H_H10_L10")
 
@@ -44,7 +45,7 @@ def pilot_positions():
             # t = simulation_time - wall_release_time) and the trace has rows after the release only. The first version
             # cut at Time >= 200, i.e. it dropped the first 200 sigma-time of the record and gave f = 0.9662. The record
             # (the event-log window [200, 5200) absolute) is the WHOLE trace: all rows.
-            d = pd.read_csv(f, usecols=["Time", "W0_x_sigma"]); x = d["W0_x_sigma"].to_numpy() - L0
+            d = pd.read_csv(edmd_acc_guard.guard(f), usecols=["Time", "W0_x_sigma"]); x = d["W0_x_sigma"].to_numpy() - L0
             out.append(x.mean() / (j * dL))
     return np.array(out)
 
@@ -55,7 +56,7 @@ def drift(c, cell_dir=None):
     for lab, j in R.POS:
         files = sorted(glob.glob(os.path.join(ad, f"x_{lab}", "red_*.csv"))) if cell_dir else \
             [os.path.join(ad, f"x_{lab}", f"red_{s}.csv") for s in c["seeds"][lab]]
-        D = pd.concat([pd.read_csv(f) for f in files], ignore_index=True); n = len(D)
+        D = pd.concat([pd.read_csv(edmd_acc_guard.guard(f)) for f in files], ignore_index=True); n = len(D)
         gL, gR = D["F_L"] / D["T_L"], D["F_R"] / D["T_R"]
         st[j] = dict(n=n, TL=D["T_L"].mean(), TR=D["T_R"].mean(), FL=D["F_L"].mean(), FR=D["F_R"].mean(),
                      gL=gL.mean(), gR=gR.mean(), sgL=gL.std(ddof=1) / math.sqrt(n), sgR=gR.std(ddof=1) / math.sqrt(n))
@@ -125,7 +126,7 @@ def figure(rows):
     for lab, j in R.POS:
         if j == 0: continue
         for f in sorted(glob.glob(os.path.join(PILOT, f"x_{lab}", "tr_*.csv"))):
-            d = pd.read_csv(f, usecols=["Time", "W0_x_sigma"])
+            d = pd.read_csv(edmd_acc_guard.guard(f), usecols=["Time", "W0_x_sigma"])
             a1.plot(d["Time"], (d["W0_x_sigma"] - 10.0) / (j * 0.125), color=R.BLUE, lw=0.6, alpha=0.6)
     a1.axhline(1, color="k", ls="--", lw=1)
     a1.set_xlabel("time since release [sigma-time]  (record = 5000; held before)"); a1.set_ylabel("divider displacement / nominal x_j")

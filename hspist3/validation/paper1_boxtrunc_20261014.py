@@ -13,6 +13,7 @@ import csv, glob, math, os, sys
 import numpy as np, pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE); sys.path.insert(0, os.path.dirname(HERE))
 import tests_20260913 as T
+import edmd_acc_guard   # ##CHRIS 2026-10-08 (261012 sec. 4.7.4, decision 2): the loader provenance guard (full name: no alias can be shadowed)
 import plot_speed_of_sound_edmd as sos
 from paper1_populate_cs_err_20261002 import cell, slope_with_errors
 REPO = os.path.dirname(os.path.dirname(HERE))
@@ -50,12 +51,12 @@ def compute():
             c = cell((eta, L0t, M, T.cell_runs(os.path.join(d, f"m_{M}"), M)))
             if c["n"] > 0: cs.append(c)
         tr0 = sorted(glob.glob(os.path.join(d, "m_500", "wall_x_positions_*_run*.csv")))
-        h = pd.read_csv(tr0[0], nrows=1).iloc[0]
+        h = pd.read_csv(edmd_acc_guard.guard(tr0[0]), nrows=1).iloc[0]
         L0 = float(h["L0"]); N = int(h["Left_Count"]) + int(h["Right_Count"]); erec = float(h["eta"])
         w = np.float32(2) * np.float32(L0) * np.float32(PPS)                    # the binary's float expression
         delta = (float(w) - math.floor(float(w))) / PPS
         cen_off = float(h["Center_X(σ)"]) - (XW1 / PPS + L0)                       # recorded: should be -delta/2
-        disp = np.mean([pd.read_csv(p, usecols=["Displacement(σ)"])["Displacement(σ)"].mean() for p in tr0])
+        disp = np.mean([pd.read_csv(edmd_acc_guard.guard(p), usecols=["Displacement(σ)"])["Displacement(σ)"].mean() for p in tr0])
         H = N * math.pi * R * R / (2 * L0 * erec)
         Le = T.l_eff(L0t); s, e, es, ch = slope_x(cs, Le)
         ok = abs(s - float(r["c_s"])) <= 5e-6 * abs(float(r["c_s"]))

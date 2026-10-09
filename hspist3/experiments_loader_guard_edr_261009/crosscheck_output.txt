@@ -1,0 +1,43 @@
+0. blob identity (git rev-parse, 10 digits) of the files the paper scripts run that the guard commit touches or depends on:
+| file (hspist3/...) | engine-divider-resched da89d39 (before) | main 0b21270~1 (before the guard) | main 524f21e (with the guard) |
+|---|---|---|---|
+| validation/estimator_massladder_20260917.py | 79371cedfd | 79371cedfd | f120a0e26d |
+| validation/level2_Au_figure_20260918.py | 25238aa770 | 25238aa770 | 1edbb0f092 |
+| validation/paper1_A2_boxtrunc_261002.py | 7c2525d95e | 7c2525d95e | 00e5d18962 |
+| validation/paper1_boxtrunc_20261014.py | f873af5540 | f873af5540 | b11a073ef6 |
+| validation/paper1_confinement_afix_261005.py | b869305ec1 | b869305ec1 | e21cbcc1b1 |
+| validation/paper1_confinement_heldwall_posthoc_261004.py | b80218637c | b80218637c | 9aa905bd87 |
+| validation/paper1_confinement_prereg_20261012.py | ecd40309cc | ecd40309cc | 489ed935fb |
+| validation/paper1_confinement_results_261004.py | 31db0fb762 | 31db0fb762 | c42b13e869 |
+| validation/paper1_populate_cs_err_20261002.py | 1edb1f965b | 1edb1f965b | bb5f3783aa |
+| validation/paper2_figures_20261001.py | 178d3d4a29 | 178d3d4a29 | 644ef6763f |
+| validation/paper2_geometry_fix_20260918.py | c498cea634 | c498cea634 | e637d42af3 |
+| validation/paper2_ramp_fast_20260918.py | 5077053f61 | 5077053f61 | b7e9537dc4 |
+| validation/resched_gate_261005.py | 485c325c93 | 485c325c93 | 06946cd4f9 |
+| validation/tests_20260913.py | 5923307a56 | 5923307a56 | dd5544f4cc |
+| validation/edmd_acc_guard.py | (absent) | (absent) | 41bea2b9bc |
+| validation/test_edmd_acc_guard.py | (absent) | (absent) | 4171921658 |
+| validation/provenance_edmd_acc_261009.py | b4892cefbb | b4892cefbb | b4892cefbb |
+| cluster/confinement_20261013/reduce_B.py | 979bb3c14e | 85e9de19d6 | 85e9de19d6 |
+1. the written files (before and after) against decision 2's committed hashes (experiments_loader_guard_261008/written_before.sha256):
+   before: 45 files, identical
+   after: 45 files, identical
+2. stdout and stderr of the branch's code (edr_before) against decision 2's before run of 2026-10-08 (main's pre-guard code):
+   differs: resched_gate.out
+     162c162
+     < local branch head engine-divider-resched: 3a2c9bd; the gate's build is NOT the local branch head -- check which commit KOA built
+     ---
+     > local branch head engine-divider-resched: da89d39; the gate's build is NOT the local branch head -- check which commit KOA built
+   1 of 40 files differ
+3. the written files against the committed blobs (git HEAD):
+   18 differs from committed: .pdf
+   1 not tracked: .csv
+   1 not tracked: .json
+   1 not tracked: .pdf
+   1 not tracked: .png
+   5 same as committed: .csv
+   18 same as committed: .png
+4. the T-prime script's stdout (before = after) against the output recorded in 261012 sec. 4.4.15:
+   56 lines: identical, byte for byte
+5. the guard on the fetched resched data (hspist3/experiments_resched_gate2_261007; each directory that holds a run.log):
+   directories: Test T 18, Test T-prime 4, asan_261007_15022393 4, profile_edmd_15008378 12, resched_gate_261005 48; accepted 86, refused 0
