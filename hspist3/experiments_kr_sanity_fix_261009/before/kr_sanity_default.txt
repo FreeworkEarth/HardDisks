@@ -1,0 +1,21 @@
+module functions: Z_kolafa_rottner_2006(eta: 'np.ndarray') -> 'np.ndarray', dZ_kolafa_rottner_2006(eta: 'np.ndarray') -> 'np.ndarray', cs_adiabatic_2d_monatomic(Z: 'np.ndarray', dZ: 'np.ndarray', eta: 'np.ndarray', *, kbt: 'float', m: 'float') -> 'np.ndarray'
+independent reference: rho_max = 0.9 version (eta_max = 0.7069)
+
+| eta | Z paper | Z module | rel diff | Z' paper (analytic) | Z' complex-step | Z' module | rel diff | c_s paper | c_s module | rel diff | tests_20260913.kr_cs | rel diff vs paper |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.05 | 1.10838774198985 | 1.10838774198985 | 4.0e-16 | 2.3476177330678 | 2.3476177330678 | 2.3476177330678 | 0.0e+00 | 1.56661801829183 | 1.56661801829183 | 2.8e-16 | 1.56661801830068 | 5.6e-12 |
+| 0.30 | 2.06326087957606 | 2.06326087957605 | 2.2e-16 | 6.03583334839163 | 6.03583334839163 | 6.03583334839163 | 1.5e-16 | 2.8515007173912 | 2.85150071739119 | 3.1e-16 | 2.85150071752567 | 4.7e-11 |
+| 0.50 | 4.10636394336527 | 4.10636394336527 | 0.0e+00 | 16.7336836142638 | 16.7336836142638 | 16.7336836142638 | 0.0e+00 | 5.41621921508607 | 5.41621921508607 | 0.0e+00 | 5.41621921569349 | 1.1e-10 |
+| 0.65 | 8.40804352772069 | 8.4080435277207 | 4.2e-16 | 45.9449284500896 | 45.9449284500896 | 45.9449284500896 | 0.0e+00 | 10.4387471941955 | 10.4387471941955 | 3.4e-16 | 10.4387471910944 | 3.0e-10 |
+
+largest relative difference module vs paper (Z, Z', c_s; and analytic vs complex-step Z'): 4.6e-16
+tests_20260913.kr_cs vs paper: largest relative difference 3.0e-10 (above 1e-10; reported, not part of the verdict -- see how kr_cs forms Z')
+
+for information (NOT the verdict) -- the other two published versions against the module, largest relative difference over the four eta:
+| version | Z | Z' (analytic) | c_s |
+|---|---|---|---|
+| rho_max = 0.88 | 1.4e-06 | 7.1e-05 | 1.0e-05 |
+| rho_max = 0.89 | 6.8e-07 | 7.2e-06 | 1.5e-06 |
+module comment, plot_speed_of_sound_edmd.py:620: '# Kolafa & Rottner (2006), rho_max=0.90 fit.  Their x is eta/(1-eta).'
+
+**VERDICT: PASS** (criterion: relative difference <= 1e-10)

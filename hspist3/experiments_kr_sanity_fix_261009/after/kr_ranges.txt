@@ -1,0 +1,43 @@
+# The Kolafa-Rottner range table for Paper 1 (261012 sec. 4.7.4 decision 3 item 2), printed by validation/paper1_kr_ranges_261009.py
+
+The module's rho_max = 0.90 fit against the coefficients typed here from the page: largest relative difference in Z 4.4e-16 (eta 0.1-0.7069). Fit range eta <= pi 0.90/4 = 0.7069; comparison range eta <= 0.69 (rho <= 0.8785).
+
+## 1. The ranges
+
+| range | rho = 4 eta / pi | reference that applies | fit accuracy as stated in the source (quoted) | the source's MD data in the range (Table 1, p. 3436: rho, Z, sigma(Z)) | our data points (A1 v2 c_s(eta), by eta_true / by recorded eta) | what Paper 1 does (draft) |
+|---|---|---|---|---|---|---|
+| eta <= 0.69 (compared) | <= 0.8785 | Kolafa-Rottner 2006, rho_max = 0.90 fit (Eq. 7, sec. 3.2), fitted to eta <= 0.7069: compared with data | "The value of s for an optimum fit is around unity provided that the input standard errors sigma are reliable, which is the case for our simulations where sigma is determined with an accuracy (error of the error) of a few percent [21]." (p. 3438); "rho_max = 0.90, s = 0.927" (p. 3439). The source states no accuracy for Z', which c_s uses. | 14 points (rho 0.40-0.87; relative sigma(Z) <= 1.3e-05) | 23 / 24 | compares (dev_KR_pct column of the table; draft:126-129: "fitted to $\eta \le 0.7069$. $Z'$ is taken from the same fit, and data are compared with it only for $\eta \le 0.69$."); the mass-independence test averages "the 24 densities with $\eta \leq 0.69$" (draft:248), counted by recorded eta |
+| 0.69 < eta <= 0.7069 (fit range, not compared) | (0.8785, 0.90] | the same fit, inside its fit range but NOT compared (decision of 2026-10-02); the comparison is Engel et al. 2013 (qualitative) | "rho_max = 0.90, s = 0.927; region rho in [0.89, 0.90] of this equation may be affected by finite-size effects" (p. 3439); "Correction term (5) is not applicable for rho >= 0.89 because it contains the second derivative of the EOS and therefore the correction term is large and not available with sufficient precision. Linear extrapolation of Z(1/N) was used instead; the final results thus lack precision." (p. 3438); "The data in the 'difficult' region close to the phase transition agree well with recent extensive Monte Carlo data [3, 4] with the exception of density rho = 0.9 closest to rho_c where the N = 1024^2 result Z = 10.212 [3] is significantly larger than our Z = 10.206" (p. 3438) | 3 points: 0.88: 10.2309 +- 0.0003 (rel. 2.9e-05); 0.89: 10.3176 +- 0.0011 (rel. 1.1e-04); 0.90: 10.2059 +- 0.0011 (rel. 1.1e-04) | 4 / 3 | shows the points, "not counted as a deviation from it" (draft:263-264); KR "dashed from there to $\eta = 0.705$, inside its fit range" (draft:476-477); the comparison is with Engel et al., qualitative (draft:433-466) |
+| eta > 0.7069 (beyond the fit) | > 0.90 | none of the KR fits (extrapolation); Engel et al. 2013 landmarks; a global EOS with hexatic and solid branches (Liu 2021) is OPEN | "Any extrapolation to rho > rho_c should be done with caution because function p(rho) is likely to be non-analytical at rho_c." (p. 3439); "both equations with rho_max >= 0.89 predict to some extent the loop (with the 'classical' critical exponent alpha' = 3) at the critical (fluid/hexatic) point, even if this is not the aim of the present work which focuses rather on the low-density region." (p. 3439) | 0 points: none | 8 / 8 | no KR curve: "Beyond its fit range the fluid-branch fit is an extrapolation and its derivative carries no information." (draft:478-479); Engel et al.'s landmarks; a quantitative comparison "needs a global equation of state with hexatic and solid branches" (draft:503) |
+
+The boundary: one A1 v2 row, eta_true = 0.690460, has recorded eta 0.689999. It carries a KR deviation in the table (+43.191 %) and is one of the draft's '24 densities with eta <= 0.69': the comparison range is applied by the recorded eta. By eta_true it lies in the second range. Above: by eta_true / by recorded eta.
+
+## 2. Our data points per Paper 1 table and range
+
+| table | eta <= 0.69 | 0.69 < eta <= 0.7069 | eta > 0.7069 |
+|---|---|---|---|
+| A1 v2 c_s(eta), N = 100 (260919_A1v2_final_cs_vs_eta.csv), by eta_true | 23 | 4 | 8 |
+| the same, by the recorded (nominal) eta | 24 | 3 | 8 |
+| A2 N -> infinity extrapolation (eta) | 7 | 0 | 0 |
+| A2 finite-size forms (distinct eta) | 5 | 0 | 0 |
+| confinement cells (eta_true) | 8 | 0 | 0 |
+| identity cells, A-fixed (eta_lab; no eta_true column) | 2 | 0 | 0 |
+| A2 per mass, (eta, N) state points | 30 | 0 | 0 |
+| A2 famB per mass, (eta, N) state points | 30 | 0 | 0 |
+
+## 3. [DERIVATION] c_s from the paper's three published fits (kT = m = 1), and the 0.89 coefficient in the sanity script
+
+| eta | rho | c_s, rho_max 0.88 | c_s, 0.89 | c_s, 0.90 (Paper 1) | largest relative difference to the 0.90 fit | c_s, 0.89 with the sanity script's x^57 coefficient | its relative change |
+|---|---|---|---|---|---|---|---|
+| 0.4000 | 0.5093 | 3.833563 | 3.833565 | 3.833565 | 5.6e-07 | 3.833565 | 0.0e+00 |
+| 0.5500 | 0.7003 | 6.601892 | 6.601875 | 6.601874 | 2.7e-06 | 6.601875 | 0.0e+00 |
+| 0.6000 | 0.7639 | 8.222594 | 8.222605 | 8.222613 | 2.3e-06 | 8.222605 | 0.0e+00 |
+| 0.6500 | 0.8276 | 10.438853 | 10.438762 | 10.438747 | 1.0e-05 | 10.438762 | 0.0e+00 |
+| 0.6700 | 0.8531 | 11.373083 | 11.373306 | 11.373363 | 2.5e-05 | 11.373306 | 0.0e+00 |
+| 0.6800 | 0.8658 | 11.671701 | 11.671273 | 11.671208 | 4.2e-05 | 11.671273 | 0.0e+00 |
+| 0.6900 | 0.8785 | 11.548307 | 11.551452 | 11.550975 | 2.3e-04 | 11.551452 | 0.0e+00 |
+| 0.6950 | 0.8849 | 11.118033 | 11.167221 | 11.168467 | 4.5e-03 | 11.167221 | 0.0e+00 |
+| 0.7000 | 0.8913 | 10.167231 | 10.499564 | 10.514619 | 3.3e-02 | 10.499564 | 0.0e+00 |
+| 0.7069 | 0.9001 | 6.734553 | 10.329118 | 10.484935 | 3.6e-01 | 10.329118 | 0.0e+00 |
+
+(the sanity script's rho_max = 0.89 x^57 coefficient: 5.57730095e-23; the paper, p. 3439: 5.57730095e-23. Paper 1 uses the 0.90 fit: the sanity script's 0.90 coefficients equal the page's: yes; its 0.88 coefficients: yes.)
