@@ -27,6 +27,7 @@ import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import plot_speed_of_sound_edmd as sos
+import edmd_acc_guard   # ##CHRIS 2026-10-08 (261012 sec. 4.7.4, decision 2): the loader provenance guard (full name: no alias can be shadowed)
 
 ET = "/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_energy_transfer"
 DT = 1.0 / 60.0
@@ -41,7 +42,7 @@ def zwall(files, L, hold_steps=12000):
     T = hold_steps * DT
     z = []
     for ev in files:
-        e = pd.read_csv(ev)
+        e = pd.read_csv(edmd_acc_guard.guard(ev))
         h = e[e["t_sigma"] < T]
         zr = h[h["kind"] == "WR"]["dp"].abs().sum() * L / (T * NS)
         zd = h[(h["kind"] == "D0") & (h["dp"] > 0)]["dp"].sum() * L / (T * NS)

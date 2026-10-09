@@ -6176,3 +6176,186 @@ fetch; then run validation/resched_testTprime_261007.py unchanged.
 Report as usual, ending with "Written for: the plan author". First
 report after decision 2 and amendment a (short), second after M2.
 ```
+
+### 4.7.5 Decision 2 done: the loader provenance guard; amendment a done: gen2 byte identity at engine-gen3 HEAD (2026-10-08 23:30 HST, machine date) [DATA, printed by script; SOURCE for the code]
+
+**Plain summary.**
+- **The guard: `hspist3/validation/edmd_acc_guard.py`.**
+  - It uses the provenance scan's own parsing (`FLAG`, `BACKEND`, `klass` from `provenance_edmd_acc_261009.py`).
+  - Its rule is stricter than the scan's: only the explicit default spellings `0`, `false`, `no` and `off` pass. `=1` and every other non-zero digit, `=yes`, `=true`, `=on`, the bare flag, and any unreadable value are refused (`AcceleratedRunError`).
+  - Records that govern a data file are those in its own directory and in every ancestor below the experiments root: run records, run logs, and CSV summaries with a `command` column. The experiments root itself is never scanned: it collects unrelated campaigns, for example `energy_transfer_runs_2walls.csv`.
+  - `guard(path)` returns the path unchanged, so it wraps the path a loader opens.
+- **Wired in 14 files (45 calls)**, listed below by `edmd_acc_guard.py --list`. This includes `tests_20260913._load` and `paper1_populate_cs_err_20261002.cell`.
+  - The guarded loaders of `tests_20260913` (`_load`, `cell_runs`, `a1_leaf_table`, `health_of`, `assert_wall_thickness`) also guard 37 calls in 21 further scripts, among them `paper1_figures_20261001` and `damping_test_20260915`.
+  - Not wired, because they read no simulation data: `paper1_canonical_20260919`, `paper1_melting_figure_20261002` and `paper1_draft_audit_20261014` read only derived tables in `final/`; `roman2002_remapped_20260922` reads the literature table. `plot_speed_of_sound_edmd.py` reads traces only in its own command-line mode; the paper scripts use only its equations of state and fit helpers.
+  - The loaders call the guard by its full module name, `edmd_acc_guard.guard(...)`. A first wiring used the alias `G`; `damping()` in `paper1_confinement_results_261004.py` has a local variable `G`, so that run raised `UnboundLocalError`. That attempt is not in the comparison below.
+- **Unit tests: 14, all OK** (`validation/test_edmd_acc_guard.py`). They include 15 refused and 9 accepted spellings as subtests.
+- **Probe of the real data trees (read-only):**
+  - all 255 directories that hold an accelerated record are refused; the 256th such record lies in the experiments root, which is not scanned by design;
+  - none of the 2476 directories under the 67 data roots that the paper scripts read is refused.
+- **No number moves.** The 20 scripts that produce the papers' figures and tables were run before and after the change, with deterministic plotting (`SOURCE_DATE_EPOCH=0`, Agg backend).
+  - Exit codes, stdout and stderr are identical, and so are the SHA-256 of all 45 files they wrote.
+  - The paper tables (CSV) are also byte-identical to the committed ones. Only the 18 PDFs differ from git, by their embedded creation date. They and 4 new files the reruns created were put back (`git checkout --` / moved to scratch).
+  - Evidence: `hspist3/experiments_loader_guard_261008/`.
+- **Limit [INFERENCE].** A copy of data kept outside its run's directory chain cannot be traced. Example: the `analysis/` copies in `simulation_eta_split_07_05_26_09_00_24`, whose `00_COMMAND.md` sits in a sibling `raw_simulations/` folder. The campaign-level provenance scan (§ 4.7.1) covers that case, and no paper script reads such copies.
+- **Branches.** The guard and the wired loaders are on main and engine-gen3. engine-divider-resched gets them only after T′ is complete: the KOA clone `~/harddisks_resched2` pulls that branch, and the T′ reduction (`reduce_B.py`) imports `tests_20260913`. The T′ pipeline stays untouched.
+- **Amendment a: gen2 byte identity at engine-gen3 HEAD 3d42d0b.**
+  - On this Mac, the gate runner's `ctrl_min` and `ctrl_leg` are IDENTICAL: audit vs plain, and plain vs the 7b08827 build.
+  - No commit after 2cdfe04 (a20f356, 8366369, 54bfef5, b6b2dfd, 7b3b11a, 3d42d0b) touches a build input. Since 7b08827, only 14ba1f2 does (the `--edmd-acc` guard in `00ALLINONE.c`, before 2cdfe04).
+  - The check is repeated on the Mac in M3, right after gen3 is linked (§ 4.7.4, a).
+
+**The rule, quoted from `edmd_acc_guard.py`:**
+
+```python
+DEFAULT_VALUES = frozenset({"0", "false", "no", "off"})
+...
+def refusing_value(v):
+    """None if the flag value selects the default backend, else a reason. v is FLAG's captured value (None = bare flag)."""
+    if v is None or v.strip() == "":
+        return "bare --edmd-acc"
+    s = v.strip("'\",;)`").lower()
+    return None if s in DEFAULT_VALUES else f"--edmd-acc value '{v}'"
+```
+
+**Before and after, printed by `experiments_loader_guard_261008/compare_before_after.sh` (verbatim):**
+
+```
+script         rc     stdout  stderr  stdout lines
+populate       0/0    same    same    50
+figures        0/0    same    same    8
+damping        0/0    same    same    40
+massladder     0/0    same    same    20
+a2boxtrunc     0/0    same    same    100
+boxtrunc       0/0    same    same    49
+boxtrunc_tab   0/0    same    same    111
+conf_results   0/0    same    same    295
+conf_afix      0/0    same    same    89
+conf_heldwall  0/0    same    same    36
+conf_prereg    0/0    same    same    165
+resched_gate   0/0    same    same    165
+p2_figures     0/0    same    same    9
+p2_geomfix     0/0    same    same    40
+p2_rampfast    0/0    same    same    49
+p2_level2Au    0/0    same    same    7
+canonical      0/0    same    same    11
+melting        0/0    same    same    24
+draft_audit    0/0    same    same    78
+roman          0/0    same    same    34
+
+files written: before 45, after 45
+written files: all hashes identical
+```
+
+**Unit tests, printed by `python3 -m unittest validation/test_edmd_acc_guard.py -v` (verbatim):**
+
+```
+test_ancestor_log_refuses (validation.test_edmd_acc_guard.GuardTest.test_ancestor_log_refuses) ... ok
+test_ancestor_run_record_refuses (validation.test_edmd_acc_guard.GuardTest.test_ancestor_run_record_refuses) ... ok
+test_ancestor_summary_with_command_column_refuses (validation.test_edmd_acc_guard.GuardTest.test_ancestor_summary_with_command_column_refuses) ... ok
+test_csv_without_command_column_is_not_a_record (validation.test_edmd_acc_guard.GuardTest.test_csv_without_command_column_is_not_a_record) ... ok
+test_directory_argument (validation.test_edmd_acc_guard.GuardTest.test_directory_argument) ... ok
+test_experiments_root_is_never_scanned (validation.test_edmd_acc_guard.GuardTest.test_experiments_root_is_never_scanned) ... ok
+test_notes_are_not_records (validation.test_edmd_acc_guard.GuardTest.test_notes_are_not_records) ... ok
+test_own_log_backend_line (validation.test_edmd_acc_guard.GuardTest.test_own_log_backend_line) ... ok
+test_own_summary_csv_with_command_column (validation.test_edmd_acc_guard.GuardTest.test_own_summary_csv_with_command_column) ... ok
+test_passed_spellings_in_own_record (validation.test_edmd_acc_guard.GuardTest.test_passed_spellings_in_own_record) ... ok
+test_refused_spellings_in_command_txt_and_run_params (validation.test_edmd_acc_guard.GuardTest.test_refused_spellings_in_command_txt_and_run_params) ... ok
+test_refused_spellings_in_own_record (validation.test_edmd_acc_guard.GuardTest.test_refused_spellings_in_own_record) ... ok
+test_returns_the_path_unchanged (validation.test_edmd_acc_guard.GuardTest.test_returns_the_path_unchanged) ... ok
+test_sibling_campaign_does_not_decide (validation.test_edmd_acc_guard.GuardTest.test_sibling_campaign_does_not_decide) ... ok
+----------------------------------------------------------------------
+Ran 14 tests in 0.071s
+OK
+```
+
+**Probe of the real data trees, printed by `experiments_loader_guard_261008/probe_data_trees.py` (verbatim; 13 lines '(missing root) experiments_energy_transfer/level4…_driver.log' omitted: files that matched the root pattern, not data directories):**
+
+```
+directories holding an accelerated record: 256 (1 of them an experiments root, never scanned by design)
+  of the others refused by the guard: 255 / 255
+  experiments root with an accelerated record: hspist3/experiments_energy_transfer
+paper data roots: 67; directories under them: 2476; refused: 0
+```
+
+**The wired loaders, printed by `python3 validation/edmd_acc_guard.py --list` (verbatim; the table of the 37 indirect calls is in `experiments_loader_guard_261008/wired_loaders.txt`):**
+
+| file | line | call |
+|---|---|---|
+| validation/estimator_massladder_20260917.py | 64 | `d = pd.read_csv(edmd_acc_guard.guard(p), usecols=["Time", "Displacement(σ)", "Predicted_Frequency", "L0"])` |
+| validation/level2_Au_figure_20260918.py | 36 | `t = pd.read_csv(edmd_acc_guard.guard(tr), usecols=["PistonR_x_sigma", "PistonR_v"], low_memory=False)` |
+| validation/paper1_A2_boxtrunc_261002.py | 43 | `m = re.search(r"--height=([\d.]+)", open(edmd_acc_guard.guard(c), errors="ignore").read())` |
+| validation/paper1_A2_boxtrunc_261002.py | 48 | `h = pd.read_csv(edmd_acc_guard.guard(tr), nrows=1)` |
+| validation/paper1_boxtrunc_20261014.py | 54 | `h = pd.read_csv(edmd_acc_guard.guard(tr0[0]), nrows=1).iloc[0]` |
+| validation/paper1_boxtrunc_20261014.py | 59 | `disp = np.mean([pd.read_csv(edmd_acc_guard.guard(p), usecols=["Displacement(σ)"])["Displacement(σ)"].mean() for p in tr0` |
+| validation/paper1_confinement_afix_261005.py | 54 | `r = pd.read_csv(edmd_acc_guard.guard(f)).iloc[0]; rows.append(r)` |
+| validation/paper1_confinement_afix_261005.py | 57 | `health += len(HEALTH.findall(open(edmd_acc_guard.guard(os.path.join(d0, f"x_{lab}", f"run_{s}.log")), errors="ignore").r` |
+| validation/paper1_confinement_afix_261005.py | 58 | `sm = pd.read_csv(edmd_acc_guard.guard(os.path.join(d0, f"x_{lab}", f"summary_{s}.csv"))).iloc[-1]; builds.add(str(sm["bu` |
+| validation/paper1_confinement_heldwall_posthoc_261004.py | 48 | `d = pd.read_csv(edmd_acc_guard.guard(f), usecols=["Time", "W0_x_sigma"]); x = d["W0_x_sigma"].to_numpy() - L0` |
+| validation/paper1_confinement_heldwall_posthoc_261004.py | 59 | `D = pd.concat([pd.read_csv(edmd_acc_guard.guard(f)) for f in files], ignore_index=True); n = len(D)` |
+| validation/paper1_confinement_heldwall_posthoc_261004.py | 129 | `d = pd.read_csv(edmd_acc_guard.guard(f), usecols=["Time", "W0_x_sigma"])` |
+| validation/paper1_confinement_prereg_20261012.py | 45 | `e = pd.read_csv(edmd_acc_guard.guard(f), usecols=["t_sigma", "kind", "dp"]); d = e[e["kind"] == "D0"]` |
+| validation/paper1_confinement_prereg_20261012.py | 56 | `s = open(edmd_acc_guard.guard(os.path.join(d, "run.log")), errors="ignore").read()` |
+| validation/paper1_confinement_results_261004.py | 72 | `if os.path.exists(p) and "[EDMD-RESCHED]" in open(edmd_acc_guard.guard(p), errors="ignore").read():` |
+| validation/paper1_confinement_results_261004.py | 121 | `r = pd.read_csv(edmd_acc_guard.guard(os.path.join(d, "red_nu.csv"))); nB += len(r); nmiss += int(r["n"].isna().sum())` |
+| validation/paper1_confinement_results_261004.py | 122 | `lg = open(edmd_acc_guard.guard(os.path.join(d, "run.log")), errors="ignore").read(); hB += len(HEALTH.findall(lg))` |
+| validation/paper1_confinement_results_261004.py | 135 | `nA += 1; wins.append(float(pd.read_csv(edmd_acc_guard.guard(rp))["window"].iloc[0]))` |
+| validation/paper1_confinement_results_261004.py | 136 | `hA += len(HEALTH.findall(open(edmd_acc_guard.guard(os.path.join(d, f"run_{s}.log")), errors="ignore").read()))` |
+| validation/paper1_confinement_results_261004.py | 137 | `sm = pd.read_csv(edmd_acc_guard.guard(os.path.join(d, f"summary_{s}.csv")))` |
+| validation/paper1_confinement_results_261004.py | 170 | `shutil.copytree(edmd_acc_guard.guard(src), d0, ignore=shutil.ignore_patterns("_determinism"))` |
+| validation/paper1_confinement_results_261004.py | 200 | `d = pd.read_csv(edmd_acc_guard.guard(os.path.join(HS, REL_B, c["cid"], f"m_{M}", "red_nu.csv")))` |
+| validation/paper1_confinement_results_261004.py | 282 | `R = pd.concat([pd.read_csv(edmd_acc_guard.guard(os.path.join(ad, f"x_{lab}", f"red_{s}.csv"))) for s in c["seeds"][lab]]` |
+| validation/paper1_confinement_results_261004.py | 331 | `z = np.load(edmd_acc_guard.guard(os.path.join(HS, REL_B, c["cid"], f"m_{r['M']}", "acf_runs.npz")))` |
+| validation/paper1_populate_cs_err_20261002.py | 77 | `edmd_acc_guard.guard(p)          # every trajectory of the cell, also the discarded ones` |
+| validation/paper2_figures_20261001.py | 145 | `e = pd.read_csv(edmd_acc_guard.guard(f))` |
+| validation/paper2_geometry_fix_20260918.py | 45 | `e = pd.read_csv(edmd_acc_guard.guard(ev))` |
+| validation/paper2_ramp_fast_20260918.py | 42 | `w = np.array([float(r) for r in pd.read_csv(edmd_acc_guard.guard(f"{d}/summary.csv"))["W_in_max"]])` |
+| validation/paper2_ramp_fast_20260918.py | 58 | `h = dict(re.findall(r"(\w+)=([-\d.]+)", open(edmd_acc_guard.guard(f)).readline()))` |
+| validation/paper2_ramp_fast_20260918.py | 60 | `d_ = pd.read_csv(edmd_acc_guard.guard(f), skiprows=1)` |
+| validation/paper2_ramp_fast_20260918.py | 97 | `h = dict(_re.findall(r"(\w+)=([-\d.]+)", open(edmd_acc_guard.guard(f)).readline()))` |
+| validation/paper2_ramp_fast_20260918.py | 99 | `dd = pd.read_csv(edmd_acc_guard.guard(f), skiprows=1)` |
+| validation/paper2_ramp_fast_20260918.py | 197 | `t = pd.read_csv(edmd_acc_guard.guard(tr), usecols=["PistonR_x_sigma", "PistonR_v"], low_memory=False)` |
+| validation/resched_gate_261005.py | 116 | `rn = pd.read_csv(edmd_acc_guard.guard(os.path.join(d, "red_nu.csv")))` |
+| validation/resched_gate_261005.py | 120 | `secs = open(edmd_acc_guard.guard(os.path.join(d, "run.log")), errors="ignore").read().split("##RUN")[1:]` |
+| validation/resched_gate_261005.py | 133 | `nh += open(edmd_acc_guard.guard(f), errors="ignore").read().count("[EDMD-HEALTH]")` |
+| validation/resched_gate_261005.py | 141 | `nh += open(edmd_acc_guard.guard(lg), errors="ignore").read().count("[EDMD-HEALTH]")` |
+| validation/resched_gate_261005.py | 145 | `matched += 1; r = pd.read_csv(edmd_acc_guard.guard(f)).iloc[0]; uw += (r["u_wall_max"] != 0.0) or (r["W_div"] != 0.0)` |
+| validation/resched_gate_261005.py | 146 | `log = open(edmd_acc_guard.guard(os.path.join(d0, f"x_{lab}", f"run_{s}.log")), errors="ignore").read()` |
+| validation/tests_20260913.py | 173 | `edmd_acc_guard.guard(run_dir)` |
+| validation/tests_20260913.py | 222 | `cmd = open(edmd_acc_guard.guard(f"{d}/00_COMMAND.md"), errors="replace").read()` |
+| validation/tests_20260913.py | 226 | `with open(edmd_acc_guard.guard(f50)) as fh:` |
+| validation/tests_20260913.py | 473 | `edmd_acc_guard.guard(path)` |
+| validation/tests_20260913.py | 601 | `for m in HEALTH_RE.finditer(open(edmd_acc_guard.guard(path_log), errors="replace").read()):` |
+| validation/tests_20260913.py | 608 | `edmd_acc_guard.guard(cell)` |
+45 guard() calls in 14 files
+
+37 calls in 21 files
+
+**Amendment a: commits after 2cdfe04 and the build inputs, `experiments_gen3_m1_261008/e0_precheck_head_commits.txt` (engine-gen3; verbatim):**
+
+```
+# ##CHRIS 2026-10-08 23:30 HST (261012 sec. 4.7.4, amendment a): engine-gen3 commits after 2cdfe04 and the build inputs each touches
+# build inputs = the files the Makefile compiles into 00ALLINONE: 00ALLINONE.c, edmd_core/edmd.[ch], edmd_core/edmd_accelerated.[ch], experiment_validation.[ch], Makefile, kissfft
+
+a20f356 2026-10-08 17:14: 2 files; build inputs touched: none
+8366369 2026-10-08 17:22: 6 files; build inputs touched: none
+54bfef5 2026-10-08 17:24: 3 files; build inputs touched: none
+b6b2dfd 2026-10-08 19:31: 5 files; build inputs touched: none
+7b3b11a 2026-10-08 19:52: 1 files; build inputs touched: none
+3d42d0b 2026-10-08 22:55: 1 files; build inputs touched: none
+
+$ git diff --stat 2cdfe04 HEAD -- <build inputs>   (HEAD = 3d42d0b)
+(end of output)
+$ git diff --stat 7b08827 HEAD -- <build inputs>   (HEAD = 3d42d0b)
+ hspist3/00ALLINONE.c | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+(end of output)
+```
+
+**Amendment a: the gate runner at engine-gen3 HEAD, `experiments_gen3_m1_261008/e0_precheck_head_report.txt` (engine-gen3), printed by `cluster/resched_gate_261005/audit_runs_261007.py report` (verbatim; its verdict line again needs the A-fixed and mode-1 cases, not run here):**
+
+```
+| case | version (audit run) | mode | audited events | matched | missing | extra | abs(dt) > 1e-9 | duplicate live disagreeing | max abs(dt) matched | abs(dt) > 1e-9 and > 1e-10 of horizon | max abs(dt)/horizon | max contact gap [px] (dd, wall, div, piston) | audit vs plain | plain vs ref |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | git 3d42d0b  target mac-O3-e0pre | 2 | 104866 | 58275689 | 0 | 0 | 696 | 0 | 2.42e-08 | 0 | 1.84e-13 | 4.7e-12, 4.0e-12, 2.3e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+| ctrl_leg | git 3d42d0b  target mac-O3-e0pre | 2 | 104776 | 58349834 | 0 | 0 | 423 | 0 | 2.86e-06 | 0 | 4.59e-12 | 5.2e-12, 3.0e-12, 3.0e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+```

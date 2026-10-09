@@ -43,6 +43,7 @@ from scipy.optimize import curve_fit
 HERE = os.path.dirname(os.path.abspath(__file__)); HS = os.path.dirname(HERE)
 sys.path.insert(0, HERE); sys.path.insert(0, HS)
 import tests_20260913 as T
+import edmd_acc_guard   # ##CHRIS 2026-10-08 (261012 sec. 4.7.4, decision 2): the loader provenance guard (full name: no alias can be shadowed)
 import paper1_confinement_prereg_20261012 as PR
 from paper1_populate_cs_err_20261002 import slope_with_errors, box_delta, TD, X_EDGE
 
@@ -68,7 +69,7 @@ ALLOW_NEW_BUILD = os.environ.get("HD_ALLOW_BUILD_MIX") == "1"
 def refuse_new_build(logs):
     if ALLOW_NEW_BUILD: return
     for p in logs:
-        if os.path.exists(p) and "[EDMD-RESCHED]" in open(p, errors="ignore").read():
+        if os.path.exists(p) and "[EDMD-RESCHED]" in open(edmd_acc_guard.guard(p), errors="ignore").read():
             sys.exit(f"STOP: {p} was written by a post-279282b build ([EDMD-RESCHED] line); the registered 279282b analysis "
                      "does not mix build generations (HD_ALLOW_BUILD_MIX=1 overrides explicitly)")
 
@@ -117,8 +118,8 @@ def inventory(CS):
                 p = os.path.join(d, f)
                 if os.path.exists(p):
                     bf += 1; bsz += os.path.getsize(p)
-            r = pd.read_csv(os.path.join(d, "red_nu.csv")); nB += len(r); nmiss += int(r["n"].isna().sum())
-            lg = open(os.path.join(d, "run.log"), errors="ignore").read(); hB += len(HEALTH.findall(lg))
+            r = pd.read_csv(edmd_acc_guard.guard(os.path.join(d, "red_nu.csv"))); nB += len(r); nmiss += int(r["n"].isna().sum())
+            lg = open(edmd_acc_guard.guard(os.path.join(d, "run.log")), errors="ignore").read(); hB += len(HEALTH.findall(lg))
             for v in re.findall(r"Initial wall_x = ([\d.]+)", lg):
                 nwx += 1; wx_bad += abs(float(v) - (200 + 24 * c["L0"])) > 1e-3
         nA = hA = af = asz = 0; wins = []; builds = set(); geo_bad = 0
@@ -131,9 +132,9 @@ def inventory(CS):
                         af += 1; asz += os.path.getsize(p)
                 rp = os.path.join(d, f"red_{s}.csv")
                 if os.path.exists(rp) and os.path.getsize(rp) > 0:
-                    nA += 1; wins.append(float(pd.read_csv(rp)["window"].iloc[0]))
-                hA += len(HEALTH.findall(open(os.path.join(d, f"run_{s}.log"), errors="ignore").read()))
-                sm = pd.read_csv(os.path.join(d, f"summary_{s}.csv"))
+                    nA += 1; wins.append(float(pd.read_csv(edmd_acc_guard.guard(rp))["window"].iloc[0]))
+                hA += len(HEALTH.findall(open(edmd_acc_guard.guard(os.path.join(d, f"run_{s}.log")), errors="ignore").read()))
+                sm = pd.read_csv(edmd_acc_guard.guard(os.path.join(d, f"summary_{s}.csv")))
                 if len(sm) != 1: geo_bad += 1
                 sm = sm.iloc[-1]; builds.add(str(sm["build_git"]))
                 eta_rec = c["Ns"] * math.pi * RD ** 2 / (c["H"] * c["L0"])
@@ -166,7 +167,7 @@ def reduction_gate():
     worst = 0.0
     with tempfile.TemporaryDirectory() as tmp:
         d0 = os.path.join(tmp, "cell")
-        shutil.copytree(src, d0, ignore=shutil.ignore_patterns("_determinism"))
+        shutil.copytree(edmd_acc_guard.guard(src), d0, ignore=shutil.ignore_patterns("_determinism"))
         subprocess.run([sys.executable, os.path.join(CONF, "reduce_B.py"), d0], check=True, capture_output=True, cwd=HS)
         for d in sorted(glob.glob(os.path.join(d0, "m_*")), key=lambda q: int(q.rsplit("_", 1)[1])):
             M = int(d.rsplit("_", 1)[1]); r = pd.read_csv(os.path.join(d, "red_nu.csv"))
@@ -196,7 +197,7 @@ def method_B(c):
     rows = []
     refuse_new_build([os.path.join(HS, REL_B, c["cid"], f"m_{M}", "run.log") for M in c["Ms"]])
     for M in c["Ms"]:
-        d = pd.read_csv(os.path.join(HS, REL_B, c["cid"], f"m_{M}", "red_nu.csv"))
+        d = pd.read_csv(edmd_acc_guard.guard(os.path.join(HS, REL_B, c["cid"], f"m_{M}", "red_nu.csv")))
         nu = d["nu"].to_numpy(float); n = len(nu)
         al = M / (2.0 * c["Ns"])
         rows.append(dict(M=M, alpha=al, K=T.k_root(al), nu=nu.mean(), sd=nu.std(ddof=1), n=n, se=nu.std(ddof=1) / math.sqrt(n),
@@ -278,7 +279,7 @@ def method_A(c):
     ad = os.path.join(HS, REL_A, c["cid"]); st = {}
     refuse_new_build([os.path.join(ad, f"x_{lab}", f"run_{s}.log") for lab, _ in POS for s in c["seeds"][lab]])
     for lab, j in POS:
-        R = pd.concat([pd.read_csv(os.path.join(ad, f"x_{lab}", f"red_{s}.csv")) for s in c["seeds"][lab]], ignore_index=True)
+        R = pd.concat([pd.read_csv(edmd_acc_guard.guard(os.path.join(ad, f"x_{lab}", f"red_{s}.csv"))) for s in c["seeds"][lab]], ignore_index=True)
         n = len(R)
         st[j] = dict(n=n, FL=R["F_L"].mean(), FR=R["F_R"].mean(), sFL=R["F_L"].std(ddof=1) / math.sqrt(n),
                      sFR=R["F_R"].std(ddof=1) / math.sqrt(n), T=float(((R["T_L"] + R["T_R"]) / 2).mean()))
@@ -327,7 +328,7 @@ def _fit_acf(C, dt, nu):
 def damping(c):
     out = []
     for r in c["B"]:
-        z = np.load(os.path.join(HS, REL_B, c["cid"], f"m_{r['M']}", "acf_runs.npz"))
+        z = np.load(edmd_acc_guard.guard(os.path.join(HS, REL_B, c["cid"], f"m_{r['M']}", "acf_runs.npz")))
         runs = [z[k].astype(float) for k in sorted(z.files, key=lambda s: int(s[3:]))]
         L = min(len(a) for a in runs); A = np.array([a[:L] for a in runs]); Cm = A.mean(0)
         try:

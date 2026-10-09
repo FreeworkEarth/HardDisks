@@ -18,6 +18,7 @@ import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import plot_speed_of_sound_edmd as sos
+import edmd_acc_guard   # ##CHRIS 2026-10-08 (261012 sec. 4.7.4, decision 2): the loader provenance guard (full name: no alias can be shadowed)
 from paper2_geometry_fix_20260918 import zwall, eta_of, w_qs, ET, FACE, NS, H
 
 RAMP = f"{ET}/level2_ramp_20260918"
@@ -38,7 +39,7 @@ def path_points():
 
 
 def cell(d):
-    w = np.array([float(r) for r in pd.read_csv(f"{d}/summary.csv")["W_in_max"]])
+    w = np.array([float(r) for r in pd.read_csv(edmd_acc_guard.guard(f"{d}/summary.csv"))["W_in_max"]])
     return w.mean(), w.std(ddof=1) / math.sqrt(len(w)), w.std(ddof=1), len(w)
 
 
@@ -54,9 +55,9 @@ def snapshots(d, nbins=10):
         return None
     vs, ns, pistons = [], [], []
     for f in fs:
-        h = dict(re.findall(r"(\w+)=([-\d.]+)", open(f).readline()))
+        h = dict(re.findall(r"(\w+)=([-\d.]+)", open(edmd_acc_guard.guard(f)).readline()))
         piston = float(h["piston_x_sigma"]) - 8.3333333  # screen frame -> box frame
-        d_ = pd.read_csv(f, skiprows=1)
+        d_ = pd.read_csv(edmd_acc_guard.guard(f), skiprows=1)
         x = d_["x_sigma"].to_numpy(float); vx = d_["vx"].to_numpy(float)
         k = x > DIV_FACE
         x, vx = x[k], vx[k]
@@ -93,9 +94,9 @@ def boot(d, base, nboot=200, nbins=10):
     fs = sorted(glob.glob(f"{d}/snap_*.csv"))
     V, N, P = [], [], []
     for f in fs:
-        h = dict(_re.findall(r"(\w+)=([-\d.]+)", open(f).readline()))
+        h = dict(_re.findall(r"(\w+)=([-\d.]+)", open(edmd_acc_guard.guard(f)).readline()))
         piston = float(h["piston_x_sigma"]) - 8.3333333
-        dd = pd.read_csv(f, skiprows=1)
+        dd = pd.read_csv(edmd_acc_guard.guard(f), skiprows=1)
         x = dd["x_sigma"].to_numpy(float); vx = dd["vx"].to_numpy(float)
         k = x > DIV_FACE; x, vx = x[k], vx[k]
         edges = np.linspace(DIV_FACE, piston, nbins + 1)
@@ -193,7 +194,7 @@ def main():
             if not os.path.exists(f"{d}/summary.csv"): continue
             m, s, sd, n = cell(d)
             tr = sorted(glob.glob(f"{d}/tr_*.csv") + glob.glob(f"{d}/tr_*.csv.gz"))[0]
-            t = pd.read_csv(tr, usecols=["PistonR_x_sigma", "PistonR_v"], low_memory=False)
+            t = pd.read_csv(edmd_acc_guard.guard(tr), usecols=["PistonR_x_sigma", "PistonR_v"], low_memory=False)
             v = np.abs(t["PistonR_v"].to_numpy(float)); x = t["PistonR_x_sigma"].to_numpy(float)
             mv = np.nonzero(v > 1e-12)[0]
             travel = abs(x[mv[-1]] - x[mv[0]])
