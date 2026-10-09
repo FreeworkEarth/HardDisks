@@ -8302,3 +8302,387 @@ A2 (260919_A2_cs_per_mass.csv), eta 0.10, N = 1600: M 50: n_runs 35, M 200: n_ru
   of the 504 campaign_r25 runs with a health line, traces among the files read: 1 (eta_0p026180 M 50 run 0)
   the paper scripts use campaign_r25 for metadata only: tests_20260913.a1_leaf_table reads the L0 strings and the first trace row (eta, Predicted_Frequency) of one M = 50 run per cell; no paper number is computed from its trajectories.
 ```
+
+### 4.7.14 Stage A (M3) done: gen3 behind --engine=gen3 in the driver; amendments a–e, acceptance 1–6, A1–A5; the loader guard for gen3 runs (2026-10-09 12:25 HST, machine date) [DATA, printed by script; SOURCE; DERIVATION where marked] — for the plan author's review; not "accepted"
+
+**Plain summary.**
+- **Every M3 acceptance item and amendment a–e holds in the printed tables below, run with frozen binaries built from the committed tree** (engine-gen3 `f42befb`, build line `00ALLINONE  git f42befb  target mac-O3-e0pre`, no `-dirty`).
+- **gen2 is still frozen** (acceptance 1, rule 4). The default build and `--engine=gen2` give outputs byte-identical to 7b08827 on ctrl_min and ctrl_leg.
+- **The engine fix of this stage (parked pistons, rule 8) changed no harness output.** The M1 and M2 harness outputs are byte-identical to the committed ones.
+- **`--engine=gen3` through the driver reproduces the harnesses' event hashes from the same state.** That is 64 of 64 replays (16 cells, 4 reader and stop cadences), all clean=1.
+- **Observation does not steer.** The event hash is the same at every output cadence in both loops, and a same-seed repeat is byte-identical.
+- **Health:** every gen3 run of this stage has a run record with clean=1 (32 driver runs, 64 replays).
+- **Production-length run (amendment d):** N = 400, η 0.70, free M = 500, 20,033 σ-time, 58 origin shifts, 1.1e8 events.
+  - Max contact gaps 4.2e-12 px (pairs), 2.2e-12 (walls), 2.2e-12 (divider). Gap / time quantum is 2.3, 1.2 and 1.2 px per unit time, against K v_ref = 160 px per unit time in the tolerance.
+  - 111 schedule audits, 0 findings.
+  - Ledger residuals 1e-5 to 7e-5 of their rounding scale.
+  - The driver's share of the run time is 11.8 %.
+- **Band-edge cells (amendment a):** 0 bands missing / extra / short in all 8 cells, health clean.
+  - The generic-y variants have no finding in any class.
+  - The exact variants' 61 audit lines (14 distinct findings) are all exact ties of the dyadic construction, classified by a script with the numbers: 7 exact grazes, 6 cell-corner ties and 1 near graze within rounding (class K, added after the classifier's first run).
+- **Loader guard (amendment e):** loaders now refuse gen3 data whose run record says clean ≠ 1, or that lacks a record.
+  - It is wired through `edmd_acc_guard.guard()`, so the 20 paper scripts and the T′ script did not change.
+  - Their outputs before and after are identical; the unit tests pass (32 of 32).
+- **Not done of § 4.7's M3 scope:** position snapshots and the virial per compartment (deferred; stages B–F do not need them).
+- **One deviation from the letter of rule 3, disclosed (decision 9 below):** raw evidence files above 256 kB were compressed losslessly with gzip after the tables were printed, and the SHA-256 of each uncompressed file is in a manifest.
+
+**Done / not done.**
+
+| item | status | evidence (below) |
+|---|---|---|
+| A1 `--psi6-every=` (default 0.25 σ-time) | done | flag in the driver; table 6 (cadences 0.05, 0.25, 1000) |
+| A2 carried-over Left/Right counts stated | done | the trace documentation in `00_COMMAND_AND_PLOT_COMMAND.md` under gen3; table 7 note |
+| A3 energy-transfer loop: sync on demand, validator and trace cadence | done | table 6: hash 4428249ad3af787f at the default cadence, `--validator-every=1`, and with `--trace-every=1` added; event logs identical; traces nested |
+| A4 driver share, both loops, N = 400 and 1600, π/8 and 0.70 | done | table 9 |
+| A5 run record names engine and build line | done | the `[EDMD3-HEALTH]` line: `engine=gen3 build="f42befb" target=mac-O3-e0pre` |
+| amendment a: no-miss argument | done | below (DERIVATION) |
+| amendment a: band-edge stress cells | done | tables 3 (band-edge, ties) |
+| amendment b: constructed spring cases | done | table 3: 8 categories × 2000, 0 failures |
+| amendment c: v_ref against prescribed speeds | done (statement) | below |
+| amendment d: production-length run | done | table 5 |
+| amendment e: health flag in the run record, loader refusal, unit test, record format | done | below; guard tables |
+| acceptance 1 (rule 4) | done | table 2: IDENTICAL, both builds |
+| acceptance 2 | done | table 4: 64/64 MATCH |
+| acceptance 3 | done | tables 4, 6 |
+| acceptance 4 | done | table 7 (every gen3 run clean=1; cadence stated) |
+| acceptance 5 | done | table 8 (outputs exist; gen3 − gen2 = −0.06 %, z = −0.20 on 8 + 8 seeds, information) |
+| acceptance 6 | done | table 6 (repeat byte-identical); warnings below |
+| § 4.7 M3: equal record time | done | `--record-sigma-time=` |
+| § 4.7 M3: position snapshots | **not done** (deferred; no stage today needs them) | — |
+| § 4.7 M3: virial per compartment | **not done** (deferred; needs an engine accumulator per compartment) | — |
+| § 4.7 M3: run header | the run record at the end of each trajectory (A5); T_eq in the run header belongs to M4 (stage C) | — |
+
+**Decision log.**
+1. **Engine fix (rule 8).** `full_check` counted a parked piston as a body outside the box. The driver parks unused pistons at x = −1 px and boxW + 6 px, so a stop followed under gen3 for the static method. Now a parked left (right) piston is checked on its inner face only. After the fix the M1 and M2 harness outputs are byte-identical to the committed ones (table 3).
+2. **The gen3 event log** writes edmd.c's gated rows (same columns, same values per event; `t_sigma,kind,u_wall,v_before,v_after,dE,dp`). Under gen3 the driver opens the file named by `HD_PISTON_EVENTS`.
+3. **A compiled-out audit hook** (`EDMD3_AUDIT_HOOK`, `edmd_gen3.c` `audit_print`) is used only by the white-box classifier `gen3_band_edge_ties.c`. Without the macro the preprocessor removes it.
+4. **psi6(t) is written under gen3 only**, one file per trajectory: `psi6_t_L0_<L>_wallmassfactor_<M>_run<r>.csv`, with columns t_sigma, phase, psi6 global, local, neighbours. gen2's outputs are unchanged.
+5. **Validator cadence:** under gen3 the default is every 60 steps of 1/60 σ-time (once per σ-time, `--validator-every=`); under gen2 it stays at every step.
+6. **Band-edge cells (amendment a), three additions:**
+   - Rows just INSIDE the reach were added, because the amendment asks for "just on either side".
+   - A "generic y" variant (y positions and velocities non-dyadic, x kept) separates exact-tie artefacts of the construction from band findings.
+   - A white-box classifier prints the numbers behind every audit finding.
+   - Its classes are decided from the doubles. **Class K (near graze, discriminant zero within rounding) was added after the classifier's first run**, which left one finding unclassified: the spring cell's pair 12/18, a time disagreement of 5.2e-8 on a 256-unit horizon, r_x = d − 3.3e-12 px, dv_x = −2.2e-14. The class definition and this history are in the file's header.
+   - The audit criterion itself (rel > 1e-10) was not changed. The finding is counted in the table.
+7. **The loader guard for gen3 runs** is a separate module, `validation/edmd3_health_guard.py` (style of `edmd_acc_guard`). It is called at the end of `edmd_acc_guard.guard()`, so every wired loader refuses gen3 data with a dirty or missing record without an edit of its own. gen2 data is untouched: the check returns before it reads anything else when no governing record shows gen3.
+8. **Clean builds (rule 5):** `experiments_gen3_m3_261009/build_clean.sh` takes `git archive` of the commit and copies kissfft's six source files from the worktree. kissfft is a submodule (febd4cae) plus the project's local 3-line change to `kiss_fft_log.h` (the same in main's tree); the change and the SHA-256 of the files are in `build_record_f42befb.txt`. The frozen binaries (`bin_stageA/`, not committed) are checked against the build record (table 1).
+9. **Disk (rule 6) against rule 3, a deviation disclosed.** After the tables were printed, the 50 raw evidence files above 256 kB were compressed in place with `gzip -9`: event logs, the every-step trace, psi6(t) files and the like. The evidence folder went from 163 MB to 44 MB.
+   - Before compression, the SHA-256 of each uncompressed file went into `evidence_f42befb/SHA256_UNCOMPRESSED.txt`, and `gzip -t` was run on each result.
+   - Nothing is lost: gunzip restores every file byte for byte. The uncompressed file is replaced by its gzip form, which departs from the letter of "delete nothing".
+   - The same procedure is planned for Test G, whose traces are 1.3 GB uncompressed. To rerun `stageA_tables.py`, gunzip first.
+10. **M3 scope (§ 4.7):** position snapshots and the virial per compartment are not done. Neither is needed by stages B–F.
+
+**The no-miss argument for the band margin (amendment a) [DERIVATION].**
+- **Setting.** A body o is a divider (a slab of thickness th centred at c(t)) or a piston (one face).
+  - A disk centre x touches a divider iff |x − c| = h with h = th/2 + R; a piston at its face plus R on one side.
+  - The band computed at t0 (`band_compute`) holds [lo, hi] ⊇ {c(t) : t ∈ [t0, t_band]}.
+  - The contact positions of a disk centre are [X0, X1] = [lo − h, hi + h] (a piston: one side).
+  - The band columns are B = {k : (k+1) w ≥ X0 − m and k w ≤ X1 + m}: a closed test with margin m = `tol_wall` = 1.2e-5 px at R = 12 px.
+- **Assumptions.**
+  - (A1) **Membership.** A disk filed in column k satisfies k w − δ ≤ x(t) ≤ (k+1) w + δ until its next crossing.
+    - δ is the crossing residual plus the position rounding at evaluation, ≤ max crossing residual + v_ref u_t.
+    - It is bounded by the local check: a local coordinate outside [−tol_cell, w + tol_cell] (tol_cell = 1e-9 px) is a cell repair, a health counter that is 0 in every run today.
+    - Measured: max crossing residual 3.04e-12 px in the production run.
+    - (This is what bounds the difference between a disk's cell membership and its position.)
+  - (A2) **Body reach over one band life.** [lo, hi] contains every body position from t0 to t_band, exactly in exact arithmetic:
+    - held: c; the band never expires;
+    - constant velocity v: [c, c + v w/|v|] with t_band = t0 + w/|v|, one cell width;
+    - spring: |c(t0 + s) − c(t0)| ≤ |v| s + ω²A s²/2, because |c''| = ω²|c − x_eq| ≤ ω²A. So for s ≤ s* (|v| s* + ω²A s*²/2 = w) the reach is ≤ w, and always c ∈ [x_eq − A, x_eq + A]: [lo, hi] = [min(c, max(c − w, x_eq − A)), max(c, min(c + w, x_eq + A))].
+    - Rounding of lo, hi, t_band, X0 and X1 is a few ulp(box) ≪ m.
+    - (This is where the body's reach over one epoch enters.)
+  - (A3) **The disk radius** enters only through h: the contact positions [lo − h, hi + h].
+  - (A4) **Every change of the body's motion recomputes its band at that instant.**
+    - A velocity or mass change by a collision (finite mass) or by the API (`obj_changed`) starts a new epoch, recomputes the band and re-predicts every band column's disks against the new motion.
+    - The expiry (the BAND event at t_band) recomputes the band from the body's state at t_band and predicts the disks of the new columns.
+    - Between those instants the body follows the trajectory that the predictions used.
+  - (A5) A disk crossing from a non-band column into a band column gets the body's prediction at that crossing (`exec_cross`). A disk whose own velocity changes is predicted against every body whose band holds its column (`predict_all`).
+  - (A6) At equal times BAND < DIV < PISTON (event-type order), so a contact due at exactly t_band, of a disk in a newly added column, is predicted before it is due (dt = 0, executed at once).
+- **Argument.**
+  - Let a disk touch the body at t* ∈ [t0, t_band), with the band computed at t0 and no motion change of the body in between (A4).
+  - Then x(t*) = c(t*) ± h ∈ [X0, X1]. Let k be the disk's column at t*.
+  - By (A1), (k+1) w ≥ x(t*) − δ ≥ X0 − δ and k w ≤ x(t*) + δ ≤ X1 + δ. With δ ≤ m, k ∈ B.
+  - The disk was predicted against the body when B was computed (it was in a band column then), or at its last velocity change (A5), or at its crossing into column k (A5). Its contact event is therefore in the heap at t*.
+  - For t* ≥ t_band the BAND event recomputed the band (A4, A6) and the argument repeats for the next band life.
+- **The margin needed** is δ plus rounding: tol_cell (1e-9) + a few ulp(box) (≤ 1e-10 for boxes below 2^20 px) + v_ref u_t (7e-11 px at v_ref = 40). That is ≈ 1.2e-9 px against m = 1.2e-5 px, a factor of about 1e4.
+- **Measured today:** max crossing residual 3.04e-12 px, and 2.0e8 local checks without a finding in the production run. The band-edge cells exercise the closed test exactly on column boundaries (8 cells: bands missing / extra / short 0 / 0 / 0).
+
+**Amendment c: v_ref against prescribed speeds [SOURCE: `edmd_gen3.c` `tol_update`; DERIVATION].**
+- **The bound.** v_ref = sqrt(2 E_bound (1 + 1/m_min)) + max |u| over bodies of mass 0 (driven dividers, massless pistons). The prescribed speeds are already in the second term (M2), so nothing had to be added. It bounds every relative speed:
+  - pair: |v_i − v_j| ≤ sqrt(2E · 2) ≤ the first term (m_min ≤ 1);
+  - disk against a body of finite mass M: |v − V| ≤ sqrt(2E (1 + 1/M)) (Cauchy–Schwarz on ½v² + ½MV² ≤ E) ≤ the first term;
+  - disk against a mass-0 body with prescribed u: |v − u| ≤ |v| + |u| ≤ sqrt(2E) + |u| ≤ v_ref.
+- **E_bound bounds E at all times.** It is the largest mechanical energy so far: E0 plus the work of driven bodies and API changes.
+  - It is updated after every collision with a moving mass-0 body (`exec_obj`) and at every API change (`set_motion`).
+  - `tol_update` runs at load, at every API change of a body, and whenever E_bound grows.
+- **So the bound holds for every allowed protocol.**
+- **Measured:** in the production run v_ref = 40 px/unit (E = 400, m_min = 1). The largest contact gap divided by the time quantum is 2.29 px/unit, against K v_ref = 160 px/unit in tol_face, about 1.4 % of the tolerance.
+
+**Amendment e: the run record and the loader rule [SOURCE].**
+- **Record.** One line per gen3 trajectory, printed into the run log at its end ALWAYS, also when every counter is 0 (`00ALLINONE.c` `g3_run_record`):
+  `[EDMD3-HEALTH] <run id>: clean=<1|0> <every EDMD3_Health counter as name=value> validator_every=<K> hash=<16 hex> t_end=<internal units> engine=gen3 build="<git>" target=<target> run_s=<s> engine_s=<s> driver_share=<fraction>`.
+  - Run ids: speed of sound `L0=<%.1f> M=<int> run=<int> seed=<uint>`; energy transfer `energy-transfer seed=<uint>`; replay `replay <name>`.
+  - A run that never advanced prints `clean=0 no gen3 state`.
+  - Each gen3 state prints one `[EDMD3] built #n ...` line when it is built, one per trajectory.
+- **Loader rule (`validation/edmd3_health_guard.py`).** Data is gen3 data if a governing run log holds a gen3 line, or the nearest directory whose run records name an engine names gen3. Governing records are edmd_acc_guard's: the own directory and its ancestors below the experiments root. Such data is refused (`Gen3RunError`) if:
+  - a governing record has clean ≠ 1;
+  - a governing log has more builds than records, or no governing log has any record;
+  - a per-run file (`..._L0_<L0>_wallmassfactor_<M>_run<r>.<ext>`) has no record with its id.
+- **Limit:** data whose run left no log or record in its directory chain cannot be recognised. The gen3 run scripts keep the log next to the data.
+- **Evidence (`hspist3/experiments_gen3_health_guard_261009/`):** unit tests 32 of 32 OK (18 new and the 14 of `test_edmd_acc_guard.py` with the hook in place). The paper scripts before and after: identical (table below). `run_before_after.sh` runs the 20 paper scripts and the T′ verdict script on main's tree with HEAD's code, installs the guard, runs them again, compares, and restores the outputs; the working tree's status differs only by the three guard files.
+
+**Warnings (acceptance 6).** 0 warnings under `-Wall -Wextra` in `edmd_gen3.c`, in every harness and test, and in the new driver code. The driver's 25 `-Wall -Wextra` warnings are all in `00ALLINONE.c` and are the same set (messages compared, line numbers aside) as in its parent version (engine-gen3 bade22d).
+
+**Disk (rule 6).** df before the run stage: 11 GiB free; 9.2 GiB at 12:20 (the Mac's other processes included). My new data since 11:30: 0.21 GB. Of it, 44 MB is the evidence folder (after compression) and 1.1 MB the frozen binaries; the rest is the scratch folder.
+
+**Printed by `python3 experiments_gen3_m3_261009/stageA_tables.py --bin-dir experiments_gen3_m3_261009/bin_stageA --out experiments_gen3_m3_261009/evidence_f42befb` (engine-gen3 worktree; verbatim, before the compression of decision 9):**
+
+```
+# Stage A (M3) evidence tables, printed by experiments_gen3_m3_261009/stageA_tables.py
+
+## 1. The frozen binaries (rule 5): built from the committed tree by build_clean.sh
+
+| binary | SHA-256 (frozen copy) | = build record |
+|---|---|---|
+| 00ALLINONE | bc6e8170741bb0a4c301f3c9d77a769f3cf9bbc9d80b6256d5758861e63eb58d | yes |
+| gen3_m1 | 2741147d68c4436a0c2df3c58e1aaf35150d35ed45a174e3e361157c4818ef92 | yes |
+| gen3_m2 | bee91bca714d8813475a36d7e63166bf2f945c445be80a0ab4f29d8c22a650ca | yes |
+| gen3_body_rule_test | 0231f6877c987b46117e220eb17ea0b2f7d9de781916a3984ec3f14151b9c093 | yes |
+| gen3_band_edge_test | 90ad9d3adaa27f06a9573ba10c0dfbe63f645e0e041bd2b5ffc44ec5bca8f9ea | yes |
+| gen3_band_edge_ties | d169ae8d46296bebd37341815a2b5ed92ad6c2e74be56ce618b980d80cd96c54 | yes |
+
+`00ALLINONE --version`: 00ALLINONE  git f42befb  target mac-O3-e0pre (no -dirty)
+
+## 2. Acceptance 1 / rule 4: gen2 byte identity with 7b08827 (ctrl_min, ctrl_leg)
+
+### default build
+
+
+| case | version (audit run) | mode | audited events | matched | missing | extra | abs(dt) > 1e-9 | duplicate live disagreeing | max abs(dt) matched | abs(dt) > 1e-9 and > 1e-10 of horizon | max abs(dt)/horizon | max contact gap [px] (dd, wall, div, piston) | audit vs plain | plain vs ref |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | git f42befb  target mac-O3-e0pre | 2 | 104866 | 58275689 | 0 | 0 | 696 | 0 | 2.42e-08 | 0 | 1.84e-13 | 4.7e-12, 4.0e-12, 2.3e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+| ctrl_leg | git f42befb  target mac-O3-e0pre | 2 | 104776 | 58349834 | 0 | 0 | 423 | 0 | 2.86e-06 | 0 | 4.59e-12 | 5.2e-12, 3.0e-12, 3.0e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+
+| case | mode | audited events | missing | extra | dup. disagreeing | abs(dt) > 1e-9 (engine) | printed | above 1e-8 of horizon (dt) | no true contact | heap error > 1e-8 of horizon | largest heap error / horizon | count above 1e-10 | max contact [px] | plain vs ref | E2 row |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | 2 | 104866 | 0 | 0 | 0 | 696 | 696 | 0 | 0 | 0 | 1.54e-12 | 0 | 4.7e-12 | IDENTICAL | information |
+| ctrl_leg | 2 | 104776 | 0 | 0 | 0 | 423 | 423 | 0 | 0 | 0 | 7.21e-11 | 0 | 5.2e-12 | IDENTICAL | information |
+
+### --engine=gen2 (every command plus the flag)
+
+
+| case | version (audit run) | mode | audited events | matched | missing | extra | abs(dt) > 1e-9 | duplicate live disagreeing | max abs(dt) matched | abs(dt) > 1e-9 and > 1e-10 of horizon | max abs(dt)/horizon | max contact gap [px] (dd, wall, div, piston) | audit vs plain | plain vs ref |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | git f42befb  target mac-O3-e0pre | 2 | 104866 | 58275689 | 0 | 0 | 696 | 0 | 2.42e-08 | 0 | 1.84e-13 | 4.7e-12, 4.0e-12, 2.3e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+| ctrl_leg | git f42befb  target mac-O3-e0pre | 2 | 104776 | 58349834 | 0 | 0 | 423 | 0 | 2.86e-06 | 0 | 4.59e-12 | 5.2e-12, 3.0e-12, 3.0e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+
+| case | mode | audited events | missing | extra | dup. disagreeing | abs(dt) > 1e-9 (engine) | printed | above 1e-8 of horizon (dt) | no true contact | heap error > 1e-8 of horizon | largest heap error / horizon | count above 1e-10 | max contact [px] | plain vs ref | E2 row |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | 2 | 104866 | 0 | 0 | 0 | 696 | 696 | 0 | 0 | 0 | 1.54e-12 | 0 | 4.7e-12 | IDENTICAL | information |
+| ctrl_leg | 2 | 104776 | 0 | 0 | 0 | 423 | 423 | 0 | 0 | 0 | 7.21e-11 | 0 | 5.2e-12 | IDENTICAL | information |
+
+## 3. Rule 8 after the engine changes: the M1 and M2 harness outputs, byte for byte
+
+| output | this build | committed output | SHA-256 (this build) | identical |
+|---|---|---|---|---|
+| m1_audit_output.txt | 13096 bytes | experiments_gen3_m1_261008/m1_audit_output.txt | 3b1347742ac82881023f882b30b1e23bbc1815c99aeef7bcd8c72f32ada00a8b | IDENTICAL |
+| m2_audit_quick_output.txt | 60092 bytes | experiments_gen3_m2_261009/m2_audit_quick_output.txt | 98e78bc5c9c8a42f7a7bcf671eb9df79b4706654c40d0165611a3c64e942e07d | IDENTICAL |
+| m2_audit_output.txt | 60503 bytes | experiments_gen3_m2_261009/m2_audit_output.txt | d1b59d23695c0bb29754a7ee73bbaec1bf43882c5be287fd20ceea40371c9c11 | IDENTICAL |
+| body_rule_test_output.txt | 1224 bytes | experiments_gen3_m2_261009/body_rule_test_output.txt | 8dcd99dc5a3b8f17660fc08a543365e6f7bb9d66426f69542f307caee43e2752 | random-case line (the first line) IDENTICAL; the committed file's second line 'exit=0' was appended by the M2 run command; new: the constructed categories of amendment b |
+
+### Amendment b: the constructed categories (gen3_body_rule_test 20000, the part after the random cases)
+
+constructed cases (amendment b), 2000 per category; worst = max relative contact-time difference to the independent answer (for the slow approach: max |dt - expected minimum| / T, which is below 1 inside the expected stretch):
+
+| category | cases | failures | worst |
+|---|---|---|---|
+| near-tangent touching, drift 0 (first two periods) | 2000 | 0 | 5.89e-11 |
+| near-tangent missing, drift 0 | 2000 | 0 | 0 |
+| near-tangent touching at the k-th minimum (jump path) | 2000 | 0 | 1.9e-12 |
+| near-tangent missing at the k-th minimum (contact one period later) | 2000 | 0 | 1.11e-15 |
+| turning point, oscillating g, first period | 2000 | 0 | 1.49e-13 |
+| turning point, oscillating g, k-th period (jump path) | 2000 | 0 | 1.29e-15 |
+| turning point, monotone g (disk faster than the face) | 2000 | 0 | 4.92e-15 |
+| slow approach, k = 10 .. 1e9 periods (jump path) | 2000 | 0 | 0.234 |
+
+constructed failures: 0
+
+### Amendment a: the band-edge stress cells (gen3_band_edge_test)
+
+# gen3 band-edge stress cells (amendment a): dyadic geometry, the band reach ending exactly on a column boundary
+
+w = 32 px, R = 12 px, divider thickness 1 px, h = 12.5 px; disks on the boundary, just outside and just inside the reach; schedule audit after every event, body audit after every BAND event and API change, contact audit
+
+| cell | N | T [units] | events pair / wall / divider / band / crossing | audited states | missing (all classes) | extra | deferred early | time disagreements (rel > 1e-10) and duplicates | bands missing / extra / short | contacts within rounding | max divider contact gap [px] | clean |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| held_right (exact) | 40 | 480 | 57 / 13 / 24 / 0 / 226 | 321 | 10 | 1 | 0 | 0 | 0 / 0 / 0 | 9 | 2e-12 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+| held_left (exact) | 40 | 480 | 58 / 11 / 24 / 0 / 228 | 322 | 10 | 8 | 0 | 0 | 0 / 0 / 0 | 8 | 2e-12 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+| driven (exact) | 40 | 640 | 161 / 51 / 34 / 5 / 513 | 775 | 9 | 0 | 0 | 0 | 0 / 0 / 0 | 0 | 8.5e-14 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+| spring (exact) | 40 | 800 | 140 / 44 / 38 / 7 / 538 | 775 | 18 | 0 | 0 | 5 | 0 / 0 / 0 | 30 | 2e-12 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+| held_right (generic y) | 40 | 480 | 57 / 14 / 26 / 0 / 225 | 323 | 0 | 0 | 0 | 0 | 0 / 0 / 0 | 9 | 2e-12 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+| held_left (generic y) | 40 | 480 | 50 / 11 / 23 / 0 / 222 | 307 | 0 | 0 | 0 | 0 | 0 / 0 / 0 | 7 | 2e-12 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+| driven (generic y) | 40 | 640 | 154 / 59 / 36 / 5 / 511 | 776 | 0 | 0 | 0 | 0 | 0 / 0 / 0 | 0 | 1.1e-13 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+| spring (generic y) | 40 | 800 | 139 / 47 / 38 / 5 / 546 | 781 | 0 | 0 | 0 | 0 | 0 / 0 / 0 | 29 | 2e-12 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+
+cells with a band finding (bands missing, extra or short), clean = 0 or a load failure: 0 of 8; generic-y cells with any finding in any class: 0 of 4
+
+(audit lines printed by the engine, not repeated here: 61)
+
+### Amendment a: the numbers behind each audit finding of the exact cells (gen3_band_edge_ties)
+
+| cell | finding (first occurrence) | at t | quantities | class |
+|---|---|---|---|---|
+| held_right (exact) | missing PAIR a=1 b=32 | 42.666666666666664 | dv = (0.625, 0); r_x local -34.333333333334359 / absolute -34.333333333334338; r_y local -24 / absolute -24; disc local -5.68e-14 / absolute 5.68e-14; heap nan, brute force 97.599999389650748; K bound 4.09e-13; opposite sides of the divider: yes | G |
+| held_right (exact) | wrong-direction CROSS a=21 b=2 | 128.00000000537622 | cell (12,5), local (1.3440555335364479e-09, 24.000000000336016), v (0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 0 at 256; audit: direction 2 | C |
+| held_right (exact) | extra PAIR a=0 b=9 | 192.00000000000003 | dv = (-1.63258e-13, 0); r_x local 39.999999999989043 / absolute 39.999999999989029; r_y local 24 / absolute 24; disc local 1.18e-38 / absolute 0; heap 245010516292499.97, brute force nan; K bound 3.79e-38; opposite sides of the divider: no | G |
+| held_right (exact) | wrong-direction CROSS a=15 b=2 | 239.94644463885018 | cell (12,8), local (16.053555361149819, 28.989958369784411), v (-1, 0.1875); x and y crossing at 256 / 256 (from the stamp at 224: 256 / 256); heap: direction 1 at 256; audit: direction 2 | C |
+| held_right (exact) | occurrences of missing PAIR a=1 b=32: 6 |  |  |  |
+| held_right (exact) | occurrences of wrong-direction CROSS a=21 b=2: 3 |  |  |  |
+| held_right (exact) | occurrences of extra PAIR a=0 b=9: 1 |  |  |  |
+| held_right (exact) | occurrences of wrong-direction CROSS a=15 b=2: 1 |  |  |  |
+| held_left (exact) | missing PAIR a=25 b=36 | 42.666666666666664 | dv = (-0.125, 0); r_x local 39.666666666666607 / absolute 39.6666666666666; r_y local -24 / absolute -24; disc local 0 / absolute 7.11e-15; heap nan, brute force 359.99999460522201; K bound 2.18e-14; opposite sides of the divider: yes | G |
+| held_left (exact) | missing PAIR a=2 b=9 | 102.39999999999998 | dv = (4.19387e-14, 0); r_x local -39.999999999998373 / absolute -39.99999999999838; r_y local -24 / absolute -24; disc local 0 / absolute 3.67e-40; heap nan, brute force 953773570015439.25; K bound 2.5e-39; opposite sides of the divider: no | G |
+| held_left (exact) | extra PAIR a=0 b=9 | 127.99999999999994 | dv = (8.3461e-14, 0); r_x local -39.999999999996035 / absolute -39.999999999996021; r_y local 24 / absolute 24; disc local 2.94e-39 / absolute 0; heap 479265665898622.06, brute force nan; K bound 9.9e-39; opposite sides of the divider: no | G |
+| held_left (exact) | wrong-direction CROSS a=5 b=2 | 128.00000000000668 | cell (7,5), local (31.99999999999833, 24.000000000000419), v (-0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 1 at 256; audit: direction 2 | C |
+| held_left (exact) | wrong-direction CROSS a=21 b=2 | 128.00000000000668 | cell (4,5), local (31.99999999999833, 24.000000000000419), v (-0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 1 at 256; audit: direction 2 | C |
+| held_left (exact) | occurrences of missing PAIR a=25 b=36: 3 |  |  |  |
+| held_left (exact) | occurrences of missing PAIR a=2 b=9: 1 |  |  |  |
+| held_left (exact) | occurrences of extra PAIR a=0 b=9: 8 |  |  |  |
+| held_left (exact) | occurrences of wrong-direction CROSS a=5 b=2: 1 |  |  |  |
+| held_left (exact) | occurrences of wrong-direction CROSS a=21 b=2: 5 |  |  |  |
+| driven (exact) | missing PAIR a=25 b=36 | 42.666666666666664 | dv = (0.625, 0); r_x local -50.333333333333279 / absolute -50.333333333333258; r_y local -24 / absolute -24; disc local 0 / absolute 1.14e-13; heap nan, brute force 123.19999913683338; K bound 8.79e-13; opposite sides of the divider: yes | G |
+| driven (exact) | missing PAIR a=1 b=32 | 43.503617297951436 | dv = (0.625, 0); r_x local -49.810239188781381 / absolute -49.810239188781367; r_y local -24 / absolute -24; disc local 0 / absolute 1.14e-13; heap nan, brute force 123.19999913683519; K bound 8.61e-13; opposite sides of the divider: yes | G |
+| driven (exact) | wrong-direction CROSS a=21 b=2 | 128.00000000537622 | cell (12,5), local (1.3440555335364479e-09, 24.000000000336016), v (0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 0 at 256; audit: direction 2 | C |
+| driven (exact) | occurrences of missing PAIR a=25 b=36: 1 |  |  |  |
+| driven (exact) | occurrences of missing PAIR a=1 b=32: 3 |  |  |  |
+| driven (exact) | occurrences of wrong-direction CROSS a=21 b=2: 5 |  |  |  |
+| spring (exact) | wrong-direction CROSS a=21 b=2 | 137.16957229380884 | cell (12,5), local (2.2923930734522102, 24.573098268363054), v (0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 0 at 256; audit: direction 2 | C |
+| spring (exact) | dt_rel PAIR a=12 b=18 | 256.00000000000409 | dv = (-2.17326e-14, 0.1875); r_x local 23.999999999996703 / absolute 23.999999999996703; r_y local -47.999999999999233 / absolute -47.999999999999233; disc local 1.5e-11 / absolute 1.5e-11; heap 511.99988991508729, brute force 511.99988996732213; K bound 2.65e-07; opposite sides of the divider: no | K |
+| spring (exact) | occurrences of wrong-direction CROSS a=21 b=2: 18 |  |  |  |
+| spring (exact) | occurrences of dt_rel PAIR a=12 b=18: 5 |  |  |  |
+
+findings (audit lines, all cells): 61 occurrences, 14 distinct; by cell: held_right (exact) 11; held_left (exact) 18; driven (exact) 9; spring (exact) 23; held_right (generic y) 0; held_left (generic y) 0; driven (generic y) 0; spring (generic y) 0;
+distinct findings by class: G exact graze 7, K near graze within rounding 1, V rounding-level relative velocity 0, C corner tie 6, U unclassified 0
+
+band_edge_test rc 0
+band_edge_ties rc 0
+
+## 4. Acceptances 2 and 3: the harness cells replayed through the driver (run_replays.sh)
+
+| variant | replays | MATCH | clean=1 |
+|---|---|---|---|
+| a | 16 | 16 | 16 |
+| b | 16 | 16 | 16 |
+| c | 16 | 16 | 16 |
+| d | 16 | 16 | 16 |
+
+replays: 64, MATCH with clean=1: 64
+
+## 5. Amendment d: one production-length run through the driver (N = 400, eta 0.70, free divider M = 500, 2e4 sigma-time)
+
+    [EDMD-CONTACT] executed events 101445679; max abs(contact distance) [px]: disk-disk 4.174e-12, outer walls 2.160e-12, divider 2.188e-12, pistons 0.000e+00
+    [EDMD3-LEDGER] momentum x: residual -2.35e-12, scale 8.3e-08, ratio 2.83e-05; y: residual 1.76e-12, scale 2.54e-08, ratio 6.93e-05; energy: residual -2.5e-12, scale 2.11e-07, ratio 1.19e-05 (E0 400, E 400, W 0)
+    [EDMD3-GAP] contact audit over 101445679 events: max gap [px] pair 4.17e-12, wall 2.16e-12, divider 2.19e-12, piston 0; time quantum u_t 1.81899e-12 units; max gap / u_t [px/unit] pair 2.29, wall 1.19, divider 1.2, piston 0; v_ref 40 px/unit
+    [EDMD3-AUDIT] audited states 111; missing pair/wall/cross/div/piston 0/0/0/0/0; extra 0/0/0/0/0; deferred earlier than eligible pair/wall/div/piston 0/0/0/0; bands missing/extra/short 0/0/0; duplicate disagreeing 0; cells inconsistent 0; max |dt| 4e-11; max |dt|/horizon (|dt| > 1e-9 only) 0
+
+| clean | t_end [sigma] | origin shifts | events | validator every [steps] | schedule audits | build | run [s] | engine [s] | driver share |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 20033.3 | 58 | 110306435 | 60 | 111 | "f42befb" mac-O3-e0pre | 167.600 | 147.900 | 0.1175 |
+
+health line: L0=11.2 M=500 run=0 seed=919674558: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=201289182 full_checks=120290 local_worst=-4.17e-12 full_worst=-2.79e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.04e-12 ev_pair=90982747 ev_wall=7207531 ev_cross=8860756 ev_div=3255401 ev_piston=0 ev_band=0 ev_stale=726344586 origin_shifts=58 syncs=58 heap_compactions=2597 heap_max=29743 validator_every=60 hash=0db66ff7a5d6edc9 t_end=480800.0071644783
+
+## 6. Stage A3 and acceptance 3: the event hash at every output cadence; acceptance 6: same-seed determinism
+
+| loop | run | validator every | trace / log / psi6 cadence | event hash | events | t_end [sigma] | clean | driver share |
+|---|---|---|---|---|---|---|---|---|
+| energy transfer (A-fixed protocol) | default | 60 | trace every 600 steps | 4428249ad3af787f | 2044509 | 5219.9834 | 1 | 0.0509 |
+| energy transfer (A-fixed protocol) | validator1 | 1 | trace every 600 steps | 4428249ad3af787f | 2044509 | 5219.9834 | 1 | 0.5672 |
+| energy transfer (A-fixed protocol) | validator1_trace1 | 1 | trace every step | 4428249ad3af787f | 2044509 | 5219.9834 | 1 | 0.5177 |
+| speed of sound (T-prime protocol, M = 300) | default | 60 | log 60 steps, psi6 0.25 | 61869f868bced42e | 2224656 | 5791.7334 | 1 | 0.3141 |
+| speed of sound (T-prime protocol, M = 300) | max_cadence | 1 | log every step, psi6 0.05 | 61869f868bced42e | 2224656 | 5791.7334 | 1 | 0.7537 |
+| speed of sound (T-prime protocol, M = 300) | min_cadence | 1000000 | log 600 steps, psi6 1000 | 61869f868bced42e | 2224656 | 5791.7334 | 1 | 0.0129 |
+| speed of sound (T-prime protocol, M = 300) | default_repeat | 60 | log 60 steps, psi6 0.25 | 61869f868bced42e | 2224656 | 5791.7334 | 1 | 0.3152 |
+
+A3: event logs (ev_9700.csv) of the three runs byte-identical: yes; trace default = validator1: yes; every row of the default trace (2) is a row of the every-step trace (1200): yes
+acceptance 6: the repeat's CSV outputs byte-identical: 3 of 3 (psi6_t_L0_100_wallmassfactor_300_run0.csv, speed_of_sound_psi6.csv, wall_x_positions_L0_100_wallmassfactor_300_run0.csv); its [EDMD3...] log lines identical apart from the wall-time fields (run_s, engine_s, driver_share): yes
+
+## 7. Acceptance 4: the gate's cases under gen3 (plain runs, contact audit); the validator cadence
+
+| case | records / builds | clean | validator every [steps] | events | max contact gap [px] disk-disk / walls / divider | t_end [sigma] | driver share |
+|---|---|---|---|---|---|---|---|
+| free_M50 | 1 / 1 | 1 | 60 | 1131538 | 3.46e-12 / 1.88e-12 / 1.68e-12 | 2959.2 | 0.3199 |
+| free_M500 | 1 / 1 | 1 | 60 | 2812054 | 2.94e-12 / 2.00e-12 / 1.68e-12 | 7312.6 | 0.3143 |
+| free_M1500 | 1 / 1 | 1 | 60 | 4768260 | 4.56e-12 / 2.57e-12 / 1.65e-12 | 12371.6 | 0.3154 |
+| free_M2000 | 1 / 1 | 1 | 60 | 5471516 | 3.55e-12 / 2.16e-12 / 2.56e-12 | 14241.3 | 0.3148 |
+| dense_M50 | 1 / 1 | 1 | 60 | 394828 | 2.40e-12 / 1.73e-12 / 1.62e-12 | 200.0 | 0.1092 |
+| dense_M2000 | 1 / 1 | 1 | 60 | 600439 | 2.50e-12 / 1.62e-12 / 1.56e-12 | 311.6 | 0.0563 |
+| ctrl_min | 1 / 1 | 1 | 60 | 153253 | 3.46e-12 / 1.47e-12 / 1.51e-12 | 399.1 | 0.3256 |
+| afix | 1 / 1 | 1 | 60 | 2044509 | 3.50e-12 / 1.76e-12 / 1.70e-12 | 5220.0 | 0.0569 |
+
+The driver's validator (experiment_validation.c) runs every --validator-every steps; under gen3 the default is 60 steps of 1/60 sigma-time = once per sigma-time (G3_VALIDATOR_EVERY), under gen2 every step as before; between validator steps the Left/Right counts are carried over (the trace documentation states it, stage A2).
+
+## 8. Acceptance 5, information: gen2 and gen3 on one fluid cell (N = 400, eta = pi/8, H = L0 = 20, M = 300; 8 seeds each, the same seeds; reduce_B.py's argmax estimator)
+
+| engine | n | mean nu | SE | seeds equal |
+|---|---|---|---|---|
+| gen2 | 8 | 0.030279 | 8.44e-05 | yes |
+| gen3 | 8 | 0.030262 | 2.62e-05 | yes |
+
+gen3 - gen2 = -1.79e-05 (-0.06 %), z = -0.20 (information; Test G is the test)
+
+outputs both methods need, under gen3: divider trace (dynamic): 8 files; impulses on the held divider and the walls (static: the event log): 1 files; psi6(t): 8 files
+event-log rows by kind (acc4 afix, gen3): D0 66369, WB 66487, WL 33225, WR 33163, WT 66337
+
+## 9. Stage A4: the driver's share of the run time (one run at a time, nothing else of mine running)
+
+| loop | N | eta | record [sigma] | events | run [s] | engine [s] | driver share | events per s (run) |
+|---|---|---|---|---|---|---|---|---|
+| speed of sound | 400 | pi/8 | 2033 | 2756960 | 3.4 | 1.8 | 0.469 | 8.15e+05 |
+| speed of sound | 400 | 0.70 | 2033 | 11164670 | 15.5 | 13.7 | 0.111 | 7.22e+05 |
+| speed of sound | 1600 | pi/8 | 2033 | 10689133 | 20.2 | 7.7 | 0.618 | 5.28e+05 |
+| speed of sound | 1600 | 0.70 | 2033 | 38244882 | 67.7 | 53.9 | 0.205 | 5.65e+05 |
+| energy transfer | 400 | pi/8 | 1020 | 1379903 | 0.9 | 0.8 | 0.050 | 1.58e+06 |
+| energy transfer | 400 | 0.70 | 1020 | 5750337 | 6.7 | 6.6 | 0.008 | 8.59e+05 |
+| energy transfer | 1600 | pi/8 | 1020 | 5356011 | 3.8 | 3.6 | 0.042 | 1.42e+06 |
+| energy transfer | 1600 | 0.70 | 1020 | 19246397 | 25.4 | 25.2 | 0.008 | 7.56e+05 |
+```
+
+**Loader guard, before and after (`hspist3/experiments_gen3_health_guard_261009/compare_before_after_output.txt`, printed by `experiments_loader_guard_261008/compare_before_after.sh`; verbatim):**
+
+```
+script         rc     stdout  stderr  stdout lines
+populate       0/0    same    same    50
+figures        0/0    same    same    8
+damping        0/0    same    same    40
+massladder     0/0    same    same    20
+a2boxtrunc     0/0    same    same    100
+boxtrunc       0/0    same    same    49
+boxtrunc_tab   0/0    same    same    111
+conf_results   0/0    same    same    295
+conf_afix      0/0    same    same    89
+conf_heldwall  0/0    same    same    36
+conf_prereg    0/0    same    same    165
+resched_gate   0/0    same    same    165
+p2_figures     0/0    same    same    9
+p2_geomfix     0/0    same    same    40
+p2_rampfast    0/0    same    same    49
+p2_level2Au    0/0    same    same    7
+canonical      0/0    same    same    11
+melting        0/0    same    same    24
+draft_audit    0/0    same    same    78
+roman          0/0    same    same    34
+tprime         0/0    same    same    56
+
+files written: before 45, after 45
+```
+
+Unit tests (`python3 -m unittest validation/test_edmd3_health_guard.py validation/test_edmd_acc_guard.py -v`): Ran 32 tests in 0.042s OK (32 tests, each `ok`).
+
+**Commits:** engine-gen3 `f42befb` (M3 code) and `099c937` (the evidence: scripts, tables, the small outputs, `RUN_RECORDS.txt`; run logs and traces are .gitignored and stay on disk, the raw files above 256 kB compressed); main: this note with the guard (`validation/edmd3_health_guard.py`, its unit tests, the hook in `edmd_acc_guard.py`, `experiments_gen3_health_guard_261009/`); the notes and the guard files go to engine-gen3, the notes to engine-divider-resched. Push line for Chris: `git push origin main engine-gen3 engine-divider-resched`.
