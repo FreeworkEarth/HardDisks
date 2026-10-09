@@ -1,0 +1,43 @@
+##CHRIS 2026-10-09 (261012 sec. 4.7.20; stage G of the plan-author programme of sec. 4.7.12) -- THE KOA RUNSHEET OF THE GEN-3 GATE
+PREPARED, NOT RUN. Nothing here is submitted until the plan author has reviewed it and Chris says go. Chris types every command.
+KOA rules (the KOA notes): the login node only for light commands (no builds, no binaries: home is noexec there; no git there);
+squeue before every sbatch; never submit a job twice; nothing in ~/harddisks, ~/harddisks_resched, ~/harddisks_resched2 changes
+(no git pull there); never a password in a file or a chat. Every job checks its clone, its binary's recorded hash and version line,
+and stops (STOP: ...) on any mismatch -- paste the STOP line, change nothing, wait.
+
+STEP 0 (Mac, after Chris pushed): the commit to build is engine-gen3 HEAD at the push; write it down: git rev-parse --short engine-gen3
+
+STEP 1 (KOA, a sandbox shell; the clone; ~2 min)
+  squeue -u charing
+  srun -p sandbox -A uh -c 2 --mem=4G -t 00:30:00 --pty /bin/bash        (wait for the prompt of the compute node before typing on)
+  cd ~ && git clone --branch engine-gen3 <the repository URL> harddisks_gen3 && cd harddisks_gen3 && git checkout <commit of step 0>
+  git submodule update --init hspist3/kissfft
+  git log -1 --format='%h %s' | cut -c1-80          (paste)
+
+STEP 2 (KOA, the same sandbox shell; the two builds; ~3 min)
+  cd ~/harddisks_gen3/hspist3 && bash cluster/gen3_koa_261009/build_gen3_koa.sh 2>&1 | tail -15     (paste; the last line must be BUILD OK)
+  exit                                               (leave the sandbox shell)
+
+STEP 3 (KOA login node; the one-node gate job: E0, rate table, long-double spot check; up to 3 h on sandbox, 8 cores)
+  squeue -u charing
+  cd ~/harddisks_gen3/hspist3 && sbatch cluster/gen3_koa_261009/g3_gate_koa.sbatch                (note the job id)
+  when it has ended:  tail -80 logs/gen3-gate_<job id>.out                                            (paste)
+  Expected: (a) E0 IDENTICAL for ctrl_min, ctrl_leg, afix, afix_leg, default and --engine=gen2; (c) a rate table; (d) the long-double
+  table: clean 1 everywhere, gap / u_t of the koa-ld build at the long-double quantum.
+
+STEP 4 (KOA login node; cross-node determinism; 2 nodes x 2 cores, ~20 min)
+  squeue -u charing
+  sbatch cluster/gen3_koa_261009/g3_det_xnode.sbatch                                                 (note the job id)
+  when it has ended:  cat logs/gen3-xnode_<job id>.out                                                (paste; every line IDENTICAL)
+
+STEP 5 (Test G on KOA -- ONLY after its registration commit by the plan author's go: task list + SHA-256 file + BUILD_KOA in
+        testG_koa_verdict_261009.py; then Chris pushes and pulls into ~/harddisks_gen3 inside a sandbox shell as in step 1, and
+        rebuilds as in step 2 if the commit changed)
+  squeue -u charing
+  sbatch --array=1-120%64 cluster/gen3_koa_261009/testG_koa.sbatch                                   (note the array job id; 64 cores at most)
+  sbatch --dependency=afterany:<array job id> cluster/gen3_koa_261009/merge_testG_koa.sbatch          (note the job id)
+  when the merge has ended:  tail -30 logs/gen3-testG-merge_<job id>.out                              (paste)
+
+STEP 6 (Mac; the fetch; Chris types the password and Duo)
+  cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks && bash hspist3/cluster/gen3_koa_261009/fetch_gen3_koa.sh <gate job id> <xnode job id>
+  then CC: python3 hspist3/cluster/gen3_koa_261009/testG_koa_verdict_261009.py (the registered verdict logic on the KOA data)
