@@ -1,0 +1,2 @@
+gen3 body_rule (spring divider) against an independent scan: 20000 cases: contact 13434 (of them beyond 64 periods: 5124), none 6566, at once 0; compared by the scan 14876; max |dt_engine - dt_scan| / max(1, dt) = 2.31e-15; slow cases max |g(dt)| = 1.66e-09 px, max |g(dt)| / |g'(dt)| = 8.91 ulp(dt); failures 0
+exit=0

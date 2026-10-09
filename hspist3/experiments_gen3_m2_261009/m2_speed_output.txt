@@ -1,0 +1,14 @@
+# gen3 M2 harness: speed
+
+build: Apple LLVM 17.0.0 (clang-1700.4.4.1), double 8 bytes; cell width 32 px, origin shift 8192 units, tolerance factor K = 4
+
+## Events per second on this Mac with a divider at N = 400, same initial state and protocol for both engines (gen2 = edmd.c, minimal policy; no audits)
+
+events = physical events (pair + outer wall + divider + piston); gen2's divider and wall events counted from its event log in a separate untimed run; each rate timed 3 times: median (min-max)
+
+| cell | T [sigma-time] | gen2 events | gen2 events/s | gen3 events | of them divider | gen3 crossings per event | gen3 stale pops per event | gen3 events/s | gen3 / gen2 (medians) |
+|---|---|---|---|---|---|---|---|---|---|
+| held_pi8 | 200 | 195066 | 1.34e+05 (1.33e+05-1.34e+05) | 194831 | 10218 | 0.52 | 4.24 | 1.12e+06 (1.12e+06-1.12e+06) | 8.4 |
+| free_pi8_M500 | 200 | 192419 | 1.2e+05 (1.19e+05-1.28e+05) | 191325 | 10097 | 0.51 | 5.47 | 9.23e+05 (8.84e+05-9.39e+05) | 7.7 |
+| held_070 | 50 | 285144 | 1.5e+05 (1.44e+05-1.5e+05) | 284758 | 22028 | 0.09 | 6.55 | 8.39e+05 (8.36e+05-8.4e+05) | 5.6 |
+| free_070_M500 | 50 | 291870 | 1.38e+05 (1.38e+05-1.38e+05) | 288217 | 22025 | 0.09 | 5.76 | 7.18e+05 (7.13e+05-7.21e+05) | 5.2 |
