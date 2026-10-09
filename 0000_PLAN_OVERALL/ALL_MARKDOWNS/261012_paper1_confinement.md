@@ -4057,3 +4057,775 @@ single-c_s chi2 at the weighted slope, nu_0: 41.7 (8 dof, p 1.57e-06)
   - never submit twice;
   - at most 32 cores (here 16 + 4);
   - anything unexpected: stop and paste, and do not resubmit.
+
+### 4.6 Exploratory: per-mass response in the window (2026-10-08 14:45 HST; the plan author's CC task of 2026-10-08) [POST HOC: decides nothing; DATA, DERIVATION, SOURCE and INFERENCE where marked]
+
+Everything in this section is **post hoc**. It uses existing data only (no new runs, no engine work) and generates hypotheses for the stage-1 pre-registration. Section 4 had no 4.5; the number 4.6 is the plan author's.
+
+**Plain summary.**
+- **Which pattern (item 2): none of the three as worded.**
+  - **Canonical N = 100 data (A1 v2; 200 periods, 25 seeds).** Inside the window the dip is deeper for the **light, fast** dividers, not the heavy ones. Relative to the last fluid cell (η = 0.6956), the per-mass dip D_M rises with ln α:
+    - +3.89 ± 0.65 %/e-fold at η 0.7060 (z +6.0);
+    - +2.27 ± 0.46 at 0.7113 (z +5.0);
+    - +1.05 ± 0.52 at 0.7167 (z +2.0);
+    - 0.00 ± 0.17 at 0.7007.
+    - Outside the window it ranges from −0.30 (z −2.4) to −0.02.
+  - **The shorter N = 100 campaigns** (25-period records, an exploratory estimator) show the same sign more weakly (transition run: 4 of 4 positive, 1 at z > 2) or mixed (r25).
+  - **N = 400 and N = 900** (famA, the design's own geometry, 6–10 seeds): no resolved mass dependence (|z| ≤ 1.7).
+- **But the mass ordering follows the structure, not the frequency (item 4b).**
+  - **Per trajectory.** Inside the window each trajectory's ν tracks its own ψ₆ (per-trajectory Spearman of ν/ν_M − 1 with ψ₆ − ⟨ψ₆⟩_M): +0.84 at 0.7060 (n = 225, p 5e-62), −0.56 at 0.7113, −0.65 at 0.7167, −0.52 at 0.7222. Outside it is −0.16 to −0.03.
+  - **Per mass.** ψ₆ depends on mass because every record is a fixed number of the divider's **own** periods (444 σ-time for M = 50 against 2158 for M = 2000 at 0.7060) while the structure is still changing. ψ₆ goes from 0.27 at release to 0.45 at the end at 0.7060, and from 0.83 to 0.20 at 0.7113.
+  - At 0.7060, ψ₆ rises with mass (0.25 → 0.46) and c_app,M follows it (Spearman over masses +0.97).
+  - [INFERENCE] The ordering in the existing data is a record-length (aging) effect. **The existing data cannot test the relaxation hypothesis.**
+- **The equilibrium step at η = 0.700 (item 3).** Fluid → ideal plateau:
+  - **−2.1 %** with the adopted KR fit (ρmax 0.90). Its Z′ is already −8.7 there: the fit runs into the loop.
+  - **+1.2 %** with the ρmax 0.88 fit extrapolated.
+  - **−28.5 %** with Henderson.
+  - **−20.0 %** with the decision's construction (the plateau Z with Henderson's d ln Z/dη). The decision's "about −20 %" is that construction, not KR.
+  - **Variation of the plateau across the window:** −2.23 %, as the decision expected.
+  - **The N = 100 data are on none of these levels.** They sit **+85 % above KR at 0.7007** and **+63 % above the plateau at the minimum (0.7167)**. The excess grows from +4 % at η 0.652 to +60 % at 0.6956, i.e. it starts below the window. [INFERENCE] The 14.7 % dip is measured on a branch 1.6–1.9× the equilibrium sound speed, and cannot be compared with an equilibrium step.
+- **The period window (item 4).** Divider periods:
+  - N = 100: **1.4–7.5 σ-time** (not 5–30);
+  - N = 400 (famA): 3.3–12.6;
+  - N = 900: 4.5–14.4;
+  - N = 1000 at H = 10: 13–39.
+- **ψ₆:** no time series exists in any campaign; only per-run summaries. The structure changes on the record time scale (10²–10³ σ-time). [INFERENCE] τ_structure ≳ 10² σ-time ≫ every divider period, so all probes are on the frozen side (ωτ ≫ 1); ωτ ≈ 1 is not reachable with these masses.
+  - **Cost of a ψ₆(t) series** at 4 frames per σ-time: 0.3–1 MB per trajectory.
+  - **Cost of a positions trace:** 32, 258 and 870 MB per trajectory at N = 100, 400 and 900.
+- **The depth of the dip, by the design's definition (§ 4.2; exploratory).**
+  - N = 100: 14.7–20.8 % (four campaigns).
+  - **N = 400 (famA, the design geometry): 9.3 ± 2.3 %.** M1 expects 7.4 %.
+  - **N = 900: no dip.** c_s rises from 11.4 to 14.4 across the window; M1 expects 4.9 %.
+  - These are 6–10 seeds, 5–9 masses and 37–52-period records from an older Mac binary.
+- **Damping.**
+  - Γ_M falls with α in every cell, as outside the window. There is no peak at any mass, so no ωτ ≈ 1 signature.
+  - At 0.7113 the two lightest dividers are 1.3–1.8× more damped than at the entry cell.
+
+**The task**, as relayed by Chris, verbatim:
+
+> CC TASK, 2026-10-08 (Cowork clock): EXPLORATORY analysis of the existing melting-window
+> data, before the stage-1 pre-registration. Analysis only, no new runs, no engine work.
+> Everything here is POST HOC and is labelled so; it generates hypotheses for the
+> pre-registration and decides nothing. Standing rules apply (tables printed by script,
+> explicit-path adds, append-only notes into 261012 sec. 4 as a dated subsection "4.6
+> Exploratory: per-mass response in the window", tags). Keep the T-prime pipeline untouched.
+>
+> 1. Inventory. Which cells with eta inside or near 0.690-0.725 exist (any build), with
+>    N, H, L0, masses, seeds, record length, whether positions/psi6 were saved, and the
+>    build. Say explicitly which build each comes from; nothing from different builds is
+>    combined in one figure.
+>
+> 2. Per-mass apparent sound speed. For every window cell and for the nearest fluid cells
+>    below and above, print c_app,M = nu_M / x_M per mass with SE (same table as the Test T
+>    baseline), the dip of each mass relative to the KR fluid value at that eta, and the
+>    damping Gamma_M = 2/tau_r per mass. One figure per cell: c_app,M against alpha (log
+>    axis), with the KR fluid value as a horizontal line; a second panel Gamma_M against
+>    alpha. Then one summary figure: the dip depth per mass against eta for all masses.
+>    Print the Spearman correlation of dip depth with alpha inside the window and outside.
+>    State in words which of the three patterns appears: deeper dip for heavy (slow)
+>    dividers; same dip at all masses; irregular. Compare the inside-window chi2 of the
+>    single-c_s model with the Test T plain-fluid baseline (weighted and unweighted).
+>
+> 3. Equilibrium prediction, by script, from the KR fit and from Engel's plateau pressure
+>    (beta P (2 sigma)^2 = 9.17-9.19; Z = P* pi / (4 eta) with sigma the radius):
+>    (a) fluid c_s(eta) from KR for eta 0.66-0.7069, with the warning that KR is validated
+>        only to 0.7069 and compared with data to 0.69;
+>    (b) plateau value c_0 = Z sqrt(kT/m) for eta 0.700-0.716;
+>    (c) the relative step between (a) at 0.700 and (b) at 0.700, and the variation of (b)
+>        across the window. Expected: step about -20 %, variation about -2.2 %; print what
+>        you get and the Z, eta Z' used.
+>    Plot (a) and (b) with our N = 100 canonical c_s and the per-mass c_app,M of item 2.
+>    Tag everything DERIVATION or SOURCE; the KR extrapolation above 0.7069 is INFERENCE.
+>
+> 4. Periods versus candidate relaxation times. Print the divider period per mass in the
+>    window cells (sigma-time units), so the frequency window of our probes is explicit
+>    (expected roughly 5-30 sigma-time at N = 100). If psi6 time series exist for any
+>    window cell, print its autocorrelation time as a first estimate of tau_structure;
+>    otherwise say no such series exists and what the trace options of the engine cost per
+>    trajectory (bytes per saved frame, frames needed to resolve 1 sigma-time).
+>
+> 5. Report: plain summary first (which pattern, the equilibrium step number, the period
+>    window), then the tables, then the figure paths. One paragraph on what the result
+>    implies for the pre-registration's directional hypothesis, marked INFERENCE. No tool
+>    transcripts.
+
+**Script and outputs.**
+- **The script:** `hspist3/validation/paper1_window_explore_261008.py`. Its docstring defines every quantity.
+- **Its complete printed output** (1773 lines, every campaign's per-cell tables included):
+  `0000_PLAN_OVERALL/paper1_speedofsound/experiments/exploratory_261008_window/261008_window_explore_output.txt`.
+- **Figures,** in the same folder, one subfolder per campaign. Each figure shows ONE campaign, i.e. one binary.
+  - `<campaign>/cell_eta<η>_N<N>.png`: per cell, c_app,M against α with the KR line, and Γ_M against α.
+  - `<campaign>/summary_dip_vs_alpha.png`: D_M against α, the window cells in an ordinal blue ramp, the outside cells in grey.
+  - `<campaign>/summary_dip_vs_eta.png`: D_M against η, one panel per mass.
+  - `item3_equilibrium_levels.png` (and .pdf): the KR, Henderson and plateau levels with the N = 100 canonical c_s and the per-mass c_app,M.
+  - A1 v2 figures also as PDF.
+- **Estimator gate.** The A1 v2 cells reproduce the canonical table to 2.9e-7, with per-mass ν identical to `paper1_populate_cs_err_20261002.cell`. So the A1 v2 numbers here are the canonical ones.
+- **The other campaigns** use the same argmax estimator, with TD equal to each trajectory's own planned periods (37–94) instead of 200. That is an exploratory variant.
+- **Builds.** Every cell comes from a Mac binary without a version line (run dates 2026-08-21 to 2026-09-13, before the provenance change of 2026-09-16). The binaries differ between campaigns and are not identifiable more closely, hence one campaign per figure.
+
+The tables below are printed by `cd hspist3 && python3 validation/paper1_window_explore_261008.py` and quoted verbatim:
+- the inventory and the gate;
+- the A1 v2 per-cell tables from 0.6905 to 0.7222;
+- the campaign summaries;
+- the depth;
+- the baseline;
+- items 4b, 3 and 4.
+
+**Item 1 and the estimator gate:**
+
+```
+## Item 1 -- inventory: cells with eta_true in [0.675, 0.735] under 00_eta_sweep_ROMAN (any build)
+
+| campaign | eta_true | eta (header) | N | H | L0 | masses (count: range) | seeds per mass | record [planned periods] | psi6 saved | health lines (bad runs) | run date | build | analysed |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A1v2_20260914 | 0.6805 | 0.6800 | 100 | 10.00 | 5.7750 | 9: 50-2000 | 25-25 | 200.0 | run.log 'psi6:' lines (per-run summary); no time series | 0 (0) | 2026-09-13 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| A1v2_20260914 | 0.6905 | 0.6900 | 100 | 10.00 | 5.6913 | 9: 50-2000 | 25-25 | 200.0 | run.log 'psi6:' lines (per-run summary); no time series | 0 (0) | 2026-09-13 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| A1v2_20260914 | 0.6956 | 0.6950 | 100 | 10.00 | 5.6503 | 9: 50-2000 | 25-25 | 200.0 | run.log 'psi6:' lines (per-run summary); no time series | 0 (0) | 2026-09-13 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| A1v2_20260914 | 0.7007 | 0.7000 | 100 | 10.00 | 5.6100 | 9: 50-2000 | 25-25 | 200.0 | run.log 'psi6:' lines (per-run summary); no time series | 0 (0) | 2026-09-13 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| A1v2_20260914 | 0.7060 | 0.7050 | 100 | 10.00 | 5.5702 | 9: 50-2000 | 25-25 | 200.0 | run.log 'psi6:' lines (per-run summary); no time series | 0 (0) | 2026-09-13 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| A1v2_20260914 | 0.7113 | 0.7100 | 100 | 10.00 | 5.5310 | 9: 50-2000 | 25-25 | 200.0 | run.log 'psi6:' lines (per-run summary); no time series | 0 (0) | 2026-09-13 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| A1v2_20260914 | 0.7167 | 0.7150 | 100 | 10.00 | 5.4923 | 9: 50-2000 | 25-25 | 200.0 | run.log 'psi6:' lines (per-run summary); no time series | 0 (0) | 2026-09-13 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| A1v2_20260914 | 0.7222 | 0.7200 | 100 | 10.00 | 5.4542 | 9: 50-2000 | 25-25 | 200.0 | run.log 'psi6:' lines (per-run summary); no time series | 0 (0) | 2026-09-13 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| A1v2_20260914 | 0.7278 | 0.7250 | 100 | 10.00 | 5.4165 | 9: 50-2000 | 25-25 | 200.0 | run.log 'psi6:' lines (per-run summary); no time series | 0 (0) | 2026-09-13 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| A1v2_20260914 | 0.7306 | 0.7300 | 100 | 10.00 | 5.3794 | 9: 50-2000 | 25-25 | 200.0 | run.log 'psi6:' lines (per-run summary); no time series | 0 (0) | 2026-09-13 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_r25_psi6_20260823 | 0.6805 | 0.6800 | 100 | 10.00 | 5.7750 | 9: 50-2000 | 25-25 | 62.9 | speed_of_sound_psi6.csv (per-run summary, hold/end only); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_r25_psi6_20260823 | 0.6905 | 0.6900 | 100 | 10.00 | 5.6913 | 9: 50-2000 | 25-25 | 67.4 | speed_of_sound_psi6.csv (per-run summary, hold/end only); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_r25_psi6_20260823 | 0.6956 | 0.6950 | 100 | 10.00 | 5.6503 | 9: 50-2000 | 25-25 | 69.8 | speed_of_sound_psi6.csv (per-run summary, hold/end only); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_r25_psi6_20260823 | 0.7007 | 0.7000 | 100 | 10.00 | 5.6100 | 9: 50-2000 | 25-25 | 72.4 | speed_of_sound_psi6.csv (per-run summary, hold/end only); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_r25_psi6_20260823 | 0.7060 | 0.7050 | 100 | 10.00 | 5.5702 | 9: 50-2000 | 25-25 | 75.0 | speed_of_sound_psi6.csv (per-run summary, hold/end only); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_r25_psi6_20260823 | 0.7113 | 0.7100 | 100 | 10.00 | 5.5310 | 9: 50-2000 | 25-25 | 77.7 | speed_of_sound_psi6.csv (per-run summary, hold/end only); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_r25_psi6_20260823 | 0.7167 | 0.7150 | 100 | 10.00 | 5.4923 | 9: 50-2000 | 25-25 | 80.6 | speed_of_sound_psi6.csv (per-run summary, hold/end only); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_r25_psi6_20260823 | 0.7222 | 0.7200 | 100 | 10.00 | 5.4542 | 9: 50-2000 | 25-25 | 83.7 | speed_of_sound_psi6.csv (per-run summary, hold/end only); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_r25_psi6_20260823 | 0.7278 | 0.7250 | 100 | 10.00 | 5.4165 | 9: 50-2000 | 25-25 | 86.8 | speed_of_sound_psi6.csv (per-run summary, hold/end only); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_r25_psi6_20260823 | 0.7306 | 0.7300 | 100 | 10.00 | 5.3794 | 9: 50-2000 | 25-25 | 90.2 | speed_of_sound_psi6.csv (per-run summary, hold/end only); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_transition_psi6run_20260823 | 0.6805 | 0.6800 | 100 | 10.00 | 5.7750 | 9: 50-2000 | 25-25 | 62.9 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_transition_psi6run_20260823 | 0.6905 | 0.6900 | 100 | 10.00 | 5.6913 | 9: 50-2000 | 25-25 | 67.4 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_transition_psi6run_20260823 | 0.6956 | 0.6950 | 100 | 10.00 | 5.6503 | 9: 50-2000 | 25-25 | 69.8 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_transition_psi6run_20260823 | 0.7007 | 0.7000 | 100 | 10.00 | 5.6100 | 9: 50-2000 | 25-25 | 72.4 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_transition_psi6run_20260823 | 0.7060 | 0.7050 | 100 | 10.00 | 5.5702 | 9: 50-2000 | 25-25 | 75.0 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_transition_psi6run_20260823 | 0.7113 | 0.7100 | 100 | 10.00 | 5.5310 | 9: 50-2000 | 25-25 | 77.7 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_transition_psi6run_20260823 | 0.7167 | 0.7150 | 100 | 10.00 | 5.4923 | 9: 50-2000 | 25-25 | 80.6 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_transition_psi6run_20260823 | 0.7222 | 0.7200 | 100 | 10.00 | 5.4542 | 9: 50-2000 | 25-25 | 83.7 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_transition_psi6run_20260823 | 0.7278 | 0.7250 | 100 | 10.00 | 5.4165 | 9: 50-2000 | 25-25 | 86.8 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| campaign_transition_psi6run_20260823 | 0.7306 | 0.7300 | 100 | 10.00 | 5.3794 | 9: 50-2000 | 25-25 | 90.2 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-23 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N100 | 0.6905 | 0.6900 | 100 | 10.00 | 5.6913 | 9: 50-2000 | 12-12 | 67.4 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N100 | 0.6981 | 0.6980 | 100 | 10.00 | 5.6261 | 9: 50-2000 | 12-12 | 71.3 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N100 | 0.7033 | 0.7020 | 100 | 10.00 | 5.5940 | 9: 50-2000 | 12-12 | 73.4 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N100 | 0.7086 | 0.7060 | 100 | 10.00 | 5.5623 | 9: 50-2000 | 12-12 | 75.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N100 | 0.7113 | 0.7100 | 100 | 10.00 | 5.5310 | 9: 50-2000 | 12-12 | 77.7 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N100 | 0.7167 | 0.7140 | 100 | 10.00 | 5.5000 | 9: 50-2000 | 12-12 | 80.0 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N100 | 0.7194 | 0.7180 | 100 | 10.00 | 5.4694 | 9: 50-2000 | 12-12 | 82.4 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N100 | 0.7222 | 0.7220 | 100 | 10.00 | 5.4390 | 9: 50-2000 | 12-12 | 84.9 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N100 | 0.7306 | 0.7300 | 100 | 10.00 | 5.3794 | 9: 50-2000 | 12-12 | 90.2 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N1600 | 0.7001 | 0.7000 | 1600 | 40.00 | 22.4400 | 5: 50-2000 | 4-4 | 37.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N1600 | 0.7106 | 0.7100 | 1600 | 40.00 | 22.1239 | 5: 50-2000 | 4-4 | 37.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N1600 | 0.7201 | 0.7200 | 1600 | 40.00 | 21.8166 | 5: 50-2000 | 4-4 | 37.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N1600 | 0.7306 | 0.7300 | 1600 | 40.00 | 21.5178 | 5: 50-2000 | 4-4 | 37.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N400 | 0.6905 | 0.6900 | 400 | 20.00 | 11.3826 | 9: 50-2000 | 10-10 | 39.6 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N400 | 0.6981 | 0.6980 | 400 | 20.00 | 11.2521 | 9: 50-2000 | 10-10 | 41.8 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N400 | 0.7020 | 0.7020 | 400 | 20.00 | 11.1880 | 9: 50-2000 | 10-10 | 43.0 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N400 | 0.7073 | 0.7060 | 400 | 20.00 | 11.1246 | 9: 50-2000 | 10-10 | 44.2 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N400 | 0.7113 | 0.7100 | 400 | 20.00 | 11.0619 | 9: 50-2000 | 10-10 | 45.4 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N400 | 0.7154 | 0.7140 | 400 | 20.00 | 11.0000 | 9: 50-2000 | 10-10 | 46.8 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N400 | 0.7181 | 0.7180 | 400 | 20.00 | 10.9387 | 9: 50-2000 | 10-10 | 48.1 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N400 | 0.7222 | 0.7220 | 400 | 20.00 | 10.8781 | 9: 50-2000 | 10-10 | 49.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N400 | 0.7306 | 0.7300 | 400 | 20.00 | 10.7589 | 9: 50-2000 | 10-10 | 52.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N900 | 0.6905 | 0.6900 | 900 | 30.00 | 17.0739 | 5: 50-2000 | 6-6 | 37.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N900 | 0.6981 | 0.6980 | 900 | 30.00 | 16.8782 | 5: 50-2000 | 6-6 | 37.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N900 | 0.7025 | 0.7020 | 900 | 30.00 | 16.7820 | 5: 50-2000 | 6-6 | 37.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N900 | 0.7069 | 0.7060 | 900 | 30.00 | 16.6869 | 5: 50-2000 | 6-6 | 37.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N900 | 0.7104 | 0.7100 | 900 | 30.00 | 16.5929 | 5: 50-2000 | 6-6 | 37.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N900 | 0.7149 | 0.7140 | 900 | 30.00 | 16.5000 | 5: 50-2000 | 6-6 | 37.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N900 | 0.7185 | 0.7180 | 900 | 30.00 | 16.4080 | 5: 50-2000 | 6-6 | 37.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N900 | 0.7222 | 0.7220 | 900 | 30.00 | 16.3171 | 5: 50-2000 | 6-6 | 37.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famA/N900 | 0.7306 | 0.7300 | 900 | 30.00 | 16.1383 | 5: 50-2000 | 6-6 | 37.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famC/N100 | 0.7113 | 0.7100 | 100 | 10.00 | 5.5310 | 5: 50-2000 | 12-12 | 77.7 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famC/N1600 | 0.7113 | 0.7100 | 1600 | 160.00 | 5.5310 | 5: 50-2000 | 4-4 | 94.3 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famC/N400 | 0.7113 | 0.7100 | 400 | 40.00 | 5.5310 | 5: 50-2000 | 10-10 | 90.9 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| finitesize_aspect_20260826/famC/N900 | 0.7113 | 0.7100 | 900 | 90.00 | 5.5310 | 5: 50-2000 | 6-6 | 93.7 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| ladder_N100_20260825 | 0.7007 | 0.7000 | 100 | 10.00 | 5.6100 | 9: 50-2000 | 10-10 | 72.4 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| ladder_N100_20260825 | 0.7222 | 0.7200 | 100 | 10.00 | 5.4542 | 9: 50-2000 | 10-10 | 83.7 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| ladder_N200_20260825 | 0.7007 | 0.7000 | 200 | 10.00 | 11.2200 | 9: 50-2000 | 10-10 | 38.3 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| ladder_N200_20260825 | 0.7208 | 0.7200 | 200 | 10.00 | 10.9083 | 9: 50-2000 | 10-10 | 44.2 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| ladder_N400_20260825 | 0.7001 | 0.7000 | 400 | 10.00 | 22.4399 | 9: 50-2000 | 10-10 | 37.5 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| ladder_N400_20260825 | 0.7201 | 0.7200 | 400 | 10.00 | 21.8166 | 9: 50-2000 | 10-10 | 37.5 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| overnight_N1000_20260826 | 0.7002 | 0.7000 | 1000 | 10.00 | 56.0999 | 9: 50-2000 | 18-18 | 37.5 | none; no time series | 1 (1) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| overnight_N1000_20260826 | 0.7203 | 0.7200 | 1000 | 10.00 | 54.5415 | 9: 50-2000 | 18-18 | 37.5 | none; no time series | 0 (0) | 2026-08-26 (dir name) | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| routeB_radius_N100_L0_20_20260825 | 0.6800 | 0.6800 | 100 | 2.89 | 20.0000 | 9: 50-2000 | 25-25 | 37.5 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| routeB_radius_N100_L0_20_20260825 | 0.6900 | 0.6900 | 100 | 2.85 | 20.0000 | 9: 50-2000 | 25-25 | 37.5 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| routeB_radius_N100_L0_20_20260825 | 0.6950 | 0.6950 | 100 | 2.83 | 20.0000 | 9: 50-2000 | 25-25 | 37.5 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| routeB_radius_N100_L0_20_20260825 | 0.7000 | 0.7000 | 100 | 2.80 | 20.0000 | 9: 50-2000 | 25-25 | 37.5 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| routeB_radius_N100_L0_20_20260825 | 0.7050 | 0.7050 | 100 | 2.79 | 20.0000 | 9: 50-2000 | 25-25 | 37.5 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| routeB_radius_N100_L0_20_20260825 | 0.7100 | 0.7100 | 100 | 2.77 | 20.0000 | 9: 50-2000 | 25-25 | 37.5 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| routeB_radius_N100_L0_20_20260825 | 0.7150 | 0.7150 | 100 | 2.75 | 20.0000 | 9: 50-2000 | 25-25 | 37.5 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| routeB_radius_N100_L0_20_20260825 | 0.7200 | 0.7200 | 100 | 2.73 | 20.0000 | 9: 50-2000 | 25-25 | 37.5 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| routeB_radius_N100_L0_20_20260825 | 0.7250 | 0.7250 | 100 | 2.71 | 20.0000 | 9: 50-2000 | 25-25 | 37.5 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| routeB_radius_N100_L0_20_20260825 | 0.7300 | 0.7300 | 100 | 2.69 | 20.0000 | 9: 50-2000 | 25-25 | 37.5 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-25 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| simulation_eta_split_newcore_20260821_r10_long/raw_simulations/01_high_eta | 0.7007 | 0.7000 | 100 | 10.00 | 5.6100 | 6: 100-1000 | 30-30 | nan | none; no time series | 0 (0) | 2026-08-21 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | no (< 3 masses or an older trace format) |
+| validate_acc_N100_20260826 | 0.7007 | 0.7000 | 100 | 10.00 | 5.6100 | 9: 50-2000 | 10-10 | 72.4 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-26 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+| validate_acc_N100_20260826 | 0.7222 | 0.7200 | 100 | 10.00 | 5.4542 | 9: 50-2000 | 10-10 | 83.7 | speed_of_sound_psi6.csv (per-run summary); no time series | 0 (0) | 2026-08-26 | unrecorded (Mac binary; no version line before the 2026-09-16 provenance change) | yes |
+
+(cells whose traces carry no L0/eta columns, not placed in eta: 0)
+
+### Estimator gate: the A1 v2 cells recomputed here against the canonical table (TD = 200, the registered unweighted slope)
+
+| eta_true | c_s here | c_s canonical | rel. difference | per-mass nu identical to paper1_populate_cs_err_20261002.cell |
+|---|---|---|---|---|
+| 0.6805 | 14.502804 | 14.502800 | +2.9e-07 | yes |
+| 0.6905 | 16.505857 | 16.505860 | -2.1e-07 | yes |
+| 0.6956 | 17.746460 | 17.746460 | +1.4e-08 | yes |
+| 0.7007 | 19.220322 | 19.220320 | +1.2e-07 | yes |
+| 0.7060 | 18.355898 | 18.355900 | -1.0e-07 | yes |
+| 0.7113 | 17.072761 | 17.072760 | +6.0e-08 | yes |
+| 0.7167 | 16.392910 | 16.392910 | +1.5e-08 | yes |
+| 0.7222 | 16.695884 | 16.695880 | +2.4e-07 | yes |
+| 0.7278 | 17.781640 | 17.781640 | -5.1e-10 | yes |
+| 0.7306 | 18.565529 | 18.565530 | -7.6e-08 | yes |
+
+estimator gate: largest relative difference 2.9e-07 -> PASS (the A1 v2 numbers below are the canonical ones)
+```
+
+**Item 2, A1 v2 per cell (canonical estimator; the other campaigns' per-cell tables are in the output file):**
+
+```
+### A1v2_20260914 | eta_true 0.6905 (outside) | N 100, H 10.00, L0 5.6913 | estimator TD = 200 (canonical) | KR c_s 11.5272 [KR inside its fit range, not compared with data]
+
+| M | alpha | n | c_app,M (argmax) +- SE | c_app,M/KR - 1 [%] | c_app,M (nu_d) +- SE | dip D_M vs entry [%] | Gamma_M [1/sigma-time] +- SE | Q | period [sigma-time] |
+|---|---|---|---|---|---|---|---|---|---|
+| 50 | 0.5 | 25 | 16.5041 +- 0.1123 | +43.2 | 16.4031 +- 0.0499 | -6.48 +- 0.91 | 0.6111 +- 0.03 | 6.2 | 1.65 |
+| 100 | 1 | 25 | 16.3939 +- 0.0879 | +42.2 | 16.4965 +- 0.0527 | -7.70 +- 0.66 | 0.3295 +- 0.017 | 9.2 | 2.08 |
+| 200 | 2 | 25 | 16.5678 +- 0.0573 | +43.7 | 16.5855 +- 0.0442 | -6.86 +- 0.49 | 0.1794 +- 0.012 | 12.9 | 2.71 |
+| 300 | 3 | 25 | 16.5347 +- 0.0575 | +43.4 | 16.5773 +- 0.0363 | -7.22 +- 0.43 | 0.1284 +- 0.0063 | 15.1 | 3.24 |
+| 500 | 5 | 25 | 16.6007 +- 0.0528 | +44.0 | 16.6023 +- 0.0347 | -7.18 +- 0.40 | 0.08401 +- 0.0047 | 18.3 | 4.08 |
+| 750 | 7.5 | 25 | 16.5831 +- 0.0403 | +43.9 | 16.5724 +- 0.0315 | -6.97 +- 0.34 | 0.06048 +- 0.0037 | 21.0 | 4.95 |
+| 1000 | 10 | 25 | 16.6337 +- 0.0414 | +44.3 | 16.6039 +- 0.0302 | -6.91 +- 0.29 | 0.04285 +- 0.0053 | 25.9 | 5.66 |
+| 1500 | 15 | 25 | 16.5543 +- 0.0378 | +43.6 | 16.5566 +- 0.0261 | -7.44 +- 0.25 | 0.03221 +- 0.0027 | 28.1 | 6.93 |
+| 2000 | 20 | 25 | 16.6424 +- 0.0293 | +44.4 | 16.6373 +- 0.0232 | -6.99 +- 0.26 | 0.02565 +- 0.0021 | 30.9 | 7.94 |
+
+single c_s: unweighted 16.5059 (chi2 42.9, 8 dof), weighted 16.5913 +- 0.0154 (chi2 11.9); Spearman(c_app, alpha) +0.77 (p 0.02), with nu_d +0.63 (p 0.07); dip vs entry eta 0.6956: Spearman(D, alpha) -0.20 (p 0.61), slope dD/d ln(alpha) -0.021 +- 0.137 %/e-fold (z -0.16, chi2 of the line 4.2)
+
+### A1v2_20260914 | eta_true 0.6956 (outside) | N 100, H 10.00, L0 5.6503 | estimator TD = 200 (canonical) | KR c_s 11.1079 [KR inside its fit range, not compared with data]
+
+| M | alpha | n | c_app,M (argmax) +- SE | c_app,M/KR - 1 [%] | c_app,M (nu_d) +- SE | dip D_M vs entry [%] | Gamma_M [1/sigma-time] +- SE | Q | period [sigma-time] |
+|---|---|---|---|---|---|---|---|---|---|
+| 50 | 0.5 | 25 | 17.6472 +- 0.1240 | +58.9 | 17.6646 +- 0.0600 | +0.00 +- 0.99 | 0.6814 +- 0.027 | 6.0 | 1.53 |
+| 100 | 1 | 25 | 17.7623 +- 0.0853 | +59.9 | 17.8141 +- 0.0483 | +0.00 +- 0.68 | 0.3753 +- 0.032 | 8.8 | 1.90 |
+| 200 | 2 | 25 | 17.7871 +- 0.0714 | +60.1 | 17.8295 +- 0.0392 | +0.00 +- 0.57 | 0.1882 +- 0.011 | 13.4 | 2.50 |
+| 300 | 3 | 25 | 17.8209 +- 0.0537 | +60.4 | 17.7965 +- 0.0298 | +0.00 +- 0.43 | 0.1474 +- 0.0075 | 14.3 | 2.98 |
+| 500 | 5 | 25 | 17.8841 +- 0.0507 | +61.0 | 17.9453 +- 0.0341 | +0.00 +- 0.40 | 0.09226 +- 0.0031 | 18.2 | 3.75 |
+| 750 | 7.5 | 25 | 17.8252 +- 0.0494 | +60.5 | 17.8761 +- 0.0323 | +0.00 +- 0.39 | 0.06442 +- 0.0028 | 21.4 | 4.56 |
+| 1000 | 10 | 25 | 17.8681 +- 0.0341 | +60.9 | 17.8779 +- 0.0252 | +0.00 +- 0.27 | 0.04008 +- 0.0034 | 30.0 | 5.22 |
+| 1500 | 15 | 25 | 17.8841 +- 0.0253 | +61.0 | 17.8881 +- 0.0189 | +0.00 +- 0.20 | 0.02878 +- 0.003 | 34.3 | 6.36 |
+| 2000 | 20 | 25 | 17.8931 +- 0.0380 | +61.1 | 17.8778 +- 0.0251 | +0.00 +- 0.30 | 0.026 +- 0.0017 | 33.0 | 7.32 |
+
+single c_s: unweighted 17.7465 (chi2 70.1, 8 dof), weighted 17.8616 +- 0.0146 (chi2 8.3); Spearman(c_app, alpha) +0.90 (p 0.00), with nu_d +0.73 (p 0.02); entry cell (D = 0 by construction)
+
+### A1v2_20260914 | eta_true 0.7007 (INSIDE the window) | N 100, H 10.00, L0 5.6100 | estimator TD = 200 (canonical) | KR c_s 10.4106 [KR inside its fit range, not compared with data]
+
+| M | alpha | n | c_app,M (argmax) +- SE | c_app,M/KR - 1 [%] | c_app,M (nu_d) +- SE | dip D_M vs entry [%] | Gamma_M [1/sigma-time] +- SE | Q | period [sigma-time] |
+|---|---|---|---|---|---|---|---|---|---|
+| 50 | 0.5 | 25 | 19.0830 +- 0.1340 | +83.3 | 19.0027 +- 0.0508 | +8.14 +- 1.07 | 0.7056 +- 0.032 | 6.4 | 1.40 |
+| 100 | 1 | 25 | 19.1828 +- 0.1097 | +84.3 | 19.3394 +- 0.0455 | +8.00 +- 0.81 | 0.414 +- 0.023 | 8.7 | 1.74 |
+| 200 | 2 | 25 | 19.3523 +- 0.1557 | +85.9 | 19.3120 +- 0.1560 | +8.80 +- 0.98 | 0.232 +- 0.0085 | 11.9 | 2.28 |
+| 300 | 3 | 25 | 19.3524 +- 0.0803 | +85.9 | 19.4017 +- 0.0331 | +8.59 +- 0.56 | 0.1547 +- 0.011 | 14.9 | 2.72 |
+| 500 | 5 | 25 | 19.4126 +- 0.0512 | +86.5 | 19.4213 +- 0.0368 | +8.55 +- 0.42 | 0.09511 +- 0.0089 | 19.3 | 3.42 |
+| 750 | 7.5 | 25 | 19.3406 +- 0.0462 | +85.8 | 19.4319 +- 0.0325 | +8.50 +- 0.40 | 0.06907 +- 0.0047 | 21.8 | 4.16 |
+| 1000 | 10 | 25 | 19.4426 +- 0.0428 | +86.8 | 19.4046 +- 0.0289 | +8.81 +- 0.32 | 0.05206 +- 0.0024 | 25.4 | 4.76 |
+| 1500 | 15 | 25 | 19.3568 +- 0.0427 | +85.9 | 19.3869 +- 0.0278 | +8.23 +- 0.28 | 0.03585 +- 0.0038 | 30.1 | 5.82 |
+| 2000 | 20 | 25 | 19.4096 +- 0.0267 | +86.4 | 19.4118 +- 0.0232 | +8.48 +- 0.27 | 0.02451 +- 0.0012 | 38.3 | 6.68 |
+
+single c_s: unweighted 19.2203 (chi2 113.1, 8 dof), weighted 19.3851 +- 0.0165 (chi2 13.0); Spearman(c_app, alpha) +0.73 (p 0.02), with nu_d +0.65 (p 0.06); dip vs entry eta 0.6956: Spearman(D, alpha) +0.23 (p 0.55), slope dD/d ln(alpha) +0.002 +- 0.170 %/e-fold (z +0.01, chi2 of the line 2.5)
+
+### A1v2_20260914 | eta_true 0.7060 (INSIDE the window) | N 100, H 10.00, L0 5.5702 | estimator TD = 200 (canonical) | KR c_s 10.2307 [KR inside its fit range, not compared with data]
+
+| M | alpha | n | c_app,M (argmax) +- SE | c_app,M/KR - 1 [%] | c_app,M (nu_d) +- SE | dip D_M vs entry [%] | Gamma_M [1/sigma-time] +- SE | Q | period [sigma-time] |
+|---|---|---|---|---|---|---|---|---|---|
+| 50 | 0.5 | 25 | 17.9628 +- 0.4401 | +75.6 | 18.0893 +- 0.4204 | +1.79 +- 2.59 | 0.7406 +- 0.11 | 5.8 | 1.47 |
+| 100 | 1 | 25 | 17.5649 +- 0.3676 | +71.7 | 17.5415 +- 0.3737 | -1.11 +- 2.12 | 0.3579 +- 0.031 | 9.3 | 1.89 |
+| 200 | 2 | 25 | 18.9274 +- 0.4430 | +85.0 | 18.9523 +- 0.4565 | +6.41 +- 2.53 | 0.2422 +- 0.037 | 11.3 | 2.31 |
+| 300 | 3 | 25 | 19.3087 +- 0.4426 | +88.7 | 19.3723 +- 0.4546 | +8.35 +- 2.50 | 0.1569 +- 0.024 | 14.8 | 2.70 |
+| 500 | 5 | 25 | 18.2200 +- 0.3895 | +78.1 | 18.0438 +- 0.3790 | +1.88 +- 2.20 | 0.1068 +- 0.01 | 16.3 | 3.62 |
+| 750 | 7.5 | 25 | 19.7542 +- 0.4266 | +93.1 | 19.8919 +- 0.4213 | +10.82 +- 2.41 | 0.5369 +- 3.1 | 2.9 | 4.04 |
+| 1000 | 10 | 25 | 19.8041 +- 0.4097 | +93.6 | 20.0527 +- 0.4194 | +10.83 +- 2.30 | 0.05952 +- 0.0041 | 22.8 | 4.63 |
+| 1500 | 15 | 25 | 20.1877 +- 0.3795 | +97.3 | 20.2394 +- 0.3774 | +12.88 +- 2.13 | 0.03799 +- 0.0033 | 29.9 | 5.53 |
+| 2000 | 20 | 25 | 20.3806 +- 0.3566 | +99.2 | 20.4344 +- 0.3590 | +13.90 +- 2.01 | 0.03297 +- 0.0022 | 30.2 | 6.31 |
+
+single c_s: unweighted 18.3559 (chi2 90.6, 8 dof), weighted 19.1461 +- 0.1341 (chi2 55.9); Spearman(c_app, alpha) +0.93 (p 0.00), with nu_d +0.87 (p 0.00); dip vs entry eta 0.6956: Spearman(D, alpha) +0.93 (p 0.00), slope dD/d ln(alpha) +3.893 +- 0.647 %/e-fold (z +6.01, chi2 of the line 12.5)
+
+### A1v2_20260914 | eta_true 0.7113 (INSIDE the window) | N 100, H 10.00, L0 5.5310 | estimator TD = 200 (canonical) | KR c_s 14.7879 [KR extrapolated: INFERENCE]
+
+| M | alpha | n | c_app,M (argmax) +- SE | c_app,M/KR - 1 [%] | c_app,M (nu_d) +- SE | dip D_M vs entry [%] | Gamma_M [1/sigma-time] +- SE | Q | period [sigma-time] |
+|---|---|---|---|---|---|---|---|---|---|
+| 50 | 0.5 | 25 | 16.5226 +- 0.3308 | +11.7 | 16.4692 +- 0.2908 | -6.37 +- 1.99 | 1.23 +- 0.035 | 3.2 | 1.59 |
+| 100 | 1 | 25 | 17.0905 +- 0.2922 | +15.6 | 17.1418 +- 0.2876 | -3.78 +- 1.71 | 0.503 +- 0.12 | 6.5 | 1.92 |
+| 200 | 2 | 25 | 17.1663 +- 0.2913 | +16.1 | 17.3273 +- 0.2980 | -3.49 +- 1.68 | 0.2339 +- 0.039 | 10.7 | 2.52 |
+| 300 | 3 | 25 | 17.0367 +- 0.3274 | +15.2 | 17.2151 +- 0.3228 | -4.40 +- 1.86 | 0.1451 +- 0.032 | 14.3 | 3.03 |
+| 500 | 5 | 25 | 18.2894 +- 0.3827 | +23.7 | 17.8460 +- 0.2405 | +2.27 +- 2.16 | 0.09988 +- 0.012 | 17.6 | 3.57 |
+| 750 | 7.5 | 25 | 18.1696 +- 0.2933 | +22.9 | 18.2139 +- 0.2954 | +1.93 +- 1.67 | 0.07179 +- 0.0066 | 20.1 | 4.35 |
+| 1000 | 10 | 25 | 18.1403 +- 0.2885 | +22.7 | 18.2459 +- 0.0330 | +1.52 +- 1.63 | 0.05507 +- 0.0055 | 22.8 | 5.01 |
+| 1500 | 15 | 25 | 18.0007 +- 0.1831 | +21.7 | 17.9875 +- 0.1860 | +0.65 +- 1.03 | 0.03947 +- 0.0047 | 25.9 | 6.15 |
+| 2000 | 20 | 25 | 18.3726 +- 0.2575 | +24.2 | 18.3554 +- 0.0361 | +2.68 +- 1.46 | 0.03341 +- 0.0023 | 27.1 | 6.93 |
+
+single c_s: unweighted 17.0728 (chi2 91.8, 8 dof), weighted 17.7299 +- 0.0923 (chi2 41.2); Spearman(c_app, alpha) +0.78 (p 0.01), with nu_d +0.93 (p 0.00); dip vs entry eta 0.6956: Spearman(D, alpha) +0.78 (p 0.01), slope dD/d ln(alpha) +2.269 +- 0.456 %/e-fold (z +4.98, chi2 of the line 6.5)
+
+### A1v2_20260914 | eta_true 0.7167 (INSIDE the window) | N 100, H 10.00, L0 5.4923 | estimator TD = 200 (canonical) | KR c_s 31.9830 [KR extrapolated: INFERENCE]
+
+| M | alpha | n | c_app,M (argmax) +- SE | c_app,M/KR - 1 [%] | c_app,M (nu_d) +- SE | dip D_M vs entry [%] | Gamma_M [1/sigma-time] +- SE | Q | period [sigma-time] |
+|---|---|---|---|---|---|---|---|---|---|
+| 50 | 0.5 | 25 | 16.4524 +- 0.3146 | -48.6 | 16.5886 +- 0.3262 | -6.77 +- 1.90 | 0.4842 +- 0.035 | 8.2 | 1.58 |
+| 100 | 1 | 25 | 15.8516 +- 0.1925 | -50.4 | 15.7928 +- 0.1693 | -10.76 +- 1.17 | 0.2682 +- 0.018 | 11.4 | 2.05 |
+| 200 | 2 | 25 | 16.8851 +- 0.3842 | -47.2 | 17.0333 +- 0.3964 | -5.07 +- 2.19 | 0.1457 +- 0.012 | 17.0 | 2.54 |
+| 300 | 3 | 25 | 16.3946 +- 0.3256 | -48.7 | 16.2665 +- 0.3101 | -8.00 +- 1.85 | 0.09442 +- 0.0073 | 21.3 | 3.12 |
+| 500 | 5 | 25 | 16.4549 +- 0.3380 | -48.6 | 16.1027 +- 0.2773 | -7.99 +- 1.91 | 0.06717 +- 0.0047 | 23.8 | 3.93 |
+| 750 | 7.5 | 25 | 16.5656 +- 0.3444 | -48.2 | 15.9043 +- 0.2230 | -7.07 +- 1.95 | 0.04111 +- 0.0026 | 32.3 | 4.73 |
+| 1000 | 10 | 25 | 16.5781 +- 0.3673 | -48.2 | 16.4333 +- 0.3525 | -7.22 +- 2.06 | 0.03175 +- 0.0038 | 36.5 | 5.43 |
+| 1500 | 15 | 25 | 17.0609 +- 0.4043 | -46.7 | 17.0417 +- 0.4055 | -4.60 +- 2.26 | 0.02733 +- 0.0025 | 35.8 | 6.42 |
+| 2000 | 20 | 25 | 16.9201 +- 0.3986 | -47.1 | 16.7729 +- 0.3810 | -5.44 +- 2.24 | 0.02282 +- 0.0031 | 36.9 | 7.46 |
+
+single c_s: unweighted 16.3929 (chi2 14.6, 8 dof), weighted 16.3943 +- 0.1052 (chi2 14.6); Spearman(c_app, alpha) +0.75 (p 0.02), with nu_d +0.33 (p 0.38); dip vs entry eta 0.6956: Spearman(D, alpha) +0.38 (p 0.31), slope dD/d ln(alpha) +1.053 +- 0.522 %/e-fold (z +2.02, chi2 of the line 7.6)
+
+### A1v2_20260914 | eta_true 0.7222 (outside) | N 100, H 10.00, L0 5.4542 | estimator TD = 200 (canonical) | KR c_s 76.3636 [KR extrapolated: INFERENCE]
+
+| M | alpha | n | c_app,M (argmax) +- SE | c_app,M/KR - 1 [%] | c_app,M (nu_d) +- SE | dip D_M vs entry [%] | Gamma_M [1/sigma-time] +- SE | Q | period [sigma-time] |
+|---|---|---|---|---|---|---|---|---|---|
+| 50 | 0.5 | 25 | 16.8273 +- 0.2817 | -78.0 | 16.8097 +- 0.2826 | -4.65 +- 1.73 | 0.3889 +- 0.023 | 10.6 | 1.53 |
+| 100 | 1 | 25 | 16.5717 +- 0.0729 | -78.3 | 16.5976 +- 0.0415 | -6.70 +- 0.61 | 0.2259 +- 0.022 | 14.3 | 1.94 |
+| 200 | 2 | 25 | 16.5925 +- 0.0358 | -78.3 | 16.6078 +- 0.0218 | -6.72 +- 0.43 | 0.08849 +- 0.0069 | 27.8 | 2.56 |
+| 300 | 3 | 25 | 16.6363 +- 0.0308 | -78.2 | 16.6281 +- 0.0243 | -6.65 +- 0.33 | 0.06746 +- 0.0062 | 30.6 | 3.05 |
+| 500 | 5 | 25 | 16.6232 +- 0.0254 | -78.2 | 16.6419 +- 0.0176 | -7.05 +- 0.30 | 0.03588 +- 0.0037 | 45.5 | 3.85 |
+| 750 | 7.5 | 25 | 16.6464 +- 0.0289 | -78.2 | 16.6433 +- 0.0176 | -6.61 +- 0.31 | 0.02668 +- 0.002 | 50.5 | 4.66 |
+| 1000 | 10 | 25 | 16.6335 +- 0.0198 | -78.2 | 16.6370 +- 0.0148 | -6.91 +- 0.21 | 0.02231 +- 0.0014 | 52.6 | 5.36 |
+| 1500 | 15 | 25 | 16.8429 +- 0.2009 | -77.9 | 16.6520 +- 0.0153 | -5.82 +- 1.13 | 0.01408 +- 0.0011 | 69.2 | 6.45 |
+| 2000 | 20 | 25 | 17.0573 +- 0.2710 | -77.7 | 17.0412 +- 0.2693 | -4.67 +- 1.53 | 0.01161 +- 0.00063 | 73.9 | 7.33 |
+
+single c_s: unweighted 16.6959 (chi2 38.6, 8 dof), weighted 16.6298 +- 0.0116 (chi2 6.3); Spearman(c_app, alpha) +0.57 (p 0.11), with nu_d +0.48 (p 0.19); dip vs entry eta 0.6956: Spearman(D, alpha) +0.07 (p 0.86), slope dD/d ln(alpha) -0.073 +- 0.184 %/e-fold (z -0.40, chi2 of the line 5.7)
+```
+
+**Item 2, summaries, the depth of the dip, and the plain-fluid baseline at 25 seeds:**
+
+```
+### Summary per campaign (EXPLORATORY): the mass dependence inside and outside the window
+
+| campaign | eta_true | inside | c_s unweighted | chi2 unweighted (dof) | chi2 weighted | Spearman(c_app, alpha) | Spearman(D_M, alpha) | dD/d ln alpha [%] (z) |
+|---|---|---|---|---|---|---|---|---|
+| A1v2_20260914 | 0.6805 | no | 14.5028 | 4.8 (8) | 3.8 | -0.43 | -0.92 | -0.297 (-2.4) |
+| A1v2_20260914 | 0.6905 | no | 16.5059 | 42.9 (8) | 11.9 | +0.77 | -0.20 | -0.021 (-0.2) |
+| A1v2_20260914 | 0.6956 | no | 17.7465 | 70.1 (8) | 8.3 | +0.90 | - | - |
+| A1v2_20260914 | 0.7007 | yes | 19.2203 | 113.1 (8) | 13.0 | +0.73 | +0.23 | +0.002 (+0.0) |
+| A1v2_20260914 | 0.7060 | yes | 18.3559 | 90.6 (8) | 55.9 | +0.93 | +0.93 | +3.893 (+6.0) |
+| A1v2_20260914 | 0.7113 | yes | 17.0728 | 91.8 (8) | 41.2 | +0.78 | +0.78 | +2.269 (+5.0) |
+| A1v2_20260914 | 0.7167 | yes | 16.3929 | 14.6 (8) | 14.6 | +0.75 | +0.38 | +1.053 (+2.0) |
+| A1v2_20260914 | 0.7222 | no | 16.6959 | 38.6 (8) | 6.3 | +0.57 | +0.07 | -0.073 (-0.4) |
+| A1v2_20260914 | 0.7278 | no | 17.7816 | 264.8 (8) | 38.6 | +0.43 | -0.07 | -0.087 (-0.7) |
+| A1v2_20260914 | 0.7306 | no | 18.5655 | 102.2 (8) | 14.1 | +0.85 | -0.73 | -0.114 (-0.9) |
+| campaign_r25_psi6_20260823 | 0.6805 | no | 14.2400 | 23.1 (8) | 10.3 | +0.27 | -0.42 | -0.336 (-1.6) |
+| campaign_r25_psi6_20260823 | 0.6905 | no | 16.3406 | 42.1 (8) | 21.4 | +0.17 | -0.25 | -0.272 (-1.4) |
+| campaign_r25_psi6_20260823 | 0.6956 | no | 17.4471 | 88.8 (8) | 22.8 | +0.53 | - | - |
+| campaign_r25_psi6_20260823 | 0.7007 | yes | 19.0933 | 14.8 (8) | 9.7 | +0.12 | -0.47 | -0.441 (-1.7) |
+| campaign_r25_psi6_20260823 | 0.7060 | yes | 17.3800 | 29.0 (8) | 23.2 | +0.90 | +0.78 | +1.816 (+2.8) |
+| campaign_r25_psi6_20260823 | 0.7113 | yes | 15.5426 | 17.4 (8) | 14.3 | +0.80 | +0.45 | +0.872 (+1.6) |
+| campaign_r25_psi6_20260823 | 0.7167 | yes | 15.7085 | 36.6 (8) | 10.0 | -0.07 | -0.45 | -0.750 (-2.8) |
+| campaign_r25_psi6_20260823 | 0.7222 | no | 16.4186 | 5.3 (8) | 4.6 | -0.08 | -0.55 | -0.439 (-2.3) |
+| campaign_r25_psi6_20260823 | 0.7278 | no | 17.5861 | 31.7 (8) | 8.3 | +0.87 | -0.38 | -0.249 (-1.2) |
+| campaign_r25_psi6_20260823 | 0.7306 | no | 18.3530 | 32.8 (8) | 16.0 | +0.73 | -0.45 | -0.262 (-1.4) |
+| campaign_transition_psi6run_20260823 | 0.6805 | no | 14.2964 | 15.1 (8) | 8.8 | +0.37 | +0.00 | +0.089 (+0.4) |
+| campaign_transition_psi6run_20260823 | 0.6905 | no | 16.3897 | 8.7 (8) | 8.6 | -0.15 | -0.35 | -0.155 (-0.7) |
+| campaign_transition_psi6run_20260823 | 0.6956 | no | 17.5804 | 14.9 (8) | 8.9 | -0.32 | - | - |
+| campaign_transition_psi6run_20260823 | 0.7007 | yes | 18.9021 | 38.4 (8) | 11.0 | +0.27 | +0.77 | +0.447 (+1.2) |
+| campaign_transition_psi6run_20260823 | 0.7060 | yes | 17.2638 | 14.1 (8) | 7.9 | +0.92 | +0.93 | +1.427 (+2.3) |
+| campaign_transition_psi6run_20260823 | 0.7113 | yes | 15.3850 | 9.8 (8) | 9.4 | +0.70 | +0.40 | +0.557 (+1.1) |
+| campaign_transition_psi6run_20260823 | 0.7167 | yes | 15.6285 | 38.8 (8) | 6.2 | +0.13 | +0.27 | +0.105 (+0.4) |
+| campaign_transition_psi6run_20260823 | 0.7222 | no | 16.3722 | 45.2 (8) | 13.0 | +0.43 | +0.13 | +0.215 (+1.1) |
+| campaign_transition_psi6run_20260823 | 0.7278 | no | 17.5781 | 55.7 (8) | 16.6 | +0.68 | +0.28 | +0.258 (+1.2) |
+| campaign_transition_psi6run_20260823 | 0.7306 | no | 18.3125 | 54.9 (8) | 18.2 | +0.40 | +0.10 | +0.329 (+1.5) |
+| finitesize_aspect_20260826/famA/N100 | 0.6905 | no | 16.3983 | 10.3 (8) | 9.0 | +0.47 | +0.27 | +0.340 (+1.1) |
+| finitesize_aspect_20260826/famA/N100 | 0.6981 | no | 18.4177 | 7.0 (8) | 7.0 | +0.02 | - | - |
+| finitesize_aspect_20260826/famA/N100 | 0.7033 | yes | 19.6347 | 14.6 (8) | 3.1 | -0.27 | +0.03 | +0.210 (+0.4) |
+| finitesize_aspect_20260826/famA/N100 | 0.7086 | yes | 17.2902 | 11.1 (8) | 8.9 | +0.67 | +0.60 | +0.875 (+1.6) |
+| finitesize_aspect_20260826/famA/N100 | 0.7113 | yes | 15.5562 | 87.9 (8) | 40.4 | +0.02 | +0.10 | +1.011 (+1.4) |
+| finitesize_aspect_20260826/famA/N100 | 0.7167 | yes | 15.6794 | 35.1 (8) | 9.9 | +0.10 | +0.22 | +0.193 (+0.4) |
+| finitesize_aspect_20260826/famA/N100 | 0.7194 | no | 15.8743 | 5.9 (8) | 5.0 | -0.20 | +0.07 | -0.246 (-0.9) |
+| finitesize_aspect_20260826/famA/N100 | 0.7222 | no | 16.2749 | 26.6 (8) | 11.9 | +0.67 | +0.70 | +0.442 (+1.6) |
+| finitesize_aspect_20260826/famA/N100 | 0.7306 | no | 18.3459 | 17.4 (8) | 5.7 | +0.48 | +0.43 | +0.260 (+0.9) |
+| finitesize_aspect_20260826/famA/N1600 | 0.7001 | yes | 12.5377 | 1.9 (4) | 1.8 | -0.60 | - | - |
+| finitesize_aspect_20260826/famA/N1600 | 0.7106 | yes | 13.5211 | 0.3 (4) | 0.2 | +0.60 | - | - |
+| finitesize_aspect_20260826/famA/N1600 | 0.7201 | no | 14.4352 | 7.1 (4) | 6.5 | -0.70 | - | - |
+| finitesize_aspect_20260826/famA/N1600 | 0.7306 | no | 13.5683 | 2.4 (4) | 1.9 | -0.60 | - | - |
+| finitesize_aspect_20260826/famA/N400 | 0.6905 | no | 13.2940 | 8.5 (8) | 7.9 | -0.07 | +0.67 | +0.676 (+0.8) |
+| finitesize_aspect_20260826/famA/N400 | 0.6981 | no | 12.9778 | 3.9 (8) | 3.8 | -0.25 | - | - |
+| finitesize_aspect_20260826/famA/N400 | 0.7020 | yes | 12.3653 | 17.6 (8) | 17.6 | -0.08 | +0.07 | +0.579 (+0.6) |
+| finitesize_aspect_20260826/famA/N400 | 0.7073 | yes | 12.0640 | 30.7 (8) | 10.6 | -0.78 | -0.37 | -0.493 (-0.5) |
+| finitesize_aspect_20260826/famA/N400 | 0.7113 | yes | 12.1497 | 15.5 (8) | 5.7 | -0.82 | -0.47 | -0.399 (-0.5) |
+| finitesize_aspect_20260826/famA/N400 | 0.7154 | yes | 12.5055 | 4.1 (8) | 4.1 | -0.08 | +0.07 | +0.369 (+0.5) |
+| finitesize_aspect_20260826/famA/N400 | 0.7181 | no | 12.7586 | 12.8 (8) | 12.4 | -0.27 | +0.22 | +0.334 (+0.4) |
+| finitesize_aspect_20260826/famA/N400 | 0.7222 | no | 13.1774 | 5.6 (8) | 4.3 | -0.35 | +0.07 | +0.652 (+0.7) |
+| finitesize_aspect_20260826/famA/N400 | 0.7306 | no | 14.5859 | 14.3 (8) | 14.3 | +0.30 | +0.62 | +0.838 (+0.7) |
+| finitesize_aspect_20260826/famA/N900 | 0.6905 | no | 11.3740 | 10.4 (4) | 10.2 | +0.10 | +0.20 | +0.462 (+0.5) |
+| finitesize_aspect_20260826/famA/N900 | 0.6981 | no | 11.8512 | 3.5 (4) | 3.5 | -0.50 | - | - |
+| finitesize_aspect_20260826/famA/N900 | 0.7025 | yes | 12.0944 | 13.1 (4) | 12.7 | +0.10 | +0.30 | +1.583 (+1.7) |
+| finitesize_aspect_20260826/famA/N900 | 0.7069 | yes | 12.4467 | 3.7 (4) | 3.6 | +0.60 | +0.70 | +0.995 (+1.1) |
+| finitesize_aspect_20260826/famA/N900 | 0.7104 | yes | 12.9024 | 2.8 (4) | 2.8 | +0.10 | +0.70 | +0.882 (+1.0) |
+| finitesize_aspect_20260826/famA/N900 | 0.7149 | yes | 13.6781 | 32.5 (4) | 13.9 | -0.70 | -0.40 | -0.553 (-0.5) |
+| finitesize_aspect_20260826/famA/N900 | 0.7185 | no | 13.8370 | 8.8 (4) | 6.2 | +0.10 | +0.90 | +1.222 (+1.3) |
+| finitesize_aspect_20260826/famA/N900 | 0.7222 | no | 14.4156 | 5.3 (4) | 4.7 | -0.20 | +0.30 | +0.812 (+0.8) |
+| finitesize_aspect_20260826/famA/N900 | 0.7306 | no | 15.8781 | 8.7 (4) | 8.1 | +0.00 | +0.70 | +0.741 (+0.6) |
+| finitesize_aspect_20260826/famC/N100 | 0.7113 | yes | 15.5719 | 8.2 (4) | 7.6 | +0.70 | - | - |
+| finitesize_aspect_20260826/famC/N1600 | 0.7113 | yes | 11.8975 | 5.2 (4) | 2.5 | -0.50 | - | - |
+| finitesize_aspect_20260826/famC/N400 | 0.7113 | yes | 10.9378 | 3.4 (4) | 3.3 | -0.20 | - | - |
+| finitesize_aspect_20260826/famC/N900 | 0.7113 | yes | 11.6382 | 2.9 (4) | 2.6 | -0.80 | - | - |
+| ladder_N100_20260825 | 0.7007 | yes | 19.0362 | 16.4 (8) | 9.8 | +0.18 | - | - |
+| ladder_N100_20260825 | 0.7222 | no | 16.4035 | 6.8 (8) | 6.5 | +0.63 | - | - |
+| ladder_N200_20260825 | 0.7007 | yes | 16.9492 | 6.5 (8) | 4.3 | +0.38 | - | - |
+| ladder_N200_20260825 | 0.7208 | no | 18.8952 | 12.9 (8) | 10.7 | -0.42 | - | - |
+| ladder_N400_20260825 | 0.7001 | yes | 14.6866 | 24.2 (8) | 16.0 | -0.47 | - | - |
+| ladder_N400_20260825 | 0.7201 | no | 19.3199 | 9.6 (8) | 8.8 | +0.00 | - | - |
+| overnight_N1000_20260826 | 0.7002 | yes | 13.4500 | 9.8 (8) | 7.0 | +0.15 | - | - |
+| overnight_N1000_20260826 | 0.7203 | no | 17.2945 | 8.3 (8) | 8.3 | +0.18 | - | - |
+| routeB_radius_N100_L0_20_20260825 | 0.6800 | no | 18.3468 | 12.7 (8) | 5.2 | -0.80 | -0.30 | -0.288 (-0.7) |
+| routeB_radius_N100_L0_20_20260825 | 0.6900 | no | 19.2085 | 8.1 (8) | 6.2 | +0.18 | +0.20 | +0.348 (+0.7) |
+| routeB_radius_N100_L0_20_20260825 | 0.6950 | no | 19.6962 | 6.1 (8) | 5.2 | -0.62 | - | - |
+| routeB_radius_N100_L0_20_20260825 | 0.7000 | yes | 20.2605 | 14.4 (8) | 8.4 | -0.53 | -0.33 | -0.295 (-0.6) |
+| routeB_radius_N100_L0_20_20260825 | 0.7050 | yes | 20.4233 | 62.3 (8) | 23.0 | -0.65 | -0.67 | -1.347 (-2.3) |
+| routeB_radius_N100_L0_20_20260825 | 0.7100 | yes | 20.5432 | 32.3 (8) | 18.2 | +0.05 | +0.05 | -0.452 (-0.7) |
+| routeB_radius_N100_L0_20_20260825 | 0.7150 | yes | 20.9645 | 140.2 (8) | 33.8 | -0.77 | -0.78 | -2.294 (-3.5) |
+| routeB_radius_N100_L0_20_20260825 | 0.7200 | no | 21.8164 | 226.2 (8) | 36.9 | -0.92 | -0.87 | -2.559 (-3.9) |
+| routeB_radius_N100_L0_20_20260825 | 0.7250 | no | 22.8871 | 256.7 (8) | 40.3 | -0.98 | -0.93 | -3.113 (-4.2) |
+| routeB_radius_N100_L0_20_20260825 | 0.7300 | no | 25.3701 | 457.8 (8) | 79.1 | -0.95 | -0.97 | -6.069 (-6.7) |
+| validate_acc_N100_20260826 | 0.7007 | yes | 19.0077 | 20.2 (8) | 12.2 | +0.35 | - | - |
+| validate_acc_N100_20260826 | 0.7222 | no | 16.4207 | 8.6 (8) | 8.3 | -0.02 | - | - |
+
+### Pooled over the window cells of each campaign (EXPLORATORY): inside vs outside
+
+| campaign | window cells | mean Spearman(D_M, alpha) inside | outside cells | mean Spearman(D_M, alpha) outside | window cells with dD/d ln alpha < 0 at z < -2 | with z > +2 | with abs(z) < 2 |
+|---|---|---|---|---|---|---|---|
+| A1v2_20260914 | 4 | +0.58 | 5 | -0.37 | 0 | 3 | 1 |
+| campaign_r25_psi6_20260823 | 4 | +0.08 | 5 | -0.41 | 1 | 1 | 2 |
+| campaign_transition_psi6run_20260823 | 4 | +0.59 | 5 | +0.03 | 0 | 1 | 3 |
+| finitesize_aspect_20260826/famA/N100 | 4 | +0.24 | 4 | +0.37 | 0 | 0 | 4 |
+| finitesize_aspect_20260826/famA/N1600 | 0 | +nan | 0 | +nan | 0 | 0 | 0 |
+| finitesize_aspect_20260826/famA/N400 | 4 | -0.17 | 4 | +0.39 | 0 | 0 | 4 |
+| finitesize_aspect_20260826/famA/N900 | 4 | +0.33 | 4 | +0.52 | 0 | 0 | 4 |
+| finitesize_aspect_20260826/famC/N100 | 0 | +nan | 0 | +nan | 0 | 0 | 0 |
+| finitesize_aspect_20260826/famC/N1600 | 0 | +nan | 0 | +nan | 0 | 0 | 0 |
+| finitesize_aspect_20260826/famC/N400 | 0 | +nan | 0 | +nan | 0 | 0 | 0 |
+| finitesize_aspect_20260826/famC/N900 | 0 | +nan | 0 | +nan | 0 | 0 | 0 |
+| ladder_N100_20260825 | 0 | +nan | 0 | +nan | 0 | 0 | 0 |
+| ladder_N200_20260825 | 0 | +nan | 0 | +nan | 0 | 0 | 0 |
+| ladder_N400_20260825 | 0 | +nan | 0 | +nan | 0 | 0 | 0 |
+| overnight_N1000_20260826 | 0 | +nan | 0 | +nan | 0 | 0 | 0 |
+| routeB_radius_N100_L0_20_20260825 | 4 | -0.43 | 5 | -0.57 | 2 | 0 | 2 |
+| validate_acc_N100_20260826 | 0 | +nan | 0 | +nan | 0 | 0 | 0 |
+
+### The depth of the dip per campaign, the design's definition (261012 sec. 4.2): D = (c_max - c_min)/c_max, c_min after c_max, eta_true in [0.685, 0.725], c = the unweighted slope +- c_s_err_scaled (EXPLORATORY; campaigns with >= 4 cells there)
+
+| campaign | N | H | cells | c_s by eta_true | c_max at | c_min (after it) at | D [%] +- | design M1: 14.71 % (N/100)^(-1/2) |
+|---|---|---|---|---|---|---|---|---|
+| A1v2_20260914 | 100 | 10 | 7 | 0.6905: 16.51, 0.6956: 17.75, 0.7007: 19.22, 0.7060: 18.36, 0.7113: 17.07, 0.7167: 16.39, 0.7222: 16.70 | 0.7007 | 0.7167 | 14.7 +- 1.4 | 14.71 |
+| campaign_r25_psi6_20260823 | 100 | 10 | 7 | 0.6905: 16.34, 0.6956: 17.45, 0.7007: 19.09, 0.7060: 17.38, 0.7113: 15.54, 0.7167: 15.71, 0.7222: 16.42 | 0.7007 | 0.7113 | 18.6 +- 1.2 | 14.71 |
+| campaign_transition_psi6run_20260823 | 100 | 10 | 7 | 0.6905: 16.39, 0.6956: 17.58, 0.7007: 18.90, 0.7060: 17.26, 0.7113: 15.39, 0.7167: 15.63, 0.7222: 16.37 | 0.7007 | 0.7113 | 18.6 +- 1.5 | 14.71 |
+| finitesize_aspect_20260826/famA/N100 | 100 | 10 | 8 | 0.6905: 16.40, 0.6981: 18.42, 0.7033: 19.63, 0.7086: 17.29, 0.7113: 15.56, 0.7167: 15.68, 0.7194: 15.87, 0.7222: 16.27 | 0.7033 | 0.7113 | 20.8 +- 3.3 | 14.71 |
+| finitesize_aspect_20260826/famA/N400 | 400 | 20 | 8 | 0.6905: 13.29, 0.6981: 12.98, 0.7020: 12.37, 0.7073: 12.06, 0.7113: 12.15, 0.7154: 12.51, 0.7181: 12.76, 0.7222: 13.18 | 0.6905 | 0.7073 | 9.3 +- 2.3 | 7.36 |
+| finitesize_aspect_20260826/famA/N900 | 900 | 30 | 8 | 0.6905: 11.37, 0.6981: 11.85, 0.7025: 12.09, 0.7069: 12.45, 0.7104: 12.90, 0.7149: 13.68, 0.7185: 13.84, 0.7222: 14.42 | 0.7222 | (none after the maximum) | 0 (no max-then-min) | 4.90 |
+| routeB_radius_N100_L0_20_20260825 | 100 | 3 | 8 | 0.6900: 19.21, 0.6950: 19.70, 0.7000: 20.26, 0.7050: 20.42, 0.7100: 20.54, 0.7150: 20.96, 0.7200: 21.82, 0.7250: 22.89 | 0.7250 | (none after the maximum) | 0 (no max-then-min) | 14.71 |
+
+### The Test T plain-fluid baseline at the same seed number (25 per mass), pi/8
+
+| data | chi2 unweighted (8 dof) | chi2 weighted (8 dof) | Spearman(c_app, alpha) |
+|---|---|---|---|
+| Test T legacy, seeds 0-24 | 7.8 | 6.1 | -0.05 |
+| Test T legacy, seeds 25-49 | 52.0 | 8.8 | +0.90 |
+| Test T legacy, seeds 50-74 | 4.4 | 4.3 | -0.10 |
+| Test T legacy, seeds 75-99 | 128.9 | 20.4 | +0.78 |
+| campaign anchor (279282b), 25 seeds | 27.3 | 8.5 | -0.52 |
+```
+
+**Item 4b, structure against mass and against the per-trajectory frequency:**
+
+```
+## Item 4b -- structure against mass and against the measured frequency (EXPLORATORY; per-run psi6 summaries)
+
+| campaign | eta_true | psi6 run mean, M ascending (seed means) | psi6 at the end, M ascending | record, lightest - heaviest [sigma-time] | Spearman(psi6 run mean, alpha) | Spearman(c_app,M, psi6 run mean) over masses | per trajectory: Spearman(nu/nu_M - 1, psi6 run mean - mean_M), n |
+|---|---|---|---|---|---|---|---|
+| A1v2_20260914 | 0.6905 | 0.58, 0.59, 0.59, 0.60, 0.60, 0.60, 0.59, 0.58, 0.59 | 0.61, 0.59, 0.62, 0.61, 0.59, 0.61, 0.61, 0.63, 0.62 | 494 - 2400 | -0.13 (p 0.73) | +0.00 (p 1.00) | -0.16 (p 1.5e-02), 225 |
+| A1v2_20260914 | 0.6956 | 0.59, 0.59, 0.59, 0.59, 0.59, 0.59, 0.60, 0.59, 0.60 | 0.59, 0.60, 0.61, 0.61, 0.57, 0.56, 0.60, 0.58, 0.61 | 477 - 2317 | +0.68 (p 0.04) | +0.47 (p 0.21) | -0.11 (p 1.0e-01), 225 |
+| A1v2_20260914 | 0.7007 | 0.59, 0.59, 0.57, 0.57, 0.60, 0.59, 0.58, 0.59, 0.60 | 0.62, 0.61, 0.61, 0.57, 0.61, 0.59, 0.60, 0.59, 0.60 | 461 - 2237 | +0.30 (p 0.43) | +0.15 (p 0.70) | -0.03 (p 6.7e-01), 225 |
+| A1v2_20260914 | 0.7060 | 0.31, 0.25, 0.32, 0.37, 0.30, 0.40, 0.44, 0.46, 0.45 | 0.35, 0.27, 0.40, 0.47, 0.40, 0.54, 0.52, 0.57, 0.53 | 444 - 2158 | +0.85 (p 0.00) | +0.97 (p 0.00) | +0.84 (p 5.2e-62), 225 |
+| A1v2_20260914 | 0.7113 | 0.43, 0.37, 0.36, 0.38, 0.32, 0.33, 0.32, 0.28, 0.27 | 0.18, 0.17, 0.18, 0.17, 0.21, 0.25, 0.19, 0.13, 0.26 | 429 - 2082 | -0.93 (p 0.00) | -0.85 (p 0.00) | -0.56 (p 8.7e-20), 225 |
+| A1v2_20260914 | 0.7167 | 0.69, 0.79, 0.59, 0.67, 0.65, 0.70, 0.67, 0.59, 0.66 | 0.54, 0.62, 0.41, 0.42, 0.39, 0.51, 0.46, 0.38, 0.45 | 413 - 2007 | -0.47 (p 0.21) | -0.77 (p 0.02) | -0.65 (p 1.2e-28), 225 |
+| A1v2_20260914 | 0.7222 | 0.84, 0.90, 0.91, 0.89, 0.90, 0.88, 0.89, 0.87, 0.85 | 0.79, 0.88, 0.91, 0.85, 0.82, 0.86, 0.88, 0.85, 0.83 | 398 - 1935 | -0.30 (p 0.43) | -0.93 (p 0.00) | -0.52 (p 6.8e-17), 225 |
+| campaign_transition_psi6run_20260823 | 0.6905 | 0.55, 0.55, 0.53, 0.55, 0.55, 0.55, 0.57, 0.57, 0.59 | 0.59, 0.57, 0.56, 0.59, 0.59, 0.59, 0.56, 0.59, 0.62 | 166 - 444 | +0.73 (p 0.02) | -0.47 (p 0.21) | -0.08 (p 2.3e-01), 225 |
+| campaign_transition_psi6run_20260823 | 0.6956 | 0.56, 0.54, 0.56, 0.56, 0.56, 0.56, 0.58, 0.59, 0.57 | 0.62, 0.60, 0.61, 0.61, 0.58, 0.59, 0.61, 0.59, 0.59 | 165 - 429 | +0.65 (p 0.06) | -0.62 (p 0.08) | -0.18 (p 8.0e-03), 225 |
+| campaign_transition_psi6run_20260823 | 0.7007 | 0.49, 0.56, 0.51, 0.57, 0.54, 0.56, 0.57, 0.59, 0.59 | 0.55, 0.57, 0.59, 0.61, 0.58, 0.62, 0.64, 0.57, 0.59 | 166 - 414 | +0.87 (p 0.00) | +0.32 (p 0.41) | +0.06 (p 3.6e-01), 225 |
+| campaign_transition_psi6run_20260823 | 0.7060 | 0.25, 0.22, 0.18, 0.29, 0.20, 0.25, 0.30, 0.27, 0.28 | 0.26, 0.21, 0.20, 0.32, 0.24, 0.31, 0.34, 0.30, 0.38 | 164 - 399 | +0.48 (p 0.19) | +0.53 (p 0.14) | +0.44 (p 7.8e-12), 225 |
+| campaign_transition_psi6run_20260823 | 0.7113 | 0.59, 0.61, 0.68, 0.68, 0.72, 0.61, 0.55, 0.60, 0.63 | 0.34, 0.45, 0.52, 0.54, 0.60, 0.47, 0.40, 0.44, 0.40 | 165 - 385 | -0.10 (p 0.80) | -0.50 (p 0.17) | -0.68 (p 2.2e-31), 225 |
+| campaign_transition_psi6run_20260823 | 0.7167 | 0.78, 0.86, 0.86, 0.89, 0.85, 0.85, 0.86, 0.84, 0.87 | 0.73, 0.83, 0.80, 0.90, 0.82, 0.82, 0.80, 0.76, 0.86 | 165 - 371 | +0.25 (p 0.52) | -0.67 (p 0.05) | -0.37 (p 1.3e-08), 225 |
+| campaign_transition_psi6run_20260823 | 0.7222 | 0.91, 0.91, 0.91, 0.91, 0.89, 0.91, 0.91, 0.91, 0.91 | 0.90, 0.90, 0.91, 0.91, 0.88, 0.91, 0.91, 0.91, 0.91 | 165 - 358 | +0.40 (p 0.29) | +0.57 (p 0.11) | +0.06 (p 3.7e-01), 225 |
+| ladder_N100_20260825 | 0.7007 | 0.57, 0.53, 0.53, 0.53, 0.52, 0.54, 0.56, 0.58, 0.57 | 0.58, 0.63, 0.58, 0.60, 0.60, 0.58, 0.59, 0.62, 0.59 | 166 - 414 | +0.40 (p 0.29) | +0.18 (p 0.64) | -0.05 (p 6.7e-01), 90 |
+| ladder_N100_20260825 | 0.7222 | 0.91, 0.91, 0.91, 0.91, 0.91, 0.91, 0.91, 0.91, 0.91 | 0.92, 0.91, 0.91, 0.92, 0.91, 0.92, 0.91, 0.92, 0.91 | 165 - 358 | +0.50 (p 0.17) | +0.12 (p 0.77) | -0.08 (p 4.7e-01), 90 |
+| ladder_N200_20260825 | 0.7007 | 0.53, 0.53, 0.54, 0.56, 0.55, 0.51, 0.52, 0.54, 0.53 | 0.52, 0.52, 0.53, 0.59, 0.60, 0.52, 0.43, 0.52, 0.56 | 165 - 654 | -0.25 (p 0.52) | +0.65 (p 0.06) | -0.04 (p 7.0e-01), 90 |
+| ladder_N200_20260825 | 0.7208 | 0.36, 0.35, 0.32, 0.29, 0.24, 0.25, 0.26, 0.24, 0.24 | 0.30, 0.23, 0.23, 0.20, 0.24, 0.26, 0.22, 0.20, 0.19 | 166 - 568 | -0.85 (p 0.00) | +0.47 (p 0.21) | +0.11 (p 2.9e-01), 90 |
+| ladder_N400_20260825 | 0.7001 | 0.64, 0.63, 0.63, 0.63, 0.64, 0.62, 0.65, 0.64, 0.63 | 0.66, 0.65, 0.64, 0.65, 0.65, 0.64, 0.61, 0.67, 0.62 | 305 - 986 | +0.23 (p 0.55) | -0.27 (p 0.49) | -0.37 (p 3.5e-04), 90 |
+| ladder_N400_20260825 | 0.7201 | 0.73, 0.73, 0.73, 0.72, 0.73, 0.73, 0.70, 0.72, 0.73 | 0.73, 0.76, 0.74, 0.71, 0.72, 0.73, 0.70, 0.73, 0.71 | 265 - 857 | -0.77 (p 0.02) | -0.03 (p 0.93) | +0.26 (p 1.3e-02), 90 |
+| routeB_radius_N100_L0_20_20260825 | 0.6900 | 0.23, 0.24, 0.23, 0.23, 0.23, 0.24, 0.24, 0.24, 0.23 | 0.22, 0.25, 0.23, 0.20, 0.29, 0.25, 0.26, 0.22, 0.21 | 353 - 1715 | +0.22 (p 0.58) | -0.17 (p 0.67) | -0.25 (p 1.7e-04), 225 |
+| routeB_radius_N100_L0_20_20260825 | 0.6950 | 0.26, 0.25, 0.24, 0.26, 0.27, 0.26, 0.27, 0.26, 0.26 | 0.24, 0.18, 0.27, 0.31, 0.26, 0.25, 0.26, 0.28, 0.30 | 344 - 1670 | +0.65 (p 0.06) | -0.32 (p 0.41) | -0.25 (p 1.3e-04), 225 |
+| routeB_radius_N100_L0_20_20260825 | 0.7000 | 0.30, 0.28, 0.31, 0.31, 0.31, 0.29, 0.33, 0.32, 0.30 | 0.30, 0.31, 0.33, 0.30, 0.29, 0.35, 0.40, 0.32, 0.33 | 335 - 1626 | +0.48 (p 0.19) | -0.88 (p 0.00) | -0.39 (p 1.1e-09), 225 |
+| routeB_radius_N100_L0_20_20260825 | 0.7050 | 0.32, 0.36, 0.36, 0.41, 0.38, 0.40, 0.42, 0.42, 0.41 | 0.25, 0.42, 0.42, 0.39, 0.35, 0.42, 0.48, 0.44, 0.40 | 326 - 1582 | +0.88 (p 0.00) | -0.88 (p 0.00) | -0.54 (p 2.8e-18), 225 |
+| routeB_radius_N100_L0_20_20260825 | 0.7100 | 0.41, 0.46, 0.50, 0.53, 0.53, 0.53, 0.48, 0.50, 0.52 | 0.42, 0.49, 0.50, 0.55, 0.59, 0.60, 0.44, 0.57, 0.52 | 317 - 1539 | +0.47 (p 0.21) | -0.48 (p 0.19) | -0.65 (p 1.9e-28), 225 |
+| routeB_radius_N100_L0_20_20260825 | 0.7150 | 0.44, 0.49, 0.59, 0.50, 0.55, 0.62, 0.59, 0.64, 0.60 | 0.48, 0.54, 0.63, 0.53, 0.61, 0.67, 0.61, 0.71, 0.62 | 308 - 1496 | +0.87 (p 0.00) | -0.97 (p 0.00) | -0.64 (p 1.2e-27), 225 |
+| routeB_radius_N100_L0_20_20260825 | 0.7200 | 0.44, 0.57, 0.56, 0.63, 0.66, 0.66, 0.69, 0.69, 0.67 | 0.50, 0.66, 0.69, 0.79, 0.75, 0.71, 0.76, 0.75, 0.61 | 299 - 1453 | +0.92 (p 0.00) | -0.87 (p 0.00) | -0.57 (p 1.5e-20), 225 |
+| routeB_radius_N100_L0_20_20260825 | 0.7250 | 0.49, 0.54, 0.59, 0.60, 0.65, 0.67, 0.72, 0.73, 0.74 | 0.60, 0.67, 0.76, 0.79, 0.79, 0.79, 0.81, 0.80, 0.79 | 291 - 1411 | +1.00 (p 0.00) | -0.98 (p 0.00) | -0.64 (p 7.0e-27), 225 |
+| validate_acc_N100_20260826 | 0.7007 | 0.52, 0.57, 0.58, 0.57, 0.62, 0.57, 0.56, 0.56, 0.58 | 0.52, 0.60, 0.59, 0.58, 0.62, 0.63, 0.57, 0.59, 0.61 | 166 - 414 | +0.15 (p 0.70) | +0.62 (p 0.08) | -0.11 (p 2.9e-01), 90 |
+| validate_acc_N100_20260826 | 0.7222 | 0.91, 0.91, 0.91, 0.91, 0.91, 0.91, 0.91, 0.91, 0.91 | 0.91, 0.91, 0.91, 0.90, 0.92, 0.91, 0.92, 0.92, 0.90 | 165 - 358 | -0.52 (p 0.15) | -0.02 (p 0.97) | -0.11 (p 2.9e-01), 90 |
+```
+
+**Item 3:**
+
+```
+## Item 3 -- equilibrium prediction [DERIVATION from the cited EOS; SOURCE: Engel et al. Eq. (1), Table I; INFERENCE where flagged]
+
+c_s^2 = (kT/m)(Z + eta Z' + Z^2), kT = m = 1. Fluid curves; KR = Kolafa-Rottner 2006: 'ρmax 0.90' is the module (fitted to eta 0.7069, compared with data only to 0.69); 'ρmax 0.88' is fitted to eta 0.6912 (beyond = extrapolation).
+
+| eta | KR ρmax 0.90: Z | eta Z' | c_s | KR ρmax 0.88: Z | eta Z' | c_s | Henderson: Z | eta Z' | c_s | flag |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0.6600 | 8.8787 | +31.691 | 10.9271 | 8.8788 | +31.691 | 10.9271 | 9.1215 | +36.355 | 11.3437 | fit range, compared |
+| 0.6700 | 9.3625 | +32.335 | 11.3734 | 9.3624 | +32.329 | 11.3731 | 9.6980 | +40.410 | 12.0066 | fit range, compared |
+| 0.6800 | 9.8287 | +29.785 | 11.6712 | 9.8287 | +29.797 | 11.6717 | 10.3301 | +45.032 | 12.7308 | fit range, compared |
+| 0.6900 | 10.2007 | +19.170 | 11.5510 | 10.2009 | +19.104 | 11.5483 | 11.0251 | +50.318 | 13.5239 | fit range, compared |
+| 0.6950 | 10.3026 | +8.289 | 11.1685 | 10.2998 | +7.225 | 11.1180 | 11.3989 | +53.247 | 13.9492 | ρmax 0.90 fit range, not compared; ρmax 0.88 extrapolated |
+| 0.7000 | 10.3114 | -6.080 | 10.5146 | 10.2862 | -12.720 | 10.1672 | 11.7917 | +56.389 | 14.3953 | ρmax 0.90 fit range, not compared; ρmax 0.88 extrapolated |
+| 0.7034 | 10.2618 | -13.329 | 10.1112 | 10.1775 | -33.364 | 8.9663 | 12.0703 | +58.657 | 14.7112 | ρmax 0.90 fit range, not compared; ρmax 0.88 extrapolated |
+| 0.7069 | 10.2056 | -4.425 | 10.4849 | 9.9417 | -63.425 | 6.7346 | 12.3675 | +61.110 | 15.0477 |  |
+
+Ideal coexistence plateau (Z + eta Z' = 0 => c_0^2 = Z^2): c_0 = Z = P* pi / (4 eta)
+
+| eta | Z = c_0, P* = 9.17 | Z = c_0, P* = 9.19 |
+|---|---|---|
+| 0.700 | 10.2887 | 10.3112 |
+| 0.702 | 10.2594 | 10.2818 |
+| 0.704 | 10.2303 | 10.2526 |
+| 0.706 | 10.2013 | 10.2235 |
+| 0.708 | 10.1725 | 10.1946 |
+| 0.710 | 10.1438 | 10.1659 |
+| 0.712 | 10.1153 | 10.1374 |
+| 0.714 | 10.0870 | 10.1090 |
+| 0.716 | 10.0588 | 10.0807 |
+
+### The step at eta = 0.700 (fluid -> plateau) and the variation of c_0 across the window
+
+| fluid reference at 0.700 | Z | eta Z' | Z^2 | c_fluid | c_0 (P* 9.17) | step c_0/c_fluid - 1 [%] | c_0 (P* 9.19) | step [%] |
+|---|---|---|---|---|---|---|---|---|
+| KR ρmax 0.90 (the module; inside its fit range, Z' already in the loop) | 10.3114 | -6.080 | 106.326 | 10.5146 | 10.2887 | -2.15 | 10.3112 | -1.94 |
+| KR ρmax 0.88 (extrapolated from 0.6912: INFERENCE) | 10.2862 | -12.720 | 105.807 | 10.1672 | 10.2887 | +1.19 | 10.3112 | +1.42 |
+| Henderson (fluid approximant) | 11.7917 | +56.389 | 139.043 | 14.3953 | 10.2887 | -28.53 | 10.3112 | -28.37 |
+| plan author's construction: Z = the plateau Z, eta Z' = eta (Z'/Z)_Henderson Z | 10.2887 | +49.202 | 105.858 | 12.8588 | 10.2887 | -19.99 | 10.3112 | -19.81 |
+
+variation of c_0 across the window: c_0(0.716)/c_0(0.700) - 1 = -2.23 % (either P*)
+
+### The N = 100 data against these levels (canonical A1 v2 table, 260919_A1v2_final_cs_vs_eta.csv)
+
+| eta_true | c_s (canonical) | c_s_err_scaled | KR ρmax 0.90 c_s | data/KR - 1 [%] | c_0 (P* 9.17) | data/c_0 - 1 [%] |
+|---|---|---|---|---|---|---|
+| 0.6522 | 10.9853 | 0.0528 | 10.5488 | +4.1 | nan | +nan |
+| 0.6708 | 12.9766 | 0.0392 | 11.4049 | +13.8 | nan | +nan |
+| 0.6805 | 14.5028 | 0.0491 | 11.6783 | +24.2 | nan | +nan |
+| 0.6905 | 16.5059 | 0.1095 | 11.5272 | +43.2 | nan | +nan |
+| 0.6956 | 17.7465 | 0.1514 | 11.1079 | +59.8 | nan | +nan |
+| 0.7007 | 19.2203 | 0.2259 | 10.4106 | +84.6 | 10.2780 | +87.0 |
+| 0.7060 | 18.3559 | 0.6740 | 10.2307 | +79.4 | 10.2016 | +79.9 |
+| 0.7113 | 17.0728 | 0.5117 | nan | +nan | 10.1252 | +68.6 |
+| 0.7167 | 16.3929 | 0.1907 | nan | +nan | 10.0488 | +63.1 |
+| 0.7222 | 16.6959 | 0.2313 | nan | +nan | nan | +nan |
+| 0.7278 | 17.7816 | 0.1345 | nan | +nan | nan | +nan |
+| 0.7306 | 18.5655 | 0.0986 | nan | +nan | nan | +nan |
+
+canonical N = 100: maximum 19.2203 at 0.7007, minimum 16.3929 at 0.7167: depth 14.7 %; ratio data/c_0 at the minimum 1.631, data/KR(ρmax 0.90) at 0.7007 1.846
+```
+
+**Item 4:**
+
+```
+## Item 4 -- divider periods per mass, and psi6
+
+| campaign | eta_true | N | period per mass [sigma-time], M ascending | record per trajectory [sigma-time], lightest - heaviest |
+|---|---|---|---|---|
+| A1v2_20260914 | 0.6905 | 100 | 1.6, 2.1, 2.7, 3.2, 4.1, 4.9, 5.7, 6.9, 7.9 | 494 - 2400 |
+| A1v2_20260914 | 0.6956 | 100 | 1.5, 1.9, 2.5, 3.0, 3.8, 4.6, 5.2, 6.4, 7.3 | 477 - 2317 |
+| A1v2_20260914 | 0.7007 | 100 | 1.4, 1.7, 2.3, 2.7, 3.4, 4.2, 4.8, 5.8, 6.7 | 461 - 2237 |
+| A1v2_20260914 | 0.7060 | 100 | 1.5, 1.9, 2.3, 2.7, 3.6, 4.0, 4.6, 5.5, 6.3 | 444 - 2158 |
+| A1v2_20260914 | 0.7113 | 100 | 1.6, 1.9, 2.5, 3.0, 3.6, 4.4, 5.0, 6.1, 6.9 | 429 - 2082 |
+| A1v2_20260914 | 0.7167 | 100 | 1.6, 2.1, 2.5, 3.1, 3.9, 4.7, 5.4, 6.4, 7.5 | 413 - 2007 |
+| A1v2_20260914 | 0.7222 | 100 | 1.5, 1.9, 2.6, 3.0, 3.9, 4.7, 5.4, 6.4, 7.3 | 398 - 1935 |
+| campaign_r25_psi6_20260823 | 0.6905 | 100 | 1.7, 2.1, 2.7, 3.2, 4.1, 5.0, 5.8, 6.9, 8.0 | 166 - 444 |
+| campaign_r25_psi6_20260823 | 0.6956 | 100 | 1.6, 1.9, 2.5, 3.0, 3.8, 4.6, 5.3, 6.4, 7.4 | 165 - 429 |
+| campaign_r25_psi6_20260823 | 0.7007 | 100 | 1.4, 1.8, 2.3, 2.8, 3.5, 4.3, 4.9, 5.8, 6.8 | 166 - 414 |
+| campaign_r25_psi6_20260823 | 0.7060 | 100 | 1.6, 1.9, 2.5, 3.0, 3.6, 4.3, 5.2, 6.0, 6.9 | 164 - 399 |
+| campaign_r25_psi6_20260823 | 0.7113 | 100 | 1.7, 2.1, 2.7, 3.3, 4.2, 4.9, 5.6, 7.0, 7.7 | 165 - 385 |
+| campaign_r25_psi6_20260823 | 0.7167 | 100 | 1.7, 2.1, 2.7, 3.3, 4.1, 5.0, 5.7, 6.8, 8.2 | 165 - 371 |
+| campaign_r25_psi6_20260823 | 0.7222 | 100 | 1.6, 2.0, 2.6, 3.1, 3.9, 4.7, 5.4, 6.6, 7.6 | 165 - 358 |
+| campaign_transition_psi6run_20260823 | 0.6905 | 100 | 1.7, 2.1, 2.7, 3.2, 4.1, 5.0, 5.7, 7.0, 8.1 | 166 - 444 |
+| campaign_transition_psi6run_20260823 | 0.6956 | 100 | 1.6, 1.9, 2.5, 3.0, 3.8, 4.6, 5.3, 6.5, 7.4 | 165 - 429 |
+| campaign_transition_psi6run_20260823 | 0.7007 | 100 | 1.4, 1.7, 2.4, 2.7, 3.5, 4.2, 4.8, 5.9, 6.8 | 166 - 414 |
+| campaign_transition_psi6run_20260823 | 0.7060 | 100 | 1.6, 1.9, 2.5, 3.0, 3.8, 4.5, 5.1, 6.3, 7.1 | 164 - 399 |
+| campaign_transition_psi6run_20260823 | 0.7113 | 100 | 1.7, 2.1, 2.8, 3.4, 4.2, 5.0, 5.6, 7.1, 8.1 | 165 - 385 |
+| campaign_transition_psi6run_20260823 | 0.7167 | 100 | 1.6, 2.1, 2.8, 3.3, 4.2, 5.0, 5.8, 7.0, 8.2 | 165 - 371 |
+| campaign_transition_psi6run_20260823 | 0.7222 | 100 | 1.6, 2.0, 2.6, 3.1, 3.9, 4.7, 5.4, 6.6, 7.6 | 165 - 358 |
+| finitesize_aspect_20260826/famA/N100 | 0.6905 | 100 | 1.7, 2.1, 2.7, 3.3, 4.1, 5.0, 5.7, 6.9, 8.0 | 166 - 444 |
+| finitesize_aspect_20260826/famA/N100 | 0.6981 | 100 | 1.5, 1.8, 2.4, 2.9, 3.6, 4.4, 5.1, 6.2, 7.0 | 166 - 420 |
+| finitesize_aspect_20260826/famA/N100 | 0.7033 | 100 | 1.4, 1.7, 2.2, 2.6, 3.3, 4.0, 4.6, 5.7, 6.5 | 166 - 408 |
+| finitesize_aspect_20260826/famA/N100 | 0.7086 | 100 | 1.5, 1.9, 2.6, 3.0, 3.8, 4.6, 5.2, 6.2, 7.2 | 165 - 396 |
+| finitesize_aspect_20260826/famA/N100 | 0.7113 | 100 | 1.6, 2.1, 2.9, 3.5, 4.1, 5.1, 6.0, 7.3, 7.5 | 165 - 385 |
+| finitesize_aspect_20260826/famA/N100 | 0.7167 | 100 | 1.7, 2.0, 2.8, 3.3, 4.2, 5.1, 5.8, 6.9, 7.8 | 167 - 374 |
+| finitesize_aspect_20260826/famA/N100 | 0.7194 | 100 | 1.6, 2.0, 2.7, 3.1, 4.0, 4.9, 5.7, 6.9, 7.9 | 166 - 363 |
+| finitesize_aspect_20260826/famA/N100 | 0.7222 | 100 | 1.6, 2.0, 2.6, 3.1, 3.8, 4.7, 5.5, 6.6, 7.6 | 165 - 353 |
+| finitesize_aspect_20260826/famA/N1600 | 0.7001 | 1600 | 7.0, 7.6, 8.9, 10.8, 13.6 | 280 - 540 |
+| finitesize_aspect_20260826/famA/N1600 | 0.7106 | 1600 | 6.5, 7.0, 8.0, 9.7, 12.4 | 261 - 503 |
+| finitesize_aspect_20260826/famA/N1600 | 0.7201 | 1600 | 5.8, 6.5, 7.6, 9.0, 11.9 | 244 - 469 |
+| finitesize_aspect_20260826/famA/N400 | 0.6905 | 400 | 3.6, 3.8, 4.5, 5.3, 6.2, 7.3, 8.1, 9.8, 11.4 | 164 - 503 |
+| finitesize_aspect_20260826/famA/N400 | 0.6981 | 400 | 3.6, 3.8, 4.6, 5.2, 6.3, 7.6, 8.3, 10.0, 11.8 | 164 - 477 |
+| finitesize_aspect_20260826/famA/N400 | 0.7020 | 400 | 3.6, 4.4, 4.5, 5.5, 6.5, 8.0, 8.7, 10.3, 12.0 | 163 - 464 |
+| finitesize_aspect_20260826/famA/N400 | 0.7073 | 400 | 3.6, 4.2, 5.0, 5.5, 6.7, 8.1, 9.2, 11.0, 12.6 | 166 - 451 |
+| finitesize_aspect_20260826/famA/N400 | 0.7113 | 400 | 3.7, 4.0, 4.8, 5.5, 6.7, 7.9, 8.9, 10.7, 12.3 | 165 - 438 |
+| finitesize_aspect_20260826/famA/N400 | 0.7154 | 400 | 3.6, 3.9, 4.6, 5.2, 6.4, 7.3, 8.5, 10.2, 11.5 | 164 - 426 |
+| finitesize_aspect_20260826/famA/N400 | 0.7181 | 400 | 3.5, 3.9, 4.4, 5.0, 6.3, 7.2, 8.3, 9.8, 11.4 | 166 - 414 |
+| finitesize_aspect_20260826/famA/N400 | 0.7222 | 400 | 3.3, 3.8, 4.3, 4.9, 6.0, 7.0, 8.0, 9.5, 11.0 | 165 - 402 |
+| finitesize_aspect_20260826/famA/N900 | 0.6905 | 900 | 5.8, 7.0, 8.8, 10.3, 14.4 | 227 - 540 |
+| finitesize_aspect_20260826/famA/N900 | 0.6981 | 900 | 5.6, 6.4, 8.2, 10.1, 13.8 | 215 - 512 |
+| finitesize_aspect_20260826/famA/N900 | 0.7025 | 900 | 5.4, 6.4, 7.8, 10.2, 12.8 | 209 - 498 |
+| finitesize_aspect_20260826/famA/N900 | 0.7069 | 900 | 5.4, 6.1, 7.5, 9.6, 12.5 | 203 - 484 |
+| finitesize_aspect_20260826/famA/N900 | 0.7104 | 900 | 5.2, 5.8, 7.2, 9.2, 12.1 | 198 - 471 |
+| finitesize_aspect_20260826/famA/N900 | 0.7149 | 900 | 4.7, 5.6, 6.9, 8.6, 11.8 | 192 - 458 |
+| finitesize_aspect_20260826/famA/N900 | 0.7185 | 900 | 4.7, 5.3, 6.8, 8.3, 11.1 | 187 - 445 |
+| finitesize_aspect_20260826/famA/N900 | 0.7222 | 900 | 4.5, 5.2, 6.3, 8.1, 10.7 | 181 - 432 |
+| finitesize_aspect_20260826/famC/N100 | 0.7113 | 100 | 1.7, 2.8, 4.3, 5.7, 7.5 | 165 - 385 |
+| finitesize_aspect_20260826/famC/N1600 | 0.7113 | 1600 | 1.6, 1.7, 2.0, 2.4, 3.0 | 166 - 163 |
+| finitesize_aspect_20260826/famC/N400 | 0.7113 | 400 | 1.9, 2.4, 3.3, 4.4, 5.9 | 165 - 219 |
+| finitesize_aspect_20260826/famC/N900 | 0.7113 | 900 | 1.6, 1.9, 2.3, 2.9, 4.0 | 165 - 165 |
+| ladder_N100_20260825 | 0.7007 | 100 | 1.4, 1.8, 2.3, 2.8, 3.5, 4.2, 4.8, 5.9, 6.8 | 166 - 414 |
+| ladder_N100_20260825 | 0.7222 | 100 | 1.6, 2.0, 2.6, 3.1, 3.9, 4.7, 5.4, 6.6, 7.6 | 165 - 358 |
+| ladder_N200_20260825 | 0.7007 | 200 | 3.0, 3.5, 4.4, 5.1, 6.3, 7.6, 8.7, 10.5, 12.0 | 165 - 654 |
+| ladder_N200_20260825 | 0.7208 | 200 | 2.6, 2.9, 3.9, 4.6, 5.7, 6.8, 7.4, 9.2, 11.0 | 166 - 568 |
+| ladder_N400_20260825 | 0.7001 | 400 | 6.5, 7.3, 8.4, 9.8, 11.6, 13.6, 15.5, 18.8, 21.4 | 305 - 986 |
+| ladder_N400_20260825 | 0.7201 | 400 | 4.8, 5.4, 6.2, 7.1, 8.5, 10.0, 11.3, 13.8, 15.6 | 265 - 857 |
+| overnight_N1000_20260826 | 0.7002 | 1000 | 17.1, 18.0, 19.7, 21.2, 23.7, 26.9, 30.0, 34.9, 39.2 | 733 - 1679 |
+| overnight_N1000_20260826 | 0.7203 | 1000 | 13.0, 13.6, 14.8, 15.8, 18.1, 20.4, 22.6, 26.3, 29.8 | 638 - 1461 |
+| routeB_radius_N100_L0_20_20260825 | 0.6900 | 100 | 5.8, 7.3, 9.3, 11.2, 14.3, 17.2, 20.0, 24.0, 28.1 | 353 - 1715 |
+| routeB_radius_N100_L0_20_20260825 | 0.6950 | 100 | 5.6, 7.0, 9.3, 11.1, 14.1, 17.1, 19.1, 24.1, 27.5 | 344 - 1670 |
+| routeB_radius_N100_L0_20_20260825 | 0.7000 | 100 | 5.4, 6.8, 9.1, 10.8, 13.8, 16.6, 19.3, 23.9, 26.7 | 335 - 1626 |
+| routeB_radius_N100_L0_20_20260825 | 0.7050 | 100 | 5.2, 6.8, 9.2, 11.2, 13.7, 16.9, 19.7, 23.9, 27.4 | 326 - 1582 |
+| routeB_radius_N100_L0_20_20260825 | 0.7100 | 100 | 5.2, 6.8, 9.3, 11.0, 13.6, 17.0, 19.0, 23.0, 26.5 | 317 - 1539 |
+| routeB_radius_N100_L0_20_20260825 | 0.7150 | 100 | 5.0, 6.7, 9.2, 10.3, 13.6, 17.1, 19.2, 24.0, 27.5 | 308 - 1496 |
+| routeB_radius_N100_L0_20_20260825 | 0.7200 | 100 | 4.8, 6.4, 8.4, 10.5, 13.2, 16.0, 18.8, 22.9, 26.8 | 299 - 1453 |
+| routeB_radius_N100_L0_20_20260825 | 0.7250 | 100 | 4.6, 6.0, 8.2, 9.9, 12.6, 15.3, 18.2, 21.7, 25.8 | 291 - 1411 |
+| validate_acc_N100_20260826 | 0.7007 | 100 | 1.4, 1.8, 2.2, 2.8, 3.5, 4.2, 4.8, 6.0, 6.7 | 166 - 414 |
+| validate_acc_N100_20260826 | 0.7222 | 100 | 1.6, 2.0, 2.6, 3.1, 3.9, 4.8, 5.4, 6.6, 7.6 | 165 - 358 |
+
+psi6 per cell (per-run summaries, averaged over all runs of the cell; no psi6 time series exists in any campaign):
+
+| campaign | eta_true | runs | psi6 at release (hold), mean | at the end, mean | run mean (64 samples), mean | within-run SD, mean | SD of the run means across runs |
+|---|---|---|---|---|---|---|---|
+| A1v2_20260914 | 0.6805 | 225 | 0.436 | 0.583 | 0.579 | 0.088 | 0.023 |
+| A1v2_20260914 | 0.6905 | 225 | 0.386 | 0.610 | 0.590 | 0.092 | 0.036 |
+| A1v2_20260914 | 0.6956 | 225 | 0.379 | 0.593 | 0.592 | 0.094 | 0.042 |
+| A1v2_20260914 | 0.7007 | 225 | 0.369 | 0.600 | 0.586 | 0.094 | 0.049 |
+| A1v2_20260914 | 0.7060 | 225 | 0.268 | 0.450 | 0.368 | 0.149 | 0.176 |
+| A1v2_20260914 | 0.7113 | 225 | 0.828 | 0.195 | 0.340 | 0.246 | 0.158 |
+| A1v2_20260914 | 0.7167 | 225 | 0.887 | 0.464 | 0.668 | 0.187 | 0.240 |
+| A1v2_20260914 | 0.7222 | 225 | 0.910 | 0.851 | 0.881 | 0.046 | 0.114 |
+| A1v2_20260914 | 0.7278 | 225 | 0.926 | 0.923 | 0.926 | 0.020 | 0.009 |
+| A1v2_20260914 | 0.7306 | 225 | 0.934 | 0.935 | 0.934 | 0.016 | 0.002 |
+| campaign_r25_psi6_20260823 | 0.6805 | 225 | 0.435 | 0.578 | nan | nan | nan |
+| campaign_r25_psi6_20260823 | 0.6905 | 225 | 0.387 | 0.595 | nan | nan | nan |
+| campaign_r25_psi6_20260823 | 0.6956 | 225 | 0.414 | 0.601 | nan | nan | nan |
+| campaign_r25_psi6_20260823 | 0.7007 | 225 | 0.379 | 0.597 | nan | nan | nan |
+| campaign_r25_psi6_20260823 | 0.7060 | 225 | 0.269 | 0.313 | nan | nan | nan |
+| campaign_r25_psi6_20260823 | 0.7113 | 225 | 0.811 | 0.412 | nan | nan | nan |
+| campaign_r25_psi6_20260823 | 0.7167 | 225 | 0.883 | 0.767 | nan | nan | nan |
+| campaign_r25_psi6_20260823 | 0.7222 | 225 | 0.908 | 0.898 | nan | nan | nan |
+| campaign_r25_psi6_20260823 | 0.7278 | 225 | 0.927 | 0.927 | nan | nan | nan |
+| campaign_r25_psi6_20260823 | 0.7306 | 225 | 0.936 | 0.934 | nan | nan | nan |
+| campaign_transition_psi6run_20260823 | 0.6805 | 225 | 0.432 | 0.590 | 0.565 | 0.094 | 0.039 |
+| campaign_transition_psi6run_20260823 | 0.6905 | 225 | 0.352 | 0.586 | 0.558 | 0.113 | 0.064 |
+| campaign_transition_psi6run_20260823 | 0.6956 | 225 | 0.371 | 0.599 | 0.563 | 0.121 | 0.069 |
+| campaign_transition_psi6run_20260823 | 0.7007 | 225 | 0.394 | 0.591 | 0.551 | 0.120 | 0.109 |
+| campaign_transition_psi6run_20260823 | 0.7060 | 225 | 0.262 | 0.285 | 0.247 | 0.115 | 0.174 |
+| campaign_transition_psi6run_20260823 | 0.7113 | 225 | 0.842 | 0.462 | 0.631 | 0.180 | 0.247 |
+| campaign_transition_psi6run_20260823 | 0.7167 | 225 | 0.887 | 0.813 | 0.852 | 0.060 | 0.124 |
+| campaign_transition_psi6run_20260823 | 0.7222 | 225 | 0.913 | 0.905 | 0.908 | 0.025 | 0.031 |
+| campaign_transition_psi6run_20260823 | 0.7278 | 225 | 0.926 | 0.929 | 0.927 | 0.018 | 0.002 |
+| campaign_transition_psi6run_20260823 | 0.7306 | 225 | 0.934 | 0.933 | 0.934 | 0.016 | 0.002 |
+| ladder_N100_20260825 | 0.7007 | 90 | 0.345 | 0.597 | 0.547 | 0.134 | 0.086 |
+| ladder_N100_20260825 | 0.7222 | 90 | 0.907 | 0.915 | 0.909 | 0.025 | 0.004 |
+| ladder_N200_20260825 | 0.7007 | 90 | 0.511 | 0.533 | 0.534 | 0.135 | 0.065 |
+| ladder_N200_20260825 | 0.7208 | 90 | 0.533 | 0.229 | 0.283 | 0.156 | 0.118 |
+| ladder_N400_20260825 | 0.7001 | 90 | 0.633 | 0.643 | 0.634 | 0.053 | 0.027 |
+| ladder_N400_20260825 | 0.7201 | 90 | 0.720 | 0.726 | 0.722 | 0.042 | 0.037 |
+| routeB_radius_N100_L0_20_20260825 | 0.6800 | 225 | 0.225 | 0.225 | 0.218 | 0.117 | 0.019 |
+| routeB_radius_N100_L0_20_20260825 | 0.6900 | 225 | 0.242 | 0.238 | 0.235 | 0.132 | 0.028 |
+| routeB_radius_N100_L0_20_20260825 | 0.6950 | 225 | 0.260 | 0.261 | 0.260 | 0.150 | 0.041 |
+| routeB_radius_N100_L0_20_20260825 | 0.7000 | 225 | 0.254 | 0.325 | 0.305 | 0.175 | 0.051 |
+| routeB_radius_N100_L0_20_20260825 | 0.7050 | 225 | 0.263 | 0.396 | 0.387 | 0.204 | 0.080 |
+| routeB_radius_N100_L0_20_20260825 | 0.7100 | 225 | 0.267 | 0.519 | 0.496 | 0.214 | 0.110 |
+| routeB_radius_N100_L0_20_20260825 | 0.7150 | 225 | 0.269 | 0.600 | 0.557 | 0.214 | 0.130 |
+| routeB_radius_N100_L0_20_20260825 | 0.7200 | 225 | 0.259 | 0.692 | 0.619 | 0.209 | 0.129 |
+| routeB_radius_N100_L0_20_20260825 | 0.7250 | 225 | 0.307 | 0.755 | 0.635 | 0.203 | 0.142 |
+| routeB_radius_N100_L0_20_20260825 | 0.7300 | 225 | 0.307 | 0.759 | 0.595 | 0.214 | 0.166 |
+| validate_acc_N100_20260826 | 0.7007 | 90 | 0.422 | 0.590 | 0.570 | 0.105 | 0.085 |
+| validate_acc_N100_20260826 | 0.7222 | 90 | 0.911 | 0.911 | 0.910 | 0.024 | 0.003 |
+
+Cost of a time-resolved structural clock per trajectory [DERIVATION: text output, ~18 bytes per number incl. separator]:
+
+| N | record of the heaviest divider [sigma-time] (A1 v2, eta 0.7007) | frames at 4 per sigma-time | global psi6(t) series | positions (x, y per disk) per frame | positions trace per trajectory |
+|---|---|---|---|---|---|
+| 100 | 2237 | 8948 | 322 kB | 3.6 kB | 32 MB |
+| 400 | 4474 | 17897 | 644 kB | 14.4 kB | 258 MB |
+| 900 | 6711 | 26845 | 966 kB | 32.4 kB | 870 MB |
+(record scales with L0, i.e. with sqrt(N/100) at the design's H = 10 sqrt(N/100); 2 frames per sigma-time is the Nyquist minimum for a 1 sigma-time clock, 4 is used here)
+
+figures: 100 (PNG; PDF too for A1 v2 and item 3) under 0000_PLAN_OVERALL/paper1_speedofsound/experiments/exploratory_261008_window/
+```
+
+**Reading of item 2 [DATA; INFERENCE where marked].**
+- **None of the three named patterns.** In the canonical N = 100 data the dip is **deeper for the light, fast dividers**, and only in the two central window cells:
+  - 0.7060: dD/d ln α = +3.89 ± 0.65 %/e-fold, z +6.0;
+  - 0.7113: +2.27 ± 0.46, z +5.0;
+  - 0.7167: +1.05 ± 0.52, z +2.0.
+  - At the window's entry (0.7007) every mass sits +8.0 to +8.8 % above the fluid cell, with no mass dependence (z 0.0).
+- **Spearman of D_M with α:** a mean of +0.58 inside, −0.37 outside.
+- **Shorter campaigns.** The 25-period N = 100 campaigns have the same sign at 0.7060 (transition run z +2.3, r25 z +2.8) and are mixed elsewhere.
+- **famA N = 400 and 900:** nothing resolved.
+- **χ² of the single-c_s model.** At the weighted slope the window cells give 13.0, 55.9, 41.2 and 14.6 (8 dof). Test T's plain fluid at the same 25 seeds per mass gives 4.3–20.4 over four blocks, and the campaign anchor 8.5.
+  - So 0.7060 and 0.7113 exceed the plain-fluid range.
+  - The unweighted χ² is not diagnostic at 25 seeds: Test T's four blocks alone span 4.4–128.9.
+- [INFERENCE] **Item 4b shows what drives the ordering.** Inside the window a trajectory's frequency is set by its structural state: |Spearman| 0.52–0.84 per trajectory, against ≤ 0.16 outside. The structural state depends on how long the trajectory was recorded, which is proportional to its period and so to the mass.
+  - **The sign follows the structural drift.** At 0.7060 the structure orders during the record and heavy (long) records end more ordered and stiffer. At 0.7113 it starts near a lattice and disorders, and ψ₆ falls with mass.
+  - **Conclusion.** The existing mass ordering is a record-length (aging) effect, confounded with frequency by the protocol of a fixed number of periods. It neither supports nor refutes the relaxation picture.
+
+**Reading of item 3 [DERIVATION from the cited EOS and the data; INFERENCE where marked].**
+- **The step depends on the fluid reference.**
+  - The adopted KR fit (ρmax 0.90, the module) is fitted through η 0.7069, i.e. into the coexistence region. Its Z′ turns negative at η ≈ 0.698 (η Z′ +8.3 at 0.695, −6.1 at 0.700, i.e. Z′ = −8.7), and its c_s at 0.700 (10.51) is already within 2.1 % of the plateau value (10.29).
+  - The decision's −20 % uses the plateau Z with Henderson's logarithmic slope. Henderson alone gives −28.5 %; the ρmax 0.88 fit extrapolated gives +1.2 %.
+  - [INFERENCE] The step "at the edge of the window" is not a number any of these EOS gives unambiguously. A pure-fluid branch evaluated at 0.700 (Henderson-type) gives 20–30 %; a fit through the transition gives about 2 %.
+- **The data contradict the premise of the comparison.** The canonical N = 100 c_s is 1.85× KR at 0.7007 and 1.63× the plateau at its minimum. The excess grows continuously from +4 % (0.652) through +24 % (0.680) to +60 % (0.6956), before the window.
+  - [INFERENCE] The N = 100 hard-walled box carries a large non-equilibrium-fluid contribution well below the window. ψ₆ ≈ 0.58–0.60 there already, which suggests wall-induced order and its shear rigidity; the longitudinal speed of a solid exceeds the bulk sound speed.
+  - The N = 400 famA cells (c_s 12.1–13.3 over η 0.69–0.72) lie between KR (10.2–11.6) and Henderson (13.5 at 0.69, 15.0 at 0.7069). So the excess shrinks with N.
+- **Consequence.** The decision's sentence "our 14.7 % dip at N = 100 is in the same ballpark as the equilibrium expectation" is not supported by these numbers. The dip is measured on a branch 60–85 % above every equilibrium level, and the equilibrium step itself is 2–30 % depending on the fluid reference.
+
+**Reading of item 4 [DATA; INFERENCE where marked].**
+- **Periods.** The N = 100 divider periods are 1.4–7.5 σ-time, a factor 5 below the decision's expected 5–30. They reach 5–30 only at N ≥ 900 or in long boxes: 13–39 at N = 1000 with H = 10.
+- **No ψ₆ time series exists.** The engine samples ψ₆ 64 times per run and keeps only mean, SD, minimum and maximum (00ALLINONE.c:15307, :16108).
+- **The structure is not stationary over the records.**
+  - Release → end: 0.37 → 0.60 at 0.7007, 0.27 → 0.45 at 0.7060, 0.83 → 0.20 at 0.7113, 0.89 → 0.46 at 0.7167 (A1 v2).
+  - Run-to-run spread of the run means: 0.16–0.24.
+  - The release value switches from about 0.3–0.4 to about 0.8–0.9 between 0.7060 and 0.7113: the initial state changes with η.
+- [INFERENCE] τ_structure is at least comparable to the records (10²–10³ σ-time), i.e. 10²× the divider periods: all masses probe the frozen side.
+- **Cost of a time series per trajectory.**
+  - A global ψ₆(t) series at 4 frames per σ-time is 0.3–1 MB.
+  - Positions for a local ψ₆(x, t) are 32, 258 and 870 MB at N = 100, 400 and 900.
+
+**What this implies for the pre-registration's directional hypothesis [INFERENCE].** The hypothesis "heavy, slow dividers show the deeper dip" is not supported by the existing data. Its opposite sign appears instead, but that is explained by structural aging, so the existing data can neither confirm nor refute relaxation dispersion. Four protocol changes would make a fresh test interpretable; all are design inputs for the plan author.
+1. **Decouple record time from mass.** Use the same record duration in σ-time for every mass (not a fixed number of periods), after a common equilibration period that is long against τ_structure. Without this, any mass ordering is confounded with aging.
+2. **Record ψ₆(t)** (global, cheap) in every trajectory. Use it as the structural clock and as a per-trajectory covariate; positions only for a subset.
+3. **Use one seeding protocol at every η,** or equilibrated starting configurations. The present starting state switches from disordered to lattice-like between 0.706 and 0.711.
+4. **Place the probe frequencies near the structural rate.** With periods of 1.4–7.5 σ-time against τ_structure ≳ 10² σ-time, ωτ ≈ 1 needs either much slower probes (larger boxes or N; the L₀ lever helps) or a structural clock measured to be faster than these records suggest.
+
+In addition, the baseline cell outside the window and the L₀ lever remain as the plan author proposed. The depth hypotheses of § 4.2 should be read against the exploratory famA numbers: N = 400 9.3 ± 2.3 %, N = 900 no dip.
