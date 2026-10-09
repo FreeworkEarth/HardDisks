@@ -5909,3 +5909,136 @@ E2 (amended): FAIL; E0 (plain vs ref IDENTICAL in ctrl_min, ctrl_leg): FAIL (or 
 - The verdict line reads FAIL only because its rule also needs the A-fixed cases and the mode-1 cases (the minimum sizes in the line above it); this pre-check did not run them.
 - The E0 comparison itself is the "plain vs ref" column: IDENTICAL in both cases.
 - The E0 item of the gate (M6) runs on the KOA build of the final binary.
+
+### 4.4.14 Plan-author decision on Test T-prime: option (b), the amended job shape, recorded BEFORE the queue is touched (2026-10-08 19:30 HST, machine date; the decision is dated 2026-10-09 on the plan author's clock) [SOURCE for the decision; DATA for the checks; INFERENCE where marked]
+
+**Plain summary.**
+- **T-prime stays on KOA, on the registered binary, seeds, task list, rule and verdict script.** Only the job shape changes, and the amendment counts from the commit that adds this section. Chris touches the queue only after it.
+- **The new shape:**
+  - 32 one-core array tasks of 50 trajectories each, keeping the registered interleaving inside every chunk;
+  - then one dependent job that merges and reduces.
+  - On the KOA times measured for Test T, an M = 1500 chunk takes 31 min and an M = 300 chunk 11 min; `--time 1:10:00`.
+- **Not on the Mac:** the platform is part of the registered question.
+- **The node-sharing clause** is superseded by the proven cross-node byte-identity of this binary and stays information only.
+  - The proof is recorded in § 4.4.12: E1, job 15008312, cn-03-33-01 against cn-03-33-02, IDENTICAL, build 7b08827. The decision's "sec. 4.4.13" refers to this result.
+  - **Grep [DATA]:** `validation/resched_testTprime_261007.py` (identical on main and engine-divider-resched) uses the nodes only for printing (lines 157, 158, 174, 178 and 180). The pass flags `ok` (line 176) and `ok_all` (lines 177 and 179) do not contain them, so no line of the script is amended.
+- **One addition inside the job shape [DATA, INFERENCE]:** each chunk writes into its own data root, and the dependent job merges the 32 roots into the registered layout before reducing.
+  - In the registered shape one node wrote each cell's `run.log`, and so did every earlier campaign (one cell per array task).
+  - Here up to 16 chunks of one cell run on different nodes. The worker appends under `flock`, and `flock` is not known to serialise across nodes on KOA's Lustre.
+  - The merge runs sequentially in one process and leaves the registered layout, so the fetch and the verdict script read it unchanged.
+- **Dry run on this Mac [DATA; plumbing only].** It used the Mac build of 7b08827 and a task list of NON-registered seeds (base 20261099, disjoint from the registered list, checked by the script). Its outputs are not analysed.
+  - Chunks 1, 16, 17 and 32 ran: both mass boundaries, 50 trajectories each, 0 failures.
+  - The merge and reduction gave 50 traces = 50 `run.log` sections = 50 `red_nu.csv` rows per policy and mass.
+  - A rerun of a chunk after the merge, and a second merge, changed nothing.
+  - The checks stopped, as intended: the registered list given as a "dry" list, production mode on the Mac, an out-of-range task id, data of the registered shape in the registered layout, and a conflicting trace.
+- **The `--edmd-acc` guard is in the source on main and on both branches (item 4).** It is the same patch as engine-gen3's 14ba1f2.
+  - On this Mac both branches' builds refuse `--edmd-acc=1`, `=yes` and the bare flag with exit 2.
+  - The outputs are byte-identical to the unguarded builds: main on the smoke cell; engine-divider-resched on `ctrl_min` and `ctrl_leg` against the 7b08827 build.
+  - The KOA binaries are not rebuilt (item 4).
+- **The provenance grep result is unchanged** (§ 4.7.1): no figure of either draft rests on the accelerated backend.
+
+**The decision, as relayed by Chris, verbatim (the instruction block):**
+
+```
+PLAN-AUTHOR DECISION on T-prime, 2026-10-09 (Cowork clock): option (b), amended shape.
+Record as sec. 4.4.14 BEFORE Chris touches the queue; the amendment counts from that commit.
+
+1. Not (a). The platform is part of the registered question (gcc/x86 was an explicit
+   hypothesis in the diagnostics); the Mac build would give asymmetric evidence. Your
+   seed guard was right. The Mac timing runs are not analysed and not mentioned again.
+
+2. Amendment (job shape only): the same binary 7b08827 target koa (hash and version
+   checks unchanged), the same task list cdef566b, seeds, cell, HD_CONTACT_AUDIT=1, node
+   recorded per trajectory, same verdict script and rule. New shape: one-core array tasks
+   of 50 trajectories each (32 tasks, --array=1-32%32, --cpus-per-task=1, --time from the
+   measured 25-40 s per trajectory x 50 with 2x margin), the registered interleaving kept
+   inside each chunk; reductions (reduce_B per mass) as one dependent job
+   (--dependency=afterok:<array id>). The node-sharing clause is superseded by the proven
+   cross-node byte-identity (E1, sec. 4.4.13) and stays information only. Confirm by
+   grep that nothing in resched_testTprime_261007.py treats node sharing as a criterion;
+   if it does, amend that line in the same commit.
+
+3. Scripts: testTprime_chunks.sbatch and reduce_tprime.sbatch under
+   cluster/resched_gate_261005, same STOP checks as testTprime.sbatch; a dry run of the
+   chunking on the Mac with the Mac binary and NON-registered seeds only (plumbing, not
+   analysed). Runsheet sec. 13 gets the new lines and the order: squeue; if 15022392 is
+   RUNNING do nothing; if PENDING: scancel 15022392, squeue empty, sbatch the array, then
+   the dependent reduction; expected outputs for each.
+
+4. --edmd-acc guard: into the source on main and both branches now (compile-time define,
+   default build refuses with a message citing sec. 4.7); no KOA rebuild for it; the
+   provenance grep result goes to STATUS. The KOA production binaries stay as they are
+   until the next planned build, which shows byte-identity on the smoke and afix cells.
+
+5. Then continue M1 of generation 3 as approved. No multi-agent workflows.
+
+6. Report: plain summary; the committed amendment text; Chris's KOA lines with expected
+   outputs; the provenance grep result.
+```
+
+**The reasons, from the decision's cover text (plan author, quoted).**
+- **Not on the Mac:** "The two anomalies that started this (the smoke failure and the M = 300 shift) appeared on KOA’s gcc/x86 binary, and a platform-specific cause (compiler, floating-point contraction, memory) was one of the explicit hypotheses in the diagnostics. A clean result on the Mac’s clang/arm64 build would therefore not close the question; a confirmed shift on the Mac would."
+- **Not simply waiting:** "your fair-share standing is low, so you depend on backfill, and backfill favours small, short jobs that fit into gaps. … Two eight-core blocks are the wrong shape for that queue; one-core tasks are the right one, which is also the shape of the whole future campaign."
+- **Why one-core tasks change nothing scientifically:** "The gate already showed that the binary gives bit-identical output across nodes, so the node cannot enter the result at all; the clause is superseded by that proof, and the node stays recorded."
+- **Chunks, not 1,600 jobs:** "1,600 half-minute jobs would be scheduler noise … Chunks of 50 trajectories, one core each, about 25–35 minutes per task, 32 tasks, fit the gaps just as well and stay under the 64-core cap."
+- **Why T-prime is still worth running:** "T′ calibrates our gate method: if a half-percent bias could exist while the schedule audit, the contact audit and the ledgers are all clean, our audits are not sufficient and generation 3’s gate would need more before we trust it."
+- **The guard:** "the guard only touches a code path no worker script ever used, the past is covered by the provenance grep, and a rebuild happens together with the next planned build, with byte-identity shown."
+
+**The amendment as committed (files on main and on engine-divider-resched, identical; engine-divider-resched is the branch the KOA clone `~/harddisks_resched2` pulls).**
+- **`hspist3/cluster/resched_gate_261005/testTprime_chunks.sbatch`: one array task = one chunk.**
+  - Chunk i is task-list lines 50(i − 1) + 1 … 50i, run one after another (`xargs -P 1`) through the registered worker `cluster/confinement_20261013/conf_worker.sh`. The worker writes `node <hostname>` into every trajectory's `##RUN` header.
+  - Chunks 1–16 are M = 300 and chunks 17–32 are M = 1500. The script stops if a chunk mixes masses.
+  - The STOP checks of `testTprime.sbatch`, unchanged: the clone is `harddisks_resched2`; `logs/BUILD_KOA_LAST.hash` verifies; the version line is `00ALLINONE  git 7b08827  target koa`; the task-list SHA-256 is `cdef566b…`.
+  - Added STOP checks: the list has 1600 lines; the task id is in 1–32; the registered layout holds no T-prime traces except ones merged from chunks (so the two shapes never mix).
+  - `HD_CONTACT_AUDIT=1`. Data root `$SCRATCH/harddisks_resched2/tprime_chunks_261009/cNN`.
+  - `#SBATCH --partition=shared --account=uh --time=1:10:00 --cpus-per-task=1 --mem=2G`. Submitted with `--array=1-32%32`: 32 cores, under the 64-core cap.
+- **`--time` [DERIVATION].** The decision's rule gives 50 × 40 s × 2 = 66.7 min, rounded up to 10 min: 1:10:00. The KOA times of Test T (§ 4.4.13 cost table) give an M = 1500 chunk = 25 × (30.6 + 44.8) s = 31.4 min and an M = 300 chunk = 25 × (10.9 + 16.0) s = 11.2 min.
+- **`hspist3/cluster/resched_gate_261005/reduce_tprime.sbatch`: the dependent job (`--dependency=afterok:<array id>`; 1 core, `--time=1:00:00`, `--mem=4G`), with the same STOP checks.**
+  1. **Merge.**
+     - It needs every chunk root present, with `.build_generation` and every cell's `.build_git` equal to the binary's version line, and the registered root's `.build_generation` (written by Test T) equal too.
+     - Traces are copied. A name already present must be byte-identical, else STOP.
+     - Each chunk cell's `run.log` is appended up to its current end. A marker records the bytes appended, so a rerun appends only new sections.
+     - `.failed_run*` and `.stale_run*` directories are copied, because the verdict script reads failed runs' health lines.
+     - Each filled registered cell gets `.merged_from_chunks_261009`. Nothing is moved or deleted.
+  2. **Reduction.** `reduce_B.py <cell> <M>` per policy and mass.
+  3. **Completeness.** Traces, `run.log` sections and `red_nu.csv` rows per policy and mass against the task list (400 each). The job ends with `reduce_tprime done; failures: N`.
+- **Dry-run switch (both scripts).** `TPRIME_DRY_TASKS`, `TPRIME_DRY_BIN` and `TPRIME_DRY_ROOT` select a task list, a binary and a data root off KOA.
+  - The scripts refuse any `/mnt/lustre/` path, and any registered seed or base.
+  - They skip the KOA checks; everything else is the same code.
+- **Not changed:**
+  - the binary, the task list, the worker and `reduce_B.py`;
+  - `fetch_resched2.sh`: it copies the summaries from the registered layout, which the merge fills;
+  - `validation/resched_testTprime_261007.py`: it reads that layout. Its inventory requires the KOA build line, so the dry run's Mac data could never pass as T-prime data.
+
+**The dry run on this Mac (plumbing only; NOT analysed) [DATA].**
+- **Setup.**
+  - A scratch export of engine-divider-resched's `hspist3` (`git archive`), with the two new scripts, under a directory named `harddisks_resched2`, so the clone-name check runs too.
+  - The Mac build of 7b08827 (`target mac-O3-gen3count`).
+  - The dry list: the registered list with every seed replaced by `run_seed(20261099, 1, m, r)` and the base by 20261099; 1600 lines, 800 distinct seeds, none registered.
+- **Runs:**
+  - Chunks 1, 16, 17 and 32 in parallel, one core each. Each logged `DRY RUN … NOT the registered test`, its line range and mass (1–50 and 751–800 at M = 300; 801–850 and 1551–1600 at M = 1500), and `done; failures: 0`.
+  - macOS has no `flock` command, so the worker's append ran unlocked there (50 "command not found" lines per chunk). It was harmless, because each chunk wrote its own root; on KOA's Linux the command exists.
+  - `reduce_tprime.sbatch`: `merged chunk roots: 1 16 17 32`, four `reduce_B` lines, and for each policy and mass `traces 50, run.log sections 50, red_nu.csv rows 50, expected 50 -> yes`, then `reduce_tprime done; failures: 0`. The `##RUN` headers carry `node <host>`.
+  - Chunk 1 again after the merge: no STOP, every trajectory skipped as done, `failures: 0`.
+  - The merge again: the counts unchanged (no section appended twice).
+- **Stopped as intended:**
+  - the registered task list given as the dry list ("contains a registered seed or base");
+  - production mode on the Mac (at `module load` in `koa_env.sh`);
+  - task id 33;
+  - a planted trace without the merge marker in the registered layout ("holds T-prime traces not merged from chunks");
+  - a conflicting trace at merge time ("exists and differs").
+  - None of these wrote data.
+
+**The `--edmd-acc` guard on main and engine-divider-resched (item 4) [DATA].**
+- **The patch.** It is the engine-gen3 guard of 14ba1f2, line for line:
+  - `refuse_edmd_acc_backend()`, compiled out only with `-DHD_ALLOW_ACC_BACKEND`;
+  - the call in the three parse branches that set `cli_edmd_acc = 1`, and in `edmd_backend_create`;
+  - the help line.
+  - Size: 16 insertions and 1 deletion in `hspist3/00ALLINONE.c`.
+- **Mac builds** (`-O3 -ffp-contract=off`), guarded:
+  - `--edmd-acc=1`, `--edmd-acc=yes` and `--edmd-acc` each stop with exit 2 and the message citing sec. 4.7.
+  - engine-divider-resched: the gate runner's `ctrl_min` and `ctrl_leg` give audit vs plain and plain vs ref (the 7b08827 build) both IDENTICAL.
+  - main: the smoke cell's trace and ψ₆ file are IDENTICAL to the unguarded build of the same commit.
+- **KOA:** nothing is rebuilt. The next planned build shows byte-identity on the smoke and afix cells (item 4).
+
+**Chris's KOA lines:** runsheet § 13b (`hspist3/cluster/KOA_RUNSHEET_261002.md`), with the expected output of every step. The order: squeue → RUNNING: do nothing; PENDING: sandbox update and checks → `scancel 15022392` → squeue empty → `sbatch` the array → `sbatch` the dependent reduction.
