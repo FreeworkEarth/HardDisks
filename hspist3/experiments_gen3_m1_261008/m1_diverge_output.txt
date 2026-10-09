@@ -1,0 +1,11 @@
+# gen3 M1 harness: diverge
+
+build: Apple LLVM 17.0.0 (clang-1700.4.4.1), double 8 bytes, long double 8 bytes; cell width 32 px, origin shift 8192 units
+
+## Divergence of gen2 and gen3 from one state: first sigma-time at which the largest coordinate difference exceeds
+
+| cell | N | eta | 1e-12 px | 1e-9 px | 1e-6 px | 1 px |
+|---|---|---|---|---|---|---|
+| fluid | 400 | 0.3927 | 0.25 | 0.25 | 2.5 | 6.25 |
+| dense | 400 | 0.7000 | 0.25 | 0.25 | 1 | 2.75 |
+| lattice | 400 | 0.7000 | 0.25 | 0.25 | 1.25 | 2.75 |

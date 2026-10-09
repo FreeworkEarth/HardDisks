@@ -1,0 +1,16 @@
+# gen3 M1 harness: speed
+
+build: Apple LLVM 17.0.0 (clang-1700.4.4.1), double 8 bytes, long double 8 bytes; cell width 32 px, origin shift 8192 units
+
+## Events per second on this Mac, same initial state for both engines (gen2 = edmd.c, minimal policy; no dividers; no audits)
+
+events = physical events (pair collisions + outer-wall bounces); gen3 also executes crossings and pops stale events, given per physical event
+
+each rate timed 3 times: median (min-max); the event counts are the same every time
+
+| N | eta | gen2 T [sigma-time] | gen2 events | gen2 events/s | gen3 T [sigma-time] | gen3 events | gen3 crossings per event | gen3 stale pops per event | gen3 events/s | gen3 / gen2 (medians) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 400 | 0.3927 | 200 | 184410 | 1.31e+05 (1.28e+05-1.34e+05) | 2000 | 1837953 | 0.51 | 4.32 | 9.63e+05 (9.41e+05-1e+06) | 7.3 |
+| 400 | 0.7000 | 50 | 224306 | 1.17e+05 (1.08e+05-1.32e+05) | 500 | 2283070 | 0.09 | 6.92 | 7.01e+05 (6.69e+05-7.03e+05) | 6.0 |
+| 1600 | 0.3927 | 50 | 165774 | 2.98e+04 (2.97e+04-3.22e+04) | 500 | 1658748 | 0.55 | 4.43 | 8.71e+05 (8.63e+05-8.95e+05) | 29.2 |
+| 1600 | 0.7000 | 12 | 206822 | 3.36e+04 (3.27e+04-3.56e+04) | 125 | 2132229 | 0.11 | 7.09 | 6.44e+05 (6.22e+05-6.5e+05) | 19.1 |
