@@ -1174,6 +1174,17 @@ static inline int pl_get_angle_bin(double angle) {
 static EDMD* g_edmd = NULL;
 static int   cli_edmd_acc = 0;          // --edmd-acc: use accelerated EDMD backend (if linked)
 static int   g_edmd_is_acc = 0;         // backend used for current g_edmd instance
+/* ##CHRIS 2026-10-09 (261012 sec. 4.7.1, item 0): the accelerated backend (edmd_core/edmd_accelerated.c) misses collisions --
+   the overlap validator stopped 3 of the 6 profile cells of sec. 4.7 (overlaps of 0.64-1.0 px) -- and is not faster. Production
+   builds refuse it on every route that could select it; a study build may define HD_ALLOW_ACC_BACKEND to examine the defect. */
+static void refuse_edmd_acc_backend(void) {
+#ifndef HD_ALLOW_ACC_BACKEND
+    fprintf(stderr, "STOP: --edmd-acc selects the accelerated EDMD backend (edmd_core/edmd_accelerated.c), which misses collisions "
+                    "(261012 sec. 4.7: the overlap validator stopped 3 of 6 profile cells). It is disabled in this build; "
+                    "only a study build compiled with -DHD_ALLOW_ACC_BACKEND accepts it.\n");
+    exit(2);
+#endif
+}
 static int   cli_legacy_resched = 0;    // ##CHRIS 2026-10-05: --legacy-resched: full O(N^2) reschedule after divider events (pre-engine-divider-resched behaviour)
 static int   cli_resched_audit = 0;     // ##CHRIS 2026-10-07: --resched-audit[=all]: schedule-equivalence audit (1 divider events, 2 all events); diagnostics only
 static int   cli_force_kbt_one = 0; // --kbt1: force K_B*T == 1 (reduced units)
@@ -1226,6 +1237,7 @@ static double dist_next_log_abs_time = 0.0;
 
 // EDMD backend dispatch (default vs accelerated). Only valid for the global g_edmd instance.
 static inline EDMD* edmd_backend_create(const EDMD_Params* prm) {
+    if (cli_edmd_acc) refuse_edmd_acc_backend();   /* ##CHRIS 2026-10-09: defensive second guard (sec. 4.7.1, item 0) */
     g_edmd_is_acc = cli_edmd_acc ? 1 : 0;
     /* ##CHRIS 2026-10-05: divider rescheduling policy of the default backend, recorded once per
        process in the run log (the summary CSV also carries the full command line). */
@@ -3542,7 +3554,7 @@ static void print_cli_usage(const char *exe_name) {
     printf("  --simple-box-gui-delay-ms=N     Simple box GUI: delay after each rendered frame (default %d ms)\n", cli_simple_box_gui_delay_ms);
     printf("  --time=value                Stop after this many sim units post-release (interactive)\n");
     printf("  --kbt1                      Force k_B*T = 1 (reduced units); adjusts k_B at runtime\n");
-    printf("  --edmd-acc=0|1              Use accelerated EDMD backend (requires it built-in; default 0)\n");
+    printf("  --edmd-acc=0|1              Accelerated EDMD backend: DISABLED (misses collisions, 261012 sec. 4.7); 0 only\n");
     printf("  --legacy-resched            EDMD: full O(N^2) reschedule after every divider event (old behaviour; default: minimal)\n");   /* ##CHRIS 2026-10-05 */
     printf("  --resched-audit[=all]       EDMD diagnostics: compare the live schedule with a legacy full schedule after divider (or all) events\n");   /* ##CHRIS 2026-10-07 */
     printf("  --mode=NAME                 time (default) | rk4 | edmd | edmd-hybrid | hybrid | event-split\n");
@@ -4606,12 +4618,15 @@ static void parse_cli_options(int argc, char **argv) {
         } else if (strcmp(arg, "--resched-audit=all") == 0) {
             cli_resched_audit = 2;
         } else if (strcmp(arg, "--edmd-acc") == 0) {
+            refuse_edmd_acc_backend();   /* ##CHRIS 2026-10-09 (sec. 4.7.1, item 0) */
             cli_edmd_acc = 1;
         } else if (strncmp(arg, "--edmd-acc", strlen("--edmd-acc")) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
             if (!value || !value[0]) {
+                refuse_edmd_acc_backend();
                 cli_edmd_acc = 1;
             } else if (strcmp(value, "1") == 0 || strcmp(value, "true") == 0 || strcmp(value, "yes") == 0 || strcmp(value, "on") == 0) {
+                refuse_edmd_acc_backend();
                 cli_edmd_acc = 1;
             } else if (strcmp(value, "0") == 0 || strcmp(value, "false") == 0 || strcmp(value, "no") == 0 || strcmp(value, "off") == 0) {
                 cli_edmd_acc = 0;
