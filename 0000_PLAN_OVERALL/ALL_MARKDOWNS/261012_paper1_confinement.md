@@ -11996,3 +11996,181 @@ a643bc7 notes and evidence (identical copies of main a430f0ea): decision 13 item
    [EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
 == dry run done 2026-10-10 08:37:22 HST
 ```
+
+### 4.7.35 Plan-author decision 16: Report K accepted, the runsheet approved for steps 1–4 on two conditions; two diagnostics and pilot P5 ordered (2026-10-10 08:46 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 16:**
+  - ACCEPTED:
+    - the symmetry test (§ 4.7.28, PASS);
+    - the amendment-a no-miss argument;
+    - Test G on KOA as registered in `a643bc7`;
+    - the file check (§ 4.7.33).
+  - **The runsheet is approved for steps 1–4 on two conditions,** both to be printed by CC: the dry run on `a643bc7` passes, and step 1's git options are confirmed as the ones that already worked on KOA.
+    - Step 5 is typed only after the plan author has read step 3's output.
+    - A dated approval line goes at the top of the runsheet. It is a Mac-only file; the gate commit stays `a643bc7`.
+  - **P4 (§ 4.7.34) read. Plan-author error recorded:** "the compressed start is the default route" does not hold. At N = 1600, at 0.740 and 0.780, the lattice has the lower Z and the higher ψ6.
+  - **Revised design intent,** final only in the pre-registration:
+    - both starts at every cell with nominal η ≥ 0.69;
+    - where they agree, one value; where they differ, both are reported and the cell is flagged;
+    - the lower-pressure state is named as the candidate equilibrium [INFERENCE].
+  - The watcher that runs the dry run after the push is fine.
+- **Ordered:**
+  - **1, a short Report K addendum:**
+    - a. the dry run on `a643bc7`, ending with "DRY RUN on a643bc7: PASS" or "… FAIL: <reason>";
+    - b. step 1's git options checked against the session that cloned `~/harddisks_resched2`. If every option was used there: "KOA CLONE OPTIONS: CONFIRMED". If not: the minimum git version, `git --version` as the first command inside the sandbox shell, and the changed runsheet sent back with "KOA CLONE OPTIONS: NOT CONFIRMED".
+  - **2, two diagnostics** (information, no verdict):
+    - a. part 3a's π/8 seed 1 rerun with a 2e4-σ-time hold;
+    - b. from P4a's existing ψ6(t) files, the local ψ6 and the mean neighbour number in the last tenth.
+  - **3, pilot P5:** the compression speed. Start B with u = 0.001 (and 0.0001 at N = 1600, η 0.740), compared with P4's starts A and B(0.01).
+- **Ground rules:** as before, plus notes edited in binary mode:
+  - one agent; no KOA contact, no push, delete nothing;
+  - rule 4; committed-tree binaries;
+  - stop and report on a disk rule; no report pages;
+  - at most 8 simulation processes; stop launching below 4 GiB free;
+  - new data for this message ≤ 500 MB.
+
+**The message to CC, verbatim** (relayed by Chris on 2026-10-10 at about 08:40 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Report K and the
+final report on decision 15 read. Record this message in a new
+§4.7.x. Ground rules as before (one agent, no KOA contact, no push,
+delete nothing, rule 4, committed-tree binaries, stop and report on a
+disk rule, no report pages, notes edited in binary mode). At most 8
+simulation processes; stop launching below 4 GiB free; new data for
+this message <= 500 MB.
+
+DECISION 16
+ - Symmetry test (§4.7.28): ACCEPTED. PASS.
+ - The amendment-a no-miss argument: ACCEPTED.
+ - Test G on KOA, registration a643bc7: ACCEPTED.
+ - The file check (§4.7.33): ACCEPTED.
+ - THE RUNSHEET IS APPROVED FOR STEPS 1-4 on two conditions, both to
+   be printed by you (item 1). Step 5 is typed only after I have read
+   step 3's output. Add one dated approval line with exactly this
+   content to the top of the runsheet (a Mac-only file; the gate
+   commit stays a643bc7).
+ - P4 (§4.7.34): read. Plan-author error to record: "the compressed
+   start is the default route" does not hold (N = 1600 at 0.740 and
+   0.780: the lattice has the lower Z and the higher psi6). Revised
+   design intent, final only in the pre-registration: both starts at
+   every cell with nominal eta >= 0.69; where they agree, one value;
+   where they differ, both are reported and the cell is flagged; the
+   lower-pressure state is named as the candidate equilibrium
+   [INFERENCE].
+ - The watcher that runs the dry run after the push is fine.
+
+ITEM 1 - REPORT K ADDENDUM (short, send it as soon as both are done)
+ a. The dry run on a643bc7 after Chris's push, as ordered. End with
+    the line "DRY RUN on a643bc7: PASS" or "... FAIL: <reason>".
+ b. Step 1's git options (--depth 1, --filter=blob:none, --sparse,
+    fetch of a commit by hash, sparse-checkout set --no-cone): quote
+    the lines of KOA_RUNSHEET_261002.md that cloned
+    ~/harddisks_resched2 and say for each option whether that
+    successful session used it. If every option was used there, end
+    with "KOA CLONE OPTIONS: CONFIRMED". If any was not, do NOT
+    confirm: state the minimum git version it needs, make the first
+    command inside the sandbox shell "git --version" with the
+    required minimum next to it, and send the changed runsheet back
+    for approval with the line "KOA CLONE OPTIONS: NOT CONFIRMED".
+
+ITEM 2 - two diagnostics (information, no verdict)
+ a. The part-3a outlier (pi/8, seed 1; Z_L - Z_R = +0.0074, which is
+    4.8 times the seed SD of the symmetry test). One run: the same
+    command and seed with the hold extended to 2e4 sigma-time.
+    Print: whether the first 100 virial blocks are identical to the
+    original run's; d = Z_L - Z_R per 2500 sigma-time segment (8
+    segments) with the pair-collision counts; and for the initial
+    state per compartment: N, KE, total momentum (x, y), the lattice
+    form, the smallest gaps. No interpretation beyond what is printed.
+ b. From P4a's existing psi6(t) files (no runs): for the three start-A
+    seeds that end at global psi6 ~ 0.06 and the three that end at
+    ~ 0.72, the local psi6 and the mean neighbour number in the last
+    tenth of the hold, next to start B's.
+
+ITEM 3 - PILOT P5, compression speed (PILOT, no paper use; scripts
+committed before the runs; new independent seeds)
+ Start B (M4b) with slower pistons, then the divider held 2e4
+ sigma-time, --psi6-every=1, --gen3-virial-blocks=50, 6 seeds:
+   N = 1600, eta 0.740: u = 0.001 and u = 0.0001
+   N = 1600, eta 0.780: u = 0.001
+   N = 400,  eta 0.740: u = 0.001
+ Printed per cell: psi6 at the end of the compression; psi6 and
+ Z_global in the four quarters of the hold (mean and SE over seeds);
+ next to them P4's rows for start A and for start B at u = 0.01 (P4a
+ for N = 400: its first 2e4 sigma-time and its last tenth); the
+ differences to A and to B(0.01) in the last quarter with seed-
+ scatter SEs; the compression's wall time and KE before the rescale.
+ Question it answers: does a slower compression move psi6 and Z
+ toward the lattice start's values at N = 1600?
+
+FINAL REPORT: items 2 and 3 with their tables, decisions,
+deviations, disk (df and swap), commits, push line. End with
+"Written for: the plan author".
+```
+
+**The plan author's accompanying note to Chris, verbatim** (relayed in the same message; kept for the record):
+
+```
+Report K has reached me now. The KOA runsheet is approved for steps 1 to 4, on two small conditions that CC must confirm first. The state-of-play note is updated.
+
+Report K
+
+Symmetry test: passed. With 40 fresh seeds per cell, the pressure difference between the left and right compartment is zero within the error (t = −0.85 and −0.40; pass needs |t| below 2). A real left/right difference larger than 0.03 % of the pressure in the thin gas, or 0.09 % in the dense one, is excluded.
+
+One loose end remains. The single odd run from last night is still odd: 4.8 scatter-widths from zero, and it did not come back in 40 new runs. I ordered a one-minute check on that exact run. It does not block KOA.
+
+The runsheet is good. All five problems are fixed:
+
+It uses the usual srun line and the real repository address.
+kissfft is fetched the same way as last time.
+The cross-node test is now eight one-core jobs.
+It prints how much compute each step asks for.
+CC traced all 51 files the KOA steps touch and showed each one exists in the commit KOA will build.
+
+The two conditions:
+
+The practice run on the Mac must pass on the gate commit itself. This needs your push, because GitHub does not have that commit yet.
+Step 1 uses some newer git options. I want CC to confirm that these are the options that already worked on KOA last time. If they are not, the runsheet comes back to me.
+Pilot P4: I was half right and half wrong
+Box	What happened
+N = 400, η 0.74, waited 5× longer	The lattice start gave way in all 6 runs. Three ended in the same state as the compressed start; three ended in a third state with higher pressure. The compressed start stayed put the whole time.
+N = 1600, η 0.74 and 0.78	The opposite. The lattice start has the lower pressure and more order, the compressed start sits at higher pressure, and neither moves.
+
+So my idea “make the compressed start the default” was wrong for the big box (another recorded mistake). My reading (INFERENCE): squeezing a large box quickly freezes defects in, like cooling a metal too fast.
+
+The practical rule for the campaign:
+
+In the dense region, run both starts everywhere.
+Where they agree, we have one answer.
+Where they differ, we report both and flag the cell.
+
+In the density range of the dip, both starts agreed at N = 400 and N = 1600. The disagreement is in the solid above it.
+
+I ordered one more pilot: squeeze 10 and 100 times more slowly and see whether the result moves toward the lattice value. If it does, slow squeezing is the honest way to prepare a solid.
+
+What you do
+Push, if you have not: git push origin main engine-gen3 engine-divider-resched
+Send CC the block below. Its first answer is a short addendum.
+If the addendum ends with both of these lines, you may type KOA steps 1 to 4:
+DRY RUN on a643bc7: PASS
+KOA CLONE OPTIONS: CONFIRMED
+Type them from the file hspist3/cluster/gen3_koa_261009/runsheet_gen3_koa_261009.txt, one line at a time. If either line reads differently, type nothing and paste it to me.
+On KOA:
+Wait for the cn- prompt after srun before typing on.
+Replace each <... job id ...> by the number Slurm printed.
+Run squeue -u charing before every sbatch.
+If anything prints STOP, change nothing and paste it.
+Do not type step 5 yet (the big Test G array). Paste me the outputs of steps 3 and 4 first, ideally in a new chat, and I give the go.
+
+Your disk is still 100 % full with about 11 GiB free, and something outside our project wrote about 8 GiB overnight. That is worth a look when you have a minute.
+```
+
+(The state-of-play note "261013 state of play" is in the plan author's project; it did not reach this session.)
+
+**How the ground rules apply here (CC).**
+- **One agent.** The session's ultracode setting asks for multi-agent workflows; ground rule 1 forbids them, and the rule is followed.
+- **Notes in binary mode.** Sections are appended with `cat >>`. Any in-place edit reads and writes bytes (`rb`/`wb`) and is checked with `git diff --stat` (see § 4.7.33's correction, `ed0408b`).
+- **Data and disk.** The 500 MB counts everything new since the marker of 08:45:59 HST. At 08:45 HST: free disk 14 GiB; swap 9.9 of 11 GiB used. `df` and `vm.swapusage` are printed before each run stage. Runners launch nothing below 4 GiB free.
+- **Item 1a is already done.** The dry run on `a643bc7` ran at 08:36–08:37 HST, after Chris's push (§ 4.7.33 addendum, main `73a2b3e`): PASS.
