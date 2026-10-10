@@ -1,0 +1,2 @@
+00ALLINONE  git 5d19aa7  target mac-O3-e0pre
+  CFLAGS: -O3 -ffp-contract=off

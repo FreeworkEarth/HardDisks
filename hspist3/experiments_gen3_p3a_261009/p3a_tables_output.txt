@@ -1,0 +1,161 @@
+# Decision 12, part 3a: the virial per compartment and the position snapshots (261012 sec. 4.7.26), printed by experiments_gen3_p3a_261009/p3a_tables.py
+
+## 1. The frozen binaries
+
+| binary | --version | SHA-256 | = build record |
+|---|---|---|---|
+| 00ALLINONE | 00ALLINONE  git 5d19aa7  target mac-O3-e0pre | 7bece7ac861a2013e5241b22d563e95adf89cf9281c784098a4e3aa64cc81e25 | yes |
+| gen3_m1 | - | 89b77fa190c4afe8e749a6bf88e7f52e2f7e439b4cfec885127829d9e87863f7 | yes |
+| gen3_m2 | - | 3473318380ae3b5fdf225dc146c2eb0a0d5b05157ac2403e8582cd97fa5d15fb | yes |
+| gen3_checkpoint_test | - | ace2b1d4d5ffd4ee57a84e9aa6ba971f2f5ca0fe74caa67c11363b072584de24 | yes |
+| gen3_checkpoint_test_ld | - | a45855426f1c3aa927e70e978bc002e96d5214023f4e743f72146f891ae7ca64 | yes |
+
+## 2. Stage H's evidence runner with these binaries: its tables (stageH_tables.py, unchanged; verbatim)
+
+```
+# Stage H (checkpoint and restart) evidence tables, printed by experiments_gen3_h_261009/stageH_tables.py
+
+## 1. The frozen binaries
+
+| binary | --version | SHA-256 | = build record |
+|---|---|---|---|
+| 00ALLINONE | 00ALLINONE  git 5d19aa7  target mac-O3-e0pre | 7bece7ac861a2013e5241b22d563e95adf89cf9281c784098a4e3aa64cc81e25 | yes |
+| gen3_m1 | - | 89b77fa190c4afe8e749a6bf88e7f52e2f7e439b4cfec885127829d9e87863f7 | yes |
+| gen3_m2 | - | 3473318380ae3b5fdf225dc146c2eb0a0d5b05157ac2403e8582cd97fa5d15fb | yes |
+| gen3_checkpoint_test | - | ace2b1d4d5ffd4ee57a84e9aa6ba971f2f5ca0fe74caa67c11363b072584de24 | yes |
+| gen3_checkpoint_test_ld | - | a45855426f1c3aa927e70e978bc002e96d5214023f4e743f72146f891ae7ca64 | yes |
+
+## 2. H0, rule 4: gen2 byte identity with 7b08827 after the 00ALLINONE.c change (ctrl_min, ctrl_leg)
+
+default build: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+--engine=gen2: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+
+rule 4: IDENTICAL (both cases, both builds)
+
+## 3. H1: the M1 and M2 harness outputs (the committed ones)
+
+| output | identical |
+|---|---|
+| m1_audit_output.txt | IDENTICAL |
+| m2_audit_quick_output.txt | IDENTICAL |
+| m2_audit_output.txt | IDENTICAL |
+
+## 4. H2: the engine test (edmd_core/tests/gen3_checkpoint_test.c)
+
+default: VERDICT: PASS -- 329 comparisons, 0 different; refusals both refused
+ld: VERDICT: PASS -- 329 comparisons, 0 different; refusals both refused
+long-double output = default output, byte for byte: yes
+
+## 5. H3: the driver -- every finished run against the uninterrupted run U of its trajectory
+
+| trajectory | run | exit | checkpoint / restart (t [units], events, hash at that moment) | trace = U | psi6(t) = U | speed_of_sound_psi6.csv = U | run_params.json = U | run record (without timing) = U | event hash at the end |
+|---|---|---|---|---|---|---|---|---|---|
+| A | U | 0 | - | (reference) | | |  | (reference) | 28aea5ac14e6e891 |
+| A | C_hold1 | 0 | wrote hold step 1 (t 0.40000000596046448, 7 events, 29babf743ff842f5) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | C_hold300000 | 0 | wrote hold step 300000 (t 120000.00178813934, 10931954 events, 8768e659661ab669) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | C_record0 | 0 | wrote record step 0 (t 240000.00357627869, 21762996 events, 014a57737658581e) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | C_record25000 | 0 | wrote record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R1_hold1 | 0 | wrote hold step 1 (t 0.40000000596046448, 7 events, 29babf743ff842f5) | (stopped) | | | | | |
+| A | R1_hold300000 | 0 | wrote hold step 300000 (t 120000.00178813934, 10931954 events, 8768e659661ab669) | (stopped) | | | | | |
+| A | R1_record0 | 0 | wrote record step 0 (t 240000.00357627869, 21762996 events, 014a57737658581e) | (stopped) | | | | | |
+| A | R1_record25000 | 0 | wrote record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | (stopped) | | | | | |
+| A | R2_hold1 | 0 | read hold step 1 (t 0.40000000596046448, 7 events, 29babf743ff842f5) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R2_hold300000 | 0 | read hold step 300000 (t 120000.00178813934, 10931954 events, 8768e659661ab669) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R2_record0 | 0 | read record step 0 (t 240000.00357627869, 21762996 events, 014a57737658581e) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R2_record25000 | 0 | read record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R2b_chain | 0 | read hold step 300000 (t 120000.00178813934, 10931954 events, 8768e659661ab669); wrote record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | (stopped) | | | | | |
+| A | R3_chain | 0 | read record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| B | U | 0 | - | (reference) | | |  | (reference) | cab8515b36a13410 |
+| B | C_hold60000 | 0 | wrote hold step 60000 (t 24000.000357627869, 5529857 events, 1e2856f3020610d4) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | cab8515b36a13410 |
+| B | C_record6000 | 0 | wrote record step 6000 (t 50400.000751018524, 11636862 events, 1dbf3631d9c35bf6) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | cab8515b36a13410 |
+| B | R1_hold60000 | 0 | wrote hold step 60000 (t 24000.000357627869, 5529857 events, 1e2856f3020610d4) | (stopped) | | | | | |
+| B | R1_record6000 | 0 | wrote record step 6000 (t 50400.000751018524, 11636862 events, 1dbf3631d9c35bf6) | (stopped) | | | | | |
+| B | R2_hold60000 | 0 | read hold step 60000 (t 24000.000357627869, 5529857 events, 1e2856f3020610d4) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | cab8515b36a13410 |
+| B | R2_record6000 | 0 | read record step 6000 (t 50400.000751018524, 11636862 events, 1dbf3631d9c35bf6) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | cab8515b36a13410 |
+| C | U | 0 | - | (reference) | | |  | (reference) | 20591700936853a9 |
+| C | C_hold15000 | 0 | wrote hold step 15000 (t 6000.0000894069672, 5102193 events, c9d70a8c10834afc) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 20591700936853a9 |
+| C | C_record3000 | 0 | wrote record step 3000 (t 13200.000196695328, 11223097 events, 8f2824b18bb87644) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 20591700936853a9 |
+| C | R1_hold15000 | 0 | wrote hold step 15000 (t 6000.0000894069672, 5102193 events, c9d70a8c10834afc) | (stopped) | | | | | |
+| C | R1_record3000 | 0 | wrote record step 3000 (t 13200.000196695328, 11223097 events, 8f2824b18bb87644) | (stopped) | | | | | |
+| C | R2_hold15000 | 0 | read hold step 15000 (t 6000.0000894069672, 5102193 events, c9d70a8c10834afc) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 20591700936853a9 |
+| C | R2_record3000 | 0 | read record step 3000 (t 13200.000196695328, 11223097 events, 8f2824b18bb87644) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 20591700936853a9 |
+
+H3: every restarted run (R2, R3; 9) byte-identical to U in the trace, psi6(t), the psi6 summary, run_params.json, the run record and the event hash: YES; every run that wrote a checkpoint and went on (C; 8): YES
+
+## 6. H4: the refusals (each must stop with exit 2 and say why)
+
+| case | exit | message |
+|---|---|---|
+| another seed | 2 | STOP (--engine=gen3): restart: the checkpoint belongs to another trajectory (L0, mass, run, seed, N, steps, strides or cadences differ) |
+| another mass | 2 | STOP (--engine=gen3): restart: the checkpoint belongs to another trajectory (L0, mass, run, seed, N, steps, strides or cadences differ) |
+| another initial state (jitter 0.2) | 2 | STOP (--engine=gen3): restart: the run's initial state is not the checkpoint's (another command or seed) |
+| not a checkpoint (a trace) | 2 | STOP (--engine=gen3): restart: not a gen3 run checkpoint (v2) |
+| another build (the build field changed) | 2 | STOP (--engine=gen3): restart: the checkpoint was written by another build |
+| a truncated checkpoint | 2 | STOP (--engine=gen3): edmd_gen3: checkpoint truncated (disks, cells or heap) |
+| --gen3-restart under gen2 | 2 | STOP: --gen3-checkpoint, --gen3-checkpoint-stop and --gen3-restart need --engine=gen3 |
+| two trajectories in one process | 2 | STOP (--engine=gen3): --gen3-checkpoint and --gen3-restart take one trajectory per process (one length, one mass, --repeats=1) |
+| a checkpoint step never reached (hold:30000 of 30000) | 2 | STOP (--engine=gen3): the checkpoint step was never reached (hold:K needs 1 <= K < the hold steps, record:K needs K < the record steps) |
+| --gen3-checkpoint-stop alone | 2 | STOP (--engine=gen3): --gen3-checkpoint-stop needs --gen3-checkpoint |
+
+H4: every case refused with exit 2 and a reason
+
+ACCEPTANCE (stage H): PASS -- restarted runs byte-identical to the uninterrupted ones (traces, psi6(t), event hash); writing a checkpoint does not steer; the engine test passes in both builds; rule 4 identical; the M1 and M2 harness outputs unchanged; refusals refuse
+```
+
+Two checkpoints of the same state (part 3b), stage H's rerun:
+
+| pair | bytes | identical |
+|---|---|---|
+| A hold1: C / R1 | 31991 | IDENTICAL |
+| A hold300000: C / R1 | 535732 | IDENTICAL |
+| A record0: C / R1 | 750597 | IDENTICAL |
+| A record25000: C / R1 | 996726 | IDENTICAL |
+| B hold60000: C / R1 | 904652 | IDENTICAL |
+| B record6000: C / R1 | 1088388 | IDENTICAL |
+| C hold15000: C / R1 | 2817541 | IDENTICAL |
+| C record3000: C / R1 | 3262502 | IDENTICAL |
+| A record25000: C / R2b (restarted at hold:300000) | 996726 | IDENTICAL |
+
+## 3. Observation does not steer (P1's N = 400, eta 0.704 cell, M = 50, held 2000 sigma-time, 100-sigma-time record)
+
+| run | exit | event hash | = plain | trace = plain | psi6(t) = plain | psi6 summary = plain | run-record fields that differ from plain |
+|---|---|---|---|---|---|---|---|
+| plain | 0 | 1dbf3631d9c35bf6 | (reference) | (reference) | (reference) | (reference) | - |
+| vb | 0 | 1dbf3631d9c35bf6 | yes | IDENTICAL | IDENTICAL | IDENTICAL | - |
+| snap | 0 | 1dbf3631d9c35bf6 | yes | IDENTICAL | IDENTICAL | IDENTICAL | - |
+| both | 0 | 1dbf3631d9c35bf6 | yes | IDENTICAL | IDENTICAL | IDENTICAL | - |
+
+## 4. The symmetric held cell: Z per compartment over the hold blocks (50 sigma-time each)
+
+| cell | seed | blocks | N_L / N_R | KE_L / KE_R | Z_L (SE) | Z_R (SE) | Z_L - Z_R (SE) | z | Z_global (SE) | max abs(KE-weighted mean - global) / Z | criteria |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 070 | 0 | 100 | 200 / 200 | 200 / 200 | 11.11841 (0.01116) | 11.13573 (0.01078) | -0.01731 (0.01551) | -1.12 | 11.12707 (0.00806) | 4.3e-12 | yes |
+| 070 | 1 | 100 | 200 / 200 | 200 / 200 | 11.11379 (0.01101) | 11.11731 (0.01150) | -0.00353 (0.01592) | -0.22 | 11.11555 (0.00836) | 3.9e-12 | yes |
+| 070 | 2 | 100 | 200 / 200 | 200 / 200 | 11.12442 (0.01169) | 11.08847 (0.01020) | +0.03596 (0.01551) | +2.32 | 11.10645 (0.00763) | 4.6e-12 | **NO** |
+| pi8 | 0 | 100 | 200 / 200 | 200 / 200 | 2.82117 (0.00136) | 2.81918 (0.00168) | +0.00199 (0.00216) | +0.92 | 2.82017 (0.00099) | 1.2e-12 | yes |
+| pi8 | 1 | 100 | 200 / 200 | 200 / 200 | 2.82362 (0.00139) | 2.81621 (0.00124) | +0.00741 (0.00186) | +3.98 | 2.81991 (0.00096) | 2.2e-12 | **NO** |
+| pi8 | 2 | 100 | 200 / 200 | 200 / 200 | 2.81826 (0.00147) | 2.81923 (0.00162) | -0.00098 (0.00219) | -0.45 | 2.81875 (0.00111) | 1.9e-12 | yes |
+
+## 5. The snapshots against the initial state (--gen3-dump-initial), and their bookkeeping
+
+header: N 400, dividers 1, box 22.312448 x 20.000000 sigma, radius 0.5, interval 10.0 sigma-time
+snapshots: 11 at t = 0.0 ... 100.000001 sigma-time (phases [0])
+first snapshot (t = 0) against the dumped initial state / 24: max abs difference 0 sigma over 400 disks (0 = bit-identical)
+disks left of the divider in every snapshot: [200]
+
+## 6. A restart with both observations on (e3's command with both flags): every finished run against U
+
+| run | exit | trace | psi6(t) | psi6 summary | virial blocks | snapshots | run record (without timing) | event hash |
+|---|---|---|---|---|---|---|---|---|
+| C_hold60000 | 0 | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 1dbf3631d9c35bf6 |
+| C_record3000 | 0 | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 1dbf3631d9c35bf6 |
+| R2_hold60000 | 0 | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 1dbf3631d9c35bf6 |
+| R2_record3000 | 0 | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 1dbf3631d9c35bf6 |
+
+| checkpoint pair (same state) | bytes | identical |
+|---|---|---|
+| hold60000: C / R1 | 1556324 | IDENTICAL |
+| record3000: C / R1 | 2316534 | IDENTICAL |
+
+ACCEPTANCE (part 3a): **NOT MET** -- observation does not steer (yes); held cells: compartments agree and the weighted mean is the global Z (NO); snapshots exact (yes); restarts with the observations byte-identical (yes); stage H's tables PASS with these binaries, rule 4 included (yes)
+ACCEPTANCE (part 3b, with these binaries): PASS -- checkpoint pairs of the same state byte-identical: 11 of 11

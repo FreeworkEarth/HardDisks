@@ -1,0 +1,25 @@
+# Part 3a, the held cells: post-hoc description (INFORMATION, no verdict), printed by experiments_gen3_p3a_261009/p3a_heldcell_diagnostic.py
+
+## 1. Z_L - Z_R per block: autocorrelation, merged blocks, halves
+
+| run | blocks | mean (SE) | z | lag-1 autocorr. Z_L / Z_R / difference | z, blocks merged x2 / x5 / x10 | first half (SE) | second half (SE) |
+|---|---|---|---|---|---|---|---|
+| 070_seed0 | 100 | -0.01731 (0.01488) | -1.16 | +0.21 / +0.24 / +0.13 | -1.07 / -0.97 / -1.13 | -0.02521 (0.02197) | -0.00942 (0.02024) |
+| 070_seed1 | 100 | -0.00353 (0.01507) | -0.23 | +0.25 / +0.27 / +0.17 | -0.21 / -0.18 / -0.16 | -0.01179 (0.02259) | +0.00473 (0.02011) |
+| 070_seed2 | 100 | +0.03596 (0.01577) | +2.28 | -0.01 / +0.14 / +0.09 | +2.23 / +2.08 / +2.09 | +0.04571 (0.01867) | +0.02620 (0.02553) |
+| pi8_seed0 | 100 | +0.00199 (0.00232) | +0.86 | +0.13 / +0.17 / +0.19 | +0.86 / +0.75 / +0.69 | -0.00212 (0.00330) | +0.00610 (0.00319) |
+| pi8_seed1 | 100 | +0.00741 (0.00181) | +4.10 | +0.13 / +0.08 / +0.12 | +3.77 / +3.69 / +3.30 | +0.00613 (0.00227) | +0.00869 (0.00282) |
+| pi8_seed2 | 100 | -0.00098 (0.00216) | -0.45 | +0.02 / -0.18 / -0.15 | -0.46 / -0.52 / -1.07 | -0.00117 (0.00331) | -0.00079 (0.00280) |
+
+## 2. Pair-collision counts per compartment and block (integers; no virial arithmetic)
+
+| run | mean count L | mean count R | L - R (SE) | z | L + R = global in every block | KE_L values | KE_R values |
+|---|---|---|---|---|---|---|---|
+| 070_seed0 | 114208.6 | 114493.4 | -284.8 (166.4) | -1.71 | yes | 200 | 200 |
+| 070_seed1 | 114196.8 | 114253.0 | -56.2 (175.8) | -0.32 | yes | 200 | 200 |
+| 070_seed2 | 114265.6 | 113873.7 | +391.8 (175.2) | +2.24 | yes | 200 | 200 |
+| pi8_seed0 | 20572.6 | 20543.8 | +28.8 (22.5) | +1.28 | yes | 200 | 200 |
+| pi8_seed1 | 20576.6 | 20518.8 | +57.8 (16.8) | +3.44 | yes | 200 | 200 |
+| pi8_seed2 | 20537.3 | 20544.7 | -7.5 (19.8) | -0.38 | yes | 200 | 200 |
+
+(POST HOC. The counts are assigned by the same per-disk compartment index as the virial; they agree with the Z differences in sign and size, so the bookkeeping of the virial is not their cause.)

@@ -1,0 +1,94 @@
+# stage H evidence 2026-10-09 18:34:37 HST: binaries /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_p3a_261009/bin_3a
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.8Ti   9.7Gi   100%     10M  101M    9%   /System/Volumes/Data
+  start H1
+  start H2 default
+  start H2 long double
+  start H0 default
+  start H0 gen2flag
+  start A U
+  start A C hold:1
+  start A R1 hold:1
+  start A C hold:300000
+  start A R1 hold:300000
+  start A C record:0
+  start A R1 record:0
+  start A C record:25000
+  start A R1 record:25000
+  start B U
+  start B C hold:60000
+  start B R1 hold:60000
+  start B C record:6000
+  start B R1 record:6000
+  start C U
+  start C C hold:15000
+  start C R1 hold:15000
+  start C C record:3000
+  start C R1 record:3000
+  done A R1 hold:1: exit 0, 60 s
+  start A R2 hold1
+  done A R1 hold:300000: exit 0, 60 s
+  start A R2 hold300000
+  start A R2b (restarted at hold:300000, checkpoint at record:25000, stop)
+  done A R1 record:0: exit 0, 56 s
+  start A R2 record0
+  done A R1 record:25000: exit 0, 57 s
+  start A R2 record25000
+  done B R1 hold:60000: exit 0, 38 s
+  start B R2 hold60000
+  done B R1 record:6000: exit 0, 32 s
+  start B R2 record6000
+  done C R1 hold:15000: exit 0, 25 s
+  start C R2 hold15000
+  done C R1 record:3000: exit 0, 24 s
+  start C R2 record3000
+  done A R2b (restarted at hold:300000, checkpoint at record:25000, stop): exit 0, 19 s
+  start A R3 (restarted from R2b's checkpoint)
+  done H1: exit 0, 515 s
+  done H2 default: exit 0, 515 s
+  done H2 long double: exit 0, 515 s
+  done H0 default: exit 0, 515 s
+  done H0 gen2flag: exit 0, 515 s
+  done A U: exit 0, 515 s
+  done A C hold:1: exit 0, 515 s
+  done A C hold:300000: exit 0, 515 s
+  done A C record:0: exit 0, 514 s
+  done A C record:25000: exit 0, 503 s
+  done B U: exit 0, 478 s
+  done B C hold:60000: exit 0, 478 s
+  done B C record:6000: exit 0, 477 s
+  done C U: exit 0, 467 s
+  done C C hold:15000: exit 0, 466 s
+  done C C record:3000: exit 0, 455 s
+  done A R2 hold1: exit 0, 454 s
+  done A R2 hold300000: exit 0, 451 s
+  done A R2 record0: exit 0, 440 s
+  done A R2 record25000: exit 0, 440 s
+  done B R2 hold60000: exit 0, 438 s
+  done B R2 record6000: exit 0, 437 s
+  done C R2 hold15000: exit 0, 435 s
+  done C R2 record3000: exit 0, 431 s
+  done A R3 (restarted from R2b's checkpoint): exit 0, 430 s
+  start H4 another seed
+  start H4 another mass
+  start H4 another initial state (jitter 0.2)
+  start H4 not a checkpoint (a trace)
+  start H4 another build (the build field changed)
+  start H4 a truncated checkpoint
+  start H4 --gen3-restart under gen2
+  start H4 two trajectories in one process
+  start H4 a checkpoint step never reached (hold:30000 of 30000)
+  start H4 --gen3-checkpoint-stop alone
+  done H4 another seed: exit 2, 0 s
+  done H4 another mass: exit 2, 0 s
+  done H4 another initial state (jitter 0.2): exit 2, 0 s
+  done H4 not a checkpoint (a trace): exit 2, 0 s
+  done H4 another build (the build field changed): exit 2, 0 s
+  done H4 a truncated checkpoint: exit 2, 0 s
+  done H4 --gen3-restart under gen2: exit 2, 0 s
+  done H4 two trajectories in one process: exit 2, 0 s
+  done H4 a checkpoint step never reached (hold:30000 of 30000): exit 2, 22 s
+  done H4 --gen3-checkpoint-stop alone: exit 2, 22 s
+# done 2026-10-09 18:43:34 HST
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.8Ti   9.6Gi   100%     10M  101M    9%   /System/Volumes/Data
