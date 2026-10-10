@@ -11044,3 +11044,92 @@ Send CC the block. When Report K comes, paste it (from “Written for: the plan 
   - **kissfft.** On engine-gen3, `hspist3/kissfft` is a gitlink to febd4cae with no `.gitmodules`. So the runsheet's `git submodule update --init hspist3/kissfft` would fail on a fresh clone ("No url found for submodule path").
     - `~/harddisks_resched2` got kissfft by a separate clone pinned to that commit (`KOA_RUNSHEET_261002.md`, lines 699–703).
   - **The cross-node job.** `g3_det_xnode.sbatch` asks for sandbox with `--nodes=2`. The KOA cross-node job of 2026-10-02 HST (14966588, `koa_crossnode_det.sh`) ran on sandbox with two nodes. Item 2d asks for one-node jobs, and that is what will be built.
+
+### 4.7.28 Decision 13, item 1: the symmetry test of the two compartments' pressure — PASS (2026-10-09 20:27 HST, machine date) [DATA, printed by script; SOURCE] — PROVISIONAL
+
+**Plain summary.**
+- **SYMMETRY TEST: PASS**, printed by the registered `experiments_gen3_sym_261009/sym_verdict.py`.
+  - The rule, the seed list and the runner were committed before any run (engine-gen3 `6d41143`), and none was edited afterwards.
+  - Both cells are SYMMETRIC on their 40 seeds, so no extension was needed:
+    - η = π/8: t = −0.85;
+    - η = 0.70: t = −0.40.
+- **What it measures.** N = 400, H = 20, M4 lattice start, exact box, divider held 5500 σ-time, `--gen3-virial-blocks=50`.
+  - Per seed, d is the time average of Z_L − Z_R over the last 5000 σ-time (the first 500 discarded).
+  - t = mean(d) / (SD(d)/√40): the error is the scatter between seeds, as the plan author ordered.
+- **Sensitivity.** An asymmetry of 0.026 % of Z (π/8) or 0.089 % of Z (η 0.70) would have given t = 3.
+- **Health.** 80 runs (frozen binaries of engine-gen3 `5d19aa7`): all exit 0, all clean=1, one build, 110 hold blocks each, N_L = N_R = 200, and KE per compartment constant.
+- **Information (no verdict):**
+  - **Block SE calibration.** The 50-σ-time block SE is about right at π/8 (seed scatter / mean block SE = 0.78; Σz² = 25.0 on 40, P = 0.97). It underestimates at η 0.70 (ratio 1.40; Σz² = 73.8 on 40, P = 0.0009): the blocks are correlated there.
+    - [DERIVATION] So part 3a's per-run z at η 0.70 (§ 4.7.26) used SEs about 1.4 times too small. Its z = +2.32 would be about +1.7 (2.32 / 1.395) with the seed scatter.
+  - **Part 3a's π/8 seed 1** (z = +3.98) stays a single-run observation. Across 40 new seeds no asymmetry shows: mean d = −0.000205 ± 0.000243, i.e. −0.007 % of Z ([DERIVATION] from the printed mean d and Z_global).
+  - **Pair-collision counts**, left minus right per σ-time: t = −0.31 (π/8) and −0.42 (η 0.70).
+- **Rates of the rule.** Its false-alarm rate is 3.7 % for the two cells together (Monte Carlo of the whole two-stage rule, printed). The first stage alone is exact from Student's t.
+
+**Decisions.**
+1. **Binaries.** The frozen committed-tree build of engine-gen3 `5d19aa7` (part 3a's `bin_3a`, SHA-256 checked by the runner). The engine and driver are unchanged since.
+2. **Seeds.** A new base, 20261222 (found in no file before the runner was written). `run_seed(20261222, 0, k, r)` with k = 0 (π/8) and 1 (0.70); r = 0..39 the main set, 40..79 the extension (not run).
+   - The 160 seeds are distinct and none is among 168,199 earlier seeds (the task lists, P1, and the bases of stage C, P2, the KOA package and part 3a).
+3. **The command** is P1's (M = 300, ψ6 every 1 σ-time, a 1-σ-time record after the hold), with a hold of 330,000 steps and `--gen3-virial-blocks=50`. π/8 is part 3a's cell (L0 = 20 exactly); 0.70 is P1's cell.
+4. **Stated in the registered script, before any data:**
+   - "time average" weights each block by its length;
+   - the inventory checks the seed, build, blocks 0..109, N per compartment and KE per compartment of every run;
+   - if one cell is ASYMMETRIC, that decides the verdict even if the other cell would need an extension.
+5. **The script's `--selftest`** (synthetic files; parser against an independent computation, every branch of the rule, an INVALID case) passed before the registration commit.
+6. **Data.** The ψ6(t) files (18 MB) are not committed; their SHA-256 are in `SHA256_FILES.txt`. The run records are in `RUN_RECORDS.txt` (the logs are .gitignored). Nothing was compressed or moved.
+
+**Commits:** engine-gen3 `6d41143` (registration), `eb36413` (evidence and the verdict output).
+
+**The verdict output, verbatim** (`experiments_gen3_sym_261009/sym_verdict_output.txt`; the 80-row per-seed table is left in the file):
+
+```
+# The symmetry test (261012 sec. 4.7.28; plan-author decision 13, item 1), printed by experiments_gen3_sym_261009/sym_verdict.py
+
+RULE per cell: SYMMETRIC if abs(t) < 2; ASYMMETRIC if abs(t) >= 3; otherwise one extension (40 more seeds), judged on 80 with the same thresholds, still between -> UNRESOLVED. PASS = SYMMETRIC in both cells. t = mean(d) / (SD(d) / sqrt(n)), the seed-to-seed scatter.
+
+## Inventory
+
+| cell | set | runs present | clean (exit 0, one build line, one record clean=1, seed, build) | blocks and compartments | findings |
+|---|---|---|---|---|---|
+| pi8 | main | 40 of 40 | 40 of 40 | yes | - |
+| 070 | main | 40 of 40 | 40 of 40 | yes | - |
+
+build required: build="5d19aa7" target=mac-O3-e0pre; inventory clean
+
+## The registered statistic per cell (blocks 10..109 of the hold, 5000 sigma-time; d = time average of Z_L - Z_R)
+
+| cell | judged on | mean d | SD of d over seeds | SE = SD / sqrt(n) | t | outcome by the rule |
+|---|---|---|---|---|---|---|
+| pi8 (eta = pi/8, L0 = 20) | 40 | -0.000205 | 0.001535 | 0.000243 | -0.85 | **SYMMETRIC** |
+| 070 (eta = 0.70, L0 = 11.219974) | 40 | -0.001313 | 0.020829 | 0.003293 | -0.40 | **SYMMETRIC** |
+
+## The thresholds' false-alarm rates (no asymmetry)
+
+| quantity (no asymmetry) | one cell | two cells (independent) |
+|---|---|---|
+| first stage, exact (t, 39 dof): P(abs(t) >= 3) | 0.00469 | 0.00935 (at least one) |
+| first stage, exact: P(2 <= abs(t) < 3) = P(extension) | 0.04781 | 0.09334 (at least one) |
+| whole rule (Monte Carlo, 400000 replicates): P(extension) | 0.04779 (3.4e-04) | |
+| whole rule: P(ASYMMETRIC) | 0.00636 (1.3e-04) | 0.01268 (at least one) |
+| whole rule: P(UNRESOLVED) | 0.01221 (1.7e-04) | 0.02428 (at least one) |
+| whole rule: P(SYMMETRIC) | 0.98142 (2.1e-04) | P(PASS) = 0.96320; false alarm (not PASS) = 0.03680 |
+(Monte Carlo standard errors in brackets)
+
+## The smallest asymmetry that would give t = 3 (with the observed SD of d)
+
+| cell | judged on | 3 SD(d) / sqrt(n) | mean Z_global | as % of Z_global |
+|---|---|---|---|---|
+| pi8 | 40 | 0.000728 | 2.81977 | 0.0258 |
+| 070 | 40 | 0.009880 | 11.11187 | 0.0889 |
+
+## Information (no verdict)
+
+| cell | n | SD of d over seeds | mean block-based SE | ratio SD / mean SE | sum of z_i^2 | chi-square, n dof: mean, P(>= sum) | t of the pair-collision rate difference (mean L - R per sigma-time) | Z_global: mean (SE over seeds) |
+|---|---|---|---|---|---|---|---|---|
+| pi8 | 40 | 0.001535 | 0.001975 | 0.777 | 25.0 | 40, 0.969 | -0.31 (-0.018) | 2.81977 (0.00013) |
+| 070 | 40 | 0.020829 | 0.014934 | 1.395 | 73.8 | 40, 0.00091 | -0.42 (-0.308) | 11.11187 (0.00154) |
+
+[... the per-seed table (80 rows) is in experiments_gen3_sym_261009/sym_verdict_output.txt ...]
+
+pi8: SYMMETRIC; 070: SYMMETRIC; no extension
+SYMMETRY TEST: PASS
+```
