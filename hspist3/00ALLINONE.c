@@ -1292,6 +1292,11 @@ static const char* cli_gen3_ckpt_path = NULL;
 static int    cli_gen3_ckpt_stop = 0;          /* --gen3-checkpoint-stop: exit right after writing it (an interruption; for the tests) */
 static const char* cli_gen3_restart = NULL;    /* --gen3-restart=PATH: go on from a checkpoint of the same command */
 static uint64_t g3_init_hash = 0;              /* FNV-1a of the state gen3 was built from (the restart's identity check) */
+/* ##CHRIS 2026-10-09 (plan-author decision 12, part 3a; 261012 sec. 4.7.26): the two items stage A left out (gen3, the speed-of-sound
+   loop only; g3_virial_block_sample, g3_snapshot_sample) */
+static double cli_gen3_virial_blocks = 0.0;   /* --gen3-virial-blocks=T: the pair virial per compartment in blocks of T sigma-time (0: off) */
+static double cli_gen3_snapshots = 0.0;       /* --gen3-snapshots=T: every disk's position every T sigma-time (0: off); the runner passes it
+                                                 for its seed subset */
 
 static void g3_stop(const char* what){
     fflush(stdout);
@@ -4903,6 +4908,12 @@ static void parse_cli_options(int argc, char **argv) {
             cli_gen3_ckpt_stop = 1;
         } else if (strncmp(arg, "--gen3-restart=", strlen("--gen3-restart=")) == 0) {
             cli_gen3_restart = arg + strlen("--gen3-restart=");
+        } else if (strncmp(arg, "--gen3-virial-blocks=", strlen("--gen3-virial-blocks=")) == 0
+                   || strncmp(arg, "--gen3-snapshots=", strlen("--gen3-snapshots=")) == 0) {   /* ##CHRIS 2026-10-09 (decision 12, part 3a) */
+            const int vb = strncmp(arg, "--gen3-virial-blocks=", strlen("--gen3-virial-blocks=")) == 0;
+            char *endptr = NULL; const double v = strtod(strchr(arg, '=') + 1, &endptr);
+            if (!endptr || *endptr != '\0' || !(v > 0.0) || v > 1e9) { fprintf(stderr, "Invalid '%s' (an interval > 0 in sigma-time).\n", arg); exit(EXIT_FAILURE); }
+            if (vb) cli_gen3_virial_blocks = v; else cli_gen3_snapshots = v;
         } else if (strncmp(arg, "--psi6-every=", strlen("--psi6-every=")) == 0) {   /* ##CHRIS 2026-10-09 (M3, stage A1) */
             char *endptr = NULL; const double v = strtod(arg + strlen("--psi6-every="), &endptr);
             if (!endptr || *endptr != '\0' || !(v > 0.0) || v > 1e6) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
@@ -16286,6 +16297,103 @@ static void g3_run_record(const char* id){
     fflush(stdout);
 }
 
+/* ##CHRIS 2026-10-09 (plan-author decision 12, part 3a; 261012 sec. 4.7.26): THE TWO ITEMS STAGE A LEFT OUT, gen3 only, in the
+   speed-of-sound loop (hold and record), both pure readers (the event hash is the same with and without them):
+   - the pair virial per compartment (--gen3-virial-blocks=T): every T sigma-time since the start of the hold (at the first driver
+     step at or after it) one row of virial_blocks_L0_<L>_wallmassfactor_<M>_run<r>.csv: the block's end and length, then per
+     compartment (the spaces between dividers; edmd3_virial_compartments) its disks, kinetic energy, pair events in the block and
+     Z_c = 1 + dW_c / (2 KE_c dt), then the block's pair events and global Z = 1 + dW / (2 KE dt) from the engine's own global sum, the
+     KE-weighted mean of the Z_c and its difference from the global Z (rounding only). The block values are differences of the
+     engine's cumulative sums; nothing is reset;
+   - position snapshots (--gen3-snapshots=T): every T sigma-time from the start of the hold, every disk's position (sigma, box
+     coordinates) and the dividers' centres in snapshots_L0_<L>_wallmassfactor_<M>_run<r>.bin, binary, little-endian: a header of
+     8 bytes "G3SNAP1\n", int32 N, int32 dividers, double box width, box height, radius, interval [sigma]; then per snapshot double t
+     [sigma-time since the start of the hold], int32 phase (0 hold, 1 record), int32 dividers, double divider centres, N x (double
+     x, double y). The campaign runner passes the flag for its seed subset.
+   A checkpoint carries both files' bytes and this state (G3Obs). */
+typedef struct {
+    double next;                                   /* virial: the next block's end [sigma-time] */
+    double tu_prev;                                /* the engine's window length at the last block's end [internal units] */
+    double W_prev[EDMD3_MAX_COMPARTMENTS], Wg_prev; long n_prev[EDMD3_MAX_COMPARTMENTS], ng_prev;
+    int    block, ncomp;
+    double snap_next; long snaps;                  /* snapshots: the next snapshot time [sigma-time]; written so far */
+} G3Obs;
+static G3Obs g3_obs;
+static FILE* g3_vb_file = NULL;   static char g3_vb_path[700] = "";
+static FILE* g3_snap_file = NULL; static char g3_snap_path[700] = "";
+
+static void g3_obs_open(const char* folder, int L0_int, int mass, int r){
+    memset(&g3_obs, 0, sizeof g3_obs);
+    const EDMD_Params* ep = edmd_backend_params(g_edmd);
+    g3_obs.ncomp = 1 + (ep->divider_count > 0 ? (ep->divider_count < EDMD_MAX_DIVIDERS ? ep->divider_count : EDMD_MAX_DIVIDERS) : 0);
+    if (cli_gen3_virial_blocks > 0.0) {
+        snprintf(g3_vb_path, sizeof g3_vb_path, "%s/virial_blocks_L0_%d_wallmassfactor_%d_run%d.csv", folder, L0_int, mass, r);
+        g3_vb_file = fopen(g3_vb_path, "w");
+        if (!g3_vb_file) g3_stop("cannot open the virial-block file");
+        fprintf(g3_vb_file, "t_sigma,phase,block,dt_sigma");
+        for (int c = 0; c < g3_obs.ncomp; ++c) fprintf(g3_vb_file, ",N_%d,KE_%d,pair_events_%d,Z_%d", c, c, c, c);
+        fprintf(g3_vb_file, ",pair_events,Z_global,Z_KE_weighted_mean,weighted_minus_global\n");
+        g3_obs.next = cli_gen3_virial_blocks;
+    }
+    if (cli_gen3_snapshots > 0.0) {
+        snprintf(g3_snap_path, sizeof g3_snap_path, "%s/snapshots_L0_%d_wallmassfactor_%d_run%d.bin", folder, L0_int, mass, r);
+        g3_snap_file = fopen(g3_snap_path, "wb");
+        if (!g3_snap_file) g3_stop("cannot open the snapshot file");
+        const int32_t n = ep->N, nd = g3_obs.ncomp - 1;
+        const double hd[4] = { ep->boxW / (double)PIXELS_PER_SIGMA, ep->boxH / (double)PIXELS_PER_SIGMA, ep->radius / (double)PIXELS_PER_SIGMA,
+                               cli_gen3_snapshots };
+        if (fwrite("G3SNAP1\n", 1, 8, g3_snap_file) != 8 || fwrite(&n, sizeof n, 1, g3_snap_file) != 1 || fwrite(&nd, sizeof nd, 1, g3_snap_file) != 1
+            || fwrite(hd, sizeof hd, 1, g3_snap_file) != 1) g3_stop("cannot write the snapshot file");
+        g3_obs.snap_next = 0.0;
+    }
+}
+static void g3_virial_block_sample(const char* phase){
+    if (!g3_vb_file || !g_edmd3) return;
+    const double t = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
+    if (t + 1e-9 < g3_obs.next) return;
+    double W[EDMD3_MAX_COMPARTMENTS], KE[EDMD3_MAX_COMPARTMENTS], tu; long np[EDMD3_MAX_COMPARTMENTS]; int nd[EDMD3_MAX_COMPARTMENTS];
+    const int nc = edmd3_virial_compartments(g_edmd3, EDMD3_MAX_COMPARTMENTS, W, KE, np, nd, &tu);
+    if (nc != g3_obs.ncomp) g3_stop("virial blocks: the number of compartments changed");
+    const double Wg = edmd3_virial_sum(g_edmd3); const long ng = edmd3_virial_pair_events(g_edmd3);
+    const double ke = edmd3_kinetic_energy(g_edmd3), dtu = tu - g3_obs.tu_prev;
+    fprintf(g3_vb_file, "%.6f,%s,%d,%.9g", t, phase, g3_obs.block, dtu / (double)PIXELS_PER_SIGMA);
+    double zw = 0.0, kw = 0.0;
+    for (int c = 0; c < nc; ++c) {
+        const double z = 1.0 + (W[c] - g3_obs.W_prev[c]) / (2.0 * KE[c] * dtu);
+        fprintf(g3_vb_file, ",%d,%.12g,%ld,%.12g", nd[c], KE[c], np[c] - g3_obs.n_prev[c], z);
+        zw += KE[c] * z; kw += KE[c];
+        g3_obs.W_prev[c] = W[c]; g3_obs.n_prev[c] = np[c];
+    }
+    const double zg = 1.0 + (Wg - g3_obs.Wg_prev) / (2.0 * ke * dtu);
+    fprintf(g3_vb_file, ",%ld,%.12g,%.12g,%.3e\n", ng - g3_obs.ng_prev, zg, zw / kw, zw / kw - zg);
+    g3_obs.Wg_prev = Wg; g3_obs.ng_prev = ng; g3_obs.tu_prev = tu; g3_obs.block++;
+    while (g3_obs.next <= t + 1e-9) g3_obs.next += cli_gen3_virial_blocks;
+}
+static void g3_snapshot_sample(int phase){
+    if (!g3_snap_file) return;
+    const double t = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
+    if (t + 1e-9 < g3_obs.snap_next) return;
+    const EDMD_Params* ep = edmd_backend_params(g_edmd);
+    const EDMD_Particle* P = edmd_backend_particles(g_edmd);
+    const int32_t ph = phase, nd = g3_obs.ncomp - 1;
+    int ok = fwrite(&t, sizeof t, 1, g3_snap_file) == 1 && fwrite(&ph, sizeof ph, 1, g3_snap_file) == 1 && fwrite(&nd, sizeof nd, 1, g3_snap_file) == 1;
+    for (int d = 0; ok && d < nd; ++d) { const double x = ep->divider_x[d] / (double)PIXELS_PER_SIGMA; ok = fwrite(&x, sizeof x, 1, g3_snap_file) == 1; }
+    for (int i = 0; ok && i < ep->N; ++i) {
+        const double xy[2] = { P[i].x / (double)PIXELS_PER_SIGMA, P[i].y / (double)PIXELS_PER_SIGMA };
+        ok = fwrite(xy, sizeof xy, 1, g3_snap_file) == 1;
+    }
+    if (!ok) g3_stop("cannot write the snapshot file");
+    g3_obs.snaps++;
+    while (g3_obs.snap_next <= t + 1e-9) g3_obs.snap_next += cli_gen3_snapshots;
+}
+static void g3_obs_close(void){
+    if (g3_vb_file || g3_snap_file)
+        printf("[EDMD3-OBS] virial blocks %d (%s), snapshots %ld (%s)\n", g3_obs.block, g3_vb_file ? g3_vb_path : "off", g3_obs.snaps,
+               g3_snap_file ? g3_snap_path : "off");
+    if (g3_vb_file) { fclose(g3_vb_file); g3_vb_file = NULL; }
+    if (g3_snap_file) { fclose(g3_snap_file); g3_snap_file = NULL; }
+}
+
 /* ##CHRIS 2026-10-09 (stage H; 261012 sec. 4.7.12 stage H, sec. 4.7 item 6): CHECKPOINT AND RESTART of one gen3 speed-of-sound
    trajectory. A checkpoint is taken at the top of a hold step (after K hold steps; --gen3-checkpoint=hold:K:PATH) or of a record
    step (after K record steps, K = 0 right after the release; record:K:PATH): between two advances, so the engine is at an event
@@ -16314,9 +16422,11 @@ typedef struct {
     double psi6_next, wall_release_time; int wall_is_released, wall_hold_enabled, recorded_steps, left, right;
     Psi6Result psi6_hold; Psi6Accum psi6_run;
     double div_mass[EDMD_MAX_DIVIDERS], pistonL_mass, pistonR_mass, work0[EDMD_MAX_DIVIDERS], work0_p[2];
-    long   trace_len, psi6_len;             /* then the trace's bytes, the psi6(t) file's bytes, the engine */
+    long   trace_len, psi6_len;             /* then the trace's bytes, the psi6(t) file's bytes, ... */
+    double vb_T, snap_T; G3Obs obs;         /* ##CHRIS (decision 12, part 3a): the observations' intervals and state, */
+    long   vb_len, snap_len;                /* ... the virial-block file's bytes, the snapshot file's bytes, the engine */
 } G3RunCkpt;
-#define G3_RUN_CKPT_MAGIC "g3-run-ckpt-v1"
+#define G3_RUN_CKPT_MAGIC "g3-run-ckpt-v2"    /* v2 (part 3a): the virial blocks and the snapshots */
 static int  g3_ckpt_written = 0;
 static int  g3_restart_phase = -1; static long g3_restart_step = -1;
 static char g3_psi6_path[700] = "";
@@ -16327,6 +16437,7 @@ static void g3_ckpt_identity(G3RunCkpt* c, const G3RunRefs* rf){
     c->L0d = rf->L0d; c->fixed_dt = (double)fixed_dt_runtime; c->psi6_every = cli_psi6_every; c->mass = rf->mass; c->run = rf->run;
     c->N = rf->N; c->hold_steps = rf->hold_steps; c->record_steps = rf->record_steps; c->log_stride = rf->log_stride;
     c->psi6_stride = rf->psi6_stride; c->validator_every = validator_every(); c->seed = rf->seed;
+    c->vb_T = cli_gen3_virial_blocks; c->snap_T = cli_gen3_snapshots;   /* ##CHRIS (decision 12, part 3a) */
 }
 static char* g3_slurp(const char* path, long* n){       /* a whole file into memory */
     FILE* f = fopen(path, "rb");
@@ -16349,22 +16460,29 @@ static void g3_ckpt_write(const G3RunRefs* rf, int phase, long step){
     c.psi6_hold = *rf->psi6_hold; c.psi6_run = *rf->psi6_run;
     for (int d = 0; d < EDMD_MAX_DIVIDERS; ++d) { c.div_mass[d] = g3_prm.divider_mass[d]; c.work0[d] = g3_work0[d]; }
     c.pistonL_mass = g3_prm.pistonL_mass; c.pistonR_mass = g3_prm.pistonR_mass; c.work0_p[0] = g3_work0_p[0]; c.work0_p[1] = g3_work0_p[1];
-    if ((rf->trace && fflush(rf->trace)) || (rf->psi6 && fflush(rf->psi6))) g3_stop("checkpoint: cannot flush the output files");
+    c.obs = g3_obs;   /* ##CHRIS (decision 12, part 3a) */
+    if ((rf->trace && fflush(rf->trace)) || (rf->psi6 && fflush(rf->psi6)) || (g3_vb_file && fflush(g3_vb_file)) || (g3_snap_file && fflush(g3_snap_file)))
+        g3_stop("checkpoint: cannot flush the output files");
     char* tb = rf->trace ? g3_slurp(rf->trace_path, &c.trace_len) : NULL;
     char* pb = rf->psi6 ? g3_slurp(rf->psi6_path, &c.psi6_len) : NULL;
+    char* vb = g3_vb_file ? g3_slurp(g3_vb_path, &c.vb_len) : NULL;
+    char* sb = g3_snap_file ? g3_slurp(g3_snap_path, &c.snap_len) : NULL;
     char tmp[1200]; snprintf(tmp, sizeof tmp, "%s.tmp", cli_gen3_ckpt_path);
     FILE* f = fopen(tmp, "wb");
     if (!f) g3_stop("checkpoint: cannot open the checkpoint file");
     const int ok = fwrite(&c, sizeof c, 1, f) == 1 && (c.trace_len == 0 || fwrite(tb, 1, (size_t)c.trace_len, f) == (size_t)c.trace_len)
-                   && (c.psi6_len == 0 || fwrite(pb, 1, (size_t)c.psi6_len, f) == (size_t)c.psi6_len) && edmd3_checkpoint_write(g_edmd3, f);
+                   && (c.psi6_len == 0 || fwrite(pb, 1, (size_t)c.psi6_len, f) == (size_t)c.psi6_len)
+                   && (c.vb_len == 0 || fwrite(vb, 1, (size_t)c.vb_len, f) == (size_t)c.vb_len)
+                   && (c.snap_len == 0 || fwrite(sb, 1, (size_t)c.snap_len, f) == (size_t)c.snap_len) && edmd3_checkpoint_write(g_edmd3, f);
     const long bytes = ftell(f);
     if (fclose(f) != 0 || !ok || rename(tmp, cli_gen3_ckpt_path) != 0) g3_stop("checkpoint: writing the checkpoint file failed");
-    free(tb); free(pb);
+    free(tb); free(pb); free(vb); free(sb);
     const EDMD3_Health* H = edmd3_health(g_edmd3);
-    printf("[EDMD3-CHECKPOINT] wrote %s: %s step %ld, t = %.17g units, events %ld, hash %016llx, %ld bytes (trace %ld, psi6(t) %ld)\n",
+    printf("[EDMD3-CHECKPOINT] wrote %s: %s step %ld, t = %.17g units, events %ld, hash %016llx, %ld bytes (trace %ld, psi6(t) %ld, "
+           "virial blocks %ld, snapshots %ld)\n",
            cli_gen3_ckpt_path, phase ? "record" : "hold", step, edmd3_time(g_edmd3),
            H->ev_pair + H->ev_wall + H->ev_cross + H->ev_div + H->ev_piston + H->ev_band, (unsigned long long)edmd3_event_hash(g_edmd3),
-           bytes, c.trace_len, c.psi6_len);
+           bytes, c.trace_len, c.psi6_len, c.vb_len, c.snap_len);
     fflush(stdout);
     g3_ckpt_written = 1;
     if (cli_gen3_ckpt_stop) { printf("[EDMD3-CHECKPOINT] stopping after the checkpoint (--gen3-checkpoint-stop)\n"); fflush(stdout); exit(0); }
@@ -16379,27 +16497,33 @@ static int g3_restart_apply(const G3RunRefs* rf){
     FILE* f = fopen(cli_gen3_restart, "rb");
     if (!f) g3_stop("restart: cannot open the checkpoint file");
     G3RunCkpt c, me; memset(&me, 0, sizeof me);
-    if (fread(&c, sizeof c, 1, f) != 1 || memcmp(c.magic, G3_RUN_CKPT_MAGIC, sizeof G3_RUN_CKPT_MAGIC) != 0) g3_stop("restart: not a gen3 run checkpoint (v1)");
+    if (fread(&c, sizeof c, 1, f) != 1 || memcmp(c.magic, G3_RUN_CKPT_MAGIC, sizeof G3_RUN_CKPT_MAGIC) != 0) g3_stop("restart: not a gen3 run checkpoint (v2)");
     g3_ckpt_identity(&me, rf);
     if (strcmp(c.build, me.build) || strcmp(c.target, me.target)) g3_stop("restart: the checkpoint was written by another build");
     if (c.L0d != me.L0d || c.fixed_dt != me.fixed_dt || c.psi6_every != me.psi6_every || c.mass != me.mass || c.run != me.run || c.N != me.N
         || c.hold_steps != me.hold_steps || c.record_steps != me.record_steps || c.log_stride != me.log_stride || c.psi6_stride != me.psi6_stride
-        || c.validator_every != me.validator_every || c.seed != me.seed)
+        || c.validator_every != me.validator_every || c.seed != me.seed || c.vb_T != me.vb_T || c.snap_T != me.snap_T)
         g3_stop("restart: the checkpoint belongs to another trajectory (L0, mass, run, seed, N, steps, strides or cadences differ)");
     if (c.phase == 0 ? (c.step < 1 || c.step >= me.hold_steps) : (c.step < 0 || c.step >= me.record_steps)) g3_stop("restart: the checkpoint's step is outside this run");
     if (g3_evlog) g3_stop("restart: the gated event log is not carried across a restart (run without it)");
     if (!g3_live(g_edmd)) { g3_free(); g3_build(g_edmd); }   /* gen3 built as the first advance would build it */
     if (g3_init_hash != c.init_hash) g3_stop("restart: the run's initial state is not the checkpoint's (another command or seed)");
     char* tb = (char*)malloc((size_t)(c.trace_len > 0 ? c.trace_len : 1)); char* pb = (char*)malloc((size_t)(c.psi6_len > 0 ? c.psi6_len : 1));
-    if (!tb || !pb || (c.trace_len > 0 && fread(tb, 1, (size_t)c.trace_len, f) != (size_t)c.trace_len)
-        || (c.psi6_len > 0 && fread(pb, 1, (size_t)c.psi6_len, f) != (size_t)c.psi6_len)) g3_stop("restart: the checkpoint is truncated (files)");
+    char* vb = (char*)malloc((size_t)(c.vb_len > 0 ? c.vb_len : 1)); char* sb = (char*)malloc((size_t)(c.snap_len > 0 ? c.snap_len : 1));
+    if (!tb || !pb || !vb || !sb || (c.trace_len > 0 && fread(tb, 1, (size_t)c.trace_len, f) != (size_t)c.trace_len)
+        || (c.psi6_len > 0 && fread(pb, 1, (size_t)c.psi6_len, f) != (size_t)c.psi6_len)
+        || (c.vb_len > 0 && fread(vb, 1, (size_t)c.vb_len, f) != (size_t)c.vb_len)
+        || (c.snap_len > 0 && fread(sb, 1, (size_t)c.snap_len, f) != (size_t)c.snap_len)) g3_stop("restart: the checkpoint is truncated (files)");
     char err[256];
     if (!edmd3_checkpoint_read(g_edmd3, f, err, sizeof err)) g3_stop(err);
     if (fgetc(f) != EOF) g3_stop("restart: trailing bytes after the engine state");
     fclose(f);
-    if ((c.trace_len > 0) != (rf->trace != NULL) || (c.psi6_len > 0) != (rf->psi6 != NULL)) g3_stop("restart: the output files do not match the checkpoint's");
+    if ((c.trace_len > 0) != (rf->trace != NULL) || (c.psi6_len > 0) != (rf->psi6 != NULL)
+        || (c.vb_len > 0) != (g3_vb_file != NULL) || (c.snap_len > 0) != (g3_snap_file != NULL)) g3_stop("restart: the output files do not match the checkpoint's");
     g3_put_bytes(rf->trace, tb, c.trace_len); g3_put_bytes(rf->psi6, pb, c.psi6_len);
-    free(tb); free(pb);
+    g3_put_bytes(g3_vb_file, vb, c.vb_len); g3_put_bytes(g3_snap_file, sb, c.snap_len);   /* ##CHRIS (decision 12, part 3a) */
+    g3_obs = c.obs;
+    free(tb); free(pb); free(vb); free(sb);
     *rf->psi6_next = c.psi6_next; *rf->recorded_steps = c.recorded_steps; *rf->left = c.left; *rf->right = c.right;
     *rf->psi6_hold = c.psi6_hold; *rf->psi6_run = c.psi6_run;
     wall_release_time = c.wall_release_time; wall_is_released = c.wall_is_released != 0; wall_hold_enabled = c.wall_hold_enabled != 0;
@@ -16860,6 +16984,8 @@ void run_speed_of_sound_experiments() {
                         fprintf(psi6_series, "t_sigma,phase,psi6_global,psi6_local,mean_neighbors\n");
                         psi6_next = 0.0;
                         g3_psi6_series_sample(psi6_series, &psi6_next, "hold");
+                        g3_obs_open(mode_folder, L0_int, wall_mass_factor, r);   /* ##CHRIS 2026-10-09 (decision 12, part 3a): off unless asked */
+                        g3_snapshot_sample(0);
                     }
                     /* ##CHRIS 2026-10-09 (stage H): checkpoint and restart under gen3 (g3_ckpt_write, g3_restart_apply); without
                        --gen3-checkpoint and --gen3-restart (refused under gen2) g3_s0 = 0 and nothing below runs */
@@ -16875,6 +17001,7 @@ void run_speed_of_sound_experiments() {
                         edmd_backend_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
                         speed_sound_overdue_poll(g_edmd, "wall_hold", s + 1);
                         g3_psi6_series_sample(psi6_series, &psi6_next, "hold");   /* ##CHRIS (M3): NULL under gen2 */
+                        g3_virial_block_sample("hold"); g3_snapshot_sample(0);       /* ##CHRIS (decision 12, part 3a): no-ops unless asked */
                         /* ##CHRIS 2026-10-09 (M3): the validator every validator_every() steps and at the last hold step;
                            validator_every() is 1 under gen2, so gen2 checks every step exactly as before */
                         if ((s + 1) % validator_every() != 0 && s + 1 != wall_hold_steps) continue;
@@ -17002,6 +17129,7 @@ void run_speed_of_sound_experiments() {
                             psi6_accum_add(&psi6_run, pr.global_abs);
                         }
                         g3_psi6_series_sample(psi6_series, &psi6_next, "record");   /* ##CHRIS (M3): NULL under gen2 */
+                        g3_virial_block_sample("record"); g3_snapshot_sample(1);       /* ##CHRIS (decision 12, part 3a): no-ops unless asked */
 
                         recorded_steps++;
                     }
@@ -17165,6 +17293,7 @@ void run_speed_of_sound_experiments() {
                     g3_run_record(rid);
                 }
                 if (psi6_series) { fclose(psi6_series); psi6_series = NULL; }   /* ##CHRIS (M3) */
+                g3_obs_close();                                                   /* ##CHRIS (decision 12, part 3a) */
 
                 if (!validator.failure.failed && recorded_steps != target_recorded_steps) {
                     experiment_validator_record_failure(
@@ -21929,6 +22058,8 @@ int main(int argc, char* argv[]) {
         else if ((cli_gen3_ckpt_phase >= 0 || cli_gen3_restart) && !sos)   /* ##CHRIS 2026-10-09 (stage H) */
             why = "--gen3-checkpoint and --gen3-restart are wired to the speed-of-sound experiment only";
         else if (cli_gen3_ckpt_stop && cli_gen3_ckpt_phase < 0) why = "--gen3-checkpoint-stop needs --gen3-checkpoint";
+        else if ((cli_gen3_virial_blocks > 0.0 || cli_gen3_snapshots > 0.0) && !sos)   /* ##CHRIS (decision 12, part 3a) */
+            why = "--gen3-virial-blocks and --gen3-snapshots are wired to the speed-of-sound experiment only";
         if (why) g3_stop(why);
     }
     if (cli_engine != 3 && (cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial)) {   /* ##CHRIS (stage C, M4) */
@@ -21937,6 +22068,10 @@ int main(int argc, char* argv[]) {
     }
     if (cli_engine != 3 && (cli_gen3_ckpt_phase >= 0 || cli_gen3_ckpt_stop || cli_gen3_restart)) {   /* ##CHRIS 2026-10-09 (stage H) */
         fprintf(stderr, "STOP: --gen3-checkpoint, --gen3-checkpoint-stop and --gen3-restart need --engine=gen3\n");
+        exit(2);
+    }
+    if (cli_engine != 3 && (cli_gen3_virial_blocks > 0.0 || cli_gen3_snapshots > 0.0)) {   /* ##CHRIS 2026-10-09 (decision 12, part 3a) */
+        fprintf(stderr, "STOP: --gen3-virial-blocks and --gen3-snapshots need --engine=gen3\n");
         exit(2);
     }
 

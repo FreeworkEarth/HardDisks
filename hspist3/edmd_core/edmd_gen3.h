@@ -34,6 +34,7 @@ extern "C" {
 #define EDMD3_DEFAULT_CELL_PX   32.0      /* 1.33 diameters at R = 12 px (sec. 4.7.1, amendment a) */
 #define EDMD3_ORIGIN_SHIFT      8192.0    /* 2^13 internal units = 341.3 sigma-time */
 #define EDMD3_TOL_K             4.0       /* the factor K of the rounding tolerances (the derived bound is 2.5; sec. 4.7.6) */
+#define EDMD3_MAX_COMPARTMENTS  (EDMD_MAX_DIVIDERS + 1)   /* ##CHRIS 2026-10-09 (decision 12, part 3a): the divider-bounded spaces */
 
 typedef struct EDMD3 EDMD3;
 
@@ -159,7 +160,13 @@ uint64_t edmd3_event_hash(const EDMD3* S);           /* FNV-1a over (t, type, a,
 double edmd3_kinetic_energy(EDMD3* S);               /* sum v^2 / 2, unit mass */
 void   edmd3_reset_virial(EDMD3* S);
 double edmd3_compressibility_Z(EDMD3* S);            /* 1 + W / (2 KE t) over the window, as edmd_compressibility_Z */
+/* ##CHRIS 2026-10-09 (decision 12, part 3a): the pair virial per compartment (the spaces between dividers; a disk's compartment is the
+   number of dividers left of it at the load). Read-only: per compartment the pair-virial sum W_c since the last edmd3_reset_virial,
+   the kinetic energy KE_c and the disks now, the pair events; the window length (internal units). Z_c = 1 + W_c / (2 KE_c t).
+   Returns the number of compartments (1 + active dividers); fills at most max entries of each non-NULL array. */
+int    edmd3_virial_compartments(const EDMD3* S, int max, double* W, double* KE, long* npair, int* ndisk, double* t_window);
 long   edmd3_virial_pair_events(const EDMD3* S);
+double edmd3_virial_sum(const EDMD3* S);              /* ##CHRIS (decision 12, part 3a): the global pair-virial sum W of the window */
 double edmd3_wall_impulse(const EDMD3* S, int wall); /* L, R, B, T */
 long   edmd3_wall_events(const EDMD3* S, int wall);
 void   edmd3_set_check_interval(EDMD3* S, double units); /* full validator cadence (default 24 = 1 sigma-time); <= 0 off */

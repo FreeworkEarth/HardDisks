@@ -106,7 +106,8 @@ typedef struct {
     int    slot;           /* index in the cell's list */
     int    last;           /* partner of the last velocity change if that was a pair collision, -2 - body if a body
                               collision (M2), else -1 */
-    int    pad;
+    int    comp;           /* ##CHRIS 2026-10-09 (decision 12, part 3a): the compartment, the number of dividers left of the disk
+                              at the load (no disk crosses a divider; was the padding int, so the layout is unchanged) */
 } Disk3;
 
 /* ##CHRIS 2026-10-08 (M2): bodies. Index: dividers 0 .. EDMD_MAX_DIVIDERS-1, then the left and the right piston. */
@@ -145,6 +146,7 @@ struct EDMD3 {
     EDMD3_Health H;
     real tol_pair, tol_wall, tol_cell, c_tol;
     real virial_accum, virial_t0_abs; long virial_pair_events;
+    real vir_c[EDMD3_MAX_COMPARTMENTS]; long vir_cn[EDMD3_MAX_COMPARTMENTS];   /* ##CHRIS (decision 12, part 3a): per compartment */
     real wall_impulse[4]; long wall_events[4];
     uint64_t hash;
     real same_t; long same_n, same_limit;
@@ -706,6 +708,7 @@ static void exec_pair(EDMD3* S, const Ev3* e){
     const real nx = dx / dist, ny = dy / dist;
     const real dvn = (B->vx - A->vx) * nx + (B->vy - A->vy) * ny;
     S->virial_accum += (-dvn) * dist; S->virial_pair_events++;     /* as resolve_ab in edmd.c */
+    S->vir_c[A->comp] += (-dvn) * dist; S->vir_cn[A->comp]++;       /* ##CHRIS (decision 12, part 3a): the pair's compartment */
     A->vx += dvn * nx; A->vy += dvn * ny;
     B->vx -= dvn * nx; B->vy -= dvn * ny;
     /* M2 ledger scales (read-only here): the same product dvn*n goes to both disks, so momentum changes only by the two
@@ -1195,7 +1198,9 @@ int edmd3_load(EDMD3* S, const EDMD_Particle* P, double t_abs, char* err, size_t
         A->cx = cx; A->cy = cy;
         A->xi = P[i].x - (real)cx * S->w; A->zeta = P[i].y - (real)cy * S->w;
         A->vx = P[i].vx; A->vy = P[i].vy; A->tau = S->now;
-        A->cnt = 0; A->last = -1; A->pad = 0;
+        A->cnt = 0; A->last = -1;
+        A->comp = 0;                                     /* ##CHRIS (decision 12, part 3a): dividers left of the disk */
+        for (int d = 0; d < EDMD_MAX_DIVIDERS; ++d) if (S->obj[d].active && S->obj[d].x < (real)P[i].x) A->comp++;
         if (!cell_insert(S, i)) { if (err && errlen) snprintf(err, errlen, "edmd_gen3: cell (%d,%d) overflows at disk %d (overlapping input?)", cx, cy, i); return 0; }
     }
     /* M2: the bodies' time stamps, the ledgers' starting values, the tolerances (before any prediction uses them) */
@@ -1290,13 +1295,39 @@ double edmd3_kinetic_energy(EDMD3* S){
     for (int i = 0; i < S->N; ++i) ke += 0.5 * (S->D[i].vx * S->D[i].vx + S->D[i].vy * S->D[i].vy);
     return ke;
 }
-void   edmd3_reset_virial(EDMD3* S){ S->virial_accum = 0.0; S->virial_pair_events = 0; S->virial_t0_abs = S->T0 + S->now; }
+void   edmd3_reset_virial(EDMD3* S){ S->virial_accum = 0.0; S->virial_pair_events = 0; S->virial_t0_abs = S->T0 + S->now;
+                                    for (int c = 0; c < EDMD3_MAX_COMPARTMENTS; ++c) { S->vir_c[c] = 0.0; S->vir_cn[c] = 0; } }
+/* ##CHRIS 2026-10-09 (plan-author decision 12, part 3a; 261012 sec. 4.7.26): THE PAIR VIRIAL PER COMPARTMENT. A compartment is the
+   space between two dividers (or a divider and an outer wall); compartment c of a disk is the number of dividers left of it at the
+   load, and no disk crosses a divider. Every pair collision adds its term (-dv.n) |r| to the global sum and, in the same event, to
+   its compartment's sum (both disks are in one compartment). Read-only: the sums since the last edmd3_reset_virial, the kinetic
+   energy and the disks of each compartment now (velocities are stored; no position is synchronised and no check runs), and the
+   window length. Z_c = 1 + W_c / (2 KE_c t) as edmd3_compressibility_Z; the KE-weighted mean of the Z_c is the global Z. Returns
+   the number of compartments (1 + the active dividers); fills at most max entries. */
+int edmd3_virial_compartments(const EDMD3* S, int max, double* W, double* KE, long* npair, int* ndisk, double* t_window){
+    int nc = 1;
+    for (int d = 0; d < EDMD_MAX_DIVIDERS; ++d) if (S->obj[d].active) nc++;
+    real ke[EDMD3_MAX_COMPARTMENTS] = {0}; int nd[EDMD3_MAX_COMPARTMENTS] = {0};
+    for (int i = 0; i < S->N; ++i) {
+        const Disk3* A = &S->D[i];
+        ke[A->comp] += 0.5 * (A->vx * A->vx + A->vy * A->vy); nd[A->comp]++;
+    }
+    for (int c = 0; c < nc && c < max; ++c) {
+        if (W) W[c] = (double)S->vir_c[c];
+        if (KE) KE[c] = (double)ke[c];
+        if (npair) npair[c] = S->vir_cn[c];
+        if (ndisk) ndisk[c] = nd[c];
+    }
+    if (t_window) *t_window = (double)((S->T0 + S->now) - S->virial_t0_abs);
+    return nc;
+}
 double edmd3_compressibility_Z(EDMD3* S){
     const real t = (S->T0 + S->now) - S->virial_t0_abs, ke = edmd3_kinetic_energy(S);
     if (!(t > 0.0) || !(ke > 0.0)) return NAN;
     return 1.0 + S->virial_accum / (2.0 * ke * t);
 }
 long   edmd3_virial_pair_events(const EDMD3* S){ return S->virial_pair_events; }
+double edmd3_virial_sum(const EDMD3* S){ return (double)S->virial_accum; }   /* ##CHRIS (decision 12, part 3a): read-only */
 double edmd3_wall_impulse(const EDMD3* S, int wall){ return (wall >= 0 && wall < 4) ? S->wall_impulse[wall] : NAN; }
 long   edmd3_wall_events(const EDMD3* S, int wall){ return (wall >= 0 && wall < 4) ? S->wall_events[wall] : 0; }
 void   edmd3_set_check_interval(EDMD3* S, double units){ S->check_interval = units; S->next_check = S->now + (units > 0.0 ? units : 0.0); }
