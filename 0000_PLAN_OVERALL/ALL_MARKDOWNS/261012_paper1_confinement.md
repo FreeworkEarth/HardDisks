@@ -11281,22 +11281,7 @@ STEP 6 (Mac; the fetch; Chris types the password and Duo)
 == STEP 1, as written (the commit substituted by the pushed head 9c058cab47158d4e3af22efb1dd6cd4fff8f8cbc)
 + git clone --depth 1 --branch engine-gen3 --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_gen3
 Cloning into 'harddisks_gen3'...
-Updating files:  12% (2/16)
-Updating files:  18% (3/16)
-Updating files:  25% (4/16)
-Updating files:  31% (5/16)
-Updating files:  37% (6/16)
-Updating files:  43% (7/16)
-Updating files:  50% (8/16)
-Updating files:  56% (9/16)
-Updating files:  62% (10/16)
-Updating files:  68% (11/16)
-Updating files:  75% (12/16)
-Updating files:  81% (13/16)
-Updating files:  87% (14/16)
-Updating files:  93% (15/16)
-Updating files: 100% (16/16)
-Updating files: 100% (16/16), done.
+Updating files:  12% (2/16)Updating files:  18% (3/16)Updating files:  25% (4/16)Updating files:  31% (5/16)Updating files:  37% (6/16)Updating files:  43% (7/16)Updating files:  50% (8/16)Updating files:  56% (9/16)Updating files:  62% (10/16)Updating files:  68% (11/16)Updating files:  75% (12/16)Updating files:  81% (13/16)Updating files:  87% (14/16)Updating files:  93% (15/16)Updating files: 100% (16/16)Updating files: 100% (16/16), done.
 + cd harddisks_gen3
 + git fetch --depth 1 origin 9c058cab47158d4e3af22efb1dd6cd4fff8f8cbc
 From https://github.com/FreeworkEarth/HardDisks
