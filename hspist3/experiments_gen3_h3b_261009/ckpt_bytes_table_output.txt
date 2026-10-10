@@ -1,0 +1,26 @@
+# Decision 12, part 3b: checkpoint files of the same state, byte for byte (261012 sec. 4.7.25), printed by experiments_gen3_h3b_261009/ckpt_bytes_table.py
+
+## 1. Pairs of checkpoints of the same state, written by different processes
+
+| trajectory | state | file 1 (writer) | file 2 (writer) | bytes | SHA-256 of file 1 | identical |
+|---|---|---|---|---|---|---|
+| A | hold1 | ck_C_hold1.bin (C: wrote and went on) | ck_R1_hold1.bin (R1: wrote and stopped) | 30847 / 30847 | 656fb6e96919b6b48e6770096a75d42d15e337b9412e4cf9cd03d9658aa63422 | IDENTICAL |
+| A | hold300000 | ck_C_hold300000.bin (C: wrote and went on) | ck_R1_hold300000.bin (R1: wrote and stopped) | 534588 / 534588 | c46f0c099e11fdedd267a871370a1baee584ee7713fd203416a04fdb3fc8dc6c | IDENTICAL |
+| A | record0 | ck_C_record0.bin (C: wrote and went on) | ck_R1_record0.bin (R1: wrote and stopped) | 749453 / 749453 | 562076721e95cafdd06479aa4c3ab1a9412eddc25e99f2ffcf31aa5d09b7a257 | IDENTICAL |
+| A | record25000 | ck_C_record25000.bin (C: wrote and went on) | ck_R1_record25000.bin (R1: wrote and stopped) | 995582 / 995582 | 44de851967c2fced5483d074004a209321dd539b2745e9153d04efb9709aa804 | IDENTICAL |
+| B | hold60000 | ck_C_hold60000.bin (C: wrote and went on) | ck_R1_hold60000.bin (R1: wrote and stopped) | 903508 / 903508 | 0d88fb71e450bd9d028ebe0c00a1cff08da2d69cec7cc3e9fc7e29d67efb3d71 | IDENTICAL |
+| B | record6000 | ck_C_record6000.bin (C: wrote and went on) | ck_R1_record6000.bin (R1: wrote and stopped) | 1087244 / 1087244 | 8f9c8afe45e62850815a4dc5b442ae37689279be95c79c57087b088dabea4d35 | IDENTICAL |
+| C | hold15000 | ck_C_hold15000.bin (C: wrote and went on) | ck_R1_hold15000.bin (R1: wrote and stopped) | 2816397 / 2816397 | ce99d9c701956dccda7285c45d3e20b8b8aff73e0551a5e16140276318be7870 | IDENTICAL |
+| C | record3000 | ck_C_record3000.bin (C: wrote and went on) | ck_R1_record3000.bin (R1: wrote and stopped) | 3261358 / 3261358 | 6cb3e1db11b429cdf002e3f12360191e0a5d5335dfb7f878a3df23e715076a47 | IDENTICAL |
+| A | record25000 | ck_C_record25000.bin (C: the uninterrupted run) | ck_R2b_chain.bin (R2b: restarted at hold:300000) | 995582 / 995582 | 44de851967c2fced5483d074004a209321dd539b2745e9153d04efb9709aa804 | IDENTICAL |
+
+pairs byte-identical: 9 of 9
+
+## 2. The engine test (H2) against stage H's output (ab80304), byte for byte
+
+| build | this run | stage H | identical |
+|---|---|---|---|
+| default | 4a1e008080662947 | 4a1e008080662947 | IDENTICAL |
+| ld | 4a1e008080662947 | 4a1e008080662947 | IDENTICAL |
+
+ACCEPTANCE (part 3b, first item): PASS -- two checkpoint files of the same state are byte-identical (9 of 9 pairs); the engine test's output unchanged in 2 of 2 builds

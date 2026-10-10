@@ -1,0 +1,1 @@
+/bin/bash -c "/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_h3b_261009/bin_3b/gen3_checkpoint_test_ld" > checkpoint_test_output.txt
