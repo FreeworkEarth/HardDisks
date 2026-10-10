@@ -11945,3 +11945,54 @@ builds: [('"06e7248"', 'mac-O3-e0pre')]
 
 (PILOT: no verdict, no paper use.)
 ```
+
+#### 4.7.33 addendum: item 1a, the dry run on the gate commit `a643bc7` itself — PASS (2026-10-10 08:38 HST, machine date) [DATA, printed by script]
+
+- **The push.** Chris pushed the three heads by 08:36 HST. `git ls-remote` then showed main `ed0408b`, engine-gen3 `c126c87` and engine-divider-resched `3f4ba13`, equal to the local heads.
+- **What ran.** The watcher saw `a643bc7` reachable from GitHub's engine-gen3 at 08:36:50 and ran `dryrun_mac.sh` on it. No simulation was running then (P4 had ended at 03:25), so it took no slot from anything.
+- **PASS:**
+  - **Step 1, exactly as the runsheet writes it,** fetched `a643bc7` by hash from GitHub. HEAD is `a643bc7`, 0 tracked files are modified, and kissfft is at `febd4ca`.
+  - **Both Mac-equivalent builds** carry `git a643bc7` with no `-dirty` (`release-ld`, `release`), and the M1/M2 harnesses build with 0 warnings. Their SHA-256 equal the 2026-10-09 dry run's on `9c058ca`, as expected: the engine did not change between the two commits.
+  - **ctrl_min with both builds** is IDENTICAL to the 7b08827 reference ("plain vs ref"), with the same 104,866 events.
+- **The output, verbatim,** with git's progress counter shortened to its final state. The file `hspist3/cluster/gen3_koa_261009/dryrun_mac_output_a643bc7.txt` keeps the bytes.
+
+```
+== dry run 2026-10-10 08:36:50 HST in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/dryrun_gate_a643bc7; pushed engine-gen3 per ls-remote: c126c87e16227da661ba05a06f506f0424ad1843
+== STEP 1, as written: the runsheet's gate commit a643bc7edb1b41574c0f9af0c5fea199dc797680 itself, fetched by hash
++ git clone --depth 1 --branch engine-gen3 --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_gen3
+Cloning into 'harddisks_gen3'...
+Updating files: 100% (16/16), done.
++ cd harddisks_gen3
++ git fetch --depth 1 origin a643bc7edb1b41574c0f9af0c5fea199dc797680
+From https://github.com/FreeworkEarth/HardDisks
+ * branch            a643bc7edb1b41574c0f9af0c5fea199dc797680 -> FETCH_HEAD
++ git -c advice.detachedHead=false checkout a643bc7edb1b41574c0f9af0c5fea199dc797680
+HEAD is now at a643bc7 notes and evidence (identical copies of main a430f0ea): decision 13 item 2: KOA package fixes; Test G on KOA registered (261012 sec. 4.7.29)
++ git sparse-checkout set --no-cone '/hspist3/*.c' '/hspist3/*.h' '/hspist3/*.py' /hspist3/Makefile /hspist3/edmd_core/ /hspist3/cluster/ /hspist3/validation/ /hspist3/kissfft
++ git clone https://github.com/mborgerding/kissfft.git hspist3/kissfft
+Cloning into 'hspist3/kissfft'...
++ git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec
+HEAD is now at febd4ca Merge pull request #99 from lanurmi/newline
++ git log -1 '--format=%h %s'
++ cut -c1-80
+a643bc7 notes and evidence (identical copies of main a430f0ea): decision 13 item
++ set +x
+== information: a fetch by hash of a commit that is not the branch tip (9c058cab47158d4e3af22efb1dd6cd4fff8f8cbc), in a second fresh clone
+   checked out 9c058cab47158d4e3af22efb1dd6cd4fff8f8cbc
+== the clone: HEAD a643bc7edb1b41574c0f9af0c5fea199dc797680; tracked files modified: 0; kissfft febd4caeed32e33ad8b2e0bb5ea77542c40f18ec; files checked out: 5685 ( 10M incl. kissfft)
+== STEP 2, Mac equivalents: make -B release-ld (koa-ld), make -B release (koa)
+00ALLINONE  git a643bc7  target release-ld
+00ALLINONE  git a643bc7  target release
+   M1 harness built (0 warnings)
+   M2 harness built (0 warnings)
+   099d3ee0d028aa9f920f084cd4c9a64ae0d1649f002d1909e537dbeb108c4648  00ALLINONE
+   851786274d6cdb3ecba6a0bb00f4e850654a006f41d1bd575fec590f7ca3682e  bin/00ALLINONE_ld
+   4cff618b9f313df843caab3fc8f1c929a9a8f641f5946aa39722e1662f46a911  bin/gen3_m1
+   cba6a498e7e2db5b627cef5eda38868c4d3695174203e14c6e1a3ea877ea020e  bin/gen3_m2
+== ctrl_min with both builds (the clone's audit_runs_261007.py), against the 7b08827 reference outputs
+   release: version git a643bc7  target release | audit vs plain: IDENTICAL | plain vs ref: IDENTICAL 
+   [EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+   release-ld: version git a643bc7  target release-ld | audit vs plain: IDENTICAL | plain vs ref: IDENTICAL 
+   [EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+== dry run done 2026-10-10 08:37:22 HST
+```
