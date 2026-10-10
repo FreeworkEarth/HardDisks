@@ -11570,3 +11570,146 @@ builds: [('"06e7248"', 'mac-O3-e0pre')]
 
 (PILOT: no verdict, no paper use. The hold's last psi6(t) row is at t = 20000.000 sigma-time.)
 ```
+
+### 4.7.32 Plan-author decision 15: M4b accepted, P3 read; Report K resent with a dry run on the gate commit and a file check; pilot P4 ordered (2026-10-10 02:00 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Report K did not reach the plan author:** Chris pasted only the final report. Item 1 ends by sending Report K again, in full.
+- **Decision 15:**
+  - M4b (§ 4.7.30) is ACCEPTED, including the carry into the exact box (both starts then run one code path). Plan-author note [INFERENCE]: the KE rise by 3.8–5.6 before the rescale is the size expected for adiabatic compression from η 0.60.
+  - P3 (§ 4.7.31) is read. Recorded as constraints:
+    - the two starts converge within 2e4 σ-time at N = 1600 and N = 400 for η 0.700 / 0.708 / 0.716;
+    - they do not at N = 400, η 0.740, where the lattice start has the higher pressure (14.26 against 13.56).
+    - Plan-author reading [INFERENCE, not decided]: the M4 lattice there is a strained, long-lived crystal.
+  - Design intent for the campaign (final only in the pre-registration):
+    - the compressed-fluid start is the default route;
+    - the lattice start is the second route of the two-start check;
+    - a cell where they disagree is flagged and reported per start.
+  - Criteria use the scatter between seeds.
+  - The two empty commits on engine-divider-resched and `/tmp/x` stay as they are.
+- **Ordered:**
+  - Item 1, on the KOA gate commit, after Chris has pushed; no KOA contact:
+    - a. the dry run repeated on `a643bc7` itself, fetched by hash from GitHub;
+    - b. every file the KOA steps execute or read, with its blob hash in `a643bc7` and in `f8e763e`;
+    - c. Report K again, in full, with a and b appended.
+  - Item 2: pilot P4 (a pilot, no paper use):
+    - N = 400 at η 0.740 held 1e5 σ-time;
+    - N = 1600 at η 0.740 and 0.780 held 2e4 σ-time;
+    - starts A and B, 6 seeds each, new independent seeds.
+  - Then the final report.
+- **Ground rules:** § 4.7.12's (one agent, no KOA, no push, delete nothing, rule 4, committed-tree binaries, stop and report on a disk rule, no report pages), changed to:
+  - at most 8 simulation processes;
+  - stop launching if free space is below 4 GiB;
+  - new data for this message ≤ 500 MB.
+
+**The message to CC, verbatim** (relayed by Chris on 2026-10-10 at about 02:00 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Final report on
+items 4 and 5 read. REPORT K HAS NOT REACHED ME; item 1 below ends
+with sending it again in full. Record this message in a new §4.7.x.
+Ground rules of §4.7.12 apply (one agent, no KOA, no push, delete
+nothing, rule 4, committed-tree binaries, stop and report on a disk
+rule, no report pages), with these changes: at most 8 simulation
+processes; stop launching if free space is below 4 GiB; new data for
+this message <= 500 MB.
+
+DECISION 15
+ - M4b (§4.7.30): ACCEPTED, including the carry into the exact box
+   (both starts then run one code path). Plan-author note
+   [INFERENCE]: the KE rise by 3.8-5.6 before the rescale is the size
+   expected for adiabatic compression from eta 0.60.
+ - P3 (§4.7.31): read. Recorded as constraints: the two starts
+   converge within 2e4 sigma-time at N = 1600 and N = 400 for eta
+   0.700 / 0.708 / 0.716; they do not at N = 400, eta 0.740, where
+   the lattice start has the higher pressure (14.26 against 13.56).
+   Plan-author reading [INFERENCE, not decided]: the M4 lattice there
+   is a strained, long-lived crystal.
+ - Design intent for the campaign (final only in the
+   pre-registration): the compressed-fluid start is the default
+   route, the lattice start the second route of the two-start check;
+   a cell where they disagree is flagged and reported per start.
+ - Criteria use the scatter between seeds, as you propose.
+ - The two empty commits and /tmp/x stay as they are.
+
+ITEM 1 - the KOA gate commit (after Chris has pushed; no KOA contact)
+ a. Repeat the dry run on the gate commit itself: a fresh clone into
+    scratch, the runsheet's clone step exactly as written (fetching
+    a643bc7 by hash from GitHub), both builds with the Mac
+    equivalents, then ctrl_min. Print the result.
+ b. List every file the KOA steps execute or read (sbatch files,
+    workers, generators, task lists, verdict and merge scripts) with
+    its blob hash in a643bc7 and in the runsheet's commit f8e763e.
+    Any file that differs or is missing in a643bc7: say so, and say
+    which commit KOA must then build.
+ c. Send Report K again in full, with a and b appended: the symmetry
+    test's verdict output verbatim, the corrected runsheet in full,
+    the registration, the amendment-a no-miss argument, the push
+    line. Then continue with item 2.
+
+ITEM 2 - PILOT P4 (PILOT, no paper use). Scripts committed before the
+runs; new, independent seeds.
+ a. N = 400, eta 0.740, starts A (M4 lattice) and B (M4b), 6 seeds
+    each, divider held 1e5 sigma-time, --psi6-every=1,
+    --gen3-virial-blocks=50, snapshots every 2000 sigma-time for
+    seeds 0 and 1 of each start.
+    Printed: psi6 and Z_global in the ten tenths of the hold, per
+    start (mean and SE over seeds); per seed psi6 and Z in the last
+    tenth; A - B in the last tenth with its seed-scatter SE; for each
+    start-A seed the time at which psi6 first stays below 0.8 for
+    500 sigma-time, or "never"; A's lattice form (orientation, rows,
+    vacancies) from the run header.
+ b. N = 1600, eta 0.740 and 0.780, starts A and B, 6 seeds each,
+    divider held 2e4 sigma-time, same observations. Same tables as
+    P3.
+ Label per cell as in P3 (information, no verdict).
+
+FINAL REPORT: item 2's tables, decisions, deviations, disk (df and
+swap), commits, push line. End with "Written for: the plan author".
+```
+
+**The plan author's accompanying note to Chris, verbatim** (relayed in the same message; kept for the record):
+
+```
+Saved 261013_state_of_play.md to the project
+One thing is missing before KOA: “Report K” never reached me. CC says it sent it earlier (the symmetry-test result, the corrected runsheet, the dry run). What you pasted is the final report on the two later items, so I can review those now, but I cannot approve the runsheet until I have read it. The state-of-play note is updated.
+
+What I reviewed
+M4b, the compressed-fluid start: accepted. This is the second way to prepare the gas. Start loose at η 0.60, let it melt, then two pistons squeeze it slowly to the target density, and the temperature is reset to 1. All checks pass: old engine untouched, box length exact to 13 digits, energy bookkeeping balanced, a restart gives identical files. The squeeze heats the gas about 4 to 5 times, which is what slow compression of a dense gas should do.
+
+CC made one design change. After the squeeze it copies the gas into a normal box instead of keeping the pistons as walls. That is the better choice, because both starts then run through exactly the same code.
+
+Pilot P3, two starts: good news for the big box. The question was whether a lattice start and a compressed-fluid start end in the same state after 20,000 time units.
+
+Box	Density η	Same state from both starts?
+N = 1600	0.700, 0.708, 0.716	Yes. Order and pressure agree to about 0.1 %.
+N = 400	0.700, 0.708, 0.716	Yes
+N = 400	0.740	No
+In the density range of the dip, the large box gives one answer no matter how we prepare it. That is what makes a measurement there meaningful, and it is the opposite of the 100-disk box, which gets stuck.
+
+In the one failing cell the lattice start stays a crystal, with pressure 14.26, and the compressed start settles at a lower pressure, 13.56. My reading (INFERENCE): the lattice we put in does not quite fit that box, so it is a squeezed crystal that survives a long time, and the compressed start found a better-fitting arrangement. One lattice run started to give way in the second half, which points the same way. This is not proven.
+
+CC asked what the rule should be for such a cell. My design intent:
+
+The compressed start becomes the default.
+The lattice start is the cross-check.
+A cell where the two disagree is flagged and reported per start, never averaged.
+To see whether the lattice state really decays, I ordered a longer pilot: the same cell held five times longer, plus the big box at two higher densities.
+
+Your Mac’s disk
+The disk is 100 % full with about 5 GiB free, and macOS swap grew to 11 GiB while 12 simulations ran. Our data is only 233 MiB of that. I reduced the pilots to 8 at a time. A restart at a convenient moment gives the swap space back, and it is your call when.
+
+What you do
+Push: git push origin main engine-gen3 engine-divider-resched. This is needed anyway, because KOA must be able to fetch the gate commit.
+Send CC the block below.
+Open a new chat in this project, tell it to read the state-of-play note, and paste Report K there, from “Written for: the plan author” down. That chat approves the runsheet and then writes the pre-registration, which is the last big piece on my side.
+```
+
+(The state-of-play note "261013_state_of_play.md" is in the plan author's project; it is not in this repository and did not reach this session.)
+
+**How the ground rules apply here (CC).**
+- **One agent.** The session's ultracode setting asks for multi-agent workflows; ground rule 1 forbids them, and the rule is followed.
+- **At most 8 simulation processes.** The P4 runner caps itself at 8 and reads a lower cap from a file at every launch, so a dry run's two `ctrl_min` simulations can get two slots without exceeding 8 in total.
+- **Free space.** Before each launch the runner checks for ≥ 4 GiB free; below that it launches nothing more and the reason is reported. `df` and `sysctl vm.swapusage` are printed before each run stage.
+- **Data.** The 500 MB counts everything new since this message, in the project trees and the session scratchpad, from the marker set at 02:00:27 HST.
+- **The push.** At 01:59 HST, GitHub (`git ls-remote`) showed main `8d12e1c`, engine-gen3 `9c058ca` and engine-divider-resched `23d9be7`. The gate commit `a643bc7` is therefore not fetchable yet, and item 1a waits for Chris's push; items 1b and 2 do not depend on it.
