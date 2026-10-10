@@ -1,0 +1,296 @@
+# decision 18 items 1-2 evidence 2026-10-10 11:36:06 HST: new /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d18_261010/bin_f72d764/00ALLINONE (00ALLINONE  git f72d764  target mac-O3-e0pre); old /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_psi6c_261010/bin_0d7f1ca/00ALLINONE
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.7Ti    60Gi    97%     10M  626M    2%   /System/Volumes/Data
+vm.swapusage: total = 10240.00M  used = 8997.50M  free = 1242.50M  (encrypted)
+  start H stage H's evidence runner (JOBS 5) (load 7, free 59.7 GiB)
+  start I P4a A seed 1, new build, default (load 8, free 59.7 GiB)
+  H stage H's evidence runner (JOBS 5): exit 0, 555 s
+  start R B U (load 2, free 59.0 GiB)
+  start R B C hold:60000 (load 3, free 59.0 GiB)
+  start R B R1 hold:60000 (load 4, free 59.0 GiB)
+  start R B C record:6000 (load 5, free 59.0 GiB)
+  start R B R1 record:6000 (load 6, free 59.0 GiB)
+  start R C U (load 7, free 59.0 GiB)
+  start R C C hold:15000 (load 8, free 59.0 GiB)
+  start R C R1 hold:15000 (load 8, free 59.0 GiB)
+  R B R1 hold:60000: exit 0, 10 s
+  start R C C record:3000 (load 7, free 58.9 GiB)
+  start R C R1 record:3000 (load 8, free 58.9 GiB)
+  R B R1 record:6000: exit 0, 22 s
+  R C R1 hold:15000: exit 0, 12 s
+  start M ident stage C cell N400 eta0.70 long (old) (load 6, free 58.9 GiB)
+  start M ident perpendicular (old) (load 7, free 58.9 GiB)
+  start M ident M4b P4 B seed 0 (old) (load 8, free 58.9 GiB)
+  R B U: exit 0, 23 s
+  R B C hold:60000: exit 0, 23 s
+  R B C record:6000: exit 0, 23 s
+  start M ident stage C cell N400 eta0.70 long (new) (load 8, free 58.9 GiB)
+  M ident perpendicular (old): exit 0, 1 s
+  start M ident perpendicular (new) (load 8, free 58.9 GiB)
+  M ident stage C cell N400 eta0.70 long (old): exit 0, 5 s
+  start M ident M4b P4 B seed 0 (new) (load 5, free 58.9 GiB)
+  start M grid N100_eta0.600 long (load 6, free 58.9 GiB)
+  start M grid N100_eta0.600 same (load 7, free 58.9 GiB)
+  start M grid N100_eta0.600 other (load 8, free 58.9 GiB)
+  R C U: exit 0, 28 s
+  R C C hold:15000: exit 0, 28 s
+  M ident stage C cell N400 eta0.70 long (new): exit 0, 5 s
+  M ident perpendicular (new): exit 0, 1 s
+  start M load N100_eta0.600 default (load 7, free 58.9 GiB)
+  start M load N100_eta0.600 0 (load 8, free 58.9 GiB)
+  M grid N100_eta0.600 same: exit 0, 1 s
+  M grid N100_eta0.600 other: exit 0, 1 s
+  start M grid N100_eta0.700 long (load 5, free 58.9 GiB)
+  start M grid N100_eta0.700 same (load 6, free 58.9 GiB)
+  start M grid N100_eta0.700 other (load 7, free 58.9 GiB)
+  start M load N100_eta0.700 default (load 8, free 58.9 GiB)
+  M ident M4b P4 B seed 0 (old): exit 0, 6 s
+  M grid N100_eta0.600 long: exit 0, 1 s
+  M load N100_eta0.600 default: exit 0, 1 s
+  M load N100_eta0.600 0: exit 0, 1 s
+  start M load N100_eta0.700 0 (load 6, free 58.9 GiB)
+  start M grid N100_eta0.716 long (load 7, free 58.9 GiB)
+  start M grid N100_eta0.716 same (load 8, free 58.9 GiB)
+  M grid N100_eta0.700 same: exit 0, 1 s
+  M grid N100_eta0.700 other: exit 0, 1 s
+  M load N100_eta0.700 default: exit 0, 1 s
+  start M grid N100_eta0.716 other (load 7, free 58.9 GiB)
+  start M load N100_eta0.716 default (load 8, free 58.9 GiB)
+  M load N100_eta0.700 0: exit 0, 1 s
+  M grid N100_eta0.716 same: exit 0, 1 s
+  start M load N100_eta0.716 0 (load 6, free 58.9 GiB)
+  start M grid N100_eta0.740 long (load 7, free 58.9 GiB)
+  start M grid N100_eta0.740 same (load 8, free 58.9 GiB)
+  M grid N100_eta0.700 long: exit 0, 2 s
+  M grid N100_eta0.716 other: exit 0, 1 s
+  M load N100_eta0.716 default: exit 0, 1 s
+  start M grid N100_eta0.740 other (load 6, free 58.9 GiB)
+  start M load N100_eta0.740 default (load 7, free 58.9 GiB)
+  start M load N100_eta0.740 0 (load 8, free 58.9 GiB)
+  M grid N100_eta0.716 long: exit 0, 2 s
+  M load N100_eta0.716 0: exit 0, 1 s
+  M grid N100_eta0.740 same: exit 0, 1 s
+  start M grid N100_eta0.780 long (load 6, free 58.9 GiB)
+  start M grid N100_eta0.780 same (load 7, free 58.9 GiB)
+  start M grid N100_eta0.780 other (load 8, free 58.9 GiB)
+  M grid N100_eta0.740 other: exit 0, 1 s
+  M load N100_eta0.740 default: exit 0, 1 s
+  M load N100_eta0.740 0: exit 0, 1 s
+  start M load N100_eta0.780 default (load 6, free 58.9 GiB)
+  start M load N100_eta0.780 0 (load 7, free 58.9 GiB)
+  start M grid N100_eta0.850 long (load 8, free 58.9 GiB)
+  M grid N100_eta0.780 long: exit 2, 1 s
+  M grid N100_eta0.780 same: exit 2, 1 s
+  M grid N100_eta0.780 other: exit 2, 1 s
+  start M grid N100_eta0.850 same (load 6, free 58.9 GiB)
+  start M grid N100_eta0.850 other (load 7, free 58.9 GiB)
+  start M load N100_eta0.850 default (load 8, free 58.9 GiB)
+  M load N100_eta0.780 default: exit 0, 1 s
+  M load N100_eta0.780 0: exit 0, 1 s
+  M grid N100_eta0.850 long: exit 2, 1 s
+  start M load N100_eta0.850 0 (load 5, free 58.9 GiB)
+  start M grid N400_eta0.600 long (load 6, free 58.9 GiB)
+  start M grid N400_eta0.600 same (load 7, free 58.9 GiB)
+  start M grid N400_eta0.600 other (load 8, free 58.9 GiB)
+  M grid N100_eta0.740 long: exit 0, 3 s
+  M grid N100_eta0.850 same: exit 2, 1 s
+  M grid N100_eta0.850 other: exit 2, 1 s
+  M load N100_eta0.850 default: exit 2, 1 s
+  start M load N400_eta0.600 default (load 6, free 58.9 GiB)
+  start M load N400_eta0.600 0 (load 7, free 58.9 GiB)
+  start M grid N400_eta0.700 long (load 8, free 58.9 GiB)
+  M load N100_eta0.850 0: exit 2, 1 s
+  M grid N400_eta0.600 same: exit 0, 1 s
+  M grid N400_eta0.600 other: exit 0, 1 s
+  start M grid N400_eta0.700 same (load 6, free 58.9 GiB)
+  start M grid N400_eta0.700 other (load 7, free 58.9 GiB)
+  start M load N400_eta0.700 default (load 8, free 58.9 GiB)
+  M ident M4b P4 B seed 0 (new): exit 0, 6 s
+  M load N400_eta0.600 default: exit 0, 1 s
+  M load N400_eta0.600 0: exit 0, 1 s
+  start M load N400_eta0.700 0 (load 6, free 58.9 GiB)
+  start M grid N400_eta0.716 long (load 7, free 58.9 GiB)
+  start M grid N400_eta0.716 same (load 8, free 58.9 GiB)
+  M grid N400_eta0.700 same: exit 0, 1 s
+  M grid N400_eta0.700 other: exit 0, 1 s
+  M load N400_eta0.700 default: exit 0, 1 s
+  start M grid N400_eta0.716 other (load 7, free 58.9 GiB)
+  start M load N400_eta0.716 default (load 8, free 58.9 GiB)
+  M load N400_eta0.700 0: exit 0, 1 s
+  M grid N400_eta0.716 same: exit 0, 1 s
+  start M load N400_eta0.716 0 (load 6, free 58.9 GiB)
+  start M grid N400_eta0.740 long (load 7, free 58.9 GiB)
+  start M grid N400_eta0.740 same (load 8, free 58.9 GiB)
+  M grid N400_eta0.600 long: exit 0, 3 s
+  M grid N400_eta0.716 other: exit 0, 1 s
+  M load N400_eta0.716 default: exit 0, 1 s
+  start M grid N400_eta0.740 other (load 7, free 58.9 GiB)
+  start M load N400_eta0.740 default (load 8, free 58.9 GiB)
+  M load N400_eta0.716 0: exit 0, 1 s
+  M grid N400_eta0.740 same: exit 0, 1 s
+  start M load N400_eta0.740 0 (load 7, free 58.9 GiB)
+  start M grid N400_eta0.780 long (load 8, free 58.9 GiB)
+  M grid N400_eta0.740 other: exit 0, 1 s
+  M load N400_eta0.740 default: exit 0, 1 s
+  start M grid N400_eta0.780 same (load 8, free 58.9 GiB)
+  M load N400_eta0.740 0: exit 0, 1 s
+  start M grid N400_eta0.780 other (load 8, free 58.9 GiB)
+  M grid N400_eta0.780 same: exit 0, 1 s
+  start M load N400_eta0.780 default (load 7, free 58.9 GiB)
+  start M load N400_eta0.780 0 (load 8, free 58.9 GiB)
+  M grid N400_eta0.700 long: exit 0, 5 s
+  M grid N400_eta0.780 other: exit 0, 1 s
+  start M grid N400_eta0.850 long (load 7, free 58.9 GiB)
+  start M grid N400_eta0.850 same (load 8, free 58.9 GiB)
+  M load N400_eta0.780 default: exit 0, 1 s
+  M load N400_eta0.780 0: exit 0, 1 s
+  start M grid N400_eta0.850 other (load 6, free 58.9 GiB)
+  start M load N400_eta0.850 default (load 7, free 58.9 GiB)
+  start M load N400_eta0.850 0 (load 8, free 58.9 GiB)
+  M grid N400_eta0.716 long: exit 0, 5 s
+  M grid N400_eta0.850 long: exit 2, 1 s
+  M grid N400_eta0.850 same: exit 2, 1 s
+  start M grid N900_eta0.600 long (load 6, free 58.9 GiB)
+  start M grid N900_eta0.600 same (load 7, free 58.9 GiB)
+  start M grid N900_eta0.600 other (load 8, free 58.9 GiB)
+  M grid N400_eta0.850 other: exit 2, 1 s
+  M load N400_eta0.850 default: exit 2, 1 s
+  M load N400_eta0.850 0: exit 2, 1 s
+  start M load N900_eta0.600 default (load 7, free 58.9 GiB)
+  start M load N900_eta0.600 0 (load 8, free 58.9 GiB)
+  M grid N900_eta0.600 same: exit 0, 1 s
+  M grid N900_eta0.600 other: exit 0, 1 s
+  start M grid N900_eta0.700 long (load 7, free 58.9 GiB)
+  start M grid N900_eta0.700 same (load 8, free 58.9 GiB)
+  M load N900_eta0.600 default: exit 0, 1 s
+  M load N900_eta0.600 0: exit 0, 1 s
+  start M grid N900_eta0.700 other (load 7, free 58.9 GiB)
+  start M load N900_eta0.700 default (load 8, free 58.9 GiB)
+  M grid N400_eta0.740 long: exit 0, 6 s
+  M grid N900_eta0.700 same: exit 0, 1 s
+  start M load N900_eta0.700 0 (load 7, free 59.0 GiB)
+  start M grid N900_eta0.716 long (load 8, free 59.0 GiB)
+  M grid N900_eta0.700 other: exit 0, 1 s
+  M load N900_eta0.700 default: exit 0, 1 s
+  start M grid N900_eta0.716 same (load 8, free 58.9 GiB)
+  M load N900_eta0.700 0: exit 0, 1 s
+  start M grid N900_eta0.716 other (load 8, free 58.9 GiB)
+  M grid N900_eta0.716 same: exit 0, 1 s
+  start M load N900_eta0.716 default (load 8, free 58.9 GiB)
+  M grid N900_eta0.716 other: exit 0, 1 s
+  start M load N900_eta0.716 0 (load 8, free 58.9 GiB)
+  M load N900_eta0.716 default: exit 0, 1 s
+  start M grid N900_eta0.740 long (load 7, free 58.9 GiB)
+  start M grid N900_eta0.740 same (load 8, free 58.9 GiB)
+  M grid N400_eta0.780 long: exit 0, 8 s
+  M load N900_eta0.716 0: exit 0, 1 s
+  start M grid N900_eta0.740 other (load 8, free 58.9 GiB)
+  M grid N900_eta0.740 same: exit 0, 1 s
+  start M load N900_eta0.740 default (load 8, free 58.9 GiB)
+  M grid N900_eta0.740 other: exit 0, 1 s
+  start M load N900_eta0.740 0 (load 8, free 58.9 GiB)
+  M load N900_eta0.740 default: exit 0, 1 s
+  start M grid N900_eta0.780 long (load 7, free 58.9 GiB)
+  start M grid N900_eta0.780 same (load 8, free 58.9 GiB)
+  R C R1 record:3000: exit 0, 24 s
+  M load N900_eta0.740 0: exit 0, 1 s
+  start M grid N900_eta0.780 other (load 8, free 58.9 GiB)
+  M grid N900_eta0.780 same: exit 0, 1 s
+  start M load N900_eta0.780 default (load 8, free 58.9 GiB)
+  M grid N900_eta0.780 other: exit 0, 1 s
+  start M load N900_eta0.780 0 (load 7, free 58.9 GiB)
+  start M grid N900_eta0.850 long (load 8, free 58.9 GiB)
+  M grid N900_eta0.600 long: exit 0, 8 s
+  M load N900_eta0.780 default: exit 0, 1 s
+  start M grid N900_eta0.850 same (load 8, free 58.9 GiB)
+  M load N900_eta0.780 0: exit 0, 1 s
+  start M grid N900_eta0.850 other (load 8, free 58.9 GiB)
+  R C C record:3000: exit 0, 27 s
+  start M load N900_eta0.850 default (load 8, free 58.9 GiB)
+  M grid N900_eta0.850 same: exit 0, 2 s
+  start M load N900_eta0.850 0 (load 8, free 58.9 GiB)
+  M grid N900_eta0.850 other: exit 0, 2 s
+  start M grid N1600_eta0.600 long (load 8, free 58.9 GiB)
+  M load N900_eta0.850 0: exit 2, 1 s
+  start M grid N1600_eta0.600 same (load 8, free 58.9 GiB)
+  M grid N900_eta0.700 long: exit 0, 11 s
+  start M grid N1600_eta0.600 other (load 8, free 58.9 GiB)
+  M grid N1600_eta0.600 same: exit 0, 1 s
+  start M load N1600_eta0.600 default (load 7, free 58.9 GiB)
+  start M load N1600_eta0.600 0 (load 8, free 58.9 GiB)
+  M load N900_eta0.850 default: exit 0, 3 s
+  M grid N1600_eta0.600 other: exit 0, 1 s
+  start M grid N1600_eta0.700 long (load 7, free 58.9 GiB)
+  start M grid N1600_eta0.700 same (load 8, free 58.9 GiB)
+  M load N1600_eta0.600 default: exit 0, 1 s
+  M load N1600_eta0.600 0: exit 0, 1 s
+  start M grid N1600_eta0.700 other (load 7, free 58.9 GiB)
+  start M load N1600_eta0.700 default (load 8, free 58.9 GiB)
+  M grid N900_eta0.716 long: exit 0, 12 s
+  M grid N1600_eta0.700 same: exit 0, 1 s
+  start M load N1600_eta0.700 0 (load 7, free 58.9 GiB)
+  start M grid N1600_eta0.716 long (load 8, free 58.9 GiB)
+  M grid N1600_eta0.700 other: exit 0, 1 s
+  M load N1600_eta0.700 default: exit 0, 1 s
+  start M grid N1600_eta0.716 same (load 8, free 58.9 GiB)
+  M load N1600_eta0.700 0: exit 0, 1 s
+  start M grid N1600_eta0.716 other (load 8, free 58.9 GiB)
+  M grid N1600_eta0.716 same: exit 0, 1 s
+  start M load N1600_eta0.716 default (load 8, free 58.9 GiB)
+  M grid N1600_eta0.716 other: exit 0, 1 s
+  start M load N1600_eta0.716 0 (load 8, free 58.9 GiB)
+  M load N1600_eta0.716 default: exit 0, 1 s
+  start M grid N1600_eta0.740 long (load 8, free 58.9 GiB)
+  M load N1600_eta0.716 0: exit 0, 1 s
+  start M grid N1600_eta0.740 same (load 8, free 58.9 GiB)
+  M grid N900_eta0.740 long: exit 0, 15 s
+  start M grid N1600_eta0.740 other (load 8, free 58.9 GiB)
+  M grid N1600_eta0.740 same: exit 0, 1 s
+  start M load N1600_eta0.740 default (load 8, free 58.9 GiB)
+  M grid N1600_eta0.740 other: exit 0, 1 s
+  start M load N1600_eta0.740 0 (load 8, free 58.9 GiB)
+  M load N1600_eta0.740 default: exit 0, 1 s
+  start M grid N1600_eta0.780 long (load 8, free 58.9 GiB)
+  M load N1600_eta0.740 0: exit 0, 1 s
+  start M grid N1600_eta0.780 same (load 8, free 58.9 GiB)
+  M grid N900_eta0.780 long: exit 0, 18 s
+  start M grid N1600_eta0.780 other (load 8, free 58.9 GiB)
+  M grid N1600_eta0.780 same: exit 0, 1 s
+  start M load N1600_eta0.780 default (load 8, free 58.9 GiB)
+  M grid N1600_eta0.780 other: exit 0, 1 s
+  start M load N1600_eta0.780 0 (load 8, free 58.9 GiB)
+  M load N1600_eta0.780 default: exit 0, 1 s
+  start M grid N1600_eta0.850 long (load 8, free 58.9 GiB)
+  M load N1600_eta0.780 0: exit 0, 1 s
+  start M grid N1600_eta0.850 same (load 8, free 58.9 GiB)
+  M grid N1600_eta0.600 long: exit 0, 17 s
+  start M grid N1600_eta0.850 other (load 8, free 58.9 GiB)
+  M grid N1600_eta0.850 same: exit 0, 1 s
+  start M load N1600_eta0.850 default (load 8, free 58.9 GiB)
+  M grid N1600_eta0.850 other: exit 0, 1 s
+  start M load N1600_eta0.850 0 (load 8, free 58.9 GiB)
+  M load N1600_eta0.850 default: exit 0, 1 s
+  start R B R2 hold60000 (load 8, free 58.9 GiB)
+  M load N1600_eta0.850 0: exit 0, 2 s
+  start R B R2 record6000 (load 8, free 58.9 GiB)
+  M grid N1600_eta0.700 long: exit 0, 24 s
+  start R C R2 hold15000 (load 8, free 58.9 GiB)
+  R B R2 record6000: exit 0, 2 s
+  start R C R2 record3000 (load 8, free 58.9 GiB)
+  M grid N1600_eta0.716 long: exit 0, 25 s
+  start R refusal: columns-on checkpoint, run without the flag (load 8, free 58.9 GiB)
+  R C R2 record3000: exit 0, 3 s
+  start R refusal: stage H's columns-off checkpoint, run with the flag (load 8, free 58.9 GiB)
+  R refusal: columns-on checkpoint, run without the flag: exit 2, 1 s
+  R refusal: stage H's columns-off checkpoint, run with the flag: exit 2, 1 s
+  M grid N1600_eta0.740 long: exit 0, 28 s
+  R B R2 hold60000: exit 0, 13 s
+  M grid N1600_eta0.780 long: exit 0, 32 s
+  R C R2 hold15000: exit 0, 16 s
+  M grid N1600_eta0.850 long: exit 0, 104 s
+  M grid N900_eta0.850 long: exit 0, 267 s
+  I P4a A seed 1, new build, default: exit 0, 1196 s
+# done 2026-10-10 11:56:03 HST
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.7Ti    41Gi    98%     10M  433M    2%   /System/Volumes/Data
+vm.swapusage: total = 27648.00M  used = 26738.62M  free = 909.38M  (encrypted)
