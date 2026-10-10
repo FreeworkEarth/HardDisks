@@ -28,7 +28,7 @@ usage (from hspist3/, on the Mac after the fetch):
 import glob, math, os, re, shutil, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); HS = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, os.path.join(HS, "validation"))
-BUILD_KOA_COMMIT = "<SET IN THE COMMIT AFTER THE REGISTRATION>"
+BUILD_KOA_COMMIT = "a643bc7edb1b41574c0f9af0c5fea199dc797680"   # engine-gen3, the registration commit (set in the commit after it)
 MASSES_KOA = (50, 300, 1500)
 import testG_verdict_261009 as V
 import numpy as np, pandas as pd

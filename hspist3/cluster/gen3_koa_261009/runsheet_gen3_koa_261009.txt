@@ -1,43 +1,80 @@
-##CHRIS 2026-10-09 (261012 sec. 4.7.20; stage G of the plan-author programme of sec. 4.7.12) -- THE KOA RUNSHEET OF THE GEN-3 GATE
-PREPARED, NOT RUN. Nothing here is submitted until the plan author has reviewed it and Chris says go. Chris types every command.
+##CHRIS 2026-10-09 (261012 sec. 4.7.20; corrected by plan-author decision 13, item 2, sec. 4.7.29) -- THE KOA RUNSHEET OF THE GEN-3 GATE
+PREPARED, NOT RUN. Nothing here is typed until the plan author has approved THIS version and Chris says go. Chris types every command.
+
+THIS GATE IS FOR THE COMMIT OF THIS REGISTRATION: engine-gen3 a643bc7 (a643bc7edb1b41574c0f9af0c5fea199dc797680), the commit that
+registers Test G on KOA (task list tasks_testG_koa_261009.txt, SHA-256 cff8e6f9ef3d95440f54b4c621fff776b64e48700083e7258e472351fc6412b9).
+The clone is checked out at exactly that commit, even after engine-gen3 has moved on. At the final campaign commit the deterministic
+items -- E0, cross-node determinism, the M1/M2 harness hashes on KOA -- are repeated.
+
 KOA rules (the KOA notes): the login node only for light commands (no builds, no binaries: home is noexec there; no git there);
-squeue before every sbatch; never submit a job twice; nothing in ~/harddisks, ~/harddisks_resched, ~/harddisks_resched2 changes
-(no git pull there); never a password in a file or a chat. Every job checks its clone, its binary's recorded hash and version line,
-and stops (STOP: ...) on any mismatch -- paste the STOP line, change nothing, wait.
+squeue before every sbatch; never submit a job twice; nothing in ~/harddisks, ~/harddisks_resched, ~/harddisks_resched2 changes;
+never a password in a file or a chat. Every job checks its clone, its binary's recorded hash and version line, and stops (STOP: ...)
+on any mismatch -- paste the STOP line, change nothing, wait. The only placeholders are job ids, written <... job id: replace by the
+number>; type the number Slurm printed, without the angle brackets.
 
-STEP 0 (Mac, after Chris pushed): the commit to build is engine-gen3 HEAD at the push; write it down: git rev-parse --short engine-gen3
+THE SANDBOX LINE is the established one, on its own line, without -A: every sandbox block of KOA_RUNSHEET_261002.md reads
+"srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash" (lines 27, 312, 379, 440, 570, 692, 828, 960), and the sessions it opened
+worked without -A -- among them the one that cloned and built ~/harddisks_resched2 (lines 692-706). The sbatch files name the
+account themselves (#SBATCH --account=uh).
 
-STEP 1 (KOA, a sandbox shell; the clone; ~2 min)
+CORE-HOURS AND CORES PER STEP (printed by cluster/gen3_koa_261009/runsheet_budget.py from the job scripts' headers):
+| step | what | partition | largest core count at once | requested core-hours (cores x time limit, summed) |
+|---|---|---|---|---|
+| 1-2 | sandbox shell: clone and the two builds | sandbox | 2 | 2.00 |
+| 3 | the one-node gate job (E0, harness hashes, rate table, long double) | shared | 8 | 24.00 |
+| 4 | cross-node determinism: array 1-8 and the compare job | shared | 8 | 8.25 |
+| 5 | Test G on KOA: array 1-144%64 and the merge job | shared | 64 | 866.00 |
+| 6 | the fetch (Mac) and the verdict (Mac) | none (Mac) | 0 | 0.00 |
+| all | | | | 900.25 |
+Information: the Mac's measured core-hours for the same Test G task list: 8.60; the Mac ran gen2 at 2.34e5 events/s per core and KOA at
+1.1e5 (measured, 7b08827), a factor 2.12, so the Test G array would take about 18 core-hours on KOA if gen3 slows by the same factor;
+its slowest chunk about 1.2 h against the 6 h limit. Requested core-hours are upper bounds; Slurm charges what a job uses.
+
+STEP 1 (KOA; a sandbox shell; the clone at the registration commit; about 3 min)
   squeue -u charing
-  srun -p sandbox -A uh -c 2 --mem=4G -t 00:30:00 --pty /bin/bash        (wait for the prompt of the compute node before typing on)
-  cd ~ && git clone --branch engine-gen3 <the repository URL> harddisks_gen3 && cd harddisks_gen3 && git checkout <commit of step 0>
-  git submodule update --init hspist3/kissfft
-  git log -1 --format='%h %s' | cut -c1-80          (paste)
+  srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+      (wait for the cn-... prompt of the compute node before typing on: commands typed while srun is queued are lost)
+  cd ~
+  git clone --depth 1 --branch engine-gen3 --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_gen3
+  cd harddisks_gen3
+  git fetch --depth 1 origin a643bc7edb1b41574c0f9af0c5fea199dc797680
+  git -c advice.detachedHead=false checkout a643bc7edb1b41574c0f9af0c5fea199dc797680
+  git sparse-checkout set --no-cone "/hspist3/*.c" "/hspist3/*.h" "/hspist3/*.py" "/hspist3/Makefile" "/hspist3/edmd_core/" "/hspist3/cluster/" "/hspist3/validation/" "/hspist3/kissfft"
+  git clone https://github.com/mborgerding/kissfft.git hspist3/kissfft
+  git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec
+  git log -1 --format='%h %s' | cut -c1-80          (paste; it must start with a643bc7)
+  (kissfft exactly as ~/harddisks_resched2 got it, KOA_RUNSHEET_261002.md lines 702-703: on engine-gen3 hspist3/kissfft is a gitlink
+   to febd4cae without a .gitmodules entry, so "git submodule update" cannot fetch it; the separate clone pinned to that commit can.)
 
-STEP 2 (KOA, the same sandbox shell; the two builds; ~3 min)
-  cd ~/harddisks_gen3/hspist3 && bash cluster/gen3_koa_261009/build_gen3_koa.sh 2>&1 | tail -15     (paste; the last line must be BUILD OK)
+STEP 2 (KOA; the same sandbox shell; the builds; about 5 min)
+  cd ~/harddisks_gen3/hspist3 && bash cluster/gen3_koa_261009/build_gen3_koa.sh 2>&1 | tail -20     (paste; the last line must be BUILD OK)
   exit                                               (leave the sandbox shell)
 
-STEP 3 (KOA login node; the one-node gate job: E0, rate table, long-double spot check; up to 3 h on sandbox, 8 cores)
+STEP 3 (KOA login node; the one-node gate job on shared: E0, the M1/M2 harness hashes, the rate table, the long-double spot check;
+        8 cores, at most 3 h)
   squeue -u charing
-  cd ~/harddisks_gen3/hspist3 && sbatch cluster/gen3_koa_261009/g3_gate_koa.sbatch                (note the job id)
-  when it has ended:  tail -80 logs/gen3-gate_<job id>.out                                            (paste)
-  Expected: (a) E0 IDENTICAL for ctrl_min, ctrl_leg, afix, afix_leg, default and --engine=gen2; (c) a rate table; (d) the long-double
-  table: clean 1 everywhere, gap / u_t of the koa-ld build at the long-double quantum.
+  cd ~/harddisks_gen3/hspist3 && sbatch cluster/gen3_koa_261009/g3_gate_koa.sbatch                      (note the job id)
+  when it has ended:  tail -120 logs/gen3-gate_<gate job id: replace by the number>.out                  (paste)
+  Expected: (a) E0 IDENTICAL for ctrl_min, ctrl_leg, afix, afix_leg, default and --engine=gen2; (b) three harness hashes (whether they
+  equal the Mac's is information); (c) a rate table; (d) the long-double table: clean 1 everywhere, gap / u_t of the koa-ld build at
+  the long-double quantum.
 
-STEP 4 (KOA login node; cross-node determinism; 2 nodes x 2 cores, ~20 min)
+STEP 4 (KOA login node; cross-node determinism: an array of 8 identical one-core tasks on shared, then the compare job; at most 1 h)
   squeue -u charing
-  sbatch cluster/gen3_koa_261009/g3_det_xnode.sbatch                                                 (note the job id)
-  when it has ended:  cat logs/gen3-xnode_<job id>.out                                                (paste; every line IDENTICAL)
+  cd ~/harddisks_gen3/hspist3 && sbatch --array=1-8 cluster/gen3_koa_261009/g3_det_xnode.sbatch          (note the array job id)
+  sbatch --dependency=afterany:<xnode array job id: replace by the number> cluster/gen3_koa_261009/g3_xnode_compare.sbatch <xnode array job id: replace by the number>
+                                                                                                          (note the compare job id)
+  when the compare job has ended:  cat logs/gen3-xnode-compare_<compare job id: replace by the number>.out   (paste)
+  Expected: the node pairs compared and IDENTICAL for every file and pair. "NOT TESTED" means every task ran on one node: paste it and wait.
 
-STEP 5 (Test G on KOA -- ONLY after its registration commit by the plan author's go: task list + SHA-256 file + BUILD_KOA in
-        testG_koa_verdict_261009.py; then Chris pushes and pulls into ~/harddisks_gen3 inside a sandbox shell as in step 1, and
-        rebuilds as in step 2 if the commit changed)
+STEP 5 (KOA login node; Test G on KOA, registered at a643bc7; only after the plan author's go on this runsheet; at most 64 cores)
   squeue -u charing
-  sbatch --array=1-120%64 cluster/gen3_koa_261009/testG_koa.sbatch                                   (note the array job id; 64 cores at most)
-  sbatch --dependency=afterany:<array job id> cluster/gen3_koa_261009/merge_testG_koa.sbatch          (note the job id)
-  when the merge has ended:  tail -30 logs/gen3-testG-merge_<job id>.out                              (paste)
+  cd ~/harddisks_gen3/hspist3 && sbatch --array=1-144%64 cluster/gen3_koa_261009/testG_koa.sbatch        (note the array job id)
+  sbatch --dependency=afterany:<Test G array job id: replace by the number> cluster/gen3_koa_261009/merge_testG_koa.sbatch   (note the merge job id)
+  when the merge has ended:  tail -40 logs/gen3-testG-merge_<merge job id: replace by the number>.out    (paste)
+  An extension (if the verdict asks for one at a mass) is a separate step, prepared then: its task list comes from the registered seeds
+  (gen_testG_koa_261009.py --extension M; the seed lists' SHA-256 are in the registration commit's message) and it runs with this binary.
 
 STEP 6 (Mac; the fetch; Chris types the password and Duo)
-  cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks && bash hspist3/cluster/gen3_koa_261009/fetch_gen3_koa.sh <gate job id> <xnode job id>
-  then CC: python3 hspist3/cluster/gen3_koa_261009/testG_koa_verdict_261009.py (the registered verdict logic on the KOA data)
+  cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks && bash hspist3/cluster/gen3_koa_261009/fetch_gen3_koa.sh <gate job id: replace by the number> <xnode array job id: replace by the number>
+  then CC: python3 hspist3/cluster/gen3_koa_261009/testG_koa_verdict_261009.py (the registered three-mass verdict on the KOA data)
