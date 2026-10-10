@@ -1,0 +1,50 @@
+# M4b evidence 2026-10-09 20:51:03 HST: binaries /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_m4b_261009/bin_m4b
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.8Ti    12Gi   100%     10M  125M    8%   /System/Volumes/Data
+  start r4 default
+  start r4 gen2flag
+  start h
+  start c N1600_eta0.700 plain
+  start c N1600_eta0.700 repeat
+  start c N1600_eta0.700 obs
+  start c N1600_eta0.716 plain
+  start c N1600_eta0.716 repeat
+  start c N1600_eta0.716 obs
+  start c N400_eta0.700 plain
+  start c N400_eta0.700 repeat
+  start c N400_eta0.700 obs
+  start c N400_eta0.716 plain
+  start c N400_eta0.716 repeat
+  start c N400_eta0.716 obs
+  start k C
+  start k R1
+  done k R1: exit 0, 4 s
+  start k R2
+  start x compressed under gen2
+  start x a compression flag without compressed
+  start x compressed without --gen3-exact-box
+  start x eta_0 above the target eta
+  done r4 default: exit 0, 20 s
+  done r4 gen2flag: exit 0, 20 s
+  done h: exit 0, 387 s
+  done c N1600_eta0.700 plain: exit 0, 387 s
+  done c N1600_eta0.700 repeat: exit 0, 387 s
+  done c N1600_eta0.700 obs: exit 0, 387 s
+  done c N1600_eta0.716 plain: exit 0, 387 s
+  done c N1600_eta0.716 repeat: exit 0, 387 s
+  done c N1600_eta0.716 obs: exit 0, 387 s
+  done c N400_eta0.700 plain: exit 0, 387 s
+  done c N400_eta0.700 repeat: exit 0, 383 s
+  done c N400_eta0.700 obs: exit 0, 380 s
+  done c N400_eta0.716 plain: exit 0, 379 s
+  done c N400_eta0.716 repeat: exit 0, 378 s
+  done c N400_eta0.716 obs: exit 0, 374 s
+  done k C: exit 0, 373 s
+  done k R2: exit 0, 367 s
+  done x compressed under gen2: exit 2, 367 s
+  done x a compression flag without compressed: exit 2, 367 s
+  done x compressed without --gen3-exact-box: exit 2, 367 s
+  done x eta_0 above the target eta: exit 2, 367 s
+# done 2026-10-09 20:57:31 HST
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.8Ti    10Gi   100%     10M  108M    9%   /System/Volumes/Data
