@@ -12174,3 +12174,60 @@ Your disk is still 100 % full with about 11 GiB free, and something outside our 
 - **Notes in binary mode.** Sections are appended with `cat >>`. Any in-place edit reads and writes bytes (`rb`/`wb`) and is checked with `git diff --stat` (see § 4.7.33's correction, `ed0408b`).
 - **Data and disk.** The 500 MB counts everything new since the marker of 08:45:59 HST. At 08:45 HST: free disk 14 GiB; swap 9.9 of 11 GiB used. `df` and `vm.swapusage` are printed before each run stage. Runners launch nothing below 4 GiB free.
 - **Item 1a is already done.** The dry run on `a643bc7` ran at 08:36–08:37 HST, after Chris's push (§ 4.7.33 addendum, main `73a2b3e`): PASS.
+
+### 4.7.36 Decision 16, item 1: the Report K addendum — the dry run on a643bc7 PASS; the KOA clone options NOT CONFIRMED; the runsheet changed and sent back (2026-10-10 08:51 HST, machine date) [SOURCE; DATA where marked]
+
+**Plain summary.**
+- **a. The dry run on `a643bc7` itself: PASS** [DATA]. It ran from 08:36 to 08:37 HST, after Chris's push (§ 4.7.33 addendum, main `73a2b3e`; output `cluster/gen3_koa_261009/dryrun_mac_output_a643bc7.txt`).
+  - Step 1 exactly as written fetched `a643bc7` by hash from GitHub.
+  - release-ld and release built as `git a643bc7`, without -dirty.
+  - The M1/M2 harnesses built with 0 warnings.
+  - ctrl_min was IDENTICAL to `7b08827` with both builds.
+- **b. Step 1's git options, against the session that cloned `~/harddisks_resched2`** (`hspist3/cluster/KOA_RUNSHEET_261002.md`, lines 692–708, quoted below).
+  - That session worked. Test T-prime ran from `~/harddisks_resched2/hspist3` and passed (STATUS 2026-10-08 19:52:53 and 2026-10-09 09:22:48).
+  - **One of the five options was not used there: the fetch of a commit by hash.** So the options are NOT confirmed.
+
+| option in step 1 | used by the resched2 session? | where |
+|---|---|---|
+| `--depth 1` | yes | line 699 (`git clone`) |
+| `--filter=blob:none` | yes | line 699 |
+| `--sparse` | yes | line 699 |
+| fetch of a commit by hash (`git fetch --depth 1 origin <40-hex>`) | **no** | No KOA session ever fetched by hash. The resched2 session took the branch tip (`--branch`). Later sessions updated with `git pull` (lines 321, 388, 449) or `git pull --ff-only origin engine-divider-resched` (lines 835, 967). Only kissfft's checkout of a hash (line 703) is similar, and it is a checkout, not a fetch. |
+| `sparse-checkout set --no-cone` | yes | line 701 |
+
+- **The minimum git version for step 1: 2.35.0** [SOURCE: git's release notes and documentation].
+  - `git sparse-checkout` and `clone --sparse` came in 2.25.0. `sparse-checkout set --no-cone` is in the 2.35.0 documentation but not in 2.34.0's.
+  - The fetch of an unadvertised commit by hash relies on protocol v2. In v2 a "want" is not limited to advertised objects.
+    - Protocol v2 became git's default in 2.26.0, was reverted in 2.27.0, and has been the default again since 2.29.0.
+    - So the fetch needs at least 2.29.0, which 2.35.0 covers.
+  - **KOA:** the compute nodes printed `/usr/bin/git` 2.52.0 on 2026-10-02 (§ 1.11, line 703 of this file; STATUS 2026-10-02 21:20:19) [DATA].
+  - **Mac:** git 2.50.1. The fetch by hash from GitHub worked for the tip and for a non-tip commit, and the dry run of a used it [DATA].
+- **The runsheet changed** (Mac-only file; the gate commit stays `a643bc7`):
+  - **Line 1:** the dated approval line of decision 16. It is written in the third person and names the two lines the conditions need.
+  - **Step 1:** `git --version` is now the first command inside the sandbox shell, with "must print 2.35.0 or newer -- if older, type nothing more and paste it" next to it, and the reason on the following two lines.
+  - Nothing else changed (`git diff`: 4 insertions).
+  - The runsheet goes back to the plan author for approval. **Until it is approved, nothing is typed on KOA.**
+
+**The resched2 lines, verbatim** (`KOA_RUNSHEET_261002.md` 692–708):
+
+```
+692: srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+698: cd ~
+699: git clone --depth 1 --branch engine-divider-resched --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_resched2
+700: cd harddisks_resched2
+701: git sparse-checkout set --no-cone "/hspist3/*.c" "/hspist3/*.h" "/hspist3/*.py" "/hspist3/Makefile" "/hspist3/edmd_core/" "/hspist3/cluster/" "/hspist3/validation/" "/hspist3/kissfft"
+702: git clone https://github.com/mborgerding/kissfft.git hspist3/kissfft
+703: git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec
+704: git log --oneline -1
+705: cd hspist3 && mkdir -p logs
+706: bash cluster/build_koa.sh
+707: ./00ALLINONE --version
+708: exit
+```
+
+**The two lines:**
+
+```
+DRY RUN on a643bc7: PASS
+KOA CLONE OPTIONS: NOT CONFIRMED
+```
