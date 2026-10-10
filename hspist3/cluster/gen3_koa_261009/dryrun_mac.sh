@@ -1,5 +1,6 @@
 #!/bin/bash
-# ##CHRIS 2026-10-09 (261012 sec. 4.7.29; plan-author decision 13, item 2c): the MAC DRY RUN of the runsheet's steps 1 and 2. A fresh
+# ##CHRIS 2026-10-09 (261012 sec. 4.7.29; plan-author decision 13, item 2c; repeated on the gate commit itself by decision 15, item 1a,
+# sec. 4.7.33: then the commit argument IS the runsheet's, and the STEP 1 line says so): the MAC DRY RUN of the runsheet's steps 1 and 2. A fresh
 # clone of the PUSHED engine-gen3 from GitHub into <scratch>/harddisks_gen3; the runsheet's step-1 commands as written, with one
 # substitution: the commit is the pushed engine-gen3 head given as the argument, because the registration commit a643bc7 is pushed only
 # after Report K. Then, as information, a fetch by hash of a commit that is NOT the branch tip (the head's parent): the runsheet relies
@@ -14,7 +15,9 @@ S=${1:?scratch dir}; C=${2:?pushed commit}; P=${3:?a non-tip commit}; REFD=${4:?
 [ -d "$S" ] && [ -z "$(ls -A "$S")" ] || { echo "STOP: $S must be an existing empty folder"; exit 2; }
 export GIT_TERMINAL_PROMPT=0
 echo "== dry run $(date '+%Y-%m-%d %H:%M:%S %Z') in $S; pushed engine-gen3 per ls-remote: $(git ls-remote https://github.com/FreeworkEarth/HardDisks.git engine-gen3 | cut -f1)"
-echo "== STEP 1, as written (the commit substituted by the pushed head $C)"
+G=$(grep -o 'git fetch --depth 1 origin [0-9a-f]\{40\}' "$(dirname "$0")/runsheet_gen3_koa_261009.txt" | head -1 | awk '{print $NF}')   # the runsheet's gate commit
+if [ "$C" = "$G" ]; then echo "== STEP 1, as written: the runsheet's gate commit $C itself, fetched by hash"
+else echo "== STEP 1, as written, with $C standing in for the runsheet's gate commit $G (not fetchable yet)"; fi
 cd "$S" || exit 2
 set -x
 git clone --depth 1 --branch engine-gen3 --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_gen3
