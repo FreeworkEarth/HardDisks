@@ -10124,3 +10124,142 @@ engine-divider-resched:
 **Push line for Chris:** `git push origin main engine-gen3 engine-divider-resched`
 
 Written for: the plan author
+
+### 4.7.23 Plan-author reading of the final report: decision 12; the review packet, the P2 frequency table, the two items stage A left out, and the checkpoint fix (2026-10-09 18:12 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 12:**
+  - The plan author re-derived Test G's numbers from the printed means and SEs and finds the same difference, z and intervals.
+  - The deviations are recorded. The 1.5 GB budget was the plan author's error (too tight). The compressed files stay as they are.
+  - From now on, when a disk rule would be broken: stop launching and report; do not compress or move data in place.
+  - No report pages unless Chris asks; the notes are the record.
+  - The fix of stage H's open item is approved: checkpoint files must not contain memory addresses.
+- **Ordered:**
+  - Part 1: a review packet of verbatim excerpts, nothing newly computed.
+  - Part 2: one exploratory table from the existing P2 data: ν per η and mass next to A1 v2's, c_s per η, and ψ6 at release per seed at η 0.7167.
+  - Part 3: the virial pressure per compartment and position snapshots (stage A's two open items), and the checkpoint fix. Then stop.
+- Same ground rules as the programme. Everything stays PROVISIONAL.
+
+**The message to CC, verbatim** (relayed by Chris on 2026-10-09 at 18:11 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Final report of the
+afternoon programme read (the summary only; the stage sections have
+not reached me). Record this message in a new §4.7.x. Same ground
+rules as the programme (one agent, no KOA, no push, delete nothing,
+rule 4, committed-tree binaries). Everything stays PROVISIONAL.
+
+DECISION 12 - reading of the final report
+ - Test G: numbers re-derived from the printed means and SEs; same
+   difference, z and intervals. The Mac means also agree with the
+   T-prime KOA means within about one SE (information).
+ - Deviations recorded. The 1.5 GB budget was a plan-author error
+   (too tight for the programme). The compressed files stay as they
+   are. In future, when a disk rule would be broken: stop launching
+   and report; do not compress or move data in place.
+ - Do not publish report pages unless Chris asks; the notes are the
+   record.
+ - Stage H open item: fix approved. Checkpoint files must not contain
+   memory addresses. Acceptance: two checkpoint files of the same
+   state are byte-identical; the stage H restart tests pass again;
+   rule 4 identical.
+
+PART 1 - review packet. Report only: verbatim excerpts from the notes
+and printed outputs, nothing newly computed, each under its own
+heading, in this order, and nothing beyond this list:
+ 1. §4.7.14 (M3): plain summary; done/not-done table; results of
+    acceptance 1-6 and amendments a-e (band-edge stress cell, spring
+    cases per category, the v_ref statement, the production-length
+    run line, the run-record format); A3 (event hash with per-step
+    and reduced cadence in the energy-transfer loop); A4 (driver time
+    share table); the engine fix under rule 8 (the parked piston):
+    what was wrong, the diff, why the M1/M2 outputs did not change,
+    and whether gen2 has the same behaviour.
+ 2. §4.7.15 addendum (Test G): the inventory and every information
+    row (nu_d, M = 50, M = 2000, dense cell, N = 400, static method).
+ 3. §4.7.16 (M4): the acceptance table; the 6 infeasible cells and
+    the reason for each.
+ 4. §4.7.17 (P1): the global-psi6 table; the 11 not-stationary cells
+    with the direction of their drift.
+ 5. §4.7.20 (KOA package): the file list and the runsheet section
+    exactly as Chris would type it.
+ 6. The answer to decision 9's question (the 2 A1 v2 wall_clamp runs
+    and the 504 campaign_r25 wall_overdue runs: excluded by the
+    loader or not, and the n in the paper tables), and confirmation
+    that decision 10's erratum lines are in.
+
+PART 2 - one table from the existing P2 data. PILOT, EXPLORATORY, no
+paper use, no new runs. Per eta_true and mass: P2's mean nu on the
+full record (registered estimator) with SE, next to A1 v2's value for
+the same eta and mass, and their ratio; then per eta the c_s from the
+canonical per-mass estimator for both, with the box lengths of both
+stated. Question: is the difference between eta 0.7060 and 0.7167
+(the side of the dip) still there with a settled start? Also print
+psi6 at release for every seed at eta 0.7167 (its SE is three times
+the others).
+
+PART 3 - code, provisional, then stop:
+ a. The two items stage A left out: virial pressure per compartment
+    and position snapshots for a seed subset. Acceptance: observation
+    does not steer (same event hash on/off); rule 4 identical; in a
+    symmetric held cell the two compartments' Z agree within their
+    SEs and their weighted mean equals the global Z.
+ b. The checkpoint-file fix of decision 12.
+ No other engine work, no new pilots, no runs beyond these tests.
+
+Report as usual, ending with "Written for: the plan author", with the
+packet (part 1) first.
+```
+
+**The plan author's accompanying note to Chris, verbatim** (relayed in the same message; kept for the record):
+
+```
+Welcome back. The afternoon went well: all eight stages ran, and the two results that matter both came out clean. Everything is still provisional, because I have only seen CC’s summary, not the stage sections. The state-of-play note in the project is updated.
+
+The two results
+
+1. Test G: the new engine agrees with the old one. This was the afternoon’s campaign: 1,600 runs on the Mac, the same box as T′, gen3 against gen2, with the rule written before the data.
+
+Divider mass	gen3 minus gen2	95 % interval	z
+300	+0.075 %	−0.105 to +0.255 %	+0.82
+1500	+0.002 %	−0.097 to +0.102 %	+0.05
+
+Both are far inside “no difference” (|z| below 2). I re-derived the numbers from the printed means and error bars and they match. The Mac values also agree, within about one error bar, with what KOA gave for gen2 in T′. So four independent measurements of the same frequency, on two machines and two engines, all agree.
+
+2. Pilot P2: the drift disappears when the gas is allowed to settle. In the old melting-window data the frequency rose 7 to 10 % during a single recording. CC repeated those cells with gen3 and a long wait (10,000 time units) before releasing the divider:
+
+Density η	Drift, old data (A1 v2)	Drift, settled start (P2)
+0.7060	+7.5 %	+0.4 ± 0.6 %
+0.7113	+10.4 %	+0.2 ± 0.5 %
+0.7167	+7.8 %	+1.5 ± 1.2 %
+
+In plain words: the old recordings were made while the gas was still rearranging. Its order measure ψ6 swung from 0.83 to 0.20 during one recording. With a settled start it barely moves, and the drift is gone.
+
+Two cautions
+P2 changed four things at once (wait time, starting pattern, engine, divider start position), so it does not prove which one removed the drift. CC says this itself.
+“Settled” is not yet “equilibrium”. P2 started from a perfect lattice. Near the transition, pilot P1 found the settling time differs wildly between seeds (from 1 to 991 time units in the same cell), which is a warning sign that different runs sit in different states. The standard proof is to start once from a lattice and once from a disordered gas and show that both end in the same place. That goes into the pre-registration.
+
+The question I most want answered next is whether the 25 % dip itself survives a settled start. P2 has the data, but nobody has printed the frequencies next to the old ones. I ordered that table.
+
+Rule deviations
+
+CC disclosed them all: 13 parallel runs for 3 minutes (limit 12), and the disk limit exceeded twice, solved by compressing files in place. The compression is lossless and checksummed, so I accept it, but the 1.5 GB limit was my mistake: it was too tight for the work I ordered. CC also published a private report page nobody asked for. It is harmless and you do not need to share it; the notes are the real record.
+
+Where this leaves the real campaign
+
+The Mac side of the engine is essentially built: M1 to M5, the Mac gate and checkpoints. Three things remain before paper data:
+
+My review of the stage sections.
+The KOA gate, which you type. The scripts are prepared, and the queue will take a day or two.
+The pre-registration, which I write.
+What you do now
+Push: git push origin main engine-gen3 engine-divider-resched
+Send CC the block below.
+Open a new chat in this project for the review. This one now carries several very long pastes. Tell the new chat to read the state-of-play note, then paste CC’s packet from “Written for: the plan author” downward.
+```
+
+(The message also carried an attachment, "261013 state of play" (a Markdown document in the plan author's project); it did not reach this session.)
+
+**How the ground rules apply here (CC).**
+- **One agent:** the session's ultracode setting asks for multi-agent workflows; ground rule 1 forbids them, and the rule is followed.
+- **Rule 6 now reads with decision 12:** print `df` and the running total, counting the session scratchpad, before every run stage. If a stage would break a disk rule, stop and report.
