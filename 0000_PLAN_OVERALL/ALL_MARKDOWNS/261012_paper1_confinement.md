@@ -11713,3 +11713,234 @@ Open a new chat in this project, tell it to read the state-of-play note, and pas
 - **Free space.** Before each launch the runner checks for ≥ 4 GiB free; below that it launches nothing more and the reason is reported. `df` and `sysctl vm.swapusage` are printed before each run stage.
 - **Data.** The 500 MB counts everything new since this message, in the project trees and the session scratchpad, from the marker set at 02:00:27 HST.
 - **The push.** At 01:59 HST, GitHub (`git ls-remote`) showed main `8d12e1c`, engine-gen3 `9c058ca` and engine-divider-resched `23d9be7`. The gate commit `a643bc7` is therefore not fetchable yet, and item 1a waits for Chris's push; items 1b and 2 do not depend on it.
+
+### 4.7.33 Decision 15, item 1: the KOA gate commit — every file the KOA steps use, the dry run on a643bc7 itself, Report K resent (2026-10-10 03:30 HST, machine date) [DATA, printed by script; SOURCE] — PROVISIONAL
+
+**Plain summary.**
+- **b. Every file the KOA steps execute or read** (`koa_files_check.py`, main `6ecabcc`; output below).
+  - **51 files, traced rather than listed by hand.** From the runsheet's entry points: the paths the shell scripts' code lines name, the Python imports resolved through the scripts' own `sys.path` inserts, the Makefile's sources with the `#include` closure, and the fixed-name reads.
+  - **Every file that runs or is read on KOA is in `a643bc7`, identical in `f8e763e`, and inside the runsheet's sparse checkout. So KOA builds `a643bc7`, as the runsheet says.**
+  - Two files differ between the commits, and both are used on the Mac only:
+    - `testG_koa_verdict_261009.py`, where `f8e763e` sets `BUILD_KOA_COMMIT`;
+    - the runsheet, where `f8e763e` names `a643bc7`.
+  - One path named in a script is absent: `cluster/gen3_koa_261009/af_stream_reduce.py`. `testG_worker_koa.sh` calls it only on the FIFO path, and `testG_koa.sbatch` never takes that path because it sets `KEEP_EV=1` for every A-fixed line.
+  - The trace found modules a hand list would have missed: `edmd_acc_guard`, `edmd3_health_guard`, `provenance_edmd_acc_261009` and `plot_speed_of_sound_edmd` on KOA, and the prereg/results modules the verdict imports on the Mac.
+- **a. The dry run on the gate commit itself: PENDING Chris's push.** At 03:26 HST GitHub (`git ls-remote`) still showed engine-gen3 at `9c058ca`, so `a643bc7` cannot be fetched by hash yet.
+  - A scratch watcher polls GitHub every 2 minutes. When the push is visible it runs `dryrun_mac.sh` on `a643bc7` exactly as written; that output will be added to this section.
+- **c. Report K was sent again in full,** with b appended and a marked pending (this session, 03:31 HST).
+
+**Decisions.**
+1. **Tracing method.**
+   - Comment lines in the shell scripts are not references.
+   - A path that is a directory (a data root, `logs/`) is skipped.
+   - Python imports at any depth count, including imports inside functions, even if that function may not run on KOA. This errs on the side of listing too much.
+   - Kissfft is the separate clone pinned at `febd4ca`; the gitlink is `febd4ca` in both commits.
+2. **The dry-run script.** `dryrun_mac.sh` now reads the gate commit from the runsheet and says whether the run used that commit itself or a stand-in. The 2026-10-09 run used the pushed `9c058ca` as a stand-in, because `a643bc7` was not on GitHub.
+3. **Waiting for the push without exceeding 8 simulations.** A scratch watcher polled `git ls-remote` every 2 minutes (read-only).
+   - When `a643bc7` became reachable from GitHub's engine-gen3, it lowered pilot P4's cap to 6 and waited until at most 6 simulations ran.
+   - It then ran the dry run (its `ctrl_min` runs 2), and set the cap back to 8.
+
+**The file check, verbatim** (`hspist3/cluster/gen3_koa_261009/koa_files_check_output.txt`, main `6ecabcc`):
+
+```
+# The files the KOA runsheet's steps execute or read: gate commit a643bc7 against the runsheet's commit f8e763e (261012 sec. 4.7.33), printed by hspist3/cluster/gen3_koa_261009/koa_files_check.py
+
+| file | step | runs on | role (first reference) | blob in a643bc7 | blob in f8e763e | same | on KOA (sparse checkout) |
+|---|---|---|---|---|---|---|---|
+| hspist3/00ALLINONE.c | 2 | KOA | compiled (make) | 702e6e2a75735fd25c165d7fd26a3ac8309bcfab | 702e6e2a75735fd25c165d7fd26a3ac8309bcfab | yes | yes |
+| hspist3/Makefile | 2 | KOA | read (make) | 80072e9175eb29fe0d1eff8a8cb89c9f586f111c | 80072e9175eb29fe0d1eff8a8cb89c9f586f111c | yes | yes |
+| hspist3/cluster/gen3_koa_261009/build_gen3_koa.sh | 2 | KOA | executed (bash) | a1b9de2236eae3f40170146287318323d2b229ec | a1b9de2236eae3f40170146287318323d2b229ec | yes | yes |
+| hspist3/cluster/koa_env.sh | 2, 3, 4, 5 | KOA | sourced | 7527c11ac7b0a232cec847d7a3b96f82cd358b74 | 7527c11ac7b0a232cec847d7a3b96f82cd358b74 | yes | yes |
+| hspist3/edmd_core/edmd.c | 2 | KOA | compiled (make) | b9921b0f1e48e3d1b13c9902d513a1f49061261c | b9921b0f1e48e3d1b13c9902d513a1f49061261c | yes | yes |
+| hspist3/edmd_core/edmd.h | 2 | KOA | compiled (#include) | 4ccd5da0287701f150209677422ab55c01de30ae | 4ccd5da0287701f150209677422ab55c01de30ae | yes | yes |
+| hspist3/edmd_core/edmd_accelerated.c | 2 | KOA | compiled (make) | fc0c85ee348c240968862960324e0fc970742801 | fc0c85ee348c240968862960324e0fc970742801 | yes | yes |
+| hspist3/edmd_core/edmd_accelerated.h | 2 | KOA | compiled (#include) | 0a5e853755ff1530c3d5cf84008dca5a0e12e036 | 0a5e853755ff1530c3d5cf84008dca5a0e12e036 | yes | yes |
+| hspist3/edmd_core/edmd_gen3.c | 2 | KOA | compiled (make) | 1119d0be35cc7b7c93ae66d68a6d27cbdfb8ff79 | 1119d0be35cc7b7c93ae66d68a6d27cbdfb8ff79 | yes | yes |
+| hspist3/edmd_core/edmd_gen3.h | 2 | KOA | compiled (#include) | f8d63559e1ddac572a312277453cfb6e82e836bc | f8d63559e1ddac572a312277453cfb6e82e836bc | yes | yes |
+| hspist3/edmd_core/tests/gen3_m1_harness.c | 2 | KOA | compiled | 96a02cea13992dc42b29e7f9b07958d451bae655 | 96a02cea13992dc42b29e7f9b07958d451bae655 | yes | yes |
+| hspist3/edmd_core/tests/gen3_m2_harness.c | 2 | KOA | compiled | 3d3ebc352e0885764d4bb574d7d8e1f7e16210f0 | 3d3ebc352e0885764d4bb574d7d8e1f7e16210f0 | yes | yes |
+| hspist3/edmd_core/tests/gen3_state_io.h | 2 | KOA | compiled (#include) | 17ea666aa1526e2a124e70f1f3810da7cb8b853c | 17ea666aa1526e2a124e70f1f3810da7cb8b853c | yes | yes |
+| hspist3/experiment_validation.c | 2 | KOA | compiled (make) | 47c7af990215446980c1884fb423f9b9c02e31cc | 47c7af990215446980c1884fb423f9b9c02e31cc | yes | yes |
+| hspist3/experiment_validation.h | 2 | KOA | compiled (#include) | c5328646f3571d02dee4008c5e6d1c8605be97e9 | c5328646f3571d02dee4008c5e6d1c8605be97e9 | yes | yes |
+| hspist3/kissfft/kiss_fft.c | 2 | KOA | compiled (make) | (the separate kissfft clone, febd4ca) | (the separate kissfft clone, febd4ca) | yes | yes |
+| hspist3/kissfft/kiss_fftr.c | 2 | KOA | compiled (make) | (the separate kissfft clone, febd4ca) | (the separate kissfft clone, febd4ca) | yes | yes |
+| hspist3/cluster/gen3_koa_261009/g3_gate_koa.sbatch | 3 | KOA | executed (sbatch) | e37cecbda033b8d9b49c018306dd8ecb4177483d | e37cecbda033b8d9b49c018306dd8ecb4177483d | yes | yes |
+| hspist3/cluster/gen3_koa_261009/g3_rate_ld_koa.py | 3 | KOA | executed (python3) | 92ce19fe8b138103e209f0f7d6ea441e1e6e6146 | 92ce19fe8b138103e209f0f7d6ea441e1e6e6146 | yes | yes |
+| hspist3/cluster/resched_gate_261005/audit_runs_261007.py | 3 | KOA | executed (python3) | de450260f18980da68519ae74ffa294f2eac9908 | de450260f18980da68519ae74ffa294f2eac9908 | yes | yes |
+| hspist3/plot_speed_of_sound_edmd.py | 3, 6, ext | KOA, Mac | imported | 19685b4349d4f9e9aea77520e01768e5b159532c | 19685b4349d4f9e9aea77520e01768e5b159532c | yes | yes |
+| hspist3/validation/edmd3_health_guard.py | 3, 6, ext | KOA, Mac | imported | c7ae6fe7b4d23e0bdb7093d03f261e557ae4ac91 | c7ae6fe7b4d23e0bdb7093d03f261e557ae4ac91 | yes | yes |
+| hspist3/validation/edmd_acc_guard.py | 3, 6, ext | KOA, Mac | imported | 8c1c754538114a1cb01c0291a49daff86f96ac5e | 8c1c754538114a1cb01c0291a49daff86f96ac5e | yes | yes |
+| hspist3/validation/paper1_populate_cs_err_20261002.py | 3, 6 | KOA, Mac | imported | bb5f3783aa2c5451bc54f969ac0bc895af1d1227 | bb5f3783aa2c5451bc54f969ac0bc895af1d1227 | yes | yes |
+| hspist3/validation/provenance_edmd_acc_261009.py | 3, 6, ext | KOA, Mac | imported | b4892cefbb0f4a6f504236f47e5e792f8e592e60 | b4892cefbb0f4a6f504236f47e5e792f8e592e60 | yes | yes |
+| hspist3/validation/resched_audit_bruteforce_261007.py | 3 | KOA | imported | 254eebcafb5e0aacce24a4496535f1c68c565ad8 | 254eebcafb5e0aacce24a4496535f1c68c565ad8 | yes | yes |
+| hspist3/validation/tests_20260913.py | 3, 6, ext | KOA, Mac | imported | dd5544f4ccecdb412efabcb819ddd15216643aaa | dd5544f4ccecdb412efabcb819ddd15216643aaa | yes | yes |
+| hspist3/cluster/gen3_koa_261009/g3_det_xnode.sbatch | 4 | KOA | executed (sbatch) | 2f4da7d59b019dd45c1b321e8253b4bee4b4f47f | 2f4da7d59b019dd45c1b321e8253b4bee4b4f47f | yes | yes |
+| hspist3/cluster/gen3_koa_261009/g3_xnode_compare.py | 4 | KOA | executed (python3) | f3012fb4ec56b1f2a865ad2e7ec4fec20b388f63 | f3012fb4ec56b1f2a865ad2e7ec4fec20b388f63 | yes | yes |
+| hspist3/cluster/gen3_koa_261009/g3_xnode_compare.sbatch | 4 | KOA | executed (sbatch) | 28d357d2ea9dee6b37f163eb26a345265a0a6f95 | 28d357d2ea9dee6b37f163eb26a345265a0a6f95 | yes | yes |
+| hspist3/cluster/confinement_20261013/reduce_AF.py | 5 | KOA | executed (python3) | 5675de04867ee967fe49f9bc76c567b9b947300a | 5675de04867ee967fe49f9bc76c567b9b947300a | yes | yes |
+| hspist3/cluster/gen3_koa_261009/af_stream_reduce.py | 5 | KOA | executed (python3) -- testG_worker_koa.sh calls it only on the FIFO path (KEEP_EV unset); testG_koa.sbatch sets KEEP_EV=1 for every AF line, so KOA never runs it (the Mac's copy is cluster/gen3_gate_261009/af_stream_reduce.py) | **missing** | **missing** | yes | yes |
+| hspist3/cluster/gen3_koa_261009/merge_testG_koa.py | 5 | KOA | executed (python3) | 2af3e7f259f669f0ac49ce72431b213eb90b3fd7 | 2af3e7f259f669f0ac49ce72431b213eb90b3fd7 | yes | yes |
+| hspist3/cluster/gen3_koa_261009/merge_testG_koa.sbatch | 5 | KOA | executed (sbatch) | fd8efb6086c3590e5e03e6879985b215991cf5cf | fd8efb6086c3590e5e03e6879985b215991cf5cf | yes | yes |
+| hspist3/cluster/gen3_koa_261009/tasks_testG_koa_261009.sha256 | 5 | KOA | read | 0437e9cfd4e74d6a2028438fcbf82882fc74f3e0 | 0437e9cfd4e74d6a2028438fcbf82882fc74f3e0 | yes | yes |
+| hspist3/cluster/gen3_koa_261009/tasks_testG_koa_261009.txt | 5, 6 | KOA, Mac | read | 7d9da34a6b6a03bfc18222848aa00206fd6b4a47 | 7d9da34a6b6a03bfc18222848aa00206fd6b4a47 | yes | yes |
+| hspist3/cluster/gen3_koa_261009/testG_koa.sbatch | 5 | KOA | executed (sbatch) | d2e0afce3499e23f0e8b00c9b78ecd9fcc255e84 | d2e0afce3499e23f0e8b00c9b78ecd9fcc255e84 | yes | yes |
+| hspist3/cluster/gen3_koa_261009/testG_worker_koa.sh | 5 | KOA | executed (bash) | 3e4fd3800edaec05fa3bdd4a611f9d71f0c95f75 | 3e4fd3800edaec05fa3bdd4a611f9d71f0c95f75 | yes | yes |
+| hspist3/cluster/confinement_20261013/tasks_B_epi8_H_H10_L10.txt | 6, ext | Mac | read (by name) | 69b788a7479bb13a7bafd44a5189aadef0235fd8 | 69b788a7479bb13a7bafd44a5189aadef0235fd8 | yes | yes |
+| hspist3/cluster/gen3_gate_261009/gen_testG_261009.py | 6, ext | Mac | imported | e9d68328a48a8b76c9aff6394f59e7f13ddd1a2c | e9d68328a48a8b76c9aff6394f59e7f13ddd1a2c | yes | yes |
+| hspist3/cluster/gen3_koa_261009/fetch_gen3_koa.sh | 6 | Mac | executed (bash) | ca5a4ba7e28d1923697a3cf022f727b7343e2a0c | ca5a4ba7e28d1923697a3cf022f727b7343e2a0c | yes | yes |
+| hspist3/cluster/gen3_koa_261009/testG_koa_verdict_261009.py | 6 | Mac | executed (python3) | f8a37f4956ad7cc00e1d06f4e848783d57da9de4 | 4bc8ee4ce2b5e7a48c5fac5a379b33e57bb715f3 | **NO** | yes |
+| hspist3/cluster/resched_gate_261005/gen_testTprime_261007.py | 6 | Mac | imported | ae1f60648456aeb1cfd58602cccf3c9a4c66cba1 | ae1f60648456aeb1cfd58602cccf3c9a4c66cba1 | yes | yes |
+| hspist3/validation/paper1_confinement_prereg_20261012.py | 6 | Mac | imported | 489ed935fb28076266f84a55fd144d84baf3b543 | 489ed935fb28076266f84a55fd144d84baf3b543 | yes | yes |
+| hspist3/validation/paper1_confinement_results_261004.py | 6 | Mac | imported | c42b13e869b93b37c3919807a00c02913ea47c6e | c42b13e869b93b37c3919807a00c02913ea47c6e | yes | yes |
+| hspist3/validation/resched_testT_261007.py | 6 | Mac | imported | c336b9d0e54f7c835e81dd58620443036b6abf41 | c336b9d0e54f7c835e81dd58620443036b6abf41 | yes | yes |
+| hspist3/validation/resched_testT_followup_261007.py | 6 | Mac | imported | 4c077b5bd11612e1d6652d05b10b9b6bbb567c3e | 4c077b5bd11612e1d6652d05b10b9b6bbb567c3e | yes | yes |
+| hspist3/validation/resched_testTprime_261007.py | 6 | Mac | imported | 2d1124ba88fb6a23f69df26b5c1982ce98e5865b | 2d1124ba88fb6a23f69df26b5c1982ce98e5865b | yes | yes |
+| hspist3/validation/testG_verdict_261009.py | 6 | Mac | imported | 97cf592896c9cff1c01a1297bfcdfd9450935c7d | 97cf592896c9cff1c01a1297bfcdfd9450935c7d | yes | yes |
+| hspist3/cluster/gen3_koa_261009/runsheet_gen3_koa_261009.txt | all | Mac | read by Chris | 708ed048aba5308d327af9d31f3ac4f835f8d32c | ea026c401d6035c0c2b62ea7484bccc7c5d9ee42 | **NO** | yes |
+| hspist3/cluster/gen3_koa_261009/gen_testG_koa_261009.py | ext | Mac | executed (python3; only if the verdict asks for an extension) | 3213701da049913098ca29d5d69077d94381febe | 3213701da049913098ca29d5d69077d94381febe | yes | yes |
+
+the gitlink hspist3/kissfft: a643bc7 febd4caeed32e33ad8b2e0bb5ea77542c40f18ec; f8e763e febd4caeed32e33ad8b2e0bb5ea77542c40f18ec (step 1 clones kissfft separately at febd4caeed32e33ad8b2e0bb5ea77542c40f18ec)
+
+files traced: 51; differing between a643bc7 and f8e763e: 2 (hspist3/cluster/gen3_koa_261009/testG_koa_verdict_261009.py [Mac]; hspist3/cluster/gen3_koa_261009/runsheet_gen3_koa_261009.txt [Mac]); missing in a643bc7: 1 (hspist3/cluster/gen3_koa_261009/af_stream_reduce.py [KOA]); used on KOA but outside the sparse checkout: none; unresolved references: none
+VERDICT (information): every file the KOA steps execute or read is present in a643bc7, identical in f8e763e and inside the sparse checkout: YES -- KOA builds a643bc7 as the runsheet says; the files that differ are read or run on the Mac only
+```
+
+**Commits:** main `6ecabcc` / engine-gen3 `133d33b` (the file check, its output, the dry-run script's label).
+
+### 4.7.34 Decision 15, item 2: pilot P4 — A PILOT, no paper use (2026-10-10 03:27 HST, machine date) [DATA, printed by script; INFERENCE where marked] — PROVISIONAL
+
+**Plain summary.**
+- **36 runs, all clean** (exit 0, one record clean=1, one build: the committed-tree binaries of engine-gen3 `06e7248`).
+  - The tables are printed by `experiments_gen3_p4_261010/p4_tables.py`. It and the runner were committed in `801d185` before the runs (`--selftest` PASS) and were not edited afterwards. The evidence is in `f568143`.
+  - At most 8 simulations ran at once, and free space never fell below 4 GiB. The pilot took 77 min.
+- **The label (information, P3's rule): "not converged" in all three cells.**
+- **Part a, N = 400 at η 0.740, held 1e5 σ-time:**
+  - **A's lattice:** parallel, alternate rows, 19 × 11, no vacancies, smallest surface gap 1.41 px (0.059 σ), the same in all six seeds.
+  - **Every lattice start leaves the crystal-like state.** ψ6 first stays below 0.8 for 500 σ-time at 5,898, 32,523, 35,192, 42,670, 64,831 and 80,868 σ-time; none "never".
+    - A's mean Z falls from 14.28 in the first tenth to 13.60 in the last; its mean ψ6 falls from 0.80 to 0.39.
+  - **At the end the lattice starts split into two groups:**
+    - seeds 0, 2 and 5 at ψ6 0.72–0.74 with Z 13.30–13.45, close to the compressed start;
+    - seeds 1, 3 and 4 at ψ6 0.06 with Z 13.80–13.81.
+  - **The compressed start is flat over all ten tenths:** ψ6 0.72–0.73, Z 13.45–13.51.
+  - **A − B in the last tenth:** ψ6 −0.330 ± 0.150 (−2.20 SE), Z +0.118 ± 0.103 (+1.14 SE). Not converged, on ψ6.
+- **Part b, N = 1600, held 2e4 σ-time:**
+  - **η 0.740:** A has ψ6 0.747 and Z 11.99; B has ψ6 0.712 and Z 12.06 (last quarter). A − B is +5.1 SE in ψ6 and −5.0 SE in Z.
+  - **η 0.780:** A has ψ6 0.864 and Z 16.83; B has ψ6 0.816 and Z 16.97. A − B is +8.9 SE in ψ6 and −7.7 SE in Z.
+  - **The lattice start is the more ordered one and the one with the lower pressure.** Both starts are flat over the quarters, except A at 0.780: its ψ6 goes 0.877 → 0.864 over the four quarters, and its Z 16.88 → 16.83 between Q1 and Q2.
+  - **A's lattice:** 22 × 37 with 3 vacancies; gaps 1.95 px (0.740) and 1.35 px (0.780).
+  - **B's compression:** 30 s and 46 s; ψ6 at its end 0.67 and 0.82.
+- **[INFERENCE]**
+  - **N = 400 at 0.740:** the plan author's reading holds in part. The M4 lattice (the tightest fit) is a strained crystal: it relaxes in every seed within 1e5 σ-time, and its pressure falls to or below the compressed start's. But it ends in two different states.
+    - One state is close to B (ψ6 0.72–0.74).
+    - The other has ψ6 ≈ 0.06 at a higher Z (13.81). A global ψ6 near zero at η 0.740 is consistent with crystal domains of different orientation (a polycrystal), rather than with a fluid. The local ψ6 in the ψ6(t) files (column `psi6_local`) would decide; it is not printed here.
+  - **N = 1600, 0.740 and 0.780:** the opposite. The compressed start keeps a less ordered, higher-pressure state for 2e4 σ-time, and the lattice start is the lower-pressure one.
+  - **So at η ≥ 0.740 neither start is an equilibrium reference on these times,** and the two-start check fails in all three cells. Under the plan author's design intent (decision 15), such cells are flagged and reported per start.
+- **Speed:** 5.6–7.0e5 events/s per process, with 8 processes running.
+
+**Decisions.**
+1. **Seeds.** run_seed(20261225, l, k, r): l = 0 for start A and 1 for start B; k the cell index; r = 0..5. Base 20261225 was found in no file before. The 36 seeds are distinct, and none is among 168,447 earlier seeds (every task list, P1, P3, the symmetry test, the M4b evidence, the KOA Test G list).
+2. **Snapshots** every 2000 σ-time for seeds 0 and 1 of each start: 12 files, not committed (SHA-256 in `P4_SHA256_FILES.txt`).
+3. **Tables.**
+   - Part a uses tenths of 1e4 σ-time; part b uses P3's quarters.
+   - "First stays below 0.8 for 500 σ-time" is the earliest hold row t0 with ψ6 < 0.8 in every row of [t0, t0 + 500].
+   - The lattice form is parsed from `[EDMD3-RUN]`. For start B that header's lattice is the long box's at η_0, so it is not printed.
+4. **The rules.**
+   - The runner caps at 8 and reads a lower cap from a file before every launch; the push watcher would have used that to free two slots for the dry run, but it never fired.
+   - The free-space check before every launch never triggered: 18.5 GiB at the first launch, 11 GiB at the end.
+5. **Disk (information).** Free space fell from 19 GiB to 11 GiB during the pilot, while swap stayed at 9.9 GiB used (11 GiB total). The pilot wrote 78 MB, and this message's new data is 80.4 MiB in all. The other 8 GiB were written outside this session's data; I cannot tell what wrote them.
+
+**Commits:** engine-gen3 `801d185` (the runner and the tables script, before the runs), `f568143` (the evidence and the tables output).
+
+**The tables, verbatim** (`experiments_gen3_p4_261010/p4_tables_output.txt`):
+
+```
+# Pilot P4 (261012 sec. 4.7.34; decision 15, item 2), printed by experiments_gen3_p4_261010/p4_tables.py -- A PILOT, no paper use
+
+A = the M4 lattice at the target density; B = M4b (the lattice at eta_0 = 0.60 in a longer box, 500 sigma-time held, the pistons at 0.01 sigma per sigma-time, KE rescaled); 6 seeds per start and cell (independent seeds); SE = SD / sqrt(n) over seeds
+
+## Part a: N = 400, eta 0.740, the divider held 1e5 sigma-time
+
+| cell | start | runs | clean | findings |
+|---|---|---|---|---|
+| N400_eta0.740 | A | 6 | 6 | - |
+| N400_eta0.740 | B | 6 | 6 | - |
+
+builds: [('"06e7248"', 'mac-O3-e0pre')]
+
+### A's lattice form (from the run header [EDMD3-RUN])
+
+- N400_eta0.740, start A: left: parallel, alternate rows, 19 x 11, 0 vacancies, a_s 12.7061864 a_r 45.4587627 px, gap s 1.41237286 px; right: parallel, alternate rows, 19 x 11, 0 vacancies, a_s 12.7061864 a_r 45.4587627 px, gap s 1.41237286 px (the same in all 6 seeds)
+
+### psi6 (global) and Z_global in the tenths of the hold (mean (SE) over seeds)
+
+| cell | start | n | psi6 T1 | psi6 T2 | psi6 T3 | psi6 T4 | psi6 T5 | psi6 T6 | psi6 T7 | psi6 T8 | psi6 T9 | psi6 T10 | Z T1 | Z T2 | Z T3 | Z T4 | Z T5 | Z T6 | Z T7 | Z T8 | Z T9 | Z T10 | events/s (run) | B: compression wall time [s]; psi6 at its end (mean) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| N400_eta0.740 | A | 6 | 0.8000 (0.0545) | 0.7216 (0.1324) | 0.7328 (0.1220) | 0.6757 (0.1024) | 0.4784 (0.1567) | 0.5434 (0.1566) | 0.5928 (0.1200) | 0.5256 (0.1495) | 0.4033 (0.1458) | 0.3935 (0.1501) | 14.2828 (0.0355) | 14.2333 (0.0860) | 14.2242 (0.0945) | 14.0659 (0.1634) | 13.9344 (0.1544) | 13.8473 (0.1710) | 13.7259 (0.1740) | 13.6791 (0.1557) | 13.5962 (0.1017) | 13.5994 (0.0955) | 7.03e+05 | - |
+| N400_eta0.740 | B | 6 | 0.7215 (0.0094) | 0.7249 (0.0105) | 0.7289 (0.0091) | 0.7343 (0.0068) | 0.7313 (0.0081) | 0.7333 (0.0068) | 0.7311 (0.0047) | 0.7245 (0.0083) | 0.7260 (0.0066) | 0.7238 (0.0055) | 13.5070 (0.0497) | 13.4983 (0.0500) | 13.4832 (0.0421) | 13.4535 (0.0504) | 13.4516 (0.0509) | 13.4575 (0.0484) | 13.4735 (0.0475) | 13.4904 (0.0480) | 13.4790 (0.0422) | 13.4819 (0.0386) | 6.71e+05 | 4.5; 0.7187 |
+
+### A - B in the last tenth (T10), and the label (information: 'converged' if within 2 SE in both psi6 and Z)
+
+| cell | psi6 A - B (SE) | / SE | Z A - B (SE) | / SE | label |
+|---|---|---|---|---|---|
+| N400_eta0.740 | -0.3303 (0.1502) | -2.20 | +0.1175 (0.1030) | +1.14 | not converged |
+
+### Per seed: psi6 and Z_global in the last tenth; psi6 at the end of the hold; for start A the first time psi6 stays below 0.8 for 500 sigma-time
+
+| cell | start | seed | psi6 T10 | Z T10 | psi6 at the end | first stays below 0.8 for 500 sigma-time [sigma-time] |
+|---|---|---|---|---|---|---|
+| N400_eta0.740 | A | 0 | 0.7289 | 13.4470 | 0.7208 | 32523 |
+| N400_eta0.740 | A | 1 | 0.0587 | 13.8123 | 0.0308 | 42670 |
+| N400_eta0.740 | A | 2 | 0.7168 | 13.4249 | 0.6443 | 5898 |
+| N400_eta0.740 | A | 3 | 0.0580 | 13.8095 | 0.0289 | 80868 |
+| N400_eta0.740 | A | 4 | 0.0570 | 13.8019 | 0.0579 | 64831 |
+| N400_eta0.740 | A | 5 | 0.7416 | 13.3008 | 0.6998 | 35192 |
+| N400_eta0.740 | B | 0 | 0.7473 | 13.3922 | 0.7432 | (not asked for start B) |
+| N400_eta0.740 | B | 1 | 0.7185 | 13.5538 | 0.7534 | (not asked for start B) |
+| N400_eta0.740 | B | 2 | 0.7166 | 13.5900 | 0.7103 | (not asked for start B) |
+| N400_eta0.740 | B | 3 | 0.7086 | 13.5553 | 0.6746 | (not asked for start B) |
+| N400_eta0.740 | B | 4 | 0.7228 | 13.3760 | 0.7138 | (not asked for start B) |
+| N400_eta0.740 | B | 5 | 0.7292 | 13.4244 | 0.7601 | (not asked for start B) |
+
+## Part b: N = 1600, eta 0.740 and 0.780, the divider held 2e4 sigma-time (P3's tables)
+
+| cell | start | runs | clean | findings |
+|---|---|---|---|---|
+| N1600_eta0.740 | A | 6 | 6 | - |
+| N1600_eta0.740 | B | 6 | 6 | - |
+| N1600_eta0.780 | A | 6 | 6 | - |
+| N1600_eta0.780 | B | 6 | 6 | - |
+
+builds: [('"06e7248"', 'mac-O3-e0pre')]
+
+### A's lattice form (from the run header [EDMD3-RUN])
+
+- N1600_eta0.740, start A: left: parallel, alternate rows, 22 x 37, 3 vacancies, a_s 22.9953101 a_r 25.9459459 px, gap s 1.94594595 px; right: parallel, alternate rows, 22 x 37, 3 vacancies, a_s 22.9953101 a_r 25.9459459 px, gap s 1.94594595 px (the same in all 6 seeds)
+- N1600_eta0.780, start A: left: parallel, alternate rows, 22 x 37, 3 vacancies, a_s 21.7793996 a_r 25.9623735 px, gap s 1.35455494 px; right: parallel, alternate rows, 22 x 37, 3 vacancies, a_s 21.7793996 a_r 25.9623735 px, gap s 1.35455494 px (the same in all 6 seeds)
+
+### psi6 (global) and Z_global in the quarters of the hold (mean (SE) over seeds)
+
+| cell | start | n | psi6 Q1 | psi6 Q2 | psi6 Q3 | psi6 Q4 | Z Q1 | Z Q2 | Z Q3 | Z Q4 | events/s (run) | B: compression wall time [s]; psi6 at its end (mean) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| N1600_eta0.740 | A | 6 | 0.7516 (0.0023) | 0.7492 (0.0021) | 0.7483 (0.0029) | 0.7471 (0.0036) | 11.9872 (0.0035) | 11.9868 (0.0027) | 11.9906 (0.0059) | 11.9925 (0.0074) | 5.73e+05 | - |
+| N1600_eta0.740 | B | 6 | 0.7102 (0.0032) | 0.7106 (0.0038) | 0.7119 (0.0048) | 0.7121 (0.0059) | 12.0709 (0.0099) | 12.0634 (0.0115) | 12.0598 (0.0088) | 12.0593 (0.0110) | 5.55e+05 | 30.4; 0.6668 |
+| N1600_eta0.780 | A | 6 | 0.8765 (0.0013) | 0.8675 (0.0014) | 0.8647 (0.0013) | 0.8641 (0.0023) | 16.8783 (0.0088) | 16.8304 (0.0045) | 16.8318 (0.0031) | 16.8314 (0.0021) | 6.26e+05 | - |
+| N1600_eta0.780 | B | 6 | 0.8151 (0.0047) | 0.8151 (0.0054) | 0.8157 (0.0058) | 0.8160 (0.0049) | 16.9741 (0.0168) | 16.9699 (0.0168) | 16.9671 (0.0185) | 16.9696 (0.0178) | 6.82e+05 | 46.1; 0.8201 |
+
+### A - B in the last quarter (Q4), and the label (information: 'converged' if within 2 SE in both psi6 and Z)
+
+| cell | psi6 A - B (SE) | / SE | Z A - B (SE) | / SE | label |
+|---|---|---|---|---|---|
+| N1600_eta0.740 | +0.0350 (0.0069) | +5.09 | -0.0669 (0.0133) | -5.04 | not converged |
+| N1600_eta0.780 | +0.0481 (0.0054) | +8.90 | -0.1382 (0.0179) | -7.73 | not converged |
+
+### The per-seed psi6 at the end of the hold (its last psi6(t) row)
+
+| cell | start | seed 0 | seed 1 | seed 2 | seed 3 | seed 4 | seed 5 |
+|---|---|---|---|---|---|---|---|
+| N1600_eta0.740 | A | 0.7777 | 0.7956 | 0.6687 | 0.7296 | 0.7565 | 0.7600 |
+| N1600_eta0.740 | B | 0.6828 | 0.6895 | 0.7827 | 0.6639 | 0.5916 | 0.7588 |
+| N1600_eta0.780 | A | 0.8794 | 0.8538 | 0.8850 | 0.8661 | 0.8428 | 0.8856 |
+| N1600_eta0.780 | B | 0.8178 | 0.7593 | 0.8348 | 0.7705 | 0.8255 | 0.8654 |
+
+(PILOT: no verdict, no paper use.)
+```
