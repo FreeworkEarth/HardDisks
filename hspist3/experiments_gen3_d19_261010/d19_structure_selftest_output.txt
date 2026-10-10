@@ -1,0 +1,3 @@
+selftest perfect 10 lines: cp y, lines 10, per line 19-20, orientation -30.00, 5/7 0/0, vac 0, inter 0: ok
+selftest 9 lines: cp y, lines 9, per line 19-20, orientation -30.00, 5/7 0/0, vac 0, inter 0: ok
+SELFTEST PASS
