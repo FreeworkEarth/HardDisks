@@ -1,0 +1,8 @@
+# --gen3-psi6-snapshots /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_psi6c_261010/evidence_0d7f1ca/s2/on/snapshots_L0_106_wallmassfactor_300_run0.bin: N 400, dividers 1, box 21.22697739 x 20 sigma, radius 0.5 sigma, interval 500 sigma-time; neighbours within 1.4 sigma; build 0d7f1ca
+t_sigma,phase,psi6_global,N_0,psi6_0,psi6_orient_deg_0,psi6_local_0,N_1,psi6_1,psi6_orient_deg_1,psi6_local_1
+0.000000,hold,0.996003,200,0.996082,0.007,0.996249,200,0.995927,-0.023,0.996164
+500.000007,hold,0.829396,200,0.825220,0.533,0.868474,200,0.834085,0.058,0.876982
+1000.000015,hold,0.862958,200,0.863157,-0.193,0.908033,200,0.863114,0.194,0.902628
+1500.000022,hold,0.859787,200,0.867345,0.601,0.897643,200,0.852666,0.170,0.892802
+2000.000030,hold,0.855690,200,0.870331,0.019,0.902923,200,0.841211,0.282,0.883811
+# 5 snapshots

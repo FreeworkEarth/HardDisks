@@ -1,0 +1,72 @@
+# Every [EDMD3...] and STOP line of the per-compartment psi6 acceptance (decision 17)'s runs (the logs are .gitignored), extracted 2026-10-10 10:37 HST
+
+== evidence_0d7f1ca/s0/default/ctrl_leg/audit/run.log (exit ?)
+
+== evidence_0d7f1ca/s0/default/ctrl_leg/plain/run.log (exit ?)
+
+== evidence_0d7f1ca/s0/default/ctrl_leg/ref/run.log (exit ?)
+
+== evidence_0d7f1ca/s0/default/ctrl_min/audit/run.log (exit ?)
+
+== evidence_0d7f1ca/s0/default/ctrl_min/plain/run.log (exit ?)
+
+== evidence_0d7f1ca/s0/default/ctrl_min/ref/run.log (exit ?)
+
+== evidence_0d7f1ca/s0/default_runner/run.log (exit 0)
+
+== evidence_0d7f1ca/s0/gen2flag/ctrl_leg/audit/run.log (exit ?)
+
+== evidence_0d7f1ca/s0/gen2flag/ctrl_leg/plain/run.log (exit ?)
+
+== evidence_0d7f1ca/s0/gen2flag/ctrl_leg/ref/run.log (exit ?)
+
+== evidence_0d7f1ca/s0/gen2flag/ctrl_min/audit/run.log (exit ?)
+
+== evidence_0d7f1ca/s0/gen2flag/ctrl_min/plain/run.log (exit ?)
+
+== evidence_0d7f1ca/s0/gen2flag/ctrl_min/ref/run.log (exit ?)
+
+== evidence_0d7f1ca/s0/gen2flag_runner/run.log (exit 0)
+
+== evidence_0d7f1ca/s1/run.log (exit 0)
+
+== evidence_0d7f1ca/s2/off/run.log (exit 0)
+[EDMD3-RUN] L0=10.6 M=300 run=0 seed=2023561687: engine=gen3 build="0d7f1ca" target=mac-O3-e0pre cell_px=32 origin_shift=8192 u_t=0x1p-39 K=4 box=509.44745733888533 x 480 px exact_box=1 eta=0.73999999999999999 N=400 N_L=200 N_R=200 seeding=lattice left=[orient parallel rows alternate n_s 19 n_r 11 a_s 12.7061864 a_r 45.4587627 g 0.706186432 s 1.41237286 n_vac 0 jitter 0.353093216 px] right=[orient parallel rows alternate n_s 19 n_r 11 a_s 12.7061864 a_r 45.4587627 g 0.706186432 s 1.41237286 n_vac 0 jitter 0.353093216 px] jitter_f=0.25 T_eq=2000.00003 sigma-time (held divider, 120000 steps) record=1.00000001 sigma-time psi6_every=1 validator_every=60
+[EDMD3-TIES] at the load: live events 1129, sharing their time exactly with another live event 0, due at once 0
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 509.44745733888533 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91493e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual 6.86e-13, scale 4.47e-09, ratio 0.000153; y: residual -6.71e-13, scale 3.17e-09, ratio 0.000211; energy: residual -4.55e-13, scale 2.69e-08, ratio 1.69e-05 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=10.6 M=300 run=0 seed=2023561687: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=26342040 full_checks=4066 local_worst=-3.39e-12 full_worst=-1.56e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.88e-12 ev_pair=12032757 ev_wall=958102 ev_cross=809115 ev_div=509309 ev_piston=0 ev_band=0 ev_stale=94179423 origin_shifts=5 syncs=5 heap_compactions=133 heap_max=29705 validator_every=60 hash=938d002f742626a7 t_end=48024.000715613365 engine=gen3 build="0d7f1ca" target=mac-O3-e0pre run_s=17.834 engine_s=17.501 driver_share=0.0187
+[EDMD3-OBS] virial blocks 40 (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_psi6c_261010/evidence_0d7f1ca/s2/off/virial_blocks_L0_106_wallmassfactor_300_run0.csv), snapshots 5 (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_psi6c_261010/evidence_0d7f1ca/s2/off/snapshots_L0_106_wallmassfactor_300_run0.bin)
+
+== evidence_0d7f1ca/s2/old/run.log (exit 0)
+[EDMD3-RUN] L0=10.6 M=300 run=0 seed=2023561687: engine=gen3 build="06e7248" target=mac-O3-e0pre cell_px=32 origin_shift=8192 u_t=0x1p-39 K=4 box=509.44745733888533 x 480 px exact_box=1 eta=0.73999999999999999 N=400 N_L=200 N_R=200 seeding=lattice left=[orient parallel rows alternate n_s 19 n_r 11 a_s 12.7061864 a_r 45.4587627 g 0.706186432 s 1.41237286 n_vac 0 jitter 0.353093216 px] right=[orient parallel rows alternate n_s 19 n_r 11 a_s 12.7061864 a_r 45.4587627 g 0.706186432 s 1.41237286 n_vac 0 jitter 0.353093216 px] jitter_f=0.25 T_eq=2000.00003 sigma-time (held divider, 120000 steps) record=1.00000001 sigma-time psi6_every=1 validator_every=60
+[EDMD3-TIES] at the load: live events 1129, sharing their time exactly with another live event 0, due at once 0
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 509.44745733888533 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91493e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual 6.86e-13, scale 4.47e-09, ratio 0.000153; y: residual -6.71e-13, scale 3.17e-09, ratio 0.000211; energy: residual -4.55e-13, scale 2.69e-08, ratio 1.69e-05 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=10.6 M=300 run=0 seed=2023561687: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=26342040 full_checks=4066 local_worst=-3.39e-12 full_worst=-1.56e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.88e-12 ev_pair=12032757 ev_wall=958102 ev_cross=809115 ev_div=509309 ev_piston=0 ev_band=0 ev_stale=94179423 origin_shifts=5 syncs=5 heap_compactions=133 heap_max=29705 validator_every=60 hash=938d002f742626a7 t_end=48024.000715613365 engine=gen3 build="06e7248" target=mac-O3-e0pre run_s=17.784 engine_s=17.459 driver_share=0.0182
+[EDMD3-OBS] virial blocks 40 (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_psi6c_261010/evidence_0d7f1ca/s2/old/virial_blocks_L0_106_wallmassfactor_300_run0.csv), snapshots 5 (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_psi6c_261010/evidence_0d7f1ca/s2/old/snapshots_L0_106_wallmassfactor_300_run0.bin)
+
+== evidence_0d7f1ca/s2/on/run.log (exit 0)
+[EDMD3-RUN] L0=10.6 M=300 run=0 seed=2023561687: engine=gen3 build="0d7f1ca" target=mac-O3-e0pre cell_px=32 origin_shift=8192 u_t=0x1p-39 K=4 box=509.44745733888533 x 480 px exact_box=1 eta=0.73999999999999999 N=400 N_L=200 N_R=200 seeding=lattice left=[orient parallel rows alternate n_s 19 n_r 11 a_s 12.7061864 a_r 45.4587627 g 0.706186432 s 1.41237286 n_vac 0 jitter 0.353093216 px] right=[orient parallel rows alternate n_s 19 n_r 11 a_s 12.7061864 a_r 45.4587627 g 0.706186432 s 1.41237286 n_vac 0 jitter 0.353093216 px] jitter_f=0.25 T_eq=2000.00003 sigma-time (held divider, 120000 steps) record=1.00000001 sigma-time psi6_every=1 validator_every=60
+[EDMD3-TIES] at the load: live events 1129, sharing their time exactly with another live event 0, due at once 0
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 509.44745733888533 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91493e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual 6.86e-13, scale 4.47e-09, ratio 0.000153; y: residual -6.71e-13, scale 3.17e-09, ratio 0.000211; energy: residual -4.55e-13, scale 2.69e-08, ratio 1.69e-05 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=10.6 M=300 run=0 seed=2023561687: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=26342040 full_checks=4066 local_worst=-3.39e-12 full_worst=-1.56e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.88e-12 ev_pair=12032757 ev_wall=958102 ev_cross=809115 ev_div=509309 ev_piston=0 ev_band=0 ev_stale=94179423 origin_shifts=5 syncs=5 heap_compactions=133 heap_max=29705 validator_every=60 hash=938d002f742626a7 t_end=48024.000715613365 engine=gen3 build="0d7f1ca" target=mac-O3-e0pre run_s=18.081 engine_s=17.475 driver_share=0.0335
+[EDMD3-OBS] virial blocks 40 (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_psi6c_261010/evidence_0d7f1ca/s2/on/virial_blocks_L0_106_wallmassfactor_300_run0.csv), snapshots 5 (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_psi6c_261010/evidence_0d7f1ca/s2/on/snapshots_L0_106_wallmassfactor_300_run0.bin)
+
+== evidence_0d7f1ca/s3/run.log (exit 0)
+[EDMD3-RUN] L0=10.6 M=300 run=0 seed=2023561687: engine=gen3 build="0d7f1ca" target=mac-O3-e0pre cell_px=32 origin_shift=8192 u_t=0x1p-39 K=4 box=509.44745733888533 x 480 px exact_box=1 eta=0.73999999999999999 N=400 N_L=200 N_R=200 seeding=lattice left=[orient parallel rows alternate n_s 19 n_r 11 a_s 12.7061864 a_r 45.4587627 g 0.706186432 s 1.41237286 n_vac 0 jitter 0.353093216 px] right=[orient parallel rows alternate n_s 19 n_r 11 a_s 12.7061864 a_r 45.4587627 g 0.706186432 s 1.41237286 n_vac 0 jitter 0.353093216 px] jitter_f=0.25 T_eq=100000.001 sigma-time (held divider, 6000000 steps) record=1.00000001 sigma-time psi6_every=1 validator_every=60
+[EDMD3-TIES] at the load: live events 1129, sharing their time exactly with another live event 0, due at once 0
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 509.44745733888533 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91493e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual -2.36e-12, scale 2.13e-07, ratio 1.11e-05; y: residual 7.86e-12, scale 1.58e-07, ratio 4.97e-05; energy: residual -5.91e-11, scale 1.31e-06, ratio 4.5e-05 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=10.6 M=300 run=0 seed=2023561687: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=1286632079 full_checks=200354 local_worst=-4.37e-12 full_worst=-2.71e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.44e-12 ev_pair=588218990 ev_wall=46921328 ev_cross=39383255 ev_div=23889516 ev_piston=0 ev_band=0 ev_stale=4661649240 origin_shifts=292 syncs=292 heap_compactions=4281 heap_max=29711 validator_every=60 hash=bd25077c5f1c9c9f t_end=2400024.0357631445 engine=gen3 build="0d7f1ca" target=mac-O3-e0pre run_s=883.573 engine_s=850.690 driver_share=0.0372
+[EDMD3-OBS] virial blocks 2000 (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_psi6c_261010/evidence_0d7f1ca/s3/virial_blocks_L0_106_wallmassfactor_300_run0.csv), snapshots 51 (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_psi6c_261010/evidence_0d7f1ca/s3/snapshots_L0_106_wallmassfactor_300_run0.bin)
+
+== evidence_0d7f1ca/s5/checkpoint/run.log (exit 2)
+STOP (--engine=gen3): --gen3-psi6-compartments is provisional and not carried by a checkpoint (run it without --gen3-checkpoint and --gen3-restart)
+
+== evidence_0d7f1ca/s5/energy_transfer/run.log (exit 2)
+STOP (--engine=gen3): --gen3-psi6-compartments is wired to the speed-of-sound experiment only
+
+== evidence_0d7f1ca/s5/gen2/run.log (exit 2)
+STOP: --gen3-psi6-compartments needs --engine=gen3
