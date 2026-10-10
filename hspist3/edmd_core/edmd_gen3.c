@@ -1341,7 +1341,8 @@ long edmd3_tie_stats(const EDMD3* S, long* n_live, long* n_now){
    order"): a live event of the writer was predicted at its own time from the states then (lazy invalidation, origin shifts
    in between), so a rebuild from the stored states can differ in the last bits and the trajectories part. The file is for
    the same build: a header with the struct sizes and the geometry, and a mismatch is refused. On a failed read the state
-   may be partly overwritten: the caller destroys it. */
+   may be partly overwritten: the caller destroys it. Since part 3b of decision 12 (sec. 4.7.25) the file holds no memory address
+   and no allocation size (see edmd3_checkpoint_write), so two checkpoints of the same state are byte-identical. */
 typedef struct {
     char   magic[16];                         /* "edmd3-ckpt-v1" */
     long   s_state, s_disk, s_ev, s_real;     /* sizeof EDMD3, Disk3, Ev3, real of the writer */
@@ -1358,11 +1359,25 @@ int edmd3_checkpoint_write(const EDMD3* S, FILE* f){
     h.N = S->N; h.ncell = S->ncell; h.ccap = S->ccap; h.heap_n = S->heap.n;
     h.w = (double)S->w; h.boxW = (double)S->boxW; h.boxH = (double)S->boxH;
     const size_t nc = (size_t)S->ncell * (size_t)S->ccap;
-    return fwrite(&h, sizeof h, 1, f) == 1 && fwrite(S, sizeof *S, 1, f) == 1
+    /* ##CHRIS 2026-10-09 (plan-author decision 12, part 3b; 261012 sec. 4.7.25): no memory address and no allocation size goes
+       into the file. The state struct is written from a copy whose buffer pointers, event-log file, parameter pointer and buffer
+       capacities are zeroed: the reader keeps its own (edmd3_checkpoint_read), so two checkpoints of the same state are the same
+       bytes in every process. */
+    EDMD3* W = (EDMD3*)malloc(sizeof *W);
+    if (!W) return 0;
+    memcpy(W, S, sizeof *W);
+    W->prm.species = NULL;
+    W->cell = NULL; W->ccount = NULL; W->D = NULL; W->out = NULL; W->heap.d = NULL; W->heap.cap = 0;
+    W->alx = NULL; W->aly = NULL; W->acr = NULL; W->awl = NULL; W->acd = NULL;
+    W->ahcap = 0; W->ahk = NULL; W->aht = NULL; W->ahm = NULL; W->aot = NULL; W->aob = NULL;
+    W->evlog = NULL; W->evlog_tscale = 0;
+    const int ok = fwrite(&h, sizeof h, 1, f) == 1 && fwrite(W, sizeof *W, 1, f) == 1
         && fwrite(S->D, sizeof(Disk3), (size_t)S->N, f) == (size_t)S->N
         && fwrite(S->ccount, sizeof(int), (size_t)S->ncell, f) == (size_t)S->ncell
         && fwrite(S->cell, sizeof(int), nc, f) == nc
         && (S->heap.n == 0 || fwrite(S->heap.d, sizeof(Ev3), (size_t)S->heap.n, f) == (size_t)S->heap.n);
+    free(W);
+    return ok;
 }
 
 int edmd3_checkpoint_read(EDMD3* S, FILE* f, char* err, size_t errlen){
