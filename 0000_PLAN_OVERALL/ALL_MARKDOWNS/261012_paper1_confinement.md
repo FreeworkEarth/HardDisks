@@ -11342,3 +11342,121 @@ extension seed list at M = 1500 (r = 400..799, lines 'main epi8_H_H10_L10 M r se
 ```
 
 **Commits:** main `a430f0e` / engine-gen3 `a643bc7` (the fixes and the registration), main `bfc636f` / engine-gen3 `f8e763e` (the runsheet naming `a643bc7`, BUILD_KOA_COMMIT, the dry run).
+
+### 4.7.30 Decision 13, item 4: M4b, the compressed-fluid start (2026-10-09 20:58 HST, machine date) [DATA, printed by script; SOURCE] — PROVISIONAL
+
+**Plain summary.**
+- **ACCEPTANCE: PASS**, printed by `experiments_gen3_m4b_261009/m4b_tables.py`. The criteria were stated in the code commit (engine-gen3 `06e7248`) before any evidence run; the evidence is `548e813`; the binaries are the committed-tree build of `06e7248`.
+- **What it adds** (gen3 only; gen2 untouched; the engine unchanged): `--gen3-seeding=compressed`, with `--gen3-compress-eta0` (default 0.60), `--gen3-compress-melt` (500 σ-time) and `--gen3-compress-speed` (0.01 σ per σ-time). It needs `--gen3-exact-box`. The protocol is the plan author's:
+  1. The M4 lattice at η_0 in a longer box: the same H and N, the divider held at the centre, two pistons of mass 0 as the outer faces. Then the driver's velocity draw, with each compartment scaled to N_s kT.
+  2. Held for T_melt. Then both pistons move inward at u until each compartment has the target L0, and stop.
+  3. Each compartment's velocities are rescaled to KE = N_s kT exactly.
+  4. The state is carried into the run's exact box, whose outer walls sit where the pistons stopped (decision 1). From there it is an ordinary M4-style run.
+  - Two header lines, `[EDMD3-M4B]`, record:
+    - η_0, T_melt and u; the achieved L0 against the requested one per side; the piston work per side;
+    - KE per compartment at the start, before and after the rescale; the ledger;
+    - the time at the end of the compression; its events, health and event hash;
+    - the carry and the smallest gaps after it; ψ6 of the carried state.
+- **Every acceptance item holds** (N = 400 and 1600, targets 0.70 and 0.716):
+  - **Rule 4:** IDENTICAL. **M1/M2 harness outputs:** IDENTICAL.
+  - **Achieved L0** = requested within 7.8e-13 σ on both sides, recorded per side.
+  - **Compartments:** N_L = N_R; no disk changed compartment.
+  - **KE per compartment** = N_s kT to 2.4e-15 after the rescale.
+  - **Piston work = KE gain:** the difference is at most 1.4e-11, against ledger rounding scales of 1.2e-8 to 1.6e-7.
+  - **Health:** the compression state and the run are clean=1.
+  - **Same seed:** bit-identical.
+  - **Observation does not steer:** the event hash, trace, ψ6 summary and `[EDMD3-M4B]` lines are unchanged with ψ6 every 0.25, the virial blocks and the snapshots.
+  - **Checkpoint/restart works through the compression:** the restart repeats the preparation, and the restarted run and the checkpoint files are byte-identical.
+  - **Refusals:** all four refuse.
+- **Information (no criterion):**
+  - **The compression heats.** KE per compartment rises from N_s kT to 4.2–4.9 N_s kT before the rescale; adiabatic compression of a dense fluid (table 4).
+  - **The compression orders.** ψ6 of the carried state is 0.42 (N = 400, η 0.70), 0.58 (400, 0.716), 0.47 (1600, 0.70) and 0.54 (1600, 0.716). So start B is the slowly compressed fluid, not a disordered one, by the time the hold begins.
+  - **Cost.** The preparation takes 3.1–3.7 s at N = 400 and 19–22 s at N = 1600 (687–924 σ-time of melt and compression).
+
+**Decisions.**
+1. **"Pistons stop and stay as the outer walls" is implemented as a carry.**
+   - The run's outer walls are placed exactly where the pistons stopped, to the pistons' rounding (≤ 7.8e-13 σ, recorded as the achieved L0).
+   - The state is moved into the run's exact box by x → x − S, where S = c_long − c is the exact difference of the two divider centres (Sterbenz; the code requires c ≤ c_long ≤ 2c). So the divider sits at the run's centre exactly.
+   - The run proper is then the M4 run's code path: the same box, walls, trace columns, observers, validator and checkpoint. Starts A and B differ only in the initial state.
+   - Keeping two mass-0 pistons inside a longer box for the whole run would have changed the trace's box width and centre, the validator's walls and the snapshot header, in several places of the driver. The physics is the same.
+2. **The pistons start 1 σ inside the long box's walls,** so a piston face never coincides with a wall face (no ties); no disk reaches the long box's walls.
+3. **Initial velocities.** The driver's draw (one Maxwell–Boltzmann draw per particle, left compartment first), then each compartment scaled directly to N_s kT. M4's global scaling and per-segment equalisation act on positions in the run's box, which the long box does not have. Per-segment temperatures are refused with M4b.
+4. **The compression runs in its own engine state.** Its health, ledger and event hash are printed, and then it is discarded. The run's own state starts at t = 0 from the carried state, so its run record, event hash and `g3_init_hash` belong to the run proper. The carried velocities enter the container as doubles; M4 passes the driver's float velocities, which would lose the exact rescale.
+5. **Fail-closed.** The run stops if the compression state has clean ≠ 1, if a disk is in the other compartment after the carry, or if a disk overlaps a wall or the divider by more than 1e-6 px after the carry.
+6. **Checkpoint and restart.** A restart repeats the deterministic preparation (3–22 s), and the checkpoint's identity check (the carried state's `g3_init_hash`) proves it is the same state. A checkpoint inside the compression cannot be requested.
+7. **Seeds:** base 20261223 (found in no file before), run_seed(20261223, 0, k, 0).
+8. **Scratch work.** One development build of the uncommitted code ran six short smoke runs (one N = 400 test at η 0.70, then U, obs, C, R1 and R2 at η 0.716) to find faults before the commit. No reported number comes from it.
+
+**Commits:** engine-gen3 `06e7248` (code and the evidence scripts with their criteria), `548e813` (the evidence). Logs are .gitignored: their `[EDMD3…]` lines are in `RUN_RECORDS.txt`, and the traces, ψ6(t), snapshots and checkpoints are listed by SHA-256 in `SHA256_FILES.txt`.
+
+**The tables, verbatim** (`experiments_gen3_m4b_261009/m4b_tables_output.txt`):
+
+```
+# M4b, the compressed-fluid start: evidence tables (261012 sec. 4.7.30), printed by experiments_gen3_m4b_261009/m4b_tables.py
+
+## 1. The frozen binaries
+
+| binary | --version | SHA-256 | = build record |
+|---|---|---|---|
+| 00ALLINONE | 00ALLINONE  git 06e7248  target mac-O3-e0pre | 5d9ceb95e716e50d90a69ac8351e8065081c4160ce645c247d8a7f3136cd19ae | yes |
+| gen3_m1 | - | 89b77fa190c4afe8e749a6bf88e7f52e2f7e439b4cfec885127829d9e87863f7 | yes |
+| gen3_m2 | - | 3473318380ae3b5fdf225dc146c2eb0a0d5b05157ac2403e8582cd97fa5d15fb | yes |
+
+## 2. Rule 4: gen2 byte identity with 7b08827 after the 00ALLINONE.c change (ctrl_min, ctrl_leg)
+
+default build: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+--engine=gen2: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+
+rule 4: IDENTICAL (both cases, both builds)
+
+## 3. The M1 and M2 harness outputs (the committed ones)
+
+| output | identical |
+|---|---|
+| m1_audit_output.txt | IDENTICAL |
+| m2_audit_quick_output.txt | IDENTICAL |
+| m2_audit_output.txt | IDENTICAL |
+
+## 4. The four cells: the compression and the carry (the [EDMD3-M4B] line of each 'plain' run)
+
+| cell | eta_0, T_melt, u | L0 requested [sigma] | achieved - requested left / right [sigma] | N_L / N_R (moved) | KE per compartment: start; before the rescale; after/N_s kT - 1 | KE gain - piston work (ledger scale) | ledger ratio | end of the compression [sigma-time] (melt + compression) | events; clean; hash | contact audit: events, max gap pair/wall/div/piston [px] | smallest gap after the carry walls / divider [px] | psi6 at the end of the compression | run record clean | criteria |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| N1600_eta0.700 | 0.59999999999999998, 500, 0.01 | 22.4399475256414 | -7.11e-15 / -7.78e-13 | 800 / 800 (0) | 800.000000, 800.000000; 3046.441, 3057.965; +1.5e-15, +2.2e-16 | +1.36e-11 (1.01e-07) | 3.59e-04 | 873.999 (500 + 373.999) | 14543323; 1; 0a5146c32559cfe4 | 12693280, 6.31e-12/2.96e-12/2.96e-12/3.71e-12 | 0.00636 / 0.0429 | global 0.472551, local 0.755452, neighbours 5.4750 | 1 | yes |
+| N1600_eta0.716 | 0.59999999999999998, 500, 0.01 | 21.9384961842863 | +1.07e-14 / +4.23e-13 | 800 / 800 (0) | 800.000000, 800.000000; 3882.039, 3918.793; -1.4e-15, -2.4e-15 | -9.09e-12 (1.57e-07) | 3.54e-04 | 924.144 (500 + 424.144) | 16562115; 1; 4259bec91d87454c | 14521608, 6.29e-12/3.84e-12/3.87e-12/3.87e-12 | 0.015 / 0.0153 | global 0.538794, local 0.800135, neighbours 5.5912 | 1 | yes |
+| N400_eta0.700 | 0.59999999999999998, 500, 0.01 | 11.2199737628207 | +3.55e-15 / -8.17e-14 | 200 / 200 (0) | 200.000000, 200.000000; 846.364, 837.566; +2.2e-16, -8.9e-16 | +3.41e-12 (1.21e-08) | 6.79e-04 | 687.000 (500 + 187.000) | 2872250; 1; dee451e4a927cb0f | 2450651, 6.96e-12/3.31e-12/3.01e-12/3.74e-12 | 0.0418 / 0.00796 | global 0.417111, local 0.777785, neighbours 5.2650 | 1 | yes |
+| N400_eta0.716 | 0.59999999999999998, 500, 0.01 | 10.9692480921431 | -2.13e-14 / +2.26e-13 | 200 / 200 (0) | 200.000000, 200.000000; 1115.746, 1141.795; +6.7e-16, -5.6e-16 | +3.64e-12 (1.87e-08) | 3.64e-05 | 712.072 (500 + 212.072) | 3211440; 1; 45b78e2201950123 | 2762648, 7.36e-12/3.64e-12/3.13e-12/5.8e-12 | 0.00719 / 0.016 | global 0.583313, local 0.811565, neighbours 5.3700 | 1 | yes |
+
+## 5. The same seed bit-identical ('repeat' against 'plain') and observation does not steer ('obs' against 'plain')
+
+| cell | run | trace | psi6(t) | psi6 summary | run_params | [EDMD3-M4B] lines | run record (no timing) | event hash | criteria |
+|---|---|---|---|---|---|---|---|---|---|
+| N1600_eta0.700 | repeat | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | d327580e2c77407c = d327580e2c77407c | yes |
+| N1600_eta0.700 | obs | IDENTICAL | different (psi6 cadence) | IDENTICAL | IDENTICAL | IDENTICAL | different | d327580e2c77407c = d327580e2c77407c | yes |
+| N1600_eta0.716 | repeat | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 311b6d5b5edc705d = 311b6d5b5edc705d | yes |
+| N1600_eta0.716 | obs | IDENTICAL | different (psi6 cadence) | IDENTICAL | IDENTICAL | IDENTICAL | different | 311b6d5b5edc705d = 311b6d5b5edc705d | yes |
+| N400_eta0.700 | repeat | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | a311fe7b785aa716 = a311fe7b785aa716 | yes |
+| N400_eta0.700 | obs | IDENTICAL | different (psi6 cadence) | IDENTICAL | IDENTICAL | IDENTICAL | different | a311fe7b785aa716 = a311fe7b785aa716 | yes |
+| N400_eta0.716 | repeat | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 0709270e3e2b482b = 0709270e3e2b482b | yes |
+| N400_eta0.716 | obs | IDENTICAL | different (psi6 cadence) | IDENTICAL | IDENTICAL | IDENTICAL | different | 0709270e3e2b482b = 0709270e3e2b482b | yes |
+
+## 6. Checkpoint and restart through the compression (N = 400, eta 0.716; U = the cell's 'plain' run)
+
+checkpoint files ck_C.bin / ck_R1.bin: 850631 bytes, IDENTICAL
+
+| run | exit | trace | psi6(t) | psi6 summary | run record (no timing) | event hash | [EDMD3-M4B] lines = U's | restart line |
+|---|---|---|---|---|---|---|---|---|
+| C | 0 | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 0709270e3e2b482b | yes | - |
+| R1 | 0 | - | - | - | - | None | yes | - |
+| R2 | 0 | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 0709270e3e2b482b | yes | [EDMD3-RESTART] read /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3 |
+
+## 7. Refusals (each must stop with exit 2)
+
+| case | exit | message |
+|---|---|---|
+| compressed under gen2 | 2 | STOP: --gen3-seeding, --gen3-exact-box and --gen3-dump-initial need --engine=gen3 (gen2's seeding is frozen) |
+| a compression flag without compressed | 2 | STOP (--engine=gen3): --gen3-compress-eta0, --gen3-compress-melt and --gen3-compress-speed need --gen3-seeding=compressed |
+| compressed without --gen3-exact-box | 2 | STOP (--engine=gen3): --gen3-seeding=compressed needs --gen3-exact-box (the carry into the run's box is exact only in the exact box) |
+| eta_0 above the target eta | 2 | STOP (--engine=gen3): M4b: eta_0 must be below the target eta (the long box must be the longer one) |
+
+ACCEPTANCE (M4b, decision 13 item 4): PASS -- binaries = build record (yes); rule 4 (yes); M1/M2 harness outputs (yes); the four cells: achieved L0, N_L = N_R, KE after the rescale, piston work = KE gain, clean, psi6 printed (yes); same seed bit-identical (yes); observation does not steer (yes); checkpoint/restart through the compression (yes); refusals (yes)
+```
