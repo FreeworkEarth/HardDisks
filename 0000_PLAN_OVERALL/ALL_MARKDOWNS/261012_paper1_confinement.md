@@ -12231,3 +12231,220 @@ Your disk is still 100 % full with about 11 GiB free, and something outside our 
 DRY RUN on a643bc7: PASS
 KOA CLONE OPTIONS: NOT CONFIRMED
 ```
+
+### 4.7.37 Decision 16, item 2: the two diagnostics — the part-3a outlier rerun to 2e4 σ-time; P4a's local ψ6; an addition: ψ6 and Z per compartment (2026-10-10 09:10 HST, machine date) [DATA, printed by script; INFERENCE where marked] — information, no verdict
+
+**Plain summary.**
+- **a. The part-3a outlier (π/8, seed 1), rerun with the hold extended to 2e4 σ-time.**
+  - Script `experiments_gen3_d16_261010/d16_outlier_run.py`, run with part 3a's frozen binary (`5d19aa7`, SHA-256 checked). The run took 19 s: exit 0, one build, clean=1.
+  - **The command** equals the original's except in three places, which the script checks against the original `command.txt`:
+    - the hold, 300,000 → 1,200,000 steps;
+    - the run folder;
+    - the added `--gen3-dump-initial`.
+  - **The first 100 virial blocks are byte-identical to the original's (100 of 100).** The rerun is the same trajectory, and its first 5000 σ-time give the same d = Z_L − Z_R = +0.00741 (0.00186).
+  - **d per 2500 σ-time segment:** +0.0061, +0.0087, −0.0029, −0.0014, −0.0030, +0.0013, +0.0007, +0.0022 (block SEs 0.0024–0.0031).
+    - The 8 segment values: mean +0.0015, SD 0.0042.
+    - The whole 2e4 σ-time: d = +0.00146 (0.00099), +1.48 SE.
+  - **Pair collisions per segment:** L 1,026,601–1,029,055, R 1,025,728–1,029,331. R − L runs from −3205 (segment 2) to +414 (segment 5).
+  - **The initial state per compartment** (the dump; the same in L and R):
+    - N 200; KE 200 (the dump and the first virial block agree); total momentum below 1.3e-14 in x and y;
+    - the same lattice form: parallel rows, equal, 25 × 8, no vacancies;
+    - smallest gaps: disk–disk 0.255 σ (L) and 0.252 σ (R); disk–wall 0.118 σ (L, bottom wall) and 0.124 σ (R, outer right wall); disk–divider 0.140 σ and 0.137 σ.
+  - No interpretation, as ordered.
+- **b. P4a's local ψ6 and mean neighbour number in the last tenth [9e4, 1e5)** (`d16_p4a_local_psi6.py`, from the existing ψ6(t) files; no runs):
+
+| group | global ψ6 | local ψ6 | mean neighbours (within 1.4 σ) |
+|---|---|---|---|
+| A, ending at ψ6 ≈ 0.06 (seeds 1, 3, 4) | 0.0579 (0.0005) | 0.8772 (0.0002) | 5.4491 (0.0001) |
+| A, ending at ψ6 ≈ 0.72 (seeds 0, 2, 5) | 0.7291 (0.0072) | 0.8553 (0.0030) | 5.4691 (0.0105) |
+| B, the compressed start (6 seeds) | 0.7238 (0.0055) | 0.8546 (0.0027) | 5.4713 (0.0077) |
+
+  - The ψ6 ≈ 0.06 group has the highest local ψ6 of the three groups, and its three seeds agree to 0.001.
+- **An addition, not ordered: ψ6 and Z per compartment** (`d16_p4a_snapshot_psi6.py`; existing data, no runs; it answers the open point of § 4.7.34, "the local ψ6 … would decide").
+  - **The orientation of each compartment.** It is computed from P4's snapshots, which exist for seeds 0 and 1 of each start, as arg(Ψ_c)/6, with Ψ_c the compartment's mean of ψ6(j).
+    - Start A begins at 0° in both compartments: M4's "parallel" rows.
+    - B, the compressed start, begins at ±30° in both. Mod 60° these are the same orientation: the lattice turned by 30°.
+  - **A seed 1 (ψ6 ≈ 0.06 group):**
+    - the left compartment turned to +30° between 4e4 and 5e4 σ-time;
+    - the right stayed at 0° to the end;
+    - from 5e4 on, each compartment keeps |Ψ_c| 0.64–0.87, while the global ψ6 is 0.02–0.12.
+  - **A seed 0 (ψ6 ≈ 0.72 group):**
+    - the right compartment turned at about 4e4 (global 0.05–0.14 from 4e4 to 6e4);
+    - the left followed by 7e4;
+    - from then on both are at 30°, and the global ψ6 is 0.71–0.77.
+  - **B seeds 0 and 1:** both compartments stay at the 30° orientation throughout; the angle between them is within ±1.4°.
+  - **Z per compartment in the last tenth** (the existing virial blocks, all 12 runs):
+    - A seeds 1, 3 and 4: one compartment has Z 14.32–14.34 and the other 13.29.
+    - A's other seeds and every B run: both compartments are in 13.29–13.82.
+    - The compartment at 14.33 in A seed 1 is the one still at 0°.
+- **[INFERENCE]**
+  - The ψ6 ≈ 0.06 state is neither a fluid nor a polycrystal inside a compartment. It is one compartment still in M4's 0° lattice, next to one that turned to the 30° orientation.
+    - The 0° compartment has Z ≈ 14.33, close to A's first tenth (14.28). The turned one has Z ≈ 13.29.
+    - Their ψ6 cancel in the global value.
+  - P4a's two A groups would then be the same process at different stages: each compartment turns from 0° to 30° at its own time.
+  - In this box (200 disks, 10.6 × 20 σ per compartment), the 30° orientation has the lower pressure, and the compressed start lands in it directly.
+  - Snapshots exist only for seeds 0 and 1. For seeds 3 and 4 the orientation is inferred from Z alone.
+
+**Decisions.**
+1. **The rerun's command** is built as `p3a_evidence.py` built it: P1's command patched by `stageH_evidence.patch`, plus `--gen3-virial-blocks=50`. The dump flag is an output only, and the 100 identical blocks show it changed nothing.
+2. **The segment statistics** are those of part 3a's table: plain block means, with SEs from the block scatter. The 2500-σ-time segments are blocks 50j to 50j + 49.
+3. **The gaps** are measured in the dump's px, with σ = 2 × radius = 24 px. Disk–disk gaps count only pairs inside one compartment. The divider is a slab of 1.2 px centred at 480 px.
+4. **The addition** uses the code's ψ6 definition (neighbours within 1.4 σ, all disks). Its global value equals the ψ6(t) file's row at every time printed (every 1e4 σ-time), to the 4th decimal; one row differs by 1 in the 4th decimal, a rounding.
+
+**Commits:** engine-gen3 `bbaf904` (the scripts before the runs, with the P5 scripts; self-tests PASS) and `c7550f6` (the evidence and outputs). The rerun's ψ6(t) file, trace and log are not committed: their SHA-256 are in `D16_SHA256_FILES.txt`, and every `[EDMD3` line is in `D16_RUN_RECORDS.txt`.
+
+**The outputs, verbatim.**
+
+`d16_outlier_tables_output.txt`:
+
+```
+# Item 2a (261012 sec. 4.7.37; decision 16): the part-3a outlier pi/8 seed 1, the hold extended to 2e4 sigma-time -- printed by experiments_gen3_d16_261010/d16_outlier_tables.py; information, no verdict
+
+## 0. Inventory
+
+exit 0; builds 1; run records 1; clean=1; build "5d19aa7" target mac-O3-e0pre; hash cd40e9d4d4d3cf5a; t_end 480024.007152915; run_s 19.214
+
+## 1. The first 100 hold virial blocks against the original run's
+
+original: 100 hold blocks; this run: 400 hold blocks; header identical: True
+rows byte-identical: 100 of 100 -- IDENTICAL
+
+## 2. d = Z_L - Z_R per 2500 sigma-time segment (50 blocks of 50 sigma-time each); SE from the block scatter (as part 3a)
+
+| segment | sigma-time | blocks | Z_L (SE) | Z_R (SE) | d = Z_L - Z_R (SE) | d / SE | pair collisions L | pair collisions R | R - L |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | [0, 2500) | 50 | 2.82262 (0.00177) | 2.81649 (0.00155) | +0.00613 (0.00235) | +2.60 | 1028729 | 1026154 | -2575 |
+| 2 | [2500, 5000) | 50 | 2.82462 (0.00214) | 2.81593 (0.00195) | +0.00869 (0.00290) | +3.00 | 1028933 | 1025728 | -3205 |
+| 3 | [5000, 7500) | 50 | 2.81913 (0.00200) | 2.82202 (0.00189) | -0.00289 (0.00275) | -1.05 | 1027484 | 1027226 | -258 |
+| 4 | [7500, 10000) | 50 | 2.82189 (0.00213) | 2.82333 (0.00203) | -0.00143 (0.00294) | -0.49 | 1028102 | 1028361 | +259 |
+| 5 | [10000, 12500) | 50 | 2.81685 (0.00173) | 2.81990 (0.00201) | -0.00304 (0.00265) | -1.15 | 1026601 | 1027015 | +414 |
+| 6 | [12500, 15000) | 50 | 2.82201 (0.00212) | 2.82067 (0.00225) | +0.00134 (0.00309) | +0.43 | 1028831 | 1027891 | -940 |
+| 7 | [15000, 17500) | 50 | 2.82369 (0.00204) | 2.82296 (0.00175) | +0.00073 (0.00268) | +0.27 | 1029055 | 1029331 | +276 |
+| 8 | [17500, 20000) | 50 | 2.82112 (0.00202) | 2.81895 (0.00189) | +0.00217 (0.00277) | +0.78 | 1028311 | 1027363 | -948 |
+| [0, 5000) -- the original's span | [0, 5000) | 100 | 2.82362 (0.00139) | 2.81621 (0.00124) | +0.00741 (0.00186) | +3.98 | 2057662 | 2051882 | -5780 |
+| [0, 2e4) -- the whole hold | [0, 20000) | 400 | 2.82149 (0.00071) | 2.82003 (0.00069) | +0.00146 (0.00099) | +1.48 | 8226046 | 8219069 | -6977 |
+
+the 8 segment values of d: mean +0.00146, SD 0.00419, SD / sqrt(8) 0.00148
+
+## 3. The initial state per compartment (--gen3-dump-initial; px, sigma = 2 x radius = 24 px)
+
+box 960 x 480 px (40 x 20 sigma); divider centre 480 px, thickness 1.2 px; N 400, N_L (header) 200
+
+| compartment | N | KE (dump) | KE (first virial block) | momentum x | momentum y | smallest disk-disk gap [px] ([sigma]) | smallest disk-wall gap [px] ([sigma]), wall | smallest disk-divider gap [px] ([sigma]) | disk centres x from / to [px] |
+|---|---|---|---|---|---|---|---|---|---|
+| L | 200 | 200 | 200 | -1.386044e-15 | -6.919812e-15 | 6.1215 (0.255062) | 2.83949 (0.118312), bottom (y = 0) | 3.36497 (0.140207) | 15.5286 / 464.035 |
+| R | 200 | 200 | 200 | +5.337744e-15 | +1.292629e-14 | 6.04867 (0.252028) | 2.98393 (0.12433), outer right (x = boxW) | 3.28733 (0.136972) | 495.887 / 945.016 |
+
+the lattice form (run header [EDMD3-RUN]):
+  left:  [orient parallel rows equal n_s 25 n_r 8 a_s 18.5177829 a_r 59.3369054 g 5.48660467 s 10.9732093 n_vac 0 jitter 2.74330233 px]
+  right: [orient parallel rows equal n_s 25 n_r 8 a_s 18.5177829 a_r 59.3369054 g 5.48660467 s 10.9732093 n_vac 0 jitter 2.74330233 px]
+
+(Information only; no verdict, no interpretation.)
+```
+
+`d16_p4a_local_psi6_output.txt`:
+
+```
+# Item 2b (261012 sec. 4.7.37; decision 16): P4a's local psi6 and mean neighbour number in the last tenth of the hold -- printed by experiments_gen3_d16_261010/d16_p4a_local_psi6.py from the existing psi6(t) files; information, no verdict, no runs
+
+cell N400_eta0.740 (N = 400, H = 20, eta 0.740, the divider held 1e5 sigma-time); the hold rows with 90000 <= t < 100000 sigma-time; neighbours within 1.4 sigma
+
+| group | start | seed | rows | psi6 global | psi6 local | mean neighbours |
+|---|---|---|---|---|---|---|
+| A, ending at psi6 ~ 0.06 | A | 1 | 10000 | 0.0587 | 0.8768 | 5.4492 |
+| A, ending at psi6 ~ 0.06 | A | 3 | 10000 | 0.0580 | 0.8772 | 5.4490 |
+| A, ending at psi6 ~ 0.06 | A | 4 | 10000 | 0.0570 | 0.8775 | 5.4492 |
+| A, ending at psi6 ~ 0.72 | A | 0 | 10000 | 0.7289 | 0.8604 | 5.4883 |
+| A, ending at psi6 ~ 0.72 | A | 2 | 10000 | 0.7168 | 0.8502 | 5.4523 |
+| A, ending at psi6 ~ 0.72 | A | 5 | 10000 | 0.7416 | 0.8553 | 5.4667 |
+| B (compressed start) | B | 0 | 10000 | 0.7473 | 0.8631 | 5.4930 |
+| B (compressed start) | B | 1 | 10000 | 0.7185 | 0.8577 | 5.4826 |
+| B (compressed start) | B | 2 | 10000 | 0.7166 | 0.8467 | 5.4488 |
+| B (compressed start) | B | 3 | 10000 | 0.7086 | 0.8514 | 5.4658 |
+| B (compressed start) | B | 4 | 10000 | 0.7228 | 0.8487 | 5.4511 |
+| B (compressed start) | B | 5 | 10000 | 0.7292 | 0.8600 | 5.4862 |
+
+### Group means (SE over the group's seeds)
+
+| group | seeds | psi6 global | psi6 local | mean neighbours |
+|---|---|---|---|---|
+| A, ending at psi6 ~ 0.06 | 3 | 0.0579 (0.0005) | 0.8772 (0.0002) | 5.4491 (0.0001) |
+| A, ending at psi6 ~ 0.72 | 3 | 0.7291 (0.0072) | 0.8553 (0.0030) | 5.4691 (0.0105) |
+| B (compressed start) | 6 | 0.7238 (0.0055) | 0.8546 (0.0027) | 5.4713 (0.0077) |
+
+(Information only; no verdict.)
+```
+
+`d16_p4a_snapshot_psi6_output.txt` (the addition):
+
+```
+# Item 2b, an addition (261012 sec. 4.7.37; decision 16; not ordered): psi6 per compartment from P4a's existing snapshots -- printed by experiments_gen3_d16_261010/d16_p4a_snapshot_psi6.py; information, no verdict, no runs
+
+cell N400_eta0.740; neighbours within 1.4 sigma (all disks, as the code); the snapshots every 2000 sigma-time, shown every 1e4
+
+| start | seed | group | t [sigma-time] | N_L / N_R | abs(Psi_L) | abs(Psi_R) | orientation L [deg] | orientation R [deg] | angle L vs R [deg] | global abs(psi6) (snapshot) | global (psi6(t) file) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| A | 1 | ends at ~ 0.06 | 0 | 200 / 200 | 0.9961 | 0.9959 | +0.0 | -0.0 | +0.0 | 0.9960 | 0.9960 |
+| A | 1 | ends at ~ 0.06 | 10000 | 200 / 200 | 0.8702 | 0.8616 | +0.2 | -0.1 | +0.3 | 0.8658 | 0.8658 |
+| A | 1 | ends at ~ 0.06 | 20000 | 200 / 200 | 0.8079 | 0.8816 | -0.2 | +0.4 | -0.6 | 0.8443 | 0.8443 |
+| A | 1 | ends at ~ 0.06 | 30000 | 200 / 200 | 0.8888 | 0.8608 | -0.1 | +0.3 | -0.4 | 0.8746 | 0.8746 |
+| A | 1 | ends at ~ 0.06 | 40000 | 200 / 200 | 0.8110 | 0.8474 | -0.4 | -0.2 | -0.2 | 0.8291 | 0.8291 |
+| A | 1 | ends at ~ 0.06 | 50000 | 200 / 200 | 0.7828 | 0.8428 | +28.9 | -0.4 | +29.3 | 0.0420 | 0.0420 |
+| A | 1 | ends at ~ 0.06 | 60000 | 200 / 200 | 0.6392 | 0.8694 | +29.7 | -0.6 | -29.8 | 0.1154 | 0.1154 |
+| A | 1 | ends at ~ 0.06 | 70000 | 200 / 200 | 0.7853 | 0.8313 | +29.9 | +0.1 | +29.8 | 0.0242 | 0.0242 |
+| A | 1 | ends at ~ 0.06 | 80000 | 200 / 200 | 0.8054 | 0.8512 | +29.7 | +0.5 | +29.2 | 0.0403 | 0.0403 |
+| A | 1 | ends at ~ 0.06 | 90000 | 200 / 200 | 0.6523 | 0.8434 | +30.0 | -0.2 | -29.8 | 0.0959 | 0.0959 |
+| A | 1 | ends at ~ 0.06 | 100000 | 200 / 200 | 0.7561 | 0.8175 | +29.8 | -0.3 | -29.9 | 0.0308 | 0.0308 |
+| A | 0 | ends at ~ 0.72 | 0 | 200 / 200 | 0.9962 | 0.9960 | -0.0 | -0.0 | -0.0 | 0.9961 | 0.9961 |
+| A | 0 | ends at ~ 0.72 | 10000 | 200 / 200 | 0.8376 | 0.8615 | -0.1 | +0.3 | -0.4 | 0.8494 | 0.8494 |
+| A | 0 | ends at ~ 0.72 | 20000 | 200 / 200 | 0.8626 | 0.8277 | -0.2 | +0.4 | -0.6 | 0.8447 | 0.8447 |
+| A | 0 | ends at ~ 0.72 | 30000 | 200 / 200 | 0.8615 | 0.8336 | -0.3 | +0.0 | -0.3 | 0.8474 | 0.8474 |
+| A | 0 | ends at ~ 0.72 | 40000 | 200 / 200 | 0.8533 | 0.7379 | +0.2 | +29.7 | -29.4 | 0.0625 | 0.0625 |
+| A | 0 | ends at ~ 0.72 | 50000 | 200 / 200 | 0.8663 | 0.7721 | -0.1 | +29.4 | -29.5 | 0.0520 | 0.0520 |
+| A | 0 | ends at ~ 0.72 | 60000 | 200 / 200 | 0.8430 | 0.5827 | -0.2 | -29.2 | +29.0 | 0.1351 | 0.1351 |
+| A | 0 | ends at ~ 0.72 | 70000 | 200 / 200 | 0.6819 | 0.7846 | -29.7 | +29.9 | +0.3 | 0.7332 | 0.7332 |
+| A | 0 | ends at ~ 0.72 | 80000 | 200 / 200 | 0.6149 | 0.8018 | +29.6 | +29.9 | -0.4 | 0.7082 | 0.7082 |
+| A | 0 | ends at ~ 0.72 | 90000 | 200 / 200 | 0.6970 | 0.8470 | -29.3 | -29.5 | +0.2 | 0.7720 | 0.7720 |
+| A | 0 | ends at ~ 0.72 | 100000 | 200 / 200 | 0.7024 | 0.7431 | +29.6 | -29.0 | -1.4 | 0.7208 | 0.7208 |
+| B | 0 | compressed start | 0 | 200 / 200 | 0.7245 | 0.7800 | +29.2 | -29.5 | -1.4 | 0.7503 | 0.7503 |
+| B | 0 | compressed start | 10000 | 200 / 200 | 0.7582 | 0.7109 | -28.6 | -30.0 | +1.3 | 0.7328 | 0.7328 |
+| B | 0 | compressed start | 20000 | 200 / 200 | 0.6667 | 0.7070 | +29.7 | -29.6 | -0.7 | 0.6864 | 0.6865 |
+| B | 0 | compressed start | 30000 | 200 / 200 | 0.6585 | 0.6986 | -30.0 | +29.8 | +0.2 | 0.6785 | 0.6785 |
+| B | 0 | compressed start | 40000 | 200 / 200 | 0.4649 | 0.6895 | -28.7 | -29.8 | +1.0 | 0.5764 | 0.5764 |
+| B | 0 | compressed start | 50000 | 200 / 200 | 0.7364 | 0.8237 | -29.9 | +29.2 | +0.9 | 0.7791 | 0.7791 |
+| B | 0 | compressed start | 60000 | 200 / 200 | 0.7561 | 0.7821 | +29.6 | +29.4 | +0.2 | 0.7690 | 0.7690 |
+| B | 0 | compressed start | 70000 | 200 / 200 | 0.7691 | 0.7406 | -29.9 | +29.3 | +0.9 | 0.7541 | 0.7541 |
+| B | 0 | compressed start | 80000 | 200 / 200 | 0.7818 | 0.7459 | -29.7 | +29.4 | +0.9 | 0.7630 | 0.7630 |
+| B | 0 | compressed start | 90000 | 200 / 200 | 0.7814 | 0.7230 | -29.7 | -29.9 | +0.1 | 0.7522 | 0.7522 |
+| B | 0 | compressed start | 100000 | 200 / 200 | 0.7496 | 0.7373 | +29.9 | -29.6 | -0.5 | 0.7432 | 0.7432 |
+| B | 1 | compressed start | 0 | 200 / 200 | 0.7423 | 0.6673 | +29.9 | -29.9 | -0.2 | 0.7048 | 0.7048 |
+| B | 1 | compressed start | 10000 | 200 / 200 | 0.7195 | 0.7239 | +29.8 | +29.4 | +0.4 | 0.7215 | 0.7215 |
+| B | 1 | compressed start | 20000 | 200 / 200 | 0.8050 | 0.7463 | +29.7 | -29.3 | -1.0 | 0.7746 | 0.7746 |
+| B | 1 | compressed start | 30000 | 200 / 200 | 0.7158 | 0.8357 | -29.3 | -29.6 | +0.3 | 0.7757 | 0.7757 |
+| B | 1 | compressed start | 40000 | 200 / 200 | 0.6908 | 0.7887 | +29.7 | -29.2 | -1.1 | 0.7385 | 0.7385 |
+| B | 1 | compressed start | 50000 | 200 / 200 | 0.7540 | 0.6067 | -29.6 | -29.2 | -0.4 | 0.6802 | 0.6802 |
+| B | 1 | compressed start | 60000 | 200 / 200 | 0.6567 | 0.7739 | -29.7 | +29.8 | +0.5 | 0.7151 | 0.7151 |
+| B | 1 | compressed start | 70000 | 200 / 200 | 0.7795 | 0.8234 | +29.8 | -29.3 | -0.9 | 0.8005 | 0.8005 |
+| B | 1 | compressed start | 80000 | 200 / 200 | 0.7471 | 0.6782 | +29.7 | -29.8 | -0.5 | 0.7124 | 0.7124 |
+| B | 1 | compressed start | 90000 | 200 / 200 | 0.6872 | 0.7379 | +29.8 | +29.6 | +0.3 | 0.7125 | 0.7125 |
+| B | 1 | compressed start | 100000 | 200 / 200 | 0.7653 | 0.7454 | -29.0 | +29.6 | +1.4 | 0.7534 | 0.7534 |
+
+### Z per compartment in the last tenth [9e4, 1e5) sigma-time (the existing virial blocks; plain block means)
+
+| start | seed | blocks | Z_L | Z_R | Z_L - Z_R | Z_global |
+|---|---|---|---|---|---|---|
+| A | 0 | 200 | 13.5045 | 13.3895 | +0.1150 | 13.4470 |
+| A | 1 | 200 | 13.2869 | 14.3378 | -1.0509 | 13.8123 |
+| A | 2 | 200 | 13.5581 | 13.2916 | +0.2665 | 13.4249 |
+| A | 3 | 200 | 14.3265 | 13.2924 | +1.0341 | 13.8095 |
+| A | 4 | 200 | 14.3157 | 13.2882 | +1.0275 | 13.8019 |
+| A | 5 | 200 | 13.2887 | 13.3129 | -0.0242 | 13.3008 |
+| B | 0 | 200 | 13.3922 | 13.3921 | +0.0000 | 13.3922 |
+| B | 1 | 200 | 13.5897 | 13.5179 | +0.0718 | 13.5538 |
+| B | 2 | 200 | 13.5965 | 13.5835 | +0.0130 | 13.5900 |
+| B | 3 | 200 | 13.8212 | 13.2894 | +0.5318 | 13.5553 |
+| B | 4 | 200 | 13.4572 | 13.2948 | +0.1624 | 13.3760 |
+| B | 5 | 200 | 13.3917 | 13.4570 | -0.0653 | 13.4244 |
+
+(Information only; no verdict.)
+```
