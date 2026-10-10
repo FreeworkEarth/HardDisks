@@ -1,0 +1,4 @@
+selftest Z window: (13.50099000000014, 14.000000000000002) (direct 13.500990000000, 14): ok
+selftest psi columns (+-29.5 alternating -> +-30 mod 60; +-0.5 -> 0): ((0.8, 30.0), (0.6, 0.0)): ok
+selftest groups: (1.55, 0.8999999999999999) (cut 1.55, gap 0.9): ok
+SELFTEST PASS
