@@ -1,0 +1,60 @@
+# The files the KOA runsheet's steps execute or read: gate commit a643bc7 against the runsheet's commit f8e763e (261012 sec. 4.7.33), printed by hspist3/cluster/gen3_koa_261009/koa_files_check.py
+
+| file | step | runs on | role (first reference) | blob in a643bc7 | blob in f8e763e | same | on KOA (sparse checkout) |
+|---|---|---|---|---|---|---|---|
+| hspist3/00ALLINONE.c | 2 | KOA | compiled (make) | 702e6e2a75735fd25c165d7fd26a3ac8309bcfab | 702e6e2a75735fd25c165d7fd26a3ac8309bcfab | yes | yes |
+| hspist3/Makefile | 2 | KOA | read (make) | 80072e9175eb29fe0d1eff8a8cb89c9f586f111c | 80072e9175eb29fe0d1eff8a8cb89c9f586f111c | yes | yes |
+| hspist3/cluster/gen3_koa_261009/build_gen3_koa.sh | 2 | KOA | executed (bash) | a1b9de2236eae3f40170146287318323d2b229ec | a1b9de2236eae3f40170146287318323d2b229ec | yes | yes |
+| hspist3/cluster/koa_env.sh | 2, 3, 4, 5 | KOA | sourced | 7527c11ac7b0a232cec847d7a3b96f82cd358b74 | 7527c11ac7b0a232cec847d7a3b96f82cd358b74 | yes | yes |
+| hspist3/edmd_core/edmd.c | 2 | KOA | compiled (make) | b9921b0f1e48e3d1b13c9902d513a1f49061261c | b9921b0f1e48e3d1b13c9902d513a1f49061261c | yes | yes |
+| hspist3/edmd_core/edmd.h | 2 | KOA | compiled (#include) | 4ccd5da0287701f150209677422ab55c01de30ae | 4ccd5da0287701f150209677422ab55c01de30ae | yes | yes |
+| hspist3/edmd_core/edmd_accelerated.c | 2 | KOA | compiled (make) | fc0c85ee348c240968862960324e0fc970742801 | fc0c85ee348c240968862960324e0fc970742801 | yes | yes |
+| hspist3/edmd_core/edmd_accelerated.h | 2 | KOA | compiled (#include) | 0a5e853755ff1530c3d5cf84008dca5a0e12e036 | 0a5e853755ff1530c3d5cf84008dca5a0e12e036 | yes | yes |
+| hspist3/edmd_core/edmd_gen3.c | 2 | KOA | compiled (make) | 1119d0be35cc7b7c93ae66d68a6d27cbdfb8ff79 | 1119d0be35cc7b7c93ae66d68a6d27cbdfb8ff79 | yes | yes |
+| hspist3/edmd_core/edmd_gen3.h | 2 | KOA | compiled (#include) | f8d63559e1ddac572a312277453cfb6e82e836bc | f8d63559e1ddac572a312277453cfb6e82e836bc | yes | yes |
+| hspist3/edmd_core/tests/gen3_m1_harness.c | 2 | KOA | compiled | 96a02cea13992dc42b29e7f9b07958d451bae655 | 96a02cea13992dc42b29e7f9b07958d451bae655 | yes | yes |
+| hspist3/edmd_core/tests/gen3_m2_harness.c | 2 | KOA | compiled | 3d3ebc352e0885764d4bb574d7d8e1f7e16210f0 | 3d3ebc352e0885764d4bb574d7d8e1f7e16210f0 | yes | yes |
+| hspist3/edmd_core/tests/gen3_state_io.h | 2 | KOA | compiled (#include) | 17ea666aa1526e2a124e70f1f3810da7cb8b853c | 17ea666aa1526e2a124e70f1f3810da7cb8b853c | yes | yes |
+| hspist3/experiment_validation.c | 2 | KOA | compiled (make) | 47c7af990215446980c1884fb423f9b9c02e31cc | 47c7af990215446980c1884fb423f9b9c02e31cc | yes | yes |
+| hspist3/experiment_validation.h | 2 | KOA | compiled (#include) | c5328646f3571d02dee4008c5e6d1c8605be97e9 | c5328646f3571d02dee4008c5e6d1c8605be97e9 | yes | yes |
+| hspist3/kissfft/kiss_fft.c | 2 | KOA | compiled (make) | (the separate kissfft clone, febd4ca) | (the separate kissfft clone, febd4ca) | yes | yes |
+| hspist3/kissfft/kiss_fftr.c | 2 | KOA | compiled (make) | (the separate kissfft clone, febd4ca) | (the separate kissfft clone, febd4ca) | yes | yes |
+| hspist3/cluster/gen3_koa_261009/g3_gate_koa.sbatch | 3 | KOA | executed (sbatch) | e37cecbda033b8d9b49c018306dd8ecb4177483d | e37cecbda033b8d9b49c018306dd8ecb4177483d | yes | yes |
+| hspist3/cluster/gen3_koa_261009/g3_rate_ld_koa.py | 3 | KOA | executed (python3) | 92ce19fe8b138103e209f0f7d6ea441e1e6e6146 | 92ce19fe8b138103e209f0f7d6ea441e1e6e6146 | yes | yes |
+| hspist3/cluster/resched_gate_261005/audit_runs_261007.py | 3 | KOA | executed (python3) | de450260f18980da68519ae74ffa294f2eac9908 | de450260f18980da68519ae74ffa294f2eac9908 | yes | yes |
+| hspist3/plot_speed_of_sound_edmd.py | 3, 6, ext | KOA, Mac | imported | 19685b4349d4f9e9aea77520e01768e5b159532c | 19685b4349d4f9e9aea77520e01768e5b159532c | yes | yes |
+| hspist3/validation/edmd3_health_guard.py | 3, 6, ext | KOA, Mac | imported | c7ae6fe7b4d23e0bdb7093d03f261e557ae4ac91 | c7ae6fe7b4d23e0bdb7093d03f261e557ae4ac91 | yes | yes |
+| hspist3/validation/edmd_acc_guard.py | 3, 6, ext | KOA, Mac | imported | 8c1c754538114a1cb01c0291a49daff86f96ac5e | 8c1c754538114a1cb01c0291a49daff86f96ac5e | yes | yes |
+| hspist3/validation/paper1_populate_cs_err_20261002.py | 3, 6 | KOA, Mac | imported | bb5f3783aa2c5451bc54f969ac0bc895af1d1227 | bb5f3783aa2c5451bc54f969ac0bc895af1d1227 | yes | yes |
+| hspist3/validation/provenance_edmd_acc_261009.py | 3, 6, ext | KOA, Mac | imported | b4892cefbb0f4a6f504236f47e5e792f8e592e60 | b4892cefbb0f4a6f504236f47e5e792f8e592e60 | yes | yes |
+| hspist3/validation/resched_audit_bruteforce_261007.py | 3 | KOA | imported | 254eebcafb5e0aacce24a4496535f1c68c565ad8 | 254eebcafb5e0aacce24a4496535f1c68c565ad8 | yes | yes |
+| hspist3/validation/tests_20260913.py | 3, 6, ext | KOA, Mac | imported | dd5544f4ccecdb412efabcb819ddd15216643aaa | dd5544f4ccecdb412efabcb819ddd15216643aaa | yes | yes |
+| hspist3/cluster/gen3_koa_261009/g3_det_xnode.sbatch | 4 | KOA | executed (sbatch) | 2f4da7d59b019dd45c1b321e8253b4bee4b4f47f | 2f4da7d59b019dd45c1b321e8253b4bee4b4f47f | yes | yes |
+| hspist3/cluster/gen3_koa_261009/g3_xnode_compare.py | 4 | KOA | executed (python3) | f3012fb4ec56b1f2a865ad2e7ec4fec20b388f63 | f3012fb4ec56b1f2a865ad2e7ec4fec20b388f63 | yes | yes |
+| hspist3/cluster/gen3_koa_261009/g3_xnode_compare.sbatch | 4 | KOA | executed (sbatch) | 28d357d2ea9dee6b37f163eb26a345265a0a6f95 | 28d357d2ea9dee6b37f163eb26a345265a0a6f95 | yes | yes |
+| hspist3/cluster/confinement_20261013/reduce_AF.py | 5 | KOA | executed (python3) | 5675de04867ee967fe49f9bc76c567b9b947300a | 5675de04867ee967fe49f9bc76c567b9b947300a | yes | yes |
+| hspist3/cluster/gen3_koa_261009/af_stream_reduce.py | 5 | KOA | executed (python3) -- testG_worker_koa.sh calls it only on the FIFO path (KEEP_EV unset); testG_koa.sbatch sets KEEP_EV=1 for every AF line, so KOA never runs it (the Mac's copy is cluster/gen3_gate_261009/af_stream_reduce.py) | **missing** | **missing** | yes | yes |
+| hspist3/cluster/gen3_koa_261009/merge_testG_koa.py | 5 | KOA | executed (python3) | 2af3e7f259f669f0ac49ce72431b213eb90b3fd7 | 2af3e7f259f669f0ac49ce72431b213eb90b3fd7 | yes | yes |
+| hspist3/cluster/gen3_koa_261009/merge_testG_koa.sbatch | 5 | KOA | executed (sbatch) | fd8efb6086c3590e5e03e6879985b215991cf5cf | fd8efb6086c3590e5e03e6879985b215991cf5cf | yes | yes |
+| hspist3/cluster/gen3_koa_261009/tasks_testG_koa_261009.sha256 | 5 | KOA | read | 0437e9cfd4e74d6a2028438fcbf82882fc74f3e0 | 0437e9cfd4e74d6a2028438fcbf82882fc74f3e0 | yes | yes |
+| hspist3/cluster/gen3_koa_261009/tasks_testG_koa_261009.txt | 5, 6 | KOA, Mac | read | 7d9da34a6b6a03bfc18222848aa00206fd6b4a47 | 7d9da34a6b6a03bfc18222848aa00206fd6b4a47 | yes | yes |
+| hspist3/cluster/gen3_koa_261009/testG_koa.sbatch | 5 | KOA | executed (sbatch) | d2e0afce3499e23f0e8b00c9b78ecd9fcc255e84 | d2e0afce3499e23f0e8b00c9b78ecd9fcc255e84 | yes | yes |
+| hspist3/cluster/gen3_koa_261009/testG_worker_koa.sh | 5 | KOA | executed (bash) | 3e4fd3800edaec05fa3bdd4a611f9d71f0c95f75 | 3e4fd3800edaec05fa3bdd4a611f9d71f0c95f75 | yes | yes |
+| hspist3/cluster/confinement_20261013/tasks_B_epi8_H_H10_L10.txt | 6, ext | Mac | read (by name) | 69b788a7479bb13a7bafd44a5189aadef0235fd8 | 69b788a7479bb13a7bafd44a5189aadef0235fd8 | yes | yes |
+| hspist3/cluster/gen3_gate_261009/gen_testG_261009.py | 6, ext | Mac | imported | e9d68328a48a8b76c9aff6394f59e7f13ddd1a2c | e9d68328a48a8b76c9aff6394f59e7f13ddd1a2c | yes | yes |
+| hspist3/cluster/gen3_koa_261009/fetch_gen3_koa.sh | 6 | Mac | executed (bash) | ca5a4ba7e28d1923697a3cf022f727b7343e2a0c | ca5a4ba7e28d1923697a3cf022f727b7343e2a0c | yes | yes |
+| hspist3/cluster/gen3_koa_261009/testG_koa_verdict_261009.py | 6 | Mac | executed (python3) | f8a37f4956ad7cc00e1d06f4e848783d57da9de4 | 4bc8ee4ce2b5e7a48c5fac5a379b33e57bb715f3 | **NO** | yes |
+| hspist3/cluster/resched_gate_261005/gen_testTprime_261007.py | 6 | Mac | imported | ae1f60648456aeb1cfd58602cccf3c9a4c66cba1 | ae1f60648456aeb1cfd58602cccf3c9a4c66cba1 | yes | yes |
+| hspist3/validation/paper1_confinement_prereg_20261012.py | 6 | Mac | imported | 489ed935fb28076266f84a55fd144d84baf3b543 | 489ed935fb28076266f84a55fd144d84baf3b543 | yes | yes |
+| hspist3/validation/paper1_confinement_results_261004.py | 6 | Mac | imported | c42b13e869b93b37c3919807a00c02913ea47c6e | c42b13e869b93b37c3919807a00c02913ea47c6e | yes | yes |
+| hspist3/validation/resched_testT_261007.py | 6 | Mac | imported | c336b9d0e54f7c835e81dd58620443036b6abf41 | c336b9d0e54f7c835e81dd58620443036b6abf41 | yes | yes |
+| hspist3/validation/resched_testT_followup_261007.py | 6 | Mac | imported | 4c077b5bd11612e1d6652d05b10b9b6bbb567c3e | 4c077b5bd11612e1d6652d05b10b9b6bbb567c3e | yes | yes |
+| hspist3/validation/resched_testTprime_261007.py | 6 | Mac | imported | 2d1124ba88fb6a23f69df26b5c1982ce98e5865b | 2d1124ba88fb6a23f69df26b5c1982ce98e5865b | yes | yes |
+| hspist3/validation/testG_verdict_261009.py | 6 | Mac | imported | 97cf592896c9cff1c01a1297bfcdfd9450935c7d | 97cf592896c9cff1c01a1297bfcdfd9450935c7d | yes | yes |
+| hspist3/cluster/gen3_koa_261009/runsheet_gen3_koa_261009.txt | all | Mac | read by Chris | 708ed048aba5308d327af9d31f3ac4f835f8d32c | ea026c401d6035c0c2b62ea7484bccc7c5d9ee42 | **NO** | yes |
+| hspist3/cluster/gen3_koa_261009/gen_testG_koa_261009.py | ext | Mac | executed (python3; only if the verdict asks for an extension) | 3213701da049913098ca29d5d69077d94381febe | 3213701da049913098ca29d5d69077d94381febe | yes | yes |
+
+the gitlink hspist3/kissfft: a643bc7 febd4caeed32e33ad8b2e0bb5ea77542c40f18ec; f8e763e febd4caeed32e33ad8b2e0bb5ea77542c40f18ec (step 1 clones kissfft separately at febd4caeed32e33ad8b2e0bb5ea77542c40f18ec)
+
+files traced: 51; differing between a643bc7 and f8e763e: 2 (hspist3/cluster/gen3_koa_261009/testG_koa_verdict_261009.py [Mac]; hspist3/cluster/gen3_koa_261009/runsheet_gen3_koa_261009.txt [Mac]); missing in a643bc7: 1 (hspist3/cluster/gen3_koa_261009/af_stream_reduce.py [KOA]); used on KOA but outside the sparse checkout: none; unresolved references: none
+VERDICT (information): every file the KOA steps execute or read is present in a643bc7, identical in f8e763e and inside the sparse checkout: YES -- KOA builds a643bc7 as the runsheet says; the files that differ are read or run on the Mac only
