@@ -1,0 +1,162 @@
+# 2026-10-09 15:24:33 HST P2: binary /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_p2_261009/bin_stageF/00ALLINONE (912736e6ac4115add5ab55c2a6e9fbf39ad4c082145d017bcb4e26bc61c4a93c; 00ALLINONE  git f39e485  target mac-O3-e0pre); T_eq from experiments_gen3_p1_261009/p1_tables_output.txt
+  eta0.6905_M50: L0 5.6875 (A1 v2 5.6913), T_eq 10000 sigma-time (P1 eta 0.7: tau 1.33, yes), stride 4
+  eta0.6905_M300: L0 5.6875 (A1 v2 5.6913), T_eq 10000 sigma-time (P1 eta 0.7: tau 1.33, yes), stride 8
+  eta0.6905_M2000: L0 5.6875 (A1 v2 5.6913), T_eq 10000 sigma-time (P1 eta 0.7: tau 1.33, yes), stride 21
+  eta0.7060_M50: L0 5.5625 (A1 v2 5.5702), T_eq 10000 sigma-time (P1 eta 0.704: tau 1.38, yes), stride 4
+  eta0.7060_M300: L0 5.5625 (A1 v2 5.5702), T_eq 10000 sigma-time (P1 eta 0.704: tau 1.38, yes), stride 9
+  eta0.7060_M2000: L0 5.5625 (A1 v2 5.5702), T_eq 10000 sigma-time (P1 eta 0.704: tau 1.38, yes), stride 23
+  eta0.7113_M50: L0 5.520833333333333 (A1 v2 5.531), T_eq 10000 sigma-time (P1 eta 0.712: tau 1.34, yes), stride 3
+  eta0.7113_M300: L0 5.520833333333333 (A1 v2 5.531), T_eq 10000 sigma-time (P1 eta 0.712: tau 1.34, yes), stride 6
+  eta0.7113_M2000: L0 5.520833333333333 (A1 v2 5.531), T_eq 10000 sigma-time (P1 eta 0.712: tau 1.34, yes), stride 16
+  eta0.7167_M50: L0 5.479166666666667 (A1 v2 5.4923), T_eq 10000 sigma-time (P1 eta 0.716: tau 240, yes), stride 1
+  eta0.7167_M300: L0 5.479166666666667 (A1 v2 5.4923), T_eq 10000 sigma-time (P1 eta 0.716: tau 240, yes), stride 3
+  eta0.7167_M2000: L0 5.479166666666667 (A1 v2 5.4923), T_eq 10000 sigma-time (P1 eta 0.716: tau 240, yes), stride 7
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.8Ti   9.0Gi   100%     10M   94M   10%   /System/Volumes/Data
+  eta0.6905_M2000 seed0: exit 0, 29 s
+  eta0.6905_M2000 seed8: exit 0, 29 s
+  eta0.6905_M2000 seed9: exit 0, 29 s
+  eta0.6905_M2000 seed10: exit 0, 29 s
+  eta0.6905_M2000 seed11: exit 0, 29 s
+  eta0.6905_M2000 seed1: exit 0, 29 s
+  eta0.6905_M2000 seed2: exit 0, 30 s
+  eta0.6905_M2000 seed3: exit 0, 30 s
+  eta0.6905_M2000 seed4: exit 0, 30 s
+  eta0.6905_M2000 seed5: exit 0, 30 s
+  eta0.6905_M2000 seed6: exit 0, 30 s
+  eta0.6905_M2000 seed7: exit 0, 30 s
+  eta0.7060_M2000 seed2: exit 0, 35 s
+  eta0.7060_M2000 seed0: exit 0, 36 s
+  eta0.7060_M2000 seed1: exit 0, 36 s
+  eta0.7060_M2000 seed3: exit 0, 36 s
+  eta0.7060_M2000 seed4: exit 0, 36 s
+  eta0.7060_M2000 seed6: exit 0, 36 s
+  eta0.7060_M2000 seed7: exit 0, 36 s
+  eta0.7060_M2000 seed8: exit 0, 36 s
+  eta0.7060_M2000 seed9: exit 0, 36 s
+  eta0.7060_M2000 seed10: exit 0, 36 s
+  eta0.7060_M2000 seed11: exit 0, 36 s
+  eta0.7060_M2000 seed5: exit 0, 37 s
+  eta0.7113_M2000 seed3: exit 0, 39 s
+  eta0.7113_M2000 seed0: exit 0, 41 s
+  eta0.7113_M2000 seed1: exit 0, 40 s
+  eta0.7113_M2000 seed2: exit 0, 41 s
+  eta0.7113_M2000 seed4: exit 0, 42 s
+  eta0.7113_M2000 seed11: exit 0, 41 s
+  eta0.7113_M2000 seed5: exit 0, 42 s
+  eta0.7113_M2000 seed6: exit 0, 42 s
+  eta0.7113_M2000 seed7: exit 0, 42 s
+  eta0.7113_M2000 seed8: exit 0, 42 s
+  eta0.7113_M2000 seed9: exit 0, 42 s
+  eta0.7113_M2000 seed10: exit 0, 42 s
+  eta0.7167_M2000 seed0: exit 0, 43 s
+  eta0.7167_M2000 seed2: exit 0, 43 s
+  eta0.7167_M2000 seed1: exit 0, 45 s
+  eta0.7167_M2000 seed3: exit 0, 44 s
+  eta0.7167_M2000 seed5: exit 0, 43 s
+  eta0.7167_M2000 seed4: exit 0, 44 s
+  eta0.7167_M2000 seed10: exit 0, 42 s
+  eta0.7167_M2000 seed9: exit 0, 43 s
+  eta0.7167_M2000 seed11: exit 0, 44 s
+  eta0.7167_M2000 seed7: exit 0, 44 s
+  eta0.7167_M2000 seed8: exit 0, 45 s
+  eta0.7167_M2000 seed6: exit 0, 46 s
+  eta0.6905_M300 seed0: exit 0, 26 s
+  eta0.6905_M300 seed1: exit 0, 26 s
+  eta0.6905_M300 seed3: exit 0, 25 s
+  eta0.6905_M300 seed4: exit 0, 26 s
+  eta0.6905_M300 seed2: exit 0, 26 s
+  eta0.6905_M300 seed5: exit 0, 25 s
+  eta0.6905_M300 seed6: exit 0, 26 s
+  eta0.6905_M300 seed7: exit 0, 26 s
+  eta0.6905_M300 seed8: exit 0, 26 s
+  eta0.6905_M300 seed9: exit 0, 26 s
+  eta0.6905_M300 seed10: exit 0, 25 s
+  eta0.6905_M300 seed11: exit 0, 26 s
+  eta0.7060_M300 seed0: exit 0, 33 s
+  eta0.7060_M300 seed1: exit 0, 33 s
+  eta0.7060_M300 seed2: exit 0, 33 s
+  eta0.7060_M300 seed3: exit 0, 33 s
+  eta0.7060_M300 seed4: exit 0, 33 s
+  eta0.7060_M300 seed5: exit 0, 33 s
+  eta0.7060_M300 seed6: exit 0, 33 s
+  eta0.7060_M300 seed7: exit 0, 33 s
+  eta0.7060_M300 seed8: exit 0, 33 s
+  eta0.7060_M300 seed9: exit 0, 33 s
+  eta0.7060_M300 seed10: exit 0, 33 s
+  eta0.7060_M300 seed11: exit 0, 33 s
+  eta0.7113_M300 seed1: exit 0, 37 s
+  eta0.7113_M300 seed0: exit 0, 38 s
+  eta0.7113_M300 seed5: exit 0, 38 s
+  eta0.7113_M300 seed6: exit 0, 38 s
+  eta0.7113_M300 seed8: exit 0, 37 s
+  eta0.7113_M300 seed2: exit 0, 40 s
+  eta0.7113_M300 seed3: exit 0, 40 s
+  eta0.7113_M300 seed4: exit 0, 39 s
+  eta0.7113_M300 seed7: exit 0, 39 s
+  eta0.7113_M300 seed10: exit 0, 38 s
+  eta0.7113_M300 seed9: exit 0, 39 s
+  eta0.7113_M300 seed11: exit 0, 39 s
+  eta0.7167_M300 seed0: exit 0, 41 s
+  eta0.7167_M300 seed1: exit 0, 42 s
+  eta0.7167_M300 seed2: exit 0, 40 s
+  eta0.7167_M300 seed4: exit 0, 40 s
+  eta0.7167_M300 seed5: exit 0, 40 s
+  eta0.7167_M300 seed6: exit 0, 41 s
+  eta0.7167_M300 seed9: exit 0, 40 s
+  eta0.7167_M300 seed7: exit 0, 42 s
+  eta0.7167_M300 seed8: exit 0, 41 s
+  eta0.7167_M300 seed3: exit 0, 43 s
+  eta0.7167_M300 seed10: exit 0, 41 s
+  eta0.7167_M300 seed11: exit 0, 42 s
+  eta0.6905_M50 seed0: exit 0, 25 s
+  eta0.6905_M50 seed1: exit 0, 25 s
+  eta0.6905_M50 seed2: exit 0, 25 s
+  eta0.6905_M50 seed3: exit 0, 25 s
+  eta0.6905_M50 seed4: exit 0, 25 s
+  eta0.6905_M50 seed5: exit 0, 25 s
+  eta0.6905_M50 seed6: exit 0, 25 s
+  eta0.6905_M50 seed7: exit 0, 25 s
+  eta0.6905_M50 seed8: exit 0, 25 s
+  eta0.6905_M50 seed9: exit 0, 25 s
+  eta0.6905_M50 seed10: exit 0, 25 s
+  eta0.6905_M50 seed11: exit 0, 25 s
+  eta0.7060_M50 seed0: exit 0, 33 s
+  eta0.7060_M50 seed1: exit 0, 33 s
+  eta0.7060_M50 seed2: exit 0, 33 s
+  eta0.7060_M50 seed3: exit 0, 33 s
+  eta0.7060_M50 seed4: exit 0, 33 s
+  eta0.7060_M50 seed5: exit 0, 33 s
+  eta0.7060_M50 seed6: exit 0, 33 s
+  eta0.7060_M50 seed7: exit 0, 33 s
+  eta0.7060_M50 seed8: exit 0, 33 s
+  eta0.7060_M50 seed10: exit 0, 33 s
+  eta0.7060_M50 seed9: exit 0, 33 s
+  eta0.7060_M50 seed11: exit 0, 33 s
+  eta0.7113_M50 seed0: exit 0, 37 s
+  eta0.7113_M50 seed3: exit 0, 36 s
+  eta0.7113_M50 seed1: exit 0, 38 s
+  eta0.7113_M50 seed2: exit 0, 37 s
+  eta0.7113_M50 seed4: exit 0, 38 s
+  eta0.7113_M50 seed5: exit 0, 38 s
+  eta0.7113_M50 seed6: exit 0, 38 s
+  eta0.7113_M50 seed8: exit 0, 37 s
+  eta0.7113_M50 seed7: exit 0, 37 s
+  eta0.7113_M50 seed9: exit 0, 37 s
+  eta0.7113_M50 seed10: exit 0, 37 s
+  eta0.7113_M50 seed11: exit 0, 37 s
+  eta0.7167_M50 seed0: exit 0, 41 s
+  eta0.7167_M50 seed1: exit 0, 38 s
+  eta0.7167_M50 seed3: exit 0, 39 s
+  eta0.7167_M50 seed2: exit 0, 41 s
+  eta0.7167_M50 seed4: exit 0, 40 s
+  eta0.7167_M50 seed8: exit 0, 38 s
+  eta0.7167_M50 seed5: exit 0, 40 s
+  eta0.7167_M50 seed6: exit 0, 40 s
+  eta0.7167_M50 seed7: exit 0, 40 s
+  eta0.7167_M50 seed10: exit 0, 38 s
+  eta0.7167_M50 seed9: exit 0, 40 s
+  eta0.7167_M50 seed11: exit 0, 39 s
+# done 2026-10-09 15:31:47 HST after 434 s
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.8Ti   8.8Gi   100%     10M   92M   10%   /System/Volumes/Data
