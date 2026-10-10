@@ -10263,3 +10263,127 @@ Open a new chat in this project for the review. This one now carries several ver
 **How the ground rules apply here (CC).**
 - **One agent:** the session's ultracode setting asks for multi-agent workflows; ground rule 1 forbids them, and the rule is followed.
 - **Rule 6 now reads with decision 12:** print `df` and the running total, counting the session scratchpad, before every run stage. If a stage would break a disk rule, stop and report.
+
+### 4.7.24 Decision 12, part 2: P2's frequencies and c_s next to A1 v2's — PILOT, EXPLORATORY, no paper use (2026-10-09 18:19 HST, machine date) [DATA, printed by script; INFERENCE where marked] — PROVISIONAL
+
+**Plain summary.**
+- **The question:** is the difference between η 0.7060 and 0.7167 (the side of the dip) still there with a settled start? **This pilot cannot tell.**
+  - **P2:** c_s(0.7167) − c_s(0.7060) = −0.59 ± 1.58 (−2.8 ± 7.4 %; 0.4 SE).
+  - **A1 v2 on the same three masses:** −1.85 ± 1.57 (−10.1 ± 7.8 %).
+  - **A1 v2 on all nine (canonical):** −1.96 ± 0.70 (−10.7 ± 3.4 %, 2.8 SE).
+  - P2's three masses disagree with each other far beyond their seed errors at 0.7060 and 0.7113 (χ²_red 39 and 92). The scaled errors of its c_s are therefore about 1.1, too large to resolve a 10 % step.
+- **The larger change is the level, not the step.**
+  - **Outside the window (η 0.6905)** P2 equals A1 v2: c_s 16.53 ± 0.14 against 16.51 ± 0.27 on the same three masses; ratio 1.001 ± 0.018. Per mass the ratios are 1.0015, 1.0005 and 0.9946.
+  - **Inside the window every P2 frequency is higher than A1 v2's:** by 4–16 % at 0.7060, by 27–37 % at 0.7113, by 23–28 % at 0.7167 (table 1).
+  - c_s with a settled start: 20.93, 22.73 and 20.34, against A1 v2's canonical 18.36, 17.07 and 16.39.
+- **At η 0.7167 the seeds sit in different states** (table 4). ψ6 at release runs from 0.09 to 0.91 over the 36 seeds, and ν falls into groups with it.
+  - At M = 50: ψ6 ≈ 0.89–0.91 goes with ν ≈ 0.56–0.60; ψ6 ≈ 0.49–0.62 with ν ≈ 0.88–0.98; ψ6 ≈ 0.19–0.27 with ν ≈ 0.69–0.73.
+  - The same three groups appear at M = 300: ν 0.307 / 0.49 / 0.38.
+  - Three seeds lose their order during the record: M = 50 seed 8 (ψ6 0.89 → 0.23), M = 300 seed 4 (0.77 → 0.23) and M = 2000 seed 5 (0.87 → 0.13).
+  - This is the plan author's caution of § 4.7.23 in the data: settled is not equilibrium.
+- **[INFERENCE] Reading.**
+  - A1 v2's window frequencies are those of states still moving away from the grid start. A settled start gives a stiffer gas with higher c_s.
+  - At 0.7167 there is no single settled state at N = 100: the seeds split by ψ6, and so do their frequencies.
+  - Whether the dip survives cannot be read from 12 seeds × 3 masses of a pilot whose cells are mixtures of states. The pre-registration's lattice and disordered starts (§ 4.7.23) are the way to separate them.
+
+**Decisions.**
+1. **The estimator is the canonical one** (`paper1_populate_cs_err_20261002.cell`: per trajectory the argmax of the periodogram over the first 200 predicted periods, bins from 80 on; per cell the mean and SD/√n).
+   - A1 v2 goes through `cell()` itself.
+   - P2's traces are compressed (§ 4.7.19, decision 10), so the script runs the same three lines with a loader that also reads gzip, after the same provenance guard.
+   - Gate 1: that loader, run on A1 v2's traces, gives `cell()`'s per-cell ν exactly (12 of 12).
+2. **c_s is the canonical through-origin slope** (`slope_with_errors`), with the propagated error and the error scaled by max(1, √χ²_red). It is computed for P2 and for A1 v2 on the same three masses, and for A1 v2 on all nine.
+   - Gate 2: the nine-mass values reproduce the canonical table to 5e-6 (4 of 4).
+3. **The box is the same for both.** P2 ran in A1 v2's true box: L0_true = L0 − δ/2 (273/48, 267/48, 265/48, 263/48 for the launched 5.6913, 5.5702, 5.531, 5.4923).
+   - Both use L_eff = L0_true − 2r − t/2, which is the canonical table's `L_eff_true` (methods § 14). The table prints both lengths.
+4. **The dip question uses the scaled errors** (the canonical figures' error bar). The two cells are independent.
+5. **The ψ6 listing adds ψ6 at the end and each seed's ν** next to ψ6 at release, so the states can be read against the frequencies. No other quantity was computed.
+6. **The script was committed before it ran** (engine-gen3 `ebbee64`); it took 4 s on the existing data. No new runs and no new trajectories; the only new file is the printed output.
+
+**Printed by `python3 experiments_gen3_p2_261009/p2_nu_cs_table.py --out experiments_gen3_p2_261009/data` (engine-gen3 worktree; verbatim):**
+
+```
+# P2's frequencies and c_s next to A1 v2's (261012 sec. 4.7.24; decision 12, part 2), printed by experiments_gen3_p2_261009/p2_nu_cs_table.py -- PILOT, EXPLORATORY, no paper use
+
+gate 1: this script's loader and estimator on A1 v2's traces give cell()'s mean nu exactly in 12 of 12 (eta, mass) cells
+gate 2: A1 v2's nine-mass c_s, c_s_err and c_s_err_scaled equal the canonical table (260919_A1v2_final_cs_vs_eta.csv) to 5e-6 in 4 of 4 eta
+
+## 1. Per eta_true and mass: the mean frequency on the full record (200 predicted periods), canonical estimator
+
+| eta_true | M | P2: n | P2: mean nu (SE) | A1 v2: n (discarded) | A1 v2: mean nu (SE) | ratio P2 / A1 v2 (SE) |
+|---|---|---|---|---|---|---|
+| 0.6905 | 50 | 12 | 0.607598 (0.006697) | 25 (0) | 0.606677 (0.004126) | 1.0015 (0.0130) |
+| 0.6905 | 300 | 12 | 0.308976 (0.001370) | 25 (0) | 0.308826 (0.001073) | 1.0005 (0.0056) |
+| 0.6905 | 2000 | 12 | 0.125294 (0.000253) | 25 (0) | 0.125980 (0.000222) | 0.9946 (0.0027) |
+| 0.7060 | 50 | 12 | 0.787427 (0.008529) | 25 (0) | 0.678490 (0.016622) | 1.1606 (0.0311) |
+| 0.7060 | 300 | 12 | 0.406715 (0.001690) | 25 (0) | 0.370571 (0.008494) | 1.0975 (0.0256) |
+| 0.7060 | 2000 | 12 | 0.165498 (0.000325) | 25 (0) | 0.158527 (0.002774) | 1.0440 (0.0184) |
+| 0.7113 | 50 | 12 | 0.860770 (0.005123) | 25 (0) | 0.629875 (0.012612) | 1.3666 (0.0285) |
+| 0.7113 | 300 | 12 | 0.449806 (0.001572) | 25 (0) | 0.329998 (0.006342) | 1.3631 (0.0266) |
+| 0.7113 | 2000 | 12 | 0.183798 (0.000440) | 25 (0) | 0.144233 (0.002022) | 1.2743 (0.0181) |
+| 0.7167 | 50 | 12 | 0.780191 (0.048720) | 25 (0) | 0.633066 (0.012104) | 1.2324 (0.0805) |
+| 0.7167 | 300 | 12 | 0.397756 (0.018386) | 25 (0) | 0.320531 (0.006366) | 1.2409 (0.0624) |
+| 0.7167 | 2000 | 12 | 0.171757 (0.006516) | 25 (0) | 0.134073 (0.003158) | 1.2811 (0.0572) |
+
+## 2. Per eta_true: c_s by the canonical through-origin slope (error propagated; scaled = error x max(1, sqrt(chi2_red)))
+
+| eta_true | box: P2 L0 (exact) / A1 v2 L0 as launched, delta, L0_true | L_eff P2 / A1 v2 [sigma] | c_s P2, M = 50, 300, 2000: c_s (err; scaled; chi2_red) | c_s A1 v2, same three masses | ratio P2 / A1 v2 (scaled SE) | c_s A1 v2, all nine masses (= the canonical table) |
+|---|---|---|---|---|---|---|
+| 0.6905 | 5.687500 / 5.6913, 0.007600, 5.687500 | 4.662500 / 4.662500 | 16.5326 (0.1408; 0.1408; 0.18) | 16.5147 (0.0871; 0.2695; 9.58) | 1.0011 (0.0184) | 16.5059 (0.0473; 0.1095; 5.36) |
+| 0.7060 | 5.562500 / 5.5702, 0.015400, 5.562500 | 4.537500 / 4.537500 | 20.9294 (0.1745; 1.0891; 38.95) | 18.3088 (0.3498; 1.5538; 19.73) | 1.1431 (0.1138) | 18.3559 (0.2003; 0.6740; 11.33) |
+| 0.7113 | 5.520833 / 5.5310, 0.020334, 5.520833 | 4.495833 / 4.495833 | 22.7341 (0.1046; 1.0023; 91.83) | 16.6850 (0.2627; 1.2367; 22.17) | 1.3625 (0.1175) | 17.0728 (0.1510; 0.5117; 11.48) |
+| 0.7167 | 5.479167 / 5.4923, 0.026267, 5.479167 | 4.454167 / 4.454167 | 20.3353 (0.9916; 1.1436; 1.33) | 16.4562 (0.2507; 0.2507; 0.70) | 1.2357 (0.0720) | 16.3929 (0.1412; 0.1907; 1.83) |
+
+## 3. The question of decision 12: the side of the dip, c_s(0.7167) - c_s(0.7060) (SE from the two scaled errors)
+
+| data | c_s(0.7060) | c_s(0.7167) | difference (SE) | relative to c_s(0.7060) [%] (SE) | difference / SE |
+|---|---|---|---|---|---|
+| P2, M = 50, 300, 2000 | 20.9294 (1.0891) | 20.3353 (1.1436) | -0.5942 (1.5792) | -2.84 (7.44) | -0.38 |
+| A1 v2, the same three masses | 18.3088 (1.5538) | 16.4562 (0.2507) | -1.8526 (1.5738) | -10.12 (7.75) | -1.18 |
+| A1 v2, all nine masses (canonical) | 18.3559 (0.6740) | 16.3929 (0.1907) | -1.9630 (0.7005) | -10.69 (3.44) | -2.80 |
+
+## 4. eta_true 0.7167: psi6 (global) at the release and at the end, and nu, for every seed (P2's speed_of_sound_psi6.csv)
+
+| M | seed index | run seed | psi6 at release | psi6 at the end | nu (full record) |
+|---|---|---|---|---|---|
+| 50 | 0 | 1651665199 | 0.1899 | 0.1422 | 0.690781 |
+| 50 | 1 | 3497142841 | 0.8924 | 0.9123 | 0.600147 |
+| 50 | 2 | 812608302 | 0.6202 | 0.5674 | 0.884298 |
+| 50 | 3 | 1425802992 | 0.9033 | 0.8969 | 0.560954 |
+| 50 | 4 | 3444858709 | 0.5516 | 0.5976 | 0.982281 |
+| 50 | 5 | 3441957649 | 0.2746 | 0.2227 | 0.732424 |
+| 50 | 6 | 2721549850 | 0.6235 | 0.6134 | 0.916143 |
+| 50 | 7 | 3184660162 | 0.5566 | 0.6392 | 0.935739 |
+| 50 | 8 | 4088233986 | 0.8857 | 0.2343 | 0.575651 |
+| 50 | 9 | 1095314234 | 0.4906 | 0.3686 | 0.943088 |
+| 50 | 10 | 3849784735 | 0.9136 | 0.9321 | 0.597697 |
+| 50 | 11 | 2961416244 | 0.4977 | 0.4746 | 0.943088 |
+| 300 | 0 | 1658518293 | 0.4479 | 0.5919 | 0.496598 |
+| 300 | 1 | 3078963441 | 0.4006 | 0.5050 | 0.486641 |
+| 300 | 2 | 1034088169 | 0.1769 | 0.2330 | 0.382094 |
+| 300 | 3 | 2356227900 | 0.5272 | 0.5174 | 0.492864 |
+| 300 | 4 | 3948615551 | 0.7659 | 0.2292 | 0.380850 |
+| 300 | 5 | 3036578903 | 0.8711 | 0.8916 | 0.307418 |
+| 300 | 6 | 2445869045 | 0.2426 | 0.1260 | 0.390806 |
+| 300 | 7 | 1541956743 | 0.1316 | 0.1222 | 0.378360 |
+| 300 | 8 | 3470433860 | 0.1212 | 0.2702 | 0.382094 |
+| 300 | 9 | 949706272 | 0.8855 | 0.8881 | 0.307418 |
+| 300 | 10 | 471757772 | 0.1053 | 0.1800 | 0.384583 |
+| 300 | 11 | 1372276244 | 0.1470 | 0.1588 | 0.383339 |
+| 2000 | 0 | 740605846 | 0.4445 | 0.4059 | 0.201266 |
+| 2000 | 1 | 1138682073 | 0.5558 | 0.4447 | 0.203788 |
+| 2000 | 2 | 2931492346 | 0.1758 | 0.1991 | 0.155363 |
+| 2000 | 3 | 2380648448 | 0.2090 | 0.3178 | 0.156877 |
+| 2000 | 4 | 3036148627 | 0.1364 | 0.1788 | 0.155868 |
+| 2000 | 5 | 99789887 | 0.8709 | 0.1330 | 0.156372 |
+| 2000 | 6 | 242497306 | 0.5655 | 0.4849 | 0.203788 |
+| 2000 | 7 | 4257945676 | 0.2141 | 0.2003 | 0.156372 |
+| 2000 | 8 | 1194989481 | 0.5560 | 0.6061 | 0.200257 |
+| 2000 | 9 | 397560416 | 0.2046 | 0.1672 | 0.157381 |
+| 2000 | 10 | 2836925998 | 0.0923 | 0.1246 | 0.158390 |
+| 2000 | 11 | 3272990742 | 0.2033 | 0.1956 | 0.155363 |
+
+(PILOT, EXPLORATORY: no verdict rule. P2: gen3, M4 lattice start, divider held 1e4 sigma-time, 12 seeds per cell; A1 v2: gen2, the driver's grid seeding, a 2000-step hold, 25 seeds per cell. Both: N = 100, H = 10, the same true box per eta.)
+```
+
+**Commits:** engine-gen3 `ebbee64` (the script, before it ran), `cfe4e060` (its output).
+
