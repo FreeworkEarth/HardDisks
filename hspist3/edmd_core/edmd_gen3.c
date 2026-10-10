@@ -1329,6 +1329,79 @@ long edmd3_tie_stats(const EDMD3* S, long* n_live, long* n_now){
     return tied;
 }
 
+/* ##CHRIS 2026-10-09 (stage H; 261012 sec. 4.7.12 stage H, sec. 4.7 item 6): CHECKPOINT AND RESTART AT AN EVENT BOUNDARY.
+   Between two calls of edmd3_advance_to the engine is at an event boundary: every event with t <= now has run, none is half
+   done. edmd3_checkpoint_write stores the WHOLE dynamic state there, byte for byte: the state struct (every counter, time,
+   tolerance, body, ledger, audit total, the stagnation guard and the event-hash state), every disk (local position, velocity,
+   time stamp, cell, collision counter, slot, last partner), the cell lists in their order, and the heap ARRAY as it stands
+   (live and stale events, in heap order). edmd3_checkpoint_read puts it into a state built from the same parameters
+   (edmd3_create + edmd3_load of the same run, as a restarting driver builds it); only that state's own buffers, its event-log
+   file and its copy of the parameters stay. The restarted engine is then the writer's bytes, so every later event, time,
+   hash and counter is the writer's. Why the heap is stored and not rebuilt (the design note said "rebuilt in canonical
+   order"): a live event of the writer was predicted at its own time from the states then (lazy invalidation, origin shifts
+   in between), so a rebuild from the stored states can differ in the last bits and the trajectories part. The file is for
+   the same build: a header with the struct sizes and the geometry, and a mismatch is refused. On a failed read the state
+   may be partly overwritten: the caller destroys it. */
+typedef struct {
+    char   magic[16];                         /* "edmd3-ckpt-v1" */
+    long   s_state, s_disk, s_ev, s_real;     /* sizeof EDMD3, Disk3, Ev3, real of the writer */
+    long   N, ncell, ccap, heap_n;
+    double w, boxW, boxH;
+} Ckpt3Head;
+#define CKPT3_MAGIC "edmd3-ckpt-v1"
+
+int edmd3_checkpoint_write(const EDMD3* S, FILE* f){
+    if (!S || !f) return 0;
+    Ckpt3Head h; memset(&h, 0, sizeof h);
+    memcpy(h.magic, CKPT3_MAGIC, sizeof CKPT3_MAGIC);
+    h.s_state = (long)sizeof(EDMD3); h.s_disk = (long)sizeof(Disk3); h.s_ev = (long)sizeof(Ev3); h.s_real = (long)sizeof(real);
+    h.N = S->N; h.ncell = S->ncell; h.ccap = S->ccap; h.heap_n = S->heap.n;
+    h.w = (double)S->w; h.boxW = (double)S->boxW; h.boxH = (double)S->boxH;
+    const size_t nc = (size_t)S->ncell * (size_t)S->ccap;
+    return fwrite(&h, sizeof h, 1, f) == 1 && fwrite(S, sizeof *S, 1, f) == 1
+        && fwrite(S->D, sizeof(Disk3), (size_t)S->N, f) == (size_t)S->N
+        && fwrite(S->ccount, sizeof(int), (size_t)S->ncell, f) == (size_t)S->ncell
+        && fwrite(S->cell, sizeof(int), nc, f) == nc
+        && (S->heap.n == 0 || fwrite(S->heap.d, sizeof(Ev3), (size_t)S->heap.n, f) == (size_t)S->heap.n);
+}
+
+int edmd3_checkpoint_read(EDMD3* S, FILE* f, char* err, size_t errlen){
+#define FAIL(...) do { if (err && errlen) snprintf(err, errlen, __VA_ARGS__); return 0; } while (0)
+    if (!S || !f) FAIL("edmd_gen3: checkpoint: no state or no file");
+    Ckpt3Head h;
+    if (fread(&h, sizeof h, 1, f) != 1 || memcmp(h.magic, CKPT3_MAGIC, sizeof CKPT3_MAGIC) != 0) FAIL("edmd_gen3: not a gen3 checkpoint (v1)");
+    if (h.s_state != (long)sizeof(EDMD3) || h.s_disk != (long)sizeof(Disk3) || h.s_ev != (long)sizeof(Ev3) || h.s_real != (long)sizeof(real))
+        FAIL("edmd_gen3: checkpoint of another build (struct sizes %ld %ld %ld %ld, here %ld %ld %ld %ld)", h.s_state, h.s_disk, h.s_ev,
+             h.s_real, (long)sizeof(EDMD3), (long)sizeof(Disk3), (long)sizeof(Ev3), (long)sizeof(real));
+    if (h.N != S->N || h.ncell != S->ncell || h.ccap != S->ccap || h.w != (double)S->w || h.boxW != (double)S->boxW || h.boxH != (double)S->boxH)
+        FAIL("edmd_gen3: checkpoint of another geometry (N %ld, %ld cells of capacity %ld, w %.17g, box %.17g x %.17g px)", h.N, h.ncell,
+             h.ccap, h.w, h.boxW, h.boxH);
+    EDMD3* T = (EDMD3*)malloc(sizeof *T);
+    if (!T) FAIL("edmd_gen3: out of memory (checkpoint)");
+    if (fread(T, sizeof *T, 1, f) != 1 || T->heap.n != h.heap_n || T->heap.n < 0) { free(T); FAIL("edmd_gen3: checkpoint truncated or inconsistent (state)"); }
+    /* this state's own buffers, event log and parameters stay; everything else is the writer's */
+    T->prm = S->prm;
+    T->cell = S->cell; T->ccount = S->ccount; T->D = S->D; T->out = S->out;
+    T->heap.d = S->heap.d; T->heap.cap = S->heap.cap;
+    T->alx = S->alx; T->aly = S->aly; T->acr = S->acr; T->awl = S->awl; T->acd = S->acd;
+    T->ahcap = S->ahcap; T->ahk = S->ahk; T->aht = S->aht; T->ahm = S->ahm; T->aot = S->aot; T->aob = S->aob;
+    T->evlog = S->evlog; T->evlog_tscale = S->evlog_tscale;
+    if (T->heap.cap < T->heap.n) {
+        Ev3* nd = (Ev3*)realloc(T->heap.d, (size_t)(T->heap.n + 1024) * sizeof(Ev3));
+        if (!nd) { free(T); FAIL("edmd_gen3: out of memory (checkpoint heap)"); }
+        T->heap.d = nd; T->heap.cap = T->heap.n + 1024; S->heap.d = nd; S->heap.cap = T->heap.cap;
+    }
+    const size_t nc = (size_t)T->ncell * (size_t)T->ccap;
+    if (fread(T->D, sizeof(Disk3), (size_t)T->N, f) != (size_t)T->N || fread(T->ccount, sizeof(int), (size_t)T->ncell, f) != (size_t)T->ncell
+        || fread(T->cell, sizeof(int), nc, f) != nc || (T->heap.n > 0 && fread(T->heap.d, sizeof(Ev3), (size_t)T->heap.n, f) != (size_t)T->heap.n)) {
+        free(T); FAIL("edmd_gen3: checkpoint truncated (disks, cells or heap)");
+    }
+    *S = *T;
+    free(T);
+    return 1;
+#undef FAIL
+}
+
 /* ------------------------------------------------------------------ M2: bodies, ledgers, tolerances (public) */
 
 long edmd3_contact_audit_stats4(const EDMD3* S, double max_gap_px[4]){

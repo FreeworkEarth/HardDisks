@@ -172,6 +172,12 @@ void   edmd3_set_contact_audit(EDMD3* S, int on);
 long   edmd3_contact_audit_stats(const EDMD3* S, double max_gap_px[2]);   /* [0] pairs, [1] outer walls */
 /* ##CHRIS 2026-10-09 (stage C, M4): read-only; live events, those sharing their time exactly with another, those due at once */
 long   edmd3_tie_stats(const EDMD3* S, long* n_live, long* n_now);
+/* ##CHRIS 2026-10-09 (stage H): checkpoint and restart at an event boundary (between two edmd3_advance_to calls). write: the whole
+   dynamic state, byte for byte (heap array included), for the same build; 1 on success. read: into a state created and loaded
+   from the same parameters; it keeps only its own buffers, event-log file and parameter copy; 0 on a mismatch or a short file
+   (the reason in err; the state is then unusable). */
+int    edmd3_checkpoint_write(const EDMD3* S, FILE* f);
+int    edmd3_checkpoint_read(EDMD3* S, FILE* f, char* err, size_t errlen);
 long   edmd3_contact_audit_stats4(const EDMD3* S, double max_gap_px[4]);  /* [0] pairs, [1] outer walls, [2] divider faces, [3] pistons */
 void   edmd3_set_schedule_audit(EDMD3* S, long every);                   /* after every k-th executed event; 0 off */
 void   edmd3_set_schedule_audit_bodies(EDMD3* S, int on);              /* M2: also after every BAND event and API body change */

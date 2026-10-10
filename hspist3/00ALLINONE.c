@@ -1284,6 +1284,14 @@ static int    cli_gen3_exact_box = 0;          /* --gen3-exact-box: box width 2 
 static double* cli_lengths_d = NULL;           /* --lengths read as doubles (the exact box) */
 static size_t cli_lengths_d_count = 0;
 static const char* cli_gen3_dump_initial = NULL;   /* --gen3-dump-initial=PATH: the initial state after the seeding, %a */
+/* ##CHRIS 2026-10-09 (stage H; 261012 sec. 4.7.12 stage H, sec. 4.7 item 6): checkpoint and restart of one gen3 speed-of-sound
+   trajectory at a step boundary of the driver, which is an event boundary of the engine (g3_ckpt_write, g3_restart_apply) */
+static int    cli_gen3_ckpt_phase = -1;        /* --gen3-checkpoint=hold:K:PATH (0, after K hold steps) | record:K:PATH (1); -1 none */
+static long   cli_gen3_ckpt_step = -1;
+static const char* cli_gen3_ckpt_path = NULL;
+static int    cli_gen3_ckpt_stop = 0;          /* --gen3-checkpoint-stop: exit right after writing it (an interruption; for the tests) */
+static const char* cli_gen3_restart = NULL;    /* --gen3-restart=PATH: go on from a checkpoint of the same command */
+static uint64_t g3_init_hash = 0;              /* FNV-1a of the state gen3 was built from (the restart's identity check) */
 
 static void g3_stop(const char* what){
     fflush(stdout);
@@ -1311,6 +1319,17 @@ static void g3_build(const EDMD* S){
         g3_stop(err);
     }
     g3_owner = S; g3_prm = *p; g3_n = p->N; g3_stale = 1; g3_handed = 0;
+    {   /* ##CHRIS 2026-10-09 (stage H): the identity of the state gen3 starts from: box, bodies, load time, every disk */
+        uint64_t h = 1469598103934665603ULL;
+        #define G3_FNV(ptr, n) do { const unsigned char* q_ = (const unsigned char*)(ptr); for (size_t k_ = 0; k_ < (size_t)(n); ++k_) { h ^= q_[k_]; h *= 1099511628211ULL; } } while (0)
+        G3_FNV(&p->boxW, sizeof p->boxW); G3_FNV(&p->boxH, sizeof p->boxH); G3_FNV(&p->radius, sizeof p->radius); G3_FNV(&p->N, sizeof p->N);
+        G3_FNV(&p->divider_count, sizeof p->divider_count); G3_FNV(p->divider_x, sizeof p->divider_x); G3_FNV(p->divider_thickness, sizeof p->divider_thickness);
+        G3_FNV(p->divider_mass, sizeof p->divider_mass); G3_FNV(p->divider_vx, sizeof p->divider_vx); G3_FNV(&t0, sizeof t0);
+        const EDMD_Particle* Q = edmd_particles(S);
+        for (int i = 0; i < p->N; ++i) { G3_FNV(&Q[i].x, sizeof(double)); G3_FNV(&Q[i].y, sizeof(double)); G3_FNV(&Q[i].vx, sizeof(double)); G3_FNV(&Q[i].vy, sizeof(double)); }
+        #undef G3_FNV
+        g3_init_hash = h;
+    }
     g3_copy = (EDMD_Particle*)malloc((size_t)g3_n * sizeof *g3_copy);
     g3_seen = (EDMD_Particle*)malloc((size_t)g3_n * sizeof *g3_seen);
     if (!g3_copy || !g3_seen) g3_stop("out of memory");
@@ -4871,6 +4890,19 @@ static void parse_cli_options(int argc, char **argv) {
             cli_gen3_exact_box = 1;
         } else if (strncmp(arg, "--gen3-dump-initial=", strlen("--gen3-dump-initial=")) == 0) {
             cli_gen3_dump_initial = arg + strlen("--gen3-dump-initial=");
+        } else if (strncmp(arg, "--gen3-checkpoint=", strlen("--gen3-checkpoint=")) == 0) {   /* ##CHRIS 2026-10-09 (stage H) */
+            const char* v = arg + strlen("--gen3-checkpoint=");
+            char ph[16] = ""; long k = -1; int used = 0;
+            if (sscanf(v, "%15[a-z]:%ld:%n", ph, &k, &used) != 2 || used <= 0 || !v[used] || (strcmp(ph, "hold") && strcmp(ph, "record"))
+                || (!strcmp(ph, "hold") && k < 1) || k < 0) {
+                fprintf(stderr, "Invalid '%s' (hold:K:PATH with K >= 1 hold steps done, or record:K:PATH with K >= 0 record steps done).\n", arg);
+                exit(EXIT_FAILURE);
+            }
+            cli_gen3_ckpt_phase = strcmp(ph, "hold") ? 1 : 0; cli_gen3_ckpt_step = k; cli_gen3_ckpt_path = v + used;
+        } else if (strcmp(arg, "--gen3-checkpoint-stop") == 0) {
+            cli_gen3_ckpt_stop = 1;
+        } else if (strncmp(arg, "--gen3-restart=", strlen("--gen3-restart=")) == 0) {
+            cli_gen3_restart = arg + strlen("--gen3-restart=");
         } else if (strncmp(arg, "--psi6-every=", strlen("--psi6-every=")) == 0) {   /* ##CHRIS 2026-10-09 (M3, stage A1) */
             char *endptr = NULL; const double v = strtod(arg + strlen("--psi6-every="), &endptr);
             if (!endptr || *endptr != '\0' || !(v > 0.0) || v > 1e6) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
@@ -16254,6 +16286,135 @@ static void g3_run_record(const char* id){
     fflush(stdout);
 }
 
+/* ##CHRIS 2026-10-09 (stage H; 261012 sec. 4.7.12 stage H, sec. 4.7 item 6): CHECKPOINT AND RESTART of one gen3 speed-of-sound
+   trajectory. A checkpoint is taken at the top of a hold step (after K hold steps; --gen3-checkpoint=hold:K:PATH) or of a record
+   step (after K record steps, K = 0 right after the release; record:K:PATH): between two advances, so the engine is at an event
+   boundary. It holds the run's identity (build, L0, mass, run, seed, N, the step plans, the cadences and a hash of the state gen3
+   was built from), the driver's state of the trajectory (the psi6(t) clock, the record step, the compartment counts, psi6 at the
+   release and the run's psi6 accumulator, the release time and flags, the bodies' masses in the container's parameters, the work
+   baselines), the bytes of the trace and of the psi6(t) file so far, and the engine (edmd3_checkpoint_write). It is written to
+   PATH.tmp and renamed, so a crash while writing leaves the previous file.
+   A restart (--gen3-restart=PATH) is the SAME command plus that flag: the driver sets the run up as always (the seeding is
+   deterministic per seed, and the identity check refuses anything else), builds gen3 from it as its first advance would, then
+   reads the checkpoint over it, puts back the two files' bytes and the driver's state, and goes on from that step. In the record
+   phase the hold and the release are skipped (their results are in the checkpoint). Refused: a different build, trajectory or
+   initial state, and the gated event log (its rows before the checkpoint are not carried). The validator needs nothing: it holds
+   only its initial snapshot, rebuilt identically by the set-up, and a failure flag that is clear at any checkpoint. */
+typedef struct {
+    double* psi6_next; int* recorded_steps; int* left; int* right; Psi6Result* psi6_hold; Psi6Accum* psi6_run;
+    FILE* trace; const char* trace_path; FILE* psi6; const char* psi6_path;
+    double L0d; int mass, run; unsigned seed; int N, hold_steps, record_steps, log_stride, psi6_stride;
+} G3RunRefs;
+typedef struct {
+    char   magic[16];                       /* "g3-run-ckpt-v1" */
+    char   build[64], target[32];
+    int    phase; long step;
+    double L0d, fixed_dt, psi6_every; int mass, run, N, hold_steps, record_steps, log_stride, psi6_stride, validator_every; unsigned seed;
+    uint64_t init_hash;
+    double psi6_next, wall_release_time; int wall_is_released, wall_hold_enabled, recorded_steps, left, right;
+    Psi6Result psi6_hold; Psi6Accum psi6_run;
+    double div_mass[EDMD_MAX_DIVIDERS], pistonL_mass, pistonR_mass, work0[EDMD_MAX_DIVIDERS], work0_p[2];
+    long   trace_len, psi6_len;             /* then the trace's bytes, the psi6(t) file's bytes, the engine */
+} G3RunCkpt;
+#define G3_RUN_CKPT_MAGIC "g3-run-ckpt-v1"
+static int  g3_ckpt_written = 0;
+static int  g3_restart_phase = -1; static long g3_restart_step = -1;
+static char g3_psi6_path[700] = "";
+
+static void g3_ckpt_identity(G3RunCkpt* c, const G3RunRefs* rf){
+    memcpy(c->magic, G3_RUN_CKPT_MAGIC, sizeof G3_RUN_CKPT_MAGIC);
+    snprintf(c->build, sizeof c->build, "%s", BUILD_GIT); snprintf(c->target, sizeof c->target, "%s", BUILD_TARGET);
+    c->L0d = rf->L0d; c->fixed_dt = (double)fixed_dt_runtime; c->psi6_every = cli_psi6_every; c->mass = rf->mass; c->run = rf->run;
+    c->N = rf->N; c->hold_steps = rf->hold_steps; c->record_steps = rf->record_steps; c->log_stride = rf->log_stride;
+    c->psi6_stride = rf->psi6_stride; c->validator_every = validator_every(); c->seed = rf->seed;
+}
+static char* g3_slurp(const char* path, long* n){       /* a whole file into memory */
+    FILE* f = fopen(path, "rb");
+    if (!f) g3_stop("checkpoint: cannot read back an output file");
+    if (fseek(f, 0, SEEK_END)) g3_stop("checkpoint: cannot seek an output file");
+    *n = ftell(f); rewind(f);
+    char* b = (char*)malloc((size_t)(*n > 0 ? *n : 1));
+    if (!b || (*n > 0 && fread(b, 1, (size_t)*n, f) != (size_t)*n)) g3_stop("checkpoint: cannot read back an output file");
+    fclose(f);
+    return b;
+}
+static void g3_ckpt_write(const G3RunRefs* rf, int phase, long step){
+    if (!g_edmd3) g3_stop("checkpoint: no gen3 state yet");
+    if (g3_evlog) g3_stop("checkpoint: the gated event log is not carried across a restart (run without it)");
+    G3RunCkpt c; memset(&c, 0, sizeof c);
+    g3_ckpt_identity(&c, rf);
+    c.phase = phase; c.step = step; c.init_hash = g3_init_hash;
+    c.psi6_next = *rf->psi6_next; c.wall_release_time = wall_release_time; c.wall_is_released = wall_is_released ? 1 : 0;
+    c.wall_hold_enabled = wall_hold_enabled ? 1 : 0; c.recorded_steps = *rf->recorded_steps; c.left = *rf->left; c.right = *rf->right;
+    c.psi6_hold = *rf->psi6_hold; c.psi6_run = *rf->psi6_run;
+    for (int d = 0; d < EDMD_MAX_DIVIDERS; ++d) { c.div_mass[d] = g3_prm.divider_mass[d]; c.work0[d] = g3_work0[d]; }
+    c.pistonL_mass = g3_prm.pistonL_mass; c.pistonR_mass = g3_prm.pistonR_mass; c.work0_p[0] = g3_work0_p[0]; c.work0_p[1] = g3_work0_p[1];
+    if ((rf->trace && fflush(rf->trace)) || (rf->psi6 && fflush(rf->psi6))) g3_stop("checkpoint: cannot flush the output files");
+    char* tb = rf->trace ? g3_slurp(rf->trace_path, &c.trace_len) : NULL;
+    char* pb = rf->psi6 ? g3_slurp(rf->psi6_path, &c.psi6_len) : NULL;
+    char tmp[1200]; snprintf(tmp, sizeof tmp, "%s.tmp", cli_gen3_ckpt_path);
+    FILE* f = fopen(tmp, "wb");
+    if (!f) g3_stop("checkpoint: cannot open the checkpoint file");
+    const int ok = fwrite(&c, sizeof c, 1, f) == 1 && (c.trace_len == 0 || fwrite(tb, 1, (size_t)c.trace_len, f) == (size_t)c.trace_len)
+                   && (c.psi6_len == 0 || fwrite(pb, 1, (size_t)c.psi6_len, f) == (size_t)c.psi6_len) && edmd3_checkpoint_write(g_edmd3, f);
+    const long bytes = ftell(f);
+    if (fclose(f) != 0 || !ok || rename(tmp, cli_gen3_ckpt_path) != 0) g3_stop("checkpoint: writing the checkpoint file failed");
+    free(tb); free(pb);
+    const EDMD3_Health* H = edmd3_health(g_edmd3);
+    printf("[EDMD3-CHECKPOINT] wrote %s: %s step %ld, t = %.17g units, events %ld, hash %016llx, %ld bytes (trace %ld, psi6(t) %ld)\n",
+           cli_gen3_ckpt_path, phase ? "record" : "hold", step, edmd3_time(g_edmd3),
+           H->ev_pair + H->ev_wall + H->ev_cross + H->ev_div + H->ev_piston + H->ev_band, (unsigned long long)edmd3_event_hash(g_edmd3),
+           bytes, c.trace_len, c.psi6_len);
+    fflush(stdout);
+    g3_ckpt_written = 1;
+    if (cli_gen3_ckpt_stop) { printf("[EDMD3-CHECKPOINT] stopping after the checkpoint (--gen3-checkpoint-stop)\n"); fflush(stdout); exit(0); }
+}
+static void g3_put_bytes(FILE* f, const char* b, long n){   /* the file becomes exactly these bytes, positioned at the end */
+    if (!f) return;
+    if (fflush(f) || fseek(f, 0, SEEK_SET) || (n > 0 && fwrite(b, 1, (size_t)n, f) != (size_t)n) || fflush(f) || ftruncate(fileno(f), (off_t)n))
+        g3_stop("restart: cannot restore an output file");
+}
+/* returns the hold step to start from (the hold's length for a record-phase checkpoint) */
+static int g3_restart_apply(const G3RunRefs* rf){
+    FILE* f = fopen(cli_gen3_restart, "rb");
+    if (!f) g3_stop("restart: cannot open the checkpoint file");
+    G3RunCkpt c, me; memset(&me, 0, sizeof me);
+    if (fread(&c, sizeof c, 1, f) != 1 || memcmp(c.magic, G3_RUN_CKPT_MAGIC, sizeof G3_RUN_CKPT_MAGIC) != 0) g3_stop("restart: not a gen3 run checkpoint (v1)");
+    g3_ckpt_identity(&me, rf);
+    if (strcmp(c.build, me.build) || strcmp(c.target, me.target)) g3_stop("restart: the checkpoint was written by another build");
+    if (c.L0d != me.L0d || c.fixed_dt != me.fixed_dt || c.psi6_every != me.psi6_every || c.mass != me.mass || c.run != me.run || c.N != me.N
+        || c.hold_steps != me.hold_steps || c.record_steps != me.record_steps || c.log_stride != me.log_stride || c.psi6_stride != me.psi6_stride
+        || c.validator_every != me.validator_every || c.seed != me.seed)
+        g3_stop("restart: the checkpoint belongs to another trajectory (L0, mass, run, seed, N, steps, strides or cadences differ)");
+    if (c.phase == 0 ? (c.step < 1 || c.step >= me.hold_steps) : (c.step < 0 || c.step >= me.record_steps)) g3_stop("restart: the checkpoint's step is outside this run");
+    if (g3_evlog) g3_stop("restart: the gated event log is not carried across a restart (run without it)");
+    if (!g3_live(g_edmd)) { g3_free(); g3_build(g_edmd); }   /* gen3 built as the first advance would build it */
+    if (g3_init_hash != c.init_hash) g3_stop("restart: the run's initial state is not the checkpoint's (another command or seed)");
+    char* tb = (char*)malloc((size_t)(c.trace_len > 0 ? c.trace_len : 1)); char* pb = (char*)malloc((size_t)(c.psi6_len > 0 ? c.psi6_len : 1));
+    if (!tb || !pb || (c.trace_len > 0 && fread(tb, 1, (size_t)c.trace_len, f) != (size_t)c.trace_len)
+        || (c.psi6_len > 0 && fread(pb, 1, (size_t)c.psi6_len, f) != (size_t)c.psi6_len)) g3_stop("restart: the checkpoint is truncated (files)");
+    char err[256];
+    if (!edmd3_checkpoint_read(g_edmd3, f, err, sizeof err)) g3_stop(err);
+    if (fgetc(f) != EOF) g3_stop("restart: trailing bytes after the engine state");
+    fclose(f);
+    if ((c.trace_len > 0) != (rf->trace != NULL) || (c.psi6_len > 0) != (rf->psi6 != NULL)) g3_stop("restart: the output files do not match the checkpoint's");
+    g3_put_bytes(rf->trace, tb, c.trace_len); g3_put_bytes(rf->psi6, pb, c.psi6_len);
+    free(tb); free(pb);
+    *rf->psi6_next = c.psi6_next; *rf->recorded_steps = c.recorded_steps; *rf->left = c.left; *rf->right = c.right;
+    *rf->psi6_hold = c.psi6_hold; *rf->psi6_run = c.psi6_run;
+    wall_release_time = c.wall_release_time; wall_is_released = c.wall_is_released != 0; wall_hold_enabled = c.wall_hold_enabled != 0;
+    for (int d = 0; d < EDMD_MAX_DIVIDERS; ++d) { g3_prm.divider_mass[d] = c.div_mass[d]; g3_work0[d] = c.work0[d]; }
+    g3_prm.pistonL_mass = c.pistonL_mass; g3_prm.pistonR_mass = c.pistonR_mass; g3_work0_p[0] = c.work0_p[0]; g3_work0_p[1] = c.work0_p[1];
+    g3_stale = 1; g3_handed = 0;
+    g3_restart_phase = c.phase; g3_restart_step = c.step;
+    const EDMD3_Health* H = edmd3_health(g_edmd3);
+    printf("[EDMD3-RESTART] read %s: %s step %ld, t = %.17g units, events %ld, hash %016llx\n", cli_gen3_restart, c.phase ? "record" : "hold",
+           c.step, edmd3_time(g_edmd3), H->ev_pair + H->ev_wall + H->ev_cross + H->ev_div + H->ev_piston + H->ev_band,
+           (unsigned long long)edmd3_event_hash(g_edmd3));
+    fflush(stdout);
+    return c.phase == 0 ? (int)c.step : rf->hold_steps;
+}
+
 /*
  * run_speed_of_sound_experiments
  * -------------------------------
@@ -16325,6 +16486,8 @@ void run_speed_of_sound_experiments() {
 
     int num_repeats = cli_experiment_repeats > 0 ? cli_experiment_repeats : 1;
     const int requested_runs = (int)(lengths_count * wall_mass_count * (size_t)num_repeats);
+    if ((cli_gen3_ckpt_phase >= 0 || cli_gen3_restart) && requested_runs != 1)   /* ##CHRIS 2026-10-09 (stage H) */
+        g3_stop("--gen3-checkpoint and --gen3-restart take one trajectory per process (one length, one mass, --repeats=1)");
     int valid_runs = 0;
     int invalid_runs = 0;
     if (!write_speed_sound_batch_status(
@@ -16693,11 +16856,21 @@ void run_speed_of_sound_experiments() {
                         snprintf(ps_path, sizeof ps_path, "%s/psi6_t_L0_%d_wallmassfactor_%d_run%d.csv", mode_folder, L0_int, wall_mass_factor, r);
                         psi6_series = fopen(ps_path, "w");
                         if (!psi6_series) g3_stop("cannot open the psi6(t) file");
+                        snprintf(g3_psi6_path, sizeof g3_psi6_path, "%s", ps_path);   /* ##CHRIS 2026-10-09 (stage H): read back by a checkpoint */
                         fprintf(psi6_series, "t_sigma,phase,psi6_global,psi6_local,mean_neighbors\n");
                         psi6_next = 0.0;
                         g3_psi6_series_sample(psi6_series, &psi6_next, "hold");
                     }
-                    for (int s = 0; !validator.failure.failed && s < wall_hold_steps; ++s) {
+                    /* ##CHRIS 2026-10-09 (stage H): checkpoint and restart under gen3 (g3_ckpt_write, g3_restart_apply); without
+                       --gen3-checkpoint and --gen3-restart (refused under gen2) g3_s0 = 0 and nothing below runs */
+                    G3RunRefs g3rf = { &psi6_next, &recorded_steps, &left_particles, &right_particles, &psi6_hold, &psi6_run,
+                                       wall_log, partial_filename, psi6_series, g3_psi6_path, L0d, wall_mass_factor, r, run_seed,
+                                       particles_active, wall_hold_steps, target_recorded_steps, log_stride, psi6_sample_stride };
+                    int g3_s0 = 0;
+                    if (cli_gen3_restart && !validator.failure.failed) g3_s0 = g3_restart_apply(&g3rf);
+                    for (int s = g3_s0; !validator.failure.failed && s < wall_hold_steps; ++s) {
+                        if (cli_gen3_ckpt_phase == 0 && s == cli_gen3_ckpt_step && !(g3_restart_phase == 0 && g3_restart_step == s))
+                            g3_ckpt_write(&g3rf, 0, s);   /* ##CHRIS (stage H): after s hold steps */
                         double t0 = edmd_backend_time(g_edmd);
                         edmd_backend_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
                         speed_sound_overdue_poll(g_edmd, "wall_hold", s + 1);
@@ -16719,19 +16892,21 @@ void run_speed_of_sound_experiments() {
 
                     // ##CHRIS: psi_6 immediately after equilibration, i.e. the ordering of
                     // the state whose sound speed we are about to measure.
-                    if (!validator.failure.failed) {
+                    // ##CHRIS 2026-10-09 (stage H): these three blocks are skipped only after a restart from a record-phase
+                    // checkpoint (g3_restart_phase == 1), which carries their results; -1 otherwise, so they run as before.
+                    if (!validator.failure.failed && g3_restart_phase != 1) {
                         psi6_hold = compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
                     }
 
                     // Release: set finite wall mass
-                    if (!validator.failure.failed) {
+                    if (!validator.failure.failed && g3_restart_phase != 1) {
                         const double mass = (double)wall_mass_factor;
                         const double vx = 0.0;
                         edmd_backend_set_divider_motions(g_edmd, 1, &mass, &vx);
                         edmd_backend_reschedule_all(g_edmd);
                         edmd_energy_audit("1 release");   /* ##CHRIS 2026-10-05 */
                     }
-                    if (!validator.failure.failed) {
+                    if (!validator.failure.failed && g3_restart_phase != 1) {
                         wall_release_time = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
                         wall_is_released = true;
                         wall_hold_enabled = false;
@@ -16742,6 +16917,8 @@ void run_speed_of_sound_experiments() {
                     }
 
                     while (!validator.failure.failed && recorded_steps < target_recorded_steps) {
+                        if (cli_gen3_ckpt_phase == 1 && recorded_steps == cli_gen3_ckpt_step && !(g3_restart_phase == 1 && g3_restart_step == recorded_steps))
+                            g3_ckpt_write(&g3rf, 1, recorded_steps);   /* ##CHRIS 2026-10-09 (stage H): after recorded_steps record steps */
                         // Advance EDMD to the next sample time (sampling interval = fixed_dt_runtime).
                         double t0 = edmd_backend_time(g_edmd);
                         edmd_backend_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
@@ -16829,6 +17006,8 @@ void run_speed_of_sound_experiments() {
                         recorded_steps++;
                     }
                     edmd_energy_audit("2 end of record");   /* ##CHRIS 2026-10-05 */
+                    if (cli_gen3_ckpt_phase >= 0 && !g3_ckpt_written && !validator.failure.failed)   /* ##CHRIS 2026-10-09 (stage H) */
+                        g3_stop("the checkpoint step was never reached (hold:K needs 1 <= K < the hold steps, record:K needs K < the record steps)");
                     edmd_contact_report();                   /* ##CHRIS 2026-10-05 */
                 } else {
                     build_speed_sound_time_validation_state(
@@ -21747,10 +21926,17 @@ int main(int argc, char* argv[]) {
         else if (cli_legacy_resched || cli_resched_audit) why = "--legacy-resched and --resched-audit are gen2 schedule options";
         else if ((cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial) && !sos)
             why = "--gen3-seeding, --gen3-exact-box and --gen3-dump-initial are wired to the speed-of-sound experiment only";
+        else if ((cli_gen3_ckpt_phase >= 0 || cli_gen3_restart) && !sos)   /* ##CHRIS 2026-10-09 (stage H) */
+            why = "--gen3-checkpoint and --gen3-restart are wired to the speed-of-sound experiment only";
+        else if (cli_gen3_ckpt_stop && cli_gen3_ckpt_phase < 0) why = "--gen3-checkpoint-stop needs --gen3-checkpoint";
         if (why) g3_stop(why);
     }
     if (cli_engine != 3 && (cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial)) {   /* ##CHRIS (stage C, M4) */
         fprintf(stderr, "STOP: --gen3-seeding, --gen3-exact-box and --gen3-dump-initial need --engine=gen3 (gen2's seeding is frozen)\n");
+        exit(2);
+    }
+    if (cli_engine != 3 && (cli_gen3_ckpt_phase >= 0 || cli_gen3_ckpt_stop || cli_gen3_restart)) {   /* ##CHRIS 2026-10-09 (stage H) */
+        fprintf(stderr, "STOP: --gen3-checkpoint, --gen3-checkpoint-stop and --gen3-restart need --engine=gen3\n");
         exit(2);
     }
 
