@@ -28,7 +28,8 @@ import p2_run as P2
 import p1_run as P1
 GATE = "/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/cluster/resched_gate_261005"
 P1TAB = os.path.join(HS, "experiments_gen3_p1_261009", "p1_tables_output.txt")
-JOBS = 12
+JOBS = 10   # rule 1: the runner's own children; the two H0 entries each run 2 simulations (audit_runs --jobs 2), so at most
+            # 10 - 2 + 4 = 12 simulation processes run at once
 
 
 def patch(cmd, repl):
