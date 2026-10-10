@@ -12964,3 +12964,140 @@ When P5 finishes around 11:00, paste CC’s final report as usual.
 
 ACCEPTANCE: PASS
 ```
+
+### 4.7.41 Plan-author decision 18: ψ6 per compartment accepted; three starts in the dense region; checkpoint carries the columns; M4c, the turned lattice; pilot P6 ordered (2026-10-10 11:17 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 18:**
+  - ψ6 per compartment (§ 4.7.40, `0d7f1ca`) is ACCEPTED.
+  - **Design intent, updated** (final only in the pre-registration): in the dense region there are three starts:
+    - the lattice at 0°;
+    - the lattice turned;
+    - the compressed start.
+    - ψ6, the orientation and Z are read per compartment.
+- **Ordered:**
+  - **Item 1:** checkpoint/restart carries `--gen3-psi6-compartments`. A restarted run with the columns on must be byte-identical to the uninterrupted one; stage H's tables must pass again; rule 4 must be identical.
+  - **Item 2, M4c:** a flag selects the lattice start's orientation, either 0° (the present family, and the default) or turned. Acceptance, printed by a script:
+    - the default and every existing command byte-identical;
+    - M4's grid for the turned orientation;
+    - the orientation column at the load;
+    - the feasibility ceiling per N for both orientations;
+    - rule 4; M1/M2.
+  - **Item 3, pilot P6:** the turned start at N = 400, η 0.740 and N = 1600, η 0.740 and 0.780. Per compartment: the orientation, |Ψ_c| and Z, next to P4/P5's starts. Two questions, answered with numbers:
+    - is the compressed start's state the turned crystal?
+    - which orientation has the lower Z?
+- **Ground rules:** as before, with one addition: the source copies of built binaries go to the scratchpad. At most 8 simulations; new data ≤ 500 MB.
+- **How they apply (CC).**
+  - **One agent.** The session's ultracode setting asks for multi-agent workflows; ground rule 1 forbids them, and the rule is followed.
+  - **The data marker** is `$SP/.decision18_ref`, 11:16 HST.
+  - **Builds:** `build_clean.sh` writes into the scratchpad, and only the binaries and the build record are copied into the experiment folder.
+- **Chris's question** (in the same message): how to check the git version on KOA. CC answered with the first lines of step 1 of the approved runsheet:
+  - `ssh`;
+  - `squeue -u charing`;
+  - the sandbox `srun`, then wait for the cn- prompt;
+  - `git --version`, which must print 2.35.0 or newer, with the stop rule.
+  - git is not on the login node. CC had no KOA contact.
+- **The P5 report.** CC pointed Chris to the P5 final report in the conversation, from "Written for: the plan author, relayed by Chris." down; it is also in § 4.7.38.
+- **A fact for item 2, from the code** (`g3_lattice_fit`, § 4.7.16).
+  - M4's existing `--gen3-lattice=parallel|perpendicular|auto` names the row direction the fit starts from: rows along y or along x. Each row direction can give either crystal orientation, depending on which spacing comes out shortest.
+  - Example: P4a's lattice is "parallel", 19 × 11, with a_r ≈ 1.8 σ along y and a_s ≈ 0.53 σ. Its nearest neighbours lie across the rows (2 a_s along x, and the diagonals at about ±60°), so its close-packed lines run along x: orientation 0°, as § 4.7.37 measured.
+  - So M4c needs a selector by crystal orientation, the angle of the close-packed lines: along x (0°) or along y (turned, ±30°). The existing flag is not that selector.
+
+**The message to CC, verbatim** (relayed by Chris on 2026-10-10 at about 11:15 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Report on §4.7.40
+read. P5'S FINAL REPORT HAS NOT REACHED ME; Chris will paste it.
+Record this message in a new §4.7.x. Ground rules as before (one
+agent, no KOA contact, no push, delete nothing, rule 4, committed-
+tree binaries, stop and report on a disk rule, no report pages,
+notes in binary mode). At most 8 simulation processes; new data for
+this message <= 500 MB, built binaries' source copies in the
+scratchpad.
+
+DECISION 18
+ - psi6 per compartment (§4.7.40, 0d7f1ca): ACCEPTED.
+ - Design intent, updated (final only in the pre-registration): in
+   the dense region the starts are lattice at 0 deg, lattice turned,
+   and compressed; psi6, orientation and Z are read per compartment.
+
+ITEM 1 - checkpoint/restart carries --gen3-psi6-compartments
+ Acceptance: a restarted run with the columns on is byte-identical
+ to the uninterrupted one (trace, psi6(t) with the new columns,
+ event hash); stage H's tables pass again; rule 4 identical.
+
+ITEM 2 - M4c: the turned orientation in the M4 lattice family
+ A flag selects the orientation of the lattice start: 0 deg (the
+ present family, and the default) or turned (close-packed rows along
+ the other box axis). Same rules as M4: seeded jitter, vacancies by
+ the stated rule, exact box, both compartments the same form.
+ Acceptance, printed by a script:
+  - the default and every existing command give byte-identical
+    initial states and event hashes (check P4a A seed 1's hash
+    bd25077c5f1c9c9f and one M4 grid cell);
+  - M4's acceptance grid (N = 100, 400, 900, 1600; eta 0.60, 0.70,
+    0.716, 0.74, 0.78, 0.85) for the turned orientation: achieved
+    eta, N per compartment, smallest gaps > 0, same seed
+    bit-identical, no ties at the load, clean over 400 sigma-time,
+    or INFEASIBLE;
+  - at the load the per-compartment orientation column reads 0 deg
+    for the default and +-30 deg for the turned start;
+  - the feasibility ceiling per N for both orientations, side by
+    side, with the gap at eta 0.74 and 0.78;
+  - rule 4 identical; M1/M2 harness outputs identical.
+
+ITEM 3 - PILOT P6 (PILOT, no paper use; scripts committed before the
+runs; new independent seeds; depends on items 1-2)
+ The turned-lattice start, divider held 2e4 sigma-time,
+ --psi6-every=1, --gen3-psi6-compartments, --gen3-virial-blocks=50,
+ 6 seeds, in three cells: N = 400 at eta 0.740; N = 1600 at eta
+ 0.740 and 0.780. If a cell is infeasible for the turned family, say
+ so and skip it.
+ Printed per cell: per compartment and seed, orientation, |Psi_c|
+ and Z in the last quarter; the means over seeds; next to them the
+ same per-compartment numbers for the 0-deg lattice start and the
+ compressed starts from P4 and P5 (orientation from their snapshots
+ where they exist, otherwise Z only). Two questions, answered with
+ the numbers and no further interpretation: is the compressed start's
+ state the turned crystal (same Z per compartment within the seed
+ scatter)? Which orientation has the lower Z at each N and eta?
+
+REPORT: items 1-3 with their tables, decisions, deviations, disk,
+commits, push line. End with "Written for: the plan author".
+```
+
+**The plan author's accompanying note to Chris, verbatim** (relayed in the same message; kept for the record):
+
+```
+The per-compartment order measure is accepted. One report is still missing on my side: CC’s final report on pilot P5 (the slow-compression test). What you pasted is the item after it. The state-of-play note is updated.
+
+What CC built
+
+The program can now report, for the left and the right compartment separately, how ordered the disks are and which way the crystal points (0° or 30°). Before this we had only one number for the whole box, which is what fooled us yesterday.
+
+The checks are clean:
+
+Switching it on does not change the simulation by a single bit.
+The old output columns are untouched, and the old engine is unchanged.
+On yesterday’s saved snapshots it correctly shows one compartment near +30° and the other near 0°.
+KOA
+
+CC has cleared you for steps 1 to 4. The rules are the same as in my last message:
+
+git --version first; it must show 2.35.0 or higher.
+Stop on any fatal: or error: line.
+Do not type step 5.
+Paste me the outputs of steps 3 and 4.
+What I need
+
+Please paste CC’s P5 final report, from “Written for: the plan author” down. It should contain the tables for the 10× and 100× slower squeeze. I have only seen one line of its result in CC’s notes, which says the large box also splits into two pressure groups per compartment. If that holds, the “frozen-in defects” idea from this morning is wrong too, and the real story is orientation again.
+
+Next work for CC
+
+I am fairly confident about the orientation picture, so I ordered the logical next step without waiting:
+
+Teach the lattice start the second orientation (30°). Then we can start a crystal either way on purpose.
+A small pilot with that new start in the three dense cells. It answers two questions: is the “compressed” state simply the turned crystal, and which orientation has the lower pressure at each box size?
+
+After that I have what I need to write the pre-registration.
+```
