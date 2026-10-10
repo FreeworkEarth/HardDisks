@@ -12825,3 +12825,142 @@ In step 1, the first command inside the sandbox shell is git --version. It must 
 Do not type step 5. Paste me the outputs of steps 3 and 4 first (a new chat is fine; the note has everything).
 When P5 finishes around 11:00, paste CC’s final report as usual.
 ```
+
+### 4.7.40 Decision 17, after P5: ψ6 per compartment — PROVISIONAL code; ACCEPTANCE PASS (2026-10-10 10:38 HST, machine date) [DATA, printed by script]
+
+**Plain summary.**
+- **The code** (engine-gen3 `0d7f1ca`). Only the driver changed (`00ALLINONE.c`, 143 lines added, 2 changed); the engine and every other build input are unchanged since `06e7248`.
+  - **`psi6_compartments()`** is `compute_psi6_from_edmd`'s definition split by compartment:
+    - neighbours within 1.4 σ, over all disks;
+    - Ψ_c = Σ over the compartment's disks of ψ6(j), divided by N_c.
+    - Per compartment it gives N_c, |Ψ_c|, the orientation arg(Ψ_c)/6 in degrees, and the local order.
+  - **`--gen3-psi6-compartments`** adds four columns per compartment at the end of every ψ6(t) row: `N_c`, `psi6_c`, `psi6_orient_deg_c`, `psi6_local_c`.
+    - It is off by default; with it off, the file is byte-identical to before.
+  - **`--gen3-psi6-snapshots=FILE`** gives the same values for every snapshot in a snapshot file. It uses the same function and runs no simulation.
+  - **Refusals:** the flag is refused under gen2, outside the speed-of-sound loop, and together with `--gen3-checkpoint` or `--gen3-restart`, since a checkpoint does not carry it yet.
+- **Acceptance: PASS, every item.** The criteria were written before the runs, in `psi6c_tables.py`, committed with the code.
+  - **Event hash:**
+    - A 2000-σ-time run gives the same hash `938d002f742626a7` with P4's binary (`06e7248`), with the new build and the columns off, and with them on.
+    - P4a's start-A seed-1 run (1e5 σ-time), replayed with the columns on, gives P4's hash `bd25077c5f1c9c9f`.
+  - **The existing columns are byte-identical:**
+    - on against off;
+    - the replay against P4's original file, whose SHA-256 still equals the one in `P4_SHA256_FILES.txt`.
+    - Between P4's binary and the new build with the columns off, every data file is byte-identical.
+  - **Rule 4:** IDENTICAL for ctrl_min and ctrl_leg, with the default build and with `--engine=gen2`.
+  - **The M1/M2 harness outputs** are byte-identical to the committed ones.
+  - **The new values separate the turned compartment from the unturned one on P4a's snapshots.**
+    - In A seed 1, from 5e4 σ-time on, compartment 0 is at +28.9° to +30.0° and compartment 1 at −0.6° to +0.5°, with |Ψ| between 0.639 and 0.869 in both. From 0 to 4e4, both are within 0.4° of 0.
+    - The values agree with § 4.7.37's Python values to their printed decimals (44 rows).
+    - They agree exactly with the run's own new columns (56 snapshot times).
+  - **The three refusals** stop with exit 2 and their STOP lines.
+- **Information** (the reader on P4a's snapshots):
+  - A seed 0's right compartment had turned by 4e4 σ-time and its left one by 7e4.
+  - B's compartments are at ±29–30° in every snapshot.
+- **Stopped here, as ordered.** The flag is not used by any campaign script.
+
+**Decisions.**
+1. **A flag, off by default** ("with the columns on and off"), so that every existing output stays as it was.
+2. **Neighbours across the divider count,** as for the global value. Then Σ_c N_c Ψ_c = N × the global complex ψ6, exactly, and the global value is the N_c-weighted sum of the compartments'.
+3. **The orientation** is in (−30, 30]. +30 and −30 are the same orientation (mod 60): M4's "parallel" lattice is at 0, and the turned one at ±30.
+4. **Not carried by a checkpoint:** the combination is refused, so the checkpoint format is unchanged.
+5. **Cost:** with the flag on, a second O(N²) pass per ψ6(t) row, as costly as the existing ψ6.
+6. **The build.** `build_clean.sh` needs an absolute output folder.
+   - A first attempt with a relative path stopped before compiling. It left `bin_psi6c`, an extracted source copy of 115 MB, which was not deleted.
+   - The two build folders (230 MB, untracked) count toward the data: 243.8 MB in all since 08:45:59, against the 500 MB limit.
+
+**Commits:**
+- engine-gen3 `0d7f1ca`: the code and the two acceptance scripts, before the runs;
+- engine-gen3 `bcc54ca`: the evidence, the table and the build record.
+
+**The acceptance table, verbatim** (`experiments_gen3_psi6c_261010/psi6c_tables_output.txt`):
+
+```
+# psi6 per compartment (PROVISIONAL): the acceptance table, printed by experiments_gen3_psi6c_261010/psi6c_tables.py (261012 sec. 4.7.40; plan-author decision 17)
+
+| item | result | holds |
+|---|---|---|
+| 1 the new build | 00ALLINONE  git 0d7f1ca  target mac-O3-e0pre; SHA-256 082874142c3c1e6a... = build record | yes |
+| 1 P4's frozen binary | experiments_gen3_m4b_261009/bin_m4b/00ALLINONE SHA-256 5d9ceb95e716e50d... | yes |
+| 2 rule 4 (gen2 vs 7b08827) | default: ctrl_min IDENTICAL, ctrl_leg IDENTICAL; --engine=gen2: ctrl_min IDENTICAL, ctrl_leg IDENTICAL | yes |
+| 3 M1/M2 harness outputs | m1_audit_output.txt: IDENTICAL, m2_audit_quick_output.txt: IDENTICAL, m2_audit_output.txt: IDENTICAL | yes |
+| 4a S2 event hash old = off = on | old: exit 0, clean 1, hash 938d002f742626a7, build "06e7248", off: exit 0, clean 1, hash 938d002f742626a7, build "0d7f1ca", on: exit 0, clean 1, hash 938d002f742626a7, build "0d7f1ca" | yes |
+| 4b S2 old vs off: data files | psi6_t: IDENTICAL, virial_blocks: IDENTICAL, snapshots: IDENTICAL, wall_x_positions: IDENTICAL, speed_of_sound_psi6.csv: IDENTICAL | yes |
+| 4c S2 on vs off | psi6(t) first five columns IDENTICAL (2003 lines incl. header); fields per row [13]; other data files IDENTICAL; on header: t_sigma,phase,psi6_global,psi6_local,mean_neighbors,N_0,psi6_0,psi6_orient_deg_0,psi6_local_0,N_1,psi6_1,psi6_orient_deg_1,psi6_local_1 | yes |
+| 5a P4's original files unchanged | psi6_t_L0_106: = P4_SHA256_FILES, virial_blocks: = P4_SHA256_FILES, snapshots_L0_: = P4_SHA256_FILES | yes |
+| 5b S3 event hash = P4's | S3: exit 0, clean 1, hash bd25077c5f1c9c9f, build "0d7f1ca"; P4: hash bd25077c5f1c9c9f, build "06e7248" | yes |
+| 5c S3 files = P4's | psi6(t) first five columns IDENTICAL; virial blocks and snapshots IDENTICAL | yes |
+| 6a reader on P4a's snapshots vs the Python values | 44 of 44 rows; largest difference |Psi| 5.0e-05, orientation 0.050 deg | yes |
+| 6c SEPARATION in P4a's A seed 1 | 5e4-1e5: compartment 0 at +28.9, +29.7, +29.9, +29.7, +30.0, +29.8 deg, compartment 1 at -0.4, -0.6, +0.1, +0.5, -0.2, -0.3; 0-4e4: both within 0.4 deg of 0 | yes |
+| 6b reader = the run's columns (S2 on) | 5 of 5 snapshot times matched; largest difference |Psi|/local 0.0e+00, orientation 0.0e+00 deg, global 0.0e+00 | yes |
+| 6b reader = the run's columns (S3) | 51 of 51 snapshot times matched; largest difference |Psi|/local 0.0e+00, orientation 0.0e+00 deg, global 0.0e+00 | yes |
+| 7 refusal: gen2 | exit 2; STOP: --gen3-psi6-compartments needs --engine=gen3 | yes |
+| 7 refusal: checkpoint | exit 2; STOP (--engine=gen3): --gen3-psi6-compartments is provisional and not carried by a checkpoint (run it without --gen3-checkpoint and --gen3-restart) | yes |
+| 7 refusal: energy_transfer | exit 2; STOP (--engine=gen3): --gen3-psi6-compartments is wired to the speed-of-sound experiment only | yes |
+
+## S3: the new columns of P4a's start-A seed-1 run, every 1e4 sigma-time (the columns on; the trajectory = P4's)
+
+| t [sigma-time] | psi6 global | N_0 | psi6_0 | orientation_0 [deg] | local_0 | N_1 | psi6_1 | orientation_1 [deg] | local_1 |
+|---|---|---|---|---|---|---|---|---|---|
+| 0 | 0.996003 | 200 | 0.996082 | 0.007 | 0.996249 | 200 | 0.995927 | -0.023 | 0.996164 |
+| 10000 | 0.865757 | 200 | 0.870204 | 0.179 | 0.897882 | 200 | 0.861564 | -0.148 | 0.896303 |
+| 20000 | 0.844321 | 200 | 0.807857 | -0.223 | 0.865402 | 200 | 0.881588 | 0.366 | 0.915902 |
+| 30000 | 0.874580 | 200 | 0.888801 | -0.078 | 0.907977 | 200 | 0.860766 | 0.334 | 0.902959 |
+| 40000 | 0.829146 | 200 | 0.810987 | -0.397 | 0.859459 | 200 | 0.847359 | -0.243 | 0.883124 |
+| 50000 | 0.041988 | 200 | 0.782788 | 28.950 | 0.864779 | 200 | 0.842802 | -0.359 | 0.885459 |
+| 60000 | 0.115421 | 200 | 0.639177 | 29.667 | 0.876495 | 200 | 0.869374 | -0.554 | 0.901697 |
+| 70000 | 0.024233 | 200 | 0.785287 | 29.873 | 0.876464 | 200 | 0.831303 | 0.053 | 0.869718 |
+| 80000 | 0.040327 | 200 | 0.805384 | 29.697 | 0.880629 | 200 | 0.851184 | 0.463 | 0.882074 |
+| 90000 | 0.095891 | 200 | 0.652332 | 29.993 | 0.895267 | 200 | 0.843450 | -0.213 | 0.883330 |
+| 100000 | 0.030830 | 200 | 0.756083 | 29.805 | 0.869654 | 200 | 0.817452 | -0.268 | 0.873656 |
+
+## S4: --gen3-psi6-snapshots on P4a's snapshots, every 1e4 sigma-time
+
+| run | t | psi6 global | psi6_0 | orientation_0 | psi6_1 | orientation_1 |
+|---|---|---|---|---|---|---|
+| A seed 1 | 0 | 0.996003 | 0.996082 | 0.007 | 0.995927 | -0.023 |
+| A seed 1 | 10000 | 0.865757 | 0.870204 | 0.179 | 0.861564 | -0.148 |
+| A seed 1 | 20000 | 0.844321 | 0.807857 | -0.223 | 0.881588 | 0.366 |
+| A seed 1 | 30000 | 0.874580 | 0.888801 | -0.078 | 0.860766 | 0.334 |
+| A seed 1 | 40000 | 0.829146 | 0.810987 | -0.397 | 0.847359 | -0.243 |
+| A seed 1 | 50000 | 0.041988 | 0.782788 | 28.950 | 0.842802 | -0.359 |
+| A seed 1 | 60000 | 0.115421 | 0.639177 | 29.667 | 0.869374 | -0.554 |
+| A seed 1 | 70000 | 0.024233 | 0.785287 | 29.873 | 0.831303 | 0.053 |
+| A seed 1 | 80000 | 0.040327 | 0.805384 | 29.697 | 0.851184 | 0.463 |
+| A seed 1 | 90000 | 0.095891 | 0.652332 | 29.993 | 0.843450 | -0.213 |
+| A seed 1 | 100000 | 0.030830 | 0.756083 | 29.805 | 0.817452 | -0.268 |
+| A seed 0 | 0 | 0.996102 | 0.996174 | -0.012 | 0.996030 | -0.009 |
+| A seed 0 | 10000 | 0.849386 | 0.837554 | -0.080 | 0.861507 | 0.272 |
+| A seed 0 | 20000 | 0.844740 | 0.862614 | -0.167 | 0.827730 | 0.444 |
+| A seed 0 | 30000 | 0.847438 | 0.861475 | -0.301 | 0.833620 | 0.007 |
+| A seed 0 | 40000 | 0.062469 | 0.853276 | 0.233 | 0.737864 | 29.657 |
+| A seed 0 | 50000 | 0.051994 | 0.866302 | -0.089 | 0.772123 | 29.396 |
+| A seed 0 | 60000 | 0.135094 | 0.842972 | -0.235 | 0.582688 | -29.247 |
+| A seed 0 | 70000 | 0.733166 | 0.681922 | -29.715 | 0.784640 | 29.946 |
+| A seed 0 | 80000 | 0.708225 | 0.614885 | 29.551 | 0.801849 | 29.936 |
+| A seed 0 | 90000 | 0.771955 | 0.696954 | -29.335 | 0.847034 | -29.527 |
+| A seed 0 | 100000 | 0.720754 | 0.702411 | 29.622 | 0.743085 | -28.959 |
+| B seed 0 | 0 | 0.750347 | 0.724522 | 29.157 | 0.780010 | -29.478 |
+| B seed 0 | 10000 | 0.732784 | 0.758221 | -28.647 | 0.710876 | -29.972 |
+| B seed 0 | 20000 | 0.686450 | 0.666684 | 29.724 | 0.707017 | -29.624 |
+| B seed 0 | 30000 | 0.678498 | 0.658512 | -29.974 | 0.698575 | 29.804 |
+| B seed 0 | 40000 | 0.576429 | 0.464949 | -28.742 | 0.689506 | -29.766 |
+| B seed 0 | 50000 | 0.779092 | 0.736358 | -29.855 | 0.823685 | 29.211 |
+| B seed 0 | 60000 | 0.769043 | 0.756119 | 29.619 | 0.782098 | 29.370 |
+| B seed 0 | 70000 | 0.754080 | 0.769102 | -29.855 | 0.740593 | 29.284 |
+| B seed 0 | 80000 | 0.763013 | 0.781770 | -29.685 | 0.745852 | 29.442 |
+| B seed 0 | 90000 | 0.752152 | 0.781372 | -29.744 | 0.722966 | -29.872 |
+| B seed 0 | 100000 | 0.743224 | 0.749588 | 29.885 | 0.737349 | -29.625 |
+| B seed 1 | 0 | 0.704769 | 0.742321 | 29.927 | 0.667274 | -29.903 |
+| B seed 1 | 10000 | 0.721540 | 0.719470 | 29.765 | 0.723945 | 29.355 |
+| B seed 1 | 20000 | 0.774633 | 0.804974 | 29.727 | 0.746259 | -29.310 |
+| B seed 1 | 30000 | 0.775681 | 0.715847 | -29.290 | 0.835737 | -29.614 |
+| B seed 1 | 40000 | 0.738517 | 0.690759 | 29.706 | 0.788714 | -29.195 |
+| B seed 1 | 50000 | 0.680185 | 0.753956 | -29.636 | 0.606695 | -29.245 |
+| B seed 1 | 60000 | 0.715070 | 0.656696 | -29.742 | 0.773906 | 29.771 |
+| B seed 1 | 70000 | 0.800544 | 0.779527 | 29.788 | 0.823429 | -29.289 |
+| B seed 1 | 80000 | 0.712398 | 0.747076 | 29.696 | 0.678156 | -29.832 |
+| B seed 1 | 90000 | 0.712478 | 0.687228 | 29.824 | 0.737862 | 29.563 |
+| B seed 1 | 100000 | 0.753420 | 0.765304 | -28.990 | 0.745416 | 29.640 |
+
+ACCEPTANCE: PASS
+```
