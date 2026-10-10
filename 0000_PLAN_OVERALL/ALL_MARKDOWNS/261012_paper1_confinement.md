@@ -13775,3 +13775,166 @@ You: the KOA steps 1 to 4 from my last message, whenever you are ready. Push whe
 CC: the row count, then the new engine in the window. That is the block below. The window version is display-only and will never be used for campaign data.
 Me: the pre-registration. I will write it as soon as I have the rate table from KOA step 3, because it tells me what each cell costs on KOA.
 ```
+
+### 4.7.45 Decision 19, item 1: what is the higher-Z group? — POST HOC, existing snapshots only (2026-10-10 13:47 HST, machine date) [DATA, printed by script; INFERENCE where marked]
+
+**Plain summary.**
+- **The data.** Every compartment that has a snapshot (seeds 0 and 1) in N 1600, η 0.740 and 0.780, and N 400, η 0.740. That is P6's turned and 0° starts, P4's start A, P4's compressed start, and P5's compressed starts.
+  - The structure is read from the three snapshots of the last quarter (t = 16000, 18000, 20000; the median over them).
+  - Z is the last quarter of the virial blocks.
+  - The groups are split at the largest gap of the turned compartments' Z. Compartments at 0° form their own group.
+  - Script: `experiments_gen3_d19_261010/d19_structure_posthoc.py` (engine-gen3 `900466b`).
+- **The rules:**
+  - neighbours are Delaunay edges of at most 1.4 σ;
+  - the coordination is counted over interior disks only (≥ 1.2 σ from the walls and the divider face);
+  - the lines along the close-packed axis are the peaks of the disks' coordinate across that axis (bins of 0.025 σ, Gaussian smoothing 0.1 σ), in 4 bands and over the whole length;
+  - vacancies and interstitials are measured against each line's capacity at the median in-line spacing.
+- **The one sentence:** no line count separates the two groups. Every N = 1600 compartment, in either group and from every start, holds 22 close-packed lines along y over its whole length, and every N = 400 compartment holds 11. The only number whose ranges are disjoint is the count of 5-coordinated interior disks at η 0.780: 14–22 in the lower group, 37–45 in the higher. At η 0.740 it overlaps (26–56 against 48–69), and at N = 400 only the 7-coordinated count is disjoint (0–1 against 2, with only two higher-group compartments).
+  - The plan author's guess, a crystal with one line more or fewer, is therefore not what the data show.
+- **[INFERENCE]** The higher group is the same 22-line turned crystal with more under-coordinated sites.
+  - At η 0.780 its compartments carry 37–45 five-coordinated interior disks and 1–3 seven-coordinated ones, against 14–22 and 0–1.
+  - Their capacity-rule vacancy count is 14–15, against 3–14 in the lower group (mostly 3–9). These ranges overlap, so the vacancy count does not separate the groups.
+  - The kind of defect (vacancy clusters, dislocation pairs, a lattice compressed along the lines) is not identified by these numbers.
+
+**Decisions.**
+1. **Line counting.** A first version counted chains of neighbour bonds within 15° of an axis. At η 0.74 thermal motion broke those chains into fragments (25–32 "lines" where there are 22), so it was replaced by the projection count before any number from it was used. The script's docstring records this.
+2. **The bands** show a line count changing along a line, i.e. an extra half-line, a dislocation.
+   - Every compartment reads 22 (11) over the whole length.
+   - In some bands the count exceeds 22 (at most 27), in both groups; that is information only.
+3. **Medians over the three last-quarter snapshots,** because the defect counts of a single snapshot fluctuate thermally.
+4. **P4a (N = 400) held 1e5 σ-time;** its snapshots are taken in the same window, 1.6e4–2e4.
+
+**Commit:** engine-gen3 `900466b` (the script, its output and its self-test).
+
+**The tables, verbatim** (`experiments_gen3_d19_261010/d19_structure_posthoc_output.txt`):
+
+```
+# Decision 19, item 1 (POST HOC): what is the higher-Z group? -- printed by experiments_gen3_d19_261010/d19_structure_posthoc.py; existing snapshots and virial blocks only, no runs; information
+
+Rules: neighbours = Delaunay edges <= 1.4 sigma (compartment's own disks); lines = chains of neighbour bonds within 15 deg of a box axis, >= 3 disks; coordination over interior disks (>= 1.2 sigma from walls and the divider face); vacancies / interstitials against ceil(L/2) n + floor(L/2) (n - 1) sites (L lines along the close-packed axis, n the longest line); medians over the snapshots at t = 16000, 18000, 20000; Z = Q4 of the virial blocks
+
+## N1600_eta0.740
+
+Z groups among the turned compartments split at their largest gap 0.0427 (cut 12.0551)
+
+| start | seed | comp. | Z (Q4) | group | orientation [deg] | close-packed axis | lines in the 4 bands (last snapshot) | lines, whole length | disks per line min / max | histogram (last snapshot) | 5-coord. | 7-coord. | interior disks | vacancies | interstitials |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| P6 turned lattice (clean) | 0 | 0 | 11.9849 | lower | +30.0 | y | 22 22 22 24 | 22 | 35 / 37 | 35x2 36x10 37x10 | 47 | 0 | 692 | 14 | 0 |
+| P6 turned lattice (clean) | 0 | 1 | 11.9800 | lower | -30.0 | y | 26 22 22 25 | 22 | 35 / 37 | 35x4 36x8 37x8 38x2 | 29 | 0 | 691 | 14 | 1 |
+| P6 turned lattice (clean) | 1 | 0 | 11.9954 | lower | -30.0 | y | 22 22 22 23 | 22 | 35 / 38 | 35x2 36x10 37x10 | 51 | 2 | 691 | 15 | 1 |
+| P6 turned lattice (clean) | 1 | 1 | 11.9913 | lower | -29.7 | y | 22 22 22 22 | 22 | 35 / 37 | 35x4 36x6 37x12 | 49 | 1 | 691 | 14 | 0 |
+| P6 0-deg lattice (addition) | 0 | 0 | 12.0016 | lower | -29.9 | y | 23 22 22 24 | 22 | 35 / 37 | 35x2 36x11 37x8 38x1 | 40 | 1 | 691 | 14 | 0 |
+| P6 0-deg lattice (addition) | 0 | 1 | 12.0337 | lower | -29.9 | y | 27 22 22 22 | 22 | 35 / 37 | 35x3 36x8 37x11 | 48 | 2 | 692 | 14 | 0 |
+| P6 0-deg lattice (addition) | 1 | 0 | 12.1123 | higher | -30.0 | y | 23 22 22 22 | 22 | 35 / 37 | 34x1 35x3 36x5 37x13 | 48 | 1 | 692 | 14 | 0 |
+| P6 0-deg lattice (addition) | 1 | 1 | 12.0986 | higher | +29.6 | y | 23 22 22 23 | 22 | 35 / 37 | 34x1 36x11 37x10 | 52 | 1 | 691 | 14 | 0 |
+| P4 A (present M4 family) | 0 | 0 | 11.9790 | lower | -29.9 | y | 24 22 22 22 | 22 | 35 / 37 | 35x2 36x10 37x10 | 26 | 0 | 691 | 14 | 0 |
+| P4 A (present M4 family) | 0 | 1 | 11.9777 | lower | +30.0 | y | 22 22 22 22 | 22 | 35 / 37 | 35x1 36x12 37x9 | 44 | 2 | 690 | 10 | 0 |
+| P4 A (present M4 family) | 1 | 0 | 11.9677 | lower | +29.9 | y | 22 22 22 22 | 22 | 35 / 37 | 36x14 37x8 | 37 | 0 | 690 | 14 | 0 |
+| P4 A (present M4 family) | 1 | 1 | 11.9937 | lower | +29.9 | y | 22 22 22 22 | 22 | 35 / 37 | 36x14 37x8 | 36 | 1 | 691 | 14 | 0 |
+| P4 B compressed u 0.01 | 0 | 0 | 12.1013 | higher | +29.5 | y | 27 22 22 22 | 22 | 35 / 37 | 35x2 36x11 37x8 38x1 | 64 | 3 | 690 | 14 | 0 |
+| P4 B compressed u 0.01 | 0 | 1 | 11.9790 | lower | +29.8 | y | 22 22 22 23 | 22 | 35 / 37 | 35x1 36x12 37x9 | 47 | 1 | 691 | 14 | 0 |
+| P4 B compressed u 0.01 | 1 | 0 | 11.9967 | lower | -29.8 | y | 22 22 22 23 | 22 | 35 / 37 | 35x1 36x12 37x9 | 56 | 1 | 690 | 14 | 0 |
+| P4 B compressed u 0.01 | 1 | 1 | 12.1081 | higher | -29.8 | y | 26 24 22 23 | 22 | 35 / 37 | 35x2 36x10 37x10 | 57 | 2 | 693 | 14 | 0 |
+| P5 B compressed u 0.001 | 0 | 0 | 11.9725 | lower | +29.9 | y | 22 22 22 22 | 22 | 35 / 37 | 35x3 36x8 37x11 | 45 | 1 | 692 | 14 | 0 |
+| P5 B compressed u 0.001 | 0 | 1 | 12.1091 | higher | +29.9 | y | 24 22 22 22 | 22 | 35 / 38 | 35x3 36x9 37x9 38x1 | 69 | 4 | 692 | 15 | 1 |
+| P5 B compressed u 0.001 | 1 | 0 | 11.9976 | lower | +29.7 | y | 22 22 22 22 | 22 | 35 / 37 | 36x14 37x8 | 40 | 0 | 691 | 14 | 0 |
+| P5 B compressed u 0.001 | 1 | 1 | 12.0060 | lower | +29.7 | y | 22 22 23 25 | 22 | 35 / 37 | 35x2 36x10 37x10 | 36 | 4 | 691 | 14 | 0 |
+| P5 B compressed u 0.0001 | 0 | 0 | 12.0765 | higher | -29.9 | y | 22 22 22 22 | 22 | 35 / 37 | 35x3 36x8 37x11 | 57 | 0 | 691 | 14 | 0 |
+| P5 B compressed u 0.0001 | 0 | 1 | 12.0981 | higher | -29.9 | y | 27 22 22 23 | 22 | 35 / 37 | 34x1 35x1 36x10 37x9 38x1 | 56 | 3 | 692 | 14 | 0 |
+| P5 B compressed u 0.0001 | 1 | 0 | 12.0983 | higher | -29.6 | y | 22 22 22 28 | 22 | 35 / 37 | 35x3 36x9 37x9 38x1 | 53 | 1 | 692 | 14 | 0 |
+| P5 B compressed u 0.0001 | 1 | 1 | 12.0809 | higher | +29.8 | y | 22 22 22 22 | 22 | 35 / 37 | 35x2 36x10 37x10 | 59 | 1 | 692 | 14 | 1 |
+
+per structural number, the ranges in the lower and the higher group (turned compartments):
+
+| number | lower group: min - max | higher group: min - max | separates (disjoint ranges) |
+|---|---|---|---|
+| lines along the close-packed axis (whole length) | 22 - 22 | 22 - 22 | no |
+| fewest lines in a band | 22 - 22 | 22 - 22 | no |
+| most lines in a band | 22 - 27 | 23 - 27 | no |
+| shortest line | 35 - 35 | 35 - 35 | no |
+| longest line | 37 - 38 | 37 - 38 | no |
+| 5-coordinated | 26 - 56 | 48 - 69 | no |
+| 7-coordinated | 0 - 4 | 0 - 4 | no |
+| vacancies | 10 - 15 | 14 - 15 | no |
+| interstitials | 0 - 1 | 0 - 1 | no |
+
+## N1600_eta0.780
+
+Z groups among the turned compartments split at their largest gap 0.1380 (cut 16.9760)
+
+| start | seed | comp. | Z (Q4) | group | orientation [deg] | close-packed axis | lines in the 4 bands (last snapshot) | lines, whole length | disks per line min / max | histogram (last snapshot) | 5-coord. | 7-coord. | interior disks | vacancies | interstitials |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| P6 turned lattice (clean) | 0 | 0 | 16.9070 | lower | +29.9 | y | 22 22 22 22 | 22 | 35 / 37 | 35x2 36x10 37x10 | 18 | 0 | 690 | 7 | 0 |
+| P6 turned lattice (clean) | 0 | 1 | 16.8319 | lower | +29.9 | y | 22 22 22 22 | 22 | 35 / 37 | 35x2 36x10 37x10 | 20 | 0 | 690 | 9 | 0 |
+| P6 turned lattice (clean) | 1 | 0 | 16.8243 | lower | -30.0 | y | 22 22 22 22 | 22 | 35 / 37 | 35x1 36x12 37x9 | 14 | 0 | 690 | 5 | 0 |
+| P6 turned lattice (clean) | 1 | 1 | 16.8276 | lower | +29.9 | y | 22 22 22 22 | 22 | 35 / 37 | 36x14 37x8 | 22 | 0 | 689 | 14 | 0 |
+| P6 0-deg lattice (addition) | 0 | 0 | 18.6569 | 0 deg | -0.1 | x | 52 47 44 55 | 44 | 17 / 19 | 8x1 12x1 16x2 17x6 18x19 19x16 | 71 | 5 | 688 | 25 | 0 |
+| P6 0-deg lattice (addition) | 0 | 1 | 18.2545 | 0 deg | +0.0 | x | 43 43 43 53 | 43 | 17 / 19 | 17x2 18x13 19x28 | 48 | 4 | 686 | 8 | 6 |
+| P6 0-deg lattice (addition) | 1 | 0 | 18.0813 | 0 deg | -0.6 | x | 46 43 43 47 | 43 | 17 / 19 | 17x1 18x15 19x27 | 38 | 5 | 685 | 3 | 3 |
+| P6 0-deg lattice (addition) | 1 | 1 | 18.0721 | 0 deg | +0.7 | x | 43 43 43 49 | 45 | 7 / 19 | 7x1 9x3 10x3 12x1 17x1 18x15 19x23 | 33 | 2 | 684 | 41 | 3 |
+| P4 A (present M4 family) | 0 | 0 | 16.8276 | lower | -30.0 | y | 22 22 22 22 | 22 | 35 / 37 | 35x2 36x10 37x10 | 15 | 0 | 689 | 3 | 0 |
+| P4 A (present M4 family) | 0 | 1 | 16.8288 | lower | +29.9 | y | 22 22 22 22 | 22 | 35 / 37 | 35x2 36x10 37x10 | 17 | 0 | 690 | 6 | 0 |
+| P4 A (present M4 family) | 1 | 0 | 16.8327 | lower | +30.0 | y | 22 22 22 22 | 22 | 35 / 37 | 35x1 36x12 37x9 | 15 | 0 | 690 | 5 | 0 |
+| P4 A (present M4 family) | 1 | 1 | 16.8277 | lower | +29.9 | y | 22 22 22 22 | 22 | 35 / 37 | 34x1 35x2 36x7 37x12 | 16 | 0 | 690 | 6 | 0 |
+| P4 B compressed u 0.01 | 0 | 0 | 17.0671 | higher | +30.0 | y | 22 22 22 25 | 22 | 34 / 37 | 34x1 35x2 36x7 37x12 | 45 | 2 | 693 | 14 | 0 |
+| P4 B compressed u 0.01 | 0 | 1 | 16.8122 | lower | +29.9 | y | 22 22 22 22 | 22 | 35 / 37 | 35x3 36x8 37x11 | 14 | 0 | 689 | 14 | 0 |
+| P4 B compressed u 0.01 | 1 | 0 | 17.0622 | higher | +29.9 | y | 22 22 22 22 | 22 | 35 / 38 | 35x6 36x4 37x10 38x2 | 39 | 3 | 692 | 15 | 1 |
+| P4 B compressed u 0.01 | 1 | 1 | 17.0450 | higher | +29.9 | y | 22 22 22 22 | 22 | 35 / 37 | 35x2 36x10 37x10 | 37 | 2 | 691 | 14 | 0 |
+| P5 B compressed u 0.001 | 0 | 0 | 16.8438 | lower | -30.0 | y | 22 22 22 22 | 22 | 35 / 37 | 35x2 36x10 37x10 | 17 | 1 | 690 | 7 | 0 |
+| P5 B compressed u 0.001 | 0 | 1 | 17.0837 | higher | -30.0 | y | 22 22 22 22 | 22 | 35 / 37 | 35x4 36x6 37x12 | 45 | 1 | 692 | 14 | 0 |
+| P5 B compressed u 0.001 | 1 | 0 | 17.0785 | higher | -29.9 | y | 23 22 22 22 | 22 | 34 / 38 | 34x1 35x3 36x7 37x9 38x2 | 45 | 2 | 693 | 15 | 1 |
+| P5 B compressed u 0.001 | 1 | 1 | 17.0891 | higher | +29.8 | y | 24 22 22 22 | 22 | 35 / 37 | 35x2 36x10 37x10 | 41 | 3 | 691 | 14 | 0 |
+
+per structural number, the ranges in the lower and the higher group (turned compartments):
+
+| number | lower group: min - max | higher group: min - max | separates (disjoint ranges) |
+|---|---|---|---|
+| lines along the close-packed axis (whole length) | 22 - 22 | 22 - 22 | no |
+| fewest lines in a band | 22 - 22 | 22 - 22 | no |
+| most lines in a band | 22 - 22 | 22 - 25 | no |
+| shortest line | 35 - 35 | 34 - 35 | no |
+| longest line | 37 - 37 | 37 - 38 | no |
+| 5-coordinated | 14 - 22 | 37 - 45 | YES |
+| 7-coordinated | 0 - 1 | 1 - 3 | no |
+| vacancies | 3 - 14 | 14 - 15 | no |
+| interstitials | 0 - 0 | 0 - 1 | no |
+
+## N400_eta0.740
+
+Z groups among the turned compartments split at their largest gap 0.2351 (cut 13.7099)
+
+| start | seed | comp. | Z (Q4) | group | orientation [deg] | close-packed axis | lines in the 4 bands (last snapshot) | lines, whole length | disks per line min / max | histogram (last snapshot) | 5-coord. | 7-coord. | interior disks | vacancies | interstitials |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| P6 turned lattice (clean) | 0 | 0 | 13.3013 | lower | +29.6 | y | 11 11 11 11 | 11 | 18 / 19 | 18x9 19x2 | 6 | 0 | 145 | 4 | 0 |
+| P6 turned lattice (clean) | 0 | 1 | 13.3638 | lower | +29.8 | y | 11 11 11 11 | 11 | 17 / 19 | 17x1 18x7 19x3 | 9 | 1 | 146 | 6 | 0 |
+| P6 turned lattice (clean) | 1 | 0 | 13.2979 | lower | +29.5 | y | 11 11 11 11 | 11 | 18 / 19 | 18x9 19x2 | 8 | 1 | 147 | 4 | 0 |
+| P6 turned lattice (clean) | 1 | 1 | 13.2923 | lower | +30.0 | y | 12 11 11 11 | 11 | 17 / 19 | 18x9 19x2 | 7 | 0 | 146 | 5 | 0 |
+| P4 A (present M4 family) | 0 | 0 | 14.3126 | 0 deg | +0.0 | x | 22 21 21 25 | 21 | 9 / 10 | 5x2 9x10 10x10 | 2 | 0 | 143 | 0 | 0 |
+| P4 A (present M4 family) | 0 | 1 | 14.3103 | 0 deg | +0.2 | x | 22 23 21 21 | 21 | 9 / 10 | 9x10 10x11 | 2 | 0 | 142 | 1 | 0 |
+| P4 A (present M4 family) | 1 | 0 | 14.3203 | 0 deg | -0.1 | x | 24 21 21 23 | 21 | 9 / 10 | 9x10 10x11 | 5 | 0 | 142 | 1 | 0 |
+| P4 A (present M4 family) | 1 | 1 | 14.3378 | 0 deg | +0.0 | x | 21 21 21 21 | 21 | 9 / 10 | 9x10 10x11 | 2 | 0 | 142 | 1 | 0 |
+| P4 B compressed u 0.01 | 0 | 0 | 13.8274 | higher | +30.0 | y | 12 11 11 13 | 11 | 18 / 19 | 18x9 19x2 | 18 | 2 | 147 | 1 | 2 |
+| P4 B compressed u 0.01 | 0 | 1 | 13.3976 | lower | +29.9 | y | 11 11 11 12 | 11 | 18 / 19 | 18x9 19x2 | 11 | 1 | 147 | 4 | 0 |
+| P4 B compressed u 0.01 | 1 | 0 | 13.5801 | lower | -29.8 | y | 11 11 11 11 | 11 | 17 / 19 | 17x1 18x7 19x3 | 13 | 1 | 148 | 1 | 3 |
+| P4 B compressed u 0.01 | 1 | 1 | 13.2930 | lower | -29.9 | y | 11 11 11 11 | 11 | 17 / 19 | 18x9 19x2 | 12 | 0 | 146 | 1 | 2 |
+| P5 B compressed u 0.001 | 0 | 0 | 13.5923 | lower | -29.6 | y | 11 11 11 11 | 11 | 17 / 19 | 17x1 18x7 19x3 | 20 | 0 | 148 | 6 | 0 |
+| P5 B compressed u 0.001 | 0 | 1 | 13.8288 | higher | +29.8 | y | 12 11 11 11 | 11 | 18 / 19 | 18x9 19x2 | 5 | 2 | 147 | 0 | 2 |
+| P5 B compressed u 0.001 | 1 | 0 | 13.3828 | lower | +30.0 | y | 11 11 11 17 | 11 | 17 / 19 | 17x1 18x7 19x3 | 9 | 0 | 148 | 3 | 0 |
+| P5 B compressed u 0.001 | 1 | 1 | 13.3856 | lower | +29.8 | y | 11 11 11 16 | 11 | 17 / 19 | 17x1 18x7 19x3 | 11 | 1 | 148 | 5 | 0 |
+
+per structural number, the ranges in the lower and the higher group (turned compartments):
+
+| number | lower group: min - max | higher group: min - max | separates (disjoint ranges) |
+|---|---|---|---|
+| lines along the close-packed axis (whole length) | 11 - 11 | 11 - 11 | no |
+| fewest lines in a band | 11 - 11 | 11 - 11 | no |
+| most lines in a band | 11 - 16 | 12 - 13 | no |
+| shortest line | 17 - 18 | 18 - 18 | no |
+| longest line | 19 - 19 | 19 - 19 | no |
+| 5-coordinated | 6 - 20 | 5 - 18 | no |
+| 7-coordinated | 0 - 1 | 2 - 2 | YES |
+| vacancies | 1 - 6 | 0 - 1 | no |
+| interstitials | 0 - 3 | 2 - 2 | no |
+
+(POST HOC, information only; no verdict.)
+```
