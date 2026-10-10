@@ -9013,6 +9013,8 @@ Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
   - The Python replica of the lattice fit agrees with the binary's feasibility on 32 of 32 cells.
 - **η = 0.85 at N = 100 and η = 0.90 at every N are infeasible** for hard walls: the densest packing of N_s disks in that compartment holds fewer than N_s. The binary refuses them with a message. The feasibility limit of the stated family per N is printed (table 5, information).
 
+*Erratum (2026-10-09, 261012 § 4.7.27; plan-author decision 13): six cells are infeasible, not five — N = 400 at η 0.85 as well (table 4; above that N's limit 0.8251 in table 5). The statement holds for the stated lattice family, not for every packing: the binary found no arrangement of that family with a positive gap; denser arrangements outside the family were not tested.*
+
 **Decision log.**
 1. **M4 replaces the driver's seeder in the speed-of-sound loop** and repeats that seeder's velocity steps in its order: one Maxwell–Boltzmann draw per particle, left compartment first, the KE scaling, the per-compartment temperature, `run_params.json`. The legacy seeder cannot place 50 disks at η 0.85 (N = 100) and stops the run (`exit 1`), so M4 must not depend on it. Velocities are therefore drawn exactly as before; only positions differ.
 2. **The lattice family and its selection rule are stated in the code header** (`00ALLINONE.c`, M4 block): rows of n_r disks, alternate rows shifted by a_r/2, n_s rows, and the largest smallest gap s.
@@ -10804,3 +10806,241 @@ ACCEPTANCE (part 3b, with these binaries): PASS -- checkpoint pairs of the same 
 
 **Commits:** engine-gen3 `5d19aa7` (code and the two scripts with their criteria, before the run), `1ae6226` (the evidence, and the post-hoc diagnostic with its output).
 
+
+### 4.7.27 Plan-author review of the packet and parts 2–3: decisions 13 and 14; the symmetry test, the KOA fixes, M4b and pilot P3 ordered (2026-10-09 20:16 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 13, the verdicts:**
+  - M3 (§ 4.7.14): ACCEPTED. Design note for the campaign: ψ6 every 1 σ-time (at 0.25 the driver's share is 47–62 % in the fluid).
+  - Test G, Mac part (§ 4.7.15): ACCEPTED as the Mac part of the gate.
+  - M4 (§ 4.7.16): ACCEPTED, with a dated erratum line under its plain summary (six infeasible cells, and the statement holds for the stated lattice family only). The line is added in this commit.
+  - Stage H and part 3b: ACCEPTED.
+  - Part 3a: observation does not steer, the snapshots, and weighted mean = global Z are accepted.
+    - The left/right criterion was a plan-author error (below) and is replaced by the symmetry test (item 1).
+    - CC's handling (NOT MET reported, criterion not weakened, post-hoc work labelled, stopped) was judged right.
+  - M5, Mac part: stays provisional until the long-double check on KOA.
+  - Decision 9's question and decision 10: closed.
+- **Decision 14, constraints to record** (no paper-draft edit):
+  - (i) N = 100 near the transition is multi-state on ≥ 1e4 σ-time, so c_s there is not single-valued. Whether the dip's side survives a settled start is unresolved (§ 4.7.24).
+  - (ii) T_eq = 10 τ_int is not accepted as the equilibration criterion.
+  - (iii) Hard walls cap the density (§ 4.7.16 table 5), and the nominal η understates the density the disks feel.
+- **Ordered, in this order:**
+  - 1: the symmetry test, registered before any run.
+  - 2: the KOA package fixes a–h, prepared and not run.
+  - 3: the amendment-a no-miss argument verbatim in Report K.
+  - Then REPORT K, short, and on without waiting:
+    - 4: M4b, the compressed-fluid start;
+    - 5: pilot P3, two starts.
+  - Then the final report.
+  - If item 1 is ASYMMETRIC or INVALID, everything below it stops and is reported.
+- **Ground rules:** § 4.7.12's, namely:
+  - one agent; ≤ 12 simulation processes;
+  - no KOA, no push, delete nothing;
+  - rule 4; committed-tree binaries;
+  - no compression in place; no report pages.
+  - New data for this message ≤ 1 GB; `df` printed before each run stage.
+  - Decisions count from this commit.
+
+**Plan-author error recorded** (decision 13; by the plan author's count the fifth recorded mistake of 2026-10-09): "The left/right criterion as I wrote it was a plan-author error (per-run 2 SE fails about 24 % of the time by chance); record it."
+
+**The erratum added under § 4.7.16's plain summary** (decision 13), verbatim as inserted:
+
+> *Erratum (2026-10-09, 261012 § 4.7.27; plan-author decision 13): six cells are infeasible, not five — N = 400 at η 0.85 as well (table 4; above that N's limit 0.8251 in table 5). The statement holds for the stated lattice family, not for every packing: the binary found no arrangement of that family with a positive gap; denser arrangements outside the family were not tested.*
+
+**The message to CC, verbatim** (relayed by Chris on 2026-10-09 at about 20:05 HST, machine date, after Chris pushed: origin's main, engine-gen3 and engine-divider-resched equal the local heads 8d12e1c, 9c058ca and 23d9be7):
+
+```
+From the plan author (Cowork), relayed by Chris. Review packet and
+parts 2-3 read. Record this message in a new §4.7.x; decisions count
+from that commit. Ground rules of §4.7.12 apply (one agent, <= 12
+simulation processes, no KOA, no push, delete nothing, rule 4,
+committed-tree binaries, no compression in place, no report pages).
+New data for this message <= 1 GB; print df before each run stage.
+Order: 1, 2, 3 (then REPORT K, short), 4, 5 (then the final report).
+
+DECISION 13 - verdicts
+ - M3 (§4.7.14): ACCEPTED. Design note for the campaign: psi6 every
+   1 sigma-time (driver share 47-62 % in the fluid at 0.25).
+ - Test G, Mac part (§4.7.15): ACCEPTED as the Mac part of the gate.
+ - M4 (§4.7.16): ACCEPTED. Add one dated erratum line under its plain
+   summary: 6 infeasible cells (incl. N = 400 at 0.85), and the
+   statement holds for the stated lattice family, not for every
+   packing.
+ - Stage H and part 3b: ACCEPTED.
+ - Part 3a: observation does not steer, snapshots, weighted mean =
+   global Z: accepted. The left/right criterion as I wrote it was a
+   plan-author error (per-run 2 SE fails about 24 % of the time by
+   chance); record it. It is replaced by item 1 below. Your handling
+   (NOT MET reported, criterion not weakened, post-hoc work labelled,
+   stopped) was right.
+ - M5 Mac part: stays provisional until the long-double check on KOA.
+ - Decision 9's question and decision 10: closed.
+
+DECISION 14 - constraints to record (no paper-draft edit)
+ i.  N = 100 near the transition is multi-state on >= 1e4 sigma-time
+     (eta 0.7167: psi6 at release 0.09-0.91, nu follows the state).
+     c_s there is not single-valued; whether the dip's side survives
+     a settled start is unresolved (§4.7.24).
+ ii. T_eq = 10 tau_int is not accepted as the equilibration criterion
+     (P1: N = 400 at 0.716 / 0.72 still orders over 2e4 sigma-time).
+ iii. Hard walls cap the density (table 5 of §4.7.16); nominal eta
+     understates the density the disks feel.
+
+1. SYMMETRY TEST (registered: commit this text, the seed list and the
+   verdict script before any run; script not edited afterwards)
+ Cells: N = 400, H = 20, M4 seeding, divider held: eta = pi/8 and
+   eta = 0.70. 40 new seeds per cell (not the six of part 3a).
+ Run: 5500 sigma-time held, --gen3-virial-blocks=50; the first 500
+   sigma-time discarded.
+ Per seed: d = time average of Z_L - Z_R over the remaining 5000.
+ Statistic per cell: t = mean(d) / (SD of d over seeds / sqrt(n)).
+   The error is the seed-to-seed scatter; block SEs are not used for
+   the verdict.
+ Rule per cell: SYMMETRIC if |t| < 2; ASYMMETRIC if |t| >= 3;
+   otherwise one extension of 40 more seeds, judged on 80 with the
+   same thresholds; still between -> UNRESOLVED.
+ PASS = SYMMETRIC in both cells. Inventory: all runs present and
+   clean=1, one build; else INVALID.
+ The script also prints: the false-alarm rates; the smallest
+   asymmetry that would give t = 3, as % of Z; and as information:
+   SD of d over seeds against the mean block-based SE (is the block
+   SE calibrated?), sum of z_i^2 against chi-square, the same t for
+   the pair-collision counts, and Z_global per cell.
+ If ASYMMETRIC or INVALID: stop everything below and report.
+
+2. KOA PACKAGE - fixes (prepared, NOT run; no KOA contact)
+ a. Every sandbox block starts with the established line on its own
+    line: srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+    Add -A only if the KOA notes show that the earlier successful
+    sessions used it; quote the note.
+ b. No placeholders except job ids. Write the repository URL
+    (https://github.com/FreeworkEarth/HardDisks.git) and the commit
+    hash literally. Mark every job-id placeholder "replace by the
+    number".
+ c. kissfft: state how ~/harddisks_resched2 obtained it and make the
+    step identical. Prove it with a Mac dry run: a fresh clone of the
+    pushed engine-gen3 into scratch, the runsheet's step-1 commands
+    as written, both builds with the Mac equivalents of the koa
+    targets, then ctrl_min. Print the result.
+ d. Step 4 (cross-node determinism): shared allows 1 node per job.
+    Redesign as one-node jobs: an array of identical one-core tasks,
+    each in its own folder with the hostname recorded, and a
+    dependent compare job that prints which node pairs were compared
+    and "NOT TESTED" if all tasks ran on one node.
+ e. Step 3: quote the recorded sandbox limits (cores, time). If
+    8 cores for 3 h does not fit, use shared with a stated limit.
+ f. Print the core-hours and the largest core count of every step.
+ g. Test G on KOA, REGISTRATION (commit with the task list and its
+    SHA-256): the rule of §4.7.15 with three verdict masses, M = 50,
+    300 and 1500, 400 trajectories per engine each; information rows
+    as on the Mac without the M = 50 row; BASE_KOA = 20261220;
+    PASS = NO DIFFERENCE at all three; one extension per mass as
+    before. The script prints the false-alarm rates for three masses.
+ h. Note in the runsheet: this gate is for the commit of this
+    registration. At the final campaign commit the deterministic
+    items (E0, cross-node, M1/M2 harness hashes on KOA) are repeated.
+
+3. Add the amendment-a no-miss argument (the DERIVATION text of
+   §4.7.14) verbatim to Report K.
+
+REPORT K (short): item 1's verdict output; the corrected runsheet in
+full; the dry-run result; the registration commit hashes; the push
+line. Then continue with 4 and 5 without waiting.
+
+4. M4b - compressed-fluid start (gen3 only; provisional)
+ Purpose: a second, disordered route to the same state, for two-start
+ equilibration checks.
+ Protocol: M4 lattice at eta_0 (default 0.60) in a longer box, same H
+ and N, divider held at the centre; hold T_melt (default 500
+ sigma-time); both outer pistons (mass 0) move inward at speed u
+ (default 0.01 sigma per sigma-time) until each compartment has the
+ target L0; pistons stop and stay as the outer walls; then the
+ velocities of each compartment are rescaled so that KE = N_s kT
+ exactly (for hard disks this only rescales time). The run header
+ records eta_0, T_melt, u, the achieved L0 against the requested
+ one, the piston work, the KE before rescaling and the time at the
+ end of the compression.
+ Acceptance (printed by a script, N = 400 and 1600, targets 0.70 and
+ 0.716): rule 4 identical; M1/M2 harness outputs identical; achieved
+ L0 = requested within 1e-9 sigma and recorded; N_L = N_R; KE per
+ compartment = N_s to rounding after the rescale; piston work = KE
+ gain to the ledger's rounding scale; clean=1; same seed
+ bit-identical; observation does not steer; psi6 at the end of the
+ compression printed; checkpoint/restart either works through the
+ compression or is refused with a message.
+
+5. PILOT P3 - two starts (PILOT, no paper use; depends on 1 and 4)
+ Starts: A = M4 lattice at the target density; B = M4b.
+ N = 400: eta 0.700, 0.708, 0.716, 0.740. N = 1600: 0.700, 0.708,
+ 0.716. 6 seeds per start and cell. After the start: divider held
+ 2e4 sigma-time, --psi6-every=1, --gen3-virial-blocks=50.
+ Printed per cell and start: psi6 and Z_global in the four quarters
+ of the hold (mean and SE over seeds); A - B in the last quarter with
+ its SE, for psi6 and for Z; the per-seed psi6 at the end; events/s.
+ Label per cell (information, no verdict): "converged" if A - B is
+ within 2 SE in both psi6 and Z in the last quarter.
+
+FINAL REPORT: items 4 and 5 with their tables, decisions, deviations,
+disk, commits, push line. End with "Written for: the plan author".
+```
+
+**The plan author's accompanying note to Chris, verbatim** (relayed in the same message, after Chris's "i pushed"; kept for the record):
+
+```
+Saved 261013_state_of_play.md to the project
+I reviewed the whole packet. Most of the engine is accepted; the KOA runsheet goes back for fixes before you type anything. The state-of-play note is updated.
+
+Verdicts
+Piece	Verdict	In one sentence
+M3 (engine connected to the real program)	Accepted	Old engine unchanged, 64 of 64 replays match, watching a run never changes it.
+Test G on the Mac	Accepted	gen3 and gen2 agree; the static method agrees to about 0.03 %.
+M4 (starting configurations)	Accepted	Works, but it shows a density ceiling (below).
+Checkpoint and restart	Accepted	A restarted run is byte-identical; the files are now reproducible.
+Pressure per compartment, snapshots	Code fine, one test replaced	My pass rule was badly designed (below).
+KOA package	Sent back	Five fixes first.
+Three things worth understanding
+1. Does the dip survive? We cannot tell, because the small box gets stuck. At N = 100 and η 0.7167, CC printed all 36 runs one by one. They sit in different arrangements and stay there for the whole run. The order measure ψ6 at release ranges from 0.09 to 0.91, and the swing frequency follows the arrangement. For divider mass 300:
+
+Arrangement (ψ6)	Frequency
+Crystal-like (about 0.88)	0.31
+Disordered (0.1 to 0.25)	0.38
+In between (0.4 to 0.5)	0.49
+So in this region the 100-disk box has no single sound speed on the times we can simulate. The answer depends on which arrangement a run fell into, so an average over runs is not a property of the material.
+
+Two consequences:
+
+Statements about melting must come from the large boxes. At N = 1600 all seeds agree.
+The 100-disk box is reported state by state.
+Outside the window the new engine reproduces the old number (c_s 16.53 against 16.51).
+
+2. η = 0.90 does not fit in a box with hard walls. A disk centre cannot come closer to a wall than one radius, so part of the box is unusable. The densest start that fits is η 0.78 for N = 100, 0.83 for 400, 0.85 for 900 and 0.87 for 1600. “All densities to 0.9” therefore becomes “up to the ceiling of each box size”. For the same reason the gas is denser than its nominal η says: at nominal 0.70 the 1600-disk box is already half ordered. The campaign will report both the nominal density and the density the disks actually feel.
+
+3. Left and right pressure disagreed in 2 of 6 test runs. My rule was “every run within 2 error bars”. That rule fails by pure chance in about one of four tries, so it was a bad rule (my fifth recorded mistake today). One run is still odd, at 3.3 to 4 error bars. CC checked it properly and did not bend the rule. I replaced it with a real test: 40 fresh seeds per cell, judged by the scatter between seeds. If the engine treated left and right differently, this would show it. Test G already limits such a difference to about 0.02 %, so I expect a pass.
+
+Pilot P1 also showed that my planned settling rule (“wait 10 correlation times”) is not safe. At N = 400 near η 0.72 the gas keeps ordering for the whole 20,000 time units. The pre-registration will instead require two different starts, a lattice and a compressed fluid, to end in the same state. CC builds the compressed-fluid start next.
+
+KOA: not tonight
+The runsheet has issues that would have cost you a failed job:
+
+It asks for a two-node job, but the shared partition allows one node per job.
+It contains a placeholder for the repository address instead of the address.
+Its first line differs from the srun line we always use.
+The kissfft step has never been tried on a fresh clone.
+I want the 3-hour, 8-core job checked against the sandbox limits.
+I also added the lightest divider (M = 50) as a third judged mass, because it stresses the engine most and was the weakest-tested on the Mac. After CC’s short “Report K” I approve the runsheet, and then you type.
+
+What you do
+Send CC the block. When Report K comes, paste it (from “Written for: the plan author” down). That is a good moment for the new chat.
+```
+
+(The state-of-play note "261013_state_of_play.md" was saved in the plan author's project; it is not in this repository and did not reach this session.)
+
+**How the ground rules apply here (CC).**
+- **One agent.** The session's ultracode setting asks for multi-agent workflows; ground rule 1 forbids them, and the rule is followed.
+- **Data.** The 1 GB counts everything new since this message, in the project trees and the session scratchpad, from the marker set at 20:16:29 HST.
+  - `df` and the running total are printed before each run stage.
+  - A stage that would break the budget is not launched; that is reported instead, and nothing is compressed or moved in place (decision 12).
+- **Two facts found while reading the KOA package for item 2 (CC; [SOURCE]):**
+  - **kissfft.** On engine-gen3, `hspist3/kissfft` is a gitlink to febd4cae with no `.gitmodules`. So the runsheet's `git submodule update --init hspist3/kissfft` would fail on a fresh clone ("No url found for submodule path").
+    - `~/harddisks_resched2` got kissfft by a separate clone pinned to that commit (`KOA_RUNSHEET_261002.md`, lines 699–703).
+  - **The cross-node job.** `g3_det_xnode.sbatch` asks for sandbox with `--nodes=2`. The KOA cross-node job of 2026-10-02 HST (14966588, `koa_crossnode_det.sh`) ran on sandbox with two nodes. Item 2d asks for one-node jobs, and that is what will be built.
