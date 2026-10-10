@@ -9,6 +9,9 @@ Per cell (N, eta), over its 6 seeds, from the held-divider psi6(t) series (psi6 
   the proposed T_eq = 10 x the mean tau (and 10 x the largest seed's tau);
   events per second through the driver (events / run_s of the run record), the cost table for the pre-registration;
   health: the runs with a run record clean=1 out of 6 (rule 10).
+  INFORMATION column (added after the first cell, not part of the programme's criterion): the paired drift from the SECOND to the
+  last quarter, Q4 - Q2, with its SE. The first quarter holds the melting or relaxing of the starting lattice; Q4 - Q2 separates
+  that start transient from a slow drift. The programme's flag stays the Q4 - Q1 one.
 usage (from hspist3/ of the engine-gen3 worktree): python3 experiments_gen3_p1_261009/p1_tables.py --out <data root> > p1_tables_output.txt
 """
 import argparse, gzip, math, os, re, sys
@@ -55,11 +58,11 @@ def main():
 
 def table(O, T_HOLD, col):
     print("| N | eta | runs clean | psi6 first quarter | psi6 last quarter | drift (paired) | drift / SE | stationary within 2e4? | tau_int, "
-          "second half [sigma] (mean; SD; min-max) | resolved? | proposed T_eq = 10 tau (mean; largest seed) [sigma] | events/s (driver) |\n"
-          "|---|---|---|---|---|---|---|---|---|---|---|---|")
+          "second half [sigma] (mean; SD; min-max) | resolved? | proposed T_eq = 10 tau (mean; largest seed) [sigma] | events/s (driver) | "
+          "information: drift Q4 - Q2 (paired) / SE |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     for c in P1.cells():
         cd = os.path.join(O, c["name"])
-        q1, q4, taus, eps, clean = [], [], [], [], 0
+        q1, q2, q4, taus, eps, clean = [], [], [], [], [], 0
         for r in range(P1.NSEED):
             d = os.path.join(cd, f"seed{r}")
             if not os.path.isdir(d): continue
@@ -74,11 +77,13 @@ def table(O, T_HOLD, col):
             if S is None: continue
             t, v = S
             q1.append(v[t < T_HOLD / 4].mean()); q4.append(v[t >= 3 * T_HOLD / 4].mean())
+            q2.append(v[(t >= T_HOLD / 4) & (t < T_HOLD / 2)].mean())
             h = t >= T_HOLD / 2; dt = np.median(np.diff(t)) if len(t) > 1 else 1.0
             taus.append(tau_int(v[h], dt))
         n = len(q1)
-        if n < 2: print(f"| {c['N']} | {c['eta']:.3f} | {clean} of 6 | no data | | | | | | | | |"); continue
-        q1, q4, taus = np.array(q1), np.array(q4), np.array(taus)
+        if n < 2: print(f"| {c['N']} | {c['eta']:.3f} | {clean} of 6 | no data | | | | | | | | | |"); continue
+        q1, q2, q4, taus = np.array(q1), np.array(q2), np.array(q4), np.array(taus)
+        d42 = q4 - q2; dr42, se42 = d42.mean(), d42.std(ddof=1) / math.sqrt(n)
         se1, se4 = q1.std(ddof=1) / math.sqrt(n), q4.std(ddof=1) / math.sqrt(n)
         dd = q4 - q1; drift, sed = dd.mean(), dd.std(ddof=1) / math.sqrt(n)
         stat = "yes" if abs(drift) <= 2 * sed else "**NOT STATIONARY within 2e4**"
@@ -89,7 +94,8 @@ def table(O, T_HOLD, col):
                 (f" ({n - len(tf)} seeds without a window)" if len(tf) < n else "")
         teq = f"{10 * tm:.3g}; {10 * tf.max() if len(tf) else math.nan:.3g}"
         print(f"| {c['N']} | {c['eta']:.3f} | {clean} of 6 | {q1.mean():.4f} +- {se1:.4f} | {q4.mean():.4f} +- {se4:.4f} | {drift:+.4f} +- {sed:.4f} | "
-              f"{drift / sed if sed > 0 else math.nan:+.2f} | {stat} | {tau_s} | {res} | {teq} | {np.mean(eps) if eps else math.nan:.3g} |")
+              f"{drift / sed if sed > 0 else math.nan:+.2f} | {stat} | {tau_s} | {res} | {teq} | {np.mean(eps) if eps else math.nan:.3g} | "
+              f"{dr42:+.4f} +- {se42:.4f} / {dr42 / se42 if se42 > 0 else math.nan:+.2f} |")
 
 
 if __name__ == "__main__":
