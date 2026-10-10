@@ -11133,3 +11133,212 @@ build required: build="5d19aa7" target=mac-O3-e0pre; inventory clean
 pi8: SYMMETRIC; 070: SYMMETRIC; no extension
 SYMMETRY TEST: PASS
 ```
+
+### 4.7.29 Decision 13, items 2 and 3: the KOA package corrected (PREPARED, NOT RUN), Test G on KOA registered, and the Mac dry run (2026-10-09 20:45 HST, machine date) [SOURCE; DATA, printed by script, where marked] — PROVISIONAL
+
+**Plain summary.**
+- **Prepared, not run.** There was no KOA contact. Nothing is typed until the plan author approves this runsheet and Chris says go.
+- **Test G on KOA is registered** in engine-gen3 `a643bc7edb1b41574c0f9af0c5fea199dc797680` (main `a430f0e`), before any KOA trajectory exists. The gate is for this commit.
+  - Three verdict masses: M = 50, 300 and 1500, 400 trajectories per engine each.
+  - The information rows are the Mac's without the M = 50 row; BASE_KOA = 20261220.
+  - The task list `tasks_testG_koa_261009.txt` has 3600 lines (144 chunks of 25), SHA-256 `cff8e6f9ef3d95440f54b4c621fff776b64e48700083e7258e472351fc6412b9`. It shares no seed with any earlier list, the Mac's Test G and the symmetry test included.
+  - The seed lists of the three possible extensions are fixed now (their SHA-256 are below).
+  - The verdict prints the false-alarm rates for three masses: P(PASS) = 0.953 with no true difference, so the false-alarm rate is 4.7 %.
+- **The commit after it,** engine-gen3 `f8e763e4e9e449a762d71bfb452828f88e4ae9a1` (main `bfc636f`), holds:
+  - the corrected runsheet, which names `a643bc7` literally (a commit cannot name itself);
+  - `BUILD_KOA_COMMIT` of the verdict;
+  - the Mac dry run.
+- **The fixes, item by item:**
+  - a. Every sandbox block starts with `srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash` on its own line, without `-A`. The KOA notes show the earlier sessions used this line without `-A`, the one that cloned and built `~/harddisks_resched2` among them (`KOA_RUNSHEET_261002.md` lines 27 … 960 and 692–706; quoted in the runsheet).
+  - b. The repository URL and the commit hash are written literally. The only placeholders are job ids, each marked "replace by the number".
+  - c. kissfft:
+    - On engine-gen3, `hspist3/kissfft` is a gitlink to febd4cae with no `.gitmodules`, so the old step `git submodule update --init` would have failed.
+    - `~/harddisks_resched2` got kissfft by `git clone https://github.com/mborgerding/kissfft.git hspist3/kissfft` and `git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec` (`KOA_RUNSHEET_261002.md` lines 702–703). The step is now identical.
+    - `build_gen3_koa.sh` stops if kissfft is not febd4ca.
+    - **Mac dry run: PASS** (below).
+  - d. Cross-node determinism is now an array of 8 identical one-core tasks on shared (`g3_det_xnode.sbatch`), each in its own folder with `node.txt` (hostname and CPU model).
+    - A dependent compare job (`g3_xnode_compare.sbatch` → `g3_xnode_compare.py`) prints the node pairs compared, IDENTICAL/DIFFERENT per file and pair, and "NOT TESTED" if every task ran on one node.
+    - The compare script was tested on synthetic folders: two nodes identical, one byte different, one node → IDENTICAL, DIFFERENT, NOT TESTED.
+  - e. The recorded sandbox limits:
+    - "4 h walltime — interactive tests and the first-hour checks only" (`cluster/README.md`, KOA facts of 2026-10-01);
+    - "sandbox is for tests (short runs)" (§ 1.10);
+    - no recorded per-job core limit (`KOA_RUNSHEET_261002.md`: "not read yet (OPEN)"). The largest sandbox job so far asked for 16 cores for ≤ 1 h.
+    - So the 3-hour, 8-core gate job moves to **shared** with the stated limit: 1 node, 8 cores, 8 GB, 3 h.
+  - f. Core-hours and the largest core count per step, printed by `runsheet_budget.py` from the job scripts' headers (in the runsheet below). 900 core-hours are requested in all, 866 of them by Test G's 6-hour-per-chunk limit; about 18 are expected for Test G (information).
+  - g. The registration above. Its verdict `testG_koa_verdict_261009.py` imports the registered Mac script unchanged and uses its rule with three masses. `--dry-run-mac` on the Mac's data reproduces the Mac's z = +0.82 (M = 300) and +0.05 (M = 1500).
+  - h. The runsheet says the gate is for `a643bc7`, and that E0, cross-node determinism and the M1/M2 harness hashes on KOA are repeated at the final campaign commit.
+    - The gate job now records the M1/M2 harness hashes, so that item exists to be repeated. They are built in step 2 with the koa flags.
+- **Item 3:** the amendment-a no-miss argument (§ 4.7.14, DERIVATION) is quoted verbatim in Report K and not repeated here.
+
+**Decisions.**
+1. **Pinning the clone.**
+   - The established shape is kept: a shallow, blob-filtered, sparse clone of the branch.
+   - It is followed by `git fetch --depth 1 origin <hash>` and a checkout of that hash, so the clone is `a643bc7` even after engine-gen3 has moved on.
+   - The dry run showed GitHub serves both the branch tip and a non-tip commit by hash.
+   - A tag would also pin it, but would need a new ref pushed.
+2. **Two commits.**
+   - `a643bc7` (what KOA builds) holds every job script, the task list and its SHA-256 file (`testG_koa.sbatch` checks the list against it) and the verdict logic.
+   - `f8e763e` names `a643bc7` in the runsheet and in `BUILD_KOA_COMMIT`.
+   - The clone's own copy of the runsheet (at `a643bc7`) is the superseded one; the runsheet to type is the one below.
+3. **The build line the KOA verdict accepts** is "00ALLINONE  git <h>  target koa", where <h> is a prefix of `a643bc7…` with at least 7 digits. `git rev-parse --short` on KOA decides the length.
+4. **The M1/M2 harnesses on KOA** use the koa target's flags with `-std=gnu11`: `edmd.c` uses `M_PI`, which strict `-std=c11` does not define with glibc. Whether their outputs equal the Mac's is information: the M2 harness calls `cos` and `sin`, which glibc and macOS may round differently. KOA's own hashes are the reference for the repeat.
+5. **The cross-node array** may land on different CPU types: shared mixes Intel and AMD CPUs (§ 1.10). The node record carries the CPU model.
+6. **Extensions.** As on the Mac, an extension's seeds are fixed now (SHA-256 printed). Its task list and its KOA step are prepared only if the verdict asks for one. The verdict counts an extension at a mass when the fetched data hold runs r ≥ 400 there.
+7. **Slips, disclosed:**
+   - The generator's first run printed an overlap of 1800 seeds with "earlier lists". The Mac generator's `used_seeds()` reads every `cluster/*/tasks_*.txt` except the Mac's own folder, so it counted the new list against itself. The script now skips its own folder; the list did not change; a cross-check gave 0.
+   - A commit command did not run, because zsh does not split an unquoted variable into words. Nothing was committed, and the propagate script stopped on its own check. It was redone with an array.
+   - The propagate script made two empty commits on engine-divider-resched (`21e6af1`, `8871007`; notes unchanged). It now skips that branch when the notes did not change.
+
+**The corrected runsheet, verbatim** (`hspist3/cluster/gen3_koa_261009/runsheet_gen3_koa_261009.txt`, main `bfc636f`, engine-gen3 `f8e763e`):
+
+```
+##CHRIS 2026-10-09 (261012 sec. 4.7.20; corrected by plan-author decision 13, item 2, sec. 4.7.29) -- THE KOA RUNSHEET OF THE GEN-3 GATE
+PREPARED, NOT RUN. Nothing here is typed until the plan author has approved THIS version and Chris says go. Chris types every command.
+
+THIS GATE IS FOR THE COMMIT OF THIS REGISTRATION: engine-gen3 a643bc7 (a643bc7edb1b41574c0f9af0c5fea199dc797680), the commit that
+registers Test G on KOA (task list tasks_testG_koa_261009.txt, SHA-256 cff8e6f9ef3d95440f54b4c621fff776b64e48700083e7258e472351fc6412b9).
+The clone is checked out at exactly that commit, even after engine-gen3 has moved on. At the final campaign commit the deterministic
+items -- E0, cross-node determinism, the M1/M2 harness hashes on KOA -- are repeated.
+
+KOA rules (the KOA notes): the login node only for light commands (no builds, no binaries: home is noexec there; no git there);
+squeue before every sbatch; never submit a job twice; nothing in ~/harddisks, ~/harddisks_resched, ~/harddisks_resched2 changes;
+never a password in a file or a chat. Every job checks its clone, its binary's recorded hash and version line, and stops (STOP: ...)
+on any mismatch -- paste the STOP line, change nothing, wait. The only placeholders are job ids, written <... job id: replace by the
+number>; type the number Slurm printed, without the angle brackets.
+
+THE SANDBOX LINE is the established one, on its own line, without -A: every sandbox block of KOA_RUNSHEET_261002.md reads
+"srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash" (lines 27, 312, 379, 440, 570, 692, 828, 960), and the sessions it opened
+worked without -A -- among them the one that cloned and built ~/harddisks_resched2 (lines 692-706). The sbatch files name the
+account themselves (#SBATCH --account=uh).
+
+CORE-HOURS AND CORES PER STEP (printed by cluster/gen3_koa_261009/runsheet_budget.py from the job scripts' headers):
+| step | what | partition | largest core count at once | requested core-hours (cores x time limit, summed) |
+|---|---|---|---|---|
+| 1-2 | sandbox shell: clone and the two builds | sandbox | 2 | 2.00 |
+| 3 | the one-node gate job (E0, harness hashes, rate table, long double) | shared | 8 | 24.00 |
+| 4 | cross-node determinism: array 1-8 and the compare job | shared | 8 | 8.25 |
+| 5 | Test G on KOA: array 1-144%64 and the merge job | shared | 64 | 866.00 |
+| 6 | the fetch (Mac) and the verdict (Mac) | none (Mac) | 0 | 0.00 |
+| all | | | | 900.25 |
+Information: the Mac's measured core-hours for the same Test G task list: 8.60; the Mac ran gen2 at 2.34e5 events/s per core and KOA at
+1.1e5 (measured, 7b08827), a factor 2.12, so the Test G array would take about 18 core-hours on KOA if gen3 slows by the same factor;
+its slowest chunk about 1.2 h against the 6 h limit. Requested core-hours are upper bounds; Slurm charges what a job uses.
+
+STEP 1 (KOA; a sandbox shell; the clone at the registration commit; about 3 min)
+  squeue -u charing
+  srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+      (wait for the cn-... prompt of the compute node before typing on: commands typed while srun is queued are lost)
+  cd ~
+  git clone --depth 1 --branch engine-gen3 --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_gen3
+  cd harddisks_gen3
+  git fetch --depth 1 origin a643bc7edb1b41574c0f9af0c5fea199dc797680
+  git -c advice.detachedHead=false checkout a643bc7edb1b41574c0f9af0c5fea199dc797680
+  git sparse-checkout set --no-cone "/hspist3/*.c" "/hspist3/*.h" "/hspist3/*.py" "/hspist3/Makefile" "/hspist3/edmd_core/" "/hspist3/cluster/" "/hspist3/validation/" "/hspist3/kissfft"
+  git clone https://github.com/mborgerding/kissfft.git hspist3/kissfft
+  git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec
+  git log -1 --format='%h %s' | cut -c1-80          (paste; it must start with a643bc7)
+  (kissfft exactly as ~/harddisks_resched2 got it, KOA_RUNSHEET_261002.md lines 702-703: on engine-gen3 hspist3/kissfft is a gitlink
+   to febd4cae without a .gitmodules entry, so "git submodule update" cannot fetch it; the separate clone pinned to that commit can.)
+
+STEP 2 (KOA; the same sandbox shell; the builds; about 5 min)
+  cd ~/harddisks_gen3/hspist3 && bash cluster/gen3_koa_261009/build_gen3_koa.sh 2>&1 | tail -20     (paste; the last line must be BUILD OK)
+  exit                                               (leave the sandbox shell)
+
+STEP 3 (KOA login node; the one-node gate job on shared: E0, the M1/M2 harness hashes, the rate table, the long-double spot check;
+        8 cores, at most 3 h)
+  squeue -u charing
+  cd ~/harddisks_gen3/hspist3 && sbatch cluster/gen3_koa_261009/g3_gate_koa.sbatch                      (note the job id)
+  when it has ended:  tail -120 logs/gen3-gate_<gate job id: replace by the number>.out                  (paste)
+  Expected: (a) E0 IDENTICAL for ctrl_min, ctrl_leg, afix, afix_leg, default and --engine=gen2; (b) three harness hashes (whether they
+  equal the Mac's is information); (c) a rate table; (d) the long-double table: clean 1 everywhere, gap / u_t of the koa-ld build at
+  the long-double quantum.
+
+STEP 4 (KOA login node; cross-node determinism: an array of 8 identical one-core tasks on shared, then the compare job; at most 1 h)
+  squeue -u charing
+  cd ~/harddisks_gen3/hspist3 && sbatch --array=1-8 cluster/gen3_koa_261009/g3_det_xnode.sbatch          (note the array job id)
+  sbatch --dependency=afterany:<xnode array job id: replace by the number> cluster/gen3_koa_261009/g3_xnode_compare.sbatch <xnode array job id: replace by the number>
+                                                                                                          (note the compare job id)
+  when the compare job has ended:  cat logs/gen3-xnode-compare_<compare job id: replace by the number>.out   (paste)
+  Expected: the node pairs compared and IDENTICAL for every file and pair. "NOT TESTED" means every task ran on one node: paste it and wait.
+
+STEP 5 (KOA login node; Test G on KOA, registered at a643bc7; only after the plan author's go on this runsheet; at most 64 cores)
+  squeue -u charing
+  cd ~/harddisks_gen3/hspist3 && sbatch --array=1-144%64 cluster/gen3_koa_261009/testG_koa.sbatch        (note the array job id)
+  sbatch --dependency=afterany:<Test G array job id: replace by the number> cluster/gen3_koa_261009/merge_testG_koa.sbatch   (note the merge job id)
+  when the merge has ended:  tail -40 logs/gen3-testG-merge_<merge job id: replace by the number>.out    (paste)
+  An extension (if the verdict asks for one at a mass) is a separate step, prepared then: its task list comes from the registered seeds
+  (gen_testG_koa_261009.py --extension M; the seed lists' SHA-256 are in the registration commit's message) and it runs with this binary.
+
+STEP 6 (Mac; the fetch; Chris types the password and Duo)
+  cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks && bash hspist3/cluster/gen3_koa_261009/fetch_gen3_koa.sh <gate job id: replace by the number> <xnode array job id: replace by the number>
+  then CC: python3 hspist3/cluster/gen3_koa_261009/testG_koa_verdict_261009.py (the registered three-mass verdict on the KOA data)
+```
+
+**The Mac dry run, verbatim** (`dryrun_mac.sh`, its output `dryrun_mac_output.txt`) [DATA]:
+
+```
+== dry run 2026-10-09 20:38:29 HST in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/dryrun_koa; pushed engine-gen3 per ls-remote: 9c058cab47158d4e3af22efb1dd6cd4fff8f8cbc
+== STEP 1, as written (the commit substituted by the pushed head 9c058cab47158d4e3af22efb1dd6cd4fff8f8cbc)
++ git clone --depth 1 --branch engine-gen3 --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_gen3
+Cloning into 'harddisks_gen3'...
+Updating files:  12% (2/16)Updating files:  18% (3/16)Updating files:  25% (4/16)Updating files:  31% (5/16)Updating files:  37% (6/16)Updating files:  43% (7/16)Updating files:  50% (8/16)Updating files:  56% (9/16)Updating files:  62% (10/16)Updating files:  68% (11/16)Updating files:  75% (12/16)Updating files:  81% (13/16)Updating files:  87% (14/16)Updating files:  93% (15/16)Updating files: 100% (16/16)Updating files: 100% (16/16), done.
++ cd harddisks_gen3
++ git fetch --depth 1 origin 9c058cab47158d4e3af22efb1dd6cd4fff8f8cbc
+From https://github.com/FreeworkEarth/HardDisks
+ * branch            9c058cab47158d4e3af22efb1dd6cd4fff8f8cbc -> FETCH_HEAD
++ git -c advice.detachedHead=false checkout 9c058cab47158d4e3af22efb1dd6cd4fff8f8cbc
+HEAD is now at 9c058ca notes and evidence (identical copies of main 8d12e1cd): decision 12 part 3a (261012 sec. 4.7.26)
++ git sparse-checkout set --no-cone '/hspist3/*.c' '/hspist3/*.h' '/hspist3/*.py' /hspist3/Makefile /hspist3/edmd_core/ /hspist3/cluster/ /hspist3/validation/ /hspist3/kissfft
++ git clone https://github.com/mborgerding/kissfft.git hspist3/kissfft
+Cloning into 'hspist3/kissfft'...
++ git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec
+HEAD is now at febd4ca Merge pull request #99 from lanurmi/newline
++ git log -1 '--format=%h %s'
++ cut -c1-80
+9c058ca notes and evidence (identical copies of main 8d12e1cd): decision 12 part
++ set +x
+== information: a fetch by hash of a commit that is not the branch tip (1ae6226ec7ad4e5c676d8ca841d72ead79ae3f14), in a second fresh clone
+   checked out 1ae6226ec7ad4e5c676d8ca841d72ead79ae3f14
+== the clone: HEAD 9c058cab47158d4e3af22efb1dd6cd4fff8f8cbc; tracked files modified: 0; kissfft febd4caeed32e33ad8b2e0bb5ea77542c40f18ec; files checked out: 4713 (9.9M incl. kissfft)
+== STEP 2, Mac equivalents: make -B release-ld (koa-ld), make -B release (koa)
+00ALLINONE  git 9c058ca  target release-ld
+00ALLINONE  git 9c058ca  target release
+   M1 harness built (0 warnings)
+   M2 harness built (0 warnings)
+   fd5f2b53fa81c88178f7f62de3cc092ed9962ce976790f6a85b3f4e275c4853a  00ALLINONE
+   dffb3b3f2837e5d08de990c58feac3c0eeea0cfa93d75f5085d7858271781005  bin/00ALLINONE_ld
+   4cff618b9f313df843caab3fc8f1c929a9a8f641f5946aa39722e1662f46a911  bin/gen3_m1
+   cba6a498e7e2db5b627cef5eda38868c4d3695174203e14c6e1a3ea877ea020e  bin/gen3_m2
+== ctrl_min with both builds (the clone's audit_runs_261007.py), against the 7b08827 reference outputs
+   release: version git 9c058ca  target release | audit vs plain: IDENTICAL | plain vs ref: IDENTICAL 
+   [EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+   release-ld: version git 9c058ca  target release-ld | audit vs plain: IDENTICAL | plain vs ref: IDENTICAL 
+   [EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+== dry run done 2026-10-09 20:39:34 HST
+```
+
+**The registration's printed lines** (`gen_testG_koa_261009.py`) [DATA]:
+
+```
+cluster/gen3_koa_261009/tasks_testG_koa_261009.txt: 3600 lines, SHA-256 cff8e6f9ef3d95440f54b4c621fff776b64e48700083e7258e472351fc6412b9; chunks of 25: 144 (array 1-144%64); distinct seeds 1800 (each used by both engines); overlap with every earlier list incl. the Mac's Test G and the symmetry test: 0
+lines per block, mass and engine: afix M=0 gen2 200, afix M=0 gen3 200, dense M=300 gen2 200, dense M=300 gen3 200, info_m M=2000 gen2 100, info_m M=2000 gen3 100, main M=50 gen2 400, main M=50 gen3 400, main M=300 gen2 400, main M=300 gen3 400, main M=1500 gen2 400, main M=1500 gen3 400, n400 M=300 gen2 100, n400 M=300 gen3 100
+extension seed list at M = 50 (r = 400..799, lines 'main epi8_H_H10_L10 M r seed'): SHA-256 5189f5f7d9e84eeefe599cf9717734d3db270f07055bbdd70168cbec7d2c5a4c; overlap with the main list and the earlier seeds: 0
+extension seed list at M = 300 (r = 400..799, lines 'main epi8_H_H10_L10 M r seed'): SHA-256 1bd1eb1a5d749d7e86a3ababc759c718ca8ba08ab6c5bec25d5cef5553938be4; overlap with the main list and the earlier seeds: 0
+extension seed list at M = 1500 (r = 400..799, lines 'main epi8_H_H10_L10 M r seed'): SHA-256 139e541bcbe43b3de2386d0974f000f57c72782e62b112b166315a93c1ce18d9; overlap with the main list and the earlier seeds: 0
+```
+
+**The false-alarm rates for three masses** (`testG_koa_verdict_261009.py --design`) [DATA]:
+
+```
+# Test G on KOA -- the false-alarm rates of the thresholds for three masses (261012 sec. 4.7.29)
+
+| quantity (no true difference) | one mass | three masses (independent) |
+|---|---|---|
+| P(abs(z) >= 3 at 400) | 0.00270 | 0.00808 (at least one) |
+| P(extension: 2 <= abs(z) < 3 at 400) | 0.04280 | 0.12298 (at least one) |
+| P(DIFFERENCE), extension path included | 0.00403 | 0.01204 (at least one) |
+| P(UNRESOLVED) | 0.01189 | 0.03525 (at least one) |
+| P(NO DIFFERENCE) | 0.98408 | P(PASS) = 0.95299; false alarm (not PASS) = 0.04701 |
+```
+
+**Commits:** main `a430f0e` / engine-gen3 `a643bc7` (the fixes and the registration), main `bfc636f` / engine-gen3 `f8e763e` (the runsheet naming `a643bc7`, BUILD_KOA_COMMIT, the dry run).
