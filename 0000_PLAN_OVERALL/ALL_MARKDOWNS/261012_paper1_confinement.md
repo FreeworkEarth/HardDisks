@@ -9529,3 +9529,269 @@ eta0.7167_M50 0.489899718071 408.250006083 0.716713;
 
 **Commits:** engine-gen3 `c0ca3c9` (the P2 scripts as run, committed before the data), `88428ff` (the companion script, committed before P2's table was printed), `1140a19` (P2's evidence and the final E1 output).
 
+
+### 4.7.21 Stage H: checkpoint and restart at an event boundary (2026-10-09 16:09 HST, machine date) [DATA, printed by script; SOURCE] — PROVISIONAL
+
+**Plain summary.**
+- **Stage H started once stages A–G were done** (F's notes were committed at 15:41). Its acceptance: a restarted run is byte-identical to the uninterrupted one (traces, ψ6(t), event hash). **ACCEPTANCE: PASS**, printed by `stageH_tables.py`.
+  - Every restarted run (9, a chain included) is byte-identical to the uninterrupted run in the trace, ψ6(t), the ψ6 summary, `run_params.json`, the run record (its three timing fields excepted) and the event hash.
+  - So is every run that wrote a checkpoint and went on (8): writing does not steer.
+- **What it does** (engine-gen3 `ab80304`; gen3 only, refused under gen2).
+  - **The engine** (`edmd3_checkpoint_write` / `edmd3_checkpoint_read`) stores its whole state between two advances, byte for byte: every counter, time, tolerance, body, ledger, audit total and the event-hash state; every disk; the cell lists in order; and the heap array as it stands.
+  - **The driver** writes a checkpoint at the top of a hold step or a record step (`--gen3-checkpoint=hold:K:PATH` or `record:K:PATH`; `--gen3-checkpoint-stop` stops right after it). It holds the run's identity, the driver's state of the trajectory, the bytes of the trace and the ψ6(t) file so far, and the engine.
+  - **A restart is the same command plus `--gen3-restart=PATH`.** The driver sets the run up as always, builds gen3 as its first advance would, reads the checkpoint over it, puts back the files and its own state, and goes on from that step.
+  - **One trajectory per process.** Another build, trajectory or initial state is refused, and so is the gated event log.
+- **Evidence** (`experiments_gen3_h_261009/`, binaries of the committed tree `ab80304`):
+  - **H0, rule 4:** gen2 IDENTICAL with 7b08827 (ctrl_min, ctrl_leg; the default build and `--engine=gen2`).
+  - **H1:** the M1 and M2 harness outputs are byte-identical to the committed ones (3 of 3).
+  - **H2, the engine test** (`edmd_core/tests/gen3_checkpoint_test.c`): PASS in the default and the long-double build, 329 comparisons each, 0 different.
+    - It uses the M2 harness's 13 cells at full length, two of them also with both audits on.
+    - Checkpoints at six samples, including the last sample before and the first after an origin shift.
+    - Reads into a fresh state and into a state that had run elsewhere, and a chain. Both refusals refuse.
+  - **H3, the driver,** three trajectories of the day:
+    - A: P2's η 0.7113, M = 300 cell exactly as P2 ran it (N = 100, a 1e4-σ-time hold with 29 origin shifts, 200 periods).
+    - B: P1's N = 400, η 0.704 cell (M = 50, a 2000-σ-time hold, a 200-σ-time record).
+    - C: P1's N = 1600, η 0.716 cell (M = 2000, a 500-σ-time hold, a 100-σ-time record).
+    - Checkpoints after 1 and 300000 hold steps and after 0 and 25000 record steps (A); one in the hold and one in the record (B, C).
+    - The latest checkpoint is at t = 250000 units, after 22.7 million events and 30 origin shifts.
+  - **H4:** ten refusals, each exit 2 with its reason.
+  - **Checkpoint sizes:** 31 kB to 1.0 MB at N = 100 (the trace and ψ6(t) bytes included), 0.9–1.1 MB at N = 400, 2.8–3.3 MB at N = 1600.
+
+**Decision log.**
+1. **The heap is stored as it stands, not rebuilt.** The design note (§ 4.7, item 6) said "on restart the heap is rebuilt in canonical order".
+   - A live event of the uninterrupted run was predicted at its own time from the states then (lazy invalidation, origin shifts in between).
+   - A rebuild predicts every event again from the stored states at the restart time. Its times can differ in the last bits, and the two trajectories then part.
+   - Stored, the restarted engine is the writer's bytes. The pop order is the key order (t, type, a, b) either way.
+   - Size: 64 kB to 0.99 MB in the engine test (N = 300–400).
+2. **The checkpoint is for the same build.** A header with the struct sizes and the geometry (engine) and the build line (driver) refuses anything else. It is a restart file for long runs, not an archive format.
+3. **A restart repeats the run's set-up instead of storing it.** The seeding is deterministic per seed. The driver hashes the state gen3 is built from (box, bodies, load time, every disk) and refuses a checkpoint whose hash differs. So a restart with another seed, another jitter or another lattice stops.
+4. **The validator carries nothing.** It holds only its initial snapshot (rebuilt identically by the set-up) and a failure flag, which is clear at any checkpoint.
+5. **What a restarted run does not repeat:**
+   - its stdout from before the checkpoint (it prints `[EDMD3-RESTART]` instead);
+   - the `[EDMD-ENERGY] 1 release` line (HD_KE_TRACE only) after a record-phase checkpoint;
+   - the run record's three timing fields, which cover the restarted process only.
+6. **Refused rather than carried: the gated event log** (`HD_PISTON_EVENTS`; a diagnostic, off by default). Its rows before the checkpoint would be missing.
+7. **The driver change is gen3-only** and is checked by rule 4 (H0).
+   - The hold loop starts at g3_s0, which is 0 without the flags.
+   - The three release blocks run unless a record-phase restart happened, a state that gen2 cannot reach because the flags are refused under gen2.
+8. **A process-count fix before the first evidence run** (`d14a467`, binaries unchanged). The evidence runner capped its own children at 12, but two of them (the rule-4 audits) run 2 simulations each. It now caps at 10, so at most 12 simulations run at once.
+9. **The engine test was first run on a scratch build of the uncommitted code** (15:50–15:56; PASS, 329 comparisons), then on the committed build as evidence. The driver was smoke-tested the same way (one trajectory, hold checkpoint: identical files and hash). Neither scratch run is evidence.
+10. **Two checkpoint files of the same state are not byte-identical:**
+    - The engine block stores the writer's struct as it is, so the writer's buffer addresses and the heap's allocated capacity go into the file. The read ignores them and keeps its own.
+    - C's and R1's files at the same step differ in 5–7 eight-byte slots of that block, and the chain's file in 8. The driver part, every disk, the cell lists and the heap are identical byte for byte.
+    - So checkpoints cannot be compared by hash. Proposed, not done today: write a copy of the struct with those fields zeroed.
+
+**Done / not done.**
+
+| item (stage H) | status |
+|---|---|
+| checkpoint at an event boundary (engine and driver) | done (`ab80304`) |
+| a restarted run byte-identical to the uninterrupted one: traces, ψ6(t), event hash | done: **PASS** (table 5: 9 restarted runs, a chain included) |
+| writing a checkpoint does not steer | done: 8 runs identical (table 5) |
+| engine-level test | done: PASS in both builds (table 4; the full table below) |
+| rule 4 after the 00ALLINONE.c change | done: IDENTICAL (table 2) |
+| the M1/M2 harness outputs (the engine changed) | done: IDENTICAL (table 3) |
+| rule 5 | done: frozen binaries of `ab80304`, build line without "-dirty" (table 1) |
+| refusals | done: 10 of 10 (table 6) |
+| not done | carrying the gated event log across a restart (refused instead, decision 6); the design note's heap rebuild (replaced, decision 1); deterministic checkpoint bytes (decision 10, proposed) |
+
+**Printed by `python3 experiments_gen3_h_261009/stageH_tables.py --bin-dir experiments_gen3_h_261009/bin_stageH --record experiments_gen3_h_261009/build_record_ab80304.txt --out experiments_gen3_h_261009/evidence_ab80304` (engine-gen3 worktree; verbatim):**
+
+```
+# Stage H (checkpoint and restart) evidence tables, printed by experiments_gen3_h_261009/stageH_tables.py
+
+## 1. The frozen binaries
+
+| binary | --version | SHA-256 | = build record |
+|---|---|---|---|
+| 00ALLINONE | 00ALLINONE  git ab80304  target mac-O3-e0pre | 1c61927fa41569aaa7092500d781398a68e16b30f0193de478e1ac4dbad58abe | yes |
+| gen3_m1 | - | 2bba8c2f79f0cc2c78559634721c076421a69057ab6bf5e3ff00807a723ab809 | yes |
+| gen3_m2 | - | 30508291382403c9345414ecd2234a519c9be6f1d066aab9cdc6d3f42772a6a5 | yes |
+| gen3_checkpoint_test | - | fac8d299aa4c3e67bdcea4ac67bf2b6057b6ed4fb23e6e5b9e07a5749a43b2d7 | yes |
+| gen3_checkpoint_test_ld | - | 735c3d24335c58edcc5d5015d86caf9945ed46b35a5ab53c99ed8e179881bfe2 | yes |
+
+## 2. H0, rule 4: gen2 byte identity with 7b08827 after the 00ALLINONE.c change (ctrl_min, ctrl_leg)
+
+default build: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+--engine=gen2: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+
+rule 4: IDENTICAL (both cases, both builds)
+
+## 3. H1: the M1 and M2 harness outputs (the committed ones)
+
+| output | identical |
+|---|---|
+| m1_audit_output.txt | IDENTICAL |
+| m2_audit_quick_output.txt | IDENTICAL |
+| m2_audit_output.txt | IDENTICAL |
+
+## 4. H2: the engine test (edmd_core/tests/gen3_checkpoint_test.c)
+
+default: VERDICT: PASS -- 329 comparisons, 0 different; refusals both refused
+ld: VERDICT: PASS -- 329 comparisons, 0 different; refusals both refused
+long-double output = default output, byte for byte: yes
+
+## 5. H3: the driver -- every finished run against the uninterrupted run U of its trajectory
+
+| trajectory | run | exit | checkpoint / restart (t [units], events, hash at that moment) | trace = U | psi6(t) = U | speed_of_sound_psi6.csv = U | run_params.json = U | run record (without timing) = U | event hash at the end |
+|---|---|---|---|---|---|---|---|---|---|
+| A | U | 0 | - | (reference) | | |  | (reference) | 28aea5ac14e6e891 |
+| A | C_hold1 | 0 | wrote hold step 1 (t 0.40000000596046448, 7 events, 29babf743ff842f5) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | C_hold300000 | 0 | wrote hold step 300000 (t 120000.00178813934, 10931954 events, 8768e659661ab669) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | C_record0 | 0 | wrote record step 0 (t 240000.00357627869, 21762996 events, 014a57737658581e) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | C_record25000 | 0 | wrote record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R1_hold1 | 0 | wrote hold step 1 (t 0.40000000596046448, 7 events, 29babf743ff842f5) | (stopped) | | | | | |
+| A | R1_hold300000 | 0 | wrote hold step 300000 (t 120000.00178813934, 10931954 events, 8768e659661ab669) | (stopped) | | | | | |
+| A | R1_record0 | 0 | wrote record step 0 (t 240000.00357627869, 21762996 events, 014a57737658581e) | (stopped) | | | | | |
+| A | R1_record25000 | 0 | wrote record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | (stopped) | | | | | |
+| A | R2_hold1 | 0 | read hold step 1 (t 0.40000000596046448, 7 events, 29babf743ff842f5) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R2_hold300000 | 0 | read hold step 300000 (t 120000.00178813934, 10931954 events, 8768e659661ab669) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R2_record0 | 0 | read record step 0 (t 240000.00357627869, 21762996 events, 014a57737658581e) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R2_record25000 | 0 | read record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R2b_chain | 0 | read hold step 300000 (t 120000.00178813934, 10931954 events, 8768e659661ab669); wrote record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | (stopped) | | | | | |
+| A | R3_chain | 0 | read record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| B | U | 0 | - | (reference) | | |  | (reference) | cab8515b36a13410 |
+| B | C_hold60000 | 0 | wrote hold step 60000 (t 24000.000357627869, 5529857 events, 1e2856f3020610d4) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | cab8515b36a13410 |
+| B | C_record6000 | 0 | wrote record step 6000 (t 50400.000751018524, 11636862 events, 1dbf3631d9c35bf6) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | cab8515b36a13410 |
+| B | R1_hold60000 | 0 | wrote hold step 60000 (t 24000.000357627869, 5529857 events, 1e2856f3020610d4) | (stopped) | | | | | |
+| B | R1_record6000 | 0 | wrote record step 6000 (t 50400.000751018524, 11636862 events, 1dbf3631d9c35bf6) | (stopped) | | | | | |
+| B | R2_hold60000 | 0 | read hold step 60000 (t 24000.000357627869, 5529857 events, 1e2856f3020610d4) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | cab8515b36a13410 |
+| B | R2_record6000 | 0 | read record step 6000 (t 50400.000751018524, 11636862 events, 1dbf3631d9c35bf6) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | cab8515b36a13410 |
+| C | U | 0 | - | (reference) | | |  | (reference) | 20591700936853a9 |
+| C | C_hold15000 | 0 | wrote hold step 15000 (t 6000.0000894069672, 5102193 events, c9d70a8c10834afc) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 20591700936853a9 |
+| C | C_record3000 | 0 | wrote record step 3000 (t 13200.000196695328, 11223097 events, 8f2824b18bb87644) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 20591700936853a9 |
+| C | R1_hold15000 | 0 | wrote hold step 15000 (t 6000.0000894069672, 5102193 events, c9d70a8c10834afc) | (stopped) | | | | | |
+| C | R1_record3000 | 0 | wrote record step 3000 (t 13200.000196695328, 11223097 events, 8f2824b18bb87644) | (stopped) | | | | | |
+| C | R2_hold15000 | 0 | read hold step 15000 (t 6000.0000894069672, 5102193 events, c9d70a8c10834afc) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 20591700936853a9 |
+| C | R2_record3000 | 0 | read record step 3000 (t 13200.000196695328, 11223097 events, 8f2824b18bb87644) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 20591700936853a9 |
+
+H3: every restarted run (R2, R3; 9) byte-identical to U in the trace, psi6(t), the psi6 summary, run_params.json, the run record and the event hash: YES; every run that wrote a checkpoint and went on (C; 8): YES
+
+## 6. H4: the refusals (each must stop with exit 2 and say why)
+
+| case | exit | message |
+|---|---|---|
+| another seed | 2 | STOP (--engine=gen3): restart: the checkpoint belongs to another trajectory (L0, mass, run, seed, N, steps, strides or cadences differ) |
+| another mass | 2 | STOP (--engine=gen3): restart: the checkpoint belongs to another trajectory (L0, mass, run, seed, N, steps, strides or cadences differ) |
+| another initial state (jitter 0.2) | 2 | STOP (--engine=gen3): restart: the run's initial state is not the checkpoint's (another command or seed) |
+| not a checkpoint (a trace) | 2 | STOP (--engine=gen3): restart: not a gen3 run checkpoint (v1) |
+| another build (the build field changed) | 2 | STOP (--engine=gen3): restart: the checkpoint was written by another build |
+| a truncated checkpoint | 2 | STOP (--engine=gen3): edmd_gen3: checkpoint truncated (disks, cells or heap) |
+| --gen3-restart under gen2 | 2 | STOP: --gen3-checkpoint, --gen3-checkpoint-stop and --gen3-restart need --engine=gen3 |
+| two trajectories in one process | 2 | STOP (--engine=gen3): --gen3-checkpoint and --gen3-restart take one trajectory per process (one length, one mass, --repeats=1) |
+| a checkpoint step never reached (hold:30000 of 30000) | 2 | STOP (--engine=gen3): the checkpoint step was never reached (hold:K needs 1 <= K < the hold steps, record:K needs K < the record steps) |
+| --gen3-checkpoint-stop alone | 2 | STOP (--engine=gen3): --gen3-checkpoint-stop needs --gen3-checkpoint |
+
+H4: every case refused with exit 2 and a reason
+
+ACCEPTANCE (stage H): PASS -- restarted runs byte-identical to the uninterrupted ones (traces, psi6(t), event hash); writing a checkpoint does not steer; the engine test passes in both builds; rule 4 identical; the M1 and M2 harness outputs unchanged; refusals refuse
+```
+
+**The engine test's full table, printed by `bin_stageH/gen3_checkpoint_test` (evidence_ab80304/h2/default; the long-double build printed the same bytes; verbatim):**
+
+```
+# gen3 checkpoint and restart at an event boundary (261012 sec. 4.7.12 stage H), printed by edmd_core/tests/gen3_checkpoint_test.c
+
+build: Apple LLVM 17.0.0 (clang-1700.4.4.1), double 8 bytes; the M2 harness's cells and protocols at its full lengths
+
+| cell | events (all kinds) | origin shifts | checkpoint after sample k | C (wrote, went on) = U | R (fresh state read it) = U | R' (state that ran elsewhere read it) = U | R2 (chain: second checkpoint at k + (K-k)/2) = U | checkpoint bytes |
+|---|---|---|---|---|---|---|---|---|
+| cradle_exact | 41752 | 0 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 64344 |
+| cradle_exact | 41752 | 0 | 133 (t = 798 units, 0 shifts) | equal | equal | equal | equal | 70680 |
+| cradle_exact | 41752 | 0 | 266 (t = 1596 units, 0 shifts) | equal | equal | equal | equal | 69912 |
+| cradle_exact | 41752 | 0 | 399 (t = 2394 units, 0 shifts) | equal | equal | equal | - | 69720 |
+| cradle_round | 26742 | 0 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 68184 |
+| cradle_round | 26742 | 0 | 133 (t = 798 units, 0 shifts) | equal | equal | equal | equal | 67352 |
+| cradle_round | 26742 | 0 | 266 (t = 1596 units, 0 shifts) | equal | equal | equal | equal | 71128 |
+| cradle_round | 26742 | 0 | 399 (t = 2394 units, 0 shifts) | equal | equal | equal | - | 69208 |
+| cradle_round_late | 26742 | 1 | 1 (t = 8106 units, 0 shifts) | equal | equal | equal | equal | 68184 |
+| cradle_round_late | 26742 | 1 | 133 (t = 8898 units, 1 shifts) | equal | equal | equal | equal | 67352 |
+| cradle_round_late | 26742 | 1 | 15 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 67352 |
+| cradle_round_late | 26742 | 1 | 16 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 70072 |
+| cradle_round_late | 26742 | 1 | 266 (t = 9696 units, 1 shifts) | equal | equal | equal | equal | 71128 |
+| cradle_round_late | 26742 | 1 | 399 (t = 10494 units, 1 shifts) | equal | equal | equal | - | 69208 |
+| free_pi8_M50 | 577150 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 106616 |
+| free_pi8_M50 | 577150 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 325432 |
+| free_pi8_M50 | 577150 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 430744 |
+| free_pi8_M50 | 577150 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 438040 |
+| free_pi8_M50 | 577150 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 381304 |
+| free_pi8_M50 | 577150 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 481432 |
+| free_pi8_M500 | 565806 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 103736 |
+| free_pi8_M500 | 565806 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 370072 |
+| free_pi8_M500 | 565806 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 490296 |
+| free_pi8_M500 | 565806 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 487928 |
+| free_pi8_M500 | 565806 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 461528 |
+| free_pi8_M500 | 565806 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 511800 |
+| free_070_M50 | 2334759 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 366952 |
+| free_070_M50 | 2334759 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 863176 |
+| free_070_M50 | 2334759 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 738472 |
+| free_070_M50 | 2334759 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 964968 |
+| free_070_M50 | 2334759 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 765352 |
+| free_070_M50 | 2334759 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 864392 |
+| free_070_M500 | 2473393 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 376680 |
+| free_070_M500 | 2473393 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 811240 |
+| free_070_M500 | 2473393 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 643208 |
+| free_070_M500 | 2473393 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 840968 |
+| free_070_M500 | 2473393 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 209096 |
+| free_070_M500 | 2473393 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 933000 |
+| free_070_M500 (audits on) | 2473393 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 376680 |
+| free_070_M500 (audits on) | 2473393 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 811240 |
+| free_070_M500 (audits on) | 2473393 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 643208 |
+| free_070_M500 (audits on) | 2473393 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 840968 |
+| free_070_M500 (audits on) | 2473393 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 209096 |
+| free_070_M500 (audits on) | 2473393 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 933000 |
+| heavy_070_M4e7 | 2366559 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 360328 |
+| heavy_070_M4e7 | 2366559 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 988840 |
+| heavy_070_M4e7 | 2366559 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 301288 |
+| heavy_070_M4e7 | 2366559 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 594440 |
+| heavy_070_M4e7 | 2366559 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 790824 |
+| heavy_070_M4e7 | 2366559 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 721288 |
+| held_pi8 | 589685 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 104088 |
+| held_pi8 | 589685 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 177848 |
+| held_pi8 | 589685 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 180600 |
+| held_pi8 | 589685 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 180696 |
+| held_pi8 | 589685 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 181304 |
+| held_pi8 | 589685 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 183512 |
+| held_070 | 2466996 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 383336 |
+| held_070 | 2466996 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 826024 |
+| held_070 | 2466996 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 869160 |
+| held_070 | 2466996 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 855720 |
+| held_070 | 2466996 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 848104 |
+| held_070 | 2466996 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 849640 |
+| driven_pi8 | 818521 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 106744 |
+| driven_pi8 | 818521 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 195992 |
+| driven_pi8 | 818521 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 192472 |
+| driven_pi8 | 818521 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 191832 |
+| driven_pi8 | 818521 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 192344 |
+| driven_pi8 | 818521 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 195512 |
+| spring_pi8 | 527607 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 113352 |
+| spring_pi8 | 527607 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 243592 |
+| spring_pi8 | 527607 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 235784 |
+| spring_pi8 | 527607 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 237608 |
+| spring_pi8 | 527607 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 230120 |
+| spring_pi8 | 527607 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 244360 |
+| piston_push | 257042 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 123728 |
+| piston_push | 257042 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 139312 |
+| piston_push | 257042 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 138736 |
+| piston_push | 257042 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 139024 |
+| piston_push | 257042 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 138352 |
+| piston_push | 257042 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 138928 |
+| piston_push (audits on) | 257042 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 123728 |
+| piston_push (audits on) | 257042 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 139312 |
+| piston_push (audits on) | 257042 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 138736 |
+| piston_push (audits on) | 257042 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 139024 |
+| piston_push (audits on) | 257042 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 138352 |
+| piston_push (audits on) | 257042 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 138928 |
+
+## Refusals
+
+| case | result | message |
+|---|---|---|
+| read into a state of another cell (free_pi8_M50 into free_070_M50) | refused | edmd_gen3: checkpoint of another geometry (N 400, 480 cells of capacity 9, w 32, box 481.19999999999999 x 960 px) |
+| a truncated checkpoint (free_pi8_M50, half of 157176 bytes) | refused | edmd_gen3: checkpoint truncated (disks, cells or heap) |
+
+VERDICT: PASS -- 329 comparisons, 0 different; refusals both refused
+```
+
+**Commits:** engine-gen3 `ab80304` (the code, the engine test and the evidence scripts, before any evidence run), `d14a467` (the runner's process cap, before its first run), `75f24bb` (the evidence).
+
