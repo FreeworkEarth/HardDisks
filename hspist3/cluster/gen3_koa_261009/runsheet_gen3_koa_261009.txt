@@ -1,4 +1,4 @@
-APPROVAL 2026-10-10 (plan author, decision 16, 261012 sec. 4.7.35): THE RUNSHEET IS APPROVED FOR STEPS 1-4 on two conditions, both to be printed by CC in the Report K addendum ('DRY RUN on a643bc7: PASS' and 'KOA CLONE OPTIONS: CONFIRMED'); step 5 is typed only after the plan author has read step 3's output.
+APPROVAL 2026-10-10 (plan author, decision 17, 261012 sec. 4.7.39; it replaces decision 16's conditional approval of sec. 4.7.35): THE RUNSHEET WITH "git --version" AS THE FIRST COMMAND INSIDE THE SANDBOX SHELL (MINIMUM 2.35.0) IS APPROVED FOR STEPS 1-4; fetching a commit by hash is new on KOA and accepted. Step 5 stays closed until the plan author has read the outputs of steps 3 and 4.
 ##CHRIS 2026-10-09 (261012 sec. 4.7.20; corrected by plan-author decision 13, item 2, sec. 4.7.29) -- THE KOA RUNSHEET OF THE GEN-3 GATE
 PREPARED, NOT RUN. Nothing here is typed until the plan author has approved THIS version and Chris says go. Chris types every command.
 
@@ -35,7 +35,8 @@ STEP 1 (KOA; a sandbox shell; the clone at the registration commit; about 3 min)
   squeue -u charing
   srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
       (wait for the cn-... prompt of the compute node before typing on: commands typed while srun is queued are lost)
-  git --version                                     (must print 2.35.0 or newer -- if older, type nothing more and paste it)
+      (STOP RULE, decision 17: if git --version shows less than 2.35.0, or any line of step 1 starts with fatal: or error:, type exit, change nothing, paste it.)
+  git --version                                     (must print 2.35.0 or newer)
       (the minimum, decision 16 item 1b, sec. 4.7.36: 'sparse-checkout set --no-cone' first appears in git 2.35.0; the fetch of a commit by
        hash below was not used on KOA before and needs protocol v2, git's default from 2.29.0; KOA's compute nodes printed 2.52.0 on 2026-10-02)
   cd ~
