@@ -1297,6 +1297,10 @@ static uint64_t g3_init_hash = 0;              /* FNV-1a of the state gen3 was b
 static double cli_gen3_virial_blocks = 0.0;   /* --gen3-virial-blocks=T: the pair virial per compartment in blocks of T sigma-time (0: off) */
 static double cli_gen3_snapshots = 0.0;       /* --gen3-snapshots=T: every disk's position every T sigma-time (0: off); the runner passes it
                                                  for its seed subset */
+/* ##CHRIS 2026-10-10 (plan-author decision 17; 261012 sec. 4.7.40): PROVISIONAL -- psi6 per compartment (psi6_compartments) */
+static int    cli_gen3_psi6_comp = 0;          /* --gen3-psi6-compartments: per-compartment columns at the end of the psi6(t) file (gen3,
+                                                  the speed-of-sound loop only; off: the file is byte-identical to before) */
+static const char* cli_gen3_psi6_snaps = NULL; /* --gen3-psi6-snapshots=FILE: those values for every snapshot in a snapshot file, then exit */
 /* ##CHRIS 2026-10-09 (plan-author decision 13, item 4; 261012 sec. 4.7.30): M4b, the compressed-fluid start (--gen3-seeding=compressed,
    g3_m4b_init_driver); the three parameters are refused without it */
 static double cli_gen3_m4b_eta0 = 0.60;        /* --gen3-compress-eta0=x: the lattice's packing fraction in the long box */
@@ -4931,6 +4935,10 @@ static void parse_cli_options(int argc, char **argv) {
             char *endptr = NULL; const double v = strtod(strchr(arg, '=') + 1, &endptr);
             if (!endptr || *endptr != '\0' || !(v > 0.0) || v > 1e9) { fprintf(stderr, "Invalid '%s' (an interval > 0 in sigma-time).\n", arg); exit(EXIT_FAILURE); }
             if (vb) cli_gen3_virial_blocks = v; else cli_gen3_snapshots = v;
+        } else if (strcmp(arg, "--gen3-psi6-compartments") == 0) {   /* ##CHRIS 2026-10-10 (decision 17): provisional */
+            cli_gen3_psi6_comp = 1;
+        } else if (strncmp(arg, "--gen3-psi6-snapshots=", strlen("--gen3-psi6-snapshots=")) == 0) {
+            cli_gen3_psi6_snaps = arg + strlen("--gen3-psi6-snapshots=");
         } else if (strncmp(arg, "--psi6-every=", strlen("--psi6-every=")) == 0) {   /* ##CHRIS 2026-10-09 (M3, stage A1) */
             char *endptr = NULL; const double v = strtod(arg + strlen("--psi6-every="), &endptr);
             if (!endptr || *endptr != '\0' || !(v > 0.0) || v > 1e6) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
@@ -15735,6 +15743,54 @@ static Psi6Result compute_psi6_from_edmd(const EDMD *state, double cutoff_sigma)
     return out;
 }
 
+/* ##CHRIS 2026-10-10 (plan-author decision 17, "after P5"; 261012 sec. 4.7.40) -- PROVISIONAL: PSI6 PER COMPARTMENT.
+   compute_psi6_from_edmd's definition, split by compartment (sec. 4.7.37: P4a's "psi6 ~ 0.06" state is one compartment in M4's
+   0-degree lattice next to one turned by 30 degrees, and the two cancel in the global value). psi6(j) = the mean of exp(6 i theta_jk)
+   over the neighbours k of j within cutoff -- every disk, also across a divider, as for the global value; compartment c holds the
+   disks with c divider centres left of them (no disk crosses a divider); Psi_c = sum_{j in c} psi6(j) / N_c. Per compartment:
+   N_c; |Psi_c|; the orientation arg(Psi_c) / 6 in degrees, in (-30, 30] (the bonds' angle against the x axis, mod 60: M4's
+   "parallel" lattice is at 0, the turned one at +-30); and the local order <|psi6(j)|> over the compartment's disks with a
+   neighbour. sum_c N_c Psi_c = N x the global complex psi6, returned too (*global_abs). Plain coordinates in any length unit with
+   sigma in it, so that the run's columns (g3_psi6_series_sample, px) and the snapshot reader (--gen3-psi6-snapshots, sigma) run
+   the same code. A reader of positions only: it changes nothing in the engine or in the existing psi6 columns. */
+typedef struct { int n; double abs, orient_deg, local; } Psi6Comp;
+static int psi6_compartments(const double* x, const double* y, int N, double sigma, const double* div_x, int ndiv,
+                             double cutoff_sigma, Psi6Comp* out, int max, double* global_abs){
+    const int nc = 1 + ndiv;
+    if (N < 1 || ndiv < 0 || nc > max || nc > EDMD3_MAX_COMPARTMENTS) return -1;
+    double re_c[EDMD3_MAX_COMPARTMENTS] = {0}, im_c[EDMD3_MAX_COMPARTMENTS] = {0}, loc_c[EDMD3_MAX_COMPARTMENTS] = {0};
+    int n_c[EDMD3_MAX_COMPARTMENTS] = {0}, used_c[EDMD3_MAX_COMPARTMENTS] = {0};
+    const double cutoff = cutoff_sigma * sigma, cutoff2 = cutoff * cutoff;
+    double gre = 0.0, gim = 0.0;
+    for (int i = 0; i < N; ++i) {
+        double re = 0.0, im = 0.0; int nb = 0;
+        for (int j = 0; j < N; ++j) {
+            if (j == i) continue;
+            const double dx = x[j] - x[i], dy = y[j] - y[i], d2 = dx * dx + dy * dy;
+            if (d2 > cutoff2 || d2 <= 0.0) continue;
+            const double th = atan2(dy, dx);
+            re += cos(6.0 * th); im += sin(6.0 * th); nb++;
+        }
+        int c = 0;
+        for (int d = 0; d < ndiv; ++d) if (x[i] > div_x[d]) c++;
+        n_c[c]++;
+        if (nb > 0) {
+            re /= (double)nb; im /= (double)nb;
+            re_c[c] += re; im_c[c] += im; loc_c[c] += sqrt(re * re + im * im); used_c[c]++;
+            gre += re; gim += im;
+        }
+    }
+    for (int c = 0; c < nc; ++c) {
+        const double R = n_c[c] ? re_c[c] / (double)n_c[c] : 0.0, I = n_c[c] ? im_c[c] / (double)n_c[c] : 0.0;
+        out[c].n = n_c[c];
+        out[c].abs = sqrt(R * R + I * I);
+        out[c].orient_deg = out[c].abs > 0.0 ? atan2(I, R) * (180.0 / M_PI) / 6.0 : NAN;
+        out[c].local = used_c[c] ? loc_c[c] / (double)used_c[c] : NAN;
+    }
+    if (global_abs) { gre /= (double)N; gim /= (double)N; *global_abs = sqrt(gre * gre + gim * gim); }
+    return nc;
+}
+
 /* ##CHRIS: psi_6 sampled ACROSS the measurement window.
    The hold/end snapshots turned out not to classify the bistable region: psi_6
    right after equilibration varies a lot between repeats, but by the end of the
@@ -16034,12 +16090,44 @@ static int write_speed_sound_batch_status(const char *folder,
    --psi6-every sigma-time (default 0.25; stage A1) through hold and record, one CSV per trajectory next to its trace
    (psi6_t_L0_<L>_wallmassfactor_<M>_run<r>.csv: t_sigma since the start of the hold, phase, psi6 global, local, neighbours).
    A reader of the synchronised copy, like every psi6 sample. gen2 writes no such file (its outputs stay as they were). */
+/* ##CHRIS 2026-10-10 (decision 17; provisional): with --gen3-psi6-compartments each row ends with the compartments' psi6 of
+   psi6_compartments() -- per compartment c the columns N_c, psi6_c (|Psi_c|), psi6_orient_deg_c, psi6_local_c -- computed from the
+   same synchronised copy as the first five columns, which keep their bytes (the row's end-of-line moved behind the new columns) */
+static int g3_psi6_ncomp(void){
+    const EDMD_Params* ep = edmd_backend_params(g_edmd);
+    return 1 + (ep->divider_count > 0 ? (ep->divider_count < EDMD_MAX_DIVIDERS ? ep->divider_count : EDMD_MAX_DIVIDERS) : 0);
+}
+static int g3_psi6_comp_nc = 0;   /* the compartments named in the file's header; every row must have as many */
+static void g3_psi6_comp_header(FILE* f){
+    if (!cli_gen3_psi6_comp) return;
+    g3_psi6_comp_nc = g3_psi6_ncomp();
+    for (int c = 0; c < g3_psi6_comp_nc; ++c) fprintf(f, ",N_%d,psi6_%d,psi6_orient_deg_%d,psi6_local_%d", c, c, c, c);
+}
+static void g3_psi6_comp_row(FILE* f){
+    if (!cli_gen3_psi6_comp) return;
+    const EDMD_Params* ep = edmd_backend_params(g_edmd);
+    const EDMD_Particle* P = edmd_backend_particles(g_edmd);
+    static double* xs = NULL; static double* ys = NULL; static int cap = 0;
+    if (ep->N > cap) {
+        free(xs); free(ys); cap = ep->N;
+        xs = (double*)malloc((size_t)cap * sizeof *xs); ys = (double*)malloc((size_t)cap * sizeof *ys);
+        if (!xs || !ys) g3_stop("out of memory (psi6 per compartment)");
+    }
+    for (int i = 0; i < ep->N; ++i) { xs[i] = P[i].x; ys[i] = P[i].y; }
+    Psi6Comp pc[EDMD3_MAX_COMPARTMENTS];
+    const int nc = psi6_compartments(xs, ys, ep->N, 2.0 * ep->radius, ep->divider_x, g3_psi6_ncomp() - 1, PSI6_CUTOFF_SIGMA, pc,
+                                     EDMD3_MAX_COMPARTMENTS, NULL);
+    if (nc < 1 || nc != g3_psi6_comp_nc) g3_stop("psi6 per compartment: the number of compartments differs from the file's header");
+    for (int c = 0; c < nc; ++c) fprintf(f, ",%d,%.6f,%.3f,%.6f", pc[c].n, pc[c].abs, pc[c].orient_deg, pc[c].local);
+}
 static void g3_psi6_series_sample(FILE* f, double* next_t, const char* phase){
     if (!f || !g_edmd) return;
     const double t = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
     if (t + 1e-9 < *next_t) return;
     const Psi6Result pr = compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
-    fprintf(f, "%.6f,%s,%.6f,%.6f,%.4f\n", t, phase, pr.global_abs, pr.local_mean, pr.mean_neighbors);
+    fprintf(f, "%.6f,%s,%.6f,%.6f,%.4f", t, phase, pr.global_abs, pr.local_mean, pr.mean_neighbors);
+    g3_psi6_comp_row(f);   /* ##CHRIS 2026-10-10 (decision 17): nothing without --gen3-psi6-compartments */
+    fputc('\n', f);
     while (*next_t <= t + 1e-9) *next_t += cli_psi6_every;
 }
 /* ##CHRIS 2026-10-09 (M3, amendments d and e): with the run record, three information lines.
@@ -17150,7 +17238,9 @@ void run_speed_of_sound_experiments() {
                         psi6_series = fopen(ps_path, "w");
                         if (!psi6_series) g3_stop("cannot open the psi6(t) file");
                         snprintf(g3_psi6_path, sizeof g3_psi6_path, "%s", ps_path);   /* ##CHRIS 2026-10-09 (stage H): read back by a checkpoint */
-                        fprintf(psi6_series, "t_sigma,phase,psi6_global,psi6_local,mean_neighbors\n");
+                        fprintf(psi6_series, "t_sigma,phase,psi6_global,psi6_local,mean_neighbors");
+                        g3_psi6_comp_header(psi6_series);   /* ##CHRIS 2026-10-10 (decision 17): nothing without --gen3-psi6-compartments */
+                        fputc('\n', psi6_series);
                         psi6_next = 0.0;
                         g3_psi6_series_sample(psi6_series, &psi6_next, "hold");
                         g3_obs_open(mode_folder, L0_int, wall_mass_factor, r);   /* ##CHRIS 2026-10-09 (decision 12, part 3a): off unless asked */
@@ -22124,6 +22214,48 @@ static int run_gen3_replay(const char* path){
     return match ? 0 : 1;
 }
 
+/* ##CHRIS 2026-10-10 (plan-author decision 17; 261012 sec. 4.7.40) -- PROVISIONAL: --gen3-psi6-snapshots=FILE reads a snapshot file
+   (G3SNAP1, g3_snapshot_sample: positions and divider centres in sigma) and prints for every snapshot the per-compartment psi6 of
+   psi6_compartments() -- the code of the run's --gen3-psi6-compartments columns, in the same format -- with the global |psi6| of
+   the same positions. No simulation and no engine. Its acceptance use: on P4a's snapshots it must separate the compartment that
+   turned from the one that did not (sec. 4.7.37). */
+static int run_gen3_psi6_snapshots(const char* path){
+    FILE* f = fopen(path, "rb");
+    if (!f) { fprintf(stderr, "psi6 snapshots: cannot open %s\n", path); return 2; }
+    char magic[8]; int32_t N = 0, nd = 0; double hd[4];
+    if (fread(magic, 1, 8, f) != 8 || memcmp(magic, "G3SNAP1\n", 8) != 0 || fread(&N, sizeof N, 1, f) != 1 || fread(&nd, sizeof nd, 1, f) != 1
+        || fread(hd, sizeof hd, 1, f) != 1 || N < 1 || nd < 0 || nd + 1 > EDMD3_MAX_COMPARTMENTS || !(hd[2] > 0.0)) {
+        fprintf(stderr, "psi6 snapshots: %s is not a G3SNAP1 file\n", path); fclose(f); return 2;
+    }
+    double* xy = (double*)malloc((size_t)N * 2 * sizeof *xy); double* xs = (double*)malloc((size_t)N * sizeof *xs);
+    double* ys = (double*)malloc((size_t)N * sizeof *ys);
+    if (!xy || !xs || !ys) { fprintf(stderr, "psi6 snapshots: out of memory\n"); fclose(f); return 2; }
+    printf("# --gen3-psi6-snapshots %s: N %d, dividers %d, box %.10g x %.10g sigma, radius %.10g sigma, interval %g sigma-time; "
+           "neighbours within %g sigma; build %s\n", path, (int)N, (int)nd, hd[0], hd[1], hd[2], hd[3], (double)PSI6_CUTOFF_SIGMA, BUILD_GIT);
+    printf("t_sigma,phase,psi6_global");
+    for (int c = 0; c <= nd; ++c) printf(",N_%d,psi6_%d,psi6_orient_deg_%d,psi6_local_%d", c, c, c, c);
+    printf("\n");
+    long k = 0; int bad = 0;
+    for (;;) {
+        double t; int32_t ph, ndk; double dv[EDMD3_MAX_COMPARTMENTS];
+        if (fread(&t, sizeof t, 1, f) != 1) break;                                  /* the end of the file */
+        if (fread(&ph, sizeof ph, 1, f) != 1 || fread(&ndk, sizeof ndk, 1, f) != 1 || ndk != nd
+            || (ndk > 0 && fread(dv, sizeof *dv, (size_t)ndk, f) != (size_t)ndk) || fread(xy, sizeof *xy, (size_t)N * 2, f) != (size_t)N * 2) {
+            bad = 1; break;
+        }
+        for (int i = 0; i < N; ++i) { xs[i] = xy[2 * i]; ys[i] = xy[2 * i + 1]; }
+        Psi6Comp pc[EDMD3_MAX_COMPARTMENTS]; double g = NAN;
+        const int nc = psi6_compartments(xs, ys, N, 2.0 * hd[2], dv, ndk, PSI6_CUTOFF_SIGMA, pc, EDMD3_MAX_COMPARTMENTS, &g);
+        if (nc != nd + 1) { bad = 1; break; }
+        printf("%.6f,%s,%.6f", t, ph ? "record" : "hold", g);
+        for (int c = 0; c < nc; ++c) printf(",%d,%.6f,%.3f,%.6f", pc[c].n, pc[c].abs, pc[c].orient_deg, pc[c].local);
+        printf("\n"); k++;
+    }
+    fclose(f); free(xy); free(xs); free(ys);
+    printf("# %ld snapshots%s\n", k, bad ? "; STOP: the file is truncated or inconsistent after them" : "");
+    return bad ? 1 : 0;
+}
+
 int main(int argc, char* argv[]) {
 
     g_main_argc = argc;
@@ -22131,6 +22263,7 @@ int main(int argc, char* argv[]) {
 
     parse_cli_options(argc, argv);
     if (cli_engine_replay) return run_gen3_replay(cli_engine_replay);   /* ##CHRIS 2026-10-09 (M3): acceptances 2, 3 */
+    if (cli_gen3_psi6_snaps) return run_gen3_psi6_snapshots(cli_gen3_psi6_snaps);   /* ##CHRIS 2026-10-10 (decision 17): provisional */
     init_output_dirs_from_argv0(argv[0]);
     // Record the invoking command in the current working directory as well
     // (useful when external scripts set cwd to a per-run output folder).
@@ -22229,6 +22362,10 @@ int main(int argc, char* argv[]) {
         else if (cli_gen3_ckpt_stop && cli_gen3_ckpt_phase < 0) why = "--gen3-checkpoint-stop needs --gen3-checkpoint";
         else if ((cli_gen3_virial_blocks > 0.0 || cli_gen3_snapshots > 0.0) && !sos)   /* ##CHRIS (decision 12, part 3a) */
             why = "--gen3-virial-blocks and --gen3-snapshots are wired to the speed-of-sound experiment only";
+        else if (cli_gen3_psi6_comp && !sos)   /* ##CHRIS 2026-10-10 (decision 17): provisional */
+            why = "--gen3-psi6-compartments is wired to the speed-of-sound experiment only";
+        else if (cli_gen3_psi6_comp && (cli_gen3_ckpt_phase >= 0 || cli_gen3_restart))
+            why = "--gen3-psi6-compartments is provisional and not carried by a checkpoint (run it without --gen3-checkpoint and --gen3-restart)";
         else if (cli_gen3_m4b_set && cli_gen3_seeding != 2)   /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b */
             why = "--gen3-compress-eta0, --gen3-compress-melt and --gen3-compress-speed need --gen3-seeding=compressed";
         else if (cli_gen3_seeding == 2 && !cli_gen3_exact_box)
@@ -22251,6 +22388,10 @@ int main(int argc, char* argv[]) {
     }
     if (cli_engine != 3 && (cli_gen3_virial_blocks > 0.0 || cli_gen3_snapshots > 0.0)) {   /* ##CHRIS 2026-10-09 (decision 12, part 3a) */
         fprintf(stderr, "STOP: --gen3-virial-blocks and --gen3-snapshots need --engine=gen3\n");
+        exit(2);
+    }
+    if (cli_engine != 3 && cli_gen3_psi6_comp) {   /* ##CHRIS 2026-10-10 (decision 17): provisional */
+        fprintf(stderr, "STOP: --gen3-psi6-compartments needs --engine=gen3\n");
         exit(2);
     }
 
