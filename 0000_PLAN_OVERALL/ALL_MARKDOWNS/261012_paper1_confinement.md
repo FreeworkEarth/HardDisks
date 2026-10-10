@@ -13618,3 +13618,160 @@ compartments that started near 0 deg and turned: 0 of 12
 
 (POST HOC, information only; no verdict.)
 ```
+
+### 4.7.44 Plan-author decision 19: items 1–2 of decision 18 accepted; three more plan-author errors; the higher-Z group's structure; gen3 in the window (2026-10-10 13:42 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 19:**
+  - **ACCEPTED:** checkpoint format v3 and M4c (§ 4.7.42).
+  - **P6 (§ 4.7.43) read.** The 0° addition at N = 1600, and splitting the premise from the code check, are confirmed as right.
+  - **Plan-author errors recorded:**
+    - "0° is the present lattice family": it is turned in 10 of 22 cells;
+    - "slow compression will anneal the defects": no change over a factor of 100 in speed;
+    - "at N = 1600 it is orientation again": it is a discrete higher-Z turned state.
+  - **Design intent, updated** (final only in the pre-registration), for nominal η ≥ 0.69:
+    - lattice starts in both orientations where feasible;
+    - the stable state of lowest Z is the reference, named the candidate equilibrium [INFERENCE];
+    - the compressed start is a second route, in a subset of cells;
+    - ψ6, the orientation and Z are read per compartment everywhere;
+    - cells where the routes disagree are flagged and reported per state.
+- **Ordered:**
+  - **Item 1 (POST HOC, existing data, no runs):** the structure of every compartment that has a snapshot, at N 1600, η 0.740 and 0.780, and N 400, η 0.740. Per compartment:
+    - its Z group;
+    - the close-packed lines along each axis, and the disks per line;
+    - the 5- and 7-coordinated disks;
+    - vacancies and interstitials;
+    - the orientation.
+    - Then one sentence on which structural number separates the groups.
+  - **Item 2:** gen3 in the window, as a provisional display feature that no campaign script ever uses. Acceptance by script:
+    - rule 4; M1/M2;
+    - headless gen3 unchanged;
+    - the display does not steer;
+    - fps and σ-time per second at N = 5000 and 8000;
+    - 0 new warnings;
+    - and the command for Chris.
+- **Ground rules:** as before; the build's source copies go to the scratchpad. One agent: the session's ultracode setting is not used. The data marker is `$SP/.decision19_ref`, 13:41 HST.
+- **Also in the paste:**
+  - the plan author's KOA steps 1–4 for Chris, identical to the approved runsheet (`e219da6`);
+  - Chris's note to the plan author on Physarum, and the plan author's reply (kept below for the record).
+  - CC gave Chris the login and steps 1–4 as one sequence (no KOA contact by CC).
+
+**The message to CC, verbatim** (relayed by Chris on 2026-10-10 at about 13:40 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Final report on
+decision 18 read; with its P4/P5 rows I no longer need the P5 report
+resent. Record this message in a new §4.7.x. Ground rules as before
+(one agent, no KOA contact, no push, delete nothing, rule 4,
+committed-tree binaries, stop and report on a disk rule, no report
+pages, notes in binary mode). At most 8 simulation processes; new
+data <= 500 MB; build source copies go to the scratchpad.
+
+DECISION 19
+ - Item 1 (checkpoint format v3) and item 2 (M4c): ACCEPTED.
+ - P6 (§4.7.43): read. Your addition of the 0-deg start at N = 1600
+   was right, and so was splitting my premise from the code check.
+ - Plan-author errors to record: "0 deg is the present lattice
+   family" (turned in 10 of 22 cells); "slow compression will anneal
+   the defects" (no change over a factor 100 in speed); "at N = 1600
+   it is orientation again" (it is a discrete higher-Z turned state).
+ - Design intent, updated (final only in the pre-registration): for
+   nominal eta >= 0.69, lattice starts in both orientations where
+   feasible; the stable state of lowest Z is the reference and is
+   named the candidate equilibrium [INFERENCE]; the compressed start
+   is a second route in a subset of cells; psi6, orientation and Z
+   per compartment everywhere; cells where routes disagree are
+   flagged and reported per state.
+
+ITEM 1 - what is the higher-Z group? (POST HOC, existing snapshots
+and virial blocks only, no runs, information)
+ For N = 1600 at eta 0.740 and 0.780 and N = 400 at eta 0.740, for
+ every compartment that has a snapshot: its Z group (lower / higher),
+ the number of close-packed lines along each box axis, the disks per
+ line (min, max, histogram), the counts of 5- and 7-coordinated
+ disks, vacancies and interstitials (state the neighbour rule), and
+ the orientation. One table per cell, the clean turned lattice start
+ in the first rows. State in one sentence which structural number, if
+ any, separates the two groups. If none does, say so.
+
+ITEM 2 - gen3 in the window (a DISPLAY feature, provisional; never
+used by a campaign script)
+ Purpose: Chris wants an interactive view with about 5000-8000 disks.
+ Scope:
+  - --engine=gen3 is allowed with the window for the interactive
+    EDMD scenes (two-compartment box with held / free divider; the
+    energy-transfer scene with pistons and spring wall where gen3
+    supports them). The scene-reset panel's engine choice gets a gen3
+    entry that rebuilds the scene with gen3.
+  - Per frame: advance gen3, then draw from the synchronised copy
+    (read-only): disks, walls, density profile, speed histograms.
+  - Keys and sliders map to the gen3 body API (hold / release the
+    divider, piston start / stop / speed, scene reset).
+  - Everything gen3 does not support (heat bath and Andersen
+    thermostat, species gates, time-stepping modes, live changes of
+    N or radius without a rebuild) is disabled with a visible label;
+    using it gives a message, never a crash or a silent fallback to
+    gen2.
+  - The HUD shows the engine name, the clean flag and events/s.
+ Acceptance, printed by a script:
+  - rule 4 identical (default and --engine=gen2, ctrl_min, ctrl_leg);
+  - M1/M2 harness outputs identical;
+  - headless gen3 unchanged: P4a A seed 1 gives bd25077c5f1c9c9f,
+    and one stage-A replay cell gives its recorded hash;
+  - display does not steer: the same seed and protocol with the
+    window (SDL dummy video driver, no input) gives the headless
+    event hash;
+  - a table for N = 5000 and N = 8000 at eta 0.31: frames per second
+    and sigma-time per wall second, gen3 next to gen2;
+  - 0 warnings in the new code under -Wall -Wextra.
+ Give Chris the exact command to start it.
+
+REPORT: items 1-2 with their tables, decisions, deviations, disk,
+commits, push line. End with "Written for: the plan author".
+```
+
+**The exchange in the same paste, verbatim** (Chris to the plan author, and the plan author's reply; kept for the record):
+
+```
+[Chris to the plan author, in the same paste:]
+Also i dont want to claim memory in changing physarum but i think ib and empowermetn for the phases of physarum and energy efficiency includign for general rule infromation and thermodynamcally based kind of. just would like it with exact ledgers and also visualized.
+
+ok back to immediate business here: thank you first for all resources and reveiw and help!!
+
+[The plan author's reply to Chris:]
+You’re welcome. On Physarum: that narrowing makes it better. Not “the slime mould remembers”, but one general rule for adaptive transport, written in terms of information and energy, tested with exact ledgers. The condition stays the same: the ledger is exact only in the parts that have real physics behind them, which is your boxes.
+
+Now the report you pasted. Everything CC built passes, and the pilot gives a clear picture of the solid, including two more wrong guesses of mine. The state-of-play note is updated. This report also covers what I needed from P5, so that item is closed.
+
+What passed
+Checkpoints now carry the per-compartment order numbers. A restarted run is still byte-identical to an uninterrupted one. Accepted.
+The lattice start can now be made in either orientation (0° or turned by 30°). Old commands give exactly the same runs as before. Accepted.
+What pilot P6 found
+
+1. The turned crystal is the comfortable one, in every box tested.
+
+Box	Pressure at 0°	Pressure turned	What the 0° crystal does
+N = 400, η 0.74	14.32	13.32	flips, one compartment at a time
+N = 1600, η 0.78	18.34	16.83	stays 0° for the whole run
+N = 1600, η 0.74	no value	11.99	flips by itself within about 2,000 time units
+
+The difference is 7 to 8 % in pressure, which is large. The stiffness we measure will depend on which orientation the crystal has.
+
+2. My assumption about our own lattice start was wrong. I assumed it always builds the 0° crystal. In 10 of 22 cells it already builds the turned one, including the big box at η 0.74 and 0.78. So yesterday’s “lattice against compressed” comparison in the big box was not two orientations.
+
+3. What it was instead. The squeezed start also ends up turned, but its compartments fall into two sharply separated pressure levels:
+
+The lower level is exactly the clean turned crystal (11.984 against 11.987).
+The higher level is the same orientation with something slightly wrong in it, about 1 % higher in pressure.
+
+Squeezing 10 or 100 times more slowly does not change how often the higher level occurs. So my “fast squeezing freezes defects in, slow squeezing will heal them” was wrong too.
+
+My new guess (INFERENCE, and given my record today, treat it as a guess): because the two levels are so sharply separated, the higher one may be a crystal with one row more or fewer between the walls. CC can check this by counting rows in the saved snapshots, with no new runs.
+
+What this means for the campaign. In the solid, the reference is the lattice start in the lower-pressure orientation. The squeezed start is a second route that shows which other states exist. Everything is reported per compartment, with its orientation. In the density range of the dip, none of this matters, because both routes agreed there.
+
+Next
+You: the KOA steps 1 to 4 from my last message, whenever you are ready. Push when you like.
+CC: the row count, then the new engine in the window. That is the block below. The window version is display-only and will never be used for campaign data.
+Me: the pre-registration. I will write it as soon as I have the rate table from KOA step 3, because it tells me what each cell costs on KOA.
+```
