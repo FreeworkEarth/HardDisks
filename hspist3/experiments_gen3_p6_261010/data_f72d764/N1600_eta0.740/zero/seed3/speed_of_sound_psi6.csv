@@ -1,0 +1,2 @@
+L0,wall_mass_factor,repeat,seed,eta,psi6_global_hold,psi6_local_hold,neighbors_hold,psi6_global_end,psi6_local_end,neighbors_end,psi6_run_mean,psi6_run_sd,psi6_run_min,psi6_run_max,psi6_run_samples
+21.2269783,300,0,2372570990,0.74,0.770160656,0.857838143,5.68625,0.773155292,0.863747545,5.69625,0.769222366,0.00479455952,0.761897969,0.777048403,60

@@ -1,0 +1,100 @@
+# P6, POST HOC: the orientation of every compartment through the hold -- printed by experiments_gen3_p6_261010/p6_orientation_posthoc.py (written after the runs; information, no verdict)
+
+leaves 0 deg = the earliest t0 with |orientation| > 15 deg in every psi6(t) row of [t0, t0 + 199] sigma-time; 'from the start' for a compartment already beyond 15 deg at t = 0; Z = Q4 (blocks 300-399)
+
+## N400_eta0.740 turned
+
+| seed | compartment | orientation at t = 0 / 1e3 / 5e3 / 2e4 [deg] | leaves 0 deg at [sigma-time] | Z (Q4) |
+|---|---|---|---|---|
+| 0 | 0 | -30.0 / -28.9 / -29.7 / +29.1 | from the start | 13.3013 |
+| 0 | 1 | -30.0 / +29.5 / +29.1 / +29.7 | from the start | 13.3638 |
+| 1 | 0 | -30.0 / -29.7 / -29.5 / +29.9 | from the start | 13.2979 |
+| 1 | 1 | +30.0 / -29.1 / +29.6 / -29.0 | from the start | 13.2923 |
+| 2 | 0 | +30.0 / -28.9 / -29.0 / +29.3 | from the start | 13.2870 |
+| 2 | 1 | -30.0 / +29.2 / -29.9 / +29.7 | from the start | 13.2929 |
+| 3 | 0 | -30.0 / -29.2 / +29.7 / +29.9 | from the start | 13.4471 |
+| 3 | 1 | -30.0 / +29.5 / -29.4 / +29.0 | from the start | 13.2953 |
+| 4 | 0 | -30.0 / -29.2 / +29.4 / -29.6 | from the start | 13.2885 |
+| 4 | 1 | -30.0 / -29.9 / +29.1 / -29.9 | from the start | 13.2915 |
+| 5 | 0 | -30.0 / +29.6 / +29.8 / -29.9 | from the start | 13.4095 |
+| 5 | 1 | +30.0 / +29.8 / -28.6 / +29.8 | from the start | 13.2879 |
+
+compartments that started near 0 deg and turned: 0 of 12
+
+## N1600_eta0.740 turned
+
+| seed | compartment | orientation at t = 0 / 1e3 / 5e3 / 2e4 [deg] | leaves 0 deg at [sigma-time] | Z (Q4) |
+|---|---|---|---|---|
+| 0 | 0 | +30.0 / -29.6 / -30.0 / -29.9 | from the start | 11.9849 |
+| 0 | 1 | +30.0 / +29.8 / +29.8 / +30.0 | from the start | 11.9800 |
+| 1 | 0 | -30.0 / -29.6 / +29.9 / -29.8 | from the start | 11.9954 |
+| 1 | 1 | +30.0 / -30.0 / -29.9 / -29.5 | from the start | 11.9913 |
+| 2 | 0 | +30.0 / -29.9 / -30.0 / -29.9 | from the start | 11.9939 |
+| 2 | 1 | -30.0 / +29.8 / -29.6 / +29.5 | from the start | 11.9919 |
+| 3 | 0 | +30.0 / +30.0 / +29.8 / -29.9 | from the start | 11.9681 |
+| 3 | 1 | +30.0 / +29.9 / -29.9 / +29.9 | from the start | 11.9909 |
+| 4 | 0 | -30.0 / +29.9 / -30.0 / -29.9 | from the start | 11.9924 |
+| 4 | 1 | +30.0 / +29.9 / -29.6 / -29.3 | from the start | 11.9847 |
+| 5 | 0 | -30.0 / -29.8 / +29.4 / +29.9 | from the start | 11.9848 |
+| 5 | 1 | -30.0 / -29.9 / +29.5 / +29.9 | from the start | 11.9824 |
+
+compartments that started near 0 deg and turned: 0 of 12
+
+## N1600_eta0.740 zero (ADDITION)
+
+| seed | compartment | orientation at t = 0 / 1e3 / 5e3 / 2e4 [deg] | leaves 0 deg at [sigma-time] | Z (Q4) |
+|---|---|---|---|---|
+| 0 | 0 | +0.0 / +29.6 / -30.0 / -29.7 | 213 | 12.0016 |
+| 0 | 1 | +0.0 / +29.8 / -29.3 / +29.6 | 177 | 12.0337 |
+| 1 | 0 | -0.0 / -29.9 / -29.9 / -29.8 | 221 | 12.1123 |
+| 1 | 1 | +0.0 / +29.4 / -29.7 / +29.5 | 938 | 12.0986 |
+| 2 | 0 | +0.0 / +1.5 / +29.7 / +29.6 | 1570 | 12.0842 |
+| 2 | 1 | +0.0 / -29.6 / -29.6 / -29.7 | 833 | 12.0985 |
+| 3 | 0 | -0.0 / +0.7 / +29.7 / -29.9 | 1197 | 12.0751 |
+| 3 | 1 | +0.0 / -1.8 / -29.9 / +29.8 | 2227 | 11.9694 |
+| 4 | 0 | +0.0 / -0.7 / +29.5 / +29.4 | 1504 | 12.1054 |
+| 4 | 1 | -0.0 / +29.8 / -29.9 / +29.9 | 489 | 11.9768 |
+| 5 | 0 | -0.0 / +29.9 / -29.8 / -29.8 | 711 | 12.0965 |
+| 5 | 1 | +0.0 / -29.9 / +29.4 / +30.0 | 207 | 12.0962 |
+
+compartments that started near 0 deg and turned: 12 of 12
+
+## N1600_eta0.780 turned
+
+| seed | compartment | orientation at t = 0 / 1e3 / 5e3 / 2e4 [deg] | leaves 0 deg at [sigma-time] | Z (Q4) |
+|---|---|---|---|---|
+| 0 | 0 | -30.0 / +29.9 / +29.9 / +30.0 | from the start | 16.9070 |
+| 0 | 1 | +30.0 / -29.8 / +29.9 / +29.8 | from the start | 16.8319 |
+| 1 | 0 | +30.0 / -30.0 / +29.8 / -30.0 | from the start | 16.8243 |
+| 1 | 1 | +30.0 / +29.9 / -29.8 / +30.0 | from the start | 16.8276 |
+| 2 | 0 | +30.0 / +30.0 / -29.9 / -29.9 | from the start | 16.8320 |
+| 2 | 1 | -30.0 / -30.0 / +29.9 / +29.8 | from the start | 16.8330 |
+| 3 | 0 | +30.0 / +30.0 / -29.9 / +29.8 | from the start | 16.8107 |
+| 3 | 1 | -30.0 / -29.9 / +29.8 / +29.9 | from the start | 16.8097 |
+| 4 | 0 | -30.0 / +29.9 / +29.9 / +30.0 | from the start | 16.8205 |
+| 4 | 1 | -30.0 / -29.8 / -29.9 / -30.0 | from the start | 16.8390 |
+| 5 | 0 | -30.0 / -29.9 / +29.9 / +30.0 | from the start | 16.8272 |
+| 5 | 1 | -30.0 / +29.8 / +29.8 / -30.0 | from the start | 16.8312 |
+
+compartments that started near 0 deg and turned: 0 of 12
+
+## N1600_eta0.780 zero (ADDITION)
+
+| seed | compartment | orientation at t = 0 / 1e3 / 5e3 / 2e4 [deg] | leaves 0 deg at [sigma-time] | Z (Q4) |
+|---|---|---|---|---|
+| 0 | 0 | +0.0 / -0.2 / -0.2 / -0.3 | never | 18.6569 |
+| 0 | 1 | +0.0 / +0.1 / -0.0 / +0.2 | never | 18.2545 |
+| 1 | 0 | -0.0 / -0.7 / -0.4 / -0.5 | never | 18.0813 |
+| 1 | 1 | -0.0 / +0.7 / +0.5 / +0.7 | never | 18.0721 |
+| 2 | 0 | +0.0 / -0.0 / -0.2 / -0.2 | never | 18.6321 |
+| 2 | 1 | +0.0 / -0.0 / +0.3 / -0.1 | never | 18.6681 |
+| 3 | 0 | +0.0 / +0.3 / +0.1 / +0.2 | never | 17.9508 |
+| 3 | 1 | +0.0 / +0.0 / -0.0 / +0.1 | never | 18.6245 |
+| 4 | 0 | +0.0 / -0.1 / -0.1 / -0.0 | never | 18.6467 |
+| 4 | 1 | -0.0 / -0.3 / +0.1 / +0.5 | never | 18.2395 |
+| 5 | 0 | +0.0 / -0.6 / -0.3 / -0.5 | never | 18.0802 |
+| 5 | 1 | -0.0 / +0.3 / -0.0 / +0.2 | never | 18.1480 |
+
+compartments that started near 0 deg and turned: 0 of 12
+
+(POST HOC, information only; no verdict.)
