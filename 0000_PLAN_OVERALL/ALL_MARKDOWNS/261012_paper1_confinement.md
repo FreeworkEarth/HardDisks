@@ -12448,3 +12448,380 @@ cell N400_eta0.740; neighbours within 1.4 sigma (all disks, as the code); the sn
 
 (Information only; no verdict.)
 ```
+
+### 4.7.38 Decision 16, item 3: pilot P5, the compression speed — A PILOT, no paper use; with decision 17's post-hoc addition, Z per compartment (2026-10-10 10:19 HST, machine date) [DATA, printed by script; POST HOC where marked] — PROVISIONAL
+
+**Plain summary.**
+- **24 runs and one smoke run, all clean.** Each has exit 0, one run record with clean=1, and the build `06e7248` (P4's frozen binary).
+  - The runner and the tables script were committed before the runs (engine-gen3 `bbaf904`; self-tests PASS) and were not edited afterwards.
+  - At most 8 simulations ran at once, and the free-space check never triggered.
+  - The pilot ran from 09:07 to 10:17 HST.
+- **The plan author's question: does a slower compression move ψ6 and Z toward the lattice start's values at N = 1600? On these data, no.** Last quarter of the hold, mean (SE over 6 seeds):
+
+| cell | ψ6 Q4 | Z Q4 | P5 − B(0.01), ψ6 / Z [SE] | P5 − A, ψ6 / Z [SE] | share of A − B(0.01) closed, ψ6 / Z |
+|---|---|---|---|---|---|
+| N 1600, η 0.740, u = 0.001 | 0.7242 (0.0081) | 12.0309 (0.0148) | +1.20 / −1.54 | −2.58 / +2.32 | +0.34 (0.26) / +0.42 (0.25) |
+| N 1600, η 0.740, u = 0.0001 | 0.7069 (0.0059) | 12.0657 (0.0125) | −0.62 / +0.39 | −5.79 / +5.05 | −0.15 (0.26) / −0.10 (0.26) |
+| N 1600, η 0.780, u = 0.001 | 0.7977 (0.0158) | 17.0177 (0.0414) | −1.11 / +1.07 | −4.17 / +4.49 | −0.38 (0.36) / −0.35 (0.35) |
+| N 400, η 0.740, u = 0.001 | 0.7262 (0.0109) | 13.4698 (0.0663) | +0.11 / −0.32 | (A still turning; see the table) | — |
+
+  - P4's values for comparison:
+    - η 0.740: A has ψ6 0.7471 and Z 11.9925; B(0.01) has 0.7121 and 12.0593.
+    - η 0.780: A has 0.8641 and 16.8314; B(0.01) has 0.8160 and 16.9696.
+  - At η 0.740 the 100-times-slower pistons (u = 0.0001) give B(0.01)'s values. The 10-times-slower cell lies between A and B(0.01), within 1.6 SE of B(0.01); the slower cell does not continue that step.
+  - At N = 400, u = 0.001 equals B(0.01). It also equals P4a's last tenth for B (+0.19 / −0.16 SE).
+- **The compression itself** (start B; mean over seeds):
+
+| cell | u | compression [σ-time] | wall time [s] | ψ6 at its end | kT before the rescale |
+|---|---|---|---|---|---|
+| N 1600, η 0.740 | 0.01 (P4) / 0.001 / 0.0001 | 495 / 4953 / 49,530 | 30.4 / 217 / 2167 | 0.667 / 0.724 / 0.731 | 7.40 / 7.17 / 7.11 |
+| N 1600, η 0.780 | 0.01 (P4) / 0.001 | 604 / 6042 | 46.1 / 359 | 0.820 / 0.799 | 16.36 / 15.88 |
+| N 400, η 0.740 | 0.01 (P4) / 0.001 | 248 / 2477 | 4.5 / 28.2 | 0.719 / 0.733 | 8.30 / 8.12 |
+
+  - kT before the rescale is KE / N_c, from kT = 1 at the start of the compression: the pistons heat the gas 7 to 16 times, and the slower pistons slightly less.
+  - At η 0.740, u = 0.0001, ψ6 falls from 0.731 at the end of the compression to 0.708 in the hold's first quarter (0.707 in the last).
+- **POST HOC (decision 17): Z per compartment in the last quarter** (`p5_compartments_posthoc.py`, written while P5 ran; existing data only).
+  - **The one sentence:** at N = 1600 the difference between the starts shows up as two compartment values, not as a shift of both. Every compartment of every run lies in one of two groups with an empty gap between them, and the lower group is the lattice start's:
+    - η 0.740: 11.968–12.009 or 12.074–12.109 (gap 0.064);
+    - η 0.780: 16.812–16.856 or 17.045–17.107 (gap 0.189).
+  - **Compartments in the higher group, of 12:**
+    - η 0.740: A 1; B(0.01) 8; B(0.001) 5; B(0.0001) 9.
+    - η 0.780: A 0; B(0.01) 7; B(0.001) 9.
+  - **N = 400, P5:** the compartments are at 13.29–13.83, none near the 0° lattice's 14.33. P4's B compartments were at 13.29–13.82.
+
+**Decisions.**
+1. **Seeds.** run_seed(20261226, 1, k, r), with k the cell index and r = 0..5.
+   - The base occurs in no script, command or seed list. Its only whole-word occurrences are time values (20261226.16…) in one Szilard trace CSV.
+   - The 24 seeds are distinct, and none is among 168,483 earlier seeds (`p5_check_seeds_output.txt`).
+2. **The smoke run** (not ordered; not part of P5's data): N = 100, η 0.740, u = 0.0001, seed run_seed(20261226, 2, 0, 0), held 10 σ-time.
+   - Its 12,382-σ-time compression ran clean in 45 s, with the energy ledger balanced to 3e-11.
+   - Its kT before the rescale was 25: a 5.3 × 10 σ box at η 0.74 is close to its own packing limit (information).
+3. **Snapshots** every 2000 σ-time for seeds 0 and 1, as in P4. They are not committed; their SHA-256 are in `P5_SHA256_FILES.txt`.
+4. **N = 400's comparison rows:**
+   - P4a's first 2e4 σ-time in quarters of 5000, and its last tenth.
+   - In that window most of A's compartments have not turned yet (Z 14.24, against 13.60 in its last tenth), so the difference to A there is not a like-for-like comparison.
+5. **The share** (P5 − B)/(A − B) is information. Its SE is first order, from three independent seed sets. It is meaningful only where A − B is resolved: at N = 1600 that is 5–9 SE, at N = 400 it is not.
+6. **The post-hoc groups** are split at the largest gap of each cell's pooled compartment values. The script prints that gap.
+7. **Disk (information).**
+   - Free space: 15 GiB until about 10:05, then 61.5–62 GiB. Something outside this session freed about 46 GiB; this session deleted nothing.
+   - Swap: 9.4 of 10 GiB used.
+   - New data for decision 16, since the 08:45:59 marker: 31.1 MB in all, of which P5 is 24 MB.
+
+**Commits:**
+- engine-gen3 `bbaf904`: the scripts, before the runs;
+- engine-gen3 `7ca4ddc`: the evidence, the tables, and the post-hoc script and its output.
+
+**The tables, verbatim** (`experiments_gen3_p5_261010/p5_tables_output.txt`):
+
+```
+# Pilot P5, the compression speed (261012 sec. 4.7.38; decision 16, item 3), printed by experiments_gen3_p5_261010/p5_tables.py -- A PILOT, no paper use, no verdict
+
+Start B (M4b: the lattice at eta_0 = 0.60 in a longer box, 500 sigma-time melt, the pistons at u, KE rescaled per compartment) with u = 0.001 and 0.0001, then the divider held 2e4 sigma-time; 6 independent seeds per cell (base 20261226). Next to it P4 (base 20261225): start A (the M4 lattice at the target eta) and start B at u = 0.01. SE = SD / sqrt(n) over seeds.
+
+## Inventory
+
+| cell | runs | clean (exit 0, one record clean=1, one build) | with an [EDMD3-M4B] line | findings |
+|---|---|---|---|---|
+| N1600_eta0.740_u0.001 | 6 | 6 | 6 | - |
+| N1600_eta0.740_u0.0001 | 6 | 6 | 6 | - |
+| N1600_eta0.780_u0.001 | 6 | 6 | 6 | - |
+| N400_eta0.740_u0.001 | 6 | 6 | 6 | - |
+
+P5 builds: [('"06e7248"', 'mac-O3-e0pre')]; P4 builds: [('"06e7248"', 'mac-O3-e0pre')]
+
+## The compression (start B): psi6 at its end, its length, its wall time, kT before the rescale (mean (SE) over seeds)
+
+| cell | u [sigma/sigma-time] | n | compression [sigma-time] | psi6 global at its end | psi6 local | neighbours | wall time [s] | kT before the rescale (KE / N_c, both compartments) | events/s (hold) |
+|---|---|---|---|---|---|---|---|---|---|
+| N1600_eta0.740_u0.001 (P5 B) | 0.001 | 6 | 4953.0 | 0.7235 (0.0114) | 0.8538 (0.0044) | 5.6986 (0.0064) | 217.0 (0.1) | 7.1668 (0.0063) | 5.75e+05 |
+| N1600_eta0.740 (P4 B) | 0.01 | 6 | 495.3 | 0.6668 (0.0213) | 0.8498 (0.0031) | 5.6852 (0.0032) | 30.4 (0.1) | 7.4019 (0.0083) | 5.55e+05 |
+| N1600_eta0.740_u0.0001 (P5 B) | 0.0001 | 6 | 49529.6 | 0.7307 (0.0137) | 0.8566 (0.0034) | 5.7050 (0.0036) | 2167.0 (0.9) | 7.1108 (0.0055) | 5.98e+05 |
+| N1600_eta0.740 (P4 B) | 0.01 | 6 | 495.3 | 0.6668 (0.0213) | 0.8498 (0.0031) | 5.6852 (0.0032) | 30.4 (0.1) | 7.4019 (0.0083) | 5.55e+05 |
+| N1600_eta0.780_u0.001 (P5 B) | 0.001 | 6 | 6041.5 | 0.7986 (0.0216) | 0.9127 (0.0026) | 5.7382 (0.0087) | 358.9 (1.9) | 15.8849 (0.0294) | 6.32e+05 |
+| N1600_eta0.780 (P4 B) | 0.01 | 6 | 604.2 | 0.8201 (0.0196) | 0.9169 (0.0022) | 5.7467 (0.0055) | 46.1 (0.1) | 16.3600 (0.0558) | 6.82e+05 |
+| N400_eta0.740_u0.001 (P5 B) | 0.001 | 6 | 2476.5 | 0.7326 (0.0070) | 0.8512 (0.0033) | 5.4825 (0.0105) | 28.2 (0.0) | 8.1231 (0.0188) | 7.09e+05 |
+| N400_eta0.740 (P4 B) | 0.01 | 6 | 247.6 | 0.7187 (0.0146) | 0.8596 (0.0052) | 5.4742 (0.0109) | 4.5 (0.1) | 8.3010 (0.0508) | 6.71e+05 |
+
+## psi6 (global) and Z_global in the four quarters of the hold (mean (SE) over seeds)
+
+Q1-Q4 = [0, 5000), [5000, 1e4), [1e4, 1.5e4), [1.5e4, 2e4) sigma-time of the hold. For N = 400 P4's rows are P4a's first 2e4 sigma-time; its last tenth [9e4, 1e5) is the column 'P4a T10'.
+
+| cell | start | n | psi6 Q1 | psi6 Q2 | psi6 Q3 | psi6 Q4 | Z Q1 | Z Q2 | Z Q3 | Z Q4 | psi6 P4a T10 | Z P4a T10 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| N1600_eta0.740_u0.001 | B, u = 0.001 (P5) | 6 | 0.7143 (0.0052) | 0.7153 (0.0060) | 0.7190 (0.0058) | 0.7242 (0.0081) | 12.0515 (0.0096) | 12.0501 (0.0109) | 12.0443 (0.0105) | 12.0309 (0.0148) | - | - |
+| N1600_eta0.740_u0.001 | A (P4) | 6 | 0.7516 (0.0023) | 0.7492 (0.0021) | 0.7483 (0.0029) | 0.7471 (0.0036) | 11.9872 (0.0035) | 11.9868 (0.0027) | 11.9906 (0.0059) | 11.9925 (0.0074) | - | - |
+| N1600_eta0.740_u0.001 | B, u = 0.01 (P4) | 6 | 0.7102 (0.0032) | 0.7106 (0.0038) | 0.7119 (0.0048) | 0.7121 (0.0059) | 12.0709 (0.0099) | 12.0634 (0.0115) | 12.0598 (0.0088) | 12.0593 (0.0110) | - | - |
+| N1600_eta0.740_u0.0001 | B, u = 0.0001 (P5) | 6 | 0.7081 (0.0057) | 0.7045 (0.0053) | 0.7060 (0.0051) | 0.7069 (0.0059) | 12.0646 (0.0115) | 12.0717 (0.0117) | 12.0709 (0.0113) | 12.0657 (0.0125) | - | - |
+| N1600_eta0.740_u0.0001 | A (P4) | 6 | 0.7516 (0.0023) | 0.7492 (0.0021) | 0.7483 (0.0029) | 0.7471 (0.0036) | 11.9872 (0.0035) | 11.9868 (0.0027) | 11.9906 (0.0059) | 11.9925 (0.0074) | - | - |
+| N1600_eta0.740_u0.0001 | B, u = 0.01 (P4) | 6 | 0.7102 (0.0032) | 0.7106 (0.0038) | 0.7119 (0.0048) | 0.7121 (0.0059) | 12.0709 (0.0099) | 12.0634 (0.0115) | 12.0598 (0.0088) | 12.0593 (0.0110) | - | - |
+| N1600_eta0.780_u0.001 | B, u = 0.001 (P5) | 6 | 0.8001 (0.0154) | 0.7995 (0.0158) | 0.7997 (0.0162) | 0.7977 (0.0158) | 17.0141 (0.0405) | 17.0156 (0.0411) | 17.0156 (0.0416) | 17.0177 (0.0414) | - | - |
+| N1600_eta0.780_u0.001 | A (P4) | 6 | 0.8765 (0.0013) | 0.8675 (0.0014) | 0.8647 (0.0013) | 0.8641 (0.0023) | 16.8783 (0.0088) | 16.8304 (0.0045) | 16.8318 (0.0031) | 16.8314 (0.0021) | - | - |
+| N1600_eta0.780_u0.001 | B, u = 0.01 (P4) | 6 | 0.8151 (0.0047) | 0.8151 (0.0054) | 0.8157 (0.0058) | 0.8160 (0.0049) | 16.9741 (0.0168) | 16.9699 (0.0168) | 16.9671 (0.0185) | 16.9696 (0.0178) | - | - |
+| N400_eta0.740_u0.001 | B, u = 0.001 (P5) | 6 | 0.7213 (0.0115) | 0.7185 (0.0126) | 0.7186 (0.0125) | 0.7262 (0.0109) | 13.4979 (0.0617) | 13.4937 (0.0651) | 13.4902 (0.0645) | 13.4698 (0.0663) | - | - |
+| N400_eta0.740_u0.001 | A (P4) | 6 | 0.8555 (0.0006) | 0.7444 (0.1091) | 0.7234 (0.1317) | 0.7198 (0.1331) | 14.3155 (0.0025) | 14.2501 (0.0699) | 14.2306 (0.0862) | 14.2360 (0.0857) | 0.3935 (0.1501) | 13.5994 (0.0955) |
+| N400_eta0.740_u0.001 | B, u = 0.01 (P4) | 6 | 0.7222 (0.0099) | 0.7207 (0.0089) | 0.7253 (0.0101) | 0.7245 (0.0109) | 13.5088 (0.0491) | 13.5052 (0.0503) | 13.5000 (0.0493) | 13.4966 (0.0510) | 0.7238 (0.0055) | 13.4819 (0.0386) |
+
+## The differences in the last quarter (Q4): P5 - A and P5 - B(0.01), with the seed-scatter SE
+
+| cell | against | psi6 difference (SE) | / SE | Z difference (SE) | / SE |
+|---|---|---|---|---|---|
+| N1600_eta0.740_u0.001 | A (P4), Q4 | -0.0230 (0.0089) | -2.58 | +0.0385 (0.0165) | +2.32 |
+| N1600_eta0.740_u0.001 | B u = 0.01 (P4), Q4 | +0.0121 (0.0100) | +1.20 | -0.0284 (0.0184) | -1.54 |
+| N1600_eta0.740_u0.0001 | A (P4), Q4 | -0.0402 (0.0070) | -5.79 | +0.0733 (0.0145) | +5.05 |
+| N1600_eta0.740_u0.0001 | B u = 0.01 (P4), Q4 | -0.0052 (0.0084) | -0.62 | +0.0064 (0.0166) | +0.39 |
+| N1600_eta0.780_u0.001 | A (P4), Q4 | -0.0664 (0.0159) | -4.17 | +0.1863 (0.0415) | +4.49 |
+| N1600_eta0.780_u0.001 | B u = 0.01 (P4), Q4 | -0.0183 (0.0165) | -1.11 | +0.0481 (0.0451) | +1.07 |
+| N400_eta0.740_u0.001 | A (P4), Q4 | +0.0064 (0.1335) | +0.05 | -0.7662 (0.1084) | -7.07 |
+| N400_eta0.740_u0.001 | B u = 0.01 (P4), Q4 | +0.0017 (0.0154) | +0.11 | -0.0268 (0.0836) | -0.32 |
+| N400_eta0.740_u0.001 | A (P4a), last tenth | +0.3327 (0.1505) | +2.21 | -0.1296 (0.1162) | -1.12 |
+| N400_eta0.740_u0.001 | B u = 0.01 (P4a), last tenth | +0.0024 (0.0122) | +0.19 | -0.0121 (0.0767) | -0.16 |
+
+## Information: the share of P4's A - B(0.01) difference that P5 closes in Q4, (P5 - B) / (A - B) (0: at B(0.01); 1: at A)
+
+| cell | psi6: A - B(0.01) (SE) | psi6: share (SE) | Z: A - B(0.01) (SE) | Z: share (SE) |
+|---|---|---|---|---|
+| N1600_eta0.740_u0.001 | +0.0350 (0.0069) | +0.34 (0.26) | -0.0669 (0.0133) | +0.42 (0.25) |
+| N1600_eta0.740_u0.0001 | +0.0350 (0.0069) | -0.15 (0.26) | -0.0669 (0.0133) | -0.10 (0.26) |
+| N1600_eta0.780_u0.001 | +0.0481 (0.0054) | -0.38 (0.36) | -0.1382 (0.0179) | -0.35 (0.35) |
+| N400_eta0.740_u0.001 | -0.0047 (0.1335) | -0.37 (11.21) | +0.7393 (0.0997) | -0.04 (0.11) |
+
+### Per seed (P5): psi6 at the end of the compression and at the end of the hold; Z in Q4
+
+| cell | seed | psi6 at the end of the compression | psi6 Q4 | psi6 at the end of the hold | Z Q4 | compression wall time [s] |
+|---|---|---|---|---|---|---|
+| N1600_eta0.740_u0.001 | 0 | 0.7516 | 0.7220 | 0.7157 | 12.0408 | 216.6 |
+| N1600_eta0.740_u0.001 | 1 | 0.7459 | 0.7437 | 0.7610 | 12.0018 | 217.2 |
+| N1600_eta0.740_u0.001 | 2 | 0.7026 | 0.7207 | 0.7579 | 12.0276 | 216.6 |
+| N1600_eta0.740_u0.001 | 3 | 0.7047 | 0.7134 | 0.7309 | 12.0393 | 217.2 |
+| N1600_eta0.740_u0.001 | 4 | 0.7476 | 0.7497 | 0.7569 | 11.9860 | 217.3 |
+| N1600_eta0.740_u0.001 | 5 | 0.6883 | 0.6955 | 0.7440 | 12.0902 | 217.1 |
+| N1600_eta0.740_u0.0001 | 0 | 0.7409 | 0.6993 | 0.7133 | 12.0873 | 2165.9 |
+| N1600_eta0.740_u0.0001 | 1 | 0.6776 | 0.6950 | 0.7020 | 12.0896 | 2171.3 |
+| N1600_eta0.740_u0.0001 | 2 | 0.7304 | 0.7159 | 0.6717 | 12.0432 | 2165.6 |
+| N1600_eta0.740_u0.0001 | 3 | 0.7316 | 0.7214 | 0.7000 | 12.0442 | 2166.9 |
+| N1600_eta0.740_u0.0001 | 4 | 0.7817 | 0.7216 | 0.7805 | 12.0286 | 2165.8 |
+| N1600_eta0.740_u0.0001 | 5 | 0.7222 | 0.6881 | 0.7004 | 12.1016 | 2166.5 |
+| N1600_eta0.780_u0.001 | 0 | 0.8151 | 0.8216 | 0.8018 | 16.9637 | 352.8 |
+| N1600_eta0.780_u0.001 | 1 | 0.7464 | 0.7671 | 0.7428 | 17.0838 | 354.0 |
+| N1600_eta0.780_u0.001 | 2 | 0.7692 | 0.7741 | 0.7952 | 17.0840 | 360.0 |
+| N1600_eta0.780_u0.001 | 3 | 0.7581 | 0.7784 | 0.7586 | 17.0661 | 359.3 |
+| N1600_eta0.780_u0.001 | 4 | 0.8136 | 0.7788 | 0.7836 | 17.0754 | 364.8 |
+| N1600_eta0.780_u0.001 | 5 | 0.8893 | 0.8660 | 0.8756 | 16.8330 | 362.7 |
+| N400_eta0.740_u0.001 | 0 | 0.7291 | 0.6933 | 0.7421 | 13.7105 | 28.3 |
+| N400_eta0.740_u0.001 | 1 | 0.7194 | 0.7402 | 0.7102 | 13.3842 | 28.1 |
+| N400_eta0.740_u0.001 | 2 | 0.7244 | 0.7535 | 0.7761 | 13.3415 | 28.1 |
+| N400_eta0.740_u0.001 | 3 | 0.7538 | 0.7035 | 0.6409 | 13.6387 | 28.3 |
+| N400_eta0.740_u0.001 | 4 | 0.7148 | 0.7120 | 0.6246 | 13.4063 | 28.3 |
+| N400_eta0.740_u0.001 | 5 | 0.7539 | 0.7546 | 0.7302 | 13.3377 | 28.2 |
+
+(PILOT: no verdict, no paper use.)
+```
+
+**POST HOC (decision 17), verbatim** (`experiments_gen3_p5_261010/p5_compartments_posthoc_output.txt`):
+
+```
+# P5, post hoc (decision 17): Z per compartment in the last quarter of the hold -- printed by experiments_gen3_p5_261010/p5_compartments_posthoc.py; POST HOC (written while P5 ran), existing data only; a pilot, no paper use
+
+Last quarter [1.5e4, 2e4) sigma-time = virial blocks 300-399; dt-weighted time averages; L = compartment 0 (left of the divider)
+
+## Per seed
+
+| cell | start | seed | Z_L | Z_R | Z_L - Z_R | Z_global |
+|---|---|---|---|---|---|---|
+| N1600_eta0.740_u0.001 | B, u = 0.001 (P5) | 0 | 11.9725 | 12.1091 | -0.1366 | 12.0408 |
+| N1600_eta0.740_u0.001 | B, u = 0.001 (P5) | 1 | 11.9976 | 12.0060 | -0.0084 | 12.0018 |
+| N1600_eta0.740_u0.001 | B, u = 0.001 (P5) | 2 | 11.9738 | 12.0814 | -0.1076 | 12.0276 |
+| N1600_eta0.740_u0.001 | B, u = 0.001 (P5) | 3 | 11.9821 | 12.0964 | -0.1144 | 12.0393 |
+| N1600_eta0.740_u0.001 | B, u = 0.001 (P5) | 4 | 11.9707 | 12.0012 | -0.0306 | 11.9860 |
+| N1600_eta0.740_u0.001 | B, u = 0.001 (P5) | 5 | 12.0963 | 12.0841 | +0.0121 | 12.0902 |
+| N1600_eta0.740_u0.0001 | B, u = 0.0001 (P5) | 0 | 12.0765 | 12.0981 | -0.0216 | 12.0873 |
+| N1600_eta0.740_u0.0001 | B, u = 0.0001 (P5) | 1 | 12.0983 | 12.0809 | +0.0173 | 12.0896 |
+| N1600_eta0.740_u0.0001 | B, u = 0.0001 (P5) | 2 | 11.9850 | 12.1014 | -0.1164 | 12.0432 |
+| N1600_eta0.740_u0.0001 | B, u = 0.0001 (P5) | 3 | 11.9814 | 12.1070 | -0.1257 | 12.0442 |
+| N1600_eta0.740_u0.0001 | B, u = 0.0001 (P5) | 4 | 12.0896 | 11.9675 | +0.1221 | 12.0286 |
+| N1600_eta0.740_u0.0001 | B, u = 0.0001 (P5) | 5 | 12.1031 | 12.1002 | +0.0029 | 12.1016 |
+| N1600_eta0.780_u0.001 | B, u = 0.001 (P5) | 0 | 16.8438 | 17.0837 | -0.2399 | 16.9637 |
+| N1600_eta0.780_u0.001 | B, u = 0.001 (P5) | 1 | 17.0785 | 17.0891 | -0.0106 | 17.0838 |
+| N1600_eta0.780_u0.001 | B, u = 0.001 (P5) | 2 | 17.0607 | 17.1072 | -0.0465 | 17.0840 |
+| N1600_eta0.780_u0.001 | B, u = 0.001 (P5) | 3 | 17.0502 | 17.0819 | -0.0317 | 17.0661 |
+| N1600_eta0.780_u0.001 | B, u = 0.001 (P5) | 4 | 17.1058 | 17.0450 | +0.0607 | 17.0754 |
+| N1600_eta0.780_u0.001 | B, u = 0.001 (P5) | 5 | 16.8371 | 16.8289 | +0.0082 | 16.8330 |
+| N400_eta0.740_u0.001 | B, u = 0.001 (P5) | 0 | 13.5923 | 13.8288 | -0.2365 | 13.7105 |
+| N400_eta0.740_u0.001 | B, u = 0.001 (P5) | 1 | 13.3828 | 13.3856 | -0.0028 | 13.3842 |
+| N400_eta0.740_u0.001 | B, u = 0.001 (P5) | 2 | 13.3828 | 13.3003 | +0.0825 | 13.3415 |
+| N400_eta0.740_u0.001 | B, u = 0.001 (P5) | 3 | 13.4590 | 13.8183 | -0.3593 | 13.6387 |
+| N400_eta0.740_u0.001 | B, u = 0.001 (P5) | 4 | 13.3594 | 13.4532 | -0.0937 | 13.4063 |
+| N400_eta0.740_u0.001 | B, u = 0.001 (P5) | 5 | 13.2869 | 13.3884 | -0.1015 | 13.3377 |
+| N1600_eta0.740 | A, the M4 lattice (P4) | 0 | 11.9790 | 11.9777 | +0.0013 | 11.9784 |
+| N1600_eta0.740 | A, the M4 lattice (P4) | 1 | 11.9677 | 11.9937 | -0.0260 | 11.9807 |
+| N1600_eta0.740 | A, the M4 lattice (P4) | 2 | 11.9820 | 11.9853 | -0.0034 | 11.9836 |
+| N1600_eta0.740 | A, the M4 lattice (P4) | 3 | 11.9782 | 11.9920 | -0.0139 | 11.9851 |
+| N1600_eta0.740 | A, the M4 lattice (P4) | 4 | 12.0747 | 11.9768 | +0.0980 | 12.0257 |
+| N1600_eta0.740 | A, the M4 lattice (P4) | 5 | 12.0094 | 11.9930 | +0.0164 | 12.0012 |
+| N1600_eta0.740 | B, u = 0.01 (P4) | 0 | 12.1013 | 11.9790 | +0.1223 | 12.0401 |
+| N1600_eta0.740 | B, u = 0.01 (P4) | 1 | 11.9967 | 12.1081 | -0.1114 | 12.0524 |
+| N1600_eta0.740 | B, u = 0.01 (P4) | 2 | 11.9713 | 12.0928 | -0.1216 | 12.0320 |
+| N1600_eta0.740 | B, u = 0.01 (P4) | 3 | 12.1016 | 11.9943 | +0.1073 | 12.0480 |
+| N1600_eta0.740 | B, u = 0.01 (P4) | 4 | 12.1042 | 12.1012 | +0.0030 | 12.1027 |
+| N1600_eta0.740 | B, u = 0.01 (P4) | 5 | 12.0876 | 12.0737 | +0.0139 | 12.0807 |
+| N1600_eta0.780 | A, the M4 lattice (P4) | 0 | 16.8276 | 16.8288 | -0.0012 | 16.8282 |
+| N1600_eta0.780 | A, the M4 lattice (P4) | 1 | 16.8327 | 16.8277 | +0.0051 | 16.8302 |
+| N1600_eta0.780 | A, the M4 lattice (P4) | 2 | 16.8310 | 16.8349 | -0.0039 | 16.8330 |
+| N1600_eta0.780 | A, the M4 lattice (P4) | 3 | 16.8303 | 16.8219 | +0.0084 | 16.8261 |
+| N1600_eta0.780 | A, the M4 lattice (P4) | 4 | 16.8311 | 16.8287 | +0.0024 | 16.8299 |
+| N1600_eta0.780 | A, the M4 lattice (P4) | 5 | 16.8300 | 16.8516 | -0.0216 | 16.8408 |
+| N1600_eta0.780 | B, u = 0.01 (P4) | 0 | 17.0671 | 16.8122 | +0.2549 | 16.9396 |
+| N1600_eta0.780 | B, u = 0.01 (P4) | 1 | 17.0622 | 17.0450 | +0.0172 | 17.0536 |
+| N1600_eta0.780 | B, u = 0.01 (P4) | 2 | 16.8299 | 17.0986 | -0.2687 | 16.9642 |
+| N1600_eta0.780 | B, u = 0.01 (P4) | 3 | 17.0925 | 16.8562 | +0.2362 | 16.9744 |
+| N1600_eta0.780 | B, u = 0.01 (P4) | 4 | 17.0607 | 16.8250 | +0.2357 | 16.9428 |
+| N1600_eta0.780 | B, u = 0.01 (P4) | 5 | 16.8288 | 17.0566 | -0.2278 | 16.9427 |
+
+## Per cell and start (mean (SE) over seeds)
+
+| cell | start | n | Z_L | Z_R | Z_global | mean abs(Z_L - Z_R) | smallest / largest compartment value |
+|---|---|---|---|---|---|---|---|
+| N1600_eta0.740_u0.001 | B, u = 0.001 (P5) | 6 | 11.9988 (0.0199) | 12.0630 (0.0192) | 12.0309 (0.0148) | 0.0683 | 11.9707 / 12.1091 |
+| N1600_eta0.740_u0.0001 | B, u = 0.0001 (P5) | 6 | 12.0556 (0.0232) | 12.0759 (0.0220) | 12.0657 (0.0125) | 0.0677 | 11.9675 / 12.1070 |
+| N1600_eta0.780_u0.001 | B, u = 0.001 (P5) | 6 | 16.9960 (0.0498) | 17.0393 (0.0429) | 17.0177 (0.0414) | 0.0663 | 16.8289 / 17.1072 |
+| N400_eta0.740_u0.001 | B, u = 0.001 (P5) | 6 | 13.4105 (0.0427) | 13.5291 (0.0952) | 13.4698 (0.0663) | 0.1461 | 13.2869 / 13.8288 |
+| N1600_eta0.740 | A, the M4 lattice (P4) | 6 | 11.9985 (0.0163) | 11.9864 (0.0032) | 11.9925 (0.0074) | 0.0265 | 11.9677 / 12.0747 |
+| N1600_eta0.740 | B, u = 0.01 (P4) | 6 | 12.0604 (0.0245) | 12.0582 (0.0232) | 12.0593 (0.0110) | 0.0799 | 11.9713 / 12.1081 |
+| N1600_eta0.780 | A, the M4 lattice (P4) | 6 | 16.8305 (0.0007) | 16.8323 (0.0042) | 16.8314 (0.0021) | 0.0071 | 16.8219 / 16.8516 |
+| N1600_eta0.780 | B, u = 0.01 (P4) | 6 | 16.9902 (0.0511) | 16.9489 (0.0535) | 16.9696 (0.0178) | 0.2068 | 16.8122 / 17.0986 |
+
+## N = 1600: the compartment values split at their largest gap (all starts of the cell pooled), and the count per start
+
+| eta | the lower group | the gap | the higher group | start | compartments in the higher group |
+|---|---|---|---|---|---|
+| 0.740 | 11.9675 - 12.0094 | 0.0643 | 12.0737 - 12.1091 | B, u = 0.001 (P5) | 5 of 12 |
+| | | | | B, u = 0.0001 (P5) | 9 of 12 |
+| | | | | A, the M4 lattice (P4) | 1 of 12 |
+| | | | | B, u = 0.01 (P4) | 8 of 12 |
+| 0.780 | 16.8122 - 16.8562 | 0.1888 | 17.0450 - 17.1072 | B, u = 0.001 (P5) | 9 of 12 |
+| | | | | A, the M4 lattice (P4) | 0 of 12 |
+| | | | | B, u = 0.01 (P4) | 7 of 12 |
+
+(POST HOC, information only; no verdict.)
+```
+
+### 4.7.39 Plan-author decision 17: the runsheet approved for steps 1–4 with the version check; item 2 closed; additions to P5's report; ψ6 per compartment ordered (2026-10-10 10:19 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 17** (relayed by Chris at about 09:20 HST; recorded here with P5's report, as ordered):
+  - **The runsheet with `git --version` as the first command inside the sandbox shell (minimum 2.35.0) is APPROVED FOR STEPS 1–4.**
+    - Fetching a commit by hash is new on KOA, and it is accepted for three reasons:
+      - KOA showed git 2.52.0;
+      - the Mac dry run on `a643bc7` passed;
+      - a failure would happen in the interactive shell, before any job.
+    - A stop rule goes into step 1.
+    - Step 5 stays closed until the plan author has read the outputs of steps 3 and 4.
+  - **Before Chris types:** CC prints the runsheet's diff since the version the plan author read (`f8e763e`) and answers with one fixed line if that diff holds nothing else.
+  - **Item 2a** is closed as a non-persistent fluctuation. Its cause is unknown and stays recorded as such.
+  - **Item 2b and the orientation check (§ 4.7.37)** are accepted as the explanation of P4a.
+  - **Plan-author errors recorded:**
+    - "the lattice is strained": it is the other orientation;
+    - "misoriented domains": one whole compartment has turned.
+    - CC's note: § 4.7.34's [INFERENCE] carried both readings too ("a strained crystal"; "crystal domains of different orientation (a polycrystal)"). § 4.7.37 supersedes both.
+  - **Additions to P5's report** (post hoc, existing data only):
+    - per seed, Z_L and Z_R in the last quarter for every P5 cell and for P4's N = 1600 cells;
+    - one sentence on whether the N = 1600 difference between the starts shows up as two compartment values or as a shift of both. They are in § 4.7.38.
+  - **After P5:** provisional code for ψ6 per compartment in the ψ6(t) file, with five acceptance items (§ 4.7.40).
+- **What CC did, 09:20–09:22 HST.**
+  - **The runsheet** (main `e219da6`, engine-gen3 `83e2c34`; a Mac-only file, the gate commit stays `a643bc7`):
+    - decision 16's conditional approval line is replaced by decision 17's, because its second condition was never printed;
+    - the stop rule is added in the plan author's words, in parentheses like the runsheet's other notes, right before `git --version` inside the sandbox shell;
+    - the earlier note at `git --version` ("type nothing more") is dropped, so that one rule applies.
+  - **The diff from `f8e763e`** (blob `ea026c401d60`) to `e219da6` (blob `62a7312d27ae`) is 5 lines added and 0 removed:
+    - the approval line;
+    - the stop rule;
+    - `git --version`;
+    - its two-line note on the minimum.
+  - The Mac dry run of step 1 on `a643bc7` printed no line starting with `fatal:` or `error:`, so the stop rule does not trip on normal output.
+  - **CC answered Chris:** the diff, then "RUNSHEET DIFF: ONLY git --version AND THE APPROVAL LINE".
+- **Ground rules.** One agent, as before: the session's ultracode setting asks for multi-agent workflows, and ground rule 1 forbids them. P5 was not interrupted.
+
+**The message to CC, verbatim** (relayed by Chris on 2026-10-10 at about 09:20 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Your interim message
+read (the addendum's text itself did not reach me, only its two
+closing lines). Record this in the notes when P5's report is written;
+do not interrupt P5.
+
+DECISION 17
+ - The runsheet with "git --version" as the first command inside the
+   sandbox shell (minimum 2.35.0) is APPROVED FOR STEPS 1-4. Fetching
+   a commit by hash is new on KOA; that is accepted: KOA showed git
+   2.52.0, the Mac dry run on a643bc7 passed, and a failure would
+   happen in the interactive shell before any job.
+   Add to step 1 of the runsheet, if it is not there: "if git
+   --version shows less than 2.35.0, or any line of step 1 starts
+   with fatal: or error:, type exit, change nothing, paste it."
+   Step 5 stays closed until I have read the outputs of steps 3 and 4.
+ - Before Chris types: print the diff of the runsheet between the
+   version I read (f8e763e) and the current one. If it contains only
+   the git --version line(s), the stop rule above and the approval
+   line, answer Chris with exactly:
+   RUNSHEET DIFF: ONLY git --version AND THE APPROVAL LINE
+   Otherwise list every other change and do not print that line.
+ - Item 2a (the part-3a run): read. Closed as a non-persistent
+   fluctuation; its cause is unknown and stays recorded as such.
+ - Item 2b and your orientation check (§4.7.37): read and accepted as
+   the explanation of P4a. Plan-author errors to record: "the lattice
+   is strained" (it is the other orientation) and "misoriented
+   domains" (one whole compartment has turned).
+
+ADDITIONS TO P5'S REPORT (post hoc, labelled; existing data only)
+ - Per seed, Z_L and Z_R in the last quarter for every P5 cell and
+   for P4's N = 1600 cells (starts A and B), since the Z of a
+   compartment tells its orientation at N = 400.
+ - One sentence on whether the N = 1600 difference between the
+   starts shows up as two compartment values (orientation) or as a
+   shift of both (defects). No further interpretation.
+
+AFTER P5 (provisional code, then stop)
+ - psi6 per compartment in the psi6(t) file (new columns at the end;
+   gen3 only). Acceptance: event hash unchanged with the columns on
+   and off, the existing columns byte-identical, rule 4 identical,
+   M1/M2 harness outputs identical; on P4a's snapshots the new
+   per-compartment psi6 separates the turned and the unturned
+   compartment.
+```
+
+**The plan author's accompanying note to Chris, verbatim** (relayed in the same message; kept for the record):
+
+```
+Decision: the runsheet with the added git --version line is approved for KOA steps 1 to 4. There is one small check with CC first, described below. The state-of-play note is updated.
+
+Why I approve although CC wrote “NOT CONFIRMED”
+
+CC did the right thing. One of the five git options in step 1, fetching one specific commit by its hash, had never been used on KOA before, so under my rule CC could not confirm it and added a version check instead. I accept that for three reasons:
+
+KOA showed git 2.52.0 last time, and the option needs 2.35.0.
+The Mac practice run on the real gate commit passed.
+If it fails anyway, it fails inside the interactive test shell with an error line. No job is submitted and nothing is harmed.
+
+I did not see the changed runsheet itself, because you pasted the part below the addendum. So CC must first confirm in one line that nothing else changed.
+
+The two side checks (both resolved)
+
+The odd run from the pressure test: closed. CC ran the same run four times longer. The left/right difference was there for the first 5,000 time units and then disappeared. Over the whole run it is +0.0015 ± 0.0010, which is nothing. So it was a long-lived fluctuation, not a fault in the engine. I do not know why it lasted that long, and the note says so.
+
+The strange third state in the small dense box: explained. I guessed “misoriented patches”. The real picture is simpler:
+
+A crystal of disks can sit in the box in two orientations, turned by 30° against each other.
+Our lattice start uses the one with the higher pressure (14.33). The comfortable one has pressure 13.29.
+Over time each compartment flips to the comfortable orientation, one compartment at a time.
+When only one has flipped, the two orientations cancel in our global order number. That is the "ψ6 = 0.06" state. It is a perfectly ordered system that looks disordered.
+The compressed start begins in the comfortable orientation, which is why it never moved.
+
+Two lessons for the campaign: order and pressure must be measured per compartment, and in the solid the orientation of the crystal against the walls is part of the state. The stiffness we measure will depend on it.
+
+What you do
+Send CC the block below. It answers with one line.
+If that line reads exactly RUNSHEET DIFF: ONLY git --version AND THE APPROVAL LINE, type KOA steps 1 to 4 from hspist3/cluster/gen3_koa_261009/runsheet_gen3_koa_261009.txt.
+In step 1, the first command inside the sandbox shell is git --version. It must show 2.35.0 or higher. If it shows less, or if any line in step 1 starts with fatal: or error:, type exit, change nothing, and paste what you saw.
+Do not type step 5. Paste me the outputs of steps 3 and 4 first (a new chat is fine; the note has everything).
+When P5 finishes around 11:00, paste CC’s final report as usual.
+```
