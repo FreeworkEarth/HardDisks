@@ -9347,3 +9347,185 @@ gen3, M4 seeding, divider held for 20000 sigma-time; psi6 every 1 sigma-time; 6 
 | 100 | 0.740 | 6 of 6 | 0.9663 +- 0.0000 | 0.9664 +- 0.0001 | +0.0001 +- 0.0001 | +0.92 | yes | 0.502; 0.019; 0.465-0.52 | yes | 5.02; 5.2 | 6.51e+05 | +0.0001 +- 0.0001 / +1.35 |
 | 100 | 0.780 | 6 of 6 | 0.9854 +- 0.0000 | 0.9854 +- 0.0000 | -0.0000 +- 0.0000 | -2.43 | **NOT STATIONARY within 2e4** | 0.499; 0.02; 0.473-0.528 | yes | 4.99; 5.28 | 1.09e+06 | +0.0000 +- 0.0000 / +0.31 |
 ```
+
+### 4.7.19 Stage F: pilot P2, the window drift with a settled start — A PILOT, no paper use (2026-10-09 15:41 HST, machine date) [DATA, printed by script; SOURCE; DERIVATION and INFERENCE where marked] — PROVISIONAL
+
+**Plain summary.**
+- **The question:** does the +7.5 / +10.4 / +7.8 % first-half to second-half frequency drift of A1 v2 (§ 4.7.11) survive a settled start? **In this pilot it does not.**
+  - **Window cells, all three masses (36 trajectories each):** mean dν = +0.37 ± 0.58 % (η 0.7060), +0.16 ± 0.54 % (0.7113) and +1.50 ± 1.22 % (0.7167). Each is consistent with zero. A1 v2: +7.45 ± 0.78, +10.37 ± 0.85 and +7.78 ± 0.85 % (225 trajectories each).
+  - **[DERIVATION] P2's 95 % intervals** (mean ± 1.96 SE): [−0.77, +1.51], [−0.90, +1.22] and [−0.89, +3.89] %. A1 v2's values lie well outside all three.
+  - **Mass by mass, the comparison holds** (table 2: A1 v2 at P2's own masses, same estimator).
+    - A1 v2 at M = 50, 300 and 2000: +4.72 to +8.61 % (0.7060), +7.41 to +9.71 % (0.7113), +6.91 to +10.82 % (0.7167).
+    - P2 at the same masses: −0.37 to +1.44 %, −2.10 to +2.21 % and +0.10 to +3.15 %.
+  - **Outside the window (0.6905), both are near zero:** P2 −0.32 ± 0.50 %, A1 v2 −0.41 ± 0.22 %.
+- **ψ6 shows the same contrast** (tables 1 and 2; global |ψ6|, the driver's per-run summary).
+  - **P2: ψ6 barely moves over the record.** From release to end: 0.634 → 0.668 (0.7060), 0.554 → 0.543 (0.7113) and 0.457 → 0.410 (0.7167).
+    - These release values match P1's long-hold values at N = 100 (§ 4.7.17): 0.65 at η 0.70–0.704, 0.51–0.54 at 0.712, 0.43–0.64 at 0.716.
+  - **A1 v2: ψ6 moves a lot over the record.** From the end of the hold to the end of the record: 0.268 → 0.450, 0.828 → 0.195 and 0.887 → 0.464.
+    - A1 v2's hold was 2000 steps (33.3 σ-time) after the driver's grid seeding. At 0.7113 and 0.7167 the record started from a nearly ordered state (ψ6 0.83–0.89) that melted during the measurement.
+  - **The amplitude change dA is consistent with zero in every P2 cell** (per mass, |mean / SE| ≤ 1.5; all masses −1.94 to +3.87 % per η, SE 2.5–3.3 %). A1 v2 had −9.63 and −13.87 % at 0.7060 and 0.7113.
+- **[INFERENCE] Reading.**
+  - A1 v2's window drift belongs to its start, not to the settled gas: with a settled start the drift is gone. This supports constraint i of § 4.7.11: window c_s values from the old data are protocol-dependent.
+  - **The pilot changes four things at once** compared with A1 v2: the hold length, the start configuration, the engine, and the divider's start position (decision 7). So it cannot say which change removes the drift; the hold length is the intended one.
+  - **The engine change is unlikely to matter at this size.** Test G's dense information row (η 0.7007, M = 300, 200 runs per engine; no verdict) gave gen3 − gen2 = −0.188 %, 95 % [−0.570, +0.195] % (§ 4.7.15 addendum), more than ten times smaller than the drift.
+- **Protocol.**
+  - gen3 with M4 seeding (lattice + jitter 0.25), N = 100 (50 + 50), H = 10, the A1 v2 boxes exactly; M = 50, 300, 2000; 12 seeds per cell, 144 runs.
+  - The divider is held for T_eq = min(max(1e4, 10 τ_ψ6), 5e4) σ-time, then released; the record is 200 predicted periods; ψ6 every 1 σ-time.
+  - T_eq = 1e4 σ-time in all four cells (the lower clip; decision 2).
+  - Frozen binary: engine-gen3 `f39e485`, Stage C's (`bin_stageF/`, SHA-256 `912736e6…`, build line `00ALLINONE  git f39e485  target mac-O3-e0pre`).
+- **Health:** 144 of 144 runs exit 0 and clean=1; 0 tied events and 0 events due at once at every load; one build line per run; no finding.
+  - Run from 15:24:33 to 15:31:47 HST (434 s, 12 processes; 25–46 s per run).
+  - Achieved η (run headers): 0.690460, 0.705976, 0.711304, 0.716713.
+- **Disk:** P2's data is 39 MB after compression (the divider traces were compressed after the table was printed; decision 10).
+
+**Decisions and deviations.**
+1. **ψ6 every 1 σ-time.** The programme gives no interval for P2. The default of 0.25 would have quadrupled the disk use over the 1e4-σ-time holds.
+2. **T_eq comes from P1's global-ψ6 table** (the primary measure), at N = 100 and the nearest η of P1's grid (0.70, 0.704, 0.712, 0.716). P1's mean τ there is 1.33, 1.38, 1.34 and 240 σ, so T_eq = 1e4 σ-time in all four cells. The slowest single seed (991 σ at 0.716) would also give 1e4, since 10 × 991 = 9910 is below the clip. The runner read the table (`--teq`) and printed the values (runner lines below).
+3. **The boxes are A1 v2's own,** taken from the binary's 1/48-σ grid and passed as exact lengths with `--gen3-exact-box`: L0 = 273/48, 267/48, 265/48 and 263/48 (A1 v2's nominal L0 5.6913, 5.5702, 5.531, 5.4923).
+4. **dν and dA use § 4.7.11's own estimator,** `validation/paper1_window_aging_261009.traj2`, imported unchanged.
+5. **A companion script gives A1 v2 at P2's masses** (`experiments_gen3_p2_261009/p2_a1v2_rows.py`; table 2).
+   - Why: § 4.7.11 pools A1 v2's nine masses, while P2 runs three. A record is 200 of its own periods, so a heavy divider's record is longer in σ-time. The script also prints A1 v2's ψ6 at the end of the hold and of the record, which § 4.7.11 does not print.
+   - It was written while P2 ran and committed (engine-gen3 `88428ff`, 15:32:50) before P2's table was first printed.
+   - Its gate passes: its all-nine rows equal § 4.7.11's printed table 2 to the printed digits (4 of 4 η).
+6. **Record lengths.** P2's planned durations are 0.3–1.3 % shorter than A1 v2's at the same η and M (`p2_planned_durations.txt` against table 2), because the binary's predicted frequency uses the exact box. Example: 869 against 875 σ-time at 0.7060, M = 300.
+7. **Four differences from A1 v2, not separated by this pilot:**
+   - the hold: 1e4 σ-time against 2000 steps (33.3 σ-time);
+   - the start: M4 lattice + jitter against the driver's grid seeding;
+   - the engine: gen3 against gen2;
+   - the divider's start position: P2 starts at the exact centre. A1 v2 started 0.09, 0.18, 0.24 and 0.32 px (0.0038–0.0131 σ) right of its box centre: the legacy code puts the divider at XW1 + L0 × 24 px with the nominal L0, while the box is (int)(2 × L0 × 24) px wide. Verified on A1 v2's traces: the median first-sample displacement over 225 trajectories per η equals the computed offset (0.0912, 0.1848, 0.2440, 0.3152 px).
+   - (My draft of this section first said "up to 0.18 px", from one cell; corrected before commit.)
+8. **The sampling stride comes from the campaign rule** `T.d_stride` of the KR prediction. Beyond KR's fit range (η > 0.7069) KR's c_s grows fast (14.8 and 31.9 at 0.7113 and 0.7167, against 10.2 at 0.7060). So the strides at those two η are 1.3–4 times finer (3/6/16 and 1/3/7 steps, against 4/9/23 at 0.7060). The record length and the frequency bins (1/record) are not affected; only the number of samples per period differs.
+9. **Rule 4 does not apply:** stage F changed no code.
+10. **The divider traces were compressed after the table was printed** (lossless `gzip -9`; the SHA-256 of each uncompressed trace was appended to its cell's `.sha256_uncompressed` first). All 144 were verified by decompressing (0 mismatches); 198 MB → 39 MB. As with Test G, this departs from the letter of rule 3 (the files change form, no content is lost). To rerun `p2_tables.py`, gunzip the traces first.
+11. **Rule 6 was breached: the afternoon's new data exceeded 1.5 GB.** I tracked only the project folders and missed the session scratchpad (`/private/tmp/…/scratchpad`, the scratch tests of stages A, C and E).
+    - Counted at P2's end (15:36), files written since the programme's commit (11:32:14): 1168 MiB in the two project trees (outside `.git`) plus 489 MiB in the scratchpad = 1657 MiB (1.62 GiB, 1.74 GB), above the cap.
+    - Before P2 the total was about 1459 MiB (1.42 GiB, 1.53 GB): at or just above the cap, depending on the unit. P2's 198 MB took it clearly over.
+    - Remedy: lossless compression with SHA-256 manifests, nothing deleted.
+      - P2's traces (decision 10).
+      - The scratchpad's 23 afternoon CSV files over 200 kB, with the manifest `SCRATCH_SHA256_UNCOMPRESSED_afternoon.txt` in the scratchpad; 23 of 23 verified.
+    - Now: 1010 + 336 = 1346 MiB (1.31 GiB, 1.41 GB). The free space never fell below the 3 GB floor (lowest seen 3.1 GiB, during Test G).
+12. **E1, the final rerun over every gen3 run log of the day** (stages A, B and C as in § 4.7.18, plus P1 and P2): 1952 run records in 658 files (`experiments_gen3_m5_261009/gen3_tolerance_review_final_output.txt`).
+    - Only one line changes: tol_pair's largest measured value is now 5.73e-12 px (P1, N = 1600, η 0.66), margin 4.19e6.
+    - P1 and P2 ran without the contact audit (`HD_CONTACT_AUDIT` unset; 0 of 342 logs have an `[EDMD3-GAP]` line). They add run records but no contact gaps, so the c_tol and tol_face margins stay 26.5 and 41.
+    - Every counter that must be 0 is 0. The diff against § 4.7.18's output is below.
+
+**Done / not done.**
+
+| item (stage F) | status |
+|---|---|
+| P2 runs: 4 η × 3 masses × 12 seeds | done: 144 of 144 exit 0, clean=1, 0 ties at the load, no finding |
+| T_eq = min(max(1e4, 10 τ_ψ6 from P1), 5e4) | done: 1e4 σ-time in all four cells (decision 2) |
+| release, record 200 periods | done: 200 predicted periods, 408–2392 σ-time |
+| § 4.7.11's first-half / second-half table (dν, dA, ψ6 hold / end) next to A1 v2's rows | done: table 1 (A1 v2's all-mass rows quoted), table 2 (A1 v2 at P2's masses, with ψ6) |
+| the question | answered for this pilot: the drift does not survive a settled start (plain summary); PROVISIONAL |
+| rule 5 | done: frozen binary of committed `f39e485`, build line without "-dirty" |
+| rule 6 | **breached** (decision 11), brought back under the cap without deleting anything |
+| rule 10 | nothing to report: every run has a run record with clean=1 |
+
+**Table 1, printed by `python3 experiments_gen3_p2_261009/p2_tables.py --out experiments_gen3_p2_261009/data` (engine-gen3 worktree, run before the traces were compressed; verbatim):**
+
+```
+# Pilot P2, drift with an equilibrated start (261012 sec. 4.7.19), printed by experiments_gen3_p2_261009/p2_tables.py -- A PILOT
+
+| eta_true | M | trajectories (clean / runs) | T_eq [sigma] | mean dnu [%] (SE) | dnu exactly 0 | mean dA [%] (SE) | psi6 at release | psi6 at the end | A1 v2 (sec. 4.7.11, all masses): mean dnu [%] (SE) / dnu = 0 / mean dA [%] (SE) |
+|---|---|---|---|---|---|---|---|---|---|
+| 0.6905 | 50 | 12 / 12 | 10000 | -0.65 (1.41) | 1 | +4.39 (4.76) | 0.646 (0.019) | 0.594 (0.019) |  |
+| 0.6905 | 300 | 12 / 12 | 10000 | -0.10 (0.51) | 1 | -3.59 (5.63) | 0.633 (0.017) | 0.602 (0.020) |  |
+| 0.6905 | 2000 | 12 / 12 | 10000 | -0.22 (0.37) | 4 | -1.23 (5.25) | 0.597 (0.035) | 0.637 (0.019) |  |
+| 0.6905 | all | 36 / 36 | 10000 | -0.32 (0.50) | 6 | -0.15 (2.98) | 0.625 (0.014) | 0.611 (0.011) | -0.41 (0.22) | 33 (15 %) | +2.85 (1.12) |
+| 0.7060 | 50 | 12 / 12 | 10000 | +1.44 (1.57) | 0 | +7.99 (5.33) | 0.654 (0.021) | 0.662 (0.023) |  |
+| 0.7060 | 300 | 12 / 12 | 10000 | +0.03 (0.62) | 2 | +3.73 (4.03) | 0.627 (0.029) | 0.657 (0.019) |  |
+| 0.7060 | 2000 | 12 / 12 | 10000 | -0.37 (0.40) | 1 | -0.11 (3.74) | 0.621 (0.025) | 0.685 (0.020) |  |
+| 0.7060 | all | 36 / 36 | 10000 | +0.37 (0.58) | 3 | +3.87 (2.54) | 0.634 (0.014) | 0.668 (0.012) | +7.45 (0.78) | 15 (7 %) | -9.63 (1.21) |
+| 0.7113 | 50 | 12 / 12 | 10000 | -2.10 (1.19) | 3 | +2.02 (6.00) | 0.542 (0.019) | 0.523 (0.025) |  |
+| 0.7113 | 300 | 12 / 12 | 10000 | +2.21 (0.56) | 0 | +1.76 (4.52) | 0.543 (0.018) | 0.550 (0.030) |  |
+| 0.7113 | 2000 | 12 / 12 | 10000 | +0.37 (0.48) | 2 | -0.86 (4.93) | 0.577 (0.024) | 0.554 (0.023) |  |
+| 0.7113 | all | 36 / 36 | 10000 | +0.16 (0.54) | 5 | +0.97 (2.92) | 0.554 (0.012) | 0.543 (0.015) | +10.37 (0.85) | 18 (8 %) | -13.87 (1.49) |
+| 0.7167 | 50 | 12 / 12 | 10000 | +3.15 (2.92) | 0 | +2.28 (7.06) | 0.617 (0.070) | 0.550 (0.079) |  |
+| 0.7167 | 300 | 12 / 12 | 10000 | +1.25 (2.30) | 2 | -1.87 (4.46) | 0.402 (0.086) | 0.393 (0.081) |  |
+| 0.7167 | 2000 | 12 / 12 | 10000 | +0.10 (0.32) | 4 | -6.21 (5.66) | 0.352 (0.069) | 0.288 (0.046) |  |
+| 0.7167 | all | 36 / 36 | 10000 | +1.50 (1.22) | 6 | -1.94 (3.32) | 0.457 (0.047) | 0.410 (0.044) | +7.78 (0.85) | 23 (10 %) | -2.31 (1.76) |
+
+(PILOT. dnu = nu2/nu1 - 1 and dA = A2/A1 - 1 between the halves of each record, sec. 4.7.11's estimator; a settled start is lattice + jitter + a held hold of T_eq; A1 v2 started from the driver's grid seeding with a 2000-step hold.)
+```
+
+**Table 2, A1 v2 at P2's masses, printed by `python3 experiments_gen3_p2_261009/p2_a1v2_rows.py --workers 8` (existing A1 v2 data; verbatim):**
+
+```
+# A1 v2 at P2's masses (261012 sec. 4.7.19), printed by experiments_gen3_p2_261009/p2_a1v2_rows.py -- existing data, sec. 4.7.11's cells, trajectories and estimator
+
+| eta_true | M | trajectories | record [sigma-time], mean | mean dnu [%] (SE) | dnu exactly 0 | mean dA [%] (SE) | psi6 at the end of the hold (33.3 sigma-time) | psi6 at the end of the record |
+|---|---|---|---|---|---|---|---|---|
+| 0.6905 | 50 | 25 | 494 | -3.42 (1.21) | 1 (4 %) | +3.95 (4.50) | 0.349 (0.055) | 0.612 (0.015) |
+| 0.6905 | 300 | 25 | 973 | -0.16 (0.60) | 2 (8 %) | -1.13 (3.16) | 0.377 (0.047) | 0.612 (0.016) |
+| 0.6905 | 2000 | 25 | 2400 | +0.06 (0.29) | 6 (24 %) | +4.55 (3.44) | 0.368 (0.048) | 0.623 (0.016) |
+| 0.6905 | all nine | 225 (= sec. 4.7.11) | 1313 | -0.41 (0.22) | 33 (15 %) | +2.85 (1.12) | 0.386 (0.017) | 0.610 (0.005) |
+| 0.7060 | 50 | 25 | 445 | +4.72 (1.79) | 1 (4 %) | -3.66 (4.46) | 0.316 (0.052) | 0.348 (0.047) |
+| 0.7060 | 300 | 25 | 875 | +5.93 (2.12) | 3 (12 %) | -12.53 (3.13) | 0.262 (0.049) | 0.465 (0.046) |
+| 0.7060 | 2000 | 25 | 2159 | +8.61 (2.51) | 0 (0 %) | -19.57 (2.91) | 0.298 (0.059) | 0.528 (0.031) |
+| 0.7060 | all nine | 225 (= sec. 4.7.11) | 1181 | +7.45 (0.78) | 15 (7 %) | -9.63 (1.21) | 0.268 (0.017) | 0.450 (0.015) |
+| 0.7113 | 50 | 25 | 429 | +8.18 (1.81) | 0 (0 %) | -10.66 (5.32) | 0.868 (0.009) | 0.183 (0.031) |
+| 0.7113 | 300 | 25 | 844 | +9.71 (3.12) | 4 (16 %) | -5.25 (4.89) | 0.827 (0.031) | 0.175 (0.020) |
+| 0.7113 | 2000 | 25 | 2082 | +7.41 (2.95) | 3 (12 %) | -12.96 (3.74) | 0.863 (0.006) | 0.261 (0.037) |
+| 0.7113 | all nine | 225 (= sec. 4.7.11) | 1139 | +10.37 (0.85) | 18 (8 %) | -13.87 (1.49) | 0.828 (0.011) | 0.195 (0.010) |
+| 0.7167 | 50 | 25 | 413 | +7.49 (2.53) | 3 (12 %) | -8.27 (5.47) | 0.883 (0.007) | 0.541 (0.075) |
+| 0.7167 | 300 | 25 | 814 | +10.82 (2.74) | 2 (8 %) | -3.03 (5.44) | 0.885 (0.006) | 0.420 (0.071) |
+| 0.7167 | 2000 | 25 | 2008 | +6.91 (3.27) | 2 (8 %) | -3.36 (5.95) | 0.877 (0.007) | 0.450 (0.071) |
+| 0.7167 | all nine | 225 (= sec. 4.7.11) | 1098 | +7.78 (0.85) | 23 (10 %) | -2.31 (1.76) | 0.887 (0.003) | 0.464 (0.024) |
+
+gate: the 'all nine' rows against sec. 4.7.11's printed table 2: IDENTICAL to the printed digits (4 of 4 eta)
+(record = the analysed prefix, TD = 200 predicted periods, as P2's records: at the same eta and M the two have the same predicted length. psi6 = the global |psi6|, the driver's per-run summary.)
+```
+
+**The runner's cell lines (the first 13 lines of `p2_runner_stdout.txt`, printed by `p2_run.py`; verbatim):**
+
+```
+# 2026-10-09 15:24:33 HST P2: binary /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_p2_261009/bin_stageF/00ALLINONE (912736e6ac4115add5ab55c2a6e9fbf39ad4c082145d017bcb4e26bc61c4a93c; 00ALLINONE  git f39e485  target mac-O3-e0pre); T_eq from experiments_gen3_p1_261009/p1_tables_output.txt
+  eta0.6905_M50: L0 5.6875 (A1 v2 5.6913), T_eq 10000 sigma-time (P1 eta 0.7: tau 1.33, yes), stride 4
+  eta0.6905_M300: L0 5.6875 (A1 v2 5.6913), T_eq 10000 sigma-time (P1 eta 0.7: tau 1.33, yes), stride 8
+  eta0.6905_M2000: L0 5.6875 (A1 v2 5.6913), T_eq 10000 sigma-time (P1 eta 0.7: tau 1.33, yes), stride 21
+  eta0.7060_M50: L0 5.5625 (A1 v2 5.5702), T_eq 10000 sigma-time (P1 eta 0.704: tau 1.38, yes), stride 4
+  eta0.7060_M300: L0 5.5625 (A1 v2 5.5702), T_eq 10000 sigma-time (P1 eta 0.704: tau 1.38, yes), stride 9
+  eta0.7060_M2000: L0 5.5625 (A1 v2 5.5702), T_eq 10000 sigma-time (P1 eta 0.704: tau 1.38, yes), stride 23
+  eta0.7113_M50: L0 5.520833333333333 (A1 v2 5.531), T_eq 10000 sigma-time (P1 eta 0.712: tau 1.34, yes), stride 3
+  eta0.7113_M300: L0 5.520833333333333 (A1 v2 5.531), T_eq 10000 sigma-time (P1 eta 0.712: tau 1.34, yes), stride 6
+  eta0.7113_M2000: L0 5.520833333333333 (A1 v2 5.531), T_eq 10000 sigma-time (P1 eta 0.712: tau 1.34, yes), stride 16
+  eta0.7167_M50: L0 5.479166666666667 (A1 v2 5.4923), T_eq 10000 sigma-time (P1 eta 0.716: tau 240, yes), stride 1
+  eta0.7167_M300: L0 5.479166666666667 (A1 v2 5.4923), T_eq 10000 sigma-time (P1 eta 0.716: tau 240, yes), stride 3
+  eta0.7167_M2000: L0 5.479166666666667 (A1 v2 5.4923), T_eq 10000 sigma-time (P1 eta 0.716: tau 240, yes), stride 7
+```
+
+**Record parameters per cell (`p2_planned_durations.txt`; verbatim):**
+
+```
+# P2's record parameters per cell from the compressed traces' first data row (Predicted_Frequency [1/sigma-time], Planned_Duration [sigma-time], eta), distinct values over the 12 seeds; printed 2026-10-09 15:38 HST by:
+# for c in eta*_M*; do printf "%s " $c; for s in $c/seed*/wall_x_positions_*_run0.csv.gz; do gzip -dc $s | sed -n 2p | awk -F, '{printf "%s %s %s\n", $11, $13, $7}'; done | sort -u | tr '\n' ';'; echo; done   (run in data/; the shell's echo had expanded the backslash escapes of this line when it was first written, so the line was rewritten literally)
+eta0.6905_M2000 0.0835990339425 2392.38336898 0.690460;
+eta0.6905_M300 0.206268170368 969.616681115 0.690460;
+eta0.6905_M50 0.405958987237 492.666674008 0.690460;
+eta0.7060_M2000 0.0933034740577 2143.55003194 0.705976;
+eta0.7060_M300 0.230212431594 868.766679612 0.705976;
+eta0.7060_M50 0.453083989705 441.433339911 0.705976;
+eta0.7113_M2000 0.0969693224207 2062.5166974 0.711304;
+eta0.7113_M300 0.239257366673 835.93334579 0.711304;
+eta0.7113_M50 0.470885440495 424.733339662 0.711304;
+eta0.7167_M2000 0.100884927904 1982.46669621 0.716713;
+eta0.7167_M300 0.248918540264 803.483345306 0.716713;
+eta0.7167_M50 0.489899718071 408.250006083 0.716713;
+```
+
+**E1, the final rerun: `diff` of § 4.7.18's output and the final output (verbatim).** Command (engine-gen3 worktree): `python3 validation/gen3_tolerance_review_261009.py` with § 4.7.18's four globs plus `"experiments_gen3_p1_261009/data/**/run.log" "experiments_gen3_p2_261009/data/**/run.log"`.
+
+```
+3c3
+< Inputs: 316 files, 1610 gen3 run records. Values at the production run (v_ref = 40 px/unit, box 538 px); u_t = 2^-39 = 1.819e-12 units; K = 4.
+---
+> Inputs: 658 files, 1952 gen3 run records. Values at the production run (v_ref = 40 px/unit, box 538 px); u_t = 2^-39 = 1.819e-12 units; K = 4.
+13c13
+< | tol_pair (validator) | edmd_gen3.c `S->tol_pair = fmax(1e-7, 1e-6 d)` | 2.4e-05 | px | experiment_validation.c's pair tolerance, so a local or full check finding means the same as the driver's validator | 5.49e-12 | -local_worst (../../HardDisks/hspist3/experiments_gen3_gate_261009/testG/gen3/epi8_H_H10_L10/m_2000/run.log) | 4.37e+06 | tolerance |
+---
+> | tol_pair (validator) | edmd_gen3.c `S->tol_pair = fmax(1e-7, 1e-6 d)` | 2.4e-05 | px | experiment_validation.c's pair tolerance, so a local or full check finding means the same as the driver's validator | 5.73e-12 | -local_worst (experiments_gen3_p1_261009/data/N1600_eta0.660/seed4/run.log) | 4.19e+06 | tolerance |
+```
+
+**Commits:** engine-gen3 `c0ca3c9` (the P2 scripts as run, committed before the data), `88428ff` (the companion script, committed before P2's table was printed), `1140a19` (P2's evidence and the final E1 output).
+
