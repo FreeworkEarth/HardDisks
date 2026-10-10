@@ -13101,3 +13101,177 @@ A small pilot with that new start in the three dense cells. It answers two quest
 
 After that I have what I need to write the pre-registration.
 ```
+
+### 4.7.42 Decision 18, items 1 and 2: the checkpoint carries the ψ6 columns; M4c, the turned lattice — ACCEPTANCE PASS for both; a premise that does not hold: the present M4 family is the turned crystal at N = 1600 (2026-10-10 11:58 HST, machine date) [DATA, printed by script; INFERENCE where marked]
+
+**Plain summary.**
+- **The code** (engine-gen3 `f72d764`, driver only).
+  - **Item 1.** The checkpoint record now carries `--gen3-psi6-compartments` (checkpoint format v3).
+    - A restart with the other setting is refused.
+    - Decision 17's refusal of the flag together with checkpoints is removed.
+  - **Item 2, M4c.** `--gen3-lattice-orientation=0|turned` selects the crystal orientation by the direction of the close-packed lines: along x is 0°; along y is turned (±30°).
+    - `g3_lat_cryst()` classifies every arrangement of the M4 family. The lines run along the rows when the in-row spacing is the shorter one (a_r < 2 a_s), and across them otherwise.
+    - With the flag, `g3_lattice_fit` keeps only the requested orientation. Everything else in M4 is unchanged: the largest gap, the vacancy rule, the seeded jitter, the exact box, and both compartments fitted alike.
+    - Without the flag, the M4 family is exactly as before. M4b's lattice is untouched.
+    - An `[EDMD3-M4C]` line is printed only with the flag. The flag is refused without `--gen3-seeding=lattice` and under gen2.
+- **Item 1: PASS.**
+  - **Stage H** was rerun with the new build: its runner unchanged, its process limit set to 5 from outside, so at most 7 simulations. Stage H's tables, also unchanged, print "ACCEPTANCE (stage H): PASS"; rule 4 is IDENTICAL and the M1/M2 outputs are identical.
+  - **Restarts with the columns on.** Cell B (with virial blocks and snapshots) and cell C, two checkpoints each. For every checkpoint, both the run that wrote it and went on and the restarted run match the uninterrupted run byte for byte: the trace, the ψ6(t) file with its new columns, `speed_of_sound_psi6.csv`, `run_params.json`, and in B the virial blocks and snapshots.
+    - The run record and the event hash are equal (B `cab8515b36a13410`, C `20591700936853a9`).
+  - **Both refusals** (a columns-on checkpoint run without the flag, a columns-off checkpoint run with it) stop with exit 2.
+- **Item 2: PASS.**
+  - **The default and existing commands are byte-identical:**
+    - P4a's start-A seed-1 run, new build, default flags: hash `bd25077c5f1c9c9f`, and its snapshots (the initial state at t = 0 among them), ψ6(t) and virial blocks equal P4's.
+    - Stage C's grid cell N = 400, η 0.70: `init.txt`, ψ6(t) and hash `2c28bfa0693f34d2` equal between the previous build (`0d7f1ca`) and the new one, and equal to stage C's own evidence of `f39e485`.
+    - `--gen3-lattice=perpendicular` and an M4b command are identical between the two builds as well.
+  - **The turned grid: 21 of 24 cells are feasible and pass every item:**
+    - the achieved η equals the requested to 2e-16;
+    - N/2 disks per compartment;
+    - every smallest gap > 0;
+    - the same seed gives a bit-identical state, and another seed a different one;
+    - no ties at the load;
+    - clean over 400 σ-time;
+    - the orientation at the load is ±29.97 to 30.00° in both compartments.
+    - **Three cells are INFEASIBLE:** N = 100 at η 0.78 and 0.85, and N = 400 at η 0.85.
+  - **The explicit 0** reads within 0.05° of 0 at the load in every feasible cell.
+  - **The feasibility ceilings** (Python replica; its verdict equals the binary's in all 72 cell-family cases, and its default family equals stage C's replica), as default / 0 / turned:
+    - N 100: 0.7815 / 0.7815 / 0.7612;
+    - N 400: 0.8251 / 0.8186 / 0.8251;
+    - N 900: 0.8502 / 0.8400 / 0.8502;
+    - N 1600: 0.8715 / 0.8715 / 0.8635.
+  - **The gaps at η 0.74 / 0.78 [σ]:**
+    - N 400: 0° 0.0588 / 0.0134, turned 0.0526 / 0.0429;
+    - N 1600: 0° 0.0746 / 0.0493, turned 0.0811 / 0.0564.
+- **The premise (item 2.3b; reported, not counted): the present M4 family is 0° in only 12 of the 22 grid cells where it is feasible; in the other 10 it is the turned crystal.**
+  - The present family takes the arrangement with the largest gap, of either orientation. It is the turned crystal at:
+    - N = 100, η 0.70;
+    - N = 400, η 0.78;
+    - N = 900, η 0.716, 0.74 and 0.85;
+    - N = 1600, η 0.60, 0.716, 0.74, 0.78 and 0.85.
+  - **So P4's start A at N = 1600, η 0.74 and 0.78, was the turned crystal** (22 × 37), not 0°: its snapshots read ±30° from t = 0. At N = 400, η 0.74, it was 0° (19 × 11).
+  - At N = 1600, every compartment of P4's and P5's compressed starts that has snapshots (seeds 0 and 1) reads ±29.5 to 30° in the last quarter, in both Z groups. The higher-Z compartment of a run has the lower |Ψ|.
+  - [INFERENCE] At N = 1600 the two Z groups of the compressed starts are therefore not two orientations. The orientation reading of P4a holds at N = 400, not at N = 1600.
+  - For P6 this means: at N = 1600 the turned start is the present family, a replicate of P4's start A with new seeds. P6 therefore adds an explicit 0° start there (§ 4.7.43).
+
+**Decisions.**
+1. **The classification:** a_r < 2 a_s means the close-packed lines run along the rows. A single row: along it. One disk per row: across. A self-test checks six constructed cases.
+2. **The flag's values:** `0` and `turned`. Without the flag, the M4 family is exactly as before (`cryst_req` -1); M4b passes -1.
+3. **Stage H's rerun:** its runner unchanged, with `JOBS = 5` set from outside (5 − 2 + 4 = 7 simulations), alongside the P4a replay: 8 in all.
+4. **Item 2.3 was split before the runs** into a (the code: the turned start at ±30°, the explicit 0 at 0°) and b (the plan author's premise, the default at 0°: reported, not counted). The replica and P4's own N = 1600 snapshots had already shown the premise failing at N = 1600.
+5. **The identity checks** compare against the previous committed-tree build `0d7f1ca`. Stage C's own evidence of `f39e485` is information only; it matches too.
+6. **Seeds:** the grid's base 20261227 is in no file except as time values in one Szilard trace.
+7. **Evidence committed:** the initial-state dumps (as stage C did). Not committed: the checkpoint files (as stage H), run logs, ψ6(t) files, snapshots and traces; their SHA-256 are in `D18_SHA256_FILES.txt`.
+8. **The build's source copy** is in the scratchpad (`$SP/d18/clean_f72d764`, 118 MB), as the ground rule asks.
+9. **Disk and swap (information).** At about 11:47 HST an Ollama `llama-server` outside this session started and holds 34.5 GB. Swap rose to 27 of 28 GiB and free disk fell from 60 to 40 GiB.
+
+**Commits:**
+- engine-gen3 `f72d764`: the code and the acceptance scripts, before the runs;
+- engine-gen3 `4463ef9`: the evidence and the tables;
+- engine-gen3 `36f2b9b`: P6's scripts, before its runs.
+
+**The acceptance tables, verbatim** (`experiments_gen3_d18_261010/d18_tables_output.txt`):
+
+```
+# Decision 18, items 1 and 2: the acceptance tables, printed by experiments_gen3_d18_261010/d18_tables.py (261012 sec. 4.7.42)
+
+## Item 1: checkpoint/restart carries --gen3-psi6-compartments
+
+| item | result | holds |
+|---|---|---|
+| 1.1 the binaries | 00ALLINONE  git f72d764  target mac-O3-e0pre; 00ALLINONE = record, gen3_m1 = record, gen3_m2 = record, gen3_checkpoint_test = record, gen3_checkpoint_test_ld = record | yes |
+| 1.2 stage H's tables (unchanged script) | ACCEPTANCE (stage H): PASS -- restarted runs byte-identical to the uninterrupted ones (traces, psi6(t), event hash); wri; rule 4: IDENTICAL (both cases, both builds); H1: m1_audit_output.txt IDENTICAL, m2_audit_quick_output.txt IDENTICAL, m2_audit_output.txt IDENTICAL | yes |
+| 1.3 cell B C_hold60000 vs U | files IDENTICAL; run record =; hash cab8515b36a13410 (U cab8515b36a13410); checkpoint/restart lines 1; exit 0 | yes |
+| 1.3 cell B C_record6000 vs U | files IDENTICAL; run record =; hash cab8515b36a13410 (U cab8515b36a13410); checkpoint/restart lines 1; exit 0 | yes |
+| 1.3 cell B R2_hold60000 vs U | files IDENTICAL; run record =; hash cab8515b36a13410 (U cab8515b36a13410); checkpoint/restart lines 1; exit 0 | yes |
+| 1.3 cell B R2_record6000 vs U | files IDENTICAL; run record =; hash cab8515b36a13410 (U cab8515b36a13410); checkpoint/restart lines 1; exit 0 | yes |
+| 1.3 cell C C_hold15000 vs U | files IDENTICAL; run record =; hash 20591700936853a9 (U 20591700936853a9); checkpoint/restart lines 1; exit 0 | yes |
+| 1.3 cell C C_record3000 vs U | files IDENTICAL; run record =; hash 20591700936853a9 (U 20591700936853a9); checkpoint/restart lines 1; exit 0 | yes |
+| 1.3 cell C R2_hold15000 vs U | files IDENTICAL; run record =; hash 20591700936853a9 (U 20591700936853a9); checkpoint/restart lines 1; exit 0 | yes |
+| 1.3 cell C R2_record3000 vs U | files IDENTICAL; run record =; hash 20591700936853a9 (U 20591700936853a9); checkpoint/restart lines 1; exit 0 | yes |
+| 1.4 refusal: on_ckpt_off_run | exit 2; STOP (--engine=gen3): restart: the checkpoint and this run differ in --gen3-psi6-compartments (the psi6(t) file's columns would differ) | yes |
+| 1.4 refusal: off_ckpt_on_run | exit 2; STOP (--engine=gen3): restart: the checkpoint and this run differ in --gen3-psi6-compartments (the psi6(t) file's columns would differ) | yes |
+
+## Item 2: M4c, the turned orientation
+
+| item | result | holds |
+|---|---|---|
+| 2.1a P4a A seed 1, new build, default | hash bd25077c5f1c9c9f (P4 bd25077c5f1c9c9f); snapshots, psi6(t), virial blocks = P4; P4's files = P4_SHA256_FILES | yes |
+| 2.1b stage C cell N400 eta0.70 (long) | hash old 2c28bfa0693f34d2 new 2c28bfa0693f34d2; psi6(t) IDENTICAL; init.txt IDENTICAL; information, against stage C's evidence (f39e485): init.txt IDENTICAL, hash 2c28bfa0693f34d2 | yes |
+| 2.1c --gen3-lattice=perpendicular | hash old 3644c28344d8c4d8 new 3644c28344d8c4d8; psi6(t) IDENTICAL; init.txt IDENTICAL | yes |
+| 2.1c M4b (P4 B seed 0) | hash old bd5eca349178a8c3 new bd5eca349178a8c3; psi6(t) IDENTICAL | yes |
+
+### 2.2 The turned grid (--gen3-lattice-orientation=turned), per cell
+
+| cell | result | lattice (left): orient, rows, n_s x n_r, vacancies, gap s [sigma] | achieved / requested eta - 1 | N_L / N_R | smallest gap disk-disk / wall / divider [sigma] | same seed | other seed | ties at the load (shared, at once) | clean (400 sigma-time) | orientation at the load L / R [deg] | M4C |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| N100_eta0.600 | ok | parallel, alternate, 6 x 9, 1, 0.1111 | +0.0e+00 | 50 / 50 | 0.0673 / 0.0313 / 0.0299 | bit-identical | differs | (0, 0) | 1 | -29.99 / +29.99 | ('lines along y', 'lines along y') |
+| N100_eta0.700 | ok | parallel, alternate, 6 x 9, 1, 0.0630 | +0.0e+00 | 50 / 50 | 0.0392 / 0.0175 / 0.0193 | bit-identical | differs | (0, 0) | 1 | +30.00 / -29.99 | ('lines along y', 'lines along y') |
+| N100_eta0.716 | ok | parallel, alternate, 6 x 9, 1, 0.0453 | +0.0e+00 | 50 / 50 | 0.0283 / 0.0131 / 0.0114 | bit-identical | differs | (0, 0) | 1 | +29.98 / +29.99 | ('lines along y', 'lines along y') |
+| N100_eta0.740 | ok | parallel, alternate, 6 x 9, 1, 0.0204 | +0.0e+00 | 50 / 50 | 0.0114 / 0.0059 / 0.0064 | bit-identical | differs | (0, 0) | 1 | +29.98 / -29.99 | ('lines along y', 'lines along y') |
+| N100_eta0.780 | INFEASIBLE (exit 2) | - | - | - | - | - | - | - | - | - | ('none', 'none') |
+| N100_eta0.850 | INFEASIBLE (exit 2) | - | - | - | - | - | - | - | - | - | ('none', 'none') |
+| N400_eta0.600 | ok | parallel, alternate, 13 x 16, 2, 0.1730 | +0.0e+00 | 200 / 200 | 0.0973 / 0.0464 / 0.0467 | bit-identical | differs | (0, 0) | 1 | +29.97 / -29.98 | ('lines along y', 'lines along y') |
+| N400_eta0.700 | ok | parallel, equal, 12 x 17, 4, 0.0833 | +0.0e+00 | 200 / 200 | 0.0449 / 0.0224 / 0.0235 | bit-identical | differs | (0, 0) | 1 | -30.00 / -29.98 | ('lines along y', 'lines along y') |
+| N400_eta0.716 | ok | parallel, equal, 12 x 17, 4, 0.0657 | +0.0e+00 | 200 / 200 | 0.0338 / 0.0190 / 0.0170 | bit-identical | differs | (0, 0) | 1 | -29.97 / -29.98 | ('lines along y', 'lines along y') |
+| N400_eta0.740 | ok | parallel, alternate, 11 x 19, 4, 0.0526 | +0.0e+00 | 200 / 200 | 0.0314 / 0.0143 / 0.0147 | bit-identical | differs | (0, 0) | 1 | +29.99 / -29.99 | ('lines along y', 'lines along y') |
+| N400_eta0.780 | ok | parallel, alternate, 11 x 19, 4, 0.0429 | +2.2e-16 | 200 / 200 | 0.0241 / 0.0115 / 0.0118 | bit-identical | differs | (0, 0) | 1 | -29.99 / +29.99 | ('lines along y', 'lines along y') |
+| N400_eta0.850 | INFEASIBLE (exit 2) | - | - | - | - | - | - | - | - | - | ('none', 'none') |
+| N900_eta0.600 | ok | parallel, equal, 19 x 24, 6, 0.1927 | +0.0e+00 | 450 / 450 | 0.0998 / 0.0515 / 0.0530 | bit-identical | differs | (0, 0) | 1 | +29.99 / +30.00 | ('lines along y', 'lines along y') |
+| N900_eta0.700 | ok | parallel, alternate, 17 x 27, 1, 0.1111 | +2.2e-16 | 450 / 450 | 0.0645 / 0.0310 / 0.0343 | bit-identical | differs | (0, 0) | 1 | -29.98 / -30.00 | ('lines along y', 'lines along y') |
+| N900_eta0.716 | ok | parallel, alternate, 17 x 27, 1, 0.1071 | -1.1e-16 | 450 / 450 | 0.0589 / 0.0305 / 0.0293 | bit-identical | differs | (0, 0) | 1 | +30.00 / +29.99 | ('lines along y', 'lines along y') |
+| N900_eta0.740 | ok | parallel, alternate, 17 x 27, 1, 0.0801 | -1.1e-16 | 450 / 450 | 0.0426 / 0.0209 / 0.0255 | bit-identical | differs | (0, 0) | 1 | -29.99 / +29.99 | ('lines along y', 'lines along y') |
+| N900_eta0.780 | ok | parallel, alternate, 17 x 27, 1, 0.0393 | -1.1e-16 | 450 / 450 | 0.0207 / 0.0102 / 0.0103 | bit-identical | differs | (0, 0) | 1 | +30.00 / +29.99 | ('lines along y', 'lines along y') |
+| N900_eta0.850 | ok | parallel, alternate, 16 x 29, 6, 0.0002 | -1.1e-16 | 450 / 450 | 0.0001 / 0.0000 / 0.0000 | bit-identical | differs | (0, 0) | 1 | +30.00 / -30.00 | ('lines along y', 'lines along y') |
+| N1600_eta0.600 | ok | parallel, equal, 25 x 32, 0, 0.2081 | +0.0e+00 | 800 / 800 | 0.1074 / 0.0526 / 0.0575 | bit-identical | differs | (0, 0) | 1 | +30.00 / +29.98 | ('lines along y', 'lines along y') |
+| N1600_eta0.700 | ok | parallel, equal, 23 x 35, 5, 0.1200 | +0.0e+00 | 800 / 800 | 0.0663 / 0.0343 / 0.0333 | bit-identical | differs | (0, 0) | 1 | +29.99 / +30.00 | ('lines along y', 'lines along y') |
+| N1600_eta0.716 | ok | parallel, equal, 23 x 35, 5, 0.1012 | +0.0e+00 | 800 / 800 | 0.0547 / 0.0271 / 0.0266 | bit-identical | differs | (0, 0) | 1 | -29.99 / +30.00 | ('lines along y', 'lines along y') |
+| N1600_eta0.740 | ok | parallel, alternate, 22 x 37, 3, 0.0811 | +0.0e+00 | 800 / 800 | 0.0417 / 0.0218 / 0.0207 | bit-identical | differs | (0, 0) | 1 | +29.99 / -30.00 | ('lines along y', 'lines along y') |
+| N1600_eta0.780 | ok | parallel, alternate, 22 x 37, 3, 0.0564 | +2.2e-16 | 800 / 800 | 0.0304 / 0.0149 / 0.0152 | bit-identical | differs | (0, 0) | 1 | -30.00 / +30.00 | ('lines along y', 'lines along y') |
+| N1600_eta0.850 | ok | parallel, alternate, 21 x 39, 9, 0.0118 | -1.1e-16 | 800 / 800 | 0.0066 / 0.0030 / 0.0032 | bit-identical | differs | (0, 0) | 1 | +30.00 / -30.00 | ('lines along y', 'lines along y') |
+| 2.2 the turned grid | 21 feasible cells pass every item, 3 INFEASIBLE (listed); failing: none | yes |
+
+### 2.3 The orientation at the load (the psi6(t) row at t = 0), L / R [deg]
+
+| cell | default family | its lattice: orient, n_s x n_r | --gen3-lattice-orientation=0 | its lattice | turned |
+|---|---|---|---|---|---|
+| N100_eta0.600 | +0.04 / -0.03 | parallel, 10 x 5 | -0.05 / +0.03 | parallel, 10 x 5 | -29.99 / +29.99 |
+| N100_eta0.700 | +29.93 / -29.95 | parallel, 6 x 9 | +0.01 / +0.00 | parallel, 9 x 6 | +30.00 / -29.99 |
+| N100_eta0.716 | -0.04 / +0.02 | parallel, 9 x 6 | -0.01 / -0.00 | parallel, 9 x 6 | +29.98 / +29.99 |
+| N100_eta0.740 | +0.00 / +0.05 | parallel, 9 x 6 | +0.02 / -0.01 | parallel, 9 x 6 | +29.98 / -29.99 |
+| N100_eta0.780 | -0.00 / +0.00 | parallel, 9 x 6 | -0.00 / -0.00 | parallel, 9 x 6 | INFEASIBLE |
+| N100_eta0.850 | INFEASIBLE | - | INFEASIBLE | - | INFEASIBLE |
+| N400_eta0.600 | +0.08 / +0.00 | parallel, 21 x 10 | -0.01 / -0.04 | parallel, 21 x 10 | +29.97 / -29.98 |
+| N400_eta0.700 | -0.02 / +0.02 | parallel, 19 x 11 | -0.02 / +0.01 | parallel, 19 x 11 | -30.00 / -29.98 |
+| N400_eta0.716 | -0.01 / -0.03 | parallel, 19 x 11 | -0.00 / +0.00 | parallel, 19 x 11 | -29.97 / -29.98 |
+| N400_eta0.740 | +0.01 / -0.01 | parallel, 19 x 11 | -0.00 / +0.01 | parallel, 19 x 11 | +29.99 / -29.99 |
+| N400_eta0.780 | -30.00 / +29.99 | parallel, 11 x 19 | -0.00 / -0.00 | parallel, 18 x 12 | -29.99 / +29.99 |
+| N400_eta0.850 | INFEASIBLE | - | INFEASIBLE | - | INFEASIBLE |
+| N900_eta0.600 | -0.01 / -0.00 | parallel, 31 x 15 | -0.00 / -0.03 | parallel, 31 x 15 | +29.99 / +30.00 |
+| N900_eta0.700 | -0.01 / +0.01 | parallel, 29 x 16 | -0.00 / -0.03 | parallel, 29 x 16 | -29.98 / -30.00 |
+| N900_eta0.716 | +29.99 / +29.98 | parallel, 17 x 27 | +0.00 / -0.01 | parallel, 29 x 16 | +30.00 / +29.99 |
+| N900_eta0.740 | -30.00 / -29.99 | parallel, 17 x 27 | -0.00 / +0.01 | parallel, 29 x 16 | -29.99 / +29.99 |
+| N900_eta0.780 | -0.00 / -0.00 | parallel, 28 x 17 | +0.00 / -0.00 | parallel, 28 x 17 | +30.00 / +29.99 |
+| N900_eta0.850 | -30.00 / -30.00 | parallel, 16 x 29 | INFEASIBLE | - | +30.00 / -30.00 |
+| N1600_eta0.600 | +29.99 / +29.97 | parallel, 25 x 32 | -0.02 / -0.01 | parallel, 41 x 20 | +30.00 / +29.98 |
+| N1600_eta0.700 | +0.00 / -0.00 | parallel, 39 x 21 | -0.00 / +0.00 | parallel, 39 x 21 | +29.99 / +30.00 |
+| N1600_eta0.716 | +29.98 / +30.00 | parallel, 23 x 35 | +0.01 / -0.01 | parallel, 39 x 21 | -29.99 / +30.00 |
+| N1600_eta0.740 | -30.00 / +29.99 | parallel, 22 x 37 | -0.01 / -0.00 | parallel, 38 x 22 | +29.99 / -30.00 |
+| N1600_eta0.780 | -30.00 / -30.00 | parallel, 22 x 37 | -0.01 / -0.00 | parallel, 37 x 22 | -30.00 / +30.00 |
+| N1600_eta0.850 | -30.00 / +30.00 | parallel, 21 x 39 | -0.00 / +0.00 | parallel, 35 x 23 | +30.00 / -30.00 |
+| 2.3a the orientation at the load (the code) | turned outside |o| > 25: none; 0 outside |o| < 5: none | yes |
+| 2.3b the premise: the default family at 0 deg (reported, not counted) | default outside |o| < 5: N100_eta0.700, N400_eta0.780, N900_eta0.716, N900_eta0.740, N900_eta0.850, N1600_eta0.600, N1600_eta0.716, N1600_eta0.740, N1600_eta0.780, N1600_eta0.850 | does not hold in the cells listed |
+
+### 2.4 The feasibility ceiling per N (largest nominal eta with a positive gap; Python replica, bisection), and the gap s at eta 0.74 and 0.78 [sigma]
+
+| N | H [sigma] | default: ceiling | 0: ceiling | turned: ceiling | default s at 0.74 / 0.78 | 0: s at 0.74 / 0.78 | turned: s at 0.74 / 0.78 (binary) |
+|---|---|---|---|---|---|---|---|
+| 100 | 10 | 0.7815 | 0.7815 | 0.7612 | 0.0410 / 0.0019 | 0.0410 / 0.0019 | 0.0204 / infeasible (0.0204 / infeasible) |
+| 400 | 20 | 0.8251 | 0.8186 | 0.8251 | 0.0588 / 0.0429 | 0.0588 / 0.0134 | 0.0526 / 0.0429 (0.0526 / 0.0429) |
+| 900 | 30 | 0.8502 | 0.8400 | 0.8502 | 0.0801 / 0.0399 | 0.0597 / 0.0399 | 0.0801 / 0.0393 (0.0801 / 0.0393) |
+| 1600 | 40 | 0.8715 | 0.8715 | 0.8635 | 0.0811 / 0.0564 | 0.0746 / 0.0493 | 0.0811 / 0.0564 (0.0811 / 0.0564) |
+| 2.4 the replica: verdict = the binary's; default = stage C's replica | 72 cell-family verdicts all equal; default family = stage C's replica in every cell: yes | yes |
+| 2.5 rule 4 and the M1/M2 harness outputs (stage H's H0 and H1 on the new build, item 1.2) | rule 4: IDENTICAL (both cases, both builds); H1: m1_audit_output.txt IDENTICAL, m2_audit_quick_output.txt IDENTICAL, m2_audit_output.txt IDENTICAL | yes |
+
+ACCEPTANCE item 1: PASS
+ACCEPTANCE item 2: PASS
+```
