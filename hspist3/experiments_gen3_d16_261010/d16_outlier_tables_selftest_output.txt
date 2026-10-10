@@ -1,0 +1,4 @@
+selftest compartment L: N 2 KE 3.0 p (0.0, 2.0) pair 1.000000 wall (8.0, 'outer left (x = 0)') div 32.5: ok
+selftest compartment R: N 2 KE 0.75 p (0.5, -0.5) pair 26.805844 wall (1.0, 'top (y = boxH)') div 7.5: ok
+selftest segment: rows 8, d 0.015000 (direct 0.015000), pairs 406 / 366 (direct 406 / 366): ok
+SELFTEST PASS
