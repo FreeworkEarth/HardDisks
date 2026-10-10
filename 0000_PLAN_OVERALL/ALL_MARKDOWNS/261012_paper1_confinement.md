@@ -10387,3 +10387,156 @@ gate 2: A1 v2's nine-mass c_s, c_s_err and c_s_err_scaled equal the canonical ta
 
 **Commits:** engine-gen3 `ebbee64` (the script, before it ran), `cfe4e060` (its output).
 
+
+### 4.7.25 Decision 12, part 3b: checkpoint files hold no memory address (2026-10-09 18:31 HST, machine date) [DATA, printed by script; SOURCE] — PROVISIONAL
+
+**Plain summary.**
+- **ACCEPTANCE: PASS** (printed by `experiments_gen3_h3b_261009/ckpt_bytes_table.py` and stage H's unchanged `stageH_tables.py`).
+  - **Two checkpoint files of the same state are byte-identical:** 9 of 9 pairs.
+    - That is C (wrote and went on) against R1 (wrote and stopped) at each of the eight checkpoints of stage H's three trajectories.
+    - The ninth pair is the uninterrupted run's checkpoint at record:25000 against the one written there by a process that had restarted at hold:300000.
+  - **Stage H's restart tests pass again:** stage H's runner and tables, unchanged, with the new binaries. Rule 4 IDENTICAL; the M1/M2 harness outputs IDENTICAL; the engine test PASS in both builds (329 comparisons each); 9 restarted and 8 checkpoint-writing runs byte-identical to the uninterrupted ones; 10 refusals refuse.
+  - **The engine test prints the same bytes as at stage H** (both builds): the fix changes no state and no file size.
+- **The fix** (engine-gen3 `9a5b132`, `edmd3_checkpoint_write`):
+  - The state struct is written from a copy in which the buffer pointers, the event-log file, the parameter struct's pointer and the buffer capacities (heap, audit table) are zeroed. The reader kept its own values already.
+  - Disks, cell lists and heap are written as before. The driver part of the file held no address.
+
+**Decisions.**
+1. **Capacities count as well as addresses.** Stage H's comparison (§ 4.7.21, decision 10) found the heap's allocated capacity among the differing slots. It is process history, not state, so it is zeroed too.
+2. **The evidence reruns stage H's runner unchanged** with the binaries of the fix (`bin_3b/`, build line `00ALLINONE  git 9a5b132`, no "-dirty"). The new script `ckpt_bytes_table.py` was committed with the fix, before the run.
+3. **A scratch check came first:** two runs writing at the same hold step, and an uninterrupted against a restarted run writing at the same record step, gave identical files. That build was uncommitted, so it is not evidence.
+
+**Done / not done.**
+
+| item (part 3b) | status |
+|---|---|
+| checkpoint files hold no memory address | done (`9a5b132`) |
+| two checkpoint files of the same state byte-identical | done: 9 of 9 pairs (table 1 below) |
+| stage H's restart tests pass again | done: ACCEPTANCE PASS (stage H's tables below) |
+| rule 4 | done: IDENTICAL |
+
+**Printed by `python3 experiments_gen3_h3b_261009/ckpt_bytes_table.py --out experiments_gen3_h3b_261009/evidence_9a5b132 --stageH experiments_gen3_h_261009/evidence_ab80304` (engine-gen3 worktree; verbatim):**
+
+\`\`\`
+# Decision 12, part 3b: checkpoint files of the same state, byte for byte (261012 sec. 4.7.25), printed by experiments_gen3_h3b_261009/ckpt_bytes_table.py
+
+## 1. Pairs of checkpoints of the same state, written by different processes
+
+| trajectory | state | file 1 (writer) | file 2 (writer) | bytes | SHA-256 of file 1 | identical |
+|---|---|---|---|---|---|---|
+| A | hold1 | ck_C_hold1.bin (C: wrote and went on) | ck_R1_hold1.bin (R1: wrote and stopped) | 30847 / 30847 | 656fb6e96919b6b48e6770096a75d42d15e337b9412e4cf9cd03d9658aa63422 | IDENTICAL |
+| A | hold300000 | ck_C_hold300000.bin (C: wrote and went on) | ck_R1_hold300000.bin (R1: wrote and stopped) | 534588 / 534588 | c46f0c099e11fdedd267a871370a1baee584ee7713fd203416a04fdb3fc8dc6c | IDENTICAL |
+| A | record0 | ck_C_record0.bin (C: wrote and went on) | ck_R1_record0.bin (R1: wrote and stopped) | 749453 / 749453 | 562076721e95cafdd06479aa4c3ab1a9412eddc25e99f2ffcf31aa5d09b7a257 | IDENTICAL |
+| A | record25000 | ck_C_record25000.bin (C: wrote and went on) | ck_R1_record25000.bin (R1: wrote and stopped) | 995582 / 995582 | 44de851967c2fced5483d074004a209321dd539b2745e9153d04efb9709aa804 | IDENTICAL |
+| B | hold60000 | ck_C_hold60000.bin (C: wrote and went on) | ck_R1_hold60000.bin (R1: wrote and stopped) | 903508 / 903508 | 0d88fb71e450bd9d028ebe0c00a1cff08da2d69cec7cc3e9fc7e29d67efb3d71 | IDENTICAL |
+| B | record6000 | ck_C_record6000.bin (C: wrote and went on) | ck_R1_record6000.bin (R1: wrote and stopped) | 1087244 / 1087244 | 8f9c8afe45e62850815a4dc5b442ae37689279be95c79c57087b088dabea4d35 | IDENTICAL |
+| C | hold15000 | ck_C_hold15000.bin (C: wrote and went on) | ck_R1_hold15000.bin (R1: wrote and stopped) | 2816397 / 2816397 | ce99d9c701956dccda7285c45d3e20b8b8aff73e0551a5e16140276318be7870 | IDENTICAL |
+| C | record3000 | ck_C_record3000.bin (C: wrote and went on) | ck_R1_record3000.bin (R1: wrote and stopped) | 3261358 / 3261358 | 6cb3e1db11b429cdf002e3f12360191e0a5d5335dfb7f878a3df23e715076a47 | IDENTICAL |
+| A | record25000 | ck_C_record25000.bin (C: the uninterrupted run) | ck_R2b_chain.bin (R2b: restarted at hold:300000) | 995582 / 995582 | 44de851967c2fced5483d074004a209321dd539b2745e9153d04efb9709aa804 | IDENTICAL |
+
+pairs byte-identical: 9 of 9
+
+## 2. The engine test (H2) against stage H's output (ab80304), byte for byte
+
+| build | this run | stage H | identical |
+|---|---|---|---|
+| default | 4a1e008080662947 | 4a1e008080662947 | IDENTICAL |
+| ld | 4a1e008080662947 | 4a1e008080662947 | IDENTICAL |
+
+ACCEPTANCE (part 3b, first item): PASS -- two checkpoint files of the same state are byte-identical (9 of 9 pairs); the engine test's output unchanged in 2 of 2 builds
+\`\`\`
+
+**Printed by `python3 experiments_gen3_h_261009/stageH_tables.py --bin-dir experiments_gen3_h3b_261009/bin_3b --record experiments_gen3_h3b_261009/build_record_9a5b132.txt --out experiments_gen3_h3b_261009/evidence_9a5b132` (unchanged script; verbatim):**
+
+\`\`\`
+# Stage H (checkpoint and restart) evidence tables, printed by experiments_gen3_h_261009/stageH_tables.py
+
+## 1. The frozen binaries
+
+| binary | --version | SHA-256 | = build record |
+|---|---|---|---|
+| 00ALLINONE | 00ALLINONE  git 9a5b132  target mac-O3-e0pre | effd120eca580e74dc639b4f3b998df40d3f5accb05c81b560d6841ca6fc09aa | yes |
+| gen3_m1 | - | 1f9e4507eefcb90f09e15bb42f23f1b9f4960ccab372f09d40700fdfc669c6aa | yes |
+| gen3_m2 | - | 9278e30b605903feedeb20bfabdc5e7376b6c728cd34377ed139357b58eaf97e | yes |
+| gen3_checkpoint_test | - | bb4f391a394c1b906010fcaf73fc93396ec6a2954655e75761f5d1d1b2611157 | yes |
+| gen3_checkpoint_test_ld | - | 0089906c78592e9d3e3ab4e97eb32b9c05c609b96a45cbb4bceab60c96c84852 | yes |
+
+## 2. H0, rule 4: gen2 byte identity with 7b08827 after the 00ALLINONE.c change (ctrl_min, ctrl_leg)
+
+default build: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+--engine=gen2: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+
+rule 4: IDENTICAL (both cases, both builds)
+
+## 3. H1: the M1 and M2 harness outputs (the committed ones)
+
+| output | identical |
+|---|---|
+| m1_audit_output.txt | IDENTICAL |
+| m2_audit_quick_output.txt | IDENTICAL |
+| m2_audit_output.txt | IDENTICAL |
+
+## 4. H2: the engine test (edmd_core/tests/gen3_checkpoint_test.c)
+
+default: VERDICT: PASS -- 329 comparisons, 0 different; refusals both refused
+ld: VERDICT: PASS -- 329 comparisons, 0 different; refusals both refused
+long-double output = default output, byte for byte: yes
+
+## 5. H3: the driver -- every finished run against the uninterrupted run U of its trajectory
+
+| trajectory | run | exit | checkpoint / restart (t [units], events, hash at that moment) | trace = U | psi6(t) = U | speed_of_sound_psi6.csv = U | run_params.json = U | run record (without timing) = U | event hash at the end |
+|---|---|---|---|---|---|---|---|---|---|
+| A | U | 0 | - | (reference) | | |  | (reference) | 28aea5ac14e6e891 |
+| A | C_hold1 | 0 | wrote hold step 1 (t 0.40000000596046448, 7 events, 29babf743ff842f5) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | C_hold300000 | 0 | wrote hold step 300000 (t 120000.00178813934, 10931954 events, 8768e659661ab669) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | C_record0 | 0 | wrote record step 0 (t 240000.00357627869, 21762996 events, 014a57737658581e) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | C_record25000 | 0 | wrote record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R1_hold1 | 0 | wrote hold step 1 (t 0.40000000596046448, 7 events, 29babf743ff842f5) | (stopped) | | | | | |
+| A | R1_hold300000 | 0 | wrote hold step 300000 (t 120000.00178813934, 10931954 events, 8768e659661ab669) | (stopped) | | | | | |
+| A | R1_record0 | 0 | wrote record step 0 (t 240000.00357627869, 21762996 events, 014a57737658581e) | (stopped) | | | | | |
+| A | R1_record25000 | 0 | wrote record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | (stopped) | | | | | |
+| A | R2_hold1 | 0 | read hold step 1 (t 0.40000000596046448, 7 events, 29babf743ff842f5) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R2_hold300000 | 0 | read hold step 300000 (t 120000.00178813934, 10931954 events, 8768e659661ab669) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R2_record0 | 0 | read record step 0 (t 240000.00357627869, 21762996 events, 014a57737658581e) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R2_record25000 | 0 | read record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| A | R2b_chain | 0 | read hold step 300000 (t 120000.00178813934, 10931954 events, 8768e659661ab669); wrote record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | (stopped) | | | | | |
+| A | R3_chain | 0 | read record step 25000 (t 250000.0037252903, 22662231 events, 38ba2045752e6723) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 28aea5ac14e6e891 |
+| B | U | 0 | - | (reference) | | |  | (reference) | cab8515b36a13410 |
+| B | C_hold60000 | 0 | wrote hold step 60000 (t 24000.000357627869, 5529857 events, 1e2856f3020610d4) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | cab8515b36a13410 |
+| B | C_record6000 | 0 | wrote record step 6000 (t 50400.000751018524, 11636862 events, 1dbf3631d9c35bf6) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | cab8515b36a13410 |
+| B | R1_hold60000 | 0 | wrote hold step 60000 (t 24000.000357627869, 5529857 events, 1e2856f3020610d4) | (stopped) | | | | | |
+| B | R1_record6000 | 0 | wrote record step 6000 (t 50400.000751018524, 11636862 events, 1dbf3631d9c35bf6) | (stopped) | | | | | |
+| B | R2_hold60000 | 0 | read hold step 60000 (t 24000.000357627869, 5529857 events, 1e2856f3020610d4) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | cab8515b36a13410 |
+| B | R2_record6000 | 0 | read record step 6000 (t 50400.000751018524, 11636862 events, 1dbf3631d9c35bf6) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | cab8515b36a13410 |
+| C | U | 0 | - | (reference) | | |  | (reference) | 20591700936853a9 |
+| C | C_hold15000 | 0 | wrote hold step 15000 (t 6000.0000894069672, 5102193 events, c9d70a8c10834afc) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 20591700936853a9 |
+| C | C_record3000 | 0 | wrote record step 3000 (t 13200.000196695328, 11223097 events, 8f2824b18bb87644) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 20591700936853a9 |
+| C | R1_hold15000 | 0 | wrote hold step 15000 (t 6000.0000894069672, 5102193 events, c9d70a8c10834afc) | (stopped) | | | | | |
+| C | R1_record3000 | 0 | wrote record step 3000 (t 13200.000196695328, 11223097 events, 8f2824b18bb87644) | (stopped) | | | | | |
+| C | R2_hold15000 | 0 | read hold step 15000 (t 6000.0000894069672, 5102193 events, c9d70a8c10834afc) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 20591700936853a9 |
+| C | R2_record3000 | 0 | read record step 3000 (t 13200.000196695328, 11223097 events, 8f2824b18bb87644) | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | IDENTICAL | 20591700936853a9 |
+
+H3: every restarted run (R2, R3; 9) byte-identical to U in the trace, psi6(t), the psi6 summary, run_params.json, the run record and the event hash: YES; every run that wrote a checkpoint and went on (C; 8): YES
+
+## 6. H4: the refusals (each must stop with exit 2 and say why)
+
+| case | exit | message |
+|---|---|---|
+| another seed | 2 | STOP (--engine=gen3): restart: the checkpoint belongs to another trajectory (L0, mass, run, seed, N, steps, strides or cadences differ) |
+| another mass | 2 | STOP (--engine=gen3): restart: the checkpoint belongs to another trajectory (L0, mass, run, seed, N, steps, strides or cadences differ) |
+| another initial state (jitter 0.2) | 2 | STOP (--engine=gen3): restart: the run's initial state is not the checkpoint's (another command or seed) |
+| not a checkpoint (a trace) | 2 | STOP (--engine=gen3): restart: not a gen3 run checkpoint (v1) |
+| another build (the build field changed) | 2 | STOP (--engine=gen3): restart: the checkpoint was written by another build |
+| a truncated checkpoint | 2 | STOP (--engine=gen3): edmd_gen3: checkpoint truncated (disks, cells or heap) |
+| --gen3-restart under gen2 | 2 | STOP: --gen3-checkpoint, --gen3-checkpoint-stop and --gen3-restart need --engine=gen3 |
+| two trajectories in one process | 2 | STOP (--engine=gen3): --gen3-checkpoint and --gen3-restart take one trajectory per process (one length, one mass, --repeats=1) |
+| a checkpoint step never reached (hold:30000 of 30000) | 2 | STOP (--engine=gen3): the checkpoint step was never reached (hold:K needs 1 <= K < the hold steps, record:K needs K < the record steps) |
+| --gen3-checkpoint-stop alone | 2 | STOP (--engine=gen3): --gen3-checkpoint-stop needs --gen3-checkpoint |
+
+H4: every case refused with exit 2 and a reason
+
+ACCEPTANCE (stage H): PASS -- restarted runs byte-identical to the uninterrupted ones (traces, psi6(t), event hash); writing a checkpoint does not steer; the engine test passes in both builds; rule 4 identical; the M1 and M2 harness outputs unchanged; refusals refuse
+\`\`\`
+
+**Commits:** engine-gen3 `9a5b132` (the fix and `ckpt_bytes_table.py`, before the run), `9cd44aa` (the evidence).
+
