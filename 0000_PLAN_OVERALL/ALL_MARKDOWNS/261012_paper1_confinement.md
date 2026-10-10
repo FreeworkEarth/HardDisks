@@ -10417,7 +10417,7 @@ gate 2: A1 v2's nine-mass c_s, c_s_err and c_s_err_scaled equal the canonical ta
 
 **Printed by `python3 experiments_gen3_h3b_261009/ckpt_bytes_table.py --out experiments_gen3_h3b_261009/evidence_9a5b132 --stageH experiments_gen3_h_261009/evidence_ab80304` (engine-gen3 worktree; verbatim):**
 
-\`\`\`
+```
 # Decision 12, part 3b: checkpoint files of the same state, byte for byte (261012 sec. 4.7.25), printed by experiments_gen3_h3b_261009/ckpt_bytes_table.py
 
 ## 1. Pairs of checkpoints of the same state, written by different processes
@@ -10444,11 +10444,11 @@ pairs byte-identical: 9 of 9
 | ld | 4a1e008080662947 | 4a1e008080662947 | IDENTICAL |
 
 ACCEPTANCE (part 3b, first item): PASS -- two checkpoint files of the same state are byte-identical (9 of 9 pairs); the engine test's output unchanged in 2 of 2 builds
-\`\`\`
+```
 
 **Printed by `python3 experiments_gen3_h_261009/stageH_tables.py --bin-dir experiments_gen3_h3b_261009/bin_3b --record experiments_gen3_h3b_261009/build_record_9a5b132.txt --out experiments_gen3_h3b_261009/evidence_9a5b132` (unchanged script; verbatim):**
 
-\`\`\`
+```
 # Stage H (checkpoint and restart) evidence tables, printed by experiments_gen3_h_261009/stageH_tables.py
 
 ## 1. The frozen binaries
@@ -10536,7 +10536,7 @@ H3: every restarted run (R2, R3; 9) byte-identical to U in the trace, psi6(t), t
 H4: every case refused with exit 2 and a reason
 
 ACCEPTANCE (stage H): PASS -- restarted runs byte-identical to the uninterrupted ones (traces, psi6(t), event hash); writing a checkpoint does not steer; the engine test passes in both builds; rule 4 identical; the M1 and M2 harness outputs unchanged; refusals refuse
-\`\`\`
+```
 
 **Commits:** engine-gen3 `9a5b132` (the fix and `ckpt_bytes_table.py`, before the run), `9cd44aa` (the evidence).
 
