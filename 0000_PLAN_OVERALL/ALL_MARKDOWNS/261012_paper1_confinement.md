@@ -13275,3 +13275,346 @@ After that I have what I need to write the pre-registration.
 ACCEPTANCE item 1: PASS
 ACCEPTANCE item 2: PASS
 ```
+
+### 4.7.43 Decision 18, item 3: pilot P6, the turned-lattice start — A PILOT, no paper use; with the 0° start at N = 1600 as an addition (2026-10-10 13:27 HST, machine date) [DATA, printed by script; POST HOC and INFERENCE where marked] — PROVISIONAL
+
+**Plain summary.**
+- **30 runs, all clean** (exit 0, one record clean=1, build `f72d764`).
+  - 18 runs are the ordered turned start, in the three cells.
+  - 12 runs are the addition: the 0° start at N = 1600, η 0.74 and 0.78.
+  - At most 8 ran at once, 11:57–13:25 HST. The scripts were registered in `36f2b9b`, before the runs, and not edited.
+  - All three cells are feasible for the turned family.
+- **Q1: is the compressed start's state the turned crystal?** (mean Z_c in the last quarter; SE over compartments)
+  - **N = 1600: yes, for its lower Z group.** The turned start's compartments have the Z of the compressed starts' lower group:
+    - η 0.74: 11.9867 (0.0022) against 11.9842 (0.0034), +0.6 SE;
+    - η 0.78: 16.8328 (0.0072) against 16.8327 (0.0047), +0.01 SE.
+  - **The higher group lies 0.108 (η 0.74) and 0.241 (η 0.78) above**, at 35 and 27 SE. Its compartments are at ±30° too (snapshots of seeds 0 and 1).
+    - In each of the 5 runs with one compartment in each group, the higher-Z compartment has the lower |Ψ|: at η 0.74, 0.65–0.66 against 0.69–0.77; at η 0.78, 0.77 against 0.87–0.88.
+    - Across all compartments the groups' |Ψ| separate at η 0.78 (0.76–0.80 against 0.87–0.88) but overlap at η 0.74 (0.65–0.73 against 0.69–0.77).
+  - **N = 400:** the turned start is at 13.3212 (0.0158) against the compressed starts' 13.4832 (0.0399): −0.162, −3.8 SE.
+    - The turned start's compartments lie at 13.29–13.45; the compressed starts' at 13.29–13.83, with 7 of 24 at 13.58–13.83.
+- **Q2: which orientation has the lower Z? The turned one, in every cell where a 0° value exists:**
+  - **N = 400, η 0.74:** the 0° crystal is P4a's start A in its first quarter, when every compartment is still at 0°. 14.3155 (0.0021) against the turned 13.3212 (0.0158): +0.994, 62 SE.
+  - **N = 1600, η 0.78:** the 0° start (the addition) holds 0° throughout, within 0.7°. 18.3379 (0.0817) against the turned 16.8328 (0.0072): +1.505, 18 SE.
+  - **N = 1600, η 0.74: the 0° start does not hold 0°.** Every one of its 12 compartments turned to ±30° between 177 and 2,227 σ-time (POST HOC, `p6_orientation_posthoc.py`).
+    - In the last quarter its compartments average 12.0624 (0.0152), 8 of 12 of them in the higher group. So there is no 0° value to compare there.
+  - The turned starts keep ±30° in every compartment throughout.
+- **[INFERENCE]**
+  - In all three cells the turned orientation is the lower-pressure state. At N = 1600, η 0.74, the 0° crystal does not even last 2,300 σ-time.
+  - At N = 1600 the compressed start is a turned crystal in every compartment. Its lower Z group is the turned lattice's state; its higher group is a turned crystal with lower order, a kind of defect not identified here. A 0° start that turns over ends there too, mostly.
+  - Because the present M4 family is the turned crystal at N = 1600, η 0.74 and 0.78 (§ 4.7.42), P4's and P5's lattice-vs-compressed comparison there was between the clean turned crystal and partly defected turned crystals, not between two orientations.
+
+**Decisions.**
+1. **Seeds:** run_seed(20261228, l, k, r), with l = 0 for the turned start and 1 for the 0° addition. 30 distinct seeds, none among 168,604 earlier seeds.
+2. **The 0° addition** (labelled in every table). At N = 1600 the present family is already turned, so without an explicit 0° start question 2 has no 0° side there.
+3. **N = 400's 0° comparison:** P4a's start A in its first quarter [0, 5000), when every compartment was still at 0° (the snapshots of seeds 0 and 1 read 0°; P4a's global ψ6 first stayed below 0.8 at 5,898 σ-time), and also in the same window as P6's last quarter.
+4. **The orientation of P4's and P5's runs** comes from their snapshots (seeds 0 and 1) read with `--gen3-psi6-snapshots` of `f72d764`. The other seeds are given by Z only.
+5. **The SE is taken over compartments.** The divider is held, so the two compartments of a run are independent samples.
+6. **POST HOC:** `p6_orientation_posthoc.py` (the orientation of every compartment through the hold, and when it left 0°) was written after the runs, from their own ψ6(t) columns.
+7. **Timing (information).**
+   - The η 0.78 runs took 2,423–2,555 s, about twice as long as P4's. From 11:47 to about 13:00 another Claude Code session's `pytest tests/llm` (project hi-rates-model) had the local Ollama model `qwen3.8:27b` loaded with a 262,144-token context, holding about 35 GB, and the Mac swapped.
+   - The later runs were faster: the η 0.74 0° runs took 922–932 s, and the N = 400 runs 191–225 s.
+
+**Commits:**
+- engine-gen3 `36f2b9b`: the scripts, before the runs;
+- engine-gen3 `c540b74`: the evidence, the tables, and the post-hoc script and its output.
+
+**The tables, verbatim** (`experiments_gen3_p6_261010/p6_tables_output.txt`):
+
+```
+# Pilot P6, the turned-lattice start (261012 sec. 4.7.43; decision 18, item 3), printed by experiments_gen3_p6_261010/p6_tables.py -- A PILOT, no paper use, no verdict; the questions are answered with the numbers only
+
+Q4 = [1.5e4, 2e4) sigma-time of the hold (virial blocks 300-399); per compartment Z_c, |Psi_c| and the orientation (0: close-packed lines along x; +-30: along y, turned); |Psi| and orientation from P6's psi6(t) columns, for P4/P5 from their snapshots (seeds 0, 1 only)
+
+## Inventory (P6)
+
+| cell | start | runs | clean | infeasible | findings |
+|---|---|---|---|---|---|
+| N400_eta0.740 | turned | 6 | 6 | 0 | - |
+| N1600_eta0.740 | turned | 6 | 6 | 0 | - |
+| N1600_eta0.740 | zero (ADDITION) | 6 | 6 | 0 | - |
+| N1600_eta0.780 | turned | 6 | 6 | 0 | - |
+| N1600_eta0.780 | zero (ADDITION) | 6 | 6 | 0 | - |
+
+## N400_eta0.740
+
+### Per seed (Q4; for 'P4a A, first quarter' the window [0, 5000))
+
+| start | seed | Z_0 | Z_1 | abs(Psi_0) | orientation_0 [deg] | abs(Psi_1) | orientation_1 [deg] |
+|---|---|---|---|---|---|---|---|
+| P6 turned (ordered) | 0 | 13.3013 | 13.3638 | 0.7504 | +30.00 | 0.7331 | -29.86 |
+| P6 turned (ordered) | 1 | 13.2979 | 13.2923 | 0.7473 | -29.87 | 0.7584 | -29.88 |
+| P6 turned (ordered) | 2 | 13.2870 | 13.2929 | 0.7615 | -29.87 | 0.7548 | -29.84 |
+| P6 turned (ordered) | 3 | 13.4471 | 13.2953 | 0.7006 | -29.92 | 0.7418 | -29.97 |
+| P6 turned (ordered) | 4 | 13.2885 | 13.2915 | 0.7565 | -29.92 | 0.7494 | -29.99 |
+| P6 turned (ordered) | 5 | 13.4095 | 13.2879 | 0.7157 | -29.94 | 0.7517 | +29.99 |
+| P4 A, the present family (0 deg) | 0 | 14.3126 | 14.3103 | 0.8577 | +0.02 | 0.8634 | +0.18 |
+| P4 A, the present family (0 deg) | 1 | 14.3203 | 14.3378 | 0.8290 | -0.05 | 0.8727 | +0.07 |
+| P4 A, the present family (0 deg) | 2 | 14.3191 | 13.2962 | - | - | - | - |
+| P4 A, the present family (0 deg) | 3 | 14.3138 | 14.3081 | - | - | - | - |
+| P4 A, the present family (0 deg) | 4 | 14.3288 | 14.3292 | - | - | - | - |
+| P4 A, the present family (0 deg) | 5 | 14.3366 | 14.3190 | - | - | - | - |
+| P4a A, first quarter [0, 5000) (all at 0 deg) | 0 | 14.3223 | 14.3312 | 0.9067 | -0.03 | 0.9101 | +0.03 |
+| P4a A, first quarter [0, 5000) (all at 0 deg) | 1 | 14.3090 | 14.3195 | 0.9000 | -0.02 | 0.9037 | +0.03 |
+| P4a A, first quarter [0, 5000) (all at 0 deg) | 2 | 14.3130 | 14.3071 | - | - | - | - |
+| P4a A, first quarter [0, 5000) (all at 0 deg) | 3 | 14.3218 | 14.3131 | - | - | - | - |
+| P4a A, first quarter [0, 5000) (all at 0 deg) | 4 | 14.3134 | 14.3118 | - | - | - | - |
+| P4a A, first quarter [0, 5000) (all at 0 deg) | 5 | 14.3164 | 14.3075 | - | - | - | - |
+| P4 B, compressed u = 0.01 | 0 | 13.8274 | 13.3976 | 0.6853 | +29.86 | 0.7223 | +29.77 |
+| P4 B, compressed u = 0.01 | 1 | 13.5801 | 13.2930 | 0.7640 | -29.76 | 0.7464 | -29.81 |
+| P4 B, compressed u = 0.01 | 2 | 13.3942 | 13.3856 | - | - | - | - |
+| P4 B, compressed u = 0.01 | 3 | 13.8241 | 13.4597 | - | - | - | - |
+| P4 B, compressed u = 0.01 | 4 | 13.2909 | 13.8266 | - | - | - | - |
+| P4 B, compressed u = 0.01 | 5 | 13.3913 | 13.2889 | - | - | - | - |
+| P5 B, compressed u = 0.001 | 0 | 13.5923 | 13.8288 | 0.7006 | -29.66 | 0.7369 | +29.72 |
+| P5 B, compressed u = 0.001 | 1 | 13.3828 | 13.3856 | 0.7443 | -30.00 | 0.7204 | +29.85 |
+| P5 B, compressed u = 0.001 | 2 | 13.3828 | 13.3003 | - | - | - | - |
+| P5 B, compressed u = 0.001 | 3 | 13.4590 | 13.8183 | - | - | - | - |
+| P5 B, compressed u = 0.001 | 4 | 13.3594 | 13.4532 | - | - | - | - |
+| P5 B, compressed u = 0.001 | 5 | 13.2869 | 13.3884 | - | - | - | - |
+
+### Per start: mean (SE) over the compartments; orientations where known
+
+| start | compartments | mean Z_c (SE) | smallest / largest Z_c | mean abs(Psi_c) | orientations known [deg] |
+|---|---|---|---|---|---|
+| P6 turned (ordered) | 12 | 13.3212 (0.0158) | 13.2870 / 13.4471 | 0.7434 | +30.0 -29.9 -29.9 -29.9 -29.9 -29.8 -29.9 -30.0 -29.9 -30.0 -29.9 +30.0 |
+| P4 A, the present family (0 deg) | 12 | 14.2360 (0.0855) | 13.2962 / 14.3378 | 0.8557 | +0.0 +0.2 -0.1 +0.1 |
+| P4a A, first quarter [0, 5000) (all at 0 deg) | 12 | 14.3155 (0.0021) | 14.3071 / 14.3312 | 0.9051 | -0.0 +0.0 -0.0 +0.0 |
+| P4 B, compressed u = 0.01 | 12 | 13.4966 (0.0618) | 13.2889 / 13.8274 | 0.7295 | +29.9 +29.8 -29.8 -29.8 |
+| P5 B, compressed u = 0.001 | 12 | 13.4698 (0.0529) | 13.2869 / 13.8288 | 0.7256 | -29.7 +29.7 -30.0 +29.9 |
+
+## N1600_eta0.740
+
+### Per seed (Q4; for 'P4a A, first quarter' the window [0, 5000))
+
+| start | seed | Z_0 | Z_1 | abs(Psi_0) | orientation_0 [deg] | abs(Psi_1) | orientation_1 [deg] |
+|---|---|---|---|---|---|---|---|
+| P6 turned (ordered) | 0 | 11.9849 | 11.9800 | 0.7510 | -30.00 | 0.7535 | -30.00 |
+| P6 turned (ordered) | 1 | 11.9954 | 11.9913 | 0.7424 | -29.97 | 0.7481 | +29.99 |
+| P6 turned (ordered) | 2 | 11.9939 | 11.9919 | 0.7464 | -29.99 | 0.7466 | -29.98 |
+| P6 turned (ordered) | 3 | 11.9681 | 11.9909 | 0.7594 | +30.00 | 0.7473 | +29.96 |
+| P6 turned (ordered) | 4 | 11.9924 | 11.9847 | 0.7480 | -29.98 | 0.7510 | -29.94 |
+| P6 turned (ordered) | 5 | 11.9848 | 11.9824 | 0.7542 | -30.00 | 0.7555 | +29.98 |
+| P6 0-deg (ADDITION) | 0 | 12.0016 | 12.0337 | 0.7484 | +29.98 | 0.7285 | -29.96 |
+| P6 0-deg (ADDITION) | 1 | 12.1123 | 12.0986 | 0.6834 | -29.75 | 0.6859 | +29.74 |
+| P6 0-deg (ADDITION) | 2 | 12.0842 | 12.0985 | 0.6968 | +29.85 | 0.6879 | -29.80 |
+| P6 0-deg (ADDITION) | 3 | 12.0751 | 11.9694 | 0.7022 | +29.82 | 0.7513 | +29.98 |
+| P6 0-deg (ADDITION) | 4 | 12.1054 | 11.9768 | 0.6956 | +29.85 | 0.7485 | -29.94 |
+| P6 0-deg (ADDITION) | 5 | 12.0965 | 12.0962 | 0.6920 | -29.70 | 0.6895 | +29.75 |
+| P4 A, the present family (turned) | 0 | 11.9790 | 11.9777 | 0.8000 | -29.91 | 0.7605 | +29.96 |
+| P4 A, the present family (turned) | 1 | 11.9677 | 11.9937 | 0.7614 | +29.92 | 0.7511 | +29.89 |
+| P4 A, the present family (turned) | 2 | 11.9820 | 11.9853 | - | - | - | - |
+| P4 A, the present family (turned) | 3 | 11.9782 | 11.9920 | - | - | - | - |
+| P4 A, the present family (turned) | 4 | 12.0747 | 11.9768 | - | - | - | - |
+| P4 A, the present family (turned) | 5 | 12.0094 | 11.9930 | - | - | - | - |
+| P4 B, compressed u = 0.01 | 0 | 12.1013 | 11.9790 | 0.6581 | +29.51 | 0.7740 | +29.77 |
+| P4 B, compressed u = 0.01 | 1 | 11.9967 | 12.1081 | 0.6888 | -29.84 | 0.6530 | -29.85 |
+| P4 B, compressed u = 0.01 | 2 | 11.9713 | 12.0928 | - | - | - | - |
+| P4 B, compressed u = 0.01 | 3 | 12.1016 | 11.9943 | - | - | - | - |
+| P4 B, compressed u = 0.01 | 4 | 12.1042 | 12.1012 | - | - | - | - |
+| P4 B, compressed u = 0.01 | 5 | 12.0876 | 12.0737 | - | - | - | - |
+| P5 B, compressed u = 0.001 | 0 | 11.9725 | 12.1091 | 0.7279 | +29.96 | 0.6630 | -30.00 |
+| P5 B, compressed u = 0.001 | 1 | 11.9976 | 12.0060 | 0.7612 | +29.74 | 0.7276 | +29.72 |
+| P5 B, compressed u = 0.001 | 2 | 11.9738 | 12.0814 | - | - | - | - |
+| P5 B, compressed u = 0.001 | 3 | 11.9821 | 12.0964 | - | - | - | - |
+| P5 B, compressed u = 0.001 | 4 | 11.9707 | 12.0012 | - | - | - | - |
+| P5 B, compressed u = 0.001 | 5 | 12.0963 | 12.0841 | - | - | - | - |
+| P5 B, compressed u = 0.0001 | 0 | 12.0765 | 12.0981 | 0.7275 | -29.85 | 0.6989 | -29.78 |
+| P5 B, compressed u = 0.0001 | 1 | 12.0983 | 12.0809 | 0.7117 | -29.70 | 0.7116 | +29.73 |
+| P5 B, compressed u = 0.0001 | 2 | 11.9850 | 12.1014 | - | - | - | - |
+| P5 B, compressed u = 0.0001 | 3 | 11.9814 | 12.1070 | - | - | - | - |
+| P5 B, compressed u = 0.0001 | 4 | 12.0896 | 11.9675 | - | - | - | - |
+| P5 B, compressed u = 0.0001 | 5 | 12.1031 | 12.1002 | - | - | - | - |
+
+### Per start: mean (SE) over the compartments; orientations where known
+
+| start | compartments | mean Z_c (SE) | smallest / largest Z_c | mean abs(Psi_c) | orientations known [deg] |
+|---|---|---|---|---|---|
+| P6 turned (ordered) | 12 | 11.9867 (0.0022) | 11.9681 / 11.9954 | 0.7503 | -30.0 -30.0 -30.0 +30.0 -30.0 -30.0 +30.0 +30.0 -30.0 -29.9 -30.0 +30.0 |
+| P6 0-deg (ADDITION) | 12 | 12.0624 (0.0152) | 11.9694 / 12.1123 | 0.7092 | +30.0 -30.0 -29.7 +29.7 +29.9 -29.8 +29.8 +30.0 +29.8 -29.9 -29.7 +29.8 |
+| P4 A, the present family (turned) | 12 | 11.9925 (0.0081) | 11.9677 / 12.0747 | 0.7682 | -29.9 +30.0 +29.9 +29.9 |
+| P4 B, compressed u = 0.01 | 12 | 12.0593 (0.0161) | 11.9713 / 12.1081 | 0.6935 | +29.5 +29.8 -29.8 -29.8 |
+| P5 B, compressed u = 0.001 | 12 | 12.0309 (0.0164) | 11.9707 / 12.1091 | 0.7200 | +30.0 -30.0 +29.7 +29.7 |
+| P5 B, compressed u = 0.0001 | 12 | 12.0657 (0.0155) | 11.9675 / 12.1070 | 0.7124 | -29.8 -29.8 -29.7 +29.7 |
+
+the compressed starts' compartments (all 36): split at their largest gap 0.0678 (cut 12.0399): the lower group 14 at 11.9842 (0.0034), the higher group 22 at 12.0951 (0.0022)
+
+## N1600_eta0.780
+
+### Per seed (Q4; for 'P4a A, first quarter' the window [0, 5000))
+
+| start | seed | Z_0 | Z_1 | abs(Psi_0) | orientation_0 [deg] | abs(Psi_1) | orientation_1 [deg] |
+|---|---|---|---|---|---|---|---|
+| P6 turned (ordered) | 0 | 16.9070 | 16.8319 | 0.8755 | +29.99 | 0.8586 | +29.99 |
+| P6 turned (ordered) | 1 | 16.8243 | 16.8276 | 0.8736 | +29.99 | 0.8612 | +29.98 |
+| P6 turned (ordered) | 2 | 16.8320 | 16.8330 | 0.8695 | -29.99 | 0.8670 | -29.99 |
+| P6 turned (ordered) | 3 | 16.8107 | 16.8097 | 0.8719 | +29.98 | 0.8709 | +29.98 |
+| P6 turned (ordered) | 4 | 16.8205 | 16.8390 | 0.8658 | +30.00 | 0.8646 | +29.99 |
+| P6 turned (ordered) | 5 | 16.8272 | 16.8312 | 0.8707 | -29.99 | 0.8622 | -29.99 |
+| P6 0-deg (ADDITION) | 0 | 18.6569 | 18.2545 | 0.6276 | -0.01 | 0.7508 | +0.03 |
+| P6 0-deg (ADDITION) | 1 | 18.0813 | 18.0721 | 0.7975 | -0.58 | 0.8153 | +0.57 |
+| P6 0-deg (ADDITION) | 2 | 18.6321 | 18.6681 | 0.6152 | +0.01 | 0.6247 | -0.02 |
+| P6 0-deg (ADDITION) | 3 | 17.9508 | 18.6245 | 0.7965 | +0.02 | 0.6746 | +0.13 |
+| P6 0-deg (ADDITION) | 4 | 18.6467 | 18.2395 | 0.6450 | +0.04 | 0.6640 | +0.53 |
+| P6 0-deg (ADDITION) | 5 | 18.0802 | 18.1480 | 0.8212 | -0.49 | 0.7577 | +0.05 |
+| P4 A, the present family (turned) | 0 | 16.8276 | 16.8288 | 0.8915 | -29.96 | 0.8706 | +29.92 |
+| P4 A, the present family (turned) | 1 | 16.8327 | 16.8277 | 0.8843 | +30.00 | 0.8670 | +29.93 |
+| P4 A, the present family (turned) | 2 | 16.8310 | 16.8349 | - | - | - | - |
+| P4 A, the present family (turned) | 3 | 16.8303 | 16.8219 | - | - | - | - |
+| P4 A, the present family (turned) | 4 | 16.8311 | 16.8287 | - | - | - | - |
+| P4 A, the present family (turned) | 5 | 16.8300 | 16.8516 | - | - | - | - |
+| P4 B, compressed u = 0.01 | 0 | 17.0671 | 16.8122 | 0.7770 | +29.90 | 0.8809 | +29.87 |
+| P4 B, compressed u = 0.01 | 1 | 17.0622 | 17.0450 | 0.7783 | +29.82 | 0.8025 | +29.78 |
+| P4 B, compressed u = 0.01 | 2 | 16.8299 | 17.0986 | - | - | - | - |
+| P4 B, compressed u = 0.01 | 3 | 17.0925 | 16.8562 | - | - | - | - |
+| P4 B, compressed u = 0.01 | 4 | 17.0607 | 16.8250 | - | - | - | - |
+| P4 B, compressed u = 0.01 | 5 | 16.8288 | 17.0566 | - | - | - | - |
+| P5 B, compressed u = 0.001 | 0 | 16.8438 | 17.0837 | 0.8681 | +29.97 | 0.7653 | +29.96 |
+| P5 B, compressed u = 0.001 | 1 | 17.0785 | 17.0891 | 0.7602 | -29.89 | 0.7733 | +29.81 |
+| P5 B, compressed u = 0.001 | 2 | 17.0607 | 17.1072 | - | - | - | - |
+| P5 B, compressed u = 0.001 | 3 | 17.0502 | 17.0819 | - | - | - | - |
+| P5 B, compressed u = 0.001 | 4 | 17.1058 | 17.0450 | - | - | - | - |
+| P5 B, compressed u = 0.001 | 5 | 16.8371 | 16.8289 | - | - | - | - |
+
+### Per start: mean (SE) over the compartments; orientations where known
+
+| start | compartments | mean Z_c (SE) | smallest / largest Z_c | mean abs(Psi_c) | orientations known [deg] |
+|---|---|---|---|---|---|
+| P6 turned (ordered) | 12 | 16.8328 (0.0072) | 16.8097 / 16.9070 | 0.8676 | +30.0 +30.0 +30.0 +30.0 -30.0 -30.0 +30.0 +30.0 +30.0 +30.0 -30.0 -30.0 |
+| P6 0-deg (ADDITION) | 12 | 18.3379 (0.0817) | 17.9508 / 18.6681 | 0.7158 | -0.0 +0.0 -0.6 +0.6 +0.0 -0.0 +0.0 +0.1 +0.0 +0.5 -0.5 +0.1 |
+| P4 A, the present family (turned) | 12 | 16.8314 (0.0021) | 16.8219 / 16.8516 | 0.8784 | -30.0 +29.9 +30.0 +29.9 |
+| P4 B, compressed u = 0.01 | 12 | 16.9696 (0.0358) | 16.8122 / 17.0986 | 0.8097 | +29.9 +29.9 +29.8 +29.8 |
+| P5 B, compressed u = 0.001 | 12 | 17.0177 (0.0320) | 16.8289 / 17.1072 | 0.7917 | +30.0 +30.0 -29.9 +29.8 |
+
+the compressed starts' compartments (all 24): split at their largest gap 0.1888 (cut 16.9506): the lower group 8 at 16.8327 (0.0047), the higher group 16 at 17.0740 (0.0052)
+
+## Q1: is the compressed start's state the turned crystal? (the turned start's mean Z_c against the compressed starts')
+
+| cell | turned start: mean Z_c (SE), n | against | compressed: mean Z_c (SE), n | difference turned - compressed (SE) | / SE |
+|---|---|---|---|---|---|
+| N400_eta0.740 | 13.3212 (0.0158), 12 | all compressed compartments | 13.4832 (0.0399), 24 | -0.1620 (0.0429) | -3.78 |
+| N1600_eta0.740 | 11.9867 (0.0022), 12 | all compressed compartments | 12.0520 (0.0093), 36 | -0.0653 (0.0096) | -6.81 |
+| N1600_eta0.740 | 11.9867 (0.0022), 12 | the compressed lower Z group | 11.9842 (0.0034), 14 | +0.0025 (0.0041) | +0.62 |
+| N1600_eta0.740 | 11.9867 (0.0022), 12 | the compressed higher Z group | 12.0951 (0.0022), 22 | -0.1084 (0.0031) | -34.64 |
+| N1600_eta0.780 | 16.8328 (0.0072), 12 | all compressed compartments | 16.9936 (0.0240), 24 | -0.1608 (0.0251) | -6.41 |
+| N1600_eta0.780 | 16.8328 (0.0072), 12 | the compressed lower Z group | 16.8327 (0.0047), 8 | +0.0001 (0.0086) | +0.01 |
+| N1600_eta0.780 | 16.8328 (0.0072), 12 | the compressed higher Z group | 17.0740 (0.0052), 16 | -0.2412 (0.0089) | -27.10 |
+
+the compressed compartments' orientations from their snapshots (seeds 0 and 1 of each compressed start, Q4) are in the per-start tables above
+
+## Q2: which orientation has the lower Z? (the 0-deg start's mean Z_c against the turned start's)
+
+| cell | 0 deg: which start | mean Z_c (SE), n | turned: P6's turned start, mean Z_c (SE), n | difference 0 - turned (SE) | / SE | lower |
+|---|---|---|---|---|---|---|
+| N400_eta0.740 | P4a A, first quarter [0, 5000) (all at 0 deg) | 14.3155 (0.0021), 12 | 13.3212 (0.0158), 12 | +0.9942 (0.0159) | +62.42 | turned |
+| N400_eta0.740 | P4 A, the present family (0 deg) | 14.2360 (0.0855), 12 | 13.3212 (0.0158), 12 | +0.9147 (0.0869) | +10.52 | turned |
+| N1600_eta0.740 | P6 0-deg (ADDITION) | 12.0624 (0.0152), 12 | 11.9867 (0.0022), 12 | +0.0756 (0.0153) | +4.93 | turned |
+| N1600_eta0.780 | P6 0-deg (ADDITION) | 18.3379 (0.0817), 12 | 16.8328 (0.0072), 12 | +1.5051 (0.0820) | +18.36 | turned |
+
+(PILOT: no verdict, no paper use; the questions are answered with the numbers above.)
+```
+
+**POST HOC, verbatim** (`experiments_gen3_p6_261010/p6_orientation_posthoc_output.txt`):
+
+```
+# P6, POST HOC: the orientation of every compartment through the hold -- printed by experiments_gen3_p6_261010/p6_orientation_posthoc.py (written after the runs; information, no verdict)
+
+leaves 0 deg = the earliest t0 with |orientation| > 15 deg in every psi6(t) row of [t0, t0 + 199] sigma-time; 'from the start' for a compartment already beyond 15 deg at t = 0; Z = Q4 (blocks 300-399)
+
+## N400_eta0.740 turned
+
+| seed | compartment | orientation at t = 0 / 1e3 / 5e3 / 2e4 [deg] | leaves 0 deg at [sigma-time] | Z (Q4) |
+|---|---|---|---|---|
+| 0 | 0 | -30.0 / -28.9 / -29.7 / +29.1 | from the start | 13.3013 |
+| 0 | 1 | -30.0 / +29.5 / +29.1 / +29.7 | from the start | 13.3638 |
+| 1 | 0 | -30.0 / -29.7 / -29.5 / +29.9 | from the start | 13.2979 |
+| 1 | 1 | +30.0 / -29.1 / +29.6 / -29.0 | from the start | 13.2923 |
+| 2 | 0 | +30.0 / -28.9 / -29.0 / +29.3 | from the start | 13.2870 |
+| 2 | 1 | -30.0 / +29.2 / -29.9 / +29.7 | from the start | 13.2929 |
+| 3 | 0 | -30.0 / -29.2 / +29.7 / +29.9 | from the start | 13.4471 |
+| 3 | 1 | -30.0 / +29.5 / -29.4 / +29.0 | from the start | 13.2953 |
+| 4 | 0 | -30.0 / -29.2 / +29.4 / -29.6 | from the start | 13.2885 |
+| 4 | 1 | -30.0 / -29.9 / +29.1 / -29.9 | from the start | 13.2915 |
+| 5 | 0 | -30.0 / +29.6 / +29.8 / -29.9 | from the start | 13.4095 |
+| 5 | 1 | +30.0 / +29.8 / -28.6 / +29.8 | from the start | 13.2879 |
+
+compartments that started near 0 deg and turned: 0 of 12
+
+## N1600_eta0.740 turned
+
+| seed | compartment | orientation at t = 0 / 1e3 / 5e3 / 2e4 [deg] | leaves 0 deg at [sigma-time] | Z (Q4) |
+|---|---|---|---|---|
+| 0 | 0 | +30.0 / -29.6 / -30.0 / -29.9 | from the start | 11.9849 |
+| 0 | 1 | +30.0 / +29.8 / +29.8 / +30.0 | from the start | 11.9800 |
+| 1 | 0 | -30.0 / -29.6 / +29.9 / -29.8 | from the start | 11.9954 |
+| 1 | 1 | +30.0 / -30.0 / -29.9 / -29.5 | from the start | 11.9913 |
+| 2 | 0 | +30.0 / -29.9 / -30.0 / -29.9 | from the start | 11.9939 |
+| 2 | 1 | -30.0 / +29.8 / -29.6 / +29.5 | from the start | 11.9919 |
+| 3 | 0 | +30.0 / +30.0 / +29.8 / -29.9 | from the start | 11.9681 |
+| 3 | 1 | +30.0 / +29.9 / -29.9 / +29.9 | from the start | 11.9909 |
+| 4 | 0 | -30.0 / +29.9 / -30.0 / -29.9 | from the start | 11.9924 |
+| 4 | 1 | +30.0 / +29.9 / -29.6 / -29.3 | from the start | 11.9847 |
+| 5 | 0 | -30.0 / -29.8 / +29.4 / +29.9 | from the start | 11.9848 |
+| 5 | 1 | -30.0 / -29.9 / +29.5 / +29.9 | from the start | 11.9824 |
+
+compartments that started near 0 deg and turned: 0 of 12
+
+## N1600_eta0.740 zero (ADDITION)
+
+| seed | compartment | orientation at t = 0 / 1e3 / 5e3 / 2e4 [deg] | leaves 0 deg at [sigma-time] | Z (Q4) |
+|---|---|---|---|---|
+| 0 | 0 | +0.0 / +29.6 / -30.0 / -29.7 | 213 | 12.0016 |
+| 0 | 1 | +0.0 / +29.8 / -29.3 / +29.6 | 177 | 12.0337 |
+| 1 | 0 | -0.0 / -29.9 / -29.9 / -29.8 | 221 | 12.1123 |
+| 1 | 1 | +0.0 / +29.4 / -29.7 / +29.5 | 938 | 12.0986 |
+| 2 | 0 | +0.0 / +1.5 / +29.7 / +29.6 | 1570 | 12.0842 |
+| 2 | 1 | +0.0 / -29.6 / -29.6 / -29.7 | 833 | 12.0985 |
+| 3 | 0 | -0.0 / +0.7 / +29.7 / -29.9 | 1197 | 12.0751 |
+| 3 | 1 | +0.0 / -1.8 / -29.9 / +29.8 | 2227 | 11.9694 |
+| 4 | 0 | +0.0 / -0.7 / +29.5 / +29.4 | 1504 | 12.1054 |
+| 4 | 1 | -0.0 / +29.8 / -29.9 / +29.9 | 489 | 11.9768 |
+| 5 | 0 | -0.0 / +29.9 / -29.8 / -29.8 | 711 | 12.0965 |
+| 5 | 1 | +0.0 / -29.9 / +29.4 / +30.0 | 207 | 12.0962 |
+
+compartments that started near 0 deg and turned: 12 of 12
+
+## N1600_eta0.780 turned
+
+| seed | compartment | orientation at t = 0 / 1e3 / 5e3 / 2e4 [deg] | leaves 0 deg at [sigma-time] | Z (Q4) |
+|---|---|---|---|---|
+| 0 | 0 | -30.0 / +29.9 / +29.9 / +30.0 | from the start | 16.9070 |
+| 0 | 1 | +30.0 / -29.8 / +29.9 / +29.8 | from the start | 16.8319 |
+| 1 | 0 | +30.0 / -30.0 / +29.8 / -30.0 | from the start | 16.8243 |
+| 1 | 1 | +30.0 / +29.9 / -29.8 / +30.0 | from the start | 16.8276 |
+| 2 | 0 | +30.0 / +30.0 / -29.9 / -29.9 | from the start | 16.8320 |
+| 2 | 1 | -30.0 / -30.0 / +29.9 / +29.8 | from the start | 16.8330 |
+| 3 | 0 | +30.0 / +30.0 / -29.9 / +29.8 | from the start | 16.8107 |
+| 3 | 1 | -30.0 / -29.9 / +29.8 / +29.9 | from the start | 16.8097 |
+| 4 | 0 | -30.0 / +29.9 / +29.9 / +30.0 | from the start | 16.8205 |
+| 4 | 1 | -30.0 / -29.8 / -29.9 / -30.0 | from the start | 16.8390 |
+| 5 | 0 | -30.0 / -29.9 / +29.9 / +30.0 | from the start | 16.8272 |
+| 5 | 1 | -30.0 / +29.8 / +29.8 / -30.0 | from the start | 16.8312 |
+
+compartments that started near 0 deg and turned: 0 of 12
+
+## N1600_eta0.780 zero (ADDITION)
+
+| seed | compartment | orientation at t = 0 / 1e3 / 5e3 / 2e4 [deg] | leaves 0 deg at [sigma-time] | Z (Q4) |
+|---|---|---|---|---|
+| 0 | 0 | +0.0 / -0.2 / -0.2 / -0.3 | never | 18.6569 |
+| 0 | 1 | +0.0 / +0.1 / -0.0 / +0.2 | never | 18.2545 |
+| 1 | 0 | -0.0 / -0.7 / -0.4 / -0.5 | never | 18.0813 |
+| 1 | 1 | -0.0 / +0.7 / +0.5 / +0.7 | never | 18.0721 |
+| 2 | 0 | +0.0 / -0.0 / -0.2 / -0.2 | never | 18.6321 |
+| 2 | 1 | +0.0 / -0.0 / +0.3 / -0.1 | never | 18.6681 |
+| 3 | 0 | +0.0 / +0.3 / +0.1 / +0.2 | never | 17.9508 |
+| 3 | 1 | +0.0 / +0.0 / -0.0 / +0.1 | never | 18.6245 |
+| 4 | 0 | +0.0 / -0.1 / -0.1 / -0.0 | never | 18.6467 |
+| 4 | 1 | -0.0 / -0.3 / +0.1 / +0.5 | never | 18.2395 |
+| 5 | 0 | +0.0 / -0.6 / -0.3 / -0.5 | never | 18.0802 |
+| 5 | 1 | -0.0 / +0.3 / -0.0 / +0.2 | never | 18.1480 |
+
+compartments that started near 0 deg and turned: 0 of 12
+
+(POST HOC, information only; no verdict.)
+```
