@@ -1297,6 +1297,12 @@ static uint64_t g3_init_hash = 0;              /* FNV-1a of the state gen3 was b
 static double cli_gen3_virial_blocks = 0.0;   /* --gen3-virial-blocks=T: the pair virial per compartment in blocks of T sigma-time (0: off) */
 static double cli_gen3_snapshots = 0.0;       /* --gen3-snapshots=T: every disk's position every T sigma-time (0: off); the runner passes it
                                                  for its seed subset */
+/* ##CHRIS 2026-10-09 (plan-author decision 13, item 4; 261012 sec. 4.7.30): M4b, the compressed-fluid start (--gen3-seeding=compressed,
+   g3_m4b_init_driver); the three parameters are refused without it */
+static double cli_gen3_m4b_eta0 = 0.60;        /* --gen3-compress-eta0=x: the lattice's packing fraction in the long box */
+static double cli_gen3_m4b_melt = 500.0;       /* --gen3-compress-melt=T: the held time before the pistons move [sigma-time] */
+static double cli_gen3_m4b_u = 0.01;           /* --gen3-compress-speed=u: the pistons' inward speed [sigma per sigma-time] */
+static int    cli_gen3_m4b_set = 0;            /* one of the three was given */
 
 static void g3_stop(const char* what){
     fflush(stdout);
@@ -4879,8 +4885,19 @@ static void parse_cli_options(int argc, char **argv) {
         } else if (strncmp(arg, "--gen3-seeding=", strlen("--gen3-seeding=")) == 0) {   /* ##CHRIS 2026-10-09 (stage C, M4) */
             const char* v = arg + strlen("--gen3-seeding=");
             if (strcmp(v, "lattice") == 0) cli_gen3_seeding = 1;
+            else if (strcmp(v, "compressed") == 0) cli_gen3_seeding = 2;   /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b */
             else if (strcmp(v, "driver") == 0) cli_gen3_seeding = 0;
-            else { fprintf(stderr, "Invalid '%s' (lattice | driver).\n", arg); exit(EXIT_FAILURE); }
+            else { fprintf(stderr, "Invalid '%s' (lattice | compressed | driver).\n", arg); exit(EXIT_FAILURE); }
+        } else if (strncmp(arg, "--gen3-compress-eta0=", strlen("--gen3-compress-eta0=")) == 0
+                   || strncmp(arg, "--gen3-compress-melt=", strlen("--gen3-compress-melt=")) == 0
+                   || strncmp(arg, "--gen3-compress-speed=", strlen("--gen3-compress-speed=")) == 0) {   /* ##CHRIS 2026-10-09 (decision 13, item 4) */
+            char *endptr = NULL; const double v = strtod(strchr(arg, '=') + 1, &endptr);
+            const int which = arg[16] == 'e' ? 0 : (arg[16] == 'm' ? 1 : 2);   /* "--gen3-compress-" is 16 characters */
+            const int ok = endptr && *endptr == '\0' && isfinite(v)
+                           && (which == 0 ? (v > 0.05 && v < 0.85) : (which == 1 ? (v >= 0.0 && v <= 1e7) : (v > 0.0 && v <= 1.0)));
+            if (!ok) { fprintf(stderr, "Invalid '%s' (eta0 in (0.05, 0.85); melt >= 0 sigma-time; speed in (0, 1] sigma per sigma-time).\n", arg); exit(EXIT_FAILURE); }
+            if (which == 0) cli_gen3_m4b_eta0 = v; else if (which == 1) cli_gen3_m4b_melt = v; else cli_gen3_m4b_u = v;
+            cli_gen3_m4b_set = 1;
         } else if (strncmp(arg, "--gen3-lattice=", strlen("--gen3-lattice=")) == 0) {
             const char* v = arg + strlen("--gen3-lattice=");
             if (strcmp(v, "auto") == 0) cli_gen3_orient = -1;
@@ -16237,6 +16254,150 @@ static void g3_m4_init_driver(double L0d, unsigned run_seed){
     if (cli_temperature_segments && cli_temperature_segments_count > 0) apply_segment_temperatures(cli_temperature_segments, cli_temperature_segments_count);
     write_run_params_json();
 }
+/* ##CHRIS 2026-10-09 (plan-author decision 13, item 4; 261012 sec. 4.7.30): M4b, THE COMPRESSED-FLUID START (gen3 only,
+   --gen3-seeding=compressed with --gen3-exact-box): a second, disordered route to the same state, for two-start equilibration checks.
+   PROTOCOL.
+   (1) The M4 lattice (g3_m4_seed: the same family, vacancies, jitter and RNG stream) at eta_0 (--gen3-compress-eta0, default 0.60) in
+       a LONGER BOX: the same H and N, each compartment L0_0 = N pi R^2 / (2 eta_0 H) from its outer face to the divider centre, the
+       divider held at the centre. The pistons (mass 0, faces) are the outer faces; they start 1 sigma inside the long box's walls,
+       which no disk reaches. Velocities: the driver's draw as in M4 (one Maxwell-Boltzmann draw per particle, left compartment first),
+       then each compartment scaled to KE = N_s kT.
+   (2) Held for T_melt (--gen3-compress-melt, default 500 sigma-time); then both pistons move inward at u (--gen3-compress-speed, default
+       0.01 sigma per sigma-time) until each compartment has the target L0 (travel D = L0_0 - L0, so they stop at T_melt + D/u), and stop.
+   (3) The velocities of each compartment are rescaled so that KE = N_s kT exactly (for hard disks this only rescales time).
+   (4) The state is carried into the run's box of the target L0: x -> x - S, S = c_long - c the exact difference of the two divider
+       centres (Sterbenz: c <= c_long <= 2c is required), so the divider sits at the run's centre exactly and the run's outer walls sit
+       where the pistons stopped, to the pistons' rounding (recorded as the achieved L0). The stopped pistons thus stay the outer walls.
+       From here on the run is the speed-of-sound run of an M4 start -- the same box, hold, observers, checkpoint and run record; only
+       the initial positions and velocities differ (the velocities enter the container as doubles).
+   CHECKPOINT/RESTART: a checkpoint is written in the run proper (hold:K, record:K); a restart repeats this deterministic preparation, and
+   the checkpoint's identity check (g3_init_hash of the carried state) proves it is the same state. A checkpoint inside the compression
+   cannot be asked for (the flags name hold and record steps only).
+   THE RUN HEADER [EDMD3-M4B]: eta_0, T_melt, u; the long box; the requested and the achieved L0 per compartment; the piston work per
+   side; KE per compartment at the start, before and after the rescale; the KE gain against the piston work and the ledger's rounding
+   scale; the time at the end of the compression; its events, health and event hash; the carry; the smallest wall and divider gaps after
+   it. A second line, after the container load, gives psi6 of the carried state (the end of the compression). The compression state
+   must be clean and every disk keep its compartment, or the run stops. */
+static void g3_m4b_init_driver(double L0d, unsigned run_seed, double L0f, int mass, int r){
+    const int two = cli_particles_box_counts && cli_particles_box_counts_count == 2;
+    const int N = two ? cli_particles_box_counts[0] + cli_particles_box_counts[1] : (cli_override_particles > 0 ? cli_override_particles : particles_active);
+    const int NL = two ? cli_particles_box_counts[0] : N / 2, NR = N - NL;
+    if (N < 2 || N > NUM_PARTICLES || NL < 1 || NR < 1) g3_stop("M4b: particle count");
+    if (!cli_gen3_exact_box) g3_stop("M4b (--gen3-seeding=compressed) needs --gen3-exact-box");
+    const double pps = (double)PIXELS_PER_SIGMA, R = (double)PARTICLE_RADIUS, th = (double)WALL_THICKNESS, Hpx = (double)(YW2 - YW1);
+    const double ct = L0d * pps, boxWt = 2.0 * ct;                                     /* the run's divider centre and box width [px] */
+    const double eta0 = cli_gen3_m4b_eta0, L00 = (double)N * M_PI * R * R / (2.0 * eta0 * Hpx);   /* the long box's L0 [px] */
+    const double m = pps, cl = m + L00, boxWl = 2.0 * cl, S = cl - ct;               /* the pistons' start, the long box, the carry */
+    if (!(L00 > ct)) g3_stop("M4b: eta_0 must be below the target eta (the long box must be the longer one)");
+    if (!(cl <= 2.0 * ct)) g3_stop("M4b: the long divider centre is more than twice the run's (eta_0 too small for an exact carry)");
+    const double u = cli_gen3_m4b_u, t_melt = cli_gen3_m4b_melt * pps, D = L00 - ct, t_stop = t_melt + D / u;   /* u: px per unit */
+    /* (1) the lattice at eta_0, seeded in [0, 2 L0_0] and shifted by m; the velocities */
+    EDMD_Particle* P = (EDMD_Particle*)calloc((size_t)N, sizeof *P);
+    if (!P) g3_stop("out of memory (M4b)");
+    g3_m4_seed(P, N, NL, 2.0 * L00, Hpx, R, L00, th, run_seed);
+    const double eta_seed = g3_eta_achieved;
+    for (int i = 0; i < N; ++i) P[i].x += m;
+    double ke[2] = {0.0, 0.0};
+    for (int i = 0; i < N; ++i) {
+        float vx, vy; maxwell_boltzmann_2D(temperature_runtime, &vx, &vy);
+        P[i].vx = (double)vx; P[i].vy = (double)vy;
+        ke[i < NL ? 0 : 1] += 0.5 * (double)PARTICLE_MASS * (P[i].vx * P[i].vx + P[i].vy * P[i].vy);
+    }
+    const double target[2] = { (double)(NL * K_B * temperature_runtime), (double)(NR * K_B * temperature_runtime) };
+    const double s0[2] = { sqrt(target[0] / ke[0]), sqrt(target[1] / ke[1]) };
+    double ke0[2] = {0.0, 0.0};
+    for (int i = 0; i < N; ++i) {
+        const int c = i < NL ? 0 : 1; P[i].vx *= s0[c]; P[i].vy *= s0[c];
+        ke0[c] += 0.5 * (double)PARTICLE_MASS * (P[i].vx * P[i].vx + P[i].vy * P[i].vy);
+    }
+    /* (2) the long box: the divider held at its centre, the two pistons (mass 0) at m and boxW_long - m; melt, compress, stop */
+    EDMD_Params pc; memset(&pc, 0, sizeof pc);
+    pc.boxW = boxWl; pc.boxH = Hpx; pc.radius = R; pc.N = N; pc.cell_size = 0.0;
+    pc.divider_count = 1; pc.divider_x[0] = cl; pc.divider_thickness[0] = th; pc.divider_mass[0] = 0.0; pc.divider_vx[0] = 0.0;
+    pc.heatbath_enabled = heatbath_enabled; pc.heatbath_temperature = (double)heatbath_temperature; pc.thermal_wall_mode = thermal_wall_mode;
+    pc.mb_overshoot_factor = (double)mb_overshoot_factor; pc.stability_window_percent = (double)stability_window_percent;
+    pc.particle_mass = (double)PARTICLE_MASS; pc.kB = (double)kB_effective(); pc.pp_collisions_enabled = cli_no_pp_collisions ? 0 : 1;
+    pc.has_pistonL = 1; pc.pistonL_x = m; pc.pistonL_vx = 0.0; pc.pistonL_mass = 0.0;
+    pc.has_pistonR = 1; pc.pistonR_x = boxWl - m; pc.pistonR_vx = 0.0; pc.pistonR_mass = 0.0;
+    char err[256]; const char* msg = NULL;
+    EDMD3* C = edmd3_create(&pc, cli_gen3_cell_px, err, sizeof err);
+    if (!C) g3_stop(err);
+    if (!edmd3_load(C, P, 0.0, err, sizeof err)) g3_stop(err);
+    edmd3_set_contact_audit(C, getenv("HD_CONTACT_AUDIT") != NULL);
+    const double tm0 = g3_mono();
+    edmd3_advance_to(C, t_melt);
+    if (edmd3_fatal(C, &msg)) g3_stop(msg ? msg : "M4b: the engine stopped in the melt");
+    if (!edmd3_set_piston_motion(C, 0, 0.0, u) || !edmd3_set_piston_motion(C, 1, 0.0, -u)) g3_stop("M4b: the engine refused the piston motion");
+    edmd3_advance_to(C, t_stop);
+    if (edmd3_fatal(C, &msg)) g3_stop(msg ? msg : "M4b: the engine stopped in the compression");
+    if (!edmd3_set_piston_motion(C, 0, 0.0, 0.0) || !edmd3_set_piston_motion(C, 1, 0.0, 0.0)) g3_stop("M4b: the engine refused to stop the pistons");
+    double xL, xR, vd; edmd3_piston_state(C, 0, &xL, &vd); edmd3_piston_state(C, 1, &xR, &vd);
+    const double wL = edmd3_work_piston(C, 0), wR = edmd3_work_piston(C, 1);
+    EDMD3_Ledger Lg; edmd3_ledger(C, &Lg);
+    const EDMD3_Health* Hh = edmd3_health(C);
+    const int clean = edmd3_health_clean(C);
+    const unsigned long long hash = (unsigned long long)edmd3_event_hash(C);
+    const long events = Hh->ev_pair + Hh->ev_wall + Hh->ev_cross + Hh->ev_div + Hh->ev_piston + Hh->ev_band;
+    double gaps[4] = {0.0, 0.0, 0.0, 0.0}; const long naud = edmd3_contact_audit_stats4(C, gaps);
+    const EDMD_Particle* Q = edmd3_particles(C);
+    double ke1[2] = {0.0, 0.0};
+    for (int i = 0; i < N; ++i) ke1[i < NL ? 0 : 1] += 0.5 * (double)PARTICLE_MASS * (Q[i].vx * Q[i].vx + Q[i].vy * Q[i].vy);
+    /* (3) the rescale and (4) the carry into the run's box */
+    free(g3_m4_P); g3_m4_P = (EDMD_Particle*)calloc((size_t)N, sizeof *g3_m4_P);
+    if (!g3_m4_P) g3_stop("out of memory (M4b)");
+    const double sc[2] = { sqrt(target[0] / ke1[0]), sqrt(target[1] / ke1[1]) };
+    double ke2[2] = {0.0, 0.0}, gw = INFINITY, gdv = INFINITY; int nl_left = 0, moved = 0;
+    for (int i = 0; i < N; ++i) {
+        const int c = i < NL ? 0 : 1;
+        g3_m4_P[i].x = Q[i].x - S; g3_m4_P[i].y = Q[i].y;
+        g3_m4_P[i].vx = Q[i].vx * sc[c]; g3_m4_P[i].vy = Q[i].vy * sc[c];
+        ke2[c] += 0.5 * (double)PARTICLE_MASS * (g3_m4_P[i].vx * g3_m4_P[i].vx + g3_m4_P[i].vy * g3_m4_P[i].vy);
+        const double x = g3_m4_P[i].x, y = g3_m4_P[i].y;
+        nl_left += x < ct; moved += (x < ct) != (c == 0);
+        gw = fmin(gw, fmin(fmin(x - R, boxWt - R - x), fmin(y - R, Hpx - R - y)));
+        gdv = fmin(gdv, fabs(x - ct) - 0.5 * th - R);
+    }
+    const double tol = 1e-6;   /* px: the validator's wall tolerance (experiment_validation.c; edmd_gen3's tol_wall at R = 12 px) */
+    const double kg = (ke1[0] + ke1[1]) - (ke0[0] + ke0[1]), wp = wL + wR, re = (Lg.E - Lg.E0) - Lg.W;
+    printf("[EDMD3-M4B] L0=%.1f M=%d run=%d seed=%u: eta_0=%.17g (seeded %.17g; target %.17g) T_melt=%.17g sigma-time u=%.17g sigma/sigma-time; "
+           "long box %.17g x %.17g px, divider %.17g px, pistons from %.17g and %.17g px; "
+           "L0 requested %.17g sigma, achieved left %.17g right %.17g sigma (minus requested %.3g, %.3g); pistons stopped at %.17g and %.17g px; "
+           "piston work left %.17g right %.17g; KE left/right at the start %.17g %.17g, before the rescale %.17g %.17g, after %.17g %.17g "
+           "(after/N_s kT - 1: %.3g %.3g); KE gain %.17g minus piston work %.17g = %.3g; ledger E - E0 - W %.3g, scale %.3g, ratio %.3g; "
+           "end of the compression t=%.17g sigma-time (melt %.17g + compression %.17g); events %ld (pair %ld wall %ld cross %ld div %ld "
+           "piston %ld band %ld); clean=%d overlap_repair=%ld wall_overdue=%ld past_event=%ld clamp_repair=%ld cell_repair=%ld grid_escape=%ld "
+           "stagnation=%ld obj_overlap_repair=%ld body_findings=%ld local_findings=%ld full_findings=%ld hash=%016llx; contact audit %ld events, "
+           "max gap [px] pair %.3g wall %.3g divider %.3g piston %.3g; carry S=%.17g px; N_L=%d N_R=%d (moved %d); smallest gap after the carry "
+           "[px]: walls %.3g, divider %.3g; %.1f s\n",
+           L0f, mass, r, run_seed, eta0, eta_seed, (double)N * M_PI * R * R / (boxWt * Hpx), cli_gen3_m4b_melt, u, boxWl, Hpx, cl, m, boxWl - m,
+           L0d, (cl - xL) / pps, (xR - cl) / pps, (cl - xL) / pps - L0d, (xR - cl) / pps - L0d, xL, xR,
+           wL, wR, ke0[0], ke0[1], ke1[0], ke1[1], ke2[0], ke2[1], ke2[0] / target[0] - 1.0, ke2[1] / target[1] - 1.0, kg, wp, kg - wp,
+           re, Lg.scale_E, fabs(re) / Lg.scale_E, t_stop / pps, cli_gen3_m4b_melt, (t_stop - t_melt) / pps, events, Hh->ev_pair, Hh->ev_wall,
+           Hh->ev_cross, Hh->ev_div, Hh->ev_piston, Hh->ev_band, clean, Hh->overlap_repair, Hh->wall_overdue, Hh->past_event, Hh->clamp_repair,
+           Hh->cell_repair, Hh->grid_escape, Hh->stagnation, Hh->obj_overlap_repair, Hh->body_findings, Hh->local_findings, Hh->full_findings,
+           hash, naud, gaps[0], gaps[1], gaps[2], gaps[3], S, nl_left, N - nl_left, moved, gw, gdv, g3_mono() - tm0);
+    fflush(stdout);
+    edmd3_destroy(C); free(P);
+    if (!clean) g3_stop("M4b: the compression state is not clean (its [EDMD3-M4B] line above)");
+    if (moved || nl_left != NL) g3_stop("M4b: a disk is in the other compartment after the carry");
+    if (gw < -tol || gdv < -tol) g3_stop("M4b: a disk overlaps a wall or the divider after the carry beyond the wall tolerance");
+    /* the driver's arrays, as g3_m4_init_driver leaves them */
+    g3_m4_N = N; g3_m4_NL = NL; particles_active = N;
+    g3_eta_achieved = (double)N * M_PI * R * R / (boxWt * Hpx);
+    for (int i = 0; i < N; ++i) {
+        X[i] = (float)((double)XW1 + g3_m4_P[i].x); Y[i] = (float)((double)YW1 + g3_m4_P[i].y);
+        Vx[i] = (float)g3_m4_P[i].vx; Vy[i] = (float)g3_m4_P[i].vy; V_init[i] = sqrtf(Vx[i] * Vx[i] + Vy[i] * Vy[i]); Radius[i] = PARTICLE_RADIUS;
+    }
+    if (segment_counts && segment_count > 0) {
+        memset(segment_counts, 0, (size_t)segment_count * sizeof(int));
+        for (int i = 0; i < particles_active; ++i) {
+            int seg = segment_index_for_position(X[i]);
+            if (seg < 0) seg = 0; if (seg >= segment_count) seg = segment_count - 1;
+            segment_counts[seg]++;
+        }
+    }
+    write_run_params_json();
+}
 static void g3_dump_initial(const char* path, const EDMD_Particle* P, int N, int NL, double boxW, double boxH, double R, double c, double th){
     FILE* f = fopen(path, "w");
     if (!f) g3_stop("cannot open --gen3-dump-initial");
@@ -16254,7 +16415,7 @@ static void g3_run_header(const char* id, double boxW, double boxH, int N, int N
     printf("[EDMD3-RUN] %s: engine=gen3 build=\"%s\" target=%s cell_px=%g origin_shift=%g u_t=%a K=%g box=%.17g x %.17g px exact_box=%d "
            "eta=%.17g N=%d N_L=%d N_R=%d seeding=%s", id, BUILD_GIT, BUILD_TARGET, cli_gen3_cell_px > 0.0 ? cli_gen3_cell_px : EDMD3_DEFAULT_CELL_PX,
            EDMD3_ORIGIN_SHIFT, G3_U_T_HEADER, EDMD3_TOL_K, boxW, boxH, cli_gen3_exact_box,
-           (double)N * M_PI * (double)PARTICLE_RADIUS * (double)PARTICLE_RADIUS / (boxW * boxH), N, NL, N - NL, cli_gen3_seeding ? "lattice" : "driver");
+           (double)N * M_PI * (double)PARTICLE_RADIUS * (double)PARTICLE_RADIUS / (boxW * boxH), N, NL, N - NL, cli_gen3_seeding == 2 ? "compressed (M4b; the lattice below is at eta_0 in the long box)" : (cli_gen3_seeding ? "lattice" : "driver"));
     if (cli_gen3_seeding)
         for (int k = 0; k < 2; ++k) {
             const G3Lattice* L = &g3_lat[k];
@@ -16700,7 +16861,8 @@ void run_speed_of_sound_experiments() {
                 steps_elapsed     = 0;
                 simulation_time   = 0.0;
 
-                if (cli_gen3_seeding) g3_m4_init_driver(L0d, run_seed);   /* ##CHRIS 2026-10-09 (stage C, M4) */
+                if (cli_gen3_seeding == 2) g3_m4b_init_driver(L0d, run_seed, (double)L0, wall_mass_factors[m], r);   /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b */
+                else if (cli_gen3_seeding) g3_m4_init_driver(L0d, run_seed);   /* ##CHRIS 2026-10-09 (stage C, M4) */
                 else initialize_simulation();
 
                 char filename[640];
@@ -16918,9 +17080,16 @@ void run_speed_of_sound_experiments() {
                                                                                                             : particles_active / 2;
                             if (!g3_m4_P || g3_m4_N != particles_active || g3_m4_NL != NL) g3_stop("M4 seeding: state");
                             for (int i = 0; i < particles_active; ++i) { P[i].x = g3_m4_P[i].x; P[i].y = g3_m4_P[i].y; }   /* the doubles */
+                            if (cli_gen3_seeding == 2)   /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b's rescaled velocities, as doubles */
+                                for (int i = 0; i < particles_active; ++i) { P[i].vx = g3_m4_P[i].vx; P[i].vy = g3_m4_P[i].vy; }
                             if (cli_gen3_dump_initial)
                                 g3_dump_initial(cli_gen3_dump_initial, P, particles_active, NL, prm.boxW, prm.boxH, (double)PARTICLE_RADIUS,
                                                 prm.divider_x[0], prm.divider_thickness[0]);
+                            if (cli_gen3_seeding == 2) {   /* ##CHRIS 2026-10-09 (decision 13, item 4): psi6 of the carried state, read-only */
+                                const Psi6Result pc6 = compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
+                                printf("[EDMD3-M4B] psi6 at the end of the compression (the carried state): global %.6f local %.6f neighbours %.4f\n",
+                                       pc6.global_abs, pc6.local_mean, pc6.mean_neighbors);
+                            }
                         }
                         if (cli_engine == 3) {   /* ##CHRIS 2026-10-09 (stage C, M4): the run header, T_eq included */
                             char rid[200];
@@ -22060,7 +22229,17 @@ int main(int argc, char* argv[]) {
         else if (cli_gen3_ckpt_stop && cli_gen3_ckpt_phase < 0) why = "--gen3-checkpoint-stop needs --gen3-checkpoint";
         else if ((cli_gen3_virial_blocks > 0.0 || cli_gen3_snapshots > 0.0) && !sos)   /* ##CHRIS (decision 12, part 3a) */
             why = "--gen3-virial-blocks and --gen3-snapshots are wired to the speed-of-sound experiment only";
+        else if (cli_gen3_m4b_set && cli_gen3_seeding != 2)   /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b */
+            why = "--gen3-compress-eta0, --gen3-compress-melt and --gen3-compress-speed need --gen3-seeding=compressed";
+        else if (cli_gen3_seeding == 2 && !cli_gen3_exact_box)
+            why = "--gen3-seeding=compressed needs --gen3-exact-box (the carry into the run's box is exact only in the exact box)";
+        else if (cli_gen3_seeding == 2 && cli_temperature_segments && cli_temperature_segments_count > 0)
+            why = "--gen3-seeding=compressed sets KE = N_s kT per compartment; per-segment temperatures are not wired to it";
         if (why) g3_stop(why);
+    }
+    if (cli_engine != 3 && cli_gen3_m4b_set) {   /* ##CHRIS 2026-10-09 (decision 13, item 4) */
+        fprintf(stderr, "STOP: --gen3-compress-eta0, --gen3-compress-melt and --gen3-compress-speed need --engine=gen3\n");
+        exit(2);
     }
     if (cli_engine != 3 && (cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial)) {   /* ##CHRIS (stage C, M4) */
         fprintf(stderr, "STOP: --gen3-seeding, --gen3-exact-box and --gen3-dump-initial need --engine=gen3 (gen2's seeding is frozen)\n");
