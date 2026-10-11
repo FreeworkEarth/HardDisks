@@ -14303,3 +14303,167 @@ The driver differs more: it draws velocities with the C library's `rand()`, a di
 - engine-divider-resched: the notes.
 
 Push: `git push origin main engine-gen3 engine-divider-resched`. engine-gen3 must be pushed before K2-1, which fetches `2988351` from GitHub.
+
+### 4.7.48 Plan-author decision 21: Report K2 read — K2-1 to K2-3 approved, K2-4 on hold; the merge must plan before it moves; disk space freed with Chris's approval (2026-10-10 15:57 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 21:**
+  - **Accepted:** tasks 1–3 and 5 of decision 20. The rehearsal found the merge fault before KOA did.
+  - **K2-1, K2-2 and K2-3 are APPROVED.** Chris types them today, from the plan author's blocks A to D.
+  - **K2-4 (chunks 2–144 and the merge) is ON HOLD,** until the plan author has read K2-2 and K2-3 and items 1–2 are done.
+  - **Recorded:** from an identical start the engine is bit-identical on the Mac and on KOA (7 of 32 harness cells). The starts differ through libm (the harnesses) and C `rand()` (the driver). Whether gen3's seeding gets a portable generator is a pre-registration decision; nothing changes now.
+  - **Plan-author error recorded:** "the Mac is 2.5x faster than KOA"; it is 1.5–1.7x on the same commands.
+- **Ordered:**
+  1. Item 1: the merge, the same folder from several chunks. From the rehearsal's own listing: every destination that received files from more than one chunk, and every file name that occurred in more than one chunk for one destination, with how the merge treats it. If no speed-of-sound folder was merged from two chunks, extend the mini list (the real chunks 1 and 2, two chunks sharing an A-fixed folder, one chunk of every other block type) and rehearse the Test G path again.
+  2. Item 2: the merge checks before it moves. It scans every chunk and builds the full plan (source, destination, treatment). A file without a rule, or two files that must be equal and differ, are all printed and the merge stops with nothing moved; only then does it execute. A second start after a completed merge is still refused; a start after a stop in the scan phase is allowed. Unit test: a planted unknown duplicate in the last chunk stops the merge with zero files moved.
+  3. Item 3: delivery. The fixed merge reaches KOA either by updating `~/harddisks_gen3_k2` (fetch by hash, checkout, in a sandbox shell) or as a third clone; say which. Write K2-4 again in full, with no job-id placeholders wherever a glob or a date can do the same (Chris pastes blocks).
+  - Then a short Report K2b, and decision 19 resumes.
+- **Also in the paste: Chris's disk request** ("we have so many simulations and data in this HardDisks hspist3 folder ... we have to free disc space ... we will repeat everything anyways again on KOA. i need my disc space back").
+  - CC measured the folder: HardDisks 294 GB, hspist3 280 GB, free 38–40 GiB.
+  - CC proposed only folders that no committed script reads, that the notes already summarise, and that are known to be dead. This used the earlier read-only disk report (`hspist3/validation/261013_disk_report.txt`, commit `4f8d854`) and a fresh reference scan:
+    - the August r11 pilot (89.86 GiB) and the r10 run (22.17 GiB), made before the tunnelling fix, ~290x oversampled, under AddressSanitizer;
+    - the February Szilard run (24.19 GiB);
+    - two superseded Paper 1 sweeps (`campaign_transition_psi6run_20260823`, `number_and_L0_sweep_const_eta`, 7.1 GiB);
+    - two abandoned or unreferenced folders (0.8 GiB);
+    - the session scratchpad's working data (2.2 GiB; `e0head/`, the rule-4 references read by committed table scripts, and the tools kept).
+  - **Chris approved: "Delete all ~146 GB (Recommended)".** The manifest (`hspist3/validation/261010_deleted_data_manifest.txt`, commit `db70ee0`) was written and committed before the deletion. It gives every path, its size, file count, dates, reason and what was kept.
+  - The safety check of the tool refused a deletion written with shell variables (nothing was deleted then); it was redone with literal paths.
+  - **After:** HardDisks 150 GB, free disk 185 GiB. Nothing tracked by git was touched.
+  - **Kept:**
+    - A1v2, A2, famB, A3, `tests_20260913`;
+    - `campaign_r25_psi6_20260823` (A1_DIR);
+    - the August ladders, routes and finite-size data;
+    - the accelerated-backend evidence;
+    - all of Paper 2's energy-transfer data (61 GiB);
+    - every gen3 evidence folder;
+    - IB_Package (Chris's separate project).
+  - **Not CC's statement:** "everything will be repeated on KOA". The KOA campaign is new and pre-registered. Paper 1's current numbers come from A1v2/A2/famB, which stay.
+- **Ground rules:** as before; no KOA contact; one agent (the session's ultracode setting is not used). The data marker is `$SP/.decision21_ref`, 15:57 HST.
+
+**The message to CC, verbatim** (relayed by Chris on 2026-10-10 at about 15:50 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Report K2 read.
+Record this in a new §4.7.x. Ground rules as before; no KOA contact.
+
+DECISION 21
+ - Tasks 1-3 and 5 of decision 20: accepted. The rehearsal did its
+   job (it found the merge fault before KOA did).
+ - K2-1, K2-2 and K2-3 are APPROVED; Chris types them today.
+ - K2-4 (chunks 2-144 and the merge) is ON HOLD until I have read
+   K2-2 and K2-3 and until items 1-2 below are done.
+ - Recorded: from an identical start the engine is bit-identical on
+   the Mac and on KOA (7 of 32 harness cells); the starts differ
+   through libm (harness) and C rand() (driver). Whether the gen3
+   seeding gets a portable generator is a pre-registration decision;
+   do not change it now.
+ - Plan-author error to record: "the Mac is 2.5x faster than KOA"
+   (1.5-1.7x on the same commands).
+
+ITEM 1 - the merge, same folder from several chunks
+ On KOA the same (engine, cell, mass) folder of the speed-of-sound
+ runs receives files from many chunks (M = 50 alone spans chunks 1
+ to 32). Answer with the rehearsal's own listing:
+  - which destination folders received files from more than one
+    chunk in the rehearsal;
+  - every file name that occurred in more than one chunk for the same
+    destination (00_COMMAND.md, 01_PLOT_COMMANDS.md,
+    00_COMMAND_AND_PLOT_COMMAND.md, speed_of_sound_psi6.csv,
+    speed_of_sound_batch_status.json, run.log, .build_git, anything
+    else), and how the merge treats each (append, keep one after an
+    equality check, rename per chunk, stop).
+ If the rehearsal never merged the same speed-of-sound folder from
+ two chunks, extend the mini task list so that it does (at least the
+ real chunks 1 and 2, plus two chunks that share an A-fixed folder
+ and one chunk of every other block type) and rehearse the Test G
+ path again.
+
+ITEM 2 - the merge checks before it moves
+ The merge first scans every chunk and builds the complete plan
+ (source, destination, treatment). If any file has no rule, or two
+ files that must be equal differ, it prints all such cases and stops
+ with nothing moved. Only then does it execute the plan. A second
+ start after a completed merge is still refused; a start after a
+ stop in the scan phase is allowed. Unit test: a planted unknown
+ duplicate in the last chunk stops the merge with zero files moved.
+
+ITEM 3 - delivery
+ The fixed merge reaches KOA as an update of ~/harddisks_gen3_k2
+ (fetch of the new commit by hash and checkout, inside a sandbox
+ shell) or as a third clone; say which, and write K2-4 again in
+ full, with its commands free of job-id placeholders where a glob or
+ a date can do the same (Chris pastes blocks).
+
+REPORT K2b (short): items 1-3, the rehearsal table, the rewritten
+K2-4, commits, push line. End with "Written for: the plan author".
+Then resume decision 19.
+```
+
+**The plan author's note to Chris, verbatim** (kept for the record):
+
+```
+Report K2: approved in part
+
+The rehearsal paid off immediately. Besides the comma bug, it found a second real bug. The step that collects the 144 chunks into one folder would have stopped at chunk 130, after it had already moved files, and it cannot be run twice. Without the rehearsal that would have happened on KOA after the whole array had run.
+
+Approved now:
+
+K2-1: a second small clone that holds only the fixed scripts.
+K2-2: the speed table and the long-double check again.
+K2-3: Test G, first chunk alone (25 short runs, about 2 minutes).
+
+On hold: K2-4, the other 143 chunks and the collecting step. I have one question for CC first. The rehearsal used only 3 chunks, and I cannot tell from the report whether two chunks ever delivered files into the same folder for the ordinary sound-speed runs. On KOA that happens many times. I also want the collecting step to check everything before it moves anything, so it can never stop halfway again.
+
+Two other things K2 told me:
+
+KOA is 1.5 to 1.7 times slower than your Mac on the same commands, not 2.5 times as I said. The cost plan is unchanged.
+Where the engine starts from the same state, it gives bit-identical results on Mac and KOA. The runs differ because the random start differs: the built-in random generator is not the same on macOS and Linux. So the engine itself is portable. We can decide in the pre-registration whether to use our own generator, so that any KOA run can be replayed exactly on the Mac.
+What you do
+Push first. KOA needs commit 2988351 on GitHub: git push origin main engine-gen3 engine-divider-resched
+Paste block A on KOA, then wait for the cn- prompt.
+Paste block B. It ends with exit. If any line shows fatal: or error:, or the last check does not show four lines ending in : OK, stop and paste me the output.
+Paste block C on the login node. It submits both jobs.
+When squeue -u charing is empty, paste block D and send me everything it prints.
+Send CC the last block.
+
+Block A (login node):
+
+squeue -u charing
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+
+Block B (after the cn- prompt):
+
+cd ~
+git clone --depth 1 --branch engine-gen3 --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_gen3_k2
+cd harddisks_gen3_k2
+git fetch --depth 1 origin 2988351f8f566199ae47f1df243d452dc96b6af2
+git -c advice.detachedHead=false checkout 2988351f8f566199ae47f1df243d452dc96b6af2
+git sparse-checkout set --no-cone "/hspist3/*.py" "/hspist3/cluster/" "/hspist3/validation/"
+mkdir -p hspist3/logs
+git log -1 --format='%h %s' | cut -c1-80
+(cd ~/harddisks_gen3/hspist3 && sha256sum -c ~/harddisks_gen3_k2/hspist3/cluster/gen3_koa_261009/k2_binaries_a643bc7.sha256)
+exit
+
+Block C (login node; submits K2-2 and K2-3):
+
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3 && sbatch cluster/gen3_koa_261009/g3_rate_ld_k2.sbatch
+cd ~/harddisks_gen3/hspist3 && sbatch --array=1 cluster/gen3_koa_261009/testG_koa.sbatch
+squeue -u charing
+
+Block D (later, when the queue is empty):
+
+sacct -X -u charing -S 2026-10-10T15:00 --format=JobID,JobName%20,State,Elapsed,ExitCode
+cat ~/harddisks_gen3_k2/hspist3/logs/gen3-rate-ld-k2_*.out
+cat ~/harddisks_gen3/hspist3/logs/gen3-testG_*_1.out
+D=/mnt/lustre/koa/scratch/charing/harddisks_gen3/testG_koa/chunks/chunk_1/testG
+ls $D/gen2/epi8_H_H10_L10/m_50/wall_x_positions_* | wc -l
+ls $D/gen3/epi8_H_H10_L10/m_50/wall_x_positions_* | wc -l
+grep -c '^##RUN' $D/gen2/epi8_H_H10_L10/m_50/run.log $D/gen3/epi8_H_H10_L10/m_50/run.log
+grep -c '^\[EDMD3-HEALTH\] .*: clean=1 ' $D/gen3/epi8_H_H10_L10/m_50/run.log
+cat $D/gen2/epi8_H_H10_L10/m_50/.build_git $D/gen3/epi8_H_H10_L10/m_50/.build_git
+
+Do not submit anything else on KOA after block C. In particular, do not submit the array for chunks 2 to 144.
+```
+
+**Chris's disk request, verbatim** (same message): "ok off topic to free disc space before fable gives answe heere BUT: we have sooooo many simualtions aand data in this HadDisks hspist 3 folder (can you tell how large this is) ?? and i think right now almost old simulations are absolutely useless rigtt? we have to free disc space do you think we can only keep a few of each category and save only the most important ones which are also correct noe? as we will repeat everyhting anyways again right on KOA. i need my disc space back :"
