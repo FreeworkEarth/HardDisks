@@ -17125,3 +17125,134 @@ Wednesday 2026-10-14
 
 End each report with "Written for: the plan author".
 ```
+
+### 4.7.60 Decision 30 item 2, A2's line: C1 under amendment A2 (POST HOC) — condition MET; decision 29 task M1: the four meeting figures, printed by committed scripts from committed tables (2026-10-11 11:45 HST, machine date) [DATA, printed by script; CHOICE and ARITHMETIC where marked]
+
+**Plain summary.**
+- **A2's line (decision 30, item 2): "C1, AMENDMENT A2 (POST HOC): condition MET".**
+  - It was printed by C1's committed runner in a new mode, `amendment-a2`. The mode was committed (9cc4558f, self-test 10 of 10) before it ran; its output is commit 89cef348.
+  - It reads the same 200 audited trajectories and their twins as the registered printing. Each of A2's four parts holds in 200 of 200:
+    - every registered audit count is 0;
+    - the event hash and the per-class counts equal the twin's;
+    - clean=1 in both;
+    - max |dt|/horizon (|dt| > 1e-9 only) ≤ 1e-10. The largest value is 4.26e-11.
+  - The registered verdict (`c1_verdict_output.txt`, NOT DECIDED) is unchanged and stands. A2 is POST HOC wherever it is cited.
+- **Task M1 (decision 29): the four figures are printed.** Existing data only; no runs.
+  - Folder: `hspist3/experiments_m1_figures_261011/` (`figures/`: PDF and PNG of each).
+  - **Fig. 1, Test G on KOA** (`m1_fig1_testG_koa`):
+    - (a) gen2 and (b) gen3: mean ν per mass, by argmax (the registered estimator) and by ν_d (information), on the same axes, with KR (red), SPT and Henderson as ν = c_s x_M.
+    - (c) gen3 − gen2 per mass for both estimators, with 95 % intervals and z.
+    - The title: "registered verdict FAIL at M = 50 (DIFFERENCE); NO DIFFERENCE at 300 and 1500; replication (Test R) running".
+  - **Fig. 2, δ_M per engine from Report G2** (`m1_fig2_deltaM_G2`): argmax ν, ν_d and ν_0 per engine, 95 % intervals, and methods sec. 16's value in the gen2 panel. "POST HOC, INFORMATION" is in the title and in each panel.
+  - **Fig. 3, the solid** (`m1_fig3_solid_Z_P4_P6`): Z per compartment in the three cells of P4–P6, per start.
+    - The marker shows the orientation measured in the window (0°, ±30° turned, or not measured).
+    - The compressed starts' two Z groups at N = 1600 are marked by P6's printed cut.
+    - "PILOT" is in the title and in each panel.
+  - **Fig. 4, speed** (`m1_fig4_rates_speedup`):
+    - (a) the KOA rate table: gen3 events/s against N at the three densities, on the Gold node, per second of engine time and of the whole run;
+    - (b) the gen3/gen2 window speed-up (the Mac, decision 19 item 2).
+  - **How the figures were made.**
+    - `m1_tables_261011.py` reads only committed printed tables, with `git show` at named commits. It writes nine CSV tables and checks them: **all PASS** (below).
+    - `m1_figures_261011.py` draws only from those tables. Without `--draft` it refuses to print unless the tables and the script are committed, and it prints both commits on every figure.
+    - A second print is byte-identical.
+
+**A2's output, verbatim** (`experiments_gen3_c1_261011/c1_amendment_A2_output.txt`, main 89cef348):
+
+```
+# C1 under AMENDMENT A2 to A1 -- POST HOC: written after C1's data (plan-author decision 30, item 2; 261012 sec. 4.7.59);
+# flagged so wherever it is cited. The registered C1 verdict (c1_verdict_output.txt) stays: NOT DECIDED.
+
+the same 200 audited trajectories and twins as the registered printing (runs/audit, runs/twin; M = 50 gen3, Mac starts)
+
+| A2 part | trajectories that meet it |
+|---|---|
+| every registered audit count 0 | 200 of 200 |
+| event hash and per-class counts equal to the twin's | 200 of 200 |
+| clean=1 in both | 200 of 200 |
+| max |dt|/horizon (|dt| > 1e-9 only) <= 1e-10 | 200 of 200 |
+
+max |dt|/horizon (|dt| > 1e-9 only) over all runs: 4.26e-11; max |dt|: 4.77e-06 units (not part of A2); finding lines: 0
+
+C1, AMENDMENT A2 (POST HOC): condition MET
+```
+
+**M1: the sources.** Every one is read with `git show <commit>:<path>`. A working-tree edit or the checked-out branch therefore cannot change them.
+
+| figure | source (commit) | what is taken |
+|---|---|---|
+| 1 | Test G's `red_nu.csv` (main 2eff7c0d); the fetched `acf_runs.npz` (not committed; SHA-256 checked against `FETCHED_SHA256_FILES.txt`, 2eff7c0d) | ν_arg per trajectory; ν_d per trajectory by the registered verdict's information procedure (`fit_acf`, started at the mass's pooled argmax mean) |
+| 1 | Report G-KOA's `verdict_testG_koa_output.txt` (2eff7c0d); Report G2's output (76f1f115) | only to check the recomputed values |
+| 2 | Report G2's `testG_koa_posthoc_output.txt` (76f1f115) | its printed δ_M table and methods sec. 16's line |
+| 3 | P6's `p6_tables_output.txt` (engine-gen3 c540b746) | its printed per-seed rows (Z_0, Z_1, abs(Ψ), orientation) and its N = 1600 cuts |
+| 4 | K2-2's `koa_k2_m5_rates_output.txt` (2eff7c0d); decision 19's `d19_tables_output.txt` (engine-gen3 cb2d32ce) | part (c)'s 12 rows; the window table's 8 rows |
+
+**The checks (`m1_tables_output.txt`; the script stops on any failure): all PASS.**
+- The SHA-256 of the 8 fetched `acf_runs.npz` equal the committed manifest's.
+- Fig. 1 reproduces, cell for cell at the printed precision:
+  - Report G-KOA's three registered rows (means, SEs, difference, relative, interval, z, outcome);
+  - its six ν_d/argmax information rows;
+  - its "nu, M = 2000" row;
+  - G2's eight printed mean ν_d.
+  - ν_d: 0 fit failures in 2600 trajectories.
+- Fig. 3 reproduces P6's 16 per-start means (SE) and both N = 1600 groups' counts and means (SE), within the rounding of the printed per-seed values (1e-4).
+- Fig. 4: 12 rate rows, every run clean; 8 window rows, every gen3 run clean.
+
+**The numbers drawn** (from the tables).
+
+| Fig. 1, M | estimator | gen3 − gen2 [%] | 95 % interval [%] | z | role |
+|---|---|---|---|---|---|
+| 50 | argmax | +0.637 | [+0.282, +0.993] | +3.51 | registered: DIFFERENCE |
+| 50 | ν_d | +0.244 | [+0.032, +0.457] | +2.25 | information |
+| 300 | argmax | +0.165 | [−0.006, +0.335] | +1.89 | registered: NO DIFFERENCE |
+| 300 | ν_d | +0.101 | [−0.013, +0.215] | +1.74 | information |
+| 1500 | argmax | +0.000 | [−0.093, +0.093] | +0.00 | registered: NO DIFFERENCE |
+| 1500 | ν_d | +0.008 | [−0.054, +0.069] | +0.24 | information |
+| 2000 | argmax | −0.155 | [−0.339, +0.029] | −1.65 | information (100 per engine) |
+| 2000 | ν_d | +0.021 | [−0.086, +0.127] | +0.38 | information (100 per engine) |
+
+| Fig. 4b, N | time scale | gen3/gen2, σ-time per wall second | frames gen3 / gen2 |
+|---|---|---|---|
+| 5000 | 1 | 1.18 | 269 / 228 |
+| 5000 | 10000 | 168 | 25 / 2 |
+| 8000 | 1 | 1.27 | 172 / 134 |
+| 8000 | 10000 | 254 | 16 / 2 |
+
+**How the plot rules were applied [CHOICE].**
+- **Error bars** are 95 % (1.96 SE) wherever an SE exists.
+  - Fig. 1 (a, b): mean ± 1.96 SD/√n. They are smaller than the markers (at most 0.27 % of ν), and the panels say so.
+  - Fig. 1 (c): the verdict's own interval, 100 (d ∓ 1.96 s)/mean_gen2.
+  - Fig. 2: 1.96 × G2's jackknife SE.
+  - Fig. 3: mean ± 1.96 SE over the 12 compartments.
+  - Fig. 4 holds single timings, and says "no error bars" on the figure.
+- **Colours:** own data blue. KR is red, with SPT and Henderson next to it (Fig. 1; the project's `draw_theory_curves` colours).
+  - Fig. 3 draws no EOS line: its cells are solid, and KR is compared only at η ≤ 0.69.
+- **Phase regions:** no figure has an η axis. So each panel names its phase, and Fig. 3's solid panels carry `add_eta_regime_shading`'s solid tint.
+- **N, radius, L0 and H** are on every figure: in the panel titles, the subtitle lines or the tick labels.
+- **One build generation per panel:**
+  - Fig. 1: gen2 | gen3 | their difference;
+  - Fig. 2: gen2 | gen3;
+  - Fig. 3: gen3 only (P6 f72d764; P4, P4a and P5 06e7248; named in the footer);
+  - Fig. 4: gen3 | the window's gen3/gen2 ratio, from one binary.
+- **Fig. 1 adds M = 2000**, Test G on KOA's information row (100 per engine). It is marked "information".
+- **Fig. 1 (c) has one column per mass,** not a log axis: the labels of 1500 and 2000 overlapped on a log axis.
+- **Fig. 3 marks the two Z groups only at N = 1600,** where P6 printed the cut (12.0399 and 16.9506; its largest gap).
+  - P6 printed no split at N = 400. Its compressed compartments there spread from 13.29 to 13.83. No split was made, and the panel says so.
+- **Fig. 3's marker is the orientation measured in the window, not the start's.** At N = 1600, η 0.740, every compartment of the 0° start reads ±30° in Q4. The footer says so.
+- **Fig. 4b's footer** quotes sec. 4.7.50's reading, that at time scale 1 both engines are limited by drawing, as that section's INFERENCE.
+
+**[ARITHMETIC, information]** In Fig. 1 the data lie about 1.7 % above the KR line: c_ref = 3.811–3.813 against KR's c_s(π/8) = 3.746 (SPT 3.684, Henderson 3.752). The lines use the nominal η = π/8. No reading of the offset is offered here; task P's figure compares at the recorded η.
+
+**Commits (main):**
+- 973c1839: both scripts, before their final printing;
+- b7ac7c59: the nine tables and `m1_tables_output.txt`;
+- c11b5e48: the figures and `m1_figures_output.txt`.
+- The drafts that fixed the layout (overlapping labels, a tint that broke Fig. 3's axis limits) are in the session scratchpad. No number changed between the drafts and the final print: the tables are byte-identical to the drafts'.
+
+**Data:**
+- 1.8 MB in the repository.
+- 8.2 MB in all since the decision 30 marker (11:19:25), the scratchpad included.
+- No simulation ran for these tasks.
+
+**Not yet here (11:43):**
+- the Test R fetch (Report R1 waits for it);
+- the stage 1 registration text `261010_prereg_v1_stage1_fluid.md` (sec. 4.8 waits for it, and every preview trajectory waits for sec. 4.8).

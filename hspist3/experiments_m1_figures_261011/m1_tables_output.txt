@@ -1,0 +1,127 @@
+# M1 (decision 29): the tables of the four meeting figures, printed by experiments_m1_figures_261011/m1_tables_261011.py; existing data only, no runs
+
+## The committed sources (read with git show)
+
+| name | commit | path | blob |
+|---|---|---|---|
+| verdict | 2eff7c0d | hspist3/experiments_gen3_gate_koa_261009/REPORT_G_KOA_261011/verdict_testG_koa_output.txt | 5754825fdda5 |
+| fetched | 2eff7c0d | hspist3/experiments_gen3_gate_koa_261009/REPORT_G_KOA_261011/FETCHED_SHA256_FILES.txt | 2c8c4b9701fb |
+| rates | 2eff7c0d | hspist3/experiments_gen3_gate_koa_261009/REPORT_G_KOA_261011/koa_k2_m5_rates_output.txt | a337d6f4a3db |
+| g2 | 76f1f115 | hspist3/experiments_gen3_gate_koa_261009/REPORT_G2_261011/testG_koa_posthoc_output.txt | 853e3699170e |
+| p6 | c540b746 | hspist3/experiments_gen3_p6_261010/p6_tables_output.txt | ce48c429bd55 |
+| d19 | cb2d32ce | hspist3/experiments_gen3_d19_261010/d19_tables_output.txt | 2ceddb8097a9 |
+
+## Fig. 1: Test G on KOA
+
+red_nu.csv read from commit 2eff7c0d; acf_runs.npz from the fetched tree, SHA-256 against hspist3/experiments_gen3_gate_koa_261009/REPORT_G_KOA_261011/FETCHED_SHA256_FILES.txt at 2eff7c0d
+
+- gen2 M = 50: acf_runs.npz SHA-256 = the manifest's: PASS -- 07662ab83d262b22
+- gen3 M = 50: acf_runs.npz SHA-256 = the manifest's: PASS -- 812b46f54cd0ca77
+- gen2 M = 300: acf_runs.npz SHA-256 = the manifest's: PASS -- c8dd11ac484bc661
+- gen3 M = 300: acf_runs.npz SHA-256 = the manifest's: PASS -- 630a0be9c8cd1c87
+- gen2 M = 1500: acf_runs.npz SHA-256 = the manifest's: PASS -- fb8e3e8d7b1ca098
+- gen3 M = 1500: acf_runs.npz SHA-256 = the manifest's: PASS -- f3dad5417fe77915
+- gen2 M = 2000: acf_runs.npz SHA-256 = the manifest's: PASS -- 0e279f727d8ca1a4
+- gen3 M = 2000: acf_runs.npz SHA-256 = the manifest's: PASS -- 34b7394f428b518c
+
+| M | estimator | gen3 mean (SE) | gen2 mean (SE) | gen3 - gen2 [%] | 95 % interval [%] | z | role |
+|---|---|---|---|---|---|---|---|
+| 50 | argmax | 0.0727434 (8.84e-05) | 0.0722828 (9.68e-05) | +0.637 | [+0.282, +0.993] | +3.51 | registered: DIFFERENCE |
+| 50 | nu_d | 0.0725949 (5.35e-05) | 0.0724179 (5.76e-05) | +0.244 | [+0.032, +0.457] | +2.25 | information |
+| 300 | argmax | 0.0370087 (2.35e-05) | 0.0369479 (2.19e-05) | +0.165 | [-0.006, +0.335] | +1.89 | registered: NO DIFFERENCE |
+| 300 | nu_d | 0.0370248 (1.54e-05) | 0.0369874 (1.50e-05) | +0.101 | [-0.013, +0.215] | +1.74 | information |
+| 1500 | argmax | 0.0172607 (5.87e-06) | 0.0172607 (5.74e-06) | +0.000 | [-0.093, +0.093] | +0.00 | registered: NO DIFFERENCE |
+| 1500 | nu_d | 0.0172640 (3.70e-06) | 0.0172627 (3.97e-06) | +0.008 | [-0.054, +0.069] | +0.24 | information |
+| 2000 | argmax | 0.0149817 (9.80e-06) | 0.0150050 (1.01e-05) | -0.155 | [-0.339, +0.029] | -1.65 | information |
+| 2000 | nu_d | 0.0149914 (5.68e-06) | 0.0149883 (5.86e-06) | +0.021 | [-0.086, +0.127] | +0.38 | information |
+
+nu_d fit failures: 0 of 2600
+
+- Report G-KOA's registered row M = 50 reproduced: PASS
+- Report G-KOA's registered row M = 300 reproduced: PASS
+- Report G-KOA's registered row M = 1500 reproduced: PASS
+- Report G-KOA's information row M = 50, argmax reproduced: PASS
+- Report G-KOA's information row M = 50, nu_d reproduced: PASS
+- Report G-KOA's information row M = 300, argmax reproduced: PASS
+- Report G-KOA's information row M = 300, nu_d reproduced: PASS
+- Report G-KOA's information row M = 1500, argmax reproduced: PASS
+- Report G-KOA's information row M = 1500, nu_d reproduced: PASS
+- Report G-KOA's information row 'nu, M = 2000' reproduced: PASS
+- G2's mean nu_d, gen2 M = 50, reproduced: PASS -- 0.0724179 / 0.0724179
+- G2's mean nu_d, gen2 M = 300, reproduced: PASS -- 0.0369874 / 0.0369874
+- G2's mean nu_d, gen2 M = 1500, reproduced: PASS -- 0.0172627 / 0.0172627
+- G2's mean nu_d, gen2 M = 2000, reproduced: PASS -- 0.0149883 / 0.0149883
+- G2's mean nu_d, gen3 M = 50, reproduced: PASS -- 0.0725949 / 0.0725949
+- G2's mean nu_d, gen3 M = 300, reproduced: PASS -- 0.0370248 / 0.0370248
+- G2's mean nu_d, gen3 M = 1500, reproduced: PASS -- 0.0172640 / 0.0172640
+- G2's mean nu_d, gen3 M = 2000, reproduced: PASS -- 0.0149914 / 0.0149914
+
+## Fig. 2: delta_M per engine, Report G2's printed table (POST HOC, INFORMATION)
+
+- G2's delta table: 3 estimators x 2 engines x 4 masses, plus methods sec. 16: PASS -- 25 rows
+
+| estimator | engine | c_ref | delta_50 [%] | delta_300 [%] | delta_1500 [%] | delta_2000 [%] |
+|---|---|---|---|---|---|---|
+| nu_arg | gen2 | 3.81142 | -0.689 +- 0.146 | -0.092 +- 0.048 | +0.006 +- 0.019 | +0.110 +- 0.061 |
+| nu_arg | gen3 | 3.81169 | -0.063 +- 0.111 | +0.066 +- 0.071 | -0.001 +- 0.015 | -0.052 +- 0.067 |
+| nu_d | gen2 | 3.81192 | -0.516 +- 0.084 | +0.002 +- 0.029 | +0.004 +- 0.015 | -0.014 +- 0.032 |
+| nu_d | gen3 | 3.81272 | -0.294 +- 0.076 | +0.082 +- 0.047 | -0.009 +- 0.013 | -0.014 +- 0.028 |
+| nu_0 | gen2 | 3.81220 | -0.387 +- 0.083 | +0.014 +- 0.029 | +0.001 +- 0.015 | -0.018 +- 0.032 |
+| nu_0 | gen3 | 3.81293 | -0.169 +- 0.076 | +0.098 +- 0.047 | -0.011 +- 0.013 | -0.017 +- 0.028 |
+
+methods sec. 16 (gen2): -0.424 +- 0.078 % (Test T legacy, gen2, against the nine-mass weighted slope)
+
+## Fig. 3: the solid, Z per compartment (P6's printed tables; PILOT)
+
+- N400_eta0.740 P6 turned: mean Z_c (SE) 13.3213 (0.0158), n 12 = P6's 13.3212 (0.0158), n 12: PASS
+- N400_eta0.740 P4 A: mean Z_c (SE) 14.2360 (0.0855), n 12 = P6's 14.2360 (0.0855), n 12: PASS
+- N400_eta0.740 P4a A [0, 5000): mean Z_c (SE) 14.3155 (0.0021), n 12 = P6's 14.3155 (0.0021), n 12: PASS
+- N400_eta0.740 P4 B u 0.01: mean Z_c (SE) 13.4966 (0.0618), n 12 = P6's 13.4966 (0.0618), n 12: PASS
+- N400_eta0.740 P5 B u 0.001: mean Z_c (SE) 13.4698 (0.0529), n 12 = P6's 13.4698 (0.0529), n 12: PASS
+- N400_eta0.740: P6 printed no split of the compressed compartments; none is made here
+- N1600_eta0.740 P6 turned: mean Z_c (SE) 11.9867 (0.0022), n 12 = P6's 11.9867 (0.0022), n 12: PASS
+- N1600_eta0.740 P6 0-deg: mean Z_c (SE) 12.0624 (0.0152), n 12 = P6's 12.0624 (0.0152), n 12: PASS
+- N1600_eta0.740 P4 A: mean Z_c (SE) 11.9925 (0.0081), n 12 = P6's 11.9925 (0.0081), n 12: PASS
+- N1600_eta0.740 P4 B u 0.01: mean Z_c (SE) 12.0593 (0.0161), n 12 = P6's 12.0593 (0.0161), n 12: PASS
+- N1600_eta0.740 P5 B u 0.001: mean Z_c (SE) 12.0309 (0.0164), n 12 = P6's 12.0309 (0.0164), n 12: PASS
+- N1600_eta0.740 P5 B u 0.0001: mean Z_c (SE) 12.0658 (0.0155), n 12 = P6's 12.0657 (0.0155), n 12: PASS
+- N1600_eta0.740 compressed lower group (cut 12.0399): 14 at 11.9842 (0.0034) = P6's 14 at 11.9842 (0.0034): PASS
+- N1600_eta0.740 compressed higher group (cut 12.0399): 22 at 12.0951 (0.0022) = P6's 22 at 12.0951 (0.0022): PASS
+- N1600_eta0.780 P6 turned: mean Z_c (SE) 16.8328 (0.0072), n 12 = P6's 16.8328 (0.0072), n 12: PASS
+- N1600_eta0.780 P6 0-deg: mean Z_c (SE) 18.3379 (0.0817), n 12 = P6's 18.3379 (0.0817), n 12: PASS
+- N1600_eta0.780 P4 A: mean Z_c (SE) 16.8314 (0.0021), n 12 = P6's 16.8314 (0.0021), n 12: PASS
+- N1600_eta0.780 P4 B u 0.01: mean Z_c (SE) 16.9696 (0.0358), n 12 = P6's 16.9696 (0.0358), n 12: PASS
+- N1600_eta0.780 P5 B u 0.001: mean Z_c (SE) 17.0177 (0.0320), n 12 = P6's 17.0177 (0.0320), n 12: PASS
+- N1600_eta0.780 compressed lower group (cut 16.9506): 8 at 16.8327 (0.0047) = P6's 8 at 16.8327 (0.0047): PASS
+- N1600_eta0.780 compressed higher group (cut 16.9506): 16 at 17.0740 (0.0052) = P6's 16 at 17.0740 (0.0052): PASS
+
+compartments: 192; orientation measured for 104
+
+## Fig. 4: the KOA rate table (Gold node) and the window speed-up
+
+- rate table: 12 rows (N 100, 400, 900, 1600 x 3 densities), every run clean: PASS
+node cn-09-30-02 (Intel Xeon Gold 6342 2.80 GHz), job 15043030; information printed with it: E5/Gold = 0.709 at N 400, eta 0.70
+- window table: 8 rows, gen3 clean: PASS
+
+| N | time scale | gen3 / gen2, sigma-time per wall second | gen3 / gen2, frames per second | frames gen3 / gen2 |
+|---|---|---|---|---|
+| 5000 | 1 | 1.18 | 1.18 | 269 / 228 |
+| 5000 | 10000 | 168 | 163 | 25 / 2 |
+| 8000 | 1 | 1.27 | 1.29 | 172 / 134 |
+| 8000 | 10000 | 254 | 248 | 16 / 2 |
+
+## The tables written
+
+| file | rows | SHA-256 |
+|---|---|---|
+| fig1_testG_koa_difference.csv | 8 | 5b81954ab9edf0249ecba2fc85619beb0140c8efbd7a216660b8c158229af9bf |
+| fig1_testG_koa_means.csv | 16 | 562b8e268d225bcdcbb6ef3db0e582b5a63259e90a134a773e1c7b497919b61a |
+| fig1_testG_koa_per_trajectory.csv | 2600 | 3190b59d52b8e0999724576d39ca9c777f5abfa79853f9468d80256a4c4f9fb9 |
+| fig2_deltaM_G2.csv | 25 | 26877471d8083087297bb69909c35f4567eb2e9a3af34f56fbf39d9c89af159d |
+| fig3_solid_Z_per_compartment.csv | 192 | 7cac478948cac30e66eb8ca283335b9db5d9f43755adb41e03e405a9124e6abc |
+| fig3_solid_groups.csv | 20 | 79f510e487e86afea82717fb08f3a1405583735f54d8a90d897e4e82be04c8f4 |
+| fig4_koa_rates_gold.csv | 12 | bbf64b35b3c7359c7b3a3fdca41a0b6d6348bc496127b1b1d0dd5295aa0e7de0 |
+| fig4_window_speedup.csv | 4 | 362a9a3416f8b8872ed43f3698373ba3b12599e9442c650491c5886cc1504d18 |
+| fig4_window_table.csv | 8 | 9d742f9a84ae15368792741b4bebb4467117d9fab75e2b6f9b8eaeba77a483b1 |
+
+CHECKS: all PASS
