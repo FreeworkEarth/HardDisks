@@ -938,6 +938,7 @@ static int live_controls_drag_index = -1;
 static int live_scene_drag_index = -1;
 static int live_scene_drag_visible_row = -1;
 static int live_scene_rebuild_requested = 0;
+static int live_scene_engine_next = 0;   /* ##CHRIS 2026-10-10 (decision 19, item 2): the F3 panel's engine (2, 3), taken at the rebuild */
 #define LIVE_SCENE_MAX_WALLS 5
 /* ##CHRIS 2026-09-10: scene-reset rows. 0..4 are the original scalar parameters,
    row 5 is the new wall-thickness slider, rows 6..(6+MAX_WALLS-1) are the per-wall
@@ -959,7 +960,8 @@ typedef enum {
 typedef enum {
     LIVE_SCENE_ENGINE_TIME_TOI = 0,
     LIVE_SCENE_ENGINE_HYBRID = 1,
-    LIVE_SCENE_ENGINE_EDMD = 2
+    LIVE_SCENE_ENGINE_EDMD = 2,
+    LIVE_SCENE_ENGINE_GEN3 = 3     /* ##CHRIS 2026-10-10 (decision 19, item 2): EDMD on gen3 (provisional display) */
 } LiveSceneEngine;
 static LiveSceneMode live_scene_mode = LIVE_SCENE_MODE_ENERGY_TRANSFER;
 static int live_scene_mode_dropdown_open = 0;
@@ -1309,6 +1311,13 @@ static double cli_gen3_m4b_eta0 = 0.60;        /* --gen3-compress-eta0=x: the la
 static double cli_gen3_m4b_melt = 500.0;       /* --gen3-compress-melt=T: the held time before the pistons move [sigma-time] */
 static double cli_gen3_m4b_u = 0.01;           /* --gen3-compress-speed=u: the pistons' inward speed [sigma per sigma-time] */
 static int    cli_gen3_m4b_set = 0;            /* one of the three was given */
+/* ##CHRIS 2026-10-10 (plan-author decision 19, item 2; 261012 sec. 4.7.46): PROVISIONAL test hooks of gen3 in the window (the
+   interactive scene, simulation_loop; see the block before keysSimulation). Off: the scene runs as before. */
+static int    cli_gui_stats = 0;               /* --gui-stats: the [GUI-STATS] line at the end of the scene under gen2 too */
+static double cli_gui_run_seconds = 0.0;       /* --gui-run-seconds=S: end the scene S wall seconds after its first step (0: off) */
+static double cli_gui_time_scale = 0.0;        /* --gui-time-scale=X: the window's initial time scale (0: unchanged; --timescale is
+                                                  read as --time by the parser's earlier prefix match on "--time") */
+static const char* cli_gui_keys = NULL;        /* --gui-keys=STEP:KEY,...: key presses put into the window's event queue at those steps */
 
 static void g3_stop(const char* what){
     fflush(stdout);
@@ -4972,6 +4981,18 @@ static void parse_cli_options(int argc, char **argv) {
             cli_engine = 2;
         } else if (strcmp(arg, "--engine=gen3") == 0) {
             cli_engine = 3;
+        } else if (strcmp(arg, "--gui-stats") == 0) {        /* ##CHRIS 2026-10-10 (decision 19, item 2): provisional */
+            cli_gui_stats = 1;
+        } else if (strncmp(arg, "--gui-run-seconds=", strlen("--gui-run-seconds=")) == 0) {
+            char *endptr = NULL; const double v = strtod(arg + strlen("--gui-run-seconds="), &endptr);
+            if (!endptr || *endptr != '\0' || !(v > 0.0)) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_gui_run_seconds = v;
+        } else if (strncmp(arg, "--gui-time-scale=", strlen("--gui-time-scale=")) == 0) {
+            char *endptr = NULL; const double v = strtod(arg + strlen("--gui-time-scale="), &endptr);
+            if (!endptr || *endptr != '\0' || !(v >= 0.01 && v <= 10000.0)) { fprintf(stderr, "Invalid '%s' (0.01 .. 10000).\n", arg); exit(EXIT_FAILURE); }
+            cli_gui_time_scale = v;
+        } else if (strncmp(arg, "--gui-keys=", strlen("--gui-keys=")) == 0) {
+            cli_gui_keys = arg + strlen("--gui-keys=");
         } else if (strncmp(arg, "--engine", strlen("--engine")) == 0 && (arg[8] == '=' || arg[8] == '\0')) {
             fprintf(stderr, "Invalid --engine '%s': use --engine=gen2 (default) or --engine=gen3.\n", arg);
             exit(EXIT_FAILURE);
@@ -5525,6 +5546,11 @@ void initSDL() {
         exit(1);
     }
     _renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED);
+    if (!_renderer) {   /* ##CHRIS 2026-10-10 (decision 19, item 2): no accelerated renderer (the SDL dummy video driver of the
+                           acceptance runs): the software renderer draws the same frame */
+        printf("[GUI] no accelerated renderer (%s); using the software renderer\n", SDL_GetError());
+        _renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_SOFTWARE);
+    }
     if (!_renderer) {
         printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
         exit(1);
@@ -11525,9 +11551,111 @@ static void log_distributions(double t_abs, double t_rel, int released) {
 
 
 
+/* ##CHRIS 2026-10-10 (plan-author decision 19, item 2; 261012 sec. 4.7.46): PROVISIONAL -- gen3 in the window, a DISPLAY feature;
+   no campaign script uses it. --engine=gen3 --show-simulation runs the interactive scene (simulation_loop: in the window, or with
+   --headless) on gen3. Every step advances the engine, and the frame is drawn from its synchronised copy, read-only (a reader that
+   writes into it stops the run: g3_check_untouched). The keys and sliders reach the bodies only through gen3's body API: R releases
+   the held dividers (edmd_set_divider_motions -> edmd3_set_divider_motion); T, A/D/S and the arrow keys set the piston velocities
+   (edmd_config_pistons -> edmd3_set_piston_motion); ESC and the F3 panel's APPLY rebuild the scene, gen3 with it at the next step.
+   What gen3 does not have -- the heat bath and the Andersen thermostat, species gates (the Szilard scene), the time-stepping modes,
+   the wall toggle (W), temperature rescaling ([ ] \), a live spring change -- is refused at the start (main) or marked "n/a (gen3)"
+   in the window; using it prints a [GEN3-GUI] note (on the HUD for 6 s) and changes nothing. The F3 panel's engine row has a gen3
+   entry, and the HUD names the engine in every frame, so a change to gen2 is never silent.
+   A driven piston that would leave the box, reach a divider or close its compartment beyond eta 0.80 is stopped with a note: gen3
+   stops the run at a jam (its stagnation guard), and a body outside the box is a validator finding.
+   At the end of the scene: the run record ([EDMD3-HEALTH] scene: ..., with the event hash; also before every rebuild) and
+   [GUI-STATS] (frames, fps, sigma-time per wall second, events per wall second, from the scene's first step). Under gen3, Q ends
+   the loop instead of exit(0), so both are printed. */
+#define G3_GUI_ETA_STOP 0.80
+static int    g3_gui_quit = 0;                    /* Q under gen3: the loop ends */
+static char   g3_gui_note_text[200] = "";
+static Uint32 g3_gui_note_until = 0;              /* SDL ticks until which the HUD shows the note */
+static double g3_gui_rate = 0.0, g3_gui_rate_t = -1.0;   /* events per wall second over the last >= 0.5 s; its sample time */
+static long   g3_gui_rate_ev = 0;
+static void g3_gui_note(const char* what){
+    printf("[GEN3-GUI] %s\n", what);
+    fflush(stdout);
+    snprintf(g3_gui_note_text, sizeof g3_gui_note_text, "gen3: %s", what);
+    g3_gui_note_until = cli_headless ? 0 : SDL_GetTicks() + 6000;
+}
+static const char* g3_gui_note_now(void){
+    return (g3_gui_note_text[0] && !cli_headless && SDL_GetTicks() < g3_gui_note_until) ? g3_gui_note_text : NULL;
+}
+static long g3_gui_events(void){                  /* the executed events of the current gen3 state */
+    if (!g_edmd3) return 0;
+    const EDMD3_Health* H = edmd3_health(g_edmd3);
+    return H->ev_pair + H->ev_wall + H->ev_cross + H->ev_div + H->ev_piston + H->ev_band;
+}
+static void g3_gui_rate_update(void){
+    const double t = g3_mono();
+    const long ev = g3_gui_events();
+    if (g3_gui_rate_t < 0.0 || ev < g3_gui_rate_ev) { g3_gui_rate_t = t; g3_gui_rate_ev = ev; g3_gui_rate = 0.0; return; }
+    if (t - g3_gui_rate_t < 0.5) return;
+    g3_gui_rate = (double)(ev - g3_gui_rate_ev) / (t - g3_gui_rate_t);
+    g3_gui_rate_t = t; g3_gui_rate_ev = ev;
+}
+static void g3_gui_engine_line(char* buf, size_t n){
+    if (cli_engine != 3)
+        snprintf(buf, n, "engine: gen2 %s", sim_mode == MODE_EDMD ? "EDMD" : sim_mode == MODE_EDMD_HYBRID ? "HYBRID PP-EDMD"
+                                             : sim_mode == MODE_RK4 ? "RK4" : "TIME");
+    else if (!g_edmd3)
+        snprintf(buf, n, "engine: gen3 (provisional display)  clean=-  (built at the first step)");
+    else
+        snprintf(buf, n, "engine: gen3 (provisional display)  clean=%d  events/s=%.3g", edmd3_health_clean(g_edmd3), g3_gui_rate);
+}
+/* a key under gen3: 1 if it is handled here (refused with a note, or gen3's version of the action) */
+static int g3_gui_key(SDL_Keycode k){
+    switch (k) {
+        case SDLK_w: g3_gui_note("W (wall toggle) n/a: the dividers belong to the scene; rebuild it (ESC or the F3 panel)"); return 1;
+        case SDLK_LEFTBRACKET: case SDLK_RIGHTBRACKET: case SDLK_BACKSLASH:
+            g3_gui_note("[ ] \\ (temperature rescale) n/a: the velocities change only through the engine"); return 1;
+        case SDLK_b: g3_gui_note("B (heat bath) n/a: gen3 has no heat bath"); return 1;
+        case SDLK_k: case SDLK_COMMA: case SDLK_PERIOD: g3_gui_note("K , . (Andersen thermostat) n/a: gen3 has no thermostat"); return 1;
+        case SDLK_ESCAPE: live_scene_rebuild_requested = 1; g3_gui_note("ESC: scene reset; gen3 is rebuilt at its first step"); return 1;
+        case SDLK_q: g3_gui_quit = 1; g3_gui_note("Q: the scene ends; the run record follows"); return 1;
+        default: return 0;
+    }
+}
+/* the piston guard under gen3 (above), before every step: from the bodies' state and the disks at the step's start */
+static void g3_gui_guard_pistons(double dt){
+    if (cli_engine != 3 || !g_edmd) return;
+    const EDMD_Params* ep = edmd_params(g_edmd);
+    const double R = ep->radius;
+    for (int side = 0; side < 2; ++side) {
+        if (!(side == 0 ? ep->has_pistonL : ep->has_pistonR)) continue;
+        float* v = side == 0 ? &vx_piston_left : &vx_piston_right;
+        const double x = side == 0 ? ep->pistonL_x : ep->pistonR_x, xn = x + (double)*v * dt;
+        const char* why = NULL;
+        if (side == 0 ? (*v < 0.0f) : (*v > 0.0f)) {                 /* outward */
+            if (xn < 0.0 || xn > ep->boxW) why = "it would leave the box";
+        } else if (*v != 0.0f) {                                     /* inward: its compartment ends at the nearest divider face */
+            double lo = side == 0 ? xn : (ep->has_pistonL ? ep->pistonL_x : 0.0);
+            double hi = side == 0 ? (ep->has_pistonR ? ep->pistonR_x : ep->boxW) : xn;
+            for (int d = 0; d < ep->divider_count && d < EDMD_MAX_DIVIDERS; ++d) {
+                const double c = ep->divider_x[d], h = 0.5 * ep->divider_thickness[d];
+                if (side == 0 && c > x && c - h < hi) hi = c - h;
+                if (side == 1 && c < x && c + h > lo) lo = c + h;
+            }
+            const double a = side == 0 ? x : lo, b = side == 0 ? hi : x;
+            int n = 0;
+            for (int i = 0; i < particles_active; ++i) { const double px = X[i] - (double)XW1; if (px > a && px < b) ++n; }
+            const double w = hi - lo;
+            if (w <= (n > 0 ? 2.0 * R : 0.0)) why = "it would reach the divider";
+            else if (n > 0 && (double)n * M_PI * R * R / (w * ep->boxH) > G3_GUI_ETA_STOP) why = "it would close its compartment beyond eta 0.80";
+        }
+        if (!why) continue;
+        *v = 0.0f;
+        if (side == 1) { piston_step_active = false; piston_protocol_start_time = -1.0f; }
+        char msg[160];
+        snprintf(msg, sizeof msg, "the %s piston is stopped: %s", side == 0 ? "left" : "right", why);
+        g3_gui_note(msg);
+    }
+}
+
 ////////// KEYBOARD INPUT HANDLING //////////
 // Keyboard input handling
 void keysSimulation(SDL_Event e) {
+    if (cli_engine == 3 && e.type == SDL_KEYDOWN && g3_gui_key(e.key.keysym.sym)) return;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
     /* ##CHRIS 2026-09-19: demo mode owns SPACE / P / S / + / - so each stage begins on a key.
        R (release) and Q (quit) fall through to the handlers below, which already do the right thing. */
     if (cli_demo_mode && e.type == SDL_KEYDOWN) {
@@ -13769,6 +13897,10 @@ static double live_slider_get_value(const LiveSlider *slider) {
 static void live_slider_set_value(int slider_index, double value) {
     if (slider_index < 0 || slider_index >= live_slider_count) return;
     LiveSlider *slider = &live_sliders[slider_index];
+    if (cli_engine == 3 && &heatbath_temperature == slider->target) {   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+        g3_gui_note("HB target T n/a: gen3 has no heat bath");
+        return;
+    }
     value = live_clamp(value, slider->min_value, slider->max_value);
     if (slider->type == LIVE_PARAM_DOUBLE) *((double *)slider->target) = value;
     else *((float *)slider->target) = (float)value;
@@ -13794,6 +13926,8 @@ static void live_slider_set_value(int slider_index, double value) {
 
 static void live_sync_edmd_spring_settings(void) {
     if (!g_edmd || num_internal_walls <= 0) return;
+    if (g3_live(g_edmd)) return;   /* ##CHRIS 2026-10-10 (decision 19, item 2): under gen3 the spring is set when the scene is built
+                                      (the APPLY that calls this rebuilds it next; the F2 toggle is refused) */
 
     EDMD_Params *ep = edmd_backend_params_mut(g_edmd);
     if (!ep || ep->divider_count <= 0) return;
@@ -13885,6 +14019,7 @@ static int live_scene_spring_available(void) {
 static const char *live_scene_engine_label(void) {
     switch (live_scene_engine) {
         case LIVE_SCENE_ENGINE_EDMD: return "EDMD";
+        case LIVE_SCENE_ENGINE_GEN3: return "EDMD gen3 (display)";   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
         case LIVE_SCENE_ENGINE_HYBRID: return "HYBRID PP-EDMD";
         case LIVE_SCENE_ENGINE_TIME_TOI:
         default: return "TIME+TOI";
@@ -13896,15 +14031,11 @@ static void live_scene_cycle_engine(int direction) {
         live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
         return;
     }
-    if (direction >= 0) {
-        if (live_scene_engine == LIVE_SCENE_ENGINE_EDMD) live_scene_engine = LIVE_SCENE_ENGINE_HYBRID;
-        else if (live_scene_engine == LIVE_SCENE_ENGINE_HYBRID) live_scene_engine = LIVE_SCENE_ENGINE_TIME_TOI;
-        else live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
-    } else {
-        if (live_scene_engine == LIVE_SCENE_ENGINE_EDMD) live_scene_engine = LIVE_SCENE_ENGINE_TIME_TOI;
-        else if (live_scene_engine == LIVE_SCENE_ENGINE_TIME_TOI) live_scene_engine = LIVE_SCENE_ENGINE_HYBRID;
-        else live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
-    }
+    /* ##CHRIS 2026-10-10 (decision 19, item 2): EDMD -> EDMD gen3 -> HYBRID -> TIME+TOI -> EDMD (right click: backwards) */
+    static const LiveSceneEngine order[4] = { LIVE_SCENE_ENGINE_EDMD, LIVE_SCENE_ENGINE_GEN3, LIVE_SCENE_ENGINE_HYBRID, LIVE_SCENE_ENGINE_TIME_TOI };
+    int k = 0;
+    while (k < 4 && order[k] != live_scene_engine) ++k;
+    live_scene_engine = order[((k < 4 ? k : 0) + (direction >= 0 ? 1 : 3)) % 4];
 }
 
 static double live_scene_spring_l0_min_sigma(void) {
@@ -14099,14 +14230,19 @@ static void live_scene_set_mode(LiveSceneMode mode) {
         live_scene_wall_count = 2;
         live_scene_spring_l0_sigma = (float)L0_UNITS;
     }
-    if (live_scene_mode == LIVE_SCENE_MODE_SZILARD) live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
+    if (live_scene_mode == LIVE_SCENE_MODE_SZILARD) {
+        if (live_scene_engine == LIVE_SCENE_ENGINE_GEN3)   /* ##CHRIS 2026-10-10 (decision 19, item 2): visible, never silent */
+            g3_gui_note("the Szilard scene needs species gates, which gen3 does not have: its engine row is EDMD gen2");
+        live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
+    }
     live_scene_apply_mode_constraints();
     live_scene_update_radius_from_eta();
 }
 
 static void live_scene_sync_from_runtime(void) {
     live_scene_mode = live_scene_mode_from_preset();
-    if (sim_mode == MODE_EDMD) live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
+    if (sim_mode == MODE_EDMD && cli_engine == 3) live_scene_engine = LIVE_SCENE_ENGINE_GEN3;   /* ##CHRIS (decision 19, item 2) */
+    else if (sim_mode == MODE_EDMD) live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
     else if (sim_mode == MODE_EDMD_HYBRID) live_scene_engine = LIVE_SCENE_ENGINE_HYBRID;
     else live_scene_engine = LIVE_SCENE_ENGINE_TIME_TOI;
     live_scene_wall_count = num_internal_walls;
@@ -14361,8 +14497,16 @@ static void live_scene_set_from_mouse(int index, int visible_row, int mouse_x) {
 
 static void live_scene_prepare_rebuild(void) {
     live_scene_apply_mode_constraints();
-    if (live_scene_mode == LIVE_SCENE_MODE_SZILARD) live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
-    if (live_scene_engine == LIVE_SCENE_ENGINE_EDMD) {
+    if (live_scene_mode == LIVE_SCENE_MODE_SZILARD) {
+        if (live_scene_engine == LIVE_SCENE_ENGINE_GEN3)   /* ##CHRIS 2026-10-10 (decision 19, item 2): visible, never silent */
+            g3_gui_note("the Szilard scene needs species gates, which gen3 does not have: it is rebuilt on EDMD gen2");
+        live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
+    }
+    if (live_scene_engine == LIVE_SCENE_ENGINE_GEN3 && (heatbath_enabled || andersen_enabled)) {   /* ##CHRIS (decision 19, item 2) */
+        g3_gui_note("APPLY refused: gen3 has no heat bath and no Andersen thermostat; switch them off (B, K) and APPLY again");
+        return;
+    }
+    if (live_scene_engine == LIVE_SCENE_ENGINE_EDMD || live_scene_engine == LIVE_SCENE_ENGINE_GEN3) {
         sim_mode = MODE_EDMD;
     } else if (live_scene_engine == LIVE_SCENE_ENGINE_HYBRID) {
         sim_mode = MODE_EDMD_HYBRID;
@@ -14517,6 +14661,8 @@ static void live_scene_prepare_rebuild(void) {
     live_scene_counts_for(walls, n_particles, cli_particles_box_counts, segments);
 
     live_scene_rebuild_requested = 1;
+    live_scene_engine_next = live_scene_engine == LIVE_SCENE_ENGINE_GEN3 ? 3 : 2;   /* ##CHRIS 2026-10-10 (decision 19, item 2): the
+                                                                                      engine row, taken by the rebuild (simulation_loop) */
     if (!cli_quiet) {
         printf("Scene reset queued: mode=%s engine=%s walls=%d springL0=%.3fσ N=%d r=%.4fσ eta=%.3f thick=%.4fσ%s masses=",
                live_scene_mode_label(live_scene_mode), live_scene_engine_label(),
@@ -14744,7 +14890,9 @@ static int live_controls_runtime_panel_handle_event(const SDL_Event *e) {
         SDL_Rect spring_row = { px + 8, py + 38 + live_slider_count * 34, pw - 16, 30 };
         if (live_point_in_rect(mx, my, spring_row)) {
             live_controls_drag_index = -1;
-            if (live_scene_spring_available()) {
+            if (cli_engine == 3) {   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+                g3_gui_note("a live spring change n/a: the spring is part of the scene (F3 panel, energy-transfer mode, APPLY)");
+            } else if (live_scene_spring_available()) {
                 live_apply_spring_enabled(!energy_measurement.spring_enabled);
             } else if (!cli_quiet) {
                 printf("Live spring force: unavailable for %s\n", live_scene_mode_label(live_scene_mode));
@@ -14974,8 +15122,11 @@ static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
                 snprintf(value_text, sizeof(value_text), "%.3f%s", value, slider->unit ? slider->unit : "");
             }
 
-            draw_text_clipped(renderer, font, slider->label, px + 10, row_y, white, 96);
-            draw_text_clipped(renderer, font, value_text, px + pw - 78, row_y, white, 64);
+            {   /* ##CHRIS 2026-10-10 (decision 19, item 2): the heat-bath slider is n/a under gen3 */
+                const int na = cli_engine == 3 && &heatbath_temperature == slider->target;
+                draw_text_clipped(renderer, font, na ? "HB n/a (gen3)" : slider->label, px + 10, row_y, na ? muted : white, 96);
+                draw_text_clipped(renderer, font, value_text, px + pw - 78, row_y, na ? muted : white, 64);
+            }
 
             SDL_SetRenderDrawColor(renderer, 70, 80, 84, 230);
             SDL_RenderFillRect(renderer, &track);
@@ -15003,8 +15154,8 @@ static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
             const int spring_on = energy_measurement.spring_enabled ? 1 : 0;
             const int spring_available = live_scene_spring_available();
             draw_text_clipped(renderer, font,
-                              spring_available ? "spring force" : "spring force n/a",
-                              px + 10, row_y, spring_available ? white : muted, 150);
+                              cli_engine == 3 ? "spring (scene, gen3)" : (spring_available ? "spring force" : "spring force n/a"),   /* ##CHRIS (decision 19, item 2) */
+                              px + 10, row_y, (spring_available && cli_engine != 3) ? white : muted, 150);
             SDL_SetRenderDrawColor(renderer,
                                    spring_available ? (spring_on ? 60 : 78) : 55,
                                    spring_available ? (spring_on ? 190 : 80) : 55,
@@ -15105,10 +15256,11 @@ static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
         const int locked = (live_scene_mode == LIVE_SCENE_MODE_SZILARD);
         const int is_edmd = live_scene_engine == LIVE_SCENE_ENGINE_EDMD;
         const int is_hybrid = live_scene_engine == LIVE_SCENE_ENGINE_HYBRID;
+        const int is_gen3 = live_scene_engine == LIVE_SCENE_ENGINE_GEN3;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
         SDL_SetRenderDrawColor(renderer,
-                               is_edmd ? 54 : (is_hybrid ? 54 : 88),
-                               is_edmd ? 78 : (is_hybrid ? 86 : 54),
-                               is_edmd ? 126 : (is_hybrid ? 54 : 34),
+                               is_gen3 ? 92 : (is_edmd ? 54 : (is_hybrid ? 54 : 88)),
+                               is_gen3 ? 48 : (is_edmd ? 78 : (is_hybrid ? 86 : 54)),
+                               is_gen3 ? 120 : (is_edmd ? 126 : (is_hybrid ? 54 : 34)),
                                235);
         SDL_RenderFillRect(renderer, &engine_box);
         SDL_SetRenderDrawColor(renderer, locked ? 170 : 255, locked ? 170 : 180, locked ? 170 : 90, 245);
@@ -15198,6 +15350,17 @@ static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
 static int hud_build_experiment_key_lines(char lines[][256], int max_lines) {
     int n = 0;
     if (!lines || max_lines <= 0) return 0;
+
+    if (cli_engine == 3) {   /* ##CHRIS 2026-10-10 (decision 19, item 2): the keys under gen3 */
+        if (n < max_lines) snprintf(lines[n++], 256, "Controls (gen3)");
+        if (n < max_lines) snprintf(lines[n++], 256, "Run: space start | t protocol | p pause | q quit | esc reset");
+        if (n < max_lines) snprintf(lines[n++], 256, "Speed: -/+ /0 time | F2 live | F3 scene");
+        if (n < max_lines) snprintf(lines[n++], 256, "Pistons: a/d left | left/right right | s/up stop");
+        if (n < max_lines) snprintf(lines[n++], 256, "View: v panels | x/y density | f vmax | z exact");
+        if (n < max_lines) snprintf(lines[n++], 256, "Wall: r release | e print energy");
+        if (n < max_lines) snprintf(lines[n++], 256, "n/a (gen3): w wall | [ ] \\ T | b HB | k , . Andersen");
+        return n;
+    }
 
     switch (cli_experiment_preset) {
         case EXPERIMENT_PRESET_ENERGY_TRANSFER:
@@ -15447,6 +15610,12 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
     const int panel_w = hud_right - panel_x;
     const int panel_y = YW1 + 10;
     const bool use_right_panel = (panel_w >= 260);
+    /* ##CHRIS 2026-10-10 (decision 19, item 2): first the engine (under gen3 its clean flag and events/s) and a gen3 note */
+    char line_engine[200];
+    g3_gui_engine_line(line_engine, sizeof line_engine);
+    const char *line_note = g3_gui_note_now();
+    const SDL_Color engine_col = cli_engine == 3 ? (SDL_Color){190, 150, 255, 255} : white;
+    const SDL_Color note_col = {255, 200, 90, 255};
 
 		    if (use_right_panel) {
 		        int x = panel_x;
@@ -15455,6 +15624,8 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
                 const int dy = 20;
 
 		        // Compact HUD (single column)
+                draw_text_clipped(r, f, line_engine, x, y, engine_col, panel_w); y += dy;   /* ##CHRIS (decision 19, item 2) */
+                if (line_note) { draw_text_clipped(r, f, line_note, x, y, note_col, panel_w); y += dy; }
 			        draw_text_clipped(r, f, line_clock, x, y, white, panel_w); y += dy;
 			        draw_text_clipped(r, f, line_scale, x, y, white, panel_w); y += dy;
                     draw_text_clipped(r, f, line_eta_target, x, y, white, panel_w); y += dy;
@@ -15545,14 +15716,18 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
 
 	        // Thermostat status
 	        char hb_line[256], andersen_line[256];
-	        if (heatbath_enabled) {
+	        if (cli_engine == 3) {   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+	            snprintf(hb_line, sizeof(hb_line), "HB: n/a (gen3)");
+	        } else if (heatbath_enabled) {
             snprintf(hb_line, sizeof(hb_line), "HB: ON (T=%.3f, mode=%d)",
                      (double)heatbath_temperature, thermal_wall_mode);
 	        } else {
 	            snprintf(hb_line, sizeof(hb_line), "HB: off");
 	        }
 		        if (y + dy <= y_max) { draw_text_clipped(r, f, hb_line, x, y, white, panel_w); y += dy; }
-	        if (andersen_enabled) {
+	        if (cli_engine == 3) {   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+	            snprintf(andersen_line, sizeof(andersen_line), "Andersen: n/a (gen3)");
+	        } else if (andersen_enabled) {
 	            snprintf(andersen_line, sizeof(andersen_line), "Andersen: ON (ν=%.3f)", andersen_collision_freq);
 	        } else {
 	            snprintf(andersen_line, sizeof(andersen_line), "Andersen: off");
@@ -15590,6 +15765,8 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
     // Fallback: draw HUD under the simulation window (older layout)
     int x = XW1 + 5;
     int y = YW1 + SIM_HEIGHT + 5;
+    draw_text(r, f, line_engine, x, y, engine_col); y += 20;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+    if (line_note) { draw_text(r, f, line_note, x, y, note_col); y += 20; }
     draw_text(r, f, line0, x, y, white);  y += 20;
     draw_text(r, f, line_clock, x, y, white); y += 20;
     draw_text(r, f, line_scale, x, y, white); y += 20;
@@ -20306,6 +20483,70 @@ static void run_szilard_engine_experiment(void) {
 
 
 
+/* ##CHRIS 2026-10-10 (decision 19, item 2): --gui-keys=STEP:KEY,... (a provisional test hook; the window only). At the scene's
+   STEP-th executed step the key is put into SDL's event queue (pressed, then released) and is handled with the next frame's events,
+   as a key press is. KEY: an SDL key name (R, T, B, W, K, P, Q, Space, Escape, Left, Right, Up, F2, F3, [, ], \, ...), "comma",
+   "period", with a trailing "+" pressed and held (no release); or "apply-gen3" / "apply-gen2": the F3 panel synced to the running
+   scene, its engine row set to EDMD gen3 / EDMD and its APPLY (live_scene_prepare_rebuild), as the mouse would. */
+#define G3_GUI_KEYS_MAX 64
+static long g3_gui_key_step[G3_GUI_KEYS_MAX];
+static char g3_gui_key_name[G3_GUI_KEYS_MAX][24];
+static int  g3_gui_key_n = 0, g3_gui_key_next = 0;
+static SDL_Keycode g3_gui_key_code(const char* nm, int* hold){   /* the key of a --gui-keys name; *hold: its trailing "+" */
+    const size_t n = strlen(nm);
+    char b[24];
+    *hold = n > 1 && nm[n - 1] == '+';
+    snprintf(b, sizeof b, "%.*s", (int)(n - (*hold ? 1 : 0)), nm);
+    return !strcmp(b, "comma") ? SDLK_COMMA : (!strcmp(b, "period") ? SDLK_PERIOD : SDL_GetKeyFromName(b));
+}
+static void g3_gui_keys_parse(void){
+    if (!cli_gui_keys) return;
+    if (cli_headless) { fprintf(stderr, "--gui-keys needs the window (no --headless)\n"); exit(EXIT_FAILURE); }
+    const char* p = cli_gui_keys;
+    while (*p) {
+        char tok[48]; size_t k = 0;
+        while (*p && *p != ',' && k + 1 < sizeof tok) tok[k++] = *p++;
+        tok[k] = '\0';
+        if (*p == ',') ++p;
+        char* colon = strchr(tok, ':');
+        char* end = NULL;
+        const long st = colon ? strtol(tok, &end, 10) : -1;
+        const char* nm = colon ? colon + 1 : "";
+        int hold = 0;
+        if (!colon || end != colon || st < 1 || !*nm || strlen(nm) >= sizeof g3_gui_key_name[0] || g3_gui_key_n >= G3_GUI_KEYS_MAX
+            || (g3_gui_key_n > 0 && st < g3_gui_key_step[g3_gui_key_n - 1])
+            || (strcmp(nm, "apply-gen3") && strcmp(nm, "apply-gen2") && g3_gui_key_code(nm, &hold) == SDLK_UNKNOWN)) {
+            fprintf(stderr, "Invalid --gui-keys entry '%s' (STEP:KEY, steps ascending, at most %d)\n", tok, G3_GUI_KEYS_MAX);
+            exit(EXIT_FAILURE);
+        }
+        g3_gui_key_step[g3_gui_key_n] = st;
+        snprintf(g3_gui_key_name[g3_gui_key_n], sizeof g3_gui_key_name[0], "%s", nm);
+        g3_gui_key_n++;
+    }
+}
+static void g3_gui_keys_pump(long steps_done){
+    while (g3_gui_key_next < g3_gui_key_n && g3_gui_key_step[g3_gui_key_next] <= steps_done) {
+        const char* nm = g3_gui_key_name[g3_gui_key_next++];
+        printf("[GUI-KEYS] step %ld: %s\n", steps_done, nm);
+        if (!strcmp(nm, "apply-gen3") || !strcmp(nm, "apply-gen2")) {
+            live_scene_sync_from_runtime();
+            live_scene_engine = nm[9] == '3' ? LIVE_SCENE_ENGINE_GEN3 : LIVE_SCENE_ENGINE_EDMD;
+            live_scene_prepare_rebuild();
+            continue;
+        }
+        int hold = 0;
+        const SDL_Keycode k = g3_gui_key_code(nm, &hold);
+        SDL_Event ev;
+        memset(&ev, 0, sizeof ev);
+        ev.type = SDL_KEYDOWN; ev.key.state = SDL_PRESSED;
+        ev.key.keysym.sym = k; ev.key.keysym.scancode = SDL_GetScancodeFromKey(k);
+        SDL_PushEvent(&ev);
+        if (hold) continue;
+        ev.type = SDL_KEYUP; ev.key.state = SDL_RELEASED;
+        SDL_PushEvent(&ev);
+    }
+}
+
 ///////////////////// VISUAL SIMULATION FUNCTIONS //////////////////////
 /*
  * simulation_loop
@@ -20742,6 +20983,11 @@ void simulation_loop() {
     double next_wall_log_rel_time = 0.0;
     // Logging cadence (absolute time) for energy_transfer_wall_positions.csv
     double next_et_log_abs_time = 0.0;
+    /* ##CHRIS 2026-10-10 (decision 19, item 2): [GUI-STATS] from the scene's first step; the provisional test hooks */
+    double gui_t_first = -1.0, gui_sigma = 0.0;
+    long gui_frames = 0, gui_steps = 0;
+    g3_gui_keys_parse();
+    if (cli_gui_time_scale > 0.0) time_scale_runtime = (float)cli_gui_time_scale;
 
     while (running) {
         // ##CHRIS: Handle timing differently in headless vs interactive mode
@@ -20773,11 +21019,15 @@ void simulation_loop() {
             // ##CHRIS: In headless mode, just accumulate one timestep per iteration (run as fast as possible)
             accumulator += fixed_dt_runtime;
         }
+        if (g3_gui_quit) running = 0;   /* ##CHRIS 2026-10-10 (decision 19, item 2): Q under gen3; --gui-run-seconds */
+        if (cli_gui_run_seconds > 0.0 && gui_t_first >= 0.0 && g3_mono() - gui_t_first >= cli_gui_run_seconds) running = 0;
 
         if (live_scene_rebuild_requested) {
             const bool spring_was_enabled = energy_measurement.spring_enabled;
 
             live_scene_rebuild_requested = 0;
+            if (g_edmd3) g3_run_record("scene, before the rebuild");   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+            if (live_scene_engine_next) { cli_engine = live_scene_engine_next; live_scene_engine_next = 0; }   /* the F3 engine row */
             reset_simulation_state();
 
             wall_enabled = (num_internal_walls > 0) ? 1 : 0;
@@ -20800,6 +21050,8 @@ void simulation_loop() {
                 }
             }
 
+            const int g3_left = g_edmd3 != NULL && cli_engine != 3;   /* ##CHRIS 2026-10-10 (decision 19, item 2): the F3 panel left gen3 */
+            if (g3_left) g3_free();
             live_rebuild_edmd_from_current_state();
             if (cli_experiment_preset == EXPERIMENT_PRESET_SZILARD_ENGINE) {
                 szilard_sync_edmd_from_globals();
@@ -20816,6 +21068,11 @@ void simulation_loop() {
                        (double)cli_packing_fraction,
                        (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA);
             }
+            if (cli_engine == 3 || g3_left) {   /* ##CHRIS (decision 19, item 2) */
+                char eng[200];
+                g3_gui_engine_line(eng, sizeof eng);
+                printf("[GEN3-GUI] the scene was rebuilt; %s\n", eng);
+            }
         }
 
         int left_particles = 0, right_particles = 0;
@@ -20823,6 +21080,8 @@ void simulation_loop() {
         if (cli_demo_mode && simulation_started && !paused && demo_steps_per_frame > 1)
             accumulator += fixed_dt_runtime * (float)(demo_steps_per_frame - 1);   /* ##CHRIS */
         while (accumulator >= fixed_dt_runtime) {
+            if (!running && cli_engine == 3) break;   /* ##CHRIS 2026-10-10 (decision 19, item 2): the scene stopped (--time, Q):
+                                                         no more steps in this frame, so the window ends on the headless step */
             if (simulation_started && !paused) {
                 if (cli_demo_mode) {
                     demo_steps_done++;
@@ -20854,6 +21113,7 @@ void simulation_loop() {
                     break;
                 }
                 // --- START OF STEP ---
+                if (gui_t_first < 0.0) gui_t_first = g3_mono();   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
                 wall_x_old = wall_x;
                 steps_elapsed++;
 
@@ -20977,13 +21237,16 @@ void simulation_loop() {
                     // when --eff-output=spring is used. Do not apply timestep impulses here.
 
                     // Configure divider motion for EDMD (positions from EDMD state; velocities possibly updated)
-                    edmd_config_dividers(g_edmd, dcount, div_x, div_th);
+                    /* ##CHRIS 2026-10-10 (decision 19, item 2): under gen3 the engine owns the divider positions; only the
+                       hold/release (mass, velocity) reaches it, through edmd_set_divider_motions (gen3's body API) */
+                    if (cli_engine != 3) edmd_config_dividers(g_edmd, dcount, div_x, div_th);
                     edmd_set_divider_motions(g_edmd, dcount, div_mass, div_vx);
 
                     // Keep pistons in sync with interactive controls; if velocities changed, update
                     static double prev_vxL = 0.0, prev_vxR = 0.0;
                     // Apply protocol-driven velocities (do not move positions here; EDMD owns positions)
                     apply_piston_protocol(fixed_dt_runtime);
+                    g3_gui_guard_pistons((double)fixed_dt_runtime);   /* ##CHRIS 2026-10-10 (decision 19, item 2): gen3 only */
                     if (vx_piston_left != prev_vxL || vx_piston_right != prev_vxR) {
                         const EDMD_Params* epc = edmd_params(g_edmd);
                         edmd_config_pistons(g_edmd,
@@ -21000,7 +21263,7 @@ void simulation_loop() {
                     // Szilard semipermeable walls are handled inside EDMD; do not apply a hard-wall overlap reflect.
                     const bool sz_gate = (cli_experiment_preset == EXPERIMENT_PRESET_SZILARD_ENGINE &&
                                           (sz_perm_active || sz_perm_dual_active || sz_fixed_gate_active));
-                    if (!sz_gate) edmd_divider_resolve_overlaps(g_edmd);
+                    if (!sz_gate && cli_engine != 3) edmd_divider_resolve_overlaps(g_edmd);   /* ##CHRIS (decision 19, item 2): gen3 has nothing to repair */
                     // Szilard: if any PP overlaps exist (rare, but possible after non-EDMD push-outs),
                     // relax them to keep EDMD in a valid state.
                     edmd_relax_pp_overlaps_szilard(g_edmd);
@@ -21161,6 +21424,9 @@ void simulation_loop() {
                 // ##CHRIS: EDMD uses pixel coordinates, so dt is in pixel-time units.
                 // Convert to σ-time units for logging by dividing by PIXELS_PER_SIGMA.
                 simulation_time += fixed_dt_runtime / PIXELS_PER_SIGMA;
+                gui_steps++;   /* ##CHRIS 2026-10-10 (decision 19, item 2): [GUI-STATS]; --gui-keys (window) */
+                gui_sigma += (double)(fixed_dt_runtime / PIXELS_PER_SIGMA);
+                if (!cli_headless) g3_gui_keys_pump(gui_steps);
 
                 // Update piston push energy tracking (interactive mode)
                 if (piston_push_tracking) {
@@ -21625,6 +21891,7 @@ void simulation_loop() {
             // GUI-only: stash the leftover accumulator time for smooth boundary extrapolation in histograms.
             // (Physics state remains at simulation_time; this only affects visualization.)
             gui_render_dt_rem = accumulator;
+            if (cli_engine == 3) g3_gui_rate_update();   /* ##CHRIS 2026-10-10 (decision 19, item 2): the HUD's events/s */
 
             if (cli_render_paper) {
                 /* ##CHRIS 2026-09-19: figure-grade scene, drawn instead of the debug view.
@@ -21785,6 +22052,7 @@ void simulation_loop() {
                 if (font_small) draw_text(_renderer, font_small, keys, 8, 26, kc);
             }
             SDL_RenderPresent(_renderer);
+            if (gui_t_first >= 0.0) gui_frames++;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
             if (cli_demo_mode) {
                 if (cli_render_paper) demo_echo_stage_change();
                 /* ##CHRIS 2026-09-19: fire on the STAGE, not on a step count. A count guesses when
@@ -21800,6 +22068,19 @@ void simulation_loop() {
             SDL_Delay(5);
         } // ##CHRIS: End of rendering block (skipped in headless mode)
     }
+
+    /* ##CHRIS 2026-10-10 (decision 19, item 2): the scene's statistics (from its first step; events: the last gen3 state's) and,
+       under gen3, its run record with the event hash */
+    if (cli_engine == 3 || cli_gui_stats) {
+        const double wall_s = gui_t_first >= 0.0 ? g3_mono() - gui_t_first : 0.0;
+        const long ev = g3_gui_events();
+        printf("[GUI-STATS] engine=%s window=%d N=%d frames=%ld steps=%ld wall_s=%.3f fps=%.3f sigma_time=%.6g sigma_per_wall_s=%.6g "
+               "events=%ld events_per_wall_s=%.6g engine_s=%.3f time_scale=%.6g\n",
+               cli_engine == 3 ? "gen3" : "gen2", cli_headless ? 0 : 1, particles_active, gui_frames, gui_steps, wall_s,
+               wall_s > 0.0 ? (double)gui_frames / wall_s : 0.0, gui_sigma, wall_s > 0.0 ? gui_sigma / wall_s : 0.0,
+               ev, wall_s > 0.0 ? (double)ev / wall_s : 0.0, cli_engine == 3 ? g3_engine_s : 0.0, (double)time_scale_runtime);
+    }
+    if (cli_engine == 3) g3_run_record("scene");
 
     fclose(logFile);
     fclose(wall_log);
@@ -22375,6 +22656,17 @@ int main(int argc, char* argv[]) {
     /* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14): --engine=gen3 runs only where it is wired and tested -- headless, pure EDMD,
        the speed-of-sound or the energy-transfer experiment -- and the gen2 schedule options do not apply to it. Anything else
        stops here instead of running a path the engine never saw. */
+    /* ##CHRIS 2026-10-10 (decision 19, item 2): PROVISIONAL -- the interactive scene (simulation_loop, in the window or with
+       --headless; the dispatch below) is wired to gen3 as a display feature (the block before keysSimulation) */
+    const int run_scene = !cli_single_test_mode
+                          && (cli_force_no_experiments || (cli_experiment_preset != EXPERIMENT_PRESET_SIMPLE_BOX_PREDICTION
+                                                           && cli_experiment_preset != EXPERIMENT_PRESET_ENERGY_TRANSFER
+                                                           && cli_experiment_preset != EXPERIMENT_PRESET_SZILARD_ENGINE
+                                                           && !enable_speed_of_sound_experiments));
+    if (!run_scene && (cli_gui_stats || cli_gui_run_seconds > 0.0 || cli_gui_time_scale > 0.0 || cli_gui_keys)) {
+        fprintf(stderr, "STOP: --gui-stats, --gui-run-seconds, --gui-time-scale and --gui-keys belong to the interactive scene (--show-simulation)\n");
+        exit(2);
+    }
     if (cli_engine == 3) {
         const char* why = NULL;
         const int sos = !cli_force_no_experiments && enable_speed_of_sound_experiments
@@ -22382,10 +22674,18 @@ int main(int argc, char* argv[]) {
                         && cli_experiment_preset != EXPERIMENT_PRESET_ENERGY_TRANSFER
                         && cli_experiment_preset != EXPERIMENT_PRESET_SZILARD_ENGINE;
         const int et = !cli_force_no_experiments && cli_experiment_preset == EXPERIMENT_PRESET_ENERGY_TRANSFER;
-        if (!cli_headless) why = "the GUI is not wired to gen3 (use --headless)";
+        if (!cli_headless && !run_scene)   /* ##CHRIS 2026-10-10 (decision 19, item 2): was "the GUI is not wired to gen3" */
+            why = "with the window gen3 runs the interactive scene only (--show-simulation); the experiments need --headless";
         else if (sim_mode != MODE_EDMD) why = "gen3 is an event-driven engine (use --mode=edmd)";
         else if (cli_single_test_mode) why = "--single-test is not wired to gen3";
-        else if (!sos && !et) why = "only the speed-of-sound and the energy-transfer experiments are wired to gen3";
+        else if (!sos && !et && !run_scene)
+            why = "only the speed-of-sound and the energy-transfer experiments and the interactive scene (--show-simulation) are wired to gen3";
+        else if (run_scene && cli_experiment_preset == EXPERIMENT_PRESET_SZILARD_ENGINE)   /* ##CHRIS (decision 19, item 2) */
+            why = "the Szilard scene needs species and semipermeable gates, which gen3 does not have";
+        else if (run_scene && cli_experiment_preset == EXPERIMENT_PRESET_PARTICLELIFE)
+            why = "particle-life is not a hard-disk scene";
+        else if (run_scene && (heatbath_enabled || andersen_enabled))
+            why = "gen3 has no heat bath and no Andersen thermostat (--hb-temp)";
         else if (cli_legacy_resched || cli_resched_audit) why = "--legacy-resched and --resched-audit are gen2 schedule options";
         else if ((cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial) && !sos)
             why = "--gen3-seeding, --gen3-exact-box and --gen3-dump-initial are wired to the speed-of-sound experiment only";
