@@ -1,0 +1,4 @@
+#!/bin/bash
+# rehearsal shim: koa_env.sh checks 'gcc --version' for 14.3; no job compiles
+if [ "${1:-}" = --version ]; then echo "gcc (GCC) 14.3.0 [rehearsal shim; here: $(/usr/bin/cc --version | head -1)]"; exit 0; fi
+echo 'rehearsal shim: gcc is not used inside a job' >&2; exit 97

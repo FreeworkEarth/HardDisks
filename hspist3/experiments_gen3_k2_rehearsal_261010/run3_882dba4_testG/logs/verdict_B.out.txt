@@ -1,0 +1,68 @@
+Traceback (most recent call last):
+  File "<string>", line 8, in <module>
+    KV.main()
+    ~~~~~~~^^
+  File "/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d22/rehearsal_882dba4/home/harddisks_gen3_k2/hspist3/cluster/gen3_koa_261009/testG_koa_verdict_261009.py", line 129, in main
+    print("\n## Information (no verdict): nu_d on the verdict masses\n"); V.information_nud(D)
+                                                                          ~~~~~~~~~~~~~~~~~^^^
+  File "/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d22/rehearsal_882dba4/home/harddisks_gen3_k2/hspist3/validation/testG_verdict_261009.py", line 219, in information_nud
+    ok = np.isfinite(a) & np.isfinite(b); a, b = a[ok], b[ok]
+         ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+ValueError: operands could not be broadcast together with shapes (12,) (13,) 
+# Test G on KOA (261012 sec. 4.7.29; decision 13, item 2g)
+
+RULE per mass (M = 50, 300, 1500): NO DIFFERENCE if abs(z) < 2; DIFFERENCE if abs(z) >= 3; otherwise one extension (400 more per engine), judged on 800 with the same thresholds, still between -> UNRESOLVED. PASS = NO DIFFERENCE at all three masses.
+
+extensions counted (runs r >= 400 in the data): none
+
+## Inventory
+
+| engine | M | trajectories matched (expected) | n finite > 0 | log sections | health findings (failed runs incl.) | engine line wrong | max contact gap [px] | contact lines missing | nodes | ok |
+|---|---|---|---|---|---|---|---|---|---|---|
+| gen3 | 50 | 25 (400) | 25 | 25 | 0 | 0 | 4.18e-12 | 0 | 1 | **NO** |
+| gen3 | 300 | 12 (400) | 12 | 12 | 0 | 0 | 4.45e-12 | 0 | 1 | **NO** |
+| gen3 | 1500 | 12 (400) | 12 | 12 | 0 | 0 | 3.99e-12 | 0 | 1 | **NO** |
+| gen2 | 50 | 25 (400) | 25 | 25 | 0 | 0 | 4.66e-11 | 0 | 1 | **NO** |
+| gen2 | 300 | 13 (400) | 13 | 13 | 0 | 0 | 9.83e-11 | 0 | 1 | **NO** |
+| gen2 | 1500 | 13 (400) | 13 | 13 | 0 | 0 | 1.94e-10 | 0 | 1 | **NO** |
+
+nodes: gen3 {'Christophs-MacBook-Pro-875': 49}; gen2 {'Christophs-MacBook-Pro-875': 51}
+builds (.build_git): ['00ALLINONE  git a643bc7  target koa'] (required: 00ALLINONE  git a643bc7  target koa); inventory **NOT CLEAN -> INVALID**
+[rehearsal B] inventory: NOT CLEAN -- forced clean, so the rest of main() runs on the mini data
+
+## The registered numbers
+
+| mass | judged on (per engine) | n gen3 | n gen2 | gen3 mean nu | SE | gen2 mean nu | SE | difference | relative [%] | 95 % interval [%] | z | outcome by the rule |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 50 | 400 | 25 | 25 | 0.0724170 | 4.38e-04 | 0.0727998 | 3.81e-04 | -3.828e-04 | -0.526 | [-2.089, +1.037] | -0.66 | **NO DIFFERENCE** |
+| 300 | 400 | 12 | 13 | 0.0369172 | 8.67e-05 | 0.0370563 | 1.17e-04 | -1.392e-04 | -0.376 | [-1.147, +0.396] | -0.95 | **NO DIFFERENCE** |
+| 1500 | 400 | 12 | 13 | 0.0172768 | 2.79e-05 | 0.0172883 | 2.32e-05 | -1.143e-05 | -0.066 | [-0.478, +0.345] | -0.31 | **NO DIFFERENCE** |
+
+## The thresholds' false-alarm rates (no true difference)
+
+| quantity (no true difference) | one mass | three masses (independent) |
+|---|---|---|
+| P(abs(z) >= 3 at 400) | 0.00270 | 0.00808 (at least one) |
+| P(extension: 2 <= abs(z) < 3 at 400) | 0.04280 | 0.12298 (at least one) |
+| P(DIFFERENCE), extension path included | 0.00403 | 0.01204 (at least one) |
+| P(UNRESOLVED) | 0.01189 | 0.03525 (at least one) |
+| P(NO DIFFERENCE) | 0.98408 | P(PASS) = 0.95299; false alarm (not PASS) = 0.04701 |
+
+## The smallest true difference that would give z = 3 with the observed SEs
+
+| mass | judged on | SE of the difference | 3 x SE | relative to gen2's mean [%] |
+|---|---|---|---|---|
+| 50 | 400 | 5.80e-04 | 1.74e-03 | 2.392 |
+| 300 | 400 | 1.46e-04 | 4.37e-04 | 1.180 |
+| 1500 | 400 | 3.63e-05 | 1.09e-04 | 0.630 |
+
+M = 50: NO DIFFERENCE; M = 300: NO DIFFERENCE; M = 1500: NO DIFFERENCE; no extension
+95 % intervals of the relative difference (the stated bound): M = 50: [-2.089, +1.037] %; M = 300: [-1.147, +0.396] %; M = 1500: [-0.478, +0.345] %
+TEST G (KOA): PASS
+
+## Information (no verdict): nu_d on the verdict masses
+
+| M | estimator | gen3 mean | gen2 mean | relative [%] | z | same-seed correlation |
+|---|---|---|---|---|---|---|
+| 50 | argmax (registered) | 0.0724170 | 0.0727998 | -0.526 | -0.66 | +0.342 |
+| 50 | nu_d (sec. 4.4.13 item 4a) | 0.0726015 | 0.0724459 | +0.215 | +0.47 | +0.122 |

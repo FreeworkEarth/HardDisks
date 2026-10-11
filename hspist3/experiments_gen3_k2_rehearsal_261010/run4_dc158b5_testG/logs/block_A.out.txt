@@ -1,0 +1,6 @@
+               JobID      State    Elapsed ExitCode
+-------------------- ---------- ---------- --------
+       2
+       2
+0
+   2 (Apple M3 Max (Mac rehearsal))

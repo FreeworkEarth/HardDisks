@@ -1,0 +1,62 @@
+# Mac rehearsal of the KOA job scripts 2026-10-10 16:53:47 HST: root /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d22/rehearsal_dc158b5; fix commit dc158b5df463922a5ad0551b819a14e0c50d8253; gate commit a643bc7edb1b41574c0f9af0c5fea199dc797680; parts ['testg', 'unit']
+tools: GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25) | Python 3.13.2 | Apple clang version 17.0.0 (clang-1700.4.4.1) | git version 2.50.1 (Apple Git-155) | openrsync: protocol version 29
+== clones and Mac builds
+  home/harddisks_gen3: HEAD a643bc7edb1b41574c0f9af0c5fea199dc797680; files 6964 tracked, 356 checked out
+  home/harddisks_gen3_k2: HEAD 2988351f8f566199ae47f1df243d452dc96b6af2; files 11933 tracked, 320 checked out
+  versions: gen3 a643bc7 ['00ALLINONE  git a643bc7  target koa', '00ALLINONE  git a643bc7  target koa-ld']; reference (not built: no gate part); gate clone (fix commit) (not built: no gate part)
+== shims in the clones
+  Lustre path rewritten in home/harddisks_gen3: hspist3/cluster/check_cells.sh, hspist3/cluster/confinement_20261013/conf_A_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_A_0.39.sbatch, hspist3/cluster/confinement_20261013/conf_A_pilot.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_0.39.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_pilot.sbatch, hspist3/cluster/confinement_20261013/conf_B_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_B_0.39.sbatch, hspist3/cluster/confinement_20261013/fetch_afix.sh, hspist3/cluster/confinement_20261013/fetch_confinement.sh, hspist3/cluster/gen3_koa_261009/fetch_gen3_koa.sh, hspist3/cluster/gen3_koa_261009/g3_det_xnode.sbatch, hspist3/cluster/gen3_koa_261009/g3_gate_koa.sbatch, hspist3/cluster/gen3_koa_261009/g3_xnode_compare.sbatch, hspist3/cluster/gen3_koa_261009/merge_testG_koa.sbatch, hspist3/cluster/gen3_koa_261009/testG_koa.sbatch, hspist3/cluster/gen_afix_sbatch_261004.py, hspist3/cluster/gen_confinement_sbatch.py, hspist3/cluster/koa_crossnode_det.sh, hspist3/cluster/koa_smoketest.sh, hspist3/cluster/profile_edmd_koa.sh, hspist3/cluster/resched_gate_261005/asan.sbatch, hspist3/cluster/resched_gate_261005/e0e2.sbatch, hspist3/cluster/resched_gate_261005/fetch_resched.sh, hspist3/cluster/resched_gate_261005/fetch_resched2.sh, hspist3/cluster/resched_gate_261005/ge2.sbatch, hspist3/cluster/resched_gate_261005/reduce_tprime.sbatch, hspist3/cluster/resched_gate_261005/replay.sbatch, hspist3/cluster/resched_gate_261005/testT.sbatch, hspist3/cluster/resched_gate_261005/testTprime.sbatch, hspist3/cluster/resched_gate_261005/testTprime_chunks.sbatch, hspist3/cluster/round_plan_261002.py
+  mini Test G list in home/harddisks_gen3: 50 of the registered lines (2 chunks of 25: the registered chunks 1,2); per block main 50
+== 4. Test G on the mini list v2: stage 1 (chunk 1 alone), stage 2 (chunks 2-2 at once), chunk 3 (beyond the list); the runsheet's K2-4 blocks A-E as pasted (the K2 clone updated in place by block C); the merge job's STOP rules; a second submission
+  stage 1, chunk 1: exit 0, 45 s
+    -> testG_koa.sbatch + testG_worker_koa.sh (stage 1): PASS (traces gen2 13, gen3 12; gen3 clean records 12)
+  stage 2, chunks 2-2: exits [0], 42 s
+    -> testG_koa.sbatch + testG_worker_koa.sh (stage 2): PASS (exits [0])
+    -> testG_koa.sbatch (STOP rule): PASS (exit 2)
+  the merge plan expected if every run succeeds: mini list 'plan entries by treatment: APPEND 6, EQUAL 4, MOVE 75, PER CHUNK 50' (135 entries); the registered list (KOA) 'plan entries by treatment: APPEND 416, EQUAL 288, MOVE 6800, PER CHUNK 3264' (10768 entries)
+  K2-4 block A: exit 0, 1 s, log logs/block_A.out
+    -> runsheet K2-4 block A (login node, read only: has the array ended?): PASS (numbers ['2', '2', '0']; CPU lines [('2', 'Apple M3 Max (Mac rehearsal)')])
+  K2-4 block B: exit 0, 0 s, log logs/block_B.out
+    -> runsheet K2-4 block B (login node: the sandbox shell): PASS (exit 0)
+  K2-4 block C: exit 0, 1 s, log logs/block_C.out
+    -> runsheet K2-4 block C (sandbox: the K2 clone updated in place; unit test; plan only): PASS (9/9)
+  Lustre path rewritten in home/harddisks_gen3_k2 (after block C): hspist3/cluster/check_cells.sh, hspist3/cluster/confinement_20261013/conf_A_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_A_0.39.sbatch, hspist3/cluster/confinement_20261013/conf_A_pilot.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_0.39.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_pilot.sbatch, hspist3/cluster/confinement_20261013/conf_B_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_B_0.39.sbatch, hspist3/cluster/confinement_20261013/fetch_afix.sh, hspist3/cluster/confinement_20261013/fetch_confinement.sh, hspist3/cluster/gen3_koa_261009/fetch_gen3_koa.sh, hspist3/cluster/gen3_koa_261009/g3_det_xnode.sbatch, hspist3/cluster/gen3_koa_261009/g3_gate_koa.sbatch, hspist3/cluster/gen3_koa_261009/g3_rate_ld_k2.sbatch, hspist3/cluster/gen3_koa_261009/g3_xnode_compare.sbatch, hspist3/cluster/gen3_koa_261009/merge_testG_k2.sbatch, hspist3/cluster/gen3_koa_261009/merge_testG_koa.sbatch, hspist3/cluster/gen3_koa_261009/rehearse_k2_mac.py, hspist3/cluster/gen3_koa_261009/testG_koa.sbatch, hspist3/cluster/gen_afix_sbatch_261004.py, hspist3/cluster/gen_confinement_sbatch.py, hspist3/cluster/koa_crossnode_det.sh, hspist3/cluster/koa_smoketest.sh, hspist3/cluster/profile_edmd_koa.sh, hspist3/cluster/resched_gate_261005/asan.sbatch, hspist3/cluster/resched_gate_261005/e0e2.sbatch, hspist3/cluster/resched_gate_261005/fetch_resched.sh, hspist3/cluster/resched_gate_261005/fetch_resched2.sh, hspist3/cluster/resched_gate_261005/ge2.sbatch, hspist3/cluster/resched_gate_261005/reduce_tprime.sbatch, hspist3/cluster/resched_gate_261005/replay.sbatch, hspist3/cluster/resched_gate_261005/testT.sbatch, hspist3/cluster/resched_gate_261005/testTprime.sbatch, hspist3/cluster/resched_gate_261005/testTprime_chunks.sbatch, hspist3/cluster/round_plan_261002.py
+== the unit tests: the rate script's fix (decision 20, task 1) and, if present, the merge plan (decision 21, item 2)
+    -> test_g3_rate_ld_record_261010.py: PASS (9 cases PASS)
+    -> test_merge_testG_plan_261010.py: PASS (9 cases PASS)
+  merge STOP check: a chunk still pending: exit 2, 0 s, log ../logs/merge_stop_pending.out
+  merge STOP check: a chunk without its done line: exit 2, 0 s, log ../logs/merge_stop_chunklog.out
+    -> merge_testG_k2.sbatch (its STOP rules): PASS (exits 2, 2)
+  K2-4 block D: exit 0, 3 s, log logs/block_D.out
+    -> runsheet K2-4 block D + merge_testG_k2.sbatch + merge_testG_koa.py (+ reduce_B.py): PASS (10/10; ["merged 2 chunks: 75 files moved, 6 files appended, 50 kept per chunk (0 failed-run folders), 0 incomplete run folders, 0 locks or temp files left in place, 4 build files equal; build '00ALLINONE  git a643bc7  target koa'"])
+  K2-4 block E: exit 0, 0 s, log logs/block_E.out
+    -> runsheet K2-4 block E (login node: the checks after the merge): PASS (exit 0)
+  K2-4 block D_again: exit 0, 0 s, log logs/block_D_again.out
+    -> runsheet K2-4 block D again (a second submission): PASS (job exit 3)
+== 5. the fetch (local rsync source) and 6. the registered verdict, in the K2 clone
+  fetch: exit 0, 0 s, log ../logs/fetch.out
+    -> fetch_gen3_koa.sh (Mac): PASS (testG True)
+    -> testG_koa_verdict_261009.py (A, as committed): PASS (matched [(('gen2', '50'), 25), (('gen3', '50'), 25)])
+  verdict B (component check) not run: the mini list's runs per verdict mass, gen2 / gen3: {'50': (25, 25), '300': (0, 0), '1500': (0, 0)} (it needs equal numbers above 1)
+
+## Rehearsal result (104 s; data 40M)
+
+| script | run | criterion | result | evidence |
+|---|---|---|---|---|
+| testG_koa.sbatch + testG_worker_koa.sh (stage 1) | array 910005, task 1 | exit 0; 'chunk 1 done'; no FAILED; 13 gen2 + 12 gen3 traces at M = 50; 12 gen3 records clean=1 | PASS | traces gen2 13, gen3 12; gen3 clean records 12 |
+| testG_koa.sbatch + testG_worker_koa.sh (stage 2) | array 910006, tasks 2-2 | exit 0, 'chunk j done', no FAILED in every chunk | PASS | exits [0] |
+| testG_koa.sbatch (STOP rule) | array 910008, task 3 | exit 2: 'STOP: chunk 3 is beyond the task list' | PASS | exit 2 |
+| runsheet K2-4 block A (login node, read only: has the array ended?) | bash, the lines as pasted | the chunk logs 2, with a done line 2, FAILED/REFUSED/STOP 0; one CPU model line; squeue and sacct (shims) without a chunk line | PASS | numbers ['2', '2', '0']; CPU lines [('2', 'Apple M3 Max (Mac rehearsal)')] |
+| runsheet K2-4 block B (login node: the sandbox shell) | bash, the lines as pasted | the established srun line (shim) | PASS | exit 0 |
+| runsheet K2-4 block C (sandbox: the K2 clone updated in place; unit test; plan only) | bash, the lines as pasted | exit 0; git version; 0 changed tracked files; fetch and checkout without fatal/error; HEAD the new commit; the listed SHA-256 lines; the merge unit test ALL PASS; the plan of the real chunks without problems | PASS | 9/9 |
+| test_g3_rate_ld_record_261010.py | Mac python3 | exit 0, ALL PASS (old pattern fails as on KOA, record() parses) | PASS | 9 cases PASS |
+| test_merge_testG_plan_261010.py | Mac python3 | exit 0, ALL PASS (9 cases: clean merge, second start, planted unknown duplicate in the last chunk with zero files moved, restart after the stop, build line, trace duplicate, layout, plan only, half merged) | PASS | 9 cases PASS |
+| merge_testG_k2.sbatch (its STOP rules) | jobs 910030, 910031 | exit 2 and nothing moved (no merged/): a pretended pending gen3-testG job; chunk 2's log held aside (put back byte-identical) | PASS | exits 2, 2 |
+| runsheet K2-4 block D + merge_testG_k2.sbatch + merge_testG_koa.py (+ reduce_B.py) | bash as pasted; job 920001 (sbatch shim) | submitted; exit 0; scan 2 chunks, 0 problems, the plan's counts as expected from the task lines; every folder fed by several chunks in the plan (2); 'merged 2 chunks'; reduce_B exit 0 for all 2 B cell groups; traces compressed; done line | PASS | 10/10; ["merged 2 chunks: 75 files moved, 6 files appended, 50 kept per chunk (0 failed-run folders), 0 incomplete run folders, 0 locks or temp files left in place, 4 build files equal; build '00ALLINONE  git a643bc7  target koa'"] |
+| runsheet K2-4 block E (login node: the checks after the merge) | bash, the lines as pasted | the merge log's done line; .merge_complete with 'merged N chunks' | PASS | exit 0 |
+| runsheet K2-4 block D again (a second submission) | job 920002 (sbatch shim) | the job exits 3: merged/ exists; .merge_complete unchanged | PASS | job exit 3 |
+| fetch_gen3_koa.sh (Mac) | the KOA job ids 15040861 15040862 15043030 (their folders exist on KOA only) | exit 0; testG fetched | PASS | testG True |
+| testG_koa_verdict_261009.py (A, as committed) | Mac python3 | exit 0; the inventory reads the mini data (matched [(('gen2', '50'), 25), (('gen3', '50'), 25)] of 400 expected) and ends INVALID | PASS | matched [(('gen2', '50'), 25), (('gen3', '50'), 25)] |
+
+REHEARSAL: PASS
+driver exit 0

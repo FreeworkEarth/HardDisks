@@ -1,0 +1,12 @@
+#!/bin/bash
+# rehearsal shim: runs the job script AT ONCE, as Slurm would run it: SLURM_SUBMIT_DIR = this folder, a pretended job id,
+# the output file of its #SBATCH --output line (%x the job name, %j the id); K2-4 passes no option
+[ $# -eq 1 ] || { echo "rehearsal sbatch shim: options are not supported: $*" >&2; exit 97; }
+S=$1; C="$REHEARSAL_ROOT/logs/sbatch_shim_counter"
+id=$(( $(cat "$C" 2>/dev/null || echo 920000) + 1 )); echo "$id" > "$C"
+name=$(sed -n 's/^#SBATCH --job-name=//p' "$S" | head -1); out=$(sed -n 's/^#SBATCH --output=//p' "$S" | head -1)
+out=${out//%x/$name}; out=${out//%j/$id}
+echo "Submitted batch job $id"
+SLURM_SUBMIT_DIR=$PWD SLURM_JOB_ID=$id SLURM_JOB_NAME=$name bash "$S" > "$out" 2>&1; rc=$?
+echo "$id $PWD/$S $rc" >> "$REHEARSAL_ROOT/logs/sbatch_shim_exits.txt"
+exit 0
