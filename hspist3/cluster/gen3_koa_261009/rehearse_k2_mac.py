@@ -25,13 +25,31 @@ ORDER (at most 8 simulation processes at any time): builds; the unit test of the
 cross-node array (4 tasks, 2 pretended nodes) and the compare; Test G stage 1 (chunk 1 alone), stage 2 (chunks 2-3) and a chunk
 beyond the list (STOP check); the merge; the fetch; the verdict (A: as committed; B: its inventory's verdict forced to clean, so the rest
 of the registered main() runs on the mini data -- a component check, information).
+##CHRIS 2026-10-10 (plan-author decisions 21 and 22; 261012 sec. 4.7.49): the Test G path again, for the merge that plans before it
+moves and runs without the array's job id:
+  - MINI LIST v2 (replaces the 52 lines of runs 1-2): REAL chunks of the registered list, in their order -- chunks 1 and 2 (M = 50: the
+    speed-of-sound folder of each engine from two chunks) and the first chunk of every other block (33 main M = 300, 65 main M = 1500,
+    97 info_m, 105 dense, 121 n400, 129 afix), plus the first 5 lines of chunk 130 (afix: the x_0 folders from two chunks); 205 lines,
+    9 chunks. Stage 1 is chunk 1 alone, stage 2 the other 8 at once (8 processes), then chunk 10 (beyond the list: STOP).
+  - With the testg part the K2 clone is cloned at 2988351 (KOA's ~/harddisks_gen3_k2 today, untouched: no shim before the update) and
+    UPDATED IN PLACE by the runsheet's K2-4 block B. Every K2-4 paste block is read from the runsheet (--runsheet) and run as Chris
+    pastes it: one bash, its lines in order, HOME = the rehearsal home, the Lustre path rewritten; srun's line goes to a shim (block B
+    then runs in a new shell with a pretended sandbox job id). New shims: squeue (empty, or the lines of the file REHEARSAL_SQUEUE),
+    sacct (its header lines only), srun (not run), sbatch (runs the job script at once with SLURM_SUBMIT_DIR, a pretended job id and the
+    output file of its #SBATCH lines; the job's exit code in logs/sbatch_shim_exits.txt). The unit tests run after block B, in the
+    updated clone.
+  - The merge job's own STOP rules: a pretended pending gen3-testG job (squeue); a chunk whose log lacks its done line (the last
+    chunk's log held aside, then put back byte-identical); a second submission after the merge (exit 3).
 usage (from the repository root): python3 hspist3/cluster/gen3_koa_261009/rehearse_k2_mac.py --root <empty dir> --fix <engine-gen3 commit>
+          [--only unit,testg] [--runsheet <runsheet with the K2-4 blocks>]
 """
 import argparse, glob, hashlib, os, re, shutil, subprocess, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__)); HS = os.path.dirname(os.path.dirname(HERE)); REPO = os.path.dirname(HS)
 GEN3_WT = os.path.join(os.path.dirname(REPO), "HardDisks_gen3")          # the engine-gen3 worktree (its kissfft clone is the source)
 GATE_C, REF_C, KISS = "a643bc7edb1b41574c0f9af0c5fea199dc797680", "7b08827", "febd4caeed32e33ad8b2e0bb5ea77542c40f18ec"
+K2_OLD = "2988351f8f566199ae47f1df243d452dc96b6af2"                         # ~/harddisks_gen3_k2 on KOA since K2-1 (decision 21)
+V2_CHUNKS = [1, 2, 33, 65, 97, 105, 121, 129]                              # mini list v2: real chunks (+ the first 5 lines of 130)
 SPARSE_KOA = ["/hspist3/*.c", "/hspist3/*.h", "/hspist3/*.py", "/hspist3/Makefile", "/hspist3/edmd_core/", "/hspist3/cluster/",
               "/hspist3/validation/", "/hspist3/kissfft"]                  # runsheet step 1
 SPARSE_K2 = ["/hspist3/*.py", "/hspist3/cluster/", "/hspist3/validation/"]  # runsheet addendum K2-1
@@ -101,6 +119,23 @@ def shims(R):
         "rsync": "#!/bin/bash\n# rehearsal shim: the fetch's rsync with --exclude=e0_*/ added, so the gate folder's E0 outputs (A-fixed event logs,\n"
                  "# about 0.2 GB) are not copied a second time; every other file goes through /usr/bin/rsync with the fetch's own arguments\n"
                  "echo \"[rehearsal rsync shim] /usr/bin/rsync --exclude=e0_*/ $*\" >&2\nexec /usr/bin/rsync \"--exclude=e0_*/\" \"$@\"\n",
+        # ##CHRIS 2026-10-10 (decisions 21-22; sec. 4.7.49): the Slurm commands of the K2-4 paste blocks and of the merge job
+        "squeue": "#!/bin/bash\n# rehearsal shim: Slurm's queue -- empty, or the lines of the file REHEARSAL_SQUEUE (a pretended pending job)\n"
+                  "[ -n \"${REHEARSAL_SQUEUE:-}\" ] && cat \"$REHEARSAL_SQUEUE\"\nexit 0\n",
+        "sacct": "#!/bin/bash\n# rehearsal shim: no accounting on the Mac; sacct's two header lines only\n"
+                 "printf '%20s %10s %10s %8s\\n' JobID State Elapsed ExitCode; echo '-------------------- ---------- ---------- --------'\n",
+        "srun": "#!/bin/bash\n# rehearsal shim: the sandbox shell is not opened (the rehearsal runs the next block in a new shell)\n"
+                "echo \"rehearsal shim: srun $* (not run)\"\nexit 0\n",
+        "sbatch": "#!/bin/bash\n# rehearsal shim: runs the job script AT ONCE, as Slurm would run it: SLURM_SUBMIT_DIR = this folder, a pretended job id,\n"
+                  "# the output file of its #SBATCH --output line (%x the job name, %j the id); K2-4 passes no option\n"
+                  "[ $# -eq 1 ] || { echo \"rehearsal sbatch shim: options are not supported: $*\" >&2; exit 97; }\n"
+                  "S=$1; C=\"$REHEARSAL_ROOT/logs/sbatch_shim_counter\"\n"
+                  "id=$(( $(cat \"$C\" 2>/dev/null || echo 920000) + 1 )); echo \"$id\" > \"$C\"\n"
+                  "name=$(sed -n 's/^#SBATCH --job-name=//p' \"$S\" | head -1); out=$(sed -n 's/^#SBATCH --output=//p' \"$S\" | head -1)\n"
+                  "out=${out//%x/$name}; out=${out//%j/$id}\n"
+                  "echo \"Submitted batch job $id\"\n"
+                  "SLURM_SUBMIT_DIR=$PWD SLURM_JOB_ID=$id SLURM_JOB_NAME=$name bash \"$S\" > \"$out\" 2>&1; rc=$?\n"
+                  "echo \"$id $PWD/$S $rc\" >> \"$REHEARSAL_ROOT/logs/sbatch_shim_exits.txt\"\nexit 0\n",
     }
     for n, t in files.items():
         p = os.path.join(b, n); open(p, "w").write(t); os.chmod(p, 0o755)
@@ -149,23 +184,42 @@ def table_rows(txt, head):
 
 
 def mini_list(src):
-    out, af = [], []
-    for l in open(src):
-        f = l.split()
-        if f[0] == "B":
-            blk, M, r = f[11], int(f[2]), int(f[3])
-            keep = (blk == "main" and M == 50 and r < 14) or (blk == "main" and M in (300, 1500) and r < 2) or (blk in ("info_m", "dense", "n400") and r < 2)
-        else:
-            if f[3] not in af and len(af) < 2: af.append(f[3])
-            keep = f[3] in af
-        if keep: out.append(l)
-    return out
+    """v2 (decision 21): the registered chunks V2_CHUNKS whole, in order, and the first 5 lines of chunk 130"""
+    L = open(src).readlines(); out = []
+    for c in V2_CHUNKS: out += L[(c - 1) * 25: c * 25]
+    return out + L[129 * 25: 129 * 25 + 5]
+
+
+def runsheet_blocks(path):
+    """the K2-4 paste blocks of the runsheet {letter: command lines} (a block starts at its 'K2-4 BLOCK <X> (' line and ends at the first
+    empty line), and the SHA-256 lines block B must print (the indented '<64 hex>  <path>' lines between block B and block C)"""
+    out, cur, shas, inB = {}, None, [], False
+    for l in open(path).read().splitlines():
+        m = re.match(r"^K2-4 BLOCK ([A-Z]) \(", l)
+        if m: cur = m.group(1); out[cur] = []; inB = cur == "B"; continue
+        if cur is not None and not l.strip(): cur = None; continue
+        if cur is not None: out[cur].append(l); continue
+        q = re.match(r"^\s+([0-9a-f]{64})  (\S+)$", l)
+        if inB and q: shas.append(f"{q.group(1)}  {q.group(2)}")
+    return out, shas
+
+
+def run_block(R, X, lines, env, tag=""):
+    """a paste block as Chris pastes it: one bash, its lines in order (no set -e), the Lustre path rewritten to the rehearsal's"""
+    p, lg = os.path.join(R, "logs", f"block_{X}{tag}.sh"), os.path.join(R, "logs", f"block_{X}{tag}.out")
+    open(p, "w").write("".join(l.replace(LUSTRE, os.path.join(R, "lustre")) + "\n" for l in lines))
+    t0 = time.time(); q = subprocess.run(["/bin/bash", p], cwd=env["HOME"], env=env, stdout=open(lg, "w"), stderr=subprocess.STDOUT)
+    print(f"  K2-4 block {X}{tag}: exit {q.returncode}, {time.time() - t0:.0f} s, log logs/block_{X}{tag}.out", flush=True)
+    return q.returncode, open(lg, errors="ignore").read()
 
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--root", required=True); ap.add_argument("--fix", required=True)
-    ap.add_argument("--only", default="unit,gate,k2,xnode,testg", help="parts to run (a later run after a fix: the parts whose scripts changed)")
+    ap.add_argument("--only", default="unit,testg", help="parts to run: unit, gate, k2, xnode, testg (k2 and testg in separate runs)")
+    ap.add_argument("--runsheet", default=os.path.join(HERE, "runsheet_k2_261010.txt"), help="the runsheet whose K2-4 blocks the testg part pastes")
     a = ap.parse_args(); PARTS = set(a.only.split(","))
+    if {"testg", "k2"} <= PARTS: sys.exit("STOP: run the k2 and testg parts separately (testg updates the K2 clone in place, from 2988351)")
+    UPD = "testg" in PARTS                                                # the K2 clone as on KOA today, updated by block B
     R = os.path.abspath(a.root)
     if not os.path.isdir(R) or os.listdir(R): sys.exit(f"STOP: {R} must be an existing empty folder")
     FIX = sh(["git", "-C", REPO, "rev-parse", a.fix]).stdout.strip()
@@ -180,7 +234,7 @@ def main():
     A, REF, K2C, G = (os.path.join(H, "harddisks_gen3"), os.path.join(H, "harddisks_resched2"), os.path.join(H, "harddisks_gen3_k2"),
                       os.path.join(HG, "harddisks_gen3"))
     print("== clones and Mac builds")
-    CL = [(A, GATE_C, SPARSE_KOA, True), (K2C, FIX, SPARSE_K2, False)] + ([(REF, REF_C, SPARSE_KOA, True), (G, FIX, SPARSE_KOA, True)] if "gate" in PARTS else [])
+    CL = [(A, GATE_C, SPARSE_KOA, True), (K2C, K2_OLD if UPD else FIX, SPARSE_K2, False)] + ([(REF, REF_C, SPARSE_KOA, True), (G, FIX, SPARSE_KOA, True)] if "gate" in PARTS else [])
     for d, c, sp, kf in CL:
         head = clone(d, c, sp)
         if kf: kissfft(d)
@@ -196,35 +250,41 @@ def main():
         os.makedirs(os.path.join(d, "hspist3", "logs"), exist_ok=True)
     # ---------------------------------------------------------------- shims in the clones (after the builds: the version lines stay clean)
     print("== shims in the clones")
-    for d, lf in [(A, False), (K2C, True)] + ([(G, False)] if "gate" in PARTS else []):
+    for d, lf in [(A, False)] + ([] if UPD else [(K2C, True)]) + ([(G, False)] if "gate" in PARTS else []):
         print(f"  Lustre path rewritten in {os.path.relpath(d, R)}: {', '.join(rewrite_lustre(d, R, lf))}")
     reg = os.path.join(A, "hspist3", K, "tasks_testG_koa_261009.txt"); assert sha(reg) == "cff8e6f9ef3d95440f54b4c621fff776b64e48700083e7258e472351fc6412b9"
     ml = mini_list(reg); txt = "".join(ml)
     open(reg, "w").write(txt); open(os.path.join(A, "hspist3", K, "tasks_testG_koa_261009.sha256"), "w").write(hashlib.sha256(txt.encode()).hexdigest() + "\n")
     from collections import Counter
-    print(f"  mini Test G list in home/harddisks_gen3: {len(ml)} of the registered lines ({len(ml) // 25 + (len(ml) % 25 > 0)} chunks of 25); per block "
+    print(f"  mini Test G list v2 in home/harddisks_gen3: {len(ml)} of the registered lines ({len(ml) // 25 + (len(ml) % 25 > 0)} chunks of 25: mini chunks 1-9 = "
+          f"registered chunks {', '.join(map(str, V2_CHUNKS))} and the first 5 lines of 130); per block "
           + ", ".join(f"{k} {v}" for k, v in Counter(l.split()[-1] for l in ml).items()))
-    kfile = os.path.join(K2C, "hspist3", K, "k2_binaries_a643bc7.sha256")
-    koa_k2 = open(kfile).read()
-    open(kfile, "w").write("".join(f"{sha(os.path.join(A, 'hspist3', p))}  {p}\n" for p in ("00ALLINONE", "bin/00ALLINONE_ld", "bin/gen3_m1", "bin/gen3_m2")))
-    print(f"  k2_binaries_a643bc7.sha256 in the K2 clone: the Mac builds' SHA-256 (committed: KOA's, {koa_k2.split()[0][:8]}...)")
+    if "k2" in PARTS:
+        kfile = os.path.join(K2C, "hspist3", K, "k2_binaries_a643bc7.sha256")
+        koa_k2 = open(kfile).read()
+        open(kfile, "w").write("".join(f"{sha(os.path.join(A, 'hspist3', p))}  {p}\n" for p in ("00ALLINONE", "bin/00ALLINONE_ld", "bin/gen3_m1", "bin/gen3_m2")))
+        print(f"  k2_binaries_a643bc7.sha256 in the K2 clone: the Mac builds' SHA-256 (committed: KOA's, {koa_k2.split()[0][:8]}...)")
     # ---------------------------------------------------------------- 0. the unit test of the fix
     os.makedirs(os.path.join(R, "tmp"))
-    if "unit" in PARTS: unit(R, K2C)
+    if "unit" in PARTS and not UPD: unit(R, K2C)
     if "gate" in PARTS: gate(R, G, HG, shim)
     if "k2" in PARTS: k2(R, K2C, H, HG, shim)
     if "xnode" in PARTS: xnode(R, A, H, shim)
-    if "testg" in PARTS: testg(R, A, K2C, H, shim, PARTS)
+    if "testg" in PARTS: testg(R, A, K2C, H, shim, PARTS, ml, a.runsheet, FIX)
     table(R, t00)
 
 
 def unit(R, K2C):
-    print("== the unit test of the fix (task 1)")
-    p = sh([sys.executable, os.path.join(K2C, "hspist3", K, "test_g3_rate_ld_record_261010.py")], env=dict(os.environ, TMPDIR=os.path.join(R, "tmp")),
-           log=os.path.join(R, "logs", "unit_test.txt"), check=False)
-    t = open(os.path.join(R, "logs", "unit_test.txt")).read()
-    res("test_g3_rate_ld_record_261010.py", "Mac python3", "exit 0, ALL PASS (old pattern fails as on KOA, record() parses)", p.returncode == 0 and "ALL PASS" in t,
-        f"{t.count('| PASS |')} cases PASS")
+    print("== the unit tests: the rate script's fix (decision 20, task 1) and, if present, the merge plan (decision 21, item 2)")
+    for name, crit in (("test_g3_rate_ld_record_261010.py", "exit 0, ALL PASS (old pattern fails as on KOA, record() parses)"),
+                       ("test_merge_testG_plan_261010.py", "exit 0, ALL PASS (9 cases: clean merge, second start, planted unknown duplicate in the last "
+                        "chunk with zero files moved, restart after the stop, build line, trace duplicate, layout, plan only, half merged)")):
+        t0 = os.path.join(K2C, "hspist3", K, name)
+        if not os.path.exists(t0): continue
+        lg = os.path.join(R, "logs", f"unit_{name[:-3]}.txt")
+        p = sh([sys.executable, t0], env=dict(os.environ, TMPDIR=os.path.join(R, "tmp")), log=lg, check=False)
+        t = open(lg).read()
+        res(name, "Mac python3", crit, p.returncode == 0 and "ALL PASS" in t, f"{t.count('| PASS |')} cases PASS")
 
 
 def gate(R, G, HG, shim):
@@ -285,9 +345,11 @@ def xnode(R, A, H, shim):
         rc == 0 and "RESULT: across nodes IDENTICAL (2 node(s)); within nodes IDENTICAL; tasks used 4 of 4" in t, re.findall(r"^RESULT: .*$", t, re.M)[:1])
 
 
-def testg(R, A, K2C, H, shim, PARTS):
-    hs = os.path.join(A, "hspist3")
-    print("== 4. Test G on the mini list: stage 1 (chunk 1 alone), stage 2 (chunks 2-3), a chunk beyond the list, the merge (K2: from the K2 clone)")
+def testg(R, A, K2C, H, shim, PARTS, ml, runsheet, FIX):
+    hs, hk = os.path.join(A, "hspist3"), os.path.join(K2C, "hspist3")
+    L = os.path.join(R, "lustre", "harddisks_gen3", "testG_koa"); nch = len(ml) // 25 + (len(ml) % 25 > 0)
+    print(f"== 4. Test G on the mini list v2: stage 1 (chunk 1 alone), stage 2 (chunks 2-{nch} at once), chunk {nch + 1} (beyond the list); "
+          "the runsheet's K2-4 blocks A-D as pasted (the K2 clone updated in place by block B); the merge job's STOP rules; a second submission")
     def chunk(jid, j, lg):
         e = env_for(R, H, shim, SLURM_SUBMIT_DIR=hs, SLURM_ARRAY_JOB_ID=jid, SLURM_ARRAY_TASK_ID=j, SLURM_JOB_ID=jid + 100 + j)
         return subprocess.Popen(["/bin/bash", f"{K}/testG_koa.sbatch"], cwd=hs, env=e, stdout=open(lg, "w"), stderr=subprocess.STDOUT)
@@ -295,49 +357,107 @@ def testg(R, A, K2C, H, shim, PARTS):
     lg1 = os.path.join(hs, "logs", f"gen3-testG_{J1}_1.out"); t0 = time.time(); rc = chunk(J1, 1, lg1).wait(); t = open(lg1).read()
     print(f"  stage 1, chunk 1: exit {rc}, {time.time() - t0:.0f} s")
     ok1 = rc == 0 and "chunk 1 done" in t and "FAILED" not in t
-    d1 = os.path.join(R, "lustre", "harddisks_gen3", "testG_koa", "chunks", "chunk_1", "testG")
+    d1 = os.path.join(L, "chunks", "chunk_1", "testG")
     n2 = len(glob.glob(os.path.join(d1, "gen2", "*", "m_50", "wall_x_positions_*"))); n3 = len(glob.glob(os.path.join(d1, "gen3", "*", "m_50", "wall_x_positions_*")))
     rl3 = open(glob.glob(os.path.join(d1, "gen3", "*", "m_50", "run.log"))[0]).read() if n3 else ""
     c3 = len(re.findall(r"^\[EDMD3-HEALTH\] .*: clean=1 ", rl3, re.M))
     res("testG_koa.sbatch + testG_worker_koa.sh (stage 1)", f"array {J1}, task 1", "exit 0; 'chunk 1 done'; no FAILED; 13 gen2 + 12 gen3 traces at M = 50; 12 gen3 records clean=1",
         ok1 and n2 == 13 and n3 == 12 and c3 == 12, f"traces gen2 {n2}, gen3 {n3}; gen3 clean records {c3}")
-    lgs = [os.path.join(hs, "logs", f"gen3-testG_{J2}_{j}.out") for j in (2, 3)]; t0 = time.time()
-    ps = [chunk(J2, j, lg) for j, lg in zip((2, 3), lgs)]; rcs = [p.wait() for p in ps]; ts = [open(lg).read() for lg in lgs]
-    print(f"  stage 2, chunks 2-3: exits {rcs}, {time.time() - t0:.0f} s")
-    res("testG_koa.sbatch + testG_worker_koa.sh (stage 2)", f"array {J2}, tasks 2-3", "exit 0, 'chunk j done', no FAILED in both",
-        rcs == [0, 0] and all(f"chunk {j} done" in x and "FAILED" not in x for j, x in zip((2, 3), ts)), f"exits {rcs}")
-    lg4 = os.path.join(R, "logs", "testG_beyond.out"); rc4 = chunk(910008, 4, lg4).wait(); t4 = open(lg4).read()
-    res("testG_koa.sbatch (STOP rule)", "array 910008, task 4", "exit 2: 'STOP: chunk 4 is beyond the task list'", rc4 == 2 and "STOP: chunk 4 is beyond the task list" in t4, f"exit {rc4}")
-    JM = 910007; hk = os.path.join(K2C, "hspist3")
-    rc, t = job("merge (K2)", f"{K}/merge_testG_k2.sbatch", [], hk, env_for(R, H, shim, SLURM_SUBMIT_DIR=hk, SLURM_JOB_ID=JM), os.path.join(hk, "logs", f"gen3-testG-merge-k2_{JM}.out"))
-    red = re.findall(r"^reduce_B (\S+): exit (\d+)", t, re.M)
-    res("merge_testG_k2.sbatch + merge_testG_koa.py (fix commit; + reduce_B.py)", f"job {JM}", "exit 0; 'merged 3 chunks'; one build; reduce_B exit 0 for every B cell; traces compressed; done line",
-        rc == 0 and "merged 3 chunks" in t and red and all(x[1] == "0" for x in red) and "merge done" in t and "STOP" not in t,
-        f"exit {rc}; {re.findall(r'^merged .*$', t, re.M)[:1]}; reduce_B {red}")
+    js = list(range(2, nch + 1)); lgs = [os.path.join(hs, "logs", f"gen3-testG_{J2}_{j}.out") for j in js]; t0 = time.time()
+    ps = [chunk(J2, j, lg) for j, lg in zip(js, lgs)]; rcs = [p.wait() for p in ps]; ts = [open(lg).read() for lg in lgs]
+    print(f"  stage 2, chunks 2-{nch}: exits {rcs}, {time.time() - t0:.0f} s")
+    res("testG_koa.sbatch + testG_worker_koa.sh (stage 2)", f"array {J2}, tasks 2-{nch}", "exit 0, 'chunk j done', no FAILED in every chunk",
+        rcs == [0] * len(js) and all(f"chunk {j} done" in x and "FAILED" not in x for j, x in zip(js, ts)), f"exits {rcs}")
+    lgb = os.path.join(R, "logs", "testG_beyond.out"); rcb = chunk(910008, nch + 1, lgb).wait(); tb = open(lgb).read()
+    res("testG_koa.sbatch (STOP rule)", f"array 910008, task {nch + 1}", f"exit 2: 'STOP: chunk {nch + 1} is beyond the task list'",
+        rcb == 2 and f"STOP: chunk {nch + 1} is beyond the task list" in tb, f"exit {rcb}")
+    # ---------------------------------------------------------------- K2-4 as pasted: block A (login node), block B (sandbox: the update)
+    B, shas = runsheet_blocks(runsheet)
+    if sorted(B) != ["A", "B", "C", "D"] or not shas: sys.exit(f"STOP: the runsheet {runsheet} has blocks {sorted(B)} and {len(shas)} SHA lines for block B")
+    benv = lambda **sl: dict(env_for(R, H, shim, **sl), REHEARSAL_ROOT=R)
+    rc, tA = run_block(R, "A", B["A"], benv())
+    nums = [x.strip() for x in tA.splitlines() if re.match(r"^\s*\d+\s*$", x)]
+    cpu = re.findall(r"^\s*(\d+) \((.*)\)\s*$", tA, re.M)
+    res("runsheet K2-4 block A (login node: the array ended?)", "bash, the lines as pasted", f"the chunk logs {nch}, with a done line {nch}, FAILED/REFUSED/STOP 0; "
+        "the CPU model count line; squeue and sacct (shims) without a chunk line; the srun line reached",
+        rc == 0 and nums[:3] == [str(nch), str(nch), "0"] and len(cpu) == 1 and cpu[0][0] == str(nch) and "rehearsal shim: srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash" in tA,
+        f"numbers {nums[:3]}; CPU lines {cpu}")
+    rc, tB = run_block(R, "B", B["B"], benv(SLURM_JOB_ID=910020))
+    head = sh(["git", "-C", K2C, "rev-parse", "HEAD"]).stdout.strip()
+    got = [x for x in tB.splitlines() if re.match(r"^[0-9a-f]{64}  \S+$", x)]
+    okB = {"exit 0": rc == 0, "git version": bool(re.search(r"^git version \d", tB, re.M)), "no tracked change before": bool(re.search(r"^\s*0\s*$", tB, re.M)),
+           "no fatal/error": not re.search(r"^(fatal|error):", tB, re.M), f"HEAD = {FIX[:7]}": head == FIX,
+           "SHA lines as listed": got == shas, "env line": "env: gcc (GCC) 14.3.0" in tB, "unit test ALL PASS": "ALL PASS (9 cases)" in tB,
+           "plan only: no problems": "--plan-only: the plan has no problems; nothing moved" in tB and f"scan: {nch} chunks," in tB}
+    res("runsheet K2-4 block B (sandbox: the K2 clone updated in place; unit test; plan only)", "bash, the lines as pasted",
+        "exit 0; git version; 0 changed tracked files; fetch and checkout without fatal/error; HEAD the new commit; the listed SHA-256 lines; "
+        "the merge unit test ALL PASS; the plan of the real chunks without problems", all(okB.values()),
+        f"{sum(okB.values())}/{len(okB)}" + (f"; failed: {[k for k, v in okB.items() if not v]}" if not all(okB.values()) else ""))
+    print(f"  Lustre path rewritten in {os.path.relpath(K2C, R)} (after block B): {', '.join(rewrite_lustre(K2C, R, True))}")
+    if "unit" in PARTS: unit(R, K2C)
+    # ---------------------------------------------------------------- the merge job's STOP rules, before the real submission
+    JS = 910030; sq = os.path.join(R, "tmp", "squeue_pending.txt"); open(sq, "w").write("15099999_[140-144%64] PENDING\n")
+    e = env_for(R, H, shim, SLURM_SUBMIT_DIR=hk, SLURM_JOB_ID=JS); e["REHEARSAL_SQUEUE"] = sq
+    rc1, t1 = job("merge STOP check: a chunk still pending", f"{K}/merge_testG_k2.sbatch", [], hk, e, os.path.join(R, "logs", "merge_stop_pending.out"))
+    last = os.path.join(hs, "logs", f"gen3-testG_{J2}_{nch}.out"); held = os.path.join(R, "tmp", os.path.basename(last)); h0 = sha(last)
+    os.rename(last, held)
+    rc2, t2 = job("merge STOP check: a chunk without its done line", f"{K}/merge_testG_k2.sbatch", [], hk, env_for(R, H, shim, SLURM_SUBMIT_DIR=hk, SLURM_JOB_ID=JS + 1),
+                  os.path.join(R, "logs", "merge_stop_chunklog.out"))
+    os.rename(held, last)
+    res("merge_testG_k2.sbatch (its STOP rules)", f"jobs {JS}, {JS + 1}", f"exit 2 and nothing moved (no merged/): a pretended pending gen3-testG job; chunk {nch}'s log "
+        "held aside (put back byte-identical)", rc1 == 2 and "STOP: Test G chunks are still pending or running" in t1 and rc2 == 2
+        and re.search(rf"STOP: chunks without .*: {nch}$", t2, re.M) is not None and not os.path.exists(os.path.join(L, "merged")) and sha(last) == h0,
+        f"exits {rc1}, {rc2}")
+    # ---------------------------------------------------------------- block C (login node: the submission), block D (the checks after it)
+    ex = os.path.join(R, "logs", "sbatch_shim_exits.txt")
+    rc, tC = run_block(R, "C", B["C"], benv())
+    jid = re.findall(r"^Submitted batch job (\d+)$", tC, re.M)
+    lgm = os.path.join(hk, "logs", f"gen3-testG-merge-k2_{jid[0]}.out") if jid else ""
+    tm = open(lgm).read() if jid and os.path.exists(lgm) else ""
+    rcm = open(ex).read().split()[-1] if os.path.exists(ex) else "?"
+    red = re.findall(r"^reduce_B (\S+): exit (\d+)", tm, re.M)
+    rows = {f"| testG/{g}/epi8_H_H10_L10/{c} | {js_} |" for g in ("gen2", "gen3") for c, js_ in (("m_50", "1, 2"), ("x_0", f"{nch - 1}, {nch}"))}
+    okC = {"submitted": len(jid) == 1, "job exit 0": rcm == "0", f"merged {nch} chunks": f"merged {nch} chunks:" in tm, "0 problems": f"scan: {nch} chunks," in tm and ", 0 problem(s);" in tm,
+           "two-chunk folders listed": all(r in tm for r in rows), "reduce_B exit 0 x6": len(red) == 6 and all(x[1] == "0" for x in red),
+           "traces compressed": "traces compressed" in tm, "done line": "merge done; next: the fetch" in tm, "no STOP": "STOP" not in tm}
+    res("runsheet K2-4 block C + merge_testG_k2.sbatch + merge_testG_koa.py (+ reduce_B.py)", f"bash as pasted; job {jid[0] if jid else '?'} (sbatch shim)",
+        f"submitted; exit 0; scan {nch} chunks, 0 problems; m_50 from chunks 1, 2 and x_0 from {nch - 1}, {nch} (both engines) in the plan; 'merged {nch} chunks'; "
+        "reduce_B exit 0 for all 6 B cell groups; traces compressed; done line", all(okC.values()),
+        f"{sum(okC.values())}/{len(okC)}" + (f"; failed: {[k for k, v in okC.items() if not v]}" if not all(okC.values()) else "")
+        + f"; {re.findall(r'^merged .*$', tm, re.M)[:1]}")
+    rc, tD = run_block(R, "D", B["D"], benv())
+    res("runsheet K2-4 block D (login node: the checks after the merge)", "bash, the lines as pasted", "the merge log's done line; .merge_complete with 'merged N chunks'",
+        rc == 0 and "merge done; next: the fetch" in tD and re.search(rf"^merged {nch} chunks: ", tD, re.M) is not None, f"exit {rc}")
+    mc = os.path.join(L, "merged", ".merge_complete"); m0 = sha(mc) if os.path.exists(mc) else ""
+    rc, tC2 = run_block(R, "C", B["C"], benv(), tag="_again")
+    jid2 = re.findall(r"^Submitted batch job (\d+)$", tC2, re.M)
+    tm2 = open(os.path.join(hk, "logs", f"gen3-testG-merge-k2_{jid2[0]}.out")).read() if jid2 else ""
+    rcm2 = open(ex).read().split()[-1] if os.path.exists(ex) else "?"
+    res("runsheet K2-4 block C again (a second submission)", f"job {jid2[0] if jid2 else '?'} (sbatch shim)", "the job exits 3: merged/ exists; .merge_complete unchanged",
+        rcm2 == "3" and "not merging twice" in tm2 and m0 != "" and sha(mc) == m0, f"job exit {rcm2}")
     # ---------------------------------------------------------------- 5. the fetch (Mac) and 6. the verdict (Mac), in the K2 clone
     print("== 5. the fetch (local rsync source) and 6. the registered verdict, in the K2 clone")
-    hs = os.path.join(K2C, "hspist3")
-    rc, t = job("fetch", f"{K}/fetch_gen3_koa.sh", ["910001", "910003", "910002"], hs, env_for(R, H, shim), os.path.join(R, "logs", "fetch.out"))
-    F = os.path.join(hs, "experiments_gen3_gate_koa_261009")
-    need = ("testG", "gate", "xnode", "rate_ld_k2") if {"gate", "xnode", "k2"} <= PARTS else ("testG",)
-    have = {s: os.path.isdir(os.path.join(F, s)) for s in need}
-    res("fetch_gen3_koa.sh (Mac)", "gate 910001, xnode 910003, K2-2 910002", f"exit 0; {', '.join(need)} fetched", rc == 0 and all(have.values()), f"{have}")
+    rc, t = job("fetch", f"{K}/fetch_gen3_koa.sh", ["15040861", "15040862", "15043030"], hk, env_for(R, H, shim), os.path.join(R, "logs", "fetch.out"))
+    F = os.path.join(hk, "experiments_gen3_gate_koa_261009")
+    res("fetch_gen3_koa.sh (Mac)", "the KOA job ids 15040861 15040862 15043030 (their folders exist on KOA only)", "exit 0; testG fetched",
+        rc == 0 and os.path.isdir(os.path.join(F, "testG")), f"testG {os.path.isdir(os.path.join(F, 'testG'))}")
     lgA = os.path.join(R, "logs", "verdict_A.out")
-    p = sh([sys.executable, f"{K}/testG_koa_verdict_261009.py"], cwd=hs, log=lgA, check=False); tA = open(lgA).read()
+    p = sh([sys.executable, f"{K}/testG_koa_verdict_261009.py"], cwd=hk, log=lgA, check=False); tA = open(lgA).read()
     inv = table_rows(tA, "| engine | M | trajectories matched")
-    want = {("gen3", "50"): 14, ("gen2", "50"): 14, ("gen3", "300"): 2, ("gen2", "300"): 2, ("gen3", "1500"): 2, ("gen2", "1500"): 2}
+    from collections import Counter
+    want = dict(Counter((l.split()[10], l.split()[2]) for l in ml if l.split()[0] == "B" and l.split()[11] == "main"))
     got = {(r[0], r[1]): int(r[2].split()[0]) for r in inv if len(r) > 2 and r[2].split()[0].isdigit()}
-    res("testG_koa_verdict_261009.py (A, as committed)", "Mac python3", "exit 0; the inventory reads the mini data (matched 14/2/2 per engine of 400 expected) and ends INVALID",
-        p.returncode == 0 and got == want and "TEST G (KOA): INVALID" in tA, f"matched {got}")
+    res("testG_koa_verdict_261009.py (A, as committed)", "Mac python3", f"exit 0; the inventory reads the mini data (matched {sorted(want.items())} of 400 expected) and ends INVALID",
+        p.returncode == 0 and got == want and "TEST G (KOA): INVALID" in tA, f"matched {sorted(got.items())}")
     lgB = os.path.join(R, "logs", "verdict_B.out")
     code = ("import sys; sys.argv = ['testG_koa_verdict_261009.py']; sys.path.insert(0, 'cluster/gen3_koa_261009'); import testG_koa_verdict_261009 as KV\n"
             "orig = KV.V.inventory\n"
             "def inv(D):\n    ok = orig(D)\n    print('[rehearsal B] inventory: ' + ('clean' if ok else 'NOT CLEAN') + ' -- forced clean, so the rest of main() runs on the mini data')\n    return True\n"
             "KV.V.inventory = inv\nKV.main()\n")
-    p = sh([sys.executable, "-c", code], cwd=hs, log=lgB, check=False); tB = open(lgB).read()
-    rule = table_rows(tB, "| mass | judged on (per engine)")
+    p = sh([sys.executable, "-c", code], cwd=hk, log=lgB, check=False); tB2 = open(lgB).read()
+    rule = table_rows(tB2, "| mass | judged on (per engine)")
     res("testG_koa_verdict_261009.py (B, component check)", "Mac python3", "exit 0; the rule table (3 masses), the verdict line and the information rows print",
-        p.returncode == 0 and len(rule) >= 3 and "TEST G (KOA):" in tB and "Information (no verdict): the other rows" in tB, f"rule rows {len(rule)}; {re.findall(r'^TEST G .*$', tB, re.M)[:1]}")
+        p.returncode == 0 and len(rule) >= 3 and "TEST G (KOA):" in tB2 and "Information (no verdict): the other rows" in tB2, f"rule rows {len(rule)}; {re.findall(r'^TEST G .*$', tB2, re.M)[:1]}")
 
 
 def table(R, t00):
