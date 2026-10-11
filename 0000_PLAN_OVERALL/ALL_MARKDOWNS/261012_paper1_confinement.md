@@ -15611,3 +15611,637 @@ DECISION 27 (2026-10-11 ~01:45 HST), after Report G-KOA
 
 End Report G2 with "Written for: the plan author".
 ```
+
+### 4.7.56 Report G2 — decision 27, tasks B and C: POST HOC tables on the fetched Test G data (gen2 carries methods sec. 16's light-divider deficit; gen3 carries part of it, with the engine difference at M = 50 +0.63 % by argmax and +0.22 % by ν_d and ν_0) and the arbiter proposal (C1: gen3's schedule audit over full records; C2: first departure from the shared start; C3: no engine-free check that decides) (2026-10-11 02:10 HST, machine date) [DATA, printed by script; SOURCE; DERIVATION; PROPOSAL; INFERENCE and ARITHMETIC where marked]
+
+**Every table of task B is POST HOC, INFORMATION. It changes no verdict: TEST G (KOA): FAIL (DIFFERENCE) at M = 50 stands. Nothing was run for task C.**
+
+**Plain summary.**
+- **B1: which engine shows the deficit.**
+  - **gen2 shows sec. 16's light-divider deficit, with every estimator.** δ_50 is −0.689 ± 0.146 % (argmax), −0.516 ± 0.084 % (ν_d) and −0.387 ± 0.083 % (ν_0). Sec. 16 has −0.690, −0.549 and −0.424 %, all within 0.3 SE of these.
+  - **gen3 shows less of it:**
+    - −0.063 ± 0.111 % by argmax (none);
+    - −0.294 ± 0.076 % by ν_d;
+    - −0.169 ± 0.076 % by ν_0. That is 2.2 SE below zero and 2.3 SE above sec. 16's −0.424 %.
+  - **gen3 − gen2 in δ_50:** +0.626 ± 0.183 % (argmax, z +3.42), +0.222 ± 0.114 % (ν_d, z +1.95), +0.218 ± 0.113 % (ν_0, z +1.94).
+  - The refined estimators therefore put the engine difference at about a third of the registered argmax's.
+  - At M = 300, gen3 sits 0.10–0.16 % above gen2 (z about 1.8–1.9). At 1500 and 2000 the engines agree.
+- **B2: the grid.**
+  - The argmax bin is 0.47 % of ν at every mass, because the record is 200 predicted periods.
+  - **At M = 50** the per-trajectory scatter is 5.7 (gen2) and 5.2 (gen3) bins, so the grid is fine against the scatter. The gen3 − gen2 shift of +1.35 bins is a shift of the whole distribution, not of a tail.
+  - **At M = 1500** the two arms' bin sums are exactly equal (400 × 213 − 13 in both), so the means are identical: "+0.000 %, z 0.00".
+    - A tie is possible only because the estimator is discrete. Under the null its probability is about 1 % (SD of the sum difference ≈ 41 bins).
+    - The arms are not identical: the bin counts differ.
+- **B3: the arms are paired by start.**
+  - The code seeds and builds the state before the engine runs, and gen3 loads gen2's container at its first advance.
+  - All 1300 pairs have byte-identical seeding lines.
+  - **The pairing buys nothing:**
+    - the same-seed correlations are −0.07 … +0.15;
+    - the paired SEs equal the unpaired ones;
+    - the 800 σ-time hold decorrelates the arms long before the release.
+- **B4: the divider's kinetic temperature.**
+  - Expected: ⟨M V²⟩ = 2E/(2N + 1) = 200/201 = 0.99502 at every mass.
+  - **The exact end-of-record instants:**
+    - gen2 0.9957 ± 0.0389 and gen3 1.0244 ± 0.0406 over 1300 trajectories each;
+    - every mass within 0.9 SE.
+  - **Over the record, a finite-difference proxy from the fetched ACF.** The engines agree: gen3/gen2 − 1 = +0.51 ± 0.54 % at M = 50.
+  - **The divider velocity over the record is in no file, on the Mac or on KOA.** The traces hold positions only, and HD_KE_COLUMNS was not set. So no reduction job can give it.
+- **B5:**
+  - sec. 4.7.10's defect is quoted below: the 1e-12 cut-off in gen2's collision-time functions, 1 observed against 0.079 expected in 7.90e10 collisions, no mass dependence measured.
+  - **Test G's gen2 runs carry its counters only indirectly**, through the consequences: overlap and clamp repairs, printed in [EDMD-HEALTH] when nonzero. There are 0 such lines in 1300 runs, and the worker refused any run that had one.
+  - The contact audit of every run: max |contact distance| ≤ 2.2e-10 px in gen2 and ≤ 6.1e-12 px in gen3.
+- **C1: the M2 harness has no independent trajectory engine.**
+  - Its "brute-force reference" is gen3's own schedule audit: after an event, every pair, wall, crossing and divider face is recomputed from absolute positions and checked against the live heap.
+  - The feasible form: the registered M = 50 gen3 command with `--gen3-audit-every=1`, on n Mac starts.
+  - **Estimate (not measured):** about 1.5–2.5 min per trajectory, so n = 200 in 2 h on 8 processes, with margin.
+  - Rule: PASS = 0 findings in every class in all n trajectories, max |dt| ≤ 1e-9 units, and the hash and counts equal to the unaudited twin's.
+- **C2:**
+  - The driver already starts both engines from one in-memory state at t = 0. A state dumped later can be loaded by gen3 only.
+  - During the hold the divider cannot depart. So: hold 0, 50 σ-time, three masses × 20 seeds.
+  - It needs driver-only logging at full precision (no engine change).
+  - The baseline is a rounding-level twin of gen3 (long double on x86-64, or an FMA build on the Mac).
+  - Rule: an abrupt step of ≥ 1e3 while |Δx| < 1e-9 σ = an event handled differently, which is then printed.
+- **C3: none.**
+  - Exact identities fix equal-time averages, and both arms pass every one in the data: energy, equipartition, and collision rates within 1e-4.
+  - The frequency has no exact value at α = 0.5.
+  - A third, independently written engine would decide, but it is an engine, not an identity.
+
+**What was run, in order** (main repository, `hspist3/`):
+1. `testG_koa_posthoc_261011.py --selftest`.
+   - The first try failed 1 of 8 checks. The fault was in my test: only the replicate without group 0 fails, so the expected count is 1, not 39. Fixed.
+   - The second try: PASS 8 of 8.
+2. A dry run of the table code on a synthetic tree in the scratchpad (same layout, made-up numbers). Exit 0. Nothing kept.
+3. **Committed before the first run on the data:** main `60909289`, engine-gen3 `25033e7a`.
+   - Before the commit, the data had been read only for the sampling parameters (dt, n, ν_pred of each cell) and the run-0 sections of the m_50 logs, including their two end-of-record E_div values.
+4. **The first run on the data:** `python3 cluster/gen3_koa_261009/testG_koa_posthoc_261011.py` (12.7 s, exit 0).
+   - Output: `experiments_gen3_gate_koa_261009/REPORT_G2_261011/testG_koa_posthoc_output.txt`, reproduced at the end of this section.
+5. `bash experiments_gen3_gate_koa_261009/REPORT_G2_261011/supporting_counts.sh` → `supporting_counts_output.txt`.
+   - Written **after** step 4, as supporting counts for B5 and C (information).
+   - It covers the contact audit, gen3's event mix, and the event rates of both engines.
+
+---
+
+**B1 (POST HOC, INFORMATION).** The estimators are imported, not rewritten:
+- ν_arg: the registered argmax;
+- ν_d: `resched_testT_followup_261007.fit_acf`, per trajectory, started at the mass's pooled argmax mean of both engines;
+- τ_r and Q: the same fit of the seed-averaged ACF, with Q = π ν_d τ_r;
+- ν_0 = √((mean ν_d)² + (1/(2π τ_r))²).
+
+All SEs are delete-one-group jackknife (groups of 10 trajectories in run order; 5 at n = 100), with every quantity recomputed in each replicate. Zero fit failures; zero failed replicates.
+
+| engine | M | n | mean ν_arg | mean ν_d | τ_r [σ-time] | Q | ν_0 | −1/(4Q²) |
+|---|---|---|---|---|---|---|---|---|
+| gen2 | 50 | 400 | 0.0722828 ± 0.0001044 | 0.0724179 ± 0.0000602 | 41.9 ± 0.6 | 9.55 ± 0.15 | 0.0725174 ± 0.0000592 | −0.274 % |
+| gen2 | 300 | 400 | 0.0369479 ± 0.0000201 | 0.0369874 ± 0.0000122 | 220.2 ± 4.8 | 25.59 ± 0.56 | 0.0369945 ± 0.0000122 | −0.038 % |
+| gen2 | 1500 | 400 | 0.0172607 ± 0.0000055 | 0.0172627 ± 0.0000039 | 1046.6 ± 22.1 | 56.78 ± 1.20 | 0.0172634 ± 0.0000039 | −0.008 % |
+| gen2 | 2000 | 100 | 0.0150050 ± 0.0000099 | 0.0149883 ± 0.0000055 | 1385.2 ± 51.6 | 65.25 ± 2.43 | 0.0149888 ± 0.0000055 | −0.006 % |
+| gen3 | 50 | 400 | 0.0727434 ± 0.0000786 | 0.0725949 ± 0.0000542 | 42.8 ± 0.7 | 9.75 ± 0.16 | 0.0726903 ± 0.0000541 | −0.263 % |
+| gen3 | 300 | 400 | 0.0370087 ± 0.0000279 | 0.0370248 ± 0.0000184 | 209.1 ± 4.2 | 24.32 ± 0.49 | 0.0370327 ± 0.0000185 | −0.042 % |
+| gen3 | 1500 | 400 | 0.0172607 ± 0.0000052 | 0.0172640 ± 0.0000037 | 1031.8 ± 24.3 | 55.97 ± 1.32 | 0.0172647 ± 0.0000037 | −0.008 % |
+| gen3 | 2000 | 100 | 0.0149817 ± 0.0000107 | 0.0149914 ± 0.0000049 | 1332.1 ± 66.9 | 62.73 ± 3.16 | 0.0149919 ± 0.0000049 | −0.006 % |
+
+**From frequency to δ.**
+- c_k = ν_k / x_M, with x_M = K(α)/(2π L_eff) from `tests_20260913.x_of(M, 10)`. K solves cot K = αK, with α = M/(2 N_s m) = 0.5, 3, 15, 20.
+- δ_M = c_M / c_ref − 1, with c_ref the inverse-variance weighted mean of c_M over M ≥ 300 of the same engine and estimator.
+  - This is sec. 16's weighted slope through the origin, restricted to M ≥ 300 as decision 27 says.
+  - c_ref = 3.8114–3.8129 against sec. 16's 3.8122–3.8129 over nine masses.
+- **The SE includes the reference's own error** (delta method), which sec. 16's SE leaves out.
+
+| estimator | engine | δ_50 [%] | δ_300 [%] | δ_1500 [%] | δ_2000 [%] |
+|---|---|---|---|---|---|
+| ν_arg | gen2 | −0.689 ± 0.146 | −0.092 ± 0.048 | +0.006 ± 0.019 | +0.110 ± 0.061 |
+| ν_arg | gen3 | −0.063 ± 0.111 | +0.066 ± 0.071 | −0.001 ± 0.015 | −0.052 ± 0.067 |
+| ν_d | gen2 | −0.516 ± 0.084 | +0.002 ± 0.029 | +0.004 ± 0.015 | −0.014 ± 0.032 |
+| ν_d | gen3 | −0.294 ± 0.076 | +0.082 ± 0.047 | −0.009 ± 0.013 | −0.014 ± 0.028 |
+| ν_0 | gen2 | −0.387 ± 0.083 | +0.014 ± 0.029 | +0.001 ± 0.015 | −0.018 ± 0.032 |
+| ν_0 | gen3 | −0.169 ± 0.076 | +0.098 ± 0.047 | −0.011 ± 0.013 | −0.017 ± 0.028 |
+
+**δ_50 per engine and gen3 − gen2.**
+- The script's "z vs sec. 16" uses sec. 16's ν_0 value, −0.424 ± 0.078 %, for every estimator, as the decision states the question.
+- In brackets, [ARITHMETIC on the printed values]: z against sec. 16's own value for that estimator, from methods line 1462: argmax −0.690 ± 0.126 % and ν_d −0.549 ± 0.078 %.
+
+| estimator | gen2 δ_50 [%] | z vs 0 | z vs sec. 16 | gen3 δ_50 [%] | z vs 0 | z vs sec. 16 | gen3 − gen2 [%] | z |
+|---|---|---|---|---|---|---|---|---|
+| ν_arg | −0.689 ± 0.146 | −4.73 | −1.60 [+0.01] | −0.063 ± 0.111 | −0.57 | +2.66 [+3.73] | +0.626 ± 0.183 | +3.42 |
+| ν_d | −0.516 ± 0.084 | −6.13 | −0.80 [+0.29] | −0.294 ± 0.076 | −3.85 | +1.19 [+2.34] | +0.222 ± 0.114 | +1.95 |
+| ν_0 | −0.387 ± 0.083 | −4.67 | +0.32 | −0.169 ± 0.076 | −2.21 | +2.34 | +0.218 ± 0.113 | +1.94 |
+
+**The answer to the question.**
+- **gen2 shows sec. 16's deficit, in full and with each estimator.** Its δ_50 lies within 0.3 SE of sec. 16's matching value. Sec. 16 is itself gen2 (Test T legacy; Test G's gen2 arm uses the minimal policy).
+- **gen3 shows part of it:**
+  - by ν_0, −0.169 ± 0.076 %: about 45 % of gen2's, 2.2 SE from zero and 2.3 SE from sec. 16;
+  - by ν_d, −0.294 ± 0.076 %;
+  - by argmax, nothing.
+- **Raw gen3 − gen2 at M = 50, without the δ normalisation:**
+  - argmax +0.635 ± 0.181 % (z +3.51, the registered number);
+  - ν_d +0.244 ± 0.108 % (z +2.26);
+  - [ARITHMETIC on B1] ν_0 +0.238 ± 0.111 % (z +2.16).
+- **[INFERENCE] The registered argmax shows an engine difference about 2.6 times the refined estimators' (raw differences; 2.8–2.9 times in δ).**
+  - The argmax depends on the line shape near the peak.
+  - The 4a fit separates the oscillation from the slow mode.
+  - A difference of spectral shape between the engines would do this. These tables do not test it.
+  - The natural next table would be the full parameter vector of the averaged-ACF fits (A, τ_T, B, τ_r, ν_d, φ) and the averaged periodograms per engine. **It is not made:** one script, committed before its run.
+
+**B2 (POST HOC, INFORMATION): the argmax grid.**
+- ν_arg = k·df, with df = 1/(n dt). There is no zero padding (`tests_20260913._spectrum`), and every ν_arg lies on its bin to within 1.4e-12 bins.
+- n dt is the prefix of 200 *predicted* periods. So df = ν_pred/200, which is 0.47 % of the measured ν at every mass (ν/ν_pred ≈ 1.06).
+
+| M | n | dt | df [% of ν] | SD in bins, gen2 / gen3 | mean gen3 − gen2 [bins] | [% of ν] |
+|---|---|---|---|---|---|---|
+| 50 | 6752 | 0.4333 | 0.471 | 5.66 / 5.18 | +1.347 | +0.635 |
+| 300 | 6775 | 0.8499 | 0.470 | 2.52 / 2.70 | +0.350 | +0.164 |
+| 1500 | 6730 | 1.8333 | 0.470 | 1.42 / 1.45 | +0.000 | +0.000 |
+| 2000 | 6713 | 2.1165 | 0.469 | 1.44 / 1.39 | −0.330 | −0.155 |
+
+**How coarse the grid is at M = 50.**
+- One bin is 0.47 % of ν, and the per-trajectory scatter is 5.2–5.7 bins (2.4–2.7 %).
+- The rounding to the grid adds 1/12 bin² to a variance of about 30 bin², roughly 0.3 %. So the SE at M = 50 comes from the periodogram's noise, not from the grid.
+- The registered SE is 0.38 bins, and the difference is 1.35 bins.
+
+The M = 50 histogram (bin k: gen2 / gen3 counts; ν = k × 3.41783e-4):
+
+192: 1/0, 195: 2/0, 196: 2/0, 197: 1/0, 198: 2/2, 199: 1/1, 200: 2/1, 201: 3/2, 202: 4/3, 203: 5/1, 204: 10/8, 205: 17/10, 206: 14/7, 207: 28/18, 208: 29/22, 209: 25/26, 210: 29/37, 211: 27/27, 212: 33/33, 213: 25/30, 214: 25/27, 215: 26/30, 216: 17/26, 217: 17/21, 218: 17/14, 219: 7/16, 220: 9/11, 221: 7/5, 222: 6/5, 223: 3/6, 224: 1/5, 225: 2/1, 226: 1/3, 229: 1/0, 230: 0/1, 232: 0/1, 236: 1/0.
+
+- [ARITHMETIC] Below bin 209: gen2 121, gen3 75.
+- Bins 209–215: 190 and 210.
+- Above bin 215: 89 and 115.
+- The whole distribution of gen2 sits lower. It is not a tail.
+
+**"+0.000 %, z 0.00" at M = 1500.**
+
+The histogram (bin: gen2 / gen3):
+
+207: 0/1, 208: 0/1, 209: 4/1, 210: 13/14, 211: 37/38, 212: 88/85, 213: 121/126, 214: 86/82, 215: 40/38, 216: 8/11, 217: 1/1, 218: 2/2.
+
+- [ARITHMETIC] Σ(k − 213) = −13 in both arms, so the two means are identical to the last bit.
+- Under the null, the difference of the two sums is an integer with SD √(400 · 1.42² + 400 · 1.45²) ≈ 41 bins. An exact tie therefore has a probability of about 1/(√(2π) · 41) ≈ 1 %.
+- This is a coincidence that only the discrete estimator allows. The arms are not identical: bins 207 and 208 hold only gen3 trajectories, and the counts differ in 10 of 12 bins.
+
+**B3 (POST HOC, INFORMATION): paired by start? Yes.**
+
+**The code** (driver `00ALLINONE.c` at `a643bc7`, the KOA build). The worker's two commands differ only in `--engine=$eng` (`testG_worker_koa.sh` lines 86–91, unchanged since `1cdb7ff6`).
+
+```
+16671                const unsigned int run_seed =
+16672                    cli_speed_sound_exact_seed_set
+16673                        ? cli_speed_sound_exact_seed
+16674                        : speed_sound_run_seed(cli_seed, l, m, r);
+16675                srand(run_seed);
+ ...
+16703                if (cli_gen3_seeding) g3_m4_init_driver(L0d, run_seed);   /* ##CHRIS 2026-10-09 (stage C, M4) */
+16704                else initialize_simulation();
+```
+
+Test G does not set `--gen3-seeding`, so both arms seed with `initialize_simulation()` into gen2's container. gen3 is built from that container at the first advance:
+
+```
+1487 static inline double edmd_backend_advance_to(EDMD* S, double t_target) {
+1488     if (cli_engine == 3) {                             /* ##CHRIS 2026-10-09 (M3) */
+1489         if (!g3_live(S)) { g3_free(); g3_build(S); }
+ ...
+1312 static void g3_build(const EDMD* S){
+ ...
+1317     const double t0 = isnan(g3_load_time) ? edmd_time(S) : g3_load_time;
+1318     if (!edmd3_load(g_edmd3, edmd_particles(S), t0, err, sizeof err)) {
+```
+
+**The data.**
+
+| M | common seeds | same run index | seeding lines byte-identical | ν_arg: mean diff [% of ν] | SE | same-seed corr. | ν_d: mean diff [% of ν] | SE | same-seed corr. | unpaired SE ν_arg / ν_d [%] |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 50 | 400 | 400 | 400 | +0.635 | 0.175 | +0.059 | +0.244 | 0.106 | +0.044 | 0.181 / 0.108 |
+| 300 | 400 | 400 | 400 | +0.164 | 0.086 | +0.019 | +0.101 | 0.056 | +0.068 | 0.087 / 0.058 |
+| 1500 | 400 | 400 | 400 | +0.000 | 0.049 | −0.070 | +0.008 | 0.031 | +0.015 | 0.048 / 0.031 |
+| 2000 | 100 | 100 | 100 | −0.155 | 0.092 | +0.044 | +0.021 | 0.050 | +0.146 | 0.094 / 0.054 |
+
+- **What "seeding lines" covers.** The three [KE-AUDIT] lines carry KE_tot, KE_left, KE_right and Px to 9 digits. The line "[EDMD-ENERGY] 0 state loaded" carries E_gas to 17 digits.
+- **The pairing does not reduce the SE.** The correlations are consistent with zero.
+- [INFERENCE] The reason is the hold of 2000 × 0.4 = 800 σ-time before the release. gen2 and gen3 round differently, and the gas decorrelates within a few σ-time. For gen3 against its long-double build, Report G-KOA's M5 rows put the first ψ6 difference at 5.75–6.5 σ-time for N 100 at π/8. So by the release the arms are independent samples.
+
+**B4 (POST HOC, INFORMATION): the divider's kinetic temperature.**
+
+**The expected value, in two lines [DERIVATION].**
+- With hard cores all energy is kinetic: E = Σ_k p_k²/(2m_k) over f = 2N + 1 momenta (2N of the gas, 1 of the divider).
+  - The walls exchange momentum, so E is the only conserved quantity, and the microcanonical density is uniform on that shell.
+- In q_k = p_k/√(2m_k) the shell is the sphere Σ q_k² = E. By symmetry ⟨q_k²⟩ = E/f for every k, so ⟨M V²⟩ = 2⟨q_div²⟩ = 2E/(2N + 1).
+  - That is 200/201 = 0.99502 at E = 100, N = 100, independent of M.
+- The self-test checks this without the symmetry argument. It conditions canonical momenta of unequal masses (50, 1, 1, 1, 1) on E, giving 48,903 points within 4 %, and 2E/(2N) would be 25 % off.
+
+**(i) Exact, one instant per trajectory: "[EDMD-ENERGY] 2 end of record".**
+
+| engine | M = 50 | M = 300 | M = 1500 | M = 2000 | all four (1300) |
+|---|---|---|---|---|---|
+| gen2: mean 2E_div ± SE (z vs 0.99502) | 0.9707 ± 0.0695 (−0.35) | 0.9592 ± 0.0681 (−0.53) | 1.0400 ± 0.0744 (+0.61) | 1.0648 ± 0.1292 (+0.54) | 0.9957 ± 0.0389 (+0.02) |
+| gen3 | 1.0608 ± 0.0809 (+0.81) | 0.9919 ± 0.0667 (−0.05) | 1.0269 ± 0.0726 (+0.44) | 0.9994 ± 0.1387 (+0.03) | 1.0244 ± 0.0406 (+0.72) |
+
+**(ii) Over the record, a proxy: M⟨(Δx/Δt)²⟩ = M · 2(C(0) − C(k dt))/(k dt)², from the fetched ACF.**
+
+| M | ω dt | gen2, k = 1 | gen3, k = 1 | gen3/gen2 − 1, k = 1 | gen3/gen2 − 1, k = 2 |
+|---|---|---|---|---|---|
+| 50 | 0.197 | 0.8639 ± 0.0034 | 0.8683 ± 0.0032 | +0.51 ± 0.54 % | +0.52 ± 0.60 % |
+| 300 | 0.197 | 0.9415 ± 0.0083 | 0.9420 ± 0.0086 | +0.05 ± 1.27 % | −0.01 ± 1.31 % |
+| 1500 | 0.199 | 0.9386 ± 0.0132 | 0.9581 ± 0.0134 | +2.09 ± 2.03 % | +2.11 ± 2.04 % |
+| 2000 | 0.199 | 0.9260 ± 0.0275 | 0.9498 ± 0.0282 | +2.57 ± 4.31 % | +2.59 ± 4.34 % |
+
+- **The proxy sits 13 % below 0.995 at M = 50 and 4–7 % below at the heavier masses.**
+  - An exact oscillation would cost only (ω dt)²/12 = 0.3 %.
+  - [INFERENCE] The rest is the divider's velocity decorrelating within one sample interval, through its collisions with the gas. The effect is largest for the lightest divider.
+  - The proxy is the same estimator in both arms, so its engine ratio is the informative number. It shows no difference.
+- **Where the velocity is.**
+  - It is not in the fetched data or on KOA scratch. The trace holds Time, Wall_X and Displacement(σ) at %.6f and no velocity.
+  - `HD_KE_COLUMNS=1` would add the gas KE_L and KE_R per row, giving E_div = E_tot − KE_L − KE_R. Test G's worker did not set it (it sets HD_KE_TRACE and HD_CONTACT_AUDIT).
+  - So **no reduction job of existing files gives V over the record.** The smallest job that would is a new run with `HD_KE_COLUMNS=1`: logging only, already in the a643bc7 build. Not proposed as a task here.
+
+**B5 (POST HOC, INFORMATION): sec. 4.7.10, quoted (the defect scan of decision 5).**
+
+**What the defect is:**
+
+> "`collide_time_ab` has had only two versions in git: 3bb8c42 (2025-09-11) and 20df8c1 (2026-09-10). Both contain `if(t<=1e-12) return 0;`. 20df8c1 also added the overlap safety net, `if(c<0.0){ *tcol = 0.0; return 2; }`."
+
+> "the same `<= 1e-12` drop exists for: the outer walls, which have an overdue branch since the fix; the divider faces and the pistons, which have none. A disk already at their face is dropped. The clamp-repair counter (`wall_clamp_repairs`) and the validator's wall checks cover that case."
+
+The divider-face lines it prints for each build (line numbers vary by build):
+
+```
+collide_time_divider_L   if(num <= 1e-12) return 0;      /* not strictly left of face */
+collide_time_divider_L   if(t<=1e-12) return 0; *tcol=t; return 1;
+```
+
+and the same lines for `_R`.
+
+**Its measured rate:**
+
+> "The papers: 7.90e10 collisions and 0.079 expected hits at 1e-12 per collision, against 1 observed (the A2_topup run)."
+
+> "The gates: 9.15e9 collisions, 0.009 expected, 0 observed."
+
+> "[INFERENCE] One observed hit against 0.079 expected has a Poisson probability of 7.6 %, so it neither contradicts nor confirms the estimate. The scan cannot tell whether that repair came from the cut-off or from another route to an overlap."
+
+The 1e-12 per collision is the decision's assumed rate, not a fit.
+
+**Its dependence on the divider mass:** not measured. Sec. 4.7.10 gives no rate per mass. Its one observed repair was at M = 2000:
+
+> "A2_topup, η 0.10, N 1600, M 2000, run 24, seed 2182233375, overlap_repairs = 1, finished valid"
+
+**Whether Test G's gen2 runs carry a counter of it.**
+- **Not of the drop itself.** The return of 0 is counted nowhere.
+- **They carry counters of its consequences** in the [EDMD-HEALTH] line, printed only when a counter is nonzero: overlap_repairs (two disks overlapping) and wall_clamp_repairs (a disk inside a divider face), with forced_advance, wall_overdue and past_events.
+- **Result:** 0 lines in all 1300 gen2 run sections, and 0 in gen3.
+- **This is guaranteed by the worker.** `health_ok` refused a gen2 run with any such line (it would have been a FAILED run), and the merge found 0 failed-run folders.
+- **The contact audit (HD_CONTACT_AUDIT=1, every run; supporting counts §1)**, giving max |contact distance| at executed events in px (24 px = 1 σ):
+
+| engine | M = 50: disk-disk / divider | M = 300 | M = 1500 | M = 2000 |
+|---|---|---|---|---|
+| gen2 | 5.2e-11 / 3.4e-11 | 1.0e-10 / 7.0e-11 | 2.2e-10 / 1.4e-10 | 2.1e-10 / 1.3e-10 |
+| gen3 | 4.9e-12 / 2.6e-12 | 5.3e-12 / 3.2e-12 | 5.3e-12 / 3.2e-12 | 6.1e-12 / 3.2e-12 |
+
+Every executed collision of both engines happened at contact to better than 1e-11 σ.
+
+---
+
+**Task C — the arbiter: a proposal only. Nothing was run.**
+
+**C1. The replay in the M2 harness's brute-force reference.**
+
+**First, a correction to the premise [SOURCE].** The M2 harness does not contain an independent engine that replays a trajectory and computes its own event hash.
+- Its runs are A (gen3 with the audits), B (gen3 without them), C (gen3 again) and D (gen2): see the harness header, `edmd_core/tests/gen3_m2_harness.c` lines 1–13.
+- Its "brute force" is **gen3's schedule audit**: `schedule_audit` in `edmd_core/edmd_gen3.c`, lines 971–1083, unchanged since `a643bc7`. At an audited state it:
+  1. computes every disk's absolute position at `now` from gen3's cell index and local offset (`local_now`);
+  2. records every live heap entry;
+  3. recomputes from scratch every disk's next cell crossing, every disk's outer-wall time, **every pair i < j** (no cell lists), and every disk against each divider face (`schedule_audit_bodies`, 913–970);
+  4. counts: missing (an event the brute force finds and the heap should hold), extra (a heap entry the brute force does not find), deferred earlier than eligible (a pair or wall left out of the heap whose time precedes the disk's next crossing), duplicates that disagree, band coverage, and the largest |t_bruteforce − t_heap| over matched events.
+- The event-hash comparison the harness makes is A against B: the audits do not steer.
+
+**What the audit shares with gen3 [SOURCE]:**
+- the state itself (gen3's disks, the divider's position and velocity via `obj_at`);
+- the contact kinematics: `pair_rule` for pairs, `body_rule` for divider faces, `cross_rule` for crossings;
+- the exclusion of the pair or face that has just collided (`mutual_last`, `D->last`/`O->last`);
+- the band geometry (`body_reach`, `band_columns`) and the `real` arithmetic;
+- its tolerances: |dt| > 1e-9 units counts as a disagreement, and "deferred early" means earlier by more than 1e-9 of the horizon.
+
+**What it does not share:**
+- the heap and its invalidation (stale entries, `ev_live`);
+- the cell lists: the scan covers all 4950 pairs at N 100;
+- the incremental rescheduling after each event;
+- the wall-time formula, which the audit writes out itself;
+- the positions: absolute, recomputed at `now`, whereas the heap's times were computed when each event was scheduled.
+
+**It checks** that gen3 always holds the earliest event its own rules predict.
+
+**It does not check:**
+- the shared rules themselves: a common error in `pair_rule` or `body_rule` passes;
+- the collision response: that is the [EDMD3-LEDGER] energy and momentum ledger, printed in every run;
+- contact at execution: that is [EDMD3-GAP], on in every Test G run, max 6.1e-12 px;
+- anything about gen2, which has no schedule audit.
+
+**The proposed run.**
+- The registered command of Test G's M = 50 gen3 arm (`testG_worker_koa.sh` mode B, same flags) with `--gen3-audit-every=1`: the audit after every executed event, crossings included. The driver flag exists at a643bc7 and prints [EDMD3-AUDIT] at the end.
+- Each trajectory runs twice, with and without the flag.
+- Mac starts: the first n seeds of the M = 50 gen3 tasks in task-list order.
+  - [INFERENCE] The Mac's libc and libm give other initial states than KOA's for the same seed: the harness hashes agree across the machines only for the 21 libm-free rows (Report G-KOA).
+  - So the KOA trajectories themselves cannot be replayed; the audit covers Mac trajectories of the same command.
+- Compared per trajectory: the [EDMD3-AUDIT] counts, and the event hash and per-class event counts of [EDMD3-HEALTH], audited against unaudited.
+
+**Cost — an estimate from the operation count, not a measurement.**
+- At M = 50, gen3 executes 1.13e6 events per trajectory: 6.23e5 pair, 1.13e5 wall, 3.57e5 crossing and 3.8e4 divider events. Its heap peaks at 2,900 entries (KOA run records, supporting counts §2).
+- Each audit predicts 4,950 pairs and 400 wall, 100 crossing and 100 face events, and scans the heap: about 0.1 ms on this Mac, ± a factor of 2.
+- So about 1.5–2.5 min per audited trajectory, plus about 3 s for the run and its unaudited twin.
+- 8 processes × 2 h = 57,600 process-seconds. That gives n ≈ 350–600 at the estimate, or about 190 if the audit is twice as slow.
+- **Proposal: n = 200.** One audited trajectory outside the sample is timed first. If it takes more than 4.5 min, n = ⌊0.9 × 57,600 s / t₁⌋.
+
+**Proposed verdict rule.**
+- **PASS** requires, in all n trajectories:
+  - every [EDMD3-AUDIT] count is 0: missing and extra in every class, deferred-early, bands, duplicates disagreeing, cells inconsistent;
+  - max |dt| ≤ 1e-9 units: the line's "max |dt|/horizon (|dt| > 1e-9 only)" reads 0;
+  - the event hash and the per-class counts equal the unaudited twin's;
+  - clean=1 in both runs.
+- **FAIL:** any missing, extra or deferred-early event. The audit prints each one with the disk(s) and both times, and the first is quoted.
+- **NOT DECIDED:** anything else, such as only a time disagreement above 1e-9, or twins that differ. It is reported with its numbers.
+- **Scale.** 200 × 1.13e6 = 2.3e8 audited states, so a scheduling defect at a rate ≥ 1.3e-8 per event is caught with 95 % probability.
+  - [INFERENCE] A defect large enough to move ν by 0.1–0.6 % would have to act many times per period: there are about 140 divider events per period at M = 50.
+
+**What C1 can show:** that gen3 executes, at every event of n full M = 50 records, exactly the event its own kinematics put first. Together with the contact audit and the ledger, a PASS would leave no event-level fault in gen3 that I know how to look for [INFERENCE].
+
+**What C1 cannot show:** a fault shared with the audit's rules, anything about gen2, or which frequency is right.
+
+**C2. First departure from the identical start.**
+
+**Can the driver start both engines from one state? Yes, at t = 0, in memory** (B3: the code and 1300 byte-identical seeding lines). From a state *dumped* later, no:
+- only gen3 can load one, via `--engine-replay=FILE` (harness state files) or `--gen3-restart=PATH` (gen3 checkpoints);
+- gen2 has no load path, and `edmd.c` is frozen (decision 5);
+- a driver flag that fills gen2's container from a file before it is created would make it possible without touching `edmd.c`. Not needed if C2 starts at t = 0.
+
+**The hold.**
+- During the 800 σ-time hold the divider is held, so its position cannot depart. The gas departs within about 6 σ-time (the M5 rows).
+- So C2 runs the registered command with `--wall-hold-steps=0` (the divider free from t = 0) for 50 σ-time.
+
+**Logging it needs** (driver only, off by default, with a byte-identity gate when off; `edmd.c` and `edmd_gen3.c` unchanged):
+- (a) the divider's x and V at %.17g at every 1/60 σ-time step, in both engines through the driver's readers. The trace's %.6f resolves only 1e-6 σ.
+- (b) for a flagged seed, a second deterministic pass with every disk's x, y, vx, vy at %.17g at every step within ±1 σ-time of the step found in (a);
+- (c) the existing divider/piston event log (`HD_PISTON_EVENTS`; gen2's `resolve_wall` and gen3 write the same rows) attached in the speed-of-sound path too. It is attached in energy-transfer mode only at a643bc7.
+
+Neither engine logs pair events. A pair event handled differently is therefore located from (b): the first disks whose states differ beyond rounding, and their last collision in each engine.
+
+**The baseline.** gen3 against its rounding-level twin, from the same start. A long double is real only on x86-64; on this arm64 Mac it is the 8-byte double (`edmd_gen3.c` lines 73–78). Three options:
+1. KOA's koa and koa-ld builds, rebuilt with the logging. That needs a KOA build, typed by Chris.
+2. A Mac x86-64 build under Rosetta 2, if a one-line run-time check shows a 64-bit mantissa. Not checked.
+3. gen3 built on the Mac with `-ffp-contract=fast` (fused multiply-add) against the default `-ffp-contract=off`: the same arithmetic, rounded differently.
+
+I would take option 2 if the check passes, otherwise option 3, and option 1 only if the plan author wants the literal long double.
+
+**Runs.**
+- M = 50, 300 and 1500 × 20 Mac seeds × {gen2, gen3, gen3's twin} × 50 σ-time: 180 short runs of seconds each.
+- About 22 MB of %.17g divider rows.
+- Pass (b) runs only for flagged seeds.
+
+**Proposed verdict rule.** Per seed, D(t) = |x_gen2 − x_gen3| of the divider in σ, and B(t) the same for the baseline pair.
+- t_dep is the first step with D > 1e-9 σ.
+- An **abrupt step** is a step-to-step growth of D by ≥ 1e3 while D < 1e-9 σ before it.
+  - [INFERENCE] Below 1e-9 σ, a chaotic flip of a near-grazing collision has a probability of order 1e-9 per collision.
+- The rule is valid only if the baseline shows no abrupt step in its 60 seeds. Then:
+  - **ROUNDING ONLY (chaos)** if no gen2–gen3 seed has an abrupt step and their median t_dep lies within the baseline's 5–95 % range;
+  - **AN EVENT HANDLED DIFFERENTLY** if any seed has one. The event is printed: time, partners, and each engine's time.
+  - **NOT DECIDED** otherwise.
+- **Scale** [INFERENCE, estimates].
+  - Per seed, the engines agree to 1e-9 σ for roughly the first 5 σ-time: about 1,000 events, about 50 of them at the divider.
+  - Over 60 seeds that is about 6e4 events and 3e3 divider events. So C2 sees a difference occurring at ≳ 5e-5 per event (≳ 1e-3 per divider event) and is blind to rarer ones.
+  - Unlike C1, it compares the two engines directly.
+
+**C3. A check that shares no code with either engine: none that I judge decisive.**
+- **The exact identities measurable in both arms are equal-time averages, and both arms pass every one in the data:**
+  - the energy: E_tot = 100 to about 1e-12 in both, and gen3's ledger residual is about 1e-12;
+  - the divider's equipartition (B4);
+  - the collision rates, which follow from the contact values of the equilibrium distribution: gen3/gen2 − 1 = (+0.35 ± 0.76, +0.39 ± 0.56, +1.02 ± 0.41, +0.08 ± 0.78) × 1e-4 at M = 50, 300, 1500, 2000 (supporting counts §3).
+- The frequency is a time-correlation property with no exact value at α = 0.5. That is why sec. 16's deficit is OPEN.
+- The one exact dynamical identity measurable in both arms is the fluctuation–dissipation theorem: the response to a weak force on the divider against its equilibrium spectrum. It holds for any dynamics in detailed balance, so an event-level error that keeps equilibrium would pass it as well.
+- **What would decide without sharing code is not an identity but a third engine:**
+  - written independently (brute-force EDMD of the same system), started from the same states (a driver flag writing the seeded state);
+  - judged by the registered Test G rule against both arms at M = 50: decisive if one comparison gives DIFFERENCE and the other NO DIFFERENCE;
+  - cost: writing and validating it (days, my estimate), then about an hour for 400 trajectories on 8 processes (estimate).
+  - It is mentioned so the option is on the table, not proposed.
+
+**[INFERENCE] If C1 passes and C2 reads ROUNDING ONLY:**
+- Both engines execute the same events to rounding wherever the checks look.
+- The remaining explanations are then:
+  - a difference in what the arms do outside the engines. None is known: the command, seeding, hold, release and sampling are shared driver code, through each engine's readers.
+  - chance in the registered argmax, whose engine difference is 2.6 times the refined estimators' (raw).
+- A fresh-seed replication of the M = 50 cell would then be the arbiter.
+
+**Data and commits.**
+- **Data:** `REPORT_G2_261011/`, 0.03 MB, plus the scratchpad's synthetic tree (0.48 MB).
+- **Commits:**
+  - main `60909289` (the script) and this report's commit;
+  - engine-gen3 `25033e7a` and this report's copy;
+  - engine-divider-resched: the notes.
+
+**The script's output, verbatim** (`REPORT_G2_261011/testG_koa_posthoc_output.txt`, the first run on the data; script at `60909289`):
+
+```
+# POST HOC, INFORMATION: Test G on KOA, the tables of decision 27 task B (261012 sec. 4.7.56). They change no verdict:
+# TEST G (KOA): FAIL (DIFFERENCE) at M = 50 stands.
+
+## Self-test first
+
+| check | result |
+|---|---|
+| fit_acf recovers nu_d (0.1 %) and tau_r (2 %) of a known ACF | PASS |
+| jackknife SE of a mean ~ SD/sqrt(n) (25 %) | PASS |
+| jackknife: a replicate that fails is counted and left out | PASS |
+| delta_50 = -1 % against a flat reference; SE by the delta method | PASS |
+| argmax bins counted on their grid | PASS |
+| log parser: seeding lines equal across engines, energies, health lines | PASS |
+| finite-difference proxy equals its exact value on an oscillation (1e-3) | PASS |
+| <M V^2> = 2E/(2N+1) at fixed E (conditioned canonical sample, 48903 points, 4 %; 2E/(2N) is 25 % off) | PASS |
+
+SELF-TEST: PASS (8 of 8)
+
+## B1 (POST HOC, INFORMATION): per engine and mass, the frequency estimators with jackknife SEs
+
+| engine | M | trajectories | nu_d fit failures | jackknife replicates failed | mean nu_arg | mean nu_d | tau_r | Q | nu_0 | -1/(4Q^2) [%] |
+|---|---|---|---|---|---|---|---|---|---|---|
+| gen2 | 50 | 400 | 0 | 0 | 0.0722828 +- 0.0001044 | 0.0724179 +- 0.0000602 | 41.9 +- 0.6 | 9.55 +- 0.15 | 0.0725174 +- 0.0000592 | -0.274 |
+| gen2 | 300 | 400 | 0 | 0 | 0.0369479 +- 0.0000201 | 0.0369874 +- 0.0000122 | 220.2 +- 4.8 | 25.59 +- 0.56 | 0.0369945 +- 0.0000122 | -0.038 |
+| gen2 | 1500 | 400 | 0 | 0 | 0.0172607 +- 0.0000055 | 0.0172627 +- 0.0000039 | 1046.6 +- 22.1 | 56.78 +- 1.20 | 0.0172634 +- 0.0000039 | -0.008 |
+| gen2 | 2000 | 100 | 0 | 0 | 0.0150050 +- 0.0000099 | 0.0149883 +- 0.0000055 | 1385.2 +- 51.6 | 65.25 +- 2.43 | 0.0149888 +- 0.0000055 | -0.006 |
+| gen3 | 50 | 400 | 0 | 0 | 0.0727434 +- 0.0000786 | 0.0725949 +- 0.0000542 | 42.8 +- 0.7 | 9.75 +- 0.16 | 0.0726903 +- 0.0000541 | -0.263 |
+| gen3 | 300 | 400 | 0 | 0 | 0.0370087 +- 0.0000279 | 0.0370248 +- 0.0000184 | 209.1 +- 4.2 | 24.32 +- 0.49 | 0.0370327 +- 0.0000185 | -0.042 |
+| gen3 | 1500 | 400 | 0 | 0 | 0.0172607 +- 0.0000052 | 0.0172640 +- 0.0000037 | 1031.8 +- 24.3 | 55.97 +- 1.32 | 0.0172647 +- 0.0000037 | -0.008 |
+| gen3 | 2000 | 100 | 0 | 0 | 0.0149817 +- 0.0000107 | 0.0149914 +- 0.0000049 | 1332.1 +- 66.9 | 62.73 +- 3.16 | 0.0149919 +- 0.0000049 | -0.006 |
+
+sec. 16 (Test T legacy, 4a model, averaged ACF) at M = 50: Q 9.3, -1/(4Q^2) = -0.288 %.
+x_M = K(alpha)/(2 pi L_eff) (tests_20260913.x_of, L0 = 10): M 50: alpha 0.5, K 1.07687, x 0.0190964; M 300: alpha 3, K 0.54716, x 0.0097029; M 1500: alpha 15, K 0.25536, x 0.0045284; M 2000: alpha 20, K 0.22176, x 0.0039325
+
+### c_k = nu_k / x_M; delta_M = c_M / c_ref - 1, c_ref the inverse-variance weighted mean of c_M over M >= 300 of the same engine and estimator
+
+| estimator | engine | c_ref | delta_50 [%] | delta_300 [%] | delta_1500 [%] | delta_2000 [%] |
+|---|---|---|---|---|---|---|
+| nu_arg | gen2 | 3.81142 | -0.689 +- 0.146 | -0.092 +- 0.048 | +0.006 +- 0.019 | +0.110 +- 0.061 |
+| nu_arg | gen3 | 3.81169 | -0.063 +- 0.111 | +0.066 +- 0.071 | -0.001 +- 0.015 | -0.052 +- 0.067 |
+| nu_d | gen2 | 3.81192 | -0.516 +- 0.084 | +0.002 +- 0.029 | +0.004 +- 0.015 | -0.014 +- 0.032 |
+| nu_d | gen3 | 3.81272 | -0.294 +- 0.076 | +0.082 +- 0.047 | -0.009 +- 0.013 | -0.014 +- 0.028 |
+| nu_0 | gen2 | 3.81220 | -0.387 +- 0.083 | +0.014 +- 0.029 | +0.001 +- 0.015 | -0.018 +- 0.032 |
+| nu_0 | gen3 | 3.81293 | -0.169 +- 0.076 | +0.098 +- 0.047 | -0.011 +- 0.013 | -0.017 +- 0.028 |
+
+### delta_50 per engine and gen3 - gen2; methods sec. 16: -0.424 +- 0.078 % with nu_0 (Test T legacy, gen2, against the nine-mass weighted slope)
+
+| estimator | gen2 delta_50 [%] | z vs 0 | z vs sec. 16 | gen3 delta_50 [%] | z vs 0 | z vs sec. 16 | gen3 - gen2 [%] | z |
+|---|---|---|---|---|---|---|---|---|
+| nu_arg | -0.689 +- 0.146 | -4.73 | -1.60 | -0.063 +- 0.111 | -0.57 | +2.66 | +0.626 +- 0.183 | +3.42 |
+| nu_d | -0.516 +- 0.084 | -6.13 | -0.80 | -0.294 +- 0.076 | -3.85 | +1.19 | +0.222 +- 0.114 | +1.95 |
+| nu_0 | -0.387 +- 0.083 | -4.67 | +0.32 | -0.169 +- 0.076 | -2.21 | +2.34 | +0.218 +- 0.113 | +1.94 |
+
+## B2 (POST HOC, INFORMATION): the argmax bins, nu_arg = k df with df = 1/(n dt), per mass in both arms
+
+M = 50: n 6752, dt 0.4333284, df = 3.41783e-04 = 0.471 % of nu; largest distance of a nu_arg from its bin 3.1e-13 bins; SD in bins: gen2 5.66, gen3 5.18; mean gen3 - gen2 +1.347 bins = +0.635 % of nu
+
+| bin k | nu = k df | gen2 | gen3 |
+|---|---|---|---|
+| 192 | 0.0656223 | 1 | 0 |
+| 195 | 0.0666477 | 2 | 0 |
+| 196 | 0.0669895 | 2 | 0 |
+| 197 | 0.0673312 | 1 | 0 |
+| 198 | 0.0676730 | 2 | 2 |
+| 199 | 0.0680148 | 1 | 1 |
+| 200 | 0.0683566 | 2 | 1 |
+| 201 | 0.0686984 | 3 | 2 |
+| 202 | 0.0690402 | 4 | 3 |
+| 203 | 0.0693819 | 5 | 1 |
+| 204 | 0.0697237 | 10 | 8 |
+| 205 | 0.0700655 | 17 | 10 |
+| 206 | 0.0704073 | 14 | 7 |
+| 207 | 0.0707491 | 28 | 18 |
+| 208 | 0.0710909 | 29 | 22 |
+| 209 | 0.0714326 | 25 | 26 |
+| 210 | 0.0717744 | 29 | 37 |
+| 211 | 0.0721162 | 27 | 27 |
+| 212 | 0.0724580 | 33 | 33 |
+| 213 | 0.0727998 | 25 | 30 |
+| 214 | 0.0731416 | 25 | 27 |
+| 215 | 0.0734833 | 26 | 30 |
+| 216 | 0.0738251 | 17 | 26 |
+| 217 | 0.0741669 | 17 | 21 |
+| 218 | 0.0745087 | 17 | 14 |
+| 219 | 0.0748505 | 7 | 16 |
+| 220 | 0.0751923 | 9 | 11 |
+| 221 | 0.0755340 | 7 | 5 |
+| 222 | 0.0758758 | 6 | 5 |
+| 223 | 0.0762176 | 3 | 6 |
+| 224 | 0.0765594 | 1 | 5 |
+| 225 | 0.0769012 | 2 | 1 |
+| 226 | 0.0772429 | 1 | 3 |
+| 229 | 0.0782683 | 1 | 0 |
+| 230 | 0.0786101 | 0 | 1 |
+| 232 | 0.0792936 | 0 | 1 |
+| 236 | 0.0806608 | 1 | 0 |
+
+(the two arms' counts agree bin by bin: no)
+
+M = 300: n 6775, dt 0.8499459, df = 1.73660e-04 = 0.470 % of nu; largest distance of a nu_arg from its bin 1.1e-13 bins; SD in bins: gen2 2.52, gen3 2.70; mean gen3 - gen2 +0.350 bins = +0.164 % of nu
+
+| bin k | nu = k df | gen2 | gen3 |
+|---|---|---|---|
+| 205 | 0.0356003 | 2 | 3 |
+| 206 | 0.0357739 | 3 | 0 |
+| 207 | 0.0359476 | 3 | 6 |
+| 208 | 0.0361212 | 13 | 7 |
+| 209 | 0.0362949 | 13 | 12 |
+| 210 | 0.0364686 | 32 | 31 |
+| 211 | 0.0366422 | 51 | 52 |
+| 212 | 0.0368159 | 70 | 53 |
+| 213 | 0.0369895 | 52 | 61 |
+| 214 | 0.0371632 | 74 | 67 |
+| 215 | 0.0373369 | 40 | 42 |
+| 216 | 0.0375105 | 22 | 28 |
+| 217 | 0.0376842 | 13 | 12 |
+| 218 | 0.0378578 | 4 | 8 |
+| 219 | 0.0380315 | 5 | 13 |
+| 220 | 0.0382052 | 2 | 4 |
+| 221 | 0.0383788 | 1 | 1 |
+
+(the two arms' counts agree bin by bin: no)
+
+M = 1500: n 6730, dt 1.8333259, df = 8.10486e-05 = 0.470 % of nu; largest distance of a nu_arg from its bin 9.9e-13 bins; SD in bins: gen2 1.42, gen3 1.45; mean gen3 - gen2 +0.000 bins = +0.000 % of nu
+
+| bin k | nu = k df | gen2 | gen3 |
+|---|---|---|---|
+| 207 | 0.0167771 | 0 | 1 |
+| 208 | 0.0168581 | 0 | 1 |
+| 209 | 0.0169391 | 4 | 1 |
+| 210 | 0.0170202 | 13 | 14 |
+| 211 | 0.0171012 | 37 | 38 |
+| 212 | 0.0171823 | 88 | 85 |
+| 213 | 0.0172633 | 121 | 126 |
+| 214 | 0.0173444 | 86 | 82 |
+| 215 | 0.0174254 | 40 | 38 |
+| 216 | 0.0175065 | 8 | 11 |
+| 217 | 0.0175875 | 1 | 1 |
+| 218 | 0.0176686 | 2 | 2 |
+
+(the two arms' counts agree bin by bin: no)
+
+M = 2000: n 6713, dt 2.1164855, df = 7.03830e-05 = 0.469 % of nu; largest distance of a nu_arg from its bin 1.4e-12 bins; SD in bins: gen2 1.44, gen3 1.39; mean gen3 - gen2 -0.330 bins = -0.155 % of nu
+
+| bin k | nu = k df | gen2 | gen3 |
+|---|---|---|---|
+| 208 | 0.0146397 | 0 | 1 |
+| 209 | 0.0147101 | 0 | 1 |
+| 210 | 0.0147804 | 4 | 4 |
+| 211 | 0.0148508 | 10 | 5 |
+| 212 | 0.0149212 | 14 | 23 |
+| 213 | 0.0149916 | 29 | 39 |
+| 214 | 0.0150620 | 26 | 18 |
+| 215 | 0.0151324 | 12 | 5 |
+| 216 | 0.0152027 | 5 | 4 |
+
+(the two arms' counts agree bin by bin: no)
+
+## B3 (POST HOC, INFORMATION): pairing by start (the same exact seed, the same initial state), gen3 - gen2 per seed
+
+| M | common seeds | same run index | seeding lines byte-identical | nu_arg: mean diff [% of nu] | SE | same-seed corr. | nu_d: mean diff [% of nu] | SE | same-seed corr. | unpaired SE, nu_arg [%] | unpaired SE, nu_d [%] |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 50 | 400 | 400 | 400 | +0.635 | 0.175 | +0.059 | +0.244 | 0.106 | +0.044 | 0.181 | 0.108 |
+| 300 | 400 | 400 | 400 | +0.164 | 0.086 | +0.019 | +0.101 | 0.056 | +0.068 | 0.087 | 0.058 |
+| 1500 | 400 | 400 | 400 | +0.000 | 0.049 | -0.070 | +0.008 | 0.031 | +0.015 | 0.048 | 0.031 |
+| 2000 | 100 | 100 | 100 | -0.155 | 0.092 | +0.044 | +0.021 | 0.050 | +0.146 | 0.094 | 0.054 |
+
+## B4 (POST HOC, INFORMATION): the divider's kinetic temperature; equipartition at fixed E over f = 2N + 1 = 201: <M V^2> = 2 E_tot / 201
+
+### (i) exact, one instant per trajectory: [EDMD-ENERGY] 2 end of record (HD_KE_TRACE=1)
+
+| engine | M | trajectories | mean M V^2 = 2 E_div | SE | expected 2 E_tot / 201 | ratio | (mean - expected) / SE |
+|---|---|---|---|---|---|---|---|
+| gen2 | 50 | 400 | 0.9707 | 0.0695 | 0.995025 | 0.9755 | -0.35 |
+| gen2 | 300 | 400 | 0.9592 | 0.0681 | 0.995025 | 0.9640 | -0.53 |
+| gen2 | 1500 | 400 | 1.0400 | 0.0744 | 0.995025 | 1.0452 | +0.61 |
+| gen2 | 2000 | 100 | 1.0648 | 0.1292 | 0.995025 | 1.0701 | +0.54 |
+| gen2 | all four | 1300 | 0.9957 | 0.0389 | 0.995025 | 1.0007 | +0.02 |
+| gen3 | 50 | 400 | 1.0608 | 0.0809 | 0.995025 | 1.0661 | +0.81 |
+| gen3 | 300 | 400 | 0.9919 | 0.0667 | 0.995025 | 0.9969 | -0.05 |
+| gen3 | 1500 | 400 | 1.0269 | 0.0726 | 0.995025 | 1.0321 | +0.44 |
+| gen3 | 2000 | 100 | 0.9994 | 0.1387 | 0.995025 | 1.0044 | +0.03 |
+| gen3 | all four | 1300 | 1.0244 | 0.0406 | 0.995025 | 1.0296 | +0.72 |
+
+### (ii) over the record, a proxy: M <(dx/dt)^2> over one and two sample intervals, from the fetched ACF (same estimator in both arms)
+
+| M | dt | omega dt | gen2, k = 1 | gen3, k = 1 | gen3/gen2 - 1, k = 1 [%] | gen2, k = 2 | gen3, k = 2 | gen3/gen2 - 1, k = 2 [%] |
+|---|---|---|---|---|---|---|---|---|
+| 50 | 0.4333 | 0.197 | 0.8639 +- 0.0034 | 0.8683 +- 0.0032 | +0.51 +- 0.54 | 0.7718 +- 0.0034 | 0.7758 +- 0.0031 | +0.52 +- 0.60 |
+| 300 | 0.8499 | 0.197 | 0.9415 +- 0.0083 | 0.9420 +- 0.0086 | +0.05 +- 1.27 | 0.9069 +- 0.0082 | 0.9069 +- 0.0086 | -0.01 +- 1.31 |
+| 1500 | 1.8333 | 0.199 | 0.9386 +- 0.0132 | 0.9581 +- 0.0134 | +2.09 +- 2.03 | 0.9241 +- 0.0131 | 0.9436 +- 0.0133 | +2.11 +- 2.04 |
+| 2000 | 2.1165 | 0.199 | 0.9260 +- 0.0275 | 0.9498 +- 0.0282 | +2.57 +- 4.31 | 0.9135 +- 0.0273 | 0.9372 +- 0.0281 | +2.59 +- 4.34 |
+
+(expected <M V^2> = 2 x 100 / 201 = 0.99502; the proxy is biased low by the decorrelation within k dt)
+
+## B5 (POST HOC, INFORMATION): [EDMD-HEALTH] lines in the fetched logs (printed only when a gen2 counter is nonzero)
+
+| engine | M | ##RUN sections | [EDMD-HEALTH] lines |
+|---|---|---|---|
+| gen2 | 50 | 400 | 0 |
+| gen2 | 300 | 400 | 0 |
+| gen2 | 1500 | 400 | 0 |
+| gen2 | 2000 | 100 | 0 |
+| gen3 | 50 | 400 | 0 |
+| gen3 | 300 | 400 | 0 |
+| gen3 | 1500 | 400 | 0 |
+| gen3 | 2000 | 100 | 0 |
+```
