@@ -1,0 +1,26 @@
+#!/bin/bash
+# rehearsal shim: runs the job script AT ONCE, as Slurm would run it: SLURM_SUBMIT_DIR = this folder, a pretended job id, the output file
+# of its #SBATCH --output line (%x the job name, %j the id, %A %a the array id and task). Options (decision 24): --array=<list> runs its
+# tasks one after the other; --exclude=<nodes> is recorded (the Mac is one node); any other option is refused
+ARR=""; EXC=""
+while [ $# -gt 1 ]; do
+  case "$1" in --array=*) ARR=${1#--array=}; ARR=${ARR%%\%*};; --exclude=*) EXC=${1#--exclude=};; *) echo "rehearsal sbatch shim: option not supported: $1" >&2; exit 97;; esac
+  shift
+done
+S=$1; C="$REHEARSAL_ROOT/logs/sbatch_shim_counter"
+id=$(( $(cat "$C" 2>/dev/null || echo 920000) + 1 )); echo "$id" > "$C"
+name=$(sed -n 's/^#SBATCH --job-name=//p' "$S" | head -1); out=$(sed -n 's/^#SBATCH --output=//p' "$S" | head -1)
+echo "Submitted batch job $id"
+[ -z "$EXC" ] || echo "$id exclude $EXC (the Mac is one node: recorded only) 0" >> "$REHEARSAL_ROOT/logs/sbatch_shim_exits.txt"
+if [ -z "$ARR" ]; then
+  o=${out//%x/$name}; o=${o//%j/$id}
+  SLURM_SUBMIT_DIR=$PWD SLURM_JOB_ID=$id SLURM_JOB_NAME=$name bash "$S" > "$o" 2>&1; rc=$?
+  echo "$id $PWD/$S $rc" >> "$REHEARSAL_ROOT/logs/sbatch_shim_exits.txt"
+else
+  for t in $(echo "$ARR" | tr ',' '\n' | awk -F- '{ if (NF == 2) for (i = $1; i <= $2; i++) print i; else print $1 }'); do
+    o=${out//%x/$name}; o=${o//%A/$id}; o=${o//%a/$t}
+    SLURM_SUBMIT_DIR=$PWD SLURM_JOB_ID=$((id * 1000 + t)) SLURM_ARRAY_JOB_ID=$id SLURM_ARRAY_TASK_ID=$t SLURM_JOB_NAME=$name bash "$S" > "$o" 2>&1; rc=$?
+    echo "${id}_$t $PWD/$S $rc" >> "$REHEARSAL_ROOT/logs/sbatch_shim_exits.txt"
+  done
+fi
+exit 0

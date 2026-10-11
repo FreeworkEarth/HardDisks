@@ -1,0 +1,3 @@
+#!/bin/bash
+# rehearsal shim: a pretended node name for the cross-node tasks (REHEARSAL_HOST), else the Mac's
+if [ -n "${REHEARSAL_HOST:-}" ]; then echo "$REHEARSAL_HOST"; else exec /bin/hostname "$@"; fi

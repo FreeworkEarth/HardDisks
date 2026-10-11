@@ -20,3 +20,12 @@ runsheet's K2-4 block C; all five K2-4 paste blocks run as written in runsheet_k
                        merge_plan/ holds the merge's own plan files (block C's --plan-only, then the job's) and .merge_complete.
   run4_dc158b5_testG/  after the fix: the real chunks 1 and 2 (the run folders of one speed-of-sound folder per engine from two chunks);
                        PASS (14 of 14; verdict B not run: no paired runs at M = 300 and 1500 in this list).
+##CHRIS 2026-10-10 (plan-author decision 24, point 2; 261012 sec. 4.7.52): the merge job's chunk check (testG_chunk_logs_koa.sh: exactly one
+done log per chunk; every other log listed by name) and the case of a chunk whose first attempt stopped in a start-up check:
+  decision24_point2a/  point 2a printed by the code on a synthetic KOA-scale case (144 chunks, 20 of them stopped in a start-up check
+                       and resubmitted: 164 logs): Report K2b's block A lines, dc158b5's merge-job chunk loop verbatim, the new check
+  run5_fd8d8a2_retry/  real chunks 1 and 2; chunk 2's first attempt on a pretended faulty node (the sha256sum shim fails), then the
+                       runsheet's block R and blocks A-E as written: 14 of 16 PASS -- two faults of CC's own: block C's chunk-check
+                       line named 144 chunks literally (fixed: the count from the registered task list, as the merge job takes it) and
+                       the driver's block D check counted the STOP line the chunk check quotes from the earlier attempt (fixed)
+  run6_fd8d8a2_retry/  the same after both fixes: PASS (16 of 16)

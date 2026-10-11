@@ -1,0 +1,13 @@
+scan: 2 chunks, 135 plan entries, 0 problem(s); plan written to /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d24/rehearsal_fd8d8a2/lustre/harddisks_gen3/testG_koa/merge_plan_20261010_235440.tsv
+
+## the merge plan: every destination folder, the chunks that deliver into it, and the names found in more than one chunk for that destination
+
+| destination (under merged/) | chunks | names in more than one chunk: treatment |
+|---|---|---|
+| testG/gen2/epi8_H_H10_L10/m_50 | 1, 2 | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; run.log: append in chunk order |
+| testG/gen3/epi8_H_H10_L10/m_50 | 1, 2 | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+
+plan entries by treatment: APPEND 6, EQUAL 4, MOVE 75, PER CHUNK 50
+names inside the moved run folders .done_runs/run<r> (each run's own folder; they never meet at the cell level): 00_COMMAND.md x50, 00_COMMAND_AND_PLOT_COMMAND.md x50, 01_PLOT_COMMANDS.md x50, experiments_speed_of_sound/ x50, run_params.json x50, speed_of_sound_batch_status.json x50, speed_of_sound_psi6.csv x50, stdout.log x50
+
+--plan-only: the plan has no problems; nothing moved

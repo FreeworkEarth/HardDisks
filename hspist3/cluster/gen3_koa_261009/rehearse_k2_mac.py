@@ -531,7 +531,8 @@ def testg(R, A, K2C, H, shim, PARTS, ml, runsheet, FIX, retry=None):
                                          and (f"earlier attempt of chunk {retry}, stopped in the start-up checks (ran nothing): gen3-testG_{J2}_{retry}.out" in tm if retry else True),
            "plan counts as the model": exp_mini[0] in tm and f"scan: {nch} chunks, {exp_mini[1]} plan entries," in tm,
            "the folders from several chunks listed": all(r in tm for r in rows), f"reduce_B exit 0 x{len(groups)}": len(red) == len(groups) and all(x[1] == "0" for x in red),
-           "traces compressed": "traces compressed" in tm, "done line": "merge done; next: the fetch" in tm, "no STOP": "STOP" not in tm}
+           "traces compressed": "traces compressed" in tm, "done line": "merge done; next: the fetch" in tm,
+           "no STOP": not re.search(r"^STOP", tm, re.M)}      # the merge job's own STOP lines (the chunk check quotes earlier attempts' STOP lines)
     res("runsheet K2-4 block D + merge_testG_k2.sbatch + merge_testG_koa.py (+ reduce_B.py)", f"bash as pasted; job {jid[0] if jid else '?'} (sbatch shim)",
         f"submitted; exit 0; scan {nch} chunks, 0 problems, the plan's counts as expected from the task lines; every folder fed by several chunks in the plan "
         f"({len(rows)}); 'merged {nch} chunks'; reduce_B exit 0 for all {len(groups)} B cell groups; traces compressed; done line", all(okC.values()),

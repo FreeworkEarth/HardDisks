@@ -1,0 +1,5 @@
+#!/bin/bash
+# rehearsal shim: the fetch's rsync with --exclude=e0_*/ added, so the gate folder's E0 outputs (A-fixed event logs,
+# about 0.2 GB) are not copied a second time; every other file goes through /usr/bin/rsync with the fetch's own arguments
+echo "[rehearsal rsync shim] /usr/bin/rsync --exclude=e0_*/ $*" >&2
+exec /usr/bin/rsync "--exclude=e0_*/" "$@"

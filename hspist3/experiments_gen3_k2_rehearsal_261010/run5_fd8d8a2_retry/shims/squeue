@@ -1,0 +1,4 @@
+#!/bin/bash
+# rehearsal shim: Slurm's queue -- empty, or the lines of the file REHEARSAL_SQUEUE (a pretended pending job)
+[ -n "${REHEARSAL_SQUEUE:-}" ] && cat "$REHEARSAL_SQUEUE"
+exit 0

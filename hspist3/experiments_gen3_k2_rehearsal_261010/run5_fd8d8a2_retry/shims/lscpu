@@ -1,0 +1,3 @@
+#!/bin/bash
+# rehearsal shim: Linux's lscpu
+echo "Model name:          $(sysctl -n machdep.cpu.brand_string) (Mac rehearsal)"

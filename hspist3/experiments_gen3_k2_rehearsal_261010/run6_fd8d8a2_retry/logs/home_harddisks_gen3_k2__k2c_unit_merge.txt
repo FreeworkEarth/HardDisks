@@ -1,0 +1,15 @@
+| case | expected | result | evidence |
+|---|---|---|---|
+| 1 clean (3 chunks) | exit 0; every treatment as planned | PASS | exit 0; 14/14 checks |
+| 2 second start after case 1 | exit 3; nothing changes | PASS | exit 3 |
+| 3 planted unknown duplicate in the last chunk | exit 2; both printed; zero files moved; no merged/ | PASS | exit 2; problems printed 2; chunks/ byte-identical True; merged/ False |
+| 4 restart after the scan-phase stop | exit 0 once the cause is removed | PASS | exit 0 |
+| 5 .build_git differs in the last chunk | exit 2; both lines printed; nothing moved | PASS | exit 2; 2 lines |
+| 6 one trace name from two chunks | exit 2; nothing moved | PASS | exit 2 |
+| 7 stray file and unknown cell folder | exit 2; both printed; nothing moved | PASS | exit 2 |
+| 8 --plan-only on a clean tree | exit 0; nothing moved; no merged/ | PASS | exit 0 |
+| 9 merged/ without .merge_complete | exit 3; nothing changes | PASS | exit 3 |
+
+(the synthetic trees are kept in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d24/rehearsal_fd8d8a2_b/home/harddisks_gen3_k2/hspist3/logs/k2c_unit_tmp/merge_plan_test_wa4g4nnq)
+
+ALL PASS (9 cases)

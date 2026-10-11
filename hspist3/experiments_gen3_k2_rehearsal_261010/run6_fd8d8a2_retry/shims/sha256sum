@@ -1,0 +1,5 @@
+#!/bin/bash
+# rehearsal shim: the system sha256sum; with REHEARSAL_STARTUP_FAIL set it fails (exit 1), as on a faulty node, so
+# testG_koa.sbatch's start-up check of its binary stops the chunk before 'chunk j on' (decision 24)
+[ -n "${REHEARSAL_STARTUP_FAIL:-}" ] && { echo 'rehearsal shim: sha256sum fails (a pretended faulty node)' >&2; exit 1; }
+exec /sbin/sha256sum "$@"
