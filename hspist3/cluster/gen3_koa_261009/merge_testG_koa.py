@@ -6,7 +6,9 @@ chunk's run.log ##RUN sections to the merged cell's run.log in chunk order, keep
 checks that every chunk's .build_git is the same line, then reduces every B cell with reduce_B.py (unchanged) and compresses its
 traces (gzip -9, the SHA-256 of each uncompressed trace in .sha256_uncompressed first), as run_testG_mac.py does on the Mac.
 Nothing is deleted: a chunk folder that is empty after the merge stays; a name collision stops the merge.
-usage (inside merge_testG_koa.sbatch): python3 cluster/gen3_koa_261009/merge_testG_koa.py <root: .../testG_koa>
+##CHRIS 2026-10-10 (decision 20; sec. 4.7.47): the A-fixed runs' 00_COMMAND.md and run_params.json are kept per chunk
+(<name>_chunk<j>), the fault the Mac rehearsal found; on KOA this version runs in merge_testG_k2.sbatch from ~/harddisks_gen3_k2.
+usage (inside merge_testG_k2.sbatch): python3 cluster/gen3_koa_261009/merge_testG_koa.py <root: .../testG_koa>
 """
 import glob, hashlib, os, shutil, subprocess, sys
 
@@ -41,6 +43,13 @@ def main():
                     os.makedirs(os.path.join(dst, ".done_runs"), exist_ok=True)
                     for r in os.listdir(src): shutil.move(os.path.join(src, r), os.path.join(dst, ".done_runs", f"{r}_chunk{j}"))
                     continue
+                # ##CHRIS 2026-10-10 (plan-author decision 20, task 4; 261012 sec. 4.7.47): found by the Mac rehearsal -- every A-fixed run
+                # writes these two files (its command and parameters) into the shared x_0 folder, so each chunk with A-fixed runs holds
+                # one copy (its last run's) and the second such chunk stopped the merge on a "name collision". Each chunk's copy is kept,
+                # with its chunk in the name; no reader uses them (the verdict reads red_*.csv, run_*.log and .failed_*).
+                if name in ("00_COMMAND.md", "run_params.json"):
+                    b, e = os.path.splitext(name)
+                    shutil.move(src, os.path.join(dst, f"{b}_chunk{j}{e}")); moved += 1; continue
                 if os.path.exists(os.path.join(dst, name)): sys.exit(f"STOP: name collision {os.path.join(rel, name)} (chunk {j})")
                 shutil.move(src, os.path.join(dst, name)); moved += 1
     if len(builds) != 1: sys.exit(f"STOP: the chunks were written by {len(builds)} builds: {sorted(builds)}")
