@@ -15213,3 +15213,257 @@ DECISIONS 25 AND 26 (2026-10-10 23:55 and 2026-10-11 ~00:20 HST)
 
 End with "Written for: the plan author".
 ```
+
+### 4.7.54 Report G-KOA — TEST G (KOA): FAIL (DIFFERENCE) at M = 50 (z = +3.51); NO DIFFERENCE at 300 and 1500; the merge record is not in the fetched tree; M5 not decided for a solid cell; stopped after printing, as ordered (2026-10-11 01:26 HST, machine date) [DATA, printed by the registered scripts; INFERENCE where marked]
+
+**The verdict line, verbatim:** `TEST G (KOA): FAIL (DIFFERENCE)`, with `M = 50: DIFFERENCE; M = 300: NO DIFFERENCE; M = 1500: NO DIFFERENCE; no extension`.
+
+**Plain summary.**
+- **Test G on KOA fails by its registered rule.**
+  - The inventory is clean: 400 + 400 trajectories at each mass, every gen3 run record clean, one build line `00ALLINONE  git a643bc7  target koa`, no failed run, no extension.
+  - At M = 50 gen3's mean argmax ν is +0.637 % above gen2's (95 % interval [+0.282, +0.993] %), z = +3.51, so DIFFERENCE.
+  - At M = 300 the difference is +0.165 % (z = +1.89) and at M = 1500 +0.000 % (z = +0.00): NO DIFFERENCE.
+  - Information rows (no verdict):
+    - ν_d at M = 50: +0.244 % (z = +2.25);
+    - M = 2000: −0.155 % (z = −1.65);
+    - the dense cell: −0.096 %;
+    - N = 400: −0.043 %;
+    - the A-fixed mean face forces: +0.026 % (z = +1.86) and +0.010 %.
+  - On the Mac (sec. 4.7.15 addendum), M = 50 was an information row: +0.39 % on 100 trajectories per engine, |z| < 1.2.
+- **The merge record.** `merged/.merge_complete` is **not in the fetched tree**: the registered fetch copies `merged/testG/` only, and the record lies in `merged/`. Its text is on KOA (K2-4 block E's `cat` line); the merge job's log was not relayed.
+  - **The fetched tree carries the merge's footprints, in the order the code writes them** (`merge_footprints.sh`):
+    - every speed-of-sound cell has one ##RUN section and one trace SHA line per trajectory (400, 100 or 200) and no uncompressed trace;
+    - `red_nu.csv` has one row per trajectory;
+    - every `.build_git` holds the one build line;
+    - each x_0 folder has the merge's per-chunk `00_COMMAND_chunk<j>.md` for chunks 129–144.
+  - The KOA times are: every `.build_git` at 00:58, the reduction outputs 00:59–01:05, the trace SHA lines 00:59–01:05.
+  - [INFERENCE from the code at `fd8d8a2`, which writes the record after the `.build_git` files and before the reduction] the record was written at about 00:58 KOA time.
+  - **By point 5 the record counts as missing from what the Mac holds,** and the verdict is not NO DIFFERENCE at every mass. **So everything stopped after the printing: nothing was changed, rerun or tuned.**
+- **The harness event hashes** (decision 20, task 6, on the fetched gate outputs): equal in **21 of 96** rows.
+  - These are exactly the 7 cells whose initial velocities use no libm, each in rows A, B and C: M1's tie lattice, and M2's three cradles in the quick and full audits.
+  - Every libm-seeded cell differs between KOA and the Mac, as the preliminary 7 of 32 showed.
+  - The script's "A = B = C" lines read 0 on both machines. They compare every counter, and the audit counters differ by design between the rows with audits and those without; the event hashes agree across A, B and C in every cell.
+- **M5, the registered rule on the 16 rows of K2-2's part (d)** (`koa_k2_m5_rates_261010.py`; Gold 6342 node):
+  - **Contact maxima:** within the floor in every pair. The largest koa − koa-ld difference is 3.6e-12 px, against 1e-6 px.
+  - **Energy drift:** koa residuals ±(0.5–1.8)e-12, koa-ld 0. Within for every pair under CC's stated reading.
+  - **Decorrelation time:** the first ψ6 difference at 5.75–6.5 σ-time (N 100) and 3.0–3.5 σ-time (N 400); a difference ≥ 0.05 at 9–9.75 and 4.5–5.5 σ-time.
+  - **The cells:** N 100 at π/8 is fluid. N 400 at η 0.70 is at the fluid limit, with ψ6 0.43 on average over the records (0.01–0.69). **No solid cell: the rule is NOT DECIDED for its solid cell.**
+  - **argmax ν (information):** koa-ld − koa = +1.18 % (z = +1.51) and +1.80 % (z = +1.18). A comparison resolving 0.25 % needs 40 and 148 seeds per build: 1.72 core-hours on Gold, about 2.43 on E5.
+- **The rate table on the Gold node:** 12 rows, clean 1.
+  - **E5/Gold:** 0.709 at N 400, η 0.70 (part (d)'s cell, engine time), and 0.670 from part (c)'s cell.
+  - **The slowest real case:** N 1600 at π/8, 2.61e5 events/s on Gold, about 1.85e5 on E5, which is 0.92 of the 2e5 planning value. This confirms the recorded plan-author error.
+
+**(3) Whether `merged/.merge_complete` is in the fetched tree, and the footprints** (`REPORT_G_KOA_261011/merge_footprints.sh`, output verbatim):
+
+```
+merged/.merge_complete in the fetched folder: 0 file(s)
+| cell | ##RUN sections in run.log | trace SHA lines in .sha256_uncompressed | uncompressed traces fetched | red_nu.csv rows | .build_git | KOA mtime of .build_git / red_nu.csv / .sha256_uncompressed |
+|---|---|---|---|---|---|---|
+| gen2/dense_H10_L5.604167/m_300 | 200 | 200 | 0 | 200 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 00:59 / 00:59 |
+| gen2/epi8_H_H10_L10/m_1500 | 400 | 400 | 0 | 400 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 00:59 / 01:00 |
+| gen2/epi8_H_H10_L10/m_2000 | 100 | 100 | 0 | 100 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 00:59 / 01:00 |
+| gen2/epi8_H_H10_L10/m_300 | 400 | 400 | 0 | 400 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:00 / 01:00 |
+| gen2/epi8_H_H10_L10/m_50 | 400 | 400 | 0 | 400 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:00 / 01:01 |
+| gen2/epi8_N400_H20_L20/m_300 | 100 | 100 | 0 | 100 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:02 / 01:02 |
+| gen3/dense_H10_L5.604167/m_300 | 200 | 200 | 0 | 200 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:02 / 01:02 |
+| gen3/epi8_H_H10_L10/m_1500 | 400 | 400 | 0 | 400 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:02 / 01:03 |
+| gen3/epi8_H_H10_L10/m_2000 | 100 | 100 | 0 | 100 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:02 / 01:04 |
+| gen3/epi8_H_H10_L10/m_300 | 400 | 400 | 0 | 400 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:03 / 01:04 |
+| gen3/epi8_H_H10_L10/m_50 | 400 | 400 | 0 | 400 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:03 / 01:04 |
+| gen3/epi8_N400_H20_L20/m_300 | 100 | 100 | 0 | 100 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:05 / 01:05 |
+gen2/epi8_H_H10_L10/x_0: red_ files 200, run_ logs 200, the merge's per-chunk 00_COMMAND_chunk<j>.md for chunks 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 , run_params_chunk<j>.json 16, ev SHA lines 200, .build_git '00ALLINONE  git a643bc7  target koa'
+gen3/epi8_H_H10_L10/x_0: red_ files 200, run_ logs 200, the merge's per-chunk 00_COMMAND_chunk<j>.md for chunks 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 , run_params_chunk<j>.json 16, ev SHA lines 200, .build_git '00ALLINONE  git a643bc7  target koa'
+```
+
+**(4a) `python3 cluster/gen3_koa_261009/testG_koa_verdict_261009.py`** (main repo, `hspist3/`; the registered wrapper, unchanged since `bfc636f`; output verbatim):
+
+```
+# Test G on KOA (261012 sec. 4.7.29; decision 13, item 2g)
+
+RULE per mass (M = 50, 300, 1500): NO DIFFERENCE if abs(z) < 2; DIFFERENCE if abs(z) >= 3; otherwise one extension (400 more per engine), judged on 800 with the same thresholds, still between -> UNRESOLVED. PASS = NO DIFFERENCE at all three masses.
+
+extensions counted (runs r >= 400 in the data): none
+
+## Inventory
+
+| engine | M | trajectories matched (expected) | n finite > 0 | log sections | health findings (failed runs incl.) | engine line wrong | max contact gap [px] | contact lines missing | nodes | ok |
+|---|---|---|---|---|---|---|---|---|---|---|
+| gen3 | 50 | 400 (400) | 400 | 400 | 0 | 0 | 4.90e-12 | 0 | 7 | yes |
+| gen3 | 300 | 400 (400) | 400 | 400 | 0 | 0 | 5.34e-12 | 0 | 13 | yes |
+| gen3 | 1500 | 400 (400) | 400 | 400 | 0 | 0 | 5.30e-12 | 0 | 13 | yes |
+| gen2 | 50 | 400 (400) | 400 | 400 | 0 | 0 | 5.22e-11 | 0 | 7 | yes |
+| gen2 | 300 | 400 (400) | 400 | 400 | 0 | 0 | 1.05e-10 | 0 | 13 | yes |
+| gen2 | 1500 | 400 (400) | 400 | 400 | 0 | 0 | 2.19e-10 | 0 | 13 | yes |
+
+nodes: gen3 {'cn-03-38-07': 112, 'cn-03-38-08': 175, 'cn-03-38-09': 125, 'cn-05-03-02': 125, 'cn-05-03-04': 125, 'cn-05-03-10': 50, 'cn-05-08-02': 63, 'cn-05-08-03': 62, 'cn-05-08-04': 63, 'cn-05-08-05': 87, 'cn-05-08-06': 38, 'cn-03-38-02': 125, 'cn-05-08-08': 50}; gen2 {'cn-03-38-07': 113, 'cn-03-38-08': 175, 'cn-03-38-09': 125, 'cn-05-03-02': 125, 'cn-05-03-04': 125, 'cn-05-03-10': 50, 'cn-05-08-02': 62, 'cn-05-08-03': 63, 'cn-05-08-04': 62, 'cn-05-08-05': 88, 'cn-05-08-06': 37, 'cn-03-38-02': 125, 'cn-05-08-08': 50}
+builds (.build_git): ['00ALLINONE  git a643bc7  target koa'] (required: 00ALLINONE  git a643bc7  target koa); inventory clean
+
+## The registered numbers
+
+| mass | judged on (per engine) | n gen3 | n gen2 | gen3 mean nu | SE | gen2 mean nu | SE | difference | relative [%] | 95 % interval [%] | z | outcome by the rule |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 50 | 400 | 400 | 400 | 0.0727434 | 8.84e-05 | 0.0722828 | 9.68e-05 | +4.606e-04 | +0.637 | [+0.282, +0.993] | +3.51 | **DIFFERENCE** |
+| 300 | 400 | 400 | 400 | 0.0370087 | 2.35e-05 | 0.0369479 | 2.19e-05 | +6.078e-05 | +0.165 | [-0.006, +0.335] | +1.89 | **NO DIFFERENCE** |
+| 1500 | 400 | 400 | 400 | 0.0172607 | 5.87e-06 | 0.0172607 | 5.74e-06 | +3.469e-18 | +0.000 | [-0.093, +0.093] | +0.00 | **NO DIFFERENCE** |
+
+## The thresholds' false-alarm rates (no true difference)
+
+| quantity (no true difference) | one mass | three masses (independent) |
+|---|---|---|
+| P(abs(z) >= 3 at 400) | 0.00270 | 0.00808 (at least one) |
+| P(extension: 2 <= abs(z) < 3 at 400) | 0.04280 | 0.12298 (at least one) |
+| P(DIFFERENCE), extension path included | 0.00403 | 0.01204 (at least one) |
+| P(UNRESOLVED) | 0.01189 | 0.03525 (at least one) |
+| P(NO DIFFERENCE) | 0.98408 | P(PASS) = 0.95299; false alarm (not PASS) = 0.04701 |
+
+## The smallest true difference that would give z = 3 with the observed SEs
+
+| mass | judged on | SE of the difference | 3 x SE | relative to gen2's mean [%] |
+|---|---|---|---|---|
+| 50 | 400 | 1.31e-04 | 3.93e-04 | 0.544 |
+| 300 | 400 | 3.21e-05 | 9.63e-05 | 0.261 |
+| 1500 | 400 | 8.21e-06 | 2.46e-05 | 0.143 |
+
+M = 50: DIFFERENCE; M = 300: NO DIFFERENCE; M = 1500: NO DIFFERENCE; no extension
+95 % intervals of the relative difference (the stated bound): M = 50: [+0.282, +0.993] %; M = 300: [-0.006, +0.335] %; M = 1500: [-0.093, +0.093] %
+TEST G (KOA): FAIL (DIFFERENCE)
+
+## Information (no verdict): nu_d on the verdict masses
+
+| M | estimator | gen3 mean | gen2 mean | relative [%] | z | same-seed correlation |
+|---|---|---|---|---|---|---|
+| 50 | argmax (registered) | 0.0727434 | 0.0722828 | +0.637 | +3.51 | +0.059 |
+| 50 | nu_d (sec. 4.4.13 item 4a) | 0.0725949 | 0.0724179 | +0.244 | +2.25 | +0.044 |
+| 300 | argmax (registered) | 0.0370087 | 0.0369479 | +0.165 | +1.89 | +0.019 |
+| 300 | nu_d (sec. 4.4.13 item 4a) | 0.0370248 | 0.0369874 | +0.101 | +1.74 | +0.068 |
+| 1500 | argmax (registered) | 0.0172607 | 0.0172607 | +0.000 | +0.00 | -0.070 |
+| 1500 | nu_d (sec. 4.4.13 item 4a) | 0.0172640 | 0.0172627 | +0.008 | +0.24 | +0.015 |
+
+## Information (no verdict): the other rows (the Mac's, without M = 50)
+
+| row | n gen3 | n gen2 | gen3 mean | SE | gen2 mean | SE | relative [%] | 95 % interval [%] | z | clean (both engines) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| nu, M = 2000 | 100 | 100 | 0.0149817 | 9.80e-06 | 0.0150050 | 1.01e-05 | -0.155 | [-0.339, +0.029] | -1.65 | failed 0; gen3 records 100, clean=1 100; gen2 health lines 0 |
+| nu, dense cell, M = 300 | 200 | 200 | 0.3683494 | 5.35e-04 | 0.3687041 | 4.17e-04 | -0.096 | [-0.457, +0.265] | -0.52 | failed 0; gen3 records 200, clean=1 200; gen2 health lines 0 |
+| nu, N = 400 at pi/8, M = 300 | 100 | 100 | 0.0302194 | 3.73e-05 | 0.0302323 | 4.08e-05 | -0.043 | [-0.401, +0.316] | -0.23 | failed 0; gen3 records 100, clean=1 100; gen2 health lines 0 |
+| static method, A-fixed at x_0, mean F_L | 200 | 200 | 15.930838 | 1.59e-03 | 15.926675 | 1.57e-03 | +0.026 | [-0.001, +0.054] | +1.86 | failed gen3 0, gen2 0 |
+| static method, A-fixed at x_0, mean F_R | 200 | 200 | 15.928407 | 1.72e-03 | 15.926819 | 1.76e-03 | +0.010 | [-0.020, +0.040] | +0.65 | failed gen3 0, gen2 0 |
+```
+
+**(4b) `python3 cluster/gen3_koa_261009/harness_event_hash_compare.py --koa <fetched gate/harness>`** (engine-gen3 worktree):
+- The full output is in `REPORT_G_KOA_261011/harness_event_hash_compare_output.txt`.
+- Its last line is `equal event hashes: 21 of 96`.
+- The rows with equal hashes: tie (M1; rows A, B, C); cradle_exact, cradle_round and cradle_round_late (M2 quick and M2 full; rows A, B, C each).
+
+**(4c) `python3 cluster/gen3_koa_261009/koa_k2_m5_rates_261010.py`** (main repo, `hspist3/`; first run on the fetched K2-2 folder; output verbatim):
+
+```
+# K2-2 (job 15043030; cn-09-30-02, Intel Xeon Gold 6342 2.80 GHz per decision 22) read from /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_gate_koa_261009/rate_ld_k2
+
+## Item 5: part (c), the rate table as measured on the Gold node (one run at a time; 500 sigma-time held, 100 released, M = 300)
+
+| N | eta | events | run [s] | engine [s] | driver share | events/s (run) | events/s (engine) | clean |
+|---|---|---|---|---|---|---|---|---|
+| 100 | pi/8 | 234530 | 0.3 | 0.2 | 0.389 | 7.02e+05 | 1.15e+06 | 1 |
+| 100 | 0.70 | 1093783 | 1.9 | 1.7 | 0.103 | 5.79e+05 | 6.46e+05 | 1 |
+| 100 | 0.78 | 12326216 | 15.7 | 15.5 | 0.011 | 7.87e+05 | 7.96e+05 | 1 |
+| 400 | pi/8 | 812477 | 1.6 | 0.8 | 0.490 | 5.15e+05 | 1.01e+06 | 1 |
+| 400 | 0.70 | 3343347 | 7.1 | 6.1 | 0.142 | 4.7e+05 | 5.48e+05 | 1 |
+| 400 | 0.78 | 6248606 | 11.9 | 10.9 | 0.083 | 5.26e+05 | 5.73e+05 | 1 |
+| 900 | pi/8 | 1841684 | 4.9 | 1.9 | 0.620 | 3.74e+05 | 9.82e+05 | 1 |
+| 900 | 0.70 | 6435583 | 16.5 | 12.7 | 0.230 | 3.91e+05 | 5.07e+05 | 1 |
+| 900 | 0.78 | 13977438 | 29.1 | 25.6 | 0.119 | 4.81e+05 | 5.46e+05 | 1 |
+| 1600 | pi/8 | 3152717 | 12.1 | 3.4 | 0.720 | 2.61e+05 | 9.31e+05 | 1 |
+| 1600 | 0.70 | 11317133 | 33.8 | 23.9 | 0.293 | 3.34e+05 | 4.73e+05 | 1 |
+| 1600 | 0.78 | 19543390 | 48.7 | 39.6 | 0.186 | 4.01e+05 | 4.93e+05 | 1 |
+
+## Item 4: M5 on KOA, the registered rule on the 16 rows of part (d)
+
+The registered rule (261012 sec. 4.7, '5. Gate plan', item 5, verbatim):
+> 5. **Long-double spot check:** the double run's contact maxima and energy drift within the 80-bit run's by the floor of item 3, at one fluid and one solid cell; decorrelation time reported.
+with item 3, its floor:
+> 3. **Contact audit:** ≤ 1e-6 px in every class and run (expected ~1e-11, as today).
+
+| N | M | seed | build | clean | events | run [s] | contact max disk / wall / divider [px] | energy residual (ratio to its rounding scale) | gap / u_t | argmax nu | psi6 mean over the record |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 100 | 300 | 0 | koa | 1 | 2224743 | 3.2 | 3.00e-12/1.82e-12/1.73e-12 | +5.40e-13 (0.00019) | 1.65 | 0.036295 | 0.093 |
+| 100 | 300 | 0 | koa-ld | 1 | 2220316 | 4.0 | 2.00e-15/9.06e-16/8.47e-16 | +0.00e+00 (0) | 2.25 | 0.036816 | 0.093 |
+| 100 | 300 | 1 | koa | 1 | 2219958 | 3.2 | 3.23e-12/1.89e-12/1.93e-12 | +8.24e-13 (0.00029) | 1.78 | 0.036990 | 0.092 |
+| 100 | 300 | 1 | koa-ld | 1 | 2224716 | 4.0 | 1.52e-15/9.44e-16/8.74e-16 | +0.00e+00 (0) | 1.71 | 0.036990 | 0.093 |
+| 100 | 300 | 2 | koa | 1 | 2224816 | 3.2 | 3.08e-12/1.90e-12/1.82e-12 | +9.95e-13 (0.00034) | 1.69 | 0.036990 | 0.093 |
+| 100 | 300 | 2 | koa-ld | 1 | 2213120 | 4.0 | 1.91e-15/9.85e-16/9.02e-16 | +0.00e+00 (0) | 2.15 | 0.037337 | 0.093 |
+| 100 | 300 | 3 | koa | 1 | 2214239 | 3.2 | 3.46e-12/2.33e-12/1.76e-12 | -7.25e-13 (0.00025) | 1.9 | 0.036990 | 0.093 |
+| 100 | 300 | 3 | koa-ld | 1 | 2226980 | 4.0 | 1.70e-15/9.81e-16/8.19e-16 | +0.00e+00 (0) | 1.91 | 0.037858 | 0.093 |
+| 400 | 500 | 0 | koa | 1 | 7841051 | 17.6 | 3.18e-12/2.08e-12/1.79e-12 | -1.31e-12 (8.7e-05) | 1.75 | 0.154639 | 0.439 |
+| 400 | 500 | 0 | koa-ld | 1 | 7833016 | 22.4 | 1.47e-15/9.44e-16/9.58e-16 | +0.00e+00 (0) | 1.66 | 0.160393 | 0.429 |
+| 400 | 500 | 1 | koa | 1 | 7861267 | 17.6 | 3.64e-12/1.98e-12/1.88e-12 | -1.19e-12 (8e-05) | 2 | 0.161112 | 0.419 |
+| 400 | 500 | 1 | koa-ld | 1 | 7836037 | 22.2 | 1.84e-15/9.82e-16/8.88e-16 | +0.00e+00 (0) | 2.07 | 0.163989 | 0.451 |
+| 400 | 500 | 2 | koa | 1 | 7828131 | 17.6 | 3.19e-12/2.17e-12/1.88e-12 | +1.65e-12 (0.00011) | 1.75 | 0.160393 | 0.447 |
+| 400 | 500 | 2 | koa-ld | 1 | 7815480 | 22.4 | 1.66e-15/1.14e-15/1.25e-15 | +0.00e+00 (0) | 1.87 | 0.166147 | 0.430 |
+| 400 | 500 | 3 | koa | 1 | 7876054 | 17.7 | 3.23e-12/2.05e-12/1.93e-12 | -1.82e-12 (0.00012) | 1.78 | 0.164709 | 0.416 |
+| 400 | 500 | 3 | koa-ld | 1 | 7893379 | 22.4 | 1.46e-15/9.61e-16/9.44e-16 | +0.00e+00 (0) | 1.64 | 0.161832 | 0.401 |
+
+### The rule, component by component
+
+1. Contact maxima (disk-disk, outer walls, divider): the largest koa minus koa-ld difference over the 8 seed pairs is 3.64e-12 px and the largest maximum 3.64e-12 px, against the floor 1e-06 px: within, every pair.
+2. Energy drift ([EDMD3-LEDGER] energy residual, E - E0 - W): koa +5.4e-13, +8.2e-13, +9.9e-13, -7.3e-13, -1.3e-12, -1.2e-12, +1.7e-12, -1.8e-12; koa-ld +0.0e+00, +0.0e+00, +0.0e+00, +0.0e+00, +0.0e+00, +0.0e+00, +0.0e+00, +0.0e+00. Read as |koa| <= |koa-ld| + the koa ledger's own rounding scale (item 3's floor is a length; this reading is CC's [INTERPRETATION]): within, every pair.
+3. Cell N 100, eta 0.3927: fluid by the phase constants (fluid < 0.7, solid >= 0.72); psi6_global over the records: mean 0.093, range 0.000-0.342 (184264 samples).
+3. Cell N 400, eta 0.7: the fluid limit (eta = ETA_FLUID_MAX) by the phase constants (fluid < 0.7, solid >= 0.72); psi6_global over the records: mean 0.429, range 0.011-0.685 (44488 samples).
+4. Decorrelation time (psi6_global(t), both runs from the same start, 0.25 sigma-time samples): first printed difference / first difference >= 0.05, sigma-time: N 100 seed 0: 5.75 / 9.75; N 100 seed 1: 6.0 / 9.0; N 100 seed 2: 6.25 / 9.25; N 100 seed 3: 6.5 / 9.5; N 400 seed 0: 3.0 / 4.5; N 400 seed 1: 3.25 / 5.5; N 400 seed 2: 3.25 / 4.75; N 400 seed 3: 3.5 / 4.5
+
+### argmax nu (information in part (d); not a component of the registered rule)
+
+| N | build | mean argmax nu | SE (n = 4) | koa-ld minus koa | z | per-run SD (pooled) | seeds per build for SE(diff) = 0.25 % | mean run [s] on Gold, koa / koa-ld |
+|---|---|---|---|---|---|---|---|---|
+| 100 | koa | 0.036816 | 0.000174 | | | | | |
+| 100 | koa-ld | 0.037250 | 0.000230 | +1.18 % | +1.51 | 1.11 % | 40 | 3.2 / 4.0 |
+| 400 | koa | 0.160213 | 0.002084 | | | | | |
+| 400 | koa-ld | 0.163090 | 0.001259 | +1.80 % | +1.18 | 2.15 % | 148 | 17.6 / 22.4 |
+
+Cost of that comparison on one core: 1.72 core-hours on the Gold node, about 2.43 on an E5-2670 v3 node (the ratio below)
+
+## Item 5: E5-2670 v3 against Gold 6342 at N 400, eta 0.70
+
+- E5 (step 4, the cross-node cell: M 500, 2000 sigma-time held, 200 periods): 3.67e+05 events/s of engine time, 3.2e+05 whole run.
+- Gold, part (d), koa build, the same N, eta, M and seeding (2000 steps held, 200 periods), mean of 4 seeds: 5.18e+05 events/s of engine time. E5/Gold = 0.709 (Gold 1.41x faster).
+- Gold, part (c), N 400 eta 0.70 (M 300, 500 sigma-time held, 100 released): 5.48e+05 events/s of engine time, 4.7e+05 whole run; E5/Gold = 0.670 (engine), 0.681 (whole run).
+- The slowest real case of part (c) on Gold: N 1600, eta pi8, 2.61e+05 events/s (whole run); on an E5 node about 1.85e+05 (scaled by the ratio above) against the planning value 2e+05: 0.92x of it.
+```
+
+**M5: the smallest job that adds a solid cell in both builds. PROPOSED, not run, not written.**
+- **The cell:** N = 400 at η = 0.74. It is solid by the phase constants (from 0.720) and is the project's established dense-solid cell (P4, decisions 18–19).
+  - M = 500, as part (d)'s N 400 cell.
+  - Part (d)'s command (`g3_rate_ld_koa.py`'s `sos()`: M4 lattice start, exact box, 2000 steps held, 200 periods), plus `--gen3-psi6-compartments`. At η 0.74 a global ψ6 can cancel between turned compartments (sec. 4.7.37–4.7.40), so the record shows each compartment's order and the cell's solidity is visible.
+- **The smallest form:** one seed in each build, `run_seed(20261219, 2, 400, 0)`, a stream index part (d) did not use. That is 2 runs, enough for every component of the rule: contact maxima, energy drift and decorrelation time.
+  - Four seeds per build (8 runs) would mirror part (d) and give a spread.
+- **Cost [INFERENCE from part (d)'s N 400 runs on Gold: 17.6 s koa, 22.4 s koa-ld]:** about 1 min of one core for the pair, about 4 min for 8 runs; on E5 about 1.4 times that. Requested: 1 core, 15 min, on shared.
+- **The job:** a 1-task sbatch from `~/harddisks_gen3_k2`, with the binaries of `~/harddisks_gen3` checked by SHA-256 as in K2-2 and `--exclude=cn-05-08-07`. It reads `koa_k2_m5_rates_261010.py`'s rule for the new cell. It is rehearsed on the Mac before Chris types it.
+
+**The deviations of Test G on KOA, in one list.**
+1. **Two stages.** Chunk 1 ran alone first (K2-3, array 15043031). Chunks 2–144 ran after the plan author had read it (array 15043056, decision 22).
+2. **20 chunks in a second submission.** Chunks 57–61, 66–70, 110–114 and 132–136 first ran on cn-05-08-07, which has no git. The build check read an empty HEAD and stopped them before "chunk j on"; they ran nothing and made no folder. They were resubmitted once with the registered script, task lines and seeds, `--exclude=cn-05-08-07` (array 15044748, all COMPLETED 0:0, decision 25).
+3. **The merge came from the second clone `~/harddisks_gen3_k2` at `fd8d8a2`,** not from the registered `merge_testG_koa.sbatch`/`.py` of `a643bc7`. The registered merge would have stopped at chunk 130 on the A-fixed `00_COMMAND.md`. The fd8d8a2 merge differs in four things:
+   - the per-chunk names of the A-fixed `00_COMMAND.md` and `run_params.json`;
+   - it plans before it moves;
+   - the chunk check (exactly one done log; earlier attempts by name);
+   - the summary.
+   `reduce_B.py` and the compression are the registered ones, byte for byte.
+4. *(Recorded as well)* **The merge record is not in the fetched tree** (the registered fetch copies `merged/testG/` only), and the merge job's log was not relayed. The merge's end is shown here only by its footprints.
+5. *(Recorded as well)* **Step 6 was amended:** the fetch also copied K2-2's folder (`rate_ld_k2/`).
+
+**For the stage-1 campaign scripts (Report S1-0), point 6, proposed (text only).**
+- **Read the commit hash from a file written at build time; do not run git at run time.**
+  - The sandbox shell that clones and builds has git: K2-1 and steps 1–2 ran it there.
+  - The build script writes the binary's SHA-256 (as now) and the commit hash into files next to the binary.
+  - Every job then checks the binary's SHA-256 and its `--version` line against those files. No git is needed, and only coreutils' `sha256sum`.
+- **Why not a node test at the start:** it would only make the failure clearer. The job still depends on the tool, and the task still has to be submitted again.
+- **`koa_env.sh`** prints `$(git --version)` in its environment line. That line must not call git on a node, or must say "git: absent" without failing.
+- **`--exclude=cn-05-08-07` in every sbatch: yes.** Its image lacks git and may differ in other ways. An exclude list is static, though, so the build-time file is the fix and the exclude is the guard for the one node known so far.
+
+**Data:** the fetch, 275 MB (Chris, in `hspist3/experiments_gen3_gate_koa_261009/`, untracked except the files below), and about 0.3 MB of outputs. In git:
+- `REPORT_G_KOA_261011/`: the three outputs, the footprint script and its output, and `FETCHED_SHA256_FILES.txt` (SHA-256 and size of all 2594 fetched files);
+- the 12 `red_nu.csv`, the verdict's per-trajectory input (256 KB).
+
+**Commits:**
+- main: `9211987` (decisions 25–26 recorded), and this record with the evidence;
+- engine-gen3 and engine-divider-resched: the notes.
