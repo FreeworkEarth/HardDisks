@@ -29,8 +29,8 @@ THE RESIDUAL DIFFERENCES (every one printed in the table):
     the build record (the Mac binary's SHA-256), the two manifests rewritten by make_testR_manifests.py; the Lustre path rewritten in the
     package's job scripts; the fetch's DTN source made local;
   - block E's --array=2-216%64 becomes --array=2 (the mini list has 2 chunks); block F's counts are the mini list's;
-  - the fetch and the verdict run from the updated clone (on KOA's data the fetch runs from the Mac's repository); the verdict reads the
-    mini list (HD_TESTR_TASKS, HD_TESTR_TASKS_SHA) and the fetched folder (HD_TESTR_LOC): its test hooks.
+  - the fetch runs from the updated clone, into it (on KOA's data it runs from the Mac's repository); the verdict runs from the Mac's
+    repository (as it will) on that fetched folder and the mini list: its test hooks HD_TESTR_LOC, HD_TESTR_TASKS, HD_TESTR_TASKS_SHA.
 usage (from the repository root): python3 hspist3/cluster/gen3_testR_261011/rehearse_testR_mac.py --root <empty dir> --pkg <engine-gen3 commit>
 """
 import argparse, hashlib, os, re, shutil, subprocess, sys, time
@@ -298,9 +298,10 @@ def main():
         and sum(f.startswith("job_logs/") for f in fetched) == 4, f"{len(fetched)} files; raw {len(raw)}")
     VE = dict(E, HD_TESTR_LOC=F, HD_TESTR_TASKS=os.path.join(k2hs, P, "tasks_testR_koa_261011.txt"),
               HD_TESTR_TASKS_SHA=os.path.join(k2hs, P, "tasks_testR_koa_261011.sha256"))
-    v1 = sh([sys.executable, os.path.join(P, "testR_koa_verdict_261011.py")], cwd=k2hs, env=VE, log=os.path.join(R, "logs", "verdict_first.out"), check=False)
+    # the verdict runs on the Mac from the repository (as after KOA's fetch), on the rehearsal's fetched folder (test hooks)
+    v1 = sh([sys.executable, os.path.join(HS, P, "testR_koa_verdict_261011.py")], cwd=HS, env=VE, log=os.path.join(R, "logs", "verdict_first.out"), check=False)
     v1t = open(os.path.join(R, "logs", "verdict_first.out")).read()
-    v2 = sh([sys.executable, os.path.join(P, "testR_koa_verdict_261011.py")], cwd=k2hs, env=VE, log=os.path.join(R, "logs", "verdict_second.out"), check=False)
+    v2 = sh([sys.executable, os.path.join(HS, P, "testR_koa_verdict_261011.py")], cwd=HS, env=VE, log=os.path.join(R, "logs", "verdict_second.out"), check=False)
     v2t = open(os.path.join(R, "logs", "verdict_second.out")).read()
     res("the verdict on the mini data (component check)", "the inventory clean (2 per arm, 0 excluded); the numbers; a verdict line; information skipped",
         v1.returncode == 0 and "the registered one" in v1t and "TEST R: " in v1t and "INVALID" not in v1t and "information rows need at least 20" in v1t,

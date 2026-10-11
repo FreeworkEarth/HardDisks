@@ -23,7 +23,8 @@ THE RULE (decision 28, verbatim in substance):
     verdict, whatever the masses print).
   INVALID, no verdict (Test G's precedent; a pipeline fault, not a data outcome): no merge record; a build line other than
     "00ALLINONE  git a643bc7  target koa"; a row whose (run, seed) is not a registered task of its arm, or a run twice; nu_arg of
-    nud_runs.csv not equal to red_nu.csv's; the task list not the registered one.
+    nud_runs.csv not equal to red_nu.csv's (to 1e-14 relative: the two files' decimal texts may read back 1 ulp apart); the task list
+    not the registered one.
 INFORMATION (no verdict): tau_r, Q, nu_0 and delta_M per engine as in Report G2 (testG_koa_posthoc_261011.py's functions; jackknife
 groups of 10; start value the arm's own argmax mean; delta_M against c_ref = c_300, the one mass >= 300); the argmax histograms; d from
 Test G and Test R pooled (M = 50 and 300; Test G's nu_d recomputed by the same rule from its fetched ACFs); the fit-failure counts; a
@@ -105,7 +106,10 @@ def inventory(cells, want, merge_record):
             bad = [(int(r), int(s)) for r, s in zip(tab["run"], tab["seed"]) if W.get(int(r)) != int(s)]
             if bad: invalid.append(f"{e} M={M}: {len(bad)} rows of {name} not registered, e.g. {bad[:3]}")
         mm = red.merge(nud, on=["run", "seed"], how="outer", indicator=True)
-        if (mm["_merge"] != "both").any() or not np.array_equal(mm["nu"].to_numpy(float), mm["nu_arg"].to_numpy(float)):
+        # ##CHRIS 2026-10-11 (found by the dry test on a synthetic stand-in, before any Test R data): equal to 1e-14 relative, not bit for
+        # bit -- red_nu.csv holds the shortest round-trip decimal, nud_runs.csv 17 digits, and pandas' default CSV parser is not
+        # always correctly rounded, so the two texts can read back 1 ulp apart (9.7e-17 seen); the check is that the same values came through
+        if (mm["_merge"] != "both").any() or not np.allclose(mm["nu"].to_numpy(float), mm["nu_arg"].to_numpy(float), rtol=1e-14, atol=0.0):
             invalid.append(f"{e} M={M}: nud_runs.csv and red_nu.csv differ")
         hk = h.assign(ok=healthy(e, h))
         good = set(hk.loc[hk["ok"], "run"].astype(int)) & set(red["run"].astype(int))
@@ -252,6 +256,11 @@ def selftest():
         inv[("gen3", 50)]["unhealthy"] == 1 and inv[("gen3", 50)]["good"] == {0, 2}
     cells2 = {("gen2", 50): cell("gen2", [0, 1, 5], [11, 12, 99]), ("gen3", 50): cell("gen3", [0, 1, 2], [11, 12, 13], build="00ALLINONE  git 0000000  target koa")}
     inv2, invalid2 = inventory(cells2, W, False)
+    c1u = cell("gen2", [0, 1, 2], [11, 12, 13]); c1u["nud"]["nu_arg"] = np.nextafter(c1u["red"]["nu"].to_numpy(float), 1.0)
+    c1e = cell("gen2", [0, 1, 2], [11, 12, 13]); c1e["nud"]["nu_arg"] = c1e["red"]["nu"].to_numpy(float) * (1 + 1e-12)
+    ok["inventory: nu_arg 1 ulp from red_nu.csv's is the same value; 1e-12 relative is INVALID"] = \
+        not inventory({("gen2", 50): c1u}, {("gen2", 50): W[("gen2", 50)]}, True)[1] and \
+        any("differ" in x for x in inventory({("gen2", 50): c1e}, {("gen2", 50): W[("gen2", 50)]}, True)[1])
     ok["inventory: an unregistered row, another build line and a missing merge record -> INVALID (all three named)"] = \
         len(invalid2) >= 3 and any("merge record" in x for x in invalid2) and any("build line" in x for x in invalid2) and \
         any("not registered" in x for x in invalid2)

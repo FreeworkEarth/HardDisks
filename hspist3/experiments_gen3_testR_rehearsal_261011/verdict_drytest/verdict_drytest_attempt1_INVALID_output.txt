@@ -1,0 +1,25 @@
+# TEST R ON KOA -- the verdict (decision 28; 261012 sec. 4.7.57); the one printing
+
+the task list: the registered one; the merge record: 2026-10-11 synthetic
+merged 0 chunks: (a synthetic stand-in for a code test)
+
+## Inventory and health
+
+| engine | M | registered | included | refused (failed) | unhealthy in the tables | absent | excluded [%] | nu_d fit failures | nodes |
+|---|---|---|---|---|---|---|---|---|---|
+| gen2 | 50 | 40 | 40 | 0 | 0 | 0 | 0.00 | 0 | 1 |
+| gen2 | 100 | 40 | 40 | 0 | 0 | 0 | 0.00 | 0 | 2 |
+| gen2 | 300 | 40 | 40 | 0 | 0 | 0 | 0.00 | 0 | 1 |
+| gen3 | 50 | 40 | 40 | 0 | 0 | 0 | 0.00 | 0 | 1 |
+| gen3 | 100 | 40 | 40 | 0 | 0 | 0 | 0.00 | 0 | 2 |
+| gen3 | 300 | 40 | 40 | 0 | 0 | 0 | 0.00 | 0 | 1 |
+
+INVALID:
+  - gen2 M=50: nud_runs.csv and red_nu.csv differ
+  - gen2 M=100: nud_runs.csv and red_nu.csv differ
+  - gen2 M=300: nud_runs.csv and red_nu.csv differ
+  - gen3 M=50: nud_runs.csv and red_nu.csv differ
+  - gen3 M=100: nud_runs.csv and red_nu.csv differ
+  - gen3 M=300: nud_runs.csv and red_nu.csv differ
+
+TEST R: INVALID -- no verdict
