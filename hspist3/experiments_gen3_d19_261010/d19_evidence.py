@@ -2,7 +2,9 @@
 """##CHRIS 2026-10-10 (plan-author decision 19, item 2; 261012 sec. 4.7.50): the acceptance evidence of gen3 in the window, a provisional
 DISPLAY feature that no campaign script uses, with the binaries of a committed tree (d19_build.sh). d19_tables.py prints the acceptance
 from this folder. Parts (at most 8 simulation processes at once; >= 4 GiB free before every launch; every run in its own folder; nothing
-deleted; no window on the screen: every window run uses SDL's dummy video driver and the software renderer):
+deleted; no window on the screen: every window run uses SDL's dummy video driver and the software renderer, with a link to the
+font Roboto-Regular.ttf in its folder, where the window loads it -- the first start of this runner, without it, stopped both window runs
+at "Failed to load font" and was stopped at once; its partial folder is kept in the session scratchpad):
   H0  rule 4: gen2 byte identity with 7b08827 after the 00ALLINONE.c change -- audit_runs_261007.py on ctrl_min and ctrl_leg with the
       default build and with --engine=gen2, as stage H's H0 (2 runner entries of 2 simulations each)
   H1  the M1 and M2 harness outputs against the committed ones, as stage H's H1
@@ -53,13 +55,14 @@ class Runner:
     def __init__(s, out): s.out = out; s.run = []; s.log = open(os.path.join(out, "runner.log"), "a")
     def say(s, m): print(m, flush=True); s.log.write(m + "\n"); s.log.flush()
     def load(s): return sum(w for p, w, *_ in s.run if p.poll() is None)
-    def start(s, name, cmd, d, weight=1, cwd=None, env=None):
+    def start(s, name, cmd, d, weight=1, cwd=None, env=None, font=False):
         while s.load() + weight > CAP: s.reap(); time.sleep(0.5)
         free = shutil.disk_usage(s.out).free
         if free < FREE_MIN:
             s.say(f"**STOPPED: free space {free / 1024 ** 3:.2f} GiB < 4 GiB before {name}; nothing more is launched**"); s.wait_all(); sys.exit(3)
         if os.path.exists(d) and os.listdir(d): s.say(f"STOP: {d} is not empty"); s.wait_all(); sys.exit(3)
         os.makedirs(d, exist_ok=True)
+        if font: os.symlink(os.path.join(HS, "Roboto-Regular.ttf"), os.path.join(d, "Roboto-Regular.ttf"))   # the window loads it from its folder
         with open(os.path.join(d, "command.txt"), "w") as fh:
             fh.write((" ".join(f"{k}={v}" for k, v in (env or {}).items()) + " " if env else "") + " ".join(cmd) + "\n")
         p = subprocess.Popen(cmd, cwd=cwd or d, stdout=open(os.path.join(d, "run.log"), "w"), stderr=subprocess.STDOUT,
@@ -109,7 +112,7 @@ def main():
             extra = ["--piston-right-protocol-mode=step", "--velocity-right-piston-step=0.02", "--max-right-piston-travel=3", "--time=40", "--gui-stats"]
             cmd = scene(NEW, eng, 400, d, extra)
             if mode == "headless": cmd.insert(2, "--headless")
-            R.start(f"ST {eng} {mode}", cmd, d, env=DUMMY if mode == "window" else None)
+            R.start(f"ST {eng} {mode}", cmd, d, env=DUMMY if mode == "window" else None, font=mode == "window")
     R.wait_all()
     # ---- phase 2: PF, alone, one run at a time
     R.say(subprocess.run(["uptime"], capture_output=True, text=True).stdout.strip())
@@ -118,7 +121,7 @@ def main():
             for eng in ("gen2", "gen3"):
                 d = os.path.join(O, "perf", f"N{N}_ts{ts}_{eng}")
                 R.wait(R.start(f"PF N {N} time scale {ts} {eng}", scene(NEW, eng, N, d, [f"--gui-time-scale={ts}", "--gui-run-seconds=30", "--gui-stats"],
-                                                                                   demo=False), d, env=DUMMY))
+                                                                                   demo=False), d, env=DUMMY, font=True))
     R.say(subprocess.run(["uptime"], capture_output=True, text=True).stdout.strip())
     R.say(f"# done {time.strftime('%Y-%m-%d %H:%M:%S %Z')}")
 
