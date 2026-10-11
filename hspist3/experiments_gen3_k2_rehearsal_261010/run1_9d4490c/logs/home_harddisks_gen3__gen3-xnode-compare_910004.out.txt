@@ -1,0 +1,43 @@
+env: gcc (GCC) 14.3.0 [rehearsal shim; here: Apple clang version 17.0.0 (clang-1700.4.4.1)] | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+cross-node determinism: 4 tasks in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_9d4490c/lustre/harddisks_gen3/gen3_xnode_910003
+  task_1: mac-pretend-a | Apple M3 Max (Mac rehearsal)
+  task_2: mac-pretend-a | Apple M3 Max (Mac rehearsal)
+  task_3: mac-pretend-b | Apple M3 Max (Mac rehearsal)
+  task_4: mac-pretend-b | Apple M3 Max (Mac rehearsal)
+
+== across nodes (the test): 2 distinct node(s) among the 4 finished tasks
+  pair mac-pretend-a (task_1) vs mac-pretend-b (task_3):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 23bbc950a931c8e5 / 23bbc950a931c8e5: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: c405c8d3e6522bc9 / c405c8d3e6522bc9: IDENTICAL
+   mac-pretend-a vs mac-pretend-b: IDENTICAL
+
+== within a node (information)
+  task_2 vs task_1 (both on mac-pretend-a):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 23bbc950a931c8e5 / 23bbc950a931c8e5: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: c405c8d3e6522bc9 / c405c8d3e6522bc9: IDENTICAL
+   task_2 vs task_1: IDENTICAL
+  task_4 vs task_3 (both on mac-pretend-b):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 23bbc950a931c8e5 / 23bbc950a931c8e5: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: c405c8d3e6522bc9 / c405c8d3e6522bc9: IDENTICAL
+   task_4 vs task_3: IDENTICAL
+
+RESULT: across nodes IDENTICAL (2 node(s)); within nodes IDENTICAL; tasks used 4 of 4
+cross-node compare done; paste from 'cross-node determinism:' to here

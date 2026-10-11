@@ -1,0 +1,142 @@
+[rehearsal rsync shim] /usr/bin/rsync --exclude=e0_*/ -av --ignore-existing --exclude=*.csv.gz --exclude=.done_runs/ /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/testG_koa/merged/testG/ /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/home/harddisks_gen3_k2/hspist3/experiments_gen3_gate_koa_261009/testG/
+[rehearsal rsync shim] /usr/bin/rsync --exclude=e0_*/ --server -g -l -o -p -D -r -t -v -W --ignore-existing --dirs . /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/home/harddisks_gen3_k2/hspist3/experiments_gen3_gate_koa_261009/testG/
+Transfer starting: 111 files
+./
+gen2/
+gen2/dense_H10_L5.604167/
+gen2/dense_H10_L5.604167/m_300/
+gen2/dense_H10_L5.604167/m_300/.build_git
+gen2/dense_H10_L5.604167/m_300/.sha256_uncompressed
+gen2/dense_H10_L5.604167/m_300/acf_runs.npz
+gen2/dense_H10_L5.604167/m_300/red_nu.csv
+gen2/dense_H10_L5.604167/m_300/run.log
+gen2/epi8_H_H10_L10/
+gen2/epi8_H_H10_L10/m_1500/
+gen2/epi8_H_H10_L10/m_1500/.build_git
+gen2/epi8_H_H10_L10/m_1500/.sha256_uncompressed
+gen2/epi8_H_H10_L10/m_1500/acf_runs.npz
+gen2/epi8_H_H10_L10/m_1500/red_nu.csv
+gen2/epi8_H_H10_L10/m_1500/run.log
+gen2/epi8_H_H10_L10/m_2000/
+gen2/epi8_H_H10_L10/m_2000/.build_git
+gen2/epi8_H_H10_L10/m_2000/.sha256_uncompressed
+gen2/epi8_H_H10_L10/m_2000/acf_runs.npz
+gen2/epi8_H_H10_L10/m_2000/red_nu.csv
+gen2/epi8_H_H10_L10/m_2000/run.log
+gen2/epi8_H_H10_L10/m_300/
+gen2/epi8_H_H10_L10/m_300/.build_git
+gen2/epi8_H_H10_L10/m_300/.sha256_uncompressed
+gen2/epi8_H_H10_L10/m_300/acf_runs.npz
+gen2/epi8_H_H10_L10/m_300/red_nu.csv
+gen2/epi8_H_H10_L10/m_300/run.log
+gen2/epi8_H_H10_L10/m_50/
+gen2/epi8_H_H10_L10/m_50/.build_git
+gen2/epi8_H_H10_L10/m_50/.sha256_uncompressed
+gen2/epi8_H_H10_L10/m_50/acf_runs.npz
+gen2/epi8_H_H10_L10/m_50/red_nu.csv
+gen2/epi8_H_H10_L10/m_50/run.log
+gen2/epi8_H_H10_L10/x_0/
+gen2/epi8_H_H10_L10/x_0/.build_git
+gen2/epi8_H_H10_L10/x_0/.sha256_uncompressed
+gen2/epi8_H_H10_L10/x_0/00_COMMAND_chunk2.md
+gen2/epi8_H_H10_L10/x_0/00_COMMAND_chunk3.md
+gen2/epi8_H_H10_L10/x_0/red_1429931337.csv
+gen2/epi8_H_H10_L10/x_0/red_3866294016.csv
+gen2/epi8_H_H10_L10/x_0/run_1429931337.log
+gen2/epi8_H_H10_L10/x_0/run_3866294016.log
+gen2/epi8_H_H10_L10/x_0/run_params_chunk2.json
+gen2/epi8_H_H10_L10/x_0/run_params_chunk3.json
+gen2/epi8_H_H10_L10/x_0/summary_1429931337.csv
+gen2/epi8_H_H10_L10/x_0/summary_3866294016.csv
+gen2/epi8_H_H10_L10/x_0/tr_1429931337.csv
+gen2/epi8_H_H10_L10/x_0/tr_3866294016.csv
+gen2/epi8_N400_H20_L20/
+gen2/epi8_N400_H20_L20/m_300/
+gen2/epi8_N400_H20_L20/m_300/.build_git
+gen2/epi8_N400_H20_L20/m_300/.sha256_uncompressed
+gen2/epi8_N400_H20_L20/m_300/acf_runs.npz
+gen2/epi8_N400_H20_L20/m_300/red_nu.csv
+gen2/epi8_N400_H20_L20/m_300/run.log
+gen3/
+gen3/dense_H10_L5.604167/
+gen3/dense_H10_L5.604167/m_300/
+gen3/dense_H10_L5.604167/m_300/.build_git
+gen3/dense_H10_L5.604167/m_300/.sha256_uncompressed
+gen3/dense_H10_L5.604167/m_300/acf_runs.npz
+gen3/dense_H10_L5.604167/m_300/red_nu.csv
+gen3/dense_H10_L5.604167/m_300/run.log
+gen3/epi8_H_H10_L10/
+gen3/epi8_H_H10_L10/m_1500/
+gen3/epi8_H_H10_L10/m_1500/.build_git
+gen3/epi8_H_H10_L10/m_1500/.sha256_uncompressed
+gen3/epi8_H_H10_L10/m_1500/acf_runs.npz
+gen3/epi8_H_H10_L10/m_1500/red_nu.csv
+gen3/epi8_H_H10_L10/m_1500/run.log
+gen3/epi8_H_H10_L10/m_2000/
+gen3/epi8_H_H10_L10/m_2000/.build_git
+gen3/epi8_H_H10_L10/m_2000/.sha256_uncompressed
+gen3/epi8_H_H10_L10/m_2000/acf_runs.npz
+gen3/epi8_H_H10_L10/m_2000/red_nu.csv
+gen3/epi8_H_H10_L10/m_2000/run.log
+gen3/epi8_H_H10_L10/m_300/
+gen3/epi8_H_H10_L10/m_300/.build_git
+gen3/epi8_H_H10_L10/m_300/.sha256_uncompressed
+gen3/epi8_H_H10_L10/m_300/acf_runs.npz
+gen3/epi8_H_H10_L10/m_300/red_nu.csv
+gen3/epi8_H_H10_L10/m_300/run.log
+gen3/epi8_H_H10_L10/m_50/
+gen3/epi8_H_H10_L10/m_50/.build_git
+gen3/epi8_H_H10_L10/m_50/.sha256_uncompressed
+gen3/epi8_H_H10_L10/m_50/acf_runs.npz
+gen3/epi8_H_H10_L10/m_50/red_nu.csv
+gen3/epi8_H_H10_L10/m_50/run.log
+gen3/epi8_H_H10_L10/x_0/
+gen3/epi8_H_H10_L10/x_0/.build_git
+gen3/epi8_H_H10_L10/x_0/.sha256_uncompressed
+gen3/epi8_H_H10_L10/x_0/00_COMMAND_chunk2.md
+gen3/epi8_H_H10_L10/x_0/00_COMMAND_chunk3.md
+gen3/epi8_H_H10_L10/x_0/red_1429931337.csv
+gen3/epi8_H_H10_L10/x_0/red_3866294016.csv
+gen3/epi8_H_H10_L10/x_0/run_1429931337.log
+gen3/epi8_H_H10_L10/x_0/run_3866294016.log
+gen3/epi8_H_H10_L10/x_0/run_params_chunk2.json
+gen3/epi8_H_H10_L10/x_0/run_params_chunk3.json
+gen3/epi8_H_H10_L10/x_0/summary_1429931337.csv
+gen3/epi8_H_H10_L10/x_0/summary_3866294016.csv
+gen3/epi8_H_H10_L10/x_0/tr_1429931337.csv
+gen3/epi8_H_H10_L10/x_0/tr_3866294016.csv
+gen3/epi8_N400_H20_L20/
+gen3/epi8_N400_H20_L20/m_300/
+gen3/epi8_N400_H20_L20/m_300/.build_git
+gen3/epi8_N400_H20_L20/m_300/.sha256_uncompressed
+gen3/epi8_N400_H20_L20/m_300/acf_runs.npz
+gen3/epi8_N400_H20_L20/m_300/red_nu.csv
+gen3/epi8_N400_H20_L20/m_300/run.log
+
+sent 378412 bytes  received 2094 bytes  14578773 bytes/sec
+total size is 367325  speedup is 0.97
+[rehearsal rsync shim] /usr/bin/rsync --exclude=e0_*/ -av --ignore-existing --exclude=*.csv.gz /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/gen3_gate_koa_910001/ /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/home/harddisks_gen3_k2/hspist3/experiments_gen3_gate_koa_261009/gate/
+[rehearsal rsync shim] /usr/bin/rsync --exclude=e0_*/ --server -g -l -o -p -D -r -t -v -W --ignore-existing --dirs . /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/home/harddisks_gen3_k2/hspist3/experiments_gen3_gate_koa_261009/gate/
+rsync(30878): error: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/gen3_gate_koa_910001/: (l)stat: No such file or directory
+Transfer starting: 0 files
+
+sent 29 bytes  received 20 bytes  490000 bytes/sec
+total size is 0  speedup is 0.00
+rsync(30878): warning: child 30879 exited with status 23
+[rehearsal rsync shim] /usr/bin/rsync --exclude=e0_*/ -av --ignore-existing --exclude=*.csv.gz /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/gen3_xnode_910003/ /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/home/harddisks_gen3_k2/hspist3/experiments_gen3_gate_koa_261009/xnode/
+[rehearsal rsync shim] /usr/bin/rsync --exclude=e0_*/ --server -g -l -o -p -D -r -t -v -W --ignore-existing --dirs . /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/home/harddisks_gen3_k2/hspist3/experiments_gen3_gate_koa_261009/xnode/
+rsync(30880): error: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/gen3_xnode_910003/: (l)stat: No such file or directory
+Transfer starting: 0 files
+
+sent 29 bytes  received 20 bytes  490000 bytes/sec
+total size is 0  speedup is 0.00
+rsync(30880): warning: child 30881 exited with status 23
+[rehearsal rsync shim] /usr/bin/rsync --exclude=e0_*/ -av --ignore-existing --exclude=*.csv.gz /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/gen3_rate_ld_k2_910002/ /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/home/harddisks_gen3_k2/hspist3/experiments_gen3_gate_koa_261009/rate_ld_k2/
+[rehearsal rsync shim] /usr/bin/rsync --exclude=e0_*/ --server -g -l -o -p -D -r -t -v -W --ignore-existing --dirs . /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/home/harddisks_gen3_k2/hspist3/experiments_gen3_gate_koa_261009/rate_ld_k2/
+rsync(30882): error: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/gen3_rate_ld_k2_910002/: (l)stat: No such file or directory
+Transfer starting: 0 files
+
+sent 29 bytes  received 20 bytes  490000 bytes/sec
+total size is 0  speedup is 0.00
+rsync(30882): warning: child 30883 exited with status 23
+fetched into /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/home/harddisks_gen3_k2/hspist3/experiments_gen3_gate_koa_261009: 628K

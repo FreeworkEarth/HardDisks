@@ -1,0 +1,29 @@
+env: gcc (GCC) 14.3.0 [rehearsal shim; here: Apple clang version 17.0.0 (clang-1700.4.4.1)] | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+merge of /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/testG_koa by the scripts of clone HEAD 2988351f8f566199ae47f1df243d452dc96b6af2
+chunks:        3; FAILED lines in the chunk logs (/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/home/harddisks_gen3/hspist3/logs):        0 logs
+merged 3 chunks: 100 files moved, 14 run logs appended, 0 failed-run folders kept; build '00ALLINONE  git a643bc7  target koa'
+reduce_B testG/gen2/dense_H10_L5.604167: exit 0 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/testG_koa/merged/testG/gen2/dense_H10_L5.604167/m_300: 2 trajectories reduced 
+  testG/gen2/dense_H10_L5.604167/m_300: 2 traces compressed
+reduce_B testG/gen2/epi8_H_H10_L10: exit 0 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/testG_koa/merged/testG/gen2/epi8_H_H10_L10/m_1500: 2 trajectories reduced
+/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/testG_koa/merged/testG/gen2/epi8_H_H10_L10/m_2000: 2 trajectories reduced
+/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/testG_koa/merged/testG/gen2/epi8_H_H10_L10/m_300: 2 trajectories reduced
+/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/testG_koa/merged/testG/gen2/epi8_H_H10_L10/m_50: 14 trajectories reduced 
+  testG/gen2/epi8_H_H10_L10/m_1500: 2 traces compressed
+  testG/gen2/epi8_H_H10_L10/m_2000: 2 traces compressed
+  testG/gen2/epi8_H_H10_L10/m_300: 2 traces compressed
+  testG/gen2/epi8_H_H10_L10/m_50: 14 traces compressed
+reduce_B testG/gen2/epi8_N400_H20_L20: exit 0 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/testG_koa/merged/testG/gen2/epi8_N400_H20_L20/m_300: 2 trajectories reduced 
+  testG/gen2/epi8_N400_H20_L20/m_300: 2 traces compressed
+reduce_B testG/gen3/dense_H10_L5.604167: exit 0 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/testG_koa/merged/testG/gen3/dense_H10_L5.604167/m_300: 2 trajectories reduced 
+  testG/gen3/dense_H10_L5.604167/m_300: 2 traces compressed
+reduce_B testG/gen3/epi8_H_H10_L10: exit 0 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/testG_koa/merged/testG/gen3/epi8_H_H10_L10/m_1500: 2 trajectories reduced
+/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/testG_koa/merged/testG/gen3/epi8_H_H10_L10/m_2000: 2 trajectories reduced
+/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/testG_koa/merged/testG/gen3/epi8_H_H10_L10/m_300: 2 trajectories reduced
+/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/testG_koa/merged/testG/gen3/epi8_H_H10_L10/m_50: 14 trajectories reduced 
+  testG/gen3/epi8_H_H10_L10/m_1500: 2 traces compressed
+  testG/gen3/epi8_H_H10_L10/m_2000: 2 traces compressed
+  testG/gen3/epi8_H_H10_L10/m_300: 2 traces compressed
+  testG/gen3/epi8_H_H10_L10/m_50: 14 traces compressed
+reduce_B testG/gen3/epi8_N400_H20_L20: exit 0 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg/lustre/harddisks_gen3/testG_koa/merged/testG/gen3/epi8_N400_H20_L20/m_300: 2 trajectories reduced 
+  testG/gen3/epi8_N400_H20_L20/m_300: 2 traces compressed
+merge done; next: the fetch (runsheet step 6) and the KOA verdict on the Mac

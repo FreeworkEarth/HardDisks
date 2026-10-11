@@ -1,0 +1,21 @@
+# Test G on KOA (261012 sec. 4.7.29; decision 13, item 2g)
+
+RULE per mass (M = 50, 300, 1500): NO DIFFERENCE if abs(z) < 2; DIFFERENCE if abs(z) >= 3; otherwise one extension (400 more per engine), judged on 800 with the same thresholds, still between -> UNRESOLVED. PASS = NO DIFFERENCE at all three masses.
+
+extensions counted (runs r >= 400 in the data): none
+
+## Inventory
+
+| engine | M | trajectories matched (expected) | n finite > 0 | log sections | health findings (failed runs incl.) | engine line wrong | max contact gap [px] | contact lines missing | nodes | ok |
+|---|---|---|---|---|---|---|---|---|---|---|
+| gen3 | 50 | **no red_nu.csv** | | | | | | | | **NO** |
+| gen3 | 300 | **no red_nu.csv** | | | | | | | | **NO** |
+| gen3 | 1500 | **no red_nu.csv** | | | | | | | | **NO** |
+| gen2 | 50 | **no red_nu.csv** | | | | | | | | **NO** |
+| gen2 | 300 | **no red_nu.csv** | | | | | | | | **NO** |
+| gen2 | 1500 | **no red_nu.csv** | | | | | | | | **NO** |
+
+nodes: gen3 {}; gen2 {}
+builds (.build_git): [] (required: 00ALLINONE  git a643bc7  target koa); inventory **NOT CLEAN -> INVALID**
+
+TEST G (KOA): INVALID -- the inventory is not clean; no verdict
