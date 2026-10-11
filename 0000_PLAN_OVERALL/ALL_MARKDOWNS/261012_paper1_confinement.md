@@ -14901,3 +14901,81 @@ Push: `git push origin main engine-gen3 engine-divider-resched`. engine-gen3 mus
 - **Commits:**
   - engine-gen3: `7f6adca` (the acceptance scripts), `97d4080` (the runner links the font), `cb2d32c` (the evidence: the tables, the run records, the files under 1 MB, `D19_SHA256_FILES.txt`);
   - main and engine-divider-resched: this record.
+
+### 4.7.51 Plan-author decision 24: Report K2b accepted; 20 Test G chunks stopped in their start-up checks; the merge keeps refusing an incomplete chunk set; decision 19 item 2 accepted as display-only (2026-10-10 23:45 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Accepted:**
+  - Report K2b: items 1–3, the plan-before-move merge, and delivery by updating `~/harddisks_gen3_k2` to `dc158b5`.
+  - K2-4 blocks A–E, **approved in principle**. They are typed only after point 2 is settled and the plan author says go.
+- **Point 2, the array.** Test G array 15043056:
+  - 124 chunks COMPLETED, all on E5-2670 v3 nodes.
+  - 20 FAILED with exit 2 after 2–4 s: chunks 57–61, 66–70, 110–114 and 132–136. They stopped in the start-up checks, before "chunk j on ...", and ran nothing.
+  - 124 chunk folders exist. Chris is fetching the STOP lines and node names.
+  - The plan author's intention: submit exactly these 20 indices once more with the registered script (their first real run; the same task lines and seeds), excluding the faulty node if it is one node.
+  - **This replaces** the earlier request for gap handling in the merge: the merge keeps refusing an incomplete chunk set.
+  - **Ordered before that:**
+    - (a) From the code: what the merge job's checks and block A print when, for those 20 chunks, an old log with a STOP line and no done line lies next to a new complete log (164 logs in all), and whether the merge would start.
+    - (b) If it would stop: a chunk counts as done when its folder exists and exactly one of its logs has the done line, and earlier attempts that stopped before "chunk j on" are listed by name. With a unit test.
+    - (c) A Mac rehearsal of the case: one chunk whose first attempt stops in a start-up check and whose second completes, then blocks A–E as written.
+    - (d) Block A's "good" lines rewritten for this case, and the resubmission line for the 20 indices, with a placeholder-free `--exclude` (working assumption cn-05-08-07; say where it appears).
+- **Point 3:** decision 19 item 2 is ACCEPTED as a display-only feature. For the campaign, Report S1-0 (stage 1 registration, gate G0 a) lists every build-input difference from `f72d764` to the campaign commit, with the evidence that the headless path is unchanged. No campaign build before the plan author has read it.
+- **Point 4, M5:** noted that the registered rule needs one solid cell and K2-2 had none. After the fetch: the rule on the 16 rows, and the smallest job that adds a solid cell in both builds, proposed, not run.
+- **Point 5, disk:** CC's answer is noted (not this project's data). No further action.
+- **Ordered:** Report K2c (short): point 2 a–d, commits, push line. The data marker is `$SP/.decision24_ref`, 23:45 HST.
+
+**The message to CC, verbatim** (relayed by Chris on 2026-10-10 at about 23:45 HST, machine date):
+
+```
+For CC:
+
+From the plan author (Cowork), relayed by Chris. Record in a new
+section. Ground rules as before; no KOA contact.
+
+DECISION 24 (2026-10-10 ~23:50 HST)
+ 1. Report K2b: ACCEPTED (items 1-3, the plan-before-move merge,
+    delivery by updating ~/harddisks_gen3_k2 to dc158b5). K2-4
+    blocks A-E are approved in principle; they are typed only after
+    point 2 is settled and I say go.
+ 2. Test G array 15043056: 124 chunks COMPLETED (all E5-2670 v3),
+    20 FAILED with exit 2 after 2-4 s: chunks 57-61, 66-70,
+    110-114, 132-136. 124 chunk folders exist; the 20 stopped in
+    the start-up checks before "chunk j on ..." and ran nothing.
+    Chris is fetching the STOP lines and node names. My intention:
+    submit exactly these 20 indices once more with the registered
+    script (their first real run; same task lines and seeds),
+    excluding the faulty node if it is one node.
+    This REPLACES my earlier request for gap handling in the merge:
+    the merge should keep refusing an incomplete chunk set.
+    What I need from you before that:
+    a) State from the code what merge_testG_k2.sbatch's checks and
+       block A print when, for 20 chunks, an old log with a STOP
+       line and no "chunk j done" line lies next to a new complete
+       log (164 logs in all), and whether the merge would start.
+    b) If it would stop: change the check so that a chunk counts as
+       done when its folder exists and exactly one of its logs has
+       the done line, and earlier attempts that stopped before
+       "chunk j on" are listed by name. Unit test for it.
+    c) Rehearse this case on the Mac: one chunk whose first attempt
+       stops in a start-up check and whose second completes, then
+       blocks A-E as written.
+    d) Rewrite block A's "good" lines for this case, and give the
+       resubmission line for the 20 indices with a placeholder-free
+       --exclude for the node (I will fill in the node name from
+       Chris's paste, so write it with cn-05-08-07 as the working
+       assumption and say where it appears).
+ 3. Decision 19 item 2: ACCEPTED as a display-only feature. For the
+    campaign: list every build-input difference f72d764 -> campaign
+    commit in Report S1-0 (stage 1 registration, gate G0 a) with the
+    evidence that the headless path is unchanged. No campaign build
+    before I have read it.
+ 4. M5: noted that the registered rule needs one solid cell and the
+    K2-2 job had none. After the fetch, print the rule on the 16
+    rows and propose the smallest job that adds a solid cell in both
+    builds. Do not run it.
+ 5. Disk: your answer is noted (not this project's data). No
+    further action.
+
+Report K2c (short): point 2 a-d, commits, push line. End with
+"Written for: the plan author".
+```
