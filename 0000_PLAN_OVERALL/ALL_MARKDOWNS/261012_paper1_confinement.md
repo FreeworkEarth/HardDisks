@@ -14844,3 +14844,60 @@ The rehearsals took 1163 s and 104 s and wrote 266 MB and 40 MB of scratch data.
 - engine-divider-resched: the notes.
 
 Push: `git push origin main engine-gen3 engine-divider-resched`. engine-gen3 must be on GitHub before block C, which fetches `dc158b5`.
+
+### 4.7.50 Decision 19, item 2: gen3 in the window, a provisional DISPLAY feature — ACCEPTANCE PASS (2026-10-10 17:47 HST, machine date) [DATA, printed by script]
+
+**Plain summary.**
+- **The acceptance passes.** It was printed by `experiments_gen3_d19_261010/d19_tables.py` (engine-gen3 worktree). The binaries come from the committed tree `7f6adca`: `00ALLINONE  git 7f6adca`, built by `d19_build.sh`. Its `00ALLINONE.c` is the decision 19 WIP `b416dfc` unchanged.
+
+  | item (decision 19, sec. 4.7.44) | result |
+  |---|---|
+  | rule 4: default build and `--engine=gen2`, ctrl_min and ctrl_leg, against 7b08827 | IDENTICAL (audit vs plain and plain vs ref, all four) |
+  | M1/M2 harness outputs | IDENTICAL (all three) |
+  | headless gen3 unchanged | P4a start A seed 1: event hash `bd25077c5f1c9c9f` = P4's; its 7 data files byte-identical. The replay cell m2_driven_pi8, variant a: `694fdf127f35d4b4`, MATCH, 818521 events |
+  | the display does not steer | gen3, the same seed and protocol with the window (SDL's dummy video driver, the software renderer, no input) and headless: event hash `daea5de1378282dc` both, clean 1, 4 of 4 output files byte-identical |
+  | the table at N 5000 and 8000, η 0.31 | below |
+  | 0 new warnings | 25 = the parent `f72d764`'s 25, compared by text without file and line; harnesses 0 |
+
+- **The window at N = 5000 and 8000, η 0.31.**
+  - Setup: the Mac, SDL's dummy video driver and the software renderer; `--auto-release`, the window's own pacing; 30 wall seconds each, one run at a time, with no other run of ours.
+  - The scene is the display pair's, scaled: H = 20 √(N/400), L0 = 25.34 √(N/400).
+
+  | N | time scale | engine | frames per second | σ-time per wall second | events per wall second | frames | steps | clean |
+  |---|---|---|---|---|---|---|---|---|
+  | 5000 | 1 | gen2 | 7.55 | 0.031 | - | 228 | 57 | - |
+  | 5000 | 1 | gen3 | 8.91 | 0.037 | 434 | 269 | 67 | 1 |
+  | 5000 | 10000 | gen2 | 0.005 | 0.19 | - | 2 | 4999 | - |
+  | 5000 | 10000 | gen3 | 0.82 | 32.6 | 4.13e5 | 25 | 59998 | 1 |
+  | 8000 | 1 | gen2 | 4.41 | 0.019 | - | 134 | 34 | - |
+  | 8000 | 1 | gen3 | 5.70 | 0.024 | 422 | 172 | 43 | 1 |
+  | 8000 | 10000 | gen2 | 0.002 | 0.076 | - | 2 | 4999 | - |
+  | 8000 | 10000 | gen3 | 0.50 | 19.4 | 3.89e5 | 16 | 37499 | 1 |
+
+  - **Reading [INFERENCE].**
+    - At the window's default time scale 1 (one internal unit, 1/24 σ-time, per wall second), both engines are limited by drawing 5000 or 8000 disks in software: 7.6 against 8.9 fps at N 5000, and 4.4 against 5.7 at N 8000.
+    - At the largest time scale, gen3 advances 32.6 σ-time per second (N 5000) and 19.4 (N 8000); gen2 advances 0.19 and 0.076. That is about 170x and 250x.
+    - At time scale 10000 every frame computes up to 2500 steps. For watching, a time scale of about 100–500 suits (the keys + and −).
+    - On Chris's display the accelerated renderer replaces the software one, so the fps there will differ. That was not measured.
+- **The command for Chris** (a window opens; run it from the engine-gen3 worktree, where the window finds its font):
+  ```
+  cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3 && experiments_gen3_d19_261010/bin_7f6adca/00ALLINONE --show-simulation --mode=edmd --engine=gen3 --edmd-acc=0 --seed-drift-order=drift-first --kbt1 --particles=5000 --particles-boxes=2500,2500 --particle-radius=0.5 --l0=89.5904 --height=70.7107 --num-walls=1 --wall-positions=89.5904 --wall-mass-factors=50 --wall-hold-steps=600 --fixed-dt=0.4 --seed=9300 --gui-time-scale=200
+  ```
+  - For 8000 disks: `--particles=8000 --particles-boxes=4000,4000 --l0=113.3239 --height=89.4427 --wall-positions=113.3239`.
+  - The keys:
+    - SPACE starts; the divider is held for 600 steps (10 σ-time), then it is free.
+    - `+` and `-` double and halve the time scale, and `0` resets it to 1.
+    - P pauses. ESC rebuilds the scene.
+    - Q ends the scene and prints the run record (clean flag, event hash) and `[GUI-STATS]`.
+    - The HUD's first line names the engine. What gen3 does not support says so, as "n/a (gen3)" or a note.
+- **Deviations.**
+  1. **The runner's first start** stopped both window runs at "Failed to load font": the window loads `Roboto-Regular.ttf` from its working folder. It was stopped after a minute, and its partial folder is kept in the session scratchpad. The runner now links the font into every window run's folder (`97d4080`). The binaries were not rebuilt (`7f6adca`).
+  2. **The first print of the tables showed FAIL.** It compared P4a's three command records (`00_COMMAND.md`, `01_PLOT_COMMANDS.md`, `00_COMMAND_AND_PLOT_COMMAND.md`) too. These name the run's own folder, binary and time, so they always differ. The corrected table compares the data files, as decision 18 did, and the first print is kept (`d19_tables_output_first.txt`).
+  3. **Under gen2** the window run finishes its last frame's steps after the stop: 30 rows more in `wall_position.csv`. Its first 2402 rows equal the headless run's byte for byte, so the display does not steer gen2 either. Only gen3's loop stops within the frame (`b416dfc`).
+  4. **gen2 at time scale 10000** needed 431 s and 1092 s for its "30 s". `--gui-run-seconds` is checked once per frame, and one frame of 2500 gen2 steps takes minutes at these N.
+- **Data:**
+  - the build's source copy: 116 MB in the scratchpad;
+  - the evidence: 23 MB. The files under 1 MB (5.5 MB) are committed; the five larger ones (two screenshots, two N = 5000/8000 traces, P4a's ψ6(t)) are listed with their SHA-256 in `D19_SHA256_FILES.txt`, as are the binaries.
+- **Commits:**
+  - engine-gen3: `7f6adca` (the acceptance scripts), `97d4080` (the runner links the font), `cb2d32c` (the evidence: the tables, the run records, the files under 1 MB, `D19_SHA256_FILES.txt`);
+  - main and engine-divider-resched: this record.
