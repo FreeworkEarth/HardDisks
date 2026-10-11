@@ -1,0 +1,15 @@
+# C1 under AMENDMENT A2 to A1 -- POST HOC: written after C1's data (plan-author decision 30, item 2; 261012 sec. 4.7.59);
+# flagged so wherever it is cited. The registered C1 verdict (c1_verdict_output.txt) stays: NOT DECIDED.
+
+the same 200 audited trajectories and twins as the registered printing (runs/audit, runs/twin; M = 50 gen3, Mac starts)
+
+| A2 part | trajectories that meet it |
+|---|---|
+| every registered audit count 0 | 200 of 200 |
+| event hash and per-class counts equal to the twin's | 200 of 200 |
+| clean=1 in both | 200 of 200 |
+| max |dt|/horizon (|dt| > 1e-9 only) <= 1e-10 | 200 of 200 |
+
+max |dt|/horizon (|dt| > 1e-9 only) over all runs: 4.26e-11; max |dt|: 4.77e-06 units (not part of A2); finding lines: 0
+
+C1, AMENDMENT A2 (POST HOC): condition MET
