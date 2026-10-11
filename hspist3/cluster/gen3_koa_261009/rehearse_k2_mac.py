@@ -191,6 +191,23 @@ def mini_list(src):
     return out + L[129 * 25: 129 * 25 + 5]
 
 
+def expected_plan(lines):
+    """the merge plan's entries by treatment if every task line succeeds, from testG_worker_koa.sh's outputs: per B line its trace and
+    (gen3) psi6 file (MOVE) and its run folder (PER CHUNK); per B cell and chunk run.log (APPEND), .build_git (EQUAL) and, in gen3,
+    .sha256_uncompressed (APPEND); per A-fixed line 5 files (MOVE); per x_0 and chunk .build_git (EQUAL), .sha256_uncompressed (APPEND),
+    00_COMMAND.md and run_params.json (PER CHUNK)"""
+    from collections import Counter
+    n, cells = Counter(), set()
+    for i, l in enumerate(lines):
+        f = l.split(); eng = f[10]; cells.add((f[0], f[1], i // 25 + 1, eng))
+        n["MOVE"] += (1 + (eng == "gen3")) if f[0] == "B" else 5
+        if f[0] == "B": n["PER CHUNK"] += 1
+    for kind, rel, j, eng in cells:
+        n["EQUAL"] += 1; n["APPEND"] += (1 + (eng == "gen3")) if kind == "B" else 1
+        if kind == "AF": n["PER CHUNK"] += 2
+    return "plan entries by treatment: " + ", ".join(f"{k} {v}" for k, v in sorted(n.items())), sum(n.values())
+
+
 def runsheet_blocks(path):
     """the K2-4 paste blocks of the runsheet {letter: command lines} (a block starts at its 'K2-4 BLOCK <X> (' line and ends at the first
     empty line), and per block the SHA-256 lines it must print (the indented '<64 hex>  <path>' lines after it, before the next block)"""
@@ -372,6 +389,10 @@ def testg(R, A, K2C, H, shim, PARTS, ml, runsheet, FIX):
     lgb = os.path.join(R, "logs", "testG_beyond.out"); rcb = chunk(910008, nch + 1, lgb).wait(); tb = open(lgb).read()
     res("testG_koa.sbatch (STOP rule)", f"array 910008, task {nch + 1}", f"exit 2: 'STOP: chunk {nch + 1} is beyond the task list'",
         rcb == 2 and f"STOP: chunk {nch + 1} is beyond the task list" in tb, f"exit {rcb}")
+    reg = os.path.join(HERE, "tasks_testG_koa_261009.txt"); assert sha(reg) == "cff8e6f9ef3d95440f54b4c621fff776b64e48700083e7258e472351fc6412b9"
+    exp_mini, exp_reg = expected_plan(ml), expected_plan(open(reg).readlines())
+    print(f"  the merge plan expected if every run succeeds: mini list '{exp_mini[0]}' ({exp_mini[1]} entries); the registered list (KOA) "
+          f"'{exp_reg[0]}' ({exp_reg[1]} entries)")
     # ---------------------------------------------------------------- K2-4 as pasted: A (login node, read only), B (srun), C (sandbox: the update)
     B, shas = runsheet_blocks(runsheet)
     if sorted(B) != ["A", "B", "C", "D", "E"] or not shas["C"]: sys.exit(f"STOP: the runsheet {runsheet} has blocks {sorted(B)} and {len(shas.get('C', []))} SHA lines for block C")
@@ -421,10 +442,11 @@ def testg(R, A, K2C, H, shim, PARTS, ml, runsheet, FIX):
     red = re.findall(r"^reduce_B (\S+): exit (\d+)", tm, re.M)
     rows = {f"| testG/{g}/epi8_H_H10_L10/{c} | {js_} |" for g in ("gen2", "gen3") for c, js_ in (("m_50", "1, 2"), ("x_0", f"{nch - 1}, {nch}"))}
     okC = {"submitted": len(jid) == 1, "job exit 0": rcm == "0", f"merged {nch} chunks": f"merged {nch} chunks:" in tm, "0 problems": f"scan: {nch} chunks," in tm and ", 0 problem(s);" in tm,
+           "plan counts as the model": exp_mini[0] in tm and f"scan: {nch} chunks, {exp_mini[1]} plan entries," in tm,
            "two-chunk folders listed": all(r in tm for r in rows), "reduce_B exit 0 x6": len(red) == 6 and all(x[1] == "0" for x in red),
            "traces compressed": "traces compressed" in tm, "done line": "merge done; next: the fetch" in tm, "no STOP": "STOP" not in tm}
     res("runsheet K2-4 block D + merge_testG_k2.sbatch + merge_testG_koa.py (+ reduce_B.py)", f"bash as pasted; job {jid[0] if jid else '?'} (sbatch shim)",
-        f"submitted; exit 0; scan {nch} chunks, 0 problems; m_50 from chunks 1, 2 and x_0 from {nch - 1}, {nch} (both engines) in the plan; 'merged {nch} chunks'; "
+        f"submitted; exit 0; scan {nch} chunks, 0 problems, the plan's counts as expected from the task lines; m_50 from chunks 1, 2 and x_0 from {nch - 1}, {nch} (both engines) in the plan; 'merged {nch} chunks'; "
         "reduce_B exit 0 for all 6 B cell groups; traces compressed; done line", all(okC.values()),
         f"{sum(okC.values())}/{len(okC)}" + (f"; failed: {[k for k, v in okC.items() if not v]}" if not all(okC.values()) else "")
         + f"; {re.findall(r'^merged .*$', tm, re.M)[:1]}")
