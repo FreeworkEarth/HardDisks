@@ -19,6 +19,7 @@ REF = (("m1_audit_output.txt", "experiments_gen3_m1_261008/m1_audit_output.txt")
        ("m2_audit_output.txt", "experiments_gen3_m2_261009/m2_audit_output.txt"))
 P4A1 = os.path.join(HS, "experiments_gen3_p4_261010", "data_06e7248", "N400_eta0.740", "A", "seed1")
 P4_HASH, RP_HASH = "bd25077c5f1c9c9f", "694fdf127f35d4b4"
+RECORDS = ("00_COMMAND.md", "01_PLOT_COMMANDS.md", "00_COMMAND_AND_PLOT_COMMAND.md")   # provenance: they name the run's folder, binary and time
 
 
 def sha(p): return hashlib.sha256(open(p, "rb").read()).hexdigest()
@@ -73,10 +74,15 @@ def main():
     # ---- headless gen3 unchanged
     print("\n## 4. Headless gen3 unchanged\n")
     c, h = g3hash(os.path.join(O, "p4a_A1"))
-    files = sorted(os.path.basename(p) for p in glob.glob(os.path.join(P4A1, "*")) if os.path.isfile(p) and not p.endswith(("run.log", "command.txt", "exit_code.txt")))
+    # ##CHRIS 2026-10-10 (sec. 4.7.50): the first print of this table compared the three command records as well; they name the run's
+    # own folder, binary and time, so they always differ (d19_tables_output_first.txt). The data files are compared, as decision 18 did.
+    files = sorted(os.path.basename(p) for p in glob.glob(os.path.join(P4A1, "*")) if os.path.isfile(p)
+                   and not p.endswith(("run.log", "command.txt", "exit_code.txt")) and os.path.basename(p) not in RECORDS)
     eq = {f: same(os.path.join(O, "p4a_A1", f), os.path.join(P4A1, f)) for f in files}
     print(f"P4a start A seed 1, P4's command with the new binary: clean={c}, event hash {h} (P4: {P4_HASH}): {'EQUAL' if h == P4_HASH else '**DIFFERENT**'}; "
-          f"its files against P4's: {sum(eq.values())} of {len(eq)} byte-identical" + (f" (differ: {[f for f, v in eq.items() if not v]})" if not all(eq.values()) else ""))
+          f"its data files against P4's: {sum(eq.values())} of {len(eq)} byte-identical ({', '.join(files)})"
+          + (f" (differ: {[f for f, v in eq.items() if not v]})" if not all(eq.values()) else "")
+          + f"; the command records {', '.join(RECORDS)} name the run's folder, binary and time (provenance; not compared)")
     t = open(os.path.join(O, "replay", "run.log"), errors="ignore").read() if os.path.exists(os.path.join(O, "replay", "run.log")) else ""
     rl = re.findall(r"^\[EDMD3-REPLAY\] (.*)$", t, re.M); rc = re.findall(r"^\[EDMD3-HEALTH\] .*?: (clean=[01])", t, re.M)
     rp_ok = bool(rl) and RP_HASH in rl[0] and ": MATCH;" in rl[0] and rc[:1] == ["clean=1"]
@@ -93,9 +99,15 @@ def main():
         cw, hw = g3hash(w); ch, hh = g3hash(hl)
         outs = sorted(os.path.basename(p) for p in glob.glob(os.path.join(w, "*.csv")) + glob.glob(os.path.join(w, "*.json")))
         eqf = {f: same(os.path.join(w, f), os.path.join(hl, f)) for f in outs}
+        pre = {}
+        for f in [f for f, v in eqf.items() if not v and f.endswith(".csv")]:   # a longer window file: is the headless file its first rows?
+            a, b = open(os.path.join(w, f), "rb").read(), open(os.path.join(hl, f), "rb").read()
+            if len(a) > len(b) and a.startswith(b): pre[f] = a[len(b):].count(b"\n")
         if eng == "gen3": st_ok = hw is not None and hw == hh and cw == ch == "1"
         print(f"| {eng} | {cw}, {hw} | {ch}, {hh} | {('yes' if hw == hh else '**NO**') if eng == 'gen3' else '- (gen2: no event hash)'} | "
-              f"{sum(eqf.values())} of {len(eqf)}" + (f" (differ: {[f for f, v in eqf.items() if not v]})" if not all(eqf.values()) else "") + " |")
+              f"{sum(eqf.values())} of {len(eqf)}" + (f" (differ: {[f for f, v in eqf.items() if not v]})" if not all(eqf.values()) else "")
+              + "".join(f"; {f}: the headless file is the window file's first rows, the window has {n} rows more (its last frame's steps after the stop)"
+                        for f, n in pre.items()) + " |")
     ok["the display does not steer (gen3: window = headless event hash)"] = st_ok
     # ---- performance
     print("\n## 6. The window at N = 5000 and 8000, eta 0.31 (SDL's dummy video driver, the software renderer; --auto-release, the "
