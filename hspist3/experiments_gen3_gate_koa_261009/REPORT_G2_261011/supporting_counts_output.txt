@@ -1,0 +1,21 @@
+## 1. contact audit (B5): executed physical events and max |contact distance| [px] per class (24 px = 1 sigma)
+gen2 M=50 runs=400 events=3.09806e+08 max|c| disk-disk=5.223e-11 outer-walls=3.476e-11 divider=3.371e-11
+gen2 M=300 runs=400 events=6.05941e+08 max|c| disk-disk=1.047e-10 outer-walls=7.401e-11 divider=6.969e-11
+gen2 M=1500 runs=400 events=1.29391e+09 max|c| disk-disk=2.187e-10 outer-walls=1.460e-10 divider=1.416e-10
+gen2 M=2000 runs=100 events=3.72398e+08 max|c| disk-disk=2.092e-10 outer-walls=1.422e-10 divider=1.328e-10
+gen3 M=50 runs=400 events=3.09817e+08 max|c| disk-disk=4.899e-12 outer-walls=2.967e-12 divider=2.558e-12
+gen3 M=300 runs=400 events=6.05965e+08 max|c| disk-disk=5.336e-12 outer-walls=3.203e-12 divider=3.183e-12
+gen3 M=1500 runs=400 events=1.29404e+09 max|c| disk-disk=5.304e-12 outer-walls=3.968e-12 divider=3.240e-12
+gen3 M=2000 runs=100 events=3.72401e+08 max|c| disk-disk=6.068e-12 outer-walls=2.954e-12 divider=3.240e-12
+
+## 2. gen3 event mix per trajectory (C1 cost basis), means over the runs of [EDMD3-HEALTH]
+M=50 runs=400 ev_pair 623338 ev_wall 113012 ev_cross 357328 ev_div 38192 ev_stale 3515618 heap_max 2913 run_s 3.08 engine_s 1.60 (KOA E5-2670 v3)
+M=300 runs=400 ev_pair 1219680 ev_wall 221136 ev_cross 705490 ev_div 74097 ev_stale 6839669 heap_max 4179 run_s 5.23 engine_s 3.10 (KOA E5-2670 v3)
+M=1500 runs=400 ev_pair 2604836 ev_wall 472266 ev_cross 1519255 ev_div 157999 ev_stale 14555686 heap_max 7245 run_s 10.30 engine_s 6.74 (KOA E5-2670 v3)
+M=2000 runs=100 ev_pair 2998553 ev_wall 543607 ev_cross 1750955 ev_div 181853 ev_stale 16748507 heap_max 8215 run_s 11.73 engine_s 7.73 (KOA E5-2670 v3)
+
+## 3. executed physical events per trajectory, gen3 against gen2 (C3)
+M=50: per trajectory gen2 774514.6 (n 400), gen3 774541.7 (n 400); gen3/gen2 - 1 = +0.35 +- 0.76 x 1e-4 (z +0.46); per-run SD 0.104 %
+M=300: per trajectory gen2 1514853.0 (n 400), gen3 1514912.8 (n 400); gen3/gen2 - 1 = +0.39 +- 0.56 x 1e-4 (z +0.70); per-run SD 0.078 %
+M=1500: per trajectory gen2 3234772.7 (n 400), gen3 3235101.3 (n 400); gen3/gen2 - 1 = +1.02 +- 0.41 x 1e-4 (z +2.48); per-run SD 0.057 %
+M=2000: per trajectory gen2 3723982.1 (n 100), gen3 3724013.1 (n 100); gen3/gen2 - 1 = +0.08 +- 0.78 x 1e-4 (z +0.11); per-run SD 0.054 %
