@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+  File "<string>", line 8, in <module>
+    KV.main()
+    ~~~~~~~^^
+  File "/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_9d4490c/home/harddisks_gen3_k2/hspist3/cluster/gen3_koa_261009/testG_koa_verdict_261009.py", line 119, in main
+    rows = V.compare(D)
+  File "/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_9d4490c/home/harddisks_gen3_k2/hspist3/validation/testG_verdict_261009.py", line 88, in compare
+    a4, b4 = A[A["run"] < NSEED]["nu"].to_numpy(float), B[B["run"] < NSEED]["nu"].to_numpy(float)
+               ~^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+# Test G on KOA (261012 sec. 4.7.29; decision 13, item 2g)
+
+RULE per mass (M = 50, 300, 1500): NO DIFFERENCE if abs(z) < 2; DIFFERENCE if abs(z) >= 3; otherwise one extension (400 more per engine), judged on 800 with the same thresholds, still between -> UNRESOLVED. PASS = NO DIFFERENCE at all three masses.
+
+extensions counted (runs r >= 400 in the data): none
+
+## Inventory
+
+| engine | M | trajectories matched (expected) | n finite > 0 | log sections | health findings (failed runs incl.) | engine line wrong | max contact gap [px] | contact lines missing | nodes | ok |
+|---|---|---|---|---|---|---|---|---|---|---|
+| gen3 | 50 | **no red_nu.csv** | | | | | | | | **NO** |
+| gen3 | 300 | **no red_nu.csv** | | | | | | | | **NO** |
+| gen3 | 1500 | **no red_nu.csv** | | | | | | | | **NO** |
+| gen2 | 50 | **no red_nu.csv** | | | | | | | | **NO** |
+| gen2 | 300 | **no red_nu.csv** | | | | | | | | **NO** |
+| gen2 | 1500 | **no red_nu.csv** | | | | | | | | **NO** |
+
+nodes: gen3 {}; gen2 {}
+builds (.build_git): [] (required: 00ALLINONE  git a643bc7  target koa); inventory **NOT CLEAN -> INVALID**
+[rehearsal B] inventory: NOT CLEAN -- forced clean, so the rest of main() runs on the mini data

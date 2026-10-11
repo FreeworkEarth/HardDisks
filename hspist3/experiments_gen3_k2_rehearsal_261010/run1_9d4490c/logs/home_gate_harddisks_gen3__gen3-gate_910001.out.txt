@@ -1,0 +1,85 @@
+env: gcc (GCC) 14.3.0 [rehearsal shim; here: Apple clang version 17.0.0 (clang-1700.4.4.1)] | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+node Christophs-MacBook-Pro-875.local | Apple M3 Max (Mac rehearsal) | out /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_9d4490c/lustre/harddisks_gen3/gen3_gate_koa_910001 | clone HEAD 9d4490c6b49cf6759a7462e7871ddeb044e36a6c
+00ALLINONE  git 9d4490c  target koa
+00ALLINONE  git 9d4490c  target koa-ld
+00ALLINONE  git 7b08827  target koa
+ctrl_min/audit: exit 0
+ctrl_min/plain: exit 0
+ctrl_min/ref: exit 0
+ctrl_leg/audit: exit 0
+ctrl_leg/plain: exit 0
+ctrl_leg/ref: exit 0
+afix/audit: exit 0
+afix/plain: exit 0
+afix/ref: exit 0
+afix_leg/audit: exit 0
+afix_leg/plain: exit 0
+afix_leg/ref: exit 0
+wall time 24 s
+== (a) E0 default:
+ afix  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ ctrl_min  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ ctrl_leg  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ afix_leg  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+E2 (amended): NOT TESTED by this job (its cases free_M50_long, free_M2000 and dense_* are not run); E0 (plain vs ref IDENTICAL in ctrl_min, ctrl_leg, afix, afix_leg): PASS
+ctrl_min/audit: exit 0
+ctrl_min/plain: exit 0
+ctrl_min/ref: exit 0
+ctrl_leg/audit: exit 0
+ctrl_leg/plain: exit 0
+ctrl_leg/ref: exit 0
+afix/audit: exit 0
+afix/plain: exit 0
+afix/ref: exit 0
+afix_leg/audit: exit 0
+afix_leg/plain: exit 0
+afix_leg/ref: exit 0
+wall time 24 s
+== (a) E0 gen2flag:
+ afix  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ ctrl_min  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ ctrl_leg  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ afix_leg  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+E2 (amended): NOT TESTED by this job (its cases free_M50_long, free_M2000 and dense_* are not run); E0 (plain vs ref IDENTICAL in ctrl_min, ctrl_leg, afix, afix_leg): PASS
+== (b) the M1/M2 harness outputs on KOA (m1 exit 0;m2 quick exit 0;m2 exit 0;)
+   m1_audit_output.txt: KOA SHA-256 3b1347742ac82881023f882b30b1e23bbc1815c99aeef7bcd8c72f32ada00a8b -- the same as the Mac's
+   m2_audit_quick_output.txt: KOA SHA-256 98e78bc5c9c8a42f7a7bcf671eb9df79b4706654c40d0165611a3c64e942e07d -- the same as the Mac's
+   m2_audit_output.txt: KOA SHA-256 d1b59d23695c0bb29754a7ee73bbaec1bf43882c5be287fd20ceea40371c9c11 -- the same as the Mac's
+== (c) the KOA rate table of gen3 (one run at a time)
+
+| N | eta | events | run [s] | engine [s] | driver share | events/s | clean |
+|---|---|---|---|---|---|---|---|
+| 100 | pi/8 | 234670 | 0.2 | 0.2 | 0.335 | 9.54e+05 | 1 |
+| 100 | 0.70 | 1098272 | 1.6 | 1.5 | 0.059 | 6.83e+05 | 1 |
+| 100 | 0.78 | 12328791 | 14.8 | 14.6 | 0.012 | 8.32e+05 | 1 |
+| 400 | pi/8 | 810623 | 1.2 | 0.7 | 0.448 | 6.51e+05 | 1 |
+| 400 | 0.70 | 3353506 | 6.1 | 5.4 | 0.107 | 5.5e+05 | 1 |
+| 400 | 0.78 | 6229921 | 10.1 | 9.6 | 0.055 | 6.15e+05 | 1 |
+| 900 | pi/8 | 1846255 | 3.4 | 1.6 | 0.541 | 5.46e+05 | 1 |
+| 900 | 0.70 | 6458732 | 13.7 | 11.5 | 0.159 | 4.72e+05 | 1 |
+| 900 | 0.78 | 13758377 | 24.5 | 22.6 | 0.079 | 5.61e+05 | 1 |
+| 1600 | pi/8 | 3151369 | 8.1 | 3.1 | 0.624 | 3.88e+05 | 1 |
+| 1600 | 0.70 | 11293443 | 25.1 | 19.8 | 0.210 | 4.49e+05 | 1 |
+| 1600 | 0.78 | 19522248 | 38.6 | 33.8 | 0.125 | 5.06e+05 | 1 |
+
+== (d) the long-double spot check (koa-ld against koa, same commands and seeds)
+
+| N | M | seed | build | clean | events | event hash | max contact gap [px] | u_t | gap / u_t [px/unit] | argmax nu |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 100 | 300 | 0 | koa | 1 | 2215000 | 1ebb86abb0924c44 | 3.62e-12 | 1.82e-12 | 1.99 | 0.036469 |
+| 100 | 300 | 0 | koa-ld | 1 | 2215000 | 1ebb86abb0924c44 | 3.62e-12 | 1.82e-12 | 1.99 | 0.036469 |
+| 100 | 300 | 1 | koa | 1 | 2224902 | d8d134bdfaef3e3a | 3.07e-12 | 1.82e-12 | 1.69 | 0.036990 |
+| 100 | 300 | 1 | koa-ld | 1 | 2224902 | d8d134bdfaef3e3a | 3.07e-12 | 1.82e-12 | 1.69 | 0.036990 |
+| 100 | 300 | 2 | koa | 1 | 2223369 | d3a5de4ab0c32b7b | 3.62e-12 | 1.82e-12 | 1.99 | 0.037337 |
+| 100 | 300 | 2 | koa-ld | 1 | 2223369 | d3a5de4ab0c32b7b | 3.62e-12 | 1.82e-12 | 1.99 | 0.037337 |
+| 100 | 300 | 3 | koa | 1 | 2218608 | c32ff2dd67f8cfdc | 3.18e-12 | 1.82e-12 | 1.75 | 0.037337 |
+| 100 | 300 | 3 | koa-ld | 1 | 2218608 | c32ff2dd67f8cfdc | 3.18e-12 | 1.82e-12 | 1.75 | 0.037337 |
+| 400 | 500 | 0 | koa | 1 | 7838805 | 6f1fca0e264d96f6 | 3.27e-12 | 1.82e-12 | 1.8 | 0.153201 |
+| 400 | 500 | 0 | koa-ld | 1 | 7838805 | 6f1fca0e264d96f6 | 3.27e-12 | 1.82e-12 | 1.8 | 0.153201 |
+| 400 | 500 | 1 | koa | 1 | 7863891 | f93cbe05f3b623aa | 3.31e-12 | 1.82e-12 | 1.82 | 0.157516 |
+| 400 | 500 | 1 | koa-ld | 1 | 7863891 | f93cbe05f3b623aa | 3.31e-12 | 1.82e-12 | 1.82 | 0.157516 |
+| 400 | 500 | 2 | koa | 1 | 7822752 | 7ace061fe257f07f | 3.3e-12 | 1.82e-12 | 1.81 | 0.152481 |
+| 400 | 500 | 2 | koa-ld | 1 | 7822752 | 7ace061fe257f07f | 3.3e-12 | 1.82e-12 | 1.81 | 0.152481 |
+| 400 | 500 | 3 | koa | 1 | 7871924 | 857704ec7b3a462e | 3.59e-12 | 1.82e-12 | 1.97 | 0.164709 |
+| 400 | 500 | 3 | koa-ld | 1 | 7871924 | 857704ec7b3a462e | 3.59e-12 | 1.82e-12 | 1.97 | 0.164709 |
+gen3 gate (KOA, one node) done; paste everything from 'node ' to here

@@ -9,3 +9,4 @@
                        outputs (Chris's read-only grep, koa_harness_audits_on_rows_from_chris_grep_261010.txt) against the Mac's
 Each run folder: rehearsal_driver_output.txt (the pass/fail table), logs/ (every job log, the make logs), shims/, the mini task list and
 its SHA-256, the Mac builds' SHA file used for K2-2, the scratch tree listing, the disk use, SHA256_FILES.txt.
+The job logs carry a .txt suffix after their original names (.out): the repository's .gitignore ignores *.out.
