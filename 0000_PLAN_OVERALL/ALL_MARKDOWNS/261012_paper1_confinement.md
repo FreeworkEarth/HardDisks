@@ -17256,3 +17256,57 @@ C1, AMENDMENT A2 (POST HOC): condition MET
 **Not yet here (11:43):**
 - the Test R fetch (Report R1 waits for it);
 - the stage 1 registration text `261010_prereg_v1_stage1_fluid.md` (sec. 4.8 waits for it, and every preview trajectory waits for sec. 4.8).
+
+### 4.7.61 Plan-author decision 31: Report M1 accepted; the stage 1 registration text to be recorded verbatim as sec. 4.8 with amendments A1 and A2; then Report R1, task P (Report P0), tasks D and E (2026-10-11 12:35 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 31** (relayed by Chris at about 12:35 HST):
+  1. **Report M1 is ACCEPTED.** A2's line (condition MET, POST HOC) is recorded, and the registered C1 verdict NOT DECIDED stands. The four figures and the listed choices are accepted as printed.
+  2. **The stage 1 registration text** is the file Chris names with the decision.
+     - It is recorded verbatim as sec. 4.8: binary-safe, with no rewording.
+     - Amendments A1 (decision 28) and A2 (decision 30) follow it, with their dates, and A2 carries its POST HOC flag.
+     - CC prints the SHA-256 of the file it was given and of the recorded section's text, so that the two can be compared.
+  3. **Then, as ordered:** Report R1 as soon as the Test R fetch is on the Mac; task P's package and Report P0; tasks D and E.
+- **The plan author's note to Chris, in the same paste:**
+  - The Test R array should be finished: Chris runs block F, then block G if F is clean, later block H, then the fetch on the Mac.
+  - Chris tells CC when the fetch is done, and CC then prints the Test R verdict.
+  - Chris saves the registration file unchanged on the Mac and gives CC its path. It is not re-sent through the chat, so that it reaches CC word for word.
+- **At 12:35 neither had arrived.**
+  - The paste named no path. No file of that name is in the Desktop, Downloads or Documents folders, nor in the repository.
+  - There is no fetch folder `hspist3/experiments_gen3_testR_koa_261011/`.
+  - Sec. 4.8 is therefore not yet recorded, and the Test R verdict is not printed. The verdict script prints once and refuses a second run, so it waits for Chris's word that the fetch is complete.
+
+**The message, verbatim** (the part for CC; relayed by Chris on 2026-10-11 at about 12:35 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris.
+
+DECISION 31 (2026-10-11 ~12:30 HST)
+ 1. Report M1: ACCEPTED. A2's line (condition MET, POST HOC) is
+    recorded; the registered C1 verdict NOT DECIDED stands. The
+    four figures and your listed choices are accepted as printed.
+ 2. The stage 1 registration text is the file Chris names with
+    this message. Record it verbatim as sec. 4.8 (binary-safe, no
+    rewording), followed by amendments A1 (decision 28) and A2
+    (decision 30) with their dates and the POST HOC flag on A2.
+    Print the SHA-256 of the file you were given and of the
+    recorded section's text so the two can be compared.
+ 3. Then, as ordered: Report R1 as soon as the Test R fetch is on
+    the Mac; task P's package and Report P0; tasks D and E.
+
+End with "Written for: the plan author".
+```
+
+**The plan author's note to Chris in the same paste, verbatim as pasted:**
+
+```
+What you do now
+KOA: the Test R array should be finished. Run block F, then (if it is clean) block G, later block H, then the fetch on the Mac, all as in my message from 11:40. Paste me F and H.
+Tell CC when the fetch is done. CC then prints the Test R verdict.
+Give CC the stage 1 registration file. CC cannot read attachments from a paste, so the file has to be on the Mac:
+open the file 261010_prereg_v1_stage1_fluid.md in this project’s files here in Claude,
+save its full text unchanged as a file on the Mac, for example on the Desktop,
+tell CC the path.
+Please do not retype or edit it; CC has to record it word for word. I am deliberately not re-sending it through this chat for the same reason.
+Push: git push origin main engine-gen3 engine-divider-resched
+```
