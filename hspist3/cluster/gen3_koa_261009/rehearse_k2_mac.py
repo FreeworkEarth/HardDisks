@@ -42,8 +42,11 @@ RES = []                                                                  # (scr
 
 
 def sh(cmd, cwd=None, env=None, log=None, timeout=None, check=True):
-    with (open(log, "w") if log else subprocess.DEVNULL) as out:
-        p = subprocess.run(cmd, cwd=cwd, env=env, stdout=out if log else subprocess.PIPE, stderr=subprocess.STDOUT, text=not log, timeout=timeout)
+    if log:
+        with open(log, "w") as out:
+            p = subprocess.run(cmd, cwd=cwd, env=env, stdout=out, stderr=subprocess.STDOUT, timeout=timeout)
+    else:
+        p = subprocess.run(cmd, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=timeout)
     if check and p.returncode != 0:
         sys.exit(f"STOP: {' '.join(cmd)} (in {cwd}) exit {p.returncode}" + (f"; see {log}" if log else f": {(p.stdout or '')[-800:]}"))
     return p
@@ -164,7 +167,7 @@ def main():
     t00 = time.time()
     print(f"# Mac rehearsal of the KOA job scripts {time.strftime('%Y-%m-%d %H:%M:%S %Z')}: root {R}; fix commit {FIX}; gate commit {GATE_C}")
     print(f"tools: {sh(['/bin/bash', '--version']).stdout.splitlines()[0]} | {sh([sys.executable, '--version']).stdout.strip()} | "
-          f"{sh(['cc', '--version']).stdout.splitlines()[0]} | {sh(['git', '--version']).stdout.strip()} | {sh(['/usr/bin/rsync', '--version']).stdout.splitlines()[0]}")
+          f"{sh(['cc', '--version']).stdout.splitlines()[0]} | {sh(['git', '--version']).stdout.strip()} | {(sh(['/usr/bin/rsync', '--version'], check=False).stdout or '?').splitlines()[0]}")
     shim = shims(R)
     # ---------------------------------------------------------------- clones and builds
     H, HG = os.path.join(R, "home"), os.path.join(R, "home_gate")
