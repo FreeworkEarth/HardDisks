@@ -190,7 +190,7 @@ def design(S=None):
     print(f"- health: Test G's rule (testG_worker_koa.sh); contact <= 1e-6 px; excluded runs counted, never rerun; more than {100 * EXCL:.0f} % "
           f"excluded in any arm (more than {int(EXCL * NSEED)} of {NSEED}) -> TEST R: NOT DECIDED (overall)")
     print(f"- INVALID (no verdict): no merge record, another build line than '{BUILD}', unregistered or duplicated rows, nu_arg of "
-          "nud_runs.csv unequal to red_nu.csv, the task list not registered")
+          "nud_runs.csv unequal to red_nu.csv's (beyond 1e-14 relative), the task list not registered")
     print(f"- nu_d fit failures: left out of the nu_d mean, counted (information)\n")
     p1 = 2 * norm.sf(Z_CONF)
     print(f"one |z| >= {Z_CONF} by chance: {p1:.2e}\n")

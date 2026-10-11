@@ -1,0 +1,67 @@
+# C1 (REGISTERED, decision 28; 261012 sec. 4.7.57): gen3's schedule audit after every event, M = 50, Mac starts
+
+timing r 399 seed 638540351 wall_s 47.264 audited_states 1128726 clean 1
+n 200  (rule: n = 200 if t_1 <= 270 s, else floor(0.9 x 57600 s / t_1))
+
+binary: 00ALLINONE  git a643bc7  target mac-O3-e0pre (bin_a643bc7, SHA-256 as build_record.txt); the command: testG_worker_koa.sh's B command (read from the file), audited run + --gen3-audit-every=1
+
+| quantity | over the n audited runs | twin runs |
+|---|---|---|
+| trajectories | 200 | 200 |
+| exit code 0 | 200 | 200 |
+| clean=1 in [EDMD3-HEALTH] (exactly one record, one build line, no other health line) | 200 | 200 |
+| [EDMD3-AUDIT] summary lines (one per audited run) | 200 | 0 |
+| audited states, total (min / median / max per run) | 226408812 (1123652 / 1132479 / 1138742) | - |
+| missing pair, summed | 0 | - |
+| missing wall, summed | 0 | - |
+| missing cross, summed | 0 | - |
+| missing div, summed | 0 | - |
+| missing piston, summed | 0 | - |
+| extra pair, summed | 0 | - |
+| extra wall, summed | 0 | - |
+| extra cross, summed | 0 | - |
+| extra div, summed | 0 | - |
+| extra piston, summed | 0 | - |
+| deferred early pair, summed | 0 | - |
+| deferred early wall, summed | 0 | - |
+| deferred early div, summed | 0 | - |
+| deferred early piston, summed | 0 | - |
+| band missing, summed | 0 | - |
+| band extra, summed | 0 | - |
+| band short, summed | 0 | - |
+| dup disagree, summed | 0 | - |
+| cells inconsistent, summed | 0 | - |
+| max \|dt\| over all runs [units] | 4.77e-06 | - |
+| max \|dt\|/horizon (\|dt\| > 1e-9 only), over all runs | 4.26e-11 | - |
+| finding lines printed | 0 | 0 |
+| event hash equal to the twin's | 200 of 200 | |
+| per-class event counts (ev_pair, ev_wall, ev_cross, ev_div, ev_piston, ev_band) equal to the twin's | 200 of 200 | |
+| executed events per run (pair+wall+cross+div), mean | 1132043 | 1132043 |
+| wall time per run [s]: median (min-max) | 75.1 (45.7-138.2) | 2.0 (1.2-4.6) |
+| information: trace SHA-256 equal to the twin's | 200 of 200 | |
+| information: psi6(t) SHA-256 equal to the twin's | 200 of 200 | |
+| information: max contact gap [px] pair / wall / divider | 4.46e-12 / 3.99e-12 / 2.27e-12 | 4.46e-12 / 3.99e-12 / 2.27e-12 |
+
+runs that keep the verdict from PASS (200):
+  experiments_gen3_c1_261011/runs/audit/r0: max |dt| 3.73e-09
+  experiments_gen3_c1_261011/runs/audit/r1: max |dt| 3.91e-08
+  experiments_gen3_c1_261011/runs/audit/r2: max |dt| 1.18e-08
+  experiments_gen3_c1_261011/runs/audit/r3: max |dt| 4.47e-08
+  experiments_gen3_c1_261011/runs/audit/r4: max |dt| 1.86e-08
+  experiments_gen3_c1_261011/runs/audit/r5: max |dt| 3.73e-09
+  experiments_gen3_c1_261011/runs/audit/r6: max |dt| 6.52e-09
+  experiments_gen3_c1_261011/runs/audit/r7: max |dt| 4.89e-08
+  experiments_gen3_c1_261011/runs/audit/r8: max |dt| 1.12e-08
+  experiments_gen3_c1_261011/runs/audit/r9: max |dt| 6.33e-08
+  experiments_gen3_c1_261011/runs/audit/r10: max |dt| 7.45e-09
+  experiments_gen3_c1_261011/runs/audit/r11: max |dt| 3.58e-07
+  experiments_gen3_c1_261011/runs/audit/r12: max |dt| 7.45e-09
+  experiments_gen3_c1_261011/runs/audit/r13: max |dt| 9.31e-09
+  experiments_gen3_c1_261011/runs/audit/r14: max |dt| 8.2e-08
+  experiments_gen3_c1_261011/runs/audit/r15: max |dt| 7.39e-09
+  experiments_gen3_c1_261011/runs/audit/r16: max |dt| 2.24e-08
+  experiments_gen3_c1_261011/runs/audit/r17: max |dt| 3.92e-08
+  experiments_gen3_c1_261011/runs/audit/r18: max |dt| 7.45e-09
+  experiments_gen3_c1_261011/runs/audit/r19: max |dt| 5.12e-09
+
+C1: NOT DECIDED
