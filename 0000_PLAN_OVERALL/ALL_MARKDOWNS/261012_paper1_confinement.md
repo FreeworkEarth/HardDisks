@@ -14467,3 +14467,63 @@ Do not submit anything else on KOA after block C. In particular, do not submit t
 ```
 
 **Chris's disk request, verbatim** (same message): "ok off topic to free disc space before fable gives answe heere BUT: we have sooooo many simualtions aand data in this HadDisks hspist 3 folder (can you tell how large this is) ?? and i think right now almost old simulations are absolutely useless rigtt? we have to free disc space do you think we can only keep a few of each category and save only the most important ones which are also correct noe? as we will repeat everyhting anyways again right on KOA. i need my disc space back :"
+
+#### 4.7.48 (addition) Plan-author decision 22, after reading K2-2 and K2-3 — recorded in this section, as the plan author asked (2026-10-10 16:05 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Read by the plan author:**
+  - **K2-1 done.** The second clone is at HEAD 2988351; the four binaries are OK.
+  - **K2-2 (job 15043030) COMPLETED** on cn-09-30-02, Xeon Gold 6342 2.80 GHz. Part (c): 12 rows clean. Part (d): 16 rows clean.
+  - **K2-3 (job 15043031_1, Test G chunk 1) COMPLETED** on cn-03-38-07 (E5-2670 v3): 13 / 12 / 13 / 12 / 12 clean; the build line twice. PASS.
+- **Approved; Chris submits it now:** the Test G ARRAY for chunks 2–144 (`%64`, the registered scripts, from `~/harddisks_gen3`). The chunks do not depend on the merge.
+- **The MERGE stays ON HOLD** until Report K2b (items 1–3 of decision 21). The merge step must not depend on the array's job id.
+- **Item 4, M5 on KOA:**
+  - After the fetch, apply the registered M5 rule (quoted) to the 16 rows of part (d), with its script, and give the verdict.
+  - For information, the plan author's arithmetic on argmax ν, koa-ld minus koa, four seeds each: +1.2 % at N 100 (about 1.5 SE) and +1.8 % at N 400 (about 1.2 SE).
+  - If the registered rule cannot decide with four seeds, say so and propose the size of a larger comparison, with its cost on one KOA core. Do not run it.
+- **Item 5, two CPU models:**
+  - The shared partition has at least E5-2670 v3 and Gold 6342 nodes. Step 4 tested determinism only among E5-2670 v3 nodes.
+  - Propose, do not run, the smallest rehearsed job that compares the two cross-node cells bit for bit between the two CPU models.
+  - Say how the node type can be requested on KOA, or read from the existing Test G chunk logs.
+  - Record the rate table as measured on the Gold node, and the E5/Gold ratio from the N 400, η 0.70 cell.
+- **Plan-author error recorded:** "the 2e5 planning value has room to spare". It is about the slowest real case on E5 nodes.
+- **Ground rules:** as before. Chris submits the array; CC has no KOA contact. The data marker is `$SP/.decision22_ref`, 16:05 HST.
+
+**The message to CC, verbatim** (relayed by Chris on 2026-10-10 at about 16:00 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Addition to
+decision 21. Record in the same section.
+
+DECISION 22 (2026-10-10, after reading K2-2 and K2-3)
+ - K2-1 done (HEAD 2988351, four binaries OK).
+ - K2-2 job 15043030 COMPLETED on cn-09-30-02, Xeon Gold 6342
+   2.80 GHz: (c) 12 rows clean, (d) 16 rows clean.
+ - K2-3 job 15043031_1 COMPLETED on cn-03-38-07 (E5-2670 v3):
+   13 / 12 / 13 / 12 / 12 clean / build line twice. PASS.
+ - The Test G ARRAY for chunks 2-144 (%64, registered scripts,
+   from ~/harddisks_gen3) is approved and Chris submits it now. The
+   chunks are independent of the merge. The MERGE stays on hold
+   until Report K2b (items 1-3 of decision 21). Write the merge
+   step so that it does not depend on the array's job id.
+
+ITEM 4 - M5 on KOA
+ After the fetch, print the registered M5 rule (quote it) on the 16
+ rows of part (d) with its script, and the verdict. For
+ information, my arithmetic on argmax nu, koa-ld minus koa, four
+ seeds each: +1.2 % at N 100 (about 1.5 SE) and +1.8 % at N 400
+ (about 1.2 SE). If the registered rule cannot decide with four
+ seeds, say so and propose the size of a larger comparison (cost
+ on one KOA core); do not run it.
+
+ITEM 5 - two CPU models
+ shared has at least E5-2670 v3 and Gold 6342. Step 4 tested
+ determinism only among E5-2670 v3 nodes. Propose (do not run) the
+ smallest rehearsed job that compares the two cross-node cells
+ between the CPU models bit for bit, and say how the node type can
+ be requested on KOA or read from the existing Test G chunk logs.
+ Record the rate table as measured on the Gold node, and the
+ E5/Gold ratio from the N 400, eta 0.70 cell.
+ Plan-author error to record: "the 2e5 planning value has room to
+ spare" (it is about the slowest real case on E5 nodes).
+```
