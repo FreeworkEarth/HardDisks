@@ -1,0 +1,59 @@
+##CHRIS 2026-10-10 (261012 sec. 4.7.48): MANIFEST OF DATA DELETED TO FREE DISK SPACE, approved by Chris in the session at about 15:55 HST
+(question: 'Delete all ~146 GB (Recommended)'). Written BEFORE the deletion. None of these paths is tracked by git. Kept, among others:
+the canonical Paper 1 data (A1v2_20260914, A2_*, famB_20260911, A3), tests_20260913, campaign_r25_psi6_20260823 (A1_DIR), the Aug
+ladders, routeA/routeB, finitesize_aspect, overnight_N1000, the accelerated-backend evidence (validate_acc_N100_20260826,
+simulation_eta_split_07_05_26_09_00_24), all of Paper 2's experiments_energy_transfer, every gen3 evidence folder, IB_Package (a
+separate project), and in the session scratchpad e0head/ (the rule-4 reference outputs read by committed table scripts) and the tools.
+Free disk before: /dev/disk3s5   1.8Ti   1.7Ti    38Gi    98%     10M  403M    3%   /System/Volumes/Data
+
+| # | path | GiB (du) | files | bytes | oldest file | newest file | reason |
+|---|---|---|---|---|---|---|---|
+| 1 | `hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/simulation_oscillation_design_pilot_r11_c25` | 89.86 | 5728 | 289437334694 | 2026-08-22 | 2026-08-26 | Paper 1 August design pilot r11: before the 2026-08-23 tunnelling fix, traces ~290x oversampled, built under AddressSanitizer; superseded by A1v2_20260914; disk report 4f8d854 row 1: summarised in the notes, no committed script reads it |
+| 2 | `hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/simulation_eta_split_newcore_20260821_r10_long` | 22.17 | 3411 | 47864608929 | 2026-08-21 | 2026-08-21 | Paper 1 August run r10 (2026-08-21): before the tunnelling fix, oversampled, AddressSanitizer build; superseded by A1v2; disk report row 4: summarised, no committed script reads it (the 2026-10-08 window exploration only lists it in an inventory) |
+| 3 | `hspist3/experiments_szilard/simulation_27_02_26_10_20` | 24.19 | 13 | 25969868932 | 2026-02-27 | 2026-03-02 | Szilard engine run of 2026-02-27 (not Paper 1 or 2); disk report row 2: summarised, no committed script reads it |
+| 4 | `hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/campaign_transition_psi6run_20260823` | 3.66 | 5975 | 7847534218 | 2026-08-22 | 2026-08-22 | Paper 1 r25-era campaign (August), superseded by A1v2; disk report row 15: summarised, no committed script reads it (the 2026-10-08 exploration's plots of it are in the repository) |
+| 5 | `hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/number_and_L0_sweep_const_eta` | 3.49 | 1613 | 3750068197 | 2026-05-07 | 2026-05-13 | Paper 1 early sweeps (Feb-May 2026, partly the accelerated backend); disk report row 16: summarised, no committed script reads it (run_speed_of_sound_constant_eta_N_sweep.py names it only as its output folder) |
+| 6 | `hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/famB_20260911_ABANDONED_seedpad` | 0.36 | 586 | 385059542 | 2026-09-10 | 2026-09-10 | abandoned family-B seed padding (its name); referenced by no note and no script |
+| 7 | `hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/02_number_and_L0_sweep_const_eta` | 0.43 | 404 | 465106512 | 2026-05-07 | 2026-05-07 | early sweep; referenced by no note and no script |
+
+Scratchpad of this session (/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad): working copies, rehearsal and test data of 2026-10-09/10 whose evidence (logs, tables,
+run records, SHA lists) is committed; no committed script reads them (only e0head/ is read, and it is kept):
+
+| # | scratch folder | MiB (du) | files | newest file |
+|---|---|---|---|---|
+| s1 | `tprime_dry` | 585.1 | 1432 | 2026-10-08 19:28 |
+| s2 | `d20/rehearsal_9d4490c` | 475.3 | 4629 | 2026-10-10 15:02 |
+| s3 | `d20/rehearsal_2988351_testg` | 61.3 | 1693 | 2026-10-10 15:29 |
+| s4 | `guard` | 138.7 | 1809 | 2026-10-08 19:18 |
+| s5 | `d18` | 118.0 | 8072 | 2026-10-10 11:35 |
+| s6 | `m3` | 99.8 | 1051 | 2026-10-09 12:38 |
+| s7 | `m4b` | 97.1 | 5710 | 2026-10-09 20:50 |
+| s8 | `h3a` | 94.5 | 4077 | 2026-10-09 18:47 |
+| s9 | `e2` | 93.9 | 2706 | 2026-10-09 13:04 |
+| s10 | `m4` | 92.4 | 2782 | 2026-10-09 15:25 |
+| s11 | `h3b` | 88.7 | 3446 | 2026-10-09 18:32 |
+| s12 | `tprime_check` | 62.9 | 975 | 2026-10-08 18:22 |
+| s13 | `h` | 58.6 | 2888 | 2026-10-09 18:19 |
+| s14 | `d5` | 40.5 | 93 | 2026-10-09 11:00 |
+| s15 | `dryrun_gate_a643bc7` | 39.8 | 622 | 2026-10-10 08:37 |
+| s16 | `dryrun_koa` | 38.9 | 617 | 2026-10-09 20:39 |
+| s17 | `testG_pipe2` | 31.4 | 361 | 2026-10-09 12:29 |
+| s18 | `gguard_edr` | 16.5 | 11 | 2026-10-09 10:10 |
+| s19 | `testG_pipe` | 13.0 | 69 | 2026-10-09 12:27 |
+| s20 | `p1_synth100` | 11.6 | 133 | 2026-10-09 13:12 |
+
+TOTAL to delete: 146.37 GiB
+
+Sub-folders of the two largest items (what was there):
+- `hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/simulation_oscillation_design_pilot_r11_c25`:
+       89.86 GiB  replot_widewindow_r11
+       89.86 GiB  replot_exploratory_r11_384of385
+       89.86 GiB  replot_phaseaware_r11
+- `hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/simulation_eta_split_newcore_20260821_r10_long`:
+       22.17 GiB  replot_current_regime_labels
+       22.16 GiB  raw_simulations
+        0.25 GiB  analysis
+        0.00 GiB  analysis_fixed_duration_quality_audit
+        0.00 GiB  final_plots
+- `hspist3/experiments_szilard/simulation_27_02_26_10_20`:
+        0.00 GiB  plots
