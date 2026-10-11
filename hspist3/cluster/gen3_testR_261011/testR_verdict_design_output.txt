@@ -1,0 +1,46 @@
+# TEST R ON KOA -- the design of the verdict (decision 28; 261012 sec. 4.7.57), printed before any Test R data
+
+## Every threshold
+
+- per mass and estimator: d = mean(gen3)/mean(gen2) - 1, SE(d)^2 = (SE3/m2)^2 + (m3 SE2/m2^2)^2, SE = SD/sqrt(n), z = d/SE(d)
+- DIFFERENCE CONFIRMED: |z_arg| >= 3.5 or |z_d| >= 3.5
+- NO DIFFERENCE: |z_arg| < 3.5 and |z_d| < 3.5 and d_d +- 1.9600 SE(d_d) within +-0.15 % (inclusive)
+- NOT DECIDED: otherwise
+- overall: ENGINES AGREE = NO DIFFERENCE at M = 50, 100 and 300; ENGINES DIFFER = DIFFERENCE CONFIRMED at any mass; NOT DECIDED otherwise
+- health: Test G's rule (testG_worker_koa.sh); contact <= 1e-6 px; excluded runs counted, never rerun; more than 1 % excluded in any arm (more than 36 of 3600) -> TEST R: NOT DECIDED (overall)
+- INVALID (no verdict): no merge record, another build line than '00ALLINONE  git a643bc7  target koa', unregistered or duplicated rows, nu_arg of nud_runs.csv unequal to red_nu.csv, the task list not registered
+- nu_d fit failures: left out of the nu_d mean, counted (information)
+
+one |z| >= 3.5 by chance: 4.65e-04
+
+## The per-trajectory scatter of Test G on KOA (400 per arm; nu_d by the registered rule), and the SEs at 3600 per arm
+
+| M | engine | SD nu_arg [% of nu] | SD nu_d [% of nu] | corr(nu_arg, nu_d) | source |
+|---|---|---|---|---|---|
+| 50 | gen2 | 2.678 | 1.593 | +0.550 | Test G on KOA, 400 trajectories |
+| 50 | gen3 | 2.432 | 1.471 | +0.535 | Test G on KOA, 400 trajectories |
+| 100 | gen2 | 1.954 | 1.229 | +0.595 | interpolated in log M between 50 and 300 |
+| 100 | gen3 | 1.891 | 1.179 | +0.577 | interpolated in log M between 50 and 300 |
+| 300 | gen2 | 1.185 | 0.814 | +0.667 | Test G on KOA, 400 trajectories |
+| 300 | gen3 | 1.269 | 0.831 | +0.643 | Test G on KOA, 400 trajectories |
+
+| M | SE(d_arg) [%] | SE(d_d) [%] | corr(d_arg, d_d) | d_d must lie within [%] for NO DIFFERENCE |
+|---|---|---|---|---|
+| 50 | 0.0603 | 0.0361 | +0.543 | +-0.0792 |
+| 100 | 0.0453 | 0.0284 | +0.586 | +-0.0944 |
+| 300 | 0.0289 | 0.0194 | +0.654 | +-0.1120 |
+
+## Probabilities (Monte Carlo, 2e6 draws per scenario, default_rng(20261317); MC SE <= 0.0004)
+
+per mass under no true difference: M = 50: P(DIFFERENCE CONFIRMED) 9.15e-04, P(NO DIFFERENCE) 0.9713; M = 100: P(DIFFERENCE CONFIRMED) 9.03e-04, P(NO DIFFERENCE) 0.9987; M = 300: P(DIFFERENCE CONFIRMED) 8.92e-04, P(NO DIFFERENCE) 0.9991
+
+THE FALSE-ALARM RATE of the overall verdict (no true difference at any mass): P(ENGINES DIFFER) = 2.71e-03; P(not ENGINES AGREE) = 0.0309
+
+| true difference at M = 50 (none at 100, 300) | P(ENGINES AGREE) | P(ENGINES DIFFER) | P(NOT DECIDED) |
+|---|---|---|---|
+| 0.0 % | 0.9691 | 0.0027 | 0.0282 |
+| 0.1 % | 0.2811 | 0.2426 | 0.4763 |
+| 0.2 % | 0.0004 | 0.9800 | 0.0196 |
+| 0.3 % | 0.0000 | 1.0000 | 0.0000 |
+
+(Test G on KOA measured gen3 - gen2 at M = 50: +0.635 % by nu_arg and +0.244 % by nu_d; Report G2.)

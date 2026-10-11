@@ -24,4 +24,7 @@ export LDFLAGS="-Wl,-rpath,$HOME/envs/hd/lib ${LDFLAGS:-}"     # Makefile:41 use
 # explicitly; build_koa.sh records the compiler make actually invokes (from `make -n`).
 export CC=gcc
 gcc --version | head -1 | grep -q "14.3" || { echo "STOP: gcc is not 14.3: $(gcc --version | head -1)"; return 1; }
-echo "env: $(gcc --version | head -1) | $(python3 --version 2>&1) at $(command -v python3) | $(git --version)"
+# ##CHRIS 2026-10-11 (plan-author decisions 26 and 28, Report S1-0 point 6; 261012 sec. 4.7.57): no job may depend on a tool a node can
+# lack. Node cn-05-08-07 has no git ("cluster/koa_env.sh: line 27: git: command not found", decision 25): git is only REPORTED here, never
+# required; the jobs that used it at run time read the commit from a file instead (cluster/gen3_testR_261011/testR_koa.sbatch).
+echo "env: $(gcc --version | head -1) | $(python3 --version 2>&1) at $(command -v python3) | $(if command -v git >/dev/null 2>&1; then git --version; else echo 'git: none on this node (not needed at run time)'; fi)"

@@ -1,0 +1,36 @@
+cluster/gen3_testR_261011/tasks_testR_koa_261011.txt: 21600 lines, SHA-256 7cf6face2aed027d5123c1ccfb5e74273ad593e78786f012f1ad8c9d4d647f8f; chunk size 100 -> 216 chunks; cluster/gen3_testR_261011/build_record_a643bc7.txt: sha256 742aa2d3530e..., version '00ALLINONE  git a643bc7  target koa'
+
+# TEST R ON KOA -- the design tables of the registration (decision 28; 261012 sec. 4.7.57)
+
+cell epi8_H_H10_L10 (N = 100, H = L0 = 10, pi/8); masses 50, 100, 300; 3600 exact seeds per mass (r = 0..3599); engines gen2 and gen3, the same seed in both; base seed 20261317
+trace stride by the Test G generator's rule (campaign_geo): M = 50: 26, M = 100: 32, M = 300: 51
+
+| M | engine | task lines | first seed (r = 0) |
+|---|---|---|---|
+| 50 | gen2 | 3600 | 2132455490 |
+| 50 | gen3 | 3600 | 2132455490 |
+| 100 | gen2 | 3600 | 239916175 |
+| 100 | gen3 | 3600 | 239916175 |
+| 300 | gen2 | 3600 | 3204922496 |
+| 300 | gen3 | 3600 | 3204922496 |
+
+total 21600 task lines; order r by r (M = 50, 100, 300; gen2 then gen3)
+distinct exact seeds: 10800 of 10800 (each in both engines): all distinct
+overlap with every earlier task list (126 lists in cluster/*/ of main and the engine-gen3 worktree; line types {'B': 28150, 'AF': 18180, 'A': 16580}), the extra seed sets of the Test G generators and the symmetry test's seeds (9929 seeds in all): 0 -- zero overlap with every earlier task list
+the base seed 20261317 as an integer token: 0 files in both working trees, 0 tracked files in main, engine-gen3, engine-divider-resched (the Test R package folder excluded) -- it occurs in no file
+
+## chunks: K = 100 task lines per array task; 216 chunks; array 1-216 (KOA MaxArraySize 25001); throttle %64 (128 only while sinfo -p shared -s shows >= 10 % of the nodes idle)
+
+| engine | M | simulated time [sigma-time] | seconds per trajectory on E5 (Test G, mean) | source |
+|---|---|---|---|---|
+| gen2 | 50 | 3726 | 7.58 | Test G on KOA, 400 trajectories |
+| gen2 | 100 | 4462 | 9.15 | interpolated in the simulated time |
+| gen2 | 300 | 6558 | 13.61 | Test G on KOA, 400 trajectories |
+| gen3 | 50 | 3726 | 3.98 | Test G on KOA, 400 trajectories |
+| gen3 | 100 | 4462 | 4.46 | interpolated in the simulated time |
+| gen3 | 300 | 6558 | 5.82 | Test G on KOA, 400 trajectories |
+
+predicted chunk time on E5: mean 12.4 min, min 12.3, max 12.4 min (every chunk holds 16-17 trajectories of each of the six arms); the limit asked: <= 15 min
+expected core-hours: 44.6 (E5; Gold nodes are faster, E5/Gold 0.709); requested: 216 chunks x 1 h = 216 core-hours (testR_koa.sbatch --time=1:00:00)
+wall time at %64: about 4 waves of 12 min, if 64 cores are free at once
+data on KOA scratch, expected: per trajectory the trace (about 0.86 MB until the merge compresses it to about 0.1 MB), gen3's psi6(t) file (0.15-0.3 MB, compressed by the worker) and the run folder (about 45 kB); about 21 GB before the merge, about 5 GB after it
