@@ -13938,3 +13938,256 @@ per structural number, the ranges in the lower and the higher group (turned comp
 
 (POST HOC, information only; no verdict.)
 ```
+
+### 4.7.46 Plan-author decision 20: KOA steps 1–4 read — E0 on KOA PASS, cross-node determinism PASS on one CPU model; the rate table and the long-double check NOT DONE (a bug in our script); a full Mac rehearsal of every KOA job script ordered (2026-10-10 14:28 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **KOA steps 1–4 (Chris typed them on 2026-10-10; gate commit `a643bc7`):**
+  - Steps 1–2: the clone by hash and both builds, BUILD OK. git 2.52.0, gcc 14.3.0, LDBL_MANT_DIG 64.
+  - Step 3, the gate job 15040861 (one node, E5-2670 v3): FAILED after 9 min 57 s.
+    - (a) E0 PASS twice (default and `--engine=gen2`): afix, ctrl_min, ctrl_leg, afix_leg all IDENTICAL to the 7b08827 reference.
+    - (b) the M1/M2 harnesses ran (exit 0); their file hashes differ from the Mac's.
+    - (c) the rate table printed its header, then the table printer stopped with a Python error on the string `1.45e-12,`; (d) was not reached.
+  - Step 4: 8 cross-node tasks on 4 nodes (all E5-2670 v3) and the compare job: IDENTICAL across nodes and within nodes; event hashes 0586b1e77639502b (N 400, η 0.70, M 500) and 72111cdaa7d26414 (the T-prime cell, M 300).
+- **Decision 20:**
+  - Recorded: E0 on KOA PASS; cross-node determinism PASS on four nodes of one CPU model (other node types not tested). The rate table and the long-double check are NOT DONE. Step 5 stays closed.
+  - Plan-author error recorded: the runsheet was approved after a dry run that covered the clone and the build, not the scripts the jobs run.
+  - New rule: every script a KOA job executes is rehearsed end to end on the Mac before Chris types it.
+- **Ordered (Report K2 to the plan author before Chris types anything; then decision 19 goes on):**
+  1. the bug: root cause, fix, a unit test on the real `[EDMD3-GAP]` line and on the failing string; why the Mac dry run missed it;
+  2. "E2 (amended): FAIL": confirm it is the audit runner's line for cases this job does not run; the gate script labels it so;
+  3. a full Mac rehearsal, in a scratch clone of the commit KOA will use, of every script a KOA job executes (the gate job, the cross-node task and compare with two pretended nodes, the Test G chunk worker on a mini task list of at least two chunks with every block type, the merge, the registered verdict); shims and remaining differences listed as residual risk; pass/fail per script;
+  4. delivery without touching `~/harddisks_gen3`: a second sparse clone at the fix commit holds the scripts; its jobs use `~/harddisks_gen3`'s binaries and check their SHA-256;
+  5. a runsheet addendum K2-1 to K2-4 (the second clone; the (c),(d) job; Test G stage 1, chunk 1 alone; stage 2, chunks 2–144 and the merge);
+  6. after the later fetch: the event hashes inside the KOA harness outputs against the Mac's.
+- **Done first, as the message asks:** the decision 19 item 2 code was committed to a clean state (engine-gen3 `b416dfc`, labelled WORK IN PROGRESS, acceptance not yet run).
+- **Ground rules:** as before; no KOA contact by CC. The data marker is `$SP/.decision20_ref`, 14:27 HST.
+
+**The message to CC, verbatim** (relayed by Chris on 2026-10-10 at about 14:25 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. KOA steps 1-4 were
+typed today. First bring your current edit (decision 19) to a clean,
+committed or stashed-nowhere state; then do this message BEFORE
+continuing with decision 19. Record it in a new §4.7.x. Ground rules
+as before; no KOA contact.
+
+KOA RESULTS (Chris's paste, gate commit a643bc7)
+ - Steps 1-2: clone by hash and both builds, BUILD OK. git 2.52.0,
+   gcc 14.3.0, LDBL_MANT_DIG 64. SHA-256: 00ALLINONE (koa) 742aa2d3...,
+   00ALLINONE_ld 5e00a5d7..., gen3_m1 5eb49cf7..., gen3_m2 c5c83443...
+ - Step 3, job 15040861 on cn-05-03-02 (E5-2670 v3): FAILED, 00:09:57.
+   (a) E0 default and E0 gen2flag: afix, ctrl_min, ctrl_leg, afix_leg
+       all "audit vs plain IDENTICAL, plain vs ref IDENTICAL"; E0 PASS
+       twice. Each block also prints "E2 (amended): FAIL".
+   (b) m1, m2 quick, m2: exit 0; file SHA-256 differ from the Mac's.
+   (c) the rate table printed its header and then:
+         File ".../g3_rate_ld_koa.py", line 45, in record
+           kv["gap"] = max(float(x) for x in g.groups()) if g else math.nan
+         ValueError: could not convert string to float: '1.45e-12,'
+       STOP: the rate / long-double runs failed
+   (d) not reached.
+ - Step 4, array 15040862 and compare 15040874: 8 tasks on 4 distinct
+   nodes (cn-03-38-01, -02, -05, -07; all E5-2670 v3). RESULT: across
+   nodes IDENTICAL (4 nodes); within nodes IDENTICAL; hashes
+   N400_eta070_M500 0586b1e77639502b, Tprime_cell_M300 72111cdaa7d26414.
+
+DECISION 20
+ - Recorded: E0 on KOA PASS (default and --engine=gen2); cross-node
+   determinism PASS on four nodes of one CPU model (other node types
+   not tested). Rate table and long-double check NOT DONE. Step 5
+   stays closed.
+ - Plan-author error to record: I approved the runsheet after a dry
+   run that covered clone and build, not the scripts the jobs run.
+ - New rule: every script a KOA job executes is rehearsed end to end
+   on the Mac before Chris types it.
+
+TASKS
+ 1. The bug: root cause of the trailing comma at g3_rate_ld_koa.py
+    line 45; the fix; a unit test on the real [EDMD3-GAP] line and on
+    the string that failed. Say why the Mac dry run did not hit it.
+ 2. "E2 (amended): FAIL" in the gate output: confirm in one sentence
+    that this is the audit runner's line for cases this job does not
+    run, and make the gate script label it so (it must not print a
+    verdict it does not test).
+ 3. FULL REHEARSAL on the Mac, in a scratch clone of the commit KOA
+    will use, of every script a KOA job executes, end to end:
+    the gate job (a)-(d) with Mac builds; the cross-node task and the
+    compare script with two pretended nodes; the Test G chunk worker
+    on a mini task list of at least two chunks that contains every
+    block type (main, info_m, dense, n400, afix); the merge; and the
+    registered verdict script reading the merged mini data. Linux-only
+    tools and Slurm variables are shimmed; list every shim and every
+    remaining difference between the rehearsal and KOA as residual
+    risk. Print pass / fail per script.
+ 4. Delivery without touching ~/harddisks_gen3 (it stays at a643bc7;
+    its binaries are not rebuilt): a second sparse clone at the fix
+    commit that holds the scripts, whose jobs use the binaries of
+    ~/harddisks_gen3 and check their SHA-256 against the values above.
+    If the rehearsal finds faults in the Test G worker or merge: fix
+    them there too, show the diff, and state that the registered task
+    list, its SHA-256 and the verdict script are unchanged.
+ 5. Runsheet addendum, in the established form (literal URL and
+    hashes, the usual srun line, job-id placeholders marked, core-hours
+    per step, expected output and STOP rule per step):
+      K2-1  the second clone;
+      K2-2  the (c),(d) job;
+      K2-3  Test G stage 1: chunk 1 alone, and the exact lines that
+            show it is good;
+      K2-4  Test G stage 2: chunks 2-144 (at most 64 cores) and the
+            merge.
+    State why two stages are consistent with the registration (same
+    task list, same binary, same order within chunks).
+ 6. After the later fetch: compare the event hashes inside the KOA
+    harness outputs with the Mac's (the file hashes cannot agree, the
+    files contain the build line).
+
+REPORT K2 (to me before Chris types anything): tasks 1-5 with the
+rehearsal table and the addendum in full, commits, push line. End
+with "Written for: the plan author". Then continue decision 19.
+```
+
+**The plan author's note to Chris, verbatim** (kept for the record):
+
+```
+Saved 261013_state_of_play.md to the project
+You typed everything correctly. The two real tests passed. One job failed, and the cause is a bug in our own script, not your typing and not the engine. Step 5 stays closed. The state-of-play note is updated.
+
+What the KOA output says
+Passed: the old engine is untouched on KOA. In all four test cases the new binary’s old-engine path gives files identical to the reference build, both by default and with --engine=gen2. This is the “E0 PASS” line. The line “E2 (amended): FAIL” next to it belongs to an older test this job does not run; it printed the same on the Mac.
+
+Passed: the new engine gives identical results on different machines. Eight copies of the same run landed on four different nodes, and every output file and every event hash is identical. One limit: all four nodes are the same processor model, so other node types are still untested.
+
+Failed: the speed table and the long-double check. The job stopped after 10 minutes with a Python error. The script that prints the table read 1.45e-12, with the comma attached and could not turn it into a number. The simulation behind it had run; only the table printer broke. So two things are still missing: the KOA speed table, which I need for the cost of the campaign, and the high-precision check.
+
+Not informative yet: the three harness “hashes” differ from the Mac’s, but they are hashes of whole text files that contain the compiler's name, so they must differ. The comparison that means something is the event hashes inside those files. CC will check that after the fetch.
+
+My part in this
+I approved the runsheet after a practice run that covered the clone and the build, but not the scripts the jobs themselves execute. That is why this bug reached KOA. From now on every script a KOA job runs gets a full rehearsal on the Mac first. For step 5 (144 jobs) I also want it in two stages: one chunk alone, check it, then the rest.
+
+What you do
+Send CC the block at the end. It can go now; it tells CC to finish its current edit to a clean state first.
+Optional, read-only, on the KOA login node. These two lines only read files. They give me a rough KOA speed today, so I can start the pre-registration without waiting for the repeated job. If nothing prints, that is fine; just tell me.
+cd ~/harddisks_gen3/hspist3
+grep -rh "EDMD3-HEALTH" /mnt/lustre/koa/scratch/charing/harddisks_gen3/gen3_xnode_15040862/task_1 logs/*15040862_1.out 2>/dev/null | cut -c1-1200
+grep -rh "audits on" /mnt/lustre/koa/scratch/charing/harddisks_gen3/gen3_gate_koa_15040861 2>/dev/null | cut -c1-90
+Type nothing else on KOA until I have read CC’s “Report K2”.
+```
+
+**The KOA outputs Chris pasted** (verbatim; the login banner, the password and Duo prompts and the clone's progress lines left out). The builds (step 2):
+
+```
+00ALLINONE  git a643bc7  target koa-ld
+5e00a5d7aadb6cc9ff43ac27bced91bbb082393808e5df1851de1bd5f2ab71fe  00ALLINONE_ld
+00ALLINONE  git a643bc7  target koa
+742aa2d3530e0b0c7e940260fbc5c69fefe7d56caca6a425c8ae2e4f65c5bbb2  00ALLINONE
+5eb49cf7ca7494beefbc4e16674a7840e05f248c2d3b0bcef4887b4e3dc03ac5  gen3_m1
+c5c83443d01ac6bdc1578d11f737561ddad78aff0408269cce83141d0973fcb1  gen3_m2
+== long double on this node: LDBL_MANT_DIG 64, sizeof 16
+BUILD OK: ./00ALLINONE (koa), bin/00ALLINONE_ld (koa-ld), bin/gen3_m1 and bin/gen3_m2 of a643bc7
+```
+
+sacct and the gate job's log (step 3):
+
+```
+JobID             State    Elapsed ExitCode 
+15040861         FAILED   00:09:57      1:0 
+15040862_1 .. 15040862_8  COMPLETED  00:01:09-00:01:10  0:0
+env: gcc (GCC) 14.3.0 | Python 3.12.14 at /home/charing/envs/hd/bin/python3 | git version 2.52.0
+node cn-05-03-02 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz | out /mnt/lustre/koa/scratch/charing/harddisks_gen3/gen3_gate_koa_15040861 | clone HEAD a643bc7edb1b41574c0f9af0c5fea199dc797680
+00ALLINONE  git a643bc7  target koa
+00ALLINONE  git a643bc7  target koa-ld
+00ALLINONE  git 7b08827  target koa
+(12 lines "<case>/<variant>: exit 0"; wall time 43 s)
+== (a) E0 default:
+ afix  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ ctrl_min  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ ctrl_leg  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ afix_leg  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+E2 (amended): FAIL; E0 (plain vs ref IDENTICAL in ctrl_min, ctrl_leg, afix, afix_leg): PASS
+(12 lines "<case>/<variant>: exit 0"; wall time 36 s)
+== (a) E0 gen2flag:
+ afix  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ ctrl_min  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ ctrl_leg  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ afix_leg  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+E2 (amended): FAIL; E0 (plain vs ref IDENTICAL in ctrl_min, ctrl_leg, afix, afix_leg): PASS
+== (b) the M1/M2 harness outputs on KOA (m1 exit 0;m2 quick exit 0;m2 exit 0;)
+   m1_audit_output.txt: KOA SHA-256 cf1aa2ae8e52fd75d7282b0d6ace588792a57f48d8d07bbc8a9d48f8ef0aedfa -- differs from the Mac's 3b1347742ac82881023f882b30b1e23bbc1815c99aeef7bcd8c72f32ada00a8b (information)
+   m2_audit_quick_output.txt: KOA SHA-256 9736a19dd88cf60e79c9ba867ec8295e9318a63cfa227250396445e0180e5405 -- differs from the Mac's 98e78bc5c9c8a42f7a7bcf671eb9df79b4706654c40d0165611a3c64e942e07d (information)
+   m2_audit_output.txt: KOA SHA-256 d9c68c880a8ba9420d3ab35abc619e90efed4337ba519c67e82db86fa343474c -- differs from the Mac's d1b59d23695c0bb29754a7ee73bbaec1bf43882c5be287fd20ceea40371c9c11 (information)
+== (c) the KOA rate table of gen3 (one run at a time)
+
+| N | eta | events | run [s] | engine [s] | driver share | events/s | clean |
+|---|---|---|---|---|---|---|---|
+Traceback (most recent call last):
+  File "/home/charing/harddisks_gen3/hspist3/cluster/gen3_koa_261009/g3_rate_ld_koa.py", line 98, in <module>
+    main()
+  File "/home/charing/harddisks_gen3/hspist3/cluster/gen3_koa_261009/g3_rate_ld_koa.py", line 71, in main
+    r = record(d)
+        ^^^^^^^^^
+  File "/home/charing/harddisks_gen3/hspist3/cluster/gen3_koa_261009/g3_rate_ld_koa.py", line 45, in record
+    kv["gap"] = max(float(x) for x in g.groups()) if g else math.nan
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/charing/harddisks_gen3/hspist3/cluster/gen3_koa_261009/g3_rate_ld_koa.py", line 45, in <genexpr>
+    kv["gap"] = max(float(x) for x in g.groups()) if g else math.nan
+                    ^^^^^^^^
+ValueError: could not convert string to float: '1.45e-12,'
+STOP: the rate / long-double runs failed
+```
+
+The compare job (step 4), its header and result (every file and event hash of every pair printed IDENTICAL):
+
+```
+cross-node determinism: 8 tasks in /mnt/lustre/koa/scratch/charing/harddisks_gen3/gen3_xnode_15040862
+  task_1: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_2: cn-03-38-02 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_3: cn-03-38-05 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_4: cn-03-38-05 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_5: cn-03-38-05 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_6: cn-03-38-07 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_7: cn-03-38-07 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_8: cn-03-38-07 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+== across nodes (the test): 4 distinct node(s) among the 8 finished tasks
+RESULT: across nodes IDENTICAL (4 node(s)); within nodes IDENTICAL; tasks used 8 of 8
+```
+
+The two optional read-only greps (KOA login node, after the jobs):
+
+```
+[EDMD3-HEALTH] L0=10.0 M=300 run=0 seed=4243: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=3435805 full_checks=34794 local_worst=-3.68e-12 full_worst=-1.91e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.28e-12 ev_pair=1217853 ev_wall=221224 ev_cross=704817 ev_div=74058 ev_piston=0 ev_band=0 ev_stale=6832781 origin_shifts=16 syncs=16 heap_compactions=0 heap_max=4091 validator_every=60 hash=72111cdaa7d26414 t_end=139001.60207128525 engine=gen3 build="a643bc7" target=koa run_s=4.710 engine_s=3.095 driver_share=0.3428
+[EDMD3-HEALTH] L0=11.2 M=500 run=0 seed=4242: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=34320578 full_checks=17023 local_worst=-3.33e-12 full_worst=-2.06e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.05e-12 ev_pair=15451965 ev_wall=1224007 ev_cross=1638194 ev_div=554447 ev_piston=0 ev_band=0 ev_stale=119633146 origin_shifts=9 syncs=9 heap_compactions=229 heap_max=29739 validator_every=60 hash=0586b1e77639502b t_end=81368.401212483644 engine=gen3 build="a643bc7" target=koa run_s=59.194 engine_s=51.505 driver_share=0.1299
+(the grep also printed two lines of a README: "- The run log holds each trajectory's run record ...", twice each)
+| A gen3, audits on | f2a24a398cb39921 | 4396 | 212 | 0 | 0 | 0 | 3722 | 8452 | - |
+| A gen3, audits on | 2bfd7aef388de7dd | 3160 | 160 | 0 | 0 | 0 | 2332 | 5867 | - |
+| A gen3, audits on | 07d4f69fc123603d | 3160 | 160 | 0 | 0 | 0 | 2332 | 5867 | - |
+| A gen3, audits on | 795e2be5f5cdc163 | 33497 | 2976 | 1996 | 0 | 0 | 19343 | 211345 | - 
+| A gen3, audits on | a491e01dbffb1d67 | 32694 | 2888 | 1942 | 0 | 0 | 19290 | 197482 | - 
+| A gen3, audits on | ab5d937cfc272a6e | 188813 | 20659 | 17592 | 0 | 0 | 18523 | 1291999 
+| A gen3, audits on | 8b5a763cf088d039 | 201624 | 22104 | 18438 | 0 | 0 | 20187 | 1362135 
+| A gen3, audits on | b0d2e07d03f1869c | 193634 | 21338 | 17767 | 0 | 0 | 18860 | 1299804 
+| A gen3, audits on | ef951933d486c2fa | 33223 | 2945 | 2006 | 0 | 0 | 20227 | 159468 | - 
+| A gen3, audits on | 7444d570fae8cd22 | 196133 | 22016 | 18278 | 0 | 0 | 20332 | 1536538 
+| A gen3, audits on | fb5dbec59378088c | 39259 | 3487 | 2395 | 0 | 3 | 19544 | 200508 | - 
+| A gen3, audits on | 50cd48a989d5bb05 | 32085 | 1849 | 930 | 0 | 0 | 17938 | 190909 | - |
+| A gen3, audits on | a2f8e345850582da | 4523 | 923 | 105 | 48 | 0 | 19432 | 13440 | - |
+| A gen3, audits on | 5a833b6ba8a6c12c | 21740 | 1106 | 0 | 0 | 0 | 18906 | 42812 | - |
+| A gen3, audits on | c721682fd6d235ad | 15240 | 780 | 0 | 0 | 0 | 10722 | 29179 | - |
+| A gen3, audits on | 96b65d11b8eaa971 | 15240 | 780 | 0 | 0 | 0 | 10722 | 29179 | - |
+| A gen3, audits on | b9fb81c17d64b1e8 | 335448 | 29647 | 20082 | 0 | 0 | 185764 | 2286998
+| A gen3, audits on | b4ffc16293797945 | 328140 | 28976 | 19567 | 0 | 0 | 191211 | 2091803
+| A gen3, audits on | 43793a763c6812a6 | 1763519 | 199967 | 170193 | 0 | 0 | 195755 | 1244
+| A gen3, audits on | 46003616afd008a3 | 1835708 | 207469 | 176022 | 0 | 0 | 203316 | 1310
+| A gen3, audits on | 51115487c9b1caab | 1788047 | 200215 | 169349 | 0 | 0 | 193438 | 1263
+| A gen3, audits on | 837fb9e4637447eb | 337267 | 29762 | 20218 | 0 | 0 | 201862 | 1645400
+| A gen3, audits on | 79621d4228ba6c48 | 1855317 | 208662 | 176404 | 0 | 0 | 207255 | 1478
+| A gen3, audits on | 964fcaa759e63b87 | 472759 | 41859 | 28988 | 0 | 36 | 234983 | 243860
+| A gen3, audits on | 9c57360fa2ec6df7 | 320309 | 18288 | 9253 | 0 | 0 | 181275 | 1948347 
+| A gen3, audits on | 3c1bfa4a12bb3d48 | 48541 | 9482 | 1078 | 529 | 5 | 197716 | 148179 |
+| A gen3, audits on | d849652e16a84344 | 346861 | 176140 | 1497810 | - |
+| A gen3, audits on | e0e3e6440e93abe5 | 1878188 | 171953 | 12988594 | - |
+| A gen3, audits on | 1fb0684c98ebcb03 | 1827310 | 167140 | 12635955 | - |
+| A gen3, audits on | 9a15ca6c9fd03b33 | 52500 | 55200 | 94640 | - |
+| A gen3, audits on | 965afff5462c7d48 | 2904749 | 79519 | 9900108 | - |
+| A gen3, audits on | a6694d08fd33a01a | 467358 | 21414 | 2011525 | - |
+```
