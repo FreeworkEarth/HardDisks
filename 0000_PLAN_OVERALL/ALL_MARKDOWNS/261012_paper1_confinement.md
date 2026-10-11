@@ -15467,3 +15467,147 @@ Cost of that comparison on one core: 1.72 core-hours on the Gold node, about 2.4
 **Commits:**
 - main: `9211987` (decisions 25–26 recorded), and this record with the evidence;
 - engine-gen3 and engine-divider-resched: the notes.
+
+### 4.7.55 Plan-author decision 27: TEST G (KOA) FAIL stands; stage 1 gate G6 (a) not met; the merge record relayed; POST HOC tables (B), the arbiter (C, a proposal), stage 1 preparation (D) and the M5 solid cell (E) ordered (2026-10-11 01:33 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **TEST G (KOA): FAIL (DIFFERENCE) at M = 50 stands.** There is no rerun, no extension, and no change of estimator or rule. "You were right to stop."
+- **Stage 1 gate G6 (a) is NOT MET.** No stage 1 array is submitted until the plan author has registered an arbiter test and amended that gate in writing, before the arbiter's data exist.
+- **The merge record** (the merge log, relayed by Chris; recorded here):
+  - "merged 144 chunks: 6800 files moved, 416 files appended, 3264 kept per chunk (0 failed-run folders), 0 incomplete run folders, 0 locks or temp files left in place, 288 build files equal; build '00ALLINONE  git a643bc7  target koa'";
+  - six "reduce_B ...: exit 0" lines with their trajectory counts (400/400/400/100, 200 and 100 per engine);
+  - "merge done", and the record "2026-10-11 10:58:48 UTC" (00:58:48 HST: the time Report G-KOA inferred from the footprints).
+  - **For stage 1, the fetch must copy the merge record.**
+- **Task B, POST HOC tables on the fetched Test G data** (every table labelled POST HOC, INFORMATION; they change no verdict). One script, committed before its first run on the data, with a self-test:
+  - B1. Per engine and mass (50, 300, 1500, 2000; π/8, N 100): mean ν_arg, mean ν_d, τ_r and Q from the averaged ACF, and ν_0 as methods sec. 16 computes it, each with a jackknife SE. Then c_k = ν_0 / x_k (K(α) the root of cot K = α K), and δ_M = c_M / c_ref − 1, with c_ref the weighted mean of the masses ≥ 300 of the same engine. δ_50 for gen2 and gen3 with SE, and gen3 − gen2 for each estimator. The question: which engine, if any, shows methods sec. 16's light-divider deficit (−0.42 ± 0.08 %)?
+  - B2. The histogram of the argmax bins per engine and mass (bin width in % of ν). It should explain "+0.000 %, z 0.00" at M = 1500 and show how coarse the grid is at M = 50.
+  - B3. Are the two arms paired by start? Quote the code. If yes: the paired difference per seed with its SE, for ν_arg and ν_d at each mass.
+  - B4. The divider's kinetic temperature: ⟨M V²⟩ per engine and mass against equipartition for 2N + 1 degrees of freedom at fixed total energy (the expected value, derived in two lines), if the KE trace or the divider velocity is in the fetched data. If they are only on KOA scratch: which files, and the smallest reduction job (not written yet).
+  - B5. Quote sec. 4.7.10 (the gen2 defect scan): the defect, its measured rate, its dependence on the divider mass, and whether Test G's gen2 runs carry any counter of it.
+- **Task C, the arbiter: a proposal only** (design, cost, what it can and cannot show; nothing run; the plan author registers it):
+  - C1. A replay of n trajectories of the M = 50 gen3 arm (the registered command, Mac starts) in the M2 harness's independent brute-force reference over the full record, comparing event hash and count. What the reference shares with gen3 and what it does not; the cost; n for 8 processes in two hours.
+  - C2. First departure: gen2 and gen3 from the identical initial state at M = 50, 300 and 1500 (20 seeds each). The time and size of the first departure of the divider position beyond rounding, against the double-vs-long-double departure. An abrupt step means an event handled differently, and that event is printed. Can the driver start both engines from one dumped state?
+  - C3. Any decisive check that shares no code with either engine (for example an exact statistical-mechanics identity), or say there is none.
+  - For each, the proposed verdict rule with its threshold and scale.
+- **Task D:** stage 1 preparation continues: Report S1-0 and the package up to gate G4; nothing is submitted. S1-0 takes point 6 of Report G-KOA as accepted:
+  - the commit hash comes from a build-time file;
+  - no git at run time;
+  - `koa_env.sh` must not fail without git;
+  - `--exclude=cn-05-08-07` goes in every sbatch.
+- **Task E, M5:** the solid-cell job as proposed (N 400, η 0.74, M 500, `--gen3-psi6-compartments`) with FOUR seeds per build. Rehearse it on the Mac and write its runsheet lines. It is not typed until the plan author says.
+- **Order:** B first (Report G2 = B and C together), then D, then E.
+- **Plan-author errors recorded:**
+  - blocks were given to Chris at dc158b5 after K2c had moved to fd8d8a2;
+  - a forecast of "first plots Sunday night" was made before the Test G verdict existed.
+- **Ground rules:** as before; no KOA contact; no new runs except where a task says so. The data marker is `$SP/.decision27_ref`, 01:33 HST.
+
+**The message, verbatim** (relayed by Chris on 2026-10-11 at about 01:33 HST, machine date; the plan author's note to Chris, as pasted):
+
+```
+The campaign scripts and their rehearsal can continue meanwhile, so no time is lost there.
+
+What you do
+Push: git push origin main engine-gen3 engine-divider-resched
+Send CC the block below (tomorrow is fine).
+Paste me CC's Report G2 when it comes.
+In the stage 1 chat, the updated project note now says that its gate G6 (a) is not met.
+
+Nothing is needed on KOA.
+
+For CC:
+
+From the plan author (Cowork), relayed by Chris. Record in a new
+section. Ground rules as before; no KOA contact; no new runs
+except where a task says so.
+
+DECISION 27 (2026-10-11 ~01:45 HST), after Report G-KOA
+ 1. TEST G (KOA): FAIL (DIFFERENCE) at M = 50 stands. No rerun, no
+    extension, no change of estimator or rule. You were right to
+    stop. Stage 1 gate G6 (a) is NOT MET; no stage 1 array is
+    submitted until I have registered an arbiter test and amended
+    that gate in writing, before the arbiter's data.
+ 2. The merge record: Chris pasted the merge log to me. Its last
+    lines: "merged 144 chunks: 6800 files moved, 416 files
+    appended, 3264 kept per chunk (0 failed-run folders), 0
+    incomplete run folders, 0 locks or temp files left in place,
+    288 build files equal; build '00ALLINONE  git a643bc7  target
+    koa'", six "reduce_B ...: exit 0" with their trajectory counts
+    (400/400/400/100, 200, 100 per engine), "merge done", and the
+    record "2026-10-11 10:58:48 UTC". Record it. For stage 1: the
+    fetch must copy the merge record.
+
+ TASK B - POST HOC tables on the fetched Test G data. Label every
+ table POST HOC, INFORMATION; they change no verdict. One script,
+ committed before its first run on the data, with a self-test.
+  B1. Per engine and mass (50, 300, 1500, 2000; pi/8, N 100): mean
+      nu_arg, mean nu_d, tau_r and Q from the averaged ACF, nu_0 as
+      methods sec. 16 computes it, each with its jackknife SE; then
+      c_k = nu_0 / x_k with the root K(alpha) of cot K = alpha K,
+      and delta_M = c_M / c_ref - 1 with c_ref the weighted mean of
+      the masses >= 300 of the same engine. Print delta_50 for gen2
+      and for gen3 with SE, and gen3 - gen2 for each estimator.
+      The question: which engine, if any, shows the light-divider
+      deficit of methods sec. 16 (-0.42 +- 0.08 %)?
+  B2. The histogram of the argmax bins per engine at each mass
+      (bin width in % of nu). It should explain "+0.000 %, z 0.00"
+      at M = 1500 and show how coarse the grid is at M = 50.
+  B3. Are the two arms paired by start (the same exact seed gives
+      the same initial state in both engines)? Quote the code. If
+      yes: the paired difference per seed with its SE for nu_arg
+      and nu_d at each mass.
+  B4. The divider's kinetic temperature: if the KE trace
+      (HD_KE_TRACE=1) or the divider velocity is in the fetched
+      data, the mean of M V^2 per engine and mass over the record
+      with its SE over trajectories, against equipartition for
+      2N + 1 degrees of freedom at fixed total energy (state the
+      expected value and derive it in two lines). If it is only on
+      KOA scratch, say which files and propose the smallest
+      reduction job; do not write it yet.
+  B5. Quote sec. 4.7.10 (the gen2 defect scan): what the defect is,
+      its measured rate, its dependence on the divider mass, and
+      whether Test G's gen2 runs carry any counter of it.
+
+ TASK C - the ARBITER, a proposal only (design, cost, what it can
+ and cannot show). Nothing is run for C. I register it.
+  C1. Replay: n trajectories of Test G's M = 50 gen3 arm (the
+      registered command; Mac starts) replayed in the independent
+      brute-force reference of the M2 harness over the FULL record
+      (200 periods), event hash and event count compared. State
+      exactly what the reference shares with gen3 (kinematics
+      formulas, tolerances) and what it does not (scheduling, cell
+      lists, heap), the cost per trajectory, and n for 8 processes
+      in two hours.
+  C2. First departure: gen2 and gen3 from the identical initial
+      state at M = 50, 300, 1500 (20 seeds each): the time and the
+      size of the first departure of the divider position beyond
+      rounding, set against the double-vs-long-double departure of
+      the same cells. Smooth growth from rounding = chaos; an
+      abrupt step = an event handled differently, and then the
+      event itself is printed (which pair, which time, both
+      engines' times). Say whether the driver lets both engines
+      start from one dumped state.
+  C3. Any check that shares no code with either engine and that
+      you judge decisive (for example an exact statistical-
+      mechanics identity measurable in both arms). Name it or say
+      there is none.
+  For each of C1-C3: the verdict rule you would propose, with its
+  threshold and its scale, for me to accept or change.
+
+ TASK D - stage 1 preparation continues: Report S1-0 and the
+ package up to gate G4. Nothing is submitted. In S1-0, point 6 of
+ Report G-KOA is accepted: commit hash from a build-time file, no
+ git at run time, koa_env.sh must not fail without git,
+ --exclude=cn-05-08-07 in every sbatch.
+
+ TASK E - M5: prepare the solid-cell job as you proposed (N 400,
+ eta 0.74, M 500, --gen3-psi6-compartments) with FOUR seeds per
+ build, rehearse it on the Mac, write its runsheet lines. Not typed
+ until I say.
+
+ Order: B first (Report G2 = B and C together), then D, then E.
+ Recorded plan-author errors: blocks given to Chris at dc158b5
+ after K2c had moved to fd8d8a2; a forecast of "first plots Sunday
+ night" made before the Test G verdict existed.
+
+End Report G2 with "Written for: the plan author".
+```
