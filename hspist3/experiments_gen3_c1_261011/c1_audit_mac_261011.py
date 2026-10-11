@@ -27,6 +27,12 @@ usage (from hspist3/):
   python3 experiments_gen3_c1_261011/c1_audit_mac_261011.py timing              # the timing trajectory, alone; fixes n
   python3 experiments_gen3_c1_261011/c1_audit_mac_261011.py sample --jobs 6     # the n sample trajectories and their twins
   python3 experiments_gen3_c1_261011/c1_audit_mac_261011.py verdict             # the table and the verdict (reads the run folders)
+  python3 experiments_gen3_c1_261011/c1_audit_mac_261011.py amendment-a2        # AMENDMENT A2 (POST HOC, decision 30), its own output
+##CHRIS 2026-10-11 (plan-author decision 30, item 2; 261012 sec. 4.7.59): the mode amendment-a2 prints AMENDMENT A2's condition (POST HOC:
+written after C1's data, flagged so wherever cited) on the same run folders; the registered verdict and its output stay as printed.
+A2: "in all n trajectories every registered audit count is 0 (missing, extra, deferred early, bands, duplicates disagreeing, cells
+inconsistent), the event hash and per-class counts equal the unaudited twin's, clean=1 in both, and the audit's own relative flag
+max |dt|/horizon (|dt| > 1e-9 only) is <= 1e-10 (the M2 acceptance criterion)."
 """
 import concurrent.futures as cf, gzip, hashlib, math, os, re, shlex, shutil, subprocess, sys, time
 HERE = os.path.dirname(os.path.abspath(__file__)); HS = os.path.dirname(HERE)
@@ -278,6 +284,41 @@ def step_verdict():
     print(f"\nC1: {verdict}")
 
 
+def judge_a2(pairs):
+    """amendment A2 (POST HOC): per trajectory its four parts, exactly as decision 30 words them -> (MET | NOT MET, per-part counts, the
+    trajectories that miss a part)"""
+    parts = {"every registered audit count 0": 0, "event hash and per-class counts equal to the twin's": 0, "clean=1 in both": 0,
+             "max |dt|/horizon (|dt| > 1e-9 only) <= 1e-10": 0}
+    miss = []
+    for a, t in pairs:
+        ok = {"every registered audit count 0": all(k in a for k in AUD_KEYS) and not any(a[k] for k in AUD_KEYS if k != "states"),
+              "event hash and per-class counts equal to the twin's": "hash" in a and "hash" in t and a["hash"] == t["hash"]
+                                                                  and all(a.get(k) == t.get(k) for k in EV),
+              "clean=1 in both": a.get("clean") == 1 and t.get("clean") == 1,
+              "max |dt|/horizon (|dt| > 1e-9 only) <= 1e-10": "max_rel" in a and a["max_rel"] <= 1e-10}
+        for k, v in ok.items(): parts[k] += int(v)
+        if not all(ok.values()): miss.append((a["dir"], [k for k, v in ok.items() if not v]))
+    return ("MET" if not miss and pairs else "NOT MET"), parts, miss
+
+
+def step_amendment_a2():
+    T = tasks(); n = int(re.search(r"^n (\d+)", open(NFILE).read(), re.M).group(1)); pairs = []
+    for t in T[:n]:
+        r = int(t[3]); a, b = os.path.join(RUNS, "audit", f"r{r}"), os.path.join(RUNS, "twin", f"r{r}")
+        pairs.append((record(a), record(b)))
+    res, parts, miss = judge_a2(pairs)
+    A = [a for a, _ in pairs]
+    print("# C1 under AMENDMENT A2 to A1 -- POST HOC: written after C1's data (plan-author decision 30, item 2; 261012 sec. 4.7.59);\n"
+          "# flagged so wherever it is cited. The registered C1 verdict (c1_verdict_output.txt) stays: NOT DECIDED.\n")
+    print(f"the same {n} audited trajectories and twins as the registered printing (runs/audit, runs/twin; M = 50 gen3, Mac starts)\n")
+    print("| A2 part | trajectories that meet it |\n|---|---|")
+    for k, v in parts.items(): print(f"| {k} | {v} of {n} |")
+    print(f"\nmax |dt|/horizon (|dt| > 1e-9 only) over all runs: {max(a.get('max_rel', math.nan) for a in A):.3g}; "
+          f"max |dt|: {max(a.get('max_dt', math.nan) for a in A):.3g} units (not part of A2); finding lines: {sum(len(a['findings']) for a in A)}")
+    for d, ks in miss[:20]: print(f"  {os.path.relpath(d, HS)}: misses {ks}")
+    print(f"\nC1, AMENDMENT A2 (POST HOC): condition {res}")
+
+
 # ---------------------------------------------------------------- self-test (no simulation)
 def selftest():
     ok = {}
@@ -325,6 +366,10 @@ def selftest():
         ok["verdict: one missing event -> FAIL, and its finding line is quoted"] = v2[0] == "FAIL" and v2[2][1] == fl.strip()
         ok["verdict: a twin with another hash -> NOT DECIDED"] = judge([(a1, t1), (a3, t3)])[0] == "NOT DECIDED"
         ok["verdict: max |dt| above 1e-9 only -> NOT DECIDED"] = judge([(a4, t4)])[0] == "NOT DECIDED"
+        a5 = fake(os.path.join(td, "a5"), line.replace("max |dt| 4e-11", "max |dt| 2e-06").replace("only) 0", "only) 4e-11"), "abc", 10)
+        a6 = fake(os.path.join(td, "a6"), line.replace("only) 0", "only) 2e-10"), "abc", 10)
+        ok["amendment A2: max |dt| 2e-6 with |dt|/horizon 4e-11 -> MET; 2e-10 of the horizon -> NOT MET; a missing event -> NOT MET"] = \
+            judge_a2([(a5, t4)])[0] == "MET" and judge_a2([(a6, t4)])[0] == "NOT MET" and judge_a2([(a2, t2)])[0] == "NOT MET"
     for k, x in ok.items(): print(f"| {k} | {'PASS' if x else '**FAIL**'} |")
     print(f"\nSELF-TEST: {'PASS' if all(ok.values()) else 'FAIL'} ({sum(ok.values())} of {len(ok)})")
     return all(ok.values())
@@ -336,4 +381,5 @@ if __name__ == "__main__":
     if a[:1] == ["timing"]: step_timing()
     elif a[:1] == ["sample"]: step_sample(int(a[a.index("--jobs") + 1]) if "--jobs" in a else 6)
     elif a[:1] == ["verdict"]: step_verdict()
+    elif a[:1] == ["amendment-a2"]: step_amendment_a2()
     else: sys.exit(__doc__)
