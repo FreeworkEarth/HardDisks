@@ -14191,3 +14191,115 @@ The two optional read-only greps (KOA login node, after the jobs):
 | A gen3, audits on | 965afff5462c7d48 | 2904749 | 79519 | 9900108 | - |
 | A gen3, audits on | a6694d08fd33a01a | 467358 | 21414 | 2011525 | - |
 ```
+
+### 4.7.47 Decision 20, tasks 1–6 (Report K2): the script bug fixed; the full Mac rehearsal of every KOA job script found a second, real fault — the registered Test G merge — fixed and rehearsed again; the runsheet addendum K2; the harness event hashes (preliminary) (2026-10-10 15:35 HST, machine date) [DATA, printed by script; INFERENCE where marked]
+
+**Plain summary.**
+- **Task 1, the bug.**
+  - **Root cause.** `g3_rate_ld_koa.py` line 44 read the `[EDMD3-GAP]` line with `pair (\S+), wall (\S+), divider (\S+)`. The line continues `..., divider 1.45e-12, piston 0; ...`. The last group has no literal after it, so the greedy `\S+` also took the comma before "piston" (`'1.45e-12,'`), and `float()` stopped the job. The two groups before it were cut by their `, wall` and `, divider`.
+  - **Fix.** Every value is read with a number pattern (`NUM`: a printf `%g` number, inf or nan), never `\S+`; the u_t pattern likewise.
+  - **Unit test.** `test_g3_rate_ld_record_261010.py`: 9 cases, ALL PASS. They are the real line (stage A, `acc4/afix`), the KOA line rebuilt around `1.45e-12`, and every value printf can print in every position. On each, the old pattern fails exactly as on KOA, and the fixed `record()` reads the gap, u_t and the record.
+  - **Why the Mac dry run did not hit it.** The dry run (`dryrun_mac.sh`) covered only the runsheet's steps 1–2 (clone, builds) and ctrl_min. `g3_rate_ld_koa.py` had never been executed anywhere since it was written (stage G, 2026-10-09, "PREPARED, NOT RUN"). `koa_files_check.py` only traced which files KOA would have, statically. Any Mac run would have failed the same way: the real stage A line fails under the old pattern.
+- **Task 2, "E2 (amended): FAIL".**
+  - It is the audit runner's E2 verdict. E2 needs `free_M50_long`, `free_M2000` and a dense case, which the gate job does not run (it runs only E0's four cases), so its minimum-size check fails by construction.
+  - The gate script now prints that line as `E2 (amended): NOT TESTED by this job (its cases free_M50_long, free_M2000 and dense_* are not run); E0 (...): PASS`.
+- **Task 3, the rehearsal** (`rehearse_k2_mac.py`; evidence `hspist3/experiments_gen3_k2_rehearsal_261010/`):
+  - **Run 1, at engine-gen3 `9d4490c`, every part.** 12 of 15 checks PASS. The 3 FAILs are one real fault: the registered Test G merge stopped with `name collision testG/gen2/epi8_H_H10_L10/x_0/00_COMMAND.md (chunk 3)`, and the two verdict checks then had no reduced data.
+    - Cause: every A-fixed run writes `00_COMMAND.md` and `run_params.json` into the shared x_0 folder.
+    - On KOA the A-fixed lines are chunks 129–144, so the merge would have stopped at chunk 130 after moving files, and it refuses to run twice.
+  - **Run 2, at `2988351`, after the fix (unit test and the whole Test G path).** PASS: "merged 3 chunks: 100 files moved, 14 run logs appended, 0 failed-run folders kept"; `reduce_B` exit 0 in all 6 cells; fetch; verdict.
+  - The other job scripts are byte-identical between `9d4490c` and `2988351`, so run 1's results stand for them.
+- **Task 4, delivery.**
+  - `~/harddisks_gen3` is not touched; its four binaries are checked against step 2's SHA-256 (`k2_binaries_a643bc7.sha256`) and its version lines.
+  - The second clone `~/harddisks_gen3_k2` at `2988351` holds the scripts. Its jobs are K2-2 (`g3_rate_ld_k2.sbatch`) and the fixed merge (`merge_testG_k2.sbatch`).
+  - The Test G arrays run from `~/harddisks_gen3` with the registered chunk scripts, which have no fault.
+  - The merge diff is below. The registered task list, its SHA-256 (`cff8e6f9…`), `gen_testG_koa_261009.py` and the verdict script are byte-identical to the registration. The verdict's only change since `a643bc7` is `BUILD_KOA_COMMIT`, set in `f8e763e` as registered.
+- **Task 5, the addendum.** `hspist3/cluster/gen3_koa_261009/runsheet_k2_261010.txt` holds K2-1 to K2-4 and step 6 amended. It is reproduced in full in Report K2.
+- **Task 6 (after the fetch).** Script: `harness_event_hash_compare.py`.
+  - **PRELIMINARY,** from Chris's read-only grep of the 32 "A gen3, audits on" rows: **7 of 32 event hashes are equal on KOA and the Mac**.
+  - The 7 are exactly the cells whose initial velocities are made without libm: the three cradles in each M2 run, and M1's tie lattice with equal speeds.
+  - All 25 differing cells draw their velocities by Box–Muller with `log`/`cos`/`sin` from the harness's own xorshift numbers.
+  - **INFERENCE:** macOS's libm and glibc round some of these differently, so the initial states differ. gen3 reproduces exactly from an equal state.
+- **KOA speed today** (Chris's two read-only run records, step 4):
+  - The T-prime cell: 2.22 M events in 3.10 s of engine time (0.72 M/s; whole run 0.47 M/s).
+  - N 400, η 0.70, M 500: 18.9 M events in 51.5 s (0.37 M/s; whole run 0.32 M/s).
+  - The same commands on this Mac took 0.60× and 0.66× of KOA's run time; KOA is about 1.5–1.7× slower.
+- **Data.** Run 1 wrote 476 MB of scratch (206 MB of it the gate's E0 A-fixed event logs) and run 2 wrote 62 MB.
+  - New data since decision 19's marker is now about 0.54 GB, above decision 19's 500 MB cap.
+  - Chris approved going over it for run 2 before it was launched (asked at 482 MiB).
+  - Free disk is 39 GiB. Nothing was deleted.
+
+**The rehearsal, script by script** (Mac, arm64; at most 8 simulation processes at any time):
+
+| script (what KOA runs) | run | result | evidence |
+|---|---|---|---|
+| `test_g3_rate_ld_record_261010.py` (the fix's unit test) | 1, 2 | PASS | 9 cases each |
+| `g3_gate_koa.sbatch` (+ `koa_env.sh`, `audit_runs_261007.py`, `g3_rate_ld_koa.py`): (a)–(d) | 1 (job 910001, 534 s) | PASS | E0 8 of 8 IDENTICAL/IDENTICAL; the E2 line labelled; (b) three exits 0; (c) 12 rows clean 1; (d) 16 rows clean 1, gap/u_t numbers |
+| `g3_rate_ld_k2.sbatch` (K2-2) | 1 (job 910002, 182 s) | PASS | binaries' SHA-256 and version lines accepted; (c) 12 rows; (d) 16 rows; done line |
+| `g3_rate_ld_k2.sbatch`, its STOP rules | 1 | PASS | exit 2 for another clone name; exit 2 for other binaries in `~/harddisks_gen3` |
+| `g3_det_xnode.sbatch` (4 tasks on 2 pretended nodes) | 1 | PASS | every task exit 0, both cells clean 1 |
+| `g3_xnode_compare.sbatch` / `.py` | 1 | PASS | "across nodes IDENTICAL (2 node(s)); within nodes IDENTICAL; tasks used 4 of 4" |
+| `testG_koa.sbatch` + `testG_worker_koa.sh`, stage 1 (chunk 1 alone) | 1, 2 (58 s each) | PASS | 13 gen2 and 12 gen3 traces at M = 50; 12 gen3 records clean=1 |
+| the same, stage 2 (chunks 2–3: every block type) | 1 (290 s), 2 (305 s) | PASS | exit 0, "chunk j done", no FAILED |
+| `testG_koa.sbatch`, a chunk beyond the list | 1, 2 | PASS | "STOP: chunk 4 is beyond the task list", exit 2 |
+| `merge_testG_koa.sbatch` / `.py` as registered | 1 | **FAIL** | "STOP: name collision .../x_0/00_COMMAND.md (chunk 3)" -- the fault |
+| `merge_testG_k2.sbatch` + `merge_testG_koa.py` (fixed; + `reduce_B.py`) | 2 | PASS | "merged 3 chunks: 100 files moved, 14 run logs appended, 0 failed-run folders kept; build '00ALLINONE  git a643bc7  target koa'"; reduce_B exit 0 in 6 cells; traces compressed |
+| `fetch_gen3_koa.sh` (Mac) | 1, 2 | PASS | the testG, gate, xnode and rate_ld_k2 trees fetched |
+| `testG_koa_verdict_261009.py`, as committed | 1, 2 | run 1 **FAIL** (no reduced data: the merge had stopped); run 2 PASS | run 2: the inventory reads 14/2/2 trajectories per engine at M = 50/300/1500 and ends INVALID, as a 52-line list must |
+| the same, its inventory forced clean (a component check) | 1, 2 | run 1 **FAIL** (the same cause); run 2 PASS | run 2: the rule table, the verdict line and the information rows print |
+| `build_gen3_koa.sh` | -- | not rehearsed | not run in K2 (its KOA run printed BUILD OK in step 2) |
+
+**Shims** (each one also in the evidence's `shims/`):
+- **Slurm.** Each job script ran with `/bin/bash` in its submit folder. `SLURM_SUBMIT_DIR`, `SLURM_JOB_ID`, `SLURM_ARRAY_JOB_ID` and `SLURM_ARRAY_TASK_ID` were set, and the logs used Slurm's file names. `--dependency` became the run order; the array tasks ran as processes.
+- **Environment tools.** `module` is a no-op; `gcc --version` prints 14.3.0 (no job compiles); `lscpu` prints the Mac's CPU; `hostname` gives the pretended node names.
+- **Paths.** `HOME` points to the rehearsal's home folders. The Lustre path was rewritten to a scratch folder in the clones' scripts. The fetch's DTN source was made local, through an `rsync` wrapper that leaves out the gate's `e0_*/` folders: run 1 added it before its fetch step, for the data budget; the driver carries it since `2988351`.
+- **Test G inputs.** A mini task list of 52 of the registered lines (and its SHA-256) replaced the registered list in the a643bc7 clone. The K2 clone's `k2_binaries_a643bc7.sha256` held the Mac builds' hashes.
+- **Builds and clones.** Mac builds of the koa and koa-ld targets without `-march=x86-64-v2 -mtune=generic`; `core.abbrev=7`. The clones were local `--shared` clones with KOA's sparse sets, at the same commit hashes.
+
+**Residual differences** (not exercised by the rehearsal):
+- **Shell and tools.** bash 3.2 here against bash 5 on KOA. BSD against GNU sed, awk, grep and wc (macOS's `wc -l` pads its count; `[ -lt ]` accepts it).
+- **Python.** Python 3.13.2 with numpy 2.3.3 and pandas 2.3.3 here; KOA has Python 3.12.14 and the env's packages, whose versions were not read.
+- **Builds.** Clang arm64 builds against gcc x86-64-v2 builds; on arm64 long double is double, so only the koa-ld plumbing was exercised, not its numerics.
+- **Slurm and Lustre.** Slurm's limits, queueing, the `%64` throttle, the dependency mechanism and node failures; the Lustre file system itself (but jobs 15040861/15040862 wrote there without trouble).
+- **Scale.** 144 chunks and 3600 lines against 3 chunks and 52 lines (the same code path; chunks 1–3 ran, chunk 4 was refused).
+- **The fetch.** ssh, DTN and Duo.
+- **Run times on KOA.** Estimated from the Mac times × 1.5–1.7.
+
+**The merge fix** (`merge_testG_koa.py`, `a643bc7` → `2988351`, the one functional change):
+
+```
++                if name in ("00_COMMAND.md", "run_params.json"):
++                    b, e = os.path.splitext(name)
++                    shutil.move(src, os.path.join(dst, f"{b}_chunk{j}{e}")); moved += 1; continue
+                 if os.path.exists(os.path.join(dst, name)): sys.exit(f"STOP: name collision {os.path.join(rel, name)} (chunk {j})")
+```
+(plus comments and the docstring). Every other name still stops the merge on a collision.
+
+**Task 6, preliminary table** (`harness_event_hash_compare_preliminary.txt`):
+
+| harness output | cells | equal on KOA and Mac | the equal ones |
+|---|---|---|---|
+| m2 quick | 13 | 3 | cradle_exact, cradle_round, cradle_round_late |
+| m2 | 13 | 3 | the same three |
+| m1 | 6 | 1 | tie (a lattice with equal speeds) |
+
+Every differing cell draws its velocities by Box–Muller (libm). The files' SHA-256 cannot agree, since line 3 names the compiler. Here, the rehearsal's harness outputs (built `-O2`) are byte-identical to the committed Mac outputs.
+
+The driver differs more: it draws velocities with the C library's `rand()`, a different generator on macOS and glibc, plus libm. So driver runs differ between the Mac and KOA by construction. The rehearsal's cross-node cells gave 23bbc950a931c8e5 and c405c8d3e6522bc9 against KOA's 0586b1e77639502b and 72111cdaa7d26414. That is consistent with cluster/README's rule that the two platforms are compared statistically.
+
+**INFERENCE, not tested:** gen3's spring divider uses `cos`/`sin` inside the engine, so even an equal start need not give equal spring runs across platforms.
+
+**Deviations.**
+1. The driver's first launch stopped on its own bug before any clone was made (a context-manager misuse); fixed (`9d4490c`).
+2. The rsync wrapper was added during run 1, before its fetch step (data budget).
+3. Run 2 covered only the unit test and the Test G path.
+4. The 500 MB cap was exceeded, with Chris's OK.
+5. The fix commit KOA uses moved from `9d4490c` to `2988351` (the merge).
+6. The evidence logs carry `.out.txt` (the repository ignores `*.out`).
+
+**Commits.**
+- main: `5adad74`, `c02b33b`, `4a9efe6`, `d2d230f`, `6ea87cd`, `9be58e7` and this record.
+- engine-gen3: `b416dfc` (decision 19 WIP), `b7641fc`, `0ee75b8`, `9d4490c`, `2988351` (the fix commit KOA uses), `286eebc`, `76f5189` and the copy of this record.
+- engine-divider-resched: the notes.
+
+Push: `git push origin main engine-gen3 engine-divider-resched`. engine-gen3 must be pushed before K2-1, which fetches `2988351` from GitHub.
