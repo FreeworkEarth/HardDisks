@@ -41,8 +41,14 @@ moves and runs without the array's job id:
     updated clone.
   - The merge job's own STOP rules: a pretended pending gen3-testG job (squeue); a chunk whose log lacks its done line (the last
     chunk's log held aside, then put back byte-identical); a second submission after the merge (exit 3).
+##CHRIS 2026-10-10 (sec. 4.7.49): run 3 (at 882dba4) found that the merge summary's listing of the run folders grew with the number of
+runs (the driver's experiments_speed_of_sound/.../simulation_<time>/ folder in every run folder; on KOA one line of megabytes): fixed in
+merge_testG_koa.py. --chunks selects the registered chunks of the mini list (run 4: 1,2, the real chunks whose run folders feed one
+speed-of-sound folder per engine); the expected rows and reduce_B lines come from the task lines; verdict B (the component check) runs only
+when every verdict mass has paired runs (the registered information part pairs the engines' runs one to one: run 3's mini list had 13
+gen2 against 12 gen3 runs at M = 300 and 1500, and that part stopped on them; the committed verdict returns at INVALID before it).
 usage (from the repository root): python3 hspist3/cluster/gen3_koa_261009/rehearse_k2_mac.py --root <empty dir> --fix <engine-gen3 commit>
-          [--only unit,testg] [--runsheet <runsheet with the K2-4 blocks>]
+          [--only unit,testg] [--runsheet <runsheet with the K2-4 blocks>] [--chunks 1,2,...,130:5]
 """
 import argparse, glob, hashlib, os, re, shutil, subprocess, sys, time
 
@@ -184,11 +190,29 @@ def table_rows(txt, head):
     return rows
 
 
-def mini_list(src):
-    """v2 (decision 21): the registered chunks V2_CHUNKS whole, in order, and the first 5 lines of chunk 130"""
+def mini_list(src, spec=None):
+    """v2 (decision 21): the registered chunks V2_CHUNKS whole, in order, and the first 5 lines of chunk 130; or --chunks: registered
+    chunk numbers in order, "<c>:<n>" for the first n lines of chunk c"""
     L = open(src).readlines(); out = []
-    for c in V2_CHUNKS: out += L[(c - 1) * 25: c * 25]
-    return out + L[129 * 25: 129 * 25 + 5]
+    for c in (spec or [str(c) for c in V2_CHUNKS] + ["130:5"]):
+        c, n = (int(c.split(":")[0]), int(c.split(":")[1])) if ":" in c else (int(c), 25)
+        out += L[(c - 1) * 25: (c - 1) * 25 + n]
+    return out
+
+
+def chunk_rows(lines):
+    """the merge summary's rows for the destinations that receive files from more than one mini chunk, and the B cell groups"""
+    from collections import defaultdict
+    dst = defaultdict(set)
+    for i, l in enumerate(lines): dst[l.split()[1]].add(i // 25 + 1)
+    rows = set()
+    for d, js in dst.items():
+        js = sorted(js)
+        if len(js) < 2: continue
+        span = f"{js[0]}-{js[-1]} ({len(js)})" if len(js) > 3 and js == list(range(js[0], js[-1] + 1)) else ", ".join(map(str, js))
+        rows.add(f"| {d} | {span} |")
+    groups = {os.path.dirname(l.split()[1]) for l in lines if l.split()[0] == "B"}
+    return rows, groups
 
 
 def expected_plan(lines):
@@ -235,6 +259,7 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--root", required=True); ap.add_argument("--fix", required=True)
     ap.add_argument("--only", default="unit,testg", help="parts to run: unit, gate, k2, xnode, testg (k2 and testg in separate runs)")
     ap.add_argument("--runsheet", default=os.path.join(HERE, "runsheet_k2_261010.txt"), help="the runsheet whose K2-4 blocks the testg part pastes")
+    ap.add_argument("--chunks", default=None, help="registered chunks for the mini list, e.g. 1,2 or 1,2,33,129,130:5 (default: v2)")
     a = ap.parse_args(); PARTS = set(a.only.split(","))
     if {"testg", "k2"} <= PARTS: sys.exit("STOP: run the k2 and testg parts separately (testg updates the K2 clone in place, from 2988351)")
     UPD = "testg" in PARTS                                                # the K2 clone as on KOA today, updated by block C
@@ -271,11 +296,11 @@ def main():
     for d, lf in [(A, False)] + ([] if UPD else [(K2C, True)]) + ([(G, False)] if "gate" in PARTS else []):
         print(f"  Lustre path rewritten in {os.path.relpath(d, R)}: {', '.join(rewrite_lustre(d, R, lf))}")
     reg = os.path.join(A, "hspist3", K, "tasks_testG_koa_261009.txt"); assert sha(reg) == "cff8e6f9ef3d95440f54b4c621fff776b64e48700083e7258e472351fc6412b9"
-    ml = mini_list(reg); txt = "".join(ml)
+    ml = mini_list(reg, a.chunks.split(",") if a.chunks else None); txt = "".join(ml)
     open(reg, "w").write(txt); open(os.path.join(A, "hspist3", K, "tasks_testG_koa_261009.sha256"), "w").write(hashlib.sha256(txt.encode()).hexdigest() + "\n")
     from collections import Counter
-    print(f"  mini Test G list v2 in home/harddisks_gen3: {len(ml)} of the registered lines ({len(ml) // 25 + (len(ml) % 25 > 0)} chunks of 25: mini chunks 1-9 = "
-          f"registered chunks {', '.join(map(str, V2_CHUNKS))} and the first 5 lines of 130); per block "
+    print(f"  mini Test G list in home/harddisks_gen3: {len(ml)} of the registered lines ({len(ml) // 25 + (len(ml) % 25 > 0)} chunks of 25: the registered "
+          f"chunks {a.chunks or ', '.join(map(str, V2_CHUNKS)) + ' and the first 5 lines of 130'}); per block "
           + ", ".join(f"{k} {v}" for k, v in Counter(l.split()[-1] for l in ml).items()))
     if "k2" in PARTS:
         kfile = os.path.join(K2C, "hspist3", K, "k2_binaries_a643bc7.sha256")
@@ -440,14 +465,14 @@ def testg(R, A, K2C, H, shim, PARTS, ml, runsheet, FIX):
     tm = open(lgm).read() if jid and os.path.exists(lgm) else ""
     rcm = open(ex).read().split()[-1] if os.path.exists(ex) else "?"
     red = re.findall(r"^reduce_B (\S+): exit (\d+)", tm, re.M)
-    rows = {f"| testG/{g}/epi8_H_H10_L10/{c} | {js_} |" for g in ("gen2", "gen3") for c, js_ in (("m_50", "1, 2"), ("x_0", f"{nch - 1}, {nch}"))}
+    rows, groups = chunk_rows(ml)
     okC = {"submitted": len(jid) == 1, "job exit 0": rcm == "0", f"merged {nch} chunks": f"merged {nch} chunks:" in tm, "0 problems": f"scan: {nch} chunks," in tm and ", 0 problem(s);" in tm,
            "plan counts as the model": exp_mini[0] in tm and f"scan: {nch} chunks, {exp_mini[1]} plan entries," in tm,
-           "two-chunk folders listed": all(r in tm for r in rows), "reduce_B exit 0 x6": len(red) == 6 and all(x[1] == "0" for x in red),
+           "the folders from several chunks listed": all(r in tm for r in rows), f"reduce_B exit 0 x{len(groups)}": len(red) == len(groups) and all(x[1] == "0" for x in red),
            "traces compressed": "traces compressed" in tm, "done line": "merge done; next: the fetch" in tm, "no STOP": "STOP" not in tm}
     res("runsheet K2-4 block D + merge_testG_k2.sbatch + merge_testG_koa.py (+ reduce_B.py)", f"bash as pasted; job {jid[0] if jid else '?'} (sbatch shim)",
-        f"submitted; exit 0; scan {nch} chunks, 0 problems, the plan's counts as expected from the task lines; m_50 from chunks 1, 2 and x_0 from {nch - 1}, {nch} (both engines) in the plan; 'merged {nch} chunks'; "
-        "reduce_B exit 0 for all 6 B cell groups; traces compressed; done line", all(okC.values()),
+        f"submitted; exit 0; scan {nch} chunks, 0 problems, the plan's counts as expected from the task lines; every folder fed by several chunks in the plan "
+        f"({len(rows)}); 'merged {nch} chunks'; reduce_B exit 0 for all {len(groups)} B cell groups; traces compressed; done line", all(okC.values()),
         f"{sum(okC.values())}/{len(okC)}" + (f"; failed: {[k for k, v in okC.items() if not v]}" if not all(okC.values()) else "")
         + f"; {re.findall(r'^merged .*$', tm, re.M)[:1]}")
     rc, tD = run_block(R, "E", B["E"], benv())
@@ -475,6 +500,10 @@ def testg(R, A, K2C, H, shim, PARTS, ml, runsheet, FIX):
     res("testG_koa_verdict_261009.py (A, as committed)", "Mac python3", f"exit 0; the inventory reads the mini data (matched {sorted(want.items())} of 400 expected) and ends INVALID",
         p.returncode == 0 and got == want and "TEST G (KOA): INVALID" in tA, f"matched {sorted(got.items())}")
     lgB = os.path.join(R, "logs", "verdict_B.out")
+    pairs = {M: (want.get(("gen2", M), 0), want.get(("gen3", M), 0)) for M in ("50", "300", "1500")}
+    if not all(g2 == g3 > 1 for g2, g3 in pairs.values()):   # the registered information part pairs the engines' runs one to one
+        print(f"  verdict B (component check) not run: the mini list's runs per verdict mass, gen2 / gen3: {pairs} (it needs equal numbers above 1)")
+        return
     code = ("import sys; sys.argv = ['testG_koa_verdict_261009.py']; sys.path.insert(0, 'cluster/gen3_koa_261009'); import testG_koa_verdict_261009 as KV\n"
             "orig = KV.V.inventory\n"
             "def inv(D):\n    ok = orig(D)\n    print('[rehearsal B] inventory: ' + ('clean' if ok else 'NOT CLEAN') + ' -- forced clean, so the rest of main() runs on the mini data')\n    return True\n"
