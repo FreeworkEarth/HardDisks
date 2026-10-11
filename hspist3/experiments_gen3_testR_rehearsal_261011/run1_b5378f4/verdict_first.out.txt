@@ -1,0 +1,5 @@
+# TEST R ON KOA -- the verdict (decision 28; 261012 sec. 4.7.57); the one printing
+
+the task list: the registered one; the merge record: **MISSING**
+
+TEST R: INVALID -- missing tables: gen2 M=50, gen2 M=100, gen2 M=300, gen3 M=50, gen3 M=100, gen3 M=300; no verdict

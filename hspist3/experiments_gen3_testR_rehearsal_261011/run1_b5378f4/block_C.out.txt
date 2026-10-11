@@ -1,0 +1,2 @@
+/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d28/rehearsal_run1/logs/block_C.sh: line 1: syntax error near unexpected token `)'
+/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d28/rehearsal_run1/logs/block_C.sh: line 1: `               both engines; 1 core, at most 1 h on shared; about 12 min):'

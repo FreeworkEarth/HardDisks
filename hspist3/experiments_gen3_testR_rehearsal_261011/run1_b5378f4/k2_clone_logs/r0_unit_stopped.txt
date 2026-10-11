@@ -1,0 +1,12 @@
+| case | expected | result | evidence |
+|---|---|---|---|
+| 1 complete | nothing to resubmit | PASS | exit 0 |
+| 2 chunks 5, 6, 7 and 11 stopped once on two nodes | sbatch --array=5-7,11 --exclude=cn-05-08-07,cn-07-01-01 cluster/gen3_testR_261011/testR_koa.sbatch | PASS | exit 0; ['sbatch --array=5-7,11 --exclude=cn-05-08-07,cn-07-01-01 cluster/gen3_testR_261011/testR_koa.sbatch'] |
+| 3 chunk 5 resubmitted and done; chunk 6 stopped twice | sbatch --array=7,11 --exclude=cn-05-08-07,cn-07-01-01 cluster/gen3_testR_261011/testR_koa.sbatch; chunk 6 listed for the plan author | PASS | exit 0 |
+| 4 chunk 8 started and did not finish | not in the line; listed | PASS | exit 0 |
+| 5 chunk 12 without any log | counted under no log (12); nothing to resubmit | PASS | exit 0 |
+| 6 the merge job's log and a Test G log in the folder | ignored: nothing to resubmit | PASS | exit 0 |
+
+(the synthetic logs are kept in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d28/rehearsal_run1/home/harddisks_gen3_k2/hspist3/logs/r0_unit_tmp/stopped_chunks_test_c5g8mb2b)
+
+ALL PASS (6 cases)
