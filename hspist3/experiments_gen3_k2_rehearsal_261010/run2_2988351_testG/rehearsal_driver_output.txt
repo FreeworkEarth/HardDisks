@@ -1,0 +1,42 @@
+# Mac rehearsal of the KOA job scripts 2026-10-10 15:23:08 HST: root /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d20/rehearsal_2988351_testg; fix commit 2988351f8f566199ae47f1df243d452dc96b6af2; gate commit a643bc7edb1b41574c0f9af0c5fea199dc797680; parts ['testg', 'unit']
+tools: GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25) | Python 3.13.2 | Apple clang version 17.0.0 (clang-1700.4.4.1) | git version 2.50.1 (Apple Git-155) | openrsync: protocol version 29
+== clones and Mac builds
+  home/harddisks_gen3: HEAD a643bc7edb1b41574c0f9af0c5fea199dc797680; files 6964 tracked, 356 checked out
+  home/harddisks_gen3_k2: HEAD 2988351f8f566199ae47f1df243d452dc96b6af2; files 11933 tracked, 320 checked out
+  versions: gen3 a643bc7 ['00ALLINONE  git a643bc7  target koa', '00ALLINONE  git a643bc7  target koa-ld']; reference (not built: no gate part); gate clone (fix commit) (not built: no gate part)
+== shims in the clones
+  Lustre path rewritten in home/harddisks_gen3: hspist3/cluster/check_cells.sh, hspist3/cluster/confinement_20261013/conf_A_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_A_0.39.sbatch, hspist3/cluster/confinement_20261013/conf_A_pilot.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_0.39.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_pilot.sbatch, hspist3/cluster/confinement_20261013/conf_B_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_B_0.39.sbatch, hspist3/cluster/confinement_20261013/fetch_afix.sh, hspist3/cluster/confinement_20261013/fetch_confinement.sh, hspist3/cluster/gen3_koa_261009/fetch_gen3_koa.sh, hspist3/cluster/gen3_koa_261009/g3_det_xnode.sbatch, hspist3/cluster/gen3_koa_261009/g3_gate_koa.sbatch, hspist3/cluster/gen3_koa_261009/g3_xnode_compare.sbatch, hspist3/cluster/gen3_koa_261009/merge_testG_koa.sbatch, hspist3/cluster/gen3_koa_261009/testG_koa.sbatch, hspist3/cluster/gen_afix_sbatch_261004.py, hspist3/cluster/gen_confinement_sbatch.py, hspist3/cluster/koa_crossnode_det.sh, hspist3/cluster/koa_smoketest.sh, hspist3/cluster/profile_edmd_koa.sh, hspist3/cluster/resched_gate_261005/asan.sbatch, hspist3/cluster/resched_gate_261005/e0e2.sbatch, hspist3/cluster/resched_gate_261005/fetch_resched.sh, hspist3/cluster/resched_gate_261005/fetch_resched2.sh, hspist3/cluster/resched_gate_261005/ge2.sbatch, hspist3/cluster/resched_gate_261005/reduce_tprime.sbatch, hspist3/cluster/resched_gate_261005/replay.sbatch, hspist3/cluster/resched_gate_261005/testT.sbatch, hspist3/cluster/resched_gate_261005/testTprime.sbatch, hspist3/cluster/resched_gate_261005/testTprime_chunks.sbatch, hspist3/cluster/round_plan_261002.py
+  Lustre path rewritten in home/harddisks_gen3_k2: hspist3/cluster/check_cells.sh, hspist3/cluster/confinement_20261013/conf_A_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_A_0.39.sbatch, hspist3/cluster/confinement_20261013/conf_A_pilot.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_0.39.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_pilot.sbatch, hspist3/cluster/confinement_20261013/conf_B_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_B_0.39.sbatch, hspist3/cluster/confinement_20261013/fetch_afix.sh, hspist3/cluster/confinement_20261013/fetch_confinement.sh, hspist3/cluster/gen3_koa_261009/fetch_gen3_koa.sh, hspist3/cluster/gen3_koa_261009/g3_det_xnode.sbatch, hspist3/cluster/gen3_koa_261009/g3_gate_koa.sbatch, hspist3/cluster/gen3_koa_261009/g3_rate_ld_k2.sbatch, hspist3/cluster/gen3_koa_261009/g3_xnode_compare.sbatch, hspist3/cluster/gen3_koa_261009/merge_testG_k2.sbatch, hspist3/cluster/gen3_koa_261009/merge_testG_koa.sbatch, hspist3/cluster/gen3_koa_261009/rehearse_k2_mac.py, hspist3/cluster/gen3_koa_261009/testG_koa.sbatch, hspist3/cluster/gen_afix_sbatch_261004.py, hspist3/cluster/gen_confinement_sbatch.py, hspist3/cluster/koa_crossnode_det.sh, hspist3/cluster/koa_smoketest.sh, hspist3/cluster/profile_edmd_koa.sh, hspist3/cluster/resched_gate_261005/asan.sbatch, hspist3/cluster/resched_gate_261005/e0e2.sbatch, hspist3/cluster/resched_gate_261005/fetch_resched.sh, hspist3/cluster/resched_gate_261005/fetch_resched2.sh, hspist3/cluster/resched_gate_261005/ge2.sbatch, hspist3/cluster/resched_gate_261005/reduce_tprime.sbatch, hspist3/cluster/resched_gate_261005/replay.sbatch, hspist3/cluster/resched_gate_261005/testT.sbatch, hspist3/cluster/resched_gate_261005/testTprime.sbatch, hspist3/cluster/resched_gate_261005/testTprime_chunks.sbatch, hspist3/cluster/round_plan_261002.py
+  mini Test G list in home/harddisks_gen3: 52 of the registered lines (3 chunks of 25); per block main 36, info_m 4, dense 4, n400 4, afix 4
+  k2_binaries_a643bc7.sha256 in the K2 clone: the Mac builds' SHA-256 (committed: KOA's, 742aa2d3...)
+== the unit test of the fix (task 1)
+    -> test_g3_rate_ld_record_261010.py: PASS (9 cases PASS)
+== 4. Test G on the mini list: stage 1 (chunk 1 alone), stage 2 (chunks 2-3), a chunk beyond the list, the merge (K2: from the K2 clone)
+  stage 1, chunk 1: exit 0, 58 s
+    -> testG_koa.sbatch + testG_worker_koa.sh (stage 1): PASS (traces gen2 13, gen3 12; gen3 clean records 12)
+  stage 2, chunks 2-3: exits [0, 0], 305 s
+    -> testG_koa.sbatch + testG_worker_koa.sh (stage 2): PASS (exits [0, 0])
+    -> testG_koa.sbatch (STOP rule): PASS (exit 2)
+  merge (K2): exit 0, 4 s, log harddisks_gen3_k2/hspist3/logs/gen3-testG-merge-k2_910007.out
+    -> merge_testG_k2.sbatch + merge_testG_koa.py (fix commit; + reduce_B.py): PASS (exit 0; ["merged 3 chunks: 100 files moved, 14 run logs appended, 0 failed-run folders kept; build '00ALLINONE  git a643bc7  target koa'"]; reduce_B [('testG/gen2/dense_H10_L5.604167', '0'), ('testG/gen2/epi8_H_H10_L10', '0'), ('testG/gen2/epi8_N400_H20_L20', '0'), ('testG/gen3/dense_H10_L5.604167', '0'), ('testG/gen3/epi8_H_H10_L10', '0'), ('testG/gen3/epi8_N400_H20_L20', '0')])
+== 5. the fetch (local rsync source) and 6. the registered verdict, in the K2 clone
+  fetch: exit 0, 1 s, log ../logs/fetch.out
+    -> fetch_gen3_koa.sh (Mac): PASS ({'testG': True})
+    -> testG_koa_verdict_261009.py (A, as committed): PASS (matched {('gen3', '50'): 14, ('gen3', '300'): 2, ('gen3', '1500'): 2, ('gen2', '50'): 14, ('gen2', '300'): 2, ('gen2', '1500'): 2})
+    -> testG_koa_verdict_261009.py (B, component check): PASS (rule rows 3; ['TEST G (KOA): EXTENSION REQUIRED at M = 1500'])
+
+## Rehearsal result (384 s; data 62M)
+
+| script | run | criterion | result | evidence |
+|---|---|---|---|---|
+| test_g3_rate_ld_record_261010.py | Mac python3 | exit 0, ALL PASS (old pattern fails as on KOA, record() parses) | PASS | 9 cases PASS |
+| testG_koa.sbatch + testG_worker_koa.sh (stage 1) | array 910005, task 1 | exit 0; 'chunk 1 done'; no FAILED; 13 gen2 + 12 gen3 traces at M = 50; 12 gen3 records clean=1 | PASS | traces gen2 13, gen3 12; gen3 clean records 12 |
+| testG_koa.sbatch + testG_worker_koa.sh (stage 2) | array 910006, tasks 2-3 | exit 0, 'chunk j done', no FAILED in both | PASS | exits [0, 0] |
+| testG_koa.sbatch (STOP rule) | array 910008, task 4 | exit 2: 'STOP: chunk 4 is beyond the task list' | PASS | exit 2 |
+| merge_testG_k2.sbatch + merge_testG_koa.py (fix commit; + reduce_B.py) | job 910007 | exit 0; 'merged 3 chunks'; one build; reduce_B exit 0 for every B cell; traces compressed; done line | PASS | exit 0; ["merged 3 chunks: 100 files moved, 14 run logs appended, 0 failed-run folders kept; build '00ALLINONE  git a643bc7  target koa'"]; reduce_B [('testG/gen2/dense_H10_L5.604167', '0'), ('testG/gen2/epi8_H_H10_L10', '0'), ('testG/gen2/epi8_N400_H20_L20', '0'), ('testG/gen3/dense_H10_L5.604167', '0'), ('testG/gen3/epi8_H_H10_L10', '0'), ('testG/gen3/epi8_N400_H20_L20', '0')] |
+| fetch_gen3_koa.sh (Mac) | gate 910001, xnode 910003, K2-2 910002 | exit 0; testG fetched | PASS | {'testG': True} |
+| testG_koa_verdict_261009.py (A, as committed) | Mac python3 | exit 0; the inventory reads the mini data (matched 14/2/2 per engine of 400 expected) and ends INVALID | PASS | matched {('gen3', '50'): 14, ('gen3', '300'): 2, ('gen3', '1500'): 2, ('gen2', '50'): 14, ('gen2', '300'): 2, ('gen2', '1500'): 2} |
+| testG_koa_verdict_261009.py (B, component check) | Mac python3 | exit 0; the rule table (3 masses), the verdict line and the information rows print | PASS | rule rows 3; ['TEST G (KOA): EXTENSION REQUIRED at M = 1500'] |
+
+REHEARSAL: PASS
+driver exit 0

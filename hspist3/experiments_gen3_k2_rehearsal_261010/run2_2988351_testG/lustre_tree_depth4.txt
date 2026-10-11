@@ -1,0 +1,13 @@
+.
+./testG_koa
+./testG_koa/chunks
+./testG_koa/chunks/chunk_1
+./testG_koa/chunks/chunk_1/testG
+./testG_koa/chunks/chunk_2
+./testG_koa/chunks/chunk_2/testG
+./testG_koa/chunks/chunk_3
+./testG_koa/chunks/chunk_3/testG
+./testG_koa/merged
+./testG_koa/merged/testG
+./testG_koa/merged/testG/gen2
+./testG_koa/merged/testG/gen3
