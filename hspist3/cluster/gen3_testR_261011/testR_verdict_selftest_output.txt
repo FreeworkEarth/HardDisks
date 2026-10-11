@@ -3,8 +3,9 @@
 | rule: z_d = -3.6 -> DIFFERENCE CONFIRMED; the interval [-0.15, +0.15] % exactly -> NO DIFFERENCE; +0.1501 % -> NOT DECIDED | PASS |
 | overall: AGREE / DIFFER / NOT DECIDED, and NOT DECIDED when more than 1 % is excluded | PASS |
 | inventory: a refused run and an unhealthy run are excluded and counted; no INVALID | PASS |
+| inventory: nu_arg 1 ulp from red_nu.csv's is the same value; 1e-12 relative is INVALID | PASS |
 | inventory: an unregistered row, another build line and a missing merge record -> INVALID (all three named) | PASS |
 | design MC: P(ENGINES DIFFER) with independent estimators = 1 - (1 - 2 Phi(-3.5))^6 (within MC error) | PASS |
 | design MC: P(NO DIFFERENCE) at one mass = P(|d_d| <= 0.15 % - 1.96 SE) (within 0.003) | PASS |
 
-SELF-TEST: PASS (8 of 8)
+SELF-TEST: PASS (9 of 9)
