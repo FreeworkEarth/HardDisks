@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""##CHRIS 2026-10-09 (261012 sec. 4.7.20; stage G): PREPARED, NOT RUN. Parts (c) and (d) of g3_gate_koa.sbatch.
+"""##CHRIS 2026-10-09 (261012 sec. 4.7.20; stage G): Parts (c) and (d) of g3_gate_koa.sbatch.
+##CHRIS 2026-10-10 (decision 20; sec. 4.7.47): first run on KOA in gate job 15040861, where record() stopped on the [EDMD3-GAP] line
+(fixed below; test: test_g3_rate_ld_record_261010.py); rehearsed end to end on the Mac (rehearse_k2_mac.py); KOA runs it again in the
+K2-2 job (g3_rate_ld_k2.sbatch) with the binaries of ~/harddisks_gen3.
 (c) the KOA rate table of gen3: N = 100, 400, 900, 1600 x eta = pi/8, 0.70, 0.78; the gate's dense construction H = 10 sqrt(N/100),
     L0 = N pi / (8 H eta) exact (--gen3-exact-box), M4 seeding, 500 sigma-time held, 100 sigma-time released (M = 300), one run per
     cell, ONE AT A TIME (the rate is a timing): events, run_s, engine_s, driver share, events/s from each run record.
@@ -15,6 +18,7 @@ sys.path.insert(0, os.path.join(HS, "validation")); sys.path.insert(0, HS)
 import tests_20260913 as T
 import numpy as np
 BASE = 20261219      # never used before (stage G)
+NUM = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?|[-+]?inf|nan"   # ##CHRIS 2026-10-10 (decision 20, task 1): a %g number of printf
 
 
 def sos(binp, d, N, eta, M, seed, hold, record=None):
@@ -41,9 +45,12 @@ def record(d):
     if not m: return None
     kv = dict(re.findall(r"(\w+)=(\S+)", m[-1][1])); kv["clean"] = m[-1][0]
     kv["events"] = sum(int(kv[f]) for f in ("ev_pair", "ev_wall", "ev_cross", "ev_div", "ev_piston", "ev_band"))
-    g = re.search(r"\[EDMD3-GAP\] .*?max gap \[px\] pair (\S+), wall (\S+), divider (\S+)", t)
-    kv["gap"] = max(float(x) for x in g.groups()) if g else math.nan
-    u = re.search(r"\[EDMD3-GAP\] .*?time quantum u_t (\S+) units", t); kv["u_t"] = float(u.group(1)) if u else math.nan   # the engine's own
+    # ##CHRIS 2026-10-10 (plan-author decision 20, task 1; 261012 sec. 4.7.47): a value is NUM, never \S+. The line reads "... divider
+    # 1.45e-12, piston 0; ...": the last group "divider (\S+)" had no literal after it, so the greedy \S+ also took the comma before
+    # "piston" ('1.45e-12,') and float() stopped KOA's gate job 15040861 (the groups before it were cut by their ", wall" / ", divider").
+    g = re.search(rf"\[EDMD3-GAP\] .*?max gap \[px\] pair ({NUM}), wall ({NUM}), divider ({NUM}), piston ({NUM});", t)
+    kv["gap"] = max(float(x) for x in g.groups()[:3]) if g else math.nan      # pair, wall, divider (no piston in these runs)
+    u = re.search(rf"\[EDMD3-GAP\] .*?time quantum u_t ({NUM}) units;", t); kv["u_t"] = float(u.group(1)) if u else math.nan   # the engine's own
     return kv
 
 

@@ -1,6 +1,8 @@
 #!/bin/bash
 # ##CHRIS 2026-10-09 (261012 sec. 4.7.20; stage G; corrected by plan-author decision 13, item 2, sec. 4.7.29): PREPARED, NOT RUN. The
 # KOA part of the gen-3 gate on one node, in order:
+# ##CHRIS 2026-10-10 (decision 20; sec. 4.7.47): RUN on KOA as job 15040861 at a643bc7 -- (a) and (b) done, (c) stopped on a parsing
+# bug of g3_rate_ld_koa.py (fixed); (c) and (d) run again in the K2-2 job (g3_rate_ld_k2.sbatch); the E2 line is labelled (below).
 #  (a) E0, gen2-path byte identity on KOA: cluster/resched_gate_261005/audit_runs_261007.py with the new binary (./00ALLINONE, the
 #      gen3-containing koa build) against the 7b08827 reference binary of ~/harddisks_resched2 (Test T and T-prime's binary, read only,
 #      checked against its recorded hash and version line): ctrl_min, ctrl_leg, afix, afix_leg, "plain vs ref" must be IDENTICAL;
@@ -57,7 +59,9 @@ for tag in default gen2flag; do
     --cases ctrl_min,ctrl_leg,afix,afix_leg || { echo "STOP: an E0 run failed ($tag)"; exit 1; }
   python3 cluster/resched_gate_261005/audit_runs_261007.py report --out "$OUT/e0_$tag" > "$OUT/e0_$tag/report.txt"
   echo "== (a) E0 $tag:"; grep -E "^\| (ctrl_min|ctrl_leg|afix|afix_leg) \| git" "$OUT/e0_$tag/report.txt" | awk -F'|' '{print $2, "audit vs plain:", $(NF-2), "plain vs ref:", $(NF-1)}'
-  grep "^E2 (amended)" "$OUT/e0_$tag/report.txt"
+  # ##CHRIS 2026-10-10 (plan-author decision 20, task 2; 261012 sec. 4.7.47): the runner's E2 verdict needs free_M50_long, free_M2000
+  # and a dense case, which this job does not run, so its PASS/FAIL is not printed; the E0 part of the line is printed as it stands
+  grep "^E2 (amended)" "$OUT/e0_$tag/report.txt" | sed -E 's/^E2 \(amended\): [A-Z]+; /E2 (amended): NOT TESTED by this job (its cases free_M50_long, free_M2000 and dense_* are not run); /'
 done
 # (b) the M1/M2 harness hashes on KOA (three runs at once)
 H="$OUT/harness"; mkdir -p "$H"
