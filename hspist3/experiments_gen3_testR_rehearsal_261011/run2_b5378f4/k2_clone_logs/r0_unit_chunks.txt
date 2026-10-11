@@ -1,0 +1,15 @@
+| case | expected | result | evidence |
+|---|---|---|---|
+| 1 complete, 12 chunks | exit 0; 12 of 12 done; no earlier attempt | PASS | exit 0 |
+| 2 decision 24: chunks 2 and 11 stopped in a start-up check, then complete | exit 0; 12 of 12 done; both earlier attempts listed by name with their STOP line | PASS | exit 0 |
+| 3 chunk 3 only stopped | exit 2; '3(no folder)' (a stopped attempt makes no folder) | PASS | exit 2; NOT DONE: 3(no folder) |
+| 3b chunk 3 only stopped, a folder present | exit 2; '3(no log with its done line)' | PASS | exit 2; NOT DONE: 3(no log with its done line) |
+| 4 chunk 4 with two done logs | exit 2; '4(2 logs with its done line)' | PASS | exit 2; NOT DONE: 4(2 logs with its done line) |
+| 5 chunk 5 interrupted, then complete | exit 0; listed as started and not finished | PASS | exit 0 |
+| 6 chunk 6 without its folder | exit 2; '6(no folder)' | PASS | exit 2; NOT DONE: 6(no folder) |
+| 7 chunk 1 without a log (chunks 11 and 12 have theirs) | exit 2; '1(no log with its done line)' | PASS | exit 2; NOT DONE: 1(no log with its done line) |
+| 8 the merge job's log and a Test G chunk log in the same folder | exit 0; 12 of 12 done; 12 logs counted | PASS | exit 0 |
+
+(the synthetic folders are kept in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d28/rehearsal_run2/home/harddisks_gen3_k2/hspist3/logs/r0_unit_tmp/chunk_logs_test_q1mpcbb4)
+
+ALL PASS (9 cases)

@@ -61,6 +61,16 @@ def L(out):
     return [re.sub(r"[ \t]+", " ", l).strip() for l in out.splitlines()]
 
 
+def check_D(out):
+    """block D's good lines on the mini list. ##CHRIS 2026-10-11 (run 2): the expected lines are whitespace-collapsed like the output
+    (run 2 compared collapsed output lines with expected lines that kept the build line's double spaces: 0/6, a fault of this check)"""
+    want = [re.sub(r"[ \t]+", " ", f"{e} M={M} traces 1 runs 1 gen3-records-clean {int(e == 'gen3')} build '00ALLINONE  git a643bc7  target koa'")
+            for e in ("gen2", "gen3") for M in (50, 100, 300)]
+    n = sum(w in L(out) for w in want)
+    return (n == 6 and "chunk 1 done" in out and "lines 1-6; 00ALLINONE  git a643bc7  target koa" in out
+            and not re.search(r"FAILED|REFUSED|^STOP", out, re.M)), n
+
+
 def res(script, crit, ok, ev):
     RES.append((script, crit, "PASS" if ok else "**FAIL**", ev)); print(f"    -> {script}: {'PASS' if ok else '**FAIL**'} ({ev})", flush=True)
 
@@ -197,7 +207,12 @@ def substitute(R, hs, mac_sha):
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--root", required=True); ap.add_argument("--pkg", required=True)
     ap.add_argument("--runsheet", default=os.path.join(HERE, "runsheet_testR_261011.txt"))
+    ap.add_argument("--reuse-binary", default=None, help="the Mac koa-name binary of an earlier run of this driver, symlinked instead of rebuilt (the data cap); listed")
+    ap.add_argument("--recheck-block-D", default=None, help="apply the block D check to a saved block_D.out and stop")
     a = ap.parse_args(); R = os.path.abspath(a.root)
+    if a.recheck_block_D:
+        ok_d, n_d = check_D(open(a.recheck_block_D, errors="ignore").read())
+        print(f"block D re-checked on {a.recheck_block_D}: {'PASS' if ok_d else '**FAIL**'} ({n_d}/6 cell lines)"); return
     if not os.path.isdir(R) or os.listdir(R): sys.exit(f"STOP: {R} must be an existing empty folder")
     PKG = sh(["git", "-C", REPO, "rev-parse", a.pkg]).stdout.strip()
     for d in ("home", "lustre", "logs"): os.makedirs(os.path.join(R, d))
@@ -206,7 +221,14 @@ def main():
     print(f"# Test R rehearsal: package {PKG} (engine-gen3), runsheet {a.runsheet} (blocks {''.join(sorted(blocks))}), root {R}\n", flush=True)
     m = re.search(r"git fetch --depth 1 origin ([0-9a-f]{40})", "\n".join(blocks.get("B", [])))
     res("runsheet block B", "fetches the package commit", bool(m) and m.group(1) == PKG, f"block B fetches {m.group(1) if m else None}")
-    ver, mac_sha = build_binary(R, home)
+    if a.reuse_binary:
+        hs0 = os.path.join(home, "harddisks_gen3", "hspist3"); os.makedirs(os.path.join(hs0, "logs"))
+        os.symlink(os.path.abspath(a.reuse_binary), os.path.join(hs0, "00ALLINONE"))
+        mac_sha = sha(a.reuse_binary); open(os.path.join(hs0, "logs", "BUILD_KOA_LAST.hash"), "w").write(f"{mac_sha}  00ALLINONE\n")
+        ver = sh([os.path.join(hs0, "00ALLINONE"), "--version"]).stdout.splitlines()[0]
+        print(f"  the binary: {a.reuse_binary} (symlinked, not rebuilt; SHA-256 {mac_sha[:12]}...)", flush=True)
+    else:
+        ver, mac_sha = build_binary(R, home)
     res("the Mac binary (a643bc7, koa target name)", "version line '00ALLINONE  git a643bc7  target koa'", ver == "00ALLINONE  git a643bc7  target koa", ver)
     k2 = k2_clone(home); k2hs = os.path.join(k2, "hspist3")
     E = env_for(R, home, shim)
@@ -230,11 +252,9 @@ def main():
     rc, out = run_block(R, "C", blocks["C"], E)
     res("block C (chunk 1 alone)", "Submitted batch job", rc == 0 and "Submitted batch job" in out, f"exit {rc}")
     rc, out = run_block(R, "D", blocks["D"], E)
-    want = [f"{e} M={M} traces 1 runs 1 gen3-records-clean {int(e == 'gen3')} build '00ALLINONE  git a643bc7  target koa'"
-            for e in ("gen2", "gen3") for M in (50, 100, 300)]
+    ok_d, n_d = check_D(out)
     res("block D (chunk 1's checks)", "chunk 1 on ... lines 1-6; chunk 1 done; one trace and run per cell; no FAILED/REFUSED/STOP",
-        all(w in L(out) for w in want) and "chunk 1 done" in out and "lines 1-6; 00ALLINONE  git a643bc7  target koa" in out
-        and not re.search(r"FAILED|REFUSED|^STOP", out, re.M), f"{sum(w in L(out) for w in want)}/6 cell lines")
+        ok_d, f"{n_d}/6 cell lines")
     # ---- E: the rest, its first attempt stops at start-up
     linesE = [l.replace("--array=2-216%64", "--array=2") for l in blocks["E"]]
     rc, out = run_block(R, "E", linesE, env_for(R, home, shim, REHEARSAL_STARTUP_FAIL=1, REHEARSAL_HOST="cn-07-07-07"))
@@ -311,7 +331,7 @@ def main():
     print("\n| step (script) | criterion | result | evidence |\n|---|---|---|---|")
     for r in RES: print("| " + " | ".join(str(x) for x in r) + " |")
     print("\nRESIDUAL DIFFERENCES: the shims (Slurm commands, module, gcc --version, lscpu, hostname, sha256sum); the Mac binary (its SHA-256 "
-          "in the build record; KOA's four binaries absent); the mini list (12 lines, chunk size 6) with its SHA-256 file and the manifests "
+          f"in the build record; KOA's four binaries absent{'; symlinked from an earlier run, not rebuilt' if a.reuse_binary else ''}); the mini list (12 lines, chunk size 6) with its SHA-256 file and the manifests "
           "rewritten; the Lustre path; the local fetch; block E's --array=2; block F's chunk count 2; the verdict's test hooks")
     nb = sum(r[2] != "PASS" for r in RES)
     print(f"\nREHEARSAL: {'PASS' if nb == 0 else 'FAIL'} ({len(RES) - nb} of {len(RES)})")

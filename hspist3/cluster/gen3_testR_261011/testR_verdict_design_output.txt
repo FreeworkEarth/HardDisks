@@ -8,7 +8,7 @@
 - NOT DECIDED: otherwise
 - overall: ENGINES AGREE = NO DIFFERENCE at M = 50, 100 and 300; ENGINES DIFFER = DIFFERENCE CONFIRMED at any mass; NOT DECIDED otherwise
 - health: Test G's rule (testG_worker_koa.sh); contact <= 1e-6 px; excluded runs counted, never rerun; more than 1 % excluded in any arm (more than 36 of 3600) -> TEST R: NOT DECIDED (overall)
-- INVALID (no verdict): no merge record, another build line than '00ALLINONE  git a643bc7  target koa', unregistered or duplicated rows, nu_arg of nud_runs.csv unequal to red_nu.csv, the task list not registered
+- INVALID (no verdict): no merge record, another build line than '00ALLINONE  git a643bc7  target koa', unregistered or duplicated rows, nu_arg of nud_runs.csv unequal to red_nu.csv's (beyond 1e-14 relative), the task list not registered
 - nu_d fit failures: left out of the nu_d mean, counted (information)
 
 one |z| >= 3.5 by chance: 4.65e-04

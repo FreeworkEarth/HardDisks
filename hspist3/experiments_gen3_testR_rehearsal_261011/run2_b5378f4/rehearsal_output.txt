@@ -1,0 +1,57 @@
+# Test R rehearsal: package b5378f49bbf3caf39df761aa49fe19cee693e3a5 (engine-gen3), runsheet /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/cluster/gen3_testR_261011/runsheet_testR_261011.txt (blocks ABCDEFGH), root <SP>/d28/rehearsal_run2
+
+    -> runsheet block B: PASS (block B fetches b5378f49bbf3caf39df761aa49fe19cee693e3a5)
+  the binary: <SP>/d28/rehearsal_run1/home/harddisks_gen3/hspist3/00ALLINONE (symlinked, not rebuilt; SHA-256 466aedb19569...)
+    -> the Mac binary (a643bc7, koa target name): PASS (00ALLINONE  git a643bc7  target koa)
+  block A: exit 0, 1 s, log logs/block_A.out
+    -> block A: PASS (exit 0)
+  block B: exit 0, 6 s, log logs/block_B.out
+    -> block B (the update in place, the checks, the unit tests): PASS (checks [True, True, True, True, True, True, True, True]; the eight SHA lines equal; KOA's binaries: 1 FAILED here (expected: the Mac build and three absent files))
+    -> the rehearsal substitutions: PASS (rewritten ['testR_koa.sbatch', 'testR_merge.sbatch', 'fetch_testR_koa.sh']; manifests: 2 written)
+  block C: exit 0, 20 s, log logs/block_C.out
+    -> block C (chunk 1 alone): PASS (exit 0)
+  block D: exit 0, 0 s, log logs/block_D.out
+    -> block D (chunk 1's checks): **FAIL** (0/6 cell lines)
+  block E: exit 0, 0 s, log logs/block_E.out
+    -> block E (the rest, --array=2 here; the first attempt on a pretended faulty node): PASS (STOP: [cn-07-07-07] the Test R inputs are not the delivered ones (cluster/gen3_testR_261011/testR_inputs.sha256))
+  block F: exit 0, 0 s, log logs/block_F.out
+    -> block F (checks, the resubmission line): PASS (['sbatch --array=2 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_testR_261011/testR_koa.sbatch'])
+  block R: exit 0, 18 s, log logs/block_R.out
+  block F2: exit 0, 0 s, log logs/block_F2.out
+    -> block F again (after the resubmission): PASS ()
+  block G_pending: exit 0, 0 s, log logs/block_G_pending.out
+    -> the merge job: a pending gen3-testR job: PASS (930004 <SP>/d28/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_testR_261011/testR_merge.sbatch 2)
+  block G_heldaside: exit 0, 0 s, log logs/block_G_heldaside.out
+    -> the merge job: chunk 2's done log held aside: PASS (930005 <SP>/d28/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_testR_261011/testR_merge.sbatch 2)
+  block G: exit 0, 7 s, log logs/block_G.out
+  block H: exit 0, 0 s, log logs/block_H.out
+    -> blocks G and H (the merge, the reduction, the compression; its record): PASS (checks [True, True, True, True, True, True, True, True, True])
+  block G_second: exit 0, 0 s, log logs/block_G_second.out
+    -> a second merge submission: PASS (930007 <SP>/d28/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_testR_261011/testR_merge.sbatch 3)
+    -> the fetch (local rsync): PASS (54 files; raw 0)
+    -> the verdict on the mini data (component check): PASS (TEST R: ENGINES DIFFER)
+    -> the verdict's one-printing guard: PASS (STOP: <SP>/d28/rehearsal_run2/home/harddisks_gen3_k2/hspist3/experiments_gen3_testR_koa_261011/testR_verdict_output.txt exists: the verdict has been printed (one printing))
+
+| step (script) | criterion | result | evidence |
+|---|---|---|---|
+| runsheet block B | fetches the package commit | PASS | block B fetches b5378f49bbf3caf39df761aa49fe19cee693e3a5 |
+| the Mac binary (a643bc7, koa target name) | version line '00ALLINONE  git a643bc7  target koa' | PASS | 00ALLINONE  git a643bc7  target koa |
+| block A | squeue, srun (shims) | PASS | exit 0 |
+| block B (the update in place, the checks, the unit tests) | as the runsheet's good lines, but KOA's four binaries (not on the Mac) | PASS | checks [True, True, True, True, True, True, True, True]; the eight SHA lines equal; KOA's binaries: 1 FAILED here (expected: the Mac build and three absent files) |
+| the rehearsal substitutions | mini list (12 lines, chunk size 6), build record, manifests, Lustre path, local fetch | PASS | rewritten ['testR_koa.sbatch', 'testR_merge.sbatch', 'fetch_testR_koa.sh']; manifests: 2 written |
+| block C (chunk 1 alone) | Submitted batch job | PASS | exit 0 |
+| block D (chunk 1's checks) | chunk 1 on ... lines 1-6; chunk 1 done; one trace and run per cell; no FAILED/REFUSED/STOP | **FAIL** | 0/6 cell lines |
+| block E (the rest, --array=2 here; the first attempt on a pretended faulty node) | STOP: [cn-07-07-07] ... before 'chunk 2 on'; no folder | PASS | STOP: [cn-07-07-07] the Test R inputs are not the delivered ones (cluster/gen3_testR_261011/testR_inputs.sha256) |
+| block F (checks, the resubmission line) | 2 logs, 1 done, 0 FAILED; the line --array=2 --exclude=cn-05-08-07,cn-07-07-07 | PASS | ['sbatch --array=2 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_testR_261011/testR_koa.sbatch'] |
+| block F again (after the resubmission) | 3 logs, 2 done, 0 FAILED, nothing to resubmit | PASS |  |
+| the merge job: a pending gen3-testR job | exit 2, nothing moved | PASS | 930004 <SP>/d28/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_testR_261011/testR_merge.sbatch 2 |
+| the merge job: chunk 2's done log held aside | exit 2, 'NOT DONE: 2(no log with its done line)', nothing moved | PASS | 930005 <SP>/d28/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_testR_261011/testR_merge.sbatch 2 |
+| blocks G and H (the merge, the reduction, the compression; its record) | exit 0; 60 plan entries; the merged line; 6 reductions; 6 compressions; chunk 2's earlier attempt listed; 4 job logs copied | PASS | checks [True, True, True, True, True, True, True, True, True] |
+| a second merge submission | exit 3 (merged/ exists) | PASS | 930007 <SP>/d28/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_testR_261011/testR_merge.sbatch 3 |
+| the fetch (local rsync) | exit 0; the merge record, the tables, the job logs; no trace, psi6 or run folder | PASS | 54 files; raw 0 |
+| the verdict on the mini data (component check) | the inventory clean (2 per arm, 0 excluded); the numbers; a verdict line; information skipped | PASS | TEST R: ENGINES DIFFER |
+| the verdict's one-printing guard | a second run stops | PASS | STOP: <SP>/d28/rehearsal_run2/home/harddisks_gen3_k2/hspist3/experiments_gen3_testR_koa_261011/testR_verdict_output.txt exists: the verdict has been printed (one printing) |
+
+RESIDUAL DIFFERENCES: the shims (Slurm commands, module, gcc --version, lscpu, hostname, sha256sum); the Mac binary (its SHA-256 in the build record; KOA's four binaries absent; symlinked from an earlier run, not rebuilt); the mini list (12 lines, chunk size 6) with its SHA-256 file and the manifests rewritten; the Lustre path; the local fetch; block E's --array=2; block F's chunk count 2; the verdict's test hooks
+
+REHEARSAL: FAIL (16 of 17)

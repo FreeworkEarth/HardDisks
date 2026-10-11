@@ -1,0 +1,2 @@
+timing r 399 seed 638540351 wall_s 47.264 audited_states 1128726 clean 1
+n 200  (rule: n = 200 if t_1 <= 270 s, else floor(0.9 x 57600 s / t_1))
