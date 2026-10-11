@@ -1,0 +1,40 @@
+git version 2.50.1 (Apple Git-155)
+       0
+From /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks
+ * branch            fd8d8a28037678f7cb3cf7c891ca52ecc60e67a9 -> FETCH_HEAD
+Warning: you are leaving 100 commits behind, not connected to
+any of your branches:
+
+  2988351 notes and evidence (identical copies of main d2d230fb): decision 20 task 4: the Test G merge fixed (261012 sec. 4.7.47)
+  9d4490c notes and evidence (identical copies of main 4a9efe60): decision 20 task 3: rehearse_k2_mac.py fixed (261012 sec. 4.7.47)
+  0ee75b8 notes and evidence (identical copies of main c02b33be): decision 20 tasks 1-4: the KOA fix set (261012 sec. 4.7.47)
+  b7641fc notes and evidence (identical copies of main 5adad745): plan-author decision 20 recorded (261012 sec. 4.7.46)
+ ... and 96 more.
+
+HEAD is now at fd8d8a2 notes and evidence (identical copies of main 960902d4): decision 24 point 2b-c: the merge job's chunk check (exactly one done log; earlier attempts by name)
+fd8d8a2 notes and evidence (identical copies of main 960902d4): decision 24 poin
+c5ed57e0fb762a2cdf3428e429e6a053a3049151d88e4eb059606fb5ed08d480  cluster/gen3_koa_261009/merge_testG_koa.py
+56786cad4fd2b95aa9afb4b3135df31078a97838954123590f7fab4b14371854  cluster/gen3_koa_261009/merge_testG_k2.sbatch
+7412d712d77b71bf2e965e9f4eb57f16b7c03e1174713a3296ceede083f6f323  cluster/gen3_koa_261009/testG_chunk_logs_koa.sh
+312a3a3861c32ffc0dd4ff9aa3986eec76ed8fbfb6467aa7f6b7c2cb2815eae8  cluster/gen3_koa_261009/test_merge_testG_plan_261010.py
+24e597d0b1c017a6d616b93d30e9f005e4dc74ef072910920c7c09684f2226db  cluster/gen3_koa_261009/test_testG_chunk_logs_261010.py
+b636aa6e8161460cdf55b4dac1b0cb07ad564b6bab8c32872cb97861a95c973f  cluster/confinement_20261013/reduce_B.py
+env: gcc (GCC) 14.3.0 [rehearsal shim; here: Apple clang version 17.0.0 (clang-1700.4.4.1)] | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+ALL PASS (9 cases)
+ALL PASS (8 cases)
+chunk check exit 0
+earlier attempt of chunk 2, stopped in the start-up checks (ran nothing): gen3-testG_910006_2.out: STOP: ./00ALLINONE is not the recorded clean koa build of HEAD a643bc7
+chunk logs: 3; chunks done: 2 of 2 (each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 1 stopped in the start-up checks, 0 started and not finished
+scan: 2 chunks, 135 plan entries, 0 problem(s); plan written to /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d24/rehearsal_fd8d8a2_b/lustre/harddisks_gen3/testG_koa/merge_plan_20261010_235732.tsv
+
+## the merge plan: every destination folder, the chunks that deliver into it, and the names found in more than one chunk for that destination
+
+| destination (under merged/) | chunks | names in more than one chunk: treatment |
+|---|---|---|
+| testG/gen2/epi8_H_H10_L10/m_50 | 1, 2 | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; run.log: append in chunk order |
+| testG/gen3/epi8_H_H10_L10/m_50 | 1, 2 | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+
+plan entries by treatment: APPEND 6, EQUAL 4, MOVE 75, PER CHUNK 50
+names inside the moved run folders .done_runs/run<r> (each run's own folder; they never meet at the cell level): 00_COMMAND.md x50, 00_COMMAND_AND_PLOT_COMMAND.md x50, 01_PLOT_COMMANDS.md x50, experiments_speed_of_sound/ x50, run_params.json x50, speed_of_sound_batch_status.json x50, speed_of_sound_psi6.csv x50, stdout.log x50
+
+--plan-only: the plan has no problems; nothing moved

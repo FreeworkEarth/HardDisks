@@ -37,7 +37,7 @@ submit a job twice; nothing in ~/harddisks, ~/harddisks_resched, ~/harddisks_res
 write their logs into ~/harddisks_gen3/hspist3/logs/, as the runsheet's step 5 would). Every job checks its clone, its binaries and
 its task list, and stops with "STOP: ..." on any mismatch: paste the STOP line, change nothing, wait. The only placeholders are job
 ids, written <... job id: replace by the number>; type the number Slurm printed, without the angle brackets.
-(The K2-4 rewritten for decisions 21-22 has none: its blocks use globs, job names and dates.)
+(The K2-4 rewritten for decisions 21, 22 and 24 has none: its blocks use globs, job names and dates; block R's --exclude names a node.)
 THE SANDBOX LINE is the established one, without -A: srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
 
 CORE-HOURS AND CORES PER STEP (requested = cores x time limit, summed; Slurm charges what a job uses). Expected use from the Mac
@@ -47,8 +47,8 @@ rehearsal times and the KOA/Mac ratio of step 4's cross-node runs (the same comm
 | K2-1 | sandbox shell: the second clone, no build | sandbox | 2 | 2.00 | under 0.1 |
 | K2-2 | the gate's (c) rate table and (d) long-double check | shared | 8 | 24.00 | about 1 (about 5 min on 8 cores) |
 | K2-3 | Test G stage 1: chunk 1 alone | shared | 1 | 6.00 | under 0.1 (about 2 min) |
-| K2-4 | Test G stage 2: chunks 2-144, at most 64 at once (submitted, decision 22); the sandbox shell of block B; the merge | shared, sandbox | 64 | 858.00 + 2.00 + 2.00 | about 14 (the Mac's 8.6 x 1.6) |
-| all | | | | 894.00 | about 15 |
+| K2-4 | Test G stage 2: chunks 2-144, at most 64 at once (submitted, decision 22); the 20 stopped chunks once more (block R); the sandbox shell of block B; the merge | shared, sandbox | 64 | 858.00 + 120.00 + 2.00 + 2.00 | about 14 (the Mac's 8.6 x 1.6) |
+| all | | | | 1014.00 | about 15 |
 
 STEP K2-1 (KOA; a sandbox shell; the second clone; about 2 min)
   squeue -u charing
@@ -115,50 +115,74 @@ STEP K2-3 (KOA login node; Test G stage 1: chunk 1 alone -- task lines 1-25: M =
   (In the Mac rehearsal chunk 1 printed exactly these: 13, 12, 13 and 12 sections, 12 clean records.)
   STOP RULE: anything else: paste it, change nothing, wait. Stage 2 is typed only after the plan author has read stage 1.
 
-STEP K2-4, REWRITTEN (plan-author decisions 21 and 22; 261012 sec. 4.7.49). It replaces the K2-4 of Report K2. There are no job-id
-placeholders: the blocks find the chunk logs and the merge log by their names (globs), and the jobs by name and date in sacct.
+STEP K2-4, REWRITTEN AGAIN (plan-author decisions 21, 22 and 24; 261012 sec. 4.7.49 and 4.7.52). It replaces the K2-4 of Report K2b:
+blocks A and C change, block R is new, blocks B, D and E are unchanged. There are no job-id placeholders: the blocks find the chunk
+logs and the merge log by their names (globs), and the jobs by name and date in sacct.
   THE ARRAY (decision 22: approved; Chris submitted it on 2026-10-10 from ~/harddisks_gen3 with the registered scripts; NOT typed again):
     cd ~/harddisks_gen3/hspist3 && sbatch --array=2-144%64 cluster/gen3_koa_261009/testG_koa.sbatch
-  THE MERGE reaches KOA as an UPDATE IN PLACE of ~/harddisks_gen3_k2, not as a third clone. Block C fetches engine-gen3 dc158b5
-  (dc158b5df463922a5ad0551b819a14e0c50d8253) by its hash and checks it out, inside a sandbox shell, with the same two git commands as
+  Array 15043056 (decision 24): 124 chunks COMPLETED; 20 FAILED with exit 2 in their start-up checks, before "chunk j on ...", and
+  ran nothing: chunks 57-61, 66-70, 110-114 and 132-136. Block R submits exactly these 20 once more (their first real run: the same
+  registered script, task lines and seeds), away from the faulty node. Each of them then has two logs: the stopped attempt
+  (gen3-testG_15043056_<j>.out, an environment line and its STOP line) and the complete one; 164 chunk logs in all.
+  THE MERGE reaches KOA as an UPDATE IN PLACE of ~/harddisks_gen3_k2, not as a third clone. Block C fetches engine-gen3 fd8d8a2
+  (fd8d8a28037678f7cb3cf7c891ca52ecc60e67a9) by its hash and checks it out, inside a sandbox shell, with the same two git commands as
   K2-1, which worked on KOA. Why in place:
     - the clone holds only scripts (nothing is built there), and block C first checks that no tracked file in it has changed;
-    - between 2988351 and dc158b5 its sparse paths change only in cluster/gen3_koa_261009/ (the merge, its job, its unit test, the
-      rehearsal driver, harness_event_hash_compare.py, this runsheet) and validation/261010_deleted_data_manifest.txt;
+    - between 2988351 and fd8d8a2 its sparse paths change only in cluster/gen3_koa_261009/ (the merge, its job, its chunk check, their
+      unit tests, the rehearsal driver, the M5/rate script, harness_event_hash_compare.py, this runsheet) and
+      validation/261010_deleted_data_manifest.txt;
     - reduce_B.py and tests_20260913.py, which the merge's reduction imports, are byte-identical to the registration (block C prints
       the SHA-256 of reduce_B.py);
     - K2-2 has ended, so no job uses the clone during the update, and K2-2's log keeps its record of 2988351.
-  FIRST, on the Mac: the push of Report K2b (git push origin main engine-gen3 engine-divider-resched), so that GitHub serves
-  dc158b5 to block C's fetch.
-  WHEN: only after the plan author's go on Report K2b, and only when the array has ended (block A shows it). Five blocks: A (login
-  node, reads only), B (the sandbox shell), C (in the sandbox shell: the update, the merge's unit test, the merge plan of the real chunks,
-  reading only), D (login node: the submission), E (login node: the checks after the merge). Rehearsed on the Mac as written here
-  (rehearse_k2_mac.py runs these five blocks from this file).
-  THE MERGE JOB (merge_testG_k2.sbatch at dc158b5) checks for itself before it moves anything, and stops with exit 2 and nothing moved
+  FIRST, on the Mac: the push of Report K2c (git push origin main engine-gen3 engine-divider-resched), so that GitHub serves
+  fd8d8a2 to block C's fetch.
+  WHEN: only after the plan author's go. Six blocks: R (login node: the resubmission of the 20 chunks), then, when the resubmission
+  has ended, A (login node, reads only), B (the sandbox shell), C (in the sandbox shell: the update, the unit tests, the chunk check
+  and the merge plan of the real chunks, reading only), D (login node: the submission of the merge), E (login node: the checks after
+  the merge). Rehearsed on the Mac as written here (rehearse_k2_mac.py runs these blocks from this file; block R with the rehearsal's
+  own chunk number in --array).
+  THE MERGE JOB (merge_testG_k2.sbatch at fd8d8a2) checks for itself before it moves anything, and stops with exit 2 and nothing moved
   if any check fails:
     - no gen3-testG job is pending or running;
     - the task list is the registered one;
-    - every chunk 1-144 has its folder and its log line "chunk <j> done".
+    - the chunk check (testG_chunk_logs_koa.sh, decision 24): every chunk 1-144 has its folder and EXACTLY ONE log with its line
+      "chunk <j> done"; every other log of a chunk is listed by name (an attempt that stopped in the start-up checks, with its STOP
+      line; an attempt that started and did not finish). The merge keeps refusing an incomplete chunk set.
   Then merge_testG_koa.py scans all 144 chunks into the full plan and stops with nothing moved on any problem; only a clean plan is
   executed. A merge is never repeated (merged/.merge_complete). A stop before any move can be resubmitted once its cause is removed.
 
-K2-4 BLOCK A (KOA login node; every line only reads; paste everything):
+K2-4 BLOCK R (KOA login node; the 20 chunks that stopped in their start-up checks, once more; then wait until squeue lists no gen3-testG job):
 squeue -u charing
-sacct -X -u charing -S 2026-10-10 --name=gen3-testG --format=JobID%20,State,Elapsed,ExitCode | grep -v ' COMPLETED '
+cd ~/harddisks_gen3/hspist3 && sbatch --array=57-61,66-70,110-114,132-136 --exclude=cn-05-08-07 cluster/gen3_koa_261009/testG_koa.sbatch
+
+  THE NODE NAME appears only here, in --exclude=cn-05-08-07: cn-05-08-07 is the working assumption until Chris's paste of the 20 STOP
+  lines and node names; write the node that paste shows instead (several nodes: --exclude=cn-05-08-07,cn-05-08-08). Nothing else in
+  K2-4 names a node.
+  Expected: no gen3-testG job in squeue before it; "Submitted batch job <its number>". Submit it ONCE. 20 tasks of 1 core, each at
+  most 6 h (the registered limit), so at most 120 core-hours requested.
+
+K2-4 BLOCK A (KOA login node, when squeue -u charing lists no gen3-testG job; every line only reads; paste everything):
+squeue -u charing
+sacct -X -u charing -S 2026-10-10 --name=gen3-testG --format=JobID%20,State,Elapsed,ExitCode,NodeList%16 | grep -v ' COMPLETED '
 ls ~/harddisks_gen3/hspist3/logs/gen3-testG_*.out | wc -l
 grep -lx 'chunk [0-9]* done' ~/harddisks_gen3/hspist3/logs/gen3-testG_*.out | wc -l
-cat ~/harddisks_gen3/hspist3/logs/gen3-testG_*.out | grep -c -e FAILED -e REFUSED -e STOP
+cat ~/harddisks_gen3/hspist3/logs/gen3-testG_*.out | grep -c -e FAILED -e REFUSED
+grep -L '^chunk [0-9]* on ' ~/harddisks_gen3/hspist3/logs/gen3-testG_*.out | xargs -r grep -H -m 1 '^STOP'
 grep -h '^chunk [0-9]* on ' ~/harddisks_gen3/hspist3/logs/gen3-testG_*.out | sed 's/: lines.*//; s/^chunk [0-9]* on [^ ]* //' | sort | uniq -c
 
   THE LINES THAT SHOW IT IS GOOD:
     squeue: its header line only (no gen3-testG job left)
-    sacct: its two header lines only (every chunk task COMPLETED: chunk 1 from K2-3, chunks 2-144 from the array)
-    144        (the chunk logs)
-    144        (each with its line "chunk <j> done")
-    0          (no line with FAILED, REFUSED or STOP)
-    one line per CPU model, e.g. "  90 (Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz)", the counts adding up to 144 (information for
+    sacct: its two header lines and the 20 rows "15043056_<j> FAILED ... 2:0 <node>" of the first attempts, j = 57-61, 66-70,
+           110-114, 132-136, and nothing else (the resubmission's 20 tasks, chunk 1 of K2-3 and the other 123 chunks COMPLETED)
+    164        (the chunk logs: 144 that ran to their end and the 20 stopped attempts)
+    144        (each chunk exactly once with its line "chunk <j> done")
+    0          (no line with FAILED or REFUSED)
+    20 lines ".../gen3-testG_15043056_<j>.out:STOP: ...", one for each of those 20 chunks and no other log: the attempts that stopped
+               before "chunk j on" (their STOP lines as in Chris's paste)
+    one line per CPU model, e.g. "  144 (Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz)", the counts adding up to 144 (information for
     decision 22, item 5)
-  STOP RULE: a gen3-testG job still listed, a task not COMPLETED, or counts other than 144 / 144 / 0: go no further; paste it, wait.
+  STOP RULE: a gen3-testG job still listed, a FAILED row other than those 20 first attempts, counts other than 164 / 144 / 0, or a STOP
+  line from any other log: go no further; paste it, wait.
 
 K2-4 BLOCK B (KOA login node; the sandbox shell; then wait for the cn-... prompt):
 squeue -u charing
@@ -170,27 +194,37 @@ K2-4 BLOCK C (in the sandbox shell, at the cn-... prompt; updates ~/harddisks_ge
 git --version
 cd ~/harddisks_gen3_k2
 git status --porcelain --untracked-files=no | wc -l
-git fetch --depth 1 origin dc158b5df463922a5ad0551b819a14e0c50d8253
-git -c advice.detachedHead=false checkout dc158b5df463922a5ad0551b819a14e0c50d8253
+git fetch --depth 1 origin fd8d8a28037678f7cb3cf7c891ca52ecc60e67a9
+git -c advice.detachedHead=false checkout fd8d8a28037678f7cb3cf7c891ca52ecc60e67a9
 git log -1 --format='%h %s' | cut -c1-80
-cd hspist3 && sha256sum cluster/gen3_koa_261009/merge_testG_koa.py cluster/gen3_koa_261009/merge_testG_k2.sbatch cluster/gen3_koa_261009/test_merge_testG_plan_261010.py cluster/confinement_20261013/reduce_B.py
+cd hspist3 && sha256sum cluster/gen3_koa_261009/merge_testG_koa.py cluster/gen3_koa_261009/merge_testG_k2.sbatch cluster/gen3_koa_261009/testG_chunk_logs_koa.sh cluster/gen3_koa_261009/test_merge_testG_plan_261010.py cluster/gen3_koa_261009/test_testG_chunk_logs_261010.py cluster/confinement_20261013/reduce_B.py
 source cluster/koa_env.sh
-mkdir -p logs/k2b_unit_tmp && TMPDIR=$PWD/logs/k2b_unit_tmp python3 cluster/gen3_koa_261009/test_merge_testG_plan_261010.py | tail -13
-python3 cluster/gen3_koa_261009/merge_testG_koa.py /mnt/lustre/koa/scratch/charing/harddisks_gen3/testG_koa --plan-only > logs/k2b_plan_only.txt 2>&1; head -60 logs/k2b_plan_only.txt
+mkdir -p logs/k2c_unit_tmp && TMPDIR=$PWD/logs/k2c_unit_tmp python3 cluster/gen3_koa_261009/test_merge_testG_plan_261010.py > logs/k2c_unit_merge.txt 2>&1; tail -1 logs/k2c_unit_merge.txt
+TMPDIR=$PWD/logs/k2c_unit_tmp python3 cluster/gen3_koa_261009/test_testG_chunk_logs_261010.py > logs/k2c_unit_chunks.txt 2>&1; tail -1 logs/k2c_unit_chunks.txt
+bash cluster/gen3_koa_261009/testG_chunk_logs_koa.sh ~/harddisks_gen3/hspist3/logs /mnt/lustre/koa/scratch/charing/harddisks_gen3/testG_koa/chunks $(( ($(wc -l < ~/harddisks_gen3/hspist3/cluster/gen3_koa_261009/tasks_testG_koa_261009.txt) + 24) / 25 )) > logs/k2c_chunk_check.txt 2>&1; echo "chunk check exit $?"; tail -25 logs/k2c_chunk_check.txt
+python3 cluster/gen3_koa_261009/merge_testG_koa.py /mnt/lustre/koa/scratch/charing/harddisks_gen3/testG_koa --plan-only > logs/k2c_plan_only.txt 2>&1; head -60 logs/k2c_plan_only.txt
 exit
 
   THE LINES THAT SHOW IT IS GOOD (paste everything):
     "git version 2.35.0" or newer (2.52.0 on 2026-10-02)
     0          (no tracked file of the clone has changed)
-    the fetch: "From https://github.com/FreeworkEarth/HardDisks" and " * branch dc158b5df463922a5ad0551b819a14e0c50d8253 -> FETCH_HEAD"
-    "HEAD is now at dc158b5 notes and evidence ..." and the log line starting with dc158b5
-    exactly these four lines:
+    the fetch: "From https://github.com/FreeworkEarth/HardDisks" and " * branch fd8d8a28037678f7cb3cf7c891ca52ecc60e67a9 -> FETCH_HEAD"
+    "HEAD is now at fd8d8a2 notes and evidence ..." and the log line starting with fd8d8a2
+    exactly these six lines:
       c5ed57e0fb762a2cdf3428e429e6a053a3049151d88e4eb059606fb5ed08d480  cluster/gen3_koa_261009/merge_testG_koa.py
-      6ffc635d773482a8d1e36d2b05f87afe5a20c94612b4aac200ed4556280467bb  cluster/gen3_koa_261009/merge_testG_k2.sbatch
+      56786cad4fd2b95aa9afb4b3135df31078a97838954123590f7fab4b14371854  cluster/gen3_koa_261009/merge_testG_k2.sbatch
+      7412d712d77b71bf2e965e9f4eb57f16b7c03e1174713a3296ceede083f6f323  cluster/gen3_koa_261009/testG_chunk_logs_koa.sh
       312a3a3861c32ffc0dd4ff9aa3986eec76ed8fbfb6467aa7f6b7c2cb2815eae8  cluster/gen3_koa_261009/test_merge_testG_plan_261010.py
+      24e597d0b1c017a6d616b93d30e9f005e4dc74ef072910920c7c09684f2226db  cluster/gen3_koa_261009/test_testG_chunk_logs_261010.py
       b636aa6e8161460cdf55b4dac1b0cb07ad564b6bab8c32872cb97861a95c973f  cluster/confinement_20261013/reduce_B.py
     "env: gcc (GCC) 14.3.0 | Python 3.12... at /home/charing/envs/hd/bin/python3 | git version ..."
-    the merge's unit test: nine rows PASS and "ALL PASS (9 cases)"
+    "ALL PASS (9 cases)" (the merge plan's unit test) and "ALL PASS (8 cases)" (the chunk check's unit test)
+    the chunk check (the number of chunks from the registered task list, as the merge job takes it: 3600 lines, 144 chunks):
+      "chunk check exit 0";
+      20 lines "earlier attempt of chunk <j>, stopped in the start-up checks (ran nothing): gen3-testG_15043056_<j>.out: STOP: ...",
+      j = 57-61, 66-70, 110-114, 132-136;
+      "chunk logs: 164; chunks done: 144 of 144 (each with its folder and exactly one log with 'chunk <j> done'); earlier attempts:
+      20 stopped in the start-up checks, 0 started and not finished"
     the merge plan of the real chunks:
       - "scan: 144 chunks, 10768 plan entries, 0 problem(s); plan written to ..." (10768 if no run failed);
       - a table of 14 destinations: the 12 speed-of-sound folders m_<M> (chunks 1-32, 33-64, 65-96, 97-104, 105-120 and 121-128,
@@ -198,10 +232,10 @@ exit
         (rename per chunk), run.log (append in chunk order) and, in gen3, .sha256_uncompressed (append in chunk order); and the two
         x_0 folders (chunks 129-144), with .build_git, .sha256_uncompressed, 00_COMMAND.md and run_params.json (rename per chunk);
       - "plan entries by treatment: APPEND 416, EQUAL 288, MOVE 6800, PER CHUNK 3264";
-      - the names inside the run folders;
+      - the top-level names inside the run folders (one line);
       - the last line "--plan-only: the plan has no problems; nothing moved".
-  STOP RULE: anything else, above all "## N problem(s): NOTHING MOVED", a STOP line, or SHA lines that differ: type exit if the
-  shell is still open, paste it, submit nothing, wait.
+  STOP RULE: anything else, above all "chunk check exit 2", "## N problem(s): NOTHING MOVED", a STOP line, or SHA lines that differ:
+  type exit if the shell is still open, paste it, submit nothing, wait.
 
 K2-4 BLOCK D (KOA login node, after exit; submits the merge job; one core, at most 2 h on shared):
 squeue -u charing
@@ -218,9 +252,10 @@ cat /mnt/lustre/koa/scratch/charing/harddisks_gen3/testG_koa/merged/.merge_compl
     sacct: "COMPLETED ... 0:0"
     the log:
       - "env: gcc (GCC) 14.3.0 | ..."
-      - "merge of /mnt/lustre/koa/scratch/charing/harddisks_gen3/testG_koa by the scripts of clone HEAD dc158b5d..."
-      - "chunks: 144 of the registered list (3600 task lines), each with its folder and 'chunk <j> done'; no gen3-testG job pending or
-        running"
+      - "merge of /mnt/lustre/koa/scratch/charing/harddisks_gen3/testG_koa by the scripts of clone HEAD fd8d8a28037678f7cb3cf7c891ca52ecc60e67a9"
+      - "the registered list: 3600 task lines, 144 chunks; no gen3-testG job pending or running"
+      - the chunk check: the 20 "earlier attempt of chunk <j>, stopped in the start-up checks ..." lines and "chunk logs: 164; chunks
+        done: 144 of 144 ...; earlier attempts: 20 stopped in the start-up checks, 0 started and not finished"
       - "FAILED lines in the chunk logs (...): 0"
       - "scan: 144 chunks, 10768 plan entries, 0 problem(s); ..." and the plan table of block C
       - "merged 144 chunks: 6800 files moved, 416 files appended, 3264 kept per chunk (0 failed-run folders), 0 incomplete run folders,

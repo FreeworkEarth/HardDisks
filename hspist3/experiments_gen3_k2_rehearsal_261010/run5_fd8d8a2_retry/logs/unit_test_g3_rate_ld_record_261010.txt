@@ -1,0 +1,15 @@
+# record() of g3_rate_ld_koa.py (this commit) against the old pattern of a643bc7; run logs in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d24/rehearsal_fd8d8a2/tmp/test_g3_rate_ld_record_jb4zimht
+
+| case | the divider's printed value | the old pattern (a643bc7) | record() of this commit | check |
+|---|---|---|---|---|
+| real_line_stageA_acc4_afix | divider '1.71e-12' | old pattern: ValueError: could not convert string to float: '1.71e-12,' | record(): gap 3.5e-12, u_t 1.81899e-12, clean 1, events 2044509 | PASS |
+| koa_15040861_divider_1.45e-12 | divider '1.45e-12' | old pattern: ValueError: could not convert string to float: '1.45e-12,' | record(): gap 3.5e-12, u_t 1.81899e-12, clean 1, events 2044509 | PASS |
+| values_0 | divider '1.5e+03' | old pattern: ValueError: could not convert string to float: '1.5e+03,' | record(): gap 1500.0, u_t 1.81899e-12, clean 1, events 2044509 | PASS |
+| values_1 | divider 'inf' | old pattern: ValueError: could not convert string to float: 'inf,' | record(): gap inf, u_t 1.81899e-12, clean 1, events 2044509 | PASS |
+| values_2 | divider 'nan' | old pattern: ValueError: could not convert string to float: 'nan,' | record(): gap inf, u_t 1.81899e-12, clean 1, events 2044509 | PASS |
+| values_3 | divider '3.68e-12' | old pattern: ValueError: could not convert string to float: '3.68e-12,' | record(): gap inf, u_t 1.81899e-12, clean 1, events 2044509 | PASS |
+| values_4 | divider '0' | old pattern: ValueError: could not convert string to float: '0,' | record(): gap nan, u_t 1.81899e-12, clean 1, events 2044509 | PASS |
+| values_5 | divider '1e-05' | old pattern: ValueError: could not convert string to float: '1e-05,' | record(): gap 1e-05, u_t 1.81899e-12, clean 1, events 2044509 | PASS |
+| u_t_long_double | divider '3e-15' | old pattern: ValueError: could not convert string to float: '3e-15,' | record(): gap 3e-15, u_t 8.88178e-16, clean 1, events 2044509 | PASS |
+
+ALL PASS

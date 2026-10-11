@@ -1,0 +1,7 @@
+               JobID      State    Elapsed ExitCode
+-------------------- ---------- ---------- --------
+       3
+       2
+0
+/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d24/rehearsal_fd8d8a2/home/harddisks_gen3/hspist3/logs/gen3-testG_910006_2.out:STOP: ./00ALLINONE is not the recorded clean koa build of HEAD a643bc7
+   2 (Apple M3 Max (Mac rehearsal))

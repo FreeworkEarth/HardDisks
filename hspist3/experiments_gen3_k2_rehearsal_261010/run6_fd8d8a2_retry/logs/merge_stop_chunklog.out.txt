@@ -1,0 +1,7 @@
+env: gcc (GCC) 14.3.0 [rehearsal shim; here: Apple clang version 17.0.0 (clang-1700.4.4.1)] | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+merge of /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d24/rehearsal_fd8d8a2_b/lustre/harddisks_gen3/testG_koa by the scripts of clone HEAD fd8d8a28037678f7cb3cf7c891ca52ecc60e67a9
+the registered list:       50 task lines, 2 chunks; no gen3-testG job pending or running
+earlier attempt of chunk 2, stopped in the start-up checks (ran nothing): gen3-testG_910006_2.out: STOP: ./00ALLINONE is not the recorded clean koa build of HEAD a643bc7
+chunk logs: 2; chunks done: 1 of 2 (each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 1 stopped in the start-up checks, 0 started and not finished
+NOT DONE: 2(no log with its done line)
+STOP: the chunk set is not complete (listed above); NOTHING was moved

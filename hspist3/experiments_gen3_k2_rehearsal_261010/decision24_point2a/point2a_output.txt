@@ -1,0 +1,14 @@
+== (i) block A of Report K2b, its four read-only file lines (HOME = the synthetic home):
+     164
+     144
+20
+ 144 (Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz)
+== (ii) dc158b5's merge-job chunk loop, verbatim (ROOT's chunks = the synthetic ones):
+(no STOP: every chunk has its folder and a log with 'chunk <j> done')
+note: chunks with more than one log: 57 58 59 60 61 66 67 68 69 70 110 111 112 113 114 132 133 134 135 136
+FAILED lines in the chunk logs: 0
+== (iii) the new check (testG_chunk_logs_koa.sh) on the same logs:
+earlier attempt of chunk 135, stopped in the start-up checks (ran nothing): gen3-testG_15043056_135.out: STOP: ./00ALLINONE is not the recorded clean koa build of HEAD a643bc7
+earlier attempt of chunk 136, stopped in the start-up checks (ran nothing): gen3-testG_15043056_136.out: STOP: ./00ALLINONE is not the recorded clean koa build of HEAD a643bc7
+chunk logs: 164; chunks done: 144 of 144 (each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 20 stopped in the start-up checks, 0 started and not finished
+exit 0

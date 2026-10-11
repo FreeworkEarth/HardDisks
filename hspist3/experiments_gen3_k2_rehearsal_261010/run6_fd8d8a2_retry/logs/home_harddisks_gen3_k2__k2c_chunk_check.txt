@@ -1,0 +1,2 @@
+earlier attempt of chunk 2, stopped in the start-up checks (ran nothing): gen3-testG_910006_2.out: STOP: ./00ALLINONE is not the recorded clean koa build of HEAD a643bc7
+chunk logs: 3; chunks done: 2 of 2 (each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 1 stopped in the start-up checks, 0 started and not finished
