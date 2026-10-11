@@ -1,0 +1,14 @@
+# M1 (decision 29): the four meeting figures, printed by experiments_m1_figures_261011/m1_figures_261011.py
+
+tables: hspist3/experiments_m1_figures_261011/tables/ (main b7ac7c59); script: hspist3/experiments_m1_figures_261011/m1_figures_261011.py (main 973c1839)
+
+| figure | file | SHA-256 |
+|---|---|---|
+| 1 | m1_fig1_testG_koa.pdf | c24b3d0e399df8828faac70cbeedd9cc7f4c9c4017f500e07cd4d0121897ff14 |
+| 1 | m1_fig1_testG_koa.png | 9db66087fba86677b84d32c4d51869265ea76a4527d19692084eef86744529cc |
+| 2 | m1_fig2_deltaM_G2.pdf | 96f5f61dc4df5701940ffd99f791f2b485b9d412b8128a04b779be7ab9963234 |
+| 2 | m1_fig2_deltaM_G2.png | 01ce1397dec8ed8d8a07332bb70d1c234dca40aad61b3de926aca8a759396908 |
+| 3 | m1_fig3_solid_Z_P4_P6.pdf | b8d8d93a069097a7844dbbc6ca9c87fef31a463cc426dea2d5fc93862e013c4e |
+| 3 | m1_fig3_solid_Z_P4_P6.png | de418411af8885efd8ea4a8002341274db97c7f13c940c6abdab11f03dc03894 |
+| 4 | m1_fig4_rates_speedup.pdf | c26691cf554f893b7ef0a432829a95f5245d5c0762ccbe5ee9a12f4f6123ef78 |
+| 4 | m1_fig4_rates_speedup.png | 34120c24c99961bc3c28d3e68a5ce75b693b9238a627737614bf33f67c5cd030 |
