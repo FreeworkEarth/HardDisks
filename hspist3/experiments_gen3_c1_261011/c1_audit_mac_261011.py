@@ -90,8 +90,15 @@ def sha256f(p):
     return h.hexdigest()
 
 
+def recorded_binary_sha(text):
+    """the binary's line of build_record.txt ('<sha>  00ALLINONE' at the end of a line; not the source line '00ALLINONE.c')"""
+    m = re.findall(r"^\s*([0-9a-f]{64})  00ALLINONE\s*$", text, re.M)
+    if len(m) != 1: sys.exit(f"STOP: {len(m)} binary SHA-256 lines in build_record.txt")
+    return m[0]
+
+
 def check_binary():
-    want = re.search(r"([0-9a-f]{64})  00ALLINONE", open(BUILD_RECORD).read()).group(1)
+    want = recorded_binary_sha(open(BUILD_RECORD).read())
     if sha256f(BIN) != want: sys.exit("STOP: bin_a643bc7/00ALLINONE is not the recorded build")
     v = subprocess.run([BIN, "--version"], capture_output=True, text=True).stdout.splitlines()[0]
     if v != "00ALLINONE  git a643bc7  target mac-O3-e0pre": sys.exit(f"STOP: version line {v!r}")
@@ -286,6 +293,9 @@ def selftest():
         argv_for(t, "/x/r7", binp="/b", text=W) == want and argv_for(t, "/x/r7", binp="/b", audited=True, text=W) == want + [AUDIT_FLAG]
     ok["the worker exports HD_CONTACT_AUDIT=1 and runs the binary with HD_KE_TRACE=1"] = \
         "export HD_CONTACT_AUDIT=1" in W and 'HD_KE_TRACE=1 "$HD_BIN"' in W
+    br = open(BUILD_RECORD).read()
+    ok["the build record's binary line is read, not its source line 00ALLINONE.c (the first timing attempt's fault)"] = \
+        recorded_binary_sha(br) == sha256f(BIN) and re.search(r"([0-9a-f]{64})  00ALLINONE\.c", br).group(1) != recorded_binary_sha(br)
     ok["the n rule: 200 at t_1 = 200 s and 270 s; floor(0.9 x 57600 / 300) = 172 at 300 s"] = \
         [N_REG if x <= T_LIMIT else int(math.floor(0.9 * BUDGET / x)) for x in (200.0, 270.0, 300.0)] == [200, 200, 172]
     line = ("[EDMD3-AUDIT] audited states 1131871; missing pair/wall/cross/div/piston 0/0/0/0/0; extra 0/0/0/0/0; deferred earlier than "
