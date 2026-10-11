@@ -1,0 +1,6 @@
+ 27M	home
+  0B	home_gate
+100K	logs
+ 11M	lustre
+ 36K	shim
+2.9M	tmp

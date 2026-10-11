@@ -1,0 +1,4 @@
+#!/bin/bash
+# rehearsal shim: the sandbox shell is not opened (the rehearsal runs the next block in a new shell)
+echo "rehearsal shim: srun $* (not run)"
+exit 0

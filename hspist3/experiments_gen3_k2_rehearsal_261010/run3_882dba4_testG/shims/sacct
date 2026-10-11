@@ -1,0 +1,3 @@
+#!/bin/bash
+# rehearsal shim: no accounting on the Mac; sacct's two header lines only
+printf '%20s %10s %10s %8s\n' JobID State Elapsed ExitCode; echo '-------------------- ---------- ---------- --------'

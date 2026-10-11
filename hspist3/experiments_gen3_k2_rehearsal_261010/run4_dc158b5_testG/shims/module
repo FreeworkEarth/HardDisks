@@ -1,0 +1,3 @@
+#!/bin/bash
+# rehearsal shim: Lmod is not on the Mac; koa_env.sh's 'module purge' / 'module load compiler/GCC/14.3.0' do nothing
+exit 0

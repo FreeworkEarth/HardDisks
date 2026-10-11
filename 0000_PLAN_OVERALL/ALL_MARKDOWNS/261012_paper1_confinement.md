@@ -14527,3 +14527,320 @@ ITEM 5 - two CPU models
  Plan-author error to record: "the 2e5 planning value has room to
  spare" (it is about the slowest real case on E5 nodes).
 ```
+
+### 4.7.49 Report K2b — decision 21 items 1–3 and decision 22's merge step: the merge plans before it moves and runs without the array's job id; the Test G path rehearsed on real chunks of every block; one more fault found and fixed; K2-4 rewritten (2026-10-10 16:57 HST, machine date) [DATA, printed by script; SOURCE; INFERENCE where marked]
+
+**Plain summary.**
+- **Item 1, one folder from several chunks.**
+  - Run 2 (`2988351`, 52 lines) did merge a speed-of-sound folder from two chunks: m_50 of each engine came from mini chunks 1 and 2, and each x_0 from mini chunks 2 and 3. Its tree was deleted in the cleanup Chris approved, so that listing is rebuilt from its task list and its merge log.
+  - Its other blocks were 2–4 lines each, not real chunks, and item 2 changed the merge. So the Test G path ran again on **real chunks of every block** (run 3, mini list v2): registered chunks 1, 2 (main M = 50), 33 (M = 300), 65 (M = 1500), 97 (info_m), 105 (dense), 121 (n400), 129 (afix), and the first 5 lines of chunk 130 (afix). That is 205 lines in 9 chunks.
+  - **Run 3's own listing** (the merge plan's table, below):
+    - Folders fed by two chunks: m_50 of each engine (chunks 1 and 2) and x_0 of each engine (chunks 8 and 9). Every other folder came from one chunk.
+    - **Names found in more than one chunk for one folder, and their treatment:**
+      - `run.log`: append in chunk order.
+      - `.build_git`: keep one after an equality check.
+      - `.sha256_uncompressed` (gen3 m_50, both x_0): append in chunk order.
+      - `.done_runs/run<r>` (m_50): each run's own folder, renamed `run<r>_chunk<j>`.
+      - `00_COMMAND.md` and `run_params.json` (x_0): renamed per chunk.
+    - **No other name occurred.** The merge found 0 problems, and its 636 plan entries equal the count expected from the task lines (APPEND 25, EQUAL 18, MOVE 410, PER CHUNK 183).
+    - **The files you named:**
+      - In a speed-of-sound folder, `00_COMMAND.md`, `01_PLOT_COMMANDS.md`, `00_COMMAND_AND_PLOT_COMMAND.md`, `speed_of_sound_psi6.csv` and `speed_of_sound_batch_status.json` never meet at the cell level. The worker runs the binary inside the run's own folder `.run<r>`, which becomes `.done_runs/run<r>`. Run 3 counted each of them 175 times there, once per run. (`run_params.json` appeared 150 times: the dense cell's 25 runs write none, in both engines. This is information only; the file stays inside the run's own folder either way.)
+      - In x_0, every A-fixed run of a chunk rewrites `00_COMMAND.md` and `run_params.json`, so each chunk holds its last run's copy, as on the Mac. The run's seed is in `run_<seed>.log`, and the command differs only by the seed.
+      - A name with no rule, or the same trace or seed file from two chunks, stops the merge with nothing moved.
+- **Item 2, the merge plans before it moves.** `merge_testG_koa.py` works in three phases:
+  - SCAN: reads only; writes the complete plan (treatment, chunk, source, destination) to `merge_plan_<time>.tsv`, with a summary.
+  - CHECK: prints all problems and stops with exit 2, moving nothing and not even creating `merged/`.
+  - EXECUTE: only for a clean plan; it ends with `merged/.merge_complete`.
+
+  A start is refused (exit 3) when `merged/` exists. A start after a scan-phase stop is allowed. Unit test: 9 cases, ALL PASS. Among them is the planted unknown duplicate in the last chunk: exit 2, both files printed, zero files moved, chunks/ byte-identical, no `merged/`.
+- **Decision 22, the merge step without the array's job id.** `merge_testG_k2.sbatch` is submitted after the array has ended and checks for itself first (exit 2, nothing moved on a failure):
+  - no gen3-testG job is pending or running;
+  - the task list is the registered one;
+  - every chunk has its folder and its log line `chunk <j> done`.
+  The runsheet's blocks use globs, job names and dates.
+- **Item 3, delivery: an update in place** of `~/harddisks_gen3_k2` to engine-gen3 `dc158b5`, not a third clone.
+  - K2-4 is rewritten in full as five paste blocks with no placeholder: A read-only checks, B the sandbox shell, C the update with the unit test and the plan of the real chunks, D the submission, E the checks after it.
+  - The rehearsal ran the five blocks exactly as written in the runsheet.
+- **The rehearsal found one more fault, and it is fixed.**
+  - On real chunks, every run folder holds the driver's `experiments_speed_of_sound/.../simulation_<time>/` folder. The summary's listing of the files in the run folders therefore grew with the number of runs: 48 kB on one line for 175 runs. On KOA's 3200 runs that would be megabytes, in block C's paste and in the merge log.
+  - The listing now names each run folder's top-level entries only (`dc158b5`). A regression check was added to the unit test, and the old merge fails it.
+  - Run 4 rehearsed the fixed merge on the real chunks 1 and 2: PASS, 14 of 14. The line has 329 characters for 50 runs and no longer grows with them.
+- **Run 3: 14 of 15 checks PASS.**
+  - The one FAIL is a limit of the rehearsal's mini data, not of a KOA job. The registered verdict's information part pairs the engines' runs one to one. Run 3's single M = 300 and M = 1500 chunks hold 13 gen2 against 12 gen3 runs, and the component check (verdict B, inventory forced clean) stopped there, after the rule table and the verdict line had printed.
+  - The committed verdict returns at "INVALID" before that part. On KOA it reaches it only with a clean inventory: 400 + 400 runs per mass, paired.
+  - The driver now runs verdict B only on paired data.
+- **Decision 22, items 4 and 5:** the registered M5 rule is quoted below, with how the 16 rows will be read; its numbers, the Gold rate table and the E5/Gold ratio wait for the fetch of K2-2's folder (Chris's one line). Item 5's cross-CPU job is proposed below, not run.
+- **Data and disk:**
+  - 316 MB of new data since decision 21's marker (15:57), under the 500 MB cap: the two rehearsals' scratch (266 MB and 40 MB) and 9 MB in the trees.
+  - Free disk fell from 165 GiB (15:59) to 51 GiB (16:56). This work did not cause it: no file over 10 MB was written in the home folder in the last hour, and swap is at 21 GiB. Chris has been told.
+
+**Item 2: the rules of the plan** (`merge_testG_koa.py`; per cell folder `testG/<gen2|gen3>/<cell>/<m_M | x_0>`; B = a speed-of-sound folder m_<M>, AF = the A-fixed folder x_0):
+
+| treatment | names | what happens |
+|---|---|---|
+| EQUAL | `.build_git` | every chunk's copy must be identical; the merged cell gets that line once (differing lines: a problem, nothing moved) |
+| APPEND | `run.log` (B), `.sha256_uncompressed` (B, AF) | the chunks' files appended to the merged file in chunk order, byte for byte |
+| MOVE | B: `wall_x_positions_*_run<r>.csv[.gz]`, `psi6_t_*_run<r>.csv[.gz]`; AF: `ev_`, `red_`, `run_`, `summary_`, `tr_`, `stream_<seed>.*` | moved; the run index or the seed makes them unique, so the same name from two chunks is a problem (nothing moved) |
+| PER CHUNK | B: `.done_runs/run<r>` → `run<r>_chunk<j>`; B, AF: `.failed_*`, `.stale_*` → `<name>_chunk<j>`; AF: `00_COMMAND.md`, `run_params.json` → `<base>_chunk<j><ext>`, `.fifo_used` | renamed with the chunk, kept |
+| INCOMPLETE | B: `.run<r>` (a run folder an interrupted worker left) | renamed `.incomplete_run<r>_chunk<j>`, printed |
+| LEFT | `.guard.lock`, `.runlog.lockdir`, `.sha.lockdir`, `.build_git.tmp<pid>` | a stopped worker's lock or temporary file: left in the chunk folder, printed |
+| (no rule) | anything else, or anything outside `chunks/chunk_<j>/testG/<gen2|gen3>/<cell>/<m_M|x_0>/` | a problem: printed, nothing moved |
+
+Exit codes: 0 merged; 2 the plan has problems, NOTHING moved (the start may be repeated once the cause is removed); 3 refused at the start (`merged/` exists); 1 an error during the moves (`merged/` without `.merge_complete`: inspect by hand). `--plan-only` scans, prints and writes the plan, and moves nothing.
+
+**The unit test** (`test_merge_testG_plan_261010.py`; synthetic chunk trees, the merge run as KOA runs it; "nothing moved" checked byte for byte over every path, type, size and SHA-256 under chunks/, and no `merged/`):
+
+| case | expected | result |
+|---|---|---|
+| 1 clean, 3 chunks (m_50 of both engines from chunks 1-2, x_0 of both from 2-3) | exit 0; every treatment as planned, and the listing of the run folders (14 checks) | PASS |
+| 2 second start after case 1 | exit 3; nothing changes | PASS |
+| 3 an unknown name (`01_PLOT_COMMANDS.md` at the cell level) planted in the LAST chunk and in chunk 1, one destination | exit 2; both printed; zero files moved; no merged/ | PASS |
+| 4 case 3's tree with the planted files removed | exit 0 (a start after a scan-phase stop) | PASS |
+| 5 `.build_git` of the last chunk differs | exit 2; both lines printed; nothing moved | PASS |
+| 6 one trace name from two chunks | exit 2; nothing moved | PASS |
+| 7 a stray file in chunks/ and an unknown cell folder | exit 2; nothing moved | PASS |
+| 8 `--plan-only` on a clean tree | exit 0; nothing moved; no merged/ | PASS |
+| 9 `merged/` without `.merge_complete` | exit 3; nothing changes | PASS |
+
+**Decision 22, the merge job** (`merge_testG_k2.sbatch`): no `--dependency`. Before the merge, and with exit 2 and nothing moved on any failure, it checks:
+- `squeue` lists no gen3-testG job of the user;
+- the task list of `~/harddisks_gen3` matches its SHA-256 file, as every chunk checks it, and gives the chunk count;
+- every chunk j has its folder and a log `~/harddisks_gen3/hspist3/logs/gen3-testG_*_<j>.out` with the line `chunk <j> done`;
+- `merged/` does not exist (exit 3).
+
+It prints the FAILED lines of the chunk logs; these do not stop it, since the verdict's inventory counts failed runs.
+
+**Item 3: delivery by an update in place** of `~/harddisks_gen3_k2` to engine-gen3 `882dba4` (`882dba47f3c2c6db28e3e067e8d113ef5205327b`). Block C runs the same two git commands that K2-1 ran successfully on KOA (fetch by hash, checkout) inside a sandbox shell. Not a third clone, because:
+- the clone holds scripts only (nothing is built there), and block C first checks that no tracked file in it has changed;
+- between `2988351` and `882dba4` its sparse paths change only in `cluster/gen3_koa_261009/` (the merge, its job, its unit test, the rehearsal driver, `harness_event_hash_compare.py`, the runsheet) and `validation/261010_deleted_data_manifest.txt`;
+- `reduce_B.py` and `tests_20260913.py`, which the merge's reduction imports, are byte-identical to the registration (blob `979bb3c` at `a643bc7`, `2988351` and `882dba4`; block C prints its SHA-256);
+- K2-2 has ended, so no job uses the clone during the update, and K2-2's log keeps its record of `2988351`.
+
+Block C also runs the merge's unit test with KOA's Python (`~/envs/hd`) and the merge in `--plan-only` mode on the real chunks, so the plan and any problem are on screen before anything is submitted.
+
+**K2-4, rewritten in full** (`runsheet_k2_261010.txt`; no job-id placeholder: logs by glob, jobs by name and date; the array is decision 22's, already submitted):
+
+```
+STEP K2-4, REWRITTEN (plan-author decisions 21 and 22; 261012 sec. 4.7.49). It replaces the K2-4 of Report K2. There are no job-id
+placeholders: the blocks find the chunk logs and the merge log by their names (globs), and the jobs by name and date in sacct.
+  THE ARRAY (decision 22: approved; Chris submitted it on 2026-10-10 from ~/harddisks_gen3 with the registered scripts; NOT typed again):
+    cd ~/harddisks_gen3/hspist3 && sbatch --array=2-144%64 cluster/gen3_koa_261009/testG_koa.sbatch
+  THE MERGE reaches KOA as an UPDATE IN PLACE of ~/harddisks_gen3_k2, not as a third clone. Block C fetches engine-gen3 dc158b5
+  (dc158b5df463922a5ad0551b819a14e0c50d8253) by its hash and checks it out, inside a sandbox shell, with the same two git commands as
+  K2-1, which worked on KOA. Why in place:
+    - the clone holds only scripts (nothing is built there), and block C first checks that no tracked file in it has changed;
+    - between 2988351 and dc158b5 its sparse paths change only in cluster/gen3_koa_261009/ (the merge, its job, its unit test, the
+      rehearsal driver, harness_event_hash_compare.py, this runsheet) and validation/261010_deleted_data_manifest.txt;
+    - reduce_B.py and tests_20260913.py, which the merge's reduction imports, are byte-identical to the registration (block C prints
+      the SHA-256 of reduce_B.py);
+    - K2-2 has ended, so no job uses the clone during the update, and K2-2's log keeps its record of 2988351.
+  FIRST, on the Mac: the push of Report K2b (git push origin main engine-gen3 engine-divider-resched), so that GitHub serves
+  dc158b5 to block C's fetch.
+  WHEN: only after the plan author's go on Report K2b, and only when the array has ended (block A shows it). Five blocks: A (login
+  node, reads only), B (the sandbox shell), C (in the sandbox shell: the update, the merge's unit test, the merge plan of the real chunks,
+  reading only), D (login node: the submission), E (login node: the checks after the merge). Rehearsed on the Mac as written here
+  (rehearse_k2_mac.py runs these five blocks from this file).
+  THE MERGE JOB (merge_testG_k2.sbatch at dc158b5) checks for itself before it moves anything, and stops with exit 2 and nothing moved
+  if any check fails:
+    - no gen3-testG job is pending or running;
+    - the task list is the registered one;
+    - every chunk 1-144 has its folder and its log line "chunk <j> done".
+  Then merge_testG_koa.py scans all 144 chunks into the full plan and stops with nothing moved on any problem; only a clean plan is
+  executed. A merge is never repeated (merged/.merge_complete). A stop before any move can be resubmitted once its cause is removed.
+
+K2-4 BLOCK A (KOA login node; every line only reads; paste everything):
+squeue -u charing
+sacct -X -u charing -S 2026-10-10 --name=gen3-testG --format=JobID%20,State,Elapsed,ExitCode | grep -v ' COMPLETED '
+ls ~/harddisks_gen3/hspist3/logs/gen3-testG_*.out | wc -l
+grep -lx 'chunk [0-9]* done' ~/harddisks_gen3/hspist3/logs/gen3-testG_*.out | wc -l
+cat ~/harddisks_gen3/hspist3/logs/gen3-testG_*.out | grep -c -e FAILED -e REFUSED -e STOP
+grep -h '^chunk [0-9]* on ' ~/harddisks_gen3/hspist3/logs/gen3-testG_*.out | sed 's/: lines.*//; s/^chunk [0-9]* on [^ ]* //' | sort | uniq -c
+
+  THE LINES THAT SHOW IT IS GOOD:
+    squeue: its header line only (no gen3-testG job left)
+    sacct: its two header lines only (every chunk task COMPLETED: chunk 1 from K2-3, chunks 2-144 from the array)
+    144        (the chunk logs)
+    144        (each with its line "chunk <j> done")
+    0          (no line with FAILED, REFUSED or STOP)
+    one line per CPU model, e.g. "  90 (Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz)", the counts adding up to 144 (information for
+    decision 22, item 5)
+  STOP RULE: a gen3-testG job still listed, a task not COMPLETED, or counts other than 144 / 144 / 0: go no further; paste it, wait.
+
+K2-4 BLOCK B (KOA login node; the sandbox shell; then wait for the cn-... prompt):
+squeue -u charing
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+
+  (Commands typed while srun is queued are lost: paste block C only at the cn-... prompt.)
+
+K2-4 BLOCK C (in the sandbox shell, at the cn-... prompt; updates ~/harddisks_gen3_k2 in place; reads the chunks, moves nothing):
+git --version
+cd ~/harddisks_gen3_k2
+git status --porcelain --untracked-files=no | wc -l
+git fetch --depth 1 origin dc158b5df463922a5ad0551b819a14e0c50d8253
+git -c advice.detachedHead=false checkout dc158b5df463922a5ad0551b819a14e0c50d8253
+git log -1 --format='%h %s' | cut -c1-80
+cd hspist3 && sha256sum cluster/gen3_koa_261009/merge_testG_koa.py cluster/gen3_koa_261009/merge_testG_k2.sbatch cluster/gen3_koa_261009/test_merge_testG_plan_261010.py cluster/confinement_20261013/reduce_B.py
+source cluster/koa_env.sh
+mkdir -p logs/k2b_unit_tmp && TMPDIR=$PWD/logs/k2b_unit_tmp python3 cluster/gen3_koa_261009/test_merge_testG_plan_261010.py | tail -13
+python3 cluster/gen3_koa_261009/merge_testG_koa.py /mnt/lustre/koa/scratch/charing/harddisks_gen3/testG_koa --plan-only > logs/k2b_plan_only.txt 2>&1; head -60 logs/k2b_plan_only.txt
+exit
+
+  THE LINES THAT SHOW IT IS GOOD (paste everything):
+    "git version 2.35.0" or newer (2.52.0 on 2026-10-02)
+    0          (no tracked file of the clone has changed)
+    the fetch: "From https://github.com/FreeworkEarth/HardDisks" and " * branch dc158b5df463922a5ad0551b819a14e0c50d8253 -> FETCH_HEAD"
+    "HEAD is now at dc158b5 notes and evidence ..." and the log line starting with dc158b5
+    exactly these four lines:
+      c5ed57e0fb762a2cdf3428e429e6a053a3049151d88e4eb059606fb5ed08d480  cluster/gen3_koa_261009/merge_testG_koa.py
+      6ffc635d773482a8d1e36d2b05f87afe5a20c94612b4aac200ed4556280467bb  cluster/gen3_koa_261009/merge_testG_k2.sbatch
+      312a3a3861c32ffc0dd4ff9aa3986eec76ed8fbfb6467aa7f6b7c2cb2815eae8  cluster/gen3_koa_261009/test_merge_testG_plan_261010.py
+      b636aa6e8161460cdf55b4dac1b0cb07ad564b6bab8c32872cb97861a95c973f  cluster/confinement_20261013/reduce_B.py
+    "env: gcc (GCC) 14.3.0 | Python 3.12... at /home/charing/envs/hd/bin/python3 | git version ..."
+    the merge's unit test: nine rows PASS and "ALL PASS (9 cases)"
+    the merge plan of the real chunks:
+      - "scan: 144 chunks, 10768 plan entries, 0 problem(s); plan written to ..." (10768 if no run failed);
+      - a table of 14 destinations: the 12 speed-of-sound folders m_<M> (chunks 1-32, 33-64, 65-96, 97-104, 105-120 and 121-128,
+        each in gen2 and gen3), with "names in more than one chunk": .build_git (keep one after an equality check), .done_runs/run<r>
+        (rename per chunk), run.log (append in chunk order) and, in gen3, .sha256_uncompressed (append in chunk order); and the two
+        x_0 folders (chunks 129-144), with .build_git, .sha256_uncompressed, 00_COMMAND.md and run_params.json (rename per chunk);
+      - "plan entries by treatment: APPEND 416, EQUAL 288, MOVE 6800, PER CHUNK 3264";
+      - the names inside the run folders;
+      - the last line "--plan-only: the plan has no problems; nothing moved".
+  STOP RULE: anything else, above all "## N problem(s): NOTHING MOVED", a STOP line, or SHA lines that differ: type exit if the
+  shell is still open, paste it, submit nothing, wait.
+
+K2-4 BLOCK D (KOA login node, after exit; submits the merge job; one core, at most 2 h on shared):
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3 && sbatch cluster/gen3_koa_261009/merge_testG_k2.sbatch
+
+  Expected: no gen3-testG job in squeue; "Submitted batch job <its number>". Submit it ONCE.
+
+K2-4 BLOCK E (KOA login node, when squeue -u charing lists no job; paste everything):
+sacct -X -u charing -S 2026-10-10 --name=gen3-testG-merge-k2 --format=JobID%20,State,Elapsed,ExitCode
+tail -n 80 ~/harddisks_gen3_k2/hspist3/logs/gen3-testG-merge-k2_*.out
+cat /mnt/lustre/koa/scratch/charing/harddisks_gen3/testG_koa/merged/.merge_complete
+
+  THE LINES THAT SHOW IT IS GOOD:
+    sacct: "COMPLETED ... 0:0"
+    the log:
+      - "env: gcc (GCC) 14.3.0 | ..."
+      - "merge of /mnt/lustre/koa/scratch/charing/harddisks_gen3/testG_koa by the scripts of clone HEAD dc158b5d..."
+      - "chunks: 144 of the registered list (3600 task lines), each with its folder and 'chunk <j> done'; no gen3-testG job pending or
+        running"
+      - "FAILED lines in the chunk logs (...): 0"
+      - "scan: 144 chunks, 10768 plan entries, 0 problem(s); ..." and the plan table of block C
+      - "merged 144 chunks: 6800 files moved, 416 files appended, 3264 kept per chunk (0 failed-run folders), 0 incomplete run folders,
+        0 locks or temp files left in place, 288 build files equal; build '00ALLINONE  git a643bc7  target koa'"
+      - six lines "reduce_B testG/<gen2|gen3>/<cell>: exit 0 ..." (cells dense_H10_L5.604167, epi8_H_H10_L10, epi8_N400_H20_L20), each
+        followed by its "traces compressed" lines
+      - "merge done; next: the fetch (runsheet step 6) and the KOA verdict on the Mac"
+    .merge_complete: the end time and the same "merged 144 chunks: ..." line
+  STOP RULE: anything else: paste it, change nothing, wait. If the job stopped with "NOTHING was moved", it may be submitted again
+  (block D) only after the plan author has read why. "refused (merged/ exists)" means a merge has run: never submit again.
+
+STEP 6, AMENDED AGAIN (Mac; the fetch, after block E is good; Chris types the password and Duo for each of its four rsync lines). It has
+no placeholder: gate job 15040861, cross-node array 15040862, K2-2 15043030.
+cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks && bash hspist3/cluster/gen3_koa_261009/fetch_gen3_koa.sh 15040861 15040862 15043030
+  Size:
+    - the Test G tree: about 45 MB (no compressed traces, no run folders);
+    - the gate folder: about 0.2 GB, mostly the twelve E0 A-fixed event logs of about 17 MB each;
+    - the cross-node folder: a few MB;
+    - K2-2's folder: about 25 MB, which CC's one-line fetch for decision 22's items 4-5 may already have copied (--ignore-existing
+      leaves it as it is).
+  then CC: python3 hspist3/cluster/gen3_koa_261009/testG_koa_verdict_261009.py (the registered verdict on the KOA data), and
+           python3 hspist3/cluster/gen3_koa_261009/harness_event_hash_compare.py (decision 20, task 6).
+```
+
+**Item 1: run 3's listing** (the merge's own plan, `run3_882dba4_testG/merge_plan/`; mini chunks 1–9 = registered chunks 1, 2, 33, 65, 97, 105, 121, 129 and the first 5 lines of 130):
+
+| destination (under merged/) | chunks | names in more than one chunk: treatment |
+|---|---|---|
+| testG/gen2/epi8_H_H10_L10/m_50 | 1, 2 | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; run.log: append in chunk order |
+| testG/gen3/epi8_H_H10_L10/m_50 | 1, 2 | the same and .sha256_uncompressed: append in chunk order |
+| testG/gen2/epi8_H_H10_L10/x_0 | 8, 9 | .build_git: keep one after an equality check; .sha256_uncompressed: append in chunk order; 00_COMMAND.md: rename per chunk; run_params.json: rename per chunk |
+| testG/gen3/epi8_H_H10_L10/x_0 | 8, 9 | the same |
+| the 10 other folders (m_300, m_1500, m_2000, dense m_300, n400 m_300; each engine) | one chunk each | - |
+
+Plan entries by treatment: APPEND 25, EQUAL 18, MOVE 410, PER CHUNK 183 (636).
+- This is exactly the count expected from the task lines if every run succeeds (`rehearse_k2_mac.py`, `expected_plan()`).
+- For the registered list the same function gives APPEND 416, EQUAL 288, MOVE 6800, PER CHUNK 3264 (10768), the numbers the runsheet expects on KOA.
+- KOA's plan will list 14 folders. The 12 speed-of-sound folders come from chunks 1-32, 33-64, 65-96, 97-104, 105-120 and 121-128, each in gen2 and gen3. The 2 x_0 folders come from chunks 129-144.
+
+**The rehearsals** (Mac, arm64; engine-gen3; the K2 clone cloned at `2988351` and updated in place by block C; at most 8 simulation processes):
+
+| check | run 3, `882dba4`, mini list v2 (205 lines, 9 chunks) | run 4, `dc158b5`, the real chunks 1 and 2 |
+|---|---|---|
+| Test G stage 1 (chunk 1 alone): 13 gen2 + 12 gen3 traces, 12 clean records | PASS | PASS |
+| stage 2 (the other chunks at once) | PASS (8 chunks, 1040 s) | PASS |
+| a chunk beyond the list: STOP | PASS | PASS |
+| K2-4 block A as pasted (read only: the chunk logs, their done lines, FAILED 0, the CPU line) | PASS (9, 9, 0) | PASS (2, 2, 0) |
+| block B (the sandbox shell, shim) | PASS | PASS |
+| block C as pasted (git version; 0 changed files; fetch and checkout by hash; HEAD; the 4 SHA lines; the unit test with the clone's Python; the plan of the real chunks) | PASS (9 of 9) | PASS (9 of 9) |
+| unit tests (the rate script; the merge plan) | PASS, PASS | PASS, PASS (the new listing check included) |
+| the merge job's STOP rules (a pending gen3-testG job; the last chunk's log without its done line): exit 2, nothing moved | PASS | PASS |
+| block D as pasted + the merge job: 0 problems, the plan's counts as expected, the folders from several chunks listed, `reduce_B` exit 0 in every B cell group, traces compressed | PASS (636 entries; 6 groups) | PASS (135 entries; 2 groups) |
+| block E as pasted (the log's done line, `.merge_complete`) | PASS | PASS |
+| block D again: the job exits 3, `.merge_complete` unchanged | PASS | PASS |
+| the fetch; the registered verdict A (inventory; ends INVALID on mini data) | PASS; PASS | PASS; PASS |
+| verdict B, the component check (inventory forced clean) | **FAIL**: the information part stopped on unpaired runs (see the summary) | not run (no paired runs at M = 300 and 1500) |
+| result | 14 of 15; the merge listing's growth found | PASS |
+
+The rehearsals took 1163 s and 104 s and wrote 266 MB and 40 MB of scratch data. Evidence: `hspist3/experiments_gen3_k2_rehearsal_261010/run3_882dba4_testG/` and `run4_dc158b5_testG/`: the driver tables, every job log, the five block scripts and their outputs, the merge plan files, the shims and the mini lists.
+
+**Decision 22, items 4 and 5: the parts that need K2-2's output wait for its fetch.** Chris's one-line fetch of `gen3_rate_ld_k2_15043030/` (about 25 MB) has not run yet. The script is ready and committed: `cluster/gen3_koa_261009/koa_k2_m5_rates_261010.py`. It reads the fetched folder and prints items 4 and 5; its parsers were checked on Mac run logs.
+- **Item 4, the registered M5 rule, verbatim** (sec. 4.7, "5. Gate plan", item 5): "**Long-double spot check:** the double run's contact maxima and energy drift within the 80-bit run's by the floor of item 3, at one fluid and one solid cell; decorrelation time reported."
+  - Item 3, the floor: "**Contact audit:** ≤ 1e-6 px in every class and run (expected ~1e-11, as today)."
+  - The approved runsheet's expectation for part (d) (step 3): "the long-double table: clean 1 everywhere, gap / u_t of the koa-ld build at the long-double quantum".
+- **What the 16 rows will decide** (the script, per seed pair koa against koa-ld):
+  - the contact maxima, from `[EDMD-CONTACT]` (disk-disk, outer walls, divider) against 1e-6 px;
+  - the energy drift, from the `[EDMD3-LEDGER]` energy residual. Item 3's floor is a length, so the script reads the rule as |residual(koa)| ≤ |residual(koa-ld)| + the koa ledger's own rounding scale. That reading is an [INTERPRETATION], and the residuals are printed, so another reading can be checked.
+  - the decorrelation time: the first ψ6(t) sample at which the two runs differ, and the first at which they differ by 0.05. ψ6(t) is sampled from t = 0, so the hold is included.
+  - clean, and gap / u_t per build.
+- **What they cannot decide: "one solid cell".**
+  - Part (d)'s cells are N 100 at π/8 (fluid) and N 400 at η 0.70.
+  - The project's phase constants put the fluid's end at 0.700 (`ETA_FLUID_MAX`) and the solid from 0.720.
+  - Unless the lattice start stays ordered through the record (the script prints ψ6 over the record), the solid cell is missing, and the rule is NOT DECIDED for it.
+- **argmax ν is information in part (d), not part of the rule.**
+  - With four seeds per build, the difference has an SE of about 1 % (your +1.2 % ≈ 1.5 SE and +1.8 % ≈ 1.2 SE).
+  - Proposed, not run: n seeds per build with n = 2 SD² / SE² for a target SE of the difference of 0.25 %, the SD measured from the 8 runs per cell. The script prints n and the cost on one KOA core from the runs' own times (Gold), and on E5 through the measured ratio.
+  - [INFERENCE] A solid cell (η ≥ 0.74, M4 start) belongs in that comparison, so the rule's solid cell is covered as well.
+
+**Decision 22, item 5: the two CPU models. PROPOSED, not run.**
+- **The job: the registered `g3_det_xnode.sbatch`, unchanged, as a one-task array on a Gold node.**
+  - It runs from `~/harddisks_gen3` (`a643bc7`) and checks its own binary against `logs/BUILD_KOA_LAST.hash`, as in step 4.
+  - It uses the same two commands and seeds as step 4: N 400 at η 0.70 (M 500, M4 seeding, exact box, 2000 σ-time held, 200 periods), and the T′ cell.
+  - It writes `gen3_xnode_<id>/task_1/` with `node.txt` (host and CPU model) and, per cell, the trace, ψ6(t), `speed_of_sound_psi6.csv` and the run record (event hash).
+  - Cost: 1 core, requested 1 h (the script's limit), so 1 core-hour. Expected use is about 1 min: on E5 the N 400 cell took 59 s for the whole run and the T′ cell 5 s, and Gold is faster.
+  - The commands, from `~/harddisks_gen3/hspist3`: `sbatch --array=1 --constraint=<the Gold nodes' feature> cluster/gen3_koa_261009/g3_det_xnode.sbatch`. If KOA defines no feature: `sbatch --array=1 --nodelist=cn-09-30-02 ...`, the node K2-2 ran on, which may queue for that node.
+- **How the node type is requested or read on KOA:**
+  - Read-only, login node: `sinfo -p shared -h -N -o '%N %f' | awk '{print $2}' | sort | uniq -c` (the feature strings and how many nodes carry each), and `scontrol show node cn-09-30-02 | grep -o 'AvailableFeatures=[^ ]*'`.
+  - Slurm takes `--constraint=<feature>` when the nodes carry one; `--nodelist=<node>` always works.
+  - Without any request, every Test G chunk log names its node and CPU model in its first line ("chunk j on <host> (<model>): ..."). K2-4 block A's last line counts the chunks per CPU model, and `sacct -X -u charing -S 2026-10-10 --name=gen3-testG --format=JobID%20,NodeList` gives the node of each chunk.
+- **The compare, on the Mac (no second KOA job):**
+  - Step 6's fetch already brings step 4's `gen3_xnode_15040862/` (the E5 tasks). One rsync line with a glob, so no id is needed, brings the new folder: `rsync -av --ignore-existing --exclude='*.csv.gz' 'charing@koa-dtn.its.hawaii.edu:/mnt/lustre/koa/scratch/charing/harddisks_gen3/gen3_xnode_*' hspist3/experiments_gen3_gate_koa_261009/xnode_all/`.
+  - A folder with two links: `task_1` to a step-4 E5 task and `task_2` to the Gold task.
+  - The registered `g3_xnode_compare.py` on that folder. Its "across nodes" comparison is then E5 against Gold, per file and per event hash, and `node.txt` prints both models.
+- **Rehearsal before Chris types it:** the driver's cross-node part, with one pretended Gold task (the `lscpu` shim printing the Gold model) and the two-link compare.
+- **[INFERENCE] why it can differ:**
+  - The binary is the same: x86-64-v2, `-ffp-contract=off`, so the code has no FMA contraction.
+  - glibc's libm picks its own code path per CPU at load time. The driver's seeding calls `log`/`cos`/`sin` (decision 21: the starts differ through libm and `rand()`).
+  - The E5-2670 v3 (Haswell) and the Gold 6342 (Ice Lake) both have FMA, so the same libm path, and identical bits, are expected. The sandbox's E5-2680 v2 (Ivy Bridge) has none. The test decides.
+
+**Deviations.**
+1. Run 3 ended 14 of 15. The FAIL is verdict B, the component check, on the mini list's unpaired runs, not a KOA script (see the summary). The driver now runs it only on paired data.
+2. Run 3 found the listing fault. The fix moved KOA's commit from `882dba4` to `dc158b5`, and run 4 rehearsed the fix on 2 real chunks. The fault was in the speed-of-sound folders' listing; the A-fixed path is unchanged since run 3.
+3. What differs from KOA in the rehearsal:
+   - shims for `squeue` (empty, or a pretended pending job), `sacct` (headers only), `srun` (not run) and `sbatch` (the job runs at once);
+   - block C runs in a new shell with a pretended sandbox job id;
+   - the Lustre path is rewritten;
+   - the clones are local `--shared` clones, so the fetch by hash comes from the local repository, not GitHub;
+   - the Mac's tools are used (BSD `grep`/`sed`, `wc` with leading spaces, openrsync), and Apple clang builds without `-march`.
+4. Items 4 and 5 wait for the fetch of K2-2's folder.
+5. Decision 19 is not resumed yet. Its acceptance scripts are written, not run: `experiments_gen3_d19_261010/d19_build.sh`, `d19_evidence.py` and `d19_tables.py`, uncommitted, in the engine-gen3 worktree.
+
+**Commits.**
+- main: `132ed99` (decision 22 recorded), `f1c9435` (the merge plans before it moves; the unit test; the merge job without the job id; the driver), `525cfe7` (five paste blocks), `18b925e` (the plan counts from the task lines), `2d5e6a6` (the listing fix and its regression check; `--chunks`), and this record with the runsheet and the evidence.
+- engine-gen3: `f3050d0`, `19d9775`, `882dba4`, `28d826a`, `dc158b5` (the commit block C fetches), and the copy of this record.
+- engine-divider-resched: the notes.
+
+Push: `git push origin main engine-gen3 engine-divider-resched`. engine-gen3 must be on GitHub before block C, which fetches `dc158b5`.
