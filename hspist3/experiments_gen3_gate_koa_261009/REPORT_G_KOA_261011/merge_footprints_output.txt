@@ -1,0 +1,17 @@
+merged/.merge_complete in the fetched folder: 0 file(s)
+| cell | ##RUN sections in run.log | trace SHA lines in .sha256_uncompressed | uncompressed traces fetched | red_nu.csv rows | .build_git | KOA mtime of .build_git / red_nu.csv / .sha256_uncompressed |
+|---|---|---|---|---|---|---|
+| gen2/dense_H10_L5.604167/m_300 | 200 | 200 | 0 | 200 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 00:59 / 00:59 |
+| gen2/epi8_H_H10_L10/m_1500 | 400 | 400 | 0 | 400 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 00:59 / 01:00 |
+| gen2/epi8_H_H10_L10/m_2000 | 100 | 100 | 0 | 100 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 00:59 / 01:00 |
+| gen2/epi8_H_H10_L10/m_300 | 400 | 400 | 0 | 400 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:00 / 01:00 |
+| gen2/epi8_H_H10_L10/m_50 | 400 | 400 | 0 | 400 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:00 / 01:01 |
+| gen2/epi8_N400_H20_L20/m_300 | 100 | 100 | 0 | 100 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:02 / 01:02 |
+| gen3/dense_H10_L5.604167/m_300 | 200 | 200 | 0 | 200 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:02 / 01:02 |
+| gen3/epi8_H_H10_L10/m_1500 | 400 | 400 | 0 | 400 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:02 / 01:03 |
+| gen3/epi8_H_H10_L10/m_2000 | 100 | 100 | 0 | 100 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:02 / 01:04 |
+| gen3/epi8_H_H10_L10/m_300 | 400 | 400 | 0 | 400 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:03 / 01:04 |
+| gen3/epi8_H_H10_L10/m_50 | 400 | 400 | 0 | 400 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:03 / 01:04 |
+| gen3/epi8_N400_H20_L20/m_300 | 100 | 100 | 0 | 100 | 00ALLINONE  git a643bc7  target koa | 10-11 00:58 / 01:05 / 01:05 |
+gen2/epi8_H_H10_L10/x_0: red_ files 200, run_ logs 200, the merge's per-chunk 00_COMMAND_chunk<j>.md for chunks 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 , run_params_chunk<j>.json 16, ev SHA lines 200, .build_git '00ALLINONE  git a643bc7  target koa'
+gen3/epi8_H_H10_L10/x_0: red_ files 200, run_ logs 200, the merge's per-chunk 00_COMMAND_chunk<j>.md for chunks 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 , run_params_chunk<j>.json 16, ev SHA lines 200, .build_git '00ALLINONE  git a643bc7  target koa'

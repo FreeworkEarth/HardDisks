@@ -1,0 +1,127 @@
+# The event hashes in KOA's M1/M2 harness outputs against the Mac's (261012 sec. 4.7.47; decision 20, task 6)
+
+## m1_audit_output.txt
+
+| cell | row | initial velocities | KOA hash | Mac hash | equal | KOA counts = Mac counts |
+|---|---|---|---|---|---|---|
+| fluid | A | libm | d849652e16a84344 | 554d54d53b262d95 | no | no |
+| fluid | B | libm | d849652e16a84344 | 554d54d53b262d95 | no | no |
+| fluid | C | libm | d849652e16a84344 | 554d54d53b262d95 | no | no |
+| dense | A | libm | e0e3e6440e93abe5 | 05aff616919c73e7 | no | no |
+| dense | B | libm | e0e3e6440e93abe5 | 05aff616919c73e7 | no | no |
+| dense | C | libm | e0e3e6440e93abe5 | 05aff616919c73e7 | no | no |
+| lattice | A | libm | 1fb0684c98ebcb03 | 5c08787c3d718c66 | no | no |
+| lattice | B | libm | 1fb0684c98ebcb03 | 5c08787c3d718c66 | no | no |
+| lattice | C | libm | 1fb0684c98ebcb03 | 5c08787c3d718c66 | no | no |
+| tie | A | exact | 9a15ca6c9fd03b33 | 9a15ca6c9fd03b33 | yes | yes |
+| tie | B | exact | 9a15ca6c9fd03b33 | 9a15ca6c9fd03b33 | yes | yes |
+| tie | C | exact | 9a15ca6c9fd03b33 | 9a15ca6c9fd03b33 | yes | yes |
+| solid | A | libm | 965afff5462c7d48 | 116041102f780237 | no | no |
+| solid | B | libm | 965afff5462c7d48 | 116041102f780237 | no | no |
+| solid | C | libm | 965afff5462c7d48 | 116041102f780237 | no | no |
+| dense | A | libm | a6694d08fd33a01a | ed2fc76fd6d21878 | no | no |
+| dense | B | libm | a6694d08fd33a01a | ed2fc76fd6d21878 | no | no |
+| dense | C | libm | a6694d08fd33a01a | ed2fc76fd6d21878 | no | no |
+
+KOA: A = B = C (hash and counts) in 0 of 5 cells
+
+Mac: A = B = C (hash and counts) in 0 of 5 cells
+
+## m2_audit_quick_output.txt
+
+| cell | row | initial velocities | KOA hash | Mac hash | equal | KOA counts = Mac counts |
+|---|---|---|---|---|---|---|
+| cradle_exact | A | exact | f2a24a398cb39921 | f2a24a398cb39921 | yes | yes |
+| cradle_exact | B | exact | f2a24a398cb39921 | f2a24a398cb39921 | yes | yes |
+| cradle_exact | C | exact | f2a24a398cb39921 | f2a24a398cb39921 | yes | yes |
+| cradle_round | A | exact | 2bfd7aef388de7dd | 2bfd7aef388de7dd | yes | yes |
+| cradle_round | B | exact | 2bfd7aef388de7dd | 2bfd7aef388de7dd | yes | yes |
+| cradle_round | C | exact | 2bfd7aef388de7dd | 2bfd7aef388de7dd | yes | yes |
+| cradle_round_late | A | exact | 07d4f69fc123603d | 07d4f69fc123603d | yes | yes |
+| cradle_round_late | B | exact | 07d4f69fc123603d | 07d4f69fc123603d | yes | yes |
+| cradle_round_late | C | exact | 07d4f69fc123603d | 07d4f69fc123603d | yes | yes |
+| free_pi8_M50 | A | libm | 795e2be5f5cdc163 | b7fc0a42c4298c83 | no | no |
+| free_pi8_M50 | B | libm | 795e2be5f5cdc163 | b7fc0a42c4298c83 | no | no |
+| free_pi8_M50 | C | libm | 795e2be5f5cdc163 | b7fc0a42c4298c83 | no | no |
+| free_pi8_M500 | A | libm | a491e01dbffb1d67 | a7f59b823b9a41a5 | no | no |
+| free_pi8_M500 | B | libm | a491e01dbffb1d67 | a7f59b823b9a41a5 | no | no |
+| free_pi8_M500 | C | libm | a491e01dbffb1d67 | a7f59b823b9a41a5 | no | no |
+| free_070_M50 | A | libm | ab5d937cfc272a6e | f6a47b04c358daab | no | no |
+| free_070_M50 | B | libm | ab5d937cfc272a6e | f6a47b04c358daab | no | no |
+| free_070_M50 | C | libm | ab5d937cfc272a6e | f6a47b04c358daab | no | no |
+| free_070_M500 | A | libm | 8b5a763cf088d039 | d5b44b097b452d63 | no | no |
+| free_070_M500 | B | libm | 8b5a763cf088d039 | d5b44b097b452d63 | no | no |
+| free_070_M500 | C | libm | 8b5a763cf088d039 | d5b44b097b452d63 | no | no |
+| heavy_070_M4e7 | A | libm | b0d2e07d03f1869c | f42742bf07cf5c1d | no | no |
+| heavy_070_M4e7 | B | libm | b0d2e07d03f1869c | f42742bf07cf5c1d | no | no |
+| heavy_070_M4e7 | C | libm | b0d2e07d03f1869c | f42742bf07cf5c1d | no | no |
+| held_pi8 | A | libm | ef951933d486c2fa | ff586273c5976fdd | no | no |
+| held_pi8 | B | libm | ef951933d486c2fa | ff586273c5976fdd | no | no |
+| held_pi8 | C | libm | ef951933d486c2fa | ff586273c5976fdd | no | no |
+| held_070 | A | libm | 7444d570fae8cd22 | c37af54f94209a0b | no | no |
+| held_070 | B | libm | 7444d570fae8cd22 | c37af54f94209a0b | no | no |
+| held_070 | C | libm | 7444d570fae8cd22 | c37af54f94209a0b | no | no |
+| driven_pi8 | A | libm | fb5dbec59378088c | b60cd6b2420f07ec | no | no |
+| driven_pi8 | B | libm | fb5dbec59378088c | b60cd6b2420f07ec | no | no |
+| driven_pi8 | C | libm | fb5dbec59378088c | b60cd6b2420f07ec | no | no |
+| spring_pi8 | A | libm | 50cd48a989d5bb05 | 2c7fb7c4b74a30f3 | no | no |
+| spring_pi8 | B | libm | 50cd48a989d5bb05 | 2c7fb7c4b74a30f3 | no | no |
+| spring_pi8 | C | libm | 50cd48a989d5bb05 | 2c7fb7c4b74a30f3 | no | no |
+| piston_push | A | libm | a2f8e345850582da | 61f1a7e0882c4638 | no | no |
+| piston_push | B | libm | a2f8e345850582da | 61f1a7e0882c4638 | no | no |
+| piston_push | C | libm | a2f8e345850582da | 61f1a7e0882c4638 | no | no |
+
+KOA: A = B = C (hash and counts) in 0 of 13 cells
+
+Mac: A = B = C (hash and counts) in 0 of 13 cells
+
+## m2_audit_output.txt
+
+| cell | row | initial velocities | KOA hash | Mac hash | equal | KOA counts = Mac counts |
+|---|---|---|---|---|---|---|
+| cradle_exact | A | exact | 5a833b6ba8a6c12c | 5a833b6ba8a6c12c | yes | yes |
+| cradle_exact | B | exact | 5a833b6ba8a6c12c | 5a833b6ba8a6c12c | yes | yes |
+| cradle_exact | C | exact | 5a833b6ba8a6c12c | 5a833b6ba8a6c12c | yes | yes |
+| cradle_round | A | exact | c721682fd6d235ad | c721682fd6d235ad | yes | yes |
+| cradle_round | B | exact | c721682fd6d235ad | c721682fd6d235ad | yes | yes |
+| cradle_round | C | exact | c721682fd6d235ad | c721682fd6d235ad | yes | yes |
+| cradle_round_late | A | exact | 96b65d11b8eaa971 | 96b65d11b8eaa971 | yes | yes |
+| cradle_round_late | B | exact | 96b65d11b8eaa971 | 96b65d11b8eaa971 | yes | yes |
+| cradle_round_late | C | exact | 96b65d11b8eaa971 | 96b65d11b8eaa971 | yes | yes |
+| free_pi8_M50 | A | libm | b9fb81c17d64b1e8 | 8f1268009ba304fc | no | no |
+| free_pi8_M50 | B | libm | b9fb81c17d64b1e8 | 8f1268009ba304fc | no | no |
+| free_pi8_M50 | C | libm | b9fb81c17d64b1e8 | 8f1268009ba304fc | no | no |
+| free_pi8_M500 | A | libm | b4ffc16293797945 | aa946026a651a01b | no | no |
+| free_pi8_M500 | B | libm | b4ffc16293797945 | aa946026a651a01b | no | no |
+| free_pi8_M500 | C | libm | b4ffc16293797945 | aa946026a651a01b | no | no |
+| free_070_M50 | A | libm | 43793a763c6812a6 | dcac57156ca2aab1 | no | no |
+| free_070_M50 | B | libm | 43793a763c6812a6 | dcac57156ca2aab1 | no | no |
+| free_070_M50 | C | libm | 43793a763c6812a6 | dcac57156ca2aab1 | no | no |
+| free_070_M500 | A | libm | 46003616afd008a3 | daebfe61c1e45847 | no | no |
+| free_070_M500 | B | libm | 46003616afd008a3 | daebfe61c1e45847 | no | no |
+| free_070_M500 | C | libm | 46003616afd008a3 | daebfe61c1e45847 | no | no |
+| heavy_070_M4e7 | A | libm | 51115487c9b1caab | 92b2b413aa503bc0 | no | no |
+| heavy_070_M4e7 | B | libm | 51115487c9b1caab | 92b2b413aa503bc0 | no | no |
+| heavy_070_M4e7 | C | libm | 51115487c9b1caab | 92b2b413aa503bc0 | no | no |
+| held_pi8 | A | libm | 837fb9e4637447eb | cdecc4ad3c415368 | no | no |
+| held_pi8 | B | libm | 837fb9e4637447eb | cdecc4ad3c415368 | no | no |
+| held_pi8 | C | libm | 837fb9e4637447eb | cdecc4ad3c415368 | no | no |
+| held_070 | A | libm | 79621d4228ba6c48 | f2375a9ca40a269b | no | no |
+| held_070 | B | libm | 79621d4228ba6c48 | f2375a9ca40a269b | no | no |
+| held_070 | C | libm | 79621d4228ba6c48 | f2375a9ca40a269b | no | no |
+| driven_pi8 | A | libm | 964fcaa759e63b87 | 694fdf127f35d4b4 | no | no |
+| driven_pi8 | B | libm | 964fcaa759e63b87 | 694fdf127f35d4b4 | no | no |
+| driven_pi8 | C | libm | 964fcaa759e63b87 | 694fdf127f35d4b4 | no | no |
+| spring_pi8 | A | libm | 9c57360fa2ec6df7 | f5acedfa3635e766 | no | no |
+| spring_pi8 | B | libm | 9c57360fa2ec6df7 | f5acedfa3635e766 | no | no |
+| spring_pi8 | C | libm | 9c57360fa2ec6df7 | f5acedfa3635e766 | no | no |
+| piston_push | A | libm | 3c1bfa4a12bb3d48 | f4d6058229b68adb | no | no |
+| piston_push | B | libm | 3c1bfa4a12bb3d48 | f4d6058229b68adb | no | no |
+| piston_push | C | libm | 3c1bfa4a12bb3d48 | f4d6058229b68adb | no | no |
+
+KOA: A = B = C (hash and counts) in 0 of 13 cells
+
+Mac: A = B = C (hash and counts) in 0 of 13 cells
+
+
+equal event hashes: 21 of 96
