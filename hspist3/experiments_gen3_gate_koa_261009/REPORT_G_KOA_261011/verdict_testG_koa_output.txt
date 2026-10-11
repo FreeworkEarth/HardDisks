@@ -1,0 +1,70 @@
+# Test G on KOA (261012 sec. 4.7.29; decision 13, item 2g)
+
+RULE per mass (M = 50, 300, 1500): NO DIFFERENCE if abs(z) < 2; DIFFERENCE if abs(z) >= 3; otherwise one extension (400 more per engine), judged on 800 with the same thresholds, still between -> UNRESOLVED. PASS = NO DIFFERENCE at all three masses.
+
+extensions counted (runs r >= 400 in the data): none
+
+## Inventory
+
+| engine | M | trajectories matched (expected) | n finite > 0 | log sections | health findings (failed runs incl.) | engine line wrong | max contact gap [px] | contact lines missing | nodes | ok |
+|---|---|---|---|---|---|---|---|---|---|---|
+| gen3 | 50 | 400 (400) | 400 | 400 | 0 | 0 | 4.90e-12 | 0 | 7 | yes |
+| gen3 | 300 | 400 (400) | 400 | 400 | 0 | 0 | 5.34e-12 | 0 | 13 | yes |
+| gen3 | 1500 | 400 (400) | 400 | 400 | 0 | 0 | 5.30e-12 | 0 | 13 | yes |
+| gen2 | 50 | 400 (400) | 400 | 400 | 0 | 0 | 5.22e-11 | 0 | 7 | yes |
+| gen2 | 300 | 400 (400) | 400 | 400 | 0 | 0 | 1.05e-10 | 0 | 13 | yes |
+| gen2 | 1500 | 400 (400) | 400 | 400 | 0 | 0 | 2.19e-10 | 0 | 13 | yes |
+
+nodes: gen3 {'cn-03-38-07': 112, 'cn-03-38-08': 175, 'cn-03-38-09': 125, 'cn-05-03-02': 125, 'cn-05-03-04': 125, 'cn-05-03-10': 50, 'cn-05-08-02': 63, 'cn-05-08-03': 62, 'cn-05-08-04': 63, 'cn-05-08-05': 87, 'cn-05-08-06': 38, 'cn-03-38-02': 125, 'cn-05-08-08': 50}; gen2 {'cn-03-38-07': 113, 'cn-03-38-08': 175, 'cn-03-38-09': 125, 'cn-05-03-02': 125, 'cn-05-03-04': 125, 'cn-05-03-10': 50, 'cn-05-08-02': 62, 'cn-05-08-03': 63, 'cn-05-08-04': 62, 'cn-05-08-05': 88, 'cn-05-08-06': 37, 'cn-03-38-02': 125, 'cn-05-08-08': 50}
+builds (.build_git): ['00ALLINONE  git a643bc7  target koa'] (required: 00ALLINONE  git a643bc7  target koa); inventory clean
+
+## The registered numbers
+
+| mass | judged on (per engine) | n gen3 | n gen2 | gen3 mean nu | SE | gen2 mean nu | SE | difference | relative [%] | 95 % interval [%] | z | outcome by the rule |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 50 | 400 | 400 | 400 | 0.0727434 | 8.84e-05 | 0.0722828 | 9.68e-05 | +4.606e-04 | +0.637 | [+0.282, +0.993] | +3.51 | **DIFFERENCE** |
+| 300 | 400 | 400 | 400 | 0.0370087 | 2.35e-05 | 0.0369479 | 2.19e-05 | +6.078e-05 | +0.165 | [-0.006, +0.335] | +1.89 | **NO DIFFERENCE** |
+| 1500 | 400 | 400 | 400 | 0.0172607 | 5.87e-06 | 0.0172607 | 5.74e-06 | +3.469e-18 | +0.000 | [-0.093, +0.093] | +0.00 | **NO DIFFERENCE** |
+
+## The thresholds' false-alarm rates (no true difference)
+
+| quantity (no true difference) | one mass | three masses (independent) |
+|---|---|---|
+| P(abs(z) >= 3 at 400) | 0.00270 | 0.00808 (at least one) |
+| P(extension: 2 <= abs(z) < 3 at 400) | 0.04280 | 0.12298 (at least one) |
+| P(DIFFERENCE), extension path included | 0.00403 | 0.01204 (at least one) |
+| P(UNRESOLVED) | 0.01189 | 0.03525 (at least one) |
+| P(NO DIFFERENCE) | 0.98408 | P(PASS) = 0.95299; false alarm (not PASS) = 0.04701 |
+
+## The smallest true difference that would give z = 3 with the observed SEs
+
+| mass | judged on | SE of the difference | 3 x SE | relative to gen2's mean [%] |
+|---|---|---|---|---|
+| 50 | 400 | 1.31e-04 | 3.93e-04 | 0.544 |
+| 300 | 400 | 3.21e-05 | 9.63e-05 | 0.261 |
+| 1500 | 400 | 8.21e-06 | 2.46e-05 | 0.143 |
+
+M = 50: DIFFERENCE; M = 300: NO DIFFERENCE; M = 1500: NO DIFFERENCE; no extension
+95 % intervals of the relative difference (the stated bound): M = 50: [+0.282, +0.993] %; M = 300: [-0.006, +0.335] %; M = 1500: [-0.093, +0.093] %
+TEST G (KOA): FAIL (DIFFERENCE)
+
+## Information (no verdict): nu_d on the verdict masses
+
+| M | estimator | gen3 mean | gen2 mean | relative [%] | z | same-seed correlation |
+|---|---|---|---|---|---|---|
+| 50 | argmax (registered) | 0.0727434 | 0.0722828 | +0.637 | +3.51 | +0.059 |
+| 50 | nu_d (sec. 4.4.13 item 4a) | 0.0725949 | 0.0724179 | +0.244 | +2.25 | +0.044 |
+| 300 | argmax (registered) | 0.0370087 | 0.0369479 | +0.165 | +1.89 | +0.019 |
+| 300 | nu_d (sec. 4.4.13 item 4a) | 0.0370248 | 0.0369874 | +0.101 | +1.74 | +0.068 |
+| 1500 | argmax (registered) | 0.0172607 | 0.0172607 | +0.000 | +0.00 | -0.070 |
+| 1500 | nu_d (sec. 4.4.13 item 4a) | 0.0172640 | 0.0172627 | +0.008 | +0.24 | +0.015 |
+
+## Information (no verdict): the other rows (the Mac's, without M = 50)
+
+| row | n gen3 | n gen2 | gen3 mean | SE | gen2 mean | SE | relative [%] | 95 % interval [%] | z | clean (both engines) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| nu, M = 2000 | 100 | 100 | 0.0149817 | 9.80e-06 | 0.0150050 | 1.01e-05 | -0.155 | [-0.339, +0.029] | -1.65 | failed 0; gen3 records 100, clean=1 100; gen2 health lines 0 |
+| nu, dense cell, M = 300 | 200 | 200 | 0.3683494 | 5.35e-04 | 0.3687041 | 4.17e-04 | -0.096 | [-0.457, +0.265] | -0.52 | failed 0; gen3 records 200, clean=1 200; gen2 health lines 0 |
+| nu, N = 400 at pi/8, M = 300 | 100 | 100 | 0.0302194 | 3.73e-05 | 0.0302323 | 4.08e-05 | -0.043 | [-0.401, +0.316] | -0.23 | failed 0; gen3 records 100, clean=1 100; gen2 health lines 0 |
+| static method, A-fixed at x_0, mean F_L | 200 | 200 | 15.930838 | 1.59e-03 | 15.926675 | 1.57e-03 | +0.026 | [-0.001, +0.054] | +1.86 | failed gen3 0, gen2 0 |
+| static method, A-fixed at x_0, mean F_R | 200 | 200 | 15.928407 | 1.72e-03 | 15.926819 | 1.76e-03 | +0.010 | [-0.020, +0.040] | +0.65 | failed gen3 0, gen2 0 |
