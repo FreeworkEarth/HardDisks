@@ -97,6 +97,10 @@ def shims(R):
         "lscpu": "#!/bin/bash\n# rehearsal shim: Linux's lscpu\necho \"Model name:          $(sysctl -n machdep.cpu.brand_string) (Mac rehearsal)\"\n",
         "hostname": "#!/bin/bash\n# rehearsal shim: a pretended node name for the cross-node tasks (REHEARSAL_HOST), else the Mac's\n"
                     "if [ -n \"${REHEARSAL_HOST:-}\" ]; then echo \"$REHEARSAL_HOST\"; else exec /bin/hostname \"$@\"; fi\n",
+        # ##CHRIS 2026-10-10 (sec. 4.7.47): added during the first run on 9d4490c, before its fetch step; written here since
+        "rsync": "#!/bin/bash\n# rehearsal shim: the fetch's rsync with --exclude=e0_*/ added, so the gate folder's E0 outputs (A-fixed event logs,\n"
+                 "# about 0.2 GB) are not copied a second time; every other file goes through /usr/bin/rsync with the fetch's own arguments\n"
+                 "echo \"[rehearsal rsync shim] /usr/bin/rsync --exclude=e0_*/ $*\" >&2\nexec /usr/bin/rsync \"--exclude=e0_*/\" \"$@\"\n",
     }
     for n, t in files.items():
         p = os.path.join(b, n); open(p, "w").write(t); os.chmod(p, 0o755)
@@ -159,13 +163,15 @@ def mini_list(src):
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("--root", required=True); ap.add_argument("--fix", required=True); a = ap.parse_args()
+    ap = argparse.ArgumentParser(); ap.add_argument("--root", required=True); ap.add_argument("--fix", required=True)
+    ap.add_argument("--only", default="unit,gate,k2,xnode,testg", help="parts to run (a later run after a fix: the parts whose scripts changed)")
+    a = ap.parse_args(); PARTS = set(a.only.split(","))
     R = os.path.abspath(a.root)
     if not os.path.isdir(R) or os.listdir(R): sys.exit(f"STOP: {R} must be an existing empty folder")
     FIX = sh(["git", "-C", REPO, "rev-parse", a.fix]).stdout.strip()
     for d in ("logs", "home", "home_gate", "lustre"): os.makedirs(os.path.join(R, d))
     t00 = time.time()
-    print(f"# Mac rehearsal of the KOA job scripts {time.strftime('%Y-%m-%d %H:%M:%S %Z')}: root {R}; fix commit {FIX}; gate commit {GATE_C}")
+    print(f"# Mac rehearsal of the KOA job scripts {time.strftime('%Y-%m-%d %H:%M:%S %Z')}: root {R}; fix commit {FIX}; gate commit {GATE_C}; parts {sorted(PARTS)}")
     print(f"tools: {sh(['/bin/bash', '--version']).stdout.splitlines()[0]} | {sh([sys.executable, '--version']).stdout.strip()} | "
           f"{sh(['cc', '--version']).stdout.splitlines()[0]} | {sh(['git', '--version']).stdout.strip()} | {(sh(['/usr/bin/rsync', '--version'], check=False).stdout or '?').splitlines()[0]}")
     shim = shims(R)
@@ -174,20 +180,23 @@ def main():
     A, REF, K2C, G = (os.path.join(H, "harddisks_gen3"), os.path.join(H, "harddisks_resched2"), os.path.join(H, "harddisks_gen3_k2"),
                       os.path.join(HG, "harddisks_gen3"))
     print("== clones and Mac builds")
-    for d, c, sp, kf in ((A, GATE_C, SPARSE_KOA, True), (REF, REF_C, SPARSE_KOA, True), (K2C, FIX, SPARSE_K2, False), (G, FIX, SPARSE_KOA, True)):
+    CL = [(A, GATE_C, SPARSE_KOA, True), (K2C, FIX, SPARSE_K2, False)] + ([(REF, REF_C, SPARSE_KOA, True), (G, FIX, SPARSE_KOA, True)] if "gate" in PARTS else [])
+    for d, c, sp, kf in CL:
         head = clone(d, c, sp)
         if kf: kissfft(d)
         print(f"  {os.path.relpath(d, R)}: HEAD {head}; files {sh(['git', '-C', d, 'ls-files', '-t']).stdout.count(chr(10))} tracked, "
               f"{len([x for x in sh(['git', '-C', d, 'ls-files', '-v']).stdout.splitlines() if x.startswith('H ')])} checked out")
-    os.symlink(REF, os.path.join(HG, "harddisks_resched2"))
-    vA = build(os.path.join(A, "hspist3"), R); vR = build(os.path.join(REF, "hspist3"), R, ld=False, harness=False); vG = build(os.path.join(G, "hspist3"), R)
+    vA = build(os.path.join(A, "hspist3"), R); vR = vG = "(not built: no gate part)"
+    if "gate" in PARTS:
+        os.symlink(REF, os.path.join(HG, "harddisks_resched2"))
+        vR = build(os.path.join(REF, "hspist3"), R, ld=False, harness=False); vG = build(os.path.join(G, "hspist3"), R)
     print(f"  versions: gen3 a643bc7 {vA}; reference {vR}; gate clone (fix commit) {vG}")
     os.makedirs(os.path.join(K2C, "hspist3", "logs"))
-    for d in (A, G, REF):
+    for d in [x[0] for x in CL if x[0] != K2C]:
         os.makedirs(os.path.join(d, "hspist3", "logs"), exist_ok=True)
     # ---------------------------------------------------------------- shims in the clones (after the builds: the version lines stay clean)
     print("== shims in the clones")
-    for d, lf in ((A, False), (G, False), (K2C, True)):
+    for d, lf in [(A, False), (K2C, True)] + ([(G, False)] if "gate" in PARTS else []):
         print(f"  Lustre path rewritten in {os.path.relpath(d, R)}: {', '.join(rewrite_lustre(d, R, lf))}")
     reg = os.path.join(A, "hspist3", K, "tasks_testG_koa_261009.txt"); assert sha(reg) == "cff8e6f9ef3d95440f54b4c621fff776b64e48700083e7258e472351fc6412b9"
     ml = mini_list(reg); txt = "".join(ml)
@@ -200,14 +209,25 @@ def main():
     open(kfile, "w").write("".join(f"{sha(os.path.join(A, 'hspist3', p))}  {p}\n" for p in ("00ALLINONE", "bin/00ALLINONE_ld", "bin/gen3_m1", "bin/gen3_m2")))
     print(f"  k2_binaries_a643bc7.sha256 in the K2 clone: the Mac builds' SHA-256 (committed: KOA's, {koa_k2.split()[0][:8]}...)")
     # ---------------------------------------------------------------- 0. the unit test of the fix
-    print("== the unit test of the fix (task 1)")
     os.makedirs(os.path.join(R, "tmp"))
+    if "unit" in PARTS: unit(R, K2C)
+    if "gate" in PARTS: gate(R, G, HG, shim)
+    if "k2" in PARTS: k2(R, K2C, H, HG, shim)
+    if "xnode" in PARTS: xnode(R, A, H, shim)
+    if "testg" in PARTS: testg(R, A, K2C, H, shim, PARTS)
+    table(R, t00)
+
+
+def unit(R, K2C):
+    print("== the unit test of the fix (task 1)")
     p = sh([sys.executable, os.path.join(K2C, "hspist3", K, "test_g3_rate_ld_record_261010.py")], env=dict(os.environ, TMPDIR=os.path.join(R, "tmp")),
            log=os.path.join(R, "logs", "unit_test.txt"), check=False)
     t = open(os.path.join(R, "logs", "unit_test.txt")).read()
     res("test_g3_rate_ld_record_261010.py", "Mac python3", "exit 0, ALL PASS (old pattern fails as on KOA, record() parses)", p.returncode == 0 and "ALL PASS" in t,
         f"{t.count('| PASS |')} cases PASS")
-    # ---------------------------------------------------------------- 1. the gate job (a)-(d), fix commit
+
+
+def gate(R, G, HG, shim):
     print("== 1. the gate job g3_gate_koa.sbatch (a)-(d), clone at the fix commit")
     hs = os.path.join(G, "hspist3"); JG = 910001
     rc, t = job("gate", f"{K}/g3_gate_koa.sbatch", [], hs, env_for(R, HG, shim, SLURM_SUBMIT_DIR=hs, SLURM_JOB_ID=JG), os.path.join(hs, "logs", f"gen3-gate_{JG}.out"))
@@ -224,7 +244,9 @@ def main():
         f"exit {rc}; E0 {sum(x[1] == x[2] == 'IDENTICAL' for x in e0)}/8; E2 lines {e2[:1]}; (b) {ok_b}; (c) {len(rc_c)} rows; (d) {len(rc_d)} rows")
     res("audit_runs_261007.py (run, report)", f"inside job {JG}", "E0 PASS twice", ok_a and ok_e2, f"{len(e0)} E0 rows")
     res("g3_rate_ld_koa.py", f"inside job {JG}", "(c) and (d) tables complete", ok_c and ok_d, f"(c) {len(rc_c)}, (d) {len(rc_d)}")
-    # ---------------------------------------------------------------- 2. K2-2
+
+
+def k2(R, K2C, H, HG, shim):
     print("== 2. K2-2: g3_rate_ld_k2.sbatch from the K2 clone, the binaries of home/harddisks_gen3")
     hs = os.path.join(K2C, "hspist3"); JK = 910002
     rc, t = job("K2-2", f"{K}/g3_rate_ld_k2.sbatch", [], hs, env_for(R, H, shim, SLURM_SUBMIT_DIR=hs, SLURM_JOB_ID=JK), os.path.join(hs, "logs", f"gen3-rate-ld-k2_{JK}.out"))
@@ -241,7 +263,9 @@ def main():
     res("g3_rate_ld_k2.sbatch (STOP rules)", "jobs 910012, 910013", "exit 2 with the STOP line, before any run: wrong clone name; binaries not the recorded ones",
         rc1 == 2 and "STOP: the K2 jobs run from" in t1 and rc2 == 2 and "STOP: the binaries of ~/harddisks_gen3 are not" in t2,
         f"exits {rc1}, {rc2}")
-    # ---------------------------------------------------------------- 3. cross-node array and compare (a643bc7 clone)
+
+
+def xnode(R, A, H, shim):
     print("== 3. the cross-node array g3_det_xnode.sbatch (4 tasks, 2 pretended nodes) and g3_xnode_compare.sbatch")
     hs = os.path.join(A, "hspist3"); JX = 910003
     procs = []
@@ -259,8 +283,11 @@ def main():
     rc, t = job("compare", f"{K}/g3_xnode_compare.sbatch", [str(JX)], hs, env_for(R, H, shim, SLURM_SUBMIT_DIR=hs, SLURM_JOB_ID=JC), os.path.join(hs, "logs", f"gen3-xnode-compare_{JC}.out"))
     res("g3_xnode_compare.sbatch / .py", f"job {JC}", "RESULT: across nodes IDENTICAL (2 nodes); within nodes IDENTICAL; tasks used 4 of 4",
         rc == 0 and "RESULT: across nodes IDENTICAL (2 node(s)); within nodes IDENTICAL; tasks used 4 of 4" in t, re.findall(r"^RESULT: .*$", t, re.M)[:1])
-    # ---------------------------------------------------------------- 4. Test G: stage 1, stage 2, beyond, merge (a643bc7 clone, registered scripts)
-    print("== 4. Test G on the mini list: stage 1 (chunk 1 alone), stage 2 (chunks 2-3), a chunk beyond the list, the merge")
+
+
+def testg(R, A, K2C, H, shim, PARTS):
+    hs = os.path.join(A, "hspist3")
+    print("== 4. Test G on the mini list: stage 1 (chunk 1 alone), stage 2 (chunks 2-3), a chunk beyond the list, the merge (K2: from the K2 clone)")
     def chunk(jid, j, lg):
         e = env_for(R, H, shim, SLURM_SUBMIT_DIR=hs, SLURM_ARRAY_JOB_ID=jid, SLURM_ARRAY_TASK_ID=j, SLURM_JOB_ID=jid + 100 + j)
         return subprocess.Popen(["/bin/bash", f"{K}/testG_koa.sbatch"], cwd=hs, env=e, stdout=open(lg, "w"), stderr=subprocess.STDOUT)
@@ -281,19 +308,20 @@ def main():
         rcs == [0, 0] and all(f"chunk {j} done" in x and "FAILED" not in x for j, x in zip((2, 3), ts)), f"exits {rcs}")
     lg4 = os.path.join(R, "logs", "testG_beyond.out"); rc4 = chunk(910008, 4, lg4).wait(); t4 = open(lg4).read()
     res("testG_koa.sbatch (STOP rule)", "array 910008, task 4", "exit 2: 'STOP: chunk 4 is beyond the task list'", rc4 == 2 and "STOP: chunk 4 is beyond the task list" in t4, f"exit {rc4}")
-    JM = 910007
-    rc, t = job("merge", f"{K}/merge_testG_koa.sbatch", [], hs, env_for(R, H, shim, SLURM_SUBMIT_DIR=hs, SLURM_JOB_ID=JM), os.path.join(hs, "logs", f"gen3-testG-merge_{JM}.out"))
+    JM = 910007; hk = os.path.join(K2C, "hspist3")
+    rc, t = job("merge (K2)", f"{K}/merge_testG_k2.sbatch", [], hk, env_for(R, H, shim, SLURM_SUBMIT_DIR=hk, SLURM_JOB_ID=JM), os.path.join(hk, "logs", f"gen3-testG-merge-k2_{JM}.out"))
     red = re.findall(r"^reduce_B (\S+): exit (\d+)", t, re.M)
-    res("merge_testG_koa.sbatch / .py (+ reduce_B.py)", f"job {JM}", "exit 0; 'merged 3 chunks'; one build; reduce_B exit 0 for every B cell; traces compressed; done line",
+    res("merge_testG_k2.sbatch + merge_testG_koa.py (fix commit; + reduce_B.py)", f"job {JM}", "exit 0; 'merged 3 chunks'; one build; reduce_B exit 0 for every B cell; traces compressed; done line",
         rc == 0 and "merged 3 chunks" in t and red and all(x[1] == "0" for x in red) and "merge done" in t and "STOP" not in t,
         f"exit {rc}; {re.findall(r'^merged .*$', t, re.M)[:1]}; reduce_B {red}")
     # ---------------------------------------------------------------- 5. the fetch (Mac) and 6. the verdict (Mac), in the K2 clone
     print("== 5. the fetch (local rsync source) and 6. the registered verdict, in the K2 clone")
     hs = os.path.join(K2C, "hspist3")
-    rc, t = job("fetch", f"{K}/fetch_gen3_koa.sh", [str(JG), str(JX), str(JK)], hs, env_for(R, H, shim), os.path.join(R, "logs", "fetch.out"))
+    rc, t = job("fetch", f"{K}/fetch_gen3_koa.sh", ["910001", "910003", "910002"], hs, env_for(R, H, shim), os.path.join(R, "logs", "fetch.out"))
     F = os.path.join(hs, "experiments_gen3_gate_koa_261009")
-    have = {s: os.path.isdir(os.path.join(F, s)) for s in ("testG", "gate", "xnode", "rate_ld_k2")}
-    res("fetch_gen3_koa.sh (Mac)", "gate 910001, xnode 910003, K2-2 910002", "exit 0; testG, gate, xnode and rate_ld_k2 fetched", rc == 0 and all(have.values()), f"{have}")
+    need = ("testG", "gate", "xnode", "rate_ld_k2") if {"gate", "xnode", "k2"} <= PARTS else ("testG",)
+    have = {s: os.path.isdir(os.path.join(F, s)) for s in need}
+    res("fetch_gen3_koa.sh (Mac)", "gate 910001, xnode 910003, K2-2 910002", f"exit 0; {', '.join(need)} fetched", rc == 0 and all(have.values()), f"{have}")
     lgA = os.path.join(R, "logs", "verdict_A.out")
     p = sh([sys.executable, f"{K}/testG_koa_verdict_261009.py"], cwd=hs, log=lgA, check=False); tA = open(lgA).read()
     inv = table_rows(tA, "| engine | M | trajectories matched")
@@ -310,7 +338,9 @@ def main():
     rule = table_rows(tB, "| mass | judged on (per engine)")
     res("testG_koa_verdict_261009.py (B, component check)", "Mac python3", "exit 0; the rule table (3 masses), the verdict line and the information rows print",
         p.returncode == 0 and len(rule) >= 3 and "TEST G (KOA):" in tB and "Information (no verdict): the other rows" in tB, f"rule rows {len(rule)}; {re.findall(r'^TEST G .*$', tB, re.M)[:1]}")
-    # ---------------------------------------------------------------- the table
+
+
+def table(R, t00):
     print(f"\n## Rehearsal result ({time.time() - t00:.0f} s; data {sh(['du', '-sh', R]).stdout.split()[0]})\n")
     print("| script | run | criterion | result | evidence |\n|---|---|---|---|---|")
     for r in RES: print("| " + " | ".join(str(x).replace("|", "/") for x in r) + " |")
