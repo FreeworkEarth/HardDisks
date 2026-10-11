@@ -7,7 +7,7 @@
 # NO GIT AT RUN TIME (decisions 26 and 28: node cn-05-08-07 has none). Every start-up check comes BEFORE the line "chunk <j> on ...", so
 # a chunk that stops in them ran nothing (the chunk check lists such an attempt by name; decision 25's rule: it is submitted once more,
 # testR_stopped_chunks.sh prints that line). Every STOP line names the node it ran on: "STOP: [<node>] ...".
-#   1. the clone: this job runs from ~/harddisks_gen3_r/hspist3 (the delivery clone of Report R0);
+#   1. the clone: this job runs from ~/harddisks_gen3_k2/hspist3 (the K2 clone, updated in place to the Test R commit by Report R0's delivery block);
 #   2. the inputs: testR_inputs.sha256 (sha256sum -c): the task list, its SHA-256 file, the chunk size, the build record, the worker
 #      and koa_env.sh are the delivered ones; and the task list's SHA-256 is the registered one (tasks_testR_koa_261011.sha256);
 #   3. koa_env.sh (which no longer needs git);
@@ -15,7 +15,7 @@
 #      ~/harddisks_gen3/hspist3/logs/BUILD_KOA_LAST.hash (written by build_gen3_koa.sh on KOA in runsheet step 2), and its version line
 #      is the recorded "00ALLINONE  git a643bc7  target koa";
 #   5. the chunk size is a number and the chunk index lies within the task list.
-# Submit from ~/harddisks_gen3_r/hspist3 (runsheet_testR_261011.txt): chunk 1 alone, then the rest:
+# Submit from ~/harddisks_gen3_k2/hspist3 (runsheet_testR_261011.txt): chunk 1 alone, then the rest:
 #   sbatch --array=1 cluster/gen3_testR_261011/testR_koa.sbatch
 #   sbatch --array=2-216%64 cluster/gen3_testR_261011/testR_koa.sbatch
 #SBATCH --job-name=gen3-testR
@@ -29,10 +29,10 @@
 #SBATCH --error=logs/%x_%A_%a.out
 set -uo pipefail
 stop() { echo "STOP: [$(hostname)] $*"; exit 2; }
-cd "${SLURM_SUBMIT_DIR:?submit with sbatch from ~/harddisks_gen3_r/hspist3}"
+cd "${SLURM_SUBMIT_DIR:?submit with sbatch from ~/harddisks_gen3_k2/hspist3}"
 P=cluster/gen3_testR_261011
 ROOT_NAME=$(basename "$(dirname "$SLURM_SUBMIT_DIR")")
-[ "$ROOT_NAME" = harddisks_gen3_r ] || stop "Test R runs from ~/harddisks_gen3_r, not $ROOT_NAME"
+[ "$ROOT_NAME" = harddisks_gen3_k2 ] || stop "Test R runs from ~/harddisks_gen3_k2, not $ROOT_NAME"
 sha256sum --status -c "$P/testR_inputs.sha256" || stop "the Test R inputs are not the delivered ones ($P/testR_inputs.sha256)"
 TASKS="$P/tasks_testR_koa_261011.txt"
 [ "$(sha256sum "$TASKS" | cut -d' ' -f1)" = "$(cat "$P/tasks_testR_koa_261011.sha256")" ] || stop "the task list is not the registered one"
