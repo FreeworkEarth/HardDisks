@@ -10,8 +10,9 @@ run_testG_mac.py does on the Mac. Nothing is deleted: a chunk folder that is emp
 ##CHRIS 2026-10-10 (plan-author decision 21, item 2; 261012 sec. 4.7.49): THE MERGE PLANS BEFORE IT MOVES.
   1. SCAN (reads only): every chunk, every cell folder, every name, against the RULES below. The complete plan (treatment, chunk,
      source, destination) is written to <root>/merge_plan_<time>.tsv and summarised: each destination folder with the chunks that
-     deliver into it, every name that occurs in more than one chunk for one destination with its treatment, and the names inside the
-     moved run folders (.done_runs/run<r>).
+     deliver into it, every name that occurs in more than one chunk for one destination with its treatment, and the top-level names
+     inside the moved run folders (.done_runs/run<r>; one line: the rehearsal of 882dba4 listed every file there, and the driver's
+     experiments_speed_of_sound/.../simulation_<time>/ folders made that line grow with the number of runs).
   2. CHECK: a name without a rule, an entry outside the layout chunks/chunk_<j>/testG/<gen2|gen3>/<cell>/<m_M | x_0>/, two plan entries
      with one destination, a cell folder without .build_git, and .build_git files that differ are ALL printed; then the merge stops
      with exit 2 and NOTHING moved (merged/ is not created), and it may be started again once the cause is removed.
@@ -113,8 +114,8 @@ def scan(root):
                         pr = os.path.join(src, r)
                         if not re.match(r"^run\d+$", r) or not os.path.isdir(pr):
                             problems.append(f"{R(pr)}: no rule (an entry of .done_runs must be a folder run<r>)"); continue
-                        for dp, dn, fn in os.walk(pr):
-                            for f in fn: inside[os.path.relpath(os.path.join(dp, f), pr)] += 1
+                        for e in os.listdir(pr):                        # the top level only: deeper names carry run times
+                            inside[e + ("/" if os.path.isdir(os.path.join(pr, e)) else "")] += 1
                         plan.append(("PER CHUNK", pr, os.path.join(rel, ".done_runs", f"{r}_chunk{j}"), j, ".done_runs/run<r>", rel))
                     continue
                 plan.append((t, src, os.path.join(rel, dname.replace("{j}", j)), j, name, rel))
@@ -208,7 +209,8 @@ def main():
         print("STOP: the merge plan has problems; nothing was moved (remove the cause, then start the merge again)")
         sys.exit(2)
     odd = [e for e in plan if e[0] in ("LEFT", "INCOMPLETE")]
-    if odd: print(f"\nnote, {len(odd)} lock / temp / incomplete entries: " + "; ".join(f"{e[0]} {os.path.relpath(e[1], root)}" for e in odd))
+    if odd: print(f"\nnote, {len(odd)} lock / temp / incomplete entries: " + "; ".join(f"{e[0]} {os.path.relpath(e[1], root)}" for e in odd[:20])
+                  + (f"; ... and {len(odd) - 20} more (all in the plan file)" if len(odd) > 20 else ""))
     if "--plan-only" in sys.argv: print("\n--plan-only: the plan has no problems; nothing moved"); return
     print()
     try:

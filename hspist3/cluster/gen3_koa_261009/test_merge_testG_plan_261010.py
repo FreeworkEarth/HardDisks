@@ -4,7 +4,9 @@ merge, on synthetic chunk trees in a new temporary folder (under TMPDIR; kept, n
 (a separate python3 process, --no-reduce: the synthetic traces are not real). "Nothing moved" is checked byte for byte: every path, type,
 size and SHA-256 under chunks/ before and after, and no merged/ folder.
   1 clean           three chunks; m_50 of both engines from chunks 1-2, x_0 of both engines from chunks 2-3: exit 0, every treatment
-                    checked in merged/ (append order, per-chunk names, the runs' own folders, the build line, the marker)
+                    checked in merged/ (append order, per-chunk names, the runs' own folders, the build line, the marker), and the
+                    summary's listing of the run folders: their top-level names only (the driver's simulation_<time>/ folder inside
+                    each run folder made that line grow with the number of runs in the rehearsal of 882dba4)
   2 second start    after case 1: exit 3 (a completed merge is never repeated); nothing changes
   3 planted dup     an unknown name (01_PLOT_COMMANDS.md at the cell level) in the LAST chunk and in chunk 1, same destination: exit 2,
                     both printed, zero files moved, no merged/
@@ -40,6 +42,8 @@ def b_run(cell, eng, r):
     for n in ("00_COMMAND.md", "01_PLOT_COMMANDS.md", "00_COMMAND_AND_PLOT_COMMAND.md", "speed_of_sound_psi6.csv",
               "speed_of_sound_batch_status.json", "stdout.log"):
         w(os.path.join(d, n), f"{n} of run {r}\n")
+    # the driver's own record folder inside the run folder, named by the run's start time (as on the Mac and on KOA)
+    w(os.path.join(d, "experiments_speed_of_sound", "EDMD", "mode0_real_units", f"simulation_10_10_26_16_30_{r:02d}", "00_COMMAND.md"), "x\n")
 
 
 def af_run(x0, seed, j):
@@ -114,6 +118,8 @@ def main():
         "summary: two-chunk folders": "| testG/gen2/epi8_H_H10_L10/m_50 | 1, 2 |" in out and "| testG/gen3/epi8_H_H10_L10/x_0 | 2, 3 |" in out,
         "summary: treatments": "run.log: append in chunk order" in out and ".build_git: keep one after an equality check" in out
                                and ".done_runs/run<r>: rename per chunk" in out and "00_COMMAND.md: rename per chunk" in out,
+        "summary: run folders' top level only": "experiments_speed_of_sound/ x6" in out and "simulation_" not in out
+                                                and "00_COMMAND.md x6" in out,
     }
     bad = [k for k, v in checks.items() if not v]
     case("1 clean (3 chunks)", "exit 0; every treatment as planned", not bad, f"exit {rc}; {len(checks) - len(bad)}/{len(checks)} checks" + (f"; failed: {bad}" if bad else ""))
