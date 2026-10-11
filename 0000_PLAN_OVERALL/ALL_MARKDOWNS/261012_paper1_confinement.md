@@ -16979,3 +16979,149 @@ cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks && bash hspist3/cluster/
   folders. Its last line names the merge record. Then CC prints the verdict once:
   python3 hspist3/cluster/gen3_testR_261011/testR_koa_verdict_261011.py
 ```
+
+### 4.7.59 Plan-author decisions 30 and 29: Report R0 accepted; C1's registered NOT DECIDED stands; amendment A2 (POST HOC) to A1; Test R blocks A–D to be typed; the meeting material M1 (four figures) and the PREVIEW sweep P ordered (2026-10-11 11:19 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 30, after Report R0.**
+  - **Report R0 is ACCEPTED.** The Test R registration, package, design output and runsheet are approved as committed (delivery commit b5378f4).
+  - **CC's two readings are confirmed:**
+    - "more than 1 % excluded in any arm" makes the OVERALL verdict NOT DECIDED;
+    - INVALID covers pipeline faults only.
+  - **The rehearsal** (run 2, block D re-checked on its saved output) is accepted with its listed limits.
+  - **Chris types blocks A–D now;** the plan author reads D before E.
+  - **C1:** the registered verdict NOT DECIDED stands and is reported. Plan-author error recorded: an absolute threshold of 1e-9 units for max |dt| was registered.
+  - **Amendment A2 to amendment A1** (POST HOC: written after C1's data, and to be flagged so wherever it is cited) replaces the condition "C1 prints PASS" with:
+    - in all n trajectories every registered audit count is 0 (missing, extra, deferred early, bands, duplicates disagreeing, cells inconsistent);
+    - the event hash and the per-class counts equal the unaudited twin's;
+    - clean=1 in both;
+    - the audit's own relative flag, max |dt|/horizon (|dt| > 1e-9 only), is ≤ 1e-10 (the M2 acceptance criterion).
+    - The reasons given:
+      - the pre-registered FAIL condition is 0 in 2.26e8 audited states;
+      - only the rounding tolerance is amended;
+      - the contact audit bounds the executed events' accuracy separately (max 4.5e-12 px).
+  - **A2's condition is printed on C1's data** with the committed runner, in a new, clearly named mode; the registered output stays.
+  - **After Chris's fetch:** the Test R verdict, printed once (Report R1):
+    - the verdict line first, then the inventory, the per-mass table for both estimators, the information rows and the deviations;
+    - if it is not ENGINES AGREE, stop after printing and change nothing.
+- **Decision 29: material for the meeting on Wednesday 2026-10-14.**
+  - **Task M1: four figures from existing data, no new runs.** Project plot rules: error bars; KR red; own data blue; SPT and Henderson next to KR; phase regions shaded; N, radius, L0 and H on the figure; one build generation per panel. Each figure is printed by a committed script from committed tables.
+    1. Test G on KOA: mean ν per mass for gen2 and gen3 (separate panels, same axes), and the relative difference gen3 − gen2 per mass for argmax and ν_d with 95 % intervals. The title says: registered verdict FAIL at M = 50; replication (Test R) running.
+    2. δ_M per engine from Report G2, with POST HOC, INFORMATION on the figure.
+    3. The solid: Z per compartment for the 0-degree and the turned orientation in the cells of P4–P6, with the two Z groups of the compressed start marked, and PILOT on the figure.
+    4. The KOA rate table as a plot (events/s vs N at the three densities, Gold node), and the gen3/gen2 window speed-up.
+  - **Task P: a PREVIEW sweep on KOA.** It is prepared now and typed only after the plan author's go on Report P0 and after Test R's array has been submitted.
+    - **Label:** PREVIEW, INFORMATION; no verdict. It is never part of stage 1 and never in a paper, and has its own root on scratch and its own seeds.
+    - **First:** the stage 1 registration text (`261010_prereg_v1_stage1_fluid.md`, which Chris hands to CC; not in the repository as of 11:19) is recorded verbatim as sec. 4.8 in a commit, with amendments A1 and A2.
+    - **Runs:**
+      - `--engine=gen3`, the KOA binary of a643bc7 (not rebuilt), the canonical A1 v2 command and cells;
+      - N = 100 at η = 0.05, 0.10, 0.20, 0.30, π/8, 0.50 and 0.60;
+      - the nine A1 v2 masses, 25 seeds per (cell, mass), from a new base seed with zero overlap;
+      - the exact command line, with every difference from the A1 v2 command besides `--engine`, both quoted.
+    - **Jobs:** the Test R job, chunk check, merge and fetch, with their own task list, root and job name; every change listed; a mini list rehearsed on the Mac; chunk 1 alone first.
+    - **Reduction:** the canonical estimator E0 (`paper1_populate_cs_err`, unchanged) and its error, and the recorded η and lengths per cell (box truncation, methods sec. 14).
+    - **Figure:**
+      - c_s(η) of the preview (blue, error bars) with KR, SPT and Henderson, and the residual to KR below;
+      - a second panel with the same axes holding the canonical A1 v2 values (engine 279282b);
+      - a table of preview minus A1 v2 per density with its error;
+      - PREVIEW on the figure.
+- **Order:**
+  1. A2's line;
+  2. M1, while Test R runs on KOA;
+  3. Report R1 as soon as the fetch is on the Mac;
+  4. P's package and Report P0 with its runsheet blocks;
+  5. tasks D (Report S1-0 up to G4) and E (the M5 solid-cell job, prepared, not typed).
+- **Parked, not now:** engine tuning (fewer stale events, per-quantity output cadence, a bounded calendar queue), only after the new results, each change gated on identical event hashes.
+- **Ground rules:** as before; no KOA contact. The data marker is `$SP/.decision30_ref`, 11:19:25 HST.
+
+**The message, verbatim** (relayed by Chris on 2026-10-11 at about 11:19 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record verbatim in
+a new section. Ground rules as before; no KOA contact.
+
+DECISION 30 (2026-10-11 ~11:30 HST), after Report R0
+ 1. Report R0: ACCEPTED. The Test R registration, package, design
+    output and runsheet are approved as committed (delivery commit
+    b5378f4). Your two readings are confirmed: "more than 1 %
+    excluded in any arm" makes the OVERALL verdict NOT DECIDED;
+    INVALID covers pipeline faults only. The rehearsal (run 2,
+    block D re-checked on its saved output) is accepted with its
+    listed limits. Chris types blocks A-D now; I read D before E.
+ 2. C1: the registered verdict NOT DECIDED stands and is reported.
+    Plan-author error recorded: I registered an absolute threshold
+    of 1e-9 units for max |dt|.
+    AMENDMENT A2 to amendment A1 (POST HOC: written after C1's
+    data; to be flagged so wherever it is cited): the condition
+    "C1 prints PASS" is replaced by: "in all n trajectories every
+    registered audit count is 0 (missing, extra, deferred early,
+    bands, duplicates disagreeing, cells inconsistent), the event
+    hash and per-class counts equal the unaudited twin's, clean=1
+    in both, and the audit's own relative flag max |dt|/horizon
+    (|dt| > 1e-9 only) is <= 1e-10 (the M2 acceptance criterion)."
+    Reasons: the pre-registered FAIL condition (missing, extra,
+    deferred-early) is 0 in 2.26e8 audited states; the amended part
+    is the rounding tolerance only; the executed events' accuracy
+    is bounded separately by the contact audit (max 4.5e-12 px).
+    Print A2's condition on C1's data with the committed runner
+    (a new, clearly named mode; the registered output stays) and
+    report the line.
+ 3. After Chris's fetch: print the Test R verdict once (Report R1:
+    verdict line first, the inventory, the per-mass table for both
+    estimators, the information rows, deviations). If it is not
+    ENGINES AGREE, stop after printing; change nothing.
+
+DECISION 29 (2026-10-11 ~10:20 HST) - material for the meeting on
+Wednesday 2026-10-14
+ TASK M1 - four figures from existing data, no new runs. Project
+ plot rules (error bars, KR red, own data blue, SPT and Henderson
+ next to KR, phase regions shaded, N / radius / L0 / H on the
+ figure, one build generation per panel). Each figure printed by a
+ committed script from committed tables.
+  1. Test G on KOA: mean nu per mass for gen2 and gen3 (separate
+     panels, same axes) and the relative difference gen3 - gen2 per
+     mass for argmax and nu_d, with 95 % intervals. Title states:
+     registered verdict FAIL at M = 50; replication (Test R) running.
+  2. delta_M per engine from Report G2 (POST HOC, INFORMATION on
+     the figure).
+  3. The solid: Z per compartment for the 0-degree and the turned
+     orientation in the cells of P4-P6, with the two Z groups of
+     the compressed start marked. PILOT on the figure.
+  4. The KOA rate table as a plot (events/s vs N at the three
+     densities, Gold node), and the gen3 / gen2 window speed-up.
+ TASK P - PREVIEW sweep on KOA (prepare; typed only after my go on
+ Report P0 and after Test R's array has been submitted).
+  Label: PREVIEW, INFORMATION. No verdict. Never part of stage 1,
+  never in a paper; its own root on scratch and its own seeds.
+  Before any preview trajectory: the stage 1 registration text
+  (261010_prereg_v1_stage1_fluid.md; Chris hands it to you) is
+  recorded verbatim as sec. 4.8 in a commit, with amendments A1
+  and A2.
+  Runs: --engine=gen3, binary a643bc7 on KOA (not rebuilt), the
+  canonical A1 v2 command and cells for N = 100 at eta = 0.05,
+  0.10, 0.20, 0.30, pi/8, 0.50, 0.60; the nine A1 v2 masses; 25
+  seeds per (cell, mass) from a new base seed with zero overlap.
+  State exactly which command line it is and every difference from
+  the A1 v2 command besides --engine (quote both).
+  Jobs: the Test R job, chunk check, merge and fetch with their own
+  task list, root and job name; list every change; rehearse a mini
+  list on the Mac; chunk 1 alone first.
+  Reduction: the canonical estimator E0 (paper1_populate_cs_err,
+  unchanged) and its error; recorded eta and lengths per cell (box
+  truncation, methods sec. 14).
+  Figure: c_s(eta) of the preview (blue, error bars) with KR, SPT,
+  Henderson and the residual to KR below; in a second panel with
+  the same axes the canonical A1 v2 values (engine 279282b); a
+  table of preview minus A1 v2 per density with its error. PREVIEW
+  on the figure.
+
+ ORDER: A2's line; M1 while Test R runs on KOA; Report R1 as soon
+ as the fetch is on the Mac; then P's package and Report P0 with
+ its runsheet blocks; then tasks D (Report S1-0 up to G4) and E
+ (M5 solid-cell job, prepared, not typed).
+ Parked for later, not now: engine tuning (fewer stale events,
+ per-quantity output cadence, a bounded calendar queue), only after
+ the new results, each change gated on identical event hashes.
+
+End each report with "Written for: the plan author".
+```
