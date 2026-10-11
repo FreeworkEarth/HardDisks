@@ -15131,3 +15131,85 @@ exit
 - engine-divider-resched: the notes.
 
 Push: `git push origin main engine-gen3 engine-divider-resched`. engine-gen3 must be on GitHub before block C, which fetches `fd8d8a2`.
+
+### 4.7.53 Plan-author decisions 25 and 26: Report K2c accepted; the 20 stopped chunks rerun away from cn-05-08-07 (a node without git); K2-4 on KOA; the step-6 fetch done; Report G-KOA ordered (2026-10-11 01:20 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Report K2c: ACCEPTED**, including CC's [CHOICE]: an interrupted attempt followed by a complete one counts as done and is listed.
+- **The 20 stopped chunks.**
+  - All 20 failed tasks of array 15043056 ran on **cn-05-08-07**. Their logs read "cluster/koa_env.sh: line 27: git: command not found" and "slurm_script: line 24: git: command not found", then "STOP: ./00ALLINONE is not the recorded clean koa build of HEAD " with an empty hash. No chunk folders were made.
+  - **Decision 25:** Chris typed block R from `~/harddisks_gen3/hspist3` before Report K2c arrived: `sbatch --array=57-61,66-70,110-114,132-136 --exclude=cn-05-08-07 cluster/gen3_koa_261009/testG_koa.sbatch`.
+  - Result: array **15044748**, all 20 COMPLETED 0:0, on cn-03-38-02, -03, -04, -05 and -07.
+- **K2-4 on KOA (Chris's pastes):**
+  - block A: 164 / 144 / 0 / "144 E5-2670 v3";
+  - block C: HEAD fd8d8a2, ALL PASS (9 cases), ALL PASS (8 cases), chunk check exit 0, "chunk logs: 164; chunks done: 144 of 144 ...; earlier attempts: 20 stopped in the start-up checks, 0 started and not finished".
+  - **The step-6 fetch** was done at 01:19 on 2026-10-11 (275M in `experiments_gen3_gate_koa_261009`).
+  - The plan author has not yet seen the merge job's log. **First:** print from the fetched tree whether `merged/.merge_complete` is there and what it says.
+- **Then, in this order, each table printed by its registered script, nothing tuned:**
+  - (a) `testG_koa_verdict_261009.py`: the inventory and the registered verdict of Test G on KOA;
+  - (b) `harness_event_hash_compare.py` (decision 20, task 6);
+  - (c) `koa_k2_m5_rates_261010.py`: the registered M5 rule on the 16 rows, the rate table on the Gold node, the E5/Gold ratio, and the proposal for a solid cell in both builds (not run).
+- **The deviations of Test G on KOA, in one list:** two stages; the merge from the second clone at fd8d8a2; 20 chunks in a second submission because cn-05-08-07 has no git.
+- **Report G-KOA:** the verdict line first, the tables, the deviations, the commits and the push line. **If** the merge record is missing, the inventory is not clean, or the verdict is not NO DIFFERENCE at every registered mass: stop after printing and report, and change nothing.
+- **For the stage-1 campaign scripts (Report S1-0):**
+  - no job may depend on a tool that a node can lack;
+  - propose one of two fixes, saying which and why: the commit hash read from a file written at build time instead of git at run time, or a node test at the start that exits with one clear line;
+  - put `--exclude=cn-05-08-07` in every sbatch.
+- **Ground rules:** as before; no KOA contact. The data marker is `$SP/.decision26_ref`, 01:20 HST.
+
+**The message to CC, verbatim** (relayed by Chris on 2026-10-11 at about 01:20 HST, machine date; Chris's note above it: "It is the one CC has not received yet (CC's message that you pasted is still its old one). After it, CC prints the Test G verdict from the fetched data."):
+
+```
+From the plan author (Cowork), relayed by Chris. Record in a new
+section. Ground rules as before; no KOA contact.
+
+DECISIONS 25 AND 26 (2026-10-10 23:55 and 2026-10-11 ~00:20 HST)
+ 1. Report K2c: ACCEPTED. Your [CHOICE] (an interrupted attempt
+    followed by a complete one counts as done and is listed) is
+    accepted.
+ 2. The 20 stopped chunks. All 20 failed tasks of array 15043056
+    ran on cn-05-08-07. Their logs: "cluster/koa_env.sh: line 27:
+    git: command not found" and "slurm_script: line 24: git:
+    command not found", then "STOP: ./00ALLINONE is not the
+    recorded clean koa build of HEAD " (empty hash). No chunk
+    folders. Decision 25: Chris typed, from ~/harddisks_gen3/hspist3,
+      sbatch --array=57-61,66-70,110-114,132-136
+        --exclude=cn-05-08-07 cluster/gen3_koa_261009/testG_koa.sbatch
+    (your block R, typed before K2c arrived). Result: array
+    15044748, all 20 COMPLETED 0:0 on cn-03-38-02, -03, -04, -05,
+    -07.
+ 3. K2-4 on KOA, Chris's pastes: block A 164 / 144 / 0 / "144
+    E5-2670 v3"; block C HEAD fd8d8a2, ALL PASS (9 cases), ALL PASS
+    (8 cases), chunk check exit 0, "chunk logs: 164; chunks done:
+    144 of 144 ...; earlier attempts: 20 stopped in the start-up
+    checks, 0 started and not finished". Chris reports the step 6
+    fetch done at 01:19 on 2026-10-11 (275M in
+    experiments_gen3_gate_koa_261009). I have not yet seen the merge
+    job's log; before anything else, print from the fetched tree
+    whether merged/.merge_complete is there and what it says.
+ 4. Then, in this order, each table printed by its registered
+    script, nothing tuned:
+    a) testG_koa_verdict_261009.py: the inventory and the
+       registered verdict of Test G on KOA;
+    b) harness_event_hash_compare.py (decision 20 task 6);
+    c) koa_k2_m5_rates_261010.py: the registered M5 rule on the 16
+       rows, the rate table as measured on the Gold node, the
+       E5/Gold ratio, and the proposal for a solid cell in both
+       builds (not run).
+    Record the deviations of Test G on KOA in one list: two stages;
+    the merge from the second clone at fd8d8a2; 20 chunks in a
+    second submission because cn-05-08-07 has no git.
+ 5. Report G-KOA: verdict line first, the tables, the deviations,
+    commits, push line. If the merge record is missing, the
+    inventory is not clean, or the verdict is not NO DIFFERENCE at
+    every registered mass, stop after printing and report; change
+    nothing.
+ 6. For the stage 1 campaign scripts (Report S1-0): no job may
+    depend on a tool that a node can lack. Propose one of: the
+    commit hash read from a file written at build time instead of
+    git at run time, or a node test at the start that exits with
+    one clear line; and --exclude=cn-05-08-07 in every sbatch. Say
+    which and why.
+
+End with "Written for: the plan author".
+```
