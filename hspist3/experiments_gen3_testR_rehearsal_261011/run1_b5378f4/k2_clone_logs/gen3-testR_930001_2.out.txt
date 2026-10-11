@@ -1,0 +1,2 @@
+rehearsal shim: sha256sum fails (a pretended faulty node)
+STOP: [cn-07-07-07] the Test R inputs are not the delivered ones (cluster/gen3_testR_261011/testR_inputs.sha256)

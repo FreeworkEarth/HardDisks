@@ -1,0 +1,7 @@
+930001_2 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d28/rehearsal_run1/home/harddisks_gen3_k2/hspist3/cluster/gen3_testR_261011/testR_koa.sbatch 2
+930002 exclude cn-05-08-07,cn-07-07-07 (the Mac is one node: recorded only) 0
+930002_2 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d28/rehearsal_run1/home/harddisks_gen3_k2/hspist3/cluster/gen3_testR_261011/testR_koa.sbatch 0
+930003 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d28/rehearsal_run1/home/harddisks_gen3_k2/hspist3/cluster/gen3_testR_261011/testR_merge.sbatch 2
+930004 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d28/rehearsal_run1/home/harddisks_gen3_k2/hspist3/cluster/gen3_testR_261011/testR_merge.sbatch 2
+930005 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d28/rehearsal_run1/home/harddisks_gen3_k2/hspist3/cluster/gen3_testR_261011/testR_merge.sbatch 2
+930006 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d28/rehearsal_run1/home/harddisks_gen3_k2/hspist3/cluster/gen3_testR_261011/testR_merge.sbatch 2

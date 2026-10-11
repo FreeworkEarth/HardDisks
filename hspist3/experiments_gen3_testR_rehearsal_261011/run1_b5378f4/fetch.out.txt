@@ -1,0 +1,8 @@
+Transfer starting: 4 files
+job_logs/
+job_logs/gen3-testR_930001_2.out
+job_logs/gen3-testR_930002_2.out
+
+sent 792 bytes  received 70 bytes  278064 bytes/sec
+total size is 476  speedup is 0.55
+fetched into /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d28/rehearsal_run1/home/harddisks_gen3_k2/hspist3/experiments_gen3_testR_koa_261011: 8.0K; merge record: MISSING
