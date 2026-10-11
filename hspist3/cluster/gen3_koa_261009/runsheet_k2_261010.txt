@@ -1,0 +1,141 @@
+##CHRIS 2026-10-10 (plan-author decision 20, task 5; 261012 sec. 4.7.47) -- RUNSHEET ADDENDUM K2 to runsheet_gen3_koa_261009.txt
+PREPARED. Nothing here is typed until the plan author has read Report K2 and Chris says go. Chris types every command.
+
+WHAT K2 DOES. Gate job 15040861 stopped in part (c) on a bug in OUR script g3_rate_ld_koa.py (a regular expression took the comma that
+follows a number; fixed, with a unit test). Parts (a) E0 and (b) the harnesses had run; step 4, cross-node determinism, passed.
+The Mac rehearsal of every KOA job script (decision 20) then found a second fault, in the registered Test G merge: every A-fixed run
+writes 00_COMMAND.md and run_params.json into the shared x_0 folder, so the second chunk holding A-fixed runs (chunk 130 of 144) would
+have stopped the merge on a "name collision", after it had moved files, and the merge refuses to run twice. Fixed; re-rehearsed.
+K2 runs the gate's parts (c) and (d) again (K2-2), then Test G in two stages, as decision 20 asks: one chunk alone, checked, then the
+rest and the fixed merge (K2-3, K2-4).
+  - ~/harddisks_gen3 stays exactly as it is: at a643bc7, its binaries NOT rebuilt (checked against the SHA-256 printed in step 2).
+    The Test G ARRAYS run from it with the registered scripts, unchanged; their logs go to its hspist3/logs/, as step 5's would have.
+  - A SECOND clone, ~/harddisks_gen3_k2, holds the scripts of the fix commit engine-gen3 2988351
+    (2988351f8f566199ae47f1df243d452dc96b6af2). Nothing is built there. Its two jobs use the binaries and the chunk folders of
+    ~/harddisks_gen3's runs: K2-2 (the gate's (c) and (d)) and the Test G MERGE (merge_testG_k2.sbatch, the fixed merge_testG_koa.py).
+  - Rehearsed end to end on the Mac (rehearse_k2_mac.py; 261012 sec. 4.7.47): every script at 9d4490c, and after the merge fix the
+    whole Test G path again at 2988351; the scripts the other jobs run are byte-identical in the two commits.
+THE BINARIES (step 2's SHA-256; the fix commit holds them in cluster/gen3_koa_261009/k2_binaries_a643bc7.sha256):
+  742aa2d3530e0b0c7e940260fbc5c69fefe7d56caca6a425c8ae2e4f65c5bbb2  00ALLINONE         ("00ALLINONE  git a643bc7  target koa")
+  5e00a5d7aadb6cc9ff43ac27bced91bbb082393808e5df1851de1bd5f2ab71fe  bin/00ALLINONE_ld  ("00ALLINONE  git a643bc7  target koa-ld")
+  5eb49cf7ca7494beefbc4e16674a7840e05f248c2d3b0bcef4887b4e3dc03ac5  bin/gen3_m1
+  c5c83443d01ac6bdc1578d11f737561ddad78aff0408269cce83141d0973fcb1  bin/gen3_m2
+THE TEST G REGISTRATION is unchanged: the task list tasks_testG_koa_261009.txt and its SHA-256
+cff8e6f9ef3d95440f54b4c621fff776b64e48700083e7258e472351fc6412b9 (every array task checks it), gen_testG_koa_261009.py, the chunk
+scripts testG_koa.sbatch and testG_worker_koa.sh, and the verdict testG_koa_verdict_261009.py (BUILD_KOA_COMMIT a643bc7, set in f8e763e
+as registered) are byte for byte as before. Only the merge changes: merge_testG_koa.py keeps each chunk's copy of those two per-run
+files as 00_COMMAND_chunk<j>.md and run_params_chunk<j>.json (no reader uses them); it runs from the second clone.
+WHY TWO STAGES ARE CONSISTENT WITH THE REGISTRATION: the same task list (each task checks its SHA-256), the same binary (each task
+checks logs/BUILD_KOA_LAST.hash and the version line "git a643bc7  target koa"), and the same order within every chunk (chunk j is the
+task lines (j-1)*25+1 .. j*25, run in order, one at a time, by the registered testG_koa.sbatch). Splitting the array into 1 and 2-144
+changes only WHEN chunk 1 runs relative to the others. The chunks are independent: each writes only its own folder
+chunks/chunk_<j>/, and every trajectory's seed is fixed by its task line. So the data are the same as from one array 1-144; the merge
+assembles the chunk folders in chunk order, whenever they ran.
+
+KOA RULES, as in the runsheet: the login node only for light commands (no git, no binaries there); squeue before every sbatch; never
+submit a job twice; nothing in ~/harddisks, ~/harddisks_resched, ~/harddisks_resched2 or ~/harddisks_gen3 changes (the Test G arrays
+write their logs into ~/harddisks_gen3/hspist3/logs/, as the runsheet's step 5 would). Every job checks its clone, its binaries and
+its task list, and stops with "STOP: ..." on any mismatch: paste the STOP line, change nothing, wait. The only placeholders are job
+ids, written <... job id: replace by the number>; type the number Slurm printed, without the angle brackets.
+THE SANDBOX LINE is the established one, without -A: srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+
+CORE-HOURS AND CORES PER STEP (requested = cores x time limit, summed; Slurm charges what a job uses). Expected use from the Mac
+rehearsal times and the KOA/Mac ratio of step 4's cross-node runs (the same commands took 1.52x and 1.66x the Mac's time on KOA):
+| step | what | partition | cores at once | requested core-hours | expected use |
+|---|---|---|---|---|---|
+| K2-1 | sandbox shell: the second clone, no build | sandbox | 2 | 2.00 | under 0.1 |
+| K2-2 | the gate's (c) rate table and (d) long-double check | shared | 8 | 24.00 | about 1 (about 5 min on 8 cores) |
+| K2-3 | Test G stage 1: chunk 1 alone | shared | 1 | 6.00 | under 0.1 (about 2 min) |
+| K2-4 | Test G stage 2: chunks 2-144, at most 64 at once; the merge | shared | 64 | 858.00 + 2.00 | about 14 (the Mac's 8.6 x 1.6) |
+| all | | | | 892.00 | about 15 |
+
+STEP K2-1 (KOA; a sandbox shell; the second clone; about 2 min)
+  squeue -u charing
+  srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+      (wait for the cn-... prompt of the compute node before typing on: commands typed while srun is queued are lost)
+      (STOP RULE: if any line of this step starts with fatal: or error:, or a check below prints anything other than what is stated,
+       type exit, change nothing, paste it.)
+  cd ~
+  git clone --depth 1 --branch engine-gen3 --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_gen3_k2
+  cd harddisks_gen3_k2
+  git fetch --depth 1 origin 2988351f8f566199ae47f1df243d452dc96b6af2
+  git -c advice.detachedHead=false checkout 2988351f8f566199ae47f1df243d452dc96b6af2
+  git sparse-checkout set --no-cone "/hspist3/*.py" "/hspist3/cluster/" "/hspist3/validation/"
+  mkdir -p hspist3/logs
+  git log -1 --format='%h %s' | cut -c1-80          (paste; it must start with 2988351)
+  cd hspist3 && sha256sum cluster/gen3_koa_261009/g3_rate_ld_koa.py cluster/gen3_koa_261009/g3_rate_ld_k2.sbatch cluster/gen3_koa_261009/k2_binaries_a643bc7.sha256 cluster/gen3_koa_261009/merge_testG_koa.py cluster/gen3_koa_261009/merge_testG_k2.sbatch
+      (paste; it must print exactly these five lines:
+       fe7f1355b9de1fe89edb901813cc4740337844fd04a5961ea682d729a55ec632  cluster/gen3_koa_261009/g3_rate_ld_koa.py
+       4c86c15e4d7d89b730d233ed513b9182c2153ded24253bdfac5d3a60da84e8d1  cluster/gen3_koa_261009/g3_rate_ld_k2.sbatch
+       430b51d5f80b6f82783e3d875770fda9155a5b7a94a97e7a906be20b41896ff7  cluster/gen3_koa_261009/k2_binaries_a643bc7.sha256
+       896e72077a9c3ba9fedcd2356280f62c380ce9e4292e843d0062d7ca8154a6e8  cluster/gen3_koa_261009/merge_testG_koa.py
+       6f60b6652bbe3eb7e2b5579f8a5c4b1d0f20ab67ed9f5945b858281cac12e44e  cluster/gen3_koa_261009/merge_testG_k2.sbatch)
+  (cd ~/harddisks_gen3/hspist3 && sha256sum -c ~/harddisks_gen3_k2/hspist3/cluster/gen3_koa_261009/k2_binaries_a643bc7.sha256)
+      (paste; four lines, each ending in ": OK" -- the binaries of ~/harddisks_gen3 are the ones step 2 built)
+  exit                                               (leave the sandbox shell)
+
+STEP K2-2 (KOA login node; the gate's parts (c) and (d), from the second clone; one node, 8 cores, at most 3 h on shared)
+  squeue -u charing
+  cd ~/harddisks_gen3_k2/hspist3 && sbatch cluster/gen3_koa_261009/g3_rate_ld_k2.sbatch           (note the job id)
+  when it has ended (about 5 min of run time):
+    sacct -X -j <K2-2 job id: replace by the number> --format=JobID,State,Elapsed,ExitCode
+    cat logs/gen3-rate-ld-k2_<K2-2 job id: replace by the number>.out                                (paste both)
+  Expected: State COMPLETED, ExitCode 0:0. The log: "env: gcc (GCC) 14.3.0 | ..."; "node cn-... | ... | out
+  /mnt/lustre/koa/scratch/charing/harddisks_gen3/gen3_rate_ld_k2_<id> | scripts: clone HEAD 2988351f... | binaries:
+  /home/charing/harddisks_gen3/hspist3"; the two version lines "00ALLINONE  git a643bc7  target koa" and "... target koa-ld";
+  "binaries: SHA-256 as recorded in runsheet step 2 (all four)"; (c) a table of 12 rows (N = 100, 400, 900, 1600 x eta pi/8, 0.70,
+  0.78), clean 1 in every row; (d) a table of 16 rows (koa and koa-ld; N = 100 at pi/8 and N = 400 at 0.70; 4 seeds each), clean 1
+  and a number in "gap / u_t" in every row; the last line "K2-2 (gate parts (c) and (d)) done; paste everything from 'node ' to here".
+  STOP RULE: a line starting with STOP:, a Python Traceback, a row with clean 0 or "no run record", or a State other than COMPLETED:
+  paste it, change nothing, type nothing else on KOA.
+
+STEP K2-3 (KOA login node; Test G stage 1: chunk 1 alone -- task lines 1-25: M = 50, r = 0-12 for gen2 and r = 0-11 for gen3;
+           1 core, at most 6 h on shared; about 2 min of run time)
+  squeue -u charing
+  cd ~/harddisks_gen3/hspist3 && sbatch --array=1 cluster/gen3_koa_261009/testG_koa.sbatch             (note the array job id)
+  when it has ended:
+    sacct -X -j <stage-1 array job id: replace by the number> --format=JobID,State,Elapsed,ExitCode
+    cat logs/gen3-testG_<stage-1 array job id: replace by the number>_1.out
+    D=/mnt/lustre/koa/scratch/charing/harddisks_gen3/testG_koa/chunks/chunk_1/testG
+    ls $D/gen2/epi8_H_H10_L10/m_50/wall_x_positions_* | wc -l
+    ls $D/gen3/epi8_H_H10_L10/m_50/wall_x_positions_* | wc -l
+    grep -c '^##RUN' $D/gen2/epi8_H_H10_L10/m_50/run.log $D/gen3/epi8_H_H10_L10/m_50/run.log
+    grep -c '^\[EDMD3-HEALTH\] .*: clean=1 ' $D/gen3/epi8_H_H10_L10/m_50/run.log
+    cat $D/gen2/epi8_H_H10_L10/m_50/.build_git $D/gen3/epi8_H_H10_L10/m_50/.build_git                (paste all)
+  THE LINES THAT SHOW IT IS GOOD (all of them, and nothing else):
+    sacct: "<id>_1 ... COMPLETED ... 0:0"
+    the log: "env: gcc (GCC) 14.3.0 | ..."; "chunk 1 on cn-... (...): lines 1-25; 00ALLINONE  git a643bc7  target koa"; "chunk 1 done";
+             and no line containing FAILED, REFUSED or STOP
+    13                  (the gen2 traces, r = 0-12)
+    12                  (the gen3 traces, r = 0-11; gen3's r = 12 is task line 26, in chunk 2)
+    .../gen2/epi8_H_H10_L10/m_50/run.log:13  and  .../gen3/epi8_H_H10_L10/m_50/run.log:12   (one ##RUN section per trajectory)
+    12                  (every gen3 trajectory's run record clean=1)
+    00ALLINONE  git a643bc7  target koa   (twice)
+  (In the Mac rehearsal chunk 1 printed exactly these: 13, 12, 13 and 12 sections, 12 clean records.)
+  STOP RULE: anything else: paste it, change nothing, wait. Stage 2 is typed only after the plan author has read stage 1.
+
+STEP K2-4 (KOA login node; Test G stage 2: chunks 2-144, at most 64 at once, from ~/harddisks_gen3; then the FIXED merge from
+           ~/harddisks_gen3_k2; only after the plan author's go on K2-3)
+  squeue -u charing
+  cd ~/harddisks_gen3/hspist3 && sbatch --array=2-144%64 cluster/gen3_koa_261009/testG_koa.sbatch        (note the array job id)
+  cd ~/harddisks_gen3_k2/hspist3 && sbatch --dependency=afterany:<stage-2 array job id: replace by the number> cluster/gen3_koa_261009/merge_testG_k2.sbatch   (note the merge job id)
+      (NOT the registered merge_testG_koa.sbatch of ~/harddisks_gen3: that one stops at the second chunk with A-fixed runs)
+  when the merge has ended:
+    sacct -X -j <stage-2 array job id: replace by the number>,<merge job id: replace by the number> --format=JobID,State,Elapsed,ExitCode | grep -v COMPLETED
+    tail -40 ~/harddisks_gen3_k2/hspist3/logs/gen3-testG-merge-k2_<merge job id: replace by the number>.out          (paste both)
+  Expected: the sacct line prints only its two header lines (every task and the merge COMPLETED). The merge log: "merge of
+  .../testG_koa by the scripts of clone HEAD 2988351f..."; "chunks: 144; FAILED lines in the chunk logs (...): 0 logs"; "merged 144
+  chunks: ... 0 failed-run folders kept; build '00ALLINONE  git a643bc7  target koa'"; six lines "reduce_B testG/<gen2|gen3>/<cell>:
+  exit 0 ..." (cells dense_H10_L5.604167, epi8_H_H10_L10, epi8_N400_H20_L20), each followed by its "traces compressed" lines;
+  "merge done; next: the fetch (runsheet step 6) and the KOA verdict on the Mac".
+  STOP RULE: a task or the merge not COMPLETED, "FAILED lines ...: N logs" with N > 0, "STOP:", or a reduce_B exit other than 0: paste
+  it, change nothing, wait.
+
+STEP 6, AMENDED (Mac; the fetch; Chris types the password and Duo for each rsync line): the third argument is the K2-2 job id.
+  cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks && bash hspist3/cluster/gen3_koa_261009/fetch_gen3_koa.sh 15040861 15040862 <K2-2 job id: replace by the number>
+  Size: the Test G tree about 45 MB (0.6 MB per 52 task lines in the rehearsal); the gate folder of job 15040861 holds the E0 outputs,
+  among them twelve A-fixed event logs of about 17 MB each (about 0.2 GB in the rehearsal's gate job); the fetch copies them (it leaves
+  out only *.csv.gz).
+  then CC: python3 hspist3/cluster/gen3_koa_261009/testG_koa_verdict_261009.py (the registered verdict on the KOA data), and
+           python3 hspist3/cluster/gen3_koa_261009/harness_event_hash_compare.py (decision 20, task 6: the event hashes in KOA's
+           harness outputs against the Mac's).

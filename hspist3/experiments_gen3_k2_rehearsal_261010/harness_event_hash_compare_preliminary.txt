@@ -1,0 +1,40 @@
+# The event hashes in KOA's M1/M2 harness outputs against the Mac's (261012 sec. 4.7.47; decision 20, task 6)
+
+PRELIMINARY (Chris's grep of the A rows, lines cut at 90 characters; the hash column complete):
+
+| # | file | cell | initial velocities | KOA | Mac | equal |
+|---|---|---|---|---|---|---|
+| 1 | m2_audit_quick_output.txt | cradle_exact | exact | f2a24a398cb39921 | f2a24a398cb39921 | yes |
+| 2 | m2_audit_quick_output.txt | cradle_round | exact | 2bfd7aef388de7dd | 2bfd7aef388de7dd | yes |
+| 3 | m2_audit_quick_output.txt | cradle_round_late | exact | 07d4f69fc123603d | 07d4f69fc123603d | yes |
+| 4 | m2_audit_quick_output.txt | free_pi8_M50 | libm | 795e2be5f5cdc163 | b7fc0a42c4298c83 | no |
+| 5 | m2_audit_quick_output.txt | free_pi8_M500 | libm | a491e01dbffb1d67 | a7f59b823b9a41a5 | no |
+| 6 | m2_audit_quick_output.txt | free_070_M50 | libm | ab5d937cfc272a6e | f6a47b04c358daab | no |
+| 7 | m2_audit_quick_output.txt | free_070_M500 | libm | 8b5a763cf088d039 | d5b44b097b452d63 | no |
+| 8 | m2_audit_quick_output.txt | heavy_070_M4e7 | libm | b0d2e07d03f1869c | f42742bf07cf5c1d | no |
+| 9 | m2_audit_quick_output.txt | held_pi8 | libm | ef951933d486c2fa | ff586273c5976fdd | no |
+| 10 | m2_audit_quick_output.txt | held_070 | libm | 7444d570fae8cd22 | c37af54f94209a0b | no |
+| 11 | m2_audit_quick_output.txt | driven_pi8 | libm | fb5dbec59378088c | b60cd6b2420f07ec | no |
+| 12 | m2_audit_quick_output.txt | spring_pi8 | libm | 50cd48a989d5bb05 | 2c7fb7c4b74a30f3 | no |
+| 13 | m2_audit_quick_output.txt | piston_push | libm | a2f8e345850582da | 61f1a7e0882c4638 | no |
+| 14 | m2_audit_output.txt | cradle_exact | exact | 5a833b6ba8a6c12c | 5a833b6ba8a6c12c | yes |
+| 15 | m2_audit_output.txt | cradle_round | exact | c721682fd6d235ad | c721682fd6d235ad | yes |
+| 16 | m2_audit_output.txt | cradle_round_late | exact | 96b65d11b8eaa971 | 96b65d11b8eaa971 | yes |
+| 17 | m2_audit_output.txt | free_pi8_M50 | libm | b9fb81c17d64b1e8 | 8f1268009ba304fc | no |
+| 18 | m2_audit_output.txt | free_pi8_M500 | libm | b4ffc16293797945 | aa946026a651a01b | no |
+| 19 | m2_audit_output.txt | free_070_M50 | libm | 43793a763c6812a6 | dcac57156ca2aab1 | no |
+| 20 | m2_audit_output.txt | free_070_M500 | libm | 46003616afd008a3 | daebfe61c1e45847 | no |
+| 21 | m2_audit_output.txt | heavy_070_M4e7 | libm | 51115487c9b1caab | 92b2b413aa503bc0 | no |
+| 22 | m2_audit_output.txt | held_pi8 | libm | 837fb9e4637447eb | cdecc4ad3c415368 | no |
+| 23 | m2_audit_output.txt | held_070 | libm | 79621d4228ba6c48 | f2375a9ca40a269b | no |
+| 24 | m2_audit_output.txt | driven_pi8 | libm | 964fcaa759e63b87 | 694fdf127f35d4b4 | no |
+| 25 | m2_audit_output.txt | spring_pi8 | libm | 9c57360fa2ec6df7 | f5acedfa3635e766 | no |
+| 26 | m2_audit_output.txt | piston_push | libm | 3c1bfa4a12bb3d48 | f4d6058229b68adb | no |
+| 27 | m1_audit_output.txt | fluid | libm | d849652e16a84344 | 554d54d53b262d95 | no |
+| 28 | m1_audit_output.txt | dense | libm | e0e3e6440e93abe5 | 05aff616919c73e7 | no |
+| 29 | m1_audit_output.txt | lattice | libm | 1fb0684c98ebcb03 | 5c08787c3d718c66 | no |
+| 30 | m1_audit_output.txt | tie | exact | 9a15ca6c9fd03b33 | 9a15ca6c9fd03b33 | yes |
+| 31 | m1_audit_output.txt | solid | libm | 965afff5462c7d48 | 116041102f780237 | no |
+| 32 | m1_audit_output.txt | dense | libm | a6694d08fd33a01a | ed2fc76fd6d21878 | no |
+
+equal event hashes: 7 of 32
