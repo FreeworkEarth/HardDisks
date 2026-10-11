@@ -16245,3 +16245,201 @@ M = 2000: n 6713, dt 2.1164855, df = 7.03830e-05 = 0.469 % of nu; largest distan
 | gen3 | 1500 | 400 | 0 |
 | gen3 | 2000 | 100 | 0 |
 ```
+
+### 4.7.57 Plan-author decision 28: Report G2 accepted as POST HOC information; C1 registered (run now); TEST R (KOA), the replication at M = 50, 100 and 300, registered; amendment A1 to stage 1 gate G6 (a); task R0, the Test R package, ordered (2026-10-11 09:48 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Report G2: read, and accepted as POST HOC information.** TEST G (KOA) FAIL at M = 50 stands.
+- **Plan-author errors recorded:**
+  - "the M2 harness has an independent brute-force reference engine" (it is gen3's own schedule audit);
+  - the hypothesis "gen3 has no light-divider deficit", stated before the per-engine table (gen3: −0.169 ± 0.076 % by ν_0).
+- **The plan author's reading [INFERENCE].** The deficit at α = 0.5 exists in both engines. Whether the engines differ is not settled: z 3.5 by argmax, z 2.2–2.3 by ν_d and ν_0.
+- **The arbiter is a larger replication (Test R) plus C1.** C2 is built only if Test R does not print ENGINES AGREE. C3, a third engine, is not done now.
+- **C1, registered as proposed in sec. 4.7.56, Mac, gen3 only. Run it now.**
+  - The registered Test G M = 50 gen3 command with `--gen3-audit-every=1`.
+  - n = 200 Mac starts: the first n seeds of the M = 50 gen3 tasks, in task-list order. Each has an unaudited twin.
+  - One audited trajectory outside the sample is timed first; if it takes more than 4.5 min, n is reduced by the rule.
+  - **PASS:** in all n, every [EDMD3-AUDIT] count is 0, max |dt| ≤ 1e-9 units, the hash and per-class event counts equal the twin's, and clean=1 in both.
+  - **FAIL:** any missing, extra or deferred-early event; the first one is quoted.
+  - Otherwise **NOT DECIDED**.
+- **TEST R (KOA), registered before any Test R trajectory exists: a replication of Test G at the light masses.**
+  - **Binary:** `--engine=gen2` and `--engine=gen3` of the KOA binary of a643bc7 in `~/harddisks_gen3` (SHA-256 742aa2d3...), not rebuilt.
+  - **Command:** the B command of `testG_worker_koa.sh`, file unchanged (1cdb7ff6). Cell epi8_H_H10_L10 (N = 100, H = L0 = 10).
+  - **Masses:** M = 50, 100 and 300, with the trace stride by the Test G generator's rule.
+  - **Seeds:** 3,600 exact seeds per mass (r = 0..3599), the same seed in both engines. A new base seed that occurs in no repository file. The generator prints "all distinct" and "zero overlap with every earlier task list".
+  - **Estimators:** ν_arg by `reduce_B.py`. ν_d by `fit_acf` exactly as `testG_koa_posthoc_261011.py` at 60909289 computes it, started at the mass's pooled argmax mean of its own engine.
+  - **Statistic:** d = mean(gen3)/mean(gen2) − 1, with the unpaired SE from each arm's seed scatter, and z = d/SE(d).
+  - **Verdict per mass:**
+    - DIFFERENCE CONFIRMED if |z_arg| ≥ 3.5 or |z_d| ≥ 3.5;
+    - NO DIFFERENCE if both |z| < 3.5 and the 95 % interval of d from ν_d lies within ±0.15 %;
+    - otherwise NOT DECIDED.
+  - **Overall:**
+    - TEST R: ENGINES AGREE if NO DIFFERENCE at all three masses;
+    - TEST R: ENGINES DIFFER if DIFFERENCE CONFIRMED at any mass;
+    - otherwise TEST R: NOT DECIDED.
+  - **Health:** Test G's rule.
+    - A failed run is excluded and counted, never rerun. More than 1 % excluded in any (engine, mass) arm: NOT DECIDED.
+    - A chunk that stopped in its start-up checks and ran nothing is submitted once more (as in decision 25) and listed.
+  - **Discipline:** one printing; no extension, rerun or change of estimator.
+  - **Information rows (no verdict):** τ_r, Q, ν_0 and δ_M per engine as in Report G2; the argmax histograms; d from Test G and Test R pooled; the fit-failure counts.
+  - **The verdict script** has `--selftest` and `--design`, and is committed before chunk 1 runs. `--design` prints, before any data:
+    - every threshold;
+    - the false-alarm rate of the overall verdict;
+    - the probability of each overall outcome for true differences of 0, 0.1, 0.2 and 0.3 % at M = 50, from Test G's per-trajectory scatter.
+    - The plan author's planning numbers: SE(d) about 0.06 % (argmax) and 0.036 % (ν_d) at M = 50; about 50 core-hours on E5 nodes.
+- **Amendment A1 to the stage 1 registration (sec. 4.8.10, gate G6 a)**, dated 2026-10-11, before any Test R or C1 data. Text in the message below; recorded here with the registration. The plan author carries it to the stage 1 chat.
+- **Task R0, the Test R package (first on the critical path):**
+  - the task generator with `--design` tables, the task list and its SHA-256;
+  - its own sbatch:
+    - the commit hash and the binary's SHA-256 read from files written at build time (written now from the recorded values; say how);
+    - no git at run time, and `koa_env.sh` must not fail without git;
+    - `--exclude=cn-05-08-07`, one core per chunk, per-chunk folders;
+    - a stated chunk size: the array below MaxArraySize, predicted chunk time ≤ 15 min on E5;
+  - the merge: fd8d8a2's plan-before-move merge and chunk check, generalised to a root and chunk count from the task list; every change against fd8d8a2 listed;
+  - the fetch: it copies the merge record too, and no raw traces;
+  - reduction on KOA: reduce_B per (engine, mass) and the ν_d table, so the Mac needs only the per-trajectory tables;
+  - the verdict script;
+  - a full Mac rehearsal: a mini list with all three masses and two chunks delivering into one folder, including a first attempt that stops at start-up, covering every script the KOA jobs run;
+  - the runsheet in paste blocks with no job-id placeholders:
+    - delivery (a third clone, or an update of `~/harddisks_gen3_k2`; say which);
+    - chunk 1 alone with its good lines;
+    - the rest at %64 (128 only if sinfo shows ≥ 10 % of shared idle; print that line);
+    - the merge;
+    - the fetch.
+  - Nothing is typed on KOA before the plan author has read Report R0.
+- **Then, as ordered before:** task D (Report S1-0 up to gate G4) and task E (the M5 solid-cell job, prepared, not typed).
+- **Report R0** contains:
+  - the C1 verdict with its table;
+  - the Test R package and the `--design` output verbatim;
+  - the rehearsal table and the runsheet blocks;
+  - deviations, commits and the push line.
+  - It ends with "Written for: the plan author".
+- **Ground rules:** as before, and at most 8 simulation processes in total (C1 and the rehearsal together). New data ≤ 500 MB, counted from the marker `$SP/.decision28_ref` (09:48:03 HST).
+- **The attachment.** The message's attachment "261013 state of play" (Document · MD) did not reach CC; only its name appears in the paste.
+
+**The message, verbatim** (relayed by Chris on 2026-10-11 at about 09:48 HST, machine date; the plan author's note to Chris above it, as pasted):
+
+```
+Send CC the block below.
+Paste me CC's Report R0. It will contain the KOA runsheet; I approve it before you type anything.
+
+For CC:
+
+From the plan author (Cowork), relayed by Chris. Record verbatim in
+a new section. Ground rules as before. At most 8 simulation
+processes in total, C1 and the rehearsal together.
+
+DECISION 28 (2026-10-11 ~09:45 HST), after Report G2
+ 1. Report G2: read, accepted as POST HOC information. TEST G (KOA)
+    FAIL at M = 50 stands. Recorded plan-author errors: "the M2
+    harness has an independent brute-force reference engine" (it is
+    gen3's own schedule audit); the hypothesis "gen3 has no
+    light-divider deficit", stated before the per-engine table
+    (gen3: -0.169 +- 0.076 % by nu_0).
+ 2. My reading [INFERENCE]: the deficit at alpha = 0.5 exists in
+    both engines; whether the engines differ is not settled (z 3.5
+    by argmax, z 2.2-2.3 by nu_d and nu_0). The arbiter is a larger
+    replication plus C1. C2 is built only if the replication does
+    not print ENGINES AGREE. C3 (a third engine): not now.
+
+ REGISTRATION C1 (Mac; gen3 only) - as you proposed, accepted:
+  the registered Test G M = 50 gen3 command with
+  --gen3-audit-every=1, n = 200 Mac starts (the first n seeds of
+  the M = 50 gen3 tasks in task-list order), each with an unaudited
+  twin; one audited trajectory outside the sample is timed first
+  and n is reduced by your rule if it takes more than 4.5 min.
+  PASS: in all n, every [EDMD3-AUDIT] count 0, max |dt| <= 1e-9
+  units, hash and per-class event counts equal to the twin's,
+  clean=1 in both. FAIL: any missing, extra or deferred-early
+  event (the first is quoted). Otherwise NOT DECIDED. Run it now.
+
+ REGISTRATION TEST R (KOA) - replication of Test G at the light
+ masses. Written before any Test R trajectory exists.
+  Engines and binary: --engine=gen2 and --engine=gen3 of the KOA
+   binary of a643bc7 in ~/harddisks_gen3 (SHA-256 742aa2d3...),
+   not rebuilt.
+  Command: the B command of testG_worker_koa.sh, file unchanged
+   (1cdb7ff6). Cell epi8_H_H10_L10 (N = 100, H = L0 = 10).
+  Masses: M = 50, 100, 300. Trace stride by the Test G generator's
+   rule.
+  Trajectories: 3,600 exact seeds per mass, r = 0..3599, the same
+   exact seed in both engines. One new base seed that occurs in no
+   file of the repository; the generator prints "all distinct" and
+   "zero overlap with every earlier task list".
+  Estimators per trajectory: nu_arg by reduce_B.py (registered,
+   unchanged); nu_d by fit_acf exactly as testG_koa_posthoc_
+   261011.py at 60909289 computes it (start value: the mass's
+   pooled argmax mean of its own engine).
+  Statistic per mass and estimator: d = mean(gen3)/mean(gen2) - 1;
+   SE from the seed scatter of each arm (unpaired); z = d / SE(d).
+  Verdict per mass:
+   DIFFERENCE CONFIRMED  if |z_arg| >= 3.5 or |z_d| >= 3.5;
+   NO DIFFERENCE         if |z_arg| < 3.5 and |z_d| < 3.5 and the
+                         95 % interval of d from nu_d lies within
+                         +-0.15 %;
+   NOT DECIDED           otherwise.
+  Overall:
+   TEST R: ENGINES AGREE   if NO DIFFERENCE at all three masses;
+   TEST R: ENGINES DIFFER  if DIFFERENCE CONFIRMED at any mass;
+   TEST R: NOT DECIDED     otherwise.
+  Health: Test G's rule. A failed run is excluded and counted,
+   never rerun. More than 1 % excluded in any (engine, mass) arm:
+   NOT DECIDED. A chunk that stopped in its start-up checks and ran
+   nothing is submitted once more (as decision 25) and listed.
+  One printing. No extension, no rerun, no change of estimator.
+  Information rows (no verdict): tau_r, Q, nu_0 and delta_M per
+   engine as in Report G2; the argmax histograms; d from Test G and
+   Test R pooled; the fit-failure counts.
+  The verdict script has --selftest and --design. --design prints,
+   before any data: every threshold, the false-alarm rate of the
+   overall verdict, and the probability of each overall outcome for
+   true differences of 0, 0.1, 0.2 and 0.3 % at M = 50 using the
+   per-trajectory scatter of Test G (my planning numbers: SE(d)
+   about 0.06 % for argmax and 0.036 % for nu_d at M = 50; about 50
+   core-hours on E5 nodes). Committed before chunk 1 runs.
+
+ AMENDMENT A1 to the stage 1 registration (sec. 4.8.10, gate G6 a),
+ dated 2026-10-11, before any Test R or C1 data:
+  "G6 (a) as registered ('Test G on KOA: PASS by its registered
+  verdict') is NOT MET and stays recorded as not met. It is
+  replaced by: Test R prints ENGINES AGREE and C1 prints PASS.
+  Test G and Test R are both reported wherever either is cited."
+  Record it in the notes with the registration; I carry it to the
+  stage 1 chat.
+
+ TASK R0 - the Test R package (first on the critical path):
+  - task generator with --design tables, the task list and its
+    SHA-256;
+  - its own sbatch: commit hash and binary SHA-256 read from files
+    written at build time (write them now from the recorded values;
+    say how), NO git at run time, koa_env.sh must not fail without
+    git, --exclude=cn-05-08-07, one core per chunk, per-chunk
+    folders, chunk size of your choice (state it: array below
+    MaxArraySize, predicted chunk time <= 15 min on E5);
+  - the merge: the fd8d8a2 plan-before-move merge and chunk check,
+    generalised to a root and chunk count given by the task list;
+    list every change against fd8d8a2;
+  - the fetch: copies the merge record as well; no raw traces;
+  - reduction on KOA: reduce_B per (engine, mass) and the nu_d
+    table, so that the Mac needs only the per-trajectory tables;
+  - the verdict script (above);
+  - a full Mac rehearsal with a mini list that has all three masses
+    and two chunks delivering into one folder, including a first
+    attempt that stops at start-up; every script the KOA jobs run;
+  - the runsheet in paste blocks without job-id placeholders:
+    delivery (third clone or update of ~/harddisks_gen3_k2; say
+    which), chunk 1 alone with its good lines, the rest at %64
+    (128 only if sinfo shows >= 10 % of shared idle; print the
+    line), merge, fetch.
+  Nothing is typed on KOA before I have read Report R0.
+
+ Then, as ordered before: TASK D (Report S1-0 up to gate G4) and
+ TASK E (M5 solid-cell job, prepared, not typed).
+
+REPORT R0: the C1 verdict with its table; the Test R package, the
+--design output verbatim, the rehearsal table, the runsheet blocks,
+deviations, commits, push line. End with "Written for: the plan
+author".
+261013 state of play
+Document·MD
+```
