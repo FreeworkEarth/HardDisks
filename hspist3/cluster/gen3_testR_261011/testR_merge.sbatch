@@ -1,6 +1,6 @@
 #!/bin/bash
 # ##CHRIS 2026-10-11 (plan-author decision 28, task R0; 261012 sec. 4.7.57): THE MERGE OF TEST R ON KOA, one process, from the delivery
-# clone ~/harddisks_gen3_r, after every chunk has ended. merge_testG_k2.sbatch (fd8d8a2) generalised; its rules unchanged:
+# clone ~/harddisks_gen3_k2 (updated in place to the Test R commit), after every chunk has ended. merge_testG_k2.sbatch (fd8d8a2) generalised; its rules unchanged:
 #   - it does not depend on the array's job id: Chris submits it when squeue lists no gen3-testR job; it checks that itself;
 #   - every check comes before any move, and a failed check stops it with exit 2 and NOTHING moved:
 #       the inputs as delivered (testR_inputs.sha256 and testR_merge_inputs.sha256, sha256sum -c), the task list as registered;
@@ -10,14 +10,14 @@
 #   - merged/ must not exist (exit 3): a merge is never repeated;
 #   - then merge_koa.py: the plan, and only a clean plan is executed (merged/.merge_complete), then the reduction (reduce_B.py and
 #     reduce_testR_koa.py per cell folder) and the compression of the traces.
-# Changes against merge_testG_k2.sbatch (fd8d8a2): the job name, the clone (~/harddisks_gen3_r), the root (testR_koa), the task list, its
+# Changes against merge_testG_k2.sbatch (fd8d8a2): the job name, the clone (~/harddisks_gen3_k2 at the Test R commit), the root (testR_koa), the task list, its
 # chunk size and the chunk count from testR_chunk_size.txt (fd8d8a2: 25, fixed), the chunk check's log prefix (gen3-testR), the merge
 # script and its arguments; NO GIT (the clone line prints the SHA-256 of the scripts it runs instead of `git rev-parse HEAD`); the
 # input manifests; --exclude=cn-05-08-07; and the job logs copied to <root>/job_logs/ (no overwrite) so that the fetch carries the
 # merge record: the chunk logs before the check, this job's own log as its last command.
 # exit: 0 merged; 2 a check or the merge plan stopped it, NOTHING moved (it may be submitted again once the cause is removed);
 #       3 refused (merged/ exists); 1 the merge failed during its execution: merged/ has no .merge_complete; inspect by hand.
-#   cd ~/harddisks_gen3_r/hspist3 && sbatch cluster/gen3_testR_261011/testR_merge.sbatch
+#   cd ~/harddisks_gen3_k2/hspist3 && sbatch cluster/gen3_testR_261011/testR_merge.sbatch
 #SBATCH --job-name=gen3-testR-merge
 #SBATCH --partition=shared
 #SBATCH --account=uh
@@ -28,10 +28,10 @@
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.out
 set -uo pipefail
-cd "${SLURM_SUBMIT_DIR:?submit with sbatch from ~/harddisks_gen3_r/hspist3}"
+cd "${SLURM_SUBMIT_DIR:?submit with sbatch from ~/harddisks_gen3_k2/hspist3}"
 P=cluster/gen3_testR_261011
 ROOT_NAME=$(basename "$(dirname "$SLURM_SUBMIT_DIR")")
-[ "$ROOT_NAME" = harddisks_gen3_r ] || { echo "STOP: the Test R merge runs from ~/harddisks_gen3_r, not $ROOT_NAME"; exit 2; }
+[ "$ROOT_NAME" = harddisks_gen3_k2 ] || { echo "STOP: the Test R merge runs from ~/harddisks_gen3_k2, not $ROOT_NAME"; exit 2; }
 sha256sum --status -c "$P/testR_inputs.sha256" && sha256sum --status -c "$P/testR_merge_inputs.sha256" \
   || { echo "STOP: the inputs are not the delivered ones (testR_inputs.sha256, testR_merge_inputs.sha256); NOTHING was moved"; exit 2; }
 source cluster/koa_env.sh || { echo "STOP: cluster/koa_env.sh failed; NOTHING was moved"; exit 2; }
@@ -45,7 +45,7 @@ NL=$(wc -l < "$TASKS"); NCH=$(( (NL + K - 1) / K ))
 Q=$(squeue -h -u "$USER" -n gen3-testR -o '%i %T' 2>&1); qrc=$?
 [ "$qrc" -eq 0 ] || { echo "STOP: squeue failed (exit $qrc): $Q"; exit 2; }
 [ -z "$Q" ] || { echo "STOP: Test R chunks are still pending or running: $(printf '%s\n' "$Q" | head -3 | tr '\n' ' ')"; exit 2; }
-echo "merge of $ROOT by the scripts of ~/harddisks_gen3_r (no git at run time; both input manifests: OK); the scripts it runs:"
+echo "merge of $ROOT by the scripts of ~/harddisks_gen3_k2 (no git at run time; both input manifests: OK); the scripts it runs:"
 sha256sum "$P/merge_koa.py" "$P/chunk_logs_koa.sh" "$P/reduce_testR_koa.py" cluster/confinement_20261013/reduce_B.py | sed 's/^/  /'
 echo "the registered list: $NL task lines, chunk size $K, $NCH chunks; no gen3-testR job pending or running"
 mkdir -p "$ROOT/job_logs"; cp -n -p logs/gen3-testR_*.out "$ROOT/job_logs/"   # cp -n: its exit status on a skipped file differs between

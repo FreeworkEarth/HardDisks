@@ -8,7 +8,7 @@
 #     or "nothing to resubmit". It submits nothing: Chris pastes the output; the line is typed once, after the plan author's go.
 #   - chunks that stopped twice or more (resubmitted once already) and chunks that started and did not finish are NOT in the line: they
 #     need the plan author.
-# usage (from ~/harddisks_gen3_r/hspist3, when squeue lists no gen3-testR job):
+# usage (from ~/harddisks_gen3_k2/hspist3, when squeue lists no gen3-testR job):
 #   bash cluster/gen3_testR_261011/testR_stopped_chunks.sh logs gen3-testR <number of chunks>
 set -u
 G=$1; PFX=$2; NCH=$3
@@ -36,7 +36,7 @@ ranges() { tr ' ' '\n' | sed '/^$/d' | sort -n | awk 'NR==1{a=$1;b=$1;next} $1==
 echo "without a done log: stopped once $(echo $stop_once | wc -w | tr -d ' '), stopped twice or more $(echo $twice | wc -w | tr -d ' '), started and not finished $(echo $started | wc -w | tr -d ' '), no log $(echo $nolog | wc -w | tr -d ' ')$( [ -n "$nolog" ] && echo " ($(echo "$nolog" | ranges))")"
 if [ -n "$stop_once" ]; then
   ex=$(printf '%s\n' cn-05-08-07 $nodes | sed '/^$/d' | awk '!seen[$0]++' | paste -sd, -)
-  echo "THE RESUBMISSION LINE (type it once, after the plan author's go; from ~/harddisks_gen3_r/hspist3):"
+  echo "THE RESUBMISSION LINE (type it once, after the plan author's go; from ~/harddisks_gen3_k2/hspist3):"
   echo "sbatch --array=$(echo "$stop_once" | ranges) --exclude=$ex cluster/gen3_testR_261011/testR_koa.sbatch"
 else
   echo "nothing to resubmit"
