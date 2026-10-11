@@ -1,0 +1,4 @@
+# the KOA binary ~/harddisks_gen3/hspist3/00ALLINONE (runsheet step 2, build_gen3_koa.sh, not rebuilt since); written 2026-10-11 on the Mac by gen_testR_koa_261011.py from the recorded values (k2_binaries_a643bc7.sha256; the commit)
+commit a643bc7edb1b41574c0f9af0c5fea199dc797680
+version 00ALLINONE  git a643bc7  target koa
+sha256 742aa2d3530e0b0c7e940260fbc5c69fefe7d56caca6a425c8ae2e4f65c5bbb2
