@@ -11,6 +11,9 @@
 #   - no job named gen3-testG of this user is pending or running (squeue);
 #   - the task list of ~/harddisks_gen3 is the registered one (its SHA-256 file, as every chunk checks it); it gives the chunk count;
 #   - every chunk j has its folder and a log ~/harddisks_gen3/hspist3/logs/gen3-testG_*_<j>.out with the line "chunk <j> done";
+# ##CHRIS 2026-10-10 (plan-author decision 24, point 2b; sec. 4.7.52): that check is testG_chunk_logs_koa.sh (unit test
+#     test_testG_chunk_logs_261010.py): EXACTLY ONE log of a chunk has its done line, and every other log of the chunk is listed by
+#     name (an attempt that stopped in the start-up checks, with its STOP line; an attempt that started and did not finish);
 #   - merged/ does not exist (exit 3; the merge script refuses it as well: a completed merge is never repeated).
 # The FAILED lines of the chunk logs are printed (the verdict's inventory counts failed runs; they do not stop the merge).
 # exit: 0 merged; 2 a check or the merge plan stopped it, NOTHING moved: once the cause is removed the job may be submitted again;
@@ -40,17 +43,10 @@ NL=$(wc -l < "$TASKS"); NCH=$(( (NL + 24) / 25 ))
 Q=$(squeue -h -u "$USER" -n gen3-testG -o '%i %T' 2>&1); qrc=$?
 [ "$qrc" -eq 0 ] || { echo "STOP: squeue failed (exit $qrc): $Q"; exit 2; }
 [ -z "$Q" ] || { echo "STOP: Test G chunks are still pending or running: $(printf '%s\n' "$Q" | head -3 | tr '\n' ' ')"; exit 2; }
-miss=""; multi=""
-for j in $(seq 1 "$NCH"); do
-  n=0; ok=0
-  for f in "$G"/gen3-testG_*_"$j".out; do [ -e "$f" ] || continue; n=$((n + 1)); grep -qx "chunk $j done" "$f" && ok=1; done
-  { [ -d "$ROOT/chunks/chunk_$j" ] && [ "$ok" = 1 ]; } || miss="$miss $j"
-  [ "$n" -le 1 ] || multi="$multi $j"
-done
-[ -z "$miss" ] || { echo "STOP: chunks without their folder or without 'chunk <j> done' in $G/gen3-testG_*_<j>.out:$miss"; exit 2; }
 echo "merge of $ROOT by the scripts of clone HEAD $(git rev-parse HEAD)"
-echo "chunks: $NCH of the registered list ($NL task lines), each with its folder and 'chunk <j> done'; no gen3-testG job pending or running"
-[ -z "$multi" ] || echo "note: chunks with more than one log:$multi"
+echo "the registered list: $NL task lines, $NCH chunks; no gen3-testG job pending or running"
+bash cluster/gen3_koa_261009/testG_chunk_logs_koa.sh "$G" "$ROOT/chunks" "$NCH" \
+  || { echo "STOP: the chunk set is not complete (listed above); NOTHING was moved"; exit 2; }
 NF=$(cat "$G"/gen3-testG_*.out | grep -c FAILED); echo "FAILED lines in the chunk logs ($G): $NF"
 [ "$NF" -eq 0 ] || grep -H FAILED "$G"/gen3-testG_*.out | head -100
 python3 cluster/gen3_koa_261009/merge_testG_koa.py "$ROOT"; rc=$?
