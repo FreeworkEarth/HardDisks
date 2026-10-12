@@ -1,0 +1,8 @@
+the file given: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/0000_PLAN_OVERALL/ALL_MARKDOWNS/261010_prereg_v1_stage1_fluid_COWORK.md
+  bytes: 35642
+  SHA-256: d5cc0ce46353083240599a873ed843bb48e184f6c345f4b231eed4d96a4fe932
+  ends with a newline: True; CR bytes: 0; longest backtick run: 1
+the recorded text in 85cb671e:0000_PLAN_OVERALL/ALL_MARKDOWNS/261012_paper1_confinement.md
+  bytes: 35642
+  SHA-256: d5cc0ce46353083240599a873ed843bb48e184f6c345f4b231eed4d96a4fe932
+  identical to the file, byte for byte: YES
