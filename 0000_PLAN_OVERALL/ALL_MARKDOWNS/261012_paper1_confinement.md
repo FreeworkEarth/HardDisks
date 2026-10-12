@@ -18052,3 +18052,355 @@ Send CC the block below. It names the file’s path.
 Paste me CC’s Report P0 when it comes. It contains the KOA commands for the preview.
 Push when convenient: git push origin main engine-gen3 engine-divider-resched
 ```
+
+### 4.8 The stage 1 registration, verbatim: 261010_prereg_v1_stage1_fluid.md, with amendment A1 (decision 28) and amendment A2 (decision 30, POST HOC) (recorded 2026-10-11 22:44 HST, machine date) [SOURCE]
+
+**How this section was made** (plan-author decision 31, item 2; sec. 4.7.61).
+- The file Chris named: `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/0000_PLAN_OVERALL/ALL_MARKDOWNS/261010_prereg_v1_stage1_fluid_COWORK.md`; 35642 bytes; SHA-256 `d5cc0ce46353083240599a873ed843bb48e184f6c345f4b231eed4d96a4fe932`.
+- Its bytes stand below unchanged, by `hspist3/validation/record_stage1_prereg_261011.py` (main 70b90cb9). They are appended in binary mode between the fence line after the comment line BEGIN VERBATIM and the fence line before the comment line END VERBATIM; the fence is 3 backticks.
+- The file ends with a newline: yes.
+- To check: `python3 hspist3/validation/record_stage1_prereg_261011.py --file <the file> --check <commit>` cuts the recorded text out of that commit's notes and compares it with the file, byte for byte and by SHA-256.
+
+<!-- BEGIN VERBATIM: 261010_prereg_v1_stage1_fluid.md -->
+
+```
+# PRE-REGISTRATION v1 — STAGE 1: the fluid (η ≤ 0.69) at N = 100 / 400 / 900 / 1600
+
+Written by the plan author (Cowork) on 2026-10-10 (HST), before any stage 1 trajectory exists.
+To be recorded verbatim by CC as a new section **§ 4.8** of `261012_paper1_confinement.md`, in a commit that precedes every stage 1 run.
+
+- In this text "§ 4.8.x" is a section of this registration; "notes § x" is an existing section of `261012_paper1_confinement.md`; "methods § x" is `260912_paper1_methods.md`; "state note" is the project's state-of-play note of 2026-10-10 ~16:15.
+- Sources read: the state note; notes §§ 1, 1.9, 3, 4.7–4.7.48; methods §§ 2, 6, 8, 9, 13, 15, 16.
+
+**Status.** Nothing here is launched. Stage 2 (melting window and solid) gets its own pre-registration later and is not covered.
+
+**Tags.** [DECISION] = fixed by this text. [SOURCE] = taken from the notes, with the section. [DERIVATION] = my own algebra. [INFERENCE] = my reading, not proven. [PLANNING] = my own arithmetic for sizing only; the registered tables are printed by CC's script (§ 4.8.10, gate G1). [OPEN] = not known.
+
+---
+
+## 4.8.0 Plain summary
+
+**What this is.** This belongs to Paper 1 (speed of sound). Paper 1 measures the speed of sound of a gas of hard disks. The gas sits in a box with a movable wall (the "divider") in the middle. Stage 1 repeats this measurement with the new, exact engine (generation 3) in the part of the density range where the gas is a normal fluid, for four box sizes: 100, 400, 900 and 1,600 disks.
+
+**Two ways of measuring, as before.**
+- **Free divider (dynamic method, "Part B").** The divider is let go and swings. How fast it swings gives the stiffness of the gas, and from that the speed of sound.
+- **Held divider (static method, "Part A").** The divider is clamped at five nearby positions and the push of the gas on it is recorded. How the push changes with position gives the stiffness directly.
+
+**The questions.**
+1. If the box is made larger and larger, does the speed of sound go to the known value for an infinite gas (the Kolafa–Rottner equation of state, "KR")?
+2. How does the small-box offset shrink with box size?
+3. Do the two methods give the same stiffness?
+4. How does the pressure of the gas in the box approach the KR value?
+
+The stiffness and the damping of the swinging divider measured here are also what Paper 2 (energy transfer) builds on: it uses the same box and the same divider.
+
+**Size.** 16 densities × 4 box sizes × 9 divider masses × 25 repeats = 14,400 runs for the main part, 2,150 runs in two small side blocks, and the held-divider runs. About 2,550 core-hours by my estimate for the free-divider runs. At 64 cores: N = 100 and 400 take about 2 hours, the dilute block about 2 more, N = 900 about 8 more, and N = 1,600 about one more day.
+
+**What is decided here that was open.** The estimator of the frequency, how long the gas settles before the release, what happens to a run with a health flag, how the output is written, the job shape on KOA, and that the random-number generator of the seeding is not changed for stage 1.
+
+---
+
+## 4.8.1 Questions
+
+- **Q1, bulk limit.** Does $c_s(\eta, N)$ extrapolate to $c_s^{\rm KR}(\eta)$ as $N \to \infty$?
+- **Q2, finite-size law.** How does $\Delta(\eta,N) \equiv c_s/c_s^{\rm KR} - 1$ depend on $N$ at fixed box shape?
+- **Q3, identity.** Is the dynamic adiabatic stiffness equal to the static one, $k_S^{\rm dyn} = k_T + F^2/(N_s kT)$, at every density and size?
+- **Q4, pressure (information).** How does the compressibility factor $Z$ of the held box approach $Z^{\rm KR}(\eta)$?
+- **Q5, light-divider term (information).** Is the deficit of the lightest divider (α = 0.5; −0.42 ± 0.08 % at π/8, N = 100, Test T, methods § 16 [SOURCE]) present at other densities and sizes?
+
+## 4.8.2 System and cells [DECISION]
+
+Units $kT = m = \sigma = 1$. Disk radius 0.5, divider thickness $t = 0.05$, gas | divider | gas, $N_s = N/2$ disks per side.
+
+**Geometry** (the design geometry of notes § 4.7.16 [SOURCE]; $L_{\rm eff}$ as in notes § 1.2 and the registered code's `l_eff(L0, wall_t)`):
+
+$$H = 10\sqrt{N/100}, \qquad L_0 = \frac{N\pi}{8H\eta}, \qquad L_{\rm eff} = L_0 - \sigma - \tfrac{t}{2} = L_0 - 1.025 .$$
+
+So $H$ = 10, 20, 30, 40 for $N$ = 100, 400, 900, 1600, and at a fixed η all four boxes have the same shape. $L_0$ is used exactly (`--gen3-exact-box`); the value passed on the command line is printed with 17 significant digits.
+
+**Block B, the main grid:** $N \in \{100, 400, 900, 1600\}$ ×
+
+η ∈ {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, π/8, 0.45, 0.50, 0.55, 0.60, 0.63, 0.66, 0.68, 0.69}.
+
+- The **fluid set** Φ is the 12 densities η ≤ 0.60. The pooled verdict of § 4.8.7.2 is defined on Φ only.
+- The four densities 0.63–0.69 are **approach cells**. They are measured and reported in the same way, but they enter no pooled verdict. Reasons: the N = 100 box orders from η ≈ 0.65 (state note; pilot P1 has global ψ6 = 0.51 at 0.66 and 0.59 at 0.68 for N = 100, notes § 4.7.17 [SOURCE]), and A2 already found $c_s$ below KR at η = 0.65 (methods § 9 [SOURCE]). A departure from KR there is expected and is not a failure.
+- π/8 at N = 100 is the cell of Test T′ and Test G ($H = L_0 = 10$).
+
+**Block D, dilute zoom:** η ∈ {0.02, 0.035, 0.075} at N = 100 and N = 400 only. Same protocol as block B. It feeds the ideal-gas figure and has no verdict. The mean free path there is comparable to the box height (Kn = λ/H up to 1.4 [PLANNING]), so continuum acoustics is not expected to hold exactly.
+
+**Block S, start check:** η ∈ {0.60, 0.63, 0.66, 0.68, 0.69}, all four N (§ 4.8.3.4).
+
+**Divider masses** (blocks B and D): the nine values $\alpha = M/(2N_s m) = M/N \in \{0.5, 1, 2, 3, 5, 7.5, 10, 15, 20\}$, i.e. $M = \alpha N$ (N = 100: 50 … 2000; N = 1600: 800 … 32000). This is the A1 v2 ladder scaled with N, as in notes § 1.4 (B) [SOURCE]. Heavy dividers (to 4e7) are **not** in stage 1; their record length and estimator are a stage 2 decision.
+
+**Seeds:** 25 per (cell, mass) in blocks B and D, numbered s = 0 … 24. No extension of seeds is allowed by this text. More seeds, or more box sizes, need a written amendment made before any verdict of § 4.8.7 has been printed.
+
+## 4.8.3 Part B — free divider: protocol [DECISION]
+
+### 4.8.3.1 One trajectory
+1. **Start.** gen3 seeding of notes § 4.7.16: `--gen3-seeding=lattice` with the default lattice choice and the default jitter (0.25); velocities drawn as that seeding does today, `drift-first`, so $T_L = T_R = 1$ exactly. The orientation the default chose is read from the run header and printed per cell.
+2. **Hold.** The divider is held at the centre for $T_{\rm eq}$:
+   - $T_{\rm eq}$ = **1000 σ-time** for η ≤ 0.60 (60,000 steps);
+   - $T_{\rm eq}$ = **5000 σ-time** for η ≥ 0.63 (300,000 steps).
+3. **Release and record.** `--target-oscillations=200`, i.e. 200 predicted periods per mass, as in A1 v2, T′ and Test G.
+
+**Why these hold times.**
+- In P1 the integrated autocorrelation time of ψ6 (cell mean) is ≤ 0.9 σ-time at η = 0.60 and ≤ 12 σ-time up to η = 0.70 for N = 100, 400 and 1600 (notes § 4.7.17 [SOURCE]). The hold is more than 1000 of these times at η ≤ 0.60 and more than 400 at η ≥ 0.63.
+- From P1's first-quarter drift I estimate the start transient to be a few σ-time at η = 0.60 and of the order of 100 σ-time at η = 0.68 [INFERENCE: drift × 5000 σ-time / an assumed initial excess of ψ6 of 0.4–0.9].
+- P1 is not clean everywhere: N = 1600 at η = 0.68 kept a drift of −2.3 SE between its second and last quarter [SOURCE]. And "10 τ" alone was shown to be unsafe near the transition (state note). So stationarity is tested on the data (§ 4.8.7.6), and the approach cells stay out of the pooled verdict.
+
+**Two recorded departures from notes § 4.7.1 (my own amendments e and f), for stage 1 only.**
+- **e, equal record time for all masses of a cell: not used here.** Stage 1 records 200 predicted periods per mass. Reasons: the frequency estimators were gated (T′, Test G) at exactly 200 periods per mass; equal time is needed where the structure ages during the record, which the fluid does not do (tested, § 4.8.7.6); and equal time would cost 1.8 times as much [DERIVATION: 9 against Σ P_k/P_20 = 4.92]. Stage 2 returns to equal record time.
+- **f, T_eq from a pilot at the same η and N: not literally.** P1 has no N = 900 and no density below 0.60. $T_{\rm eq}$ is set from P1's largest value with the factors above and tested on the data.
+
+### 4.8.3.2 Command
+The speed-of-sound command of Test G (notes § 4.7.15, the campaign worker's B command: `--fixed-dt=0.4`, `HD_KE_TRACE=1`, `HD_CONTACT_AUDIT=1`, trace stride from the task generator's rule of about 32 samples per predicted period) with these changes only:
+
+`--engine=gen3 --gen3-seeding=lattice --gen3-exact-box --gen3-psi6-compartments --psi6-every=<Δψ> --gen3-virial-blocks=50 --wall-hold-steps=<60·T_eq>`, the cell's `--particles`, `--particles-boxes`, `--height`, `--lengths`, the mass in `--wall-masses`, and `--gen3-snapshots=<T_snap>` on the snapshot subset.
+
+### 4.8.3.3 Output cadences
+- **ψ6 per compartment:** every $\Delta\psi = \max(1,\ T_{\rm rec}/2000)$ σ-time, where $T_{\rm rec}$ = 200 predicted periods of that (cell, mass). Reason: a record is up to 1.1e6 σ-time in block B and 1.5e6 in block D [PLANNING], and at 1 σ-time the output would cost more than the physics there (the output's share of the run time was 0.72 at N = 1600, π/8 in job K2-2; state note, not yet in the notes).
+- **Virial blocks:** 50 σ-time, in the hold and in the record.
+- **Snapshots:** seeds s = 0 and 1 of the mass α = 5 in every cell of blocks B and D, every $T_{\rm snap} = (T_{\rm eq} + T_{\rm rec})/100$.
+- **Validator:** the gen3 default (once per σ-time).
+
+### 4.8.3.4 Block S, the start check
+The lattice melts in the fluid, so the start should not matter. No pilot has compared the two lattice orientations in the fluid. Block S does. At η = 0.60, 0.63, 0.66, 0.68, 0.69 and every N: two explicit starts, `--gen3-lattice-orientation=0` and `=turned`, masses α = 1 and α = 10, 10 seeds each, otherwise the protocol of § 4.8.3.1. Snapshots on seeds s = 0, 1 of α = 1. The two starts use different seed streams, so they are independent samples.
+
+### 4.8.3.5 Seeds
+One new base seed that occurs in no file of the repository (proposal: 20261311). `run_seed(base, stream, mass index, seed number)` with one stream per (block, N, η) and, in block S, per start. The generator prints: all seeds distinct, and zero overlap with every earlier task list and pilot.
+
+## 4.8.4 Part A — held divider: protocol [DECISION]
+
+Part A is registered now and launches on its own go, after its pilot. **It does not block Part B.** If gate G0 (f) shows that it cannot run as written, it waits for a written amendment.
+
+- **Cells:** every cell of block B (64 cells).
+- **Method:** the A-fixed method of notes § 3 [SOURCE]. The divider is held for the whole record at $L_0 + j\,\delta L$, $j \in \{-2,-1,0,1,2\}$. The forces $F_L$, $F_R$ come from the divider events. The command is the worker's AF command (held divider, then the short released tail of 20 σ-time that writes the temperatures), with only the cell, the hold length and the window changed. The estimator of notes § 3.4 is unchanged: mirror faces averaged, five-point stencil, static side $k_T + F(L_0)^2/(N_s kT)$, checks $u_{\rm wall} = 0$, $W_{\rm div} = 0$, $|1-f| < 0.002$.
+- **Start:** the same start as Part B (lattice, exact box) if the held path offers it under gen3. If it does not, CC reports what the held path offers, and Part A waits for my amendment.
+- **Stencil:** $\delta L = \sigma_x/2$ with $\sigma_x = L_{\rm eff}/\sqrt{2N_s\,(c_s^{\rm KR})^2}$, the thermal rms excursion of the free divider, so that the stencil spans what the free divider samples (notes § 1.4 [SOURCE]). $\sigma_x$ runs from about 5 σ at η = 0.05 to about 0.04 σ at η = 0.69, and changes with N by 1–16 % [PLANNING].
+  - **Fork, decided by code facts before any task list is hashed:** if the held path takes an exact, off-grid divider position under gen3, $\delta L = \sigma_x/2$ exactly. If not, the old rule applies, $\delta L = \max(1/24,\ \text{grid-rounded } \sigma_x/2)$. The 1/24 floor is reached from η ≈ 0.6 upward [PLANNING]; the stencil then spans up to about ±2.4 σ_x. In that case the script prints, per cell, the span in units of $\sigma_x$ and the truncation bias from the KR model (as Table A of notes § 1.4b does); a cell with a bias above 0.1 % is flagged.
+- **Record:** equilibration $T_{\rm eq}$ as in § 4.8.3.1, then a window of 5000 σ-time per seed: $[T_{\rm eq},\ T_{\rm eq}+5000)$.
+- **Seeds per position:** the unchanged rule of notes § 1.4 as written in notes § 1.9 C3, for ≤ 0.9 % noise on $k_T$: $T_{\rm pos} = \big((\sqrt{130}/12)\,\epsilon\,F/K\,/\,(\delta L \cdot 0.009)\big)^2/2$, $\epsilon = \epsilon_0^{+}(\eta)\,(100/N_s)^{1/2}$, seeds $= \lceil T_{\rm pos}/5000 \rceil$. $F$ and $K$ are what that rule's script computes (this $K$ is not the root $K(\alpha)$). New here: at least 8 and at most 400 seeds per position; where the cap applies, the expected noise is printed.
+- **Pilot:** 4 seeds × 5 positions at every η for N = 100 and for N = 1600. It gives $\epsilon_0(\eta)$ twice. $\epsilon_0^{+}$ is the larger of the two upper 1σ bounds. The pilot also tests the assumed $N_s^{-1/2}$ scaling (reported).
+- **Geometry gate:** the mode-equivalence gate C2 of notes § 1.9, under gen3, at π/8 for each N: recorded η, thickness, both compartment lengths and $L_{\rm eff}$ agree between the held path and the free path to 1e-9 (C2 as recorded asks 1e-6; tightened because the box is exact).
+
+## 4.8.5 Engine, health and exclusion [DECISION]
+
+- **One build.** gen3 at one campaign commit whose build inputs (every file compiled into the binary) are identical to the accepted `f72d764`. If the commit differs in any build input, CC lists the difference and stops for my reading. One KOA build, never rebuilt; every chunk checks the binary's SHA-256 and writes the build line.
+- **Portable seeding: no.** The velocity generator is not changed for stage 1. Reason: every stage 1 verdict is statistical, and a generator change is a driver change in the launch path that no verdict needs. Replaying a KOA run on the Mac is a stage 2 topic.
+- **What the start rests on.** Test G validated the engine with the legacy start, not with the lattice start. The lattice start has acceptance and pilot evidence (notes §§ 4.7.16, 4.7.17) and the symmetry test, which used this start and box (notes § 4.7.28). Check C-b of § 4.8.7.7 compares the two starts in the fluid.
+- **Checkpoints:** not used. The longest trajectory is about 4 h on an old node [PLANNING].
+- **Health rule.** A trajectory is used only if its run record says `clean=1`. A trajectory with `clean≠1`, or without a record, is excluded whole and counted per (cell, mass). **It is never replaced by another seed.**
+- **Unfinished is not dirty.** A trajectory that did not finish because its chunk hit the time limit or the node failed is rerun once with the identical command and seed. On the same CPU model it is the same trajectory; on KOA's other CPU model its bits may differ (untested), and it is then an equally valid trajectory of that seed. If it fails again it is excluded and counted.
+- **Stop rule.** If more than 1 % of all trajectories of a block are excluded, the analysis of that block stops and CC reports.
+- **Group rule.** A (cell, mass) that loses more than 2 of its 25 trajectories (health exclusions and fit failures counted together; more than 1 of 10 in block S) is flagged and left out of that cell's fits.
+
+## 4.8.6 Estimators [DECISION]
+
+"SE" = standard error = the spread between repeats divided by √(number of repeats). "Jackknife" = leave one trajectory out, recompute, and take the spread of the results.
+
+### 4.8.6.1 Frequency per trajectory (both are computed for every trajectory)
+- $\nu_{\rm arg}$: the registered argmax (methods § 6), as computed by `reduce_B.py` (notes § 4.7.15), unchanged.
+- $\nu_d$: the damped-cosine fit (free phase, plus the slow mode) to the trajectory's position ACF (notes § 4.4.13 item 4a), unchanged.
+
+### 4.8.6.2 E1, the primary sound speed
+The model $\cot K = \alpha K$ predicts the **undamped** frequency. The spectral peak lies below it by $1/(4Q^2)$ and $\nu_d$ by $1/(8Q^2)$ (methods § 16 [SOURCE]). So, per (cell, mass $k$), exactly as methods § 16 computed its ν₀ column:
+
+$$\nu_{0,k} = \sqrt{\bar\nu_{d,k}^{\,2} + \Big(\frac{1}{2\pi\tau_{r,k}}\Big)^2}, \qquad Q_k = \pi\,\bar\nu_{d,k}\,\tau_{r,k},$$
+
+with $\bar\nu_{d,k}$ the mean over the clean seeds and $\tau_{r,k}$ from the item-4a-model fit of the seed-averaged ACF. Its SE is the delete-one jackknife over the trajectories of that (cell, mass).
+
+$$c_k = \frac{\nu_{0,k}}{x_k}, \quad x_k = \frac{K(\alpha_k)}{2\pi L_{\rm eff}}; \qquad c_s = \frac{\sum_k w_k c_k}{\sum_k w_k},\quad w_k = \sigma_k^{-2},\quad \text{over the eight masses } \alpha \ge 1 .$$
+
+$\chi^2 = \sum_k w_k (c_k - c_s)^2$ with 7 degrees of freedom (the number of independent values left after fitting one number to eight). The error is $\sigma = (\sum w_k)^{-1/2} \cdot \max(1, \sqrt{\chi^2/7})$.
+
+**Why α = 0.5 is left out of E1.** It carries an unexplained −0.42 % (methods § 16, OPEN). It is measured in every cell and reported as $\delta_{0.5} = c_{\alpha=0.5}/c_s - 1$ (Q5).
+
+**Low-Q flag.** A cell in which any used mass has $Q_k < 5$ is flagged (the damping correction exceeds 0.5 % there). Flagged cells stay in; every pooled result is also printed without them.
+
+**Fit failures.** A trajectory whose $\nu_d$ fit fails is counted (group rule of § 4.8.5). A cell with fewer than 5 masses left has no E1 value.
+
+### 4.8.6.3 E0, the comparability estimator
+The canonical Paper 1 estimator, unchanged (`paper1_populate_cs_err_20261002.cell`: argmax, TD = 200, X_EDGE = 2.5, unweighted through-origin slope over nine masses; notes § 1.4). It is printed next to E1 in every table. It decides nothing. E1 − E0 is reported as the estimator difference.
+
+### 4.8.6.4 Pressure, order, damping
+- **$Z$ per trajectory:** the mean of the two compartments' virial $Z_c$ over the last quarter of the hold. **Per cell:** mean and SE over all trajectories of the cell (the hold does not depend on the divider mass, so a cell of block B has 225 independent holds).
+- **ψ6 per trajectory:** the mean of the two compartments' record means. Per cell: mean and SE. Reported.
+- **Γ = 2/τ_r, Q and the mode power B** per (cell, mass), by methods § 13. Reported; they are inputs for Paper 2.
+- **Interior density** from the snapshots: disk centres in the rectangle that excludes strips of 2 σ along every wall and the divider, where that rectangle is at least 4 σ wide. Reported next to the nominal η.
+
+### 4.8.6.5 Stiffness for the identity
+Length-free, as amendment C1 demands (notes § 1.9 [SOURCE]), but with the exact standing wave instead of the heavy-mass form:
+
+$$k_{S,k}^{\rm dyn} = \frac{N_s m\,(2\pi\nu_{0,k})^2}{K(\alpha_k)^2}, \qquad \alpha_k \ge 5 \ (\text{five masses}),$$
+
+combined by inverse-variance weighting. The static side is that of notes § 3.4. $\rho_I = (k_S^{\rm dyn} - k_S^{\rm stat})/k_S^{\rm dyn}$.
+Printed next to it, for continuity: the notes' own dynamic side (C1's $\hat M\omega^2/2$ with $\hat M = M + \tfrac23 N_s m$ and the argmax frequency). The two forms differ by ≤ 0.08 % (Table H) plus the damping shift.
+
+## 4.8.7 Analyses, verdict rules and predictions [DECISION]
+
+All rules use the scatter between seeds as the error. "z" = a difference divided by its error. "p" = the probability of a χ² at least this large if the hypothesis is true. Every threshold below is printed by the verdict script in a `--design` run, with its false-alarm rate, before any data.
+
+### 4.8.7.1 Finite-size fits, per η
+With $u = N^{-1/2}$ and $\Delta_N = c_s(N)/c_s^{\rm KR}(\eta) - 1$ (E1; KR = the ρmax = 0.90 fit, methods § 15.1):
+
+- **F2 (primary):** $\Delta = a + b\,u + d\,u^2$ (4 sizes, 1 degree of freedom).
+- **F1 (reported):** $\Delta = a + b\,u$ (2 degrees of freedom); also F1 without N = 100.
+- A density whose F2 fit has $p < 0.01$ is flagged "form not adequate". It stays in; every pooled result is also printed without it.
+- A density with fewer than four usable sizes has no F2 fit. It is listed, and the pooled statistics are computed over the remaining densities, with the degrees of freedom adjusted and stated.
+
+**Why F2 is primary.** A wall term scales as $1/H \propto u$; ensemble and amplitude terms scale as $1/N = u^2$. With four sizes the χ² of F1 has almost no power against a $u^2$ term of plausible size, but such a term shifts F1's intercept: a term of 0.4 % at N = 100 is detected with probability 0.09 and biases $a$ by −0.13 % [DERIVATION, for a per-cell error of 0.06 %]. F1's small error bar would therefore be model-dependent.
+
+**Expected precision** [PLANNING]. $\sigma_a$ = 3.3 × the per-cell error for F2, and 1.0 × for F1. The per-cell error of E1 is not known yet. My planning value is 0.06 % (the seed error of the five heavy masses combined is 0.047 % and 0.071 % at the two anchors, half of Table I-ω's column [SOURCE notes § 1.9]); the plausible range is 0.05–0.15 %. That gives $\sigma_a$(F2) = 0.2–0.5 % per density, and 0.06–0.15 % for the mean over Φ.
+
+### 4.8.7.2 Verdict K (Q1)
+On the fluid set Φ: $z_\eta = a_\eta/\sigma_{a,\eta}$ from F2, $X^2 = \sum_\Phi z_\eta^2$ (12 degrees of freedom).
+
+- **KR-CONSISTENT** if $p(X^2) \ge 0.01$ and $\max_\Phi |z_\eta| < 3.5$.
+- Otherwise **KR-INCONSISTENT**, with the list of densities.
+
+False alarm about 1.6 % (1 % + 0.56 %). Also printed: the weighted mean $\bar a$ over Φ with its error; the same with F1; the same without flagged cells and densities. For the approach cells the fits are printed with no verdict.
+
+### 4.8.7.3 Pressure (Q4): reported, no verdict
+The same fits with $\Delta^Z_N = Z(N)/Z^{\rm KR}(\eta) - 1$; printed: $a_Z$, $b_Z$ (the coefficient of $u$) and the χ² of F2.
+- **Why no verdict.** $Z$ will be known to about 0.01 %. A three-term expansion on four sizes cannot be trusted at that level, so a formal rule would test the expansion, not the gas.
+- **Stated expectation:** $|a_Z| < 0.3$ % at every density of Φ. A miss is reported.
+- Note [DERIVATION, plan author; to be checked against the definition in notes § 4.7.26]: the pair virial of a hard-walled box measures the wall pressure times the area accessible to the disk centres, so $Z$ at nominal η lies above KR in a finite box and reaches it only in the limit.
+
+### 4.8.7.4 Verdict I (Q3), one verdict per density (all 16), after Part A
+Fit $\rho_I(N) = c_I/N_s$ (one number, 3 degrees of freedom).
+- **IDENTITY HOLDS** if $p(\chi^2) \ge 0.01$ for $\rho_I \equiv 0$ (4 degrees of freedom).
+- **IDENTITY HOLDS WITH A 1/N_s TERM** if that fails and the $c_I/N_s$ fit has $p \ge 0.01$.
+- Otherwise **IDENTITY FAILS at this η**; the pattern is reported.
+
+Reported with it: $R_C(\eta) = c_I/A_C$ with $A_C = (q+1)(q+2)/(8qZ)$ and $q = c_s^2/Z$ from KR (hypothesis C, notes §§ 1.1 and 3.6), its weighted mean over η, and the χ² of "$R_C$ is the same at every η".
+
+### 4.8.7.5 Verdict S (block S), per cell
+Per start: (i) $Z$ and (ii) ψ6, each over the 20 trajectories of both masses; (iii) $\bar\nu_d$ at α = 1 and (iv) $\bar\nu_d$ at α = 10, over 10 trajectories each. Four z values between the two starts, $z = (\text{mean}_0 - \text{mean}_{\rm turned})/\sqrt{{\rm SE}_0^2 + {\rm SE}_{\rm turned}^2}$.
+- **START-INDEPENDENT** if all four $|z| < 3.5$.
+- Otherwise **START-DEPENDENT**: the cell is reported per start, left out of every pooled statement, and handed to stage 2.
+
+False alarm 0.19 % per cell and 3.7 % for at least one of the 20 cells. The values of the main block's default start are printed next to them (information).
+
+### 4.8.7.6 Stationarity, per cell
+- **Hold:** $d = Z(\text{4th quarter}) - Z(\text{3rd quarter})$ of the hold per trajectory; $t = \bar d/{\rm SE}$. Flag if $|t| \ge 3$.
+- **Record:** $d\nu = \nu_2/\nu_1 - 1$, the second half against the first half of each record (the estimator of notes § 4.7.7 on 100 periods each), pooled over masses. Flag if $|z| \ge 3$.
+
+Over all cells and both tests (about 220 tests), about 0.6 false flags are expected. Flagged cells are listed, drawn with open symbols, and every pooled result is also printed without them. No cell is rerun without an amendment.
+
+### 4.8.7.7 Continuity checks (stated expectation $|z| < 3$; a miss is reported as a difference, it fails nothing)
+- **C-a:** E0 at (N = 100, π/8) against the canonical A1 v2 value of that cell (the table of methods § 14.2).
+- **C-b:** mean $\nu_{\rm arg}$ at (N = 100, π/8), M = 300 and M = 1500, against Test G on KOA (gen3 arm). Same engine, other start and hold: this tests that the start protocol does not matter in the fluid.
+- **C-c:** $Z$ at (N = 400, π/8) against the symmetry test's 2.81977 ± 0.00013 (notes § 4.7.28; same engine, start and box).
+
+### 4.8.7.8 Predictions, written now
+1. **Offset.** $\Delta(N = 100) > 0$ for 0.05 ≤ η ≤ 0.55 and shrinking with N at each of these densities. Size at N = 100: A1 v2 had +0.42 … +3.0 % with E0 (methods § 8 [SOURCE]); E1 is expected about 0.3 % higher [INFERENCE from methods § 16].
+2. **Bulk limit.** KR-CONSISTENT; $|z_\eta| < 2$ at 10 or more of the 12 densities of Φ (by chance this fails with probability 1.5 %).
+3. **Approach cells.** At N = 100 and η ≥ 0.63, $c_s$ departs from KR by more than 2σ; the sign is not predicted. The departure shrinks with N [INFERENCE].
+4. **Identity.** With the notes' own dynamic side (§ 4.8.6.5), $c_I$ lies within 2 combined σ of the A-fixed values 0.483 ± 0.045 (η = 0.10) and 0.138 ± 0.047 (π/8) (notes § 3.9 [SOURCE]; other build and other box shapes). At N ≥ 900, $|\rho_I| < 2\sigma$ at every η.
+5. **Pressure.** $b_Z > 0$ at every η; the expectation of § 4.8.7.3 holds.
+6. **Light divider.** The mean of $\delta_{0.5}$ over Φ at N = 100 is negative, of the order of −0.4 % (expected error about 0.1 %; a single cell cannot show it at 25 seeds). Its dependence on N is OPEN: if it falls with N it is a finite-size term, if not it is a term of the model.
+7. **Start check.** START-INDEPENDENT in all 20 cells [INFERENCE: pilot P3 found the lattice and the compressed-fluid start converged at η 0.700–0.716 for N = 400 and 1600; no pilot compared the two orientations in the fluid, and none exists for N = 900].
+
+## 4.8.8 KOA job shape and order [DECISION]
+
+- **Shape.** One core per array task ("chunk"), as Test G on KOA; one folder per chunk on scratch; no two tasks ever write the same file. A chunk is a run of consecutive lines of the registered task list within one (block, N, η, mass).
+- **Chunk size.** Predicted time ≤ 60 min at the old-node planning rate; a trajectory longer than that is a chunk of its own.
+- **Time limit.** `--time` = max(30 min, 3 × the predicted chunk time at the old-node rate), at most 24 h.
+- **Cores.** At most 64 running at once over all stage 1 arrays; 128 only if `sinfo -p shared -s`, pasted at submission, shows ≥ 10 % of the nodes idle (the recorded cap, notes § 4.7.1). Arrays stay below MaxArraySize.
+- **Order.** (1) the gate jobs of G6 and chunk 1 alone; (2) B at N = 100; (3) B at N = 400; (4) block D; (5) B at N = 900; (6) block S; (7) B at N = 1600. Part A's pilot may run beside (4).
+- **Merge.** One merge per block when its array is complete. The merge scans every chunk and builds the full plan before it moves anything (decision 21, item 2).
+- **Reduction on KOA.** `reduce_B.py` per (cell, mass); $\nu_d$ and the seed-averaged ACF; one summary row per trajectory for $Z$ and ψ6; the snapshot reduction. Raw traces stay on scratch, compressed with SHA-256 manifests.
+- **Fetch.** Summaries, run records and logs for everything; full raw data for the (N = 100, π/8) cell and for all snapshot files.
+
+**Cost** [PLANNING. Henderson's equation of state in place of KR (c_s within about 0.5 % for η ≤ 0.5, 2.8 % high at 0.65). Events per σ-time = 1.128 N (Z − 1) pair events + 1.2 N cell crossings, which reproduces three gen3 runs of the notes at N = 1600 to within 5 %. Whole-run event rates of job K2-2, divided by 1.5 for the old nodes (both from the state note)]:
+
+| block | trajectories | core-h | × 1.5 | wall at 64 cores | longest trajectory |
+|---|---|---|---|---|---|
+| B, N = 100 | 3,600 | 13 | 20 | 0.2 h | 1 min |
+| B, N = 400 | 3,600 | 120 | 180 | 1.9 h | 14 min |
+| B, N = 900 | 3,600 | 526 | 789 | 8.2 h | 68 min |
+| B, N = 1600 | 3,600 | 1,680 | 2,521 | 26 h | 231 min (η = 0.05, α = 20) |
+| D | 1,350 | 149 | 224 | 2.3 h | 36 min |
+| S | 800 | 66 | 99 | 1.0 h | — |
+| **B + D + S** | **16,550** | **2,554** | **3,831** | **40 h** | |
+| A (ε₀ guessed) | by rule | ~90–400 | | | |
+
+The dilute cells of the large boxes dominate (N = 1600 at η = 0.05 alone: about 470 core-h), because a record of 200 periods is up to 1.1e6 σ-time there.
+
+## 4.8.9 What is fixed, and what may still change
+
+Fixed: everything in §§ 4.8.2–4.8.8. After the first stage 1 array is submitted nothing in them changes without a dated, written amendment made before the affected data exist.
+
+Allowed to change, by rules already written:
+1. Part A's seeds per position, from its pilot, by the rule of § 4.8.4.
+2. The forks decided by code facts (the start and the stencil of § 4.8.4; anything CC reports under gate G0).
+3. My planning numbers are replaced by the script's tables. If the script's total for B + D + S exceeds 5,000 core-h before the factor 1.5, CC stops and reports before building anything else.
+
+**Interim outputs.** Tables and figures per completed N block are allowed once gate G5 is met, and are labelled INTERIM. Verdict K, the fits of § 4.8.7.3 and Verdict I are printed once, when all four sizes are complete.
+
+## 4.8.10 Gates before launch
+
+- **G0, code facts (CC, with quoted lines; "Report S1-0").** (a) the campaign commit against `f72d764`; (b) that the flags of § 4.8.3.2 work together in the speed-of-sound loop, and which combinations have never run together; (c) that virial blocks and ψ6 are written in the record phase as well as in the hold; (d) where ν_pred in the trace header comes from under the exact box, and that it is valid for every cell; (e) the code of the $\nu_d$ fit and of the averaged-ACF fit: window, start values, failure criterion; (f) for Part A: the start, the exact box and off-grid positions in the held path under gen3, the event-log size at N = 1600, the window parameters of `reduce_AF.py`; (g) MaxArraySize on KOA; (h) the step limits of the B command (`--oscillation-max-steps`, the minimum, the safety factor) against the longest record of the grid (about 9e7 steps at N = 400, η = 0.02 [PLANNING]): no record may be cut short.
+- **G1, registration commit.** This text; the task generator and its `--design` tables (cells, η exact, $L_0$, masses, predicted periods, records, $\Delta\psi$, events, cost, chunks, seeds distinct, all with the project's KR module); the task list with its SHA-256; worker, sbatch files, merge, reducers. All committed before any stage 1 trajectory.
+- **G2, cell smoke on the Mac.** Every cell of B, D and S (both starts): one seed, lightest mass, hold 50 σ-time, 5 periods. Printed per cell: recorded η and lengths equal the requested ones to 1e-12, $N_L = N_R$, ties at the load = 0, the orientation, `clean=1`.
+- **G3, estimator gate.** The stage 1 reducer applied to existing data reproduces, to the printed digits: (i) Test G (Mac), gen3 arm, $\bar\nu_d$ = 0.0370095 (M = 300) and 0.0172665 (M = 1500) (notes § 4.7.15 addendum); (ii) on Test T legacy, the table of methods § 16: Q per mass (item-4a model), the ν₀ deficit column, and the nine-mass weighted ν₀ slope 3.81286. The reducer has a nine-mass mode for this gate only. The E1 value (eight masses) of that cell is printed for the record.
+- **G4, rehearsal.** Every script a KOA job executes runs end to end on the Mac with a mini task list that holds every block type and at least two chunks that deliver into the same (cell, mass) folder: chunks, merge, reduction, fetch, tables.
+- **G5, verdict script.** Committed with a `--selftest` on synthetic data and its `--design` output **before any stage 1 summary is fetched to the Mac**. It may be committed after the arrays have started.
+- **G6, on KOA.** (a) Test G on KOA: PASS by its registered verdict. (b) The M5 long-double verdict, or the larger double-against-long-double comparison if the registered rule cannot decide with four seeds, does not say DIFFERENCE. (c) With the campaign build, the deterministic items that decision 13 item 2h requires at the final campaign commit: E0 (rule 4, the gen2 path byte-identical), cross-node determinism, and the M1/M2 harness hashes. (d) The 12 gen3 lines of Test G chunk 1, run in one job with the gate binary and with the campaign binary, give equal event hashes. (e) Stage 1 chunk 1 alone prints its expected lines.
+- **G7, the go.** My approval of CC's Report S1 and its runsheet; then Chris pushes and types.
+
+**No stage 1 array is submitted before G0–G4, G6 (a)–(e) and G7 are met.** The jobs of G6 themselves need my approval of their runsheet lines only.
+
+## 4.8.11 Figures (registered now)
+
+One build generation only; error bars everywhere; KR red, Román black, own data blue; SPT and Henderson drawn next to KR; phase regions shaded; N, disk radius, $L_0$, H on the figure; file names by date and content.
+
+1. $c_s(\eta)$ for the four sizes with KR, and below it the residual $\Delta$ in % with the extrapolated $a(\eta)$.
+2. $\Delta$ against $N^{-1/2}$ per density, with F1 and F2.
+3. The ideal-gas zoom, η ≤ 0.15 (blocks B and D).
+4. $Z(\eta)$ for the four sizes with KR, and its residual.
+5. The identity: $\rho_I$ against $1/N_s$ per density, and $R_C(\eta)$.
+6. $\delta_{0.5}(\eta, N)$ and $Q(\eta, N, \alpha)$.
+
+## 4.8.12 Open points and risks (plan author)
+
+1. **Four sizes limit the extrapolation.** With F2 the bulk limit is known to about ±0.2–0.5 % per density (§ 4.8.7.1). Two extensions are possible later by amendment, because added sizes are independent data: N = 196 (H = 14; about 40 core-h; error 21 % smaller) and N = 2500 (H = 50; several thousand core-h; 31 % smaller) [PLANNING]. If sizes are added, Verdict K is printed again on all sizes and both printings are reported.
+2. **The small box near η = 0.66–0.69 is a layered, confined fluid.** Its numbers are real but they are not a test of KR.
+3. **Part A rests on code facts I could not check from the notes** (gate G0 f). It may need an amendment before it can run.
+4. **E1 is new.** ν₀ with a weighted slope was computed once, on Test T legacy, as information (methods § 16). T′ and Test G have $\nu_d$ only. The eight-mass form exists nowhere yet. Gate G3 ties the code to the printed numbers; E0 is always printed next to E1.
+5. **The long-double check is not closed** (+1.2 % and +1.8 % on four seeds each, not significant). Stage 1 must not start on it (G6 b).
+6. **Bit-identity across KOA's two CPU models is untested.** It affects no verdict.
+7. **The default lattice is not one orientation.** It is the turned form in some cells and the 0° form in others (notes § 4.7.42). Block S tests whether that matters from η = 0.60 upward. Below 0.60 it is assumed not to matter after 1000 σ-time [INFERENCE: autocorrelation time below 1 σ-time at 0.60].
+```
+
+<!-- END VERBATIM: 261010_prereg_v1_stage1_fluid.md -->
+
+**Amendment A1 to the stage 1 registration** (plan-author decision 28, 2026-10-11 ~09:45 HST; dated in it "2026-10-11, before any Test R or C1 data"; recorded in sec. 4.7.57), verbatim from that section:
+
+```
+ AMENDMENT A1 to the stage 1 registration (sec. 4.8.10, gate G6 a),
+ dated 2026-10-11, before any Test R or C1 data:
+  "G6 (a) as registered ('Test G on KOA: PASS by its registered
+  verdict') is NOT MET and stays recorded as not met. It is
+  replaced by: Test R prints ENGINES AGREE and C1 prints PASS.
+  Test G and Test R are both reported wherever either is cited."
+```
+
+**Amendment A2 to amendment A1 -- POST HOC** (written after C1's data, and to be flagged so wherever it is cited; plan-author decision 30, 2026-10-11 ~11:30 HST; recorded in sec. 4.7.59), verbatim from that section:
+
+```
+    AMENDMENT A2 to amendment A1 (POST HOC: written after C1's
+    data; to be flagged so wherever it is cited): the condition
+    "C1 prints PASS" is replaced by: "in all n trajectories every
+    registered audit count is 0 (missing, extra, deferred early,
+    bands, duplicates disagreeing, cells inconsistent), the event
+    hash and per-class counts equal the unaudited twin's, clean=1
+    in both, and the audit's own relative flag max |dt|/horizon
+    (|dt| > 1e-9 only) is <= 1e-10 (the M2 acceptance criterion)."
+    Reasons: the pre-registered FAIL condition (missing, extra,
+    deferred-early) is 0 in 2.26e8 audited states; the amended part
+    is the rounding tolerance only; the executed events' accuracy
+    is bounded separately by the contact audit (max 4.5e-12 px).
+```
+
+(Not part of the registration, for orientation only: A2's condition was printed on C1's data as MET, POST HOC, in sec. 4.7.60. The registered C1 verdict NOT DECIDED stands. Test R's verdict is Report R1's.)
