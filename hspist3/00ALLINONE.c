@@ -763,6 +763,44 @@ int energy_histogram[NUM_BINS] = {0};
 SDL_Window* _window = NULL;
 SDL_Renderer* _renderer = NULL;
 
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item D; 261012 sec. 4.7.73): THE UI IN WINDOW POINTS. With
+   SDL_WINDOW_ALLOW_HIGHDPI the renderer has gui_ui_scale device pixels per window point (2 on a Retina Mac). The HUD, the F2 and F3
+   panels and their labels used to be drawn in device pixels, i.e. at half their size there. Between gui_begin_ui_view() and
+   gui_end_ui_view() MAX_X and MAX_Y are the window size in points and the render scale is gui_ui_scale; draw_text renders with the
+   fonts opened at gui_ui_scale times their size (gui_open_hi_fonts) and draws them at 1/gui_ui_scale, so the text stays sharp. The
+   mouse handlers use the same coordinates (gui_ui_coords_begin/end around live_controls_handle_event; gui_mouse_to_canvas_xy). The
+   scene (box, disks, divider, pistons and the distribution panels) keeps its own scale (gui_begin_scene_view). Display only. */
+static float gui_ui_scale = 1.0f;          /* device pixels per window point (gui_sync_renderer_canvas_size) */
+static float cli_gui_ui_scale = 0.0f;      /* --gui-ui-scale=U: a test override of the measured value (0: measured) */
+static int   gui_ui_active = 0;            /* MAX_X, MAX_Y are in window points (gui_ui_coords_begin) */
+static int   gui_ui_pass = 0;              /* the render scale is gui_ui_scale (gui_begin_ui_view) */
+static int   gui_ui_saved_max_x = 0, gui_ui_saved_max_y = 0;
+/* ##CHRIS 2026-10-12 (decision 34, addition, item C): the window is paused at a divider's limit (gui_divider_limit_check) */
+static int   gui_div_limit_paused = 0;
+static char  gui_div_limit_msg[2][240];
+static void gui_ui_coords_begin(void) {
+    if (gui_ui_active) return;
+    gui_ui_saved_max_x = MAX_X; gui_ui_saved_max_y = MAX_Y;
+    MAX_X = (int)floorf((float)MAX_X / gui_ui_scale);
+    MAX_Y = (int)floorf((float)MAX_Y / gui_ui_scale);
+    gui_ui_active = 1;
+}
+static void gui_ui_coords_end(void) {
+    if (!gui_ui_active) return;
+    MAX_X = gui_ui_saved_max_x; MAX_Y = gui_ui_saved_max_y;
+    gui_ui_active = 0;
+}
+static void gui_begin_ui_view(void) {
+    gui_ui_coords_begin();
+    if (_renderer) SDL_RenderSetScale(_renderer, gui_ui_scale, gui_ui_scale);
+    gui_ui_pass = 1;
+}
+static void gui_end_ui_view(void) {
+    if (_renderer) SDL_RenderSetScale(_renderer, 1.0f, 1.0f);
+    gui_ui_pass = 0;
+    gui_ui_coords_end();
+}
+
 static void gui_recompute_hist_extents(void) {
     HIST_WIDTH = MAX_X - SIM_WIDTH;
     HIST_HEIGHT = MAX_Y - SIM_HEIGHT;
@@ -772,10 +810,14 @@ static void gui_recompute_hist_extents(void) {
 
 static void gui_sync_renderer_canvas_size(void) {
     int w = 0, h = 0;
+    gui_ui_scale = cli_gui_ui_scale > 0.0f ? cli_gui_ui_scale : 1.0f;   /* ##CHRIS 2026-10-12 (decision 34, addition, item D) */
     if (_renderer && SDL_GetRendererOutputSize(_renderer, &w, &h) == 0 && w > 0 && h > 0) {
         MAX_X = w;
         MAX_Y = h;
         gui_recompute_hist_extents();
+        int ww = 0, wh = 0;   /* ##CHRIS (decision 34, addition, item D): device pixels per window point */
+        if (_window) SDL_GetWindowSize(_window, &ww, &wh);
+        if (cli_gui_ui_scale <= 0.0f && ww > 0) gui_ui_scale = fmaxf(1.0f, (float)w / (float)ww);
         return;
     }
     if (_window) {
@@ -799,8 +841,9 @@ static void gui_mouse_to_canvas_xy(int raw_x, int raw_y, int *canvas_x, int *can
             sy = (double)rh / (double)wh;
         }
     }
-    if (canvas_x) *canvas_x = (int)lround((double)raw_x * sx);
-    if (canvas_y) *canvas_y = (int)lround((double)raw_y * sy);
+    /* ##CHRIS 2026-10-12 (decision 34, addition, item D): in the UI's window points, as the panels are laid out */
+    if (canvas_x) *canvas_x = (int)lround((double)raw_x * sx / (double)gui_ui_scale);
+    if (canvas_y) *canvas_y = (int)lround((double)raw_y * sy / (double)gui_ui_scale);
 }
 
 // GUI toggles (interactive only)
@@ -946,7 +989,18 @@ static int live_scene_engine_next = 0;   /* ##CHRIS 2026-10-10 (decision 19, ite
    speed-of-sound piston modes reachable from the CLI are also reachable here. */
 #define LIVE_SCENE_ROW_THICKNESS 5
 #define LIVE_SCENE_ROW_MASS0     6
-#define LIVE_SCENE_ROW_COUNT (LIVE_SCENE_ROW_MASS0 + LIVE_SCENE_MAX_WALLS)
+#define LIVE_SCENE_ROW_MASS_END  (LIVE_SCENE_ROW_MASS0 + LIVE_SCENE_MAX_WALLS)
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item B; 261012 sec. 4.7.73): the spring constant k of the energy-transfer
+   scene's spring divider, in kT/sigma^2, applied by APPLY like the other rows (run configuration, allowed under gen3): as
+   --spring-k-sigma=k --spring-wall=0 (--spring-eq is the spring L0 row), hence EDMD_Params.divider_k = k / 24^2 kT/px^2 and
+   divider_xeq = L0 -- the spring divider gen3 accepted in M2 (harmonic about x_eq once free with mass M1; the M2 cell spring_pi8:
+   k = 0.02 kT/px^2 = 11.52 kT/sigma^2, M = 50). Range 0.1 .. 1e4 kT/sigma^2 (log); default 11.52, or the command line's
+   --spring-k-sigma / --spring-k. Shown right after the spring L0 row (live_scene_index_for_visible_row). */
+#define LIVE_SCENE_ROW_SPRING_K  LIVE_SCENE_ROW_MASS_END
+#define LIVE_SCENE_ROW_COUNT     (LIVE_SCENE_ROW_SPRING_K + 1)
+#define LIVE_SCENE_SPRING_K_MIN  0.1
+#define LIVE_SCENE_SPRING_K_MAX  1.0e4
+#define LIVE_SCENE_SPRING_K_DEFAULT 11.52
 #define LIVE_SCENE_MASS_MIN      50.0
 #define LIVE_SCENE_MASS_MAX      1.0e6
 #define LIVE_SCENE_THICK_MIN_SIGMA 0.01
@@ -971,6 +1025,7 @@ static int live_scene_particle_count = DEFAULT_PARTICLES_ACTIVE;
 static float live_scene_eta = 0.20f;
 static float live_scene_radius_sigma = 0.10f;
 static float live_scene_spring_l0_sigma = 20.0f;
+static float live_scene_spring_k_sigma = (float)LIVE_SCENE_SPRING_K_DEFAULT;   /* ##CHRIS 2026-10-12 (decision 34, addition, item B) */
 static float live_scene_wall_mass[LIVE_SCENE_MAX_WALLS] = {200.0f, 2000.0f, 200.0f, 200.0f, 200.0f};
 /* ##CHRIS: wall thickness in sigma. user_set stays 0 until the slider is dragged, so an
    untouched panel keeps the historical behaviour of recomputing the thickness as 2R. */
@@ -1007,7 +1062,9 @@ static float gui_renderer_device_scale(void) {
     return (s > 1.0f) ? s : 1.0f;
 }
 
-static int gui_controls_column_left(void) {
+static int gui_controls_column_left(void) {   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): device pixels; the panels sit in window points */
+    const int nested = gui_ui_active;
+    if (!nested) gui_ui_coords_begin();
     int left = MAX_X;
     if (live_controls_visible) {
         int x = 0, y = 0, w = 0, h = 0;
@@ -1019,13 +1076,14 @@ static int gui_controls_column_left(void) {
         live_scene_layout(&x, &y, &w, &h);
         if (w > 0 && x < left) left = x;
     }
-    return left;
+    if (!nested) gui_ui_coords_end();
+    return (int)floorf((float)left * gui_ui_scale);
 }
 
 static float gui_compute_scene_view_scale(void) {
     const int controls_left = gui_controls_column_left();
-    const float hud_min_w = 520.0f;
-    const float right_limit = (float)controls_left - hud_min_w - 24.0f;
+    const float hud_min_w = 520.0f * gui_ui_scale;   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): the HUD column, in points */
+    const float right_limit = (float)controls_left - hud_min_w - 24.0f * gui_ui_scale;
     const float max_scale_x = right_limit / fmaxf(1.0f, (float)XW2 + 10.0f);
     const float min_plot_h = 300.0f;
     const float max_scale_y = (float)MAX_Y / fmaxf(1.0f, (float)SIM_HEIGHT + min_plot_h);
@@ -1039,6 +1097,9 @@ static float gui_compute_scene_view_scale(void) {
 
 static int gui_scene_screen_x(float world_x) {
     return (int)lroundf(world_x * gui_scene_view_scale);
+}
+static int gui_scene_screen_y(float world_y) {   /* ##CHRIS 2026-10-12 (decision 34, addition, item D) */
+    return (int)lroundf(world_y * gui_scene_view_scale);
 }
 
 static void gui_begin_scene_view(void) {
@@ -1318,6 +1379,13 @@ static double cli_gui_run_seconds = 0.0;       /* --gui-run-seconds=S: end the s
 static double cli_gui_time_scale = 0.0;        /* --gui-time-scale=X: the window's initial time scale (0: unchanged; --timescale is
                                                   read as --time by the parser's earlier prefix match on "--time") */
 static const char* cli_gui_keys = NULL;        /* --gui-keys=STEP:KEY,...: key presses put into the window's event queue at those steps */
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition): test hooks of the window (display only; refused without it) */
+static int    cli_gui_window_w = 0, cli_gui_window_h = 0;   /* --gui-window=WxH: the window's size in points, exactly (no display clamp) */
+#define GUI_SHOTS_MAX 4
+static int    gui_shot_n = 0;                  /* --gui-shot=STEP:FILE.bmp | limit:FILE.bmp: the frame after that step, or at the */
+static long   gui_shot_step[GUI_SHOTS_MAX];    /*   divider-limit pause (step -1) */
+static char   gui_shot_path[GUI_SHOTS_MAX][512];
+static int    gui_shot_done[GUI_SHOTS_MAX];
 
 static void g3_stop(const char* what){
     fflush(stdout);
@@ -2794,6 +2862,7 @@ static void reset_simulation_state(void) {
     steps_elapsed = 0;
     simulation_started = 0;
     paused = false;
+    gui_div_limit_paused = 0;   /* ##CHRIS 2026-10-12 (decision 34, addition, item C): a rebuilt scene is not at a limit */
     piston_work_left = piston_work_right = 0.0;
     piston_hits_left = piston_hits_right = 0;
     missed_collision_events = 0;
@@ -4993,6 +5062,27 @@ static void parse_cli_options(int argc, char **argv) {
             cli_gui_time_scale = v;
         } else if (strncmp(arg, "--gui-keys=", strlen("--gui-keys=")) == 0) {
             cli_gui_keys = arg + strlen("--gui-keys=");
+        } else if (strncmp(arg, "--gui-window=", strlen("--gui-window=")) == 0) {   /* ##CHRIS 2026-10-12 (decision 34, addition): test hooks */
+            char tail = 0;
+            if (sscanf(arg + strlen("--gui-window="), "%dx%d%c", &cli_gui_window_w, &cli_gui_window_h, &tail) != 2
+                || cli_gui_window_w < 320 || cli_gui_window_h < 240 || cli_gui_window_w > 16384 || cli_gui_window_h > 16384) {
+                fprintf(stderr, "Invalid '%s' (WxH in points, 320x240 .. 16384x16384).\n", arg); exit(EXIT_FAILURE);
+            }
+        } else if (strncmp(arg, "--gui-ui-scale=", strlen("--gui-ui-scale=")) == 0) {
+            char *endptr = NULL; const double v = strtod(arg + strlen("--gui-ui-scale="), &endptr);
+            if (!endptr || *endptr != '\0' || !(v >= 1.0 && v <= 4.0)) { fprintf(stderr, "Invalid '%s' (1 .. 4).\n", arg); exit(EXIT_FAILURE); }
+            cli_gui_ui_scale = (float)v;
+        } else if (strncmp(arg, "--gui-shot=", strlen("--gui-shot=")) == 0) {
+            const char *s = arg + strlen("--gui-shot="), *colon = strchr(s, ':');
+            long st = -1;
+            if (colon && strncmp(s, "limit:", 6) != 0) { char *e = NULL; st = strtol(s, &e, 10); if (e != colon || st < 1) colon = NULL; }
+            if (!colon || !colon[1] || gui_shot_n >= GUI_SHOTS_MAX || strlen(colon + 1) >= sizeof gui_shot_path[0]) {
+                fprintf(stderr, "Invalid '%s' (STEP:FILE.bmp or limit:FILE.bmp, at most %d).\n", arg, GUI_SHOTS_MAX); exit(EXIT_FAILURE);
+            }
+            gui_shot_step[gui_shot_n] = st;
+            snprintf(gui_shot_path[gui_shot_n], sizeof gui_shot_path[0], "%s", colon + 1);
+            gui_shot_done[gui_shot_n] = 0;
+            gui_shot_n++;
         } else if (strncmp(arg, "--engine", strlen("--engine")) == 0 && (arg[8] == '=' || arg[8] == '\0')) {
             fprintf(stderr, "Invalid --engine '%s': use --engine=gen2 (default) or --engine=gen3.\n", arg);
             exit(EXIT_FAILURE);
@@ -5510,7 +5600,8 @@ void initSDL() {
     }
     // Pre-clamp against the primary display so the initial window isn't absurdly large.
     // (We do a second clamp after window creation using the window's actual display index.)
-    {
+    if (cli_gui_window_w > 0) { MAX_X = cli_gui_window_w; MAX_Y = cli_gui_window_h; }   /* ##CHRIS 2026-10-12 (decision 34, addition): --gui-window, exact */
+    else {
         SDL_DisplayMode dm;
         if (SDL_GetCurrentDisplayMode(0, &dm) == 0) {
             const int max_w = (int)(0.98 * (double)dm.w);
@@ -5557,7 +5648,7 @@ void initSDL() {
     }
 
     // Post-clamp to the actual display the window ended up on (important for external monitors).
-    {
+    if (cli_gui_window_w <= 0) {   /* ##CHRIS 2026-10-12 (decision 34, addition): not with --gui-window */
         int display_index = SDL_GetWindowDisplayIndex(_window);
         if (display_index < 0) display_index = 0;
         SDL_DisplayMode dm;
@@ -8402,10 +8493,11 @@ static inline void handle_piston_collisions_ccd_substep(int i, float sub_dt,
 
 void draw_wall() {
     if (!wall_enabled) return;  // Don't draw if the wall is disabled
-       if (isnan(wall_x) || wall_x < XW1 || wall_x > XW2) {
-        printf("🚨 Invalid wall_x = %f\n", wall_x);
-            exit(1);
-        }
+    /* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item C): a drawing function no longer ends the program. A divider
+       outside the box (neither engine has a divider-outer-wall event; the window pauses before that, gui_divider_limit_check) is
+       drawn where it is, in red; the old exit(1) after "Invalid wall_x" is gone */
+    if (isnan(wall_x)) return;
+    const int wall_outside = wall_x < XW1 || wall_x > XW2;
     const bool sz_mode = (cli_experiment_preset == EXPERIMENT_PRESET_SZILARD_ENGINE && sz_interactive_enabled);
     float vis_thick = (wall_thickness_visual_runtime > 0.0f) ? wall_thickness_visual_runtime : WALL_THICKNESS;
     // In Szilard mode use a thin visual wall for both red/blue barriers.
@@ -8426,6 +8518,7 @@ void draw_wall() {
     } else {
         SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);  // default white
     }
+    if (wall_outside) SDL_SetRenderDrawColor(_renderer, 255, 60, 60, 255);   /* ##CHRIS (decision 34, addition, item C) */
 
     SDL_RenderFillRect(_renderer, &wall_rect);
 
@@ -11566,6 +11659,16 @@ static void log_distributions(double t_abs, double t_rel, int released) {
    At the end of the scene: the run record ([EDMD3-HEALTH] scene: ..., with the event hash; also before every rebuild) and
    [GUI-STATS] (frames, fps, sigma-time per wall second, events per wall second, from the scene's first step). Under gen3, Q ends
    the loop instead of exit(0), so both are printed. */
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition; 261012 sec. 4.7.73): THE ENERGY-TRANSFER SCENE IN THE GEN3 WINDOW.
+   B: the F3 panel has a spring-constant row (k, kT/sigma^2) for the energy-transfer scene, applied by APPLY like N, radius, eta,
+      spring L0 and M1 (run configuration, allowed under gen3); the HUD shows k as the engine has it and E_spring, and the [ENERGY]
+      line prints E_spring and E_tot = KE_tot + E_spring. A live change of the spring during a run stays n/a under gen3.
+   C: a divider at the end of its range pauses the window (gui_divider_limit_check); draw_wall no longer calls exit(1).
+   D: the UI in window points (gui_begin_ui_view: full-size, sharp panels and text on a high-DPI display), UTF-8 text (sigma),
+      the hold counter stops at 0 ("R releases it"), HUD lines wrap instead of being cut at the panel edge.
+   Test hooks (window only): --gui-window=WxH (the window's size in points, exactly), --gui-ui-scale=U (instead of the measured
+   device pixels per point), --gui-shot=STEP:FILE.bmp or limit:FILE.bmp (the frame after that step, or at the divider-limit pause).
+   All of it is display: the physics and every output file are unchanged; a run with the window gives the headless event hash. */
 #define G3_GUI_ETA_STOP 0.80
 static int    g3_gui_quit = 0;                    /* Q under gen3: the loop ends */
 static char   g3_gui_note_text[200] = "";
@@ -11656,6 +11759,12 @@ static void g3_gui_guard_pistons(double dt){
 // Keyboard input handling
 void keysSimulation(SDL_Event e) {
     if (cli_engine == 3 && e.type == SDL_KEYDOWN && g3_gui_key(e.key.keysym.sym)) return;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+    if (gui_div_limit_paused && e.type == SDL_KEYDOWN && (e.key.keysym.sym == SDLK_p || e.key.keysym.sym == SDLK_SPACE)) {
+        /* ##CHRIS 2026-10-12 (decision 34, addition, item C): a divider at the end of its range is not resumed */
+        printf("[GUI-LIMIT] the divider is at the end of its range: ESC or the F3 panel's APPLY rebuilds the scene, Q ends it\n");
+        fflush(stdout);
+        return;
+    }
     /* ##CHRIS 2026-09-19: demo mode owns SPACE / P / S / + / - so each stage begins on a key.
        R (release) and Q (quit) fall through to the handlers below, which already do the right thing. */
     if (cli_demo_mode && e.type == SDL_KEYDOWN) {
@@ -13374,9 +13483,9 @@ static void render_speed_histograms_by_segment_panel(int y0, int h) {
                 snprintf(l3, sizeof(l3), "sd=%.2f", sd);
 
                 int tw1 = 0, th1 = 0, tw2 = 0, th2 = 0, tw3 = 0, th3 = 0;
-                TTF_SizeText(ff, l1, &tw1, &th1);
-                TTF_SizeText(ff, l2, &tw2, &th2);
-                TTF_SizeText(ff, l3, &tw3, &th3);
+                TTF_SizeUTF8(ff, l1, &tw1, &th1);
+                TTF_SizeUTF8(ff, l2, &tw2, &th2);
+                TTF_SizeUTF8(ff, l3, &tw3, &th3);
                 int bg_w = tw1;
                 if (tw2 > bg_w) bg_w = tw2;
                 if (tw3 > bg_w) bg_w = tw3;
@@ -13834,29 +13943,53 @@ void draw_coordinate_system(SDL_Renderer *renderer) {
 
 
 // draw text
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item D): UTF-8 -- TTF_RenderText_* reads the bytes as Latin-1, so "σ"
+   came out as two wrong glyphs, one of them a box (Roboto has σ Δ ν ² × · ° – — −); in the UI pass (gui_begin_ui_view) the text
+   is rendered with the font opened at gui_ui_scale times the size and drawn at 1/gui_ui_scale, sharp on a high-DPI display; an
+   empty or unrenderable text draws nothing (it used to dereference a NULL surface). Text widths are measured with TTF_SizeUTF8. */
+static TTF_Font *gui_font_base[2] = {NULL, NULL}, *gui_font_hi[2] = {NULL, NULL};
+static float gui_font_hi_scale = 0.0f;
 void draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text, int x, int y, SDL_Color color) {
-    SDL_Surface *text_surface = TTF_RenderText_Blended(font, text, color);
+    if (!renderer || !font || !text || !*text) return;
+    TTF_Font *rf = font;
+    float k = 1.0f;
+    if (gui_ui_pass && gui_ui_scale > 1.0f && gui_font_hi_scale == gui_ui_scale) {
+        for (int i = 0; i < 2; ++i)
+            if (font == gui_font_base[i] && gui_font_hi[i]) { rf = gui_font_hi[i]; k = gui_ui_scale; }
+    }
+    SDL_Surface *text_surface = TTF_RenderUTF8_Blended(rf, text, color);
+    if (!text_surface) return;
     SDL_Texture *text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-    SDL_Rect dst = { x, y, text_surface->w, text_surface->h };
-    SDL_RenderCopy(renderer, text_texture, NULL, &dst);
+    if (text_texture) {
+        SDL_Rect dst = { x, y, (int)lroundf((float)text_surface->w / k), (int)lroundf((float)text_surface->h / k) };
+        SDL_RenderCopy(renderer, text_texture, NULL, &dst);
+        SDL_DestroyTexture(text_texture);
+    }
     SDL_FreeSurface(text_surface);
-    SDL_DestroyTexture(text_texture);
+}
+static void gui_open_hi_fonts(void) {   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): the fonts at gui_ui_scale times their size */
+    for (int i = 0; i < 2; ++i) if (gui_font_hi[i]) { TTF_CloseFont(gui_font_hi[i]); gui_font_hi[i] = NULL; }
+    gui_font_base[0] = font; gui_font_base[1] = font_small;
+    gui_font_hi_scale = gui_ui_scale;
+    if (!(gui_ui_scale > 1.0f)) return;
+    if (font) gui_font_hi[0] = TTF_OpenFont("Roboto-Regular.ttf", (int)lroundf(18.0f * gui_ui_scale));
+    if (font_small) gui_font_hi[1] = TTF_OpenFont("Roboto-Regular.ttf", (int)lroundf(12.0f * gui_ui_scale));
 }
 
 // Draw text truncated to fit max_w pixels (adds "..." when truncated).
 static void draw_text_clipped(SDL_Renderer *renderer, TTF_Font *font, const char *text, int x, int y, SDL_Color color, int max_w) {
-    if (!text) return;
+    if (!text || !font) return;
     if (max_w <= 0) { draw_text(renderer, font, text, x, y, color); return; }
 
     int w = 0, h = 0;
-    if (TTF_SizeText(font, text, &w, &h) != 0 || w <= max_w) {
+    if (TTF_SizeUTF8(font, text, &w, &h) != 0 || w <= max_w) {
         draw_text(renderer, font, text, x, y, color);
         return;
     }
 
     const char *ellipsis = "...";
     int w_ell = 0, h_ell = 0;
-    if (TTF_SizeText(font, ellipsis, &w_ell, &h_ell) != 0) {
+    if (TTF_SizeUTF8(font, ellipsis, &w_ell, &h_ell) != 0) {
         draw_text(renderer, font, text, x, y, color);
         return;
     }
@@ -13864,22 +13997,76 @@ static void draw_text_clipped(SDL_Renderer *renderer, TTF_Font *font, const char
 
     size_t n = strlen(text);
     char tmp[1024];
-    if (n >= sizeof(tmp)) n = sizeof(tmp) - 1;
-
-    size_t lo = 0, hi = n;
+    if (n >= sizeof(tmp) - 4) n = sizeof(tmp) - 5;
+    /* ##CHRIS 2026-10-12 (decision 34, addition, item D): cut only at UTF-8 character starts */
+    size_t cut[1024];
+    size_t nc = 0;
+    for (size_t i = 0; i <= n; ++i)
+        if (i == n || (((unsigned char)text[i]) & 0xC0) != 0x80) cut[nc++] = i;
+    size_t lo = 0, hi = nc - 1;   /* cut[lo] bytes + "..." fit; cut[hi] bytes (the whole text) do not */
     while (lo + 1 < hi) {
-        size_t mid = (lo + hi) / 2;
-        memcpy(tmp, text, mid);
-        tmp[mid] = '\0';
+        const size_t mid = (lo + hi) / 2;
+        memcpy(tmp, text, cut[mid]);
+        tmp[cut[mid]] = '\0';
         strncat(tmp, ellipsis, sizeof(tmp) - strlen(tmp) - 1);
         int ww = 0, hh = 0;
-        if (TTF_SizeText(font, tmp, &ww, &hh) == 0 && ww <= max_w) lo = mid;
+        if (TTF_SizeUTF8(font, tmp, &ww, &hh) == 0 && ww <= max_w) lo = mid;
         else hi = mid;
     }
-    memcpy(tmp, text, lo);
-    tmp[lo] = '\0';
+    memcpy(tmp, text, cut[lo]);
+    tmp[cut[lo]] = '\0';
     strncat(tmp, ellipsis, sizeof(tmp) - strlen(tmp) - 1);
     draw_text(renderer, font, tmp, x, y, color);
+}
+
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item D): a HUD line wider than its column continues on the next rows,
+   indented, instead of being cut at the panel edge; it breaks at spaces (a single word wider than the column is cut). Returns the
+   rows used: the first row is always drawn, as before; further rows only above y_max. */
+static int hud_text_wrapped(SDL_Renderer *r, TTF_Font *f, const char *text, int x, int y, SDL_Color c, int max_w, int dy, int y_max) {
+    if (!text || !*text || !f) return 1;
+    int w = 0, h = 0;
+    if (max_w <= 0 || TTF_SizeUTF8(f, text, &w, &h) != 0 || w <= max_w) { draw_text(r, f, text, x, y, c); return 1; }
+    const int indent = 18;
+    const size_t n = strlen(text);
+    char buf[1024];
+    size_t pos = 0;
+    int rows = 0;
+    while (pos < n) {
+        while (pos < n && text[pos] == ' ') ++pos;
+        if (pos >= n) break;
+        if (rows > 0 && y + rows * dy + dy > y_max) break;
+        const int xr = rows ? x + indent : x, wr = rows ? max_w - indent : max_w;
+        size_t best = 0, k = pos;
+        while (k < n) {
+            size_t e = k;
+            while (e < n && text[e] != ' ') ++e;
+            const size_t len = e - pos;
+            if (len >= sizeof buf) break;
+            memcpy(buf, text + pos, len);
+            buf[len] = '\0';
+            int ww = 0, hh = 0;
+            if (TTF_SizeUTF8(f, buf, &ww, &hh) != 0 || ww > wr) break;
+            best = len;
+            k = e;
+            while (k < n && text[k] == ' ') ++k;
+        }
+        if (best == 0) {   /* one word wider than the row: cut */
+            size_t e = pos;
+            while (e < n && text[e] != ' ') ++e;
+            const size_t len = e - pos < sizeof buf ? e - pos : sizeof buf - 1;
+            memcpy(buf, text + pos, len);
+            buf[len] = '\0';
+            draw_text_clipped(r, f, buf, xr, y + rows * dy, c, wr);
+            pos = e;
+        } else {
+            memcpy(buf, text + pos, best);
+            buf[best] = '\0';
+            draw_text(r, f, buf, xr, y + rows * dy, c);
+            pos += best;
+        }
+        ++rows;
+    }
+    return rows > 0 ? rows : 1;
 }
 
 static double live_clamp(double value, double lo, double hi) {
@@ -14053,11 +14240,12 @@ static double live_scene_clamped_spring_l0_sigma(void) {
 }
 
 static int live_scene_param_visible(int index) {
+    if (index == LIVE_SCENE_ROW_SPRING_K) return live_scene_mode == LIVE_SCENE_MODE_ENERGY_TRANSFER;   /* ##CHRIS (decision 34, addition, item B) */
     if (index == 0) return live_scene_fixed_wall_count() == 0;
     if (index >= 1 && index <= 3) return 1;
     if (index == 4) return live_scene_mode == LIVE_SCENE_MODE_ENERGY_TRANSFER;
     if (index == LIVE_SCENE_ROW_THICKNESS) return 1;
-    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT) {
+    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_MASS_END) {
         return (live_scene_mode == LIVE_SCENE_MODE_ENERGY_TRANSFER ||
                 live_scene_mode == LIVE_SCENE_MODE_SPEED_OF_SOUND) &&
                (index - LIVE_SCENE_ROW_MASS0) < live_scene_wall_count;
@@ -14075,7 +14263,8 @@ static int live_scene_visible_param_count(void) {
 
 static int live_scene_index_for_visible_row(int visible_row) {
     int row = 0;
-    for (int i = 0; i < LIVE_SCENE_ROW_COUNT; ++i) {
+    for (int k = 0; k < LIVE_SCENE_ROW_COUNT; ++k) {   /* ##CHRIS 2026-10-12 (decision 34, addition, item B): spring k right after spring L0 */
+        const int i = k <= 4 ? k : (k == 5 ? LIVE_SCENE_ROW_SPRING_K : k - 1);
         if (!live_scene_param_visible(i)) continue;
         if (row == visible_row) return i;
         row++;
@@ -14285,6 +14474,9 @@ static void live_scene_sync_from_runtime(void) {
             live_scene_spring_l0_sigma = (float)L0_UNITS;
         }
         live_scene_spring_l0_sigma = (float)live_scene_clamped_spring_l0_sigma();
+        if (cli_spring_k_set && cli_spring_k > 0.0f)   /* ##CHRIS 2026-10-12 (decision 34, addition, item B): the command line's k */
+            live_scene_spring_k_sigma = (float)live_clamp((double)cli_spring_k * (double)PIXELS_PER_SIGMA * (double)PIXELS_PER_SIGMA,
+                                                          LIVE_SCENE_SPRING_K_MIN, LIVE_SCENE_SPRING_K_MAX);
         if (radius_is_primary_control) live_scene_update_eta_from_radius();
         else live_scene_update_radius_from_eta();
     }
@@ -14320,8 +14512,9 @@ static double live_scene_get_value(int index) {
     if (index == 2) return (double)live_scene_radius_sigma;
     if (index == 3) return (double)live_scene_eta;
     if (index == 4) return (double)live_scene_spring_l0_sigma;
+    if (index == LIVE_SCENE_ROW_SPRING_K) return (double)live_scene_spring_k_sigma;   /* ##CHRIS (decision 34, addition, item B) */
     if (index == LIVE_SCENE_ROW_THICKNESS) return (double)live_scene_wall_thickness_sigma;
-    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT)
+    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_MASS_END)
         return (double)live_scene_wall_mass[index - LIVE_SCENE_ROW_MASS0];
     return 0.0;
 }
@@ -14356,7 +14549,9 @@ static void live_scene_set_value(int index, double value) {
                                                            LIVE_SCENE_THICK_MIN_SIGMA,
                                                            LIVE_SCENE_THICK_MAX_SIGMA);
         live_scene_wall_thickness_user_set = 1;
-    } else if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT) {
+    } else if (index == LIVE_SCENE_ROW_SPRING_K) {   /* ##CHRIS 2026-10-12 (decision 34, addition, item B) */
+        live_scene_spring_k_sigma = (float)live_clamp(value, LIVE_SCENE_SPRING_K_MIN, LIVE_SCENE_SPRING_K_MAX);
+    } else if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_MASS_END) {
         live_scene_wall_mass[index - LIVE_SCENE_ROW_MASS0] =
             (float)live_clamp(value, LIVE_SCENE_MASS_MIN, LIVE_SCENE_MASS_MAX);
     }
@@ -14369,8 +14564,9 @@ static const char *live_scene_label(int index) {
     if (index == 2) return "radius σ";
     if (index == 3) return "eta";
     if (index == 4) return "spring L0";
+    if (index == LIVE_SCENE_ROW_SPRING_K) return "k (kT/σ²)";   /* ##CHRIS (decision 34, addition, item B) */
     if (index == LIVE_SCENE_ROW_THICKNESS) return "wall thick";
-    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT) {
+    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_MASS_END) {
         snprintf(label, sizeof(label), "M%d", index - LIVE_SCENE_ROW_MASS0 + 1);
         return label;
     }
@@ -14378,8 +14574,8 @@ static const char *live_scene_label(int index) {
 }
 
 static int live_scene_log_scale(int index) {
-    return (index == 1 || index == 2 || index == LIVE_SCENE_ROW_THICKNESS ||
-            (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT));
+    return (index == 1 || index == 2 || index == LIVE_SCENE_ROW_THICKNESS || index == LIVE_SCENE_ROW_SPRING_K ||
+            (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_MASS_END));
 }
 
 static double live_scene_min_value(int index) {
@@ -14389,6 +14585,7 @@ static double live_scene_min_value(int index) {
     if (index == 3) return 0.02;
     if (index == 4) return live_scene_spring_l0_min_sigma();
     if (index == LIVE_SCENE_ROW_THICKNESS) return LIVE_SCENE_THICK_MIN_SIGMA;
+    if (index == LIVE_SCENE_ROW_SPRING_K) return LIVE_SCENE_SPRING_K_MIN;   /* ##CHRIS (decision 34, addition, item B) */
     return LIVE_SCENE_MASS_MIN;
 }
 
@@ -14402,6 +14599,7 @@ static double live_scene_max_value(int index) {
     if (index == 3) return 0.75;
     if (index == 4) return live_scene_spring_l0_max_sigma();
     if (index == LIVE_SCENE_ROW_THICKNESS) return LIVE_SCENE_THICK_MAX_SIGMA;
+    if (index == LIVE_SCENE_ROW_SPRING_K) return LIVE_SCENE_SPRING_K_MAX;   /* ##CHRIS (decision 34, addition, item B) */
     return LIVE_SCENE_MASS_MAX;
 }
 
@@ -14427,15 +14625,17 @@ static void live_scene_layout(int *x, int *y, int *w, int *h) {
     const int panel_w = 420;
     const int visible_rows = live_scene_visible_param_count();
     const int panel_h = 134 + visible_rows * 30 + 72;
+    /* ##CHRIS 2026-10-12 (decision 34, addition, item D): window points (the box's XW1, YW1 no longer enter); below the F2 panel
+       when it fits there, else beside it */
     int panel_x = MAX_X - panel_w - 12;
-    if (panel_x < XW1 + 12) panel_x = XW1 + 12;
-    int panel_y = YW1 + 12;
+    if (panel_x < 12) panel_x = 12;
+    int panel_y = 12;
     if (live_controls_visible) {
         int cx = 0, cy = 0, cw = 0, ch = 0;
         live_controls_layout(&cx, &cy, &cw, &ch);
         panel_y = cy + ch + 10;
+        if (panel_y + panel_h > MAX_Y - 6 && cx - panel_w - 12 >= 12) { panel_x = cx - panel_w - 12; panel_y = cy; }
     }
-    if (panel_y < YW1 + 10) panel_y = YW1 + 10;
     if (panel_y + panel_h > MAX_Y - 6) panel_y = MAX_Y - panel_h - 6;
     if (panel_y < 6) panel_y = 6;
     if (x) *x = panel_x;
@@ -14548,6 +14748,13 @@ static void live_scene_prepare_rebuild(void) {
         cli_enable_energy_measurement = true;
         cli_eff_output_mode = EFF_OUTPUT_SPRING;
         live_scene_spring_l0_sigma = (float)live_scene_clamped_spring_l0_sigma();
+        /* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item B): the k row, as --spring-k-sigma=k --spring-wall=0; the rebuild
+           passes it to the engine (EDMD_Params.divider_k, live_rebuild_edmd_from_current_state), gen3 takes it at its build */
+        cli_spring_k_set = 1;
+        cli_spring_k = (float)((double)live_scene_spring_k_sigma / ((double)PIXELS_PER_SIGMA * (double)PIXELS_PER_SIGMA));
+        cli_spring_wall_set = 1;
+        cli_spring_wall_index = 0;
+        energy_measurement.spring_constant = cli_spring_k;
         live_apply_spring_enabled(1);
     } else if (live_scene_mode == LIVE_SCENE_MODE_SZILARD) {
         sim_mode = MODE_EDMD;
@@ -14664,9 +14871,10 @@ static void live_scene_prepare_rebuild(void) {
     live_scene_engine_next = live_scene_engine == LIVE_SCENE_ENGINE_GEN3 ? 3 : 2;   /* ##CHRIS 2026-10-10 (decision 19, item 2): the
                                                                                       engine row, taken by the rebuild (simulation_loop) */
     if (!cli_quiet) {
-        printf("Scene reset queued: mode=%s engine=%s walls=%d springL0=%.3fσ N=%d r=%.4fσ eta=%.3f thick=%.4fσ%s masses=",
+        printf("Scene reset queued: mode=%s engine=%s walls=%d springL0=%.3fσ springk=%.4g N=%d r=%.4fσ eta=%.3f thick=%.4fσ%s masses=",
                live_scene_mode_label(live_scene_mode), live_scene_engine_label(),
                walls, (double)live_scene_spring_l0_sigma,
+               live_scene_mode == LIVE_SCENE_MODE_ENERGY_TRANSFER ? (double)live_scene_spring_k_sigma : 0.0,   /* ##CHRIS (decision 34, addition, item B) */
                n_particles, (double)radius_sigma, (double)eta,
                (double)((double)WALL_THICKNESS / (double)PIXELS_PER_SIGMA),
                live_scene_wall_thickness_user_set ? "" : "(auto)");
@@ -14791,10 +14999,9 @@ static double live_slider_norm_to_value(const LiveSlider *slider, double norm) {
 static void live_controls_layout(int *x, int *y, int *w, int *h) {
     const int panel_w = 420;
     const int panel_h = 58 + live_slider_count * 34 + 136;
-    int panel_x = MAX_X - panel_w - 12;
-    if (panel_x < XW1 + 12) panel_x = XW1 + 12;
-    int panel_y = YW1 + 12;
-    if (panel_y < YW1 + 10) panel_y = YW1 + 10;
+    int panel_x = MAX_X - panel_w - 12;   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): window points */
+    if (panel_x < 12) panel_x = 12;
+    int panel_y = 12;
     if (panel_y + panel_h > MAX_Y - 6) panel_y = MAX_Y - panel_h - 6;
     if (panel_y < 6) panel_y = 6;
     if (x) *x = panel_x;
@@ -14891,7 +15098,7 @@ static int live_controls_runtime_panel_handle_event(const SDL_Event *e) {
         if (live_point_in_rect(mx, my, spring_row)) {
             live_controls_drag_index = -1;
             if (cli_engine == 3) {   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
-                g3_gui_note("a live spring change n/a: the spring is part of the scene (F3 panel, energy-transfer mode, APPLY)");
+                g3_gui_note("a live spring change n/a: set spring k and L0 in the F3 panel (energy-transfer mode) and APPLY");   /* ##CHRIS 2026-10-12 (decision 34, addition, item B) */
             } else if (live_scene_spring_available()) {
                 live_apply_spring_enabled(!energy_measurement.spring_enabled);
             } else if (!cli_quiet) {
@@ -14954,7 +15161,7 @@ static int live_controls_runtime_panel_handle_event(const SDL_Event *e) {
     return 0;
 }
 
-static int live_controls_handle_event(const SDL_Event *e) {
+static int live_controls_handle_event_ui(const SDL_Event *e) {
     if (!e) return 0;
 
     if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F2) {
@@ -15050,6 +15257,7 @@ static int live_controls_handle_event(const SDL_Event *e) {
                             else if (i == 1) live_scene_set_value(i, (double)DEFAULT_PARTICLES_ACTIVE);
                             else if (i == 2) { live_scene_set_value(3, 0.20); }
                             else if (i == 3) live_scene_set_value(i, 0.20);
+                            else if (i == LIVE_SCENE_ROW_SPRING_K) live_scene_set_value(i, LIVE_SCENE_SPRING_K_DEFAULT);   /* ##CHRIS (decision 34, addition, item B) */
                             else if (i == 4) live_scene_set_value(i, (double)L0_UNITS);
                             else live_scene_set_value(i, 200.0);
                             live_scene_drag_index = -1;
@@ -15083,6 +15291,14 @@ static int live_controls_handle_event(const SDL_Event *e) {
     return 0;
 }
 
+/* ##CHRIS 2026-10-12 (decision 34, addition, item D): the panels' mouse handling in the UI's window points */
+static int live_controls_handle_event(const SDL_Event *e) {
+    gui_ui_coords_begin();
+    const int r = live_controls_handle_event_ui(e);
+    gui_ui_coords_end();
+    return r;
+}
+
 static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
     if (!renderer || !font) return;
 
@@ -15092,7 +15308,7 @@ static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
     SDL_Color green = {80, 230, 150, 255};
 
     if (!live_controls_visible) {
-        draw_text(renderer, font, "F2: live sliders", XW1 + 10, YW2 - 28, muted);
+        draw_text(renderer, font, "F2: live sliders", MAX_X - 260, MAX_Y - 22, muted);   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): window points */
     } else {
         int px = 0, py = 0, pw = 0, ph = 0;
         live_controls_layout(&px, &py, &pw, &ph);
@@ -15221,7 +15437,7 @@ static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
     }
 
     if (!live_scene_visible) {
-        draw_text(renderer, font, "F3: scene reset", XW1 + 10, YW2 - 50, muted);
+        draw_text(renderer, font, "F3: scene reset", MAX_X - 130, MAX_Y - 22, muted);   /* ##CHRIS (decision 34, addition, item D) */
         return;
     }
 
@@ -15289,6 +15505,7 @@ static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
         else if (i == 3) snprintf(value_text, sizeof(value_text), "%.3f", (double)live_scene_eta);
         else if (i == 4) snprintf(value_text, sizeof(value_text), "%.2f", (double)live_scene_spring_l0_sigma);
         else if (i == LIVE_SCENE_ROW_THICKNESS) snprintf(value_text, sizeof(value_text), "%.3f", (double)live_scene_wall_thickness_sigma);
+        else if (i == LIVE_SCENE_ROW_SPRING_K) snprintf(value_text, sizeof(value_text), "%.4g", (double)live_scene_spring_k_sigma);   /* ##CHRIS (decision 34, addition, item B) */
         else snprintf(value_text, sizeof(value_text), "%.4g", (double)live_scene_wall_mass[i - LIVE_SCENE_ROW_MASS0]);
 
         draw_text_clipped(renderer, font, live_scene_label(i), sx + 10, row_y, row_color, 96);
@@ -15400,6 +15617,30 @@ static int hud_build_experiment_key_lines(char lines[][256], int max_lines) {
 }
 
 // ---------- HUD: energy & temperature ----------
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item B): the HUD's spring line. k is read from the engine's parameters
+   (under gen3 the state it was built with, g3_params), so a spring that did not reach the engine shows k = 0. */
+static double gui_spring_k_engine_px(void) {
+    if (g_edmd && (sim_mode == MODE_EDMD || sim_mode == MODE_EDMD_HYBRID)) {
+        const EDMD_Params* ep = edmd_params(g_edmd);
+        int d = primary_wall_index;
+        if (d < 0 || d >= ep->divider_count) d = 0;
+        return ep->divider_count > 0 ? ep->divider_k[d] : 0.0;
+    }
+    return (double)energy_measurement.spring_constant;
+}
+static void hud_spring_line(char* buf, size_t n, double KEt, int wall_ke) {
+    if (wall_ke) {
+        snprintf(buf, n, "LoadKE: %.3e (max %.3e)", (double)energy_measurement.spring_energy, (double)energy_measurement.spring_energy_max);
+    } else if (energy_measurement.spring_enabled) {
+        const double k = gui_spring_k_engine_px();
+        snprintf(buf, n, "Spring: k = %.4g kT/σ² (%.4g kT/px²)  E_spring = %.4e (max %.3e)  KE + E_spring = %.7e",
+                 k * (double)PIXELS_PER_SIGMA * (double)PIXELS_PER_SIGMA, k, (double)energy_measurement.spring_energy,
+                 (double)energy_measurement.spring_energy_max, KEt + (double)energy_measurement.spring_energy);
+    } else {
+        snprintf(buf, n, "SpringE: (disabled)");
+    }
+}
+
 static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
     // compute energies
     const double KEp = kinetic_energy();
@@ -15591,7 +15832,7 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
     // Prefer a right-side "log panel" when the window is wide enough.
     // This avoids cutting off HUD lines when we also draw distributions below the box.
     const int hud_piston_gutter = 34;
-    const int panel_x = gui_scene_screen_x((float)XW2) + hud_piston_gutter;
+    const int panel_x = (int)floorf((float)gui_scene_screen_x((float)XW2) / gui_ui_scale) + hud_piston_gutter;   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): window points */
     int hud_right = MAX_X - 10;
     if (live_controls_visible || live_scene_visible) {
         int ux = MAX_X;
@@ -15608,7 +15849,7 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
         if (ux < MAX_X) hud_right = ux - 12;
     }
     const int panel_w = hud_right - panel_x;
-    const int panel_y = YW1 + 10;
+    const int panel_y = 10;   /* ##CHRIS (decision 34, addition, item D) */
     const bool use_right_panel = (panel_w >= 260);
     /* ##CHRIS 2026-10-10 (decision 19, item 2): first the engine (under gen3 its clean flag and events/s) and a gen3 note */
     char line_engine[200];
@@ -15624,18 +15865,24 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
                 const int dy = 20;
 
 		        // Compact HUD (single column)
-                draw_text_clipped(r, f, line_engine, x, y, engine_col, panel_w); y += dy;   /* ##CHRIS (decision 19, item 2) */
-                if (line_note) { draw_text_clipped(r, f, line_note, x, y, note_col, panel_w); y += dy; }
-			        draw_text_clipped(r, f, line_clock, x, y, white, panel_w); y += dy;
-			        draw_text_clipped(r, f, line_scale, x, y, white, panel_w); y += dy;
-                    draw_text_clipped(r, f, line_eta_target, x, y, white, panel_w); y += dy;
-			        draw_text_clipped(r, f, line_thermo, x, y, white, panel_w); y += dy;
+                y += dy * hud_text_wrapped(r, f, line_engine, x, y, engine_col, panel_w, dy, y_max);   /* ##CHRIS (decision 19, item 2) */
+                if (line_note) { y += dy * hud_text_wrapped(r, f, line_note, x, y, note_col, panel_w, dy, y_max); }
+			        y += dy * hud_text_wrapped(r, f, line_clock, x, y, white, panel_w, dy, y_max);
+			        y += dy * hud_text_wrapped(r, f, line_scale, x, y, white, panel_w, dy, y_max);
+                    y += dy * hud_text_wrapped(r, f, line_eta_target, x, y, white, panel_w, dy, y_max);
+			        y += dy * hud_text_wrapped(r, f, line_thermo, x, y, white, panel_w, dy, y_max);
                 // Restore the "classic" thermo/KE block in the right HUD panel (it used to be in the bottom HUD).
-                draw_text_clipped(r, f, line0, x, y, white, panel_w); y += dy;
+                y += dy * hud_text_wrapped(r, f, line0, x, y, white, panel_w, dy, y_max);
 
 		        char ke_line[256];
 		        snprintf(ke_line, sizeof(ke_line), "KEp=%.3e  KEw=%.3e", KEp, KEw);
-		        draw_text_clipped(r, f, ke_line, x, y, white, panel_w); y += dy;
+		        y += dy * hud_text_wrapped(r, f, ke_line, x, y, white, panel_w, dy, y_max);
+                {   /* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item B): right after the energies -- k as the engine has it
+                       (gui_spring_k_engine_px), E_spring and KE + E_spring; this line was further down, below the work lines */
+                    char spring_line[320];
+                    hud_spring_line(spring_line, sizeof spring_line, KEt, eff_is_wall_ke);
+                    y += dy * hud_text_wrapped(r, f, spring_line, x, y, white, panel_w, dy, y_max);
+                }
 
         // Per-compartment summary (counts/KE/T) — useful when the text overlay inside compartments is hard to read.
                 if (segment_counts && segment_ke && segment_temperature && segment_count > 0) {
@@ -15660,8 +15907,7 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
                                  (double)segment_ke[seg],
                                  (double)segment_temperature[seg],
                                  eta_seg);
-                        draw_text_clipped(r, f, seg_line, x, y, white, panel_w);
-                        y += dy;
+                        y += dy * hud_text_wrapped(r, f, seg_line, x, y, white, panel_w, dy, y_max);
 
                         // Optional: compact velocity distribution parameters (mean/std) for quick sanity checks.
                         if (segment_vx_mean && segment_vx_var && segment_speed_mean && segment_speed_var) {
@@ -15682,37 +15928,23 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
                             snprintf(vel_line, sizeof(vel_line), "   vx(mu=%.2f sd=%.2f)  |v|(mu=%.2f med=%.2f sd=%.2f)",
                                      (double)segment_vx_mean[seg], sx,
                                      (double)segment_speed_mean[seg], v_med, ss);
-                            draw_text_clipped(r, f, vel_line, x, y, white, panel_w);
-                            y += dy;
+                            y += dy * hud_text_wrapped(r, f, vel_line, x, y, white, panel_w, dy, y_max);
                         }
                     }
                 }
 
-		        if (y + dy <= y_max) { draw_text_clipped(r, f, line6, x, y, white, panel_w); y += dy; } // piston work delta
-                if (y + dy <= y_max) { draw_text_clipped(r, f, line_work_total, x, y, white, panel_w); y += dy; }
-                if (y + dy <= y_max) { draw_text_clipped(r, f, line_compare, x, y, white, panel_w); y += dy; }
-                if (y + dy <= y_max) { draw_text_clipped(r, f, line_compare2, x, y, white, panel_w); y += dy; }
-                if (line_sz_mode[0] && y + dy <= y_max) { draw_text_clipped(r, f, line_sz_mode, x, y, white, panel_w); y += dy; }
-                if (line_sz_branch[0] && y + dy <= y_max) { draw_text_clipped(r, f, line_sz_branch, x, y, white, panel_w); y += dy; }
-                if (line_sz_sep[0] && y + dy <= y_max) { draw_text_clipped(r, f, line_sz_sep, x, y, white, panel_w); y += dy; }
-                if (line_sz_info[0] && y + dy <= y_max) { draw_text_clipped(r, f, line_sz_info, x, y, white, panel_w); y += dy; }
-                if (line_sz_work[0] && y + dy <= y_max) { draw_text_clipped(r, f, line_sz_work, x, y, white, panel_w); y += dy; }
-                if (line_pp_ov[0] && y + dy <= y_max) { draw_text_clipped(r, f, line_pp_ov, x, y, white, panel_w); y += dy; }
+		        if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line6, x, y, white, panel_w, dy, y_max); } // piston work delta
+                if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_work_total, x, y, white, panel_w, dy, y_max); }
+                if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_compare, x, y, white, panel_w, dy, y_max); }
+                if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_compare2, x, y, white, panel_w, dy, y_max); }
+                if (line_sz_mode[0] && y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_sz_mode, x, y, white, panel_w, dy, y_max); }
+                if (line_sz_branch[0] && y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_sz_branch, x, y, white, panel_w, dy, y_max); }
+                if (line_sz_sep[0] && y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_sz_sep, x, y, white, panel_w, dy, y_max); }
+                if (line_sz_info[0] && y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_sz_info, x, y, white, panel_w, dy, y_max); }
+                if (line_sz_work[0] && y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_sz_work, x, y, white, panel_w, dy, y_max); }
+                if (line_pp_ov[0] && y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_pp_ov, x, y, white, panel_w, dy, y_max); }
 
-	        // Spring energy summary
-	        char spring_line[256];
-	        if (eff_is_wall_ke) {
-            snprintf(spring_line, sizeof(spring_line), "LoadKE: %.3e (max %.3e)",
-                     (double)energy_measurement.spring_energy,
-                     (double)energy_measurement.spring_energy_max);
-        } else if (energy_measurement.spring_enabled) {
-            snprintf(spring_line, sizeof(spring_line), "SpringE: %.3e (max %.3e)",
-                     (double)energy_measurement.spring_energy,
-                     (double)energy_measurement.spring_energy_max);
-	        } else {
-	            snprintf(spring_line, sizeof(spring_line), "SpringE: (disabled)");
-	        }
-		        if (y + dy <= y_max) { draw_text_clipped(r, f, spring_line, x, y, white, panel_w); y += dy; }
+                /* ##CHRIS 2026-10-12 (decision 34, addition, item B): the spring line is drawn right after the energies (above) */
 
 	        // Thermostat status
 	        char hb_line[256], andersen_line[256];
@@ -15724,7 +15956,7 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
 	        } else {
 	            snprintf(hb_line, sizeof(hb_line), "HB: off");
 	        }
-		        if (y + dy <= y_max) { draw_text_clipped(r, f, hb_line, x, y, white, panel_w); y += dy; }
+		        if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, hb_line, x, y, white, panel_w, dy, y_max); }
 	        if (cli_engine == 3) {   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
 	            snprintf(andersen_line, sizeof(andersen_line), "Andersen: n/a (gen3)");
 	        } else if (andersen_enabled) {
@@ -15732,7 +15964,7 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
 	        } else {
 	            snprintf(andersen_line, sizeof(andersen_line), "Andersen: off");
 	        }
-		        if (y + dy <= y_max) { draw_text_clipped(r, f, andersen_line, x, y, white, panel_w); y += dy; }
+		        if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, andersen_line, x, y, white, panel_w, dy, y_max); }
 
 	        // Windowed metric info
         if (energy_measurement.eff_window_started) {
@@ -15740,7 +15972,7 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
             double t_stop_rel = (wall_release_time >= 0.0) ? (energy_measurement.eff_piston_stop_time - (float)wall_release_time) : NAN;
             snprintf(win_line, sizeof(win_line), "t_stop(rel)=%.3f  Tw=%.3g",
                      (double)t_stop_rel, (double)cli_eff_window_sigma);
-		            if (y + dy <= y_max) { draw_text_clipped(r, f, win_line, x, y, white, panel_w); y += dy; }
+		            if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, win_line, x, y, white, panel_w, dy, y_max); }
 
 	            // Peak timing diagnostics (helps choose Tw large enough to capture the true peak)
 	            char peak_line[256];
@@ -15748,23 +15980,22 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
 	            double dt_peak = (isfinite(t_stop_rel) && isfinite(t_peak_rel)) ? (t_peak_rel - t_stop_rel) : NAN;
             snprintf(peak_line, sizeof(peak_line), "t_peak(rel)=%.3f  Δt_peak=%.3f",
                      (double)t_peak_rel, (double)dt_peak);
-	            if (y + dy <= y_max) { draw_text_clipped(r, f, peak_line, x, y, white, panel_w); y += dy; }
+	            if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, peak_line, x, y, white, panel_w, dy, y_max); }
 	        }
             {
                 char key_lines[8][256];
                 int key_n = hud_build_experiment_key_lines(key_lines, 8);
                 for (int i = 0; i < key_n; ++i) {
                     if (y + dy > y_max) break;
-                    draw_text_clipped(r, f, key_lines[i], x, y, white, panel_w);
-                    y += dy;
+                    y += dy * hud_text_wrapped(r, f, key_lines[i], x, y, white, panel_w, dy, y_max);
                 }
             }
 	        return;
 	    }
 
     // Fallback: draw HUD under the simulation window (older layout)
-    int x = XW1 + 5;
-    int y = YW1 + SIM_HEIGHT + 5;
+    int x = (int)floorf((float)gui_scene_screen_x((float)XW1) / gui_ui_scale) + 5;   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): window points */
+    int y = (int)floorf((float)gui_scene_screen_y((float)(YW1 + SIM_HEIGHT)) / gui_ui_scale) + 5;
     draw_text(r, f, line_engine, x, y, engine_col); y += 20;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
     if (line_note) { draw_text(r, f, line_note, x, y, note_col); y += 20; }
     draw_text(r, f, line0, x, y, white);  y += 20;
@@ -19756,6 +19987,7 @@ static void simple_box_render_preview(const char *run_dir,
     render_particles();
     render_pistons();
     gui_end_scene_view();
+    gui_begin_ui_view();   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): window points */
     render_energy_hud(_renderer, font);
     render_live_controls(_renderer, font_small ? font_small : font);
 
@@ -19826,6 +20058,7 @@ static void simple_box_render_preview(const char *run_dir,
             draw_text(_renderer, font_small ? font_small : font, "Press h to toggle key help", XW1 + 8, 74, red);
         }
     }
+    gui_end_ui_view();   /* ##CHRIS (decision 34, addition, item D) */
 
     SDL_RenderPresent(_renderer);
     if (cli_simple_box_gui_delay_ms > 0) {
@@ -20547,6 +20780,97 @@ static void g3_gui_keys_pump(long steps_done){
     }
 }
 
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item C; 261012 sec. 4.7.73): THE DIVIDER'S ALLOWED RANGE IN THE WINDOW.
+   Neither engine has an event between a divider and an outer wall, a piston or another divider: gen3's events are disk pairs,
+   disk-outer wall, cell crossings, disk-divider faces, disk-piston faces and band expiries (edmd_gen3.c), and its validator counts
+   a divider outside the box or out of order as a body finding (edmd_gen3.c, the body checks of the full validator); gen2's EDMD has
+   the same event classes (edmd.c). A free divider with an empty compartment behind it (the energy-transfer scene without a spring)
+   therefore runs through the outer wall, and draw_wall() then ended the program (exit(1), "Invalid wall_x"). Now, before every
+   step in the window: when a divider would reach the end of its range within the next step -- a face at the outer wall or at a
+   piston face, or at the next divider's face, with 1 px plus twice its displacement in one step as the margin -- the window pauses
+   before that step, with a message on the screen; [GUI-LIMIT] and, under gen3, the run record are printed. P and SPACE do not
+   resume it; ESC (or the F3 panel's APPLY) rebuilds the scene, Q ends it. It only reads the bodies as they are drawn (wall_x,
+   extra_wall_positions, their velocities, the piston faces), so a run that never reaches a limit steps exactly as before.
+   Only in the event-driven mode (gen2's EDMD and gen3): the time-stepping wall clamps or bounces at the box edge itself
+   (update_wall). Headless scenes: no check; a divider outside the box shows in gen3's run record (body_findings, clean=0). */
+static int gui_divider_limit_check(double dt, long steps_done) {
+    if (cli_headless || gui_div_limit_paused || !wall_enabled || num_internal_walls <= 0 || sim_mode != MODE_EDMD) return 0;
+    enum { G_NMAX = 9 };
+    double c[G_NMAX], v[G_NMAX];
+    int n = 0;
+    c[n] = (double)wall_x; v[n] = (double)vx_wall; n++;
+    if (extra_wall_positions && extra_wall_velocity)
+        for (int j = 0; j < extra_wall_count && n < G_NMAX; ++j) { c[n] = (double)extra_wall_positions[j]; v[n] = (double)extra_wall_velocity[j]; n++; }
+    for (int i = 1; i < n; ++i)
+        for (int j = i; j > 0 && c[j] < c[j - 1]; --j) { double t = c[j]; c[j] = c[j - 1]; c[j - 1] = t; t = v[j]; v[j] = v[j - 1]; v[j - 1] = t; }
+    const double h = 0.5 * (double)WALL_THICKNESS, m = 1.0;
+    const double lo_wall = (double)XW1, hi_wall = (double)XW2;
+    const double pl = (double)piston_left_x + 5.0, pr = (double)piston_right_x;            /* the piston faces, as drawn */
+    const double lo = (pl > lo_wall && pl < hi_wall) ? pl : lo_wall, hi = (pr > lo_wall && pr < hi_wall) ? pr : hi_wall;
+    for (int i = 0; i < n; ++i) {
+        if (isnan(c[i])) continue;
+        const double lf = c[i] - h + 2.0 * fmin(0.0, v[i]) * dt, rf = c[i] + h + 2.0 * fmax(0.0, v[i]) * dt;
+        const double lb = i == 0 ? lo : c[i - 1] + h + 2.0 * fmax(0.0, v[i - 1]) * dt;
+        const double rb = i == n - 1 ? hi : c[i + 1] - h + 2.0 * fmin(0.0, v[i + 1]) * dt;
+        const char* where = NULL;
+        if (lf <= lb + m && (v[i] < 0.0 || lf <= lb)) where = i > 0 ? "the next divider" : (lo > lo_wall ? "the left piston" : "the left outer wall");
+        else if (rf >= rb - m && (v[i] > 0.0 || rf >= rb)) where = i < n - 1 ? "the next divider" : (hi < hi_wall ? "the right piston" : "the right outer wall");
+        if (!where) continue;
+        gui_div_limit_paused = 1;
+        paused = true;
+        const double xs = (c[i] - (double)XW1) / (double)PIXELS_PER_SIGMA;
+        snprintf(gui_div_limit_msg[0], sizeof gui_div_limit_msg[0],
+                 "PAUSED: the divider reached %s at t = %.3f σ-time (x = %.3f σ, v = %.3g σ per σ-time)", where, (double)simulation_time, xs, v[i]);
+        snprintf(gui_div_limit_msg[1], sizeof gui_div_limit_msg[1],
+                 "%s has no divider-wall event, so the run stops here.   ESC or F3 APPLY: rebuild the scene.   Q: end it.",
+                 cli_engine == 3 ? "gen3" : "The engine");
+        printf("[GUI-LIMIT] step %ld, t = %.6f sigma-time: a divider (x = %.6f sigma, v = %.6g sigma per sigma-time) would reach %s within "
+               "the next step; the window pauses (P and SPACE do not resume; ESC or the F3 panel's APPLY rebuilds the scene, Q ends it)\n",
+               steps_done, (double)simulation_time, xs, v[i], where);
+        if (cli_engine == 3) g3_run_record("scene, a divider at the end of its range");
+        fflush(stdout);
+        return 1;
+    }
+    return 0;
+}
+static void gui_div_limit_banner(void) {   /* in the UI pass */
+    if (!gui_div_limit_paused || !font || !_renderer) return;
+    int w = MAX_X - 40;
+    if (w > 1100) w = 1100;
+    if (w < 200) return;
+    const int x = (MAX_X - w) / 2, y = 44;
+    SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
+    SDL_Rect box = { x, y, w, 62 };
+    SDL_SetRenderDrawColor(_renderer, 70, 0, 0, 235);
+    SDL_RenderFillRect(_renderer, &box);
+    SDL_SetRenderDrawColor(_renderer, 255, 70, 70, 255);
+    SDL_RenderDrawRect(_renderer, &box);
+    const SDL_Color c0 = {255, 225, 225, 255}, c1 = {255, 255, 255, 255};
+    draw_text_clipped(_renderer, font, gui_div_limit_msg[0], x + 12, y + 8, c0, w - 24);
+    draw_text_clipped(_renderer, font_small ? font_small : font, gui_div_limit_msg[1], x + 12, y + 36, c1, w - 24);
+}
+/* ##CHRIS 2026-10-12 (decision 34, addition): --gui-shot, the frame as drawn (device pixels), read before it is shown */
+static void gui_save_bmp(const char* path) {
+    int w = 0, h = 0;
+    if (!_renderer || !path || !*path || SDL_GetRendererOutputSize(_renderer, &w, &h) != 0 || w <= 0 || h <= 0) return;
+    SDL_Surface *s = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_ARGB8888);
+    if (!s) return;
+    if (SDL_RenderReadPixels(_renderer, NULL, SDL_PIXELFORMAT_ARGB8888, s->pixels, s->pitch) == 0 && SDL_SaveBMP(s, path) == 0)
+        printf("[GUI-SHOT] %s (%d x %d device pixels, UI scale %.3g)\n", path, w, h, (double)gui_ui_scale);
+    else
+        fprintf(stderr, "[GUI-SHOT] failed: %s\n", SDL_GetError());
+    SDL_FreeSurface(s);
+    fflush(stdout);
+}
+static void gui_shot_maybe(long steps_done) {
+    for (int i = 0; i < gui_shot_n; ++i) {
+        if (gui_shot_done[i]) continue;
+        if (gui_shot_step[i] < 0 ? !gui_div_limit_paused : steps_done < gui_shot_step[i]) continue;
+        gui_save_bmp(gui_shot_path[i]);
+        gui_shot_done[i] = 1;
+    }
+}
+
 ///////////////////// VISUAL SIMULATION FUNCTIONS //////////////////////
 /*
  * simulation_loop
@@ -21008,6 +21332,7 @@ void simulation_loop() {
                     // Use drawable pixels, not logical window points, so Retina/HiDPI
                     // layouts and mouse hit boxes use the same coordinate system.
                     gui_sync_renderer_canvas_size();
+                    if (gui_font_hi_scale != gui_ui_scale) gui_open_hi_fonts();   /* ##CHRIS 2026-10-12 (decision 34, addition, item D) */
                 }
                 if (live_controls_handle_event(&e)) {
                     continue;
@@ -21083,6 +21408,7 @@ void simulation_loop() {
             if (!running && cli_engine == 3) break;   /* ##CHRIS 2026-10-10 (decision 19, item 2): the scene stopped (--time, Q):
                                                          no more steps in this frame, so the window ends on the headless step */
             if (simulation_started && !paused) {
+                if (gui_divider_limit_check((double)fixed_dt_runtime, gui_steps)) break;   /* ##CHRIS 2026-10-12 (decision 34, addition, item C) */
                 if (cli_demo_mode) {
                     demo_steps_done++;
                     /* ##CHRIS: scripted stages, capture runs only -- interactive demos never get here */
@@ -21477,8 +21803,12 @@ void simulation_loop() {
                 if (!cli_quiet && (steps_elapsed % 500) == 0) {
                     double ke_p = kinetic_energy();
                     double ke_w = kinetic_energy_walls_total();
-                    printf("[ENERGY] step=%d  KE_p=%.6e  KE_w=%.6e  KE_tot=%.6e  vx_wall=%.6g\n",
-                        steps_elapsed, ke_p, ke_w, ke_p + ke_w, vx_wall);
+                    /* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item B): with the spring term -- E_spring = k (x - x_eq)^2 / 2
+                       of the engine's spring divider (0 without one) and E_tot = KE_tot + E_spring */
+                    const double e_spring = (energy_measurement.spring_enabled && energy_measurement.eff_output_mode == EFF_OUTPUT_SPRING)
+                                            ? (double)energy_measurement.spring_energy : 0.0;
+                    printf("[ENERGY] step=%d  KE_p=%.6e  KE_w=%.6e  KE_tot=%.6e  vx_wall=%.6g  E_spring=%.6e  E_tot=%.6e\n",
+                        steps_elapsed, ke_p, ke_w, ke_p + ke_w, vx_wall, e_spring, ke_p + ke_w + e_spring);
                 }
 
                 if (!cli_quiet && (steps_elapsed % 1000) == 0) {
@@ -21965,7 +22295,7 @@ void simulation_loop() {
                 int text_y = YW1 + 6;
                 int text_x = (int)xl + 4;
                 int tw = 0, th = 0;
-                if (TTF_SizeText(font, seg_buffer_1, &tw, &th) == 0) {
+                if (TTF_SizeUTF8(font, seg_buffer_1, &tw, &th) == 0) {
                     int max_x = (int)xr - 4 - tw;
                     if (text_x > max_x) text_x = max_x;
                     if (text_x < (int)xl + 2) text_x = (int)xl + 2;
@@ -21974,7 +22304,7 @@ void simulation_loop() {
 
                 int twT = 0, thT = 0;
                 int xT = (int)xl + 4;
-                if (TTF_SizeText(font, seg_buffer_2, &twT, &thT) == 0) {
+                if (TTF_SizeUTF8(font, seg_buffer_2, &twT, &thT) == 0) {
                     int max_xT = (int)xr - 4 - twT;
                     if (xT > max_xT) xT = max_xT;
                     if (xT < (int)xl + 2) xT = (int)xl + 2;
@@ -21990,7 +22320,7 @@ void simulation_loop() {
                         snprintf(ke_buffer, sizeof(ke_buffer), "KE=%.2e", ke_val);
                         int tw2 = 0, th2 = 0;
                         int x2 = (int)xl + 4;
-                        if (TTF_SizeText(font, ke_buffer, &tw2, &th2) == 0) {
+                        if (TTF_SizeUTF8(font, ke_buffer, &tw2, &th2) == 0) {
                             int max_x2 = (int)xr - 4 - tw2;
                             if (x2 > max_x2) x2 = max_x2;
                             if (x2 < (int)xl + 2) x2 = (int)xl + 2;
@@ -22010,8 +22340,10 @@ void simulation_loop() {
 
         char buffer[64];
 
-        if (wall_hold_enabled && !wall_is_released) {
-            snprintf(buffer, sizeof(buffer), "Wall held: %d steps left", wall_hold_steps - steps_elapsed);
+        if (wall_hold_enabled && !wall_is_released) {   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): no count below 0 */
+            const int hold_left = wall_hold_steps - steps_elapsed;
+            if (hold_left > 0) snprintf(buffer, sizeof(buffer), "Wall held: %d steps left", hold_left);
+            else snprintf(buffer, sizeof(buffer), "Wall held: R releases it");
             draw_text(_renderer, font, buffer, XW1 + 5, YW1 + 50, yellow);
         }
 
@@ -22023,8 +22355,11 @@ void simulation_loop() {
 		                render_segment_distributions_stacked();
 		            }
             gui_end_scene_view();
+            gui_begin_ui_view();   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): the HUD and the panels in window points */
             render_energy_hud(_renderer, font);
             render_live_controls(_renderer, font_small ? font_small : font);
+            gui_div_limit_banner();   /* item C */
+            gui_end_ui_view();
             float T_measured = compute_measured_temperature_from_ke();
             char temp_label[128];
             snprintf(temp_label, sizeof(temp_label), "T_measured: %.2f", T_measured);
@@ -22035,11 +22370,11 @@ void simulation_loop() {
             /* ##CHRIS 2026-09-19: demo HUD -- one line at the top of the window, echoed to the
                terminal whenever the stage changes, plus the optional automated frame grab. */
             if (cli_demo_mode && !cli_render_paper) {
+                gui_begin_ui_view();   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): window points */
                 demo_echo_stage_change();
                 char hud[256];
                 demo_hud_line(hud, sizeof(hud));
-                int _dw = 0, _dh = 0; SDL_GetRendererOutputSize(_renderer, &_dw, &_dh);
-                SDL_Rect bar = { 0, 0, _dw, 26 };
+                SDL_Rect bar = { 0, 0, MAX_X, 26 };
                 SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
                 SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 190);
                 SDL_RenderFillRect(_renderer, &bar);
@@ -22050,7 +22385,9 @@ void simulation_loop() {
                          paused ? "[PAUSED]" : "        ");
                 SDL_Color kc = { 190, 190, 190, 255 };
                 if (font_small) draw_text(_renderer, font_small, keys, 8, 26, kc);
+                gui_end_ui_view();
             }
+            gui_shot_maybe(gui_steps);   /* ##CHRIS 2026-10-12 (decision 34, addition): --gui-shot, before the frame is shown */
             SDL_RenderPresent(_renderer);
             if (gui_t_first >= 0.0) gui_frames++;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
             if (cli_demo_mode) {
@@ -22611,6 +22948,7 @@ int main(int argc, char* argv[]) {
         if (!font_small && !cli_quiet) {
             printf("⚠️  Failed to load small font (continuing): %s\n", TTF_GetError());
         }
+        gui_open_hi_fonts();   /* ##CHRIS 2026-10-12 (decision 34, addition, item D) */
     } else {
         if (!cli_quiet) {
             printf("Running in headless mode (no GUI, CSV output enabled)\n");
@@ -22665,6 +23003,10 @@ int main(int argc, char* argv[]) {
                                                            && !enable_speed_of_sound_experiments));
     if (!run_scene && (cli_gui_stats || cli_gui_run_seconds > 0.0 || cli_gui_time_scale > 0.0 || cli_gui_keys)) {
         fprintf(stderr, "STOP: --gui-stats, --gui-run-seconds, --gui-time-scale and --gui-keys belong to the interactive scene (--show-simulation)\n");
+        exit(2);
+    }
+    if ((cli_gui_window_w > 0 || cli_gui_ui_scale > 0.0f || gui_shot_n > 0) && (!run_scene || cli_headless)) {   /* ##CHRIS 2026-10-12 (decision 34, addition) */
+        fprintf(stderr, "STOP: --gui-window, --gui-ui-scale and --gui-shot belong to the interactive scene in the window (--show-simulation, no --headless)\n");
         exit(2);
     }
     if (cli_engine == 3) {
@@ -22759,6 +23101,7 @@ int main(int argc, char* argv[]) {
 	        SDL_DestroyRenderer(_renderer);
 	        SDL_DestroyWindow(_window);
 	        //free(fft_cfg);
+            for (int i = 0; i < 2; ++i) if (gui_font_hi[i]) { TTF_CloseFont(gui_font_hi[i]); gui_font_hi[i] = NULL; }   /* ##CHRIS (decision 34, addition, item D) */
             if (font_small) { TTF_CloseFont(font_small); font_small = NULL; }
 	        TTF_CloseFont(font);
 	        TTF_Quit();
