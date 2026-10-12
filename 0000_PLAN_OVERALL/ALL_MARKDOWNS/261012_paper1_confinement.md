@@ -19341,3 +19341,195 @@ Paper 2 records by worktree (the engine-gen3 worktree holds tracked copies of so
 
 RECORDED RUNS WITH --spring-wall AND NO SPRING-CONSTANT FLAG: Paper 2 0, other 0; task-list and script lines without a spring-constant flag: 0
 
+### 4.7.78 Report W2 — the rest of decision 34 (decision 38 item 4): the inventory; the box fitted to the window; the layout; no exit on a scene that cannot be built; the density of the filled compartment; ACCEPTANCE PASS (2026-10-12 09:31 HST, machine date) [DATA, printed by script; SOURCE for the code lines]
+
+**Plain summary.**
+- **The inventory** (decision 34 item 3, below):
+  - Every viewing and pacing key and slider already works under gen3 (checked by pressing each one in a window run), so **nothing needs restoring**.
+  - The physics controls that are n/a under gen3 are listed with what each would need, for the plan author's decision.
+  - Already acting, since decision 19: R, T, the piston keys, and the F2 sliders fixed dt, piston vmax and piston ramp.
+- **The box fits the window** (engine-gen3 `387d1e1e`; display only).
+  - The window picks the drawing scale every frame, so it re-fits at once when resized. The scene area lies left of the HUD column and the F2/F3 panels; with the distribution panels on, the box takes at most 42 % of the height.
+  - The scene and the panels are drawn through a display transform at the renderer's own scale, with every line at least one device pixel wide (a scaled-down render scale would let thin lines vanish on the Mac's Metal renderer).
+  - Disks are drawn at device resolution. Below a drawn radius of 1.5 px a disk is a filled square; by default ("draw min r" = 1 px) none is smaller than 2 × 2 device pixels.
+  - The default window fits the display.
+  - At Chris's display size (2056 × 1231 points), with the F2 and F3 panels shown as they are by default, the fit's arithmetic draws the box at 20.95 pt/σ for N = 400, 5.97 pt/σ for N = 5000 and 4.72 pt/σ for N = 8000 (the screenshots' scene; the width limits the fit each time).
+- **The layout:** the distribution panels sit below the box, aligned with its compartments, in window points; their legends are laid out by measured widths. The compartment labels and the hold counter are drawn in the UI layer.
+- **No exit on a scene that cannot be built:**
+  - The F3 APPLY repeats the seeder's capacity arithmetic and refuses, with a note, a scene the seeder could not place. It agreed with the seeder exactly on the case tested (240 of 400). In a scratch test with a development build of the same source (not in the committed evidence), it accepted a borderline scene: η 0.75, r = 0.55 σ, all 400 disks in one compartment.
+  - A scene gen3 refuses to build (for example disks larger than its 32 px cell, r > 0.667 σ), or an engine that stops, now pauses the window with the reason on the screen instead of ending the program.
+- **The density:** the HUD now gives η of the compartments that hold disks first ("η now = 0.312 in the 2 compartments with disks (requested 0.310; whole box 0.310)"); in the energy-transfer scene that is the gas compartment. The F3 panel's η row says "eta (gas)" there.
+- **Acceptance: PASS** (printed by `s_tables.py`):
+  - rule 4, the M1/M2 harness, headless gen3 (P4a, the replay cell);
+  - the display does not steer at two window sizes (decision 19's hash `daea5de1378282dc` both times, 4 of 4 files identical);
+  - screenshots at N = 400, 5000 and 8000, N = 5000 at UI scale 2 and in a smaller window;
+  - both no-exit paths;
+  - 0 new warnings.
+- **Not received:** the text of a "decision 34, addition 2 (items F, G, H)". Decision 38 item 4's list was taken as its content: no exit on a scene gen3 cannot build; the density of the filled compartment; the screenshots; the command lines. The two middle items are read as above; the plan author may want to check that reading.
+- **Recorded for Report S1-0, gate G0 a:** `00ALLINONE.c` changes again relative to `f72d764`: decision 19 (`b416dfca`/`7f6adca`), the addition (`c4dd9fc6`) and now `387d1e1e`. All window code, but different build inputs.
+
+**The inventory (decision 34 item 3)** — every key and slider of the window; code lines of engine-gen3 `387d1e1e`.
+- Sources: `keysSimulation`, `keysPiston`, `g3_gui_key`, the F2 and F3 panels.
+- "gen3 today": checked in two window runs under gen3 with W1's binary `bin_8bc9ac9` (2026-10-12 01:07 HST; `--gui-keys`, every key pressed once; the printed responses are in the scratchpad, `d34a/inv_keys2` and `inv_keys3`). `387d1e1e` changes no key handler; it changes only the printed text of the limit pause. The rows "draw min r", "F3 panel + APPLY" and "window resize" describe `387d1e1e`.
+
+| control | what it does | gen2 | gen3 today | kind |
+|---|---|---|---|---|
+| **R** | releases the held divider(s) (`keysSimulation`, :11844) | yes | **acts**: `edmd3_set_divider_motion`, mass 0 → M1 | **physics (acts)** |
+| **T** | the right piston's step protocol (`keysPiston` :12301; speed and ramp from the F2 sliders) | yes | **acts**: `edmd3_set_piston_motion`; guarded | **physics (acts)** |
+| **A / D**, **S** | the left piston out / in (key up: decelerate), stop | yes | **acts**, guarded (box, divider, η 0.80) | **physics (acts)** |
+| **LEFT / RIGHT**, **UP** | the right piston in / out, stop | yes | **acts**, guarded | **physics (acts)** |
+| **F2 piston vmax**, **piston ramp** | the T protocol's speed and duration | yes | **act** | **physics (acts)** |
+| **F2 fixed dt** | the driver's step: sampling, hold count and protocol cadence (the event-driven dynamics between steps are exact) | yes | **acts** | **physics: cadence (acts)** |
+| SPACE, P, Q | start; pause / run; end (gen3: the loop ends, the run record prints) | yes | yes | pacing |
+| − = + 0, F2 time scale | the time scale halve / double / reset; the slider | yes | yes | pacing |
+| ESC | rebuild the scene | yes | yes | scene |
+| V Z L F C U Y X | the distribution panels and their overlays | yes | yes (each printed its new state) | view |
+| PgUp / PgDn | the window's height | yes | yes | view |
+| E | prints the energy measurement (in the energy-transfer scene) | yes | yes (prints nothing in a scene without the measurement, as gen2) | view (print) |
+| F2 / F3 | the slider panel / the scene panel | yes | yes | view |
+| F2 draw min r | the smallest drawn disk radius (now in screen pixels) | yes | yes | view |
+| F2 MB speed view, MB scale, density curve | colour by speed; capture its scale; the x-density curve | yes | yes | view |
+| F3 panel + APPLY | the scene: mode, engine, walls, N, radius, η, spring L0, spring k, wall thickness, masses | yes | yes; APPLY refuses a scene the seeder cannot place | scene (run configuration) |
+| window resize | the layout and the fit | yes | yes | view |
+| W | divider on / off | yes | n/a (note) | physics |
+| [ ] \ | temperature rescale −5 %, +5 %, reset | yes | n/a (note) | physics |
+| B | heat bath on / off | yes | n/a (note) | physics |
+| K , . | Andersen thermostat on / off, its frequency | yes | n/a (note) | physics |
+| F2 HB target T | the heat bath's target | yes | n/a ("HB n/a (gen3)") | physics |
+| F2 spring button | the spring on / off during a run | yes | n/a (note: the F3 k row and APPLY) | physics |
+| G H J O N ; ' | Szilard protocol keys | Szilard scene only | no effect (the Szilard scene is refused under gen3) | physics |
+| M | particle-life tensor mode | particle-life only | "Particle-life not active" | physics |
+
+- **To restore under gen3: none.** Every viewing and pacing control already works under gen3; the key runs showed each one's response.
+- **The physics controls that are n/a, and what each would need** (for the plan author's decision; none implemented):
+  - **W:** adding or removing a body during a run. gen3's bodies are fixed at its build; the bridge stops the run if a piston is added or removed, and dividers likewise. Today ESC or APPLY rebuilds the scene.
+  - **[ ] \ :** an engine call that rescales every velocity, booked in the ledger as API work (W) and rescheduling every prediction.
+  - **B and the HB slider:** an outer-wall heat bath in the engine (`edmd3_create` refuses it): a stochastic wall rule with its own seeded generator and its own acceptance.
+  - **K , . :** a thermostat that redraws disk velocities at a rate: an engine call to set a disk's velocity, a generator, rescheduling.
+  - **The spring during a run:** an engine call that changes a divider's k and x_eq. `set_motion` changes only mass and velocity; the jump in ½ k (x − x_eq)² would be booked as work.
+  - **G H J O N ; ' :** species and semipermeable gates in the engine.
+  - **M:** not a hard-disk engine feature.
+- **Already acting** (decision 34 item 3 says "not implemented"; they were wired in decision 19): R, T, A/D/S, LEFT/RIGHT/UP, and the F2 sliders fixed dt, piston vmax and piston ramp. Their guards are in sec. 4.7.74 B.
+- **Decision 19's "the display does not steer" test** pressed no key. Its `--demo` script released the divider and started the T protocol through the same functions as R and T, identically with the window and headless. The piston keys and these three sliders were not exercised.
+
+**What changed** (engine-gen3 `387d1e1e`; lines of that commit):
+- **The display transform** (`gs_*`, the block before `gui_begin_scene_view`):
+  - the scene functions (`render_pistons`, `render_left_spring`, `draw_wall`, `draw_simulation_boundary`, the distribution panels) draw in world pixels as before; their SDL calls go through wrapper macros (a region per function group);
+  - every line, rectangle and point is at least 1 device px; text keeps the UI's size; `render_particles` draws with `gs_disk`;
+  - the bin counts of the panels are capped by screen pixels, no longer by world pixels.
+- **The fit** (`gui_scene_fit`): s = min(area width / box width, area height / box height) points per world pixel, at most 2.6 device px per world px, recomputed every frame.
+- **The panel pass** (`gui_begin_panel_view`): x as the scene, y in window points from below the box; `HIST_HEIGHT` is the panel area's height in points.
+- **The labels** (`gui_draw_compartment_labels`) in the UI pass.
+- **No exit:**
+  - `live_scene_seeding_fits` before anything in `live_scene_prepare_rebuild` changes;
+  - `g3_soft_stop` in `g3_build` (`edmd3_create`, `edmd3_load`) and in the advance (`edmd3_fatal`), active in the window only (`g3_soft_window`). Headless and in every experiment loop the STOP and exit(2) stay.
+- **The default window:** 98 % × 95 % of the display's usable area (`SDL_GetDisplayUsableBounds`).
+
+**The acceptance, printed by `experiments_gen3_d34s_261012/s_tables.py`** (binaries of the committed tree `406044f7`, built by `s_build.sh`; evidence by `s_evidence.py`; SDL's dummy video driver and the software renderer, nothing on the screen), verbatim:
+
+````
+# Decision 34, the rest (the gen3 window fitted to the screen, a DISPLAY change): the acceptance, printed by experiments_gen3_d34s_261012/s_tables.py
+
+## 1. The binaries of the committed tree
+
+| binary | --version | SHA-256 | = build record |
+|---|---|---|---|
+| 00ALLINONE | 00ALLINONE  git 406044f  target mac-O3-e0pre | f3bd70b03262ecac44b5a3ecd1b287705ffc9803c7d4e99a9cf1d09bb98085ed | yes |
+| gen3_m1 | - | 89b77fa190c4afe8e749a6bf88e7f52e2f7e439b4cfec885127829d9e87863f7 | yes |
+| gen3_m2 | - | 3473318380ae3b5fdf225dc146c2eb0a0d5b05157ac2403e8582cd97fa5d15fb | yes |
+
+## 2. Rule 4: gen2 byte identity with 7b08827 (ctrl_min, ctrl_leg; the default build and --engine=gen2)
+
+default build: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+--engine=gen2: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+
+## 3. The M1 and M2 harness outputs against the committed ones
+
+| output | identical |
+|---|---|
+| m1_audit_output.txt | IDENTICAL |
+| m2_audit_quick_output.txt | IDENTICAL |
+| m2_audit_output.txt | IDENTICAL |
+
+## 4. Headless gen3 unchanged
+
+P4a start A seed 1, P4's command with the new binary: clean=1, event hash bd25077c5f1c9c9f (P4: bd25077c5f1c9c9f): EQUAL; its data files against P4's: 7 of 7 byte-identical (psi6_t_L0_106_wallmassfactor_300_run0.csv, run_params.json, snapshots_L0_106_wallmassfactor_300_run0.bin, speed_of_sound_batch_status.json, speed_of_sound_psi6.csv, virial_blocks_L0_106_wallmassfactor_300_run0.csv, wall_x_positions_L0_106_wallmassfactor_300_run0.csv)
+stage A's replay cell m2_driven_pi8, variant a: ['clean=1'] driven_pi8: hash 694fdf127f35d4b4, harness 694fdf127f35d4b4; events 818521, harness 818521: MATCH; targets 1600, changes 36, advance stops 1600 (substeps 1), reader passes 1600 (every 1 targets), smallest surface gap seen by the readers 1.25e-05 px, 0.9 s -- recorded hash 694fdf127f35d4b4: EQUAL, MATCH
+
+## 5. The display does not steer (decision 19's ST scene: N = 400, eta 0.31, the right piston stepping in, 40 sigma-time; gen3; SDL's dummy video driver, the software renderer, no input)
+
+| run | window | clean | event hash | = headless | = decision 19's ST hash | output files = headless |
+|---|---|---|---|---|---|---|
+| headless | - | 1 | daea5de1378282dc | - | yes | - |
+| window_A | 1024 x 768 points, UI scale 1 | 1 | daea5de1378282dc | yes | yes | 4 of 4 |
+| window_B | 4112 x 2462 device pixels, UI scale 2 (2056 x 1231 points) | 1 | daea5de1378282dc | yes | yes | 4 of 4 |
+
+## 6. Screenshots (eta 0.31, decision 19's display pair scaled; the divider free from the first step; the frame after step 60)
+
+| N | window | UI scale | screenshot | gen3 clean | frames per second |
+|---|---|---|---|---|---|
+| 400 | 2056 x 1231 points (Chris's display) | 1 | experiments_gen3_d34s_261012/evidence_406044f/screenshots/SS_N400_screen.png | 1 | 80.697 |
+| 5000 | 2056 x 1231 points | 1 | experiments_gen3_d34s_261012/evidence_406044f/screenshots/SS_N5000_screen.png | 1 | 56.363 |
+| 8000 | 2056 x 1231 points | 1 | experiments_gen3_d34s_261012/evidence_406044f/screenshots/SS_N8000_screen.png | 1 | 40.450 |
+| 5000 | 4112 x 2462 device pixels | 2 | experiments_gen3_d34s_261012/evidence_406044f/screenshots/SS_N5000_retina.png | 1 | 27.679 |
+| 5000 | 1440 x 900 points (re-fitted) | 1 | experiments_gen3_d34s_261012/evidence_406044f/screenshots/SS_N5000_small.png | 1 | 67.773 |
+
+## 7. No exit on a scene that cannot be built
+
+- (a) the F3 APPLY of a scene the seeder cannot place: `[GUI] APPLY refused: compartment 2 holds at most 240 disks of radius 0.3500 sigma (hexagonal lattice inside its walls), the panel asks 400; lower N or the radius, or widen the compartment (nothing was rebuilt)`; rebuilt: no; 'Could only place' in the log: no; exit code 0
+- (b) a scene gen3 cannot build: `[GUI-STOP] gen3 cannot build this scene: edmd_gen3: cell width 32 px < diameter 33.599998474121094 px (sec. 4.7.1, a); the window pauses (P and SPACE do not resume; ESC or the F3 panel's APPLY rebuilds the scene, Q ends it)`; exit code 0; screenshot experiments_gen3_d34s_261012/evidence_406044f/screenshots/NX_gen3_refused_pause.png
+- (c) information, (b) with the addition's binary bin_8bc9ac9: `STOP (--engine=gen3): edmd_gen3: cell width 32 px < diameter 33.599998474121094 px (sec. 4.7.1, a)`, exit code 2
+
+## 8. Warnings (build_clean.sh's -Wall -Wextra pass of the driver's sources; compared without file and line)
+
+this build 25, the parent f72d764 25; new: 0
+
+## Acceptance
+
+| item | result |
+|---|---|
+| rule 4 identical (default and --engine=gen2, ctrl_min and ctrl_leg) | PASS |
+| M1/M2 harness outputs identical | PASS |
+| headless gen3 unchanged (P4a A seed 1; the replay cell) | PASS |
+| the display does not steer (gen3, two window sizes = the headless event hash, output files byte-identical) | PASS |
+| screenshots at N = 400, 5000 and 8000 (and N = 5000 at UI scale 2 and in a smaller window) | PASS |
+| no exit: the APPLY refused with a note (scene not rebuilt), the gen3 refusal pauses the window | PASS |
+| 0 new warnings | PASS |
+
+DECISION 34 (THE REST) ACCEPTANCE: PASS
+````
+
+**The commands for Chris** (a window opens; run from the engine-gen3 worktree, where the window finds its font):
+- N = 5000:
+  ```
+  cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3 && experiments_gen3_d34s_261012/bin_406044f/00ALLINONE --show-simulation --mode=edmd --engine=gen3 --edmd-acc=0 --seed-drift-order=drift-first --kbt1 --particles=5000 --particles-boxes=2500,2500 --particle-radius=0.5 --l0=89.5904 --height=70.7107 --num-walls=1 --wall-positions=89.5904 --wall-mass-factors=50 --wall-hold-steps=600 --fixed-dt=0.4 --seed=9300 --gui-time-scale=200
+  ```
+- N = 8000: the same with `--particles=8000 --particles-boxes=4000,4000 --l0=113.3239 --height=89.4427 --wall-positions=113.3239`.
+- N = 400: the same with `--particles=400 --particles-boxes=200,200 --l0=25.34 --height=20 --wall-positions=25.34`.
+- The spring scene of sec. 4.7.74 runs with this binary too.
+- **The keys:**
+  - SPACE starts. The hold counter runs down 600 steps (10 σ-time) and stops at 0; R then releases the divider (the path checked in the inventory runs; W1's commands are the same).
+  - `-` halves the pace, `=` (or `+`) doubles it, `0` resets it. P pauses, F2 and F3 show the panels, Q ends the scene and prints the run record.
+  - Dragging the window's corner re-fits the box.
+- These commands differ from the screenshots' runs only in the hold: the screenshots' scene starts with the divider free (`--auto-release`) and adds the test hooks (`--gui-window`, `--gui-shot`, `--gui-run-seconds`, `--gui-stats`).
+
+**Deviations.**
+1. **Screenshot sizes:** the screenshots at Chris's size are drawn at UI scale 1 (2056 × 1231 points), to keep the files at 10 MB each in the scratchpad. The layout in points is the same at UI scale 2; N = 5000 is also shot at UI scale 2 (4112 × 2462 device pixels).
+2. **Two fixes before the code commit**, found on the way:
+   - the panels' legends overlapped at N = 5000, so they are now laid out by measured widths;
+   - the APPLY check first counted only half the wall thickness at a divider (352 where the seeder placed 240), since the compartments already end at the walls' faces and the seeder keeps another half thickness. It now repeats the seeder exactly.
+3. **The re-fit on resize** follows from the fit being recomputed every frame. It was shown by a window opened at a smaller size (1440 × 900 points); a live resize by dragging was not tested (the dummy video driver has no window to drag).
+4. **One test did not test:** a first scene meant to test gen3's refusal (`--no-pp-collisions`) was not refused (the scene path builds the engine with pair collisions on). The test uses r = 0.7 σ instead.
+
+**The window's output files.** The window writes `energy_log.csv` and `wall_position.csv` into the folder it runs in. In the engine-gen3 worktree these two are tracked files; they are modified there now, by the 08:36 window run of decision 19's binary (`bin_7f6adca`, before decision 38). They do not reach the clean builds, which build from a copy of the commit. Nothing commits them; they are left as they are.
+
+**Data.**
+- New in this message so far about 425 MB of the 500 MB:
+  - 392 MB in the scratchpad: this part's build source copy 170 MB, the BMP screenshots 124 MB, the two fit tests 82 MB, the rest 16 MB;
+  - this part's evidence in the engine-gen3 worktree about 17 MB; committed are 272 files, 7.3 MB (the files under 1 MB that git does not ignore). Every file, committed or not (the binaries, the run logs, one 4.3 MB ψ6 trace), is listed with its SHA-256 and size in `D34S_SHA256_FILES.txt`; the run logs' key lines are in `D34S_RUN_RECORDS.txt`;
+  - the preview's fetched files (Report P1) 16 MB.
+- Free on the Mac's data volume: 53 GB.
+
+**Commits.**
+- engine-gen3: `387d1e1e` (the code), `406044f7` (the acceptance scripts; the build), `807045cd` (the evidence and the tables), and the copy of this record.
+- main and engine-divider-resched: this record.
