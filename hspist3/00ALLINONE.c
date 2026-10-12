@@ -864,7 +864,7 @@ static float gui_render_dt_rem = 0.0f;
 // GUI window sizing (pure UI; never changes physics).
 // Some displays (e.g. external monitors) have limited vertical resolution; allow shrinking the bottom plots.
 // Use PageUp/PageDown at runtime.
-static int gui_window_min_extra_y = 240;   // minimum pixels reserved below SIM_HEIGHT
+/* ##CHRIS 2026-10-12 (decision 34, item 1): gui_window_min_extra_y (pixels reserved below the box) is gone: the box is fitted to the window */
 static int gui_window_height_step = 80;    // pixels per PgUp/PgDn
 
 // GUI toggle: freeze velocity display x-range (vmax) so heating/cooling is visually obvious.
@@ -1043,26 +1043,135 @@ static LiveSlider live_sliders[] = {
 
 static const int live_slider_count = (int)(sizeof(live_sliders) / sizeof(live_sliders[0]));
 
-static float gui_scene_view_scale = 1.0f;
-static int gui_scene_saved_max_x = 0;
-static int gui_scene_saved_max_y = 0;
-static int gui_scene_saved_hist_w = 0;
-static int gui_scene_saved_hist_h = 0;
-static int gui_scene_view_active = 0;
-
-static float gui_renderer_device_scale(void) {
-    if (!_window || !_renderer) return 1.0f;
-    int ww = 0, wh = 0, rw = 0, rh = 0;
-    SDL_GetWindowSize(_window, &ww, &wh);
-    if (SDL_GetRendererOutputSize(_renderer, &rw, &rh) != 0) return 1.0f;
-    if (ww <= 0 || wh <= 0 || rw <= 0 || rh <= 0) return 1.0f;
-    const float sx = (float)rw / (float)ww;
-    const float sy = (float)rh / (float)wh;
-    const float s = fminf(sx, sy);
-    return (s > 1.0f) ? s : 1.0f;
+/* ##CHRIS 2026-10-12 (plan-author decision 34, items 1 and 2, the rest; decision 38 item 4; 261012 sec. 4.7.67): THE BOX FITTED TO
+   THE WINDOW. The engine's units, the box (L0, H from N and eta) and every output are unchanged; only the drawing changes.
+   - The fit (gui_scene_fit, every frame, so a resized window re-fits at once): the scene area is the window (in points) left of the
+     HUD column (at least 520 pt) and of the F2/F3 panels, 8 pt from the edges (44 pt from the top in --demo, below its bar); with the
+     distribution panels on, the box gets at most 42 % of the height and the panels the rest. The box (its width plus the pistons drawn
+     at its edges) is drawn at s = min(area width / box width, area height / box height) points per world pixel, at most 2.6 device
+     pixels per world pixel (as before). gui_scene_s = s x the display's device pixels per point.
+   - The drawing: the scene functions (the box, the disks, the divider, the pistons, the spring) and the distribution panels draw in
+     the box's world pixels as before, but through the display transform below (gs_*), at the renderer's own scale 1: device x =
+     ax world x + bx, device y = ay world y + by. Every line, rectangle and point is at least one device pixel wide (a scaled-down
+     render scale would let thin lines vanish on the Mac's Metal renderer), text keeps the UI's size (it does not shrink with the box),
+     and a disk is drawn at device resolution (gs_disk). The scene: ax = ay = gui_scene_s. The panels: x as the scene (aligned with
+     the compartments), y in window points below the box (gui_begin_panel_view), so their text and rows keep their sizes.
+   - A disk of drawn radius R device pixels (R = its radius x gui_scene_s, at least the F2 slider "draw min r", default 1 px): R >= 1.5
+     a filled circle; below that a filled square of max(1, round(2 R)) pixels, i.e. 2 x 2 by default (1 x 1 point on a Retina display).
+   - The default window fits the display (98 % x 95 % of its usable area); the window no longer grows with the box. */
+static int   cli_demo_mode;                    /* (defined with the other demo flags below) */
+static float gui_scene_view_scale = 1.0f;      /* the scene's device pixels per world pixel (gui_scene_s), for older readers */
+static int   gui_scene_view_active = 0, gui_panel_view_active = 0;
+static float gui_scene_s = 1.0f, gui_scene_bx = 0.0f, gui_scene_by = 0.0f;   /* device = gui_scene_s world + b */
+static float gui_panel_top_ui = 0.0f, gui_panel_h_ui = 0.0f;                  /* the panel area below the box [points] */
+static int   gui_panel_saved_hw = 0, gui_panel_saved_hh = 0;
+static float gs_ax = 1.0f, gs_bx = 0.0f, gs_ay = 1.0f, gs_by = 0.0f, gs_tu = 1.0f;   /* the active transform; gs_tu: device px per font px */
+static TTF_Font *gui_font_base[2] = {NULL, NULL}, *gui_font_hi[2] = {NULL, NULL};   /* (decision 34, addition, item D: the sharp fonts) */
+static float gui_font_hi_scale = 0.0f;
+static void gs_set(float ax, float bx, float ay, float by, float tu) { gs_ax = ax; gs_bx = bx; gs_ay = ay; gs_by = by; gs_tu = tu; }
+static void gs_reset(void) { gs_set(1.0f, 0.0f, 1.0f, 0.0f, 1.0f); }
+static inline float gs_X(float x) { return gs_ax * x + gs_bx; }
+#define GUI_LG(pt_) ((int)lroundf((float)(pt_) * gs_tu / fmaxf(1e-6f, gs_ax)))   /* screen points as the transform's x units */
+static inline float gs_Y(float y) { return gs_ay * y + gs_by; }
+static void gs_fill_dev(float x0, float y0, float x1, float y1) {   /* a device rectangle between two corners, at least 1 x 1 pixel */
+    if (!_renderer) return;
+    int X0 = (int)floorf(fminf(x0, x1)), X1 = (int)ceilf(fmaxf(x0, x1)), Y0 = (int)floorf(fminf(y0, y1)), Y1 = (int)ceilf(fmaxf(y0, y1));
+    if (X1 <= X0) X1 = X0 + 1;
+    if (Y1 <= Y0) Y1 = Y0 + 1;
+    SDL_Rect r = { X0, Y0, X1 - X0, Y1 - Y0 };
+    SDL_RenderFillRect(_renderer, &r);
+}
+static int gs_fill_rect(const SDL_Rect* rc) {
+    if (!rc) return _renderer ? SDL_RenderFillRect(_renderer, NULL) : 0;
+    if (rc->w <= 0 || rc->h <= 0) return 0;
+    gs_fill_dev(gs_X((float)rc->x), gs_Y((float)rc->y), gs_X((float)(rc->x + rc->w)), gs_Y((float)(rc->y + rc->h)));
+    return 0;
+}
+static int gs_line(int x1, int y1, int x2, int y2) {   /* SDL's line includes both end points; a world pixel wide, at least 1 device px */
+    if (!_renderer) return 0;
+    const float tx = fmaxf(1.0f, roundf(gs_ax)), ty = fmaxf(1.0f, roundf(gs_ay));
+    if (x1 == x2) { gs_fill_dev(gs_X((float)x1), gs_Y((float)(y1 < y2 ? y1 : y2)), gs_X((float)x1) + tx, gs_Y((float)(y1 < y2 ? y2 : y1)) + ty); return 0; }
+    if (y1 == y2) { gs_fill_dev(gs_X((float)(x1 < x2 ? x1 : x2)), gs_Y((float)y1), gs_X((float)(x1 < x2 ? x2 : x1)) + tx, gs_Y((float)y1) + ty); return 0; }
+    const int X1 = (int)lroundf(gs_X((float)x1)), Y1 = (int)lroundf(gs_Y((float)y1)), X2 = (int)lroundf(gs_X((float)x2)), Y2 = (int)lroundf(gs_Y((float)y2));
+    const int t = (int)fminf(tx, ty), steep = abs(Y2 - Y1) > abs(X2 - X1);
+    for (int k = 0; k < t; ++k) SDL_RenderDrawLine(_renderer, X1 + (steep ? k : 0), Y1 + (steep ? 0 : k), X2 + (steep ? k : 0), Y2 + (steep ? 0 : k));
+    return 0;
+}
+static int gs_draw_rect(const SDL_Rect* rc) {
+    if (!rc || rc->w <= 0 || rc->h <= 0) return 0;
+    gs_line(rc->x, rc->y, rc->x + rc->w - 1, rc->y);
+    gs_line(rc->x, rc->y + rc->h - 1, rc->x + rc->w - 1, rc->y + rc->h - 1);
+    gs_line(rc->x, rc->y, rc->x, rc->y + rc->h - 1);
+    gs_line(rc->x + rc->w - 1, rc->y, rc->x + rc->w - 1, rc->y + rc->h - 1);
+    return 0;
+}
+static int gs_point(int x, int y) { gs_fill_dev(gs_X((float)x), gs_Y((float)y), gs_X((float)x) + fmaxf(1.0f, gs_ax), gs_Y((float)y) + fmaxf(1.0f, gs_ay)); return 0; }
+static void gs_disk(float cx, float cy, float r_world) {   /* a disk at device resolution (see the block above) */
+    if (!_renderer) return;
+    const float X = gs_X(cx), Y = gs_Y(cy);
+    float R = r_world * gs_ax;
+    if (R < gui_particle_draw_min_px) R = gui_particle_draw_min_px;
+    if (R < 1.5f) {
+        const float side = fmaxf(1.0f, roundf(2.0f * R));
+        gs_fill_dev(X - 0.5f * side, Y - 0.5f * side, X + 0.5f * side, Y + 0.5f * side);
+        return;
+    }
+    const int yc = (int)lroundf(Y), ri = (int)ceilf(R);
+    for (int dy = -ri; dy <= ri; ++dy) {
+        const float q = R * R - (float)(dy * dy);
+        if (q < 0.0f) continue;
+        const float hw = sqrtf(q);
+        const int xa = (int)lroundf(X - hw), xb = (int)lroundf(X + hw);
+        SDL_Rect r = { xa, yc + dy, xb - xa + 1, 1 };
+        SDL_RenderFillRect(_renderer, &r);
+    }
+}
+static TTF_Font* gs_font_for(TTF_Font* f, float* k) {   /* the font that renders f's text at gs_tu device pixels per font pixel */
+    *k = 1.0f;
+    if (gs_tu > 1.0f && gui_font_hi_scale == gs_tu)
+        for (int i = 0; i < 2; ++i) if (f == gui_font_base[i] && gui_font_hi[i]) { *k = gs_tu; return gui_font_hi[i]; }
+    return f;
+}
+static void gs_text(TTF_Font* f, const char* text, int x, int y, SDL_Color c) {   /* at the transformed point, at the UI's size */
+    if (!_renderer || !f || !text || !*text) return;
+    float k = 1.0f;
+    TTF_Font* rf = gs_font_for(f, &k);
+    SDL_Surface* s = TTF_RenderUTF8_Blended(rf, text, c);
+    if (!s) return;
+    SDL_Texture* t = SDL_CreateTextureFromSurface(_renderer, s);
+    if (t) {
+        const float g = gs_tu / k;   /* the remaining scale of the rendered surface */
+        SDL_Rect d = { (int)lroundf(gs_X((float)x)), (int)lroundf(gs_Y((float)y)), (int)lroundf((float)s->w * g), (int)lroundf((float)s->h * g) };
+        SDL_RenderCopy(_renderer, t, NULL, &d);
+        SDL_DestroyTexture(t);
+    }
+    SDL_FreeSurface(s);
+}
+static int gs_size(TTF_Font* f, const char* text, int* w, int* h) {   /* the text's size in the transform's units */
+    int fw = 0, fh = 0;
+    const int rc = TTF_SizeUTF8(f, text, &fw, &fh);
+    if (w) *w = (int)lroundf((float)fw * gs_tu / fmaxf(1e-6f, gs_ax));
+    if (h) *h = (int)lroundf((float)fh * gs_tu / fmaxf(1e-6f, gs_ay));
+    return rc;
+}
+static void gs_text_clipped(TTF_Font* f, const char* text, int x, int y, SDL_Color c, int max_w) {   /* max_w in the transform's x units */
+    if (!f || !text) return;
+    int w = 0;
+    if (max_w <= 0 || gs_size(f, text, &w, NULL) != 0 || w <= max_w) { gs_text(f, text, x, y, c); return; }
+    char tmp[1024];
+    size_t n = strlen(text);
+    if (n >= sizeof tmp - 4) n = sizeof tmp - 5;
+    size_t cut = 0;
+    for (size_t i = 0; i <= n; ++i) {   /* the longest prefix (whole UTF-8 characters) that fits with "..." */
+        if (i < n && (((unsigned char)text[i]) & 0xC0) == 0x80) continue;
+        memcpy(tmp, text, i); tmp[i] = '\0'; strcat(tmp, "...");
+        if (gs_size(f, tmp, &w, NULL) == 0 && w <= max_w) cut = i; else break;
+    }
+    memcpy(tmp, text, cut); tmp[cut] = '\0'; strcat(tmp, "...");
+    gs_text(f, tmp, x, y, c);
 }
 
-static int gui_controls_column_left(void) {   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): device pixels; the panels sit in window points */
+static int gui_controls_column_left_ui(void) {   /* the left edge of the F2/F3 panels in window points (MAX_X in points if none) */
     const int nested = gui_ui_active;
     if (!nested) gui_ui_coords_begin();
     int left = MAX_X;
@@ -1077,59 +1186,64 @@ static int gui_controls_column_left(void) {   /* ##CHRIS 2026-10-12 (decision 34
         if (w > 0 && x < left) left = x;
     }
     if (!nested) gui_ui_coords_end();
-    return (int)floorf((float)left * gui_ui_scale);
+    return left;
+}
+static void gui_scene_fit(void) {
+    const float u = gui_ui_scale;
+    gui_ui_coords_begin();
+    const float W = (float)MAX_X, H = (float)MAX_Y;
+    gui_ui_coords_end();
+    const float left = 8.0f, top = cli_demo_mode ? 44.0f : 8.0f;
+    const float right = (float)gui_controls_column_left_ui() - 8.0f - 520.0f - 16.0f;   /* the HUD column right of the box */
+    const float bw = (float)SIM_WIDTH + 12.0f, bh = (float)SIM_HEIGHT;                 /* the pistons are drawn 5 px outside */
+    const float aw = fmaxf(60.0f, right - left);
+    const float ah = gui_dist_mode != 0 ? fmaxf(60.0f, 0.42f * (H - top - 8.0f)) : fmaxf(60.0f, H - top - 8.0f);
+    float s = fminf(aw / fmaxf(1.0f, bw), ah / fmaxf(1.0f, bh));
+    if (s * u > 2.6f) s = 2.6f / u;
+    if (!(s > 0.0f) || !isfinite(s)) s = 1.0f / u;
+    gui_scene_s = s * u;
+    gui_scene_bx = u * (left + 6.0f * s) - gui_scene_s * (float)XW1;
+    gui_scene_by = u * top - gui_scene_s * (float)YW1;
+    gui_panel_top_ui = top + s * bh + 10.0f;
+    gui_panel_h_ui = fmaxf(0.0f, H - gui_panel_top_ui - 8.0f);
+    gui_scene_view_scale = gui_scene_s;
+    (void)W;
 }
 
-static float gui_compute_scene_view_scale(void) {
-    const int controls_left = gui_controls_column_left();
-    const float hud_min_w = 520.0f * gui_ui_scale;   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): the HUD column, in points */
-    const float right_limit = (float)controls_left - hud_min_w - 24.0f * gui_ui_scale;
-    const float max_scale_x = right_limit / fmaxf(1.0f, (float)XW2 + 10.0f);
-    const float min_plot_h = 300.0f;
-    const float max_scale_y = (float)MAX_Y / fmaxf(1.0f, (float)SIM_HEIGHT + min_plot_h);
-    float s = fminf(max_scale_x, max_scale_y);
-    const float device_s = gui_renderer_device_scale();
-    if (s < 1.0f) s = 1.0f;
-    if (s < device_s && max_scale_x >= device_s && max_scale_y >= device_s) s = device_s;
-    if (s > 2.6f) s = 2.6f;
-    return s;
+static int gui_scene_screen_x(float world_x) {   /* device pixels */
+    return (int)lroundf(gui_scene_s * world_x + gui_scene_bx);
 }
-
-static int gui_scene_screen_x(float world_x) {
-    return (int)lroundf(world_x * gui_scene_view_scale);
-}
-static int gui_scene_screen_y(float world_y) {   /* ##CHRIS 2026-10-12 (decision 34, addition, item D) */
-    return (int)lroundf(world_y * gui_scene_view_scale);
+static int gui_scene_screen_y(float world_y) {
+    return (int)lroundf(gui_scene_s * world_y + gui_scene_by);
 }
 
 static void gui_begin_scene_view(void) {
     if (!_renderer || gui_scene_view_active) return;
-    gui_scene_saved_max_x = MAX_X;
-    gui_scene_saved_max_y = MAX_Y;
-    gui_scene_saved_hist_w = HIST_WIDTH;
-    gui_scene_saved_hist_h = HIST_HEIGHT;
-    gui_scene_view_scale = gui_compute_scene_view_scale();
-    if (gui_scene_view_scale < 1.0f) gui_scene_view_scale = 1.0f;
-
-    if (gui_scene_view_scale > 1.001f) {
-        MAX_X = (int)floorf((float)gui_scene_saved_max_x / gui_scene_view_scale);
-        MAX_Y = (int)floorf((float)gui_scene_saved_max_y / gui_scene_view_scale);
-        if (MAX_X < XW2 + 20) MAX_X = XW2 + 20;
-        if (MAX_Y < YW2 + 80) MAX_Y = YW2 + 80;
-        gui_recompute_hist_extents();
-        SDL_RenderSetScale(_renderer, gui_scene_view_scale, gui_scene_view_scale);
-    }
+    gui_scene_fit();
+    SDL_RenderSetScale(_renderer, 1.0f, 1.0f);
+    gs_set(gui_scene_s, gui_scene_bx, gui_scene_s, gui_scene_by, gui_ui_scale);
     gui_scene_view_active = 1;
 }
 
 static void gui_end_scene_view(void) {
     if (!_renderer || !gui_scene_view_active) return;
-    SDL_RenderSetScale(_renderer, 1.0f, 1.0f);
-    MAX_X = gui_scene_saved_max_x;
-    MAX_Y = gui_scene_saved_max_y;
-    HIST_WIDTH = gui_scene_saved_hist_w;
-    HIST_HEIGHT = gui_scene_saved_hist_h;
+    gs_reset();
     gui_scene_view_active = 0;
+}
+
+static void gui_begin_panel_view(void) {   /* the distribution panels: x as the scene, y in window points below the box */
+    if (!_renderer || !gui_scene_view_active || gui_panel_view_active) return;
+    gui_panel_saved_hw = HIST_WIDTH; gui_panel_saved_hh = HIST_HEIGHT;
+    HIST_HEIGHT = (int)floorf(gui_panel_h_ui);
+    HIST_WIDTH = SIM_WIDTH / 4;
+    gs_set(gui_scene_s, gui_scene_bx, gui_ui_scale, gui_ui_scale * (gui_panel_top_ui - (float)(YW1 + SIM_HEIGHT)), gui_ui_scale);
+    gui_panel_view_active = 1;
+}
+static void gui_end_panel_view(void) {
+    if (!gui_panel_view_active) return;
+    HIST_WIDTH = gui_panel_saved_hw; HIST_HEIGHT = gui_panel_saved_hh;
+    gs_set(gui_scene_s, gui_scene_bx, gui_scene_s, gui_scene_by, gui_ui_scale);
+    gui_panel_view_active = 0;
 }
 
 
@@ -1398,11 +1512,25 @@ static void g3_free(void){
     free(g3_copy); free(g3_seen); g3_copy = NULL; g3_seen = NULL;
     g3_n = 0; g3_stale = 1; g3_handed = 0;
 }
+/* ##CHRIS 2026-10-12 (plan-author decision 34 with decision 38 item 4: no exit on a scene gen3 cannot build): in the window's scene a
+   refused build (edmd3_create or edmd3_load) or a stopped engine (edmd3_fatal) no longer ends the program: the run record and the
+   reason are printed, the window pauses with the reason on the screen, and ESC or the F3 panel's APPLY rebuilds the scene (Q ends
+   it). Headless and in every experiment loop: the STOP and exit(2), as before (fail-closed). */
+static int  g3_soft_window = 0;     /* set by simulation_loop in the window */
+static void g3_run_record(const char* id);   /* (below) */
+static void gui_scene_stopped(const char* what, const char* why);   /* (the banner, with the divider's limit) */
+static int g3_soft_stop(const char* what, const char* why){
+    if (!g3_soft_window || cli_headless) return 0;
+    fflush(stdout);
+    fprintf(stderr, "STOPPED (--engine=gen3, in the window; the window pauses): %s: %s\n", what, why);
+    gui_scene_stopped(what, why);
+    return 1;
+}
 static void g3_build(const EDMD* S){
     char err[256];
     const EDMD_Params* p = edmd_params(S);
     g_edmd3 = edmd3_create(p, cli_gen3_cell_px, err, sizeof err);
-    if (!g_edmd3) g3_stop(err);
+    if (!g_edmd3) { if (g3_soft_stop("gen3 cannot build this scene", err)) return; g3_stop(err); }
     const double t0 = isnan(g3_load_time) ? edmd_time(S) : g3_load_time;
     if (!edmd3_load(g_edmd3, edmd_particles(S), t0, err, sizeof err)) {
         printf("[EDMD3] load refused: box %.17g x %.17g px, R %.17g px; dividers %d:", p->boxW, p->boxH, p->radius, p->divider_count);
@@ -1410,6 +1538,7 @@ static void g3_build(const EDMD* S){
             printf(" [x %.17g th %.17g M %.17g v %.17g k %.17g]", p->divider_x[d], p->divider_thickness[d], p->divider_mass[d], p->divider_vx[d], p->divider_k[d]);
         printf("; piston L %d (x %.17g v %.17g M %.17g), R %d (x %.17g v %.17g M %.17g)\n", p->has_pistonL, p->pistonL_x, p->pistonL_vx,
                p->pistonL_mass, p->has_pistonR, p->pistonR_x, p->pistonR_vx, p->pistonR_mass);
+        if (g3_soft_stop("gen3 refused the scene's start state", err)) { edmd3_destroy(g_edmd3); g_edmd3 = NULL; return; }   /* ##CHRIS (decision 34) */
         g3_stop(err);
     }
     g3_owner = S; g3_prm = *p; g3_n = p->N; g3_stale = 1; g3_handed = 0;
@@ -1576,13 +1705,17 @@ static inline void edmd_backend_config_pistons(EDMD* S,
 static inline double edmd_backend_advance_to(EDMD* S, double t_target) {
     if (cli_engine == 3) {                             /* ##CHRIS 2026-10-09 (M3) */
         if (!g3_live(S)) { g3_free(); g3_build(S); }
+        if (!g_edmd3) return edmd_time(S);             /* ##CHRIS 2026-10-12 (decision 34): the window's refused build: no step */
         g3_check_untouched();
         const double ta = g3_mono();                                       /* stage A4: the engine's share */
         const double t = edmd3_advance_to(g_edmd3, t_target);
         g3_engine_s += g3_mono() - ta;
         g3_stale = 1; g3_handed = 0;
         const char* msg = NULL;
-        if (edmd3_fatal(g_edmd3, &msg)) g3_stop(msg ? msg : "the engine stopped");
+        if (edmd3_fatal(g_edmd3, &msg)) {
+            if (g3_soft_window && !cli_headless) { g3_run_record("scene, the engine stopped"); if (g3_soft_stop("the engine stopped", msg ? msg : "-")) return t; }
+            g3_stop(msg ? msg : "the engine stopped");
+        }
         return t;
     }
     return g_edmd_is_acc ? edmd_acc_advance_to(S, t_target) : edmd_advance_to(S, t_target);
@@ -5601,28 +5734,18 @@ void initSDL() {
     // Pre-clamp against the primary display so the initial window isn't absurdly large.
     // (We do a second clamp after window creation using the window's actual display index.)
     if (cli_gui_window_w > 0) { MAX_X = cli_gui_window_w; MAX_Y = cli_gui_window_h; }   /* ##CHRIS 2026-10-12 (decision 34, addition): --gui-window, exact */
-    else {
+    else {   /* ##CHRIS 2026-10-12 (decision 34, item 1): the default window fits the display (98 % x 95 % of its usable area), in
+                points; it no longer grows with the box, which is fitted to it (gui_scene_fit) */
+        SDL_Rect ub;
         SDL_DisplayMode dm;
-        if (SDL_GetCurrentDisplayMode(0, &dm) == 0) {
-            const int max_w = (int)(0.98 * (double)dm.w);
-            const int max_h = (int)(0.95 * (double)dm.h);
-
-            // If we have room, expand width to use the screen for HUD/plots.
-            // Do NOT auto-expand height to full-screen: users often want vertical space for other apps.
-            if (gui_dist_mode != 0) {
-                if (MAX_X < max_w) MAX_X = max_w;
-            }
-
-            // Clamp to fit display.
-            if (MAX_X > max_w) MAX_X = max_w;
-            if (MAX_Y > max_h) MAX_Y = max_h;
-
-            // Ensure some bottom area remains for plots.
-            const int min_h = YW2 + gui_window_min_extra_y;
-            if (MAX_Y < min_h) MAX_Y = min_h;
-
-            gui_recompute_hist_extents();
+        if (SDL_GetDisplayUsableBounds(0, &ub) == 0 && ub.w > 0 && ub.h > 0) {
+            MAX_X = (int)(0.98 * (double)ub.w);
+            MAX_Y = (int)(0.95 * (double)ub.h);
+        } else if (SDL_GetCurrentDisplayMode(0, &dm) == 0) {
+            MAX_X = (int)(0.98 * (double)dm.w);
+            MAX_Y = (int)(0.95 * (double)dm.h);
         }
+        gui_recompute_hist_extents();
     }
     _window = SDL_CreateWindow(
         "Hard Spheres Simulation",
@@ -5651,15 +5774,10 @@ void initSDL() {
     if (cli_gui_window_w <= 0) {   /* ##CHRIS 2026-10-12 (decision 34, addition): not with --gui-window */
         int display_index = SDL_GetWindowDisplayIndex(_window);
         if (display_index < 0) display_index = 0;
-        SDL_DisplayMode dm;
-        if (SDL_GetCurrentDisplayMode(display_index, &dm) == 0) {
-            const int max_w = (int)(0.98 * (double)dm.w);
-            const int max_h = (int)(0.95 * (double)dm.h);
-            if (gui_dist_mode != 0 && MAX_X < max_w) MAX_X = max_w;
-            if (MAX_X > max_w) MAX_X = max_w;
-            if (MAX_Y > max_h) MAX_Y = max_h;
-            const int min_h = YW2 + gui_window_min_extra_y;
-            if (MAX_Y < min_h) MAX_Y = min_h;
+        SDL_Rect ub;   /* ##CHRIS 2026-10-12 (decision 34, item 1): the display the window is on */
+        if (SDL_GetDisplayUsableBounds(display_index, &ub) == 0 && ub.w > 0 && ub.h > 0) {
+            MAX_X = (int)(0.98 * (double)ub.w);
+            MAX_Y = (int)(0.95 * (double)ub.h);
             SDL_SetWindowSize(_window, MAX_X, MAX_Y);
             gui_sync_renderer_canvas_size();
         }
@@ -5683,7 +5801,7 @@ static void gui_adjust_window_height(int delta) {
         max_h = (int)(0.95 * (double)dm.h);
     }
 
-    const int min_h = YW2 + gui_window_min_extra_y;
+    const int min_h = 480;   /* ##CHRIS 2026-10-12 (decision 34, item 1): points; the box is fitted to the window */
     if (desired_h < min_h) desired_h = min_h;
     if (desired_h > max_h) desired_h = max_h;
 
@@ -6788,6 +6906,14 @@ void initialize_simulation(void) {
 /////////////////// PISTON FUNCTIONS /////////////////////////
 
 // Function to render pistons
+/* ##CHRIS 2026-10-12 (decision 34, the drawing scale): this region draws in the box's world pixels through the display transform gs_* */
+#define SDL_RenderDrawLine(r_, ...) gs_line(__VA_ARGS__)   /* variadic: an argument may hold a compound literal's commas */
+#define SDL_RenderFillRect(r_, ...) gs_fill_rect(__VA_ARGS__)
+#define SDL_RenderDrawRect(r_, ...) gs_draw_rect(__VA_ARGS__)
+#define SDL_RenderDrawPoint(r_, ...) gs_point(__VA_ARGS__)
+#define draw_text(r_, ...) gs_text(__VA_ARGS__)
+#define draw_text_clipped(r_, ...) gs_text_clipped(__VA_ARGS__)
+#define TTF_SizeUTF8(...) gs_size(__VA_ARGS__)
 void render_pistons() {
     SDL_SetRenderDrawColor(_renderer, 0, 255, 0, 150);
     SDL_Rect left_piston = { (int)piston_left_x , 0, 5, YW2 };
@@ -6821,6 +6947,13 @@ static void render_left_spring() {
 
 
 
+#undef SDL_RenderDrawLine
+#undef SDL_RenderFillRect
+#undef SDL_RenderDrawRect
+#undef SDL_RenderDrawPoint
+#undef draw_text
+#undef draw_text_clipped
+#undef TTF_SizeUTF8   /* ##CHRIS (decision 34, the drawing scale): end of the region */
 void move_left_piston(float dt) {
     float left_box_edge = (float)XW1;
     float piston_width = 20.0f;
@@ -7279,9 +7412,8 @@ void render_particles() {
 
     for (int i = 0; i < n; i++) {
         // Use rounding (not truncation) to reduce 1–2px visual "overlaps" at contact.
-        int pixel_x = (int)lroundf((float)X[i]);
-        int pixel_y = (int)lroundf((float)Y[i]);
-        int radius_pixels = (int)lroundf(fmaxf((float)PARTICLE_RADIUS, gui_particle_draw_min_px));
+        /* ##CHRIS 2026-10-12 (decision 34, the drawing scale): at device resolution (gs_disk; the smallest drawn radius in device px) */
+        const float rad_w = (float)PARTICLE_RADIUS;
 
         // Szilard mode:
         //  - species view: full fill encodes x
@@ -7292,20 +7424,20 @@ void render_particles() {
                 if (sz_memory && sz_memory[i] == 0) SDL_SetRenderDrawColor(_renderer, 80, 220, 120, 255);
                 else if (sz_memory && sz_memory[i] == 1) SDL_SetRenderDrawColor(_renderer, 255, 220, 80, 255);
                 else SDL_SetRenderDrawColor(_renderer, 215, 215, 215, 255);
-                SDL_RenderFillCircle(_renderer, pixel_x, pixel_y, radius_pixels);
+                gs_disk((float)X[i], (float)Y[i], rad_w);
             } else if (sz_view_mode == SZ_VIEW_SPECIES) {
                 if (sz_species[i] == 0) SDL_SetRenderDrawColor(_renderer, 255, 80, 80, 255);
                 else                    SDL_SetRenderDrawColor(_renderer, 80, 120, 255, 255);
-                SDL_RenderFillCircle(_renderer, pixel_x, pixel_y, radius_pixels);
+                gs_disk((float)X[i], (float)Y[i], rad_w);
             } else {
                 if (sz_memory && (sz_memory[i] == 0 || sz_memory[i] == 1)) {
                     if (sz_memory[i] == 0) SDL_SetRenderDrawColor(_renderer, 80, 220, 120, 255);
                     else                   SDL_SetRenderDrawColor(_renderer, 255, 220, 80, 255);
-                    SDL_RenderFillCircle(_renderer, pixel_x, pixel_y, radius_pixels + 2);
+                    gs_disk((float)X[i], (float)Y[i], rad_w + 2.0f);
                 }
                 if (sz_species[i] == 0) SDL_SetRenderDrawColor(_renderer, 255, 80, 80, 255);
                 else                    SDL_SetRenderDrawColor(_renderer, 80, 120, 255, 255);
-                SDL_RenderFillCircle(_renderer, pixel_x, pixel_y, radius_pixels);
+                gs_disk((float)X[i], (float)Y[i], rad_w);
             }
             continue;
         }
@@ -7313,7 +7445,7 @@ void render_particles() {
             float vx = (float)Vx[i], vy = (float)Vy[i];
             float speed = sqrtf(vx * vx + vy * vy);
             set_draw_color_speed_heat(speed / vmax, 255);
-            SDL_RenderFillCircle(_renderer, pixel_x, pixel_y, radius_pixels);
+            gs_disk((float)X[i], (float)Y[i], rad_w);
             continue;
         }
         // ##CHRIS: Particle-life mode uses type-based colors
@@ -7344,7 +7476,7 @@ void render_particles() {
             set_draw_color_blue_purple_red((float)a);
         }
 
-        SDL_RenderFillCircle(_renderer, pixel_x, pixel_y, radius_pixels);
+        gs_disk((float)X[i], (float)Y[i], rad_w);
     }
 }
 
@@ -8491,6 +8623,14 @@ static inline void handle_piston_collisions_ccd_substep(int i, float sub_dt,
 
 //////// WALL FUNCTIONS /////////
 
+/* ##CHRIS 2026-10-12 (decision 34, the drawing scale): this region draws in the box's world pixels through the display transform gs_* */
+#define SDL_RenderDrawLine(r_, ...) gs_line(__VA_ARGS__)   /* variadic: an argument may hold a compound literal's commas */
+#define SDL_RenderFillRect(r_, ...) gs_fill_rect(__VA_ARGS__)
+#define SDL_RenderDrawRect(r_, ...) gs_draw_rect(__VA_ARGS__)
+#define SDL_RenderDrawPoint(r_, ...) gs_point(__VA_ARGS__)
+#define draw_text(r_, ...) gs_text(__VA_ARGS__)
+#define draw_text_clipped(r_, ...) gs_text_clipped(__VA_ARGS__)
+#define TTF_SizeUTF8(...) gs_size(__VA_ARGS__)
 void draw_wall() {
     if (!wall_enabled) return;  // Don't draw if the wall is disabled
     /* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item C): a drawing function no longer ends the program. A divider
@@ -8554,6 +8694,13 @@ void draw_wall() {
         SDL_RenderFillRect(_renderer, &extra_rect);
     }
 }
+#undef SDL_RenderDrawLine
+#undef SDL_RenderFillRect
+#undef SDL_RenderDrawRect
+#undef SDL_RenderDrawPoint
+#undef draw_text
+#undef draw_text_clipped
+#undef TTF_SizeUTF8   /* ##CHRIS (decision 34, the drawing scale): end of the region */
 
 
 // Function to update wall position and velocity
@@ -11761,7 +11908,7 @@ void keysSimulation(SDL_Event e) {
     if (cli_engine == 3 && e.type == SDL_KEYDOWN && g3_gui_key(e.key.keysym.sym)) return;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
     if (gui_div_limit_paused && e.type == SDL_KEYDOWN && (e.key.keysym.sym == SDLK_p || e.key.keysym.sym == SDLK_SPACE)) {
         /* ##CHRIS 2026-10-12 (decision 34, addition, item C): a divider at the end of its range is not resumed */
-        printf("[GUI-LIMIT] the divider is at the end of its range: ESC or the F3 panel's APPLY rebuilds the scene, Q ends it\n");
+        printf("[GUI-LIMIT] the scene is paused (the banner says why): ESC or the F3 panel's APPLY rebuilds the scene, Q ends it\n");
         fflush(stdout);
         return;
     }
@@ -12359,6 +12506,14 @@ void keysPiston(SDL_Event e) {
 /////////  HISTO AND SIMULATION RENDERING /////////
 // Function to handle particle- piston collisions
 
+/* ##CHRIS 2026-10-12 (decision 34, the drawing scale): this region draws in the box's world pixels through the display transform gs_* */
+#define SDL_RenderDrawLine(r_, ...) gs_line(__VA_ARGS__)   /* variadic: an argument may hold a compound literal's commas */
+#define SDL_RenderFillRect(r_, ...) gs_fill_rect(__VA_ARGS__)
+#define SDL_RenderDrawRect(r_, ...) gs_draw_rect(__VA_ARGS__)
+#define SDL_RenderDrawPoint(r_, ...) gs_point(__VA_ARGS__)
+#define draw_text(r_, ...) gs_text(__VA_ARGS__)
+#define draw_text_clipped(r_, ...) gs_text_clipped(__VA_ARGS__)
+#define TTF_SizeUTF8(...) gs_size(__VA_ARGS__)
 void draw_maxwell_boltzmann_curve(float temperature, int max_count) {
     float sigma = sqrt(kB_effective() * temperature / PARTICLE_MASS);
     float norm_factor = NUM_PARTICLES * (SIM_WIDTH / NUM_BINS);
@@ -12377,6 +12532,7 @@ void draw_maxwell_boltzmann_curve(float temperature, int max_count) {
 
 
 void draw_thick_line_vertical(SDL_Renderer *renderer, int x, int y1, int y2, int thickness) {
+    (void)renderer;   /* ##CHRIS (decision 34): the region's macros draw on _renderer */
     if (y1 > y2) {
         int temp = y1;
         y1 = y2;
@@ -12638,7 +12794,7 @@ static inline int gui_bins_for_xdensity(float width_px, int max_bins) {
     bins = gui_clamp_int(bins, 16, max_bins);
     // Ensure we can draw at least ~1px per bin in tight compartments.
     if (width_px > 0.0f) {
-        int cap = (int)floorf(width_px);
+        int cap = (int)floorf(width_px * gs_ax);   /* ##CHRIS 2026-10-12 (decision 34, the drawing scale): screen pixels */
         if (cap >= 8 && bins > cap) bins = cap;
     }
     if (bins < 8) bins = 8;
@@ -12652,7 +12808,7 @@ static inline int gui_bins_for_velocity(int n_samples, float seg_w_px, int max_b
     bins = gui_clamp_int(bins, 24, max_bins);
     // Rendering cap: avoid many bins mapping to the same x pixel in narrow segments.
     if (seg_w_px > 0.0f) {
-        int cap = (int)floorf(seg_w_px);
+        int cap = (int)floorf(seg_w_px * gs_ax);   /* ##CHRIS 2026-10-12 (decision 34, the drawing scale): screen pixels */
         if (cap >= 8 && bins > cap) bins = cap;
     }
     if (bins < 8) bins = 8;
@@ -13010,20 +13166,28 @@ static void render_velocity_histograms_by_segment_panel(int y0, int h) {
                      gui_hist_exact ? "  EXACT(z)" : "",
                      gui_dist_markers ? "" : "  markers(off)");
         }
-        draw_text(_renderer, font, label, panel_left + 8, y0 + 4, txt);
+        /* ##CHRIS 2026-10-12 (decision 34, the layout): each legend item after the measured width of the one before, gaps in points */
+        const int lx0 = panel_left + GUI_LG(8);
+        int lw = 0, lh = 0;
+        draw_text(_renderer, font, label, lx0, y0 + 4, txt);
+        if (TTF_SizeUTF8(font, label, &lw, &lh) != 0) lw = GUI_LG(160);
         SDL_SetRenderDrawColor(_renderer, 180, 180, 180, 220);
-        SDL_RenderDrawLine(_renderer, panel_left + 30, y0 + 12, panel_left + 60, y0 + 12);
-        draw_text(_renderer, font, "vy (yellow)", panel_left + 180, y0 + 4, txt);
+        SDL_RenderDrawLine(_renderer, lx0 + GUI_LG(22), y0 + 12, lx0 + GUI_LG(52), y0 + 12);
+        const int lx1 = lx0 + lw + GUI_LG(22);
+        draw_text(_renderer, font, "vy (yellow)", lx1, y0 + 4, txt);
         SDL_SetRenderDrawColor(_renderer, 255, 220, 0, 220);
-        SDL_RenderDrawLine(_renderer, panel_left + 170, y0 + 12, panel_left + 200, y0 + 12);
+        SDL_RenderDrawLine(_renderer, lx1 - GUI_LG(10), y0 + 12, lx1 + GUI_LG(20), y0 + 12);
 
         // Mean/median legend (solid line = mean; dashed ticks = median)
         if (gui_dist_markers) {
-            draw_text(_renderer, font, "mean|median", panel_left + 300, y0 + 4, txt);
+            int vw = 0;
+            if (TTF_SizeUTF8(font, "vy (yellow)", &vw, &lh) != 0) vw = GUI_LG(90);
+            const int lx2 = lx1 + vw + GUI_LG(30);
+            draw_text(_renderer, font, "mean|median", lx2, y0 + 4, txt);
             SDL_SetRenderDrawColor(_renderer, 235, 235, 235, 170);
-            SDL_RenderDrawLine(_renderer, panel_left + 292, y0 + 6, panel_left + 292, y0 + 18);
+            SDL_RenderDrawLine(_renderer, lx2 - GUI_LG(8), y0 + 6, lx2 - GUI_LG(8), y0 + 18);
             SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 120);
-            for (int yy = y0 + 6; yy < y0 + 18; yy += 5) SDL_RenderDrawLine(_renderer, panel_left + 284, yy, panel_left + 284, yy + 2);
+            for (int yy = y0 + 6; yy < y0 + 18; yy += 5) SDL_RenderDrawLine(_renderer, lx2 - GUI_LG(16), yy, lx2 - GUI_LG(16), yy + 2);
         }
     }
 }
@@ -13559,15 +13723,19 @@ static void render_speed_histograms_by_segment_panel(int y0, int h) {
                      gui_hist_exact ? "  EXACT(z)" : "",
                      gui_dist_markers ? "" : "  markers(off)");
         }
-        draw_text(_renderer, font, label, panel_left + 8, y0 + 4, txt);
+        const int lx0 = panel_left + GUI_LG(8);   /* ##CHRIS 2026-10-12 (decision 34, the layout): the legend after the label's width */
+        int lw = 0, lh = 0;
+        draw_text(_renderer, font, label, lx0, y0 + 4, txt);
+        if (TTF_SizeUTF8(font, label, &lw, &lh) != 0) lw = GUI_LG(220);
 
         // Mean/median legend (solid line = mean; dashed ticks = median)
         if (gui_dist_markers) {
-            draw_text(_renderer, font, "mean|median", panel_left + 300, y0 + 4, txt);
+            const int lx2 = lx0 + lw + GUI_LG(30);
+            draw_text(_renderer, font, "mean|median", lx2, y0 + 4, txt);
             SDL_SetRenderDrawColor(_renderer, 220, 255, 220, 170);
-            SDL_RenderDrawLine(_renderer, panel_left + 292, y0 + 6, panel_left + 292, y0 + 18);
+            SDL_RenderDrawLine(_renderer, lx2 - GUI_LG(8), y0 + 6, lx2 - GUI_LG(8), y0 + 18);
             SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 120);
-            for (int yy = y0 + 6; yy < y0 + 18; yy += 5) SDL_RenderDrawLine(_renderer, panel_left + 284, yy, panel_left + 284, yy + 2);
+            for (int yy = y0 + 6; yy < y0 + 18; yy += 5) SDL_RenderDrawLine(_renderer, lx2 - GUI_LG(16), yy, lx2 - GUI_LG(16), yy + 2);
         }
     }
 }
@@ -13942,13 +14110,18 @@ void draw_coordinate_system(SDL_Renderer *renderer) {
 
 
 
+#undef SDL_RenderDrawLine
+#undef SDL_RenderFillRect
+#undef SDL_RenderDrawRect
+#undef SDL_RenderDrawPoint
+#undef draw_text
+#undef draw_text_clipped
+#undef TTF_SizeUTF8   /* ##CHRIS (decision 34, the drawing scale): end of the region */
 // draw text
 /* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item D): UTF-8 -- TTF_RenderText_* reads the bytes as Latin-1, so "σ"
    came out as two wrong glyphs, one of them a box (Roboto has σ Δ ν ² × · ° – — −); in the UI pass (gui_begin_ui_view) the text
    is rendered with the font opened at gui_ui_scale times the size and drawn at 1/gui_ui_scale, sharp on a high-DPI display; an
    empty or unrenderable text draws nothing (it used to dereference a NULL surface). Text widths are measured with TTF_SizeUTF8. */
-static TTF_Font *gui_font_base[2] = {NULL, NULL}, *gui_font_hi[2] = {NULL, NULL};
-static float gui_font_hi_scale = 0.0f;
 void draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text, int x, int y, SDL_Color color) {
     if (!renderer || !font || !text || !*text) return;
     TTF_Font *rf = font;
@@ -14562,7 +14735,7 @@ static const char *live_scene_label(int index) {
     if (index == 0) return "walls";
     if (index == 1) return "particles";
     if (index == 2) return "radius σ";
-    if (index == 3) return "eta";
+    if (index == 3) return live_scene_mode == LIVE_SCENE_MODE_ENERGY_TRANSFER ? "eta (gas)" : "eta (fullest)";   /* ##CHRIS (decision 34) */
     if (index == 4) return "spring L0";
     if (index == LIVE_SCENE_ROW_SPRING_K) return "k (kT/σ²)";   /* ##CHRIS (decision 34, addition, item B) */
     if (index == LIVE_SCENE_ROW_THICKNESS) return "wall thick";
@@ -14695,6 +14868,47 @@ static void live_scene_set_from_mouse(int index, int visible_row, int mouse_x) {
     live_scene_set_value(index, live_scene_norm_to_value(index, norm));
 }
 
+/* ##CHRIS 2026-10-12 (decision 34 with decision 38 item 4: no crash on oversized disks): the scene-reset APPLY no longer starts a
+   rebuild the seeder cannot place. The seeder (initialize_simulation_segmented_grid) puts each compartment's disks on a rectangular
+   grid or, if that does not fit, on a hexagonal lattice of spacing 2R x 1.0005 inside the compartment less R plus a pad -- the
+   compartment from compute_segment_bounds (the walls' faces) less another half thickness at each divider -- and
+   ends the program (exit 1, "Could only place ...") if even that holds fewer. This repeats its arithmetic for the panel's values: the
+   walls at live_scene_wall_position_sigma, the thickness the rebuild will use, the counts of live_scene_counts_for. A compartment
+   that would not hold its disks refuses the APPLY with a note; nothing is rebuilt, nothing exits. Returns 1 if the scene fits. */
+static int live_scene_seeding_fits(int walls, int n, float radius_sigma, char* why, size_t whylen) {
+    const double pps = (double)PIXELS_PER_SIGMA, R = (double)radius_sigma * pps;
+    const double th = (live_scene_wall_thickness_user_set ? (double)live_scene_wall_thickness_sigma
+                       : (cli_override_wall_thickness_sigma > 0.0f ? (double)cli_override_wall_thickness_sigma : 2.0 * (double)radius_sigma)) * pps;
+    int counts[LIVE_SCENE_MAX_WALLS + 1];
+    const int segments = live_scene_segments_for_walls(walls);
+    live_scene_counts_for(walls, n, counts, (int)(sizeof(counts) / sizeof(counts[0])));
+    for (int s = 0; s < segments; ++s) {
+        if (counts[s] <= 0) continue;
+        /* compute_segment_bounds: the walls' faces (centre -/+ th/2) and the box edges; the seeder then keeps another th/2 */
+        const double sl = (s == 0) ? (double)XW1 : (double)XW1 + live_scene_wall_position_sigma(walls, s - 1) * pps + 0.5 * th;
+        const double sr = (s == segments - 1) ? (double)XW2 : (double)XW1 + live_scene_wall_position_sigma(walls, s) * pps - 0.5 * th;
+        const double pad = fmax(0.05, 0.005 * 2.0 * R), margin = R + pad;
+        const double lb = sl + (s > 0 ? 0.5 * th : 0.0) + margin, rb = sr - (s < segments - 1 ? 0.5 * th : 0.0) - margin;
+        const double top = (double)YW1 + margin, bottom = (double)YW2 - margin;
+        const double w = rb - lb, h = bottom - top, gap = 2.0 * R * 1.0005, dyh = gap * 0.8660254038;
+        long cap = 0;
+        if (w >= 0.0 && h >= 0.0) {
+            const int rows = (int)floor(h / dyh) + 1;
+            for (int r = 0; r < rows; ++r) {
+                if (top + r * dyh > bottom + 1e-3) break;
+                const double x0 = lb + ((r & 1) ? 0.5 * gap : 0.0);
+                if (rb - x0 < -1e-3) continue;
+                cap += (long)floor((rb - x0) / gap) + 1;
+            }
+        }
+        if (counts[s] > cap) {
+            snprintf(why, whylen, "compartment %d holds at most %ld disks of radius %.4f sigma (hexagonal lattice inside its walls), the panel asks %d",
+                     s + 1, cap, (double)radius_sigma, counts[s]);
+            return 0;
+        }
+    }
+    return 1;
+}
 static void live_scene_prepare_rebuild(void) {
     live_scene_apply_mode_constraints();
     if (live_scene_mode == LIVE_SCENE_MODE_SZILARD) {
@@ -14705,6 +14919,29 @@ static void live_scene_prepare_rebuild(void) {
     if (live_scene_engine == LIVE_SCENE_ENGINE_GEN3 && (heatbath_enabled || andersen_enabled)) {   /* ##CHRIS (decision 19, item 2) */
         g3_gui_note("APPLY refused: gen3 has no heat bath and no Andersen thermostat; switch them off (B, K) and APPLY again");
         return;
+    }
+    {   /* ##CHRIS 2026-10-12 (decision 34 with decision 38 item 4): no rebuild the seeder cannot place -- checked before anything
+           changes, with the clamps the rebuild applies below (walls, N, the radius at most that of eta 0.75) */
+        int walls_c = live_scene_fixed_wall_count() > 0 ? live_scene_fixed_wall_count() : live_scene_wall_count;
+        if (walls_c < 1) walls_c = 1;
+        if (walls_c > LIVE_SCENE_MAX_WALLS) walls_c = LIVE_SCENE_MAX_WALLS;
+        int n_c = live_scene_particle_count;
+        if (n_c < 1) n_c = 1;
+        if (n_c > live_scene_particle_max()) n_c = live_scene_particle_max();
+        float r_c = live_scene_radius_sigma;
+        const float r_c_max = (float)live_scene_radius_for_eta_value(walls_c, n_c, 0.75);
+        if (r_c < 0.005f) r_c = 0.005f;
+        if (r_c > r_c_max) r_c = r_c_max;
+        char why[220];
+        if (!live_scene_seeding_fits(walls_c, n_c, r_c, why, sizeof why)) {
+            char note[300];
+            snprintf(note, sizeof note, "APPLY refused: %s; lower N or the radius, or widen the compartment (nothing was rebuilt)", why);
+            printf("[GUI] %s\n", note);
+            fflush(stdout);
+            snprintf(g3_gui_note_text, sizeof g3_gui_note_text, "%s", note);
+            g3_gui_note_until = SDL_GetTicks() + 8000;
+            return;
+        }
     }
     if (live_scene_engine == LIVE_SCENE_ENGINE_EDMD || live_scene_engine == LIVE_SCENE_ENGINE_GEN3) {
         sim_mode = MODE_EDMD;
@@ -15668,23 +15905,32 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
              (double)simulation_time, (double)fixed_dt_runtime, g_last_substeps_used, (double)time_scale_runtime);
     char line_scale[256];
     char line_eta_target[256];
-    const double draw_r_px = fmax((double)PARTICLE_RADIUS, (double)gui_particle_draw_min_px);
+    const double draw_r_px = fmax((double)PARTICLE_RADIUS * (double)gui_scene_s, (double)gui_particle_draw_min_px);   /* ##CHRIS (decision 34): on the screen */
     const double r_sigma_hud = (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA;
     const double eta_global_hud = live_current_nominal_eta();
     const double eta_target_hud = (cli_packing_fraction > 0.0f)
         ? (double)cli_packing_fraction
         : eta_global_hud;
     snprintf(line_scale, sizeof(line_scale),
-             "box: %.1fσ x %.1fσ -> %dpx x %dpx  r: %.4fσ -> %.3fpx draw %.2fpx  scale: %.1f px/σ",
+             "box: %.1fσ x %.1fσ (%dpx x %dpx at %.0f px/σ)  r: %.4fσ  drawn at %.2f pt/σ, disk radius %.2f screen px",
              (double)L0_UNITS * 2.0, (double)HEIGHT_UNITS,
-             SIM_WIDTH, SIM_HEIGHT,
+             SIM_WIDTH, SIM_HEIGHT, (double)PIXELS_PER_SIGMA,
              r_sigma_hud,
-             (double)PARTICLE_RADIUS,
-             draw_r_px,
-             (double)PIXELS_PER_SIGMA);
-    snprintf(line_eta_target, sizeof(line_eta_target),
-             "eta_target=%.3f  eta_global=%.3f  eta_now below uses moving/compressed box widths",
-             eta_target_hud, eta_global_hud);
+             (double)gui_scene_s / (double)gui_ui_scale * (double)PIXELS_PER_SIGMA,
+             draw_r_px);   /* ##CHRIS 2026-10-12 (decision 34): the drawing scale */
+    {   /* ##CHRIS 2026-10-12 (decision 34 with decision 38 item 4): the density of the compartments that hold disks first */
+        double a_fill = 0.0; long n_fill = 0; int k_fill = 0;
+        if (segment_counts && segment_count > 0 && segment_count <= MAX_DIVIDER_CAPACITY + 1) {
+            float lb[MAX_DIVIDER_CAPACITY + 1], rb[MAX_DIVIDER_CAPACITY + 1];
+            compute_segment_bounds(lb, rb);
+            for (int s = 0; s < segment_count; ++s)
+                if (segment_counts[s] > 0) { n_fill += segment_counts[s]; a_fill += (double)(rb[s] - lb[s]) / (double)PIXELS_PER_SIGMA * (double)HEIGHT_UNITS; k_fill++; }
+        }
+        const double eta_fill = (a_fill > 0.0) ? (double)n_fill * M_PI * r_sigma_hud * r_sigma_hud / a_fill : eta_global_hud;
+        snprintf(line_eta_target, sizeof(line_eta_target),
+                 "η now = %.3f in the %d compartment%s with disks (requested %.3f; whole box %.3f)",
+                 eta_fill, k_fill, k_fill == 1 ? "" : "s", eta_target_hud, eta_global_hud);
+    }
     // Runtime thermo HUD: T, kB_eff, kBT, kBT1 mode
     char line_thermo[256];
     snprintf(line_thermo, sizeof(line_thermo), "T: %.3f  kB: %.6f  kBT: %.6f  kBT1:%s",
@@ -20833,6 +21079,101 @@ static int gui_divider_limit_check(double dt, long steps_done) {
     }
     return 0;
 }
+/* ##CHRIS 2026-10-12 (decision 34, the layout): the compartment labels (count, T, eta now, KE) and the hold counter, in the UI pass
+   (window points) at the compartments' places on the screen; they used to be drawn in the box's world pixels and so shrank with it */
+static void gui_draw_compartment_labels(int left_particles, int right_particles) {
+    if (!font) return;
+    const float u = gui_ui_scale;
+    #define GUI_UX(wx) ((gui_scene_s * (float)(wx) + gui_scene_bx) / u)
+    #define GUI_UY(wy) ((gui_scene_s * (float)(wy) + gui_scene_by) / u)
+    SDL_Color segment_palette[] = {
+        {255, 120, 0, 255},
+        {0, 180, 255, 255},
+        {170, 255, 0, 255},
+        {255, 80, 180, 255},
+        {240, 240, 240, 255}
+    };
+    const int palette_size = (int)(sizeof(segment_palette) / sizeof(segment_palette[0]));
+    SDL_Color yellow = {255, 255, 0, 255};
+    if (segment_counts && segment_count > 0 && segment_count <= MAX_DIVIDER_CAPACITY + 1) {
+        float left_bounds[MAX_DIVIDER_CAPACITY + 1];
+        float right_bounds[MAX_DIVIDER_CAPACITY + 1];
+        compute_segment_bounds(left_bounds, right_bounds);
+        for (int seg = 0; seg < segment_count; ++seg) {
+            int count = segment_counts[seg];
+            const float xl = GUI_UX(left_bounds[seg]), xr = GUI_UX(right_bounds[seg]);
+            int seg_px_w = (int)fmaxf(0.0f, (xr - xl) - 8.0f);
+            if (seg_px_w < 40) continue;   /* too narrow to label cleanly */
+            SDL_Color color = segment_palette[seg % palette_size];
+            double ke_val = (segment_ke) ? segment_ke[seg] : 0.0;
+            double temp_val = 0.0;
+            if (segment_temperature) temp_val = segment_temperature[seg];
+            else if (count > 0) temp_val = ke_val / (count * K_B);
+            const double r_sigma = (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA;
+            const double area_particle = M_PI * r_sigma * r_sigma;
+            const double seg_w_sigma = fmax(1e-9, (double)(right_bounds[seg] - left_bounds[seg]) / (double)PIXELS_PER_SIGMA);
+            const double area_seg = seg_w_sigma * (double)HEIGHT_UNITS;
+            const double eta_seg = (area_seg > 0.0) ? ((double)count * area_particle / area_seg) : 0.0;
+            char seg_buffer_1[96];
+            char seg_buffer_2[64];
+            if (seg_px_w < 140) snprintf(seg_buffer_1, sizeof(seg_buffer_1), "N=%d", count);
+            else snprintf(seg_buffer_1, sizeof(seg_buffer_1), "Box %d: N=%d", seg + 1, count);
+            if (seg_px_w >= 160) snprintf(seg_buffer_2, sizeof(seg_buffer_2), "T=%.2f  eta_now=%.3f", temp_val, eta_seg);
+            else snprintf(seg_buffer_2, sizeof(seg_buffer_2), "T=%.2f", temp_val);
+            const int text_y = (int)GUI_UY(YW1) + 6;
+            int tw = 0, th = 0;
+            int text_x = (int)xl + 4;
+            if (TTF_SizeUTF8(font, seg_buffer_1, &tw, &th) == 0) {
+                const int max_x = (int)xr - 4 - tw;
+                if (text_x > max_x) text_x = max_x;
+                if (text_x < (int)xl + 2) text_x = (int)xl + 2;
+            }
+            draw_text(_renderer, font, seg_buffer_1, text_x, text_y, color);
+            int xT = (int)xl + 4;
+            if (TTF_SizeUTF8(font, seg_buffer_2, &tw, &th) == 0) {
+                const int max_xT = (int)xr - 4 - tw;
+                if (xT > max_xT) xT = max_xT;
+                if (xT < (int)xl + 2) xT = (int)xl + 2;
+            }
+            draw_text(_renderer, font, seg_buffer_2, xT, text_y + 18, color);
+            if (seg_px_w >= 220 && gui_dist_mode != 3) {   /* the KE line when there is room (mode 3 shows it in its panels) */
+                char ke_buffer[80];
+                snprintf(ke_buffer, sizeof(ke_buffer), "KE=%.2e", ke_val);
+                int x2 = (int)xl + 4;
+                if (TTF_SizeUTF8(font, ke_buffer, &tw, &th) == 0) {
+                    const int max_x2 = (int)xr - 4 - tw;
+                    if (x2 > max_x2) x2 = max_x2;
+                    if (x2 < (int)xl + 2) x2 = (int)xl + 2;
+                }
+                draw_text(_renderer, font, ke_buffer, x2, text_y + 36, color);
+            }
+        }
+    } else {
+        SDL_Color white = {255, 255, 255, 255};
+        char fallback[64];
+        snprintf(fallback, sizeof(fallback), "Left: %d", left_particles);
+        draw_text(_renderer, font, fallback, (int)GUI_UX(XW1) + 5, (int)GUI_UY(YW1) + 10, white);
+        snprintf(fallback, sizeof(fallback), "Right: %d", right_particles);
+        draw_text(_renderer, font, fallback, (int)GUI_UX(XW2) - 120, (int)GUI_UY(YW1) + 10, white);
+    }
+    if (wall_hold_enabled && !wall_is_released) {   /* (decision 34, addition, item D): no count below 0 */
+        char buffer[64];
+        const int hold_left = wall_hold_steps - steps_elapsed;
+        if (hold_left > 0) snprintf(buffer, sizeof(buffer), "Wall held: %d steps left", hold_left);
+        else snprintf(buffer, sizeof(buffer), "Wall held: R releases it");
+        draw_text(_renderer, font, buffer, (int)GUI_UX(XW1) + 5, (int)GUI_UY(YW1) + 58, yellow);
+    }
+    #undef GUI_UX
+    #undef GUI_UY
+}
+static void gui_scene_stopped(const char* what, const char* why) {   /* ##CHRIS 2026-10-12 (decision 34): a scene that cannot go on */
+    gui_div_limit_paused = 1;
+    paused = true;
+    snprintf(gui_div_limit_msg[0], sizeof gui_div_limit_msg[0], "PAUSED: %s.", what);
+    snprintf(gui_div_limit_msg[1], sizeof gui_div_limit_msg[1], "%s   ESC or F3 APPLY: rebuild the scene.   Q: end it.", why);
+    printf("[GUI-STOP] %s: %s; the window pauses (P and SPACE do not resume; ESC or the F3 panel's APPLY rebuilds the scene, Q ends it)\n", what, why);
+    fflush(stdout);
+}
 static void gui_div_limit_banner(void) {   /* in the UI pass */
     if (!gui_div_limit_paused || !font || !_renderer) return;
     int w = MAX_X - 40;
@@ -21312,6 +21653,7 @@ void simulation_loop() {
     long gui_frames = 0, gui_steps = 0;
     g3_gui_keys_parse();
     if (cli_gui_time_scale > 0.0) time_scale_runtime = (float)cli_gui_time_scale;
+    g3_soft_window = !cli_headless;   /* ##CHRIS 2026-10-12 (decision 34): a refused gen3 build pauses the window instead of exiting */
 
     while (running) {
         // ##CHRIS: Handle timing differently in headless vs interactive mode
@@ -22237,125 +22579,20 @@ void simulation_loop() {
             if (wall_enabled) draw_wall();
             // Draw spring visualization on leftmost segment
             render_left_spring();
-
-        SDL_Color segment_palette[] = {
-            {255, 120, 0, 255},
-            {0, 180, 255, 255},
-            {170, 255, 0, 255},
-            {255, 80, 180, 255},
-            {240, 240, 240, 255}
-        };
-        const int palette_size = (int)(sizeof(segment_palette) / sizeof(segment_palette[0]));
-        SDL_Color yellow = {255, 255, 0, 255};
-
-        if (segment_counts && segment_count > 0 && segment_count <= MAX_DIVIDER_CAPACITY + 1) {
-            float left_bounds[MAX_DIVIDER_CAPACITY + 1];
-            float right_bounds[MAX_DIVIDER_CAPACITY + 1];
-            compute_segment_bounds(left_bounds, right_bounds);
-
-            for (int seg = 0; seg < segment_count; ++seg) {
-                int count = segment_counts[seg];
-                float xl = left_bounds[seg];
-                float xr = right_bounds[seg];
-                int seg_px_w = (int)fmaxf(0.0f, (xr - xl) - 8.0f);
-                if (seg_px_w < 40) continue; // too narrow to label cleanly
-
-                SDL_Color color = segment_palette[seg % palette_size];
-
-                // Choose a compact label when the compartment is narrow to avoid overlaps.
-                // Also show a lightweight per-compartment temperature estimate for live tracking.
-                double ke_val = (segment_ke) ? segment_ke[seg] : 0.0;
-                double temp_val = 0.0;
-                if (segment_temperature) {
-                    temp_val = segment_temperature[seg];
-                } else if (count > 0) {
-                    temp_val = ke_val / (count * K_B);
-                }
-                // Live packing fraction per compartment (nominal geometric area).
-                // Uses the current compartment width between boundaries (including piston motion).
-                const double r_sigma = (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA;
-                const double area_particle = M_PI * r_sigma * r_sigma;
-                const double seg_w_sigma = fmax(1e-9, (double)(xr - xl) / (double)PIXELS_PER_SIGMA);
-                const double area_seg = seg_w_sigma * (double)HEIGHT_UNITS;
-                const double eta_seg = (area_seg > 0.0) ? ((double)count * area_particle / area_seg) : 0.0;
-
-                char seg_buffer_1[96];
-                char seg_buffer_2[64];
-                if (seg_px_w < 140) {
-                    snprintf(seg_buffer_1, sizeof(seg_buffer_1), "N=%d", count);
-                } else {
-                    snprintf(seg_buffer_1, sizeof(seg_buffer_1), "Box %d: N=%d", seg + 1, count);
-                }
-                if (seg_px_w >= 160) {
-                    snprintf(seg_buffer_2, sizeof(seg_buffer_2), "T=%.2f  eta_now=%.3f", temp_val, eta_seg);
-                } else {
-                    snprintf(seg_buffer_2, sizeof(seg_buffer_2), "T=%.2f", temp_val);
-                }
-
-                int text_y = YW1 + 6;
-                int text_x = (int)xl + 4;
-                int tw = 0, th = 0;
-                if (TTF_SizeUTF8(font, seg_buffer_1, &tw, &th) == 0) {
-                    int max_x = (int)xr - 4 - tw;
-                    if (text_x > max_x) text_x = max_x;
-                    if (text_x < (int)xl + 2) text_x = (int)xl + 2;
-                }
-                draw_text(_renderer, font, seg_buffer_1, text_x, text_y, color);
-
-                int twT = 0, thT = 0;
-                int xT = (int)xl + 4;
-                if (TTF_SizeUTF8(font, seg_buffer_2, &twT, &thT) == 0) {
-                    int max_xT = (int)xr - 4 - twT;
-                    if (xT > max_xT) xT = max_xT;
-                    if (xT < (int)xl + 2) xT = (int)xl + 2;
-                }
-                draw_text(_renderer, font, seg_buffer_2, xT, text_y + 18, color);
-
-                // Optional third line (KE) only when there is enough space.
-                if (seg_px_w >= 220) {
-                    // In stacked distribution mode we show distribution metrics inside the histogram panels
-                    // (less clutter inside the simulation box).
-                    if (gui_dist_mode != 3) {
-                        char ke_buffer[80];
-                        snprintf(ke_buffer, sizeof(ke_buffer), "KE=%.2e", ke_val);
-                        int tw2 = 0, th2 = 0;
-                        int x2 = (int)xl + 4;
-                        if (TTF_SizeUTF8(font, ke_buffer, &tw2, &th2) == 0) {
-                            int max_x2 = (int)xr - 4 - tw2;
-                            if (x2 > max_x2) x2 = max_x2;
-                            if (x2 < (int)xl + 2) x2 = (int)xl + 2;
-                        }
-                        draw_text(_renderer, font, ke_buffer, x2, text_y + 36, color);
-                    }
-                }
+            /* ##CHRIS 2026-10-12 (decision 34, the layout): the distribution panels below the box, x aligned with its compartments, y in
+               window points (gui_begin_panel_view); the compartment labels and the hold counter in the UI pass, at the compartments */
+            gui_begin_panel_view();
+            if (gui_dist_mode == 1) {
+                render_velocity_histograms();
+            } else if (gui_dist_mode == 2) {
+                render_velocity_histograms_by_segment();
+            } else if (gui_dist_mode == 3) {
+                render_segment_distributions_stacked();
             }
-        } else {
-            SDL_Color white = {255, 255, 255, 255};
-            char fallback[64];
-            snprintf(fallback, sizeof(fallback), "Left: %d", left_particles);
-            draw_text(_renderer, font, fallback, XW1 + 5, YW1 + 10, white);
-            snprintf(fallback, sizeof(fallback), "Right: %d", right_particles);
-            draw_text(_renderer, font, fallback, XW2 - 120, YW1 + 10, white);
-        }
-
-        char buffer[64];
-
-        if (wall_hold_enabled && !wall_is_released) {   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): no count below 0 */
-            const int hold_left = wall_hold_steps - steps_elapsed;
-            if (hold_left > 0) snprintf(buffer, sizeof(buffer), "Wall held: %d steps left", hold_left);
-            else snprintf(buffer, sizeof(buffer), "Wall held: R releases it");
-            draw_text(_renderer, font, buffer, XW1 + 5, YW1 + 50, yellow);
-        }
-
-		            if (gui_dist_mode == 1) {
-		                render_velocity_histograms();
-		            } else if (gui_dist_mode == 2) {
-		                render_velocity_histograms_by_segment();
-		            } else if (gui_dist_mode == 3) {
-		                render_segment_distributions_stacked();
-		            }
+            gui_end_panel_view();
             gui_end_scene_view();
             gui_begin_ui_view();   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): the HUD and the panels in window points */
+            gui_draw_compartment_labels(left_particles, right_particles);
             render_energy_hud(_renderer, font);
             render_live_controls(_renderer, font_small ? font_small : font);
             gui_div_limit_banner();   /* item C */
