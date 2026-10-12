@@ -1,0 +1,25 @@
+# M1 update (decision 35, item 4c): the Test R tables, printed by experiments_m1_figures_261011/m1_tables_testR_261011.py; existing data only
+
+the source: main 7ed5e102 (hspist3/experiments_gen3_testR_koa_261011), read with git show
+
+- the verdict's registered table: 6 rows: PASS
+- M = 50 nu_arg reproduced: PASS
+- M = 50 nu_d reproduced: PASS
+- M = 100 nu_arg reproduced: PASS
+- M = 100 nu_d reproduced: PASS
+- M = 300 nu_arg reproduced: PASS
+- M = 300 nu_d reproduced: PASS
+- the per-mass outcomes as printed: PASS -- M = 50: NO DIFFERENCE; M = 100: NO DIFFERENCE; M = 300: NO DIFFERENCE
+- the verdict line as printed: PASS
+- the verdict's delta table: 3 estimators x 2 engines x 2 masses: PASS -- 12 rows
+
+| M | estimator | d [%] | 95 % interval [%] | z | outcome |
+|---|---|---|---|---|---|
+| 50 | nu_arg | +0.0487 | [-0.0709, +0.1683] | +0.80 | NO DIFFERENCE |
+| 50 | nu_d | -0.0333 | [-0.1066, +0.0400] | -0.89 | NO DIFFERENCE |
+| 100 | nu_arg | +0.0713 | [-0.0160, +0.1587] | +1.60 | NO DIFFERENCE |
+| 100 | nu_d | +0.0326 | [-0.0253, +0.0904] | +1.10 | NO DIFFERENCE |
+| 300 | nu_arg | +0.0233 | [-0.0330, +0.0797] | +0.81 | NO DIFFERENCE |
+| 300 | nu_d | +0.0049 | [-0.0335, +0.0433] | +0.25 | NO DIFFERENCE |
+
+CHECKS: all PASS

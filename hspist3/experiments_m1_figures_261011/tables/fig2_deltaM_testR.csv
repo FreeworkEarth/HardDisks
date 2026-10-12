@@ -1,0 +1,13 @@
+estimator,engine,M,delta_pct,se_pct,lo95_pct,hi95_pct,reference,source
+nu_arg,gen2,50,-0.434,0.047,-0.52612,-0.34188,c_300 (the one mass >= 300 of Test R),Report R1 (7ed5e102)
+nu_arg,gen2,100,-0.149,0.039,-0.22543999999999997,-0.07256,c_300 (the one mass >= 300 of Test R),Report R1 (7ed5e102)
+nu_arg,gen3,50,-0.409,0.047,-0.50112,-0.31688,c_300 (the one mass >= 300 of Test R),Report R1 (7ed5e102)
+nu_arg,gen3,100,-0.101,0.037,-0.17352,-0.028480000000000005,c_300 (the one mass >= 300 of Test R),Report R1 (7ed5e102)
+nu_d,gen2,50,-0.389,0.029,-0.44584,-0.33216,c_300 (the one mass >= 300 of Test R),Report R1 (7ed5e102)
+nu_d,gen2,100,-0.132,0.024,-0.17904,-0.08496000000000001,c_300 (the one mass >= 300 of Test R),Report R1 (7ed5e102)
+nu_d,gen3,50,-0.428,0.029,-0.48484,-0.37116,c_300 (the one mass >= 300 of Test R),Report R1 (7ed5e102)
+nu_d,gen3,100,-0.104,0.025,-0.153,-0.05499999999999999,c_300 (the one mass >= 300 of Test R),Report R1 (7ed5e102)
+nu_0,gen2,50,-0.273,0.029,-0.32984,-0.21616000000000002,c_300 (the one mass >= 300 of Test R),Report R1 (7ed5e102)
+nu_0,gen2,100,-0.088,0.024,-0.13504,-0.040959999999999996,c_300 (the one mass >= 300 of Test R),Report R1 (7ed5e102)
+nu_0,gen3,50,-0.311,0.029,-0.36784,-0.25416,c_300 (the one mass >= 300 of Test R),Report R1 (7ed5e102)
+nu_0,gen3,100,-0.059,0.025,-0.108,-0.009999999999999995,c_300 (the one mass >= 300 of Test R),Report R1 (7ed5e102)
