@@ -19853,3 +19853,225 @@ planned record steps over the 670 (cell, mass) pairs (safety 1.0, target 200, dt
 **Commits.**
 - engine-gen3: `df594f77` (the scripts, the output, the run records, the small files), and the copy of this record.
 - main and engine-divider-resched: this record.
+
+### 4.7.80 Report M5 — the M5 solid-cell job (decision 38 item 6): PREPARED, NOT TYPED; rehearsed on the Mac, PASS (7 of 7); its runsheet blocks; THE DATA CAP OF THIS MESSAGE IS BROKEN (about 576 MB of 500) (2026-10-12 10:06 HST, machine date) [DATA, printed by script; SOURCE for the job's lines]
+
+**Plain summary.**
+- **THE DATA CAP IS BROKEN.**
+  - The Mac rehearsal of this job wrote 141 MB, not the about 40 MB I had estimated. I had not checked the trace stride at η 0.74 (fact 1 below).
+  - This message's new data is now about 576 MB against the cap of 500 MB.
+  - Per the disk rule (decision 12) I stopped there. No run followed it, and nothing was compressed, moved or deleted.
+  - The 141 MB are the rehearsal root in the scratchpad (`d38/m5_rehearsal`): the 8 run folders (66 MB), their fetched copy (63 MB) and the scripts clone (14 MB). They can be deleted only on Chris's word.
+- **The job** (engine-gen3 `ea8e0c9a`, folder `cluster/gen3_m5_solid_261012/`):
+  - The cell is decision 38's solid cell: N 400, η 0.74, M 500, with four seeds.
+  - Each seed runs once with the koa (double) build and once with the koa-ld (80-bit) build of `a643bc7` that `~/harddisks_gen3` has held since runsheet step 2. Nothing is rebuilt.
+  - The protocol is K2-2 part (d)'s: lattice start, exact box, 2000 steps held, 200 predicted periods, `HD_CONTACT_AUDIT=1`. `g3_rate_ld_koa.sos()` is imported unchanged.
+  - One job, one node, 8 cores on `shared`, `--exclude=cn-05-08-07`. It calls no git at run time: it checks the binaries against `k2_binaries_a643bc7.sha256` and both build-time hash files, and the inputs against a 10-file SHA-256 manifest.
+  - The registered M5 rule is read on the Mac after the fetch (`m5_solid_verdict_261012.py`), with K2-2's functions.
+- **The rehearsal: PASS, 7 of 7** (`rehearse_m5_solid_mac.py`). It checked the stand-in for `~/harddisks_gen3`, cloned the package commit with four listed shims, ran the job, ran two STOP checks, fetched, and read the rule. On arm64 the long double is the double, so the koa-ld runs test the plumbing only.
+- **The runsheet** (blocks A–E, below) updates `~/harddisks_gen3_k2` in place to `ea8e0c9a` in a sandbox shell, submits one sbatch, prints the job's log and fetches on the Mac. It requests 10 core-hours; the expected use is under 0.6.
+- **Three facts for the plan author.**
+  1. **The trace stride at η 0.74 is 1 step.**
+     - The generators' rule `d_stride(kr_cs(η) · x_of(M, L0))` uses KR's fluid c_s, which is 4662 at η 0.74 (10.5 at 0.70, 53.5 at 0.72).
+     - So every step is written: 7.9 MB per trajectory. On KOA that is about 66 MB on scratch and 66 MB fetched.
+     - `x_of` also uses the module's `N_SIDE = 50`, so it takes α = M/100.
+     - The rule's components do not read the traces; argmax ν does.
+     - The protocol is left as part (d)'s. A fixed stride would be a change for the plan author to decide.
+  2. **ψ6 in the rehearsal's runs** (the Mac's double): the record means of the four seeds are 0.633, 0.444, 0.855 and 0.854. The cell is solid by the phase constants (η ≥ 0.72), but the four starts are not equally ordered over the record.
+  3. **The binaries are `a643bc7`'s.**
+     - The engine source (`edmd_core/`) is identical in `f72d764`, so the check covers the engine either way.
+     - If the plan author chooses option (i) of Report S1-0 (a KOA build of `f72d764`) and wants M5 on that build's own pair, the job needs that build's koa-ld binary and a second run.
+
+**The rehearsal, printed by `cluster/gen3_m5_solid_261012/rehearse_m5_solid_mac.py`** (`--commit ea8e0c9a`; evidence in `experiments_gen3_m5_solid_rehearsal_261012/`, the run data listed by SHA-256 in `REHEARSAL_SHA256_FILES.txt`, not committed), verbatim:
+
+````
+== the job's log
+env: gcc (GCC) 14.3.0 | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+M5 solid cell on Christophs-MacBook-Pro-875.local (Apple M3 Max): out /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d38/m5_rehearsal/lustre/harddisks_gen3/m5_solid_koa/job_9100001
+binaries: 00ALLINONE  git a643bc7  target koa (96c427e2aecc8a29c545c5933b5d94db776c12775158caa5b9f5d83ea0f8f6d0); 00ALLINONE  git a643bc7  target koa-ld (614982e944211fa46edbc30fa3e2089b38f9636f811f090edbb673c7de0db0a9)
+== M5, the solid cell: N 400, eta 0.74, M 500 (alpha 1.25), H 20, L0 10.613488694560111; 4 seeds per build (run_seed(20261219, 2, 400, r)): 3627127649, 2405664135, 3253290098, 2555073433; held 2000 steps, 200 predicted periods
+   trace stride 1 steps (sos(): KR nu with tests_20260913.N_SIDE = 50); about 1.0 samples per KR period at alpha 1.25 (information)
+
+the 8 runs ended after 10 s; exit codes 0, 0, 0, 0, 0, 0, 0, 0
+
+| N | M | eta | seed | build | clean | events | event hash | max contact gap [px] | u_t | gap / u_t [px/unit] | argmax nu |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 400 | 500 | 0.74 | 0 | koa | 1 | 7615826 | 0bb6e6637c724048 | 3.15e-12 | 1.82e-12 | 1.73 | 0.269209 |
+| 400 | 500 | 0.74 | 0 | koa-ld | 1 | 7615826 | 0bb6e6637c724048 | 3.15e-12 | 1.82e-12 | 1.73 | 0.269209 |
+| 400 | 500 | 0.74 | 1 | koa | 1 | 7538793 | 93458e169a5fb5de | 3.56e-12 | 1.82e-12 | 1.96 | 0.233635 |
+| 400 | 500 | 0.74 | 1 | koa-ld | 1 | 7538793 | 93458e169a5fb5de | 3.56e-12 | 1.82e-12 | 1.96 | 0.233635 |
+| 400 | 500 | 0.74 | 2 | koa | 1 | 7682936 | e135abc9f5e48ad2 | 3.46e-12 | 1.82e-12 | 1.9 | 0.270171 |
+| 400 | 500 | 0.74 | 2 | koa-ld | 1 | 7682936 | e135abc9f5e48ad2 | 3.46e-12 | 1.82e-12 | 1.9 | 0.270171 |
+| 400 | 500 | 0.74 | 3 | koa | 1 | 7673766 | 32fe680f9b468237 | 3.06e-12 | 1.82e-12 | 1.68 | 0.274978 |
+| 400 | 500 | 0.74 | 3 | koa-ld | 1 | 7673766 | 32fe680f9b468237 | 3.06e-12 | 1.82e-12 | 1.68 | 0.274978 |
+M5 solid cell done; paste everything from 'M5 solid cell on' to here
+
+== the verdict script's output (the Mac's koa-ld is the double: plumbing only)
+# M5, the solid cell (N 400, eta 0.74, M 500), read from experiments_gen3_m5_solid_koa_261012/job_9100001
+
+node: Christophs-MacBook-Pro-875.local (Apple M3 Max); 00ALLINONE  git a643bc7  target koa (96c427e2aecc8a29c545c5933b5d94db776c12775158caa5b9f5d83ea0f8f6d0); 00ALLINONE  git a643bc7  target koa-ld (614982e944211fa46edbc30fa3e2089b38f9636f811f090edbb673c7de0db0a9)
+
+The registered rule (261012 sec. 4.7, '5. Gate plan', item 5, verbatim):
+> 5. **Long-double spot check:** the double run's contact maxima and energy drift within the 80-bit run's by the floor of item 3, at one fluid and one solid cell; decorrelation time reported.
+with item 3, its floor:
+> 3. **Contact audit:** ≤ 1e-6 px in every class and run (expected ~1e-11, as today).
+
+| seed | build | clean | events | run [s] | contact max disk / wall / divider [px] | energy residual (ratio to its rounding scale) | gap / u_t | argmax nu | psi6 mean over the record |
+|---|---|---|---|---|---|---|---|---|---|
+| 0 | koa | 1 | 7615826 | 10.3 | 3.16e-12/2.14e-12/1.90e-12 | -9.09e-13 (6.1e-05) | 1.73 | 0.269209 | 0.633 |
+| 0 | koa-ld | 1 | 7615826 | 10.3 | 3.16e-12/2.14e-12/1.90e-12 | -9.09e-13 (6.1e-05) | 1.73 | 0.269209 | 0.633 |
+| 1 | koa | 1 | 7538793 | 10.3 | 3.56e-12/1.99e-12/1.85e-12 | -1.93e-12 (0.00013) | 1.96 | 0.233635 | 0.444 |
+| 1 | koa-ld | 1 | 7538793 | 10.3 | 3.56e-12/1.99e-12/1.85e-12 | -1.93e-12 (0.00013) | 1.96 | 0.233635 | 0.444 |
+| 2 | koa | 1 | 7682936 | 10.3 | 3.46e-12/1.96e-12/1.82e-12 | -4.60e-12 (0.00031) | 1.9 | 0.270171 | 0.855 |
+| 2 | koa-ld | 1 | 7682936 | 10.3 | 3.46e-12/1.96e-12/1.82e-12 | -4.60e-12 (0.00031) | 1.9 | 0.270171 | 0.855 |
+| 3 | koa | 1 | 7673766 | 10.3 | 3.06e-12/1.99e-12/2.05e-12 | -2.05e-12 (0.00014) | 1.68 | 0.274978 | 0.854 |
+| 3 | koa-ld | 1 | 7673766 | 10.3 | 3.06e-12/1.99e-12/2.05e-12 | -2.05e-12 (0.00014) | 1.68 | 0.274978 | 0.854 |
+
+## The rule, component by component
+
+1. Contact maxima: the largest koa minus koa-ld difference over the 4 seed pairs is 0.00e+00 px and the largest maximum 3.56e-12 px, against the floor 1e-06 px: within, every pair.
+2. Energy drift: koa -9.1e-13, -1.9e-12, -4.6e-12, -2.0e-12; koa-ld -9.1e-13, -1.9e-12, -4.6e-12, -2.0e-12; read as |koa| <= |koa-ld| + the koa ledger's rounding scale (1.5e-08, 1.5e-08, 1.5e-08, 1.5e-08) [INTERPRETATION]: within, every pair.
+3. The cell is solid by the phase constants (fluid < 0.7, solid >= 0.72); psi6_global over the records: mean 0.697, range 0.003-0.906 (33280 samples).
+4. Decorrelation time (psi6_global(t), both builds from the same start): first printed difference / first difference >= 0.05, sigma-time: seed 0: None / None; seed 1: None / None; seed 2: None / None; seed 3: None / None
+
+## argmax nu (information, not a component of the rule)
+
+koa 0.261998 +- 0.009538; koa-ld 0.261998 +- 0.009538; koa-ld minus koa +0.00 % (z +0.00, n = 4 each)
+
+M5 AT THE SOLID CELL, BY THE REGISTERED RULE: the double run's contact maxima and energy drift are within the 80-bit run's, every seed pair (all 8 runs clean)
+
+== the rehearsal
+
+| step | result | detail |
+|---|---|---|
+| the stand-in for ~/harddisks_gen3 (version lines, build-time hash files) | PASS | 00ALLINONE  git a643bc7  target koa 96c427e2aecc...; 00ALLINONE  git a643bc7  target koa-ld 614982e94421... |
+| the clone at ea8e0c9 decision 38 item 6 (261012 sec. 4.7.80): THE M5 SOLID-CELL JOB, PREPARED, NOT TYPED -- N 400; the files the shims changed | PASS | M hspist3/cluster/gen3_koa_261009/k2_binaries_a643bc7.sha256; M hspist3/cluster/gen3_m5_solid_261012/fetch_m5_solid_koa.sh; M hspist3/cluster/gen3_m5_solid_261012/m5_solid_inputs.sha256; M hspist3/cluster/gen3_m5_solid_261012/m5_solid_koa.sbatch |
+| the job (m5_solid_koa.sbatch) | PASS | exit 0 |
+| STOP check: the same job id again | PASS | STOP: [Christophs-MacBook-Pro-875.local] /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d |
+| STOP check: a submission from ~/harddisks_gen3 | PASS | STOP: [Christophs-MacBook-Pro-875.local] the M5 job runs from ~/harddisks_gen3_k2, not harddisks_gen3 |
+| the fetch (fetch_m5_solid_koa.sh, source made local) | PASS | fetched into /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d38/m |
+| the verdict script on the fetched folder | PASS | M5 AT THE SOLID CELL, BY THE REGISTERED RULE: the double run's contact maxima and energy drift are within the 80-bit run's, every seed pair (all 8 runs clean) |
+
+REHEARSAL: PASS (7 of 7)
+
+Residual differences from KOA (the shims): the Slurm variables and log file; module, gcc --version, lscpu; HOME; the four rewritten files above; arm64's long double is the double (the koa-ld numerics are not exercised).
+data under /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d38/m5_rehearsal: 141M
+````
+
+**The runsheet for Chris, `cluster/gen3_m5_solid_261012/runsheet_m5_solid_261012.txt`** (engine-gen3 `76feb34b`), verbatim:
+
+````
+##CHRIS 2026-10-12 (plan-author decision 38 item 6; 261012 sec. 4.7.80) -- THE M5 SOLID-CELL RUNSHEET (KOA). Stage 1 gate G6 (b).
+PREPARED. Nothing here is typed until the plan author has read its report and Chris says go. Chris types every command.
+
+WHAT THE JOB DOES. The registered M5 rule (sec. 4.7, gate plan item 5) at the solid cell of decision 38 item 6: N 400, eta 0.74,
+M 500, four seeds, each run by the koa (double) and the koa-ld (80-bit long double) build of a643bc7 that ~/harddisks_gen3 holds since
+runsheet step 2 (NOT rebuilt), with K2-2 part (d)'s protocol (lattice start, exact box, 2000 steps held, 200 predicted periods;
+g3_rate_ld_koa.sos(), imported unchanged). One job, one node, 8 cores, all 8 runs at once. Seeds 3627127649, 2405664135, 3253290098,
+2555073433 (run_seed(20261219, 2, 400, r): part (d)'s base, a new stream). The rule is read on the Mac after the fetch
+(m5_solid_verdict_261012.py): the contact maxima and the energy drift of each seed pair, the phase (psi6), the decorrelation time,
+and argmax nu per build (information).
+DELIVERY: an UPDATE IN PLACE of ~/harddisks_gen3_k2 to engine-gen3 ea8e0c9a3c671e6f48191ae8df7c06432c802356 (as the preview's block B
+did; the commit must be pushed first):
+  - the clone holds only scripts; block B first checks that no tracked file in it has changed;
+  - its sparse set (/hspist3/*.py, /hspist3/cluster/, /hspist3/validation/) holds the new folder cluster/gen3_m5_solid_261012/;
+  - the update changes, besides the new folder, only preview scripts and record outputs that no job runs (10 files since c70d314e);
+  - type it only when squeue -u charing lists no gen3 job (block A shows the queue).
+THE BINARIES: ~/harddisks_gen3/hspist3/00ALLINONE ("00ALLINONE  git a643bc7  target koa", SHA-256 742aa2d3...) and
+~/harddisks_gen3/hspist3/bin/00ALLINONE_ld ("... target koa-ld", SHA-256 5e00a5d7...), step 2's builds, checked WITHOUT git against
+cluster/gen3_koa_261009/k2_binaries_a643bc7.sha256 and the build-time files logs/BUILD_KOA_LAST.hash and logs/BUILD_KOA_LD.hash.
+KOA RULES, as before: the login node only for light commands (no git, no binaries there); squeue before every sbatch; never submit a job
+twice; nothing in ~/harddisks, ~/harddisks_resched, ~/harddisks_resched2 or ~/harddisks_gen3 changes. The job writes its log into
+~/harddisks_gen3_k2/hspist3/logs/gen3-m5-solid_<job id>.out and its data into
+/mnt/lustre/koa/scratch/charing/harddisks_gen3/m5_solid_koa/job_<job id>/ (its own root). It checks its clone, its inputs (the
+SHA-256 manifest m5_solid_inputs.sha256: 10 files), both binaries and their build-time files, and stops with "STOP: [<node>] ..." on
+any mismatch: paste the STOP line, change nothing, wait. There are NO placeholders: the blocks find the log by its name (a glob). The
+sbatch carries --exclude=cn-05-08-07 in its header and calls no git.
+THE SANDBOX LINE is the established one, without -A: srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+
+CORE-HOURS (requested = cores x time limit; Slurm charges what a job uses):
+| block | what | partition | cores at once | requested core-hours | expected use |
+|---|---|---|---|---|---|
+| A, B | sandbox shell: the update, the checks | sandbox | 2 | 2.00 | under 0.1 |
+| C | the job: 8 runs at once | shared | 8 | 8.00 | under 0.5 (the Mac: 10 s per run, 7.6 M events; the 80-bit build is slower on KOA) |
+| all | | | | 10.00 | under 0.6 |
+SIZE: about 66 MB on scratch and about 66 MB fetched. At eta 0.74 the generators' stride rule (kr_cs, the fluid EOS, 4662 there) gives
+a trace stride of 1 step, so every trace has 62,400 rows (7.9 MB). The rule's components do not read the traces; argmax nu does.
+
+M5 BLOCK A (KOA login node; opens the sandbox shell; then wait for the cn-... prompt):
+squeue -u charing
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+
+  Expected: squeue lists no gen3 job (else stop: the delivery waits). Commands typed while srun is queued are lost: paste block B only
+  at the cn-... prompt.
+
+M5 BLOCK B (in the sandbox shell, at the cn-... prompt; updates ~/harddisks_gen3_k2 in place; reads both binaries and the inputs):
+git --version
+cd ~/harddisks_gen3_k2
+git status --porcelain --untracked-files=no | wc -l
+git fetch --depth 1 origin ea8e0c9a3c671e6f48191ae8df7c06432c802356
+git -c advice.detachedHead=false checkout ea8e0c9a3c671e6f48191ae8df7c06432c802356
+git log -1 --format='%h %s' | cut -c1-80
+cd hspist3 && sha256sum cluster/gen3_m5_solid_261012/m5_solid_koa.sbatch cluster/gen3_m5_solid_261012/m5_solid_koa.py cluster/gen3_m5_solid_261012/m5_solid_inputs.sha256
+sha256sum -c cluster/gen3_m5_solid_261012/m5_solid_inputs.sha256 | grep -c ': OK$'
+(cd ~/harddisks_gen3/hspist3 && sha256sum -c ~/harddisks_gen3_k2/hspist3/cluster/gen3_koa_261009/k2_binaries_a643bc7.sha256)
+cat ~/harddisks_gen3/hspist3/logs/BUILD_KOA_LAST.hash ~/harddisks_gen3/hspist3/logs/BUILD_KOA_LD.hash
+~/harddisks_gen3/hspist3/00ALLINONE --version | head -1
+~/harddisks_gen3/hspist3/bin/00ALLINONE_ld --version | head -1
+source cluster/koa_env.sh
+python3 -c "import sys; sys.path.insert(0, 'cluster/gen3_m5_solid_261012'); import m5_solid_koa as R; print('the M5 imports: OK; seeds', R.seeds())"
+ls /mnt/lustre/koa/scratch/charing/harddisks_gen3/m5_solid_koa 2>&1 | head -2
+exit
+
+  THE LINES THAT SHOW IT IS GOOD (paste everything):
+    "git version 2.35.0" or newer
+    0          (no tracked file of the clone has changed)
+    the fetch: "From https://github.com/FreeworkEarth/HardDisks" and " * branch ea8e0c9a3c671e6f48191ae8df7c06432c802356 -> FETCH_HEAD"
+    "HEAD is now at ea8e0c9 decision 38 item 6 ..." and the log line starting with ea8e0c9 (before it git may print "Warning: you are
+    leaving <n> commit(s) behind ...": harmless, the clone's old detached state)
+    exactly these three lines:
+      601184f2d239ea3782e033e4a0475265acf0c662b8d46dc91c7424a6390e69dc  cluster/gen3_m5_solid_261012/m5_solid_koa.sbatch
+      74271311db4ebb83b7ed75983d9fe0b9bc6febdd7b3c80ceaf2831dbd1c4901f  cluster/gen3_m5_solid_261012/m5_solid_koa.py
+      b130d0982ec369764c7e2945b711e95bd9c65ccc5ab530bd9ce1189f4550aa70  cluster/gen3_m5_solid_261012/m5_solid_inputs.sha256
+    10         (the manifest: the runner, the modules it imports, koa_env.sh and the binaries' hash file, each ": OK")
+    four lines ending in ": OK" (00ALLINONE, bin/00ALLINONE_ld, bin/gen3_m1, bin/gen3_m2 are step 2's)
+    "742aa2d3530e0b0c7e940260fbc5c69fefe7d56caca6a425c8ae2e4f65c5bbb2  00ALLINONE"
+    "5e00a5d7aadb6cc9ff43ac27bced91bbb082393808e5df1851de1bd5f2ab71fe  00ALLINONE_ld"     (the two build-time files)
+    "00ALLINONE  git a643bc7  target koa"
+    "00ALLINONE  git a643bc7  target koa-ld"
+    "env: gcc (GCC) 14.3.0 | Python 3.12... at /home/charing/envs/hd/bin/python3 | git version ..."
+    "the M5 imports: OK; seeds [3627127649, 2405664135, 3253290098, 2555073433]"
+    "ls: cannot access '/mnt/lustre/koa/scratch/charing/harddisks_gen3/m5_solid_koa': No such file or directory" (a fresh root)
+
+M5 BLOCK C (KOA login node, after block B's exit; submits the job):
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3 && sbatch cluster/gen3_m5_solid_261012/m5_solid_koa.sbatch
+
+  Expected: squeue lists no gen3 job; "Submitted batch job <number>". The job takes a few minutes.
+
+M5 BLOCK D (KOA login node, once squeue -u charing no longer lists gen3-m5-solid; prints the job's log):
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3 && L=$(ls -t logs/gen3-m5-solid_*.out | head -1) && echo "$L" && sed -n '/^M5 solid cell on/,$p' "$L"
+
+  THE LINES THAT SHOW IT IS GOOD (paste everything):
+    the log's name logs/gen3-m5-solid_<job id>.out
+    "M5 solid cell on cn-... (<CPU model>): out /mnt/lustre/koa/scratch/charing/harddisks_gen3/m5_solid_koa/job_<job id>"
+    "binaries: 00ALLINONE  git a643bc7  target koa (742aa2d3...); 00ALLINONE  git a643bc7  target koa-ld (5e00a5d7...)"
+    "== M5, the solid cell: N 400, eta 0.74, M 500 (alpha 1.25), ..." with the four seeds above, and the trace stride line (1 step)
+    "the 8 runs ended after <n> s; exit codes 0, 0, 0, 0, 0, 0, 0, 0"
+    the table of 8 rows (seeds 0-3, koa and koa-ld), clean 1 in every row
+    "M5 solid cell done; paste everything from 'M5 solid cell on' to here"
+  If the log shows a STOP line instead: paste it, change nothing, wait.
+
+M5 BLOCK E (Mac, after block D; one rsync through the DTN: one password and Duo push; read-only on KOA):
+cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3 && bash hspist3/cluster/gen3_m5_solid_261012/fetch_m5_solid_koa.sh
+
+  Expected, last line: "fetched into .../HardDisks_gen3/hspist3/experiments_gen3_m5_solid_koa_261012: 66M; job folders: job_<job id>".
+  Then tell CC. The rule is printed by (from HardDisks_gen3/hspist3): python3 cluster/gen3_m5_solid_261012/m5_solid_verdict_261012.py
+````
+
+**Data.** This part: 141 MB in the scratchpad (the rehearsal root) and 0.1 MB committed. This message: about 576 MB of 500 (the scratchpad's `d38` 535 MB, the evidence folders in the worktrees 41 MB). Free: 56 GB.
+
+**Commits.**
+- engine-gen3: `ea8e0c9a` (the package), `76feb34b` (the rehearsal's evidence and the runsheet), and the copy of this record.
+- main and engine-divider-resched: this record.
