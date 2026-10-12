@@ -1,6 +1,7 @@
 # GATE: e0_preview_261011.py's per-cell code on A1 v2's own trajectories against the canonical table
 
 315 (eta, M) cells, 7875 trajectories (DROOT experiments_speed_of_sound/EDMD/mode1_normalized_units/00_eta_sweep_ROMAN/A1v2_20260914); per-trajectory frequencies by paper1_populate_cs_err.cell() itself, Pool(6)
+eta_nominal(L0) (the binary's nominal eta from the float L0, 6 decimals) equals the trace's eta column in 35 of 35 leaves
 canonical table: 0000_PLAN_OVERALL/paper1_speedofsound/experiments/final/260919_A1v2_final_cs_vs_eta.csv (35 rows)
 
 | eta_rec | L0 | c_s | c_s_err_scaled | chi2_red | E0 columns equal (of 13) | E0 columns differing | KR / dev_KR_pct (information) |

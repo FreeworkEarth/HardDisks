@@ -1,0 +1,13 @@
+| check | result |
+|---|---|
+| cell L0 74.9998: every check passes (box 3599 x 240, delta 0.041270, eta_rec 0.052360, box eta 0.0523744 = E0's 0.0523744) | PASS |
+| cell L0 34.9999: every check passes (box 1679 x 240, delta 0.041468, eta_rec 0.112200, box eta 0.1122666 = E0's 0.1122665) | PASS |
+| cell L0 20.0000: every check passes (box 960 x 240, delta 0.000000, eta_rec 0.196350, box eta 0.1963495 = E0's 0.1963500) | PASS |
+| cell L0 15.0000: every check passes (box 720 x 240, delta 0.000000, eta_rec 0.261799, box eta 0.2617994 = E0's 0.2617990) | PASS |
+| cell L0 10.0000: every check passes (box 480 x 240, delta 0.000000, eta_rec 0.392699, box eta 0.3926991 = E0's 0.3926990) | PASS |
+| cell L0 7.5000: every check passes (box 360 x 240, delta 0.000000, eta_rec 0.523599, box eta 0.5235988 = E0's 0.5235990) | PASS |
+| cell L0 6.6559: every check passes (box 319 x 240, delta 0.020134, eta_rec 0.590001, box eta 0.5908952 = E0's 0.5908947) | PASS |
+| exact_box = 1: fails | PASS |
+| a truncated cell's line with the NOMINAL eta: the box-eta check fails | PASS |
+
+SELF-TEST: PASS (9 of 9; synthetic lines in /var/folders/_0/5z_tr3x56pv27hl5lcj4vmb80000gn/T/e0_preview_selftest_by4klxq1)
