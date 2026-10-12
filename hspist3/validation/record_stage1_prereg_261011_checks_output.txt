@@ -1,0 +1,18 @@
+# decision 36, item 2: the checks of the registration file before recording (printed 2026-10-11 22:44:14 HST)
+
+path: 0000_PLAN_OVERALL/ALL_MARKDOWNS/261010_prereg_v1_stage1_fluid_COWORK.md
+size: 35642 bytes; lines: 307; modification time: 2026-10-11 22:27:11 HST
+git: NOT tracked; working-tree status: '?? 0000_PLAN_OVERALL/ALL_MARKDOWNS/261010_prereg_v1_stage1_fluid_COWORK.md'
+SHA-256: d5cc0ce46353083240599a873ed843bb48e184f6c345f4b231eed4d96a4fe932
+first line: # PRE-REGISTRATION v1 — STAGE 1: the fluid (η ≤ 0.69) at N = 100 / 400 / 900 / 1600
+lines containing "$$": 4 (expected 4): MATCH
+lines starting "## 4.8.": 13 (expected 13): MATCH
+string a) occurs 1 time(s): MATCH (exactly once)   [Written by the plan author (Cowork) on 2026-10-10 (HST), before any stage 1 trajectory exists.]
+string b) occurs 1 time(s): MATCH (exactly once)   [(proposal: 20261311)]
+string c) occurs 1 time(s): MATCH (exactly once)   [| **B + D + S** | **16,550** | **2,554** | **3,831** | **40 h** | |]
+string d) occurs 1 time(s): MATCH (exactly once)   [**No stage 1 array is submitted before G0]
+string e) occurs 1 time(s): MATCH (exactly once)   [- **G5, verdict script.** Committed with a]
+first line starts with '# PRE-REGISTRATION v1': MATCH
+
+ALL CHECKS: MATCH -- record it as sec. 4.8
+(other facts: CR bytes 0; ends with a newline: True; BOM: False)
