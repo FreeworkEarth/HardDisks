@@ -17739,3 +17739,117 @@ gen3 M = 50: max |KOA / Mac - 1| = 8.71e-11
 gen3 M = 100: max |KOA / Mac - 1| = 2.52e-11
 gen3 M = 300: max |KOA / Mac - 1| = 3.47e-12
 ```
+
+### 4.7.67 Plan-author decision 34: the gen3 window — a fixed screen, a scaled drawing, a working layout (display only); low priority, after Reports R1 and P0 (2026-10-11 22:02 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 34** (relayed by Chris at about 22:00 HST). It replaces an earlier text of decision 34 that did not reach CC.
+  - **Priority:** low. It comes after Report R1 and Report P0, and before the meeting on Wednesday.
+  - **Chris's report:** at N = 5000 the box (about 4300 × 1700 px at 24 px per σ) is larger than his MacBook screen, and the sliders' scale and positions are off.
+  - **His requirement:**
+    - the window is his screen;
+    - with more disks at a given η, the disks are drawn smaller;
+    - the box re-arranges inside the window when he resizes it;
+    - the sliders work again.
+  1. **Drawing scale.**
+     - The engine's units, the box (L0 and H from N and η, as now) and every output are unchanged.
+     - The window picks the pixels per σ so that the whole box fits the window's scene area, and recomputes them when the window is resized.
+     - The default window size fits the current display.
+     - Disks, divider, pistons and overlays scale together.
+     - CC says what is drawn when a disk is smaller than about 2 px.
+  2. **Layout.** Sliders, HUD text and panels are placed in window coordinates, independent of the box size, and stay usable at N = 400, 5000 and 8000.
+  3. **An inventory, as a table, before any control is changed.** For every slider and key of the window:
+     - what it does;
+     - whether it works under gen2;
+     - whether it works under gen3 today or prints n/a;
+     - whether it affects only viewing or pacing, or acts on the physics.
+     - The ones that affect only viewing or pacing are restored under gen3.
+     - **Controls that act on the physics are NOT implemented under gen3.** For each, CC lists what it would need, for the plan author's decision.
+  4. **Acceptance, as decision 19 item 2:**
+     - rule 4 identical;
+     - the M1/M2 harness outputs identical;
+     - headless gen3 unchanged (P4a start A seed 1; the replay cell);
+     - the display does not steer: gen3 with the window, at two window sizes, gives the headless event hash, and the output files are byte-identical;
+     - 0 new warnings;
+     - screenshots at N = 400, 5000 and 8000.
+  5. **The command lines for Chris are reported.** It is recorded that this changes `00ALLINONE.c` again relative to f72d764 (Report S1-0, gate G0 a).
+- **The plan author's note to Chris, in the same paste.**
+  - For hard disks only the packing fraction and the number of disks matter, not the absolute size. So the change is purely in the drawing: the engine keeps its units, and the window chooses the pixels per diameter.
+  - Controls that affect only viewing can be restored. Controls that steer the physics while it runs (moving a wall, heating) are a different kind of feature, since so far the gen3 window's rule was "it shows, it does not steer". The plan author wants CC's list before deciding on those.
+  - The plan author asks Chris which sliders he uses most.
+- **At 22:02:**
+  - Report R1 is delivered (sec. 4.7.66).
+  - Report P0 waits for sec. 4.8. The registration file is not yet at `~/Desktop/261010_prereg_v1_stage1_fluid.md`.
+  - Decision 34's code work follows Report P0. Its inventory (item 3) only reads the code, and may be prepared before then.
+
+**The message, verbatim** (the part for CC; relayed by Chris on 2026-10-11 at about 22:00 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Low priority:
+after Report R1 and Report P0, before the meeting on Wednesday.
+This replaces the earlier text of decision 34.
+
+DECISION 34 - the gen3 window: fixed screen, scaled drawing,
+working layout (display only)
+ Chris's report: at N = 5000 the box (about 4300 x 1700 px at 24
+ px per sigma) is larger than his MacBook screen, and the sliders'
+ scale and positions are off. His requirement: the window is his
+ screen; with more disks at a given eta the disks are drawn
+ smaller; the box re-arranges inside the window when he resizes
+ it; the sliders work again.
+ 1. Drawing scale: the engine's units, the box (L0, H from N and
+    eta as now) and every output are unchanged. The window picks
+    pixels per sigma so that the whole box fits the window's scene
+    area, and recomputes it when the window is resized. Default
+    window size: fits the current display. Disks, divider, pistons
+    and overlays scale together; say what is drawn when a disk is
+    smaller than about 2 px.
+ 2. Layout: sliders, HUD text and panels are placed in window
+    coordinates, independent of the box size, and stay usable at
+    N = 400, 5000 and 8000.
+ 3. Inventory (a table, before changing any control): every
+    slider and key of the window; what it does; whether it works
+    under gen2; whether it works under gen3 today or prints n/a;
+    whether it only affects viewing or pacing, or acts on the
+    physics. Restore under gen3 the ones that only affect viewing
+    or pacing. Do NOT implement controls that act on the physics
+    under gen3; list what each would need, for my decision.
+ 4. Acceptance, as decision 19 item 2: rule 4 identical; M1/M2
+    harness outputs identical; headless gen3 unchanged (P4a start
+    A seed 1, the replay cell); the display does not steer (gen3
+    with the window, at two window sizes, = headless event hash;
+    output files byte-identical); 0 new warnings; screenshots at
+    N = 400, 5000 and 8000.
+ 5. Report the command lines for Chris. Record that this changes
+    00ALLINONE.c again relative to f72d764 (Report S1-0, gate
+    G0 a).
+
+End with "Written for: the plan author".
+```
+
+**The plan author's note to Chris in the same paste, verbatim as pasted:**
+
+```
+Agreed, and your idea is the right one: keep the box on your MacBook screen and let the disks be drawn smaller when there are more of them.
+
+One reassurance about “the radius gets smaller”
+
+For hard disks only the packing fraction and the number of disks matter, not the absolute size. A bigger box with normal disks and a normal box with smaller disks are the same physics. So we can do exactly what you describe purely in the drawing:
+
+the engine keeps computing in its own units (disk diameter = 1), so every number stays exact and comparable with the campaign;
+the window chooses how many pixels one disk diameter gets, so that the whole box fits your screen;
+with 5,000 disks the disks simply appear smaller.
+
+Nothing in the simulation changes; only the picture does.
+
+What CC should build
+The box always fits the window, and re-fits when you drag the window larger or smaller.
+Sliders, text and panels are placed relative to the window, not to the box, so they stay where they belong at any number of disks.
+An inventory of the sliders and keys: which exist, which work with the new engine today, and which are switched off.
+
+On point 3 there is a real distinction. Sliders that only affect viewing (speed, panels) can simply be restored. Sliders that change the physics while it runs (moving a wall, heating) are a different kind of feature: they steer the simulation. I want to see CC’s list before deciding on those, because so far the rule for the new engine’s window was “it shows, it does not steer”.
+
+Which sliders do you use most? If you tell me, I can put them first.
+
+For CC (this replaces the “DECISION 34” block from my last message; send it after CC has delivered the Test R verdict)
+```
