@@ -1,0 +1,144 @@
+# Report S-K: the spring-wall audit (READ-ONLY; printed by hspist3/validation/audit_spring_k_261012.py)
+
+sources: 36492 recorded energy-transfer commands (summary rows, 00_COMMAND.md, run_params.json) in the two worktrees; 5 command lines with --spring-wall in task lists and runner scripts
+
+## Per folder and source: energy-transfer runs, with --spring-wall, and of those without --spring-k / --spring-k-sigma
+
+| folder | source | runs | with --spring-wall | of those without a spring-constant flag |
+|---|---|---|---|---|
+| Paper 2 level0_Wqs_20260911 | 00_COMMAND.md | 20 | 0 | 0 |
+| Paper 2 level0_Wqs_20260911 | summary | 200 | 0 | 0 |
+| Paper 2 level0_pilot_20260910 | 00_COMMAND.md | 12 | 0 | 0 |
+| Paper 2 level0_pilot_20260910 | summary | 300 | 0 | 0 |
+| Paper 2 level0b_master30_20260920 | 00_COMMAND.md | 1 | 0 | 0 |
+| Paper 2 level0b_master30_20260920 | summary | 40 | 0 | 0 |
+| Paper 2 level0b_masterbox_20260919 | 00_COMMAND.md | 1 | 0 | 0 |
+| Paper 2 level0b_masterbox_20260919 | summary | 25 | 0 | 0 |
+| Paper 2 level0b_masterbox_v2_20260919 | 00_COMMAND.md | 1 | 0 | 0 |
+| Paper 2 level0b_masterbox_v2_20260919 | summary | 25 | 0 | 0 |
+| Paper 2 level0b_masterbox_v3_20260919 | 00_COMMAND.md | 1 | 0 | 0 |
+| Paper 2 level0b_masterbox_v3_20260919 | summary | 25 | 0 | 0 |
+| Paper 2 level1_Zwall_paper1geom_20260919 | 00_COMMAND.md | 3 | 0 | 0 |
+| Paper 2 level1_Zwall_paper1geom_20260919 | summary | 120 | 0 | 0 |
+| Paper 2 level1_Zwall_path_20260916 | 00_COMMAND.md | 16 | 0 | 0 |
+| Paper 2 level1_Zwall_path_20260916 | summary | 1600 | 0 | 0 |
+| Paper 2 level1_moreseeds_20260916 | 00_COMMAND.md | 12 | 0 | 0 |
+| Paper 2 level1_moreseeds_20260916 | summary | 480 | 0 | 0 |
+| Paper 2 level2_fast1sigma_20260918 | 00_COMMAND.md | 12 | 0 | 0 |
+| Paper 2 level2_fast1sigma_20260918 | summary | 1200 | 0 | 0 |
+| Paper 2 level2_fast_20260918 | 00_COMMAND.md | 12 | 0 | 0 |
+| Paper 2 level2_fast_20260918 | summary | 1200 | 0 | 0 |
+| Paper 2 level2_fastdx_20260918 | 00_COMMAND.md | 12 | 0 | 0 |
+| Paper 2 level2_fastdx_20260918 | summary | 1200 | 0 | 0 |
+| Paper 2 level2_ramp_20260918 | 00_COMMAND.md | 28 | 0 | 0 |
+| Paper 2 level2_ramp_20260918 | summary | 1680 | 0 | 0 |
+| Paper 2 level2_slope_20260917 | 00_COMMAND.md | 32 | 0 | 0 |
+| Paper 2 level2_slope_20260917 | summary | 2840 | 0 | 0 |
+| Paper 2 level3_FofL_20260925 | 00_COMMAND.md | 5 | 0 | 0 |
+| Paper 2 level3_FofL_20260925 | summary | 100 | 0 | 0 |
+| Paper 2 level3_master_20260920 | 00_COMMAND.md | 15 | 15 | 0 |
+| Paper 2 level3_master_20260920 | summary | 600 | 600 | 0 |
+| Paper 2 level3_master_preload_20260921 | 00_COMMAND.md | 19 | 19 | 0 |
+| Paper 2 level3_master_preload_20260921 | summary | 760 | 760 | 0 |
+| Paper 2 level3_spring_20260919 | 00_COMMAND.md | 5 | 0 | 0 |
+| Paper 2 level3_spring_20260919 | summary | 125 | 0 | 0 |
+| Paper 2 level3_v4_20260922 | 00_COMMAND.md | 9 | 9 | 0 |
+| Paper 2 level3_v4_20260922 | summary | 360 | 360 | 0 |
+| Paper 2 level3_v6_20260924 | 00_COMMAND.md | 2 | 2 | 0 |
+| Paper 2 level3_v6_20260924 | summary | 80 | 80 | 0 |
+| Paper 2 level4_B3_20261010 | 00_COMMAND.md | 1 | 0 | 0 |
+| Paper 2 level4_B3_20261010 | summary | 80 | 0 | 0 |
+| Paper 2 level4_Rcollapse2_20261006 | 00_COMMAND.md | 3 | 0 | 0 |
+| Paper 2 level4_Rcollapse2_20261006 | summary | 240 | 0 | 0 |
+| Paper 2 level4_Rcollapse_20261005 | 00_COMMAND.md | 2 | 0 | 0 |
+| Paper 2 level4_Rcollapse_20261005 | summary | 160 | 0 | 0 |
+| Paper 2 level4_demo_20261007 | 00_COMMAND.md | 3 | 0 | 0 |
+| Paper 2 level4_demo_20261007 | summary | 168 | 0 | 0 |
+| Paper 2 level4_equilibrium_20260929 | 00_COMMAND.md | 1 | 0 | 0 |
+| Paper 2 level4_equilibrium_20260929 | summary | 20 | 0 | 0 |
+| Paper 2 level4_equilibrium_KOAlength_20261002 | 00_COMMAND.md | 1 | 0 | 0 |
+| Paper 2 level4_equilibrium_KOAlength_20261002 | summary | 80 | 0 | 0 |
+| Paper 2 level4_ladderRfill_20261009 | 00_COMMAND.md | 2 | 0 | 0 |
+| Paper 2 level4_ladderRfill_20261009 | summary | 160 | 0 | 0 |
+| Paper 2 level4_ladder_20261003 | 00_COMMAND.md | 4 | 0 | 0 |
+| Paper 2 level4_ladder_20261003 | summary | 320 | 0 | 0 |
+| Paper 2 level4_ladder_rerun_20261004 | 00_COMMAND.md | 3 | 0 | 0 |
+| Paper 2 level4_ladder_rerun_20261004 | summary | 240 | 0 | 0 |
+| Paper 2 level4_pilot_20260925 | 00_COMMAND.md | 2 | 0 | 0 |
+| Paper 2 level4_pilot_20260925 | summary | 40 | 0 | 0 |
+| Paper 2 level4_pilot_v2_20260925 | 00_COMMAND.md | 2 | 0 | 0 |
+| Paper 2 level4_pilot_v2_20260925 | summary | 40 | 0 | 0 |
+| Paper 2 level4_thermal_20260928 | 00_COMMAND.md | 2 | 0 | 0 |
+| Paper 2 level4_thermal_20260928 | summary | 40 | 0 | 0 |
+| Paper 2 level4_topup_20261005 | 00_COMMAND.md | 2 | 0 | 0 |
+| Paper 2 level4_topup_20261005 | summary | 160 | 0 | 0 |
+| Paper 2 level4_v3_20260926 | 00_COMMAND.md | 3 | 0 | 0 |
+| Paper 2 level4_v3_20260926 | summary | 88 | 0 | 0 |
+| Paper 2 level4b_powerup_20261010 | 00_COMMAND.md | 12 | 0 | 0 |
+| Paper 2 level4b_powerup_20261010 | summary | 528 | 0 | 0 |
+| Paper 2 level4b_transmission_20261008 | 00_COMMAND.md | 12 | 0 | 0 |
+| Paper 2 level4b_transmission_20261008 | summary | 120 | 0 | 0 |
+| Paper 2 level4b_transmission_20261008b | 00_COMMAND.md | 12 | 0 | 0 |
+| Paper 2 level4b_transmission_20261008b | summary | 120 | 0 | 0 |
+| Paper 2 level5_effmap_20261010 | 00_COMMAND.md | 42 | 42 | 0 |
+| Paper 2 level5_effmap_20261010 | summary | 336 | 336 | 0 |
+| other 00_COMMAND.md | 00_COMMAND.md | 5 | 0 | 0 |
+| other HardDisks/00_COMMAND.md | 00_COMMAND.md | 1 | 1 | 0 |
+| other energy_transfer_runs_1walls.csv | summary | 1 | 0 | 0 |
+| other energy_transfer_runs_1walls.csv.legacy_1766018217 | summary | 9 | 0 | 0 |
+| other energy_transfer_runs_1walls.csv.legacy_1771443359 | summary | 5 | 0 | 0 |
+| other energy_transfer_runs_1walls.csv.legacy_1789773083 | summary | 3 | 0 | 0 |
+| other energy_transfer_runs_1walls.csv.legacy_1791670206 | summary | 6 | 0 | 0 |
+| other energy_transfer_runs_20251217_145556.csv | summary | 40 | 0 | 0 |
+| other energy_transfer_runs_2walls.csv | summary | 4 | 0 | 0 |
+| other energy_transfer_runs_2walls.csv.legacy_1769392690 | summary | 5 | 0 | 0 |
+| other energy_transfer_runs_2walls.csv.legacy_1771393545 | summary | 8 | 0 | 0 |
+| other energy_transfer_runs_2walls.csv.legacy_1772667351 | summary | 4 | 0 | 0 |
+| other experiments_gen3_d34a_261012 | 00_COMMAND.md | 7 | 5 | 0 |
+| other experiments_gen3_design_261009 | 00_COMMAND.md | 24 | 0 | 0 |
+| other experiments_gen3_design_261009 | summary | 24 | 0 | 0 |
+| other experiments_gen3_gate_261009 | 00_COMMAND.md | 2 | 0 | 0 |
+| other experiments_gen3_gate_261009 | summary | 400 | 0 | 0 |
+| other experiments_gen3_gate_koa_261009 | 00_COMMAND.md | 12 | 0 | 0 |
+| other experiments_gen3_gate_koa_261009 | summary | 412 | 0 | 0 |
+| other experiments_gen3_m3_261009 | 00_COMMAND.md | 8 | 0 | 0 |
+| other experiments_gen3_m3_261009 | summary | 8 | 0 | 0 |
+| other experiments_gen3_psi6c_261010 | 00_COMMAND.md | 41 | 0 | 0 |
+| other experiments_gen3_psi6c_261010 | summary | 40 | 0 | 0 |
+| other experiments_resched_gate2_261007 | 00_COMMAND.md | 12 | 0 | 0 |
+| other experiments_resched_gate2_261007 | summary | 12 | 0 | 0 |
+| other experiments_resched_gate_261005 | 00_COMMAND.md | 11 | 0 | 0 |
+| other experiments_resched_gate_261005 | summary | 11 | 0 | 0 |
+| other paper1_confinement_A_20261013 | 00_COMMAND.md | 5 | 0 | 0 |
+| other paper1_confinement_A_20261013 | summary | 8350 | 0 | 0 |
+| other paper1_confinement_Afix_261004 | 00_COMMAND.md | 5 | 0 | 0 |
+| other paper1_confinement_Afix_261004 | summary | 8405 | 0 | 0 |
+| other paper1_confinement_modegate_20261013 | 00_COMMAND.md | 1 | 0 | 0 |
+| other paper1_confinement_modegate_20261013 | summary | 1 | 0 | 0 |
+| other run_20260125_153148 | summary | 200 | 0 | 0 |
+| other run_20260125_155327 | summary | 1795 | 0 | 0 |
+| other run_20260211_175149 | summary | 40 | 0 | 0 |
+| other run_20260213_004318 | summary | 100 | 0 | 0 |
+| other run_20260219_002211 | summary | 200 | 0 | 0 |
+| other unified_debug_20260219_103106 | summary | 2 | 0 | 0 |
+| other unified_debug_20260219_103650 | summary | 1 | 0 | 0 |
+| other unified_debug_20260219_111510 | summary | 41 | 0 | 0 |
+| other unified_debug_20260219_121838 | summary | 4 | 0 | 0 |
+| **Paper 2, all** | summary | 15900 | 2136 | 0 |
+| **Paper 2, all** | 00_COMMAND.md | 327 | 87 | 0 |
+| **other, all** | summary | 20131 | 0 | 0 |
+| **other, all** | 00_COMMAND.md | 134 | 6 | 0 |
+
+## The runs with --spring-wall and a spring-constant flag: the constant in their summary row (spring_k, per px^2, the value the run used) against the flag's value (--spring-k-sigma / 24^2, or --spring-k): equal 2136, different 0
+
+## Every recorded run with --spring-wall and without a spring-constant flag
+
+none
+
+## Task lists and runner scripts: command lines with --spring-wall
+
+lines with --spring-wall: 5; of those without a spring-constant flag: 0
+
+Paper 2 records by worktree (the engine-gen3 worktree holds tracked copies of some level folders, so the counts above include those copies): HardDisks 00_COMMAND.md: 123 (without --spring-wall); HardDisks 00_COMMAND.md: 87 (with --spring-wall); HardDisks summary: 5739 (without --spring-wall); HardDisks summary: 2136 (with --spring-wall); HardDisks_gen3 00_COMMAND.md: 117 (without --spring-wall); HardDisks_gen3 summary: 8025 (without --spring-wall); distinct Paper 2 summary runs (command and seed): 7875, of them with --spring-wall: 2136
+
+RECORDED RUNS WITH --spring-wall AND NO SPRING-CONSTANT FLAG: Paper 2 0, other 0; task-list and script lines without a spring-constant flag: 0
