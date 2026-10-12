@@ -1,0 +1,10 @@
+# M1 update (decision 35, item 4c): figures 1 and 2 with Test R, printed by experiments_m1_figures_261011/m1_figures_v2_261011.py
+
+tables: hspist3/experiments_m1_figures_261011/tables/ (main 752d5754); script: hspist3/experiments_m1_figures_261011/m1_figures_v2_261011.py (main 204c322d)
+
+| figure | file | SHA-256 |
+|---|---|---|
+| 1 | m1_fig1_testG_testR_koa.pdf | 04a115275dffad88b755aaec01043181f8beb91011a27549ed4eca72f1360d34 |
+| 1 | m1_fig1_testG_testR_koa.png | 99b70aebf03fe5e784bbc90d0296c98d25afd6452dfbaedfd80d71902a3148f1 |
+| 2 | m1_fig2_deltaM_G2_testR.pdf | 8c1c82ea63da672277dad27f9e5e2b872509b9180851bedea96253c12a5faf9d |
+| 2 | m1_fig2_deltaM_G2_testR.png | 81106ffb37306cbe897adb95f20d5614239bd3b4caebc2ff4adc9fc20ad85f5f |
