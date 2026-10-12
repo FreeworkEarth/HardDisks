@@ -1,0 +1,17 @@
+env: gcc (GCC) 14.3.0 [rehearsal shim; here: Apple clang version 17.0.0 (clang-1700.4.4.1)] | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+chunk 1 on Christophs-MacBook-Pro-875 (Apple M3 Max (Mac rehearsal)): lines 1-9; 00ALLINONE  git a643bc7  target koa
+chunk 1 done
+eta_0p052360 masses 9: traces 1 runs 1 gen3-records-clean 1 build-lines-ok 1
+   1 box=3599 x 240 px exact_box=0 eta=0.052374426011499747
+eta_0p112200 masses 9: traces 1 runs 1 gen3-records-clean 1 build-lines-ok 1
+   1 box=1679 x 240 px exact_box=0 eta=0.1122665629633041
+eta_0p196350 masses 9: traces 1 runs 1 gen3-records-clean 1 build-lines-ok 1
+   1 box=960 x 240 px exact_box=0 eta=0.19634954084936207
+eta_0p261799 masses 9: traces 1 runs 1 gen3-records-clean 1 build-lines-ok 1
+   1 box=720 x 240 px exact_box=0 eta=0.26179938779914941
+eta_0p392699 masses 9: traces 3 runs 3 gen3-records-clean 3 build-lines-ok 3
+   3 box=480 x 240 px exact_box=0 eta=0.39269908169872414
+eta_0p523599 masses 9: traces 1 runs 1 gen3-records-clean 1 build-lines-ok 1
+   1 box=360 x 240 px exact_box=0 eta=0.52359877559829882
+eta_0p590 masses 9: traces 1 runs 1 gen3-records-clean 1 build-lines-ok 1
+   1 box=319 x 240 px exact_box=0 eta=0.590895169954193

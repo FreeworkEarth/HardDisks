@@ -1,0 +1,38 @@
+git version 2.50.1 (Apple Git-155)
+       0
+From /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks
+ * branch            c70d314e927580e35267045d58a22fdf10fb9850 -> FETCH_HEAD
+Warning: you are leaving 128 commits behind, not connected to
+any of your branches:
+
+  b5378f4 notes and evidence (identical copies of main 0c96a01a): decision 28, task R0: delivery as an update in place of ~/harddisks_gen3_k2
+  7fa7cac notes and evidence (identical copies of main 612a8226): decision 28, task R0: the Test R input manifests (engine-gen3's tree)
+  c6285af notes and evidence (identical copies of main 7a4a58ee): decision 28, task R0: the Test R package registered (without the input manifests)
+  8d7fc0a notes and evidence (identical copies of main 9c7ffd9a): decision 28, C1: the runner's binary check fixed before any C1 run
+ ... and 124 more.
+
+HEAD is now at c70d314 task P: the two input manifests of the preview jobs, computed on this tree (the delivered one; make_preview_manifests.py): preview_inputs.sha256 (6 files: the registered list 413186f0..., its SHA-256 file, the chunk size, Test R's build record, the worker, koa_env.sh) and preview_merge_inputs.sha256 (14 files, the same as Test R's merge manifest); Test R's own manifests still 20 of 20 OK here
+c70d314 task P: the two input manifests of the preview jobs, computed on this tr
+3058597a8e88b8798338a063ff8f5040f302e2af9c4c533585693c28c867657b  cluster/gen3_preview_261011/preview_koa.sbatch
+d60abba77a520ccab592ad49e8633ddaf18b42dcbe3b8ddfb1b66256f6930734  cluster/gen3_preview_261011/preview_merge.sbatch
+5adc6ddaad48605f439ff959ea982405cfd5a500818d33c1ce3012076c309e9b  cluster/gen3_preview_261011/preview_stopped_chunks.sh
+e23065537c2a0f20ba43675036615f8d9a86c59d7128c8a1e6ed8c33272302ee  cluster/gen3_preview_261011/test_preview_stopped_chunks.py
+58fc23861365a147dfd57e972fb0478ebad3d5cee89deb3e152531770ac03657  cluster/gen3_testR_261011/test_merge_koa_plan.py
+d9bda835ed22ff2c3bce8e9bb1cd750a7db5b59c2af1d4e044a185cc77083616  cluster/gen3_testR_261011/test_chunk_logs_koa.py
+746971d197beb75251a0fc083967c94b98b61eb924fb3a41cb1f680f1a93376e  cluster/gen3_preview_261011/preview_inputs.sha256
+aeb8aa66eaaa88489c70e49b544a67f19beb3942ac6faaa0845aa77efd75372f  cluster/gen3_preview_261011/preview_merge_inputs.sha256
+20
+20
+sha256sum:  bin/00ALLINONE_ld: No such file or directory
+sha256sum:  bin/gen3_m1: No such file or directory
+sha256sum:  bin/gen3_m2: No such file or directory
+sha256sum: WARNING: 1 computed checksum did NOT match
+00ALLINONE: FAILED
+466aedb1956922325f38ac4aaa5ae19fcf242278438929b8ced7aa7a9b023fb8  00ALLINONE
+00ALLINONE  git a643bc7  target koa
+env: gcc (GCC) 14.3.0 [rehearsal shim; here: Apple clang version 17.0.0 (clang-1700.4.4.1)] | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+ALL PASS (12 cases)
+ALL PASS (9 cases)
+ALL PASS (6 cases)
+the E0 and nu_d imports: OK
+ls: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p/rehearsal_run2/lustre/harddisks_gen3/preview_koa: No such file or directory

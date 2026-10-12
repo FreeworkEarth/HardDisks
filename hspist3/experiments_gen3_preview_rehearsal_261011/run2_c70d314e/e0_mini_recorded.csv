@@ -1,0 +1,10 @@
+cell,M,L0,eta_rec,eta_box,eta_true_E0,box_px,exact_box,delta,"check: the run's L0 = the task line's (the run id prints L0 to one decimal, 00ALLINONE.c:17393)",check: box width = (int)(2 L0 24) px in float32 (SIM_WIDTH; box_delta(L0)),check: box eta = E0's corrected eta (rel. < 2e-5),check: exact_box = 0 (the A1 v2 command),check: N = 2 N_L = 2 N_s
+eta_0p052360,50,74.9998,0.05236,0.05237442601149975,0.05237440996282565,3599 x 240,0,0.041269938151041664,True,True,True,True,True
+eta_0p112200,50,34.9999,0.1122,0.1122665629633041,0.11226650735398302,1679 x 240,0,0.041468302408854164,True,True,True,True,True
+eta_0p196350,50,20.0,0.19635,0.19634954084936207,0.19635,960 x 240,0,0.0,True,True,True,True,True
+eta_0p261799,50,15.0,0.261799,0.2617993877991494,0.261799,720 x 240,0,0.0,True,True,True,True,True
+eta_0p392699,50,10.0,0.392699,0.39269908169872414,0.392699,480 x 240,0,0.0,True,True,True,True,True
+eta_0p392699,100,10.0,0.392699,0.39269908169872414,0.392699,480 x 240,0,0.0,True,True,True,True,True
+eta_0p392699,200,10.0,0.392699,0.39269908169872414,0.392699,480 x 240,0,0.0,True,True,True,True,True
+eta_0p523599,50,7.5,0.523599,0.5235987755982988,0.523599,360 x 240,0,0.0,True,True,True,True,True
+eta_0p590,50,6.6559,0.590001,0.590895169954193,0.5908947227047535,319 x 240,0,0.02013397216796875,True,True,True,True,True

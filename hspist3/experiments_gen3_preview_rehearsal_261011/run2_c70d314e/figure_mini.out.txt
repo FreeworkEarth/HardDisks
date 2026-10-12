@@ -1,0 +1,7 @@
+# PREVIEW REHEARSAL (mini list, 2 seeds; not data): preview minus A1 v2 per density (c_s; errors from c_s_err_scaled and from c_s_err)
+
+| cell | recorded eta | box-corrected eta | L0 | preview c_s | A1 v2 c_s | difference | relative [%] | error (scaled) | z (scaled) | error | z | note |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| eta_0p392699 | 0.392699 | 0.392699 | 10.0000 | 3.80815 | 3.80884 | -0.00069 | -0.018 | 0.08802 | -0.01 | 0.08769 | -0.01 | the same cell |
+
+figure: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p/rehearsal_run2/figure/preview_cs_vs_eta.pdf, /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p/rehearsal_run2/figure/preview_cs_vs_eta.png

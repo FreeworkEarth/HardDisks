@@ -1,0 +1,1 @@
+STOP: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p/rehearsal_run1/home/harddisks_gen3_k2/hspist3/experiments_gen3_preview_koa_261011/merged/preview/gen3/eta_0p052360/m_50: recorded-length checks failed: ["the run's L0 = the task line's"]
