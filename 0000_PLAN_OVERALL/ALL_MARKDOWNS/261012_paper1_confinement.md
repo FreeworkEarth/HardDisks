@@ -17514,3 +17514,99 @@ CC found that the old Paper 1 data only has a matching box at one of the seven d
   - engine-gen3 8cb3db91, c70d314e (the delivery), feb0b374;
   - this record.
 - **Data:** 5.4 MB new since 21:05, plus the 159 MB Test R fetch, which Chris made. No simulation ran.
+
+### 4.7.65 Plan-author decision 33: the status report accepted; REPORT R1 NO LONGER WAITS FOR SEC. 4.8 (a change of the plan author's order, recorded and committed before the verdict is printed); sec. 4.8 still before any preview trajectory and before Report S1-0 (2026-10-11 21:34 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 33** (relayed by Chris at about 21:30 HST):
+  1. **The status report (sec. 4.7.64) is accepted.** This covers:
+     - the preview's registration with option (b) (task list SHA-256 413186f0...);
+     - the delivery commit c70d314e;
+     - the η fix in the reduction, made before any data;
+     - CC's [CHOICE] to register before sec. 4.8.
+  2. **Report R1 no longer waits for sec. 4.8.** CC prints the Test R verdict now, once.
+     - **The reasons given:**
+       - amendment A1 was committed verbatim in sec. 4.7.57 before any Test R trajectory existed;
+       - Test R's own registration, design output and verdict script were committed before chunk 1;
+       - the order "sec. 4.8, then R1" in decision 32 was a sequence of work, not a condition of the verdict.
+     - **This is recorded as a change of the plan author's order, made before the verdict was printed.** This section is committed before the printing.
+     - The stage 1 registration file has existed in the Cowork project since 2026-10-11 02:44 UTC and is not edited.
+     - **Report R1 contains:**
+       - the verdict line first;
+       - the inventory;
+       - the per-mass table for both estimators (d, SE, z, interval, outcome);
+       - the information rows (τ_r, Q, ν_0, δ_M per engine; the summary of the argmax histograms; Test G and Test R pooled; the fit failures);
+       - the deviations.
+     - If the verdict is not ENGINES AGREE, CC stops after printing and changes nothing.
+  3. **Unchanged:** no preview trajectory (the rehearsal included) and no Report S1-0 before sec. 4.8 with A1 and A2 is committed.
+     - Chris is saving the file to `~/Desktop/261010_prereg_v1_stage1_fluid.md` and will confirm.
+     - When it is there, CC records it and prints both SHA-256 values and three counts: the first line; the number of lines containing "$$" (expected 4); the number of "## 4.8." headings (expected 13).
+     - Then the preview's rehearsal and Report P0 follow.
+- **The plan author's note to Chris, in the same paste:**
+  - the fetch is complete (165 MB, its last line naming the merge record);
+  - the order is lifted for the verdict, for the reason above;
+  - Chris puts the registration file on the Mac without an editor between: copy all of its text, then `pbpaste > ~/Desktop/261010_prereg_v1_stage1_fluid.md`;
+  - three checks, whose expected output is a first line starting with "# PRE-REGISTRATION v1", then 4, then 13.
+
+**The message, verbatim** (the part for CC; relayed by Chris on 2026-10-11 at about 21:30 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record in a new
+section.
+
+DECISION 33 (2026-10-11 ~21:30 HST)
+ 1. Your status report (sec. 4.7.64) is accepted: the preview's
+    registration with option (b) (task list SHA-256 413186f0...),
+    the delivery commit c70d314e, the eta fix in the reduction
+    before any data, and your [CHOICE] to register before sec. 4.8.
+ 2. REPORT R1 NO LONGER WAITS FOR SEC. 4.8. Print the Test R
+    verdict now, once. Reason: amendment A1 was committed verbatim
+    in sec. 4.7.57 before any Test R trajectory existed, and Test
+    R's own registration, design output and verdict script were
+    committed before chunk 1; the order "sec. 4.8, then R1" in
+    decision 32 was a sequence of work, not a condition of the
+    verdict. Record this as a change of my order, made before the
+    verdict was printed. The stage 1 registration file exists in
+    the Cowork project since 2026-10-11 02:44 UTC and is not
+    edited.
+    Report R1: the verdict line first; the inventory; the per-mass
+    table for both estimators (d, SE, z, interval, outcome); the
+    information rows (tau_r, Q, nu_0, delta_M per engine; the
+    argmax histograms' summary; Test G and Test R pooled; fit
+    failures); deviations. If the verdict is not ENGINES AGREE,
+    stop after printing and change nothing.
+ 3. Unchanged: no preview trajectory, rehearsal included, and no
+    Report S1-0 before sec. 4.8 with A1 and A2 is committed. Chris
+    is saving the file to ~/Desktop/261010_prereg_v1_stage1_fluid.md
+    and will confirm. When it is there: record it (print both
+    SHA-256 values and the three counts: first line, number of
+    lines containing "$$" = 4, number of "## 4.8." headings = 13),
+    then the preview's rehearsal and Report P0.
+
+End with "Written for: the plan author".
+```
+
+**The plan author's note to Chris in the same paste, verbatim as pasted:**
+
+```
+Devising a terminal-copy method to transfer the file reliably.
+The fetch is complete: 165 MB, and the last line names the merge record, exactly as it should.
+
+Why CC has not printed the verdict yet
+CC is following my own order from the last block literally: “registration section first, then the verdict”. The registration file is still not on your Mac, so CC is waiting.
+
+I am lifting that order for the verdict. The condition that matters, the amended gate (A1), was already committed word for word before any Test R data existed. The registration file is still required before any preview run, but it should not hold up the verdict.
+
+What you do
+Send CC the block below. CC then prints the Test R verdict right away. Paste me its Report R1.
+Put the registration file on the Mac. The exact way, without an editor in between:
+open 261010_prereg_v1_stage1_fluid.md in this project’s files, select all of its text, and copy it (Cmd+A, Cmd+C);
+in the Mac terminal, run:
+pbpaste > ~/Desktop/261010_prereg_v1_stage1_fluid.md
+head -1 ~/Desktop/261010_prereg_v1_stage1_fluid.md
+grep -c '\$\$' ~/Desktop/261010_prereg_v1_stage1_fluid.md
+grep -c '^## 4\.8\.' ~/Desktop/261010_prereg_v1_stage1_fluid.md
+The three checks should print: a first line starting with # PRE-REGISTRATION v1, then 4, then 13. If they do, tell CC the path ~/Desktop/261010_prereg_v1_stage1_fluid.md. If they do not (for example because the copy lost the # and $$ signs), tell me what they printed and I will get the file to you another way.
+
+Push: git push origin main engine-gen3 engine-divider-resched
+```
