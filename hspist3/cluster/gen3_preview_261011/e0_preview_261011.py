@@ -19,8 +19,12 @@ functions are imported unchanged, and its arithmetic is main()'s:
                     35 leaves it equals the trace's column (--gate-a1v2).
                   - gen3's own [EDMD3-RUN] line in run.log records L0, the box in pixels and exact_box, and its eta. That eta is N pi R^2 /
                     (box width x box height) of the TRUNCATED box, i.e. already the box-corrected eta of methods sec. 14, NOT eta_rec.
-                  - The checks: the box width = (int)(2 L0 24) in float32, the binary's SIM_WIDTH (and box_delta(L0) from it); the box eta equals E0's corrected
+                  - The checks: the run id's L0 (printed to one decimal, "L0=%.1f") equals the task line's to one decimal;
+                    the box width = (int)(2 L0 24) in float32, the binary's SIM_WIDTH (and box_delta(L0) from it); the box eta equals E0's corrected
                     eta_rec L0 / (L0 - delta/2) up to eta_rec's 6-decimal rounding (relative < 2e-5); exact_box = 0; N = 2 N_L.
+                  ##CHRIS 2026-10-11 (decision 36, rehearsal run 1): the run-id check compared the one-decimal L0 of the run id
+                  with the task's to 1e-4 and stopped at L0 74.9998 ("L0=75.0"); the self-test's synthetic lines had printed L0 in
+                  full, so it could not see it. Both fixed before any preview data (Mac side only; the KOA package is unchanged).
                   ##CHRIS 2026-10-11 (decision 32): the first version took the [EDMD3-RUN] eta for eta_rec, which would have
                   applied the box correction twice in the three truncated cells. Its own check (eta against the nominal value, 1e-12)
                   would have stopped there. It was found and fixed before any preview data existed.
@@ -131,7 +135,7 @@ def selftest():
     def line(L0s, ex=0, eta=None):
         W = int(np.float32(2) * np.float32(float(L0s)) * np.float32(24))
         e = 100 * math.pi * 144.0 / (W * 240.0) if eta is None else eta
-        return (f"[EDMD3-RUN] L0={float(L0s):g} M=50 run=0 seed=1: engine=gen3 build=\"a643bc7\" target=koa cell_px=32 origin_shift=8192 "
+        return (f"[EDMD3-RUN] L0={float(L0s):.1f} M=50 run=0 seed=1: engine=gen3 build=\"a643bc7\" target=koa cell_px=32 origin_shift=8192 "
                 f"u_t=0x1p-39 K=4 box={W} x 240 px exact_box={ex} eta={e:.17g} N=100 N_L=50 N_R=50 seeding=driver\n")
     for i, (L0s, H) in enumerate(cells):
         d = os.path.join(td, f"c{i}"); os.makedirs(d); open(os.path.join(d, "run.log"), "w").write(line(L0s))
@@ -140,10 +144,10 @@ def selftest():
                     f"box eta {rec['eta_box']:.7f} = E0's {rec['eta_true_E0']:.7f})", all(chk.values())))
     d = os.path.join(td, "x1"); os.makedirs(d); open(os.path.join(d, "run.log"), "w").write(line("74.9998", ex=1))
     rec, chk = recorded(d, "74.9998", "10.0", "50")
-    res.append(("exact_box = 1: fails", not chk["exact_box = 0 (the A1 v2 command)"]))
+    res.append(("exact_box = 1: fails", not chk["check: exact_box = 0 (the A1 v2 command)"]))
     d = os.path.join(td, "x2"); os.makedirs(d); open(os.path.join(d, "run.log"), "w").write(line("74.9998", eta=eta_nominal("74.9998", "10.0", "50")))
     rec, chk = recorded(d, "74.9998", "10.0", "50")
-    res.append(("a truncated cell's line with the NOMINAL eta: the box-eta check fails", not chk["box eta = E0's corrected eta (rel. < 2e-5)"]))
+    res.append(("a truncated cell's line with the NOMINAL eta: the box-eta check fails", not chk["check: box eta = E0's corrected eta (rel. < 2e-5)"]))
     print("| check | result |\n|---|---|")
     for k, v in res: print(f"| {k} | {'PASS' if v else 'FAIL'} |")
     n = sum(v for _, v in res); print(f"\nSELF-TEST: {'PASS' if n == len(res) else 'FAIL'} ({n} of {len(res)}; synthetic lines in {td})")
@@ -164,11 +168,11 @@ def recorded(cell_dir, L0s, H, Ns):
     if len(recs) != 1: sys.exit(f"STOP: {cell_dir}: {len(recs)} distinct [EDMD3-RUN] records (one expected)")
     L0r, bw, bh, ex, eta_box, N, NL = next(iter(recs)); L0 = float(L0s)
     delta = E0.box_delta(L0); er = eta_nominal(L0s, H, Ns); eta_true = er * L0 / (L0 - delta / 2)
-    checks = {"the run's L0 = the task line's": abs(float(L0r) - L0) < 1e-4,
-              "box width = (int)(2 L0 24) px in float32 (SIM_WIDTH; box_delta(L0))":
+    checks = {"check: the run's L0 = the task line's (the run id prints L0 to one decimal, 00ALLINONE.c:17393)": L0r == f"{L0:.1f}",
+              "check: box width = (int)(2 L0 24) px in float32 (SIM_WIDTH; box_delta(L0))":
                   int(bw) == int(np.float32(2) * np.float32(L0) * np.float32(24)) and abs(delta - (float(np.float32(2) * np.float32(L0) * np.float32(24)) - int(bw)) / 24) < 1e-9,
-              "box eta = E0's corrected eta (rel. < 2e-5)": abs(float(eta_box) / eta_true - 1) < 2e-5,
-              "exact_box = 0 (the A1 v2 command)": ex == "0", "N = 2 N_L = 2 N_s": int(N) == 2 * int(NL) == 2 * int(Ns)}
+              "check: box eta = E0's corrected eta (rel. < 2e-5)": abs(float(eta_box) / eta_true - 1) < 2e-5,
+              "check: exact_box = 0 (the A1 v2 command)": ex == "0", "check: N = 2 N_L = 2 N_s": int(N) == 2 * int(NL) == 2 * int(Ns)}
     return dict(L0=L0, eta_rec=er, eta_box=float(eta_box), eta_true_E0=eta_true, box_px=f"{bw} x {bh}", exact_box=int(ex), delta=delta), checks
 
 

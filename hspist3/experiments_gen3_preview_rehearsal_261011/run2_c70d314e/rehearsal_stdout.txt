@@ -1,0 +1,59 @@
+# PREVIEW REHEARSAL: package c70d314e927580e35267045d58a22fdf10fb9850 (engine-gen3), runsheet /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/cluster/gen3_preview_261011/runsheet_preview_261011.txt (blocks ABCDEFGH), root /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p/rehearsal_run2
+
+    -> runsheet block B: PASS (block B fetches c70d314e927580e35267045d58a22fdf10fb9850)
+  the binary: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d28/rehearsal_run1/home/harddisks_gen3/hspist3/00ALLINONE (symlinked, not rebuilt; SHA-256 466aedb19569...)
+    -> the Mac binary (a643bc7, koa target name): PASS (00ALLINONE  git a643bc7  target koa)
+  block A: exit 0, 0 s, log logs/block_A.out
+    -> block A: PASS (exit 0)
+  block B: exit 0, 3 s, log logs/block_B.out
+    -> block B (the update in place, the checks, the unit tests): PASS (checks [True, True, True, True, True, True, True, True]; the eight SHA lines equal; KOA's binaries: 1 FAILED here (expected: the Mac build and three absent files))
+    -> the rehearsal substitutions: PASS (rewritten ['preview_koa.sbatch', 'preview_merge.sbatch', 'fetch_preview_koa.sh']; manifests: 2 written)
+  block C: exit 0, 18 s, log logs/block_C.out
+    -> block C (chunk 1 alone): PASS (exit 0)
+  block D: exit 0, 1 s, log logs/block_D.out
+    -> block D (chunk 1's checks): PASS (7/7 cells)
+  block E: exit 0, 0 s, log logs/block_E.out
+    -> block E (the rest, --array=2 here; the first attempt on a pretended faulty node): PASS (STOP: [cn-07-07-07] the preview inputs are not the delivered ones (cluster/gen3_preview_261011/preview_inputs.sha256))
+  block F: exit 0, 0 s, log logs/block_F.out
+    -> block F (checks, the resubmission line): PASS (['sbatch --array=2 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_preview_261011/preview_koa.sbatch'])
+  block R: exit 0, 17 s, log logs/block_R.out
+  block F2: exit 0, 0 s, log logs/block_F2.out
+    -> block F again (after the resubmission): PASS ()
+  block G_pending: exit 0, 0 s, log logs/block_G_pending.out
+    -> the merge job: a pending gen3-preview job: PASS (930004 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_preview_261011/preview_merge.sbatch 2)
+  block G_heldaside: exit 0, 0 s, log logs/block_G_heldaside.out
+    -> the merge job: chunk 2's done log held aside: PASS (930005 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_preview_261011/preview_merge.sbatch 2)
+  block G: exit 0, 9 s, log logs/block_G.out
+  block H: exit 0, 0 s, log logs/block_H.out
+    -> blocks G and H (the merge, the reduction, the compression; its record): PASS (checks [True, True, True, True, True, True, True, True])
+  block G_second: exit 0, 0 s, log logs/block_G_second.out
+    -> a second merge submission: PASS (930007 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_preview_261011/preview_merge.sbatch 3)
+    -> the fetch (local rsync): PASS (78 files; raw 0)
+    -> E0 on the mini data (e0_preview_261011.py --preview): PASS (exit 0; recorded rows 9; E0 rows 1)
+    -> the figure and the table on the mini data: PASS (exit 0)
+    -> audit on/off: equal yes
+
+| step (script) | criterion | result | evidence |
+|---|---|---|---|
+| runsheet block B | fetches the package commit | PASS | block B fetches c70d314e927580e35267045d58a22fdf10fb9850 |
+| the Mac binary (a643bc7, koa target name) | version line '00ALLINONE  git a643bc7  target koa' | PASS | 00ALLINONE  git a643bc7  target koa |
+| block A | squeue, srun (shims) | PASS | exit 0 |
+| block B (the update in place, the checks, the unit tests) | as the runsheet's good lines, but KOA's four binaries (not on the Mac) | PASS | checks [True, True, True, True, True, True, True, True]; the eight SHA lines equal; KOA's binaries: 1 FAILED here (expected: the Mac build and three absent files) |
+| the rehearsal substitutions | mini list (18 lines, chunk size 9), build record, manifests, Lustre path, local fetch | PASS | rewritten ['preview_koa.sbatch', 'preview_merge.sbatch', 'fetch_preview_koa.sh']; manifests: 2 written |
+| block C (chunk 1 alone) | Submitted batch job | PASS | exit 0 |
+| block D (chunk 1's checks) | chunk 1 on ... lines 1-9; chunk 1 done; per cell its counts and the runsheet's recorded box and eta; no FAILED/REFUSED/STOP | PASS | 7/7 cells |
+| block E (the rest, --array=2 here; the first attempt on a pretended faulty node) | STOP: [cn-07-07-07] ... before 'chunk 2 on'; no folder | PASS | STOP: [cn-07-07-07] the preview inputs are not the delivered ones (cluster/gen3_preview_261011/preview_inputs.sha256) |
+| block F (checks, the resubmission line) | 2 logs, 1 done, 0 FAILED; the line --array=2 --exclude=cn-05-08-07,cn-07-07-07 | PASS | ['sbatch --array=2 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_preview_261011/preview_koa.sbatch'] |
+| block F again (after the resubmission) | 3 logs, 2 done, 0 FAILED, nothing to resubmit | PASS |  |
+| the merge job: a pending gen3-preview job | exit 2, nothing moved | PASS | 930004 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_preview_261011/preview_merge.sbatch 2 |
+| the merge job: chunk 2's done log held aside | exit 2, 'NOT DONE: 2(no log with its done line)', nothing moved | PASS | 930005 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_preview_261011/preview_merge.sbatch 2 |
+| blocks G and H (the merge, the reduction, the compression; its record) | exit 0; 108 plan entries; the merged line; 9 reductions; 9 compressions; chunk 2's earlier attempt listed | PASS | checks [True, True, True, True, True, True, True, True] |
+| a second merge submission | exit 3 (merged/ exists) | PASS | 930007 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_preview_261011/preview_merge.sbatch 3 |
+| the fetch (local rsync) | exit 0; the merge record, the tables, the job logs; no trace, psi6 or run folder | PASS | 78 files; raw 0 |
+| E0 on the mini data (e0_preview_261011.py --preview) | exit 0; the recorded-length checks pass in all 9 (cell, mass) folders (the three truncated cells included); one E0 row (pi/8: three masses) | PASS | exit 0; recorded rows 9; E0 rows 1 |
+| the figure and the table on the mini data | exit 0; the pi/8 row 'the same cell' as A1 v2's | PASS | exit 0 |
+| decision 32 item 3 (information): one trajectory with and without HD_CONTACT_AUDIT=1 | event hash and trace compared | INFORMATION | preview/gen3/eta_0p392699/m_50 r 0: hash 43679080699bb4f8 / 43679080699bb4f8; trace SHA-256 b7203f8b5de2 / b7203f8b5de2; equal: yes; clean 1 / 1; audit lines 2 / 0 |
+
+RESIDUAL DIFFERENCES: the shims (Slurm commands, module, gcc --version, lscpu, hostname, sha256sum); the Mac binary (its SHA-256 in Test R's build record; KOA's four binaries absent; symlinked from an earlier run, not rebuilt); the mini list (18 lines, chunk size 9) with its SHA-256 file and the manifests rewritten; the Lustre path; the local fetch; block E's --array=2; block F's chunk count 2; block D's counts the mini list's
+
+PREVIEW REHEARSAL: PASS (17 of 17; plus one INFORMATION row)
