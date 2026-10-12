@@ -17610,3 +17610,132 @@ The three checks should print: a first line starting with # PRE-REGISTRATION v1,
 
 Push: git push origin main engine-gen3 engine-divider-resched
 ```
+
+### 4.7.66 Report R1 — TEST R: ENGINES AGREE (printed once, 21:34–21:35 HST, after decision 33 was committed); NO DIFFERENCE at M = 50, 100 and 300; inventory clean (2026-10-11 21:36 HST, machine date) [DATA, printed by the registered script; ARITHMETIC where marked]
+
+**Plain summary.**
+- **The verdict: TEST R: ENGINES AGREE.** It is NO DIFFERENCE at every mass.
+  - Every |z| ≤ 1.60, against the threshold of 3.5.
+  - The 95 % interval of d by ν_d lies inside ±0.15 % at every mass:
+    - M = 50: [−0.107, +0.040] %;
+    - M = 100: [−0.025, +0.090] %;
+    - M = 300: [−0.034, +0.043] %.
+  - Printed once by the registered verdict script (`cluster/gen3_testR_261011/testR_koa_verdict_261011.py`; registered logic 61021e55, its last commit ae61caef rewording one `--design` line), from the fetched tree.
+  - Its output file `experiments_gen3_testR_koa_261011/testR_verdict_output.txt` equals its stdout byte for byte.
+  - The printing started at 21:34:39, after decision 33 (the change of order) was committed at 21:34:09 (main 6d28b25b).
+- **The inventory is clean.**
+  - 3600 of 3600 trajectories included in each of the six arms; 0 refused, 0 unhealthy, 0 absent; 0 ν_d fit failures.
+  - The task list is the registered one; the merge record is present; one build line, "00ALLINONE  git a643bc7  target koa"; 6 nodes per arm.
+- **The per-mass numbers** (d = mean gen3 / mean gen2 − 1, unpaired SE):
+
+  | M | ν_arg: d (SE) [%] | z | ν_d: d (SE) [%] | z | ν_d 95 % interval [%] | outcome |
+  |---|---|---|---|---|---|---|
+  | 50 | +0.049 (0.061) | +0.80 | −0.033 (0.037) | −0.89 | [−0.107, +0.040] | NO DIFFERENCE |
+  | 100 | +0.071 (0.045) | +1.60 | +0.033 (0.030) | +1.10 | [−0.025, +0.090] | NO DIFFERENCE |
+  | 300 | +0.023 (0.029) | +0.81 | +0.005 (0.020) | +0.25 | [−0.034, +0.043] | NO DIFFERENCE |
+
+- **Information (no verdict):**
+  - **δ_M against c_300** (Report G2's functions): at M = 50, ν_d gives −0.389 ± 0.029 % (gen2) and −0.428 ± 0.029 % (gen3); ν_arg gives −0.434 ± 0.047 and −0.409 ± 0.047.
+    - [ARITHMETIC] gen3 − gen2 of δ_50 is −0.039 ± 0.041 % by ν_d (z −0.95) and +0.025 ± 0.066 % by ν_arg (z +0.38).
+    - With nine times Test G's trajectories, both engines carry the same light-divider deficit at M = 50 within these errors.
+    - Report G2's per-engine difference, +0.222 ± 0.113 % by ν_d (z +1.96), was taken against a different reference (c_ref over M ≥ 300).
+  - **τ_r and Q** are equal between the engines within their SEs (M = 50: τ_r 41.9 ± 0.2 in both; Q 9.55 / 9.56).
+  - **Test G and Test R pooled:**
+    - M = 50: ν_arg +0.107 ± 0.058 % (z +1.86); ν_d −0.006 ± 0.035 % (z −0.16);
+    - M = 300: ν_arg +0.037 ± 0.027 % (z +1.37); ν_d +0.015 ± 0.019 % (z +0.78).
+  - **The argmax histograms:** bin width 0.47 % of ν.
+    - [ARITHMETIC] gen3 − gen2 of the mean bin is +0.10, +0.15 and +0.05 bins at M = 50, 100 and 300 (+0.049, +0.071, +0.023 % of ν: the ν_arg d values).
+    - Test G's was +1.35 bins at M = 50 (Report G2, B2).
+    - The full counts are in the output.
+  - **KOA's ν_d against a Mac recomputation** (the first 20 trajectories of every arm): largest |KOA/Mac − 1| = 1.19e-10.
+- **Where the amended gate G6 (a) stands (information; the plan author reads the gate).** Under amendment A1, G6 (a) is "Test R prints ENGINES AGREE and C1 prints PASS". Under amendment A2 (POST HOC), "C1 prints PASS" became A2's condition. Both parts now hold:
+  - Test R prints ENGINES AGREE (registered; this section);
+  - C1 under A2 printed "condition MET" (POST HOC; sec. 4.7.60).
+  - C1's registered verdict NOT DECIDED stands. Test G (KOA) FAIL (DIFFERENCE) at M = 50 stands, and is reported together with Test R wherever either is cited (A1).
+- **Deviations:**
+  1. **The order:** R1 is printed before sec. 4.8, by decision 33, which was recorded and committed before the printing.
+  2. **The fetch** was made by Chris (165 MB; 159 MiB on disk; 267 files).
+     - CC wrote the SHA-256 manifest of every fetched file (`FETCHED_SHA256_FILES.txt`) before the printing.
+     - Committed with the output (main 7ed5e102): the manifest, the merge record and the per-arm tables. The run.logs, the ACFs, the merge plan (each over 1 MB) and the 217 job logs (`*.out`, ignored by git) stay uncommitted, listed in the manifest.
+  3. **None in the verdict:** no exclusion, no fit failure, no INVALID condition.
+- **Next:** sec. 4.8 when Chris confirms the file, with its two SHA-256 values and the three counts; then the preview's rehearsal and Report P0.
+
+**The verdict's output, verbatim** (`hspist3/experiments_gen3_testR_koa_261011/testR_verdict_output.txt`, main 7ed5e102):
+
+```
+# TEST R ON KOA -- the verdict (decision 28; 261012 sec. 4.7.57); the one printing
+
+the task list: the registered one; the merge record: 2026-10-11 22:50:47 UTC
+merged 216 chunks: 32400 files moved, 1944 files appended, 21600 kept per chunk (0 failed-run folders), 0 incomplete run folders, 0 locks or temp files left in place, 1296 build files equal; build '00ALLINONE  git a643bc7  target koa'
+
+## Inventory and health
+
+| engine | M | registered | included | refused (failed) | unhealthy in the tables | absent | excluded [%] | nu_d fit failures | nodes |
+|---|---|---|---|---|---|---|---|---|---|
+| gen2 | 50 | 3600 | 3600 | 0 | 0 | 0 | 0.00 | 0 | 6 |
+| gen2 | 100 | 3600 | 3600 | 0 | 0 | 0 | 0.00 | 0 | 6 |
+| gen2 | 300 | 3600 | 3600 | 0 | 0 | 0 | 0.00 | 0 | 6 |
+| gen3 | 50 | 3600 | 3600 | 0 | 0 | 0 | 0.00 | 0 | 6 |
+| gen3 | 100 | 3600 | 3600 | 0 | 0 | 0 | 0.00 | 0 | 6 |
+| gen3 | 300 | 3600 | 3600 | 0 | 0 | 0 | 0.00 | 0 | 6 |
+
+excluded at most 1 % in every arm: yes
+
+## The registered numbers
+
+| M | estimator | n gen3 | n gen2 | mean gen3 | mean gen2 | d [%] | SE(d) [%] | 95 % interval [%] | z |
+|---|---|---|---|---|---|---|---|---|---|
+| 50 | nu_arg | 3600 | 3600 | 0.0725238 | 0.0724885 | +0.0487 | 0.0610 | [-0.0709, +0.1683] | +0.80 |
+| 50 | nu_d | 3600 | 3600 | 0.0725310 | 0.0725551 | -0.0333 | 0.0374 | [-0.1066, +0.0400] | -0.89 |
+| 100 | nu_arg | 3600 | 3600 | 0.0581196 | 0.0580782 | +0.0713 | 0.0446 | [-0.0160, +0.1587] | +1.60 |
+| 100 | nu_d | 3600 | 3600 | 0.0581344 | 0.0581155 | +0.0326 | 0.0295 | [-0.0253, +0.0904] | +1.10 |
+| 300 | nu_arg | 3600 | 3600 | 0.0370006 | 0.0369920 | +0.0233 | 0.0287 | [-0.0330, +0.0797] | +0.81 |
+| 300 | nu_d | 3600 | 3600 | 0.0370113 | 0.0370095 | +0.0049 | 0.0196 | [-0.0335, +0.0433] | +0.25 |
+
+M = 50: NO DIFFERENCE; M = 100: NO DIFFERENCE; M = 300: NO DIFFERENCE
+TEST R: ENGINES AGREE
+
+## Information (no verdict): tau_r, Q, nu_0 and delta_M per engine (Report G2's functions; jackknife groups of 10; start: the arm's own argmax mean; delta_M against c_300)
+
+| engine | M | n | mean nu_arg | mean nu_d | tau_r | Q | nu_0 |
+|---|---|---|---|---|---|---|---|
+| gen2 | 50 | 3600 | 0.0724885 +- 0.0000300 | 0.0725551 +- 0.0000189 | 41.9 +- 0.2 | 9.55 +- 0.05 | 0.0726546 +- 0.0000189 |
+| gen2 | 100 | 3600 | 0.0580782 +- 0.0000185 | 0.0581155 +- 0.0000115 | 76.4 +- 0.4 | 13.95 +- 0.08 | 0.0581528 +- 0.0000115 |
+| gen2 | 300 | 3600 | 0.0369920 +- 0.0000081 | 0.0370095 +- 0.0000049 | 214.0 +- 1.5 | 24.88 +- 0.17 | 0.0370169 +- 0.0000049 |
+| gen3 | 50 | 3600 | 0.0725238 +- 0.0000310 | 0.0725310 +- 0.0000189 | 41.9 +- 0.2 | 9.56 +- 0.05 | 0.0726301 +- 0.0000189 |
+| gen3 | 100 | 3600 | 0.0581196 +- 0.0000185 | 0.0581344 +- 0.0000123 | 75.6 +- 0.5 | 13.82 +- 0.09 | 0.0581725 +- 0.0000122 |
+| gen3 | 300 | 3600 | 0.0370006 +- 0.0000073 | 0.0370113 +- 0.0000052 | 215.4 +- 1.4 | 25.05 +- 0.17 | 0.0370187 +- 0.0000052 |
+
+| estimator | engine | delta_50 [%] | delta_100 [%] |
+|---|---|---|---|
+| nu_arg | gen2 | -0.434 +- 0.047 | -0.149 +- 0.039 |
+| nu_arg | gen3 | -0.409 +- 0.047 | -0.101 +- 0.037 |
+| nu_d | gen2 | -0.389 +- 0.029 | -0.132 +- 0.024 |
+| nu_d | gen3 | -0.428 +- 0.029 | -0.104 +- 0.025 |
+| nu_0 | gen2 | -0.273 +- 0.029 | -0.088 +- 0.024 |
+| nu_0 | gen3 | -0.311 +- 0.029 | -0.059 +- 0.025 |
+
+## Information: the argmax histograms (bin: gen2/gen3)
+
+M = 50 (df = 0.471 % of nu): 190: 1/0, 191: 1/0, 192: 1/0, 193: 0/1, 194: 5/1, 195: 2/5, 196: 9/2, 197: 10/12, 198: 12/7, 199: 14/17, 200: 22/25, 201: 37/25, 202: 42/25, 203: 69/57, 204: 72/84, 205: 114/111, 206: 132/130, 207: 171/176, 208: 190/203, 209: 226/214, 210: 247/252, 211: 242/275, 212: 266/273, 213: 253/248, 214: 248/277, 215: 272/220, 216: 196/196, 217: 182/191, 218: 151/129, 219: 120/135, 220: 72/92, 221: 71/68, 222: 39/49, 223: 30/35, 224: 25/28, 225: 22/14, 226: 10/8, 227: 7/4, 228: 6/5, 229: 7/1, 230: 3/2, 231: 1/1, 232: 0/1, 233: 0/1
+M = 100 (df = 0.470 % of nu): 195: 0/1, 197: 1/0, 198: 2/1, 199: 3/1, 200: 5/2, 201: 5/4, 202: 10/8, 203: 27/27, 204: 28/29, 205: 48/55, 206: 79/94, 207: 118/121, 208: 143/134, 209: 255/220, 210: 287/292, 211: 374/334, 212: 358/354, 213: 358/363, 214: 342/351, 215: 296/307, 216: 266/250, 217: 184/228, 218: 177/138, 219: 87/105, 220: 63/66, 221: 32/56, 222: 26/26, 223: 11/15, 224: 4/7, 225: 8/3, 226: 0/4, 227: 2/1, 228: 0/1, 229: 0/2, 230: 1/0
+M = 300 (df = 0.469 % of nu): 202: 1/0, 203: 1/3, 204: 1/4, 205: 12/5, 206: 19/16, 207: 44/49, 208: 79/83, 209: 144/138, 210: 252/246, 211: 414/353, 212: 542/525, 213: 585/600, 214: 528/567, 215: 377/438, 216: 283/285, 217: 164/156, 218: 84/78, 219: 42/32, 220: 19/10, 221: 6/6, 222: 1/4, 223: 0/2, 224: 2/0
+
+## Information: d from Test G and Test R pooled (Test G's nu_d by the same rule from its fetched ACFs)
+
+| M | estimator | Test R d [%] | Test G d [%] | pooled d [%] | pooled z |
+|---|---|---|---|---|---|
+| 50 | nu_arg | +0.049 +- 0.061 | +0.637 +- 0.182 | +0.107 +- 0.058 | +1.86 |
+| 50 | nu_d | -0.033 +- 0.037 | +0.244 +- 0.109 | -0.006 +- 0.035 | -0.16 |
+| 300 | nu_arg | +0.023 +- 0.029 | +0.165 +- 0.087 | +0.037 +- 0.027 | +1.37 |
+| 300 | nu_d | +0.005 +- 0.020 | +0.101 +- 0.058 | +0.015 +- 0.019 | +0.78 |
+
+## Information: KOA's nu_d against a Mac recomputation (the first 20 trajectories of every arm)
+
+gen2 M = 50: max |KOA / Mac - 1| = 1.19e-10
+gen2 M = 100: max |KOA / Mac - 1| = 6.95e-11
+gen2 M = 300: max |KOA / Mac - 1| = 1.06e-11
+gen3 M = 50: max |KOA / Mac - 1| = 8.71e-11
+gen3 M = 100: max |KOA / Mac - 1| = 2.52e-11
+gen3 M = 300: max |KOA / Mac - 1| = 3.47e-12
+```
