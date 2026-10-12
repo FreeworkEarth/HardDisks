@@ -1,0 +1,4 @@
+candidate 20261441..20261447: 0 working-tree files, 0 tracked files
+[]
+[]
+seconds 453

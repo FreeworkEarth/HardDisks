@@ -1,4 +1,6 @@
-# the two candidate cell sets, design printouts (--design --cells <set>; no task list written, no base seed yet; printed by gen_preview_koa_261011.py at a3fa5acf)
+# the two candidate cell sets, design printouts (--design --cells <set>: a dry run, no task list written; BASE_P = 20261441). The base search (check_base, bases 20261441..20261447 as integer tokens in both working trees and the tracked files of main, engine-gen3, engine-divider-resched): check_base_20261441_output.txt
+
+cluster/gen3_preview_261011/tasks_preview_koa_261011.txt: 1575 lines, SHA-256 355422ea6f9e65cd2c8817747eb839b905706e73b2ff85a939fb7b7c8076940a; chunk size 63 -> 25 chunks (dry run: nothing written)
 
 # THE PREVIEW SWEEP ON KOA -- the design (decision 29, task P; PREVIEW, INFORMATION): cell set 'named'
 
@@ -7,13 +9,15 @@ jobs_D's stride rule d_stride(nu_pred(nu50, M)) equals the stride of the A1 v2 t
 
 | cell | eta named | L0 | eta = N pi r^2/(2 L0 H) | box_delta(L0) [sigma] | nu50 (f_pred) | strides M = 50, 100, 200, 300, 500, 750, 1000, 1500, 2000 | base |
 |---|---|---|---|---|---|---|---|
-| eta0p05_H10_L78.539816 | 0p05 | 78.539816 | 0.050000 | 0.037964 | 0.00346079 | 541 678 893 1066 1347 1633 1875 2284 2630 | - |
-| eta0p10_H10_L39.269908 | 0p10 | 39.269908 | 0.100000 | 0.039815 | 0.00779273 | 240 301 396 473 598 725 832 1014 1168 | - |
-| eta0p20_H10_L19.634954 | 0p20 | 19.634954 | 0.200000 | 0.019908 | 0.0200284 | 93 117 154 184 232 282 324 394 454 | - |
-| eta0p30_H10_L13.089969 | 0p30 | 13.089969 | 0.300000 | 0.013270 | 0.0394834 | 47 59 78 93 118 143 164 200 230 | - |
-| etapi8_H10_L10.000000 | pi8 | 10.000000 | 0.392699 | 0.000000 | 0.0683563 | 27 34 45 53 68 82 94 115 133 | - |
-| eta0p50_H10_L7.853982 | 0p50 | 7.853982 | 0.500000 | 0.041298 | 0.125653 | 14 18 24 29 37 44 51 62 72 | - |
-| eta0p60_H10_L6.544985 | 0p60 | 6.544985 | 0.600000 | 0.006636 | 0.225815 | 8 10 13 16 20 25 28 35 40 | - |
+| eta0p05_H10_L78.539816 | 0p05 | 78.539816 | 0.050000 | 0.037964 | 0.00346079 | 541 678 893 1066 1347 1633 1875 2284 2630 | 20261441 |
+| eta0p10_H10_L39.269908 | 0p10 | 39.269908 | 0.100000 | 0.039815 | 0.00779273 | 240 301 396 473 598 725 832 1014 1168 | 20261442 |
+| eta0p20_H10_L19.634954 | 0p20 | 19.634954 | 0.200000 | 0.019908 | 0.0200284 | 93 117 154 184 232 282 324 394 454 | 20261443 |
+| eta0p30_H10_L13.089969 | 0p30 | 13.089969 | 0.300000 | 0.013270 | 0.0394834 | 47 59 78 93 118 143 164 200 230 | 20261444 |
+| etapi8_H10_L10.000000 | pi8 | 10.000000 | 0.392699 | 0.000000 | 0.0683563 | 27 34 45 53 68 82 94 115 133 | 20261445 |
+| eta0p50_H10_L7.853982 | 0p50 | 7.853982 | 0.500000 | 0.041298 | 0.125653 | 14 18 24 29 37 44 51 62 72 | 20261446 |
+| eta0p60_H10_L6.544985 | 0p60 | 6.544985 | 0.600000 | 0.006636 | 0.225815 | 8 10 13 16 20 25 28 35 40 | 20261447 |
+
+1575 task lines (7 cells x 9 masses x 25 seeds), order r by r; distinct exact seeds 1575 of 1575; overlap with 128 earlier task lists (both trees; line types {'B': 71350, 'AF': 18180, 'A': 16580}), the Test G extra sets, the symmetry seeds and tests A, B, D (9850 seeds; D = A1 v2): 0
 
 ## chunks: K = 63 lines per array task = one r-round (every cell and mass once); 25 chunks
 
@@ -31,6 +35,8 @@ the time model: A1 v2's Mac seconds (gen2) x 0.639, the ratio of Test G's gen3 s
 
 predicted chunk time (one r-round): 13.5 min; the whole sweep 5.6 core-hours; requested 25 chunks x 1 h (preview_koa.sbatch --time=1:00:00)
 
+cluster/gen3_preview_261011/tasks_preview_koa_261011.txt: 1575 lines, SHA-256 413186f085c73588c16f13b3a6878d44741aeba9bef54411aaaeb8c8d3b3ce5f; chunk size 63 -> 25 chunks (dry run: nothing written)
+
 # THE PREVIEW SWEEP ON KOA -- the design (decision 29, task P; PREVIEW, INFORMATION): cell set 'a1v2'
 
 the binary's predicted frequency, replicated (f_pred): equal to the Predicted_Frequency of 35 of 35 A1 v2 leaves (279282b) and to Test G's nu_pred at 4 of 4 masses (a643bc7), as printed (12 significant digits)
@@ -38,13 +44,15 @@ jobs_D's stride rule d_stride(nu_pred(nu50, M)) equals the stride of the A1 v2 t
 
 | cell | eta named | L0 | eta = N pi r^2/(2 L0 H) | box_delta(L0) [sigma] | nu50 (f_pred) | strides M = 50, 100, 200, 300, 500, 750, 1000, 1500, 2000 | base |
 |---|---|---|---|---|---|---|---|
-| eta_0p052360 | 0p05 | 74.9998 | 0.052360 | 0.041270 | 0.00364414 | 514 644 848 1012 1280 1551 1781 2169 2498 | - |
-| eta_0p112200 | 0p10 | 34.9999 | 0.112200 | 0.041468 | 0.00900589 | 208 260 343 409 517 627 720 877 1011 | - |
-| eta_0p196350 | 0p20 | 20.0000 | 0.196350 | 0.000000 | 0.0194766 | 96 120 158 189 239 290 333 405 467 | - |
-| eta_0p261799 | 0p30 | 15.0000 | 0.261799 | 0.000000 | 0.0309461 | 60 75 99 119 150 182 209 255 294 | - |
-| eta_0p392699 | pi8 | 10.0000 | 0.392699 | 0.000000 | 0.0683563 | 27 34 45 53 68 82 94 115 133 | - |
-| eta_0p523599 | 0p50 | 7.5000 | 0.523599 | 0.000000 | 0.143825 | 13 16 21 25 32 39 45 54 63 | - |
-| eta_0p590 | 0p60 | 6.6559 | 0.590001 | 0.020134 | 0.212517 | 8 11 14 17 21 26 30 37 42 | - |
+| eta_0p052360 | 0p05 | 74.9998 | 0.052360 | 0.041270 | 0.00364414 | 514 644 848 1012 1280 1551 1781 2169 2498 | 20261441 |
+| eta_0p112200 | 0p10 | 34.9999 | 0.112200 | 0.041468 | 0.00900589 | 208 260 343 409 517 627 720 877 1011 | 20261442 |
+| eta_0p196350 | 0p20 | 20.0000 | 0.196350 | 0.000000 | 0.0194766 | 96 120 158 189 239 290 333 405 467 | 20261443 |
+| eta_0p261799 | 0p30 | 15.0000 | 0.261799 | 0.000000 | 0.0309461 | 60 75 99 119 150 182 209 255 294 | 20261444 |
+| eta_0p392699 | pi8 | 10.0000 | 0.392699 | 0.000000 | 0.0683563 | 27 34 45 53 68 82 94 115 133 | 20261445 |
+| eta_0p523599 | 0p50 | 7.5000 | 0.523599 | 0.000000 | 0.143825 | 13 16 21 25 32 39 45 54 63 | 20261446 |
+| eta_0p590 | 0p60 | 6.6559 | 0.590001 | 0.020134 | 0.212517 | 8 11 14 17 21 26 30 37 42 | 20261447 |
+
+1575 task lines (7 cells x 9 masses x 25 seeds), order r by r; distinct exact seeds 1575 of 1575; overlap with 128 earlier task lists (both trees; line types {'B': 71350, 'AF': 18180, 'A': 16580}), the Test G extra sets, the symmetry seeds and tests A, B, D (9850 seeds; D = A1 v2): 0
 
 ## chunks: K = 63 lines per array task = one r-round (every cell and mass once); 25 chunks
 

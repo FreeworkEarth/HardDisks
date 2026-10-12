@@ -35,7 +35,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); CL = os.path.dirname(HERE); H
 GEN3_WT = os.path.join(os.path.dirname(REPO), "HardDisks_gen3")
 sys.path.insert(0, os.path.join(HS, "validation")); sys.path.insert(0, HS)
 import tests_20260913 as T
-BASE_P, K, NSEED, REL, ENGINE = None, 63, 25, "preview", "gen3"          # BASE_P: chosen by --check-base before the registration
+BASE_P, K, NSEED, REL, ENGINE = 20261441, 63, 25, "preview", "gen3"      # BASE_P: 20261441..20261447 occur in no file (--check-base, 2026-10-11 20:53)
 TASKS = os.path.join(HERE, "tasks_preview_koa_261011.txt")
 SHAF = os.path.join(HERE, "tasks_preview_koa_261011.sha256")
 KF = os.path.join(HERE, "preview_chunk_size.txt")
