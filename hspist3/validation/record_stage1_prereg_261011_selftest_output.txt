@@ -1,0 +1,16 @@
+| check | result |
+|---|---|
+| plain, ends with a newline: recorded text = the file (bytes and SHA-256) | PASS |
+| plain, ends with a newline: the notes above are unchanged | PASS |
+| no final newline: recorded text = the file (bytes and SHA-256) | PASS |
+| no final newline: the notes above are unchanged | PASS |
+| backtick runs and a fence inside: recorded text = the file (bytes and SHA-256) | PASS |
+| backtick runs and a fence inside: the notes above are unchanged | PASS |
+| CR bytes, tabs, UTF-8 and a BOM: recorded text = the file (bytes and SHA-256) | PASS |
+| CR bytes, tabs, UTF-8 and a BOM: the notes above are unchanged | PASS |
+| empty lines at the end: recorded text = the file (bytes and SHA-256) | PASS |
+| empty lines at the end: the notes above are unchanged | PASS |
+| A1 cut from sec. 4.7.57: 6 lines, from 'AMENDMENT A1' to '...wherever either is cited."' | PASS |
+| A2 cut from sec. 4.7.59: 12 lines (its reasons included), from 'AMENDMENT A2' to '...(max 4.5e-12 px).' | PASS |
+
+SELF-TEST: PASS (12 of 12)
