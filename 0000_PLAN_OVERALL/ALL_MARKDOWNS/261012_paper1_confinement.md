@@ -17466,3 +17466,51 @@ My answer to CC’s question
 
 CC found that the old Paper 1 data only has a matching box at one of the seven densities I named. I choose CC’s option (b): the preview uses the same seven boxes the old data used. Then every preview point can be compared directly with an old-engine point, which is the purpose of the preview. The densities shift slightly (for example 0.26 instead of 0.30), which does not matter for a preview.
 ```
+
+### 4.7.64 Decision 32 carried out up to the rehearsal: the preview registered (option (b)) and its package delivered as engine-gen3 c70d314e; a reduction fault found and fixed before any data; the rehearsal waits for sec. 4.8; the Test R fetch is on the Mac, and R1 waits for sec. 4.8 (2026-10-11 21:20 HST, machine date) [DATA, printed by script; SOURCE; CHOICE where marked]
+
+**Plain summary.**
+- **The preview is registered** (main 3e78f8b6, before any preview trajectory).
+  - The cells are decision 32's option (b): the A1 v2 cells with their exact L0 strings, η_rec 0.052360 (74.9998), 0.112200 (34.9999), 0.196350 (20.0000), 0.261799 (15.0000), 0.392699 (10.0000), 0.523599 (7.5000) and 0.590001 (6.6559).
+  - The nine A1 v2 masses, 25 seeds per (cell, mass), base 20261441 plus the cell index, by jobs_D's rule.
+  - **1575 lines, SHA-256 `413186f085c73588c16f13b3a6878d44741aeba9bef54411aaaeb8c8d3b3ce5f`; chunk size 63, 25 chunks.**
+  - The strides follow A1 v2's rule (315 of 315 A1 v2 cells reproduced).
+  - Predicted 13.3 min per chunk on E5 and about 5.5 core-hours in all (`gen_preview_design_output.txt`).
+- **The delivery commit is engine-gen3 `c70d314e927580e35267045d58a22fdf10fb9850`.** It holds everything the KOA jobs read: the job scripts, the registration, and the two input manifests computed on that tree (`preview_inputs.sha256`, 6 files; `preview_merge_inputs.sha256`, 14 files).
+  - The merge manifest is byte for byte Test R's (the same 14 files with the same SHA-256).
+  - Test R's own two manifests read 20 of 20 OK on c70d314e, so updating `~/harddisks_gen3_k2` in place cannot disturb a Test R job.
+  - Every later commit changes only Mac-side files: the reduction, the figure, the runsheet, the rehearsal driver and their outputs.
+- **The runsheet** (`runsheet_preview_261011.txt`): the same blocks as Test R's, A to H and the fetch, with one-line headers.
+  - Block D prints each cell's counts and its recorded box and η from gen3's `[EDMD3-RUN]` line. The expected strings were computed as `g3_run_header` prints them; the formula reproduces Test G's logged π/8 value.
+  - A syntax test of block D's loop on synthetic folders printed exactly the expected lines. It also found that `grep -c ... || echo 0` yields two numbers inside `$(( ))`, fixed before the commit.
+  - Block H's merge lines come from a synthetic full-size merge (`synthetic_merge_preview.py`: 25 chunks × 63 folders of few-byte files, no simulation; Test R's `merge_koa.py --no-reduce`):
+    - 9450 plan entries: APPEND 3150, EQUAL 1575, MOVE 3150, PER CHUNK 1575;
+    - "merged 25 chunks: 3150 files moved, 3150 files appended, 1575 kept per chunk ... 1575 build files equal".
+- **[CHOICE] The order.** Decision 32 lists "sec. 4.8; Report R1; P's registration, rehearsal and Report P0". The registration was committed at 21:06, before sec. 4.8 and R1.
+  - It is a commit, not a trajectory, and it depends on neither.
+  - Neither the file nor the fetch was on the Mac then.
+  - No preview trajectory has run. The rehearsal driver refuses to start unless the notes at HEAD hold sec. 4.8 (tested: it stops and writes nothing).
+- **A fault of mine, found and fixed before any preview data** (main fb03012c).
+  - gen3's `[EDMD3-RUN]` line prints the η of the truncated box (N π R²/(box W × box H), `g3_run_header`). That is already methods sec. 14's corrected η.
+  - The reduction's first version took it for η_rec, the trace's nominal η, which would have applied the correction twice in the three truncated cells. Its own check (η against the nominal value to 1e-12) would have stopped there.
+  - **Now:**
+    - η_rec is the binary's nominal η from the float L0, to 6 decimals. It equals the trace's η column in 35 of 35 A1 v2 leaves, now part of the gate.
+    - The box η is checked against E0's corrected η (relative < 2e-5).
+    - The box width is checked against `SIM_WIDTH = (int)(2 L0 24)` in float32. A double-precision version of this check failed on two cells in the self-test and was corrected.
+  - The gate on A1 v2 still passes (35 of 35 rows, 13 E0 columns). The new self-test on synthetic `[EDMD3-RUN]` lines passes 9 of 9: all seven cells, an exact_box = 1 line, and a truncated cell carrying the nominal η.
+- **The figure and the table state each cell's recorded η and L0** (decision 32, item 2).
+- **The rehearsal** (`rehearse_preview_mac.py`) is ready and not run.
+  - It is Test R's driver adapted: Test R's shims, environment and block runner, imported unchanged.
+  - The mini list is 18 registered lines: r = 0 and 1 at M = 50 for every cell, plus π/8 at M = 100 and 200. Chunk size 9.
+  - After the fetch it runs E0 and the figure on the mini data.
+  - Decision 32, item 3: one trajectory with and without `HD_CONTACT_AUDIT=1`, its event hash and trace compared.
+- **The Test R fetch is on the Mac** (`hspist3/experiments_gen3_testR_koa_261011/`, 159 MB; no rsync running at 21:18). A read-only count:
+  - 216 chunk logs and the merge log;
+  - the merge record "merged 216 chunks: 32400 files moved, 1944 files appended, 21600 kept per chunk (0 failed-run folders), ... 1296 build files equal";
+  - in each of the six arms: 3600 rows in red_nu.csv, nud_runs.csv and runs_health.csv, 0 failed runs, 3600 `##RUN` sections, and the build line.
+  - **The verdict is not printed:** decision 32 orders sec. 4.8 before Report R1, and the registration file is not on the Mac yet. Recording the registration, A1 among it, before Test R's verdict exists keeps that order meaningful.
+- **Commits:**
+  - main 3e78f8b6 (the registration), 48ed661a (the manifests), 715684b2 and 975ddfa2 (the synthetic merge), fb03012c and fed046f2 (the reduction fix and its evidence), 33c806a4 (the runsheet and the rehearsal driver);
+  - engine-gen3 8cb3db91, c70d314e (the delivery), feb0b374;
+  - this record.
+- **Data:** 5.4 MB new since 21:05, plus the 159 MB Test R fetch, which Chris made. No simulation ran.
