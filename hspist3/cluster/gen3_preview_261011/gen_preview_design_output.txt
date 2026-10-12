@@ -1,0 +1,34 @@
+cluster/gen3_preview_261011/tasks_preview_koa_261011.txt: 1575 lines, SHA-256 413186f085c73588c16f13b3a6878d44741aeba9bef54411aaaeb8c8d3b3ce5f; chunk size 63 -> 25 chunks
+
+# THE PREVIEW SWEEP ON KOA -- the design (decision 29, task P; PREVIEW, INFORMATION): cell set 'a1v2'
+
+the binary's predicted frequency, replicated (f_pred): equal to the Predicted_Frequency of 35 of 35 A1 v2 leaves (279282b) and to Test G's nu_pred at 4 of 4 masses (a643bc7), as printed (12 significant digits)
+jobs_D's stride rule d_stride(nu_pred(nu50, M)) equals the stride of the A1 v2 trace in 315 of 315 cells
+
+| cell | eta named | L0 | eta = N pi r^2/(2 L0 H) | box_delta(L0) [sigma] | nu50 (f_pred) | strides M = 50, 100, 200, 300, 500, 750, 1000, 1500, 2000 | base |
+|---|---|---|---|---|---|---|---|
+| eta_0p052360 | 0p05 | 74.9998 | 0.052360 | 0.041270 | 0.00364414 | 514 644 848 1012 1280 1551 1781 2169 2498 | 20261441 |
+| eta_0p112200 | 0p10 | 34.9999 | 0.112200 | 0.041468 | 0.00900589 | 208 260 343 409 517 627 720 877 1011 | 20261442 |
+| eta_0p196350 | 0p20 | 20.0000 | 0.196350 | 0.000000 | 0.0194766 | 96 120 158 189 239 290 333 405 467 | 20261443 |
+| eta_0p261799 | 0p30 | 15.0000 | 0.261799 | 0.000000 | 0.0309461 | 60 75 99 119 150 182 209 255 294 | 20261444 |
+| eta_0p392699 | pi8 | 10.0000 | 0.392699 | 0.000000 | 0.0683563 | 27 34 45 53 68 82 94 115 133 | 20261445 |
+| eta_0p523599 | 0p50 | 7.5000 | 0.523599 | 0.000000 | 0.143825 | 13 16 21 25 32 39 45 54 63 | 20261446 |
+| eta_0p590 | 0p60 | 6.6559 | 0.590001 | 0.020134 | 0.212517 | 8 11 14 17 21 26 30 37 42 | 20261447 |
+
+1575 task lines (7 cells x 9 masses x 25 seeds), order r by r; distinct exact seeds 1575 of 1575; overlap with 128 earlier task lists (both trees; line types {'B': 71350, 'AF': 18180, 'A': 16580}), the Test G extra sets, the symmetry seeds and tests A, B, D (9850 seeds; D = A1 v2): 0
+
+## chunks: K = 63 lines per array task = one r-round (every cell and mass once); 25 chunks
+
+the time model: A1 v2's Mac seconds (gen2) x 0.639, the ratio of Test G's gen3 seconds on KOA (M = 50: 3.98 s, M = 300: 5.82 s; nodes as they came) to A1 v2's at pi/8 (M = 50: 5.3 s, M = 300: 11.0 s)
+
+| cell | M = 50 [s] | M = 100 [s] | M = 200 [s] | M = 300 [s] | M = 500 [s] | M = 750 [s] | M = 1000 [s] | M = 1500 [s] | M = 2000 [s] | one r-round [s] |
+|---|---|---|---|---|---|---|---|---|---|---|
+| eta_0p052360 | 7.7 | 10.4 | 14.6 | 17.3 | 19.9 | 23.7 | 26.7 | 31.4 | 35.1 | 187 |
+| eta_0p112200 | 5.1 | 5.8 | 8.2 | 10.1 | 14.3 | 16.6 | 19.2 | 21.9 | 24.9 | 126 |
+| eta_0p196350 | 3.8 | 5.1 | 6.4 | 7.7 | 10.2 | 13.4 | 15.9 | 19.2 | 20.6 | 102 |
+| eta_0p261799 | 3.8 | 4.6 | 5.9 | 7.5 | 9.6 | 12.7 | 15.6 | 17.9 | 20.3 | 98 |
+| eta_0p392699 | 3.4 | 4.5 | 5.8 | 7.0 | 8.9 | 11.5 | 14.8 | 16.6 | 19.6 | 92 |
+| eta_0p523599 | 3.8 | 4.5 | 5.9 | 7.1 | 9.5 | 11.7 | 14.9 | 17.2 | 20.3 | 95 |
+| eta_0p590 | 3.8 | 4.7 | 6.4 | 7.7 | 10.2 | 13.5 | 15.3 | 17.3 | 19.2 | 98 |
+
+predicted chunk time (one r-round): 13.3 min; the whole sweep 5.5 core-hours; requested 25 chunks x 1 h (preview_koa.sbatch --time=1:00:00)

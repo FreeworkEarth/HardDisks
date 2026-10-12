@@ -8,10 +8,15 @@ DESIGN (decision 29):
   command     the canonical A1 v2 command (methods sec. 8; tests_20260913.argv_for with jobs_D's arguments) through the B command of
               cluster/gen3_koa_261009/testG_worker_koa.sh (unchanged since 1cdb7ff6), --engine=gen3. Its differences from the A1 v2
               command besides --engine are printed by --design.
-  cells       N = 100 (N_s = 50), H = 10, radius 0.5, wall thickness 0.05: CELL_SET below (the order's densities; see CELL_SETS).
+  cells       N = 100 (N_s = 50), H = 10, radius 0.5, wall thickness 0.05: CELL_SET = "a1v2" (plan-author decision 32, option (b),
+              261012 sec. 4.7.63): the A1 v2 cells with their exact L0 strings, eta_rec 0.052360, 0.112200, 0.196350, 0.261799, pi/8,
+              0.523599 and 0.590001 (L0 6.6559; not 0.610), for the cell-for-cell comparison with the canonical A1 v2 values.
   masses      the nine A1 v2 masses tests_20260913.A1_MASSES.
   seeds       25 per (cell, mass), r = 0..24, by jobs_D's rule with a new base: per cell i the base BASE_P + i, and the exact seed
               run_seed(BASE_P + i, 0, mass index in A1_MASSES, r). BASE_P is a number that occurs in no file (--check-base).
+  seeds' base  BASE_P = 20261441: the bases 20261441..20261447 occurred in no file of either working tree nor in the tracked files of
+              main, engine-gen3 and engine-divider-resched on 2026-10-11 20:53 (check_base_20261441_output.txt), before the base was
+              written anywhere. The notes have named it since (sec. 4.7.62), so --check-base now finds it there.
   stride      jobs_D's rule: d_stride(nu_pred(nu50, M)), with nu50 the binary's own predicted frequency at M = 50. It is computed by
               f_pred() below, a replica of 00ALLINONE.c's speed_sound_henderson_frequency_estimate (Henderson a = 1/8, the gamma = 2
               mapping, L_eff = L0 - 2r, L0 as float). --design checks the replica against the Predicted_Frequency of every A1 v2 leaf
@@ -53,7 +58,7 @@ CELL_SETS = {
              ("eta_0p261799", "15.0000", 0.30, "0p30"), ("eta_0p392699", "10.0000", math.pi / 8, "pi8"), ("eta_0p523599", "7.5000", 0.50, "0p50"),
              ("eta_0p590", "6.6559", 0.60, "0p60")],
 }
-CELL_SET = None                                                         # set in the registration commit
+CELL_SET = "a1v2"                                                       # decision 32, option (b) (sec. 4.7.63)
 
 
 def k_bin(alpha):
