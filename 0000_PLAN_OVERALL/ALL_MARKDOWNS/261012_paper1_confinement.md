@@ -18848,3 +18848,212 @@ The preview is still waiting for you on KOA: push, then blocks A to D from my ea
 
 For CC:
 ```
+
+### 4.7.74 Report W1 — decision 34, addition (sec. 4.7.73): the energy-transfer scene in the gen3 window — the diagnosis, the spring-constant row, the pause at a divider's limit, the high-DPI UI; acceptance PASS (2026-10-12 01:21 HST, machine date) [DATA, printed by script; SOURCE for the code lines]
+
+**Plain summary.**
+- **What happened in Chris's run.** gen3 had no spring at all: it ran the divider with k = 0.
+  - His command declares no `--spring-wall`, so the program sets the spring constant to 0 at the start.
+  - The F3 panel's energy-transfer APPLY only switches the spring *flag* on ("Live spring force: ON"); it sets no constant.
+  - The divider was therefore a free hard body once released. Kinetic energy was the only energy, conserved exactly (KE_p + KE_w = 400).
+  - The 400 disks pushed it into the empty left compartment until it passed through the left outer wall. Neither engine has a divider–outer-wall event.
+  - A drawing function (`draw_wall`) then ended the program ("Invalid wall_x").
+  - The same scene with his binary reproduces this: the evidence's LO run.
+- **Changed (display and run configuration only; engine-gen3 `c4dd9fc6`, acceptance build `8bc9ac9b`):**
+  - **B, a k row in the F3 panel.** "k (kT/σ²)", applied by APPLY as `--spring-k-sigma=k --spring-wall=0`, reaches gen3's M2 spring divider.
+    - Default 11.52 kT/σ², the M2 cell's value; range 0.1–10⁴.
+    - The HUD shows k *as the engine has it* (so a missing spring shows k = 0), E_spring and KE + E_spring.
+    - The `[ENERGY]` line prints E_spring and E_tot.
+  - **C, no exit.** The window pauses one step before a divider would reach a wall, a piston or another divider. It shows a banner, prints `[GUI-LIMIT]` and, under gen3, the run record; ESC or APPLY rebuilds, Q ends. gen3 has no divider–outer-wall event; none is added.
+  - **D, the window on Chris's display.**
+    - The HUD and the F2 and F3 panels are drawn in window points at the display's scale: full size and sharp on the Retina screen, where they were drawn at half size.
+    - σ renders (UTF-8 text).
+    - The hold counter stops at 0 ("R releases it").
+    - HUD lines wrap instead of being cut.
+- **Acceptance (printed by `w_tables.py`): PASS.**
+  - Rule 4, the M1/M2 harness, headless gen3 (P4a, the replay cell), the display not steering at two window sizes, 0 new warnings.
+  - Item E: the spring scene at k = 11.52 and 115.2 kT/σ²: gen3's ledger closes to rounding over 200 σ-time after the release; the window gives the headless event hash.
+  - The F3 APPLY path, and the pause with its screenshot.
+- **Not in this part:** the drawing scale (the box fitted to the window at N = 5000 and 8000), the rest of the layout, the inventory and the restored viewing controls. That is the rest of decision 34, next.
+- **Recorded for Report S1-0, gate G0 a:** `00ALLINONE.c` changes again relative to `f72d764`: decision 19's window (`7f6adca`), now `c4dd9fc6`. Only display code, run-configuration plumbing of the scene, and three window-only test hooks.
+
+**A. The diagnosis.** Code lines of Chris's binary `bin_7f6adca` (engine-gen3 `7f6adca`; `00ALLINONE.c` unchanged from there to `ea708841`; `edmd_gen3.c`, `edmd.c` unchanged).
+1. **Is a spring force applied to the divider?** No: gen3 ran it with k = 0.
+   - **The constant.** Chris's command declares no `--spring-wall`, so `main` sets `energy_measurement.spring_constant = 0` (00ALLINONE.c:22653, "no wall carries a spring"). The struct default k = 1000 /px² (:2439) never reaches such a run.
+   - **The F3 APPLY.** In energy-transfer mode (`live_scene_prepare_rebuild`, :14498; its branch :14541–14551) it calls `live_apply_spring_enabled(1)` (:14551; the function :13951–13972), which sets the flag `spring_enabled` and no constant.
+   - **The rebuild** copies the constant, 0, into `EDMD_Params.divider_k` (:14735, in `live_rebuild_edmd_from_current_state`).
+   - **gen3** is built from those parameters at its first step (`g3_build`, :1333). `edmd3_create` copies k and x_eq (edmd_gen3.c:1140), and a divider is harmonic only when k > 0 and M > 0 (edmd_gen3.c:1147; again at the release, :1467).
+   - So after R the divider was free (M1 = 50) with no spring.
+2. **Why KE_p + KE_w stays 400.** With k = 0, kinetic energy is the only energy: the collisions are elastic and the pistons rest. The engine's ledger then closes with W = 0. The printed line (:21480) has no spring term, so it would not show a spring's share either.
+3. **"Live spring force: ON"** (:13970) reports that flag. Its engine update, `live_sync_edmd_spring_settings` (:13927), returns at once under gen3 (:13929). The F2 button "spring (scene, gen3)" (label :15157) under gen3 only prints a note (:14894) and changes nothing.
+4. **The exit.** `draw_wall()` (:8403–8408), a drawing function, calls `exit(1)` after "Invalid wall_x" when the divider's x is outside [XW1, XW2] or NaN.
+   - With an empty compartment behind it, the free divider ran through the left outer wall. gen3 has no divider–outer-wall event: its events are disk pairs, disk–outer wall, cell crossings, disk–divider faces, disk–piston faces and band expiries. Its full validator counts a divider outside the box, or out of order, as a body finding (edmd_gen3.c:655–666). gen2's EDMD has the same event classes (edmd.c:822).
+   - **Reproduced:** the evidence's LO run (`bin_7f6adca`, the scene below without a spring) prints KE_tot = 4.000000e+02 at steps 500 and 1000 while vx_wall goes −1.23, −1.51, then "Invalid wall_x = 184.454788", exit 1.
+5. **Two misleading prints found on the way, not changed** (`main`'s start, gen2 and gen3 alike; for the plan author):
+   - (a) With `--experiment=energy_transfer` on the command line, `initialize_energy_measurement()` (:22593) prints "🔩 spring: k = 1000 /px^2 = 576000 kT/sigma^2" before `main` sets k to 0 for want of `--spring-wall` (:22653). That line does not describe the run. It did not occur in Chris's run, which reached the scene through F3.
+   - (b) With `--spring-wall` but without `--spring-k`, `main` warns "no spring force applied" (:22646), yet the struct default k = 1000 /px² = 576 000 kT/σ² stays and acts. A headless run of the scene below with `--spring-wall=0` and no k gives E_spring = 1.64 at step 500 and E0 = 412.8: a 12.8 kT pre-load from the 0.16 px between the divider and x_eq.
+
+**B. The spring-constant row** (engine-gen3 `c4dd9fc6`; lines of `8bc9ac9b`).
+- **The row.** F3 panel, energy-transfer mode: "k (kT/σ²)", right after "spring L0" (defines :999 ff.). It is applied only by "APPLY: rebuild scene" (:14753 ff.), like N, radius, η, spring L0 and M1.
+- **The mapping.** APPLY sets what `--spring-k-sigma=k --spring-wall=0` sets, with spring L0 as `--spring-eq`: `spring_constant` = k/24² kT/px², then `EDMD_Params.divider_k` and `divider_xeq` = L0. That is gen3's spring divider as accepted in M2: harmonic about x_eq once free with mass M1. The M2 cell `spring_pi8` has k = 0.02 kT/px² = 11.52 kT/σ² and M = 50; its energy ledger residual/scale was 0.00172.
+- **Range and default.** Range 0.1 to 10⁴ kT/σ², log slider. Default 11.52 kT/σ², or the command line's `--spring-k-sigma` (or `--spring-k` × 576). A right click resets it to 11.52.
+- **The HUD**, right after the energies: "Spring: k = … kT/σ² (… kT/px²)  E_spring = … (max …)  KE + E_spring = …". k is read from the engine's parameters (`gui_spring_k_engine_px`, :15622), so a spring that did not reach the engine shows k = 0.
+- **The printed line:** "[ENERGY] step=… KE_p=… KE_w=… KE_tot=… vx_wall=… E_spring=… E_tot=…" (:21810), with E_tot = KE_tot + E_spring.
+  - E_tot is printed to 7 digits, like the other columns. The window's wall KE uses its float copy of the divider velocity, which carries rounding of order 1e-7 of KE_w, so more digits would overstate the window's numbers.
+  - The exact check is gen3's ledger line.
+- **The F2 spring button's note** under gen3 now points to the k row.
+- **The rule, as decided.** Parameters set in the F3 panel and applied by a rebuild are run configuration and are allowed under gen3. The live physics controls stay as decision 34 item 3 says. **The ones that already act**, with their guards (lines of `8bc9ac9b`):
+  - **R** (`keysSimulation`, :11844) releases a held divider once, and only while it is held. At the next step `edmd_set_divider_motions` → `edmd_backend_set_divider_motions` (:1549) → `edmd3_set_divider_motion`: mass 0 → M1, v = 0.
+    - Guards: none on the motion afterwards, which is how Chris's divider ran into the wall. New: the pause at the limit (item C).
+  - **T** (`keysPiston`, :12301 → `trigger_piston_step_with_protocol`) steps the right piston in, using the F2 sliders' piston vmax and ramp. **A / D / S** (left piston out, in, stop) and **LEFT / RIGHT / UP** (right piston in, out, stop) (`keysPiston`, :12257 ff.) set the piston velocities. Path: `edmd_config_pistons` → `g3_piston` (:1467) → `edmd3_set_piston_motion` (mass 0, the velocity).
+    - Guards: the keys' own (A only while the left piston is right of the box's left wall; D only while it is more than 20 px left of the right piston; LEFT and RIGHT likewise).
+    - Before every step, `g3_gui_guard_pistons` (:11723) stops a piston that would leave the box, reach a divider (its compartment narrower than a diameter with disks inside) or close its compartment beyond η 0.80, with a note.
+    - `g3_piston` stops the run, fail-closed, if a piston were repositioned, added or removed.
+  - **Decision 19's "the display does not steer" test** (sec. 4.7.50) covered a run with no key pressed. The `--demo` capture script released the divider at step 600 and started the T protocol 200 steps later, through the same functions as R and T, identically with the window and headless. The piston keys A/D/S and the arrows were not exercised.
+
+**C. No exit** (lines of `8bc9ac9b`).
+- `draw_wall()` (:8494) no longer exits. A divider outside the box would be drawn where it is, in red.
+- **The pause.** `gui_divider_limit_check` (:20796) runs before every step in the window (called at :21411). In the event-driven mode (gen2's EDMD and gen3), when a divider would reach the end of its range within the next step, the window pauses before that step.
+  - The end of its range: its face at the outer wall, at a piston face or at the next divider's face. The margin is 1 px plus twice its displacement in one step.
+  - On the pause: a red banner on the screen ("PAUSED: the divider reached the left outer wall at t = … σ-time … gen3 has no divider-wall event, so the run stops here. ESC or F3 APPLY: rebuild the scene. Q: end it."), `[GUI-LIMIT]` printed and, under gen3, the run record.
+  - P and SPACE do not resume it; ESC or the F3 panel's APPLY rebuilds the scene; Q ends it.
+- **Where it does not run.** Not in the time-stepping mode: its wall clamps (with a spring) or bounces (without) at the box edge itself (`update_wall`). Not headless: a divider outside the box shows there in gen3's run record (body_findings, clean = 0).
+- **It only reads** the bodies as drawn, so a run that never reaches a limit steps exactly as before.
+- **gen3 has no divider–outer-wall event; none was added.**
+
+**D. From Chris's screenshots.**
+1. **High-DPI.** This Mac's display is 2056 × 1329 points (usable 2056 × 1231), drawn by the Metal renderer at 2 device pixels per point (an SDL probe with a hidden window).
+   - The HUD, the F2 and F3 panels, the demo bar and the new banner were drawn in device pixels, i.e. at half size.
+   - Now they are drawn in window points with the render scale set to the display's device pixels per point (`gui_begin_ui_view`, :793). Text is rendered with the fonts opened at 2× and drawn at ½, so it is sharp.
+   - The mouse hit tests use the same coordinates (`live_controls_handle_event`, :15295). The F3 panel moves beside the F2 panel when it does not fit below it.
+2. **"Wall held: −12020 steps left":** now "Wall held: N steps left" while N > 0, then "Wall held: R releases it" (:22346). The scene had no automatic release, so the counter ran on below zero.
+3. **The σ box.** `draw_text` used `TTF_RenderText_Blended`, which reads the bytes as Latin-1, so UTF-8 "σ" came out as two wrong glyphs, one of them a box.
+   - Now `TTF_RenderUTF8_Blended` and `TTF_SizeUTF8` are used (`draw_text`, :13952), and a cut never splits a character.
+   - Roboto has every non-ASCII character the drawn strings use (σ Δ ν ² × · ° – — −), checked glyph by glyph. The characters it lacks (emoji, arrows) occur only in terminal output.
+4. **HUD lines cut off:** a HUD line wider than its column now continues, indented, on the next rows (`hud_text_wrapped`, :14025) instead of ending in "...".
+- **Test hooks**, window only and refused otherwise: `--gui-window=WxH` (the window's size in points, exactly), `--gui-ui-scale=U` (instead of the measured scale), `--gui-shot=STEP:FILE.bmp` or `limit:FILE.bmp` (the frame after that step, or at the pause).
+- The acceptance's window B emulates Chris's display: 4112 × 2462 device pixels at UI scale 2 = 2056 × 1231 points.
+
+**E. The acceptance, printed by `experiments_gen3_d34a_261012/w_tables.py`** (engine-gen3 worktree; the binaries of the committed tree `8bc9ac9b`, built by `w_build.sh`; the evidence by `w_evidence.py`; SDL's dummy video driver and the software renderer for every window run, nothing on the screen), verbatim:
+
+````
+# Decision 34, addition (the energy-transfer scene in the gen3 window, a DISPLAY change): the acceptance, printed by experiments_gen3_d34a_261012/w_tables.py
+
+## 1. The binaries of the committed tree
+
+| binary | --version | SHA-256 | = build record |
+|---|---|---|---|
+| 00ALLINONE | 00ALLINONE  git 8bc9ac9  target mac-O3-e0pre | 5b29ef330e08754eb1bde941b8b1e5900a5e4f96f40bb982db7accd60f408010 | yes |
+| gen3_m1 | - | 89b77fa190c4afe8e749a6bf88e7f52e2f7e439b4cfec885127829d9e87863f7 | yes |
+| gen3_m2 | - | 3473318380ae3b5fdf225dc146c2eb0a0d5b05157ac2403e8582cd97fa5d15fb | yes |
+
+## 2. Rule 4: gen2 byte identity with 7b08827 (ctrl_min, ctrl_leg; the default build and --engine=gen2)
+
+default build: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+--engine=gen2: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+
+## 3. The M1 and M2 harness outputs against the committed ones
+
+| output | identical |
+|---|---|
+| m1_audit_output.txt | IDENTICAL |
+| m2_audit_quick_output.txt | IDENTICAL |
+| m2_audit_output.txt | IDENTICAL |
+
+## 4. Headless gen3 unchanged
+
+P4a start A seed 1, P4's command with the new binary: clean=1, event hash bd25077c5f1c9c9f (P4: bd25077c5f1c9c9f): EQUAL; its data files against P4's: 7 of 7 byte-identical (psi6_t_L0_106_wallmassfactor_300_run0.csv, run_params.json, snapshots_L0_106_wallmassfactor_300_run0.bin, speed_of_sound_batch_status.json, speed_of_sound_psi6.csv, virial_blocks_L0_106_wallmassfactor_300_run0.csv, wall_x_positions_L0_106_wallmassfactor_300_run0.csv); the command records 00_COMMAND.md, 01_PLOT_COMMANDS.md, 00_COMMAND_AND_PLOT_COMMAND.md name the run's folder, binary and time (provenance; not compared)
+stage A's replay cell m2_driven_pi8, variant a (readers at every target, one stop per interval): ['clean=1'] driven_pi8: hash 694fdf127f35d4b4, harness 694fdf127f35d4b4; events 818521, harness 818521: MATCH; targets 1600, changes 36, advance stops 1600 (substeps 1), reader passes 1600 (every 1 targets), smallest surface gap seen by the readers 1.25e-05 px, 1.1 s -- recorded hash 694fdf127f35d4b4: EQUAL, MATCH
+
+## 5. The display does not steer (decision 19's ST scene: N = 400, eta 0.31, the right piston stepping in, 40 sigma-time; gen3; the window: SDL's dummy video driver, the software renderer, no input)
+
+| run | window | clean | event hash | = headless | = decision 19's ST hash | output files = headless |
+|---|---|---|---|---|---|---|
+| headless | - | 1 | daea5de1378282dc | - | yes | - |
+| window_A | 1024 x 768 points, UI scale 1 | 1 | daea5de1378282dc | yes | yes | 4 of 4 |
+| window_B | 4112 x 2462 device pixels, UI scale 2 (2056 x 1231 points) | 1 | daea5de1378282dc | yes | yes | 4 of 4 |
+
+## 6. Item E: the energy-transfer scene with a spring, 200 sigma-time after the release (N = 400 on the right, r = 0.2159 sigma, eta 0.116; spring wall 0, L0 = 25.34 sigma, M = 50; free from the first step)
+
+gen3's ledger line: E = KE (disks and divider) + the spring energy, W = the work of driven bodies and API changes; (E - E0) - W against its rounding scale (u x the sum of the rounded terms); ratio <= 1: conserved to rounding.
+
+| k [kT/sigma^2] | run | clean | event hash | sigma-time (t_end/24) | E0 | E | W | (E - E0) - W | scale | ratio | [ENERGY] first and last: E_spring, E_tot | data files = headless |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 11.52 | headless | 1 | 6b2f8433a857ae37 | 200.017 | 400.000256109 | 400.000256109 | 0.0 | 5.12e-13 | 1.81e-10 | 0.00282 | step 500: 2.736922e+01, 4.000003e+02; step 12000: 2.002592e+01, 4.000003e+02 | - |
+| 11.52 | window_A | 1 | 6b2f8433a857ae37 | 200.017 | 400.000256109 | 400.000256109 | 0.0 | 5.12e-13 | 1.81e-10 | 0.00282 | step 500: 2.736922e+01, 4.000003e+02; step 12000: 2.002592e+01, 4.000003e+02 | 5 of 5 |
+| 115.2 | headless | 1 | 0af7413aabf2c92a | 200.017 | 400.002561094 | 400.002561094 | 0.0 | 0.0 | 1.61e-10 | 0.0 | step 500: 5.659885e-01, 4.000026e+02; step 12000: 1.728800e+00, 4.000026e+02 | - |
+| 115.2 | window_A | 1 | 0af7413aabf2c92a | 200.017 | 400.002561094 | 400.002561094 | 0.0 | 0.0 | 1.61e-10 | 0.0 | step 500: 5.659885e-01, 4.000026e+02; step 12000: 1.728800e+00, 4.000026e+02 | 5 of 5 |
+
+## 7. Item B through the F3 panel: the scene rebuilt by APPLY (--gui-keys=1:apply-gen3), k = 11.52 from the k row, window B
+
+- the panel's line: `Scene reset queued: mode=energy transfer engine=EDMD gen3 (display) walls=1 springL0=25.340σ springk=11.52 N=400 r=0.2159σ eta=0.116 thick=0.0000σ(auto) masses=50`
+- the engine's spring after the rebuild: `🔩 spring: k = 0.02 /px^2 = 11.52 kT/sigma^2 | M_wall = 50 | omega_w = 0.48, T_w = 13.09 sigma-time | thermal rms = 0.2946 sigma`
+- the run record: clean=1, event hash 931592d878cd03d6, 200.017 sigma-time; the ledger: (E - E0) - W = -1.93e-12, scale 1.81e-10, ratio 0.0107 (E0 400.0, E 400.0, W 0.0)
+- the screenshot after step 3000: experiments_gen3_d34a_261012/evidence_8bc9ac9/screenshots/SF_k11.52_window_B_step3000.png
+
+## 8. Item C: a divider that reaches its limit pauses the window (no spring: Chris's case; window B)
+
+- `[GUI-LIMIT] step 1241, t = 20.683334 sigma-time: a divider (x = 0.294166 sigma, v = -1.63411 sigma per sigma-time) would reach the left outer wall within the next step; the window pauses (P and SPACE do not resume; ESC or the F3 panel's APPLY rebuilds the scene, Q ends it)`
+- the run record at the pause: clean=1, body_findings=0, event hash 20b68830dd4d0d69; exit code 0; 'Invalid wall_x' in the log: no
+- the screenshot of the pause: experiments_gen3_d34a_261012/evidence_8bc9ac9/screenshots/LM_window_B_pause.png
+- information, the same scene with decision 19's binary bin_7f6adca: `🚨 Invalid wall_x = 184.454788`, exit code 1
+
+## 9. Warnings (build_clean.sh's -Wall -Wextra pass of the driver's sources; compared without file and line)
+
+this build 25, the parent f72d764 25; new: 0
+gen3_m1: 0 warnings
+gen3_m2: 0 warnings
+
+## Acceptance
+
+| item | result |
+|---|---|
+| rule 4 identical (default and --engine=gen2, ctrl_min and ctrl_leg) | PASS |
+| M1/M2 harness outputs identical | PASS |
+| headless gen3 unchanged (P4a A seed 1; the replay cell) | PASS |
+| the display does not steer (gen3, two window sizes = the headless event hash, output files byte-identical) | PASS |
+| item E: the spring scene at two k -- ledger to rounding over 200 sigma-time, window = headless event hash | PASS |
+| item B: the k row reaches gen3 through APPLY (springk=11.52, the engine's k = 0.02 /px^2, ledger to rounding) | PASS |
+| item C: the window pauses at the limit (no exit; the run record clean) | PASS |
+| 0 new warnings | PASS |
+
+DECISION 34 ADDITION ACCEPTANCE: PASS
+````
+
+**The command for Chris** (a window opens; run it from the engine-gen3 worktree, where the window finds its font). The spring scene of the acceptance, held at the start:
+```
+cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3 && experiments_gen3_d34a_261012/bin_8bc9ac9/00ALLINONE --show-simulation --mode=edmd --engine=gen3 --edmd-acc=0 --seed-drift-order=drift-first --kbt1 --experiment=energy_transfer --particles=400 --particles-boxes=0,400 --particle-radius=0.2159 --l0=25.34 --height=20 --num-walls=1 --wall-positions=25.34 --wall-mass-factors=50 --spring-k-sigma=11.52 --spring-wall=0 --spring-eq=25.34 --wall-hold-steps=600 --fixed-dt=0.4 --seed=9300 --gui-time-scale=200
+```
+- **The keys:**
+  - SPACE starts the scene. The divider is held; after 600 steps the HUD says "Wall held: R releases it", and R releases it.
+  - The HUD's spring line shows k as the engine has it, E_spring and KE + E_spring.
+  - `+` and `-` double and halve the time scale; P pauses; Q ends the scene and prints the run record.
+- **A different k:** F3 opens the scene panel. Set "k (kT/σ²)" (and N, radius, η, spring L0, M1), then click "APPLY: rebuild scene"; the scene is rebuilt with that spring.
+- **If the divider reaches a wall** (a soft spring, or none), the window pauses with a red banner. ESC or APPLY rebuilds the scene; Q ends it.
+- **Decision 19's N = 400 command** (sec. 4.7.50, with this binary) also works: there, F3 → mode "energy transfer", engine "EDMD gen3 (display)", k, APPLY.
+- At N = 5000 the box is still wider than the screen. Fitting it is the rest of decision 34.
+
+**Deviations.**
+1. **The acceptance scenes start with the divider free from the first step (`--auto-release`).** The window's scene starts only on SPACE (or with `--auto-release` or `--headless`), and `--gui-keys` presses keys only after a step. So Chris's hold-and-R is replaced by a release at step 1, and the 200 σ-time are counted from it.
+   - A first quick test without `--auto-release` waited for SPACE. That was my own process; it was stopped after about 3 minutes, and its folder is kept in the scratchpad.
+2. **Two review changes before the code commit** (both in `c4dd9fc6`, so in the accepted build):
+   - E_tot is printed to 7 digits (the window's wall KE comes from a float copy);
+   - the limit check runs only in the event-driven mode (the time-stepping wall clamps or bounces by itself).
+3. **Screenshots:** the binary writes BMP, since SDL has no PNG writer. `w_evidence.py` converts them to PNG with Python's PIL and commits the PNGs; the BMPs (40 MB each at 4112 × 2462) stay in the scratchpad.
+   - Decision 19's ST scene writes its demo screenshot into the scratchpad here (decision 19: into the run folder).
+4. **Not changed, for the plan author:** the two misleading start-up prints in A.5. Both lie in `main`'s gen2 start-up code, outside the display.
+
+**Data.**
+- New in this part about 380 MB: in the scratchpad the build's source copy (161 MB), the BMP screenshots (about 170 MB) and the quick tests; in the worktree the evidence (38 MB).
+- 9.5 MB of the evidence is committed (258 files and the records). The binaries and the six files of 1 MB or more are listed with their SHA-256 in `W1_SHA256_FILES.txt`; the run logs' key lines are in `W1_RUN_RECORDS.txt`.
+- Free space 58 GiB.
+
+**Commits.**
+- engine-gen3: `c4dd9fc6` (the code), `8bc9ac9b` (the acceptance scripts; the build), `c23e3a88` (the evidence and the tables), and the copy of this record.
+- main: `04219f7e` (sec. 4.7.73) and this record. engine-divider-resched: the notes.
+- Push: `git push origin main engine-gen3 engine-divider-resched`.
+
+**Next, as ordered:**
+- Report P1, after Chris's preview fetch (nothing has arrived yet).
+- Then the rest of decision 34: the inventory first; then the drawing scale (the box fitted to the window, disks below 2 px), the layout of the distribution panels, and the acceptance with screenshots at N = 400, 5000 and 8000.
+- Then Report S1-0 and the M5 job.
