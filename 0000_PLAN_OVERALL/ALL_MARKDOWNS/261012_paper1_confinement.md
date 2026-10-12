@@ -18404,3 +18404,244 @@ One build generation only; error bars everywhere; KR red, Román black, own data
 ```
 
 (Not part of the registration, for orientation only: A2's condition was printed on C1's data as MET, POST HOC, in sec. 4.7.60. The registered C1 verdict NOT DECIDED stands. Test R's verdict is Report R1's.)
+
+### 4.7.71 Sec. 4.8 recorded (decision 36, item 2: every check matched) and Report P0 — the preview's Mac rehearsal: PASS (17 of 17); HD_CONTACT_AUDIT on and off give the same event hash and trace; the runsheet (delivery engine-gen3 c70d314e) (2026-10-11 22:49 HST, machine date) [DATA, printed by script; SOURCE]
+
+**Plain summary.**
+- **Sec. 4.8 is recorded** (main 85cb671e).
+  - The registration file `0000_PLAN_OVERALL/ALL_MARKDOWNS/261010_prereg_v1_stage1_fluid_COWORK.md` passed every check of decision 36 first:
+    - 35642 bytes, 307 lines;
+    - modified 2026-10-11 22:27:11 HST;
+    - NOT tracked by git;
+    - SHA-256 `d5cc0ce46353083240599a873ed843bb48e184f6c345f4b231eed4d96a4fe932`;
+    - first line "# PRE-REGISTRATION v1 — STAGE 1: the fluid (η ≤ 0.69) at N = 100 / 400 / 900 / 1600";
+    - 4 lines with "$$" and 13 "## 4.8." headings;
+    - the five strings once each.
+  - The recorder appended it in binary mode, followed by A1 and A2 (A2 POST HOC).
+  - **The recorded text's SHA-256, cut again from commit 85cb671e, is the same `d5cc0ce4...`, identical to the file byte for byte.** The notes' CR count stays 15.
+  - The Desktop file holding the four commands is left as it is.
+- **The rehearsal, run 2: PREVIEW REHEARSAL: PASS, 17 of 17**, plus one information row. It ran the package c70d314e and the runsheet's blocks as pasted, with Test R's Mac build of a643bc7 reused.
+  - **Run 1** passed every KOA-side step. Then the Mac-side E0 reduction stopped on its own check: the run id prints L0 to one decimal ("L0=75.0" for 74.9998; `00ALLINONE.c:17393`), and the check had compared it to 1e-4. The self-test had missed it because its synthetic lines printed L0 in full.
+  - Fixed in f7564b2c, Mac side only; the KOA package is unchanged. The check now compares at one decimal; the self-test prints L0 as the binary does; the check columns carry a "check:" prefix.
+  - Run 2 was then run in full.
+- **Decision 32, item 3 (information): HD_CONTACT_AUDIT on and off.** The trajectory is π/8, M = 50, r = 0, seed 454734470, run with the worker's B command:
+  - event hash 43679080699bb4f8 both ways;
+  - the trace's SHA-256 identical (b7203f8b5de2...);
+  - clean = 1 in both;
+  - the audited run printed its two audit lines ([EDMD-CONTACT], [EDMD3-GAP]: max gap 2.8e-12 px); the plain run printed none.
+- **The runsheet** (`runsheet_preview_261011.txt`, below):
+  - delivery: an update in place of `~/harddisks_gen3_k2` to engine-gen3 c70d314e (block B fetches it by hash; engine-gen3 must be pushed first);
+  - blocks A to H and the fetch; no placeholders;
+  - requested 30 core-hours, expected about 5.8.
+- **Deviations:**
+  1. Rehearsal run 1's stop in the Mac-side reduction, above.
+  2. My earlier searches for the registration file (sec. 4.7.61 and 4.7.62) did not reach `ALL_MARKDOWNS/`: their depth limits stopped one or two levels short. The file was there, untracked, the whole time.
+  3. The rehearsal reused Test R's Mac binary by symlink instead of rebuilding it (the data cap), as Test R's run 2 did.
+- **Data:** 51 MB since the decision 36 marker (22:45), the scratchpad included. At most one simulation process at a time.
+- **Commits:**
+  - main: 5e6df073 (decision 36), 85cb671e (sec. 4.8), c89a87ab (its evidence), f7564b2c (the reduction fix), 87a66701 (the rehearsal evidence), and this record;
+  - engine-gen3: 31b22ccd, fa6c6168, and the copies of this record.
+
+**The rehearsal table, verbatim** (`hspist3/experiments_gen3_preview_rehearsal_261011/run2_c70d314e/rehearsal_stdout.txt`):
+
+```
+| step (script) | criterion | result | evidence |
+|---|---|---|---|
+| runsheet block B | fetches the package commit | PASS | block B fetches c70d314e927580e35267045d58a22fdf10fb9850 |
+| the Mac binary (a643bc7, koa target name) | version line '00ALLINONE  git a643bc7  target koa' | PASS | 00ALLINONE  git a643bc7  target koa |
+| block A | squeue, srun (shims) | PASS | exit 0 |
+| block B (the update in place, the checks, the unit tests) | as the runsheet's good lines, but KOA's four binaries (not on the Mac) | PASS | checks [True, True, True, True, True, True, True, True]; the eight SHA lines equal; KOA's binaries: 1 FAILED here (expected: the Mac build and three absent files) |
+| the rehearsal substitutions | mini list (18 lines, chunk size 9), build record, manifests, Lustre path, local fetch | PASS | rewritten ['preview_koa.sbatch', 'preview_merge.sbatch', 'fetch_preview_koa.sh']; manifests: 2 written |
+| block C (chunk 1 alone) | Submitted batch job | PASS | exit 0 |
+| block D (chunk 1's checks) | chunk 1 on ... lines 1-9; chunk 1 done; per cell its counts and the runsheet's recorded box and eta; no FAILED/REFUSED/STOP | PASS | 7/7 cells |
+| block E (the rest, --array=2 here; the first attempt on a pretended faulty node) | STOP: [cn-07-07-07] ... before 'chunk 2 on'; no folder | PASS | STOP: [cn-07-07-07] the preview inputs are not the delivered ones (cluster/gen3_preview_261011/preview_inputs.sha256) |
+| block F (checks, the resubmission line) | 2 logs, 1 done, 0 FAILED; the line --array=2 --exclude=cn-05-08-07,cn-07-07-07 | PASS | ['sbatch --array=2 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_preview_261011/preview_koa.sbatch'] |
+| block F again (after the resubmission) | 3 logs, 2 done, 0 FAILED, nothing to resubmit | PASS |  |
+| the merge job: a pending gen3-preview job | exit 2, nothing moved | PASS | 930004 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_preview_261011/preview_merge.sbatch 2 |
+| the merge job: chunk 2's done log held aside | exit 2, 'NOT DONE: 2(no log with its done line)', nothing moved | PASS | 930005 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_preview_261011/preview_merge.sbatch 2 |
+| blocks G and H (the merge, the reduction, the compression; its record) | exit 0; 108 plan entries; the merged line; 9 reductions; 9 compressions; chunk 2's earlier attempt listed | PASS | checks [True, True, True, True, True, True, True, True] |
+| a second merge submission | exit 3 (merged/ exists) | PASS | 930007 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p/rehearsal_run2/home/harddisks_gen3_k2/hspist3/cluster/gen3_preview_261011/preview_merge.sbatch 3 |
+| the fetch (local rsync) | exit 0; the merge record, the tables, the job logs; no trace, psi6 or run folder | PASS | 78 files; raw 0 |
+| E0 on the mini data (e0_preview_261011.py --preview) | exit 0; the recorded-length checks pass in all 9 (cell, mass) folders (the three truncated cells included); one E0 row (pi/8: three masses) | PASS | exit 0; recorded rows 9; E0 rows 1 |
+| the figure and the table on the mini data | exit 0; the pi/8 row 'the same cell' as A1 v2's | PASS | exit 0 |
+| decision 32 item 3 (information): one trajectory with and without HD_CONTACT_AUDIT=1 | event hash and trace compared | INFORMATION | preview/gen3/eta_0p392699/m_50 r 0: hash 43679080699bb4f8 / 43679080699bb4f8; trace SHA-256 b7203f8b5de2 / b7203f8b5de2; equal: yes; clean 1 / 1; audit lines 2 / 0 |
+
+RESIDUAL DIFFERENCES: the shims (Slurm commands, module, gcc --version, lscpu, hostname, sha256sum); the Mac binary (its SHA-256 in Test R's build record; KOA's four binaries absent; symlinked from an earlier run, not rebuilt); the mini list (18 lines, chunk size 9) with its SHA-256 file and the manifests rewritten; the Lustre path; the local fetch; block E's --array=2; block F's chunk count 2; block D's counts the mini list's
+
+PREVIEW REHEARSAL: PASS (17 of 17; plus one INFORMATION row)
+```
+
+**The runsheet blocks, verbatim** (`hspist3/cluster/gen3_preview_261011/runsheet_preview_261011.txt` at main 33c806a4, from block A to the fetch; its header is in the file):
+
+```
+PREVIEW BLOCK A (KOA login node; opens the sandbox shell; then wait for the cn-... prompt):
+squeue -u charing
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+
+  Expected: squeue lists no gen3-testR job (else stop: the delivery waits). (Commands typed while srun is queued are lost: paste block
+  B only at the cn-... prompt.)
+
+PREVIEW BLOCK B (in the sandbox shell, at the cn-... prompt; updates ~/harddisks_gen3_k2 in place; reads the binary; runs the unit tests):
+git --version
+cd ~/harddisks_gen3_k2
+git status --porcelain --untracked-files=no | wc -l
+git fetch --depth 1 origin c70d314e927580e35267045d58a22fdf10fb9850
+git -c advice.detachedHead=false checkout c70d314e927580e35267045d58a22fdf10fb9850
+git log -1 --format='%h %s' | cut -c1-80
+cd hspist3 && sha256sum cluster/gen3_preview_261011/preview_koa.sbatch cluster/gen3_preview_261011/preview_merge.sbatch cluster/gen3_preview_261011/preview_stopped_chunks.sh cluster/gen3_preview_261011/test_preview_stopped_chunks.py cluster/gen3_testR_261011/test_merge_koa_plan.py cluster/gen3_testR_261011/test_chunk_logs_koa.py cluster/gen3_preview_261011/preview_inputs.sha256 cluster/gen3_preview_261011/preview_merge_inputs.sha256
+sha256sum -c cluster/gen3_preview_261011/preview_inputs.sha256 cluster/gen3_preview_261011/preview_merge_inputs.sha256 | grep -c ': OK$'
+sha256sum -c cluster/gen3_testR_261011/testR_inputs.sha256 cluster/gen3_testR_261011/testR_merge_inputs.sha256 | grep -c ': OK$'
+(cd ~/harddisks_gen3/hspist3 && sha256sum -c ~/harddisks_gen3_k2/hspist3/cluster/gen3_koa_261009/k2_binaries_a643bc7.sha256)
+cat ~/harddisks_gen3/hspist3/logs/BUILD_KOA_LAST.hash
+~/harddisks_gen3/hspist3/00ALLINONE --version | head -1
+source cluster/koa_env.sh
+mkdir -p logs/p0_unit_tmp && TMPDIR=$PWD/logs/p0_unit_tmp python3 cluster/gen3_testR_261011/test_merge_koa_plan.py > logs/p0_unit_merge.txt 2>&1; tail -1 logs/p0_unit_merge.txt
+TMPDIR=$PWD/logs/p0_unit_tmp python3 cluster/gen3_testR_261011/test_chunk_logs_koa.py > logs/p0_unit_chunks.txt 2>&1; tail -1 logs/p0_unit_chunks.txt
+TMPDIR=$PWD/logs/p0_unit_tmp python3 cluster/gen3_preview_261011/test_preview_stopped_chunks.py > logs/p0_unit_stopped.txt 2>&1; tail -1 logs/p0_unit_stopped.txt
+(cd validation && python3 -c "import paper1_populate_cs_err_20261002, resched_testT_followup_261007, tests_20260913; print('the E0 and nu_d imports: OK')")
+ls /mnt/lustre/koa/scratch/charing/harddisks_gen3/preview_koa 2>&1 | head -2
+exit
+
+  THE LINES THAT SHOW IT IS GOOD (paste everything):
+    "git version 2.35.0" or newer (2.52.0 on 2026-10-02)
+    0          (no tracked file of the clone has changed)
+    the fetch: "From https://github.com/FreeworkEarth/HardDisks" and " * branch c70d314e927580e35267045d58a22fdf10fb9850 -> FETCH_HEAD"
+    "HEAD is now at c70d314 task P: the two input manifests ..." and the log line starting with c70d314 (before it git may print
+    "Warning: you are leaving <n> commit(s) behind ..." and Test R's commit b5378f4: harmless, the clone's old detached state)
+    exactly these eight lines:
+      3058597a8e88b8798338a063ff8f5040f302e2af9c4c533585693c28c867657b  cluster/gen3_preview_261011/preview_koa.sbatch
+      d60abba77a520ccab592ad49e8633ddaf18b42dcbe3b8ddfb1b66256f6930734  cluster/gen3_preview_261011/preview_merge.sbatch
+      5adc6ddaad48605f439ff959ea982405cfd5a500818d33c1ce3012076c309e9b  cluster/gen3_preview_261011/preview_stopped_chunks.sh
+      e23065537c2a0f20ba43675036615f8d9a86c59d7128c8a1e6ed8c33272302ee  cluster/gen3_preview_261011/test_preview_stopped_chunks.py
+      58fc23861365a147dfd57e972fb0478ebad3d5cee89deb3e152531770ac03657  cluster/gen3_testR_261011/test_merge_koa_plan.py
+      d9bda835ed22ff2c3bce8e9bb1cd750a7db5b59c2af1d4e044a185cc77083616  cluster/gen3_testR_261011/test_chunk_logs_koa.py
+      746971d197beb75251a0fc083967c94b98b61eb924fb3a41cb1f680f1a93376e  cluster/gen3_preview_261011/preview_inputs.sha256
+      aeb8aa66eaaa88489c70e49b544a67f19beb3942ac6faaa0845aa77efd75372f  cluster/gen3_preview_261011/preview_merge_inputs.sha256
+    20         (the preview's two manifests: 6 + 14 files, each ": OK" -- the task list, its SHA-256 file, the chunk size, the build
+               record, the worker, koa_env.sh; the merge scripts, reduce_B.py and the modules they import)
+    20         (Test R's two manifests on the same tree: unchanged by the update)
+    four lines ending in ": OK" (the binaries of ~/harddisks_gen3 are step 2's)
+    "742aa2d3530e0b0c7e940260fbc5c69fefe7d56caca6a425c8ae2e4f65c5bbb2  00ALLINONE" (the build-time file)
+    "00ALLINONE  git a643bc7  target koa"
+    "env: gcc (GCC) 14.3.0 | Python 3.12... at /home/charing/envs/hd/bin/python3 | git version ..."
+    "ALL PASS (12 cases)" (the merge plan), "ALL PASS (9 cases)" (the chunk check), "ALL PASS (6 cases)" (the resubmission line)
+    "the E0 and nu_d imports: OK"
+    "ls: cannot access '/mnt/lustre/koa/scratch/charing/harddisks_gen3/preview_koa': No such file or directory" (a fresh root)
+  STOP RULE: anything else -- SHA lines that differ, a count other than 20, a unit test that does not pass, an existing preview_koa
+  folder: type exit if the shell is still open, paste it, submit nothing, wait.
+
+PREVIEW BLOCK C (KOA login node, after exit; chunk 1 alone; 1 core, at most 1 h on shared; about 13 min):
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3 && sbatch --array=1 cluster/gen3_preview_261011/preview_koa.sbatch
+
+  Expected: no gen3-preview job in squeue before it; "Submitted batch job <its number>". Submit it ONCE. Chunk 1 is the task lines
+  1-63: r = 0 of every cell and mass.
+
+PREVIEW BLOCK D (KOA login node, when squeue -u charing lists no gen3-preview job; every line only reads; paste everything):
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3
+cat logs/gen3-preview_*_1.out
+for c in eta_0p052360 eta_0p112200 eta_0p196350 eta_0p261799 eta_0p392699 eta_0p523599 eta_0p590; do t=0; n=0; k=0; b=0; for M in 50 100 200 300 500 750 1000 1500 2000; do d=/mnt/lustre/koa/scratch/charing/harddisks_gen3/preview_koa/chunks/chunk_1/preview/gen3/$c/m_$M; t=$((t + $(ls $d/wall_x_positions_* 2>/dev/null | wc -l))); n=$((n + $(cat $d/run.log 2>/dev/null | grep -c '^##RUN'))); k=$((k + $(cat $d/run.log 2>/dev/null | grep -c '^\[EDMD3-HEALTH\] .*: clean=1 '))); [ "$(cat $d/.build_git 2>/dev/null)" = '00ALLINONE  git a643bc7  target koa' ] && b=$((b + 1)); done; echo "$c masses 9: traces $t runs $n gen3-records-clean $k build-lines-ok $b"; grep -h -o 'box=[0-9]* x [0-9]* px exact_box=[01] eta=[0-9.]*' /mnt/lustre/koa/scratch/charing/harddisks_gen3/preview_koa/chunks/chunk_1/preview/gen3/$c/m_*/run.log | sort | uniq -c; done
+
+  THE LINES THAT SHOW IT IS GOOD (all of them, and nothing else):
+    squeue: its header line only
+    the log: "env: gcc (GCC) 14.3.0 | ..."; "chunk 1 on cn-... (...): lines 1-63; 00ALLINONE  git a643bc7  target koa"; "chunk 1 done";
+             no line containing FAILED, REFUSED or STOP
+    per cell two lines, the counts and the cell's recorded box and eta (gen3's [EDMD3-RUN] line: the box in pixels, which methods sec.
+    14's truncation shortens in three cells, and the eta of that box):
+      eta_0p052360 masses 9: traces 9 runs 9 gen3-records-clean 9 build-lines-ok 9
+            9 box=3599 x 240 px exact_box=0 eta=0.052374426011499747
+      eta_0p112200 masses 9: traces 9 runs 9 gen3-records-clean 9 build-lines-ok 9
+            9 box=1679 x 240 px exact_box=0 eta=0.1122665629633041
+      eta_0p196350 masses 9: traces 9 runs 9 gen3-records-clean 9 build-lines-ok 9
+            9 box=960 x 240 px exact_box=0 eta=0.19634954084936207
+      eta_0p261799 masses 9: traces 9 runs 9 gen3-records-clean 9 build-lines-ok 9
+            9 box=720 x 240 px exact_box=0 eta=0.26179938779914941
+      eta_0p392699 masses 9: traces 9 runs 9 gen3-records-clean 9 build-lines-ok 9
+            9 box=480 x 240 px exact_box=0 eta=0.39269908169872414
+      eta_0p523599 masses 9: traces 9 runs 9 gen3-records-clean 9 build-lines-ok 9
+            9 box=360 x 240 px exact_box=0 eta=0.52359877559829882
+      eta_0p590 masses 9: traces 9 runs 9 gen3-records-clean 9 build-lines-ok 9
+            9 box=319 x 240 px exact_box=0 eta=0.590895169954193
+  STOP RULE: anything else: paste it, change nothing, wait. Block E is typed only after the plan author has read block D's paste.
+
+PREVIEW BLOCK E (KOA login node; the rest: chunks 2-25, 24 tasks of 1 core, each at most 1 h, all at once):
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3 && sbatch --array=2-25 cluster/gen3_preview_261011/preview_koa.sbatch
+
+  Expected: no gen3-preview job in squeue before it; "Submitted batch job <its number>". Submit it ONCE.
+
+PREVIEW BLOCK F (KOA login node, when squeue -u charing lists no gen3-preview job; every line only reads; paste everything):
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3
+ls logs/gen3-preview_*.out | wc -l
+grep -lx 'chunk [0-9]* done' logs/gen3-preview_*.out | wc -l
+cat logs/gen3-preview_*.out | grep -c -e FAILED -e REFUSED
+grep -h '^chunk [0-9]* on ' logs/gen3-preview_*.out | sed 's/: lines.*//; s/^chunk [0-9]* on [^ ]* //' | sort | uniq -c
+bash cluster/gen3_preview_261011/preview_stopped_chunks.sh logs gen3-preview 25
+
+  THE LINES THAT SHOW IT IS GOOD:
+    squeue: its header line only
+    25         (the chunk logs: one per chunk)
+    25         (each chunk once with its line "chunk <j> done")
+    0          (no line with FAILED or REFUSED; a run the worker refused prints FAILED: it is kept and counted, never rerun -- paste it,
+               it does not stop the merge)
+    one line per CPU model, the counts adding up to 25
+    "without a done log: stopped once 0, stopped twice or more 0, started and not finished 0, no log 0" and "nothing to resubmit"
+  IF the last command prints "THE RESUBMISSION LINE" and the line after it (sbatch --array=... --exclude=cn-05-08-07,...): those chunks
+  stopped in their start-up checks and ran nothing (decision 25's rule: submitted once more, and listed). Paste everything and wait: after
+  the plan author's go, type exactly that printed line, once; when squeue lists no gen3-preview job, block F again (then the counts above
+  include the earlier attempts: logs = 25 + their number).
+  STOP RULE: a chunk "started and did not finish", "stopped twice or more", "no log", or counts other than the above: paste, change
+  nothing, wait.
+
+PREVIEW BLOCK G (KOA login node; the merge; one core, at most 3 h on shared; a few minutes):
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3 && sbatch cluster/gen3_preview_261011/preview_merge.sbatch
+
+  Expected: no gen3-preview job in squeue; "Submitted batch job <its number>". Submit it ONCE. The job checks for itself, before it
+  moves anything, and stops with exit 2 and NOTHING moved on any failure: its inputs (both manifests), the task list, no gen3-preview
+  job pending or running, the chunk check (every chunk 1-25 has its folder and EXACTLY ONE log with its done line; every other log of
+  a chunk listed by name), merged/ absent (exit 3); then the merge plan, and only a clean plan is executed.
+
+PREVIEW BLOCK H (KOA login node, when squeue -u charing lists no job; paste everything):
+squeue -u charing
+cat ~/harddisks_gen3_k2/hspist3/logs/gen3-preview-merge_*.out
+cat /mnt/lustre/koa/scratch/charing/harddisks_gen3/preview_koa/merged/.merge_complete
+ls /mnt/lustre/koa/scratch/charing/harddisks_gen3/preview_koa/job_logs | wc -l
+
+  THE LINES THAT SHOW IT IS GOOD (the merge's own lines are those of a synthetic full-size merge on the Mac,
+  synthetic_merge_preview_output.txt; the reduction's lines are the rehearsal's, at full size):
+    squeue: its header line only
+    the log:
+      - "env: gcc (GCC) 14.3.0 | ..."
+      - "merge of /mnt/lustre/koa/scratch/charing/harddisks_gen3/preview_koa by the scripts of ~/harddisks_gen3_k2 (no git at run time;
+        both input manifests: OK); the scripts it runs:" and four SHA-256 lines: c48d37f6... merge_koa.py, a9b66e34... chunk_logs_koa.sh,
+        131a1bd7... reduce_testR_koa.py, b636aa6e... reduce_B.py
+      - "the registered list: 1575 task lines, chunk size 63, 25 chunks; no gen3-preview job pending or running"
+      - "chunk logs in .../job_logs/ (copied, no overwrite): 25" (more if chunks were resubmitted)
+      - the chunk check: "chunk logs: 25; chunks done: 25 of 25 (each with its folder and exactly one log with 'chunk <j> done');
+        earlier attempts: 0 stopped in the start-up checks, 0 started and not finished" (or the resubmitted chunks' earlier attempts)
+      - "FAILED lines in the chunk logs (logs/): 0" (or the FAILED lines, listed)
+      - "the task list: 1575 lines, chunk size 63, 25 chunks, top-level folder preview"
+      - "scan: 25 chunks, 9450 plan entries, 0 problem(s); ..." and the plan table: the 63 destinations preview/gen3/<cell>/m_<M>, each
+        from chunks 1-25 (25); "plan entries by treatment: APPEND 3150, EQUAL 1575, MOVE 3150, PER CHUNK 1575" (if no run failed)
+      - "merged 25 chunks: 3150 files moved, 3150 files appended, 1575 kept per chunk (0 failed-run folders), 0 incomplete run
+        folders, 0 locks or temp files left in place, 1575 build files equal; build '00ALLINONE  git a643bc7  target koa'"
+      - seven lines "reduce_B preview/gen3/<cell>: exit 0 ..." and 63 lines "reduce_testR preview/gen3/<cell>/m_<M>: exit 0 25
+        trajectories: nud_runs.csv (<n> fit failures), runs_health.csv (25 ##RUN sections), failed_runs.csv (0 failed runs)"
+      - 63 lines "preview/gen3/<cell>/m_<M>: 25 traces compressed"
+      - "merge done; next: the fetch (fetch_preview_koa.sh) and the E0 reduction on the Mac" and "this job's log is copied to
+        .../job_logs/ ..."
+    .merge_complete: the end time and the same "merged 25 chunks: ..." line
+    26         (the job logs copied: 25 chunk logs and the merge log)
+  STOP RULE: anything else: paste it, change nothing, wait. A job that stopped with "NOTHING was moved" may be submitted again (block G)
+  only after the plan author has read why. "refused (merged/ exists)" means a merge has run: never submit again.
+
+PREVIEW STEP FETCH (Mac, after block H is good; Chris types the password and Duo once):
+cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks && bash hspist3/cluster/gen3_preview_261011/fetch_preview_koa.sh
+  Size: about 15 MB (run.log, acf_runs.npz and the tables of 63 cell folders); no traces, no psi6(t) files, no run folders. Its last
+  line names the merge record. Then CC runs E0 and the figure (PREVIEW, INFORMATION):
+  python3 hspist3/cluster/gen3_preview_261011/e0_preview_261011.py --preview hspist3/experiments_gen3_preview_koa_261011/merged --tasks hspist3/cluster/gen3_preview_261011/tasks_preview_koa_261011.txt --out hspist3/experiments_gen3_preview_koa_261011/preview_e0_table.csv
+  python3 hspist3/cluster/gen3_preview_261011/fig_preview_261011.py --preview hspist3/experiments_gen3_preview_koa_261011/preview_e0_table.csv --out hspist3/experiments_gen3_preview_koa_261011/figure
+```
