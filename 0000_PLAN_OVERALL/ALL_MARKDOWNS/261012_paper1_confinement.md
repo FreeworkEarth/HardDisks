@@ -19177,3 +19177,122 @@ When you are back, paste me CC’s reports, Report P1 first.
 
 For CC:
 ```
+
+### 4.7.76 Report P1 — the preview (decision 37 item 3; decision 38 item 2): PREVIEW, INFORMATION. gen3 on KOA (`a643bc7`), the A1 v2 command at seven densities: 1575 runs, all clean, none excluded; E0 per cell; preview minus A1 v2 (2026-10-12 08:39 HST, machine date) [DATA, printed by script]
+
+**Plain summary.**
+- **PREVIEW, INFORMATION on everything; no verdict.** Never part of stage 1, never in a paper.
+- **The fetch** (Chris, 2026-10-12 about 08:33): `hspist3/experiments_gen3_preview_koa_261011`, 15 MB.
+  - 532 files: 63 cell-and-mass folders, 26 job logs (25 chunks and the merge) and the merge plan. All are listed with their SHA-256 in `FETCHED_SHA256_FILES.txt`.
+  - The merge record: "2026-10-12 10:32:32 UTC", "merged 25 chunks: 3150 files moved, 3150 files appended, 1575 kept per chunk (0 failed-run folders), 0 incomplete run folders, 0 locks or temp files left in place, 1575 build files equal; build '00ALLINONE  git a643bc7  target koa'".
+- **E0 and the figure were run exactly as the runsheet writes them** (`runsheet_preview_261011.txt`, step FETCH).
+  - E0: `e0_preview_261011.py`, which stops on any failed recorded-length check. All five checks hold in all 63 cell-and-mass folders.
+  - The figure and the comparison: `fig_preview_261011.py`.
+- **Inventory:**
+  - 1575 runs (7 densities × 9 masses × 25 seeds), 1575 with a clean gen3 record, 0 failed or excluded;
+  - the build line `00ALLINONE  git a643bc7  target koa` in all 63 folders;
+  - all 25 chunks on one CPU model (Intel Xeon E5-2670 v3 @ 2.30 GHz) on two nodes; no earlier attempts.
+- **Information, outside E0:** Test R's ν_d fit (`reduce_testR_koa.py`, run by the merge as for Test R) failed for 1 of the 1575 trajectories: η 0.052360, M 1500, run 11, seed 3813557011. E0 uses `reduce_B.py`'s argmax frequency, which exists for all 1575.
+
+**1. The inventory** (`preview_inventory_output.txt`, read-only on the fetched files):
+
+# PREVIEW inventory (the fetched merge, read-only): per density, over its 9 masses
+
+| cell | mass folders | runs (red_nu.csv) | runs_health rows | gen3_clean = 1 | run.log [EDMD3-HEALTH] lines | of them clean=1 | failed_runs.csv rows | .failed_run markers | build line | max contact gap [px] | nodes |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| eta_0p052360 | 9 | 225 | 225 | 225 | 225 | 225 | 0 | 0 | 00ALLINONE  git a643bc7  target koa | 5.44e-12 | 2 |
+| eta_0p112200 | 9 | 225 | 225 | 225 | 225 | 225 | 0 | 0 | 00ALLINONE  git a643bc7  target koa | 5.21e-12 | 2 |
+| eta_0p196350 | 9 | 225 | 225 | 225 | 225 | 225 | 0 | 0 | 00ALLINONE  git a643bc7  target koa | 5.45e-12 | 2 |
+| eta_0p261799 | 9 | 225 | 225 | 225 | 225 | 225 | 0 | 0 | 00ALLINONE  git a643bc7  target koa | 5.39e-12 | 2 |
+| eta_0p392699 | 9 | 225 | 225 | 225 | 225 | 225 | 0 | 0 | 00ALLINONE  git a643bc7  target koa | 5.2e-12 | 2 |
+| eta_0p523599 | 9 | 225 | 225 | 225 | 225 | 225 | 0 | 0 | 00ALLINONE  git a643bc7  target koa | 5.24e-12 | 2 |
+| eta_0p590 | 9 | 225 | 225 | 225 | 225 | 225 | 0 | 0 | 00ALLINONE  git a643bc7  target koa | 4.38e-12 | 2 |
+| **all** | 63 | 1575 | 1575 | 1575 | 1575 | 1575 | 0 | 0 | {'00ALLINONE  git a643bc7  target koa': 63} | | |
+
+**2. The lines blocks D and F would have shown, from the fetched logs** (`preview_blocks_DF_from_fetch.txt`; the last two lines are `preview_stopped_chunks.sh` run on the fetched job logs):
+
+````
+# Blocks D and F of runsheet_preview_261011.txt, repeated read-only on the Mac from the fetched files (the merged cell folders and the 26 job logs)
+
+## Block D's chunk-1 log (job_logs/gen3-preview_*_1.out), in full
+
+== job_logs/gen3-preview_15047929_1.out
+env: gcc (GCC) 14.3.0 | Python 3.12.14 at /home/charing/envs/hd/bin/python3 | git version 2.52.0
+chunk 1 on cn-03-38-01 (Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz): lines 1-63; 00ALLINONE  git a643bc7  target koa
+chunk 1 done
+
+## Block D's per-cell lines, over ALL chunks (the merge holds every run; block D counted chunk 1 only: 9 per cell). Traces are not fetched.
+
+eta_0p052360 masses 9: runs 225 gen3-records-clean 225 build-lines-ok 9
+      225 box=3599 x 240 px exact_box=0 eta=0.052374426011499747
+eta_0p112200 masses 9: runs 225 gen3-records-clean 225 build-lines-ok 9
+      225 box=1679 x 240 px exact_box=0 eta=0.1122665629633041
+eta_0p196350 masses 9: runs 225 gen3-records-clean 225 build-lines-ok 9
+      225 box=960 x 240 px exact_box=0 eta=0.19634954084936207
+eta_0p261799 masses 9: runs 225 gen3-records-clean 225 build-lines-ok 9
+      225 box=720 x 240 px exact_box=0 eta=0.26179938779914941
+eta_0p392699 masses 9: runs 225 gen3-records-clean 225 build-lines-ok 9
+      225 box=480 x 240 px exact_box=0 eta=0.39269908169872414
+eta_0p523599 masses 9: runs 225 gen3-records-clean 225 build-lines-ok 9
+      225 box=360 x 240 px exact_box=0 eta=0.52359877559829882
+eta_0p590 masses 9: runs 225 gen3-records-clean 225 build-lines-ok 9
+      225 box=319 x 240 px exact_box=0 eta=0.590895169954193
+
+## Block F's lines from the 26 fetched job logs (25 chunks and the merge job)
+
+chunk logs: 25
+logs with a line 'chunk <j> done': 25
+lines with FAILED or REFUSED: 0
+   25 (Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz)
+nodes: {'cn-03-38-01': 6, 'cn-03-38-02': 19}
+task ids with more than one log (earlier attempts): none
+job ids: ['15047929', '15047944'] ; merge job log: []
+---- preview_stopped_chunks.sh on the fetched logs:
+without a done log: stopped once 0, stopped twice or more 0, started and not finished 0, no log 0
+nothing to resubmit
+````
+
+- The merge log `gen3-preview-merge_15048172.out` also prints:
+  - "no git at run time; both input manifests: OK";
+  - the four scripts it ran, with their SHA-256 (Test R's `merge_koa.py`, `chunk_logs_koa.sh`, `reduce_testR_koa.py` and `reduce_B.py`);
+  - "chunk logs: 25; chunks done: 25 of 25 ...; earlier attempts: 0 stopped in the start-up checks, 0 started and not finished";
+  - "FAILED lines in the chunk logs (logs/): 0";
+  - "scan: 25 chunks, 9450 plan entries, 0 problem(s)";
+  - `reduce_B` exit 0 for the 7 densities, `reduce_testR` exit 0 for the 63 folders, "25 traces compressed" for each of the 63;
+  - "merge done; next: the fetch (fetch_preview_koa.sh) and the E0 reduction on the Mac".
+
+**3. The E0 table per cell** (`preview_e0_table.csv`, written by `e0_preview_261011.py`; the recorded lengths per cell and mass in `preview_e0_table_recorded.csv`):
+
+| cell | eta_rec | eta (box-corrected) | L0 | box [px] | c_s | c_s_err | c_s_err_scaled | c_s_scatter_mass | chi2_red | masses | trajectories used | discarded | KR | dev KR [%] |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| eta_0p052360 | 0.052360 | 0.052374 | 74.9998 | 3599 x 240 | 1.58635 | 0.002635 | 0.003264 | 0.00359 | 1.534 | 9 | 225 | 0 | 1.57444 | +0.756 |
+| eta_0p112200 | 0.112200 | 0.112267 | 34.9999 | 1679 x 240 | 1.81414 | 0.002549 | 0.002549 | 0.00180 | 0.487 | 9 | 225 | 0 | 1.79216 | +1.226 |
+| eta_0p196350 | 0.196350 | 0.196350 | 20.0000 | 960 x 240 | 2.21229 | 0.003059 | 0.004032 | 0.00351 | 1.737 | 9 | 225 | 0 | 2.17981 | +1.490 |
+| eta_0p261799 | 0.261799 | 0.261799 | 15.0000 | 720 x 240 | 2.61004 | 0.004457 | 0.011487 | 0.00803 | 6.642 | 9 | 225 | 0 | 2.57255 | +1.457 |
+| eta_0p392699 | 0.392699 | 0.392699 | 10.0000 | 480 x 240 | 3.80706 | 0.008952 | 0.008952 | 0.00609 | 0.560 | 9 | 225 | 0 | 3.74608 | +1.628 |
+| eta_0p523599 | 0.523599 | 0.523599 | 7.5000 | 360 x 240 | 6.04904 | 0.018710 | 0.040329 | 0.03061 | 4.646 | 9 | 225 | 0 | 5.93213 | +1.971 |
+| eta_0p590 | 0.590001 | 0.590895 | 6.6559 | 319 x 240 | 7.84921 | 0.040401 | 0.069429 | 0.04219 | 2.953 | 9 | 225 | 0 | 7.88661 | -0.474 |
+
+- eta_rec is the binary's nominal η from the launched L0. η (box-corrected) is E0's eta_rec L0/(L0 − δ/2), and the box is gen3's recorded box.
+- gen3's recorded η of that box ([EDMD3-RUN]) equals E0's corrected η in every folder (the check: relative < 2e-5). Three cells are truncated: η 0.052360, 0.112200 and 0.590001.
+
+**4. Preview minus A1 v2 per cell** (`fig_preview_261011.py`; its output `fig_preview_output.txt`, the table also in `figure/preview_minus_A1v2.csv`):
+
+# PREVIEW: preview minus A1 v2 per density (c_s; errors from c_s_err_scaled and from c_s_err)
+
+| cell | recorded eta | box-corrected eta | L0 | preview c_s | A1 v2 c_s | difference | relative [%] | error (scaled) | z (scaled) | error | z | note |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| eta_0p052360 | 0.052360 | 0.052374 | 74.9998 | 1.58635 | 1.58696 | -0.00061 | -0.038 | 0.00415 | -0.15 | 0.00347 | -0.18 | the same cell |
+| eta_0p112200 | 0.112200 | 0.112267 | 34.9999 | 1.81414 | 1.81044 | +0.00370 | +0.204 | 0.00587 | +0.63 | 0.00404 | +0.92 | the same cell |
+| eta_0p196350 | 0.196350 | 0.196350 | 20.0000 | 2.21229 | 2.21096 | +0.00133 | +0.060 | 0.00686 | +0.19 | 0.00441 | +0.30 | the same cell |
+| eta_0p261799 | 0.261799 | 0.261799 | 15.0000 | 2.61004 | 2.61299 | -0.00295 | -0.113 | 0.01381 | -0.21 | 0.00615 | -0.48 | the same cell |
+| eta_0p392699 | 0.392699 | 0.392699 | 10.0000 | 3.80706 | 3.80884 | -0.00178 | -0.047 | 0.01433 | -0.12 | 0.01212 | -0.15 | the same cell |
+| eta_0p523599 | 0.523599 | 0.523599 | 7.5000 | 6.04904 | 6.08815 | -0.03911 | -0.642 | 0.04381 | -0.89 | 0.02536 | -1.54 | the same cell |
+| eta_0p590 | 0.590001 | 0.590895 | 6.6559 | 7.84921 | 7.91096 | -0.06175 | -0.781 | 0.11463 | -0.54 | 0.05216 | -1.18 | the same cell |
+
+figure: hspist3/experiments_gen3_preview_koa_261011/figure/preview_cs_vs_eta.pdf, hspist3/experiments_gen3_preview_koa_261011/figure/preview_cs_vs_eta.png
+
+**5. The figure:** `hspist3/experiments_gen3_preview_koa_261011/figure/preview_cs_vs_eta.png` (and `.pdf`).
+- Four panels: (a) the preview, gen3; (b) the canonical A1 v2, gen2; (c, d) their residuals to Kolafa–Rottner 2006 for eta_rec ≤ 0.69.
+
+**Commits.** main: the evidence (the outputs above, the tables, the figure, the small per-cell tables `red_nu.csv`, `runs_health.csv`, `failed_runs.csv`, `nud_runs.csv`, `.build_git` and `FETCHED_SHA256_FILES.txt`) and this record. engine-gen3 and engine-divider-resched: the notes.
