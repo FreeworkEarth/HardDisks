@@ -1,0 +1,81 @@
+# Decision 34, addition (the energy-transfer scene in the gen3 window, a DISPLAY change): the acceptance, printed by experiments_gen3_d34a_261012/w_tables.py
+
+## 1. The binaries of the committed tree
+
+| binary | --version | SHA-256 | = build record |
+|---|---|---|---|
+| 00ALLINONE | 00ALLINONE  git 8bc9ac9  target mac-O3-e0pre | 5b29ef330e08754eb1bde941b8b1e5900a5e4f96f40bb982db7accd60f408010 | yes |
+| gen3_m1 | - | 89b77fa190c4afe8e749a6bf88e7f52e2f7e439b4cfec885127829d9e87863f7 | yes |
+| gen3_m2 | - | 3473318380ae3b5fdf225dc146c2eb0a0d5b05157ac2403e8582cd97fa5d15fb | yes |
+
+## 2. Rule 4: gen2 byte identity with 7b08827 (ctrl_min, ctrl_leg; the default build and --engine=gen2)
+
+default build: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+--engine=gen2: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+
+## 3. The M1 and M2 harness outputs against the committed ones
+
+| output | identical |
+|---|---|
+| m1_audit_output.txt | IDENTICAL |
+| m2_audit_quick_output.txt | IDENTICAL |
+| m2_audit_output.txt | IDENTICAL |
+
+## 4. Headless gen3 unchanged
+
+P4a start A seed 1, P4's command with the new binary: clean=1, event hash bd25077c5f1c9c9f (P4: bd25077c5f1c9c9f): EQUAL; its data files against P4's: 7 of 7 byte-identical (psi6_t_L0_106_wallmassfactor_300_run0.csv, run_params.json, snapshots_L0_106_wallmassfactor_300_run0.bin, speed_of_sound_batch_status.json, speed_of_sound_psi6.csv, virial_blocks_L0_106_wallmassfactor_300_run0.csv, wall_x_positions_L0_106_wallmassfactor_300_run0.csv); the command records 00_COMMAND.md, 01_PLOT_COMMANDS.md, 00_COMMAND_AND_PLOT_COMMAND.md name the run's folder, binary and time (provenance; not compared)
+stage A's replay cell m2_driven_pi8, variant a (readers at every target, one stop per interval): ['clean=1'] driven_pi8: hash 694fdf127f35d4b4, harness 694fdf127f35d4b4; events 818521, harness 818521: MATCH; targets 1600, changes 36, advance stops 1600 (substeps 1), reader passes 1600 (every 1 targets), smallest surface gap seen by the readers 1.25e-05 px, 1.1 s -- recorded hash 694fdf127f35d4b4: EQUAL, MATCH
+
+## 5. The display does not steer (decision 19's ST scene: N = 400, eta 0.31, the right piston stepping in, 40 sigma-time; gen3; the window: SDL's dummy video driver, the software renderer, no input)
+
+| run | window | clean | event hash | = headless | = decision 19's ST hash | output files = headless |
+|---|---|---|---|---|---|---|
+| headless | - | 1 | daea5de1378282dc | - | yes | - |
+| window_A | 1024 x 768 points, UI scale 1 | 1 | daea5de1378282dc | yes | yes | 4 of 4 |
+| window_B | 4112 x 2462 device pixels, UI scale 2 (2056 x 1231 points) | 1 | daea5de1378282dc | yes | yes | 4 of 4 |
+
+## 6. Item E: the energy-transfer scene with a spring, 200 sigma-time after the release (N = 400 on the right, r = 0.2159 sigma, eta 0.116; spring wall 0, L0 = 25.34 sigma, M = 50; free from the first step)
+
+gen3's ledger line: E = KE (disks and divider) + the spring energy, W = the work of driven bodies and API changes; (E - E0) - W against its rounding scale (u x the sum of the rounded terms); ratio <= 1: conserved to rounding.
+
+| k [kT/sigma^2] | run | clean | event hash | sigma-time (t_end/24) | E0 | E | W | (E - E0) - W | scale | ratio | [ENERGY] first and last: E_spring, E_tot | data files = headless |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 11.52 | headless | 1 | 6b2f8433a857ae37 | 200.017 | 400.000256109 | 400.000256109 | 0.0 | 5.12e-13 | 1.81e-10 | 0.00282 | step 500: 2.736922e+01, 4.000003e+02; step 12000: 2.002592e+01, 4.000003e+02 | - |
+| 11.52 | window_A | 1 | 6b2f8433a857ae37 | 200.017 | 400.000256109 | 400.000256109 | 0.0 | 5.12e-13 | 1.81e-10 | 0.00282 | step 500: 2.736922e+01, 4.000003e+02; step 12000: 2.002592e+01, 4.000003e+02 | 5 of 5 |
+| 115.2 | headless | 1 | 0af7413aabf2c92a | 200.017 | 400.002561094 | 400.002561094 | 0.0 | 0.0 | 1.61e-10 | 0.0 | step 500: 5.659885e-01, 4.000026e+02; step 12000: 1.728800e+00, 4.000026e+02 | - |
+| 115.2 | window_A | 1 | 0af7413aabf2c92a | 200.017 | 400.002561094 | 400.002561094 | 0.0 | 0.0 | 1.61e-10 | 0.0 | step 500: 5.659885e-01, 4.000026e+02; step 12000: 1.728800e+00, 4.000026e+02 | 5 of 5 |
+
+## 7. Item B through the F3 panel: the scene rebuilt by APPLY (--gui-keys=1:apply-gen3), k = 11.52 from the k row, window B
+
+- the panel's line: `Scene reset queued: mode=energy transfer engine=EDMD gen3 (display) walls=1 springL0=25.340σ springk=11.52 N=400 r=0.2159σ eta=0.116 thick=0.0000σ(auto) masses=50`
+- the engine's spring after the rebuild: `🔩 spring: k = 0.02 /px^2 = 11.52 kT/sigma^2 | M_wall = 50 | omega_w = 0.48, T_w = 13.09 sigma-time | thermal rms = 0.2946 sigma`
+- the run record: clean=1, event hash 931592d878cd03d6, 200.017 sigma-time; the ledger: (E - E0) - W = -1.93e-12, scale 1.81e-10, ratio 0.0107 (E0 400.0, E 400.0, W 0.0)
+- the screenshot after step 3000: experiments_gen3_d34a_261012/evidence_8bc9ac9/screenshots/SF_k11.52_window_B_step3000.png
+
+## 8. Item C: a divider that reaches its limit pauses the window (no spring: Chris's case; window B)
+
+- `[GUI-LIMIT] step 1241, t = 20.683334 sigma-time: a divider (x = 0.294166 sigma, v = -1.63411 sigma per sigma-time) would reach the left outer wall within the next step; the window pauses (P and SPACE do not resume; ESC or the F3 panel's APPLY rebuilds the scene, Q ends it)`
+- the run record at the pause: clean=1, body_findings=0, event hash 20b68830dd4d0d69; exit code 0; 'Invalid wall_x' in the log: no
+- the screenshot of the pause: experiments_gen3_d34a_261012/evidence_8bc9ac9/screenshots/LM_window_B_pause.png
+- information, the same scene with decision 19's binary bin_7f6adca: `🚨 Invalid wall_x = 184.454788`, exit code 1
+
+## 9. Warnings (build_clean.sh's -Wall -Wextra pass of the driver's sources; compared without file and line)
+
+this build 25, the parent f72d764 25; new: 0
+gen3_m1: 0 warnings
+gen3_m2: 0 warnings
+
+## Acceptance
+
+| item | result |
+|---|---|
+| rule 4 identical (default and --engine=gen2, ctrl_min and ctrl_leg) | PASS |
+| M1/M2 harness outputs identical | PASS |
+| headless gen3 unchanged (P4a A seed 1; the replay cell) | PASS |
+| the display does not steer (gen3, two window sizes = the headless event hash, output files byte-identical) | PASS |
+| item E: the spring scene at two k -- ledger to rounding over 200 sigma-time, window = headless event hash | PASS |
+| item B: the k row reaches gen3 through APPLY (springk=11.52, the engine's k = 0.02 /px^2, ledger to rounding) | PASS |
+| item C: the window pauses at the limit (no exit; the run record clean) | PASS |
+| 0 new warnings | PASS |
+
+DECISION 34 ADDITION ACCEPTANCE: PASS
