@@ -18645,3 +18645,105 @@ cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks && bash hspist3/cluster/
   python3 hspist3/cluster/gen3_preview_261011/e0_preview_261011.py --preview hspist3/experiments_gen3_preview_koa_261011/merged --tasks hspist3/cluster/gen3_preview_261011/tasks_preview_koa_261011.txt --out hspist3/experiments_gen3_preview_koa_261011/preview_e0_table.csv
   python3 hspist3/cluster/gen3_preview_261011/fig_preview_261011.py --preview hspist3/experiments_gen3_preview_koa_261011/preview_e0_table.csv --out hspist3/experiments_gen3_preview_koa_261011/figure
 ```
+
+### 4.7.72 Plan-author decision 37: Report P0 accepted (Chris types the preview tonight); sec. 4.8 accepted as the recorded stage 1 registration; Report P1 after the fetch; then decision 34, S1-0 and M5 (2026-10-11 23:05 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 37** (relayed by Chris at about 23:05 HST):
+  1. **Report P0 is ACCEPTED:** the rehearsal (17 of 17, run 2), the comparison with and without HD_CONTACT_AUDIT (equal hash, byte-identical traces) and the runsheet.
+     - Chris types blocks A to H and the fetch tonight.
+     - Because this is a PREVIEW without a verdict, he goes from block D to block E without waiting for the plan author, if D prints the expected lines.
+     - The plan author reads D, F and H afterwards.
+  2. **Sec. 4.8 (main 85cb671e, SHA-256 d5cc0ce4...) is accepted as the recorded stage 1 registration.**
+     - Noted: the file was untracked, and its modification time is 2026-10-11 22:27 HST; Chris is asked why. The five strings and the three counts matched.
+     - For the plan author's own comparison with the project copy, CC prints verbatim from the recorded sec. 4.8 every line containing one of eight given strings (information only).
+  3. **After Chris's fetch of the preview:** CC runs the E0 reduction and the figure as the runsheet says. Report P1 carries PREVIEW, INFORMATION on everything, and contains:
+     - the inventory (1575 runs, clean, excluded);
+     - the E0 table per cell with the recorded η, box and L0;
+     - the table "preview minus A1 v2" per cell with its error and z;
+     - the figure's path.
+     - No verdict, and no anticipated reading by the plan author: only what the numbers are.
+  4. **Then decision 34 (the window), inventory first.** It includes what CC already found: decision 19's "the display does not steer" test covered a run in which no key was pressed.
+  5. **Then:** Report S1-0 and the stage 1 package up to gate G4; the M5 solid-cell job with its runsheet.
+
+**The message, verbatim** (relayed by Chris on 2026-10-11 at about 23:05 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record in a new
+section.
+
+DECISION 37 (2026-10-11 ~23:05 HST), after Report P0
+ 1. Report P0: ACCEPTED. The rehearsal (17 of 17, run 2), the
+    with/without HD_CONTACT_AUDIT comparison (equal hash, traces
+    byte-identical) and the runsheet are accepted. Chris types
+    blocks A-H and the fetch tonight; because this is a PREVIEW
+    without a verdict he goes from D to E without waiting for me
+    if D prints the expected lines. I read D, F and H afterwards.
+ 2. Sec. 4.8 (main 85cb671e, SHA-256 d5cc0ce4...): accepted as the
+    recorded stage 1 registration. Noted: the file was untracked and
+    its modification time is 2026-10-11 22:27 HST (Chris is asked
+    why); the five strings and the three counts matched. For my own
+    comparison with the project copy, print verbatim from the
+    recorded sec. 4.8 every line that contains one of:
+    "KR-CONSISTENT", "START-INDEPENDENT", "IDENTITY HOLDS",
+    "σ-time** for", "Seeds:**", "No extension of seeds",
+    "G6, on KOA", "False alarm". Information only.
+ 3. After Chris's fetch of the preview: run the E0 reduction and
+    the figure as the runsheet says. Report P1: PREVIEW,
+    INFORMATION on everything; the inventory (1575 runs, clean,
+    excluded); the E0 table per cell with the recorded eta, box and
+    L0; the table "preview minus A1 v2" per cell with its error
+    and z; the figure's path. No verdict and no reading of mine is
+    anticipated; state only what the numbers are.
+ 4. Then decision 34 (the window), inventory first, including what
+    you already found: decision 19's "the display does not steer"
+    test covered a run with no key pressed.
+ 5. Then Report S1-0 and the stage 1 package up to gate G4; the M5
+    solid-cell job with its runsheet.
+
+End with "Written for: the plan author".
+```
+
+**Item 2, printed (information):** the lines of the recorded sec. 4.8 that contain the eight strings. The text was cut from main 85cb671e, byte-identical to the file. Printed verbatim:
+
+````
+# decision 37, item 2 (information): every line of the recorded sec. 4.8 (cut from main 85cb671e; = the file, SHA-256 d5cc0ce4...) that contains one of the eight strings, verbatim, in the text's order, with its line number in the registration text
+
+[line 69; contains: Seeds:**, No extension of seeds]
+**Seeds:** 25 per (cell, mass) in blocks B and D, numbered s = 0 … 24. No extension of seeds is allowed by this text. More seeds, or more box sizes, need a written amendment made before any verdict of § 4.8.7 has been printed.
+
+[line 76; contains: σ-time** for]
+   - $T_{\rm eq}$ = **1000 σ-time** for η ≤ 0.60 (60,000 steps);
+
+[line 77; contains: σ-time** for]
+   - $T_{\rm eq}$ = **5000 σ-time** for η ≥ 0.63 (300,000 steps).
+
+[line 192; contains: KR-CONSISTENT]
+- **KR-CONSISTENT** if $p(X^2) \ge 0.01$ and $\max_\Phi |z_\eta| < 3.5$.
+
+[line 195; contains: False alarm]
+False alarm about 1.6 % (1 % + 0.56 %). Also printed: the weighted mean $\bar a$ over Φ with its error; the same with F1; the same without flagged cells and densities. For the approach cells the fits are printed with no verdict.
+
+[line 205; contains: IDENTITY HOLDS]
+- **IDENTITY HOLDS** if $p(\chi^2) \ge 0.01$ for $\rho_I \equiv 0$ (4 degrees of freedom).
+
+[line 206; contains: IDENTITY HOLDS]
+- **IDENTITY HOLDS WITH A 1/N_s TERM** if that fails and the $c_I/N_s$ fit has $p \ge 0.01$.
+
+[line 213; contains: START-INDEPENDENT]
+- **START-INDEPENDENT** if all four $|z| < 3.5$.
+
+[line 216; contains: False alarm]
+False alarm 0.19 % per cell and 3.7 % for at least one of the 20 cells. The values of the main block's default start are printed next to them (information).
+
+[line 231; contains: KR-CONSISTENT]
+2. **Bulk limit.** KR-CONSISTENT; $|z_\eta| < 2$ at 10 or more of the 12 densities of Φ (by chance this fails with probability 1.5 %).
+
+[line 236; contains: START-INDEPENDENT]
+7. **Start check.** START-INDEPENDENT in all 20 cells [INFERENCE: pilot P3 found the lattice and the compressed-fluid start converged at η 0.700–0.716 for N = 400 and 1600; no pilot compared the two orientations in the fluid, and none exists for N = 900].
+
+[line 283; contains: G6, on KOA]
+- **G6, on KOA.** (a) Test G on KOA: PASS by its registered verdict. (b) The M5 long-double verdict, or the larger double-against-long-double comparison if the registered rule cannot decide with four seeds, does not say DIFFERENCE. (c) With the campaign build, the deterministic items that decision 13 item 2h requires at the final campaign commit: E0 (rule 4, the gen2 path byte-identical), cross-node determinism, and the M1/M2 harness hashes. (d) The 12 gen3 lines of Test G chunk 1, run in one job with the gate binary and with the campaign binary, give equal event hashes. (e) Stage 1 chunk 1 alone prints its expected lines.
+
+(12 lines; per string: "KR-CONSISTENT" 2, "START-INDEPENDENT" 2, "IDENTITY HOLDS" 2, "σ-time** for" 2, "Seeds:**" 1, "No extension of seeds" 1, "G6, on KOA" 1, "False alarm" 2)
+````
