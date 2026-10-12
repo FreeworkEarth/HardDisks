@@ -1,0 +1,247 @@
+# Every key line ([EDMD3...], [EDMD-CONTACT], [GUI-STATS], [GEN3-GUI], [GUI-LIMIT], [GUI-SHOT], [GUI-KEYS], [ENERGY], the scene reset and spring lines, 'Invalid wall_x', STOP, Failed, [warn]) of the decision 34 (the rest) runs (the logs are .gitignored), and the runner's log in full; extracted 2026-10-12 09:22 HST
+
+
+== evidence_406044f/h0/default/ctrl_leg/audit/run.log (exit -)
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== evidence_406044f/h0/default/ctrl_leg/plain/run.log (exit -)
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== evidence_406044f/h0/default/ctrl_leg/ref/run.log (exit -)
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== evidence_406044f/h0/default/ctrl_min/audit/run.log (exit -)
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== evidence_406044f/h0/default/ctrl_min/plain/run.log (exit -)
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== evidence_406044f/h0/default/ctrl_min/ref/run.log (exit -)
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== evidence_406044f/h0/default_runner/run.log (exit 0)
+
+
+== evidence_406044f/h0/gen2flag/ctrl_leg/audit/run.log (exit -)
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== evidence_406044f/h0/gen2flag/ctrl_leg/plain/run.log (exit -)
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== evidence_406044f/h0/gen2flag/ctrl_leg/ref/run.log (exit -)
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== evidence_406044f/h0/gen2flag/ctrl_min/audit/run.log (exit -)
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== evidence_406044f/h0/gen2flag/ctrl_min/plain/run.log (exit -)
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== evidence_406044f/h0/gen2flag/ctrl_min/ref/run.log (exit -)
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== evidence_406044f/h0/gen2flag_runner/run.log (exit 0)
+
+
+== evidence_406044f/h1/run.log (exit 0)
+
+
+== evidence_406044f/noexit/apply_refused/run.log (exit 0)
+🔩 spring: k = 0.02 /px^2 = 11.52 kT/sigma^2 | M_wall = 50 | omega_w = 0.48, T_w = 13.09 sigma-time | thermal rms = 0.2946 sigma
+🔬 Energy measurement initialized: mode=spring, equilibrium at 1160.00
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 1.97949e-08 px^2, tol_face 5.90954e-10 px, band margin 8.4e-06 px, v_ref 80.9701 px/unit
+[GUI-KEYS] step 1: apply-gen3
+[GUI] APPLY refused: compartment 2 holds at most 240 disks of radius 0.3500 sigma (hexagonal lattice inside its walls), the panel asks 400; lower N or the radius, or widen the compartment (nothing was rebuilt)
+[ENERGY] step=500  KE_p=1.059649e+03  KE_w=4.180775e+01  KE_tot=1.101457e+03  vx_wall=-1.29318  E_spring=5.375828e+02  E_tot=1.639040e+03
+[ENERGY] step=1000  KE_p=7.958359e+02  KE_w=3.150166e+01  KE_tot=8.273376e+02  vx_wall=1.12253  E_spring=8.117024e+02  E_tot=1.639040e+03
+[ENERGY] step=1500  KE_p=6.972703e+02  KE_w=4.811098e+00  KE_tot=7.020814e+02  vx_wall=-0.438684  E_spring=9.369586e+02  E_tot=1.639040e+03
+[ENERGY] step=2000  KE_p=1.121482e+03  KE_w=1.880725e+00  KE_tot=1.123363e+03  vx_wall=0.274279  E_spring=5.156770e+02  E_tot=1.639040e+03
+[ENERGY] step=2500  KE_p=7.091728e+02  KE_w=1.448139e+00  KE_tot=7.106210e+02  vx_wall=0.240677  E_spring=9.284190e+02  E_tot=1.639040e+03
+[GUI-STATS] engine=gen3 window=1 N=400 frames=513 steps=2503 wall_s=5.013 fps=102.325 sigma_time=41.7167 sigma_per_wall_s=8.321 events=105221 events_per_wall_s=20987.9 engine_s=0.212 time_scale=200
+[EDMD3-LEDGER] momentum x: residual -3.55e-13, scale 5.29e-10, ratio 0.000672; y: residual -1.49e-13, scale 3.31e-11, ratio 0.00451; energy: residual -3.87e-12, scale 2.64e-09, ratio 0.00146 (E0 1639.03997231, E 1639.03997231, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=176690 full_checks=2545 local_worst=-4.8e-13 full_worst=-2.03e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.09e-13 ev_pair=71469 ev_wall=4223 ev_cross=27975 ev_div=1554 ev_piston=0 ev_band=0 ev_stale=573593 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=13676 validator_every=60 hash=faeaa28baa32bf68 t_end=1001.2000149190426 engine=gen3 build="406044f" target=mac-O3-e0pre run_s=5.012 engine_s=0.212 driver_share=0.9577
+
+== evidence_406044f/noexit/gen3_refused/run.log (exit 0)
+STOPPED (--engine=gen3, in the window; the window pauses): gen3 cannot build this scene: edmd_gen3: cell width 32 px < diameter 33.599998474121094 px (sec. 4.7.1, a)
+[GUI-STOP] gen3 cannot build this scene: edmd_gen3: cell width 32 px < diameter 33.599998474121094 px (sec. 4.7.1, a); the window pauses (P and SPACE do not resume; ESC or the F3 panel's APPLY rebuilds the scene, Q ends it)
+[GUI-SHOT] /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d38/shots_406044f/NX_gen3_refused_pause.bmp (2056 x 1231 device pixels, UI scale 1)
+[GUI-STATS] engine=gen3 window=1 N=100 frames=432 steps=1 wall_s=5.020 fps=86.048 sigma_time=0.0166667 sigma_per_wall_s=0.00331977 events=0 events_per_wall_s=0 engine_s=0.000 time_scale=200
+[EDMD3-HEALTH] scene: clean=0 no gen3 state (the run never advanced)
+
+== evidence_406044f/noexit/gen3_refused_old_bin_8bc9ac9/run.log (exit 2)
+STOP (--engine=gen3): edmd_gen3: cell width 32 px < diameter 33.599998474121094 px (sec. 4.7.1, a)
+
+== evidence_406044f/p4a_A1/run.log (exit 0)
+[EDMD3-RUN] L0=10.6 M=300 run=0 seed=2023561687: engine=gen3 build="406044f" target=mac-O3-e0pre cell_px=32 origin_shift=8192 u_t=0x1p-39 K=4 box=509.44745733888533 x 480 px exact_box=1 eta=0.73999999999999999 N=400 N_L=200 N_R=200 seeding=lattice left=[orient parallel rows alternate n_s 19 n_r 11 a_s 12.7061864 a_r 45.4587627 g 0.706186432 s 1.41237286 n_vac 0 jitter 0.353093216 px] right=[orient parallel rows alternate n_s 19 n_r 11 a_s 12.7061864 a_r 45.4587627 g 0.706186432 s 1.41237286 n_vac 0 jitter 0.353093216 px] jitter_f=0.25 T_eq=100000.001 sigma-time (held divider, 6000000 steps) record=1.00000001 sigma-time psi6_every=1 validator_every=60
+[EDMD3-TIES] at the load: live events 1129, sharing their time exactly with another live event 0, due at once 0
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 509.44745733888533 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91493e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual -2.36e-12, scale 2.13e-07, ratio 1.11e-05; y: residual 7.86e-12, scale 1.58e-07, ratio 4.97e-05; energy: residual -5.91e-11, scale 1.31e-06, ratio 4.5e-05 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=10.6 M=300 run=0 seed=2023561687: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=1286632079 full_checks=200354 local_worst=-4.37e-12 full_worst=-2.71e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.44e-12 ev_pair=588218990 ev_wall=46921328 ev_cross=39383255 ev_div=23889516 ev_piston=0 ev_band=0 ev_stale=4661649240 origin_shifts=292 syncs=292 heap_compactions=4281 heap_max=29711 validator_every=60 hash=bd25077c5f1c9c9f t_end=2400024.0357631445 engine=gen3 build="406044f" target=mac-O3-e0pre run_s=905.959 engine_s=887.611 driver_share=0.0203
+[EDMD3-OBS] virial blocks 2000 (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d34s_261012/evidence_406044f/p4a_A1/virial_blocks_L0_106_wallmassfactor_300_run0.csv), snapshots 51 (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d34s_261012/evidence_406044f/p4a_A1/snapshots_L0_106_wallmassfactor_300_run0.bin)
+
+== evidence_406044f/replay/run.log (exit 0)
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 481.19999999999999 x 960 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.41769e-08 px^2, tol_face 2.95807e-10 px, band margin 1.2e-05 px, v_ref 40.5929 px/unit
+[EDMD3-REPLAY] driven_pi8: hash 694fdf127f35d4b4, harness 694fdf127f35d4b4; events 818521, harness 818521: MATCH; targets 1600, changes 36, advance stops 1600 (substeps 1), reader passes 1600 (every 1 targets), smallest surface gap seen by the readers 1.25e-05 px, 0.9 s
+[EDMD3-LEDGER] momentum x: residual -3.41e-13, scale 4.63e-10, ratio 0.000737; y: residual 3.2e-14, scale 1.81e-10, ratio 0.000177; energy: residual 8.75e-12, scale 4.1e-09, ratio 0.00214 (E0 411.945389721, E 1084.94844683, W 673.003)
+[EDMD3-HEALTH] replay driven_pi8: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=1315862 full_checks=2001 local_worst=-5.48e-12 full_worst=-2.04e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.66e-12 ev_pair=497377 ev_wall=43961 ev_cross=246409 ev_div=30738 ev_piston=0 ev_band=36 ev_stale=2564325 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=5155 validator_every=60 hash=694fdf127f35d4b4 t_end=9600 engine=gen3 build="406044f" target=mac-O3-e0pre run_s=0.853 engine_s=0.533 driver_share=0.3751
+
+== evidence_406044f/screens/N400_screen/run.log (exit 0)
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 1.39698e-08 px^2, tol_face 2.92857e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[GUI-SHOT] /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d38/shots_406044f/SS_N400_screen.bmp (2056 x 1231 device pixels, UI scale 1)
+[ENERGY] step=500  KE_p=3.993738e+02  KE_w=6.261564e-01  KE_tot=4.000000e+02  vx_wall=0.15826  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=1000  KE_p=3.996930e+02  KE_w=3.070430e-01  KE_tot=4.000000e+02  vx_wall=-0.110823  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=1500  KE_p=3.998086e+02  KE_w=1.913924e-01  KE_tot=4.000000e+02  vx_wall=0.0874968  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=2000  KE_p=3.997354e+02  KE_w=2.645539e-01  KE_tot=4.000000e+02  vx_wall=0.10287  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=2500  KE_p=3.996270e+02  KE_w=3.730048e-01  KE_tot=4.000000e+02  vx_wall=0.122148  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=3000  KE_p=3.997440e+02  KE_w=2.560453e-01  KE_tot=4.000000e+02  vx_wall=0.101202  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=3500  KE_p=3.999530e+02  KE_w=4.702966e-02  KE_tot=4.000000e+02  vx_wall=0.0433726  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=4000  KE_p=3.977430e+02  KE_w=2.256958e+00  KE_tot=4.000000e+02  vx_wall=-0.300464  E_spring=0.000000e+00  E_tot=4.000000e+02
+[GUI-STATS] engine=gen3 window=1 N=400 frames=647 steps=4003 wall_s=8.018 fps=80.697 sigma_time=66.7167 sigma_per_wall_s=8.32128 events=71439 events_per_wall_s=8910.27 engine_s=0.048 time_scale=200
+[EDMD3-LEDGER] momentum x: residual -5.33e-14, scale 1.41e-11, ratio 0.00379; y: residual 8.88e-15, scale 1.21e-11, ratio 0.000732; energy: residual -5.12e-13, scale 1.01e-10, ratio 0.00507 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=107643 full_checks=4070 local_worst=-6.04e-13 full_worst=-1.99e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=4.16e-13 ev_pair=36204 ev_wall=3484 ev_cross=30742 ev_div=1009 ev_piston=0 ev_band=0 ev_stale=162832 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=3640 validator_every=60 hash=6f91628997ddd5bc t_end=1601.2000238597393 engine=gen3 build="406044f" target=mac-O3-e0pre run_s=8.017 engine_s=0.048 driver_share=0.9940
+
+== evidence_406044f/screens/N5000_retina/run.log (exit 0)
+[EDMD3] built #1 at t = 0 (internal units): N = 5000, box 4300 x 1697 px, cell 32 px, dividers 1, pistons 1/1; c_tol 4.93908e-08 px^2, tol_face 1.03625e-09 px, band margin 1.2e-05 px, v_ref 141.421 px/unit
+[GUI-SHOT] /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d38/shots_406044f/SS_N5000_retina.bmp (4112 x 2462 device pixels, UI scale 2)
+[ENERGY] step=500  KE_p=4.999770e+03  KE_w=2.298201e-01  KE_tot=5.000000e+03  vx_wall=0.0958791  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=1000  KE_p=4.999999e+03  KE_w=1.099573e-03  KE_tot=5.000000e+03  vx_wall=-0.00663196  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=1500  KE_p=4.999899e+03  KE_w=1.013345e-01  KE_tot=5.000000e+03  vx_wall=-0.0636662  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=2000  KE_p=4.999983e+03  KE_w=1.735186e-02  KE_tot=5.000000e+03  vx_wall=0.0263453  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=2500  KE_p=4.999795e+03  KE_w=2.054472e-01  KE_tot=5.000000e+03  vx_wall=-0.0906526  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=3000  KE_p=4.999139e+03  KE_w=8.612394e-01  KE_tot=5.000000e+03  vx_wall=0.185606  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=3500  KE_p=4.997450e+03  KE_w=2.549657e+00  KE_tot=5.000000e+03  vx_wall=-0.319353  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=4000  KE_p=4.999513e+03  KE_w=4.873923e-01  KE_tot=5.000000e+03  vx_wall=-0.139627  E_spring=0.000000e+00  E_tot=5.000000e+03
+[GUI-STATS] engine=gen3 window=1 N=5000 frames=223 steps=4010 wall_s=8.057 fps=27.679 sigma_time=66.8333 sigma_per_wall_s=8.29534 events=844630 events_per_wall_s=104835 engine_s=0.572 time_scale=200
+[EDMD3-LEDGER] momentum x: residual -1.6e-13, scale 1.37e-10, ratio 0.00117; y: residual -2.13e-13, scale 2e-10, ratio 0.00107; energy: residual -2.82e-11, scale 3.74e-09, ratio 0.00755 (E0 5000, E 5000, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=1275214 full_checks=4077 local_worst=-7.78e-13 full_worst=-3.59e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=4.62e-13 ev_pair=430584 ev_wall=11528 ev_cross=399146 ev_div=3372 ev_piston=0 ev_band=0 ev_stale=1835236 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=34781 validator_every=60 hash=ae74a77cf5d4a507 t_end=1604.0000239014626 engine=gen3 build="406044f" target=mac-O3-e0pre run_s=7.986 engine_s=0.572 driver_share=0.9284
+
+== evidence_406044f/screens/N5000_screen/run.log (exit 0)
+[EDMD3] built #1 at t = 0 (internal units): N = 5000, box 4300 x 1697 px, cell 32 px, dividers 1, pistons 1/1; c_tol 4.93908e-08 px^2, tol_face 1.03625e-09 px, band margin 1.2e-05 px, v_ref 141.421 px/unit
+[GUI-SHOT] /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d38/shots_406044f/SS_N5000_screen.bmp (2056 x 1231 device pixels, UI scale 1)
+[ENERGY] step=500  KE_p=4.999770e+03  KE_w=2.298201e-01  KE_tot=5.000000e+03  vx_wall=0.0958791  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=1000  KE_p=4.999999e+03  KE_w=1.099573e-03  KE_tot=5.000000e+03  vx_wall=-0.00663196  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=1500  KE_p=4.999899e+03  KE_w=1.013345e-01  KE_tot=5.000000e+03  vx_wall=-0.0636662  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=2000  KE_p=4.999983e+03  KE_w=1.735186e-02  KE_tot=5.000000e+03  vx_wall=0.0263453  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=2500  KE_p=4.999795e+03  KE_w=2.054472e-01  KE_tot=5.000000e+03  vx_wall=-0.0906526  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=3000  KE_p=4.999139e+03  KE_w=8.612394e-01  KE_tot=5.000000e+03  vx_wall=0.185606  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=3500  KE_p=4.997450e+03  KE_w=2.549657e+00  KE_tot=5.000000e+03  vx_wall=-0.319353  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=4000  KE_p=4.999513e+03  KE_w=4.873923e-01  KE_tot=5.000000e+03  vx_wall=-0.139627  E_spring=0.000000e+00  E_tot=5.000000e+03
+[GUI-STATS] engine=gen3 window=1 N=5000 frames=452 steps=4001 wall_s=8.019 fps=56.363 sigma_time=66.6833 sigma_per_wall_s=8.31517 events=842780 events_per_wall_s=105092 engine_s=0.590 time_scale=200
+[EDMD3-LEDGER] momentum x: residual -2.27e-13, scale 1.35e-10, ratio 0.00169; y: residual -2.98e-13, scale 2.02e-10, ratio 0.00147; energy: residual -2.82e-11, scale 3.73e-09, ratio 0.00755 (E0 5000, E 5000, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=1272417 full_checks=4068 local_worst=-7.78e-13 full_worst=-3.59e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=4.62e-13 ev_pair=429637 ev_wall=11506 ev_cross=398272 ev_div=3365 ev_piston=0 ev_band=0 ev_stale=1830860 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=34781 validator_every=60 hash=1780b47074ab5ae6 t_end=1600.4000238478184 engine=gen3 build="406044f" target=mac-O3-e0pre run_s=7.948 engine_s=0.590 driver_share=0.9258
+
+== evidence_406044f/screens/N5000_small/run.log (exit 0)
+[EDMD3] built #1 at t = 0 (internal units): N = 5000, box 4300 x 1697 px, cell 32 px, dividers 1, pistons 1/1; c_tol 4.93908e-08 px^2, tol_face 1.03625e-09 px, band margin 1.2e-05 px, v_ref 141.421 px/unit
+[GUI-SHOT] /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d38/shots_406044f/SS_N5000_small.bmp (1440 x 900 device pixels, UI scale 1)
+[ENERGY] step=500  KE_p=4.999770e+03  KE_w=2.298201e-01  KE_tot=5.000000e+03  vx_wall=0.0958791  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=1000  KE_p=4.999999e+03  KE_w=1.099573e-03  KE_tot=5.000000e+03  vx_wall=-0.00663196  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=1500  KE_p=4.999899e+03  KE_w=1.013345e-01  KE_tot=5.000000e+03  vx_wall=-0.0636662  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=2000  KE_p=4.999983e+03  KE_w=1.735186e-02  KE_tot=5.000000e+03  vx_wall=0.0263453  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=2500  KE_p=4.999795e+03  KE_w=2.054472e-01  KE_tot=5.000000e+03  vx_wall=-0.0906526  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=3000  KE_p=4.999139e+03  KE_w=8.612394e-01  KE_tot=5.000000e+03  vx_wall=0.185606  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=3500  KE_p=4.997450e+03  KE_w=2.549657e+00  KE_tot=5.000000e+03  vx_wall=-0.319353  E_spring=0.000000e+00  E_tot=5.000000e+03
+[ENERGY] step=4000  KE_p=4.999513e+03  KE_w=4.873923e-01  KE_tot=5.000000e+03  vx_wall=-0.139627  E_spring=0.000000e+00  E_tot=5.000000e+03
+[GUI-STATS] engine=gen3 window=1 N=5000 frames=543 steps=4002 wall_s=8.012 fps=67.773 sigma_time=66.7 sigma_per_wall_s=8.32502 events=842988 events_per_wall_s=105216 engine_s=0.603 time_scale=200
+[EDMD3-LEDGER] momentum x: residual -1.99e-13, scale 1.36e-10, ratio 0.00147; y: residual -4.26e-13, scale 2.02e-10, ratio 0.00211; energy: residual -3.27e-11, scale 3.73e-09, ratio 0.00877 (E0 5000, E 5000, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=1272737 full_checks=4069 local_worst=-7.78e-13 full_worst=-3.59e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=4.62e-13 ev_pair=429749 ev_wall=11510 ev_cross=398363 ev_div=3366 ev_piston=0 ev_band=0 ev_stale=1831379 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=34781 validator_every=60 hash=cea8da800db0f1dc t_end=1600.8000238537788 engine=gen3 build="406044f" target=mac-O3-e0pre run_s=7.940 engine_s=0.603 driver_share=0.9240
+
+== evidence_406044f/screens/N8000_screen/run.log (exit 0)
+[EDMD3] built #1 at t = 0 (internal units): N = 8000, box 5439 x 2146 px, cell 32 px, dividers 1, pistons 1/1; c_tol 6.2475e-08 px^2, tol_face 1.30884e-09 px, band margin 1.2e-05 px, v_ref 178.885 px/unit
+[GUI-SHOT] /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d38/shots_406044f/SS_N8000_screen.bmp (2056 x 1231 device pixels, UI scale 1)
+[ENERGY] step=500  KE_p=7.998479e+03  KE_w=1.520731e+00  KE_tot=8.000000e+03  vx_wall=0.246636  E_spring=0.000000e+00  E_tot=8.000000e+03
+[ENERGY] step=1000  KE_p=7.999983e+03  KE_w=1.732744e-02  KE_tot=8.000000e+03  vx_wall=0.0263267  E_spring=0.000000e+00  E_tot=8.000000e+03
+[ENERGY] step=1500  KE_p=7.999957e+03  KE_w=4.290963e-02  KE_tot=8.000000e+03  vx_wall=0.0414293  E_spring=0.000000e+00  E_tot=8.000000e+03
+[ENERGY] step=2000  KE_p=7.999884e+03  KE_w=1.164898e-01  KE_tot=8.000000e+03  vx_wall=-0.0682612  E_spring=0.000000e+00  E_tot=8.000000e+03
+[ENERGY] step=2500  KE_p=7.998141e+03  KE_w=1.858670e+00  KE_tot=8.000000e+03  vx_wall=0.272666  E_spring=0.000000e+00  E_tot=8.000000e+03
+[ENERGY] step=3000  KE_p=7.999976e+03  KE_w=2.363895e-02  KE_tot=8.000000e+03  vx_wall=0.0307499  E_spring=0.000000e+00  E_tot=8.000000e+03
+[ENERGY] step=3500  KE_p=7.998700e+03  KE_w=1.299896e+00  KE_tot=8.000000e+03  vx_wall=0.228026  E_spring=0.000000e+00  E_tot=8.000000e+03
+[GUI-STATS] engine=gen3 window=1 N=8000 frames=325 steps=3957 wall_s=8.035 fps=40.450 sigma_time=65.95 sigma_per_wall_s=8.20819 events=1323668 events_per_wall_s=164745 engine_s=0.932 time_scale=200
+[EDMD3-LEDGER] momentum x: residual -1.44e-13, scale 2.06e-10, ratio 0.000697; y: residual -3.98e-13, scale 3.94e-10, ratio 0.00101; energy: residual 1.82e-11, scale 8.61e-09, ratio 0.00211 (E0 8000, E 8000, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=2002318 full_checks=4023 local_worst=-6.54e-13 full_worst=-1.67e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=5e-13 ev_pair=678650 ev_wall=14499 ev_cross=626404 ev_div=4115 ev_piston=0 ev_band=0 ev_stale=2875875 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=52636 validator_every=60 hash=bedb3601385176ac t_end=1582.8000235855579 engine=gen3 build="406044f" target=mac-O3-e0pre run_s=7.855 engine_s=0.932 driver_share=0.8813
+
+== evidence_406044f/steer/headless/run.log (exit 0)
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 1.39698e-08 px^2, tol_face 2.92857e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[ENERGY] step=500  KE_p=4.000000e+02  KE_w=0.000000e+00  KE_tot=4.000000e+02  vx_wall=0  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=1000  KE_p=3.999310e+02  KE_w=6.902015e-02  KE_tot=4.000000e+02  vx_wall=-0.0525434  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=1500  KE_p=3.989957e+02  KE_w=1.004287e+00  KE_tot=4.000000e+02  vx_wall=0.200428  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=2000  KE_p=4.029684e+02  KE_w=2.033067e-02  KE_tot=4.029888e+02  vx_wall=0.0285171  E_spring=0.000000e+00  E_tot=4.029888e+02
+[ENERGY] step=2500  KE_p=4.053776e+02  KE_w=1.133513e+00  KE_tot=4.065112e+02  vx_wall=-0.212933  E_spring=0.000000e+00  E_tot=4.065112e+02
+[ENERGY] step=3000  KE_p=4.096226e+02  KE_w=2.249045e-02  KE_tot=4.096451e+02  vx_wall=-0.0299936  E_spring=0.000000e+00  E_tot=4.096451e+02
+[GUI-STATS] engine=gen3 window=0 N=400 frames=0 steps=3000 wall_s=0.089 fps=0.000 sigma_time=50 sigma_per_wall_s=563.526 events=53527 events_per_wall_s=603277 engine_s=0.029 time_scale=1
+[EDMD3-LEDGER] momentum x: residual -8.88e-15, scale 1.09e-11, ratio 0.000818; y: residual -5.68e-14, scale 1.04e-11, ratio 0.00545; energy: residual -4.12e-13, scale 8.11e-11, ratio 0.00508 (E0 400, E 409.645065628, W 9.64507)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=80502 full_checks=3050 local_worst=-5.68e-13 full_worst=-1.39e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.62e-13 ev_pair=26975 ev_wall=2421 ev_cross=23185 ev_div=761 ev_piston=185 ev_band=0 ev_stale=120413 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=3555 validator_every=60 hash=daea5de1378282dc t_end=1200.0000178813934 engine=gen3 build="406044f" target=mac-O3-e0pre run_s=0.088 engine_s=0.029 driver_share=0.6656
+
+== evidence_406044f/steer/window_A/run.log (exit 0)
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 1.39698e-08 px^2, tol_face 2.92857e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[ENERGY] step=500  KE_p=4.000000e+02  KE_w=0.000000e+00  KE_tot=4.000000e+02  vx_wall=0  E_spring=0.000000e+00  E_tot=4.000000e+02
+[DEMO] screenshot -> /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d38/shots_406044f/ST_window_A_demo.bmp
+[ENERGY] step=1000  KE_p=3.999310e+02  KE_w=6.902015e-02  KE_tot=4.000000e+02  vx_wall=-0.0525434  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=1500  KE_p=3.989957e+02  KE_w=1.004287e+00  KE_tot=4.000000e+02  vx_wall=0.200428  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=2000  KE_p=4.029684e+02  KE_w=2.033067e-02  KE_tot=4.029888e+02  vx_wall=0.0285171  E_spring=0.000000e+00  E_tot=4.029888e+02
+[ENERGY] step=2500  KE_p=4.053776e+02  KE_w=1.133513e+00  KE_tot=4.065112e+02  vx_wall=-0.212933  E_spring=0.000000e+00  E_tot=4.065112e+02
+[ENERGY] step=3000  KE_p=4.096226e+02  KE_w=2.249045e-02  KE_tot=4.096451e+02  vx_wall=-0.0299936  E_spring=0.000000e+00  E_tot=4.096451e+02
+[GUI-STATS] engine=gen3 window=1 N=400 frames=48 steps=3000 wall_s=0.541 fps=88.714 sigma_time=50 sigma_per_wall_s=92.4102 events=53527 events_per_wall_s=98928.8 engine_s=0.031 time_scale=1
+[EDMD3-LEDGER] momentum x: residual -8.88e-15, scale 1.09e-11, ratio 0.000818; y: residual -5.68e-14, scale 1.04e-11, ratio 0.00545; energy: residual -4.12e-13, scale 8.11e-11, ratio 0.00508 (E0 400, E 409.645065628, W 9.64507)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=80502 full_checks=3050 local_worst=-5.68e-13 full_worst=-1.39e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.62e-13 ev_pair=26975 ev_wall=2421 ev_cross=23185 ev_div=761 ev_piston=185 ev_band=0 ev_stale=120413 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=3555 validator_every=60 hash=daea5de1378282dc t_end=1200.0000178813934 engine=gen3 build="406044f" target=mac-O3-e0pre run_s=0.541 engine_s=0.031 driver_share=0.9434
+
+== evidence_406044f/steer/window_B/run.log (exit 0)
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 1.39698e-08 px^2, tol_face 2.92857e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[ENERGY] step=500  KE_p=4.000000e+02  KE_w=0.000000e+00  KE_tot=4.000000e+02  vx_wall=0  E_spring=0.000000e+00  E_tot=4.000000e+02
+[DEMO] screenshot -> /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d38/shots_406044f/ST_window_B_demo.bmp
+[ENERGY] step=1000  KE_p=3.999310e+02  KE_w=6.902015e-02  KE_tot=4.000000e+02  vx_wall=-0.0525434  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=1500  KE_p=3.989957e+02  KE_w=1.004287e+00  KE_tot=4.000000e+02  vx_wall=0.200428  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=2000  KE_p=4.029684e+02  KE_w=2.033067e-02  KE_tot=4.029888e+02  vx_wall=0.0285171  E_spring=0.000000e+00  E_tot=4.029888e+02
+[ENERGY] step=2500  KE_p=4.053776e+02  KE_w=1.133513e+00  KE_tot=4.065112e+02  vx_wall=-0.212933  E_spring=0.000000e+00  E_tot=4.065112e+02
+[ENERGY] step=3000  KE_p=4.096226e+02  KE_w=2.249045e-02  KE_tot=4.096451e+02  vx_wall=-0.0299936  E_spring=0.000000e+00  E_tot=4.096451e+02
+[GUI-STATS] engine=gen3 window=1 N=400 frames=48 steps=3000 wall_s=1.332 fps=36.032 sigma_time=50 sigma_per_wall_s=37.5332 events=53527 events_per_wall_s=40180.8 engine_s=0.032 time_scale=1
+[EDMD3-LEDGER] momentum x: residual -8.88e-15, scale 1.09e-11, ratio 0.000818; y: residual -5.68e-14, scale 1.04e-11, ratio 0.00545; energy: residual -4.12e-13, scale 8.11e-11, ratio 0.00508 (E0 400, E 409.645065628, W 9.64507)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=80502 full_checks=3050 local_worst=-5.68e-13 full_worst=-1.39e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.62e-13 ev_pair=26975 ev_wall=2421 ev_cross=23185 ev_div=761 ev_piston=185 ev_band=0 ev_stale=120413 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=3555 validator_every=60 hash=daea5de1378282dc t_end=1200.0000178813934 engine=gen3 build="406044f" target=mac-O3-e0pre run_s=1.332 engine_s=0.032 driver_share=0.9762
+
+== evidence_406044f/runner.log (in full)
+# decision 34 (the rest) evidence 2026-10-12 09:06:47 HST: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d34s_261012/bin_406044f/00ALLINONE (00ALLINONE  git 406044f  target mac-O3-e0pre)
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.7Ti    87Gi    96%    9.9M  909M    1%   /System/Volumes/Data
+vm.swapusage: total = 25600.00M  used = 23974.69M  free = 1625.31M  (encrypted)
+9:06  up 4 days, 19:20, 1 user, load averages: 4.15 3.91 4.44
+  start P4 P4a A seed 1, new build (load 1, free 86.7 GiB)
+  start H0 default (load 3, free 86.7 GiB)
+  start H0 gen2flag (load 5, free 86.7 GiB)
+  start H1 M1 and M2 harness outputs (load 6, free 86.7 GiB)
+  start RP m2 dump, then the replay of m2_driven_pi8 variant a (load 7, free 86.7 GiB)
+  start ST gen3 headless (load 8, free 86.7 GiB)
+  start ST gen3 window_A (load 8, free 86.7 GiB)
+  ST gen3 headless: exit 0, 1 s
+  start ST gen3 window_B (load 8, free 86.7 GiB)
+  ST gen3 window_A: exit 0, 1 s
+  start SS N400_screen (load 8, free 86.7 GiB)
+  ST gen3 window_B: exit 0, 2 s
+  start SS N5000_screen (load 7, free 86.7 GiB)
+  start SS N8000_screen (load 8, free 86.7 GiB)
+  H0 default: exit 0, 7 s
+  start SS N5000_retina (load 7, free 86.7 GiB)
+  start SS N5000_small (load 8, free 86.7 GiB)
+  H0 gen2flag: exit 0, 8 s
+  start NX a: the APPLY of a scene the seeder cannot place (load 8, free 86.6 GiB)
+  SS N400_screen: exit 0, 8 s
+  start NX b: a scene gen3 cannot build (r = 0.7 sigma) (load 7, free 86.6 GiB)
+  start NX c: the same with the addition's binary bin_8bc9ac9 (information) (load 8, free 86.6 GiB)
+  SS N5000_screen: exit 0, 9 s
+  SS N8000_screen: exit 0, 9 s
+  SS N5000_retina: exit 0, 9 s
+  SS N5000_small: exit 0, 9 s
+  NX a: the APPLY of a scene the seeder cannot place: exit 0, 5 s
+  NX c: the same with the addition's binary bin_8bc9ac9 (information): exit 2, 1 s
+  RP m2 dump, then the replay of m2_driven_pi8 variant a: exit 0, 17 s
+  NX b: a scene gen3 cannot build (r = 0.7 sigma): exit 0, 5 s
+  H1 M1 and M2 harness outputs: exit 0, 407 s
+  P4 P4a A seed 1, new build: exit 0, 906 s
+  screenshot NX_gen3_refused_pause.bmp (2056 x 1231) -> screenshots/NX_gen3_refused_pause.png (0.22 MB)
+  screenshot SS_N400_screen.bmp (2056 x 1231) -> screenshots/SS_N400_screen.png (0.24 MB)
+  screenshot SS_N5000_retina.bmp (4112 x 2462) -> screenshots/SS_N5000_retina.png (0.73 MB)
+  screenshot SS_N5000_screen.bmp (2056 x 1231) -> screenshots/SS_N5000_screen.png (0.32 MB)
+  screenshot SS_N5000_small.bmp (1440 x 900) -> screenshots/SS_N5000_small.png (0.25 MB)
+  screenshot SS_N8000_screen.bmp (2056 x 1231) -> screenshots/SS_N8000_screen.png (0.39 MB)
+  screenshot ST_window_A_demo.bmp (1003 x 729) -> screenshots/ST_window_A_demo.png (0.14 MB)
+  screenshot ST_window_B_demo.bmp (4112 x 2462) -> screenshots/ST_window_B_demo.png (0.57 MB)
+9:21  up 4 days, 19:35, 1 user, load averages: 4.11 4.47 4.61
+# done 2026-10-12 09:21:56 HST

@@ -1,0 +1,69 @@
+# Decision 34, the rest (the gen3 window fitted to the screen, a DISPLAY change): the acceptance, printed by experiments_gen3_d34s_261012/s_tables.py
+
+## 1. The binaries of the committed tree
+
+| binary | --version | SHA-256 | = build record |
+|---|---|---|---|
+| 00ALLINONE | 00ALLINONE  git 406044f  target mac-O3-e0pre | f3bd70b03262ecac44b5a3ecd1b287705ffc9803c7d4e99a9cf1d09bb98085ed | yes |
+| gen3_m1 | - | 89b77fa190c4afe8e749a6bf88e7f52e2f7e439b4cfec885127829d9e87863f7 | yes |
+| gen3_m2 | - | 3473318380ae3b5fdf225dc146c2eb0a0d5b05157ac2403e8582cd97fa5d15fb | yes |
+
+## 2. Rule 4: gen2 byte identity with 7b08827 (ctrl_min, ctrl_leg; the default build and --engine=gen2)
+
+default build: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+--engine=gen2: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+
+## 3. The M1 and M2 harness outputs against the committed ones
+
+| output | identical |
+|---|---|
+| m1_audit_output.txt | IDENTICAL |
+| m2_audit_quick_output.txt | IDENTICAL |
+| m2_audit_output.txt | IDENTICAL |
+
+## 4. Headless gen3 unchanged
+
+P4a start A seed 1, P4's command with the new binary: clean=1, event hash bd25077c5f1c9c9f (P4: bd25077c5f1c9c9f): EQUAL; its data files against P4's: 7 of 7 byte-identical (psi6_t_L0_106_wallmassfactor_300_run0.csv, run_params.json, snapshots_L0_106_wallmassfactor_300_run0.bin, speed_of_sound_batch_status.json, speed_of_sound_psi6.csv, virial_blocks_L0_106_wallmassfactor_300_run0.csv, wall_x_positions_L0_106_wallmassfactor_300_run0.csv)
+stage A's replay cell m2_driven_pi8, variant a: ['clean=1'] driven_pi8: hash 694fdf127f35d4b4, harness 694fdf127f35d4b4; events 818521, harness 818521: MATCH; targets 1600, changes 36, advance stops 1600 (substeps 1), reader passes 1600 (every 1 targets), smallest surface gap seen by the readers 1.25e-05 px, 0.9 s -- recorded hash 694fdf127f35d4b4: EQUAL, MATCH
+
+## 5. The display does not steer (decision 19's ST scene: N = 400, eta 0.31, the right piston stepping in, 40 sigma-time; gen3; SDL's dummy video driver, the software renderer, no input)
+
+| run | window | clean | event hash | = headless | = decision 19's ST hash | output files = headless |
+|---|---|---|---|---|---|---|
+| headless | - | 1 | daea5de1378282dc | - | yes | - |
+| window_A | 1024 x 768 points, UI scale 1 | 1 | daea5de1378282dc | yes | yes | 4 of 4 |
+| window_B | 4112 x 2462 device pixels, UI scale 2 (2056 x 1231 points) | 1 | daea5de1378282dc | yes | yes | 4 of 4 |
+
+## 6. Screenshots (eta 0.31, decision 19's display pair scaled; the divider free from the first step; the frame after step 60)
+
+| N | window | UI scale | screenshot | gen3 clean | frames per second |
+|---|---|---|---|---|---|
+| 400 | 2056 x 1231 points (Chris's display) | 1 | experiments_gen3_d34s_261012/evidence_406044f/screenshots/SS_N400_screen.png | 1 | 80.697 |
+| 5000 | 2056 x 1231 points | 1 | experiments_gen3_d34s_261012/evidence_406044f/screenshots/SS_N5000_screen.png | 1 | 56.363 |
+| 8000 | 2056 x 1231 points | 1 | experiments_gen3_d34s_261012/evidence_406044f/screenshots/SS_N8000_screen.png | 1 | 40.450 |
+| 5000 | 4112 x 2462 device pixels | 2 | experiments_gen3_d34s_261012/evidence_406044f/screenshots/SS_N5000_retina.png | 1 | 27.679 |
+| 5000 | 1440 x 900 points (re-fitted) | 1 | experiments_gen3_d34s_261012/evidence_406044f/screenshots/SS_N5000_small.png | 1 | 67.773 |
+
+## 7. No exit on a scene that cannot be built
+
+- (a) the F3 APPLY of a scene the seeder cannot place: `[GUI] APPLY refused: compartment 2 holds at most 240 disks of radius 0.3500 sigma (hexagonal lattice inside its walls), the panel asks 400; lower N or the radius, or widen the compartment (nothing was rebuilt)`; rebuilt: no; 'Could only place' in the log: no; exit code 0
+- (b) a scene gen3 cannot build: `[GUI-STOP] gen3 cannot build this scene: edmd_gen3: cell width 32 px < diameter 33.599998474121094 px (sec. 4.7.1, a); the window pauses (P and SPACE do not resume; ESC or the F3 panel's APPLY rebuilds the scene, Q ends it)`; exit code 0; screenshot experiments_gen3_d34s_261012/evidence_406044f/screenshots/NX_gen3_refused_pause.png
+- (c) information, (b) with the addition's binary bin_8bc9ac9: `STOP (--engine=gen3): edmd_gen3: cell width 32 px < diameter 33.599998474121094 px (sec. 4.7.1, a)`, exit code 2
+
+## 8. Warnings (build_clean.sh's -Wall -Wextra pass of the driver's sources; compared without file and line)
+
+this build 25, the parent f72d764 25; new: 0
+
+## Acceptance
+
+| item | result |
+|---|---|
+| rule 4 identical (default and --engine=gen2, ctrl_min and ctrl_leg) | PASS |
+| M1/M2 harness outputs identical | PASS |
+| headless gen3 unchanged (P4a A seed 1; the replay cell) | PASS |
+| the display does not steer (gen3, two window sizes = the headless event hash, output files byte-identical) | PASS |
+| screenshots at N = 400, 5000 and 8000 (and N = 5000 at UI scale 2 and in a smaller window) | PASS |
+| no exit: the APPLY refused with a note (scene not rebuilt), the gen3 refusal pauses the window | PASS |
+| 0 new warnings | PASS |
+
+DECISION 34 (THE REST) ACCEPTANCE: PASS
