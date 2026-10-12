@@ -1,0 +1,12 @@
+# PREVIEW inventory (the fetched merge, read-only): per density, over its 9 masses
+
+| cell | mass folders | runs (red_nu.csv) | runs_health rows | gen3_clean = 1 | run.log [EDMD3-HEALTH] lines | of them clean=1 | failed_runs.csv rows | .failed_run markers | build line | max contact gap [px] | nodes |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| eta_0p052360 | 9 | 225 | 225 | 225 | 225 | 225 | 0 | 0 | 00ALLINONE  git a643bc7  target koa | 5.44e-12 | 2 |
+| eta_0p112200 | 9 | 225 | 225 | 225 | 225 | 225 | 0 | 0 | 00ALLINONE  git a643bc7  target koa | 5.21e-12 | 2 |
+| eta_0p196350 | 9 | 225 | 225 | 225 | 225 | 225 | 0 | 0 | 00ALLINONE  git a643bc7  target koa | 5.45e-12 | 2 |
+| eta_0p261799 | 9 | 225 | 225 | 225 | 225 | 225 | 0 | 0 | 00ALLINONE  git a643bc7  target koa | 5.39e-12 | 2 |
+| eta_0p392699 | 9 | 225 | 225 | 225 | 225 | 225 | 0 | 0 | 00ALLINONE  git a643bc7  target koa | 5.2e-12 | 2 |
+| eta_0p523599 | 9 | 225 | 225 | 225 | 225 | 225 | 0 | 0 | 00ALLINONE  git a643bc7  target koa | 5.24e-12 | 2 |
+| eta_0p590 | 9 | 225 | 225 | 225 | 225 | 225 | 0 | 0 | 00ALLINONE  git a643bc7  target koa | 4.38e-12 | 2 |
+| **all** | 63 | 1575 | 1575 | 1575 | 1575 | 1575 | 0 | 0 | {'00ALLINONE  git a643bc7  target koa': 63} | | |

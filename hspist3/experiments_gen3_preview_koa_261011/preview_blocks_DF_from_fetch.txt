@@ -1,0 +1,35 @@
+# Blocks D and F of runsheet_preview_261011.txt, repeated read-only on the Mac from the fetched files (the merged cell folders and the 26 job logs)
+
+## Block D's chunk-1 log (job_logs/gen3-preview_*_1.out), in full
+
+== job_logs/gen3-preview_15047929_1.out
+env: gcc (GCC) 14.3.0 | Python 3.12.14 at /home/charing/envs/hd/bin/python3 | git version 2.52.0
+chunk 1 on cn-03-38-01 (Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz): lines 1-63; 00ALLINONE  git a643bc7  target koa
+chunk 1 done
+
+## Block D's per-cell lines, over ALL chunks (the merge holds every run; block D counted chunk 1 only: 9 per cell). Traces are not fetched.
+
+eta_0p052360 masses 9: runs 225 gen3-records-clean 225 build-lines-ok 9
+      225 box=3599 x 240 px exact_box=0 eta=0.052374426011499747
+eta_0p112200 masses 9: runs 225 gen3-records-clean 225 build-lines-ok 9
+      225 box=1679 x 240 px exact_box=0 eta=0.1122665629633041
+eta_0p196350 masses 9: runs 225 gen3-records-clean 225 build-lines-ok 9
+      225 box=960 x 240 px exact_box=0 eta=0.19634954084936207
+eta_0p261799 masses 9: runs 225 gen3-records-clean 225 build-lines-ok 9
+      225 box=720 x 240 px exact_box=0 eta=0.26179938779914941
+eta_0p392699 masses 9: runs 225 gen3-records-clean 225 build-lines-ok 9
+      225 box=480 x 240 px exact_box=0 eta=0.39269908169872414
+eta_0p523599 masses 9: runs 225 gen3-records-clean 225 build-lines-ok 9
+      225 box=360 x 240 px exact_box=0 eta=0.52359877559829882
+eta_0p590 masses 9: runs 225 gen3-records-clean 225 build-lines-ok 9
+      225 box=319 x 240 px exact_box=0 eta=0.590895169954193
+
+## Block F's lines from the 26 fetched job logs (25 chunks and the merge job)
+
+chunk logs: 25
+logs with a line 'chunk <j> done': 25
+lines with FAILED or REFUSED: 0
+   25 (Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz)
+nodes: {'cn-03-38-01': 6, 'cn-03-38-02': 19}
+task ids with more than one log (earlier attempts): none
+job ids: ['15047929', '15047944'] ; merge job log: []
