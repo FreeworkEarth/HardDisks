@@ -1,0 +1,1 @@
+STOP: [Christophs-MacBook-Pro-875.local] the M5 job runs from ~/harddisks_gen3_k2, not harddisks_gen3
