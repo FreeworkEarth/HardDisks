@@ -247,10 +247,10 @@ def main():
     import pandas as pd
     rec = pd.read_csv(e0csv.replace(".csv", "_recorded.csv")) if os.path.exists(e0csv.replace(".csv", "_recorded.csv")) else None
     rows = pd.read_csv(e0csv) if os.path.exists(e0csv) else None
-    chk_cols = [c for c in (rec.columns if rec is not None else []) if c.startswith(("the run's", "box width", "box eta", "exact_box", "N = "))]
+    chk_cols = [c for c in (rec.columns if rec is not None else []) if c.startswith("check: ")]
     res("E0 on the mini data (e0_preview_261011.py --preview)", "exit 0; the recorded-length checks pass in all 9 (cell, mass) folders "
         "(the three truncated cells included); one E0 row (pi/8: three masses)",
-        e.returncode == 0 and rec is not None and len(rec) == 9 and all(rec[c].all() for c in chk_cols) and rows is not None and len(rows) == 1,
+        e.returncode == 0 and rec is not None and len(rec) == 9 and len(chk_cols) == 5 and all(rec[c].all() for c in chk_cols) and rows is not None and len(rows) == 1,
         f"exit {e.returncode}; recorded rows {0 if rec is None else len(rec)}; E0 rows {0 if rows is None else len(rows)}")
     f = sh([sys.executable, os.path.join(HS, P, "fig_preview_261011.py"), "--preview", e0csv, "--out", os.path.join(R, "figure"), "--label",
             "PREVIEW REHEARSAL (mini list, 2 seeds; not data)"], cwd=HS, log=os.path.join(R, "logs", "figure_mini.out"), check=False)
