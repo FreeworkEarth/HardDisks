@@ -19296,3 +19296,48 @@ figure: hspist3/experiments_gen3_preview_koa_261011/figure/preview_cs_vs_eta.pdf
 - Four panels: (a) the preview, gen3; (b) the canonical A1 v2, gen2; (c, d) their residuals to Kolafa–Rottner 2006 for eta_rec ≤ 0.69.
 
 **Commits.** main: the evidence (the outputs above, the tables, the figure, the small per-cell tables `red_nu.csv`, `runs_health.csv`, `failed_runs.csv`, `nud_runs.csv`, `.build_git` and `FETCHED_SHA256_FILES.txt`) and this record. engine-gen3 and engine-divider-resched: the notes.
+
+### 4.7.77 Report S-K — the spring-wall audit (decision 38 item 1): no kept run was started with --spring-wall and without a spring constant (2026-10-12 08:44 HST, machine date) [DATA, printed by script]
+
+**Plain summary.**
+- **The question** (defect (b) of sec. 4.7.74 A.5): with `--spring-wall` but without `--spring-k` or `--spring-k-sigma`, the program warns "no spring force applied", yet the default spring k = 1000 /px² (576 000 kT/σ²) acts in the spring output mode.
+- **The audit:** `hspist3/validation/audit_spring_k_261012.py`, read-only, no code change. It covers both worktrees on the Mac, every file on disk, tracked or not, and three sources:
+  - every summary CSV with a `command` column: one row per run, with the run's full command and the constant it used (`spring_k` = `energy_measurement.spring_constant` at the run's end);
+  - every `00_COMMAND.md` and `run_params.json`;
+  - every run command line with `--spring-wall` in the task lists and runner scripts under `hspist3/`.
+  - Paper 2 = `hspist3/experiments_energy_transfer/level*`.
+- **Result:**
+  - Paper 2: 7 875 distinct runs (15 900 summary rows, including the engine-gen3 worktree's tracked copies of some level folders).
+  - **2 136 runs have `--spring-wall`; 0 of them lack an explicit spring-constant flag.** In all 2 136 the constant in the summary row equals the flag's value (`--spring-k-sigma` / 24², or `--spring-k`).
+  - The 2 136 lie in five folders: `level3_master_20260920` 600, `level3_master_preload_20260921` 760, `level3_v4_20260922` 360, `level3_v6_20260924` 80, `level5_effmap_20261010` 336.
+  - The `00_COMMAND.md` records agree: 87 with `--spring-wall`, 0 without a constant.
+  - The other energy-transfer data (Paper 1 confinement, the engine tests, older runs): 20 131 summary rows, none with `--spring-wall`. Six `00_COMMAND.md` files with `--spring-wall` (the repository root's and the window acceptance's), all with a constant.
+  - Task lists and runner scripts: 5 run command lines with `--spring-wall`, all with a constant. (A first version of the audit also counted 12 non-run lines: `--help | grep -- '--spring-wall'` capability checks and an `echo`.)
+- **Answer:** defect (b) affected no recorded run. Not covered: data that exist only on KOA. The task-list scan covers the commands of the scripts under `hspist3/`, including `cluster/`.
+
+**The audit's output** (`hspist3/validation/audit_spring_k_261012_output.txt`; its summary lines):
+
+
+# Report S-K: the spring-wall audit (READ-ONLY; printed by hspist3/validation/audit_spring_k_261012.py)
+...
+| folder | source | runs | with --spring-wall | of those without a spring-constant flag |
+|---|---|---|---|---|
+...
+| **Paper 2, all** | summary | 15900 | 2136 | 0 |
+| **Paper 2, all** | 00_COMMAND.md | 327 | 87 | 0 |
+| **other, all** | summary | 20131 | 0 | 0 |
+| **other, all** | 00_COMMAND.md | 134 | 6 | 0 |
+## The runs with --spring-wall and a spring-constant flag: the constant in their summary row (spring_k, per px^2, the value the run used) against the flag's value (--spring-k-sigma / 24^2, or --spring-k): equal 2136, different 0
+
+## Every recorded run with --spring-wall and without a spring-constant flag
+
+none
+
+## Task lists and runner scripts: command lines with --spring-wall
+
+lines with --spring-wall: 5; of those without a spring-constant flag: 0
+
+Paper 2 records by worktree (the engine-gen3 worktree holds tracked copies of some level folders, so the counts above include those copies): HardDisks 00_COMMAND.md: 123 (without --spring-wall); HardDisks 00_COMMAND.md: 87 (with --spring-wall); HardDisks summary: 5739 (without --spring-wall); HardDisks summary: 2136 (with --spring-wall); HardDisks_gen3 00_COMMAND.md: 117 (without --spring-wall); HardDisks_gen3 summary: 8025 (without --spring-wall); distinct Paper 2 summary runs (command and seed): 7875, of them with --spring-wall: 2136
+
+RECORDED RUNS WITH --spring-wall AND NO SPRING-CONSTANT FLAG: Paper 2 0, other 0; task-list and script lines without a spring-constant flag: 0
+
