@@ -19057,3 +19057,123 @@ cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3 && experime
 - Report P1, after Chris's preview fetch (nothing has arrived yet).
 - Then the rest of decision 34: the inventory first; then the drawing scale (the box fitted to the window, disks below 2 px), the layout of the distribution panels, and the acceptance with screenshots at N = 400, 5000 and 8000.
 - Then Report S1-0 and the M5 job.
+
+### 4.7.75 Plan-author decision 38: Report W1 accepted; the two start-up prints recorded as gen2 defects and a read-only Paper 2 audit (Report S-K); the preview fetch is on the Mac (Report P1); the owed sec. 4.8 lines; the rest of decision 34; S1-0 and the package to G4 (G0 a: the existing a643bc7 binary as the campaign binary?); the M5 solid-cell job (2026-10-12 08:37 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 38** (relayed by Chris at about 08:37 HST). Chris is away for some hours. CC works through the items in order and stops only where a step needs the plan author's decision or a KOA command; the reports are collected in order. The note to Chris asks him to paste Report P1 first.
+  1. **Report W1 (sec. 4.7.74) is ACCEPTED:** the spring-constant row, the pause at a divider's limit and the high-DPI UI as display and scene set-up, and the diagnosis.
+     - The two start-up prints (a) and (b) are recorded as defects of the gen2 start-up code, not changed now.
+     - Because of (b): a read-only audit, **Report S-K**. For every kept Paper 2 energy-transfer data folder, from the recorded commands: the runs with `--spring-wall`, and among them those without `--spring-k` or `--spring-k-sigma`, each listed with the constant it effectively ran with.
+  2. **The preview fetch is on the Mac** (about 08:30): 15 MB, merge record "2026-10-12 10:32:32 UTC", 26 job logs. CC runs E0 and the figure as the runsheet says, and writes **Report P1**: PREVIEW, INFORMATION on everything.
+     - It contains: the inventory; from the fetched logs, the lines blocks D and F would have shown (per cell the recorded box and eta, the CPU models, earlier attempts); the E0 table; the table "preview minus A1 v2" with errors and z; the figure's path.
+     - No reading is anticipated.
+  3. **Still owed:** the verbatim lines of the recorded sec. 4.8 with eight given strings. Recorded: Chris saved the registration file by hand on 2026-10-11 at 22:27, which is the reason for its modification time.
+  4. **The rest of decision 34 with "addition 2 (items F, G, H)":**
+     - the inventory first;
+     - the box fitted to the window, with a re-fit on resize;
+     - no exit on a scene gen3 cannot build;
+     - the density shown for the filled compartment;
+     - screenshots at N = 400, 5000 and 8000;
+     - the command lines.
+     - The text of a "decision 34, addition 2" has not reached CC: no such message is recorded in these notes. CC takes item 4's list as its content and says so in the report.
+  5. **Stage 1:** Report S1-0 and the package up to gate G4, by the recorded sec. 4.8.
+     - G0 (a) first: can the existing KOA binary of `a643bc7` (SHA-256 742aa2d3...) be the campaign binary? That is: every flag of sec. 4.8.3.2 and what Part A needs, with build inputs equal to `f72d764`.
+     - If yes, propose it without a rebuild, and say what G6 (c) and (d) then reduce to. If not, list exactly what is missing.
+  6. **The M5 solid-cell job** (N 400, eta 0.74, M 500, four seeds per build, `--exclude=cn-05-08-07`, no git at run time), rehearsed, with its runsheet blocks.
+- **The plan author's note to Chris, in the same paste:**
+  - the engine testing is done;
+  - the remaining work is CC's preparation on the Mac, one small KOA job (the long-double check) and the stage 1 campaign (about 40 h at 64 cores);
+  - the estimate is that the campaign starts Tuesday or Wednesday;
+  - Chris pushes, and pastes CC's reports when back, Report P1 first.
+
+**The message, verbatim** (the part for CC; relayed by Chris on 2026-10-12 at about 08:37 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record verbatim in
+a new section. Chris is away for some hours: work through the
+items in order without waiting; stop only where a step needs my
+decision or a KOA command, and collect the reports in order.
+
+DECISION 38 (2026-10-12 ~08:45 HST)
+ 1. Report W1 (sec. 4.7.74): ACCEPTED. The spring-constant row,
+    the pause at a divider's limit and the high-DPI UI are accepted
+    as display and scene set-up; the diagnosis is accepted.
+    The two start-up prints (a) and (b): recorded as defects of
+    the gen2 start-up code; not changed now.
+    Because of (b), a read-only audit, no code change (short
+    "Report S-K"): for every Paper 2 energy-transfer data folder
+    that is kept, from the recorded commands (00_COMMAND.md,
+    run_params.json, task lists): the number of runs with
+    --spring-wall, and of those the number without an explicit
+    spring-constant flag (--spring-k or --spring-k-sigma); list
+    every such run and the constant it effectively ran with.
+ 2. THE PREVIEW FETCH IS ON THE MAC (Chris, 2026-10-12 about
+    08:30): hspist3/experiments_gen3_preview_koa_261011, 15 MB;
+    merge record "2026-10-12 10:32:32 UTC", "merged 25 chunks:
+    3150 files moved, 3150 files appended, 1575 kept per chunk (0
+    failed-run folders), ... 1575 build files equal"; 26 job logs.
+    Run the E0 reduction and the figure as the runsheet says.
+    Report P1 as decision 37 item 3 orders: PREVIEW, INFORMATION
+    on everything; the inventory (1575 runs, clean, excluded);
+    from the fetched logs the lines the runsheet's blocks D and F
+    would have shown (per cell the recorded box and eta; the CPU
+    models; earlier attempts, if any); the E0 table per cell; the
+    table "preview minus A1 v2" per cell with its error and z; the
+    figure's path. State the numbers; no reading is anticipated.
+ 3. Still owed from decision 37 item 2: the verbatim lines of the
+    recorded sec. 4.8 that contain "KR-CONSISTENT",
+    "START-INDEPENDENT", "IDENTITY HOLDS", "σ-time** for",
+    "Seeds:**", "No extension of seeds", "G6, on KOA", "False
+    alarm". Recorded: Chris saved the registration file manually
+    on 2026-10-11 at 22:27 (the reason for its modification time).
+ 4. The rest of decision 34 with addition 2 (items F, G, H): the
+    inventory first; the box fitted to the window with re-fit on
+    resize; no exit on a scene gen3 cannot build; the density
+    shown for the filled compartment; screenshots at N = 400, 5000
+    and 8000; the command lines for Chris.
+ 5. Stage 1: Report S1-0 and the package up to gate G4, by the
+    recorded sec. 4.8. In G0 (a) answer first: can the existing
+    KOA binary of a643bc7 (the one validated by Test G, Test R
+    and the preview; SHA-256 742aa2d3...) be the campaign binary,
+    i.e. does it have every flag of sec. 4.8.3.2 and what Part A
+    needs, with build inputs equal to f72d764? If yes, propose it
+    as the campaign build without a rebuild, and say what G6 (c)
+    and (d) then reduce to. If not, list exactly what is missing.
+ 6. The M5 solid-cell job (N 400, eta 0.74, M 500, four seeds per
+    build, --exclude=cn-05-08-07, no git at run time), rehearsed,
+    with its runsheet blocks for Chris.
+
+End each report with "Written for: the plan author".
+```
+
+**The plan author's note to Chris in the same paste, verbatim as pasted:**
+
+```
+Short answer: the engine testing is done. What is left is mostly preparation work by CC on the Mac, then one small KOA job, then the big campaign on KOA. Before you leave, send CC the block below so it can work while you are away.
+
+Where we are this morning
+The preview ran cleanly on KOA and is on your Mac: 25 chunks merged, all 1,575 runs present, no failed runs, merge record included. CC only needs to be told so it can make the curve and the comparison table.
+The window repair for the spring scene is accepted. CC found the cause of last night’s crash: the scene had no spring constant at all, so the divider ran into the wall and the drawing code quit. Now there is a spring-constant row in the orange panel, the window pauses with a message instead of quitting, and the panels are full size on your screen. CC gave you a command to try it.
+What is still to do, in order
+What	Who	Needs you?
+Preview curve, figure and comparison with the old data (Report P1)	CC, Mac	only to paste it to me later
+Rest of the window: box fits the screen at 5,000 disks, slider inventory, no crash on oversized disks	CC, Mac	no
+Campaign scripts: code facts report, task lists, job scripts, test of every cell, full Mac rehearsal	CC, Mac, with my review	to relay reports
+Long-double check with a solid cell (a few minutes)	KOA	yes, you type it
+Stage 1 campaign: about 40 hours of cluster time at 64 cores	KOA	yes, you type it
+
+So nothing major is left to test about the engine. The large remaining piece is building and rehearsing the campaign’s own scripts, which is CC’s work plus my review. My honest estimate is that the campaign starts Tuesday or Wednesday. For the meeting you will have the Test R result, the figures, the preview curve and the window demo in any case.
+
+One thing CC found that I want checked
+
+While fixing the window, CC noticed a misleading start-up message in the old code: if a run asks for a spring but gives no spring constant, the program says “no spring force applied”, yet a very stiff default spring acts. That matters only if some Paper 2 run was started that way. I am asking CC to check the recorded commands of all Paper 2 runs. It is a read-only check; I expect them to be fine, but I want it confirmed.
+
+Before you leave
+Send CC the block below.
+Push: git push origin main engine-gen3 engine-divider-resched
+
+When you are back, paste me CC’s reports, Report P1 first.
+
+For CC:
+```
