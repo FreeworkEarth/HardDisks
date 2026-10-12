@@ -17310,3 +17310,91 @@ tell CC the path.
 Please do not retype or edit it; CC has to record it word for word. I am deliberately not re-sending it through this chat for the same reason.
 Push: git push origin main engine-gen3 engine-divider-resched
 ```
+
+### 4.7.62 Decision 31, items 2–3, interim (Report P-0a): sec. 4.8's recorder ready, the registration file not yet on the Mac; Report R1 waiting for the fetch; task P prepared up to its registration, with one question on the cells (2026-10-11 20:55 HST, machine date) [DATA, printed by script; SOURCE; CHOICE and PROPOSAL where marked]
+
+**Plain summary.**
+- **Sec. 4.8 is not recorded yet.** At 20:55 the registration file was not on the Mac.
+  - The paste of decision 31 named no path.
+  - Nothing named `*prereg*`, `*stage1*` or `261010_*` was found in Desktop, Downloads, Documents or the home folder (six levels deep).
+  - The recorder is ready and committed: `hspist3/validation/record_stage1_prereg_261011.py` (main c3875b18, fixed at 70b90cb9).
+    - It appends the file in binary mode as sec. 4.8, between a BEGIN and an END comment line, inside a fence longer than any backtick run in the file.
+    - A1 and A2 follow it, each cut from the committed verbatim block of its decision (secs. 4.7.57 and 4.7.59) and not retyped, with their dates. A2 carries the POST HOC flag.
+    - It prints the SHA-256 of the file and of the recorded text, and `--check <commit>` cuts the recorded text out of a commit's notes again.
+    - Self-test 12 of 12, covering a file without a final newline, backtick fences inside, CR bytes, a BOM and UTF-8.
+    - Its first commit printed one diagnostic wrongly ("ends with a newline: False" for a file that ends with one: an escaped literal in an f-string). It was fixed at 70b90cb9, before any use; the section's own header, the recorded text and the SHA-256 were right before.
+- **Report R1 is not printed.** The Test R fetch is not on the Mac (`hspist3/experiments_gen3_testR_koa_261011/` does not exist). The verdict prints once and refuses a second run, so it waits for Chris's word that the fetch is complete.
+- **Task P is prepared up to its registration** (`hspist3/cluster/gen3_preview_261011/`). It is not registered and has no task list: the cell set needs the plan author (below). No preview trajectory has run.
+  - **E0 on the Mac** (`e0_preview_261011.py`):
+    - `paper1_populate_cs_err`'s functions are imported unchanged: `cell`, `slope_with_errors`, `box_delta`.
+    - The per-trajectory frequency comes from KOA's `reduce_B.py`, which computes exactly E0's `cell()` estimator. It imports TD and X_EDGE from `paper1_populate_cs_err`, so no trace is fetched.
+    - The recorded η, L0 and box (pixels, exact_box) per cell come from gen3's own `[EDMD3-RUN]` lines in `run.log`. They are checked against η = N π r²/(2 L0 H) and `box_delta(L0)`.
+    - **Gate: PASS.** Fed A1 v2's own 7875 trajectories (per-trajectory values by `cell()` itself), the code reproduces 35 of 35 rows of the canonical table in all 13 E0 columns, string for string.
+    - **[INFORMATION]** The table's KR and dev_KR_pct differ from the current KR module in 8 rows by one unit in the last printed digit (largest relative difference in KR 6.0e-6).
+      - `kr_cs` is unchanged since b9f2ef86 (2026-09-19). The KR function entered git only at 4f5fd314 (2026-10-02 19:08), after the table's last write (e823187a, 15:46 the same day), so its state at that write is not recorded.
+      - The gate's first run compared all 15 columns and printed FAIL (27 of 35 rows). It is kept (`e0_gate_a1v2_first_run_15columns_output.txt`). The theory columns were then separated as information; the 13 E0 columns were not changed.
+  - **The generator** (`gen_preview_koa_261011.py`):
+    - **Strides.** A replica of the binary's planning frequency (`speed_sound_henderson_frequency_estimate`: Henderson a = 1/8, the γ = 2 mapping, L_eff = L0 − 2r, L0 as float) prints exactly the Predicted_Frequency of 35 of 35 A1 v2 leaves (279282b) and Test G's ν_pred at 4 of 4 masses (a643bc7). jobs_D's stride rule with it reproduces the stride of the A1 v2 trace in 315 of 315 cells.
+      - Test G and Test R used the confinement campaign's strides (26 at M = 50 at π/8). A1 v2's rule gives 27, and the preview uses A1 v2's.
+    - **Seeds:** jobs_D's rule, base 20261441 + cell index. 20261441 to 20261447 occur in no file: both working trees and the tracked files of three heads.
+      - 1575 distinct seeds, zero overlap with 128 earlier task lists (106,110 lines), the Test G extra sets, the symmetry seeds and tests A, B and D (A1 v2).
+    - **Chunks:** K = 63, one seed index across all 63 (cell, mass) arms per chunk; 25 chunks.
+      - Predicted 13.5 min per chunk on E5 (A1 v2's Mac seconds times Test G's ratio of gen3-on-KOA to A1 v2 seconds at π/8, 0.639); about 5.6 core-hours in all.
+  - **The jobs:** Test R's (b5378f4), copied with their changes listed in each header. `merge_koa.py`, the chunk check and the KOA reduction are Test R's committed scripts, run unchanged.
+    - `preview_koa.sbatch`: job name gen3-preview; its own folder, task list, chunk size and root `.../harddisks_gen3/preview_koa`; Test R's build record, read unchanged.
+    - `preview_merge.sbatch`: the same changes.
+    - `fetch_preview_koa.sh`.
+    - `preview_stopped_chunks.sh`: one change, the sbatch in its printed line. Unit test 6 of 6.
+    - `make_preview_manifests.py`.
+  - **The figure** (`fig_preview_261011.py`):
+    - the preview's c_s(η) in blue with c_s_err_scaled, KR, SPT and Henderson (adiabatic), the η regimes shaded, and the residual to KR below;
+    - the canonical A1 v2 values on the same axes;
+    - the table of preview minus A1 v2 per density.
+    - Dry-tested with A1 v2's own rows as a stand-in: every difference is 0, as it must be.
+  - **Not yet:** the registration, the manifests, the runsheet, the Mac rehearsal (it runs the preview command, so it waits for sec. 4.8) and Report P0.
+- **[PROPOSAL] The question on the cells.** The canonical A1 v2 table is an L0 sweep. Of the seven densities named, it has a cell only at π/8 (L0 = 10).
+  - Its cells nearest the others: η_rec 0.052360 (L0 74.9998); 0.112200 (34.9999); 0.196350 (20.0000); 0.261799 (15.0000); 0.523599 (7.5000); and 0.590001 (6.6559) or 0.609999 (6.4377), which are equally far from 0.60.
+  - **(a) "named":** the seven densities exactly. L0 = N π r²/(2 H η) = 78.539816, 39.269908, 19.634954, 13.089969, 10, 7.853982, 6.544985.
+    - The table "preview minus A1 v2 per density" then has one row (π/8). The other six meet A1 v2 only through each one's residual to KR.
+  - **(b) "a1v2":** A1 v2's nearest cells with their exact L0 strings. The table has seven rows, cell for cell. The densities differ from the named ones by up to 13 % (0.2618 for 0.30).
+  - **The cost** is the same either way: 1575 trajectories, 25 chunks, about 5.6 core-hours.
+  - **Recommendation:** (b), since only it gives the ordered per-density table. If the named densities are stage 1's grid (the registration file will show it), (a) previews that grid instead.
+  - At 0.60, (b) needs the plan author's pick (0.590 or 0.610).
+- **The command lines, both quoted** (for Report P0).
+  - **A1 v2's** (methods sec. 8, verbatim):
+    ```
+    HD_KE_TRACE=1 ./00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --kbt1 \
+      --seed-drift-order=drift-first --edmd-acc=0 \
+      --particles=100 --particles-boxes=50,50 --height=10.0 --particle-radius=0.5 \
+      --wall-thickness=0.05 --wall-thickness-vis=0.05 --lengths=20.0000 --wall-masses=500 \
+      --repeats=1 --seed=22260914 --wall-hold-steps=2000 --fixed-dt=0.4 \
+      --target-oscillations=200 --oscillation-safety=1.0 \
+      --oscillation-min-steps=10000 --oscillation-max-steps=400000000 \
+      --speed-sound-log-stride=239 --speed-sound-run-dir=.../A1v2_20260914/eta_0p196350/m_500 \
+      --speed-sound-exact-seed=417881510
+    ```
+  - **The preview's:** the B command of `cluster/gen3_koa_261009/testG_worker_koa.sh` (unchanged since 1cdb7ff6), verbatim:
+    ```
+      HD_KE_TRACE=1 "$HD_BIN" --mode=edmd --experiment=speed_of_sound --headless --kbt1 --seed-drift-order=drift-first \
+         --edmd-acc=0 --particles=$((2*NS)) --particles-boxes=$NS,$NS --height=$H --particle-radius=0.5 \
+         --wall-thickness=0.05 --wall-thickness-vis=0.05 --lengths=$L0 --wall-masses=$M --repeats=1 --seed=$base \
+         --wall-hold-steps=2000 --fixed-dt=0.4 --target-oscillations=200 --oscillation-safety=1.0 \
+         --oscillation-min-steps=10000 --oscillation-max-steps=400000000 --speed-sound-log-stride=$stride \
+         --speed-sound-run-dir="$tmp" --speed-sound-exact-seed=$seed --engine=$eng > "$tmp/stdout.log" 2>&1
+    ```
+    The task line supplies NS = 50, H = 10.0, the cell's L0 string, M, the stride, the base and the seed.
+  - **Every difference besides `--engine`:**
+    1. **`HD_CONTACT_AUDIT=1` in the environment** (the worker exports it). It is read-only by its code [SOURCE]: gen3's `contact_audit` (`edmd_gen3.c:675-700`) reads positions and the divider's position by value and writes only its own maxima and counter. gen2's reads state only (sec. 4.4.13, `edmd.c:797`). An event-hash comparison with and without it can be added to the rehearsal.
+    2. **The binary:** engine-gen3 a643bc7 built for KOA, against 279282b on the Mac.
+    3. **The seeds:** new values by A1 v2's rule (`--seed` = base, `--speed-sound-exact-seed`).
+    4. **The run folder** (`--speed-sound-run-dir`: the worker's fresh `.run<r>/`), an output location only.
+    5. **The number formatting of `--lengths`** under (a), 6 decimals.
+    6. **The worker's handling around the command:** the trace renamed into the cell, the ψ6(t) file compressed, the `##RUN` section in `run.log`, and gen3's health rule. None of it is inside the run.
+- **Tasks D and E.**
+  - D (Report S1-0 up to G4) needs the registration text's gates, so it waits for sec. 4.8.
+  - E (the M5 solid cell) follows P.
+- **Commits (main):**
+  - c3875b18, 70b90cb9 (the recorder);
+  - a3fa5acf, 9cbf8956, 0f8620f3 (task P);
+  - this record.
+- **Data:** 8.3 MB new since 12:35, the scratchpad included. No simulation ran.
