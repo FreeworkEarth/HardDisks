@@ -17942,3 +17942,26 @@ Push: git push origin main engine-gen3 engine-divider-resched
 Send CC the block below.
 Switch to your new chat now. The project note is fully updated (verdict, what is open, the preview, the meeting, the window, the tuning list). Start the new chat with: Read the state-of-play note and continue. Paste CC’s next report there.
 ```
+
+### 4.7.69 Decision 35, item 4c: the M1 update — figures 1 and 2 with Test R, printed by committed scripts from committed tables; items a and b wait for the registration file (2026-10-11 22:13 HST, machine date) [DATA, printed by script]
+
+**Plain summary.**
+- **Figure 1** (`figures/m1_fig1_testG_testR_koa`) carries the title "Test G: FAIL at M = 50; replication Test R: ENGINES AGREE".
+  - (a) gen2 and (b) gen3: the mean ν per mass of both tests by both estimators, with KR, SPT and Henderson.
+  - (c) gen3 − gen2 per mass (one column per mass: 50, 100, 300, 1500, 2000) for both tests and both estimators, with 95 % intervals and each test's registered outcome.
+    - Test G: DIFFERENCE at 50 (z +3.51); NO DIFFERENCE at 300 and 1500.
+    - Test R: NO DIFFERENCE at 50, 100 and 300.
+    - Test R's NO DIFFERENCE band for ν_d (±0.15 %) is shaded where Test R ran.
+- **Figure 2** (`figures/m1_fig2_deltaM_G2_testR`): δ_M per engine.
+  - The top row is Report G2's (POST HOC, INFORMATION; c_ref the weighted mean over M ≥ 300).
+  - The bottom row is Test R's information rows (INFORMATION; against c_300).
+  - The four panels share their axes. The two references differ, and each panel names its own.
+- **The accepted M1 figures (c11b5e48) are unchanged.** The update writes new files.
+- **The scripts:**
+  - `m1_tables_testR_261011.py` reads the committed Test R evidence (main 7ed5e102) by `git show` and imports the verdict's `dstat` unchanged.
+    - It reproduces every cell of the verdict's six registered rows, the per-mass outcomes and the verdict line: all PASS.
+    - The δ table has 12 rows.
+  - `m1_figures_v2_261011.py` imports M1's helpers unchanged. A second print is byte-identical.
+- **Commits (main):** 204c322d (the scripts, before printing), 752d5754 (the tables), 7c0c3086 (the figures). engine-gen3: 6f9fc8f5.
+- **Items a and b (sec. 4.8; the rehearsal and Report P0) wait.** At 22:13 `~/Desktop/261010_prereg_v1_stage1_fluid.md` still held the 225 bytes of the first attempt, the four commands themselves. A background watch reports when the file changes.
+- **Item d (decision 34):** the inventory of the window's controls has been drafted from the code. It is finished and verified in the window when its turn comes, after Report P0.
