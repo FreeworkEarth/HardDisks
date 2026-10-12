@@ -17853,3 +17853,92 @@ Which sliders do you use most? If you tell me, I can put them first.
 
 For CC (this replaces the “DECISION 34” block from my last message; send it after CC has delivered the Test R verdict)
 ```
+
+### 4.7.68 Plan-author decision 35: Report R1 accepted; stage 1 gate G6 (a) AS AMENDED (A1, with A2 POST HOC) IS MET; the order of work to the meeting (2026-10-11 22:06 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 35** (relayed by Chris at about 22:05 HST):
+  1. **Report R1 is ACCEPTED.** TEST R: ENGINES AGREE is the registered arbiter's verdict.
+  2. **Stage 1 gate G6 (a), as amended (A1, with A2 POST HOC), IS MET.** Test R prints ENGINES AGREE (registered), and C1 meets A2's condition.
+     - On record with it, wherever either is cited:
+       - TEST G (KOA) FAIL (DIFFERENCE) at M = 50, by its registered verdict;
+       - C1's registered verdict, NOT DECIDED;
+       - A2 is POST HOC.
+     - C2 is not built.
+  3. **The plan author's reading [INFERENCE]:**
+     - Test G's difference at M = 50 was chance. Pooled over Test G and Test R: ν_arg +0.107 ± 0.058 % (z 1.86); ν_d −0.006 ± 0.035 %.
+     - The light-divider deficit at α = 0.5 is the same in both engines (ν_d: gen2 −0.389, gen3 −0.428, ± 0.029 %). It is a term of the model or of the physics, not of an engine.
+     - **Recorded plan-author error:** the hypothesis "the older engines are slightly slow for the lightest divider".
+  4. **The order of work to the meeting** (Wednesday 2026-10-14):
+     1. sec. 4.8 with A1 and A2, as soon as Chris confirms the file at `~/Desktop/261010_prereg_v1_stage1_fluid.md` (both SHA-256 values and the three counts);
+     2. the preview's Mac rehearsal, and Report P0 with its runsheet;
+     3. **the task M1 update:**
+        - figure 1 gets Test R: per mass, both estimators, 95 % intervals, with the title "Test G: FAIL at M = 50; replication Test R: ENGINES AGREE";
+        - figure 2 gets Test R's δ_M per engine (INFORMATION);
+     4. decision 34: the window (a fixed screen, a scaled drawing, the layout, the inventory of controls);
+     5. Report S1-0 and the stage 1 package up to gate G4;
+     6. the M5 solid-cell job (N 400, η 0.74, M 500, four seeds per build), rehearsed, with its runsheet. Stage 1 gate G6 (b) needs it.
+  5. **Still parked:** engine tuning, only after the new results.
+- **The plan author's note to Chris, in the same paste:**
+  - the instructions for the registration file (`pbpaste` and the three checks; their expected output);
+  - the push line;
+  - the move of the plan author's own work to a new chat with an updated state-of-play note.
+- **At 22:05** the file at that path still held the four commands of the first attempt (225 bytes; sec. 4.7.67's report). Sec. 4.8 waits for Chris's confirmation.
+
+**The message, verbatim** (the part for CC; relayed by Chris on 2026-10-11 at about 22:05 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record verbatim in
+a new section.
+
+DECISION 35 (2026-10-11 ~22:15 HST), after Report R1
+ 1. Report R1: ACCEPTED. TEST R: ENGINES AGREE is the registered
+    arbiter's verdict.
+ 2. The gate: stage 1 gate G6 (a) AS AMENDED (A1, with A2 POST HOC)
+    IS MET: Test R prints ENGINES AGREE (registered) and C1 meets
+    A2's condition. On record with it, wherever either is cited:
+    TEST G (KOA) FAIL (DIFFERENCE) at M = 50 by its registered
+    verdict; C1's registered verdict NOT DECIDED; A2 is POST HOC.
+    C2 is not built.
+ 3. My reading [INFERENCE]: Test G's difference at M = 50 was
+    chance (pooled Test G + Test R: nu_arg +0.107 +- 0.058 %,
+    z 1.86; nu_d -0.006 +- 0.035 %). The light-divider deficit at
+    alpha = 0.5 is the same in both engines (nu_d: gen2 -0.389,
+    gen3 -0.428, +- 0.029 %): a term of the model or the physics,
+    not of an engine. Recorded plan-author error: the hypothesis
+    "the older engines are slightly slow for the lightest divider".
+ 4. Order of work from here (the meeting is Wednesday 2026-10-14):
+    a) sec. 4.8 as soon as Chris confirms the file at
+       ~/Desktop/261010_prereg_v1_stage1_fluid.md (both SHA-256
+       values and the three counts), with A1 and A2;
+    b) the preview's Mac rehearsal and Report P0 with its runsheet;
+    c) task M1 update: figure 1 gets Test R (per mass, both
+       estimators, 95 % intervals, title "Test G: FAIL at M = 50;
+       replication Test R: ENGINES AGREE"); figure 2 gets Test R's
+       delta_M per engine (INFORMATION);
+    d) decision 34 (the window: fixed screen, scaled drawing,
+       layout, the inventory of controls);
+    e) Report S1-0 and the stage 1 package up to gate G4;
+    f) the M5 solid-cell job (N 400, eta 0.74, M 500, four seeds
+       per build), rehearsed, with its runsheet: stage 1 gate
+       G6 (b) needs it.
+ 5. Still parked: engine tuning, only after the new results.
+
+End each report with "Written for: the plan author".
+```
+
+**The plan author's note to Chris in the same paste, verbatim as pasted:**
+
+```
+The registration file. Copy the full text of 261010_prereg_v1_stage1_fluid.md from this project’s files (Cmd+A, Cmd+C), then in the Mac terminal:
+pbpaste > ~/Desktop/261010_prereg_v1_stage1_fluid.md
+head -1 ~/Desktop/261010_prereg_v1_stage1_fluid.md
+grep -c '\$\$' ~/Desktop/261010_prereg_v1_stage1_fluid.md
+grep -c '^## 4\.8\.' ~/Desktop/261010_prereg_v1_stage1_fluid.md
+
+It should print a first line starting with # PRE-REGISTRATION v1, then 4, then 13. If it does, tell CC “the file is at ~/Desktop/261010_prereg_v1_stage1_fluid.md”. If not, tell me what it printed.
+
+Push: git push origin main engine-gen3 engine-divider-resched
+Send CC the block below.
+Switch to your new chat now. The project note is fully updated (verdict, what is open, the preview, the meeting, the window, the tuning list). Start the new chat with: Read the state-of-play note and continue. Paste CC’s next report there.
+```
