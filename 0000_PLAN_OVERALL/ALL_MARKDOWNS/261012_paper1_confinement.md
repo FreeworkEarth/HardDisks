@@ -17398,3 +17398,71 @@ Push: git push origin main engine-gen3 engine-divider-resched
   - a3fa5acf, 9cbf8956, 0f8620f3 (task P);
   - this record.
 - **Data:** 8.3 MB new since 12:35, the scratchpad included. No simulation ran.
+
+### 4.7.63 Plan-author decision 32: Report P-0a accepted as interim; the preview's cells are option (b), the A1 v2 cells with their exact L0 strings (0.590001, not 0.610); an audit on/off comparison added to the rehearsal (2026-10-11 21:05 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 32** (relayed by Chris at about 21:05 HST):
+  1. **Report P-0a is accepted as interim.**
+     - The E0 gate on A1 v2 (35 of 35 rows, 13 E0 columns) and its kept first run are accepted.
+     - The KR-column difference (≤ 6.0e-6 relative) is noted as information.
+     - A1 v2's stride rule for the preview is accepted.
+  2. **The cells: option (b).** The A1 v2 cells with their exact L0 strings: η_rec 0.052360, 0.112200, 0.196350, 0.261799, π/8, 0.523599 and 0.590001 (L0 6.6559; not 0.610).
+     - The reasons given: the preview's purpose is the cell-for-cell comparison with the canonical A1 v2 values, and it keeps the preview off stage 1's own grid.
+     - The figure and the table state each cell's recorded η.
+  3. **The preview's Mac rehearsal gets one trajectory run with and without `HD_CONTACT_AUDIT=1`.** The event hash and the trace are compared (information).
+  4. **Unchanged conditions:**
+     - no preview trajectory, the rehearsal included, before sec. 4.8 with A1 and A2 is committed;
+     - PREVIEW on everything;
+     - its own root and seeds;
+     - chunk 1 alone;
+     - nothing typed on KOA before the plan author has read Report P0.
+  5. **Chris names the registration file's path and says when the Test R fetch is on the Mac.** The order is as before:
+     1. sec. 4.8;
+     2. Report R1 (one printing; if not ENGINES AGREE, stop after printing);
+     3. P's registration, rehearsal and Report P0;
+     4. tasks D and E.
+- **The plan author's note to Chris, in the same paste:** option (b) is chosen so that every preview point can be compared directly with an old-engine point, the purpose of the preview. That the densities shift slightly (for example 0.26 instead of 0.30) does not matter for a preview.
+- **At 21:05:** neither the registration file nor the Test R fetch is on the Mac.
+
+**The message, verbatim** (the part for CC; relayed by Chris on 2026-10-11 at about 21:05 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record in a new
+section.
+
+DECISION 32 (2026-10-11 ~21:10 HST), after Report P-0a
+ 1. Report P-0a: accepted as interim. The E0 gate on A1 v2 (35 of
+    35 rows, 13 E0 columns) and the kept first run are accepted;
+    the KR-column difference (<= 6.0e-6 relative) is noted as
+    information. A1 v2's stride rule for the preview: accepted.
+ 2. The cells: OPTION (b), the A1 v2 cells with their exact L0
+    strings: eta_rec 0.052360, 0.112200, 0.196350, 0.261799, pi/8,
+    0.523599, and 0.590001 (L0 6.6559; not 0.610). Reason: the
+    preview's purpose is the cell-for-cell comparison with the
+    canonical A1 v2 values; and it keeps the preview off stage 1's
+    own grid. The figure and the table state the recorded eta of
+    each cell.
+ 3. Add to the preview's Mac rehearsal: one trajectory with and
+    without HD_CONTACT_AUDIT=1, event hash and trace compared
+    (information).
+ 4. Unchanged conditions: no preview trajectory, rehearsal
+    included, before sec. 4.8 with A1 and A2 is committed; PREVIEW
+    on everything; its own root and seeds; chunk 1 alone; nothing
+    typed on KOA before I have read Report P0.
+ 5. Chris will name the path of the registration file and tell you
+    when the Test R fetch is on the Mac. Order as before: sec. 4.8;
+    Report R1 (one printing; if not ENGINES AGREE, stop after
+    printing); P's registration, rehearsal and Report P0; tasks D
+    and E.
+
+End with "Written for: the plan author".
+```
+
+**The plan author's note to Chris in the same paste, verbatim as pasted:**
+
+```
+My answer to CC’s question
+
+CC found that the old Paper 1 data only has a matching box at one of the seven densities I named. I choose CC’s option (b): the preview uses the same seven boxes the old data used. Then every preview point can be compared directly with an old-engine point, which is the purpose of the preview. The densities shift slightly (for example 0.26 instead of 0.30), which does not matter for a preview.
+```
