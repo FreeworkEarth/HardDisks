@@ -13,6 +13,7 @@ FIGURE (the project's plot rules; the shared helpers of plot_speed_of_sound_edmd
       from it by at most 6e-6 relative (e0_preview_261011.py --gate-a1v2).
   "PREVIEW" stands in the title and in panels (a) and (c); N, radius, L0 and H in the footer; one build generation per panel (gen3
   a643bc7 | gen2 279282b).
+Each cell's RECORDED eta (eta_rec, the binary's own, 6 decimals) and L0 are printed on the figure and in the table (decision 32).
 TABLE: preview minus A1 v2 per density, wherever the two tables have the same cell (the same L0 and recorded eta): the difference of
 c_s with its error sqrt(err_p^2 + err_a^2), from c_s_err_scaled and from c_s_err, and z. A preview cell without such an A1 v2 cell is
 listed with the nearest A1 v2 cell, and no difference is formed.
@@ -72,7 +73,7 @@ def main():
     th = S.speed_of_sound_theory_curves(grid, mapping="adiabatic", kbt=1.0, m=1.0)
     th = {k: th[k] for k in ("ideal", "spt", "henderson", "kolafa_rottner")}
     fig, ax = plt.subplots(2, 2, figsize=(14, 9.6), sharex=True, gridspec_kw=dict(height_ratios=[2.2, 1], hspace=0.12, wspace=0.12,
-                                                                                    left=0.06, right=0.99, top=0.865, bottom=0.12))
+                                                                                    left=0.06, right=0.99, top=0.85, bottom=0.12))
     for col, (D, lab, who) in enumerate(((P, f"{a.label}: gen3, engine-gen3 a643bc7 on KOA", "preview"),
                                          (A, "canonical A1 v2: gen2, engine 279282b (methods sec. 14.2)", "A1 v2"))):
         top, bot = ax[0, col], ax[1, col]
@@ -95,9 +96,10 @@ def main():
         x.text(0.99, 0.04, a.label, transform=x.transAxes, ha="right", va="bottom", fontsize=13, fontweight="bold", color="#555555", alpha=0.6)
     fig.suptitle(f"{a.label}: c_s(η) at N = 100 by the canonical estimator E0\n(INFORMATION, no verdict; never part of stage 1, "
                  f"never in a paper)", x=0.01, ha="left", fontsize=12, fontweight="bold", y=0.995)
-    fig.text(0.01, 0.9, "N = 100 disks (50 per compartment), radius 0.5, H = 10, wall thickness 0.05; L0 per cell from its density (the "
-             "preview: " + ", ".join(f"{float(l):g}" for l in P["L0"]) + ");\nthe nine A1 v2 masses, 25 seeds each; the canonical A1 v2 "
-             "command (methods sec. 8)", fontsize=8.5, va="bottom")
+    fig.text(0.01, 0.885, "N = 100 disks (50 per compartment), radius 0.5, H = 10, wall thickness 0.05; the nine A1 v2 masses, 25 seeds each; "
+             "the canonical A1 v2 command (methods sec. 8)\nthe preview's cells, recorded eta (L0): "
+             + ", ".join(f"{float(e):.6f} ({l})" for e, l in zip(P["eta_rec"], P["L0"])) + "\nthe axis: the box-corrected eta of methods "
+             "sec. 14; A1 v2's cells as in its canonical table", fontsize=8.5, va="bottom")
     fig.text(0.01, 0.01, "E0: per (eta, M) the mean argmax frequency over the seeds; per cell the through-origin slope over the nine masses "
              "against x_M = K(alpha)/(2 pi L_eff,true), with the box-truncation correction of methods sec. 14 (eta = eta_rec L0/(L0 - delta/2), "
              "L_eff,true = L0 - 2r - t/2 - delta/2);\nerror bar c_s_err_scaled = c_s_err max(1, sqrt(chi2_red)) (PDG scale factor). Theory: "
@@ -111,10 +113,10 @@ def main():
     Dt = diff_table(P, pd.read_csv(T.plot_path("260919_A1v2_final_cs_vs_eta.csv"), dtype={"L0": str}))
     Dt.to_csv(os.path.join(a.out, "preview_minus_A1v2.csv"), index=False)
     print(f"# {a.label}: preview minus A1 v2 per density (c_s; errors from c_s_err_scaled and from c_s_err)\n")
-    print("| cell | eta | L0 | preview c_s | A1 v2 c_s | difference | relative [%] | error (scaled) | z (scaled) | error | z | note |\n"
-          "|---|---|---|---|---|---|---|---|---|---|---|---|")
+    print("| cell | recorded eta | box-corrected eta | L0 | preview c_s | A1 v2 c_s | difference | relative [%] | error (scaled) | "
+          "z (scaled) | error | z | note |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     for _, r in Dt.iterrows():
-        print(f"| {r['cell']} | {float(r['eta']):.6f} | {r['L0']} | {r['c_s_preview']} | {r['c_s_A1v2']} | {r['difference']} | {r['rel_pct']} | "
+        print(f"| {r['cell']} | {float(r['eta_rec']):.6f} | {float(r['eta']):.6f} | {r['L0']} | {r['c_s_preview']} | {r['c_s_A1v2']} | {r['difference']} | {r['rel_pct']} | "
               f"{r['err_scaled']} | {r['z_scaled']} | {r['err']} | {r['z']} | {r['note']} |")
     print("\nfigure: " + ", ".join(paths))
 
