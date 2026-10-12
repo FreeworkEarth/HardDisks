@@ -18747,3 +18747,104 @@ False alarm 0.19 % per cell and 3.7 % for at least one of the 20 cells. The valu
 
 (12 lines; per string: "KR-CONSISTENT" 2, "START-INDEPENDENT" 2, "IDENTITY HOLDS" 2, "σ-time** for" 2, "Seeds:**" 1, "No extension of seeds" 1, "G6, on KOA" 1, "False alarm" 2)
 ````
+
+### 4.7.73 Plan-author decision 34, addition: the energy-transfer scene in the gen3 window (a spring-constant scene parameter; no exit at the divider's limit; the high-DPI layout); right after Report P1, before the rest of decision 34 (2026-10-11 23:29 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 34, addition** (relayed by Chris at about 23:29 HST). It belongs to decision 34 (sec. 4.7.67) and is recorded here, in a new section, because the notes are only appended to.
+  - **Order:** right after Report P1, before the rest of decision 34.
+- **Chris's test** (the binary `bin_7f6adca`, the N = 400 window command; F3 panel: mode "energy transfer", engine "EDMD gen3 (display)"). His terminal, as relayed:
+  - the scene was rebuilt with N = 400, r = 0.2159 σ, η 0.116, all 400 disks on the right ("targets: L=0 R=400");
+  - "Live spring force: ON" and "Energy measurement initialized: mode=spring, equilibrium at 808.00";
+  - he released the divider with R (t = 18.650);
+  - at steps 1500 and 2000 KE_p + KE_w = 400.0000 both times, while the divider moved left ever faster (vx_wall −1.08, then −1.41);
+  - then "Invalid wall_x = 197.199142", and the program ended.
+- **His request:** a spring-constant slider in the orange scene-reset panel; releasing the divider must not run through and end the program.
+- **Ordered:**
+  - **A. Diagnosis, with code lines.** Under gen3 in this mode:
+    - is any spring force applied to the divider, with which constant, and from where;
+    - why KE_p + KE_w stays 400 after the release;
+    - what "Live spring force: ON" and the "spring (scene, gen3)" button do;
+    - where the "Invalid wall_x" exit is.
+  - **B. A spring-constant control (k) in the orange scene-reset panel**, applied only by "APPLY: rebuild scene", like N, radius, η, spring L0 and M1.
+    - It maps to the existing command-line parameter, and to gen3's spring divider as accepted in M2. CC states its range and default.
+    - The HUD shows k and the spring energy; the printed energy line includes the spring term.
+    - **Rule:** parameters set in the scene-reset panel and applied by a rebuild are run configuration, and are allowed under gen3. Live controls that change the physics during a run stay as in decision 34 item 3: listed, not implemented. CC lists the ones that already act (R, T, the piston keys), with their guards.
+  - **C. No exit.** When the divider reaches the end of its allowed range, the window pauses with a clear on-screen message and prints the run record. If gen3 has no divider–outer-wall event, CC says so and does not add one now.
+  - **D. From Chris's screenshots** (for decision 34 item 2):
+    - the slider panels and their labels are very small on his display: scale the UI for high-DPI;
+    - "Wall held: -12020 steps left" counts below zero;
+    - the σ glyph renders as a box in the HUD and the panels;
+    - HUD lines are cut off at the panel edge.
+  - **E. Acceptance, in addition to decision 34's:**
+    - a spring scene at two values of k: KE + spring energy conserved to rounding over 200 σ-time after the release (gen3's ledger line);
+    - the same scene headless gives the same event hash as with the window;
+    - a divider that reaches its limit pauses the window (screenshot).
+- **The plan author's note to Chris, in the same paste:** push, then blocks A to D from the plan author's earlier message (the preview on KOA); that gives the new sound-speed curve for Wednesday.
+
+**The message, verbatim** (the part for CC; relayed by Chris on 2026-10-11 at about 23:29 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. An addition to
+decision 34; record it with that decision. It comes right after
+Report P1 and before the rest of decision 34.
+
+DECISION 34, ADDITION (2026-10-11 ~23:30 HST): the energy-transfer
+scene in the gen3 window
+ Chris's test (binary bin_7f6adca, the N = 400 window command,
+ mode "energy transfer", engine "EDMD gen3 (display)"). From his
+ terminal: scene rebuilt with N = 400, r = 0.2159 sigma, eta 0.116,
+ "[SEED] caps: L=2464 R=2464 targets: L=0 R=400", "Live spring
+ force: ON", "Energy measurement initialized: mode=spring,
+ equilibrium at 808.00"; then "Wall manually released by key 'r'",
+ "Wall released at t = 18.650"; step 1500: KE_p 3.706580e+02, KE_w
+ 2.934198e+01, KE_tot 4.000000e+02, vx_wall -1.08336; step 2000:
+ KE_p 3.504534e+02, KE_w 4.954657e+01, KE_tot 4.000000e+02, vx_wall
+ -1.40779; then "Invalid wall_x = 197.199142" and the process
+ ended. His request: a spring-constant slider in the orange
+ scene-reset panel; releasing the divider must not run through and
+ end the program.
+ A. Diagnose, with code lines: under gen3 in this mode, is any
+    spring force applied to the divider, with which constant and
+    from where; why KE_p + KE_w stays 400 after the release; what
+    "Live spring force: ON" and the "spring (scene, gen3)" button
+    do under gen3; where the "Invalid wall_x" exit is.
+ B. Scene parameter: a spring-constant control (k) in the orange
+    scene-reset panel, applied only by "APPLY: rebuild scene", like
+    N, radius, eta, spring L0 and M1. It maps to the existing
+    command-line parameter and to gen3's spring divider as accepted
+    in M2; state its range and default. The HUD shows k and the
+    spring energy; the printed energy line includes the spring
+    term.
+    Rule: parameters set in the scene-reset panel and applied by a
+    rebuild are run configuration and are allowed under gen3. Live
+    controls that change the physics during a run stay as in
+    decision 34 item 3 (listed, not implemented); list the ones
+    that already act (R, T, the piston keys) with their guards.
+ C. No exit: when the divider reaches the end of its allowed
+    range, the window pauses with a clear on-screen message and
+    prints the run record. If gen3 has no divider-outer-wall
+    event, say so; do not add one now.
+ D. From Chris's screenshots, for decision 34 item 2: the slider
+    panels and their labels are very small on his display (scale
+    the UI for high-DPI); "Wall held: -12020 steps left" counts
+    below zero; the sigma glyph renders as a box in the HUD and the
+    panels; HUD lines are cut off at the panel edge.
+ E. Acceptance, in addition to decision 34's: a spring scene at two
+    values of k: KE + spring energy conserved to rounding over 200
+    sigma-time after the release (gen3's ledger line); the same
+    scene headless gives the same event hash as with the window; a
+    divider that reaches its limit pauses the window (screenshot).
+
+End with "Written for: the plan author".
+```
+
+**The plan author's note to Chris in the same paste, verbatim as pasted:**
+
+```
+What you do
+Send CC the block below. It is an addition to decision 34.
+The preview is still waiting for you on KOA: push, then blocks A to D from my earlier message. That is what gives you the new sound-speed curve for Wednesday.
+
+For CC:
+```
