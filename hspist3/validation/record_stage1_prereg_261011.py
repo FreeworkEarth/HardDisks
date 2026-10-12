@@ -134,8 +134,10 @@ def main():
     if a.selftest: sys.exit(0 if selftest() else 1)
     if not a.file: sys.exit("--file is required")
     fb = open(a.file, "rb").read()
-    print(f"the file given: {a.file}\n  bytes: {len(fb)}\n  SHA-256: {sha(fb)}\n  ends with a newline: {fb.endswith(b'\\n')}; "
-          f"CR bytes: {fb.count(b'\\r')}; longest backtick run: {max([len(m) for m in re.findall(rb'`+', fb)] or [0])}")
+    nl, ncr = fb.endswith(b"\n"), fb.count(b"\r")             # computed outside the f-string: no escapes inside its braces
+    longest = max([len(m) for m in re.findall(rb"`+", fb)] or [0])
+    print(f"the file given: {a.file}\n  bytes: {len(fb)}\n  SHA-256: {sha(fb)}\n  ends with a newline: {nl}; CR bytes: {ncr}; "
+          f"longest backtick run: {longest}")
     if a.check:
         rt = recorded_text(git_show(a.check, NOTES))
         print(f"the recorded text in {a.check}:{NOTES}\n  bytes: {len(rt)}\n  SHA-256: {sha(rt)}\n"
