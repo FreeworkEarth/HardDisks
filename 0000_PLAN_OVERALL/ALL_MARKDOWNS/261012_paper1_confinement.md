@@ -17965,3 +17965,90 @@ Switch to your new chat now. The project note is fully updated (verdict, what is
 - **Commits (main):** 204c322d (the scripts, before printing), 752d5754 (the tables), 7c0c3086 (the figures). engine-gen3: 6f9fc8f5.
 - **Items a and b (sec. 4.8; the rehearsal and Report P0) wait.** At 22:13 `~/Desktop/261010_prereg_v1_stage1_fluid.md` still held the 225 bytes of the first attempt, the four commands themselves. A background watch reports when the file changes.
 - **Item d (decision 34):** the inventory of the window's controls has been drafted from the code. It is finished and verified in the window when its turn comes, after Report P0.
+
+### 4.7.70 Plan-author decision 36: the M1 update accepted; the registration file is already on the Mac (in ALL_MARKDOWNS), with its checks before recording; then the preview's rehearsal and Report P0 at once, then decision 34 (2026-10-11 22:40 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 36** (relayed by Chris at about 22:40 HST):
+  1. **The M1 update (sec. 4.7.69) is accepted.**
+  2. **The registration file is already on the Mac:** `0000_PLAN_OVERALL/ALL_MARKDOWNS/261010_prereg_v1_stage1_fluid_COWORK.md`. Chris saved it there when the stage 1 chat wrote it.
+     - The Desktop file holding the four commands is ignored and left as it is.
+     - **Before recording, CC prints for the file:**
+       - its size and modification time;
+       - whether git tracks it, and since which commit;
+       - its SHA-256 and its first line;
+       - the number of lines containing "$$" (expected 4) and of lines starting "## 4.8." (expected 13);
+       - whether each of five given strings occurs exactly once.
+     - If everything matches, CC records the file verbatim as sec. 4.8 with the recorder, followed by A1 and A2.
+     - If anything does not match, CC records nothing, prints what differs, and stops for the plan author.
+  3. **Then at once,** because Chris wants the preview on KOA tonight: the preview's Mac rehearsal and Report P0. The report is short: the rehearsal table, the comparison with and without `HD_CONTACT_AUDIT`, and the runsheet blocks verbatim, without placeholders.
+  4. **Then decision 34, the window.** Chris asked for it again; it stays display-only, with the inventory first.
+     - The draft says that the divider release (R), the piston protocol (T) and the piston keys already act on the physics under gen3. That goes at the top of the inventory, with the code lines.
+     - CC says whether decision 19's "the display does not steer" test covered only a run in which none of them was pressed.
+  5. **Then, as ordered:** Report S1-0 and the stage 1 package up to gate G4; the M5 solid-cell job with its runsheet.
+- **The plan author's note to Chris, in the same paste:**
+  - the file on the Mac is the registration plan, so no copying is needed;
+  - the window work comes right after the preview;
+  - the final campaign cannot run on KOA tonight: its job scripts do not exist yet, and the long-double check with a solid cell has to pass first;
+  - the preview can run tonight, once Report P0 is read.
+
+**The message, verbatim** (the part for CC; relayed by Chris on 2026-10-11 at about 22:40 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record in a new
+section.
+
+DECISION 36 (2026-10-11 ~22:40 HST)
+ 1. The M1 update (sec. 4.7.69): accepted.
+ 2. THE REGISTRATION FILE IS ALREADY ON THE MAC:
+    /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/0000_PLAN_OVERALL/ALL_MARKDOWNS/261010_prereg_v1_stage1_fluid_COWORK.md
+    (Chris saved it there when the stage 1 chat wrote it.) The
+    Desktop file with the four commands is ignored; leave it.
+    Before recording, print for that file: size, modification
+    time, whether git tracks it (and since which commit), its
+    SHA-256, its first line, the number of lines containing "$$"
+    (expected 4), the number of lines starting "## 4.8." (expected
+    13), and whether each of these strings occurs exactly once:
+      a) Written by the plan author (Cowork) on 2026-10-10 (HST), before any stage 1 trajectory exists.
+      b) (proposal: 20261311)
+      c) | **B + D + S** | **16,550** | **2,554** | **3,831** | **40 h** | |
+      d) **No stage 1 array is submitted before G0
+      e) - **G5, verdict script.** Committed with a
+    If all of it matches: record the file verbatim as sec. 4.8
+    with your recorder, followed by A1 and A2. If anything does
+    not match: record nothing, print what differs, and stop for me.
+ 3. Then at once, because Chris wants the preview on KOA tonight:
+    the preview's Mac rehearsal and Report P0 (short: the
+    rehearsal table, the with/without HD_CONTACT_AUDIT comparison,
+    and the runsheet blocks verbatim, without placeholders).
+ 4. Then decision 34 (the window). Chris asked for it again; it
+    stays display-only, with the inventory first. Your draft says
+    that the divider release (R), the piston protocol (T) and the
+    piston keys already act on the physics under gen3: put that at
+    the top of the inventory with the code lines, and say whether
+    decision 19's "the display does not steer" test covered a run
+    in which none of them was pressed only.
+ 5. Then, as ordered: Report S1-0 and the stage 1 package up to
+    gate G4; the M5 solid-cell job with its runsheet.
+
+End with "Written for: the plan author".
+```
+
+**The plan author's note to Chris in the same paste, verbatim as pasted:**
+
+```
+Selecting exact text snippets to confirm the saved file's integrity.
+Good find. That file is the registration plan, already on your Mac, so no copying is needed. CC just has to confirm it is the same text and then record it.
+
+Your two questions
+“Can we fix the simulation window now?” Yes, CC has the order (decision 34) and has already drafted the list of keys and sliders. It comes right after the preview is ready, because the preview has to go onto KOA first.
+
+“Can we run the final experiments on KOA now, with commands from you?” Not the final campaign yet. I cannot give you commands for it because its job scripts do not exist: CC still has to build them from the registration plan and rehearse them on the Mac. That is the next big block of work, and one small extra job (the long-double check with a solid cell) has to pass first.
+
+What can run on KOA tonight is the preview: the Paper 1 curve with the new engine, 100 disks, seven densities, about 6 core-hours. Its scripts are built and registered. CC only needs to record the registration plan, rehearse the preview on the Mac, and hand over the runsheet (Report P0). I expect that within the hour. Then I check the runsheet and you type it, the same blocks A to H as today.
+
+What you do
+Send CC the block below. It names the file’s path.
+Paste me CC’s Report P0 when it comes. It contains the KOA commands for the preview.
+Push when convenient: git push origin main engine-gen3 engine-divider-resched
+```
