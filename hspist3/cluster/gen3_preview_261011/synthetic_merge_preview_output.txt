@@ -1,0 +1,79 @@
+# SYNTHETIC full-size merge of the preview (no simulation): 1575 registered lines, chunk size 63, 25 chunks, in /var/folders/_0/5z_tr3x56pv27hl5lcj4vmb80000gn/T/preview_synthetic_merge_521u6utn
+
+the task list: 1575 lines, chunk size 63, 25 chunks, top-level folder preview
+scan: 25 chunks, 9450 plan entries, 0 problem(s); plan written to /var/folders/_0/5z_tr3x56pv27hl5lcj4vmb80000gn/T/preview_synthetic_merge_521u6utn/merge_plan_20261011_210941.tsv
+
+## the merge plan: every destination folder, the chunks that deliver into it, and the names found in more than one chunk for that destination
+
+| destination (under merged/) | chunks | names in more than one chunk: treatment |
+|---|---|---|
+| preview/gen3/eta_0p052360/m_100 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p052360/m_1000 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p052360/m_1500 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p052360/m_200 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p052360/m_2000 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p052360/m_300 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p052360/m_50 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p052360/m_500 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p052360/m_750 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p112200/m_100 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p112200/m_1000 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p112200/m_1500 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p112200/m_200 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p112200/m_2000 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p112200/m_300 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p112200/m_50 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p112200/m_500 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p112200/m_750 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p196350/m_100 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p196350/m_1000 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p196350/m_1500 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p196350/m_200 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p196350/m_2000 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p196350/m_300 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p196350/m_50 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p196350/m_500 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p196350/m_750 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p261799/m_100 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p261799/m_1000 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p261799/m_1500 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p261799/m_200 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p261799/m_2000 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p261799/m_300 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p261799/m_50 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p261799/m_500 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p261799/m_750 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p392699/m_100 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p392699/m_1000 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p392699/m_1500 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p392699/m_200 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p392699/m_2000 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p392699/m_300 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p392699/m_50 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p392699/m_500 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p392699/m_750 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p523599/m_100 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p523599/m_1000 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p523599/m_1500 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p523599/m_200 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p523599/m_2000 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p523599/m_300 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p523599/m_50 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p523599/m_500 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p523599/m_750 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p590/m_100 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p590/m_1000 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p590/m_1500 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p590/m_200 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p590/m_2000 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p590/m_300 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p590/m_50 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p590/m_500 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+| preview/gen3/eta_0p590/m_750 | 1-25 (25) | .build_git: keep one after an equality check; .done_runs/run<r>: rename per chunk; .sha256_uncompressed: append in chunk order; run.log: append in chunk order |
+
+plan entries by treatment: APPEND 3150, EQUAL 1575, MOVE 3150, PER CHUNK 1575
+names inside the moved run folders .done_runs/run<r> (each run's own folder; they never meet at the cell level): 00_COMMAND.md x1575, 00_COMMAND_AND_PLOT_COMMAND.md x1575, 01_PLOT_COMMANDS.md x1575, experiments_speed_of_sound/ x1575, speed_of_sound_batch_status.json x1575, speed_of_sound_psi6.csv x1575, stdout.log x1575
+
+merged 25 chunks: 3150 files moved, 3150 files appended, 1575 kept per chunk (0 failed-run folders), 0 incomplete run folders, 0 locks or temp files left in place, 1575 build files equal; build '00ALLINONE  git a643bc7  target koa'
+
+merge_koa.py exit 0
