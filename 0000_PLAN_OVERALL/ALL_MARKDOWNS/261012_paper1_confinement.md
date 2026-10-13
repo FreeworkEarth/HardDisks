@@ -23303,3 +23303,97 @@ cd ~/harddisks_gen3_k2/hspist3 && G=B400 && R=/mnt/lustre/koa/scratch/charing/ha
 - **main and engine-divider-resched:** decision 41's record (sec. 4.7.85, main `d2f05c8a`) and this report.
 
 Written for: the plan author
+
+### 4.7.87 Plan-author decision 42: Report G6 accepted, G6 (c) and (d) MET; the stage 1 commit 7bdfb67e accepted; stage 1 blocks A–D approved (G6 (e), chunk 1 alone), typed with a guarded block C and two more read-only lines in block D; the second-paste guards to be written by the generator and rehearsed; G7 not given (2026-10-12 22:16 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 42** (relayed by Chris at about 22:16 HST, machine date; the plan author's time "~22:15 HST"):
+  1. **Report G6 is ACCEPTED.** G6 (c) and G6 (d) are MET by the verdict of record (sec. 4.7.86). Checks 14, 15 a and 15 b are received. Bit-identity across KOA's two CPU models stays untested, and recorded.
+  2. **The stage 1 commit `7bdfb67e` is ACCEPTED**, verified by the plan author from the Mac's working tree:
+     - the 13 files of block B hash to the runsheet's 13 lines;
+     - the runsheet is `88d2eaf0…`, the task list `e3e3e945…`;
+     - `build_record_f72d764.txt` holds item 8's four lines.
+  3. **Stage 1 blocks A–D are APPROVED** (G6 (e), chunk 1 alone). Chris types them with two differences, both the plan author's:
+     - a) **Block C is one guarded command line** that submits the runsheet's sbatch line, unchanged, only if every check holds. It prints "CHUNK 1 SUBMITTED" or "THIS PASTE DID NOT SUBMIT CHUNK 1". The checks:
+       - the SHA-256 of three files: `s1_koa.sbatch`, `s1_inputs.sha256` and `s1_merge_inputs.sha256`;
+       - HEAD = `7bdfb67e…`, and 21 manifest files OK;
+       - the committed build record equals the build-time record;
+       - the unit test's last line is "ALL PASS (8 of 8 cases)";
+       - no stage 1 root, no chunk log, and squeue empty for gen3-s1-B100.
+     - b) **Block D has two more read-only lines** after the box line: CC's `grep -h '^##RUN' $c/run.log`, and a line that sums the run seconds and divides by 415.3.
+  4. **The timing script is received.** CC runs it on chunk 1's paste when Chris gives it, and prints its line.
+  5. **CC's answer on a second paste is ACCEPTED as the design.** CC now builds it into the generator while chunk 1 runs:
+     - a) the generator writes every block E, every block G and block F's printed resubmission lines as guarded lines, with the sbatch lines unchanged and in their order. The guards:
+       - squeue empty for the group's job name; a failed squeue refuses;
+       - HEAD = `7bdfb67e…`;
+       - for E, the group's root and logs absent, except that E-B100 allows exactly chunk 1's folder and its one done log;
+       - for G, no gen3-s1-merge-<g> job and no `merged/`;
+     - b) a rehearsal on the Mac's mini table as G4: each guarded block typed once (it submits) and again (it refuses), and E-B100 after chunk 1;
+     - c) the KOA scripts clone stays at `7bdfb67e`; the runsheet is not a job input, and no file of the two manifests may change. The proof: `sha256sum -c` of both manifests at the new commit, 21 OK;
+     - d) the report: the rehearsal output, the new runsheet's SHA-256, the diff against `88d2eaf0…` limited to the changed command lines, and blocks E-B100 to I-B100 verbatim.
+  6. **G7 is not given.** No array is typed before the plan author's go on chunk 1's paste and on CC's guarded block E-B100.
+
+**The message, verbatim** (the part for CC; relayed by Chris on 2026-10-12 at about 22:16 HST, machine date):
+
+```
+For CC
+From the plan author (Cowork), relayed by Chris. Record in a new
+section.
+
+DECISION 42 (2026-10-12 ~22:15 HST)
+ 1. Report G6: ACCEPTED. G6 (c) and G6 (d) are MET by the verdict of
+    record (sec. 4.7.86). Checks 14, 15 a and 15 b: received. Still
+    untested and recorded: bit-identity across KOA's two CPU models.
+ 2. THE STAGE 1 COMMIT 7bdfb67e IS ACCEPTED. I verified from the
+    Mac's working tree: the 13 files of block B hash to the
+    runsheet's 13 lines; the runsheet is 88d2eaf0...; the task list
+    is e3e3e945...; build_record_f72d764.txt holds item 8's four
+    lines.
+ 3. STAGE 1 BLOCKS A-D ARE APPROVED (G6 (e), chunk 1 alone). Chris
+    types them with these differences, all mine:
+    a. Block C is one guarded command line. It submits the
+       runsheet's sbatch line, unchanged, only if all of these hold:
+       the SHA-256 of s1_koa.sbatch, s1_inputs.sha256 and
+       s1_merge_inputs.sha256; the scripts clone's .git/HEAD =
+       7bdfb67e...; 21 manifest files OK; cmp of the committed build
+       record with the build-time record; the last line of
+       logs/s1_unit_merge.txt = "ALL PASS (8 of 8 cases)"; no
+       .../harddisks_gen3/stage1; no logs/gen3-s1-B100_*.out; squeue
+       empty for gen3-s1-B100. It prints "CHUNK 1 SUBMITTED" or
+       "THIS PASTE DID NOT SUBMIT CHUNK 1".
+    b. Block D has two more read-only lines after the box line:
+       your  grep -h '^##RUN' $c/run.log  and one line that sums the
+       run seconds and divides by 415.3.
+ 4. The timing script (item 17): received. Use it on chunk 1's paste
+    when Chris gives it to you and print its line.
+ 5. Your answer on a second paste (item 18): accepted as the design.
+    Now do it in the generator, while chunk 1 runs:
+    a. make_s1_runsheet.py writes every block E, every block G and
+       block F's printed resubmission lines as guarded lines of the
+       kind in your section 6. The sbatch lines inside stay
+       unchanged and in their order. The guards: squeue empty for
+       the group's job name (a failed squeue refuses); the scripts
+       clone's .git/HEAD = 7bdfb67e...; for E the group's root and
+       logs absent, with your exception for E-B100 (exactly chunk
+       1's folder and its one done log); for G no gen3-s1-merge-<g>
+       job and no merged/.
+    b. Rehearse on the Mac's mini table as G4 did: each guarded
+       block typed once (submits) and a second time (refuses), and
+       E-B100 after chunk 1.
+    c. The KOA scripts clone stays at 7bdfb67e. The runsheet is not
+       a job input; no file of the two manifests may change. Print
+       the proof (sha256sum -c of both manifests at your new
+       commit: 21 OK).
+    d. Report: the rehearsal output, the new runsheet's SHA-256,
+       the diff against 88d2eaf0... limited to the changed command
+       lines, and block E-B100 to block I-B100 verbatim.
+ 6. G7 is not given yet. No array is typed before my go on chunk 1's
+    paste and on your guarded block E-B100.
+
+End with "Written for: the plan author" and the push line.
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
+- CC's work on item 5 follows in its own report.
