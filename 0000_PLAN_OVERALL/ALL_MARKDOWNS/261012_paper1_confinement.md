@@ -23826,3 +23826,116 @@ End with "Written for: the plan author".
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.90 Decision 43, the plan author's note to Chris (the second paste), verbatim: the go for the 100-disk array, what chunk 1 shows, and blocks E-B100, F-B100 (with the plan author's timing line), G-B100 and H-B100 as Chris types them, all equal to the runsheet's; the timing line tried on rehearsal data (2026-10-12 23:24 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **The second paste** (relayed by Chris at about 23:22 HST, machine date) carried the plan author's note to Chris above decision 43's part for CC.
+  - The part for CC is identical to sec. 4.7.89's verbatim block, 52 of 52 lines.
+  - Chunk 1's block D output again did not reach CC, so CC's timing line for chunk 1 still waits for it.
+- **The note:** the go for the 100-disk array; what chunk 1 shows, in plain words; the blocks Chris types for B100; what the plan author needs back (E, F and H in one paste).
+- **CC's checks of the note's command lines** against runsheet `6398ae1e` (blocks E-B100 to H-B100):
+  - every line is equal and in order;
+  - the only addition is the plan author's timing line in block F (decision 43 item 3 d);
+  - E-B100's guarded line in the note hashes to `f548c820…` (1,348 characters), as the runsheet's does.
+- **The plan author's timing line, tried read-only on rehearsal data:** the guard rehearsal's mini data (run 3, engine-gen3 `2c871b52`), with the Mac's BSD awk and sed.
+  - It printed "chunks timed 4; measured / predicted: min 0.12 (chunk 1), median 0.35, max 0.57 (chunk 2)".
+  - `s1_timing_261012.py` gives the same chunks from the merged run records: 0.116, 0.566, 0.354, 0.442.
+  - With an even count the line prints the lower median.
+
+**CC's comparison, verbatim** (the script's output):
+
+```
+# Decision 43, the note to Chris: its command lines against the runsheet 6398ae1e... (blocks E-B100 to H-B100)
+
+E-B100: 3 command lines in the note, 3 in the runsheet; equal to the runsheet's, in order: True; missing 0; added 0
+F-B100: 9 command lines in the note, 8 in the runsheet; equal to the runsheet's, in order: True; missing 0; added 1
+    added: R=/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/chunks; awk -F"\t" 'NR>1 && $5=="B100"{print $1, ...
+G-B100: 2 command lines in the note, 2 in the runsheet; equal to the runsheet's, in order: True; missing 0; added 0
+H-B100: 7 command lines in the note, 7 in the runsheet; equal to the runsheet's, in order: True; missing 0; added 0
+
+E-B100's guarded line in the note: SHA-256 f548c820b290c7dc63387cb734087184f8f17568a7ffc3fab1a84328c395a98a (1348 characters); the runsheet's: f548c820b290c7dc63387cb734087184f8f17568a7ffc3fab1a84328c395a98a (1,348)
+```
+
+**The note to Chris, verbatim** (the second paste, above decision 43's part for CC):
+
+```
+100-disk array can start now.
+
+What chunk 1 shows
+
+These were the first 25 real runs of stage 1 (Paper 1, fluid, free divider, 100 disks, thinnest gas, lightest divider).
+
+All 25 runs finished and are clean (runs 25 clean 25). Every run wrote its three files: the divider trace, the order measure ψ6 and the pressure blocks.
+The box is exactly as requested in all 25 runs: the exact length, the density η = 0.05, and 50 disks on each side.
+It ran with the right program (git f72d764 target koa).
+Time: 212 seconds against 415 predicted, so the ratio is 0.51. The time limits allow a ratio of 3, so there is a lot of room for this cell.
+
+Single runs took between 5 and 23 seconds although they are the same size. The clock also counts compressing and moving files on the cluster’s file system, which is uneven; this is not a problem.
+
+What CC did in the meantime
+
+CC rewrote the remaining submit blocks so that each is one line that checks first and refuses a second paste, like the ones I gave you. It rehearsed all of them on the Mac (34 of 34 passed). I checked the new runsheet file on your Mac myself:
+
+its checksum is the one CC reports;
+each of the 2,705 chunks is submitted exactly once, with the right time limit;
+each group still runs at most 64 at once.
+
+Nothing on KOA has to be updated for this.
+
+The go, and its rules
+
+The order stays as registered: 100 disks, 400 disks, the dilute block, 900 disks, the start check, 1,600 disks. For each group the steps are: submit (E), check (F), merge (G), check the merge (H), fetch (I).
+
+After a clean F you may type G at once.
+Before the next group’s E, paste me F and H and wait for my go.
+What to type
+
+E-B100, KOA login node. Paste once. The good ending is B100: ALL 3 ARRAY LINE(S) SUBMITTED. These are 3,575 runs; expect 15 to 25 minutes.
+
+squeue -u charing
+sinfo -p shared -s
+cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B100 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B100 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ "$(ls -d /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/chunks/chunk_* 2>/dev/null)" = "/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/chunks/chunk_1" ] || { echo "REFUSED: the chunk folders of B100 are not exactly chunk_1"; false; }; } && { [ "$(ls logs/gen3-s1-B100_*.out 2>/dev/null | wc -l)" -eq 1 ] || { echo "REFUSED: logs/gen3-s1-B100_*.out are not exactly one log"; false; }; } && { grep -qx 'chunk 1 done' logs/gen3-s1-B100_*_1.out || { echo "REFUSED: the log of chunk 1 has no line 'chunk 1 done'"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-B100 --time=0:30:00 --array=2,10-14,19-26,28-144%52 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B100 --time=1:00:00 --array=3-5,15-18,27%8 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B100 --time=2:00:00 --array=6-9%4 cluster/gen3_stage1_261012/s1_koa.sbatch && echo "B100: ALL 3 ARRAY LINE(S) SUBMITTED" || echo "B100: THIS PASTE DID NOT SUBMIT ALL 3 ARRAY LINE(S)"
+
+F-B100, when squeue -u charing shows only the header line. Every line only reads. The last line is mine: it prints how long the chunks took compared with the prediction.
+
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3
+ls logs/gen3-s1-B100_*.out | wc -l
+grep -lx 'chunk [0-9]* done' logs/gen3-s1-B100_*.out | wc -l
+cat logs/gen3-s1-B100_*.out | grep -c -e FAILED -e REFUSED
+grep -h '^chunk [0-9]* on ' logs/gen3-s1-B100_*.out | sed 's/: group.*//; s/^chunk [0-9]* on [^ ]* //' | sort | uniq -c
+bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s1-B100 /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/chunks cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B100
+bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B100 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B100 | awk '{ print } /^sbatch --job-name=gen3-s1-B100 / { n++; L[n] = $0; a = $0; sub(/.*--array=/, "", a); sub(/ .*/, "", a); k = split(a, p, ","); for (i = 1; i <= k; i++) { m = split(p[i], q, "-"); lo = q[1] + 0; hi = (m == 2) ? q[2] + 0 : lo; for (j = lo; j <= hi; j++) J = J (J == "" ? "" : "|") j } } END { if (n) { s = ""; for (i = 1; i <= n; i++) s = s L[i] " && "; print "THE GUARDED RESUBMISSION LINE (one line for all of them; type it once, after the go of the plan author):"; print "cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B100 -o %i 2>&1) && [ -z \"$Q\" ] || { echo \"REFUSED: squeue failed or lists a gen3-s1-B100 job: $Q\"; false; }; } && { [ \"$(cat ../.git/HEAD)\" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo \"REFUSED: the scripts clone is not at 7bdfb67\"; false; }; } && { ! grep -Elx \"chunk (" J ") done\" logs/gen3-s1-B100_*.out >/dev/null 2>&1 || { echo \"REFUSED: a listed chunk has a log with its done line\"; false; }; } && echo \"CHECKS GOOD\" && " s "echo \"B100: ALL " n " RESUBMISSION LINE(S) SUBMITTED\" || echo \"B100: THIS PASTE DID NOT SUBMIT ALL " n " RESUBMISSION LINE(S)\"" } }'
+R=/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/chunks; awk -F"\t" 'NR>1 && $5=="B100"{print $1, $8}' cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv | while read j p; do s=$(cat $R/chunk_$j/stage1/gen3/*/m_*/run.log 2>/dev/null | sed -n 's/^##RUN .*(\([0-9]*\) s)$/\1/p' | awk '{s+=$1} END{print s+0}'); echo "$j $s $p"; done | awk '{print $2/$3, $1}' | sort -n | awk '{a[NR]=$1; c[NR]=$2} END{printf "chunks timed %d; measured / predicted: min %.2f (chunk %s), median %.2f, max %.2f (chunk %s)\n", NR, a[1], c[1], a[int((NR+1)/2)], a[NR], c[NR]}'
+
+F is clean if you see these lines:
+
+144 and 144 (one log per chunk, each with its “done” line);
+0 (no FAILED or REFUSED);
+chunks done: 144 of 144;
+nothing to resubmit.
+
+If anything else appears, paste it to me and stop there.
+
+G-B100, only after a clean F. Paste once. The good ending is B100: THE MERGE SUBMITTED. The merge collects the 144 chunk folders into one result folder and reduces the data.
+
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B100,gen3-s1-merge-B100 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B100 or gen3-s1-merge-B100 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-B100 cluster/gen3_stage1_261012/s1_merge.sbatch B100 && echo "B100: THE MERGE SUBMITTED" || echo "B100: THIS PASTE DID NOT SUBMIT THE MERGE"
+
+H-B100, when squeue -u charing shows only the header line again. Every line only reads.
+
+squeue -u charing
+L=$(ls -t ~/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-B100_*.out | head -1) && echo "$L"
+grep -v -e '^| stage1/gen3/' -e '^reduce_B stage1/gen3/.*: exit 0 ' -e 'trajectories reduced *$' -e '^reduce_s1 stage1/gen3/.*: exit 0 ' -e ': [0-9]* traces compressed$' "$L"
+echo "destinations $(grep -c '^| stage1/gen3/' "$L"); reduce_B exit 0: $(grep -c '^reduce_B stage1/gen3/.*: exit 0 ' "$L"); reduce_s1 exit 0: $(grep -c '^reduce_s1 stage1/gen3/.*: exit 0 ' "$L"); compressed: $(grep -c ': [0-9]* traces compressed$' "$L")"
+grep -h '^reduce_s1 ' "$L" | grep -o '([0-9]* fit failures)' | sort | uniq -c
+cat /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/merged/.merge_complete
+ls /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/job_logs | wc -l
+
+What I need back: the output of E, F and H in one paste. My answer will be the fetch line and the go for the 400-disk array (about 2 hours, which can run while you sleep).
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
