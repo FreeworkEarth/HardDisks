@@ -23736,3 +23736,93 @@ cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3 && bash hspist3/clu
 - **main and engine-divider-resched:** decision 42's record (sec. 4.7.87; main `58e9afcd`, its times corrected in `aae25dfe`) and this report.
 
 Written for: the plan author
+
+### 4.7.89 Plan-author decision 43: chunk 1 (job 15052821_1) meets G6 (e); Report GD accepted; G7, THE GO for Part B's arrays with runsheet 6398ae1e in the registered order, and its rules; after block I-B100 the INTERIM and timing tables of B100 (2026-10-12 23:10 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 43** (relayed by Chris at about 23:09 HST, machine date; the plan author's time "~23:20 HST").
+  - **Not received:** the paste says chunk 1's block D output "follows below this block", but nothing follows it.
+  - CC's timing line for chunk 1 (item 1) therefore waits for that output.
+- **1. Chunk 1 meets G6 (e).** Job 15052821_1 ran on cn-03-38-02 (E5-2670 v3). The plan author read in Chris's paste:
+  - block B's good lines;
+  - block C's "CHECKS GOOD ... CHUNK 1 SUBMITTED";
+  - block D's lines: "chunk 1 done", no FAILED, REFUSED or STOP; 25 traces, ψ6, virial, runs and clean records; the box line with eta=0.050000000000000003 and N_L = N_R = 50.
+  - **Timing:** the run seconds sum to 212 against 415.3 predicted, a measured / predicted ratio of 0.51.
+  - **For the record:** single runs took 5 to 23 s at equal size, and the ##RUN seconds include gzip and the file moves on Lustre.
+- **2. Report GD is ACCEPTED.** The plan author verified from the Mac:
+  - the runsheet `6398ae1e…`;
+  - E-B100's guarded line `f548c820…` (1,348 characters);
+  - every one of the 2,705 chunks in exactly one array line of its group and class, with the throttles adding to 64 in every group;
+  - every E and G guard with its checks.
+- **3. G7, THE GO for Part B's arrays** (blocks B, D and S of sec. 4.8), with runsheet `6398ae1e`, in the registered order B100, B400, D, B900, S, B1600.
+  - **Gate status at the go:** G0–G5 met; G6 (a) met as amended (A1, and A2 POST HOC, on record); G6 (b) met (M5-V); G6 (c) and (d) PASS; G6 (e) met.
+  - **The rules of the go:**
+    - a) per group, blocks E, F, G, H and I as the runsheet has them;
+    - b) Chris may type block G at once after a clean block F;
+    - c) the next group's block E needs the plan author's go on the pasted F and H;
+    - d) block F carries one more read-only line of the plan author's, typed before the merge: per chunk, the sum of the ##RUN seconds in the chunk folder over predicted_s_E5, printed as minimum, median and maximum. If the maximum is 2.0 or more, the plan author decides the next group's time classes first (decision 41's watch rule). CC's per-CPU-model timing table from the fetch stays the table of record;
+    - e) 128 cores only on a pasted sinfo line and the plan author's go;
+    - f) a chunk that reached its time limit is handled by amendment A3, at the plan author's go;
+    - g) Part A is not covered by this go.
+- **4. After block I-B100:** CC prints the INTERIM tables and the timing table of B100, labelled INTERIM, as registered (sec. 4.8.9). Chris has blocks E, F, G and H of B100.
+
+**The message, verbatim** (the note to Chris and the part for CC; relayed by Chris on 2026-10-12 at about 23:09 HST, machine date):
+
+```
+For CC
+
+Give CC this block, and below it the output of block D from chunk 1, so it can print its timing line.
+
+From the plan author (Cowork), relayed by Chris. Record in a new
+section. Chunk 1's block D output follows below this block.
+
+DECISION 43 (2026-10-12 ~23:20 HST)
+ 1. CHUNK 1 (job 15052821_1, cn-03-38-02, E5-2670 v3): G6 (e) IS
+    MET. Chris's paste shows: block B's good lines (HEAD 7bdfb67,
+    the 13 SHA-256, 21, e3e3e945..., the build record equal, ALL
+    PASS (8 of 8 cases), the imports OK, a fresh root); block C
+    "CHECKS GOOD ... CHUNK 1 SUBMITTED"; block D "chunk 1 on ...
+    group B100, lines 1-25; 00ALLINONE  git f72d764  target koa",
+    "chunk 1 done", no FAILED, REFUSED or STOP; "traces 25 psi6 25
+    virial 25 snapshots 0 runs 25 clean 25"; "25
+    box=3769.9111843077517 x 240 px exact_box=1
+    eta=0.050000000000000003 N=100 N_L=50 N_R=50"; sum of the run
+    seconds 212 against 415.3: measured / predicted 0.51. Print
+    your timing script's line from the paste below. Note for the
+    record: single runs took 5 to 23 s at equal size; the ##RUN
+    seconds include gzip and the file moves on Lustre.
+ 2. Report GD: ACCEPTED. I verified from the Mac: the runsheet is
+    6398ae1e...; E-B100's guarded line is f548c820... (1,348
+    characters); by my script every one of the 2,705 chunks is in
+    exactly one array line of its group and class and the throttles
+    add to 64 in every group; every E and G guard has its checks.
+ 3. G7, THE GO for Part B's arrays (blocks B, D and S of sec. 4.8)
+    with runsheet 6398ae1e, in the registered order B100, B400, D,
+    B900, S, B1600. Gate status at the go: G0-G5 met; G6 (a) met as
+    amended (A1; A2 POST HOC, on record); G6 (b) met (M5-V); G6 (c)
+    and (d) PASS; G6 (e) met.
+    The rules of the go:
+    a. per group E, F, G, H, I as the runsheet has them;
+    b. after a clean block F (the runsheet's good lines) Chris may
+       type block G at once;
+    c. the next group's block E needs my go on the pasted F and H;
+    d. block F carries one more read-only line of mine, typed
+       before the merge: per chunk the sum of the ##RUN seconds in
+       the chunk folder over predicted_s_E5, printed as minimum,
+       median and maximum. If the maximum is 2.0 or more I decide
+       the next group's time classes first (decision 41's watch
+       rule). Your timing table per CPU model from the fetch stays
+       the table of record;
+    e. 128 cores only on a pasted sinfo line and my go;
+    f. a chunk that reached its time limit: amendment A3, at my go;
+    g. Part A is not covered by this go.
+ 4. Chris has blocks E, F, G and H of B100. After block I-B100:
+    the INTERIM tables and the timing table of B100, labelled
+    INTERIM, as registered (sec. 4.8.9).
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
