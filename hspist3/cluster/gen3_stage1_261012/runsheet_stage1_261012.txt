@@ -14,9 +14,6 @@ KOA RULES, as before: the login node only for light commands; squeue before ever
 ~/harddisks, ~/harddisks_resched, ~/harddisks_resched2, ~/harddisks_gen3 or ~/harddisks_gen3_s1 changes; every job stops with
 "STOP: [<node>] ..." on a failed start-up check before it runs anything: paste the STOP line, change nothing, wait. NO GIT AT RUN
 TIME; every sbatch file carries --exclude=cn-05-08-07. THE SANDBOX LINE is the established one: srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
-THE STAGE 1 COMMIT does not exist yet: after the gate's fetch CC copies the fetched build-time record s1_gate/BUILD_RECORD_S1.txt to
-cluster/gen3_stage1_261012/build_record_f72d764.txt, writes the two manifests (make_s1_manifests.py), commits, and writes this runsheet
-again with that commit (--commit): block B then names it and holds the SHA-256 lines of those three files. Nothing else changes.
 
 CORE-HOURS AND TIME (predicted: the design's model on the old E5 nodes; requested: the chunks' time limits; Slurm charges use):
 | group | chunks | trajectories | (cell, mass) folders | predicted E5 core-h | x 1.5 | requested core-h | arrays (class: chunks %throttle) | wall at 64 cores, predicted |
@@ -40,10 +37,10 @@ S1 BLOCK B (in the sandbox shell: the update in place of the scripts clone to th
 git --version
 cd ~/harddisks_gen3_k2
 git status --porcelain --untracked-files=no | wc -l
-git fetch --depth 1 origin AFTER_THE_GATE
-git -c advice.detachedHead=false checkout AFTER_THE_GATE
+git fetch --depth 1 origin 7bdfb67ec99500bd901e2a138a1af74e5be18ebb
+git -c advice.detachedHead=false checkout 7bdfb67ec99500bd901e2a138a1af74e5be18ebb
 git log -1 --format='%h %s' | cut -c1-80
-cd hspist3 && sha256sum cluster/gen3_stage1_261012/s1_koa.sbatch cluster/gen3_stage1_261012/s1_worker_koa.sh cluster/gen3_stage1_261012/s1_merge.sbatch cluster/gen3_stage1_261012/merge_s1_koa.py cluster/gen3_stage1_261012/reduce_s1_koa.py cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh cluster/gen3_stage1_261012/s1_stopped_chunks.sh cluster/gen3_stage1_261012/test_merge_s1_plan.py cluster/gen3_stage1_261012/tasks_stage1_koa_261012.sha256 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv
+cd hspist3 && sha256sum cluster/gen3_stage1_261012/s1_koa.sbatch cluster/gen3_stage1_261012/s1_worker_koa.sh cluster/gen3_stage1_261012/s1_merge.sbatch cluster/gen3_stage1_261012/merge_s1_koa.py cluster/gen3_stage1_261012/reduce_s1_koa.py cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh cluster/gen3_stage1_261012/s1_stopped_chunks.sh cluster/gen3_stage1_261012/test_merge_s1_plan.py cluster/gen3_stage1_261012/tasks_stage1_koa_261012.sha256 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv cluster/gen3_stage1_261012/build_record_f72d764.txt cluster/gen3_stage1_261012/s1_inputs.sha256 cluster/gen3_stage1_261012/s1_merge_inputs.sha256
 sha256sum -c cluster/gen3_stage1_261012/s1_inputs.sha256 cluster/gen3_stage1_261012/s1_merge_inputs.sha256 | grep -c ': OK$'
 cat cluster/gen3_stage1_261012/tasks_stage1_koa_261012.sha256
 cmp cluster/gen3_stage1_261012/build_record_f72d764.txt ~/harddisks_gen3_s1/hspist3/logs/BUILD_RECORD_S1.txt && echo "the committed build record equals the build-time record"
@@ -58,8 +55,8 @@ exit
   THE LINES THAT SHOW IT IS GOOD (paste everything):
     "git version 2.35.0" or newer
     0          (no tracked file of the scripts clone has changed)
-    the fetch of the stage 1 commit and "HEAD is now at <its first 7 characters> ..." and its log line (git may first print "Warning: you are leaving <n> commit(s) behind ...": harmless)
-    exactly these 10 lines:
+    the fetch of 7bdfb67ec99500bd901e2a138a1af74e5be18ebb and "HEAD is now at 7bdfb67 ..." and the log line starting with 7bdfb67 (git may first print "Warning: you are leaving <n> commit(s) behind ...": harmless)
+    exactly these 13 lines:
       a609781e848fd2cd1a3195e21db16ee36cbbdda822b192cde1868ca066d3262e  cluster/gen3_stage1_261012/s1_koa.sbatch
       ab22d983422b43cc68c8e8e841deac3860ca22d3207fc99764955fc61ad7e578  cluster/gen3_stage1_261012/s1_worker_koa.sh
       7013c19d0821638b17df7c99b5edffbca1f7e92743c023bac52a926519a262b1  cluster/gen3_stage1_261012/s1_merge.sbatch
@@ -70,8 +67,10 @@ exit
       234a4738bdcdfcccd33bf997a929e6367ce577fde34ba33f122deb7703328053  cluster/gen3_stage1_261012/test_merge_s1_plan.py
       7f55f4c53fd56755712d37fcbfaef371ee3f6205db1e44c07ab8c333e4f497eb  cluster/gen3_stage1_261012/tasks_stage1_koa_261012.sha256
       1a5ac526a16d7c66cbf09f11391597f90912abb2064a6358c73d8094c86644c1  cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv
-      and the SHA-256 lines of build_record_f72d764.txt, s1_inputs.sha256, s1_merge_inputs.sha256 (WRITTEN AFTER THE GATE: these three files are the stage 1 commit's)
-    <after the gate>         (the two manifests, each file ": OK")
+      e071497b67fbd0c96927a3697799cb4b8d180a9fcc2f26f282938e37d5d714b2  cluster/gen3_stage1_261012/build_record_f72d764.txt
+      89fc3ed21d315220707bf8e6005a1eb525abc2f7f20cab48430819399e4636db  cluster/gen3_stage1_261012/s1_inputs.sha256
+      8cc727e5d0ec0108a9047f7fcc86d0dbe2424dacec8b13ded7c453ce656ad89a  cluster/gen3_stage1_261012/s1_merge_inputs.sha256
+    21         (the two manifests, each file ": OK")
     e3e3e945ca1e6015a505faf1632efd1081918294f0b35863a592298b2f1c0b24   (the registered task list's SHA-256)
     "the committed build record equals the build-time record"
     four lines "<SHA-256>  <binary>" equal to the record's four sha256 lines (block B of the gate printed them)
