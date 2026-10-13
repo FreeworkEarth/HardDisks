@@ -22874,3 +22874,432 @@ End with "Written for: the plan author" and the push line.
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
 - CC's work on items 14–18 follows in its own report.
+
+### 4.7.86 Report G6 — the stage 1 gate's verdict of record: G6 (c) PASS and G6 (d) PASS; the fetched build record equals decision 41 item 8; the stage 1 commit `7bdfb67e` and the stage 1 runsheet written again; the timing script; a second paste (decision 41 items 14–18) (2026-10-12 21:46 HST, machine date) [DATA, printed by script]
+
+**Plain summary.**
+- **The gate verdict, from the fetch: G6 (c) PASS and G6 (d) PASS.**
+  - G6 (c): E0 8 of 8 IDENTICAL; the harness outputs equal to the a643bc7 gate's, 3 of 3; cross-node IDENTICAL on 2 nodes.
+  - G6 (d): event hashes equal in 12 of 12.
+  - As decision 41 records, both compared nodes are E5-2670 v3, so bit-identity across KOA's two CPU models stays untested.
+- **The fetched build record equals item 8:** 4 of 4 sha256 lines, in order.
+- **15 a:** `build_gen3_koa.sh` is identical between f72d764 and 0969b0ed (the diff is empty).
+- **15 b (information):** the 12 lines' event hashes and counts are equal in three records, 12 of 12: Test G on KOA (a643bc7, 2026-10-11), this gate's gate binary, and its campaign binary.
+- **The stage 1 commit: engine-gen3 `7bdfb67e`.** It holds three files: `build_record_f72d764.txt` (a byte copy of the fetched record) and the two manifests.
+  - The stage 1 runsheet, written again with it, is `88d2eaf0…`.
+  - The diff against `694055b4…` touches block B and the AFTER_THE_GATE note only.
+  - Blocks A–D are below, for the go.
+- **Item 17:** `s1_timing_261012.py`, the watch rule's timing table, reads fetched files only and was tested on G4's mini data.
+  - For chunk 1's ratio "with its check", block D would need one more read-only line (section 5).
+- **Item 18:** yes, every submit block can refuse a second paste with one guarded line, as the plan author's gate block C did. A sketch is in section 6; nothing was changed.
+- **Data this message:** about 5 MB.
+
+## 1. The gate verdict of record (item 14), verbatim
+
+`s1_gate_verdict_261012.py` on the fetch `experiments_gen3_s1_gate_koa_261012/` (engine-gen3 `276e457e`; the output is `experiments_gen3_s1_261012/gate_koa/s1_gate_verdict_output.txt`):
+
+````
+# The stage 1 gate (G6 (c) and (d)), read from experiments_gen3_s1_gate_koa_261012
+
+## The build-time record (BUILD_RECORD_S1.txt)
+
+```
+# the build-time record of the stage 1 campaign build (decision 39 item 5 a): written once by record_s1_build.sh after build_s1_koa.sh
+commit f72d764a8a7e837644c26bd8abc175d9e2cac268
+version 00ALLINONE  git f72d764  target koa
+version_ld 00ALLINONE  git f72d764  target koa-ld
+sha256 0bb1929e92424242ecbcd57d1dec183ae08ff055fa4c29c21357dc5058348d58 00ALLINONE
+sha256 b79db442881f1bb9c58c94b193b29502698461eab95e1f75f227b9844bcc9467 bin/00ALLINONE_ld
+sha256 5eb49cf7ca7494beefbc4e16674a7840e05f248c2d3b0bcef4887b4e3dc03ac5 bin/gen3_m1
+sha256 c5c83443d01ac6bdc1578d11f737561ddad78aff0408269cce83141d0973fcb1 bin/gen3_m2
+compiler gcc (GCC) 14.3.0
+built 2026-10-13 07:03:35 UTC on cn-03-33-01
+```
+
+gate job node: cn-03-38-03 (Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz)
+
+## G6 (c): E0 (rule 4) with the campaign binary
+
+| build | case | result | detail |
+|---|---|---|---|
+| default | ctrl_min | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+| default | ctrl_leg | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+| default | afix | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+| default | afix_leg | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+| gen2flag | ctrl_min | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+| gen2flag | ctrl_leg | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+| gen2flag | afix | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+| gen2flag | afix_leg | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+
+## G6 (c): the M1/M2 harness outputs against the a643bc7 gate's KOA outputs
+
+| output | campaign SHA-256 | a643bc7 gate | equal |
+|---|---|---|---|
+| m1_audit_output.txt | cf1aa2ae8e52fd75d7282b0d6ace588792a57f48d8d07bbc8a9d48f8ef0aedfa | cf1aa2ae8e52fd75d7282b0d6ace588792a57f48d8d07bbc8a9d48f8ef0aedfa | yes |
+| m2_audit_quick_output.txt | 9736a19dd88cf60e79c9ba867ec8295e9318a63cfa227250396445e0180e5405 | 9736a19dd88cf60e79c9ba867ec8295e9318a63cfa227250396445e0180e5405 | yes |
+| m2_audit_output.txt | d9c68c880a8ba9420d3ab35abc619e90efed4337ba519c67e82db86fa343474c | d9c68c880a8ba9420d3ab35abc619e90efed4337ba519c67e82db86fa343474c | yes |
+
+## G6 (c): cross-node determinism with the campaign binary (the compare job's log)
+
+```
+env: gcc (GCC) 14.3.0 | Python 3.12.14 at /home/charing/envs/hd/bin/python3 | git version 2.52.0
+cross-node determinism: 8 tasks in /mnt/lustre/koa/scratch/charing/harddisks_gen3/s1_xnode
+  task_1: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_2: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_3: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_4: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_5: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_6: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_7: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_8: cn-03-38-02 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+
+== across nodes (the test): 2 distinct node(s) among the 8 finished tasks
+  pair cn-03-38-01 (task_1) vs cn-03-38-02 (task_8):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 0586b1e77639502b / 0586b1e77639502b: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: 72111cdaa7d26414 / 72111cdaa7d26414: IDENTICAL
+   cn-03-38-01 vs cn-03-38-02: IDENTICAL
+
+== within a node (information)
+  task_2 vs task_1 (both on cn-03-38-01):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 0586b1e77639502b / 0586b1e77639502b: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: 72111cdaa7d26414 / 72111cdaa7d26414: IDENTICAL
+   task_2 vs task_1: IDENTICAL
+  task_3 vs task_1 (both on cn-03-38-01):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 0586b1e77639502b / 0586b1e77639502b: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: 72111cdaa7d26414 / 72111cdaa7d26414: IDENTICAL
+   task_3 vs task_1: IDENTICAL
+  task_4 vs task_1 (both on cn-03-38-01):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 0586b1e77639502b / 0586b1e77639502b: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: 72111cdaa7d26414 / 72111cdaa7d26414: IDENTICAL
+   task_4 vs task_1: IDENTICAL
+  task_5 vs task_1 (both on cn-03-38-01):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 0586b1e77639502b / 0586b1e77639502b: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: 72111cdaa7d26414 / 72111cdaa7d26414: IDENTICAL
+   task_5 vs task_1: IDENTICAL
+  task_6 vs task_1 (both on cn-03-38-01):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 0586b1e77639502b / 0586b1e77639502b: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: 72111cdaa7d26414 / 72111cdaa7d26414: IDENTICAL
+   task_6 vs task_1: IDENTICAL
+  task_7 vs task_1 (both on cn-03-38-01):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 0586b1e77639502b / 0586b1e77639502b: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: 72111cdaa7d26414 / 72111cdaa7d26414: IDENTICAL
+   task_7 vs task_1: IDENTICAL
+
+RESULT: across nodes IDENTICAL (2 node(s)); within nodes IDENTICAL; tasks used 8 of 8
+cross-node compare done; paste from 'cross-node determinism:' to here
+```
+
+## G6 (d): Test G chunk 1, the 12 gen3 lines, the gate binary against the campaign binary
+
+| line | cell | M | r | seed | gate: clean, event hash | campaign: clean, event hash | event counts equal | equal |
+|---|---|---|---|---|---|---|---|---|
+| 1 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 0 | 2181659217 | 1, 8ebcd88fd0e89450 | 1, 8ebcd88fd0e89450 | yes | EQUAL |
+| 2 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 1 | 1695260360 | 1, 183435f8b0e4bbb1 | 1, 183435f8b0e4bbb1 | yes | EQUAL |
+| 3 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 2 | 3093807436 | 1, b073923f148496d0 | 1, b073923f148496d0 | yes | EQUAL |
+| 4 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 3 | 3583488288 | 1, db02cf086708f059 | 1, db02cf086708f059 | yes | EQUAL |
+| 5 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 4 | 1044020370 | 1, b7387be4a6d8b67b | 1, b7387be4a6d8b67b | yes | EQUAL |
+| 6 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 5 | 897179266 | 1, fcf0c2430ec438b6 | 1, fcf0c2430ec438b6 | yes | EQUAL |
+| 7 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 6 | 1975227116 | 1, 14aa0698701c412b | 1, 14aa0698701c412b | yes | EQUAL |
+| 8 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 7 | 2533786492 | 1, 9cd5afa53b3976d0 | 1, 9cd5afa53b3976d0 | yes | EQUAL |
+| 9 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 8 | 2570703150 | 1, 133e50eee3a59860 | 1, 133e50eee3a59860 | yes | EQUAL |
+| 10 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 9 | 1576492327 | 1, 767716a11188c073 | 1, 767716a11188c073 | yes | EQUAL |
+| 11 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 10 | 3766718114 | 1, 6ea16cc4951a1d2b | 1, 6ea16cc4951a1d2b | yes | EQUAL |
+| 12 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 11 | 2301849008 | 1, 35ee005c21cdc3e7 | 1, 35ee005c21cdc3e7 | yes | EQUAL |
+
+TEST G CHUNK 1 (12 gen3 lines): event hashes equal in 12 of 12
+
+G6 (c): PASS (E0 8 of 8 IDENTICAL; harness 3 of 3 equal; cross-node IDENTICAL across nodes)
+G6 (d): PASS (event hashes equal in 12 of 12)
+````
+
+## 2. The fetched build record against item 8's four lines (item 14), verbatim
+
+The four lines were read from this decision's record (sec. 4.7.85), not typed again:
+
+````
+# Decision 41 item 14: the fetched BUILD_RECORD_S1.txt against the four sha256 lines of item 8 (read from notes 261012 sec. 4.7.85)
+
+| binary | item 8 | fetched record | equal |
+|---|---|---|---|
+| 00ALLINONE | 0bb1929e92424242ecbcd57d1dec183ae08ff055fa4c29c21357dc5058348d58 | 0bb1929e92424242ecbcd57d1dec183ae08ff055fa4c29c21357dc5058348d58 | yes |
+| bin/00ALLINONE_ld | b79db442881f1bb9c58c94b193b29502698461eab95e1f75f227b9844bcc9467 | b79db442881f1bb9c58c94b193b29502698461eab95e1f75f227b9844bcc9467 | yes |
+| bin/gen3_m1 | 5eb49cf7ca7494beefbc4e16674a7840e05f248c2d3b0bcef4887b4e3dc03ac5 | 5eb49cf7ca7494beefbc4e16674a7840e05f248c2d3b0bcef4887b4e3dc03ac5 | yes |
+| bin/gen3_m2 | c5c83443d01ac6bdc1578d11f737561ddad78aff0408269cce83141d0973fcb1 | c5c83443d01ac6bdc1578d11f737561ddad78aff0408269cce83141d0973fcb1 | yes |
+
+RESULT: 4 of 4 lines equal, in order
+````
+
+## 3. The two read-only checks (item 15), verbatim
+
+**a.**
+
+````
+$ git diff --stat f72d764 0969b0ed -- hspist3/cluster/gen3_koa_261009/build_gen3_koa.sh
+(no output: the file is identical between f72d764 and 0969b0ed)
+````
+
+**b.** Information. Test G on KOA's run records are main's `hspist3/experiments_gen3_gate_koa_261009/testG` (job K2-3, binary a643bc7, fetched 2026-10-11). The comparison is `experiments_gen3_s1_261012/gate_koa/check_15b_testG_koa.py`:
+
+````
+# Decision 41 item 15 b: the 12 gen3 lines of Test G chunk 1 in Test G on KOA (experiments_gen3_gate_koa_261009) and in this gate's two runs
+
+| line | M | r | seed | Test G on KOA (a643bc7): clean, event hash | gate binary (a643bc7) | campaign binary (f72d764) | event counts equal (3 records) | equal |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 50 | 0 | 2181659217 | 1, 8ebcd88fd0e89450 | 1, 8ebcd88fd0e89450 | 1, 8ebcd88fd0e89450 | yes | EQUAL |
+| 2 | 50 | 1 | 1695260360 | 1, 183435f8b0e4bbb1 | 1, 183435f8b0e4bbb1 | 1, 183435f8b0e4bbb1 | yes | EQUAL |
+| 3 | 50 | 2 | 3093807436 | 1, b073923f148496d0 | 1, b073923f148496d0 | 1, b073923f148496d0 | yes | EQUAL |
+| 4 | 50 | 3 | 3583488288 | 1, db02cf086708f059 | 1, db02cf086708f059 | 1, db02cf086708f059 | yes | EQUAL |
+| 5 | 50 | 4 | 1044020370 | 1, b7387be4a6d8b67b | 1, b7387be4a6d8b67b | 1, b7387be4a6d8b67b | yes | EQUAL |
+| 6 | 50 | 5 | 897179266 | 1, fcf0c2430ec438b6 | 1, fcf0c2430ec438b6 | 1, fcf0c2430ec438b6 | yes | EQUAL |
+| 7 | 50 | 6 | 1975227116 | 1, 14aa0698701c412b | 1, 14aa0698701c412b | 1, 14aa0698701c412b | yes | EQUAL |
+| 8 | 50 | 7 | 2533786492 | 1, 9cd5afa53b3976d0 | 1, 9cd5afa53b3976d0 | 1, 9cd5afa53b3976d0 | yes | EQUAL |
+| 9 | 50 | 8 | 2570703150 | 1, 133e50eee3a59860 | 1, 133e50eee3a59860 | 1, 133e50eee3a59860 | yes | EQUAL |
+| 10 | 50 | 9 | 1576492327 | 1, 767716a11188c073 | 1, 767716a11188c073 | 1, 767716a11188c073 | yes | EQUAL |
+| 11 | 50 | 10 | 3766718114 | 1, 6ea16cc4951a1d2b | 1, 6ea16cc4951a1d2b | 1, 6ea16cc4951a1d2b | yes | EQUAL |
+| 12 | 50 | 11 | 2301849008 | 1, 35ee005c21cdc3e7 | 1, 35ee005c21cdc3e7 | 1, 35ee005c21cdc3e7 | yes | EQUAL |
+
+RESULT (information): event hashes and event counts equal in all three records for 12 of 12 lines
+````
+
+## 4. The stage 1 commit and the stage 1 runsheet written again (item 16)
+
+The verdict printed PASS for G6 (c) and for G6 (d), so:
+- **The stage 1 commit: engine-gen3 `7bdfb67ec99500bd901e2a138a1af74e5be18ebb`.** Exactly three files, nothing else in the package:
+
+  | file | SHA-256 |
+  |---|---|
+  | `cluster/gen3_stage1_261012/build_record_f72d764.txt` (a byte copy of the fetched `s1_gate/BUILD_RECORD_S1.txt`; `cmp`: identical) | `e071497b67fbd0c96927a3697799cb4b8d180a9fcc2f26f282938e37d5d714b2` |
+  | `cluster/gen3_stage1_261012/s1_inputs.sha256` (6 files) | `89fc3ed21d315220707bf8e6005a1eb525abc2f7f20cab48430819399e4636db` |
+  | `cluster/gen3_stage1_261012/s1_merge_inputs.sha256` (15 files) | `8cc727e5d0ec0108a9047f7fcc86d0dbe2424dacec8b13ded7c453ce656ad89a` |
+
+  The merge manifest's modules are exactly Test R's merge manifest, which ran on KOA, plus the three stage 1 scripts (`merge_s1_koa.py`, `reduce_s1_koa.py`, `s1_chunk_logs_koa.sh`). There is no new third-party import.
+- **The stage 1 runsheet, written again** by `make_s1_runsheet.py --commit 7bdfb67ec99500bd901e2a138a1af74e5be18ebb`: SHA-256 `88d2eaf0af933dfec5011e750ed24bc3fb12fbb6ca2e977d6b06cace2facbb98` (engine-gen3 `0e7cb2f2`).
+- **The diff** from the old runsheet (`694055b4…`, at `7de2586b`) to the new one (`88d2eaf0…`, at `0e7cb2f2`): 9 lines in, 10 out. The three-line AFTER_THE_GATE note goes; block B's two update lines name the commit; its sha256sum line names the three new files; its good lines carry the commit, 13 SHA lines and the count 21. Verbatim (`git diff -U0`):
+
+````
+diff --git a/hspist3/cluster/gen3_stage1_261012/runsheet_stage1_261012.txt b/hspist3/cluster/gen3_stage1_261012/runsheet_stage1_261012.txt
+index 22950179..85a137f4 100644
+--- a/hspist3/cluster/gen3_stage1_261012/runsheet_stage1_261012.txt
++++ b/hspist3/cluster/gen3_stage1_261012/runsheet_stage1_261012.txt
+@@ -17,3 +16,0 @@ TIME; every sbatch file carries --exclude=cn-05-08-07. THE SANDBOX LINE is the e
+-THE STAGE 1 COMMIT does not exist yet: after the gate's fetch CC copies the fetched build-time record s1_gate/BUILD_RECORD_S1.txt to
+-cluster/gen3_stage1_261012/build_record_f72d764.txt, writes the two manifests (make_s1_manifests.py), commits, and writes this runsheet
+-again with that commit (--commit): block B then names it and holds the SHA-256 lines of those three files. Nothing else changes.
+@@ -43,2 +40,2 @@ git status --porcelain --untracked-files=no | wc -l
+-git fetch --depth 1 origin AFTER_THE_GATE
+-git -c advice.detachedHead=false checkout AFTER_THE_GATE
++git fetch --depth 1 origin 7bdfb67ec99500bd901e2a138a1af74e5be18ebb
++git -c advice.detachedHead=false checkout 7bdfb67ec99500bd901e2a138a1af74e5be18ebb
+@@ -46 +43 @@ git log -1 --format='%h %s' | cut -c1-80
+-cd hspist3 && sha256sum cluster/gen3_stage1_261012/s1_koa.sbatch cluster/gen3_stage1_261012/s1_worker_koa.sh cluster/gen3_stage1_261012/s1_merge.sbatch cluster/gen3_stage1_261012/merge_s1_koa.py cluster/gen3_stage1_261012/reduce_s1_koa.py cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh cluster/gen3_stage1_261012/s1_stopped_chunks.sh cluster/gen3_stage1_261012/test_merge_s1_plan.py cluster/gen3_stage1_261012/tasks_stage1_koa_261012.sha256 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv
++cd hspist3 && sha256sum cluster/gen3_stage1_261012/s1_koa.sbatch cluster/gen3_stage1_261012/s1_worker_koa.sh cluster/gen3_stage1_261012/s1_merge.sbatch cluster/gen3_stage1_261012/merge_s1_koa.py cluster/gen3_stage1_261012/reduce_s1_koa.py cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh cluster/gen3_stage1_261012/s1_stopped_chunks.sh cluster/gen3_stage1_261012/test_merge_s1_plan.py cluster/gen3_stage1_261012/tasks_stage1_koa_261012.sha256 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv cluster/gen3_stage1_261012/build_record_f72d764.txt cluster/gen3_stage1_261012/s1_inputs.sha256 cluster/gen3_stage1_261012/s1_merge_inputs.sha256
+@@ -61,2 +58,2 @@ exit
+-    the fetch of the stage 1 commit and "HEAD is now at <its first 7 characters> ..." and its log line (git may first print "Warning: you are leaving <n> commit(s) behind ...": harmless)
+-    exactly these 10 lines:
++    the fetch of 7bdfb67ec99500bd901e2a138a1af74e5be18ebb and "HEAD is now at 7bdfb67 ..." and the log line starting with 7bdfb67 (git may first print "Warning: you are leaving <n> commit(s) behind ...": harmless)
++    exactly these 13 lines:
+@@ -73,2 +70,4 @@ exit
+-      and the SHA-256 lines of build_record_f72d764.txt, s1_inputs.sha256, s1_merge_inputs.sha256 (WRITTEN AFTER THE GATE: these three files are the stage 1 commit's)
+-    <after the gate>         (the two manifests, each file ": OK")
++      e071497b67fbd0c96927a3697799cb4b8d180a9fcc2f26f282938e37d5d714b2  cluster/gen3_stage1_261012/build_record_f72d764.txt
++      89fc3ed21d315220707bf8e6005a1eb525abc2f7f20cab48430819399e4636db  cluster/gen3_stage1_261012/s1_inputs.sha256
++      8cc727e5d0ec0108a9047f7fcc86d0dbe2424dacec8b13ded7c453ce656ad89a  cluster/gen3_stage1_261012/s1_merge_inputs.sha256
++    21         (the two manifests, each file ": OK")
+````
+
+- **Blocks A–D of the new runsheet, verbatim:**
+
+````
+S1 BLOCK A (KOA login node; opens the sandbox shell; then wait for the cn-... prompt):
+squeue -u charing
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+
+  Expected: squeue lists no gen3 job. Paste block B only at the cn-... prompt.
+
+S1 BLOCK B (in the sandbox shell: the update in place of the scripts clone to the stage 1 commit, its checks, the unit test):
+git --version
+cd ~/harddisks_gen3_k2
+git status --porcelain --untracked-files=no | wc -l
+git fetch --depth 1 origin 7bdfb67ec99500bd901e2a138a1af74e5be18ebb
+git -c advice.detachedHead=false checkout 7bdfb67ec99500bd901e2a138a1af74e5be18ebb
+git log -1 --format='%h %s' | cut -c1-80
+cd hspist3 && sha256sum cluster/gen3_stage1_261012/s1_koa.sbatch cluster/gen3_stage1_261012/s1_worker_koa.sh cluster/gen3_stage1_261012/s1_merge.sbatch cluster/gen3_stage1_261012/merge_s1_koa.py cluster/gen3_stage1_261012/reduce_s1_koa.py cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh cluster/gen3_stage1_261012/s1_stopped_chunks.sh cluster/gen3_stage1_261012/test_merge_s1_plan.py cluster/gen3_stage1_261012/tasks_stage1_koa_261012.sha256 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv cluster/gen3_stage1_261012/build_record_f72d764.txt cluster/gen3_stage1_261012/s1_inputs.sha256 cluster/gen3_stage1_261012/s1_merge_inputs.sha256
+sha256sum -c cluster/gen3_stage1_261012/s1_inputs.sha256 cluster/gen3_stage1_261012/s1_merge_inputs.sha256 | grep -c ': OK$'
+cat cluster/gen3_stage1_261012/tasks_stage1_koa_261012.sha256
+cmp cluster/gen3_stage1_261012/build_record_f72d764.txt ~/harddisks_gen3_s1/hspist3/logs/BUILD_RECORD_S1.txt && echo "the committed build record equals the build-time record"
+(cd ~/harddisks_gen3_s1/hspist3 && sha256sum 00ALLINONE bin/00ALLINONE_ld bin/gen3_m1 bin/gen3_m2)
+~/harddisks_gen3_s1/hspist3/00ALLINONE --version | head -1
+source cluster/koa_env.sh
+mkdir -p logs/s1_unit_tmp && TMPDIR=$PWD/logs/s1_unit_tmp python3 cluster/gen3_stage1_261012/test_merge_s1_plan.py > logs/s1_unit_merge.txt 2>&1; tail -1 logs/s1_unit_merge.txt
+python3 -c "import sys; sys.argv = ['x']; sys.path[:0] = ['cluster/gen3_stage1_261012', 'cluster/gen3_testR_261011', 'validation', '.']; import merge_s1_koa, reduce_s1_koa; print('the merge and reducer imports: OK')"
+ls /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1 2>&1 | head -2
+exit
+
+  THE LINES THAT SHOW IT IS GOOD (paste everything):
+    "git version 2.35.0" or newer
+    0          (no tracked file of the scripts clone has changed)
+    the fetch of 7bdfb67ec99500bd901e2a138a1af74e5be18ebb and "HEAD is now at 7bdfb67 ..." and the log line starting with 7bdfb67 (git may first print "Warning: you are leaving <n> commit(s) behind ...": harmless)
+    exactly these 13 lines:
+      a609781e848fd2cd1a3195e21db16ee36cbbdda822b192cde1868ca066d3262e  cluster/gen3_stage1_261012/s1_koa.sbatch
+      ab22d983422b43cc68c8e8e841deac3860ca22d3207fc99764955fc61ad7e578  cluster/gen3_stage1_261012/s1_worker_koa.sh
+      7013c19d0821638b17df7c99b5edffbca1f7e92743c023bac52a926519a262b1  cluster/gen3_stage1_261012/s1_merge.sbatch
+      58d324e09452cceeb181960a0b416612979f941053d850ea9a4ce8eb16b61185  cluster/gen3_stage1_261012/merge_s1_koa.py
+      f13061c82b62076f3ac41002d46631dfb10903d3f8d12c2c74c80d4bcc5e15ea  cluster/gen3_stage1_261012/reduce_s1_koa.py
+      c32ab31682f85bc9228b2485a57d9801fa19908d3dbf6bb4e75229d8b7bf3c26  cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh
+      42360b1a3e08d5bf594912ad4b3864b9d10da2580cc1d3c751ecf6a2b82a34b5  cluster/gen3_stage1_261012/s1_stopped_chunks.sh
+      234a4738bdcdfcccd33bf997a929e6367ce577fde34ba33f122deb7703328053  cluster/gen3_stage1_261012/test_merge_s1_plan.py
+      7f55f4c53fd56755712d37fcbfaef371ee3f6205db1e44c07ab8c333e4f497eb  cluster/gen3_stage1_261012/tasks_stage1_koa_261012.sha256
+      1a5ac526a16d7c66cbf09f11391597f90912abb2064a6358c73d8094c86644c1  cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv
+      e071497b67fbd0c96927a3697799cb4b8d180a9fcc2f26f282938e37d5d714b2  cluster/gen3_stage1_261012/build_record_f72d764.txt
+      89fc3ed21d315220707bf8e6005a1eb525abc2f7f20cab48430819399e4636db  cluster/gen3_stage1_261012/s1_inputs.sha256
+      8cc727e5d0ec0108a9047f7fcc86d0dbe2424dacec8b13ded7c453ce656ad89a  cluster/gen3_stage1_261012/s1_merge_inputs.sha256
+    21         (the two manifests, each file ": OK")
+    e3e3e945ca1e6015a505faf1632efd1081918294f0b35863a592298b2f1c0b24   (the registered task list's SHA-256)
+    "the committed build record equals the build-time record"
+    four lines "<SHA-256>  <binary>" equal to the record's four sha256 lines (block B of the gate printed them)
+    "00ALLINONE  git f72d764  target koa"
+    "env: gcc (GCC) 14.3.0 | Python ... at /home/charing/envs/hd/bin/python3 | ..."
+    "ALL PASS (8 of 8 cases)"
+    "the merge and reducer imports: OK"
+    "ls: cannot access '/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1': No such file or directory" (a fresh root)
+  STOP RULE: anything else: type exit if the shell is still open, paste it, submit nothing, wait.
+
+S1 BLOCK C (KOA login node, after block B's exit; chunk 1 alone, G6 (e): 25 task lines of B_N0100_eta0.050000, M 50; 1 core; time limit 0:30):
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3 && sbatch --job-name=gen3-s1-B100 --time=0:30:00 --array=1 cluster/gen3_stage1_261012/s1_koa.sbatch
+
+  Expected: squeue lists no gen3 job; "Submitted batch job <its number>". Submit it ONCE. Predicted 6.9 min on an E5 node.
+
+S1 BLOCK D (KOA login node, when squeue -u charing lists no gen3-s1-B100 job; every line only reads; paste everything):
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3
+cat logs/gen3-s1-B100_*_1.out
+c=/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/chunks/chunk_1/stage1/gen3/B_N0100_eta0.050000/m_50; echo "traces $(ls $c/wall_x_positions_* | wc -l) psi6 $(ls $c/psi6_t_*.csv.gz | wc -l) virial $(ls $c/virial_blocks_*.csv.gz | wc -l) snapshots $(ls $c/snapshots_* 2>/dev/null | wc -l) runs $(grep -c '^##RUN' $c/run.log) clean $(grep -c '^\[EDMD3-HEALTH\] .*: clean=1 ' $c/run.log) build '$(cat $c/.build_git)'"
+grep -h '^\[EDMD3-RUN\]' $c/run.log | grep -o 'box=[^ ]* x [^ ]* px exact_box=[01] eta=[^ ]* N=[0-9]* N_L=[0-9]* N_R=[0-9]*' | sort | uniq -c
+
+  THE LINES THAT SHOW IT IS GOOD (all of them, and nothing else):
+    squeue: its header line only
+    the log: "env: gcc (GCC) 14.3.0 | ..."; "chunk 1 on cn-... (...): group B100, lines 1-25; 00ALLINONE  git f72d764  target koa"; "chunk 1 done"; no line
+    containing FAILED, REFUSED or STOP
+    traces 25 psi6 25 virial 25 snapshots 0 runs 25 clean 25 build '00ALLINONE  git f72d764  target koa'
+    one line "25 box=3769.9111843077517 x 240 px exact_box=1 eta=<the recorded eta> N=100 N_L=50 N_R=50"
+    (the box 2 L0 x H in pixels of 1/24 sigma from the requested L0 78.539816339744831 and H 10, the exact box, the recorded eta -- within
+    1e-12 of the requested one, as gate G2 checked for every cell -- and the equal halves)
+  STOP RULE: anything else: paste it, change nothing, wait. The groups' blocks are typed only after the plan author's go (G7).
+
+````
+
+## 5. The timing script (item 17)
+
+**`cluster/gen3_stage1_261012/s1_timing_261012.py`** (engine-gen3 `a58beaa3`; SHA-256 `fbc52148…`). It runs on the Mac and reads fetched files only. Nothing in the package changed: it is not a KOA job input.
+- **Per chunk:** the sum of its trajectories' `##RUN` seconds over `predicted_s_E5`.
+  - The seconds come from the merged `run.log` of the chunk's (cell, mass), matched by run index and exact seed.
+  - The chunk's node and CPU model come from its fetched log that holds "chunk <j> done". A chunk run twice under A3 is timed by its successful log.
+  - A chunk with fewer run records than task lines is marked INCOMPLETE, never filled in.
+- **Per CPU model:** the minimum, median and maximum.
+- **The watch line:** the group's E5 maximum against 2.0.
+- **Output:** the full per-chunk table goes to `experiments_gen3_s1_261012/timing/timing_<group>.tsv`. The printout shows every chunk up to 60, else the 20 largest ratios.
+
+**Its test on G4 run 2's fetched mini data** (`experiments_gen3_s1_261012/timing_test_g4_rehearsal_output.txt`):
+- B100: 31 of 31 run records found;
+- D and S: every run record found, with group S's resubmitted chunks timed by their successful logs;
+- the Mac's ratios are 0.15–0.67;
+- chunk 1 by `--paste`: "run records 25 of 25; sum of ##RUN seconds 62; predicted (E5) 415.3 s; ratio 0.149; time limit 30 min = 4.33 x predicted".
+
+**Chunk 1's ratio "with its check" (decision 41 item 3).** Block D as written prints the chunk log and the counts, not the run seconds: the worker writes them only to `run.log`'s `##RUN` lines. One more read-only line in block D after the `c=...` line would carry them:
+
+```
+grep -h '^##RUN' $c/run.log
+```
+
+From that paste, `s1_timing_261012.py --paste <the paste> --chunk 1` prints chunk 1's ratio against 415.3 s. Nothing was changed. Whether block D, or the plan author's own chunk-1 lines, carries this line is the plan author's choice.
+
+## 6. A second paste of a submit block (item 18; report only, nothing changed)
+
+**What a second paste does today.** Every sbatch line submits again. The second set of arrays runs beside the first, each with its own throttle, so up to 128 chunks run at once, against the 64 of sec. 4.8.8. Two tasks of one chunk then work in the same chunk folder:
+- the worker skips the runs already finished;
+- if both tasks start the same run, the later one moves the earlier one's live `.run<r>` folder aside as `.stale_run<r>`. From then on the two tasks share one run-folder path, and either run, or both, can end FAILED;
+- each chunk ends with two logs holding "chunk <j> done", so the chunk check fails ("<j>(2 logs with its done line)") and the merge stops with nothing moved, until the plan author decides.
+
+**Can each submit block refuse it?** Yes. One guarded command line of the plan author's gate block C kind would wrap the block's sbatch lines, unchanged and in their order. It refuses whenever any of these fails:
+- squeue lists a job of the group's name (this also covers a second paste while the arrays are still pending);
+- the group's root `.../stage1/<g>` exists (it appears when the first task starts);
+- a chunk log of the group exists in `logs/`;
+- the scripts clone's `.git/HEAD` differs from the stage 1 commit.
+
+A failed squeue counts as a refusal, as in `s1_merge.sbatch`. A sketch for block E-B400 follows; it has not been rehearsed:
+
+```
+cd ~/harddisks_gen3_k2/hspist3 && G=B400 && R=/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/$G && Q=$(squeue -h -u charing -n gen3-s1-$G -o %i 2>&1) && [ -z "$Q" ] && [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] && [ ! -e "$R" ] && ! ls logs/gen3-s1-${G}_*.out >/dev/null 2>&1 && echo "CHECKS GOOD" && <the block's four sbatch lines, each followed by &&> echo "ALL 4 ARRAYS SUBMITTED" || echo "THIS PASTE DID NOT SUBMIT ALL 4 ARRAYS"
+```
+
+- **E-B100** has chunk 1, so its guard must allow exactly chunk 1's folder and its one done log, and nothing else:
+
+  ```
+  [ "$(ls -d $R/chunks/chunk_* 2>/dev/null)" = "$R/chunks/chunk_1" ] && [ "$(ls logs/gen3-s1-B100_*.out 2>/dev/null | wc -l)" -eq 1 ] && grep -qx 'chunk 1 done' logs/gen3-s1-B100_*_1.out
+  ```
+
+  If chunk 1 needed a resubmission, that guard refuses, and the plan author decides.
+- **Block F's printed resubmission lines** could be guarded the same way: squeue empty for the group, and no log of the listed chunks holding "chunk <j> done". `s1_stopped_chunks.sh` could print them guarded.
+- **An A3 line** (a chunk that reached its time limit): `s1_stopped_chunks.sh` prints "started and did not finish: needs the plan author" and no line. The A3 line, with `--time` = twice the class, is written at the plan author's go.
+- **Block G (the merge)** refuses a repeat by itself (exit 3 once `merged/` exists). Two merges submitted in the same moment would both pass that check before either creates `merged/`. A guard would add: squeue lists no `gen3-s1-merge-<g>` job, and `merged/` is absent.
+- **A partial submission** (an sbatch line failing after earlier ones succeeded) prints "DID NOT SUBMIT ALL". A repeat paste is then refused by squeue, and the plan author decides.
+
+## 7. Data and records
+
+- **Data this message:** about 5 MB (the notes, this report, the gate evidence's text files). Free: 95 GB.
+- **The gate fetch in git:** of its 451 files, the 64 git-ignored ones (42 `run.log`, 12 A-fixed `tr_*.csv`, the job logs) are listed by SHA-256 only, in `experiments_gen3_s1_gate_koa_261012/FETCHED_SHA256_FILES.txt`, as for the M5 fetch. The verdict output above carries the compare log and the hash tables verbatim.
+
+## Commits
+
+- **engine-gen3:**
+  - `276e457e`: the gate fetch, the verdict and checks 14, 15 a and 15 b;
+  - `7bdfb67e`: the stage 1 commit;
+  - `0e7cb2f2`: the stage 1 runsheet written again;
+  - `a58beaa3`: the timing script and its test;
+  - the copies of decision 41's record and of this report.
+- **main and engine-divider-resched:** decision 41's record (sec. 4.7.85, main `d2f05c8a`) and this report.
+
+Written for: the plan author
