@@ -23939,3 +23939,75 @@ What I need back: the output of E, F and H in one paste. My answer will be the f
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.91 Plan-author decision 44: group B100's arrays and block F clean; a third CPU model on record (E5-4640 v2, Ivy Bridge); the merge of B100 running; the go for E-B400 beside it; a hold on D, B900, S and B1600; the B100 tables and the merge's time after the fetch (2026-10-13 00:31 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 44** (relayed by Chris at about 00:30 HST, machine date; the plan author's time "~00:35 HST").
+  - Of the plan author's note to Chris, only its item 4 reached CC ("Paste me the output of steps 1 to 3 ..."). Items 1–3 were not in the paste.
+- **1. Group B100's run, as the plan author read it:**
+  - block E: "B100: ALL 3 ARRAY LINE(S) SUBMITTED";
+  - block F clean: 144 logs, 144 done, 0 FAILED or REFUSED, "chunks done: 144 of 144", "nothing to resubmit";
+  - CPU models: 103 chunks on E5-2670 v3, 41 on E5-4640 v2 (cn-04-…);
+  - the plan author's timing line: min 0.31 (chunk 9, the group's longest, 1989 s predicted), median 1.09, max 1.61 (chunk 82, 69 s predicted, a 30 min class). The watch rule's 2.0 is not reached.
+- **2. A third CPU model is on record: E5-4640 v2** (Ivy Bridge, no FMA, no AVX2).
+  - The `-march=x86-64-v2` binary ran clean there.
+  - glibc may choose other libm variants on it, so a seed's bits may differ from the Haswell nodes. Sec. 4.8.5 covers this, and it affects no verdict.
+  - CC: add it to the KOA facts; print the three CPU models separately in the timing table; report only which libm functions the gen3 path and the seeding call.
+- **3. Block G-B100:** "CHECKS GOOD", job 15053009, "B100: THE MERGE SUBMITTED". At 00:26 HST it had been running on cn-03-38-01 for 49 min. Block H-B100 is not read yet.
+- **4. THE GO FOR E-B400** is given on the clean F-B100 while B100's merge still runs. This changes rule c of decision 43 for this one step.
+  - The reason: the two touch different folders, job names and logs. Sec. 4.8.8's "at most 64 at once" is about the arrays, and one merge core beside them is accepted.
+- **5. HOLD:** no block E for D, B900, S or B1600 before the plan author has read H-B100, F-B400 and B100's INTERIM tables.
+- **6. When Chris says the B100 fetch is done,** CC prints, verbatim:
+  - the INTERIM tables and the timing table of B100;
+  - the merge job's elapsed time and where it went (the reduction, the gzip), because the same merge runs five more times.
+
+**The message, verbatim** (relayed by Chris on 2026-10-13 at about 00:30 HST, machine date; it begins with the last item of the plan author's note to Chris):
+
+```
+4. Paste me the output of steps 1 to 3. I then give you the fetch line for the 100-disk data and the go for the next group. Type no other submit block before that.
+
+For CC
+From the plan author (Cowork), relayed by Chris. Record in a new
+section.
+
+DECISION 44 (2026-10-13 ~00:35 HST)
+ 1. GROUP B100: block E "B100: ALL 3 ARRAY LINE(S) SUBMITTED";
+    block F clean: 144 logs, 144 with their done line, 0 FAILED or
+    REFUSED, "chunk logs: 144; chunks done: 144 of 144 ... earlier
+    attempts: 0 stopped in the start-up checks, 0 started and not
+    finished", "nothing to resubmit". CPU models: 103 chunks on
+    E5-2670 v3, 41 on "Intel(R) Xeon(R) CPU E5-4640 v2 @ 2.20GHz"
+    (cn-04-...). My timing line: "chunks timed 144; measured /
+    predicted: min 0.31 (chunk 9), median 1.09, max 1.61 (chunk
+    82)". Chunk 9 is the group's longest (1989 s predicted); chunk
+    82 has 69 s predicted and a 30 min class. The watch rule's 2.0
+    is not reached.
+ 2. A THIRD CPU MODEL is on record: E5-4640 v2 (Ivy Bridge, no FMA,
+    no AVX2). The binary is -march=x86-64-v2 and ran clean there.
+    glibc may choose other libm variants on it, so a seed's bits
+    may differ from the Haswell nodes. Sec. 4.8.5 covers it; it
+    affects no verdict. Add it to the KOA facts. In the timing
+    table print the three CPU models separately. Report only: which
+    libm functions the gen3 path and the seeding call.
+ 3. Block G-B100: "CHECKS GOOD", job 15053009, "B100: THE MERGE
+    SUBMITTED"; it was running on cn-03-38-01 for 49 min at 00:26
+    HST. Block H-B100 is not read yet.
+ 4. THE GO FOR E-B400 is given on the clean F-B100 while B100's
+    merge still runs. This changes rule c of decision 43 for this
+    one step. Reason: the two touch different folders, job names
+    and logs; sec. 4.8.8's "at most 64 at once" is about the
+    arrays, and one merge core beside them is accepted.
+ 5. HOLD: no block E for D, B900, S or B1600 before I have read
+    H-B100, F-B400 and B100's INTERIM tables.
+ 6. When Chris tells you the B100 fetch is done: the INTERIM tables
+    and the timing table of B100, verbatim. Report also the merge
+    job's elapsed time and where it went (the reduction, the gzip),
+    because the same merge runs five more times.
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
