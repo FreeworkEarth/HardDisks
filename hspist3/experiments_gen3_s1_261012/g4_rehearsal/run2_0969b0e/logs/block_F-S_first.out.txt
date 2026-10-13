@@ -1,0 +1,13 @@
+       2
+       0
+0
+earlier attempt of chunk 6, stopped in the start-up checks (ran nothing): gen3-s1-S_940010_6.out: STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones (cluster/gen3_stage1_261012/s1_inputs.sha256)
+earlier attempt of chunk 7, stopped in the start-up checks (ran nothing): gen3-s1-S_940011_7.out: STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones (cluster/gen3_stage1_261012/s1_inputs.sha256)
+chunk logs: 2; chunks done: 0 of 2 (group S; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 2 stopped in the start-up checks, 0 started and not finished
+NOT DONE: 6(no folder) 7(no folder)
+chunk 6: stopped in the start-up checks (ran nothing): gen3-s1-S_940010_6.out: STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones (cluster/gen3_stage1_261012/s1_inputs.sha256)
+chunk 7: stopped in the start-up checks (ran nothing): gen3-s1-S_940011_7.out: STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones (cluster/gen3_stage1_261012/s1_inputs.sha256)
+group S without a done log: stopped once 2, stopped twice or more 0, started and not finished 0, no log 0
+THE RESUBMISSION LINE(S) (type each once, after the plan author's go; from ~/harddisks_gen3_k2/hspist3):
+sbatch --job-name=gen3-s1-S --time=0:30:00 --array=6 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_stage1_261012/s1_koa.sbatch
+sbatch --job-name=gen3-s1-S --time=1:00:00 --array=7 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_stage1_261012/s1_koa.sbatch

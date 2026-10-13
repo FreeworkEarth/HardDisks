@@ -1,0 +1,121 @@
+##CHRIS 2026-10-12 (plan-author decision 39 items 5 a and 5 c; registration 261012 sec. 4.8.5 and 4.8.10) -- THE STAGE 1 GATE RUNSHEET (KOA):
+the campaign build and gates G6 (c) and (d). PREPARED. Nothing here is typed until the plan author has read Report S1 and Chris says go.
+Chris types every command.
+
+WHAT IT DOES.
+  1. THE CAMPAIGN BUILD (decision 39 item 5 a, option (i)): a NEW clone ~/harddisks_gen3_s1 of engine-gen3 f72d764 (fetched by hash, as step 1
+     fetched a643bc7 into ~/harddisks_gen3), built ONCE in the sandbox shell by build_s1_koa.sh -- f72d764's own
+     cluster/gen3_koa_261009/build_gen3_koa.sh (identical to a643bc7's) with three changes only: it builds in ~/harddisks_gen3_s1 (the
+     original refuses every clone not named harddisks_gen3), it is run from the scripts clone, and it refuses a second build; the make
+     targets, flags, hash files and environment are the original's lines; then record_s1_build.sh writes the build-time record ~/harddisks_gen3_s1/hspist3/logs/BUILD_RECORD_S1.txt (the
+     commit and the SHA-256 of every binary), which every stage 1 job checks without git. Its build inputs equal f72d764's by definition.
+     ~/harddisks_gen3 (a643bc7, the gate binary) is not touched.
+  2. THE GATE JOB (one node, 8 cores): G6 (c) E0 with the campaign binary against the 7b08827 reference (ctrl_min, ctrl_leg, afix,
+     afix_leg; default and --engine=gen2; the a643bc7 gate's part (a), unchanged but for the binary), and the M1/M2 harness outputs of the
+     campaign build against the a643bc7 gate's KOA outputs (job 15040861; the harness sources are byte-identical between the commits, so
+     equal files are expected); G6 (d) the 12 gen3 lines of Test G chunk 1 with the gate binary and with the campaign binary: equal event
+     hashes and counts.
+  3. CROSS-NODE DETERMINISM with the campaign binary (G6 (c)): an array of 8 one-core tasks (the a643bc7 job's two cells and seeds) and the
+     compare job, which waits for them by --dependency=singleton (the same job name); its root is fixed, so no job id is typed.
+DELIVERY: an UPDATE IN PLACE of ~/harddisks_gen3_k2 (the scripts clone) to engine-gen3 0969b0ed3b306f4d4c10d77baed91df593b05e4e (the
+commit must be pushed first); its sparse set holds the new folder cluster/gen3_s1_gate_261012/ (and the stage 1 package, not used yet).
+KOA RULES, as before: the login node only for light commands; squeue before every sbatch; never submit a job twice; nothing in ~/harddisks,
+~/harddisks_resched, ~/harddisks_resched2 or ~/harddisks_gen3 changes. Every job checks its clone, its inputs (s1_gate_inputs.sha256: 13
+files), the campaign binaries against the build-time record, the gate binaries against k2_binaries_a643bc7.sha256 and the 7b08827 reference
+against its build file, and stops with "STOP: [<node>] ..." on any mismatch: paste the STOP line, change nothing, wait. NO GIT AT RUN TIME;
+every sbatch carries --exclude=cn-05-08-07. There are NO placeholders.
+THE SANDBOX LINE is the established one, without -A: srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+
+CORE-HOURS (requested = cores x time limit; Slurm charges what a job uses):
+| block | what | partition | cores | requested core-hours | expected use |
+|---|---|---|---|---|---|
+| A, B | sandbox shell: the update, the clone, the build (about 5 min), the record | sandbox | 2 | 2.00 | under 0.3 |
+| C | the gate job: E0 (8 runs of 4 cases), the harnesses, 24 Test G trajectories | shared | 8 | 24.00 | about 3 |
+| C | the cross-node array, 8 tasks of 1 core | shared | 8 x 1 | 8.00 | under 1 |
+| C | the compare job | shared | 1 | 0.50 | under 0.1 |
+| all | | | | 34.50 | about 4.5 |
+SCRATCH: about 220 MB (E0 writes six A-fixed event logs of 17 MB per build: the a643bc7 gate wrote 101 MB per E0 set); the fetch (block E)
+about 10 MB (no traces, no event logs).
+
+GATE BLOCK A (KOA login node; opens the sandbox shell; then wait for the cn-... prompt):
+squeue -u charing
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+
+  Expected: squeue lists no gen3 job. Paste block B only at the cn-... prompt.
+
+GATE BLOCK B (in the sandbox shell: the scripts update, the NEW clone, the build, the build-time record):
+git --version
+cd ~/harddisks_gen3_k2
+git status --porcelain --untracked-files=no | wc -l
+git fetch --depth 1 origin 0969b0ed3b306f4d4c10d77baed91df593b05e4e
+git -c advice.detachedHead=false checkout 0969b0ed3b306f4d4c10d77baed91df593b05e4e
+git log -1 --format='%h %s' | cut -c1-80
+cd hspist3 && sha256sum cluster/gen3_s1_gate_261012/s1_gate_koa.sbatch cluster/gen3_s1_gate_261012/s1_xnode.sbatch cluster/gen3_s1_gate_261012/s1_xnode_compare.sbatch cluster/gen3_s1_gate_261012/build_s1_koa.sh cluster/gen3_s1_gate_261012/record_s1_build.sh cluster/gen3_s1_gate_261012/s1_gate_inputs.sha256
+sha256sum -c cluster/gen3_s1_gate_261012/s1_gate_inputs.sha256 | grep -c ': OK$'
+ls -d ~/harddisks_gen3_s1 2>&1 | head -1
+cd ~ && git clone --depth 1 --branch engine-gen3 --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_gen3_s1
+cd ~/harddisks_gen3_s1 && git fetch --depth 1 origin f72d764a8a7e837644c26bd8abc175d9e2cac268
+git -c advice.detachedHead=false checkout f72d764a8a7e837644c26bd8abc175d9e2cac268
+git sparse-checkout set --no-cone "/hspist3/*.c" "/hspist3/*.h" "/hspist3/*.py" "/hspist3/Makefile" "/hspist3/edmd_core/" "/hspist3/cluster/" "/hspist3/validation/" "/hspist3/kissfft"
+git clone https://github.com/mborgerding/kissfft.git hspist3/kissfft
+git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec
+git log -1 --format='%h %s' | cut -c1-80
+bash ~/harddisks_gen3_k2/hspist3/cluster/gen3_s1_gate_261012/build_s1_koa.sh 2>&1 | tail -20
+bash ~/harddisks_gen3_k2/hspist3/cluster/gen3_s1_gate_261012/record_s1_build.sh
+ls /mnt/lustre/koa/scratch/charing/harddisks_gen3/s1_gate /mnt/lustre/koa/scratch/charing/harddisks_gen3/s1_xnode 2>&1 | head -2
+exit
+
+  THE LINES THAT SHOW IT IS GOOD (paste everything):
+    "git version 2.35.0" or newer; 0 (no tracked file of the scripts clone has changed)
+    the fetch of 0969b0ed... and "HEAD is now at 0969b0e decision 39 item 5 f, G4 run 1 ..." (before it git may print "Warning: you are
+    leaving <n> commit(s) behind ...": harmless, the clone's old detached state)
+    "0969b0e decision 39 item 5 f, G4 run 1 (FAIL 19 of 24, every failure a fault of" (the log line)
+    exactly these six lines:
+      e6b7ed2b1e81061b20d6c26c015c663f381871d1e5ed4ff8cfd0f2ac8da222af  cluster/gen3_s1_gate_261012/s1_gate_koa.sbatch
+      89527a73a665af2d6b0b88d10d6c8303d0d4254ea66b183f0bd1999d5ac5139b  cluster/gen3_s1_gate_261012/s1_xnode.sbatch
+      95fca4785f8dc7cb47714c6ef2cb9546abdec3140b038b9a5512e56e240e2c90  cluster/gen3_s1_gate_261012/s1_xnode_compare.sbatch
+      c6262d4fa6c0ace4ffe62343bff0e5a4b22f6c5a47c397ec1c942c9d203972df  cluster/gen3_s1_gate_261012/build_s1_koa.sh
+      0748f14dcc5bc637ea45cc2364cf2887450d3534f675688d6720f04126604d70  cluster/gen3_s1_gate_261012/record_s1_build.sh
+      76beaa51e76028039074bb05d881a60c7b168403a0934a343f3beb2f034e0453  cluster/gen3_s1_gate_261012/s1_gate_inputs.sha256
+    13         (the gate manifest, each ": OK")
+    "ls: cannot access '/home/charing/harddisks_gen3_s1': No such file or directory" (the new clone does not exist yet)
+    the clone and the fetch of f72d764...; "HEAD is now at f72d764 decision 18 items 1-2 ..."; kissfft at febd4ca
+    "f72d764 decision 18 items 1-2 (261012 sec. 4.7.42): checkpoint carries --gen3-p" (the log line)
+    the build's last lines: the two version lines ("00ALLINONE  git f72d764  target koa-ld", "... target koa"), the four hash lines,
+    "== long double on this node: LDBL_MANT_DIG 64, sizeof 16" and "BUILD OK: ./00ALLINONE (koa), bin/00ALLINONE_ld (koa-ld), bin/gen3_m1 and bin/gen3_m2 of f72d764"
+    the record: "env: gcc (GCC) 14.3.0 | ..." (record_s1_build.sh sources the clone's koa_env.sh), then the record's lines: its comment,
+    "commit f72d764a8a7e837644c26bd8abc175d9e2cac268", "version 00ALLINONE  git f72d764  target koa", "version_ld ... target koa-ld",
+    four "sha256 <SHA-256> <binary>" lines, "compiler gcc (GCC) 14.3.0", "built <time> on <node>", and
+    "BUILD RECORD OK: /home/charing/harddisks_gen3_s1/hspist3/logs/BUILD_RECORD_S1.txt"
+    two "ls: cannot access ... No such file or directory" lines (the gate's roots are fresh)
+  A STOP line instead: paste it, change nothing, wait.
+
+GATE BLOCK C (KOA login node, after block B's exit; three jobs):
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3 && sbatch cluster/gen3_s1_gate_261012/s1_gate_koa.sbatch
+sbatch --array=1-8 cluster/gen3_s1_gate_261012/s1_xnode.sbatch
+sbatch --dependency=singleton cluster/gen3_s1_gate_261012/s1_xnode_compare.sbatch
+
+  Expected: squeue lists no gen3 job; three "Submitted batch job <number>" lines. The gate job takes about 30 min, the array a few minutes.
+
+GATE BLOCK D (KOA login node, once squeue -u charing lists no gen3-s1-gate and no gen3-s1-xnode job; prints the two logs):
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3 && L=$(ls -t logs/gen3-s1-gate_*.out | head -1) && echo "$L" && sed -n '/^s1 gate on/,$p' "$L"
+C=$(ls -t logs/gen3-s1-xnode-compare_*.out | head -1) && echo "$C" && cat "$C"
+
+  THE LINES THAT SHOW IT IS GOOD (paste everything):
+    "s1 gate on cn-... (<CPU>): out /mnt/lustre/koa/scratch/charing/harddisks_gen3/s1_gate" and the three version lines
+    "== (c1) E0 default:" and "== (c1) E0 gen2flag:", each with four lines ctrl_min, ctrl_leg, afix, afix_leg: "audit vs plain: IDENTICAL plain vs ref: IDENTICAL"
+    "== (c2) ..." with three "EQUAL to the a643bc7 gate's KOA output" lines and "harness outputs equal to the a643bc7 gate's: 3 of 3"
+    "== (d) ..." with a table of 12 lines and "TEST G CHUNK 1 (12 gen3 lines): event hashes equal in 12 of 12"
+    "s1 gate done; paste everything from 's1 gate on' to here"
+    the compare: "cross-node determinism: ..." with the node pairs and IDENTICAL per file (NOT TESTED if all 8 tasks ran on one node:
+    then the plan author decides), and "cross-node compare done; ..."
+  A STOP line or DIFFERENT instead: paste it, change nothing, wait.
+
+GATE BLOCK E (Mac, after block D; one password and Duo push per root, two in all; about 10 MB):
+cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3 && bash hspist3/cluster/gen3_s1_gate_261012/fetch_s1_gate_koa.sh
+
+  Expected, last line: "fetched into .../experiments_gen3_s1_gate_koa_261012: <size>; build record: f72d764a8a7e837644c26bd8abc175d9e2cac268".
+  Then tell CC. CC prints the gate verdict (s1_gate_verdict_261012.py), writes build_record_f72d764.txt from the fetched build-time
+  record and the stage 1 manifests, commits them, and gives the stage 1 runsheet's delivery block its commit (chunk 1 alone, then the arrays).

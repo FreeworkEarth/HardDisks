@@ -1,0 +1,28 @@
+git version 2.50.1 (Apple Git-155)
+       0
+48d452c REHEARSAL stand-in of the stage 1 commit: build record, manifests, mini 
+78f64533c3d5b0b2fa09305d18a50afc6f543dfb8166a6e045f39f3faf7f2773  cluster/gen3_stage1_261012/s1_koa.sbatch
+ab22d983422b43cc68c8e8e841deac3860ca22d3207fc99764955fc61ad7e578  cluster/gen3_stage1_261012/s1_worker_koa.sh
+1e9e6f82bdc411267b68d23bd12d1fc4741cf119d268a9e14929fe6f3c2b3009  cluster/gen3_stage1_261012/s1_merge.sbatch
+58d324e09452cceeb181960a0b416612979f941053d850ea9a4ce8eb16b61185  cluster/gen3_stage1_261012/merge_s1_koa.py
+f13061c82b62076f3ac41002d46631dfb10903d3f8d12c2c74c80d4bcc5e15ea  cluster/gen3_stage1_261012/reduce_s1_koa.py
+c32ab31682f85bc9228b2485a57d9801fa19908d3dbf6bb4e75229d8b7bf3c26  cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh
+42360b1a3e08d5bf594912ad4b3864b9d10da2580cc1d3c751ecf6a2b82a34b5  cluster/gen3_stage1_261012/s1_stopped_chunks.sh
+234a4738bdcdfcccd33bf997a929e6367ce577fde34ba33f122deb7703328053  cluster/gen3_stage1_261012/test_merge_s1_plan.py
+4bfa2e444fe7ae1fd379dd61a3e46a52581ff6075fa1afac97dd3b561f97c914  cluster/gen3_stage1_261012/tasks_stage1_koa_261012.sha256
+9426bbe8c6f36f1b49b74e931224e5a47451a86450a26e1baf098f0ccee99054  cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv
+65f36d099d2a1fcf8cfacc15e9f32795a8a4fae79ebe6f3b058625e51d848d5c  cluster/gen3_stage1_261012/build_record_f72d764.txt
+16899e51e98100c19c7fd99d9c94d690abd7b286736d9bdc0d797cfd47252ff3  cluster/gen3_stage1_261012/s1_inputs.sha256
+8cc727e5d0ec0108a9047f7fcc86d0dbe2424dacec8b13ded7c453ce656ad89a  cluster/gen3_stage1_261012/s1_merge_inputs.sha256
+21
+dfc4d270be9f32d732925e3415dffa447e7fcdd934cc105f81b016c19f4d7578
+the committed build record equals the build-time record
+cba3745d0c97f98026831ce4ffb316ac9d2aa8cadd2d7ca795c8814a7f8dd77c  00ALLINONE
+55bc941e13367c7717391cdbba142043a16cb02aef73f89d60de94ed501ec2bb  bin/00ALLINONE_ld
+4cff618b9f313df843caab3fc8f1c929a9a8f641f5946aa39722e1662f46a911  bin/gen3_m1
+cba6a498e7e2db5b627cef5eda38868c4d3695174203e14c6e1a3ea877ea020e  bin/gen3_m2
+00ALLINONE  git f72d764  target koa
+env: gcc (GCC) 14.3.0 [rehearsal shim; here: Apple clang version 17.0.0 (clang-1700.4.4.1)] | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+ALL PASS (8 of 8 cases)
+the merge and reducer imports: OK
+ls: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d39/g4b/lustre/harddisks_gen3/stage1: No such file or directory
