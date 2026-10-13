@@ -5,7 +5,9 @@ rule, on the Mac, from fetched files only (nothing runs, nothing on KOA is read)
                 merged run.log of the chunk's (cell, mass)) / the chunk table's predicted_s_E5, with the node and CPU model of the chunk's log
                 that holds "chunk <j> done" (job_logs/<job name>_<array id>_<j>.out of the fetch);
   per CPU model the minimum, median and maximum of that ratio;
-  the watch     "If the E5 maximum of a finished group is 2.0 or more, I decide before the next group's block E" (decision 41 item 3): the
+  per cell      (##CHRIS 2026-10-13, plan-author decision 45 item 5 c) next to it: per cell (eta) and CPU model the chunks timed and their
+                largest ratio, with its chunk;
+  the watch    "If the E5 maximum of a finished group is 2.0 or more, I decide before the next group's block E" (decision 41 item 3): the
                 maximum over the chunks on E5 models is printed against 2.0.
 The ##RUN seconds count the trajectories that finished (the worker appends a ##RUN section only for a clean run); a chunk whose run
 records are fewer than its task lines is marked, never filled in. A chunk run twice (A3) is timed by its successful log.
@@ -41,6 +43,12 @@ def load(chunks, tasks):
         if len(rels) != 1: sys.exit(f"STOP: chunk {c['j']}'s lines name {len(rels)} cell folders")
         c["rel"] = rels.pop(); c["runs"] = [(int(r[3]), int(r[4])) for r in rows]          # (s, exact seed) per line
     return CT
+
+
+def eta_of(cid):
+    """##CHRIS 2026-10-13 (decision 45 item 5 c): the cell's eta from its id (B_N0100_eta0.392699, S_N0100_eta0.600000_start0)"""
+    m = re.search(r"_eta([0-9.]+)", cid)
+    return float(m.group(1)) if m else float("nan")
 
 
 def runs_of(text):
@@ -96,6 +104,19 @@ def group_table(root, g, CT, show_all, outdir):
         if r["found"]: by[r["cpu"]].append(r["ratio"])
     print("\n| CPU model | chunks | minimum | median | maximum |\n|---|---|---|---|---|")
     for cpu, v in sorted(by.items()): print(f"| {cpu} | {len(v)} | {min(v):.3f} | {statistics.median(v):.3f} | {max(v):.3f} |")
+    # ##CHRIS 2026-10-13 (plan-author decision 45 item 5 c): next to it, per cell (eta) of the group and per CPU model, the chunks timed and
+    # their largest ratio (with its chunk); the last column over every CPU model
+    cpus = sorted(by)
+    if cpus:
+        print("\nthe maximum ratio per cell (eta) for each CPU model (chunks timed, maximum (chunk)):\n")
+        print("| cell | eta | " + " | ".join(cpus) + " | every CPU model |\n|---|---|" + "---|" * (len(cpus) + 1))
+        for cid in sorted({r["cid"] for r in rows}, key=lambda c: (eta_of(c), c)):
+            out = []
+            for cpu in cpus + [None]:
+                v = [r for r in rows if r["cid"] == cid and r["found"] and (cpu is None or r["cpu"] == cpu)]
+                m = max(v, key=lambda r: r["ratio"]) if v else None
+                out.append(f"{len(v)}, {m['ratio']:.3f} ({m['j']})" if m else "-")
+            print(f"| {cid} | {eta_of(cid):.6f} | " + " | ".join(out) + " |")
     e5 = [x for cpu, v in by.items() if "E5" in cpu for x in v]
     if e5:
         mx = max(e5)
