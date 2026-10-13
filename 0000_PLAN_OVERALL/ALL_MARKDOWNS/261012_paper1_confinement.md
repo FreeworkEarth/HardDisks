@@ -22622,3 +22622,58 @@ cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3 && bash hspist3/clu
 ````
 
 Written for: the plan author
+
+### 4.7.84 Plan-author decision 40: Report M5-V accepted, gate G6 (b) MET; Report S1 received, G1–G5 and the rehearsals noted as passed, the --design output and both runsheets reviewed from REPORT_S1_261012.md in a new Cowork chat; nothing typed on KOA and nothing in the package changed until the gate runsheet is approved; preliminary positions on η_int, the 64-core reading and the time limits; the deletion rule restated, scratch included; no new runs (2026-10-12 16:47 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 40** (relayed by Chris at about 16:46 HST, machine date; the plan author's time "~17:00 HST"):
+  1. **Report M5-V is ACCEPTED.** THE M5 VERDICT NO DIFFERENCE stands; stage 1 gate G6 (b) is MET, with the proviso printed. **Recorded as an input for stage 2:** at η 0.74, seed 0's long-double run disordered while its double twin did not.
+  2. **Report S1 is RECEIVED.** G1–G5 and the rehearsals are noted as passed.
+     - The plan author reviews the `--design` output, the gate runsheet (Appendix S1-F) and the stage 1 runsheet (Appendix S1-G) from `REPORT_S1_261012.md` in a new Cowork chat, because the file is too long for this one.
+     - **Until the plan author has approved the gate runsheet's lines, nothing is typed on KOA and nothing in the package changes.**
+     - Preliminary positions, to be confirmed with the file:
+       - η_int stays as registered, reported where the strip rule can be met;
+       - CC's reading of "at most 64 at once" is accepted;
+       - the time limits (3 × the model, against a measured ratio of up to 2.58) are decided before the first array.
+  3. **CC's rule slip** (two deletions of its own scratch folder) is noted. **The rule stands:** nothing is deleted without Chris's word, scratch included; a new folder name is used instead.
+  4. **While waiting: no new runs.** If Chris asks, CC helps with the meeting material from the existing figures.
+- **What CC did:** recorded this section, with a STATUS line, and propagated it. Nothing was run and nothing in the package changed.
+
+**The message, verbatim** (the part for CC; relayed by Chris on 2026-10-12 at about 16:46 HST, machine date):
+
+```
+For CC:
+
+From the plan author (Cowork), relayed by Chris. Record in a new
+section.
+
+DECISION 40 (2026-10-12 ~17:00 HST)
+ 1. Report M5-V: ACCEPTED. THE M5 VERDICT NO DIFFERENCE stands;
+    stage 1 gate G6 (b) is MET (with the proviso printed). The
+    observation on seed 0 at eta 0.74 (the long-double run
+    disordered, its double twin did not) is recorded as an input
+    for stage 2.
+ 2. Report S1: RECEIVED; G1-G5 and the rehearsals are noted as
+    passed. I review the --design output, the gate runsheet
+    (Appendix S1-F) and the stage 1 runsheet (Appendix S1-G) from
+    REPORT_S1_261012.md in a new Cowork chat, because the file is
+    too long for this one. Until I have approved the gate
+    runsheet's lines, nothing is typed on KOA and nothing in the
+    package changes.
+    Preliminary positions, to be confirmed with the file: eta_int
+    stays as registered (reported where the strip rule can be met);
+    your reading of "at most 64 at once" is accepted; the time
+    limits (3 x the model against a measured ratio of up to 2.58)
+    will be decided before the first array.
+ 3. Your rule slip (two deletions of your own scratch folder) is
+    noted. The rule stands: nothing is deleted without Chris's
+    word, scratch included; use a new folder name instead.
+ 4. While waiting: no new runs. If asked by Chris, help with the
+    meeting material from the existing figures.
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
