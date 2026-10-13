@@ -1,0 +1,749 @@
+# gen3 M2 harness: audit
+
+build: 14.3.0, double 8 bytes; cell width 32 px, origin shift 8192 units, tolerance factor K = 4
+
+## Audit cells
+
+### Cell cradle_exact: 100 three-disk cradles on dyadic positions, speeds 1 (amendment c)
+
+N = 300, box 1152.0000 x 448.0000 px (48.0000 x 18.6667 sigma), T = 100 sigma-time, cell width 32 px
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | 5a833b6ba8a6c12c | 21740 | 1106 | 0 | 0 | 0 | 18906 | 42812 | - |
+| B gen3, audits off | 5a833b6ba8a6c12c | 21740 | 1106 | 0 | 0 | 0 | 18906 | 42812 | yes |
+| C gen3, audits off, again | 5a833b6ba8a6c12c | 21740 | 1106 | 0 | 0 | 0 | 18906 | 42812 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 10130 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 1211912 | 0 | 0 | 0 | 0 | 13814075 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+| outer walls | 84944 | 0 | 0 | 0 | 0 | 1941056 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+| crossings | 1941056 | 0 | 0 | 0 | 0 | - | - | 0 (at horizon 0) | 0 (at horizon 0) |
+| divider faces | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+| pistons | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 22846 | 0 | 0 | 0 | 0 |
+| gen2 | 20381 | 23 | 0 | 0 | 0 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=1384 wall_contact_now=0 obj_contact_now=0 contact_c_min=0 obj_contact_gap_min=0 | local_checks=63492 full_checks=102 local_worst=0 full_worst=0 cross_residual_max=0 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=762
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=330 wall_overdue=1 past_event=0 | overlap check of 400 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap -24 px, states with a gap below -2.4e-5 px: 346
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 100 kT, m_min = 1, v_ref = 20 px/unit, K = 4 -> c_tol = 6.985e-09 px^2 (= 2 d x 1.455e-10 px), tol_face = 1.473e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 0 px -> |c| ~ 2 d |gap| = 0 px^2 = 0 c_tol; most negative c of a contact_now 0 px^2 (-0 c_tol); face contacts max |gap| 0 px (0 tol_face) [walls 0, divider 0, pistons 0]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 1.65e+05 c_tol), tol_wall = 1.2e-05 px (8.14e+04 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | -12 | -12 | 0 | 5.03e-12 | 0 |
+| y | 0 | 0 | 0 | 0 | -nan |
+| energy | 0 (E - E0) | 0 (W) | 0 | 1.77e-11 | 0 |
+
+impulses from outside (x unless named): walls L 1100, R -1112, B (y) 0, T (y) 0; divider of mass 0 0; spring anchor 0; pistons L 0, R 0; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE |
+|---|---|---|
+| gen3 (B) | 2.61233 | 0.00842 |
+| gen2 | 2.42263 | 0.02160 |
+
+### Cell cradle_round: 100 three-disk cradles on non-dyadic positions, speeds 0.7 (amendment c)
+
+N = 300, box 1152.0000 x 448.0000 px (48.0000 x 18.6667 sigma), T = 100 sigma-time, cell width 32 px
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | c721682fd6d235ad | 15240 | 780 | 0 | 0 | 0 | 10722 | 29179 | - |
+| B gen3, audits off | c721682fd6d235ad | 15240 | 780 | 0 | 0 | 0 | 10722 | 29179 | yes |
+| C gen3, audits off, again | c721682fd6d235ad | 15240 | 780 | 0 | 0 | 0 | 10722 | 29179 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 10090 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 1128477 | 0 | 0 | 0 | 0 | 13731485 | 0 | 4.55e-13 (at horizon 18.4) | 1 (at horizon 1.67e-13) |
+| outer walls | 88279 | 0 | 0 | 0 | 0 | 1929721 | 0 | 4.55e-13 (at horizon 24.5) | 1 (at horizon 9.95e-14) |
+| crossings | 1929721 | 0 | 0 | 0 | 0 | - | - | 4.55e-13 (at horizon 27.8) | 4.77e-12 (at horizon 0.0238) |
+| divider faces | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+| pistons | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 16020 | 3.3e-13 | 2.27e-13 | 0 | 0 |
+| gen2 | 15770 | 16.6 | 6.14e-12 | 0 | 0 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=197 wall_contact_now=0 obj_contact_now=0 contact_c_min=-3.75e-12 obj_contact_gap_min=0 | local_checks=41982 full_checks=101 local_worst=-3.23e-13 full_worst=-2.38e-13 cross_residual_max=1.6e-13 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=753
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=4 overlap_repair=11 wall_overdue=0 past_event=0 | overlap check of 400 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap -24 px, states with a gap below -2.4e-5 px: 25
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 49 kT, m_min = 1, v_ref = 14 px/unit, K = 4 -> c_tol = 4.889e-09 px^2 (= 2 d x 1.019e-10 px), tol_face = 1.037e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 3.3e-13 px -> |c| ~ 2 d |gap| = 1.59e-11 px^2 = 0.00324 c_tol; most negative c of a contact_now -3.75e-12 px^2 (0.000767 c_tol); face contacts max |gap| 2.27e-13 px (0.00219 tol_face) [walls 2.27e-13, divider 0, pistons 0]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 2.36e+05 c_tol), tol_wall = 1.2e-05 px (1.16e+05 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | 0 | 4.440892099e-16 | -4.44e-16 | 2.4e-12 | 0.000185 |
+| y | 0 | 0 | 0 | 0 | -nan |
+| energy | 0 (E - E0) | 0 (W) | 0 | 6.59e-12 | 0 |
+
+impulses from outside (x unless named): walls L 546, R -546, B (y) 0, T (y) 0; divider of mass 0 0; spring anchor 0; pistons L 0, R 0; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE |
+|---|---|---|
+| gen3 (B) | 2.60444 | 0.00643 |
+| gen2 | 2.61423 | 0.01397 |
+
+### Cell cradle_round_late: the same, gen3 loaded at t = 8100 units: the contacts at the full time quantum near 2^13 (amendments b, c)
+
+N = 300, box 1152.0000 x 448.0000 px (48.0000 x 18.6667 sigma), T = 100 sigma-time, cell width 32 px; gen3 loaded at t = 8100 units (origin-relative times up to and past 2^13 = 8192; gen2 starts at 0)
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | 96b65d11b8eaa971 | 15240 | 780 | 0 | 0 | 0 | 10722 | 29179 | - |
+| B gen3, audits off | 96b65d11b8eaa971 | 15240 | 780 | 0 | 0 | 0 | 10722 | 29179 | yes |
+| C gen3, audits off, again | 96b65d11b8eaa971 | 15240 | 780 | 0 | 0 | 0 | 10722 | 29179 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 10090 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 1128241 | 0 | 0 | 0 | 0 | 13732378 | 0 | 1.82e-12 (at horizon 40) | 1 (at horizon 3.26e-13) |
+| outer walls | 88237 | 0 | 0 | 0 | 0 | 1929763 | 0 | 9.09e-13 (at horizon 28.5) | 1 (at horizon 1.35e-13) |
+| crossings | 1929763 | 0 | 0 | 0 | 0 | - | - | 9.09e-13 (at horizon 14.5) | 3.93e-11 (at horizon 0.019) |
+| divider faces | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+| pistons | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 16020 | 1.18e-12 | 6.34e-13 | 0 | 0 |
+| gen2 | 15770 | 16.6 | 6.14e-12 | 0 | 0 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=128 wall_contact_now=0 obj_contact_now=0 contact_c_min=-1.31e-11 obj_contact_gap_min=0 | local_checks=41982 full_checks=102 local_worst=-1.14e-12 full_worst=-1.14e-12 cross_residual_max=6.22e-13 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=753
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=4 overlap_repair=11 wall_overdue=0 past_event=0 | overlap check of 400 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap -24 px, states with a gap below -2.4e-5 px: 25
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 49 kT, m_min = 1, v_ref = 14 px/unit, K = 4 -> c_tol = 4.889e-09 px^2 (= 2 d x 1.019e-10 px), tol_face = 1.037e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 1.18e-12 px -> |c| ~ 2 d |gap| = 5.66e-11 px^2 = 0.0116 c_tol; most negative c of a contact_now -1.31e-11 px^2 (0.00267 c_tol); face contacts max |gap| 6.34e-13 px (0.00612 tol_face) [walls 6.34e-13, divider 0, pistons 0]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 2.36e+05 c_tol), tol_wall = 1.2e-05 px (1.16e+05 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | 0 | 4.440892099e-16 | -4.44e-16 | 2.4e-12 | 0.000185 |
+| y | 0 | 0 | 0 | 0 | -nan |
+| energy | 0 (E - E0) | 0 (W) | 0 | 6.59e-12 | 0 |
+
+impulses from outside (x unless named): walls L 546, R -546, B (y) 0, T (y) 0; divider of mass 0 0; spring anchor 0; pistons L 0, R 0; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE |
+|---|---|---|
+| gen3 (B) | 2.60444 | 0.00643 |
+| gen2 | 2.61423 | 0.01397 |
+
+### Cell free_pi8_M50: free divider, pi/8, M = 50
+
+N = 400, box 481.2000 x 960.0000 px (20.0500 x 40.0000 sigma), T = 400 sigma-time, cell width 32 px; divider at 240.6000 px, thickness 1.20 px, held (mass 0, velocity 0) until 40 sigma-time, then free with mass 50
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | b9fb81c17d64b1e8 | 335448 | 29647 | 20082 | 0 | 0 | 185764 | 2286998 | - |
+| B gen3, audits off | b9fb81c17d64b1e8 | 335448 | 29647 | 20082 | 0 | 0 | 185764 | 2286998 | yes |
+| C gen3, audits off, again | b9fb81c17d64b1e8 | 335448 | 29647 | 20082 | 0 | 0 | 185764 | 2286998 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 11277 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 3562699 | 0 | 0 | 0 | 0 | 24326146 | 0 | 2.36e-11 (at horizon 49.8) | 1.45e-08 (at horizon 1.97e-06) |
+| outer walls | 395569 | 0 | 0 | 1 | 0 | 8626031 | 0 | 1.34e-09 (at horizon 4.16e+05) | 3.58e-10 (at horizon 7.94e-05) |
+| crossings | 4509446 | 0 | 0 | 0 | 0 | - | - | 2.91e-11 (at horizon 1.36e+05) | 1.44e-10 (at horizon 0.000787) |
+| divider faces | 105468 | 0 | 0 | 0 | 0 | 2124485 | 0 | 5.24e-10 (at horizon 2.91e+05) | 1.43e-10 (at horizon 0.000397) |
+| pistons | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 385177 | 2.89e-12 | 1.88e-12 | 1.73e-12 | 0 |
+| gen2 | 385222 | 5.15e-12 | 3.52e-12 | 2.98e-12 | 0 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=0 wall_contact_now=0 obj_contact_now=0 contact_c_min=0 obj_contact_gap_min=0 | local_checks=906389 full_checks=402 local_worst=-2.79e-12 full_worst=-1.56e-12 cross_residual_max=1.97e-12 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=14550
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0 | overlap check of 1600 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap 0 px, states with a gap below -2.4e-5 px: 0
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 411.561 kT, m_min = 1, v_ref = 40.574 px/unit, K = 4 -> c_tol = 1.417e-08 px^2 (= 2 d x 2.952e-10 px), tol_face = 2.957e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 2.89e-12 px -> |c| ~ 2 d |gap| = 1.39e-10 px^2 = 0.00978 c_tol; most negative c of a contact_now 0 px^2 (-0 c_tol); face contacts max |gap| 1.88e-12 px (0.00634 tol_face) [walls 1.88e-12, divider 1.73e-12, pistons 0]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 8.13e+04 c_tol), tol_wall = 1.2e-05 px (4.06e+04 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | -19.93518972 | -19.93518972 | 1.42e-13 | 2.21e-10 | 0.000642 |
+| y | -20.46439351 | -20.46439351 | 9.59e-14 | 8.48e-11 | 0.00113 |
+| energy | -3.410605132e-13 (E - E0) | 0 (W) | -3.41e-13 | 8.29e-10 | 0.000411 |
+
+impulses from outside (x unless named): walls L 25228.9, R -25662.7, B (y) 12102.3, T (y) -12122.8; divider of mass 0 413.884; spring anchor 0; pistons L 0, R 0; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE | divider mean x [px] | SD [px] | period [sigma-time] (periods in the record; peak of the detrended, windowed spectrum, >= 3) |
+|---|---|---|---|---|---|
+| gen3 (B) | 2.83053 | 0.00345 | 234.5930 | 3.2640 | 10.6 (34) |
+| gen2 | 2.83284 | 0.00454 | 236.9137 | 3.0966 | 9.736 (37) |
+
+static method (gen3 run B, 9303 + 8782 divider events over 360 sigma-time; information): F_left = 2.64903 kT/px (Z = F L / (N kT) = 3.23754, kT_left = 0.94587, N = 200), F_right = 2.64873 kT/px (Z = 2.96424, kT_right = 1.11159, N = 200)
+
+### Cell free_pi8_M500: free divider, pi/8, M = 500
+
+N = 400, box 481.2000 x 960.0000 px (20.0500 x 40.0000 sigma), T = 400 sigma-time, cell width 32 px; divider at 240.6000 px, thickness 1.20 px, held (mass 0, velocity 0) until 40 sigma-time, then free with mass 500
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | b4ffc16293797945 | 328140 | 28976 | 19567 | 0 | 0 | 191211 | 2091803 | - |
+| B gen3, audits off | b4ffc16293797945 | 328140 | 28976 | 19567 | 0 | 0 | 191211 | 2091803 | yes |
+| C gen3, audits off, again | b4ffc16293797945 | 328140 | 28976 | 19567 | 0 | 0 | 191211 | 2091803 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 11410 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 3626594 | 0 | 0 | 0 | 0 | 24899753 | 0 | 3.64e-11 (at horizon 3.55e+04) | 5.73e-08 (at horizon 2.48e-07) |
+| outer walls | 404937 | 0 | 0 | 0 | 0 | 8723063 | 0 | 7.42e-10 (at horizon 1.07e+05) | 3.9e-09 (at horizon 7.29e-06) |
+| crossings | 4558519 | 0 | 0 | 0 | 0 | - | - | 2.91e-11 (at horizon 7.17e+04) | 6.46e-10 (at horizon 2.2e-05) |
+| divider faces | 101958 | 0 | 0 | 1 | 0 | 2161804 | 0 | 1.16e-09 (at horizon 1.37e+06) | 2e-09 (at horizon 6.05e-05) |
+| pistons | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 376683 | 3.73e-12 | 1.65e-12 | 1.71e-12 | 0 |
+| gen2 | 374820 | 5.39e-12 | 3.52e-12 | 3.04e-12 | 0 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=0 wall_contact_now=0 obj_contact_now=0 contact_c_min=0 obj_contact_gap_min=0 | local_checks=896034 full_checks=402 local_worst=-2.33e-12 full_worst=-1.39e-12 cross_residual_max=2.03e-12 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=14611
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0 | overlap check of 1600 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap 0 px, states with a gap below -2.4e-5 px: 0
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 392.984 kT, m_min = 1, v_ref = 39.6477 px/unit, K = 4 -> c_tol = 1.385e-08 px^2 (= 2 d x 2.885e-10 px), tol_face = 2.889e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 3.73e-12 px -> |c| ~ 2 d |gap| = 1.79e-10 px^2 = 0.0129 c_tol; most negative c of a contact_now 0 px^2 (-0 c_tol); face contacts max |gap| 1.71e-12 px (0.00592 tol_face) [walls 1.65e-12, divider 1.71e-12, pistons 0]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 8.32e+04 c_tol), tol_wall = 1.2e-05 px (4.15e+04 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | 24.7161761 | 24.7161761 | 5.01e-13 | 4.12e-10 | 0.00122 |
+| y | -10.6753951 | -10.6753951 | -8.7e-14 | 9.43e-11 | 0.000923 |
+| energy | -7.389644452e-13 (E - E0) | 0 (W) | -7.39e-13 | 7.82e-10 | 0.000945 |
+
+impulses from outside (x unless named): walls L 24403, R -24293.6, B (y) 11612.2, T (y) -11622.9; divider of mass 0 -84.7194; spring anchor 0; pistons L 0, R 0; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE | divider mean x [px] | SD [px] | period [sigma-time] (periods in the record; peak of the detrended, windowed spectrum, >= 3) |
+|---|---|---|---|---|---|
+| gen3 (B) | 2.83844 | 0.00324 | 240.9377 | 2.9185 | 20.01 (18) |
+| gen2 | 2.82530 | 0.00386 | 241.0090 | 2.0107 | 20.01 (18) |
+
+static method (gen3 run B, 8786 + 8857 divider events over 360 sigma-time; information): F_left = 2.5369 kT/px (Z = F L / (N kT) = 2.93031, kT_left = 1.02334, N = 200), F_right = 2.53466 kT/px (Z = 3.28521, kT_right = 0.93970, N = 200)
+
+### Cell free_070_M50: free divider, eta 0.70, M = 50
+
+N = 400, box 270.2000 x 960.0000 px (11.2583 x 40.0000 sigma), T = 400 sigma-time, cell width 32 px; divider at 135.1000 px, thickness 1.20 px, held (mass 0, velocity 0) until 40 sigma-time, then free with mass 50
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | 43793a763c6812a6 | 1763519 | 199967 | 170193 | 0 | 0 | 195755 | 12446626 | - |
+| B gen3, audits off | 43793a763c6812a6 | 1763519 | 199967 | 170193 | 0 | 0 | 195755 | 12446626 | yes |
+| C gen3, audits off, again | 43793a763c6812a6 | 1763519 | 199967 | 170193 | 0 | 0 | 195755 | 12446626 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 15040 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 9177563 | 0 | 0 | 0 | 0 | 38128171 | 0 | 7e-11 (at horizon 22.5) | 1.09e-07 (at horizon 2.28e-07) |
+| outer walls | 615709 | 0 | 0 | 1 | 0 | 11416291 | 0 | 1.2e-09 (at horizon 1.02e+04) | 1.23e-08 (at horizon 7.41e-05) |
+| crossings | 6005290 | 0 | 0 | 0 | 0 | - | - | 1.16e-10 (at horizon 8.44e+05) | 1.31e-10 (at horizon 2.71e-05) |
+| divider faces | 862865 | 0 | 0 | 3 | 0 | 2164431 | 0 | 2.33e-09 (at horizon 2.65e+06) | 9.7e-09 (at horizon 1.65e-06) |
+| pistons | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 2133679 | 2.9e-12 | 1.76e-12 | 1.73e-12 | 0 |
+| gen2 | 2174668 | 5.41e-12 | 5.46e-12 | 3.44e-12 | 0 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=0 wall_contact_now=0 obj_contact_now=0 contact_c_min=0 obj_contact_gap_min=0 | local_checks=4092953 full_checks=402 local_worst=-2.85e-12 full_worst=-1.08e-12 cross_residual_max=1.8e-12 origin_shifts=1 syncs=1 heap_compactions=452 heap_max=29786
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0 | overlap check of 1600 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap 0 px, states with a gap below -2.4e-5 px: 0
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 376.71 kT, m_min = 1, v_ref = 38.818 px/unit, K = 4 -> c_tol = 1.356e-08 px^2 (= 2 d x 2.824e-10 px), tol_face = 2.829e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 2.9e-12 px -> |c| ~ 2 d |gap| = 1.39e-10 px^2 = 0.0103 c_tol; most negative c of a contact_now 0 px^2 (-0 c_tol); face contacts max |gap| 1.76e-12 px (0.00623 tol_face) [walls 1.76e-12, divider 1.73e-12, pistons 0]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 8.5e+04 c_tol), tol_wall = 1.2e-05 px (4.24e+04 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | 31.00582474 | 31.00582474 | 9.91e-13 | 1.79e-09 | 0.000555 |
+| y | 2.842133596 | 2.842133596 | 3e-13 | 4.06e-10 | 0.000738 |
+| energy | -7.958078641e-13 (E - E0) | 0 (W) | -7.96e-13 | 4.08e-09 | 0.000195 |
+
+impulses from outside (x unless named): walls L 206508, R -203466, B (y) 37080.4, T (y) -37077.6; divider of mass 0 -3010.87; spring anchor 0; pistons L 0, R 0; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE | divider mean x [px] | SD [px] | period [sigma-time] (periods in the record; peak of the detrended, windowed spectrum, >= 3) |
+|---|---|---|---|---|---|
+| gen3 (B) | 10.99888 | 0.01650 | 135.1754 | 0.4629 | 120.1 (3) |
+| gen2 | 11.21119 | 0.03142 | 135.1877 | 0.4936 | 60.04 (6) |
+
+static method (gen3 run B, 76181 + 76590 divider events over 360 sigma-time; information): F_left = 21.2863 kT/px (Z = F L / (N kT) = 15.05605, kT_left = 0.95282, N = 200), F_right = 21.287 kT/px (Z = 15.38247, kT_right = 0.92865, N = 200)
+
+### Cell free_070_M500: free divider, eta 0.70, M = 500
+
+N = 400, box 270.2000 x 960.0000 px (11.2583 x 40.0000 sigma), T = 400 sigma-time, cell width 32 px; divider at 135.1000 px, thickness 1.20 px, held (mass 0, velocity 0) until 40 sigma-time, then free with mass 500
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | 46003616afd008a3 | 1835708 | 207469 | 176022 | 0 | 0 | 203316 | 13106137 | - |
+| B gen3, audits off | 46003616afd008a3 | 1835708 | 207469 | 176022 | 0 | 0 | 203316 | 13106137 | yes |
+| C gen3, audits off, again | 46003616afd008a3 | 1835708 | 207469 | 176022 | 0 | 0 | 203316 | 13106137 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 15495 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 9400015 | 0 | 0 | 0 | 0 | 39057071 | 0 | 2.69e-10 (at horizon 4.6e+04) | 3.6e-08 (at horizon 1.18e-06) |
+| outer walls | 654480 | 0 | 0 | 0 | 0 | 11741520 | 0 | 5.6e-10 (at horizon 761) | 2.88e-07 (at horizon 6.04e-07) |
+| crossings | 6186202 | 0 | 0 | 1 | 0 | - | - | 1.86e-09 (at horizon 1.04e+07) | 2.29e-09 (at horizon 1.55e-06) |
+| divider faces | 847382 | 0 | 0 | 3 | 0 | 2212284 | 0 | 1.12e-08 (at horizon 2.25e+07) | 1.5e-09 (at horizon 2.14e-05) |
+| pistons | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 2219199 | 3.47e-12 | 1.93e-12 | 1.99e-12 | 0 |
+| gen2 | 2248394 | 6.02e-12 | 4.21e-12 | 3.33e-12 | 0 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=0 wall_contact_now=0 obj_contact_now=0 contact_c_min=0 obj_contact_gap_min=0 | local_checks=4258223 full_checks=402 local_worst=-3.47e-12 full_worst=-1.47e-12 cross_residual_max=1.99e-12 origin_shifts=1 syncs=1 heap_compactions=455 heap_max=29774
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0 | overlap check of 1600 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap 0 px, states with a gap below -2.4e-5 px: 0
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 411.819 kT, m_min = 1, v_ref = 40.5867 px/unit, K = 4 -> c_tol = 1.417e-08 px^2 (= 2 d x 2.953e-10 px), tol_face = 2.958e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 3.47e-12 px -> |c| ~ 2 d |gap| = 1.67e-10 px^2 = 0.0118 c_tol; most negative c of a contact_now 0 px^2 (-0 c_tol); face contacts max |gap| 1.99e-12 px (0.00674 tol_face) [walls 1.93e-12, divider 1.99e-12, pistons 0]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 8.13e+04 c_tol), tol_wall = 1.2e-05 px (4.06e+04 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | -59.73529339 | -59.73529339 | 7.11e-14 | 3.85e-09 | 1.85e-05 |
+| y | -17.99816073 | -17.99816073 | 1.21e-13 | 4.37e-10 | 0.000276 |
+| energy | 5.684341886e-13 (E - E0) | 0 (W) | 5.68e-13 | 4.66e-09 | 0.000122 |
+
+impulses from outside (x unless named): walls L 223363, R -224135, B (y) 40132.9, T (y) -40150.9; divider of mass 0 712.436; spring anchor 0; pistons L 0, R 0; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE | divider mean x [px] | SD [px] | period [sigma-time] (periods in the record; peak of the detrended, windowed spectrum, >= 3) |
+|---|---|---|---|---|---|
+| gen3 (B) | 10.95353 | 0.02021 | 135.2724 | 0.3773 | 2.355 (153) |
+| gen2 | 11.08037 | 0.03839 | 135.0688 | 0.3800 | 2.17 (166) |
+
+static method (gen3 run B, 78294 + 79512 divider events over 360 sigma-time; information): F_left = 23.208 kT/px (Z = F L / (N kT) = 14.59748, kT_left = 1.06659, N = 200), F_right = 23.2151 kT/px (Z = 16.07496, kT_right = 0.97357, N = 200)
+
+### Cell heavy_070_M4e7: heavy free divider, eta 0.70, M = 4e7
+
+N = 400, box 270.2000 x 960.0000 px (11.2583 x 40.0000 sigma), T = 400 sigma-time, cell width 32 px; divider at 135.1000 px, thickness 1.20 px, held (mass 0, velocity 0) until 40 sigma-time, then free with mass 4e+07
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | 51115487c9b1caab | 1788047 | 200215 | 169349 | 0 | 0 | 193438 | 12632203 | - |
+| B gen3, audits off | 51115487c9b1caab | 1788047 | 200215 | 169349 | 0 | 0 | 193438 | 12632203 | yes |
+| C gen3, audits off, again | 51115487c9b1caab | 1788047 | 200215 | 169349 | 0 | 0 | 193438 | 12632203 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 14945 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 9056520 | 0 | 0 | 0 | 0 | 37825359 | 0 | 4.42e-10 (at horizon 6.19e+03) | 3.47e-08 (at horizon 4.1e-07) |
+| outer walls | 625145 | 0 | 0 | 0 | 0 | 11330855 | 0 | 6.98e-10 (at horizon 5.76e+04) | 4.87e-09 (at horizon 8.02e-06) |
+| crossings | 5967132 | 0 | 0 | 0 | 0 | - | - | 2.33e-10 (at horizon 2.05e+06) | 8.35e-10 (at horizon 1.7e-05) |
+| divider faces | 838170 | 0 | 0 | 4 | 0 | 2142669 | 0 | 1.57e-09 (at horizon 4.22e+04) | 6.19e-09 (at horizon 1.89e-05) |
+| pistons | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 2157611 | 2.65e-12 | 1.88e-12 | 1.82e-12 | 0 |
+| gen2 | 2172547 | 5.39e-12 | 3.98e-12 | 3.55e-12 | 0 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=0 wall_contact_now=0 obj_contact_now=0 contact_c_min=0 obj_contact_gap_min=0 | local_checks=4139096 full_checks=402 local_worst=-2.5e-12 full_worst=-1.29e-12 cross_residual_max=1.9e-12 origin_shifts=1 syncs=1 heap_compactions=446 heap_max=29773
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0 | overlap check of 1600 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap 0 px, states with a gap below -2.4e-5 px: 0
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 377.725 kT, m_min = 1, v_ref = 38.8703 px/unit, K = 4 -> c_tol = 1.358e-08 px^2 (= 2 d x 2.828e-10 px), tol_face = 2.833e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 2.65e-12 px -> |c| ~ 2 d |gap| = 1.27e-10 px^2 = 0.00938 c_tol; most negative c of a contact_now 0 px^2 (-0 c_tol); face contacts max |gap| 1.88e-12 px (0.00665 tol_face) [walls 1.88e-12, divider 1.82e-12, pistons 0]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 8.49e+04 c_tol), tol_wall = 1.2e-05 px (4.24e+04 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | -4467.124793 | -4467.124793 | 3.01e-10 | 5.7e-07 | 0.000528 |
+| y | 33.21308634 | 33.21308634 | 4.69e-13 | 4.21e-10 | 0.00111 |
+| energy | -1.47792889e-12 (E - E0) | 0 (W) | -1.48e-12 | 4.08e-09 | 0.000362 |
+
+impulses from outside (x unless named): walls L 205268, R -206289, B (y) 38059.6, T (y) -38026.3; divider of mass 0 -3446.45; spring anchor 0; pistons L 0, R 0; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE | divider mean x [px] | SD [px] | period [sigma-time] (periods in the record; peak of the detrended, windowed spectrum, >= 3) |
+|---|---|---|---|---|---|
+| gen3 (B) | 11.09315 | 0.01525 | 135.5196 | 0.2611 | 120.1 (3) |
+| gen2 | 11.18481 | 0.02506 | 135.5009 | 0.2527 | 120.1 (3) |
+
+static method (gen3 run B, 74139 + 77616 divider events over 360 sigma-time; information): F_left = 21.0814 kT/px (Z = F L / (N kT) = 15.08289, kT_left = 0.94428, N = 200), F_right = 21.5993 kT/px (Z = 15.33108, kT_right = 0.94310, N = 200)
+
+### Cell held_pi8: held divider (static method), pi/8
+
+N = 400, box 481.2000 x 960.0000 px (20.0500 x 40.0000 sigma), T = 400 sigma-time, cell width 32 px; divider at 240.6000 px, thickness 1.20 px, held (mass 0, velocity 0) throughout
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | 837fb9e4637447eb | 337267 | 29762 | 20218 | 0 | 0 | 201862 | 1645400 | - |
+| B gen3, audits off | 837fb9e4637447eb | 337267 | 29762 | 20218 | 0 | 0 | 201862 | 1645400 | yes |
+| C gen3, audits off, again | 837fb9e4637447eb | 337267 | 29762 | 20218 | 0 | 0 | 201862 | 1645400 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 11449 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 3595799 | 0 | 0 | 0 | 0 | 25149378 | 0 | 3.09e-11 (at horizon 3.42e+03) | 7.11e-09 (at horizon 2e-06) |
+| outer walls | 388976 | 0 | 0 | 0 | 0 | 8770224 | 0 | 1.73e-10 (at horizon 2.26e+03) | 3.39e-09 (at horizon 5.25e-06) |
+| crossings | 4576631 | 0 | 0 | 0 | 0 | - | - | 1.46e-11 (at horizon 8.82e+04) | 2.33e-09 (at horizon 6.1e-06) |
+| divider faces | 88886 | 0 | 0 | 0 | 0 | 2257787 | 0 | 5.84e-11 (at horizon 771) | 3e-10 (at horizon 0.000379) |
+| pistons | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 387247 | 3.02e-12 | 1.81e-12 | 1.51e-12 | 0 |
+| gen2 | 387052 | 5.38e-12 | 3.41e-12 | 3.52e-12 | 0 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=0 wall_contact_now=0 obj_contact_now=0 contact_c_min=0 obj_contact_gap_min=0 | local_checks=926376 full_checks=402 local_worst=-3.02e-12 full_worst=-1.45e-12 cross_residual_max=1.96e-12 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=4174
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0 | overlap check of 1600 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap 0 px, states with a gap below -2.4e-5 px: 0
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 418.621 kT, m_min = 1, v_ref = 40.9205 px/unit, K = 4 -> c_tol = 1.429e-08 px^2 (= 2 d x 2.977e-10 px), tol_face = 2.982e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 3.02e-12 px -> |c| ~ 2 d |gap| = 1.45e-10 px^2 = 0.0101 c_tol; most negative c of a contact_now 0 px^2 (-0 c_tol); face contacts max |gap| 1.81e-12 px (0.00606 tol_face) [walls 1.81e-12, divider 1.51e-12, pistons 0]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 8.06e+04 c_tol), tol_wall = 1.2e-05 px (4.02e+04 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | -15.26556024 | -15.26556024 | 2.08e-13 | 1.9e-10 | 0.0011 |
+| y | 1.598723068 | 1.598723068 | -2.5e-13 | 8.78e-11 | 0.00285 |
+| energy | 1.534772309e-12 (E - E0) | 0 (W) | 1.53e-12 | 8.14e-10 | 0.00189 |
+
+impulses from outside (x unless named): walls L 26186.3, R -25392.7, B (y) 12346.9, T (y) -12345.3; divider of mass 0 -808.874; spring anchor 0; pistons L 0, R 0; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE | divider mean x [px] | SD [px] | period [sigma-time] (periods in the record; peak of the detrended, windowed spectrum, >= 3) |
+|---|---|---|---|---|---|
+| gen3 (B) | 2.82860 | 0.00152 | 240.6000 | 0.0000 | - (does not move) |
+| gen2 | 2.82183 | 0.00189 | 240.6000 | 0.0000 | - (does not move) |
+
+static method (gen3 run B, 9240 + 8972 divider events over 360 sigma-time; information): F_left = 2.73544 kT/px (Z = F L / (N kT) = 3.08801, kT_left = 1.06299, N = 200), F_right = 2.64719 kT/px (Z = 3.08375, kT_right = 1.03012, N = 200)
+
+### Cell held_070: held divider (static method), eta 0.70
+
+N = 400, box 270.2000 x 960.0000 px (11.2583 x 40.0000 sigma), T = 400 sigma-time, cell width 32 px; divider at 135.1000 px, thickness 1.20 px, held (mass 0, velocity 0) throughout
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | 79621d4228ba6c48 | 1855317 | 208662 | 176404 | 0 | 0 | 207255 | 14787847 | - |
+| B gen3, audits off | 79621d4228ba6c48 | 1855317 | 208662 | 176404 | 0 | 0 | 207255 | 14787847 | yes |
+| C gen3, audits off, again | 79621d4228ba6c48 | 1855317 | 208662 | 176404 | 0 | 0 | 207255 | 14787847 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 15529 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 9388576 | 0 | 0 | 0 | 0 | 39797416 | 0 | 1e-10 (at horizon 142) | 1.21e-07 (at horizon 1.47e-07) |
+| outer walls | 654982 | 0 | 0 | 1 | 0 | 11768218 | 0 | 4.41e-09 (at horizon 1.27e+05) | 5.43e-09 (at horizon 4.14e-05) |
+| crossings | 6199901 | 0 | 0 | 0 | 0 | - | - | 4.66e-10 (at horizon 1.96e+06) | 2.25e-10 (at horizon 1.58e-05) |
+| divider faces | 760800 | 0 | 0 | 0 | 0 | 2326281 | 0 | 9.6e-10 (at horizon 6.88e+04) | 2.74e-06 (at horizon 1.17e-08) |
+| pistons | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 2240383 | 3.2e-12 | 2.05e-12 | 1.98e-12 | 0 |
+| gen2 | 2249659 | 6.26e-12 | 5.34e-12 | 3.52e-12 | 0 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=0 wall_contact_now=0 obj_contact_now=0 contact_c_min=0 obj_contact_gap_min=0 | local_checks=4302955 full_checks=402 local_worst=-2.94e-12 full_worst=-1.57e-12 cross_residual_max=2.33e-12 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=27353
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0 | overlap check of 1600 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap 0 px, states with a gap below -2.4e-5 px: 0
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 414.78 kT, m_min = 1, v_ref = 40.7323 px/unit, K = 4 -> c_tol = 1.423e-08 px^2 (= 2 d x 2.964e-10 px), tol_face = 2.968e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 3.2e-12 px -> |c| ~ 2 d |gap| = 1.54e-10 px^2 = 0.0108 c_tol; most negative c of a contact_now 0 px^2 (-0 c_tol); face contacts max |gap| 2.05e-12 px (0.00689 tol_face) [walls 2.05e-12, divider 1.98e-12, pistons 0]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 8.1e+04 c_tol), tol_wall = 1.2e-05 px (4.04e+04 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | -48.88595784 | -48.88595784 | -1.41e-12 | 1.52e-09 | 0.000929 |
+| y | 29.69425879 | 29.69425879 | 4.26e-14 | 4.96e-10 | 8.6e-05 |
+| energy | -1.364242053e-12 (E - E0) | 0 (W) | -1.36e-12 | 4.36e-09 | 0.000313 |
+
+impulses from outside (x unless named): walls L 222996, R -227778, B (y) 41109.2, T (y) -41079.5; divider of mass 0 4732.76; spring anchor 0; pistons L 0, R 0; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE | divider mean x [px] | SD [px] | period [sigma-time] (periods in the record; peak of the detrended, windowed spectrum, >= 3) |
+|---|---|---|---|---|---|
+| gen3 (B) | 11.02178 | 0.01416 | 135.1000 | 0.0000 | - (does not move) |
+| gen2 | 11.04285 | 0.02227 | 135.1000 | 0.0000 | - (does not move) |
+
+static method (gen3 run B, 78786 + 79340 divider events over 360 sigma-time; information): F_left = 23.1367 kT/px (Z = F L / (N kT) = 15.17093, kT_left = 1.02561, N = 200), F_right = 23.622 kT/px (Z = 15.15395, kT_right = 1.04829, N = 200)
+
+### Cell driven_pi8: divider driven back and forth, pi/8 (band expiries and API velocity changes)
+
+N = 400, box 481.2000 x 960.0000 px (20.0500 x 40.0000 sigma), T = 400 sigma-time, cell width 32 px; divider at 240.6000 px, thickness 1.20 px, held (mass 0, velocity 0) until 40 sigma-time, then driven (mass 0) at +-0.2 px/unit, reversed every 10 sigma-time
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | 964fcaa759e63b87 | 472759 | 41859 | 28988 | 0 | 36 | 234983 | 2438602 | - |
+| B gen3, audits off | 964fcaa759e63b87 | 472759 | 41859 | 28988 | 0 | 36 | 234983 | 2438602 | yes |
+| C gen3, audits off, again | 964fcaa759e63b87 | 472759 | 41859 | 28988 | 0 | 36 | 234983 | 2438602 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 11678 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 3739393 | 0 | 0 | 0 | 0 | 26019536 | 0 | 2.64e-11 (at horizon 51.7) | 4.96e-09 (at horizon 2.87e-06) |
+| outer walls | 415559 | 0 | 0 | 0 | 0 | 8926841 | 0 | 3.35e-10 (at horizon 1.13e+05) | 1.45e-09 (at horizon 1.95e-05) |
+| crossings | 4667806 | 0 | 0 | 0 | 0 | - | - | 2.33e-10 (at horizon 1.72e+06) | 6.41e-11 (at horizon 2.08e-05) |
+| divider faces | 122119 | 0 | 0 | 0 | 0 | 2260703 | 0 | 4.07e-10 (at horizon 1.36e+05) | 1.29e-10 (at horizon 0.00354) |
+| pistons | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 543606 | 4.91e-12 | 3.24e-12 | 2.93e-12 | 0 |
+| gen2 | 567550 | 1.04e-11 | 5.17e-12 | 6.03e-12 | 0 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=0 wall_contact_now=0 obj_contact_now=0 contact_c_min=0 obj_contact_gap_min=0 | local_checks=1251348 full_checks=402 local_worst=-4.37e-12 full_worst=-2.46e-12 cross_residual_max=3.45e-12 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=5267
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0 | overlap check of 1600 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap 0 px, states with a gap below -2.4e-5 px: 0
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 1294.04 kT, m_min = 1, v_ref = 72.1455 px/unit, K = 4 -> c_tol = 2.52e-08 px^2 (= 2 d x 5.249e-10 px), tol_face = 5.254e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 4.91e-12 px -> |c| ~ 2 d |gap| = 2.36e-10 px^2 = 0.00935 c_tol; most negative c of a contact_now 0 px^2 (-0 c_tol); face contacts max |gap| 3.24e-12 px (0.00616 tol_face) [walls 3.24e-12, divider 2.93e-12, pistons 0]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 4.57e+04 c_tol), tol_wall = 1.2e-05 px (2.28e+04 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | -4.860106449 | -4.860106449 | 2.62e-13 | 4.21e-10 | 0.000623 |
+| y | 9.039037292 | 9.039037292 | 8.7e-14 | 1.66e-10 | 0.000525 |
+| energy | 523.1023618 (E - E0) | 523.1023618 (W) | -6.93e-12 | 3.36e-09 | 0.00206 |
+
+impulses from outside (x unless named): walls L 28122.4, R -75128.5, B (y) 22961.5, T (y) -22952.4; divider of mass 0 47001.2; spring anchor 0; pistons L 0, R 0; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE | divider mean x [px] | SD [px] | period [sigma-time] (periods in the record; peak of the detrended, windowed spectrum, >= 3) |
+|---|---|---|---|---|---|
+| gen3 (B) | 3.05817 | 0.06882 | 264.5833 | 13.8795 | 20.01 (18) |
+| gen2 | 3.03302 | 0.06932 | 264.5833 | 13.8795 | 20.01 (18) |
+
+### Cell spring_pi8: one gas (N = 400, pi/8) against a pre-loaded spring divider (Paper 2 geometry C type)
+
+N = 400, box 721.2000 x 960.0000 px (30.0500 x 40.0000 sigma), T = 400 sigma-time, cell width 32 px; divider at 480.6000 px, thickness 1.20 px, held (mass 0, velocity 0) until 40 sigma-time, then free with mass 50, spring k = 0.02 kT/px^2 about x_eq = 365.6000 px
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | 9c57360fa2ec6df7 | 320309 | 18288 | 9253 | 0 | 0 | 181275 | 1948347 | - |
+| B gen3, audits off | 9c57360fa2ec6df7 | 320309 | 18288 | 9253 | 0 | 0 | 181275 | 1948347 | yes |
+| C gen3, audits off, again | 9c57360fa2ec6df7 | 320309 | 18288 | 9253 | 0 | 0 | 181275 | 1948347 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 11145 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 3527481 | 0 | 0 | 0 | 0 | 24617335 | 0 | 4.09e-11 (at horizon 155) | 6.36e-09 (at horizon 7.15e-05) |
+| outer walls | 265286 | 0 | 0 | 0 | 0 | 8650714 | 0 | 3.31e-10 (at horizon 1.16e+04) | 2.55e-10 (at horizon 0.000111) |
+| crossings | 4452553 | 0 | 0 | 0 | 0 | - | - | 2.18e-11 (at horizon 5.42e+04) | 1.29e-10 (at horizon 0.00351) |
+| divider faces | 159588 | 0 | 0 | 0 | 0 | 2127188 | 0 | 2.91e-11 (at horizon 2.86e+04) | 6.51e-10 (at horizon 0.000655) |
+| pistons | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (at horizon 0) | 0 (at horizon 0) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 347850 | 2.86e-12 | 1.57e-12 | 1.44e-12 | 0 |
+| gen2 | 346984 | 5.47e-12 | 3.18e-12 | 2.84e-12 | 0 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=0 wall_contact_now=0 obj_contact_now=0 contact_c_min=0 obj_contact_gap_min=0 | local_checks=849434 full_checks=402 local_worst=-2.68e-12 full_worst=-1.22e-12 cross_residual_max=2.37e-12 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=6781
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0 | overlap check of 1600 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap 0 px, states with a gap below -2.4e-5 px: 0
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 542.824 kT, m_min = 1, v_ref = 46.5972 px/unit, K = 4 -> c_tol = 1.627e-08 px^2 (= 2 d x 3.39e-10 px), tol_face = 3.399e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 2.86e-12 px -> |c| ~ 2 d |gap| = 1.37e-10 px^2 = 0.00844 c_tol; most negative c of a contact_now 0 px^2 (-0 c_tol); face contacts max |gap| 1.57e-12 px (0.00461 tol_face) [walls 1.57e-12, divider 1.44e-12, pistons 0]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 7.08e+04 c_tol), tol_wall = 1.2e-05 px (3.53e+04 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | -26.09164947 | -26.09164947 | 8.53e-14 | 1.05e-09 | 8.1e-05 |
+| y | 38.23888011 | 38.23888011 | 2.13e-13 | 8.34e-11 | 0.00256 |
+| energy | 132.25 (E - E0) | 132.25 (W) | 6.74e-12 | 2.87e-09 | 0.00235 |
+
+impulses from outside (x unless named): walls L 23080, R 0, B (y) 11468.1, T (y) -11429.8; divider of mass 0 -2445.81; spring anchor -20660.3; pistons L 0, R 0; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE | divider mean x [px] | SD [px] | period [sigma-time] (periods in the record; peak of the detrended, windowed spectrum, >= 3) |
+|---|---|---|---|---|---|
+| gen3 (B) | 2.77157 | 0.01361 | 485.1597 | 5.2761 | 18.96 (19) |
+| gen2 | 2.81256 | 0.01559 | 485.2418 | 4.1895 | 18.01 (20) |
+
+### Cell piston_push: two gases of 200 at eta 0.1013, free divider M = 100, right piston pushes 7.75 sigma (Paper 2 geometry B type)
+
+N = 400, box 3721.2000 x 480.0000 px (155.0500 x 20.0000 sigma), T = 400 sigma-time, cell width 32 px; divider at 1860.6000 px, thickness 1.20 px, held (mass 0, velocity 0) until 40 sigma-time, then free with mass 100; pistons of mass 0 at x = 0 and x = 3721.2000 px, the right one at -0.05 px/unit from 40 to 195 sigma-time
+
+| run | event hash | pair | wall | divider | piston | band | crossings | stale | disks and bodies equal to A |
+|---|---|---|---|---|---|---|---|---|---|
+| A gen3, audits on | 3c1bfa4a12bb3d48 | 48541 | 9482 | 1078 | 529 | 5 | 197716 | 148179 | - |
+| B gen3, audits off | 3c1bfa4a12bb3d48 | 48541 | 9482 | 1078 | 529 | 5 | 197716 | 148179 | yes |
+| C gen3, audits off, again | 3c1bfa4a12bb3d48 | 48541 | 9482 | 1078 | 529 | 5 | 197716 | 148179 | yes |
+
+audits do not steer (A = B): YES; same-seed bit identity (B = C): YES
+
+schedule audit (gen3, run A): 10656 audited states (every event for the first 10000 events, then every 500-th, after every band expiry and API body change, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) | deferred earlier than eligible | max abs dt, all matched | max abs dt / horizon, all matched (horizon = max(t_bruteforce, t_heap) - now) |
+|---|---|---|---|---|---|---|---|---|---|
+| pairs | 776975 | 0 | 0 | 0 | 0 | 10260794 | 0 | 1.09e-11 (at horizon 149) | 5.02e-09 (at horizon 1.13e-05) |
+| outer walls | 250449 | 0 | 0 | 0 | 0 | 8274351 | 0 | 7.64e-11 (at horizon 2.1e+04) | 7.23e-11 (at horizon 0.00708) |
+| crossings | 4260735 | 0 | 0 | 0 | 0 | - | - | 1.46e-11 (at horizon 7.32e+04) | 2.53e-09 (at horizon 5.62e-06) |
+| divider faces | 26824 | 0 | 0 | 1 | 0 | 2024177 | 0 | 4.54e-09 (at horizon 4.77e+05) | 6.53e-11 (at horizon 0.00174) |
+| pistons | 30875 | 0 | 0 | 0 | 0 | 4233120 | 0 | 4.46e-11 (at horizon 2.43e+03) | 4.67e-11 (at horizon 0.00608) |
+
+bands: missing 0, extra 0, short 0; second live crossing of one disk 0; duplicate disagreements 0; disks outside their cell 0 (all must be 0)
+
+contact audit, max |gap| at executed events [px]:
+
+| engine | events | pairs | outer walls | divider faces | pistons |
+|---|---|---|---|---|---|
+| gen3 (A) | 59630 | 2.82e-12 | 2.37e-12 | 1.91e-12 | 1.36e-12 |
+| gen2 | 58990 | 7.85e-12 | 5e-12 | 2.73e-12 | 6.37e-12 |
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 obj_overlap_repair=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 local_findings=0 full_findings=0 body_findings=0 | contact_now=0 wall_contact_now=0 obj_contact_now=0 contact_c_min=0 obj_contact_gap_min=0 | local_checks=305887 full_checks=402 local_worst=-2.82e-12 full_worst=-1.2e-12 cross_residual_max=2.17e-12 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=1100
+run flag (edmd3_health_clean): A 1, B 1, C 1
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0 | overlap check of 1600 sampled states (every 0.25 sigma-time, all pairs, walls, divider faces): worst surface gap 0 px, states with a gap below -2.4e-5 px: 0
+
+tolerances (amendment b; end of run A): u_time = 1.819e-12 units, E_bound = 447.364 kT, m_min = 1, v_ref = 42.302 px/unit, K = 4 -> c_tol = 1.477e-08 px^2 (= 2 d x 3.078e-10 px), tol_face = 3.114e-10 px; band margin 1.2e-05 px
+measured: pair contact max |gap| 2.82e-12 px -> |c| ~ 2 d |gap| = 1.35e-10 px^2 = 0.00915 c_tol; most negative c of a contact_now 0 px^2 (-0 c_tol); face contacts max |gap| 2.37e-12 px (0.00762 tol_face) [walls 2.37e-12, divider 1.91e-12, pistons 1.36e-12]
+validator scale: tol_pair = 2.4e-05 px (c = 0.00115 px^2 = 7.8e+04 c_tol), tol_wall = 1.2e-05 px (3.85e+04 tol_face)
+
+ledgers (amendment d; run B, end): momentum of the bodies of finite mass, P - P0, against the impulses from outside, J
+
+| axis | P - P0 | J | residual | scale (u x sum of rounded terms) | residual / scale |
+|---|---|---|---|---|---|
+| x | 3.888548192 | 3.888548192 | -3.2e-14 | 2.39e-11 | 0.00134 |
+| y | 24.46720327 | 24.46720327 | -7.11e-15 | 4.74e-11 | 0.00015 |
+| energy | 29.55193053 (E - E0) | 29.55193053 (W) | 1.14e-13 | 1.43e-10 | 0.000795 |
+
+impulses from outside (x unless named): walls L 1516.71, R -94.2761, B (y) 11634.1, T (y) -11609.6; divider of mass 0 -20.6302; spring anchor 0; pistons L 0, R -1397.92; API changes 0
+
+observables (information, not a test):
+
+| engine | Z (pair virial), mean of 10 blocks after T/10 | SE | divider mean x [px] | SD [px] | period [sigma-time] (periods in the record; peak of the detrended, windowed spectrum, >= 3) | work of the right piston [kT] |
+|---|---|---|---|---|---|---|
+| gen3 (B) | 1.25836 | 0.00228 | 1817.3771 | 42.4925 | 72.05 (5) | 29.5519 |
+| gen2 | 1.25331 | 0.00244 | 1796.2749 | 35.2289 | 120.1 (3) | 27.6852 |
+
+static method (gen3 run B, 484 + 496 divider events over 360 sigma-time; information): F_left = 0.157247 kT/px (Z = F L / (N kT) = 1.18907, kT_left = 1.17752, N = 200), F_right = 0.157551 kT/px (Z = 1.44230, kT_right = 1.05913, N = 200)

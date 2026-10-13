@@ -1,0 +1,10 @@
+# Decision 41 item 14: the fetched BUILD_RECORD_S1.txt against the four sha256 lines of item 8 (read from notes 261012 sec. 4.7.85)
+
+| binary | item 8 | fetched record | equal |
+|---|---|---|---|
+| 00ALLINONE | 0bb1929e92424242ecbcd57d1dec183ae08ff055fa4c29c21357dc5058348d58 | 0bb1929e92424242ecbcd57d1dec183ae08ff055fa4c29c21357dc5058348d58 | yes |
+| bin/00ALLINONE_ld | b79db442881f1bb9c58c94b193b29502698461eab95e1f75f227b9844bcc9467 | b79db442881f1bb9c58c94b193b29502698461eab95e1f75f227b9844bcc9467 | yes |
+| bin/gen3_m1 | 5eb49cf7ca7494beefbc4e16674a7840e05f248c2d3b0bcef4887b4e3dc03ac5 | 5eb49cf7ca7494beefbc4e16674a7840e05f248c2d3b0bcef4887b4e3dc03ac5 | yes |
+| bin/gen3_m2 | c5c83443d01ac6bdc1578d11f737561ddad78aff0408269cce83141d0973fcb1 | c5c83443d01ac6bdc1578d11f737561ddad78aff0408269cce83141d0973fcb1 | yes |
+
+RESULT: 4 of 4 lines equal, in order

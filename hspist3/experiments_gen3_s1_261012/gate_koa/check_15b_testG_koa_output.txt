@@ -1,0 +1,18 @@
+# Decision 41 item 15 b: the 12 gen3 lines of Test G chunk 1 in Test G on KOA (experiments_gen3_gate_koa_261009) and in this gate's two runs
+
+| line | M | r | seed | Test G on KOA (a643bc7): clean, event hash | gate binary (a643bc7) | campaign binary (f72d764) | event counts equal (3 records) | equal |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 50 | 0 | 2181659217 | 1, 8ebcd88fd0e89450 | 1, 8ebcd88fd0e89450 | 1, 8ebcd88fd0e89450 | yes | EQUAL |
+| 2 | 50 | 1 | 1695260360 | 1, 183435f8b0e4bbb1 | 1, 183435f8b0e4bbb1 | 1, 183435f8b0e4bbb1 | yes | EQUAL |
+| 3 | 50 | 2 | 3093807436 | 1, b073923f148496d0 | 1, b073923f148496d0 | 1, b073923f148496d0 | yes | EQUAL |
+| 4 | 50 | 3 | 3583488288 | 1, db02cf086708f059 | 1, db02cf086708f059 | 1, db02cf086708f059 | yes | EQUAL |
+| 5 | 50 | 4 | 1044020370 | 1, b7387be4a6d8b67b | 1, b7387be4a6d8b67b | 1, b7387be4a6d8b67b | yes | EQUAL |
+| 6 | 50 | 5 | 897179266 | 1, fcf0c2430ec438b6 | 1, fcf0c2430ec438b6 | 1, fcf0c2430ec438b6 | yes | EQUAL |
+| 7 | 50 | 6 | 1975227116 | 1, 14aa0698701c412b | 1, 14aa0698701c412b | 1, 14aa0698701c412b | yes | EQUAL |
+| 8 | 50 | 7 | 2533786492 | 1, 9cd5afa53b3976d0 | 1, 9cd5afa53b3976d0 | 1, 9cd5afa53b3976d0 | yes | EQUAL |
+| 9 | 50 | 8 | 2570703150 | 1, 133e50eee3a59860 | 1, 133e50eee3a59860 | 1, 133e50eee3a59860 | yes | EQUAL |
+| 10 | 50 | 9 | 1576492327 | 1, 767716a11188c073 | 1, 767716a11188c073 | 1, 767716a11188c073 | yes | EQUAL |
+| 11 | 50 | 10 | 3766718114 | 1, 6ea16cc4951a1d2b | 1, 6ea16cc4951a1d2b | 1, 6ea16cc4951a1d2b | yes | EQUAL |
+| 12 | 50 | 11 | 2301849008 | 1, 35ee005c21cdc3e7 | 1, 35ee005c21cdc3e7 | 1, 35ee005c21cdc3e7 | yes | EQUAL |
+
+RESULT (information): event hashes and event counts equal in all three records for 12 of 12 lines

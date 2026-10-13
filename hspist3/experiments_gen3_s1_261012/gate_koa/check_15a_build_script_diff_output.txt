@@ -1,0 +1,2 @@
+$ git diff --stat f72d764 0969b0ed -- hspist3/cluster/gen3_koa_261009/build_gen3_koa.sh
+(no output: the file is identical between f72d764 and 0969b0ed)

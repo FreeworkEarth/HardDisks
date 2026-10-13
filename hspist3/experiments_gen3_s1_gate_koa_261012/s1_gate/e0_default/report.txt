@@ -1,0 +1,57 @@
+## Schedule-equivalence audit and contact audit (/mnt/lustre/koa/scratch/charing/harddisks_gen3/s1_gate/e0_default)
+
+| case | version (audit run) | mode | audited events | matched | missing | extra | abs(dt) > 1e-9 | duplicate live disagreeing | max abs(dt) matched | abs(dt) > 1e-9 and > 1e-10 of horizon | max abs(dt)/horizon | max contact gap [px] (dd, wall, div, piston) | audit vs plain | plain vs ref |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| afix | git f72d764  target koa | 1 | 66602 | 43693725 | 0 | 0 | 1108 | 0 | 9.54e-07 | 0 | 1.15e-13 | 4.5e-11, 3.0e-11, 2.5e-11, 0.0e+00 | IDENTICAL | IDENTICAL |
+| ctrl_min | git f72d764  target koa | 2 | 104545 | 58092582 | 0 | 0 | 915 | 0 | 4.17e-07 | 0 | 3.58e-14 | 4.8e-12, 2.8e-12, 2.5e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+| ctrl_leg | git f72d764  target koa | 2 | 105052 | 58448394 | 0 | 0 | 727 | 0 | 3.72e-08 | 0 | 1.39e-13 | 5.4e-12, 3.0e-12, 2.5e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+| afix_leg | git f72d764  target koa | 1 | 66783 | 43809491 | 0 | 0 | 0 | 0 | 0.00e+00 | 0 | 0.00e+00 | 4.5e-11, 2.8e-11, 3.0e-11, 0.0e+00 | IDENTICAL | IDENTICAL |
+
+### E2 as amended (2026-10-07, item 1) and E0
+
+| case | mode | audited events | missing | extra | dup. disagreeing | abs(dt) > 1e-9 (engine) | printed | above 1e-8 of horizon (dt) | no true contact | heap error > 1e-8 of horizon | largest heap error / horizon | count above 1e-10 | max contact [px] | plain vs ref | E2 row |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| afix | 1 | 66602 | 0 | 0 | 0 | 1108 | 1108 | 0 | 0 | 0 | 1.19e-13 | 0 | 4.5e-11 | IDENTICAL | ok |
+| ctrl_min | 2 | 104545 | 0 | 0 | 0 | 915 | 915 | 0 | 0 | 0 | 3.12e-13 | 0 | 4.8e-12 | IDENTICAL | information |
+| ctrl_leg | 2 | 105052 | 0 | 0 | 0 | 727 | 727 | 0 | 0 | 0 | 2.69e-13 | 0 | 5.4e-12 | IDENTICAL | information |
+| afix_leg | 1 | 66783 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0.00e+00 | 0 | 4.5e-11 | IDENTICAL | information |
+
+minimum sizes: free_M50_long 0 audited (>= 100000: NO); free_M2000 0 audited (>= 100000: NO); afix 66602 audited (>= 10000: yes); dense state present: NO
+largest heap error / horizon, minimal-path mode-1 cases: 1.19e-13; legacy control (ctrl_leg): 2.69e-13
+E2 (amended): FAIL; E0 (plain vs ref IDENTICAL in ctrl_min, ctrl_leg, afix, afix_leg): PASS
+
+RULE (mode-1 audits of the minimal path): missing + extra + (abs(dt) > 1e-9) summed over all runs = 1108 -> NON-ZERO: defect in the schedule logic by the rule
+same with the relative criterion (abs(dt) > 1e-9 AND > 1e-10 of the prediction horizon; information, not registered): 0
+
+### Every reported event, recomputed at 60 digits (validation/resched_audit_bruteforce_261007.py)
+
+(the first 50 reported events of each run; the engine counts all of them, see the table above)
+
+**afix**
+
+brute-force summary over 1108 reported events: largest |t_heap - t_true| / horizon = 1.19e-13; largest |t_legacy - t_true| / horizon = 4.69e-15; longest horizon 1.759e+09 px-time; events with no true contact: 0
+**ctrl_min**
+
+brute-force summary over 915 reported events: largest |t_heap - t_true| / horizon = 3.12e-13; largest |t_legacy - t_true| / horizon = 3.12e-13; longest horizon 5.340e+08 px-time; events with no true contact: 0
+**ctrl_leg**
+
+brute-force summary over 727 reported events: largest |t_heap - t_true| / horizon = 2.69e-13; largest |t_legacy - t_true| / horizon = 2.68e-13; longest horizon 6.299e+07 px-time; events with no true contact: 0
+
+first 12 events in full:
+
+| kind | type | a | b/d | now | horizon t_true - now | t_legacy - t_true | t_heap - t_true | heap error / horizon | brute force |
+|---|---|---|---|---|---|---|---|---|---|
+| dt | WB | 66 | - | 76.553296 | 1.1290e+06 | +7.069e-11 | +1.271e-09 | 1.13e-15 | gap 7.773e+1 px |
+| dt | WL | 70 | - | 243.005253 | 3.9646e+06 | +1.903e-10 | -1.210e-09 | 3.05e-16 | gap 3.933e+2 px |
+| dt | DR | 70 | 0 | 243.005253 | 1.5391e+06 | -5.591e-11 | -1.256e-09 | 8.16e-16 | gap 1.527e+2 px, closing speed 9.920e-5 |
+| dt | PL | 70 | - | 243.005253 | 3.9747e+06 | +1.667e-10 | -1.233e-09 | 3.10e-16 | gap 3.943e+2 px |
+| dt | DR | 70 | 0 | 243.561697 | 1.5391e+06 | -1.047e-10 | -1.305e-09 | 8.48e-16 | gap 1.527e+2 px, closing speed 9.920e-5 |
+| dt | WB | 25 | - | 1665.050446 | 1.2437e+06 | +2.506e-10 | -9.494e-10 | 7.63e-16 | gap 2.099e+2 px |
+| dt | WB | 25 | - | 1666.170024 | 1.2437e+06 | +7.370e-11 | -1.126e-09 | 9.06e-16 | gap 2.099e+2 px |
+| dt | WB | 25 | - | 1667.267655 | 1.2437e+06 | +3.622e-12 | -1.396e-09 | 1.12e-15 | gap 2.099e+2 px |
+| dt | WB | 25 | - | 1671.503368 | 1.2437e+06 | +6.480e-11 | -1.135e-09 | 9.13e-16 | gap 2.099e+2 px |
+| dt | WB | 25 | - | 1672.165796 | 1.2437e+06 | -1.658e-12 | -1.402e-09 | 1.13e-15 | gap 2.099e+2 px |
+| dt | WL | 79 | - | 1853.779250 | 1.5167e+06 | -1.739e-10 | +1.026e-09 | 6.77e-16 | gap 3.607e+2 px |
+| dt | WL | 79 | - | 1872.225779 | 1.5167e+06 | -6.316e-11 | +2.037e-09 | 1.34e-15 | gap 3.607e+2 px |
+
+brute-force summary over 12 reported events: largest |t_heap - t_true| / horizon = 1.34e-15; largest |t_legacy - t_true| / horizon = 2.02e-16; longest horizon 3.975e+06 px-time; events with no true contact: 0

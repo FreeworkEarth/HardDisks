@@ -1,0 +1,10 @@
+# the build-time record of the stage 1 campaign build (decision 39 item 5 a): written once by record_s1_build.sh after build_s1_koa.sh
+commit f72d764a8a7e837644c26bd8abc175d9e2cac268
+version 00ALLINONE  git f72d764  target koa
+version_ld 00ALLINONE  git f72d764  target koa-ld
+sha256 0bb1929e92424242ecbcd57d1dec183ae08ff055fa4c29c21357dc5058348d58 00ALLINONE
+sha256 b79db442881f1bb9c58c94b193b29502698461eab95e1f75f227b9844bcc9467 bin/00ALLINONE_ld
+sha256 5eb49cf7ca7494beefbc4e16674a7840e05f248c2d3b0bcef4887b4e3dc03ac5 bin/gen3_m1
+sha256 c5c83443d01ac6bdc1578d11f737561ddad78aff0408269cce83141d0973fcb1 bin/gen3_m2
+compiler gcc (GCC) 14.3.0
+built 2026-10-13 07:03:35 UTC on cn-03-33-01
