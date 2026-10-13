@@ -24120,3 +24120,90 @@ When Chris says the fetch is done, CC prints verbatim:
 - engine-divider-resched: the notes' copies.
 
 Written for: the plan author
+
+### 4.7.93 Plan-author decision 45: Report D44 accepted; H-B100 clean; F-B400 clean and B400's merge submitted; the go for I-B100 and E-D, the hold on B900, S and B1600 stays; the INTERIM report of B100 in five parts after the fetch; a time-class risk table for B900 and B1600; no new runs (2026-10-13 12:56 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 45** (relayed by Chris at about 12:55 HST, machine date; the plan author's time "~08:10 HST").
+  - The paste ends with the title of an attached document, "261013 state of play" (Markdown). Its content did not reach CC.
+- **1. Report D44 is accepted.** The libm reading is recorded as written. The cross-CPU hash test of chunk 1's first line is not wanted now.
+- **2. H-B100 is clean** (merge job 15053009):
+  - the scan: 144 chunks, 14864 plan entries, 0 problems;
+  - the merge: 10832 files moved, 288 appended, 3600 kept per chunk, 0 incomplete run folders, 0 locks or temp files left, 144 build files equal;
+  - 144 destinations; reduce_B exit 0: 16; reduce_s1 exit 0: 144; compressed: 144;
+  - `.merge_complete` 2026-10-13 09:43:40 UTC; 145 job logs;
+  - fit failures: 142 folders with 0, and 2 folders with 3.
+- **3. F-B400 is clean:**
+  - 196 logs, 196 done, 0 FAILED or REFUSED, "chunks done: 196 of 196", "nothing to resubmit";
+  - 158 chunks on E5-2670 v3, 38 on E5-4640 v2;
+  - the plan author's timing line: min 0.20 (chunk 160), median 0.53, max 1.67 (chunk 315: B_N0400_eta0.660000, M 2000, 2645 s predicted, class 180 min);
+  - G-B400: "CHECKS GOOD", job 15053737.
+- **4. THE GO for I-B100 (the fetch) and for E-D,** while B400's merge runs, as in decision 44 item 4. **THE HOLD STAYS** for B900, S and B1600.
+- **5. After Chris says "the B100 fetch is done",** CC prints verbatim, in this order, labelled INTERIM:
+  - (a) the INTERIM tables of B100;
+  - (b) the two (cell, mass) folders with 3 fit failures: the cell and mass, the seeds, which criterion of the nu_d fit failed for each, and their Q; and whether the group rule then leaves each cell with 5 or more masses for E1;
+  - (c) the timing table of B100 per CPU model, and next to it the maximum ratio per cell (eta) for each CPU model;
+  - (d) continuity checks C-a and C-b (sec. 4.8.7.7), if the INTERIM tables hold them; information only, no verdict;
+  - (e) the merge job's elapsed time and its split.
+- **6. One more table, for B900 and B1600,** from the chunk table and the measured ratios of B100, and of B400 once fetched:
+  - per time class of B900 and of B1600: the smallest class / predicted, and the measured maximum ratio at the same eta on each CPU model;
+  - a chunk is at risk if the measured maximum times its predicted time exceeds 0.8 of its class; the chunks at risk are listed, or "none" is printed.
+- **7. No new runs. Nothing in the package changes.**
+
+**The message, verbatim** (relayed by Chris on 2026-10-13 at about 12:55 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record in a new
+section.
+
+DECISION 45 (2026-10-13 ~08:10 HST)
+ 1. Report D44: ACCEPTED. The libm reading is recorded as you wrote
+    it. The cross-CPU hash test of chunk 1's first line is not
+    wanted now.
+ 2. H-B100 (merge job 15053009) IS CLEAN: "scan: 144 chunks, 14864
+    plan entries, 0 problem(s)"; "plan entries by treatment: APPEND
+    288, EQUAL 144, MOVE 10832, PER CHUNK 3600"; "merged 144
+    chunks: 10832 files moved, 288 files appended, 3600 kept per
+    chunk (0 failed-run folders), 0 incomplete run folders, 0 locks
+    or temp files left in place, 144 build files equal";
+    "destinations 144; reduce_B exit 0: 16; reduce_s1 exit 0: 144;
+    compressed: 144"; .merge_complete 2026-10-13 09:43:40 UTC; 145
+    job logs. Fit failures: "142 (0 fit failures)" and "2 (3 fit
+    failures)".
+ 3. F-B400 IS CLEAN: 196 logs, 196 with their done line, 0 FAILED
+    or REFUSED, "chunks done: 196 of 196", "nothing to resubmit";
+    158 chunks on E5-2670 v3, 38 on E5-4640 v2. My timing line:
+    "min 0.20 (chunk 160), median 0.53, max 1.67 (chunk 315)".
+    Chunk 315 is B_N0400_eta0.660000, M 2000, 2645 s predicted,
+    class 180 min. G-B400: "CHECKS GOOD", job 15053737.
+ 4. THE GO for I-B100 and for E-D, given while B400's merge runs
+    (as decision 44 item 4). THE HOLD STAYS for B900, S and B1600.
+ 5. After Chris says "the B100 fetch is done", print verbatim, in
+    this order, labelled INTERIM:
+    a. the INTERIM tables of B100;
+    b. the two (cell, mass) folders with 3 fit failures: which
+       cell and mass, which seeds, which criterion of the nu_d fit
+       failed for each, and their Q; and whether the group rule
+       then leaves each cell with 5 or more masses for E1;
+    c. the timing table of B100 per CPU model, and next to it the
+       maximum ratio per cell (eta) for each CPU model;
+    d. continuity checks C-a and C-b (sec. 4.8.7.7) if the INTERIM
+       tables hold them; they are information, no verdict;
+    e. the merge job's elapsed time and its split.
+ 6. For B900 and B1600 I need one more table, from the chunk table
+    and the measured B100 ratios, and B400's once fetched: per time
+    class of B900 and of B1600, the smallest class / predicted, and
+    the measured maximum ratio at the same eta on each CPU model.
+    A chunk is at risk if measured maximum x (its predicted time)
+    exceeds 0.8 of its class. List the chunks at risk, or print
+    "none".
+ 7. No new runs. Nothing in the package changes.
+
+End with "Written for: the plan author".
+261013 state of play
+Document·MD
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
