@@ -6,13 +6,16 @@
 # job checks WITHOUT git (s1_koa.sbatch, s1_gate_koa.sbatch, s1_xnode.sbatch). Git is used here, at build time, not at run time.
 # The checks: the record does not exist yet (the campaign build is never rebuilt); the clone's HEAD is f72d764a8a7e837644c26bd8abc175d9e2cac268
 # and no tracked file has changed; the four binaries exist, the two drivers print "00ALLINONE  git f72d764  target koa" / "koa-ld", and
-# the build's own hash files (logs/BUILD_KOA_LAST.hash, BUILD_KOA_LD.hash, BUILD_KOA_HARNESS.hash) hold the binaries' SHA-256.
+# the build's own hash files (logs/BUILD_KOA_LAST.hash, BUILD_KOA_LD.hash, BUILD_KOA_HARNESS.hash) hold the binaries' SHA-256. It sources
+# the clone's cluster/koa_env.sh first, as the build does, so the record's compiler line is the build's compiler.
 #   bash ~/harddisks_gen3_k2/hspist3/cluster/gen3_s1_gate_261012/record_s1_build.sh
 set -uo pipefail
 stop() { echo "STOP: [$(hostname)] $*"; exit 2; }
 C="$HOME/harddisks_gen3_s1/hspist3"; REC="$C/logs/BUILD_RECORD_S1.txt"; WANT=f72d764a8a7e837644c26bd8abc175d9e2cac268
 [ ! -e "$REC" ] || stop "$REC exists -- the campaign build is never rebuilt; nothing written"
 cd "$C" || stop "no folder $C"
+source cluster/koa_env.sh || stop "the campaign clone's cluster/koa_env.sh failed"   # the build's environment: the record's compiler line names
+                                                                                    # the GCC 14.3.0 module the build used, not the shell's gcc
 head=$(git -C "$C" rev-parse HEAD) || stop "git rev-parse failed in $C"
 [ "$head" = "$WANT" ] || stop "the clone's HEAD is $head, not $WANT"
 [ -z "$(git -C "$C" status --porcelain --untracked-files=no)" ] || stop "tracked files of the clone have changed: $(git -C "$C" status --porcelain --untracked-files=no | head -3 | tr '\n' ' ')"

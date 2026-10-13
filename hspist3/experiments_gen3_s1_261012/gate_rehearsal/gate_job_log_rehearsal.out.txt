@@ -1,0 +1,46 @@
+env: gcc (GCC) 14.3.0 | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+s1 gate on cn-r0 (Apple M3 Max): out /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d39/gate_reh/lustre/harddisks_gen3/s1_gate
+campaign: 00ALLINONE  git f72d764  target koa (f72d764a8a7e837644c26bd8abc175d9e2cac268); gate: 00ALLINONE  git a643bc7  target koa; E0 reference: 00ALLINONE  git 7b08827  target koa
+ctrl_min/audit: exit 0
+ctrl_min/plain: exit 0
+ctrl_min/ref: exit 0
+ctrl_leg/audit: exit 0
+ctrl_leg/plain: exit 0
+ctrl_leg/ref: exit 0
+wall time 8 s
+== (c1) E0 default:
+ ctrl_min  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ ctrl_leg  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ctrl_min/audit: exit 0
+ctrl_min/plain: exit 0
+ctrl_min/ref: exit 0
+ctrl_leg/audit: exit 0
+ctrl_leg/plain: exit 0
+ctrl_leg/ref: exit 0
+wall time 8 s
+== (c1) E0 gen2flag:
+ ctrl_min  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+ ctrl_leg  audit vs plain:  IDENTICAL  plain vs ref:  IDENTICAL 
+== (c2) the M1/M2 harness outputs of the campaign build (m1 exit 0;m2 quick exit 0;m2 exit 0;)
+   m1_audit_output.txt: 3b1347742ac82881023f882b30b1e23bbc1815c99aeef7bcd8c72f32ada00a8b -- EQUAL to the a643bc7 gate's KOA output
+   m2_audit_quick_output.txt: 98e78bc5c9c8a42f7a7bcf671eb9df79b4706654c40d0165611a3c64e942e07d -- EQUAL to the a643bc7 gate's KOA output
+   m2_audit_output.txt: d1b59d23695c0bb29754a7ee73bbaec1bf43882c5be287fd20ceea40371c9c11 -- EQUAL to the a643bc7 gate's KOA output
+   harness outputs equal to the a643bc7 gate's: 3 of 3
+== (d) Test G chunk 1, the 12 gen3 lines, the gate binary against the campaign binary:
+| line | cell | M | r | seed | gate: clean, event hash | campaign: clean, event hash | event counts equal | equal |
+|---|---|---|---|---|---|---|---|---|
+| 1 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 0 | 2181659217 | 1, 8e30a4d73db1b28a | 1, 8e30a4d73db1b28a | yes | EQUAL |
+| 2 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 1 | 1695260360 | 1, a6c57aa23d36f0fe | 1, a6c57aa23d36f0fe | yes | EQUAL |
+| 3 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 2 | 3093807436 | 1, c80b337a4ece087d | 1, c80b337a4ece087d | yes | EQUAL |
+| 4 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 3 | 3583488288 | 1, 8d680e685bb5361f | 1, 8d680e685bb5361f | yes | EQUAL |
+| 5 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 4 | 1044020370 | 1, c7b5ee1f34a36c46 | 1, c7b5ee1f34a36c46 | yes | EQUAL |
+| 6 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 5 | 897179266 | 1, 80e1579783ec3472 | 1, 80e1579783ec3472 | yes | EQUAL |
+| 7 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 6 | 1975227116 | 1, c88c59fcffd2df18 | 1, c88c59fcffd2df18 | yes | EQUAL |
+| 8 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 7 | 2533786492 | 1, 79b152b86be6d8cd | 1, 79b152b86be6d8cd | yes | EQUAL |
+| 9 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 8 | 2570703150 | 1, b3cf17a0ad412334 | 1, b3cf17a0ad412334 | yes | EQUAL |
+| 10 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 9 | 1576492327 | 1, a50e369f18b576c9 | 1, a50e369f18b576c9 | yes | EQUAL |
+| 11 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 10 | 3766718114 | 1, cc850bf91e6cc33f | 1, cc850bf91e6cc33f | yes | EQUAL |
+| 12 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 11 | 2301849008 | 1, f920ec6b723e47a2 | 1, f920ec6b723e47a2 | yes | EQUAL |
+
+TEST G CHUNK 1 (12 gen3 lines): event hashes equal in 12 of 12
+s1 gate done; paste everything from 's1 gate on' to here
