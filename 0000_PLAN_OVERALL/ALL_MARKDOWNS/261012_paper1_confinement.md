@@ -23397,3 +23397,342 @@ End with "Written for: the plan author" and the push line.
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
 - CC's work on item 5 follows in its own report.
+
+### 4.7.88 Report GD — the second-paste guards: every block E, every block G and block F's resubmission line are one guarded command line written by the generator; rehearsed on the mini table, each typed once submits and typed again refuses (PASS 34 of 34); the KOA scripts clone stays at 7bdfb67e, both manifests 21 OK (decision 42 item 5) (2026-10-12 22:59 HST, machine date) [DATA, printed by script]
+
+**Plain summary.**
+- **Done as decision 42 item 5 asked.** `make_s1_runsheet.py` writes every block E, every block G and block F's resubmission line as ONE guarded command line. The sbatch lines inside are unchanged and in their order, checked line by line in 18 of 18 changed blocks.
+- **The guards** are item 5 a's. Each check prints "REFUSED: <reason>", and a failed squeue refuses. Section 1 lists them per block.
+- **Block F, one difference in form.**
+  - `s1_stopped_chunks.sh` is unchanged (it is `7bdfb67e`'s) and still prints its plain lines. An awk in the same runsheet line then prints ONE guarded line that holds all of them.
+  - One line, not one per printed line: on KOA a group's second resubmission line (another time class) would find the first line's job in squeue and refuse.
+- **The rehearsal: REHEARSAL G4: PASS (34 of 34),** G4's script at engine-gen3 `2c871b52`.
+  - Each guarded block typed once submits; typed again it refuses, with nothing submitted. E-B100 was typed after chunk 1.
+  - Group D's block E was also refused with a pretended pending job and with a failing squeue.
+  - Group S's guarded resubmission line, typed once, submitted 2 lines and both chunks ran; typed again, it was refused.
+  - B100's merge job still refuses a second submission without its guard (exit 3).
+- **No job input changed.** The KOA scripts clone stays at `7bdfb67e`. On the files of the new commit, both manifests check 21 of 21 OK, and the two manifest files are byte-identical to `7bdfb67e`'s.
+- **The new stage 1 runsheet** has SHA-256 `6398ae1e…`. Its command lines changed in 18 of 34 blocks (E, F and G of every group); blocks A–D, H and I are unchanged.
+- **Blocks C and D stay as the runsheet has them.** What Chris types is the plan author's guarded block C and block D with its two added lines (decision 42 item 3); the generator was not asked to write them.
+- **Chunk 1's paste** has not reached CC yet. Its timing line (item 4) follows when Chris gives it.
+- **Data this message:** about 45 MB.
+
+## 1. The guards, as the generator writes them
+
+| block | the checks, in order (each its test, or "REFUSED: <reason>") | then | prints |
+|---|---|---|---|
+| E-<g> (B400, D, B900, S, B1600) | squeue `-h -u charing -n gen3-s1-<g>` empty (a failed squeue refuses); `.git/HEAD` = `7bdfb67e…`; the group's root `.../stage1/<g>` absent; no `logs/gen3-s1-<g>_*.out` | the group's array lines, unchanged and in their order | "CHECKS GOOD", one "Submitted batch job" per line and "<g>: ALL <n> ARRAY LINE(S) SUBMITTED"; or "<g>: THIS PASTE DID NOT SUBMIT ALL <n> ARRAY LINE(S)" |
+| E-B100 | squeue and HEAD as above; the chunk folders are exactly `chunk_1`; exactly one `logs/gen3-s1-B100_*.out`; chunk 1's log holds "chunk 1 done" | the same | the same |
+| F-<g> | `s1_stopped_chunks.sh`'s output as before; only if it prints resubmission lines, then "THE GUARDED RESUBMISSION LINE ..." and ONE line, whose checks are squeue and HEAD as above and no log of a listed chunk holding "chunk <j> done" | the printed sbatch lines, unchanged and in their order | "<g>: ALL <n> RESUBMISSION LINE(S) SUBMITTED"; or "<g>: THIS PASTE DID NOT SUBMIT ALL <n> RESUBMISSION LINE(S)" |
+| G-<g> | squeue empty for gen3-s1-<g> and gen3-s1-merge-<g>; HEAD; no `.../stage1/<g>/merged` | the merge's sbatch line | "<g>: THE MERGE SUBMITTED"; or "<g>: THIS PASTE DID NOT SUBMIT THE MERGE" |
+
+A refusal prints its first failing check only, and the later checks are not run. If "THIS PASTE DID NOT SUBMIT" follows some "Submitted batch job" lines, a submission failed half way; the runsheet then says: paste everything, type nothing more, wait.
+
+## 2. The rehearsal (item 5 b), verbatim: the table printed by `rehearse_s1_mac.py` at `2c871b52`
+
+````
+| step | criterion | result | evidence |
+|---|---|---|---|
+| 1. the build (rehearse_s1_build_mac.py: build_s1_koa.sh, record_s1_build.sh on a fresh f72d764 clone) | BUILD REHEARSAL: PASS | PASS | ['BUILD REHEARSAL: PASS (8 of 8)'] |
+| 2-3. after the gate (the build record, the manifests) and the substitutions | mini list 37 lines, mini table 7 chunks, 3 scripts rewritten, 2 manifests; one local commit | PASS | rewritten ['s1_koa.sbatch', 's1_merge.sbatch', 'fetch_s1_koa.sh']; stand-in commit 40fe1ab37849 |
+| 4. the mini runsheet (make_s1_runsheet.py on the mini table) | blocks A-D and E-I for B100, D, S | PASS | A, B, C, D, E-B100, F-B100, G-B100, H-B100, I-B100, E-D, F-D, G-D, H-D, I-D, E-S, F-S, G-S, H-S, I-S |
+| block A | squeue, srun (shims) | PASS | exit 0 |
+| block B (without its two update lines) | the runsheet's good lines | PASS | checks [True, True, True, True, True, True, True, True, True]; SHA lines 13 of 13 |
+| block C (chunk 1 alone) | Submitted batch job; chunk 1 exit 0 | PASS | 940001_1 cluster/gen3_stage1_261012/s1_koa.sbatch 0 |
+| block D (chunk 1's checks, G6 (e)) | the runsheet's good lines | PASS | checks [True, True, True, True, True] |
+| block E-B100 typed once (after chunk 1: the guard allows exactly its folder and its done log) | CHECKS GOOD, 2 array line(s) submitted, every task exit 0 | PASS | checks [True, True, True, True, True, True] |
+| block E-B100 typed a second time | REFUSED, nothing submitted | PASS | REFUSED: the chunk folders of B100 are not exactly chunk_1 |
+| block F-B100 | the counts, the chunk check, nothing to resubmit | PASS | checks [True, True, True, True, True, True, True, True] |
+| block G-B100 typed with a pretended pending job | REFUSED, nothing submitted | PASS | REFUSED: squeue failed or lists a gen3-s1-B100 or gen3-s1-merge-B100 job: 940999_7 PENDING |
+| the merge of B100: chunk 4's done log held aside | the guard passes (CHECKS GOOD); the merge job itself: exit 2, 'NOT DONE: 4(no log with its done line)', nothing moved | PASS | 940004 cluster/gen3_stage1_261012/s1_merge.sbatch 2 |
+| blocks G-B100 (typed once) and H-B100 (the merge, the reduction, the compression; its record) | CHECKS GOOD, 1 submitted, exit 0; 'APPEND 8, EQUAL 4, MOVE 95, PER CHUNK 31'; the merged line; 'destinations 3; reduce_B exit 0: 2; reduce_s1 exit 0: 3; compressed: 3' | PASS | checks [True, True, True, True, True, True, True, True, True, True, True] |
+| block G-B100 typed a second time | REFUSED, nothing submitted | PASS | REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d42/g4c/l |
+| the merge job of B100 submitted a second time without its guard | exit 3 (merged/ exists) | PASS | 940006 cluster/gen3_stage1_261012/s1_merge.sbatch 3 |
+| block I-B100 (the fetch, local) | the merge record and the tables; no chunk folder; no trace, psi6, virial or run folder outside the (100, pi/8) cell, which comes whole; every snapshot | PASS | 118 files; checks [True, True, True, True, True, True, True] |
+| block E-D typed with a pretended pending job of the group | REFUSED, nothing submitted | PASS | REFUSED: squeue failed or lists a gen3-s1-D job: 940998_5 PENDING |
+| block E-D typed with a failing squeue | REFUSED, nothing submitted | PASS | REFUSED: squeue failed or lists a gen3-s1-D job: slurm_load_jobs error: Socket timed out on send/recv operation (rehearsal shim) |
+| block E-D typed once | CHECKS GOOD, 1 array line(s) submitted, every task exit 0 | PASS | checks [True, True, True, True, True, True] |
+| block E-D typed a second time | REFUSED, nothing submitted | PASS | REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d42/g4c/l |
+| block F-D | the counts, the chunk check, nothing to resubmit | PASS | checks [True, True, True, True, True, True, True, True] |
+| blocks G-D (typed once) and H-D (the merge, the reduction, the compression; its record) | CHECKS GOOD, 1 submitted, exit 0; 'APPEND 2, EQUAL 1, MOVE 8, PER CHUNK 2'; the merged line; 'destinations 1; reduce_B exit 0: 1; reduce_s1 exit 0: 1; compressed: 1' | PASS | checks [True, True, True, True, True, True, True, True, True, True, True] |
+| block G-D typed a second time | REFUSED, nothing submitted | PASS | REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d42/g4c/l |
+| block I-D (the fetch, local) | the merge record and the tables; no chunk folder; no trace, psi6, virial or run folder outside the (100, pi/8) cell, which comes whole; every snapshot | PASS | 17 files; checks [True, True, True, True, True, True] |
+| block E-S typed once, on a pretended faulty node | CHECKS GOOD, 2 array lines submitted; every chunk STOP: [cn-07-07-07] before 'chunk j on'; no chunk folder | PASS | checks [True, True, True, True, True, True, True, True] |
+| block E-S typed a second time | REFUSED, nothing submitted | PASS | REFUSED: logs/gen3-s1-S_*.out exist |
+| block F-S after the faulty attempt | the two plain lines, one per class, and ONE guarded line holding both, unchanged and in order | PASS | checks [True, True, True, True] |
+| the guarded resubmission line of F-S typed once | CHECKS GOOD, 2 lines submitted, both chunks exit 0 | PASS | checks [True, True, True, True, True] |
+| block R-S typed a second time | REFUSED, nothing submitted | PASS | REFUSED: a listed chunk has a log with its done line |
+| block F-S again, after the resubmission | the counts, the chunk check, nothing to resubmit | PASS | checks [True, True, True, True, True, True, True, True] |
+| blocks G-S (typed once) and H-S (the merge, the reduction, the compression; its record) | CHECKS GOOD, 1 submitted, exit 0; 'APPEND 4, EQUAL 2, MOVE 16, PER CHUNK 4'; the merged line; 'destinations 2; reduce_B exit 0: 2; reduce_s1 exit 0: 2; compressed: 2' | PASS | checks [True, True, True, True, True, True, True, True, True, True, True] |
+| block G-S typed a second time | REFUSED, nothing submitted | PASS | REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d42/g4c/l |
+| block I-S (the fetch, local) | the merge record and the tables; no chunk folder; no trace, psi6, virial or run folder outside the (100, pi/8) cell, which comes whole; every snapshot | PASS | 33 files; checks [True, True, True, True, True, True] |
+| 5. the verdict script (G5) on the fetched folder, --interim | exit 0; INTERIM; the five mini cells in the per-cell table with their crystal orientation | PASS | exit 0; B_N0100_eta0.050000: x/x; B_N0100_eta0.100000: -; B_N0100_eta0.150000: -; B_N0100_eta0.200000: -; B_N0100_eta0.250000: -; B_N0100_eta0.300000: -; B_N0100_eta0.350000: -; B_N0100_eta0.392699: x/x; B_N0100_eta0.450000: -; B_N0100_eta0.500000: -; B_N0100_eta0.550000: -; B_N0100_eta0.600000: -; B_N0100_eta0.630000: -; B_N0100_eta0.660000: -; B_N0100_eta0.680000: -; B_N0100_eta0.690000: -; D_N0100_eta0.020000: -; D_N0100_eta0.035000: -; D_N0100_eta0.075000: y/y; S_N0100_eta0.600000_start0: x/x; S_N0100_eta0.600000_turned: y/y; S_N0100_eta0.630000_start0: -; S_N0100_eta0.630000_turned: -; S_N0100_eta0.660000_start0: -; S_N0100_eta0.660000_turned: -; S_N0100_eta0.680000_start0: -; S_N0100_eta0.680000_turned: -; S_N0100_eta0.690000_start0: -; S_N0100_eta0.690000_turned: - |
+
+RESIDUAL DIFFERENCES: the shims (Slurm commands, module, gcc --version, lscpu, hostname, sha256sum); the Mac binaries (f72d764, the koa target's name, Mac flags); the mini list (37 registered lines) with its SHA-256 file and the mini chunk table (7 chunks); the build record and the manifests written in the scratch clone and committed there (the stage 1 commit's stand-in); block B without its two update lines; the Lustre path; the local fetch; group S's first attempt on a pretended faulty node
+
+REHEARSAL G4: PASS (34 of 34)
+````
+
+The refusals: each refused block's first REFUSED line, from its log, with the scratchpad's stand-in path shortened:
+
+````
+block_E-D_pending          REFUSED: squeue failed or lists a gen3-s1-D job: 940998_5 PENDING
+block_E-D_squeuefail       REFUSED: squeue failed or lists a gen3-s1-D job: slurm_load_jobs error: Socket timed out on send/recv operation (rehearsal shim)
+block_E-B100_second        REFUSED: the chunk folders of B100 are not exactly chunk_1
+block_E-D_second           REFUSED: <stand-in of /mnt/lustre/koa/scratch/charing>/harddisks_gen3/stage1/D exists
+block_E-S_second           REFUSED: logs/gen3-s1-S_*.out exist
+block_R-S_second           REFUSED: a listed chunk has a log with its done line
+block_G-B100_pending       REFUSED: squeue failed or lists a gen3-s1-B100 or gen3-s1-merge-B100 job: 940999_7 PENDING
+block_G-B100_second        REFUSED: <stand-in of /mnt/lustre/koa/scratch/charing>/harddisks_gen3/stage1/B100/merged exists
+block_G-D_second           REFUSED: <stand-in of /mnt/lustre/koa/scratch/charing>/harddisks_gen3/stage1/D/merged exists
+block_G-S_second           REFUSED: <stand-in of /mnt/lustre/koa/scratch/charing>/harddisks_gen3/stage1/S/merged exists
+````
+
+**What the Mac cannot show.**
+- On KOA, a quick second paste is refused by squeue while the first paste's arrays are still pending.
+- On the Mac, the sbatch stand-in runs each job at once, so the second typings above were refused by the root, log, done-line and `merged/` checks.
+- The squeue path itself was rehearsed with the pretended pending job (blocks E-D and G-B100) and the failing squeue (block E-D).
+
+## 3. The manifests at the new commit (item 5 c), verbatim
+
+````
+$ sha256sum -c cluster/gen3_stage1_261012/s1_inputs.sha256 cluster/gen3_stage1_261012/s1_merge_inputs.sha256   (the files of engine-gen3 2c871b524cdb6f040bbd196ad0381a445ef0d5aa, by git archive)
+cluster/gen3_stage1_261012/tasks_stage1_koa_261012.txt: OK
+cluster/gen3_stage1_261012/tasks_stage1_koa_261012.sha256: OK
+cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv: OK
+cluster/gen3_stage1_261012/build_record_f72d764.txt: OK
+cluster/gen3_stage1_261012/s1_worker_koa.sh: OK
+cluster/koa_env.sh: OK
+cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh: OK
+cluster/gen3_stage1_261012/merge_s1_koa.py: OK
+cluster/gen3_stage1_261012/reduce_s1_koa.py: OK
+cluster/confinement_20261013/reduce_B.py: OK
+cluster/gen3_testR_261011/reduce_testR_koa.py: OK
+plot_speed_of_sound_edmd.py: OK
+validation/edmd3_health_guard.py: OK
+validation/edmd_acc_guard.py: OK
+validation/paper1_confinement_prereg_20261012.py: OK
+validation/paper1_confinement_results_261004.py: OK
+validation/paper1_populate_cs_err_20261002.py: OK
+validation/provenance_edmd_acc_261009.py: OK
+validation/resched_testT_261007.py: OK
+validation/resched_testT_followup_261007.py: OK
+validation/tests_20260913.py: OK
+OK lines: 21
+````
+
+The two manifest files themselves are the same git blobs at `7bdfb67e` and at `2c871b52`: `s1_inputs.sha256` `1f1e2b29…`, `s1_merge_inputs.sha256` `a693419e…`. Since `7bdfb67e`, only the runsheet generator, the rehearsal, the runsheet and the evidence changed; none of them is a job input. The KOA scripts clone stays at `7bdfb67e`, and the guards check exactly that commit.
+
+## 4. The new runsheet (item 5 d)
+
+- **The file:** `cluster/gen3_stage1_261012/runsheet_stage1_261012.txt` at engine-gen3 `2c871b52`, SHA-256 `6398ae1e900629db37994718533be1afb53c965064457cf9cc7077dcdd135017`, 647 lines. It still names the stage 1 commit `7bdfb67e`.
+- **The diff against `88d2eaf0…`, limited to the changed command lines** (each block's command lines; old lines "- ", new lines "+ "), verbatim:
+
+````
+# The stage 1 runsheet's command lines: 88d2eaf0... (engine-gen3 0e7cb2f2) against 6398ae1e... (decision 42); the blocks' command lines only, the blocks whose commands changed
+
+## block E-B100
+- cd ~/harddisks_gen3_k2/hspist3 && sbatch --job-name=gen3-s1-B100 --time=0:30:00 --array=2,10-14,19-26,28-144%52 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-B100 --time=1:00:00 --array=3-5,15-18,27%8 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-B100 --time=2:00:00 --array=6-9%4 cluster/gen3_stage1_261012/s1_koa.sbatch
++ cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B100 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B100 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ "$(ls -d /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/chunks/chunk_* 2>/dev/null)" = "/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/chunks/chunk_1" ] || { echo "REFUSED: the chunk folders of B100 are not exactly chunk_1"; false; }; } && { [ "$(ls logs/gen3-s1-B100_*.out 2>/dev/null | wc -l)" -eq 1 ] || { echo "REFUSED: logs/gen3-s1-B100_*.out are not exactly one log"; false; }; } && { grep -qx 'chunk 1 done' logs/gen3-s1-B100_*_1.out || { echo "REFUSED: the log of chunk 1 has no line 'chunk 1 done'"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-B100 --time=0:30:00 --array=2,10-14,19-26,28-144%52 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B100 --time=1:00:00 --array=3-5,15-18,27%8 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B100 --time=2:00:00 --array=6-9%4 cluster/gen3_stage1_261012/s1_koa.sbatch && echo "B100: ALL 3 ARRAY LINE(S) SUBMITTED" || echo "B100: THIS PASTE DID NOT SUBMIT ALL 3 ARRAY LINE(S)"
+
+## block F-B100
+- bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B100 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B100
++ bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B100 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B100 | awk '{ print } /^sbatch --job-name=gen3-s1-B100 / { n++; L[n] = $0; a = $0; sub(/.*--array=/, "", a); sub(/ .*/, "", a); k = split(a, p, ","); for (i = 1; i <= k; i++) { m = split(p[i], q, "-"); lo = q[1] + 0; hi = (m == 2) ? q[2] + 0 : lo; for (j = lo; j <= hi; j++) J = J (J == "" ? "" : "|") j } } END { if (n) { s = ""; for (i = 1; i <= n; i++) s = s L[i] " && "; print "THE GUARDED RESUBMISSION LINE (one line for all of them; type it once, after the go of the plan author):"; print "cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B100 -o %i 2>&1) && [ -z \"$Q\" ] || { echo \"REFUSED: squeue failed or lists a gen3-s1-B100 job: $Q\"; false; }; } && { [ \"$(cat ../.git/HEAD)\" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo \"REFUSED: the scripts clone is not at 7bdfb67\"; false; }; } && { ! grep -Elx \"chunk (" J ") done\" logs/gen3-s1-B100_*.out >/dev/null 2>&1 || { echo \"REFUSED: a listed chunk has a log with its done line\"; false; }; } && echo \"CHECKS GOOD\" && " s "echo \"B100: ALL " n " RESUBMISSION LINE(S) SUBMITTED\" || echo \"B100: THIS PASTE DID NOT SUBMIT ALL " n " RESUBMISSION LINE(S)\"" } }'
+
+## block G-B100
+- cd ~/harddisks_gen3_k2/hspist3 && sbatch --job-name=gen3-s1-merge-B100 cluster/gen3_stage1_261012/s1_merge.sbatch B100
++ cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B100,gen3-s1-merge-B100 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B100 or gen3-s1-merge-B100 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-B100 cluster/gen3_stage1_261012/s1_merge.sbatch B100 && echo "B100: THE MERGE SUBMITTED" || echo "B100: THIS PASTE DID NOT SUBMIT THE MERGE"
+
+## block E-B400
+- cd ~/harddisks_gen3_k2/hspist3 && sbatch --job-name=gen3-s1-B400 --time=1:00:00 --array=215,227-228,238-239,248-250,257-259,266-269,275-278,284-287,293-296%4 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-B400 --time=2:00:00 --array=145-146,150-151,181,183-186,201-202,205-208,216-218,221-222,224,229-231,234-237,240-243,246-247,251-254,260-263,270-273,279-282,288-292,297-305,311-313,319-322,329-332,339-340%21 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-B400 --time=3:00:00 --array=147-149,152-158,160-167,169-180,182,187-200,203-204,209-212,214,219-220,223,225-226,232-233,244-245,255-256,264-265,274,283,306-310,314-318,323-328,333-338%37 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-B400 --time=4:00:00 --array=159,168,213%2 cluster/gen3_stage1_261012/s1_koa.sbatch
++ cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B400 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B400 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B400 ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B400 exists"; false; }; } && { ! ls logs/gen3-s1-B400_*.out >/dev/null 2>&1 || { echo "REFUSED: logs/gen3-s1-B400_*.out exist"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-B400 --time=1:00:00 --array=215,227-228,238-239,248-250,257-259,266-269,275-278,284-287,293-296%4 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B400 --time=2:00:00 --array=145-146,150-151,181,183-186,201-202,205-208,216-218,221-222,224,229-231,234-237,240-243,246-247,251-254,260-263,270-273,279-282,288-292,297-305,311-313,319-322,329-332,339-340%21 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B400 --time=3:00:00 --array=147-149,152-158,160-167,169-180,182,187-200,203-204,209-212,214,219-220,223,225-226,232-233,244-245,255-256,264-265,274,283,306-310,314-318,323-328,333-338%37 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B400 --time=4:00:00 --array=159,168,213%2 cluster/gen3_stage1_261012/s1_koa.sbatch && echo "B400: ALL 4 ARRAY LINE(S) SUBMITTED" || echo "B400: THIS PASTE DID NOT SUBMIT ALL 4 ARRAY LINE(S)"
+
+## block F-B400
+- bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B400 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B400
++ bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B400 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B400 | awk '{ print } /^sbatch --job-name=gen3-s1-B400 / { n++; L[n] = $0; a = $0; sub(/.*--array=/, "", a); sub(/ .*/, "", a); k = split(a, p, ","); for (i = 1; i <= k; i++) { m = split(p[i], q, "-"); lo = q[1] + 0; hi = (m == 2) ? q[2] + 0 : lo; for (j = lo; j <= hi; j++) J = J (J == "" ? "" : "|") j } } END { if (n) { s = ""; for (i = 1; i <= n; i++) s = s L[i] " && "; print "THE GUARDED RESUBMISSION LINE (one line for all of them; type it once, after the go of the plan author):"; print "cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B400 -o %i 2>&1) && [ -z \"$Q\" ] || { echo \"REFUSED: squeue failed or lists a gen3-s1-B400 job: $Q\"; false; }; } && { [ \"$(cat ../.git/HEAD)\" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo \"REFUSED: the scripts clone is not at 7bdfb67\"; false; }; } && { ! grep -Elx \"chunk (" J ") done\" logs/gen3-s1-B400_*.out >/dev/null 2>&1 || { echo \"REFUSED: a listed chunk has a log with its done line\"; false; }; } && echo \"CHECKS GOOD\" && " s "echo \"B400: ALL " n " RESUBMISSION LINE(S) SUBMITTED\" || echo \"B400: THIS PASTE DID NOT SUBMIT ALL " n " RESUBMISSION LINE(S)\"" } }'
+
+## block G-B400
+- cd ~/harddisks_gen3_k2/hspist3 && sbatch --job-name=gen3-s1-merge-B400 cluster/gen3_stage1_261012/s1_merge.sbatch B400
++ cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B400,gen3-s1-merge-B400 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B400 or gen3-s1-merge-B400 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B400/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B400/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-B400 cluster/gen3_stage1_261012/s1_merge.sbatch B400 && echo "B400: THE MERGE SUBMITTED" || echo "B400: THIS PASTE DID NOT SUBMIT THE MERGE"
+
+## block E-D
+- cd ~/harddisks_gen3_k2/hspist3 && sbatch --job-name=gen3-s1-D --time=0:30:00 --array=352,361-364%1 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-D --time=1:00:00 --array=341,353-355,365-368%1 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-D --time=2:00:00 --array=342-344,348-349,356-358,369,431-433,443-449,498-499,501,505-506%6 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-D --time=3:00:00 --array=345-347,350-351,359-360,370-373,375-377,379-390,392-398,404-408,412-419,450-454,456-466,468-479,481-487,495-497,500,502-504,507-509,511-521%36 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-D --time=4:00:00 --array=374,378,391,399-403,409-411,420-430,434-442,455,467,480,488-494,510%20 cluster/gen3_stage1_261012/s1_koa.sbatch
++ cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-D -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-D job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D exists"; false; }; } && { ! ls logs/gen3-s1-D_*.out >/dev/null 2>&1 || { echo "REFUSED: logs/gen3-s1-D_*.out exist"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-D --time=0:30:00 --array=352,361-364%1 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-D --time=1:00:00 --array=341,353-355,365-368%1 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-D --time=2:00:00 --array=342-344,348-349,356-358,369,431-433,443-449,498-499,501,505-506%6 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-D --time=3:00:00 --array=345-347,350-351,359-360,370-373,375-377,379-390,392-398,404-408,412-419,450-454,456-466,468-479,481-487,495-497,500,502-504,507-509,511-521%36 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-D --time=4:00:00 --array=374,378,391,399-403,409-411,420-430,434-442,455,467,480,488-494,510%20 cluster/gen3_stage1_261012/s1_koa.sbatch && echo "D: ALL 5 ARRAY LINE(S) SUBMITTED" || echo "D: THIS PASTE DID NOT SUBMIT ALL 5 ARRAY LINE(S)"
+
+## block F-D
+- bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-D cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv D
++ bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-D cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv D | awk '{ print } /^sbatch --job-name=gen3-s1-D / { n++; L[n] = $0; a = $0; sub(/.*--array=/, "", a); sub(/ .*/, "", a); k = split(a, p, ","); for (i = 1; i <= k; i++) { m = split(p[i], q, "-"); lo = q[1] + 0; hi = (m == 2) ? q[2] + 0 : lo; for (j = lo; j <= hi; j++) J = J (J == "" ? "" : "|") j } } END { if (n) { s = ""; for (i = 1; i <= n; i++) s = s L[i] " && "; print "THE GUARDED RESUBMISSION LINE (one line for all of them; type it once, after the go of the plan author):"; print "cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-D -o %i 2>&1) && [ -z \"$Q\" ] || { echo \"REFUSED: squeue failed or lists a gen3-s1-D job: $Q\"; false; }; } && { [ \"$(cat ../.git/HEAD)\" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo \"REFUSED: the scripts clone is not at 7bdfb67\"; false; }; } && { ! grep -Elx \"chunk (" J ") done\" logs/gen3-s1-D_*.out >/dev/null 2>&1 || { echo \"REFUSED: a listed chunk has a log with its done line\"; false; }; } && echo \"CHECKS GOOD\" && " s "echo \"D: ALL " n " RESUBMISSION LINE(S) SUBMITTED\" || echo \"D: THIS PASTE DID NOT SUBMIT ALL " n " RESUBMISSION LINE(S)\"" } }'
+
+## block G-D
+- cd ~/harddisks_gen3_k2/hspist3 && sbatch --job-name=gen3-s1-merge-D cluster/gen3_stage1_261012/s1_merge.sbatch D
++ cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-D,gen3-s1-merge-D -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-D or gen3-s1-merge-D job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-D cluster/gen3_stage1_261012/s1_merge.sbatch D && echo "D: THE MERGE SUBMITTED" || echo "D: THIS PASTE DID NOT SUBMIT THE MERGE"
+
+## block E-B900
+- cd ~/harddisks_gen3_k2/hspist3 && sbatch --job-name=gen3-s1-B900 --time=2:00:00 --array=568-572,720,731-735,774-775,826-827,858-861,887-888,912-913,915,936-937,957-958,960,977-980,996-999,1005-1006,1020-1021,1044-1045%3 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-B900 --time=3:00:00 --array=523-527,529-535,541-545,547-557,580-590,595-636,663-664,666-673,675-679,681-687,695-696,700-719,737-744,746-753,755-759,764-773,781-792,794-795,797-804,806-817,819-825,828-829,831-834,836-851,853-857,862-863,865-868,870-886,889-898,900-901,903-911,914,916-917,919-929,931-935,938-947,949-956,959,961-962,964-976,981-990,992-995,1000-1004,1007-1019,1022-1027,1029-1043,1046-1054,1056-1061,1063-1067,1069-1078,1080-1089,1091-1095,1097-1106,1108-1117,1119-1121%44 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-B900 --time=4:00:00 --array=522,528,536-540,558-567,637-662,665,674,680,688-694,697-699,721-730,736,745,754,760-763,776-780,793,796,805,818,830,835,852,864,869,899,902,918,930,948,963,991,1028,1055,1062,1068,1079,1090,1096,1107,1118%14 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-B900 --time=6:00:00 --array=546,573-579,591-594%3 cluster/gen3_stage1_261012/s1_koa.sbatch
++ cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B900 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B900 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900 ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900 exists"; false; }; } && { ! ls logs/gen3-s1-B900_*.out >/dev/null 2>&1 || { echo "REFUSED: logs/gen3-s1-B900_*.out exist"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-B900 --time=2:00:00 --array=568-572,720,731-735,774-775,826-827,858-861,887-888,912-913,915,936-937,957-958,960,977-980,996-999,1005-1006,1020-1021,1044-1045%3 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B900 --time=3:00:00 --array=523-527,529-535,541-545,547-557,580-590,595-636,663-664,666-673,675-679,681-687,695-696,700-719,737-744,746-753,755-759,764-773,781-792,794-795,797-804,806-817,819-825,828-829,831-834,836-851,853-857,862-863,865-868,870-886,889-898,900-901,903-911,914,916-917,919-929,931-935,938-947,949-956,959,961-962,964-976,981-990,992-995,1000-1004,1007-1019,1022-1027,1029-1043,1046-1054,1056-1061,1063-1067,1069-1078,1080-1089,1091-1095,1097-1106,1108-1117,1119-1121%44 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B900 --time=4:00:00 --array=522,528,536-540,558-567,637-662,665,674,680,688-694,697-699,721-730,736,745,754,760-763,776-780,793,796,805,818,830,835,852,864,869,899,902,918,930,948,963,991,1028,1055,1062,1068,1079,1090,1096,1107,1118%14 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B900 --time=6:00:00 --array=546,573-579,591-594%3 cluster/gen3_stage1_261012/s1_koa.sbatch && echo "B900: ALL 4 ARRAY LINE(S) SUBMITTED" || echo "B900: THIS PASTE DID NOT SUBMIT ALL 4 ARRAY LINE(S)"
+
+## block F-B900
+- bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B900 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B900
++ bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B900 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B900 | awk '{ print } /^sbatch --job-name=gen3-s1-B900 / { n++; L[n] = $0; a = $0; sub(/.*--array=/, "", a); sub(/ .*/, "", a); k = split(a, p, ","); for (i = 1; i <= k; i++) { m = split(p[i], q, "-"); lo = q[1] + 0; hi = (m == 2) ? q[2] + 0 : lo; for (j = lo; j <= hi; j++) J = J (J == "" ? "" : "|") j } } END { if (n) { s = ""; for (i = 1; i <= n; i++) s = s L[i] " && "; print "THE GUARDED RESUBMISSION LINE (one line for all of them; type it once, after the go of the plan author):"; print "cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B900 -o %i 2>&1) && [ -z \"$Q\" ] || { echo \"REFUSED: squeue failed or lists a gen3-s1-B900 job: $Q\"; false; }; } && { [ \"$(cat ../.git/HEAD)\" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo \"REFUSED: the scripts clone is not at 7bdfb67\"; false; }; } && { ! grep -Elx \"chunk (" J ") done\" logs/gen3-s1-B900_*.out >/dev/null 2>&1 || { echo \"REFUSED: a listed chunk has a log with its done line\"; false; }; } && echo \"CHECKS GOOD\" && " s "echo \"B900: ALL " n " RESUBMISSION LINE(S) SUBMITTED\" || echo \"B900: THIS PASTE DID NOT SUBMIT ALL " n " RESUBMISSION LINE(S)\"" } }'
+
+## block G-B900
+- cd ~/harddisks_gen3_k2/hspist3 && sbatch --job-name=gen3-s1-merge-B900 cluster/gen3_stage1_261012/s1_merge.sbatch B900
++ cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B900,gen3-s1-merge-B900 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B900 or gen3-s1-merge-B900 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-B900 cluster/gen3_stage1_261012/s1_merge.sbatch B900 && echo "B900: THE MERGE SUBMITTED" || echo "B900: THIS PASTE DID NOT SUBMIT THE MERGE"
+
+## block E-S
+- cd ~/harddisks_gen3_k2/hspist3 && sbatch --job-name=gen3-s1-S --time=0:30:00 --array=1122-1142,1144%1 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-S --time=1:00:00 --array=1143,1145-1150,1152,1154,1156,1158,1160%3 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-S --time=2:00:00 --array=1151,1153,1155,1157,1159,1161-1162,1164,1167-1168,1170-1171,1173-1174,1176-1177,1179-1180,1182-1183,1185-1186,1188-1189,1212-1213,1218-1219,1224-1225,1230-1231,1236-1237,1242-1243%18 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-S --time=3:00:00 --array=1163,1165-1166,1169,1172,1175,1178,1181,1184,1187,1190-1199,1201-1204,1206-1211,1214-1217,1220-1223,1226-1229,1232-1235,1238-1241%40 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-S --time=4:00:00 --array=1200,1205%2 cluster/gen3_stage1_261012/s1_koa.sbatch
++ cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-S -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-S job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S exists"; false; }; } && { ! ls logs/gen3-s1-S_*.out >/dev/null 2>&1 || { echo "REFUSED: logs/gen3-s1-S_*.out exist"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-S --time=0:30:00 --array=1122-1142,1144%1 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-S --time=1:00:00 --array=1143,1145-1150,1152,1154,1156,1158,1160%3 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-S --time=2:00:00 --array=1151,1153,1155,1157,1159,1161-1162,1164,1167-1168,1170-1171,1173-1174,1176-1177,1179-1180,1182-1183,1185-1186,1188-1189,1212-1213,1218-1219,1224-1225,1230-1231,1236-1237,1242-1243%18 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-S --time=3:00:00 --array=1163,1165-1166,1169,1172,1175,1178,1181,1184,1187,1190-1199,1201-1204,1206-1211,1214-1217,1220-1223,1226-1229,1232-1235,1238-1241%40 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-S --time=4:00:00 --array=1200,1205%2 cluster/gen3_stage1_261012/s1_koa.sbatch && echo "S: ALL 5 ARRAY LINE(S) SUBMITTED" || echo "S: THIS PASTE DID NOT SUBMIT ALL 5 ARRAY LINE(S)"
+
+## block F-S
+- bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-S cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv S
++ bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-S cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv S | awk '{ print } /^sbatch --job-name=gen3-s1-S / { n++; L[n] = $0; a = $0; sub(/.*--array=/, "", a); sub(/ .*/, "", a); k = split(a, p, ","); for (i = 1; i <= k; i++) { m = split(p[i], q, "-"); lo = q[1] + 0; hi = (m == 2) ? q[2] + 0 : lo; for (j = lo; j <= hi; j++) J = J (J == "" ? "" : "|") j } } END { if (n) { s = ""; for (i = 1; i <= n; i++) s = s L[i] " && "; print "THE GUARDED RESUBMISSION LINE (one line for all of them; type it once, after the go of the plan author):"; print "cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-S -o %i 2>&1) && [ -z \"$Q\" ] || { echo \"REFUSED: squeue failed or lists a gen3-s1-S job: $Q\"; false; }; } && { [ \"$(cat ../.git/HEAD)\" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo \"REFUSED: the scripts clone is not at 7bdfb67\"; false; }; } && { ! grep -Elx \"chunk (" J ") done\" logs/gen3-s1-S_*.out >/dev/null 2>&1 || { echo \"REFUSED: a listed chunk has a log with its done line\"; false; }; } && echo \"CHECKS GOOD\" && " s "echo \"S: ALL " n " RESUBMISSION LINE(S) SUBMITTED\" || echo \"S: THIS PASTE DID NOT SUBMIT ALL " n " RESUBMISSION LINE(S)\"" } }'
+
+## block G-S
+- cd ~/harddisks_gen3_k2/hspist3 && sbatch --job-name=gen3-s1-merge-S cluster/gen3_stage1_261012/s1_merge.sbatch S
++ cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-S,gen3-s1-merge-S -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-S or gen3-s1-merge-S job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-S cluster/gen3_stage1_261012/s1_merge.sbatch S && echo "S: THE MERGE SUBMITTED" || echo "S: THIS PASTE DID NOT SUBMIT THE MERGE"
+
+## block E-B1600
+- cd ~/harddisks_gen3_k2/hspist3 && sbatch --job-name=gen3-s1-B1600 --time=2:00:00 --array=1486,1495-1503,1663-1664,1688,1697-1705,1819-1820,1843,1854-1858,1981-1983,2085-2089,2098-2106,2166,2177-2181,2249,2362-2363,2455-2456%2 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-B1600 --time=3:00:00 --array=1249-1288,1469-1485,1509-1548,1653-1662,1668-1675,1711-1725,1728-1748,1800-1818,1826-1842,1866-1876,1881-1897,1899-1926,1928-1932,1937-1939,1941-1947,1953-1957,1959-1969,1992-2000,2006-2029,2031-2035,2040-2042,2050-2051,2055-2062,2064-2074,2107-2110,2112-2119,2121-2125,2127-2133,2141-2142,2146-2165,2183-2193,2195-2199,2204-2206,2208-2214,2220-2224,2226-2236,2250-2252,2254-2255,2257-2264,2266-2270,2275-2277,2279-2285,2291-2295,2299-2321,2323-2334,2339-2341,2349-2350,2356-2361,2364-2370,2372-2379,2381-2385,2390-2392,2394-2400,2408-2409,2411-2427,2429-2433,2435-2439,2441-2454,2458-2470,2472-2483,2488-2490,2492-2498,2506-2507,2513-2532,2534-2545,2550-2552,2554-2560,2568-2569,2575-2589,2591-2595,2597-2601,2606-2608,2613-2615,2617-2623,2631-2632,2638-2652,2654-2658,2660-2671,2676-2678,2680-2686,2694-2695,2701-2705%24 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-B1600 --time=4:00:00 --array=1289-1313,1464-1468,1487-1494,1549-1573,1649-1652,1665-1667,1676-1687,1689-1696,1749-1799,1821-1825,1844-1853,1927,1933-1936,1940,1948-1952,1970-1980,2030,2036-2039,2043-2049,2052-2054,2075-2084,2090-2097,2111,2120,2126,2134-2140,2143-2145,2167-2176,2182,2194,2200-2203,2207,2215-2219,2225,2237-2248,2253,2256,2265,2271-2274,2278,2286-2290,2296-2298,2322,2335-2338,2342-2348,2351-2355,2371,2380,2386-2389,2393,2401-2407,2410,2428,2434,2440,2457,2471,2484-2487,2491,2499-2505,2508-2512,2533,2546-2549,2553,2561-2567,2570-2574,2590,2596,2602-2605,2609-2612,2616,2624-2630,2633-2637,2653,2659,2672-2675,2679,2687-2693,2696-2700%16 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-B1600 --time=6:00:00 --array=1244-1248,1314-1363,1504-1508,1574-1648,1706-1710,1726-1727,1859-1865,1877-1880,1898,1958,1984-1991,2001-2005,2063%10 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-B1600 --time=8:00:00 --array=1364-1388%3 cluster/gen3_stage1_261012/s1_koa.sbatch
+- sbatch --job-name=gen3-s1-B1600 --time=12:00:00 --array=1389-1463%9 cluster/gen3_stage1_261012/s1_koa.sbatch
++ cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B1600 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B1600 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600 ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600 exists"; false; }; } && { ! ls logs/gen3-s1-B1600_*.out >/dev/null 2>&1 || { echo "REFUSED: logs/gen3-s1-B1600_*.out exist"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-B1600 --time=2:00:00 --array=1486,1495-1503,1663-1664,1688,1697-1705,1819-1820,1843,1854-1858,1981-1983,2085-2089,2098-2106,2166,2177-2181,2249,2362-2363,2455-2456%2 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=3:00:00 --array=1249-1288,1469-1485,1509-1548,1653-1662,1668-1675,1711-1725,1728-1748,1800-1818,1826-1842,1866-1876,1881-1897,1899-1926,1928-1932,1937-1939,1941-1947,1953-1957,1959-1969,1992-2000,2006-2029,2031-2035,2040-2042,2050-2051,2055-2062,2064-2074,2107-2110,2112-2119,2121-2125,2127-2133,2141-2142,2146-2165,2183-2193,2195-2199,2204-2206,2208-2214,2220-2224,2226-2236,2250-2252,2254-2255,2257-2264,2266-2270,2275-2277,2279-2285,2291-2295,2299-2321,2323-2334,2339-2341,2349-2350,2356-2361,2364-2370,2372-2379,2381-2385,2390-2392,2394-2400,2408-2409,2411-2427,2429-2433,2435-2439,2441-2454,2458-2470,2472-2483,2488-2490,2492-2498,2506-2507,2513-2532,2534-2545,2550-2552,2554-2560,2568-2569,2575-2589,2591-2595,2597-2601,2606-2608,2613-2615,2617-2623,2631-2632,2638-2652,2654-2658,2660-2671,2676-2678,2680-2686,2694-2695,2701-2705%24 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=4:00:00 --array=1289-1313,1464-1468,1487-1494,1549-1573,1649-1652,1665-1667,1676-1687,1689-1696,1749-1799,1821-1825,1844-1853,1927,1933-1936,1940,1948-1952,1970-1980,2030,2036-2039,2043-2049,2052-2054,2075-2084,2090-2097,2111,2120,2126,2134-2140,2143-2145,2167-2176,2182,2194,2200-2203,2207,2215-2219,2225,2237-2248,2253,2256,2265,2271-2274,2278,2286-2290,2296-2298,2322,2335-2338,2342-2348,2351-2355,2371,2380,2386-2389,2393,2401-2407,2410,2428,2434,2440,2457,2471,2484-2487,2491,2499-2505,2508-2512,2533,2546-2549,2553,2561-2567,2570-2574,2590,2596,2602-2605,2609-2612,2616,2624-2630,2633-2637,2653,2659,2672-2675,2679,2687-2693,2696-2700%16 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=6:00:00 --array=1244-1248,1314-1363,1504-1508,1574-1648,1706-1710,1726-1727,1859-1865,1877-1880,1898,1958,1984-1991,2001-2005,2063%10 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=8:00:00 --array=1364-1388%3 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=12:00:00 --array=1389-1463%9 cluster/gen3_stage1_261012/s1_koa.sbatch && echo "B1600: ALL 6 ARRAY LINE(S) SUBMITTED" || echo "B1600: THIS PASTE DID NOT SUBMIT ALL 6 ARRAY LINE(S)"
+
+## block F-B1600
+- bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B1600 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B1600
++ bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B1600 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B1600 | awk '{ print } /^sbatch --job-name=gen3-s1-B1600 / { n++; L[n] = $0; a = $0; sub(/.*--array=/, "", a); sub(/ .*/, "", a); k = split(a, p, ","); for (i = 1; i <= k; i++) { m = split(p[i], q, "-"); lo = q[1] + 0; hi = (m == 2) ? q[2] + 0 : lo; for (j = lo; j <= hi; j++) J = J (J == "" ? "" : "|") j } } END { if (n) { s = ""; for (i = 1; i <= n; i++) s = s L[i] " && "; print "THE GUARDED RESUBMISSION LINE (one line for all of them; type it once, after the go of the plan author):"; print "cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B1600 -o %i 2>&1) && [ -z \"$Q\" ] || { echo \"REFUSED: squeue failed or lists a gen3-s1-B1600 job: $Q\"; false; }; } && { [ \"$(cat ../.git/HEAD)\" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo \"REFUSED: the scripts clone is not at 7bdfb67\"; false; }; } && { ! grep -Elx \"chunk (" J ") done\" logs/gen3-s1-B1600_*.out >/dev/null 2>&1 || { echo \"REFUSED: a listed chunk has a log with its done line\"; false; }; } && echo \"CHECKS GOOD\" && " s "echo \"B1600: ALL " n " RESUBMISSION LINE(S) SUBMITTED\" || echo \"B1600: THIS PASTE DID NOT SUBMIT ALL " n " RESUBMISSION LINE(S)\"" } }'
+
+## block G-B1600
+- cd ~/harddisks_gen3_k2/hspist3 && sbatch --job-name=gen3-s1-merge-B1600 cluster/gen3_stage1_261012/s1_merge.sbatch B1600
++ cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B1600,gen3-s1-merge-B1600 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B1600 or gen3-s1-merge-B1600 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-B1600 cluster/gen3_stage1_261012/s1_merge.sbatch B1600 && echo "B1600: THE MERGE SUBMITTED" || echo "B1600: THIS PASTE DID NOT SUBMIT THE MERGE"
+
+blocks whose command lines changed: 18 of 34 (unchanged: A, B, C, D, H-B100, I-B100, H-B400, I-B400, H-D, I-D, H-B900, I-B900, H-S, I-S, H-B1600, I-B1600)
+CHECK: in every changed block the new command line holds the old command(s) unchanged and in their order, after its guard: 18 of 18 blocks
+````
+
+## 5. Blocks E-B100 to I-B100 of the new runsheet, verbatim
+
+````
+S1 BLOCK E-B100 (KOA login node; group B100: 143 chunks in 3 array(s), throttles adding up to 64; 3600 trajectories; predicted 13.2 E5 core-h):
+squeue -u charing
+sinfo -p shared -s
+cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B100 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B100 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ "$(ls -d /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/chunks/chunk_* 2>/dev/null)" = "/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/chunks/chunk_1" ] || { echo "REFUSED: the chunk folders of B100 are not exactly chunk_1"; false; }; } && { [ "$(ls logs/gen3-s1-B100_*.out 2>/dev/null | wc -l)" -eq 1 ] || { echo "REFUSED: logs/gen3-s1-B100_*.out are not exactly one log"; false; }; } && { grep -qx 'chunk 1 done' logs/gen3-s1-B100_*_1.out || { echo "REFUSED: the log of chunk 1 has no line 'chunk 1 done'"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-B100 --time=0:30:00 --array=2,10-14,19-26,28-144%52 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B100 --time=1:00:00 --array=3-5,15-18,27%8 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B100 --time=2:00:00 --array=6-9%4 cluster/gen3_stage1_261012/s1_koa.sbatch && echo "B100: ALL 3 ARRAY LINE(S) SUBMITTED" || echo "B100: THIS PASTE DID NOT SUBMIT ALL 3 ARRAY LINE(S)"
+
+  Expected: squeue lists no gen3-s1 job (chunk 1 has ended and the plan author has read block D); the sinfo line, for the record;
+  then "CHECKS GOOD", 3 line(s) "Submitted batch job <number>" and "B100: ALL 3 ARRAY LINE(S) SUBMITTED". The arrays: 0:30 h: 131 chunks, at most 52 at once; 1:00 h: 8 chunks, at most 8 at once; 2:00 h: 4 chunks, at most 4 at once.
+  THE GUARD (decision 42): the last line is ONE command line; it submits the 3 sbatch line(s) inside it, unchanged and in their order,
+  only if squeue lists no gen3-s1-B100 job (a failed squeue refuses), the scripts clone is at 7bdfb67, and exactly chunk 1's folder and its one log with "chunk 1 done" exist (block C ran chunk 1).
+  A second paste prints "REFUSED: ..." and "B100: THIS PASTE DID NOT SUBMIT ALL 3 ARRAY LINE(S)" and submits nothing. If it prints that line
+  after some "Submitted batch job" lines, a submission failed half way: paste everything, type nothing more, wait.
+
+S1 BLOCK F-B100 (KOA login node, when squeue -u charing lists no gen3-s1-B100 job; every line only reads; paste everything):
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3
+ls logs/gen3-s1-B100_*.out | wc -l
+grep -lx 'chunk [0-9]* done' logs/gen3-s1-B100_*.out | wc -l
+cat logs/gen3-s1-B100_*.out | grep -c -e FAILED -e REFUSED
+grep -h '^chunk [0-9]* on ' logs/gen3-s1-B100_*.out | sed 's/: group.*//; s/^chunk [0-9]* on [^ ]* //' | sort | uniq -c
+bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s1-B100 /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/chunks cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B100
+bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B100 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B100 | awk '{ print } /^sbatch --job-name=gen3-s1-B100 / { n++; L[n] = $0; a = $0; sub(/.*--array=/, "", a); sub(/ .*/, "", a); k = split(a, p, ","); for (i = 1; i <= k; i++) { m = split(p[i], q, "-"); lo = q[1] + 0; hi = (m == 2) ? q[2] + 0 : lo; for (j = lo; j <= hi; j++) J = J (J == "" ? "" : "|") j } } END { if (n) { s = ""; for (i = 1; i <= n; i++) s = s L[i] " && "; print "THE GUARDED RESUBMISSION LINE (one line for all of them; type it once, after the go of the plan author):"; print "cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B100 -o %i 2>&1) && [ -z \"$Q\" ] || { echo \"REFUSED: squeue failed or lists a gen3-s1-B100 job: $Q\"; false; }; } && { [ \"$(cat ../.git/HEAD)\" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo \"REFUSED: the scripts clone is not at 7bdfb67\"; false; }; } && { ! grep -Elx \"chunk (" J ") done\" logs/gen3-s1-B100_*.out >/dev/null 2>&1 || { echo \"REFUSED: a listed chunk has a log with its done line\"; false; }; } && echo \"CHECKS GOOD\" && " s "echo \"B100: ALL " n " RESUBMISSION LINE(S) SUBMITTED\" || echo \"B100: THIS PASTE DID NOT SUBMIT ALL " n " RESUBMISSION LINE(S)\"" } }'
+
+  THE LINES THAT SHOW IT IS GOOD:
+    squeue: its header line only
+    144        (the chunk logs: one per chunk, chunk 1 included)
+    144        (each chunk once with its line "chunk <j> done")
+    0          (no line with FAILED or REFUSED; a run the worker refused prints FAILED: it is excluded and counted by the verdict, never
+               rerun -- paste it, it does not stop the merge)
+    one line per CPU model, the counts adding up to 144
+    "chunk logs: 144; chunks done: 144 of 144 (group B100; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished"
+    "group B100 without a done log: stopped once 0, stopped twice or more 0, started and not finished 0, no log 0" and "nothing to resubmit"
+  IF the last command prints "THE RESUBMISSION LINE(S)" (sbatch --job-name=... --time=... --array=... --exclude=cn-05-08-07,...) and then
+  "THE GUARDED RESUBMISSION LINE" and one long line: those chunks stopped in their start-up checks and ran nothing (decision 28, as
+  decision 25: submitted once more, and listed). Paste everything and wait. After the plan author's go, type ONLY the one guarded line,
+  once (not the plain sbatch lines above it): it submits all of them, unchanged and in their order, only if squeue lists no
+  gen3-s1-B100 job, the scripts clone is at 7bdfb67 and no listed chunk has a log with its done line; it prints "CHECKS GOOD", the
+  "Submitted batch job" lines and "B100: ALL <n> RESUBMISSION LINE(S) SUBMITTED"; a second paste prints "REFUSED: ..." and submits
+  nothing. When squeue lists no gen3-s1-B100 job, block F-B100 again (the log counts then include the earlier attempts).
+  STOP RULE: a chunk "started and did not finish", "stopped twice or more", "no log", "NOT DONE", or other counts: paste, change
+  nothing, wait.
+
+S1 BLOCK G-B100 (KOA login node; the merge of group B100; one core, at most 6 h):
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B100,gen3-s1-merge-B100 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B100 or gen3-s1-merge-B100 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-B100 cluster/gen3_stage1_261012/s1_merge.sbatch B100 && echo "B100: THE MERGE SUBMITTED" || echo "B100: THIS PASTE DID NOT SUBMIT THE MERGE"
+
+  Expected: no gen3-s1-B100 job in squeue; "CHECKS GOOD", "Submitted batch job <its number>" and "B100: THE MERGE SUBMITTED". THE GUARD (decision 42):
+  it submits only if squeue lists no gen3-s1-B100 and no gen3-s1-merge-B100 job (a failed squeue refuses), the scripts clone is at 7bdfb67 and
+  /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/merged does not exist; a second paste prints "REFUSED: ..." and "B100: THIS PASTE DID NOT SUBMIT THE MERGE". The merge job checks for itself, before it moves anything,
+  and stops with exit 2 and NOTHING moved on any failure (its inputs, the task list, no job of the group pending or running, the
+  chunk check, merged/ absent: exit 3); then the plan, and only a clean plan is executed.
+
+S1 BLOCK H-B100 (KOA login node, when squeue -u charing lists no gen3-s1-merge-B100 job; paste everything):
+squeue -u charing
+L=$(ls -t ~/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-B100_*.out | head -1) && echo "$L"
+grep -v -e '^| stage1/gen3/' -e '^reduce_B stage1/gen3/.*: exit 0 ' -e 'trajectories reduced *$' -e '^reduce_s1 stage1/gen3/.*: exit 0 ' -e ': [0-9]* traces compressed$' "$L"
+echo "destinations $(grep -c '^| stage1/gen3/' "$L"); reduce_B exit 0: $(grep -c '^reduce_B stage1/gen3/.*: exit 0 ' "$L"); reduce_s1 exit 0: $(grep -c '^reduce_s1 stage1/gen3/.*: exit 0 ' "$L"); compressed: $(grep -c ': [0-9]* traces compressed$' "$L")"
+grep -h '^reduce_s1 ' "$L" | grep -o '([0-9]* fit failures)' | sort | uniq -c
+cat /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/merged/.merge_complete
+ls /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/job_logs | wc -l
+
+  THE LINES THAT SHOW IT IS GOOD:
+    squeue: its header line only; the log's name
+    the log without its repeated per-folder lines:
+      - "env: gcc (GCC) 14.3.0 | ..."
+      - "merge of /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100 by the scripts of ~/harddisks_gen3_k2 (no git at run time; both input manifests: OK); the scripts it runs:"
+        and four SHA-256 lines (merge_s1_koa.py, s1_chunk_logs_koa.sh, reduce_s1_koa.py, reduce_B.py)
+      - "group B100: 144 chunks of the chunk table; no gen3-s1-B100 job pending or running"
+      - "chunk logs in /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/job_logs/ (copied, no overwrite): 144" (more if chunks were resubmitted)
+      - "chunk logs: 144; chunks done: 144 of 144 (group B100; ...); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished"
+      - "FAILED lines in the chunk logs (logs/): 0"
+      - "the task list: 16550 lines; group B100: 144 chunks of the chunk table (1-144); top-level folder stage1"
+      - "scan: 144 chunks, 14864 plan entries, 0 problem(s); plan written to ..."; the plan table's header
+      - "plan entries by treatment: APPEND 288, EQUAL 144, MOVE 10832, PER CHUNK 3600" (if no run failed)
+      - one line "names inside the moved run folders .done_runs/run<r> (...): ..."
+      - "merged 144 chunks: 10832 files moved, 288 files appended, 3600 kept per chunk (0 failed-run folders), 0 incomplete
+        run folders, 0 locks or temp files left in place, 144 build files equal; build '00ALLINONE  git f72d764  target koa'"
+      - "merge done; next: the fetch (fetch_s1_koa.sh B100) and the tables on the Mac" and "this job's log is copied to /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B100/job_logs/ as the last command"
+    "destinations 144; reduce_B exit 0: 16; reduce_s1 exit 0: 144; compressed: 144"
+    the fit-failure counts of the 144 (cell, mass) folders, "<n> (<k> fit failures)" (reported; the verdict counts them)
+    .merge_complete: the end time and the same "merged 144 chunks: ..." line
+    145        (the job logs copied: 144 chunk logs and the merge log; more if chunks were resubmitted)
+  STOP RULE: an exit other than 0, a STOP line, a problem list, other counts: paste, change nothing, wait.
+
+S1 BLOCK I-B100 (Mac, after block H-B100; one password and Duo push):
+cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3 && bash hspist3/cluster/gen3_stage1_261012/fetch_s1_koa.sh B100
+
+  Expected, last line: "fetched into .../experiments_gen3_stage1_koa_261012/B100: <size>; merge record: <the end time>". Then tell CC
+  (CC prints the group's INTERIM tables with s1_verdict_261012.py --data --interim). The next group's block E follows once block
+  H-B100 is clean; the fetch and the tables run beside it.
+
+````
+
+## 6. Data
+
+- **This message:** about 45 MB. Most of it is the rehearsal's 44 MB in the scratchpad; the rest is the notes and the evidence. Free: 95 GB.
+
+## Commits
+
+- **engine-gen3:**
+  - `2c871b52`: the generator, the rehearsal and the runsheet;
+  - `6780cca0`: the rehearsal's evidence, the manifest proof and the command diff;
+  - the copies of decision 42's record and of this report.
+- **main and engine-divider-resched:** decision 42's record (sec. 4.7.87; main `58e9afcd`, its times corrected in `aae25dfe`) and this report.
+
+Written for: the plan author
