@@ -1,0 +1,5 @@
+slurm_load_jobs error: Socket timed out on send/recv operation (rehearsal shim)
+PARTITION AVAIL  TIMELIMIT   NODES(A/I/O/T) NODELIST
+shared       up 3-00:00:00        70/12/8/90 cn-[...] (rehearsal shim)
+REFUSED: squeue failed or lists a gen3-s1-D job: slurm_load_jobs error: Socket timed out on send/recv operation (rehearsal shim)
+D: THIS PASTE DID NOT SUBMIT ALL 1 ARRAY LINE(S)

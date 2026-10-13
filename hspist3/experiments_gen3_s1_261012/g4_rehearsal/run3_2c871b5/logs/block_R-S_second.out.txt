@@ -1,0 +1,2 @@
+REFUSED: a listed chunk has a log with its done line
+S: THIS PASTE DID NOT SUBMIT ALL 2 RESUBMISSION LINE(S)

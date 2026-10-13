@@ -1,0 +1,11 @@
+env: gcc (GCC) 14.3.0 [rehearsal shim; here: Apple clang version 17.0.0 (clang-1700.4.4.1)] | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+merge of /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d42/g4c/lustre/harddisks_gen3/stage1/B100 by the scripts of ~/harddisks_gen3_k2 (no git at run time; both input manifests: OK); the scripts it runs:
+  58d324e09452cceeb181960a0b416612979f941053d850ea9a4ce8eb16b61185  cluster/gen3_stage1_261012/merge_s1_koa.py
+  c32ab31682f85bc9228b2485a57d9801fa19908d3dbf6bb4e75229d8b7bf3c26  cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh
+  f13061c82b62076f3ac41002d46631dfb10903d3f8d12c2c74c80d4bcc5e15ea  cluster/gen3_stage1_261012/reduce_s1_koa.py
+  b636aa6e8161460cdf55b4dac1b0cb07ad564b6bab8c32872cb97861a95c973f  cluster/confinement_20261013/reduce_B.py
+group B100: 4 chunks of the chunk table; no gen3-s1-B100 job pending or running
+chunk logs in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d42/g4c/lustre/harddisks_gen3/stage1/B100/job_logs/ (copied, no overwrite): 3
+chunk logs: 3; chunks done: 3 of 4 (group B100; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished
+NOT DONE: 4(no log with its done line)
+STOP: the chunk set is not complete (listed above); NOTHING was moved
