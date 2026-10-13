@@ -226,8 +226,8 @@ def main():
     rc, out = run_block(R, "D", B["D"], E)
     okD = [bool(re.search(r"^chunk 1 on \S+ \(.*\): group B100, lines 1-25; " + re.escape(BUILD) + "$", out, re.M)), "chunk 1 done" in out,
            not re.search(r"FAILED|REFUSED|^STOP", out, re.M),
-           f"traces 25 psi6 25 virial 25 snapshots 0 runs 25 clean 25 build '{BUILD}'" in out,
-           bool(re.search(r"^\s*25 box=\S+ x \S+ px exact_box=1 eta=\S+ N=100 N_L=50 N_R=50$", out, re.M))]
+           re.sub(r"[ \t]+", " ", f"traces 25 psi6 25 virial 25 snapshots 0 runs 25 clean 25 build '{BUILD}'") in L(out),   # macOS wc -l pads
+           bool(re.search(r"^\s*25 box=3769\.9111843077517 x 240 px exact_box=1 eta=\S+ N=100 N_L=50 N_R=50$", out, re.M))]
     res("block D (chunk 1's checks, G6 (e))", "the runsheet's good lines", all(okD), f"checks {okD}")
     # ---- the groups
     for g in ("B100", "D", "S"):
@@ -248,8 +248,9 @@ def main():
             rc, out = run_block(R, f"F-{g}", B[f"F-{g}"], E)
             nlog = 2 * ncg
         else:
+            n0 = len(open(os.path.join(R, "logs", "sbatch_shim_exits.txt")).read().splitlines())
             rc, out = run_block(R, f"E-{g}", B[f"E-{g}"], E)
-            ex = [l for l in open(os.path.join(R, "logs", "sbatch_shim_exits.txt")).read().splitlines() if " submit " not in l]
+            ex = [l for l in open(os.path.join(R, "logs", "sbatch_shim_exits.txt")).read().splitlines()[n0:] if " submit " not in l]   # this block's tasks
             res(f"block E-{g}", f"its arrays submitted, every task exit 0", rc == 0 and out.count("Submitted batch job") == len([l for l in B[f"E-{g}"] if "sbatch " in l])
                 and all(l.endswith(" 0") for l in ex), f"{out.count('Submitted batch job')} submissions")
             rc, out = run_block(R, f"F-{g}", B[f"F-{g}"], E)
@@ -283,10 +284,10 @@ def main():
         exp_plan = re.search(r'"plan entries by treatment: ([^"]+)"', rs_txt).group(1)
         exp_merged = re.search(r'"(merged \d+ chunks: [^"]+?) incomplete\n\s+(run folders[^"]+)"', rs_txt)
         exp_m = exp_merged.group(1) + " incomplete " + exp_merged.group(2)
-        exp_cnt = re.search(r'"(destinations [^"]+)"', rs_txt).group(1)
+        exp_cnt = re.search(r'^\s+"(destinations \d+; reduce_B exit 0: \d+; reduce_s1 exit 0: \d+; compressed: \d+)"$', rs_txt, re.M).group(1)
         okH = [gx.endswith(" 0"), f"plan entries by treatment: {exp_plan}" in out, exp_m in out, exp_cnt in out,
                f"merge done; next: the fetch (fetch_s1_koa.sh {g})" in out, not re.search(r"^STOP|problem\(s\): NOTHING", out, re.M),
-               "fit failures)" in out]
+               "fit failures)" in out, not re.search(r"trajectories reduced *$", out, re.M)]          # the filter hides every reduce_B line
         res(f"blocks G-{g}, H-{g} (the merge, the reduction, the compression; its record)", f"exit 0; '{exp_plan}'; the merged line; '{exp_cnt}'",
             all(okH), f"checks {okH}")
         if g == "B100":
