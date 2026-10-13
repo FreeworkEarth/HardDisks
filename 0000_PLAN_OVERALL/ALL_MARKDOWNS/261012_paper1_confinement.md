@@ -24207,3 +24207,49 @@ Document·MD
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.94 Plan-author decision 45, addendum 1: H-B400 clean; B400 fetched as well, and item 5's INTERIM report for B400 after B100's (item 5 b with B400's folder with 3 fit failures and, as information, the six with 2); item 6 with the measured ratios of B100 and B400; the hold on B900, S and B1600 stays (2026-10-13 13:00 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 45, addendum 1** (relayed by Chris at about 13:00 HST, machine date; the plan author's time "~13:00 HST"). It is recorded with decision 45, in the section after it.
+- **1. H-B400 is clean** (merge job 15053737):
+  - the scan: 196 chunks, 15020 plan entries, 0 problems;
+  - the merge: 10832 files moved, 392 appended, 3600 kept per chunk, 0 incomplete run folders, 0 locks or temp files left, 196 build files equal;
+  - 144 destinations; reduce_B exit 0: 16; reduce_s1 exit 0: 144; compressed: 144;
+  - `.merge_complete` 2026-10-13 18:09:27 UTC; 197 job logs;
+  - fit failures: 136 folders with 0, 1 with 1, 6 with 2, 1 with 3.
+- **2. Chris fetches B400 as well (I-B400).** CC then prints for B400 what decision 45 item 5 asks for B100, after B100's, labelled INTERIM. Item 5 b includes B400's folder with 3 fit failures and, as information, the six with 2.
+- **3. Item 6** (the chunks at risk in B900 and B1600) now uses the measured ratios of both B100 and B400.
+- **4. The hold on B900, S and B1600 stays** until the plan author has read these.
+
+**The message, verbatim** (relayed by Chris on 2026-10-13 at about 13:00 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record with
+decision 45.
+
+DECISION 45, ADDENDUM 1 (2026-10-13 ~13:00 HST)
+ 1. H-B400 (merge job 15053737) IS CLEAN: "scan: 196 chunks, 15020
+    plan entries, 0 problem(s)"; "plan entries by treatment: APPEND
+    392, EQUAL 196, MOVE 10832, PER CHUNK 3600"; "merged 196
+    chunks: 10832 files moved, 392 files appended, 3600 kept per
+    chunk (0 failed-run folders), 0 incomplete run folders, 0 locks
+    or temp files left in place, 196 build files equal";
+    "destinations 144; reduce_B exit 0: 16; reduce_s1 exit 0: 144;
+    compressed: 144"; .merge_complete 2026-10-13 18:09:27 UTC; 197
+    job logs. Fit failures: 136 folders with 0, 1 with 1, 6 with 2,
+    1 with 3.
+ 2. Chris fetches B400 as well (I-B400). Then print for B400 what
+    decision 45 item 5 asks for B100, after B100's, labelled
+    INTERIM. For item 5 b include B400's folder with 3 fit failures
+    and, as information, the six with 2.
+ 3. Item 6 (the chunks at risk in B900 and B1600) now uses the
+    measured ratios of both B100 and B400.
+ 4. The hold on B900, S and B1600 stays until I have read these.
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
