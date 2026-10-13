@@ -24253,3 +24253,32 @@ End with "Written for: the plan author".
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.95 Plan-author decision 45, addendum 2: blocks F and G as one paste for the remaining groups (F's lines, then G's guarded line only if F's five good conditions hold, else "F-<g> NOT CLEAN -- the merge was not submitted"); the plan author typed this form for group D; CC rehearses it on the mini table, report only; the two manifests unchanged (2026-10-13 13:05 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 45, addendum 2** (relayed by Chris at about 13:05 HST, machine date; the plan author's time "~13:10 HST"). The paste has no header line. It is recorded with decision 45, after addendum 1.
+- **For the remaining groups, the runsheet prints blocks F and G as one paste:**
+  - first F's lines;
+  - then `if <F's five good conditions>; then <block G's guarded line>; else echo 'F-<g> NOT CLEAN -- the merge was not submitted'; fi`;
+  - the five good conditions: logs = chunks; done logs = chunks; 0 FAILED or REFUSED; the chunk check exit 0; "nothing to resubmit".
+- **The plan author typed this form for group D** on 2026-10-13, tested on a mock with 5 cases.
+- **CC:** rehearse it on the mini table as before; report only; nothing in the two manifests changes.
+
+**The message, verbatim** (relayed by Chris on 2026-10-13 at about 13:05 HST, machine date):
+
+```
+DECISION 45, ADDENDUM 2 (2026-10-13 ~13:10 HST): for the remaining
+groups the runsheet prints blocks F and G as ONE paste: F's lines,
+then "if <F's five good conditions: logs = chunks, done logs =
+chunks, 0 FAILED or REFUSED, the chunk check exit 0, 'nothing to
+resubmit'>; then <block G's guarded line>; else echo 'F-<g> NOT
+CLEAN -- the merge was not submitted'; fi". The plan author typed
+this form for group D on 2026-10-13 (tested on a mock, 5 cases).
+Rehearse it on the mini table as before; report only; nothing in
+the two manifests changes.
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
