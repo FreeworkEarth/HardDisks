@@ -21,6 +21,10 @@ THE STEPS:
      first refused twice (a pretended pending job; a chunk's done log held aside: exit 2, nothing moved) and, after the merge, refused once
      more (exit 3);
   5. the verdict script (G5) on the fetched folder: --data <fetched> --interim (the tables of the groups present).
+##CHRIS 2026-10-12 (plan-author decision 42 item 5 b): the runsheet's submit blocks (every E, every G, block F's resubmission line) are guarded
+one-line commands; each is typed once (it submits) and a second time (it refuses: "REFUSED: ...", "THIS PASTE DID NOT SUBMIT ...", no sbatch
+call); E-B100 after chunk 1; group D's block E also with a pretended pending job and with a failing squeue (REHEARSAL_SQUEUE_FAIL); group S's
+guarded resubmission line once and again; B100's merge job is still shown to refuse a second submission without the guard (exit 3).
 SHIMS (residual differences, each printed in the table): squeue (empty, or the lines of REHEARSAL_SQUEUE), sinfo (a pretended line), srun
 (not run), sbatch (runs the job at once with a pretended job id and its #SBATCH output name; --array lists one after the other, the
 throttle %N dropped; --job-name, --time, --exclude, --dependency taken or recorded; the script's arguments passed), module (nothing), gcc
@@ -104,7 +108,9 @@ def shims(R):
         "lscpu": "#!/bin/bash\n# rehearsal shim: Linux's lscpu\necho \"Model name:          $(sysctl -n machdep.cpu.brand_string) (Mac rehearsal)\"\n",
         "hostname": "#!/bin/bash\n# rehearsal shim: a pretended node name (REHEARSAL_HOST), else the Mac's\n"
                     "if [ -n \"${REHEARSAL_HOST:-}\" ]; then echo \"$REHEARSAL_HOST\"; else exec /bin/hostname -s; fi\n",
-        "squeue": "#!/bin/bash\n# rehearsal shim: Slurm's queue -- empty, or the lines of the file REHEARSAL_SQUEUE (a pretended pending job)\n"
+        "squeue": "#!/bin/bash\n# rehearsal shim: Slurm's queue -- empty, or the lines of the file REHEARSAL_SQUEUE (a pretended pending job); with\n"
+                  "# REHEARSAL_SQUEUE_FAIL set it fails as a slurmctld time-out would (decision 42: a failed squeue refuses)\n"
+                  "[ -n \"${REHEARSAL_SQUEUE_FAIL:-}\" ] && { echo 'slurm_load_jobs error: Socket timed out on send/recv operation (rehearsal shim)' >&2; exit 1; }\n"
                   "[ -n \"${REHEARSAL_SQUEUE:-}\" ] && cat \"$REHEARSAL_SQUEUE\"\nexit 0\n",
         "sinfo": "#!/bin/bash\n# rehearsal shim: a pretended summary line of the shared partition\n"
                  "echo 'PARTITION AVAIL  TIMELIMIT   NODES(A/I/O/T) NODELIST'; echo 'shared       up 3-00:00:00        70/12/8/90 cn-[...] (rehearsal shim)'\n",
@@ -229,70 +235,99 @@ def main():
            re.sub(r"[ \t]+", " ", f"traces 25 psi6 25 virial 25 snapshots 0 runs 25 clean 25 build '{BUILD}'") in L(out),   # macOS wc -l pads
            bool(re.search(r"^\s*25 box=3769\.9111843077517 x 240 px exact_box=1 eta=\S+ N=100 N_L=50 N_R=50$", out, re.M))]
     res("block D (chunk 1's checks, G6 (e))", "the runsheet's good lines", all(okD), f"checks {okD}")
-    # ---- the groups
+    # ---- the groups. ##CHRIS 2026-10-12 (plan-author decision 42 item 5 b): every submit block is ONE guarded line; each is typed once
+    # (it submits) and a second time (it refuses: "REFUSED: ...", "THIS PASTE DID NOT SUBMIT ...", no sbatch call); E-B100 after chunk 1;
+    # group D's block E also with a pretended pending job and with a failing squeue; group S's guarded resubmission line once and again
+    EX = os.path.join(R, "logs", "sbatch_shim_exits.txt")
+    nex = lambda: len(open(EX).read().splitlines())
+    tasks_since = lambda n0: [l for l in open(EX).read().splitlines()[n0:] if " submit " not in l]
+
+    def refused(X, lines, env, tag, why):
+        n0 = nex(); rc, out = run_block(R, X, lines, env, tag)
+        ok = (rc == 0 and "REFUSED: " in out and "THIS PASTE DID NOT SUBMIT" in out and "Submitted batch job" not in out
+              and "CHECKS GOOD" not in out and nex() == n0)
+        res(f"block {X} typed {why}", "REFUSED, nothing submitted", ok, (re.findall(r"^REFUSED: .*$", out, re.M) or ["no REFUSED line"])[0][:160])
+        return out
+
     for g in ("B100", "D", "S"):
-        ncg = sum(1 for c in MCH if c[0] == g)
+        ncg = sum(1 for c in MCH if c[0] == g); nsb = sum(l.count(" sbatch --job-name=gen3-s1-") for l in B[f"E-{g}"])
+        root = os.path.join(R, "lustre", "harddisks_gen3", "stage1", g)
+        if g == "D":
+            q = os.path.join(R, "logs", "pretend_squeue_E.txt"); open(q, "w").write("940998_5 PENDING\n")
+            refused(f"E-{g}", B[f"E-{g}"], env_for(R, home, shim, REHEARSAL_SQUEUE=q), "_pending", "with a pretended pending job of the group")
+            refused(f"E-{g}", B[f"E-{g}"], env_for(R, home, shim, REHEARSAL_SQUEUE_FAIL=1), "_squeuefail", "with a failing squeue")
+        envE = env_for(R, home, shim, REHEARSAL_STARTUP_FAIL=1, REHEARSAL_HOST="cn-07-07-07") if g == "S" else E
+        n0 = nex(); rc, out = run_block(R, f"E-{g}", B[f"E-{g}"], envE, "_faulty" if g == "S" else "")
+        ex = tasks_since(n0)
+        okE = [rc == 0, "CHECKS GOOD" in out, out.count("Submitted batch job") == nsb, f"{g}: ALL {nsb} ARRAY LINE(S) SUBMITTED" in out, "REFUSED" not in out]
         if g == "S":
-            rc, out = run_block(R, f"E-{g}", B[f"E-{g}"], env_for(R, home, shim, REHEARSAL_STARTUP_FAIL=1, REHEARSAL_HOST="cn-07-07-07"), "_faulty")
             logs = [p for p in os.listdir(os.path.join(hs, "logs")) if p.startswith(f"gen3-s1-{g}_")]
             st = [open(os.path.join(hs, "logs", p)).read() for p in logs]
-            res(f"block E-{g}, its first attempt on a pretended faulty node", "every chunk: STOP: [cn-07-07-07] ... before 'chunk j on'; no chunk folder",
-                len(st) == ncg and all("STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones" in t and not re.search(r"^chunk \d+ on ", t, re.M) for t in st)
-                and not os.path.exists(os.path.join(R, "lustre", "harddisks_gen3", "stage1", g, "chunks")), f"{len(st)} logs")
+            okE += [len(st) == ncg, all("STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones" in s and not re.search(r"^chunk \d+ on ", s, re.M) for s in st),
+                    not os.path.exists(os.path.join(root, "chunks"))]
+            res(f"block E-{g} typed once, on a pretended faulty node", f"CHECKS GOOD, {nsb} array lines submitted; every chunk STOP: [cn-07-07-07] before "
+                "'chunk j on'; no chunk folder", all(okE), f"checks {okE}")
+        else:
+            okE.append(len(ex) == ncg - (1 if g == "B100" else 0) and all(l.endswith(" 0") for l in ex))
+            res(f"block E-{g} typed once" + (" (after chunk 1: the guard allows exactly its folder and its done log)" if g == "B100" else ""),
+                f"CHECKS GOOD, {nsb} array line(s) submitted, every task exit 0", all(okE), f"checks {okE}")
+        refused(f"E-{g}", B[f"E-{g}"], E, "_second", "a second time")
+        if g == "S":
             rc, out = run_block(R, f"F-{g}", B[f"F-{g}"], E, "_first")
             rl = re.findall(r"^sbatch --job-name=gen3-s1-S --time=\S+ --array=\S+ --exclude=\S+ cluster/gen3_stage1_261012/s1_koa\.sbatch$", out, re.M)
-            res(f"block F-{g} after the faulty attempt", "two resubmission lines, one per class, --exclude=cn-05-08-07,cn-07-07-07",
-                rl == ["sbatch --job-name=gen3-s1-S --time=0:30:00 --array=6 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_stage1_261012/s1_koa.sbatch",
-                       "sbatch --job-name=gen3-s1-S --time=1:00:00 --array=7 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_stage1_261012/s1_koa.sbatch"], f"{rl}")
-            rc, out = run_block(R, f"R-{g}", ["squeue -u charing", "cd ~/harddisks_gen3_k2/hspist3"] + rl, E)
+            gs = out.split("THE GUARDED RESUBMISSION LINE (one line for all of them; type it once, after the go of the plan author):\n")
+            gline = gs[1].splitlines()[0] if len(gs) == 2 else ""
+            okF1 = [rl == ["sbatch --job-name=gen3-s1-S --time=0:30:00 --array=6 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_stage1_261012/s1_koa.sbatch",
+                           "sbatch --job-name=gen3-s1-S --time=1:00:00 --array=7 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_stage1_261012/s1_koa.sbatch"],
+                    gline.startswith("cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue "), all(x + " && " in gline for x in rl), '"chunk (6|7) done"' in gline]
+            res(f"block F-{g} after the faulty attempt", "the two plain lines, one per class, and ONE guarded line holding both, unchanged and in order",
+                all(okF1), f"checks {okF1}")
+            n0 = nex(); rc, out = run_block(R, f"R-{g}", [gline], E)
+            ex = tasks_since(n0)
+            okR = [rc == 0, "CHECKS GOOD" in out, out.count("Submitted batch job") == 2, f"{g}: ALL 2 RESUBMISSION LINE(S) SUBMITTED" in out,
+                   len(ex) == 2 and all(l.endswith(" 0") for l in ex)]
+            res(f"the guarded resubmission line of F-{g} typed once", "CHECKS GOOD, 2 lines submitted, both chunks exit 0", all(okR), f"checks {okR}")
+            refused(f"R-{g}", [gline], E, "_second", "a second time")
             rc, out = run_block(R, f"F-{g}", B[f"F-{g}"], E)
             nlog = 2 * ncg
         else:
-            n0 = len(open(os.path.join(R, "logs", "sbatch_shim_exits.txt")).read().splitlines())
-            rc, out = run_block(R, f"E-{g}", B[f"E-{g}"], E)
-            ex = [l for l in open(os.path.join(R, "logs", "sbatch_shim_exits.txt")).read().splitlines()[n0:] if " submit " not in l]   # this block's tasks
-            res(f"block E-{g}", f"its arrays submitted, every task exit 0", rc == 0 and out.count("Submitted batch job") == len([l for l in B[f"E-{g}"] if "sbatch " in l])
-                and all(l.endswith(" 0") for l in ex), f"{out.count('Submitted batch job')} submissions")
             rc, out = run_block(R, f"F-{g}", B[f"F-{g}"], E)
             nlog = ncg
         okF = [str(nlog) in L(out), str(ncg) in L(out), "0" in L(out), f"chunk logs: {nlog}; chunks done: {ncg} of {ncg} (group {g};" in out,
                f"earlier attempts: {ncg if g == 'S' else 0} stopped in the start-up checks, 0 started and not finished" in out,
                f"group {g} without a done log: stopped once 0, stopped twice or more 0, started and not finished 0, no log 0" in out,
-               "nothing to resubmit" in out]
+               "nothing to resubmit" in out, "THE GUARDED RESUBMISSION LINE" not in out]
         res(f"block F-{g}" + (" again, after the resubmission" if g == "S" else ""), "the counts, the chunk check, nothing to resubmit", all(okF), f"checks {okF}")
-        root = os.path.join(R, "lustre", "harddisks_gen3", "stage1", g)
         if g == "B100":
             q = os.path.join(R, "logs", "pretend_squeue.txt"); open(q, "w").write("940999_7 PENDING\n")
-            rc, out = run_block(R, f"G-{g}", B[f"G-{g}"], env_for(R, home, shim, REHEARSAL_SQUEUE=q), "_pending")
-            ml = sorted(p for p in os.listdir(os.path.join(hs, "logs")) if p.startswith(f"gen3-s1-merge-{g}_"))
-            t = open(os.path.join(hs, "logs", ml[-1])).read()
-            res(f"the merge of {g}: a pretended pending job", "exit 2, nothing moved", last_exit(R).endswith(" 2") and "still pending or running" in t
-                and not os.path.exists(os.path.join(root, "merged")), last_exit(R))
+            refused(f"G-{g}", B[f"G-{g}"], env_for(R, home, shim, REHEARSAL_SQUEUE=q), "_pending", "with a pretended pending job")
             lg = sorted(p for p in os.listdir(os.path.join(hs, "logs")) if re.match(rf"^gen3-s1-{g}_\d+_4\.out$", p) and "chunk 4 done" in open(os.path.join(hs, "logs", p)).read())
             hold = os.path.join(R, "logs", "held_aside_" + lg[0]); shutil.move(os.path.join(hs, "logs", lg[0]), hold)
             rc, out = run_block(R, f"G-{g}", B[f"G-{g}"], E, "_heldaside")
             ml = sorted(p for p in os.listdir(os.path.join(hs, "logs")) if p.startswith(f"gen3-s1-merge-{g}_"))
-            t = open(os.path.join(hs, "logs", ml[-1])).read()
+            tl = open(os.path.join(hs, "logs", ml[-1])).read()
             shutil.move(hold, os.path.join(hs, "logs", lg[0]))
-            res(f"the merge of {g}: chunk 4's done log held aside", "exit 2, 'NOT DONE: 4(no log with its done line)', nothing moved",
-                last_exit(R).endswith(" 2") and "NOT DONE: 4(no log with its done line)" in t and not os.path.exists(os.path.join(root, "merged")), last_exit(R))
-            jl = os.path.join(root, "job_logs")       # the two refused merges copied the chunk logs (no overwrite); Chris's merge finds them there
+            res(f"the merge of {g}: chunk 4's done log held aside", "the guard passes (CHECKS GOOD); the merge job itself: exit 2, 'NOT DONE: 4(no log with "
+                "its done line)', nothing moved", "CHECKS GOOD" in out and last_exit(R).endswith(" 2") and "NOT DONE: 4(no log with its done line)" in tl
+                and not os.path.exists(os.path.join(root, "merged")), last_exit(R))
         rc, out = run_block(R, f"G-{g}", B[f"G-{g}"], E)
-        gx = last_exit(R)
+        gx = last_exit(R); okG = ["CHECKS GOOD" in out, f"{g}: THE MERGE SUBMITTED" in out, out.count("Submitted batch job") == 1]
         rc, out = run_block(R, f"H-{g}", B[f"H-{g}"], E)
         rs_txt = open(rs).read().split(f"S1 BLOCK H-{g} (")[1].split(f"S1 BLOCK I-{g} (")[0]
         exp_plan = re.search(r'"plan entries by treatment: ([^"]+)"', rs_txt).group(1)
         exp_merged = re.search(r'"(merged \d+ chunks: [^"]+?) incomplete\n\s+(run folders[^"]+)"', rs_txt)
         exp_m = exp_merged.group(1) + " incomplete " + exp_merged.group(2)
         exp_cnt = re.search(r'^\s+"(destinations \d+; reduce_B exit 0: \d+; reduce_s1 exit 0: \d+; compressed: \d+)"$', rs_txt, re.M).group(1)
-        okH = [gx.endswith(" 0"), f"plan entries by treatment: {exp_plan}" in out, exp_m in out, exp_cnt in out,
-               f"merge done; next: the fetch (fetch_s1_koa.sh {g})" in out, not re.search(r"^STOP|problem\(s\): NOTHING", out, re.M),
-               "fit failures)" in out, not re.search(r"trajectories reduced *$", out, re.M)]          # the filter hides every reduce_B line
-        res(f"blocks G-{g}, H-{g} (the merge, the reduction, the compression; its record)", f"exit 0; '{exp_plan}'; the merged line; '{exp_cnt}'",
-            all(okH), f"checks {okH}")
+        okH = okG + [gx.endswith(" 0"), f"plan entries by treatment: {exp_plan}" in out, exp_m in out, exp_cnt in out,
+                     f"merge done; next: the fetch (fetch_s1_koa.sh {g})" in out, not re.search(r"^STOP|problem\(s\): NOTHING", out, re.M),
+                     "fit failures)" in out, not re.search(r"trajectories reduced *$", out, re.M)]          # the filter hides every reduce_B line
+        res(f"blocks G-{g} (typed once) and H-{g} (the merge, the reduction, the compression; its record)", f"CHECKS GOOD, 1 submitted, exit 0; "
+            f"'{exp_plan}'; the merged line; '{exp_cnt}'", all(okH), f"checks {okH}")
+        refused(f"G-{g}", B[f"G-{g}"], E, "_second", "a second time")
         if g == "B100":
-            rc, out = run_block(R, f"G-{g}", B[f"G-{g}"], E, "_second")
-            res(f"a second merge of {g}", "exit 3 (merged/ exists)", last_exit(R).endswith(" 3"), last_exit(R))
+            raw = re.search(r"(sbatch --job-name=gen3-s1-merge-B100 \S+ B100)", "\n".join(B[f"G-{g}"])).group(1)
+            rc, out = run_block(R, f"G-{g}", ["cd ~/harddisks_gen3_k2/hspist3", raw], E, "_raw_second")
+            res(f"the merge job of {g} submitted a second time without its guard", "exit 3 (merged/ exists)", last_exit(R).endswith(" 3"), last_exit(R))
         linesI = [l.replace("cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3 && ", "cd ~/harddisks_gen3_k2 && ") for l in B[f"I-{g}"]]
         rc, out = run_block(R, f"I-{g}", linesI, E)
         F = os.path.join(hs, "experiments_gen3_stage1_koa_261012", g)

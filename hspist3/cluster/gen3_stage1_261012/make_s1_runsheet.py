@@ -41,6 +41,49 @@ def ranges(js):
     return ",".join(out)
 
 
+def check(test, reason):
+    """##CHRIS 2026-10-12 (plan-author decision 42 item 5): one guard of a submit line -- the test, or "REFUSED: <reason>" and false"""
+    return "{ " + test + " || { echo \"REFUSED: " + reason + "\"; false; }; }"
+
+
+def guarded(checks, cmds, ok, fail):
+    """decision 42 item 5: one command line -- every check, then the commands unchanged and in their order; prints ok, or fail (a check
+    refused, or a command failed: then the lines "Submitted batch job" show how many were submitted)"""
+    return ("cd ~/harddisks_gen3_k2/hspist3 && " + " && ".join(checks) + " && echo \"CHECKS GOOD\" && " + " && ".join(cmds)
+            + f" && echo \"{ok}\" || echo \"{fail}\"")
+
+
+def sq(names):
+    return check(f"Q=$(squeue -h -u charing -n {names} -o %i 2>&1) && [ -z \"$Q\" ]", f"squeue failed or lists a {names.replace(',', ' or ')} job: $Q")
+
+
+def head_ok(commit):
+    return check(f"[ \"$(cat ../.git/HEAD)\" = {commit} ]", f"the scripts clone is not at {commit[:7]}")
+
+
+def awk_str(s):
+    if "'" in s or "\\" in s: sys.exit("STOP: a guard text holds a single quote or a backslash")
+    return '"' + s.replace('"', '\\"') + '"'
+
+
+def f_awk(g, commit, P):
+    """block F's resubmission line, guarded (decision 42 item 5): s1_stopped_chunks.sh (unchanged, 7bdfb67e) prints its plain lines; this
+    awk prints them as they are and then ONE guarded line that holds all of them (a second line of its own would find the first one's
+    job in squeue and refuse): squeue empty for the group, HEAD, and no log of a listed chunk with its done line"""
+    PFX = f"gen3-s1-{g}"
+    pre = ("cd ~/harddisks_gen3_k2/hspist3 && " + sq(PFX) + " && " + head_ok(commit) + " && { ! grep -Elx \"chunk (")
+    mid = (f") done\" logs/{PFX}_*.out >/dev/null 2>&1 || {{ echo \"REFUSED: a listed chunk has a log with its done line\"; false; }}; }} && echo \"CHECKS GOOD\" && ")
+    prog = ("{ print } /^sbatch --job-name=" + PFX + " / { n++; L[n] = $0; a = $0; sub(/.*--array=/, \"\", a); sub(/ .*/, \"\", a); "
+            "k = split(a, p, \",\"); for (i = 1; i <= k; i++) { m = split(p[i], q, \"-\"); lo = q[1] + 0; hi = (m == 2) ? q[2] + 0 : lo; "
+            "for (j = lo; j <= hi; j++) J = J (J == \"\" ? \"\" : \"|\") j } } "
+            "END { if (n) { s = \"\"; for (i = 1; i <= n; i++) s = s L[i] \" && \"; "
+            "print \"THE GUARDED RESUBMISSION LINE (one line for all of them; type it once, after the go of the plan author):\"; "
+            "print " + awk_str(pre) + " J " + awk_str(mid) + " s " + awk_str(f"echo \"{g}: ALL ") + " n "
+            + awk_str(f" RESUBMISSION LINE(S) SUBMITTED\" || echo \"{g}: THIS PASTE DID NOT SUBMIT ALL ") + " n " + awk_str(" RESUBMISSION LINE(S)\"") + " } }")
+    if "'" in prog: sys.exit("STOP: the awk program holds a single quote")
+    return f"bash {P}/s1_stopped_chunks.sh logs {PFX} {P}/chunks_stage1_koa_261012.tsv {g} | awk '{prog}'"
+
+
 def throttles(cls):
     """cls: {class: (number of chunks, predicted core-h)} -> {class: throttle}; each >= 1 and <= its chunk count, the sum <= CAP;
     the slots left are given one by one to the class with the largest predicted core-h per slot (greedy: this minimises the predicted
@@ -136,7 +179,9 @@ def write(args):
     w("the registered order (sec. 4.8.8): " + ", ".join(G) + ". A group's arrays are one per time class (--time is the class), typed together;")
     w(f"their throttles add up to {CAP} at most, so at most {CAP} chunks run at once over all stage 1 arrays (sec. 4.8.8; 128 only with the plan")
     w("author's go on a pasted sinfo line with >= 10 % of the nodes idle). The next group's arrays are typed only after the previous group's")
-    w("merge has ended. The merge (one per group) checks every chunk's log and folder, plans before it moves anything, reduces every")
+    w("merge has ended. Every submit line of the groups (block E, block F's resubmission line, block G) is ONE guarded command line")
+    w("(decision 42): it submits its sbatch lines, unchanged and in their order, only if its checks hold, and a second paste refuses.")
+    w("The merge (one per group) checks every chunk's log and folder, plans before it moves anything, reduces every")
     w("(cell, mass) and compresses the traces; the fetch brings the summaries, run records, logs, every snapshot and the whole (N 100, pi/8) cell.")
     w("KOA RULES, as before: the login node only for light commands; squeue before every sbatch; never submit a job twice; nothing in")
     w("~/harddisks, ~/harddisks_resched, ~/harddisks_resched2, ~/harddisks_gen3 or ~/harddisks_gen3_s1 changes; every job stops with")
@@ -204,11 +249,24 @@ def write(args):
         w(f"S1 BLOCK E-{g} (KOA login node; group {g}: {v['nch'] - (1 if g == g1 else 0)} chunks in {len(ar)} array(s), throttles adding up to "
           f"{sum(a[2] for a in ar)}; {v['traj']} trajectories; predicted {v['core_h']:,.1f} E5 core-h):")
         w("squeue -u charing"); w("sinfo -p shared -s")
-        for i, a in enumerate(ar): w(("cd ~/harddisks_gen3_k2/hspist3 && " if i == 0 else "") + a[4])
+        if g == g1:
+            ec = [sq(PFX), head_ok(args.commit),
+                  check(f"[ \"$(ls -d {R}/chunks/chunk_* 2>/dev/null)\" = \"{R}/chunks/chunk_1\" ]", f"the chunk folders of {g} are not exactly chunk_1"),
+                  check(f"[ \"$(ls logs/{PFX}_*.out 2>/dev/null | wc -l)\" -eq 1 ]", f"logs/{PFX}_*.out are not exactly one log"),
+                  check(f"grep -qx 'chunk 1 done' logs/{PFX}_*_1.out", "the log of chunk 1 has no line 'chunk 1 done'")]
+        else:
+            ec = [sq(PFX), head_ok(args.commit), check(f"[ ! -e {R} ]", f"{R} exists"),
+                  check(f"! ls logs/{PFX}_*.out >/dev/null 2>&1", f"logs/{PFX}_*.out exist")]
+        w(guarded(ec, [a[4] for a in ar], f"{g}: ALL {len(ar)} ARRAY LINE(S) SUBMITTED", f"{g}: THIS PASTE DID NOT SUBMIT ALL {len(ar)} ARRAY LINE(S)"))
         w("")
-        w(f"  Expected: squeue lists no gen3-s1 job ({'chunk 1 has ended and the plan author has read block D' if g == g1 else 'the previous group has ended: its block H was clean'}); the sinfo line, for the record; {len(ar)} line(s)")
-        w("  \"Submitted batch job <number>\". Submit each line ONCE. The arrays: "
+        w(f"  Expected: squeue lists no gen3-s1 job ({'chunk 1 has ended and the plan author has read block D' if g == g1 else 'the previous group has ended: its block H was clean'}); the sinfo line, for the record;")
+        w(f"  then \"CHECKS GOOD\", {len(ar)} line(s) \"Submitted batch job <number>\" and \"{g}: ALL {len(ar)} ARRAY LINE(S) SUBMITTED\". The arrays: "
           + "; ".join(f"{hm(a[0])[:-3]} h: {a[1]} chunks, at most {a[2]} at once" for a in ar) + ".")
+        w(f"  THE GUARD (decision 42): the last line is ONE command line; it submits the {len(ar)} sbatch line(s) inside it, unchanged and in their order,")
+        w(f"  only if squeue lists no {PFX} job (a failed squeue refuses), the scripts clone is at {args.commit[:7]}, and "
+          + ("exactly chunk 1's folder and its one log with \"chunk 1 done\" exist (block C ran chunk 1)." if g == g1 else f"no {R} and no logs/{PFX}_*.out exist."))
+        w(f"  A second paste prints \"REFUSED: ...\" and \"{g}: THIS PASTE DID NOT SUBMIT ALL {len(ar)} ARRAY LINE(S)\" and submits nothing. If it prints that line")
+        w("  after some \"Submitted batch job\" lines, a submission failed half way: paste everything, type nothing more, wait.")
         w("")
         w(f"S1 BLOCK F-{g} (KOA login node, when squeue -u charing lists no {PFX} job; every line only reads; paste everything):")
         w("squeue -u charing"); w("cd ~/harddisks_gen3_k2/hspist3")
@@ -217,7 +275,7 @@ def write(args):
         w(f"cat logs/{PFX}_*.out | grep -c -e FAILED -e REFUSED")
         w(f"grep -h '^chunk [0-9]* on ' logs/{PFX}_*.out | sed 's/: group.*//; s/^chunk [0-9]* on [^ ]* //' | sort | uniq -c")
         w(f"bash {P}/s1_chunk_logs_koa.sh logs {PFX} {R}/chunks {P}/chunks_stage1_koa_261012.tsv {g}")
-        w(f"bash {P}/s1_stopped_chunks.sh logs {PFX} {P}/chunks_stage1_koa_261012.tsv {g}")
+        w(f_awk(g, args.commit, P))
         w("")
         w("  THE LINES THAT SHOW IT IS GOOD:")
         w("    squeue: its header line only")
@@ -228,18 +286,24 @@ def write(args):
         w(f"    one line per CPU model, the counts adding up to {v['nch']}")
         w(f"    \"chunk logs: {v['nch']}; chunks done: {v['nch']} of {v['nch']} (group {g}; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished\"")
         w(f"    \"group {g} without a done log: stopped once 0, stopped twice or more 0, started and not finished 0, no log 0\" and \"nothing to resubmit\"")
-        w("  IF the last command prints \"THE RESUBMISSION LINE(S)\" and the lines after it (sbatch --job-name=... --time=... --array=... --exclude=")
-        w("  cn-05-08-07,...): those chunks stopped in their start-up checks and ran nothing (decision 28, as decision 25: submitted once more,")
-        w("  and listed). Paste everything and wait: after the plan author's go, type exactly those printed lines, once; when squeue lists no")
-        w(f"  {PFX} job, block F-{g} again (the log counts then include the earlier attempts).")
+        w("  IF the last command prints \"THE RESUBMISSION LINE(S)\" (sbatch --job-name=... --time=... --array=... --exclude=cn-05-08-07,...) and then")
+        w("  \"THE GUARDED RESUBMISSION LINE\" and one long line: those chunks stopped in their start-up checks and ran nothing (decision 28, as")
+        w("  decision 25: submitted once more, and listed). Paste everything and wait. After the plan author's go, type ONLY the one guarded line,")
+        w("  once (not the plain sbatch lines above it): it submits all of them, unchanged and in their order, only if squeue lists no")
+        w(f"  {PFX} job, the scripts clone is at {args.commit[:7]} and no listed chunk has a log with its done line; it prints \"CHECKS GOOD\", the")
+        w(f"  \"Submitted batch job\" lines and \"{g}: ALL <n> RESUBMISSION LINE(S) SUBMITTED\"; a second paste prints \"REFUSED: ...\" and submits")
+        w(f"  nothing. When squeue lists no {PFX} job, block F-{g} again (the log counts then include the earlier attempts).")
         w("  STOP RULE: a chunk \"started and did not finish\", \"stopped twice or more\", \"no log\", \"NOT DONE\", or other counts: paste, change")
         w("  nothing, wait.")
         w("")
         w(f"S1 BLOCK G-{g} (KOA login node; the merge of group {g}; one core, at most 6 h):")
         w("squeue -u charing")
-        w(f"cd ~/harddisks_gen3_k2/hspist3 && sbatch --job-name=gen3-s1-merge-{g} {P}/s1_merge.sbatch {g}")
+        w(guarded([sq(f"{PFX},gen3-s1-merge-{g}"), head_ok(args.commit), check(f"[ ! -e {R}/merged ]", f"{R}/merged exists")],
+                  [f"sbatch --job-name=gen3-s1-merge-{g} {P}/s1_merge.sbatch {g}"], f"{g}: THE MERGE SUBMITTED", f"{g}: THIS PASTE DID NOT SUBMIT THE MERGE"))
         w("")
-        w(f"  Expected: no {PFX} job in squeue; \"Submitted batch job <its number>\". Submit it ONCE. It checks for itself, before it moves anything,")
+        w(f"  Expected: no {PFX} job in squeue; \"CHECKS GOOD\", \"Submitted batch job <its number>\" and \"{g}: THE MERGE SUBMITTED\". THE GUARD (decision 42):")
+        w(f"  it submits only if squeue lists no {PFX} and no gen3-s1-merge-{g} job (a failed squeue refuses), the scripts clone is at {args.commit[:7]} and")
+        w(f"  {R}/merged does not exist; a second paste prints \"REFUSED: ...\" and \"{g}: THIS PASTE DID NOT SUBMIT THE MERGE\". The merge job checks for itself, before it moves anything,")
         w("  and stops with exit 2 and NOTHING moved on any failure (its inputs, the task list, no job of the group pending or running, the")
         w("  chunk check, merged/ absent: exit 3); then the plan, and only a clean plan is executed.")
         w("")
