@@ -24435,3 +24435,79 @@ Its FG steps (B100's steps as in run 3):
   - e10e5f75: the runsheet a3eb77e4; the rehearsal's run 4 (`experiments_gen3_s1_261012/g4_rehearsal/run4_1bb9ae8/`, its README entry and the runsheet diff); the risk table's per-group columns.
 
 Written for: the plan author
+
+### 4.7.97 Plan-author decision 46: Report D45 accepted (the runsheet a3eb77e4 checked by the plan author); F-D clean and D's merge submitted (job 15055588); THE GO FOR E-B900 before the INTERIM tables are read, with the triggers for a cancel; S and B1600 on hold; the sacct line allowed; the fetches of B100 and B400 done: the INTERIM report now, with C-a and C-b and a first look at the physics (2026-10-13 13:55 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 46** (relayed by Chris at about 13:55 HST, machine date; the plan author's time "~13:40 HST").
+- **1. Report D45 is accepted.** The plan author's script checked the runsheet a3eb77e4 from the Mac:
+  - each of the 2,705 chunks is in exactly one array line of its group and class;
+  - the throttles add to 64 per group;
+  - the FG form is as reported.
+- **2. F-D is clean:**
+  - 181 logs, 181 done, 0 FAILED or REFUSED, "chunks done: 181 of 181", "nothing to resubmit";
+  - 135 chunks on E5-2670 v3, 46 on E5-4640 v2;
+  - the plan author's timing line: min 0.17 (chunk 443), median 0.20, max 0.45 (chunk 364);
+  - the plan author's own FG paste for D (F's lines, the timing line, then the five conditions and G's guarded line) submitted the merge: job 15055588 on cn-04-21-00.
+- **3. THE GO FOR E-B900 is given now, before the INTERIM tables are read.** This changes the hold of decisions 44 and 45.
+  - The reasons:
+    - the time-limit risk is bounded (no chunk above 0.56 of its class);
+    - three groups ran, merged and reduced clean end to end;
+    - B900 can be cancelled if the tables show a problem.
+  - **The triggers for a cancel** (the plan author decides, Chris types scancel):
+    - health exclusions above 1 % in a block;
+    - fit failures far above the 0.1 % seen so far;
+    - E0 at (N 100, π/8) more than 3σ from A1 v2's 3.80884 ± 0.011.
+  - **S and B1600 stay on hold** until the plan author has read the INTERIM tables of B100 and B400.
+- **4. The sacct line is allowed (read-only).** Chris types it with H-D: `sacct -j 15053009,15053737,15055588 -X -o JobID,JobName%22,Start,End,Elapsed,State,NodeList%14`.
+- **5. The fetches of B100 and B400 are done** (B100: 95 MB, merge record 2026-10-13 09:43:40 UTC). CC prints the INTERIM report now:
+  - B100 first, as decision 45 item 5 and addendum 1 ask;
+  - C-a and C-b added as information lines;
+  - a first look at the physics: c_s (E1 and E0) against KR per cell for N 100 and N 400, Z per cell, and the low-Q flags.
+- **6. For later:** the plan author's timing line stands among F's lines in each FG block given to Chris. The runsheet's FG stays as it is.
+
+**The message, verbatim** (relayed by Chris on 2026-10-13 at about 13:55 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record in a new
+section.
+
+DECISION 46 (2026-10-13 ~13:40 HST)
+ 1. Report D45: ACCEPTED. The runsheet a3eb77e4 was checked from
+    the Mac by my script: each of the 2,705 chunks in exactly one
+    array line of its group and class, throttles 64 per group; the
+    FG form as reported.
+ 2. F-D CLEAN: 181 logs, 181 done, 0 FAILED or REFUSED, "chunks
+    done: 181 of 181", "nothing to resubmit"; 135 chunks on
+    E5-2670 v3, 46 on E5-4640 v2; my timing line "min 0.17 (chunk
+    443), median 0.20, max 0.45 (chunk 364)". My own FG paste for
+    D (F's lines, my timing line, then the five conditions and G's
+    guarded line) submitted the merge: job 15055588 on cn-04-21-00.
+ 3. THE GO FOR E-B900 IS GIVEN NOW, before the INTERIM tables are
+    read. This changes the hold of decisions 44 and 45. Reasons:
+    the time-limit risk is bounded by your table (no chunk above
+    0.56 of its class); three groups ran, merged and reduced clean
+    end to end; B900 can be cancelled if the tables show a problem.
+    THE TRIGGERS for a cancel (I decide, Chris types scancel):
+    health exclusions above 1 % in a block; fit failures far above
+    the 0.1 % seen so far; or E0 at (N 100, pi/8) more than 3 sigma
+    from A1 v2's 3.80884 +- 0.011. S and B1600 stay on hold until I
+    have read the INTERIM tables of B100 and B400.
+ 4. The sacct line is allowed (read-only); Chris types it with
+    H-D: sacct -j 15053009,15053737,15055588 -X -o
+    JobID,JobName%22,Start,End,Elapsed,State,NodeList%14.
+ 5. The fetches of B100 and B400 ARE DONE (B100: 95 MB, merge
+    record 2026-10-13 09:43:40 UTC). Print the INTERIM report now,
+    B100 first, as decision 45 item 5 and addendum 1 ask, and add
+    C-a and C-b as information lines (your own offer). Report also
+    the first look at the physics: c_s (E1 and E0) against KR per
+    cell for N 100 and N 400, Z per cell, and the low-Q flags.
+ 6. For later: my timing line stands among F's lines in each FG
+    block that I give Chris; the runsheet's FG stays as it is.
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
