@@ -16,6 +16,8 @@ nud_runs.csv, acf_runs.npz, runs_health.csv, failed_runs.csv, s1_runs.csv, snap_
   E0 (sec. 4.8.6.3)    the canonical estimator (paper1_populate_cs_err_20261002: argmax, TD = 200, X_EDGE = 2.5, the unweighted through-origin
                        slope over nine masses; T.slope and slope_with_errors), here with x_M = K(M/N) / (2 pi L_eff) (the exact box: no
                        truncation); printed next to E1, E1 - E0 the estimator difference. It decides nothing.
+  ORIENTATION (4.8.3.1) per cell the crystal orientation the start chose, from the run record ([EDMD3-RUN]'s left/right fields) by M4c's
+                       g3_lat_cryst (f72d764): close-packed lines along x or y in each compartment.
   Z, psi6 (4.8.6.4)    per trajectory s1_runs.csv's Z (the last quarter of the hold) and psi6_rec; per cell the mean and SE over every used
                        trajectory; Gamma = 2 / tau_r, Q, the mode power B C(0) per (cell, mass); the interior density from the snapshots.
   STIFFNESS (4.8.6.5)  k_S^dyn = N_s (2 pi nu_0)^2 / K(alpha)^2 over the five masses alpha >= 5, inverse-variance; the static side and rho_I
@@ -89,7 +91,23 @@ def read_mass(d):
              s1=pd.read_csv(f("s1_runs.csv")) if os.path.exists(f("s1_runs.csv")) else None,
              snap=pd.read_csv(f("snap_runs.csv")) if os.path.exists(f("snap_runs.csv")) else None,
              acf=dict(np.load(f("acf_runs.npz"))) if os.path.exists(f("acf_runs.npz")) else {})
+    D["cryst"] = None                                                # the default start's crystal orientation (sec. 4.8.3.1), from the run record
+    if os.path.exists(f("run.log")):
+        with open(f("run.log"), errors="replace") as fh:
+            for l in fh:
+                if l.startswith("[EDMD3-RUN] "):
+                    sd = {m.group(1): cryst(m.group(2), int(m.group(4)), int(m.group(5)), float(m.group(6)), float(m.group(7))) for m in SIDE.finditer(l)}
+                    D["cryst"] = (sd.get("left"), sd.get("right")); break
     return D
+
+
+SIDE = re.compile(r"(left|right)=\[orient (parallel|perpendicular) rows (alternate|equal) n_s (\d+) n_r (\d+) a_s (\S+) a_r (\S+) ")
+
+
+def cryst(orient, ns, nr, a_s, a_r):
+    """f72d764 00ALLINONE.c's g3_lat_cryst (M4c): 0 = close-packed lines along x, 1 = along y (the turned crystal)"""
+    along_rows = 1 if ns < 2 else (0 if nr < 2 else int(a_r < 2.0 * a_s))
+    return 0 if along_rows == int(orient == "perpendicular") else 1
 
 
 def seedavg_fit(acfs, dt, nu_ref):
@@ -170,6 +188,8 @@ def mean_se(v):
 
 def per_cell(cell, rows, D_by_M):
     out = dict(cid=cell["cid"], g=cell["g"], blk=cell["blk"], N=cell["N"], eta=cell["eta"], start=cell["start"])
+    cr = {D["cryst"] for D in D_by_M.values() if D.get("cryst")}
+    out["cryst"] = ("/".join("x" if c == 0 else "y" for c in next(iter(cr))) if len(cr) == 1 else ("differs between masses" if cr else "-"))
     out["E1"] = e1(rows); out["E0"] = e0(cell, rows)
     r05 = next((r for r in rows if r["alpha"] == 0.5), None)
     if out["E1"] and r05 and math.isfinite(r05.get("c", math.nan)) and not r05["flagged"]:
@@ -304,8 +324,8 @@ def report(res, interim=False):
         print(f"| {g} | {len(rr)} | {sum(r['expected'] for r in rr)} | {sum(r['present'] for r in rr)} | {sum(r['excluded'] for r in rr)} | "
               f"{sum(r['missing'] for r in rr)} | {sum(r['fitfail'] for r in rr)} | {sum(r['flagged'] for r in rr)} |")
     print("\n## Per cell: E1, E0, Z, psi6, the stationarity tests, delta_0.5, k_S^dyn\n")
-    print("| cell | E1 c_s +- sigma (masses, chi2/dof) | low-Q | E0 c_s +- err_scaled | E1 - E0 | KR | Z +- SE (n) | psi6 | hold t | record z | "
-          "delta_0.5 [%] | k_S^dyn | eta_int |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    print("| cell | lines (left/right) | E1 c_s +- sigma (masses, chi2/dof) | low-Q | E0 c_s +- err_scaled | E1 - E0 | KR | Z +- SE (n) | psi6 | hold t | record z | "
+          "delta_0.5 [%] | k_S^dyn | eta_int |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     for cid, c in sorted(res["cell"].items(), key=lambda kv: (GEN.GROUPS.index(kv[1]["g"]), kv[1]["N"], kv[1]["eta"], kv[1]["start"])):
         e1v, e0v = c["E1"], c["E0"]; kr = kr_cs(c["eta"])
         s1 = f"{e1v['cs']:.5f} +- {e1v['sig']:.5f} ({e1v['n']}, {e1v['chi2']:.1f}/{e1v['dof']})" if e1v else "none (< 5 masses)"
@@ -314,7 +334,7 @@ def report(res, interim=False):
         d5 = f"{100 * c['delta05'][0]:+.3f} +- {100 * c['delta05'][1]:.3f}" if c.get("delta05") else "-"
         ks = f"{c['kS_dyn'][0]:.4g} +- {c['kS_dyn'][1]:.2g}" if c.get("kS_dyn") else "-"
         ei = f"{c['eta_int'][0]:.4f} ({c['eta_int'][1]})" if c.get("eta_int") else "-"
-        print(f"| {cid} | {s1} | {'FLAG' if e1v and e1v['lowQ'] else '-'} | {s0} | {dd} | {kr:.5f} | {c['Z'][0]:.5f} +- {c['Z'][1]:.5f} ({c['Z'][2]}) | "
+        print(f"| {cid} | {c['cryst']} | {s1} | {'FLAG' if e1v and e1v['lowQ'] else '-'} | {s0} | {dd} | {kr:.5f} | {c['Z'][0]:.5f} +- {c['Z'][1]:.5f} ({c['Z'][2]}) | "
               f"{c['psi6'][0]:.4f} | {c['hold_t'][0]:+.2f}{' FLAG' if abs(c['hold_t'][0]) >= T_STAT else ''} | "
               f"{c['rec_z'][0]:+.2f}{' FLAG' if abs(c['rec_z'][0]) >= T_STAT else ''} | {d5} | {ks} | {ei} |")
     if interim:
