@@ -22677,3 +22677,200 @@ End with "Written for: the plan author".
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.85 Plan-author decision 41 (complete): Report S1 reviewed; the gate runsheet approved, typed with three differences of the plan author's (B1/B2, a guarded block C, block D by cat); the time limits as registered and amendment A3 (a timed-out chunk once more at twice its class); the watch rule; η_int as registered; the 64-core reading accepted; the stage 1 runsheet checked, its approval is G7; what ran on KOA (gate blocks A–E); CC's tasks: the gate verdict, the stage 1 commit, the timing script, the second-paste question (2026-10-12 21:38 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 41** (relayed by Chris at about 21:38 HST, machine date; the plan author's time "21:00-21:40 HST"). It replaces two earlier pastes of this evening:
+  - one carried another project's text, not meant for CC; CC did nothing with it;
+  - "decision 41, addendum 1" (about 21:20) is replaced by this paste, as it says.
+
+  Neither is recorded here.
+- **A. The review.**
+  1. **Report S1 is REVIEWED** from `REPORT_S1_261012.md` and the Mac's working tree, read only. The six gate files hash to the runsheet's values. The gate runsheet is `3d9e30ef…`, the stage 1 runsheet `694055b4…`.
+  2. **The gate runsheet (Appendix S1-F) is APPROVED.** Chris typed it with three differences, all of them the plan author's:
+     - a) block B in two parts, B1 and B2, with one check line at the end of B1 ("B1 GOOD" / "B1 NOT GOOD");
+     - b) block C as one guarded command line ("ALL THREE SUBMITTED" / "THIS PASTE DID NOT SUBMIT ALL THREE JOBS");
+     - c) block D prints the whole gate log by cat. Every start-up STOP comes before "s1 gate on", so the sed would print nothing when the job stops there.
+  3. **The time limits stay as registered** (3 × the model, rounded up to a class).
+     - From the chunk table: class / predicted is 3.00–3.18 at the thinnest chunk of each group, and 3.5 or more at the median.
+     - **Amendment A3 to sec. 4.8**, verbatim below: a chunk that reached its time limit is submitted once more at twice its class, after the plan author's go.
+     - **The watch rule:** each group's INTERIM report gets a timing table from the fetched run records. If a finished group's E5 maximum is 2.0 or more, the plan author decides before the next group's block E.
+  4. **η_int stays as registered:** "not defined" at N = 100 for η ≥ 0.50 and in block S at N = 100. It enters no estimator and no verdict. **Correction to Report S1 sec. 8.1:** the identity's static side comes from Part A, not from the snapshots.
+  5. **"At most 64 at once": CC's reading is accepted.** 128 only on a pasted sinfo line and the plan author's go.
+  6. **The stage 1 runsheet (Appendix S1-G) is checked, not approved.** Each of the 2,705 chunks is in exactly one array line, and the throttles add to 64 in every group. Its approval is G7.
+- **B. What ran on KOA** (Chris's pastes, 21:04 and 21:32 HST):
+  - **B1:** git 2.52.0, HEAD `0969b0e`, the six SHA-256 as expected, 13, "B1 GOOD".
+  - **B2:** sandbox job 15052626 on cn-03-33-01: "BUILD OK", "BUILD RECORD OK", the record's four sha256 lines.
+  - **B2 a second time**, on login-0101 after the shell had closed: nothing changed, because both scripts refused.
+  - **C:** "CHECKS GOOD"; the gate job 15052654, the array 15052655 (tasks 1–7 on cn-03-38-01, task 8 on cn-03-38-02), the compare job 15052656; all nodes E5-2670 v3.
+  - **D, the plan author's reading of the raw logs:** G6 (c) and (d) are met.
+    - Bit-identity across KOA's two CPU models stays untested, because both compared nodes are one model. Recorded; it affects no verdict.
+  - **E:** the fetch, 3.2 MB.
+- **C. CC's tasks**, in order:
+  - 13: this record and A3;
+  - 14: the gate verdict from the fetch, and the fetched build record against item 8;
+  - 15: two read-only checks;
+  - 16: only on PASS for G6 (c) and (d), the stage 1 commit and the runsheet written again with `--commit`; nothing else in the package changes;
+  - 17: the timing-table script;
+  - 18: report only, whether stage 1's submit blocks could refuse a second paste;
+  - 19: no stage 1 job is typed before the plan author's go on blocks A–D.
+
+**Amendment A3 to sec. 4.8, verbatim** (from item 3 below; "Record A3 verbatim"):
+
+```
+    AMENDMENT A3 to sec. 4.8 (dated 2026-10-12, before any stage 1
+    array): a chunk that reached its time limit is submitted once
+    more with the same array index and --time = twice its class (at
+    most 24:00:00), after my go on the pasted block F. The worker
+    skips its finished trajectories and reruns the unfinished one
+    from its start with the identical command and seed (sec. 4.8.5).
+    A second failure: excluded and counted. Record A3 verbatim.
+```
+
+**The message, verbatim** (the note to Chris and the part for CC; relayed by Chris on 2026-10-12 at about 21:38 HST, machine date):
+
+```
+Paste the block below to CC, all of it.
+CC prints the gate verdict and, if it passes, makes the stage 1 commit. Its message ends with a push line: run it.
+Paste CC’s report to me (from “Written for: the plan author” downward).
+
+Then I give you the blocks for the first campaign chunk: 25 runs of the smallest box, alone, about 7 minutes. After I have read that chunk, the 100-disk array (about 15 minutes) and the 400-disk array (about 2 hours) can start. That is still possible before Wednesday.
+
+For CC
+From the plan author (Cowork), relayed by Chris. This is DECISION 41
+COMPLETE. It replaces the earlier paste "decision 41, addendum 1" and
+the missing decision 41. Record it as one section. It follows
+decision 40.
+
+DECISION 41 (2026-10-12, 21:00-21:40 HST)
+
+A. THE REVIEW
+ 1. Report S1 is REVIEWED. I read REPORT_S1_261012.md and the gate
+    and stage 1 scripts from the Mac's working tree (read only). The
+    six gate files hash to the runsheet's values; the gate runsheet
+    is 3d9e30ef..., the stage 1 runsheet 694055b4....
+ 2. THE GATE RUNSHEET (Appendix S1-F) IS APPROVED. Chris typed its
+    lines with three differences, all of them mine. Record them.
+    a. Block B in two parts. B1 = its lines up to
+       "ls -d ~/harddisks_gen3_s1 2>&1 | head -1", then one check
+       line: the six SHA-256 by "sha256sum --status -c -", HEAD =
+       0969b0ed..., 13 manifest files OK, ~/harddisks_gen3_s1
+       absent; it prints "B1 GOOD" or "B1 NOT GOOD". B2 = the rest.
+    b. Block C as one guarded command line. It submits the
+       runsheet's three sbatch lines, unchanged and in their order,
+       only if these hold: the six SHA-256, the scripts clone's
+       .git/HEAD = 0969b0ed..., 13 manifest files OK, the build
+       record present, the roots s1_gate and s1_xnode absent, no
+       gen3-s1-gate or gen3-s1-xnode job in squeue. It prints "ALL
+       THREE SUBMITTED" or "THIS PASTE DID NOT SUBMIT ALL THREE JOBS".
+    c. Block D prints the whole gate log (cat "$L") instead of
+       sed -n '/^s1 gate on/,$p'. Reason: every start-up STOP comes
+       before the line "s1 gate on", so the sed prints nothing when
+       the job stops there.
+ 3. TIME LIMITS: as registered (3 x the model, rounded up to a
+    class). From the chunk table: class / predicted is 3.00-3.18 at
+    the thinnest chunk of each group, 3.5 or more at the median; no
+    chunk times out unless measured / model exceeds 3.0. In the
+    preview the ratios above 1.6 are on runs of 2.7 and 5.2 s; runs
+    of 11 s or more are 0.88-1.42.
+    AMENDMENT A3 to sec. 4.8 (dated 2026-10-12, before any stage 1
+    array): a chunk that reached its time limit is submitted once
+    more with the same array index and --time = twice its class (at
+    most 24:00:00), after my go on the pasted block F. The worker
+    skips its finished trajectories and reruns the unfinished one
+    from its start with the identical command and seed (sec. 4.8.5).
+    A second failure: excluded and counted. Record A3 verbatim.
+    WATCH RULE: each group's INTERIM report gets a timing table,
+    printed by a script from the fetched run records: per chunk, the
+    sum of the ##RUN seconds / predicted_s_E5; per CPU model the
+    minimum, median and maximum. Chunk 1's ratio is printed with its
+    check. If the E5 maximum of a finished group is 2.0 or more, I
+    decide before the next group's block E.
+ 4. eta_int: as registered. Reported where defined; printed as "not
+    defined" at N = 100 for eta >= 0.50 and in block S at N = 100.
+    It enters no estimator and no verdict (sec. 4.8.6.4). Correction
+    to Report S1 sec. 8.1: the identity's static side comes from
+    Part A, not from the snapshots.
+ 5. "At most 64 at once": your reading is accepted (per group, the
+    classes share 64, groups one after another). 128 only on a
+    pasted sinfo line and my go.
+ 6. THE STAGE 1 RUNSHEET (Appendix S1-G) is checked, not approved:
+    by my script each of the 2,705 chunks is in exactly one array
+    line, in its group and class, and the throttles add to 64 in
+    every group. Its approval is G7.
+
+B. WHAT RAN ON KOA (Chris's pastes, 21:04 and 21:32 HST)
+ 7. Block B1: git 2.52.0; 0 changed files; HEAD 0969b0e; the six
+    SHA-256 as expected; 13; the new clone absent; "B1 GOOD".
+ 8. Block B2, sandbox job 15052626 on cn-03-33-01: the clone at
+    f72d764, kissfft febd4ca, "BUILD OK", "BUILD RECORD OK", record
+    written 2026-10-13 07:03:35 UTC. Its lines:
+      sha256 0bb1929e92424242ecbcd57d1dec183ae08ff055fa4c29c21357dc5058348d58 00ALLINONE
+      sha256 b79db442881f1bb9c58c94b193b29502698461eab95e1f75f227b9844bcc9467 bin/00ALLINONE_ld
+      sha256 5eb49cf7ca7494beefbc4e16674a7840e05f248c2d3b0bcef4887b4e3dc03ac5 bin/gen3_m1
+      sha256 c5c83443d01ac6bdc1578d11f737561ddad78aff0408269cce83141d0973fcb1 bin/gen3_m2
+      compiler gcc (GCC) 14.3.0; LDBL_MANT_DIG 64, sizeof 16
+    Your check that the two harness binaries equal a643bc7's:
+    received.
+ 9. FOR THE RECORD: block B2 was pasted a second time and ran on
+    login-0101 after the sandbox shell had closed: seven lines
+    "-bash: git: command not found"; build_s1_koa.sh printed "STOP:
+    run inside a Slurm job"; record_s1_build.sh printed "STOP:
+    [login-0101] ... exists ... nothing written". Nothing changed.
+10. Block C: "CHECKS GOOD"; jobs 15052654 (gate, cn-03-38-03),
+    15052655 (the array: tasks 1-7 on cn-03-38-01, task 8 on
+    cn-03-38-02), 15052656 (the compare). All nodes E5-2670 v3.
+11. Block D, the raw logs as I read them:
+    (c1) E0 default 4 of 4 and gen2flag 4 of 4: "audit vs plain
+         IDENTICAL, plain vs ref IDENTICAL";
+    (c2) harness outputs equal to the a643bc7 gate's: 3 of 3;
+    (d)  "TEST G CHUNK 1 (12 gen3 lines): event hashes equal in 12
+         of 12", every line clean 1;
+    cross-node: "RESULT: across nodes IDENTICAL (2 node(s)); within
+         nodes IDENTICAL; tasks used 8 of 8"; the event hashes
+         0586b1e77639502b and 72111cdaa7d26414 are the a643bc7
+         cross-node run's (sec. 4.7.46).
+    My reading: G6 (c) and (d) are met on the raw logs. The verdict
+    of record is your script's, from the fetch. Both compared nodes
+    are one CPU model, so bit-identity across KOA's two CPU models
+    stays untested; record it; it affects no verdict (sec. 4.8.5).
+12. Block E: fetched, 3.2M, build record f72d764a8a7e....
+
+C. YOUR TASKS NOW, in this order
+13. Record this decision and A3.
+14. Print the gate verdict (s1_gate_verdict_261012.py) from the
+    fetch, verbatim. Check the fetched BUILD_RECORD_S1.txt against
+    the four sha256 lines of item 8 and print the result.
+15. Two read-only checks, print the lines:
+    a. git diff --stat f72d764 0969b0ed --
+       hspist3/cluster/gen3_koa_261009/build_gen3_koa.sh
+       (expected: empty);
+    b. information: the 12 event hashes of item 11 (d) against the
+       same 12 runs in the fetched run records of Test G on KOA, if
+       those records are on the Mac (expected: equal).
+16. ONLY IF the verdict prints PASS for G6 (c) and for G6 (d): make
+    the stage 1 commit as planned (build_record_f72d764.txt as a
+    byte copy of the fetched record, the two manifests) and write
+    the stage 1 runsheet again with --commit. Change nothing else in
+    the package. Print: the commit, the SHA-256 of the three new
+    files, the new runsheet's SHA-256, the diff between the old
+    runsheet (694055b4...) and the new one (expected: block B's
+    lines and the lines that name the commit), and blocks A-D of the
+    new runsheet verbatim.
+    If the verdict is not PASS: stop and report, no commit.
+17. After the commit, not blocking chunk 1: the timing-table script
+    of item 3, on the Mac, reading fetched files only.
+18. Report only, change nothing: whether stage 1's submit blocks
+    (C and every E) could refuse a second paste. A chunk submitted
+    twice gives two logs with "chunk <j> done", and the chunk check
+    then fails. For chunk 1 I will give Chris a guarded line myself.
+19. No stage 1 job is typed before my go on blocks A-D.
+
+End with "Written for: the plan author" and the push line.
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
+- CC's work on items 14–18 follows in its own report.
