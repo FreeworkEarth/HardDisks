@@ -1,0 +1,31 @@
+# Gate G3, the estimator gate (sec. 4.8.10), printed by cluster/gen3_stage1_261012/g3_estimator_gate_261012.py
+
+the stage 1 reducer on copies under /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d39/g3tmp; nu_ref = each folder's own argmax mean (decision 39 item 5 d)
+
+## (i) Test G (Mac), gen3 arm
+
+| M | trajectories | fit failures | nu_ref (own) | nu_d-bar | printed | reproduced to the printed digits | difference |
+|---|---|---|---|---|---|---|---|
+| 300 | 400 | 0 | 0.0370173 | 0.037009459 | 0.0370095 | yes | -4.11e-08 (-0.00011 %) |
+| 1500 | 400 | 0 | 0.0172660 | 0.017266546 | 0.0172665 | yes | +4.56e-08 (+0.00026 %) |
+
+## (ii) Test T legacy, methods sec. 16 (the nine-mass mode: item 5's arithmetic)
+
+cell epi8_H_H10_L10 (N_s 50); masses [50, 100, 200, 300, 500, 750, 1000, 1500, 2000]
+
+| M | trajectories | fit failures | Q (item-4a model, averaged ACF) | printed | equal | deficit nu_0 [%] | printed | equal | Q as E1 defines it (pi nu_d-bar tau_r) |
+|---|---|---|---|---|---|---|---|---|---|
+| 50 | 400 | 0 | 9.3 | 9.3 | yes | -0.424 +- 0.078 | -0.424 +- 0.078 | yes | 9.3 |
+| 100 | 100 | 0 | 13.5 | 13.5 | yes | +0.052 +- 0.160 | +0.052 +- 0.160 | yes | 13.5 |
+| 200 | 100 | 0 | 20.3 | 20.3 | yes | +0.169 +- 0.100 | +0.169 +- 0.100 | yes | 20.3 |
+| 300 | 100 | 0 | 25.5 | 25.5 | yes | -0.109 +- 0.077 | -0.109 +- 0.077 | yes | 25.5 |
+| 500 | 100 | 0 | 32.2 | 32.2 | yes | +0.097 +- 0.073 | +0.097 +- 0.073 | yes | 32.2 |
+| 750 | 100 | 0 | 40.3 | 40.3 | yes | -0.025 +- 0.056 | -0.025 +- 0.056 | yes | 40.3 |
+| 1000 | 100 | 0 | 43.7 | 43.7 | yes | +0.047 +- 0.050 | +0.047 +- 0.050 | yes | 43.7 |
+| 1500 | 100 | 0 | 54.9 | 54.9 | yes | +0.100 +- 0.049 | +0.100 +- 0.049 | yes | 54.9 |
+| 2000 | 100 | 0 | 64.9 | 64.9 | yes | -0.002 +- 0.043 | -0.002 +- 0.043 | yes | 64.9 |
+
+the nine-mass weighted nu_0 slope: 3.8128580 -> 3.81286; printed 3.81286: yes (difference -1.98e-06)
+for the record, E1 of that cell (eight masses alpha >= 1, the delete-one jackknife SE): c_s = 3.81408 +- 0.00097 (chi2 9.7, 7 dof); alpha = 0.5: c = 3.79670 +- 0.00295
+
+G3: PASS -- every printed digit reproduced (21 of 21 values)
