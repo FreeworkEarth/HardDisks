@@ -25,6 +25,13 @@ THE STEPS:
 one-line commands; each is typed once (it submits) and a second time (it refuses: "REFUSED: ...", "THIS PASTE DID NOT SUBMIT ...", no sbatch
 call); E-B100 after chunk 1; group D's block E also with a pretended pending job and with a failing squeue (REHEARSAL_SQUEUE_FAIL); group S's
 guarded resubmission line once and again; B100's merge job is still shown to refuse a second submission without the guard (exit 3).
+##CHRIS 2026-10-13 (plan-author decision 45 addendum 2): groups D and S have block FG (blocks F and G as one paste): F's lines, then block G's
+guarded line only if F's five good conditions hold, else "F-<g> NOT CLEAN -- the merge was not submitted". Group D's block FG is first typed
+while F is not clean, one condition at a time where they can be parted (an extra log of its chunk that did not finish; its chunk's log without
+the done line; a FAILED line; its chunk folder moved aside -- each undone by moving files back), then clean (the merge submitted inside it),
+then a second time (block G's own guard refuses); group S's block FG prints NOT CLEAN after the faulty attempt (the resubmission lines,
+no "nothing to resubmit") and, by design, again after the resubmission (4 logs for 2 chunks); block G's guarded line alone (the then-branch
+of its last line) then stands in for the plan author's go, once and a second time.
 SHIMS (residual differences, each printed in the table): squeue (empty, or the lines of REHEARSAL_SQUEUE), sinfo (a pretended line), srun
 (not run), sbatch (runs the job at once with a pretended job id and its #SBATCH output name; --array lists one after the other, the
 throttle %N dropped; --job-name, --time, --exclude, --dependency taken or recorded; the script's arguments passed), module (nothing), gcc
@@ -135,7 +142,7 @@ def env_for(R, home, shim, **extra):
 def blocks_of(path):
     out, cur = {}, None
     for l in open(path).read().splitlines():
-        m = re.match(r"^S1 BLOCK ([A-Z](?:-\w+)?) \(", l)
+        m = re.match(r"^S1 BLOCK ([A-Z]{1,2}(?:-\w+)?) \(", l)                # ##CHRIS 2026-10-13: FG-<g> too
         if m: cur = m.group(1); out[cur] = []; continue
         if cur is not None and not l.strip(): cur = None; continue
         if cur is not None: out[cur].append(l)
@@ -210,8 +217,8 @@ def main():
     rs = os.path.join(R, "logs", "runsheet_stage1_mini.txt")
     sh([sys.executable, os.path.join(P, "make_s1_runsheet.py"), "--commit", Q, "--out", rs], cwd=hs)
     B = blocks_of(rs)
-    res("4. the mini runsheet (make_s1_runsheet.py on the mini table)", "blocks A-D and E-I for B100, D, S",
-        sorted(B) == sorted(["A", "B", "C", "D"] + [f"{x}-{g}" for g in ("B100", "D", "S") for x in "EFGHI"]), ", ".join(B))
+    res("4. the mini runsheet (make_s1_runsheet.py on the mini table)", "blocks A-D, E-I for B100; E, FG, H, I for D and S (decision 45 addendum 2)",
+        sorted(B) == sorted(["A", "B", "C", "D"] + [f"{x}-B100" for x in "EFGHI"] + [f"{x}-{g}" for g in ("D", "S") for x in ("E", "FG", "H", "I")]), ", ".join(B))
     # ---- A, B
     rc, out = run_block(R, "A", B["A"], E)
     res("block A", "squeue, srun (shims)", rc == 0 and "rehearsal shim: srun" in out, f"exit {rc}")
@@ -249,7 +256,19 @@ def main():
         res(f"block {X} typed {why}", "REFUSED, nothing submitted", ok, (re.findall(r"^REFUSED: .*$", out, re.M) or ["no REFUSED line"])[0][:160])
         return out
 
+    def not_clean(X, lines, env, tag, why):
+        """##CHRIS 2026-10-13 (plan-author decision 45 addendum 2): block FG typed while F is not clean: 'F-<g> NOT CLEAN -- the merge was not
+        submitted', no line 'CHECKS GOOD', no sbatch call"""
+        n0 = nex(); rc, out = run_block(R, X, lines, env, tag); gg = X.split("-", 1)[1]
+        ok = (rc == 0 and f"F-{gg} NOT CLEAN -- the merge was not submitted" in out and not re.search(r"^CHECKS GOOD$", out, re.M)
+              and "Submitted batch job" not in out and nex() == n0)
+        ev = "; ".join(l for l in L(out) if re.fullmatch(r"\d+", l) or l.startswith(("chunk logs:", "NOT DONE", "nothing to resubmit", "F-", "earlier attempt")))
+        res(f"block {X} typed {why}", f"'F-{gg} NOT CLEAN -- the merge was not submitted', nothing submitted", ok, ev[:300])
+        return out
+
     for g in ("B100", "D", "S"):
+        one = g in ("D", "S")                     # ##CHRIS 2026-10-13 (plan-author decision 45 addendum 2): blocks F and G are ONE paste, FG-<g>
+        FB = f"FG-{g}" if one else f"F-{g}"
         ncg = sum(1 for c in MCH if c[0] == g); nsb = sum(l.count(" sbatch --job-name=gen3-s1-") for l in B[f"E-{g}"])
         root = os.path.join(R, "lustre", "harddisks_gen3", "stage1", g)
         if g == "D":
@@ -273,31 +292,62 @@ def main():
                 f"CHECKS GOOD, {nsb} array line(s) submitted, every task exit 0", all(okE), f"checks {okE}")
         refused(f"E-{g}", B[f"E-{g}"], E, "_second", "a second time")
         if g == "S":
-            rc, out = run_block(R, f"F-{g}", B[f"F-{g}"], E, "_first")
+            n0 = nex(); rc, out = run_block(R, FB, B[FB], E, "_first")
             rl = re.findall(r"^sbatch --job-name=gen3-s1-S --time=\S+ --array=\S+ --exclude=\S+ cluster/gen3_stage1_261012/s1_koa\.sbatch$", out, re.M)
             gs = out.split("THE GUARDED RESUBMISSION LINE (one line for all of them; type it once, after the go of the plan author):\n")
             gline = gs[1].splitlines()[0] if len(gs) == 2 else ""
             okF1 = [rl == ["sbatch --job-name=gen3-s1-S --time=0:30:00 --array=6 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_stage1_261012/s1_koa.sbatch",
                            "sbatch --job-name=gen3-s1-S --time=1:00:00 --array=7 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_stage1_261012/s1_koa.sbatch"],
-                    gline.startswith("cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue "), all(x + " && " in gline for x in rl), '"chunk (6|7) done"' in gline]
-            res(f"block F-{g} after the faulty attempt", "the two plain lines, one per class, and ONE guarded line holding both, unchanged and in order",
-                all(okF1), f"checks {okF1}")
+                    gline.startswith("cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue "), all(x + " && " in gline for x in rl), '"chunk (6|7) done"' in gline,
+                    f"F-{g} NOT CLEAN -- the merge was not submitted" in out, not re.search(r"^CHECKS GOOD$", out, re.M), nex() == n0]
+            res(f"block {FB} after the faulty attempt", "the two plain lines, one per class, and ONE guarded line holding both, unchanged and in order; "
+                f"then 'F-{g} NOT CLEAN -- the merge was not submitted' (no 'nothing to resubmit'), nothing submitted", all(okF1), f"checks {okF1}")
             n0 = nex(); rc, out = run_block(R, f"R-{g}", [gline], E)
             ex = tasks_since(n0)
             okR = [rc == 0, "CHECKS GOOD" in out, out.count("Submitted batch job") == 2, f"{g}: ALL 2 RESUBMISSION LINE(S) SUBMITTED" in out,
                    len(ex) == 2 and all(l.endswith(" 0") for l in ex)]
-            res(f"the guarded resubmission line of F-{g} typed once", "CHECKS GOOD, 2 lines submitted, both chunks exit 0", all(okR), f"checks {okR}")
+            res(f"the guarded resubmission line of {FB} typed once", "CHECKS GOOD, 2 lines submitted, both chunks exit 0", all(okR), f"checks {okR}")
             refused(f"R-{g}", [gline], E, "_second", "a second time")
-            rc, out = run_block(R, f"F-{g}", B[f"F-{g}"], E)
-            nlog = 2 * ncg
+            n0 = nex(); rc, out = run_block(R, FB, B[FB], E, "_again")
+            nlog = 2 * ncg; fg_ok = [f"F-{g} NOT CLEAN -- the merge was not submitted" in out, not re.search(r"^CHECKS GOOD$", out, re.M), nex() == n0]
         else:
-            rc, out = run_block(R, f"F-{g}", B[f"F-{g}"], E)
-            nlog = ncg
+            if g == "D":
+                # ##CHRIS 2026-10-13 (decision 45 addendum 2): block FG-D typed while F is not clean, one condition at a time where the five can
+                # be parted (they overlap: a chunk without its done log also fails the chunk check); every change is undone by moving files back
+                LG = os.path.join(hs, "logs"); AS = os.path.join(R, "logs", "aside_fg"); os.makedirs(AS)
+                jD = [k for k in range(1, len(MCH) + 1) if MCH[k - 1][0] == "D"][0]
+                dn = [p for p in os.listdir(LG) if re.match(rf"^gen3-s1-D_\d+_{jD}\.out$", p)]
+                if len(dn) != 1: sys.exit(f"STOP: group D's chunk {jD} has {len(dn)} logs")
+                dl = os.path.join(LG, dn[0]); txt = open(dl).read()
+                x1 = os.path.join(LG, f"gen3-s1-D_940990_{jD}.out")
+                open(x1, "w").write(f"chunk {jD} on cn-00-00-00 (rehearsal: a pretended extra attempt): group D, lines 32-33; it did not finish\n")
+                not_clean(FB, B[FB], E, "_extralog", "with an extra log of its chunk that did not finish (logs != chunks; the other four hold)")
+                shutil.move(x1, os.path.join(AS, os.path.basename(x1)))
+                shutil.move(dl, os.path.join(AS, dn[0] + ".original"))
+                open(dl, "w").write("".join(l for l in txt.splitlines(keepends=True) if l.strip() != f"chunk {jD} done"))
+                not_clean(FB, B[FB], E, "_nodone", "with its chunk's log without the done line (done logs != chunks; the chunk check fails too)")
+                shutil.move(dl, os.path.join(AS, dn[0] + ".nodone")); shutil.move(os.path.join(AS, dn[0] + ".original"), dl)
+                shutil.move(dl, os.path.join(AS, dn[0] + ".original"))
+                open(dl, "w").write(txt + "run 1 FAILED (rehearsal: a pretended refused run)\n")
+                not_clean(FB, B[FB], E, "_failed", "with a FAILED line in its chunk's log (0 FAILED or REFUSED fails; the other four hold)")
+                shutil.move(dl, os.path.join(AS, dn[0] + ".failed")); shutil.move(os.path.join(AS, dn[0] + ".original"), dl)
+                cf = os.path.join(root, "chunks", f"chunk_{jD}"); shutil.move(cf, os.path.join(AS, f"chunk_{jD}"))
+                not_clean(FB, B[FB], E, "_nofolder", "with its chunk folder moved aside (the chunk check exits 2; the other four hold)")
+                shutil.move(os.path.join(AS, f"chunk_{jD}"), cf)
+                res("group D after the four cases", "its chunk log and folder back as they were; nothing submitted", open(dl).read() == txt and os.path.isdir(cf)
+                    and not os.path.exists(os.path.join(root, "merged")), f"{dn[0]}, chunk_{jD}")
+            n0 = nex(); rc, out = run_block(R, FB, B[FB], E)
+            nlog = ncg; fg_out = out
+            fg_ok = ([bool(re.search(r"^CHECKS GOOD$", out, re.M)), f"{g}: THE MERGE SUBMITTED" in out, out.count("Submitted batch job") == 1,
+                      "NOT CLEAN" not in out] if one else [])
         okF = [str(nlog) in L(out), str(ncg) in L(out), "0" in L(out), f"chunk logs: {nlog}; chunks done: {ncg} of {ncg} (group {g};" in out,
                f"earlier attempts: {ncg if g == 'S' else 0} stopped in the start-up checks, 0 started and not finished" in out,
                f"group {g} without a done log: stopped once 0, stopped twice or more 0, started and not finished 0, no log 0" in out,
-               "nothing to resubmit" in out, "THE GUARDED RESUBMISSION LINE" not in out]
-        res(f"block F-{g}" + (" again, after the resubmission" if g == "S" else ""), "the counts, the chunk check, nothing to resubmit", all(okF), f"checks {okF}")
+               "nothing to resubmit" in out, "THE GUARDED RESUBMISSION LINE" not in out] + fg_ok
+        res(f"block {FB}" + (" again, after the resubmission" if g == "S" else ""), "the counts, the chunk check, nothing to resubmit"
+            + ({"D": "; F clean: CHECKS GOOD and 'D: THE MERGE SUBMITTED' (block G's guarded line inside the last line)",
+                "S": f"; then 'F-S NOT CLEAN -- the merge was not submitted' BY DESIGN ({nlog} logs for {ncg} chunks: the earlier attempts), nothing submitted"}.get(g, "")),
+            all(okF), f"checks {okF}")
         if g == "B100":
             q = os.path.join(R, "logs", "pretend_squeue.txt"); open(q, "w").write("940999_7 PENDING\n")
             refused(f"G-{g}", B[f"G-{g}"], env_for(R, home, shim, REHEARSAL_SQUEUE=q), "_pending", "with a pretended pending job")
@@ -310,8 +360,17 @@ def main():
             res(f"the merge of {g}: chunk 4's done log held aside", "the guard passes (CHECKS GOOD); the merge job itself: exit 2, 'NOT DONE: 4(no log with "
                 "its done line)', nothing moved", "CHECKS GOOD" in out and last_exit(R).endswith(" 2") and "NOT DONE: 4(no log with its done line)" in tl
                 and not os.path.exists(os.path.join(root, "merged")), last_exit(R))
-        rc, out = run_block(R, f"G-{g}", B[f"G-{g}"], E)
-        gx = last_exit(R); okG = ["CHECKS GOOD" in out, f"{g}: THE MERGE SUBMITTED" in out, out.count("Submitted batch job") == 1]
+            rc, out = run_block(R, f"G-{g}", B[f"G-{g}"], E)
+            gx = last_exit(R); okG = ["CHECKS GOOD" in out, f"{g}: THE MERGE SUBMITTED" in out, out.count("Submitted batch job") == 1]
+        elif g == "D":
+            gx = last_exit(R); okG = fg_ok
+        else:
+            # ##CHRIS 2026-10-13: after the NOT CLEAN by design, the plan author's go stands in: block G's guarded line alone, i.e. the then-branch of
+            # block FG-S's last line, unchanged
+            fgl = [l for l in B[FB] if l.startswith("if cd ~/harddisks_gen3_k2/hspist3 && ")][0]
+            gl = fgl.split("; then ", 1)[1].rsplit(f"; else echo 'F-{g} NOT CLEAN -- the merge was not submitted'; fi", 1)[0]
+            rc, out = run_block(R, f"G-{g}", ["squeue -u charing", gl], E, "_alone")
+            gx = last_exit(R); okG = ["CHECKS GOOD" in out, f"{g}: THE MERGE SUBMITTED" in out, out.count("Submitted batch job") == 1]
         rc, out = run_block(R, f"H-{g}", B[f"H-{g}"], E)
         rs_txt = open(rs).read().split(f"S1 BLOCK H-{g} (")[1].split(f"S1 BLOCK I-{g} (")[0]
         exp_plan = re.search(r'"plan entries by treatment: ([^"]+)"', rs_txt).group(1)
@@ -321,9 +380,17 @@ def main():
         okH = okG + [gx.endswith(" 0"), f"plan entries by treatment: {exp_plan}" in out, exp_m in out, exp_cnt in out,
                      f"merge done; next: the fetch (fetch_s1_koa.sh {g})" in out, not re.search(r"^STOP|problem\(s\): NOTHING", out, re.M),
                      "fit failures)" in out, not re.search(r"trajectories reduced *$", out, re.M)]          # the filter hides every reduce_B line
-        res(f"blocks G-{g} (typed once) and H-{g} (the merge, the reduction, the compression; its record)", f"CHECKS GOOD, 1 submitted, exit 0; "
+        how = {"B100": f"blocks G-{g} (typed once)", "D": f"block FG-{g} (F clean: the merge submitted inside it)",
+               "S": f"block G-{g}'s guarded line alone (the plan author's go after the NOT CLEAN by design)"}[g]
+        res(f"{how} and H-{g} (the merge, the reduction, the compression; its record)", f"CHECKS GOOD, 1 submitted, exit 0; "
             f"'{exp_plan}'; the merged line; '{exp_cnt}'", all(okH), f"checks {okH}")
-        refused(f"G-{g}", B[f"G-{g}"], E, "_second", "a second time")
+        if g == "B100":
+            refused(f"G-{g}", B[f"G-{g}"], E, "_second", "a second time")
+        elif g == "D":
+            refused(FB, B[FB], E, "_second", "a second time (F still clean: block G's own guard refuses, merged/ exists)")
+        else:
+            refused(f"G-{g}", ["squeue -u charing", gl], E, "_alone_second", "alone, a second time")
+            not_clean(FB, B[FB], E, "_second", "a second time (NOT CLEAN by design: the earlier attempts' logs)")
         if g == "B100":
             raw = re.search(r"(sbatch --job-name=gen3-s1-merge-B100 \S+ B100)", "\n".join(B[f"G-{g}"])).group(1)
             rc, out = run_block(R, f"G-{g}", ["cd ~/harddisks_gen3_k2/hspist3", raw], E, "_raw_second")
