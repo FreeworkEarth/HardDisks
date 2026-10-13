@@ -20075,3 +20075,206 @@ cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3 && bash hspist3/clu
 **Commits.**
 - engine-gen3: `ea8e0c9a` (the package), `76feb34b` (the rehearsal's evidence and the runsheet), and the copy of this record.
 - main and engine-divider-resched: this record.
+
+### 4.7.81 Plan-author decision 39: Reports P1, S-K, W2, S1-0 and M5 accepted; the campaign build is option (i), a fresh KOA build of f72d764 in a new clone; G6 (b) on the a643bc7 pair with an identity proof; the gate package for G6 (c) and (d); ν_ref as Test R; Part A waits; G1–G4 and G5 for Part B; Chris types the M5 job; Report M5-V after the fetch (2026-10-12 14:52 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 39** (relayed by Chris at about 14:52 HST, machine date; the plan author's time "~15:15 HST"):
+  1. **Report P1 is ACCEPTED** as PREVIEW, INFORMATION. The plan author's reading [INFERENCE]: gen3 reproduces the canonical A1 v2 values at all seven cells within errors.
+  2. **Report S-K is ACCEPTED:** no recorded Paper 2 run is affected by defect (b).
+  3. **The sec. 4.8 lines match** the plan author's copy. The recorded sec. 4.8 (main `85cb671e`) is the stage 1 registration.
+  4. **Report W2 is ACCEPTED** (display only). Nothing more is ordered for the window. **Recorded rule:** a window run in which a key or slider acting on the physics was used is a demonstration, never data. The n/a physics controls stay n/a.
+  5. **Report S1-0 is ACCEPTED as gate G0**, with these decisions:
+     - a) **The campaign build is option (i), as registered:** one KOA build whose build inputs equal `f72d764`.
+       - It goes in a new clone (CC proposes its name), fetched by hash and never rebuilt; `~/harddisks_gen3` (`a643bc7`) stays untouched as the gate binary.
+       - The build writes a build-time record (the commit and the SHA-256 of every binary it makes), which the jobs check without git.
+       - The stage 1 scripts come from engine-gen3's head through the scripts clone, as for Test R.
+       - **Recorded plan-author error:** the plan author assumed that the KOA binary `a643bc7` contained `f72d764`'s driver.
+     - b) **G6 (b):** the M5 job on the `a643bc7` double and long-double pair is the gate, provided CC prints two things: the proof that every engine source compiled into the binary, except `00ALLINONE.c`, is byte-identical between `a643bc7` and `f72d764` (git diff --stat and the file hashes); and which parts of `00ALLINONE.c` differ.
+     - c) **G6 (c) and (d)** run with the campaign binary: E0 (rule 4), cross-node determinism, the M1/M2 harness hashes, and the 12 gen3 lines of Test G chunk 1 with the gate binary and with the campaign binary, their event hashes compared. CC prepares them as one rehearsed gate package with its runsheet.
+     - d) **ν_ref** of the ν_d fit in stage 1 is the (cell, mass)'s own argmax mean over its clean trajectories, as in Test R. Gate G3 shows whether the registered numbers are reproduced to the printed digits; if not, CC prints the difference and stops.
+     - e) **Part A waits**, as sec. 4.8.4 foresees, with no code change now. CC writes a short list of exactly what it would need, for the plan author's amendment.
+     - f) **G1–G4 for Part B** (blocks B, D, S), and the verdict script (G5) with `--selftest` and `--design`. CC stops and reports if the `--design` total of B + D + S exceeds 5,000 core-hours, or if G2 or G4 would break the data cap (estimated first).
+  6. **Report M5 is ACCEPTED.** The job is approved, and Chris types blocks A–E now.
+     - The cap breach is noted; the rehearsal folder is kept.
+     - The stride of 1 step at η 0.74 stays for this job. **Recorded for stage 2:** the stride rule must not use KR's fluid c_s in the solid.
+     - After Chris's fetch, **Report M5-V**: the registered M5 rule on the fluid cells (K2-2) and the solid cell together, and the verdict.
+  - **Report S1** comes when G1–G4 and the gate package are ready. It holds: the `--design` output verbatim; the G2, G3 and G4 tables; the runsheets (the build, the gates, chunk 1, the arrays in the registered order); and the deviations.
+- **The plan author's note to Chris, in the same paste:**
+  - the preview's comparison table and the figure's path "for Wednesday";
+  - the decision on the campaign binary, in plain words;
+  - Chris pushes, types M5 blocks A–E, tells CC "the M5 fetch is done" and sends CC the last block;
+  - the window command for 5,000 disks;
+  - Chris should report it if resizing the window misbehaves (a live drag was not tested).
+- **Not received:** the paste ends with the label of an attached document, "261013 state of play" (Document·MD). Its text did not reach CC.
+- **Data marker of this message:** `$SP/.decision39_ref`, 14:52:09 HST. The cap is 500 MB of new data in this message, the scratchpad counted.
+
+**The message, verbatim** (the part for CC; relayed by Chris on 2026-10-12 at about 14:52 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record verbatim in
+a new section.
+
+DECISION 39 (2026-10-12 ~15:15 HST), after Reports P1, S-K, W2,
+S1-0 and M5
+ 1. Report P1: ACCEPTED as PREVIEW, INFORMATION. My reading
+    [INFERENCE]: gen3 reproduces the canonical A1 v2 values at all
+    seven cells within errors (relative differences -0.78 ...
+    +0.20 %; |z| <= 0.89 with scaled errors, <= 1.54 unscaled).
+ 2. Report S-K: ACCEPTED. No recorded Paper 2 run is affected by
+    defect (b).
+ 3. The sec. 4.8 lines match my copy of the registration. The
+    recorded sec. 4.8 (main 85cb671e) is the stage 1 registration.
+ 4. Report W2: ACCEPTED (display only). Addition 2's text did not
+    reach you; your reading covers it, and nothing more is ordered
+    for the window now. Recorded rule: a window run in which a key
+    or slider acting on the physics was used is a demonstration,
+    never data. The n/a physics controls stay n/a.
+ 5. Report S1-0: ACCEPTED as gate G0. Decisions:
+    a) THE CAMPAIGN BUILD IS OPTION (i), AS REGISTERED: one KOA
+       build whose build inputs equal f72d764, in a NEW clone
+       (propose its name), fetched by hash, never rebuilt;
+       ~/harddisks_gen3 (a643bc7) stays untouched and is the gate
+       binary. The build writes a build-time record (commit,
+       SHA-256 of every binary it makes) that the jobs check
+       without git. The stage 1 scripts come from engine-gen3's
+       head through the scripts clone, as for Test R. Recorded
+       plan-author error: I assumed the KOA binary a643bc7
+       contained f72d764's driver.
+    b) G6 (b): the M5 job on the a643bc7 double and long-double
+       pair is the gate, PROVIDED you print the proof that every
+       engine source compiled into the binary except 00ALLINONE.c
+       is byte-identical between a643bc7 and f72d764 (git diff
+       --stat and the file hashes), and quote which parts of
+       00ALLINONE.c differ.
+    c) G6 (c) and (d) run with the campaign binary: E0 (rule 4),
+       cross-node determinism, the M1/M2 harness hashes; and the
+       12 gen3 lines of Test G chunk 1 with the gate binary and
+       with the campaign binary, event hashes compared. Prepare
+       these as one rehearsed gate package with its runsheet.
+    d) nu_ref of the nu_d fit in stage 1: the (cell, mass)'s own
+       argmax mean over its clean trajectories, as Test R. Gate G3
+       shows whether the registered numbers are reproduced to the
+       printed digits; if not, print the difference and stop.
+    e) PART A WAITS, as sec. 4.8.4 foresees. Do not change any
+       code for it now. Write a short list of exactly what it
+       would need (the gen3 start and the exact box in the
+       energy-transfer path; the off-grid divider position; the
+       reducer's window; the event-log size), for my amendment.
+    f) Go ahead with G1-G4 for Part B (blocks B, D, S): the
+       generator with its --design tables, the task lists with
+       their SHA-256, the jobs in the Test R pattern, the cell
+       smoke (G2), the estimator gate (G3), the full Mac rehearsal
+       (G4), and the verdict script (G5) with --selftest and
+       --design. Stop and report if the --design total of
+       B + D + S exceeds 5,000 core-hours, or if G2 or G4 would
+       break the data cap (estimate first).
+ 6. Report M5: ACCEPTED; the job is approved and Chris types
+    blocks A-E now. The cap breach is noted; keep the rehearsal
+    folder. The stride of 1 step at eta 0.74 stays for this job;
+    record for stage 2 that the stride rule must not use KR's
+    fluid c_s in the solid. After Chris's fetch: print the
+    registered M5 rule on the fluid cells (K2-2) and the solid
+    cell together and the verdict (Report M5-V).
+
+ Report S1 when G1-G4 and the gate package are ready: the --design
+ output verbatim, the G2, G3 and G4 tables, the runsheets (build,
+ gates, chunk 1, the arrays in the registered order), deviations.
+ End each report with "Written for: the plan author".
+```
+
+**The plan author's note to Chris in the same paste, verbatim as pasted:**
+
+```
+CC delivered six reports while you were away. All are accepted, and the main news is good: the new engine reproduces the Paper 1 curve. There is one small KOA job for you to type now, and one decision of mine about how the campaign binary gets built.
+
+The preview result (Paper 1, speed of sound, new engine, 100 disks)
+
+All 1,575 runs were clean. Compared box by box with the old engine’s published values:
+
+Packing fraction	New engine minus old	Within errors?
+0.05	−0.04 %	yes
+0.11	+0.20 %	yes
+0.20	+0.06 %	yes
+0.26	−0.11 %	yes
+0.39 (π/8)	−0.05 %	yes
+0.52	−0.64 %	yes
+0.59	−0.78 %	yes
+
+No difference exceeds one standard error with the scaled errors (1.5 at most with the unscaled ones). The curve sits 0.8 to 2 % above Kolafa–Rottner, the same small-box offset as before. This is a preview without a verdict, but it is a clean picture for Wednesday: hspist3/experiments_gen3_preview_koa_261011/figure/preview_cs_vs_eta.png.
+
+The other reports, briefly
+Paper 2 spring check: all 2,136 spring runs had an explicit spring constant. Nothing is affected.
+The registration text: the lines CC printed match my copy word for word.
+The window: done. The box now fits your screen at any number of disks, the panels are full size, and nothing quits any more. CC’s command for 5,000 disks is at the end of this message.
+Campaign code facts (Report S1-0): see the decision below.
+Long-double job: prepared and rehearsed; you type it now.
+My decision on the campaign binary
+
+CC found that the binary we have on KOA cannot run the campaign: it was built before two options the registered plan needs were added (the order measure per compartment, and choosing the crystal orientation at the start). The engine core is identical; only the surrounding driver is older. I had wrongly assumed it was the newer version.
+
+So I follow the registered plan as written: one fresh build of the accepted version on KOA, in its own folder. A direct check will confirm that the fresh binary and the tested one produce identical event sequences on the same runs. CC prepares that runsheet together with the campaign scripts.
+
+One part cannot run as planned yet: the held-divider method (Part A). The driver does not support the exact box for it. The plan foresaw that case: Part A waits for a written change from me and does not hold up the main runs.
+
+What you do now
+Push: git push origin main engine-gen3 engine-divider-resched
+The long-double job on KOA (a few minutes of cluster time). Block A, wait for the cn- prompt, block B, then C. When the queue is empty, D. Then E on the Mac.
+Tell CC “the M5 fetch is done” and send it the last block.
+Paste me block D’s output and CC’s next report.
+
+M5 block A:
+
+squeue -u charing
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+
+M5 block B (at the cn- prompt):
+
+git --version
+cd ~/harddisks_gen3_k2
+git status --porcelain --untracked-files=no | wc -l
+git fetch --depth 1 origin ea8e0c9a3c671e6f48191ae8df7c06432c802356
+git -c advice.detachedHead=false checkout ea8e0c9a3c671e6f48191ae8df7c06432c802356
+git log -1 --format='%h %s' | cut -c1-80
+cd hspist3 && sha256sum cluster/gen3_m5_solid_261012/m5_solid_koa.sbatch cluster/gen3_m5_solid_261012/m5_solid_koa.py cluster/gen3_m5_solid_261012/m5_solid_inputs.sha256
+sha256sum -c cluster/gen3_m5_solid_261012/m5_solid_inputs.sha256 | grep -c ': OK$'
+(cd ~/harddisks_gen3/hspist3 && sha256sum -c ~/harddisks_gen3_k2/hspist3/cluster/gen3_koa_261009/k2_binaries_a643bc7.sha256)
+cat ~/harddisks_gen3/hspist3/logs/BUILD_KOA_LAST.hash ~/harddisks_gen3/hspist3/logs/BUILD_KOA_LD.hash
+~/harddisks_gen3/hspist3/00ALLINONE --version | head -1
+~/harddisks_gen3/hspist3/bin/00ALLINONE_ld --version | head -1
+source cluster/koa_env.sh
+python3 -c "import sys; sys.path.insert(0, 'cluster/gen3_m5_solid_261012'); import m5_solid_koa as R; print('the M5 imports: OK; seeds', R.seeds())"
+ls /mnt/lustre/koa/scratch/charing/harddisks_gen3/m5_solid_koa 2>&1 | head -2
+exit
+
+Good: HEAD is now at ea8e0c9; the count 10; four lines ending : OK; the two version lines (target koa and target koa-ld); the M5 imports: OK; seeds [3627127649, 2405664135, 3253290098, 2555073433]; and No such file or directory for the m5_solid_koa folder.
+
+M5 block C (login node, after exit; submit once):
+
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3 && sbatch cluster/gen3_m5_solid_261012/m5_solid_koa.sbatch
+
+M5 block D (when the queue is empty):
+
+squeue -u charing
+cd ~/harddisks_gen3_k2/hspist3 && L=$(ls -t logs/gen3-m5-solid_*.out | head -1) && echo "$L" && sed -n '/^M5 solid cell on/,$p' "$L"
+
+Good: exit codes 0, 0, 0, 0, 0, 0, 0, 0, eight rows with clean 1, and M5 solid cell done. A line starting with STOP: paste it and wait.
+
+M5 block E (Mac; one password and Duo; about 66 MB):
+
+cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3 && bash hspist3/cluster/gen3_m5_solid_261012/fetch_m5_solid_koa.sh
+The window with 5,000 disks, now fitted to your screen
+cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3 && experiments_gen3_d34s_261012/bin_406044f/00ALLINONE --show-simulation --mode=edmd --engine=gen3 --edmd-acc=0 --seed-drift-order=drift-first --kbt1 --particles=5000 --particles-boxes=2500,2500 --particle-radius=0.5 --l0=89.5904 --height=70.7107 --num-walls=1 --wall-positions=89.5904 --wall-mass-factors=50 --wall-hold-steps=600 --fixed-dt=0.4 --seed=9300 --gui-time-scale=200
+
+Space starts it; after the hold counts down, R releases the divider. CC could not test dragging the window with the mouse, so tell me if resizing misbehaves.
+
+For CC:
+```
+
+**The end of the paste, verbatim** (the label of an attachment whose text did not reach CC):
+
+```
+261013 state of play
+Document·MD
+```
