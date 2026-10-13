@@ -1,0 +1,4 @@
+# the SHA-256 of the a643bc7 gate job's M1/M2 harness outputs on KOA (job 15040861, gate part (b); fetched: experiments_gen3_gate_koa_261009/gate/harness/ of the main worktree)
+cf1aa2ae8e52fd75d7282b0d6ace588792a57f48d8d07bbc8a9d48f8ef0aedfa  m1_audit_output.txt
+9736a19dd88cf60e79c9ba867ec8295e9318a63cfa227250396445e0180e5405  m2_audit_quick_output.txt
+d9c68c880a8ba9420d3ab35abc619e90efed4337ba519c67e82db86fa343474c  m2_audit_output.txt
