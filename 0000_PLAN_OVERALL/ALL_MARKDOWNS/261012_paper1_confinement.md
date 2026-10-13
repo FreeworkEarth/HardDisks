@@ -24011,3 +24011,112 @@ End with "Written for: the plan author".
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.92 Report D44 — the third CPU model in the KOA facts; which libm functions the gen3 path and the seeding call (report only); the timing table per CPU model; the B100 tables and the merge's time follow the fetch (decision 44 items 2 and 6) (2026-10-13 00:37 HST, machine date) [DATA, from the code of f72d764]
+
+**Plain summary.**
+- **The KOA facts now hold the CPU models** (`hspist3/cluster/README.md`, main and engine-gen3): one dated row and a note on seed bits.
+  - `shared`: E5-2670 v3 (Haswell; most jobs), Gold 6342 (Ice Lake; K2-2), and now E5-4640 v2 (Ivy Bridge, no FMA, no AVX2; 41 of B100's 144 chunks).
+  - `sandbox`: E5-2680 v2 (Ivy Bridge).
+- **The libm functions, from f72d764's code (report only).**
+  - **The gen3 engine itself,** on stage 1's path, calls only exact operations and `sqrt`: `fabs`, `fmin`, `fmax`, `floor`, `ceil`, `fmod`, `nextafter`, `ldexp`, and `sqrt`, which IEEE rounds correctly. These give the same bits on every x86-64 CPU.
+    - Its trigonometric calls (`sin`, `cos`, `atan2`, `acos`, `hypot`) all sit in the code of a spring-loaded divider, which runs only when `k > 0` (`--spring-k`). Stage 1 has no spring.
+  - **The seeding is where CPU-dependent functions enter:**
+    - the lattice jitter calls `cos` and `sin` in double;
+    - the Box–Muller velocities call `logf`, `cosf` and `sinf` in float;
+    - the random numbers themselves are integer arithmetic (the seeder's splitmix64, glibc's `rand()`).
+  - **The measurements** (ψ6: `atan2`, `cos`, `sin`, `exp`) only read the state.
+  - **So the plan author's reading holds,** and the mechanism is now located: on the E5-4640 v2, glibc can give these seeding functions other last bits than on the FMA nodes. A seed then starts from a state that differs at the last bit. After that the dynamics add no CPU dependence of their own.
+- **The timing table** already prints each CPU model on its own row: it groups by the full model string of each chunk's done log. Its watch line takes the maximum over both E5 models, the rule's "E5 maximum".
+- **Item 6 waits for the B100 fetch.**
+  - Then come the INTERIM tables, the timing table, and the merge job's elapsed time and where it went.
+  - The merge log prints no times. The split between moves, reduction and gzip will come from the fetched files' modification times: the plan file, `.merge_complete`, each folder's reduction outputs and its `.sha256_uncompressed` (appended at compression). Chris's `sacct` line, if pasted, gives the elapsed time exactly.
+- **Data this message:** about 0.1 MB.
+
+## 1. The KOA facts (decision 44 item 2), the lines added to `hspist3/cluster/README.md`
+
+```
+| CPU models seen in jobs (2026-10-13) | `shared`: Xeon E5-2670 v3 @ 2.30GHz (Haswell; FMA, AVX2; most jobs); Xeon Gold 6342 @ 2.80GHz (Ice Lake; cn-09-30-02, job K2-2); Xeon E5-4640 v2 @ 2.20GHz (Ivy Bridge; no FMA, no AVX2; cn-04-…, 41 of stage 1 B100's 144 chunks). `sandbox`: Xeon E5-2680 v2 (Ivy Bridge; cn-03-33-01, -02). The `-march=x86-64-v2` binary runs clean on all of them (##CHRIS 2026-10-13, plan-author decision 44, notes 261012 sec. 4.7.91) |
+##CHRIS 2026-10-13 (plan-author decision 44): **a seed's bits may differ between these CPU models.** glibc picks, at load time, an FMA build of its transcendental functions (sin, cos, log, exp, pow, atan2 and their float versions) on FMA CPUs (Haswell, Ice Lake) and an SSE2 build on Ivy Bridge, and the two can differ in the last bit. In the gen3 stage 1 runs these functions enter only the initial state (the lattice jitter: cos, sin; the Box-Muller velocities: logf, cosf, sinf), so the same seed can start from a state that differs in the last bit and then follow another chaotic trajectory; this affects no verdict (sec. 4.8.5). Determinism is tested only within one CPU model.
+```
+
+My working memory's KOA facts say the same.
+
+## 2. Which libm functions the gen3 path and the seeding call (report only; the code of f72d764)
+
+**(a) The gen3 engine, `edmd_core/edmd_gen3.c`.**
+
+Counted in its code, comments excluded:
+
+| function | calls |
+|---|---|
+| `fabs` | 48 |
+| `fmax` | 14 |
+| `sqrt` | 9 |
+| `fmin` | 7 |
+| `floor` | 7 |
+| `ceil` | 4 |
+| `sin`, `cos` | 3 each |
+| `atan2`, `hypot`, `fmod` | 2 each |
+| `nextafter`, `ldexp` | 1 each |
+| `acos` | 1 |
+
+- **The transcendental calls are in six functions:** `obj_at`, `obj_amp`, `harm_g`, `harm_gp`, `body_rule` and `body_reach`. All of them serve a harmonic (spring) divider, `O->harmonic = (k > 0 && M > 0)` (`edmd_gen3.c:1147`, `:1467`).
+  - The stage 1 command sets no spring, so these lines do not run.
+- **What stage 1's engine path calls,** classed by how the result is defined:
+
+  | functions | how the result is defined |
+  |---|---|
+  | `fabs`, `fmin`, `fmax`, `floor`, `ceil`, `fmod`, `nextafter`, `ldexp` | exact by definition |
+  | `sqrt` | correctly rounded (IEEE 754) |
+
+- **Same bits on every x86-64 CPU,** because the build is `-march=x86-64-v2 -ffp-contract=off`: the compiler emits no FMA of its own.
+- **From `edmd.c` (the gen2 engine) the gen3 engine calls only `edmd_log_event`,** the gated event log, which is off in stage 1. `edmd.c`'s own `cos`, `sin`, `log`, `hypot`, `atan2` and `asin` sit in:
+  - its spring code;
+  - its divider collision times;
+  - its thermal walls;
+  - its own gas initialisers.
+
+**(b) The seeding,** `--gen3-seeding=lattice`, which goes through `g3_m4_init_driver`.
+- **Positions:** `g3_m4_seed` and `g3_lattice_place` (`00ALLINONE.c:16205-16330`).
+  - The lattice itself uses `sqrt`, `fmin` and `fabs`.
+  - The jitter is `rho = jit · sqrt(u)` and `φ = 2π u`, giving `x += rho · cos(φ)` and `y += rho · sin(φ)`, in double.
+  - `u` comes from the seeder's own splitmix64 stream, which is integer arithmetic.
+- **Velocities:** `maxwell_boltzmann_2D` (`00ALLINONE.c:5657`), a single-precision Box–Muller.
+  - It draws `u1`, `u2` from glibc's `rand()`, which is integer arithmetic.
+  - It computes `sqrtf(-2·logf(u1)) · cosf(2π u2)` and `… · sinf(2π u2)`, with `sigma = sqrt(…)`.
+  - Then a kinetic-energy rescale by `sqrt` (`00ALLINONE.c:16357`).
+- **So the seeding's CPU-dependent calls are `cos` and `sin` (double) and `logf`, `cosf` and `sinf` (float).**
+  - glibc on x86-64 selects, when the library loads, an FMA build of these functions on FMA CPUs and an SSE2 build on the E5-4640 v2 and E5-2680 v2.
+  - The two builds are not guaranteed to agree in the last bit.
+
+**(c) The measurements, for information.**
+- ψ6 (`compute_psi6_from_edmd`: `atan2`, `cos`, `sin`, `exp`, `sqrt`) and the virial blocks read the state and feed nothing back.
+- Their last bits can also differ across CPU models; their statistics cannot.
+
+**(d) The consequence.**
+- A seed run on an E5-4640 v2 can start from a state that differs at the last bit from the same seed on an E5-2670 v3. It then decorrelates within a few σ-time, as the M5 pairs did (2.75–6.5 σ-time).
+- Every later difference comes from that start. The engine's own operations are exact or correctly rounded.
+- This affects no verdict (sec. 4.8.5).
+- **Not tested** (it would be a run): chunk 1's first line on each CPU model, and whether its event hashes are equal. CC can prepare it if the plan author wants it.
+
+## 3. The timing table per CPU model (decision 44 item 2)
+
+- `s1_timing_261012.py` takes each chunk's node and CPU model from the fetched log holding "chunk <j> done". It groups the ratios by the full model string, so E5-2670 v3, E5-4640 v2 and Gold 6342 each print as their own row (minimum, median, maximum).
+- Its watch line is the maximum over the chunks on any E5 model, the rule's "E5 maximum". With the per-model rows above it, the maximum of each E5 model can be read directly.
+- No change was made.
+
+## 4. Item 6, after the B100 fetch
+
+When Chris says the fetch is done, CC prints verbatim:
+- the INTERIM tables (`s1_verdict_261012.py --data experiments_gen3_stage1_koa_261012 --interim`);
+- the timing table of B100 (`s1_timing_261012.py B100`);
+- the merge job's elapsed time and its split, as in the plain summary.
+
+## Commits
+
+- main: this record and the KOA facts (`hspist3/cluster/README.md`).
+- engine-gen3: the copies of both.
+- engine-divider-resched: the notes' copies.
+
+Written for: the plan author

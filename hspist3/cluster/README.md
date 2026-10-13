@@ -89,6 +89,7 @@ Cost on the laptop for comparison: `a2_long200` alone is ≈ 1400 core-hours ≈
 | transfer | DTN **`koa-dtn.its.hawaii.edu`** — use it for rsync, not the login node |
 | modules | **Lmod** (`module avail`, `module load`) |
 | CPUs | **heterogeneous, Ivy Bridge included** — see the ISA warning below |
+| CPU models seen in jobs (2026-10-13) | `shared`: Xeon E5-2670 v3 @ 2.30GHz (Haswell; FMA, AVX2; most jobs); Xeon Gold 6342 @ 2.80GHz (Ice Lake; cn-09-30-02, job K2-2); Xeon E5-4640 v2 @ 2.20GHz (Ivy Bridge; no FMA, no AVX2; cn-04-…, 41 of stage 1 B100's 144 chunks). `sandbox`: Xeon E5-2680 v2 (Ivy Bridge; cn-03-33-01, -02). The `-march=x86-64-v2` binary runs clean on all of them (##CHRIS 2026-10-13, plan-author decision 44, notes 261012 sec. 4.7.91) |
 
 **Preemption changes how you submit.** `kill-shared` is free capacity but a task can die mid-run, so
 it is only usable because `run_array.sbatch` is **restart-safe**: it skips a trajectory whose trace
@@ -131,6 +132,8 @@ it ran. Every task appends to its `00_COMMAND.md`:
 ```
 
 If a cell's results ever split into two clusters, the CPU model is the first thing to check.
+
+##CHRIS 2026-10-13 (plan-author decision 44): **a seed's bits may differ between these CPU models.** glibc picks, at load time, an FMA build of its transcendental functions (sin, cos, log, exp, pow, atan2 and their float versions) on FMA CPUs (Haswell, Ice Lake) and an SSE2 build on Ivy Bridge, and the two can differ in the last bit. In the gen3 stage 1 runs these functions enter only the initial state (the lattice jitter: cos, sin; the Box-Muller velocities: logf, cosf, sinf), so the same seed can start from a state that differs in the last bit and then follow another chaotic trajectory; this affects no verdict (sec. 4.8.5). Determinism is tested only within one CPU model.
 
 ## Commands to confirm the above on first login
 
