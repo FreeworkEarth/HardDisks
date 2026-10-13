@@ -23304,10 +23304,10 @@ cd ~/harddisks_gen3_k2/hspist3 && G=B400 && R=/mnt/lustre/koa/scratch/charing/ha
 
 Written for: the plan author
 
-### 4.7.87 Plan-author decision 42: Report G6 accepted, G6 (c) and (d) MET; the stage 1 commit 7bdfb67e accepted; stage 1 blocks A–D approved (G6 (e), chunk 1 alone), typed with a guarded block C and two more read-only lines in block D; the second-paste guards to be written by the generator and rehearsed; G7 not given (2026-10-12 22:16 HST, machine date) [SOURCE]
+### 4.7.87 Plan-author decision 42: Report G6 accepted, G6 (c) and (d) MET; the stage 1 commit 7bdfb67e accepted; stage 1 blocks A–D approved (G6 (e), chunk 1 alone), typed with a guarded block C and two more read-only lines in block D; the second-paste guards to be written by the generator and rehearsed; G7 not given (2026-10-12 22:50 HST, machine date) [SOURCE]
 
 **Plain summary.**
-- **Decision 42** (relayed by Chris at about 22:16 HST, machine date; the plan author's time "~22:15 HST"):
+- **Decision 42** (relayed by Chris at about 22:49 HST, machine date; the plan author's time "~22:15 HST"):
   1. **Report G6 is ACCEPTED.** G6 (c) and G6 (d) are MET by the verdict of record (sec. 4.7.86). Checks 14, 15 a and 15 b are received. Bit-identity across KOA's two CPU models stays untested, and recorded.
   2. **The stage 1 commit `7bdfb67e` is ACCEPTED**, verified by the plan author from the Mac's working tree:
      - the 13 files of block B hash to the runsheet's 13 lines;
@@ -23333,7 +23333,7 @@ Written for: the plan author
      - d) the report: the rehearsal output, the new runsheet's SHA-256, the diff against `88d2eaf0…` limited to the changed command lines, and blocks E-B100 to I-B100 verbatim.
   6. **G7 is not given.** No array is typed before the plan author's go on chunk 1's paste and on CC's guarded block E-B100.
 
-**The message, verbatim** (the part for CC; relayed by Chris on 2026-10-12 at about 22:16 HST, machine date):
+**The message, verbatim** (the part for CC; relayed by Chris on 2026-10-12 at about 22:49 HST, machine date):
 
 ```
 For CC
