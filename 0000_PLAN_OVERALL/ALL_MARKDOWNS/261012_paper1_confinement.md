@@ -24282,3 +24282,156 @@ the two manifests changes.
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.96 Report D45 — decision 45 and its two addenda recorded; the INTERIM report's tools ready (item 5 for B100 and B400, item 6), waiting for the fetches; item 6 already bounded by the chunk table; blocks F and G as one paste (block FG) for D, B900, S and B1600, rehearsed: PASS 40 of 40 (2026-10-13 13:23 HST, machine date) [DATA: the code, the chunk table, the Mac rehearsal]
+
+**Plain summary.**
+- **Recorded:** decision 45 (sec. 4.7.93), addendum 1 (sec. 4.7.94), addendum 2 (sec. 4.7.95).
+- **Item 5 (B100, then B400) waits for Chris's word that the fetches are done.**
+  - The tools are on engine-gen3. They only read the fetched folders and were tried on the rehearsal's fetched folders and on a synthetic folder.
+  - Already known from the code:
+    - (d) the INTERIM tables do not hold C-a or C-b;
+    - (e) the merge job's start is in no fetched file.
+- **Item 6 is already settled by the plan author's own timing lines.**
+  - Every chunk of B900 and B1600 has class / predicted ≥ 3.00, so a chunk is at risk only if the measured maximum at its eta exceeds 2.40.
+  - The largest ratios measured so far are 1.61 (B100) and 1.67 (B400), over every eta and CPU model. So no chunk can pass 1.67 / 3.00 = 0.56 of its class.
+  - The table per eta and CPU model after the fetches will show the margins and print "none".
+- **Addendum 2 is done:**
+  - block FG for D, B900, S and B1600 in the runsheet, now a3eb77e4;
+  - every other block is byte for byte as before;
+  - G's guarded line inside FG is byte for byte the old G line;
+  - the Mac rehearsal (run 4, mini table): PASS 40 of 40;
+  - the two manifests are unchanged (21 OK).
+- **One finding of the rehearsal:** after a resubmission, block FG prints NOT CLEAN by design, because the earlier attempts' logs make logs ≠ chunks. The merge then needs the plan author's go and G's guarded line alone.
+- **Data this message:** about 57 MB, almost all of it the rehearsal's scratch folder.
+
+## 1. Item 5, after the fetches: what CC prints, for B100 and then for B400, labelled INTERIM
+
+| part | how | state |
+|---|---|---|
+| (a) the INTERIM tables | `s1_verdict_261012.py --data <view> --interim`, the view a folder holding a link to that one group, so each group's tables are the script's own output for that group alone | unchanged script |
+| (b) the fit failures | new `s1_fitfail_261012.py <group> --min 3` (B400: `--min 2`, the six with 2 as information) | engine-gen3 82d6da62 |
+| (c) the timing table | `s1_timing_261012.py <group>`, which now prints, next to its table per CPU model, the maximum ratio per cell (eta) for each CPU model (with its chunk) | 82d6da62; its other lines and its per-chunk TSV are unchanged (diffed on the rehearsal's three groups) |
+| (d) C-a, C-b | see below | — |
+| (e) the merge's time | new `s1_merge_time_261012.py <group> [--start 'UTC']` | 82d6da62 |
+
+**(b), what "which criterion failed" can mean here.**
+- The registered nu_d fit (`fit_acf`: curve_fit with bounds, maxfev 200000) has one failure criterion: it raises.
+- KOA's `nud_runs.csv` records only `fit_ok 0`, not why.
+- So the script repeats the fit on the Mac, on the fetched ACF with KOA's inputs (the folder's ACFs cut to the shortest, its dt, nu_ref = the folder's argmax mean). It prints the exception for each failed seed, mapped to a criterion: no convergence within maxfev; a value not finite at the start; the start outside the bounds; the covariance step.
+- As information, it also prints scipy least_squares with the same model, start, bounds and limit: its status, its evaluations, its last iterate, the bounds it ends on, and Q = omega tau_r / 2 there.
+- **The repetition check:** fit_ok of every trajectory of the folder on the Mac against KOA, and the largest |nu_d (Mac) / nu_d (KOA) − 1|.
+  - The Mac has scipy 1.16.2; KOA's env has 1.18.1.
+  - If the Mac's fit converges where KOA's raised, CC says so: the criterion then cannot be named without a KOA run, which decision 45 rules out.
+- **Q of each folder:** E1's Q_k = π nu_d-bar tau_r over its used seeds, and the KOA reduction's Q_meanfit over all its trajectories.
+- **The group rule, by arithmetic now:**
+  - a folder with 3 failures and no health exclusion loses 3 > 2, so it is flagged and left out of its cell's fits;
+  - B100's two such folders leave a cell at least 6 of its 8 masses α ≥ 1 (8 if the flagged mass is α = 0.5), and B400's one leaves at least 7;
+  - so every cell keeps 5 or more, unless health exclusions flag further masses. F-B100 and H-B100 show no failed-run folder; the fetched tables decide it;
+  - B400's six folders with 2 losses are not flagged unless a health exclusion adds a third.
+
+**(d) C-a and C-b are not in the INTERIM tables.**
+- `--interim` stops after the per-cell table. The continuity lines (C-a, C-b, C-c) are printed only by the full report.
+- The per-cell table does hold C-a's value, E0 at (100, π/8), but not its reference or z. C-b's two nu_arg means (M = 300, 1500) are not in it.
+- If the plan author wants them, CC can print the full report's two lines from the same analysis with a few lines of code, without changing the verdict script. Labelled INTERIM, information.
+
+**(e) The split comes from the fetched files' times.**
+- `fetch_s1_koa.sh`'s rsync -a keeps them; KOA's Lustre stores whole seconds.
+- The phases: the plan file; `.merge_complete`; per cell reduce_B (red_nu.csv, acf_runs.npz) and reduce_s1 (its six tables); per folder the SHA-256 lines (`.sha256_uncompressed`) and gzip (the folder's own time); the end, which is the merge log's copy into job_logs/, the job's last command.
+- Each phase must end after the one before, and the order is checked against the merge log's own step lines.
+- **The job's start is in no fetched file.**
+  - For B100, the plan author's squeue reading (49 min at 00:26 HST) gives about 09:37 UTC. For B400 there is nothing.
+  - One read-only line on the KOA login node gives both exactly: `sacct -j 15053009,15053737 -X -o JobID,JobName%22,Start,End,Elapsed,State,NodeList%14`.
+  - Without it, CC prints the span from the plan to the end and the split within it.
+
+## 2. Item 6, the time-class risk table (new `s1_class_risk_261012.py`, engine-gen3 82d6da62 and e10e5f75)
+
+- **What it prints:**
+  - the measured maximum ratio per eta and CPU model: each measured group's own maximum (B100, B400) and their maximum, so a rise with N shows;
+  - per time class of B900 and B1600: the smallest class / predicted with its chunk, and the measured maximum at that chunk's eta per CPU model;
+  - the largest share of its class any chunk reaches;
+  - the chunks at risk, or "none". A chunk at an eta without a measured ratio is listed as not assessed.
+- It was tried on synthetic ratios: 2.6 at eta 0.60 gives 21 chunks at risk, and an independent awk count gives 21.
+
+**The part that needs no fetch, from the chunk table (now):**
+
+| group | class [min] | chunks | smallest class / predicted (chunk: cell, M, predicted s) | 0.8 × that: the measured maximum that would put it at risk |
+|---|---|---|---|---|
+| B900 | 120 | 43 | 3.04 (860: B_N0900_eta0.300000, 900, 2372) | 2.43 |
+| B900 | 180 | 442 | 3.02 (1010: B_N0900_eta0.600000, 18000, 3582) | 2.41 |
+| B900 | 240 | 103 | 3.33 (697: B_N0900_eta0.100000, 9000, 4322) | 2.67 |
+| B900 | 360 | 12 | 3.73 (591: B_N0900_eta0.050000, 9000, 5788) | 2.99 |
+| B1600 | 120 | 58 | 3.03 (1663: B_N1600_eta0.150000, 1600, 2380) | 2.42 |
+| B1600 | 180 | 746 | 3.00 (1805: B_N1600_eta0.200000, 1600, 3594) | 2.40 |
+| B1600 | 240 | 389 | 3.01 (2225: B_N1600_eta0.392699, 24000, 4786) | 2.41 |
+| B1600 | 360 | 169 | 3.05 (1339: B_N1600_eta0.050000, 8000, 7072) | 2.44 |
+| B1600 | 480 | 25 | 3.36 (1364: B_N1600_eta0.050000, 12000, 8567) | 2.69 |
+| B1600 | 720 | 75 | 3.13 (1439: B_N1600_eta0.050000, 32000, 13793) | 2.51 |
+
+- **The bound:**
+  - The plan author's timing lines give the largest measured ratios: 1.61 (B100, chunk 82) and 1.67 (B400, chunk 315). Their definition is the same as the table's: the chunk's ##RUN seconds over predicted_s_E5.
+  - So the largest share of its class any B900 or B1600 chunk can reach is 1.67 / 3.00 = 0.56. That is below 0.8, so the list will be "none".
+- **Information:** this rule projects from N = 100 and 400.
+  - The B400 median (0.53) is half the B100 median (1.09): fixed overheads weigh less in longer runs.
+  - The two groups' maxima at each eta, side by side, will show whether the largest ratios grow with N at the high etas.
+
+## 3. Addendum 2: blocks F and G as one paste
+
+**The runsheet (make_s1_runsheet.py at 1bb9ae8b; runsheet a3eb77e4, 649 lines, from 6398ae1e, 647 lines).**
+- For D, B900, S and B1600, blocks F and G are replaced by block FG.
+- **What FG holds:**
+  - F's command lines, unchanged and first;
+  - then one line that is F's five good conditions computed again (F's lines above it only print them);
+  - then G's guarded line, byte for byte the old block G's line;
+  - else `echo 'F-<g> NOT CLEAN -- the merge was not submitted'`.
+- **What stays the same:**
+  - B100's and B400's blocks F and G stay as they were typed;
+  - every block A–D, E, H and I is byte for byte unchanged; the diff is kept;
+  - the two header lines name the new form.
+- **The good lines:** F's own, then "CHECKS GOOD", "Submitted batch job <n>" and "<g>: THE MERGE SUBMITTED".
+- Nothing on KOA changes: the runsheet is not in the scripts clone or the manifests (21 OK).
+
+**FG-D's last line, verbatim (1,447 characters):**
+
+```
+if cd ~/harddisks_gen3_k2/hspist3 && [ "$(ls logs/gen3-s1-D_*.out 2>/dev/null | wc -l)" -eq 181 ] && [ "$(grep -lx 'chunk [0-9]* done' logs/gen3-s1-D_*.out 2>/dev/null | wc -l)" -eq 181 ] && [ "$(cat logs/gen3-s1-D_*.out 2>/dev/null | grep -c -e FAILED -e REFUSED)" -eq 0 ] && bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s1-D /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/chunks cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv D >/dev/null 2>&1 && bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-D cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv D 2>/dev/null | grep -qx 'nothing to resubmit'; then cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-D,gen3-s1-merge-D -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-D or gen3-s1-merge-D job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-D cluster/gen3_stage1_261012/s1_merge.sbatch D && echo "D: THE MERGE SUBMITTED" || echo "D: THIS PASTE DID NOT SUBMIT THE MERGE"; else echo 'F-D NOT CLEAN -- the merge was not submitted'; fi
+```
+
+**The rehearsal (`rehearse_s1_mac.py` at 1bb9ae8b, as G4: the build, the mini list of 37 registered lines in 7 chunks, the runsheet's own blocks as typed, shims for Slurm): REHEARSAL G4: PASS (40 of 40).**
+
+Its FG steps (B100's steps as in run 3):
+
+| step | result |
+|---|---|
+| FG-D with an extra log of its chunk that did not finish (logs 2 ≠ chunks 1; the other four hold) | "F-D NOT CLEAN -- the merge was not submitted", nothing submitted |
+| FG-D with its chunk's log without the done line (done 0; the chunk check fails too) | NOT CLEAN, nothing submitted |
+| FG-D with a FAILED line in its chunk's log (FAILED 1; the other four hold) | NOT CLEAN, nothing submitted |
+| FG-D with its chunk folder moved aside (the chunk check exits 2; the other four hold) | NOT CLEAN, nothing submitted |
+| D's log and folder back as they were (every change was a move, nothing deleted) | PASS |
+| FG-D clean | F's good lines, "CHECKS GOOD", "D: THE MERGE SUBMITTED"; the merge exit 0; H-D's counts as the runsheet's |
+| FG-D a second time | G's own guard refuses ("merged exists"), nothing submitted |
+| FG-S after the faulty attempt | the resubmission lines and the guarded line holding both; then NOT CLEAN (no "nothing to resubmit"), nothing submitted |
+| FG-S after the resubmission | F's counts with the earlier attempts (4 logs for 2 chunks); NOT CLEAN by design, nothing submitted |
+| G-S's guarded line alone (the then-branch of FG-S's last line, standing in for the plan author's go) | the merge submitted, exit 0; a second time refused |
+| FG-S a second time | NOT CLEAN, nothing submitted |
+
+**Notes for the plan author:**
+1. **After a resubmission the five conditions cannot all hold:** the earlier attempts' logs stay in logs/. So FG prints NOT CLEAN by design, and the merge needs the plan author's go and G's guarded line alone. G's own guard and the merge job's checks still stand.
+2. **The five overlap:** done logs ≠ chunks and a missing "nothing to resubmit" never fail alone, because a chunk without its done log also fails the chunk check. The rehearsal separated the conditions where it could:
+   - logs ≠ chunks alone;
+   - FAILED alone;
+   - the chunk check alone;
+   - done logs with the chunk check;
+   - "nothing to resubmit" with both.
+3. **The plan author's timing line (decision 43 rule d)** is not in the runsheet's FG, as it was not in F. It can stand among F's lines, before the last line.
+4. **The plan author's own FG text for group D did not reach CC.** If it is pasted, CC compares it with the runsheet's FG-D.
+
+## Commits
+
+- main: decision 45 (sec. 4.7.93), addendum 1 (4.7.94), addendum 2 (4.7.95) and this report (4.7.96); the copies on engine-gen3 and engine-divider-resched.
+- engine-gen3:
+  - 82d6da62: the INTERIM helpers;
+  - 1bb9ae8b: make_s1_runsheet.py (block FG) and rehearse_s1_mac.py;
+  - e10e5f75: the runsheet a3eb77e4; the rehearsal's run 4 (`experiments_gen3_s1_261012/g4_rehearsal/run4_1bb9ae8/`, its README entry and the runsheet diff); the risk table's per-group columns.
+
+Written for: the plan author
