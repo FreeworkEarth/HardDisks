@@ -1,0 +1,139 @@
+12a13,14
+> For D, B900, S, B1600 blocks F and G are ONE paste, block FG (decision 45 addendum 2): F's lines, then block G's guarded
+> line only if F's five good conditions hold, else "F-<g> NOT CLEAN -- the merge was not submitted".
+301c303
+< S1 BLOCK F-D (KOA login node, when squeue -u charing lists no gen3-s1-D job; every line only reads; paste everything):
+---
+> S1 BLOCK FG-D (KOA login node, when squeue -u charing lists no gen3-s1-D job; blocks F and G as ONE paste, decision 45 addendum 2: F's lines only read, the last line submits the merge only if F is clean; the merge: one core, at most 6 h; paste everything, once):
+309a312
+> if cd ~/harddisks_gen3_k2/hspist3 && [ "$(ls logs/gen3-s1-D_*.out 2>/dev/null | wc -l)" -eq 181 ] && [ "$(grep -lx 'chunk [0-9]* done' logs/gen3-s1-D_*.out 2>/dev/null | wc -l)" -eq 181 ] && [ "$(cat logs/gen3-s1-D_*.out 2>/dev/null | grep -c -e FAILED -e REFUSED)" -eq 0 ] && bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s1-D /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/chunks cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv D >/dev/null 2>&1 && bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-D cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv D 2>/dev/null | grep -qx 'nothing to resubmit'; then cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-D,gen3-s1-merge-D -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-D or gen3-s1-merge-D job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-D cluster/gen3_stage1_261012/s1_merge.sbatch D && echo "D: THE MERGE SUBMITTED" || echo "D: THIS PASTE DID NOT SUBMIT THE MERGE"; else echo 'F-D NOT CLEAN -- the merge was not submitted'; fi
+320c323,331
+<   IF the last command prints "THE RESUBMISSION LINE(S)" (sbatch --job-name=... --time=... --array=... --exclude=cn-05-08-07,...) and then
+---
+>     then "CHECKS GOOD", "Submitted batch job <its number>" and "D: THE MERGE SUBMITTED" (block G's guarded line, inside the last line)
+>   THE LAST LINE (decision 45 addendum 2) types block G's guarded line, unchanged, only if all five hold: 181 chunk logs, 181 logs
+>   with their done line, 0 lines with FAILED or REFUSED, the chunk check exits 0, and "nothing to resubmit". Otherwise it prints
+>   "F-D NOT CLEAN -- the merge was not submitted" and submits nothing: paste everything and wait. G's own guard (decision 42) still holds:
+>   it submits only if squeue lists no gen3-s1-D and no gen3-s1-merge-D job (a failed squeue refuses), the scripts clone is at 7bdfb67
+>   and /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged does not exist; so a second paste prints "REFUSED: ..." and "D: THIS PASTE DID NOT SUBMIT THE MERGE". The merge job
+>   checks for itself, before it moves anything, and stops with exit 2 and NOTHING moved on any failure (its inputs, the task list, no
+>   job of the group pending or running, the chunk check, merged/ absent: exit 3); then the plan, and only a clean plan is executed.
+>   IF the command before the last prints "THE RESUBMISSION LINE(S)" (sbatch --job-name=... --time=... --array=... --exclude=cn-05-08-07,...) and then
+326c337,338
+<   nothing. When squeue lists no gen3-s1-D job, block F-D again (the log counts then include the earlier attempts).
+---
+>   nothing. The last line has then printed "F-D NOT CLEAN -- the merge was not submitted". When squeue lists no gen3-s1-D job after the
+>   resubmission, the plan author gives the next step: the log count then includes the earlier attempts, so block FG-D prints NOT CLEAN by design.
+330,339d341
+< S1 BLOCK G-D (KOA login node; the merge of group D; one core, at most 6 h):
+< squeue -u charing
+< cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-D,gen3-s1-merge-D -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-D or gen3-s1-merge-D job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-D cluster/gen3_stage1_261012/s1_merge.sbatch D && echo "D: THE MERGE SUBMITTED" || echo "D: THIS PASTE DID NOT SUBMIT THE MERGE"
+< 
+<   Expected: no gen3-s1-D job in squeue; "CHECKS GOOD", "Submitted batch job <its number>" and "D: THE MERGE SUBMITTED". THE GUARD (decision 42):
+<   it submits only if squeue lists no gen3-s1-D and no gen3-s1-merge-D job (a failed squeue refuses), the scripts clone is at 7bdfb67 and
+<   /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged does not exist; a second paste prints "REFUSED: ..." and "D: THIS PASTE DID NOT SUBMIT THE MERGE". The merge job checks for itself, before it moves anything,
+<   and stops with exit 2 and NOTHING moved on any failure (its inputs, the task list, no job of the group pending or running, the
+<   chunk check, merged/ absent: exit 3); then the plan, and only a clean plan is executed.
+< 
+391c393
+< S1 BLOCK F-B900 (KOA login node, when squeue -u charing lists no gen3-s1-B900 job; every line only reads; paste everything):
+---
+> S1 BLOCK FG-B900 (KOA login node, when squeue -u charing lists no gen3-s1-B900 job; blocks F and G as ONE paste, decision 45 addendum 2: F's lines only read, the last line submits the merge only if F is clean; the merge: one core, at most 6 h; paste everything, once):
+399a402
+> if cd ~/harddisks_gen3_k2/hspist3 && [ "$(ls logs/gen3-s1-B900_*.out 2>/dev/null | wc -l)" -eq 600 ] && [ "$(grep -lx 'chunk [0-9]* done' logs/gen3-s1-B900_*.out 2>/dev/null | wc -l)" -eq 600 ] && [ "$(cat logs/gen3-s1-B900_*.out 2>/dev/null | grep -c -e FAILED -e REFUSED)" -eq 0 ] && bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s1-B900 /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/chunks cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B900 >/dev/null 2>&1 && bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B900 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B900 2>/dev/null | grep -qx 'nothing to resubmit'; then cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B900,gen3-s1-merge-B900 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B900 or gen3-s1-merge-B900 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-B900 cluster/gen3_stage1_261012/s1_merge.sbatch B900 && echo "B900: THE MERGE SUBMITTED" || echo "B900: THIS PASTE DID NOT SUBMIT THE MERGE"; else echo 'F-B900 NOT CLEAN -- the merge was not submitted'; fi
+410c413,421
+<   IF the last command prints "THE RESUBMISSION LINE(S)" (sbatch --job-name=... --time=... --array=... --exclude=cn-05-08-07,...) and then
+---
+>     then "CHECKS GOOD", "Submitted batch job <its number>" and "B900: THE MERGE SUBMITTED" (block G's guarded line, inside the last line)
+>   THE LAST LINE (decision 45 addendum 2) types block G's guarded line, unchanged, only if all five hold: 600 chunk logs, 600 logs
+>   with their done line, 0 lines with FAILED or REFUSED, the chunk check exits 0, and "nothing to resubmit". Otherwise it prints
+>   "F-B900 NOT CLEAN -- the merge was not submitted" and submits nothing: paste everything and wait. G's own guard (decision 42) still holds:
+>   it submits only if squeue lists no gen3-s1-B900 and no gen3-s1-merge-B900 job (a failed squeue refuses), the scripts clone is at 7bdfb67
+>   and /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/merged does not exist; so a second paste prints "REFUSED: ..." and "B900: THIS PASTE DID NOT SUBMIT THE MERGE". The merge job
+>   checks for itself, before it moves anything, and stops with exit 2 and NOTHING moved on any failure (its inputs, the task list, no
+>   job of the group pending or running, the chunk check, merged/ absent: exit 3); then the plan, and only a clean plan is executed.
+>   IF the command before the last prints "THE RESUBMISSION LINE(S)" (sbatch --job-name=... --time=... --array=... --exclude=cn-05-08-07,...) and then
+416c427,428
+<   nothing. When squeue lists no gen3-s1-B900 job, block F-B900 again (the log counts then include the earlier attempts).
+---
+>   nothing. The last line has then printed "F-B900 NOT CLEAN -- the merge was not submitted". When squeue lists no gen3-s1-B900 job after the
+>   resubmission, the plan author gives the next step: the log count then includes the earlier attempts, so block FG-B900 prints NOT CLEAN by design.
+419,428d430
+< 
+< S1 BLOCK G-B900 (KOA login node; the merge of group B900; one core, at most 6 h):
+< squeue -u charing
+< cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B900,gen3-s1-merge-B900 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B900 or gen3-s1-merge-B900 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-B900 cluster/gen3_stage1_261012/s1_merge.sbatch B900 && echo "B900: THE MERGE SUBMITTED" || echo "B900: THIS PASTE DID NOT SUBMIT THE MERGE"
+< 
+<   Expected: no gen3-s1-B900 job in squeue; "CHECKS GOOD", "Submitted batch job <its number>" and "B900: THE MERGE SUBMITTED". THE GUARD (decision 42):
+<   it submits only if squeue lists no gen3-s1-B900 and no gen3-s1-merge-B900 job (a failed squeue refuses), the scripts clone is at 7bdfb67 and
+<   /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/merged does not exist; a second paste prints "REFUSED: ..." and "B900: THIS PASTE DID NOT SUBMIT THE MERGE". The merge job checks for itself, before it moves anything,
+<   and stops with exit 2 and NOTHING moved on any failure (its inputs, the task list, no job of the group pending or running, the
+<   chunk check, merged/ absent: exit 3); then the plan, and only a clean plan is executed.
+481c483
+< S1 BLOCK F-S (KOA login node, when squeue -u charing lists no gen3-s1-S job; every line only reads; paste everything):
+---
+> S1 BLOCK FG-S (KOA login node, when squeue -u charing lists no gen3-s1-S job; blocks F and G as ONE paste, decision 45 addendum 2: F's lines only read, the last line submits the merge only if F is clean; the merge: one core, at most 6 h; paste everything, once):
+489a492
+> if cd ~/harddisks_gen3_k2/hspist3 && [ "$(ls logs/gen3-s1-S_*.out 2>/dev/null | wc -l)" -eq 122 ] && [ "$(grep -lx 'chunk [0-9]* done' logs/gen3-s1-S_*.out 2>/dev/null | wc -l)" -eq 122 ] && [ "$(cat logs/gen3-s1-S_*.out 2>/dev/null | grep -c -e FAILED -e REFUSED)" -eq 0 ] && bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s1-S /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/chunks cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv S >/dev/null 2>&1 && bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-S cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv S 2>/dev/null | grep -qx 'nothing to resubmit'; then cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-S,gen3-s1-merge-S -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-S or gen3-s1-merge-S job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-S cluster/gen3_stage1_261012/s1_merge.sbatch S && echo "S: THE MERGE SUBMITTED" || echo "S: THIS PASTE DID NOT SUBMIT THE MERGE"; else echo 'F-S NOT CLEAN -- the merge was not submitted'; fi
+500c503,511
+<   IF the last command prints "THE RESUBMISSION LINE(S)" (sbatch --job-name=... --time=... --array=... --exclude=cn-05-08-07,...) and then
+---
+>     then "CHECKS GOOD", "Submitted batch job <its number>" and "S: THE MERGE SUBMITTED" (block G's guarded line, inside the last line)
+>   THE LAST LINE (decision 45 addendum 2) types block G's guarded line, unchanged, only if all five hold: 122 chunk logs, 122 logs
+>   with their done line, 0 lines with FAILED or REFUSED, the chunk check exits 0, and "nothing to resubmit". Otherwise it prints
+>   "F-S NOT CLEAN -- the merge was not submitted" and submits nothing: paste everything and wait. G's own guard (decision 42) still holds:
+>   it submits only if squeue lists no gen3-s1-S and no gen3-s1-merge-S job (a failed squeue refuses), the scripts clone is at 7bdfb67
+>   and /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/merged does not exist; so a second paste prints "REFUSED: ..." and "S: THIS PASTE DID NOT SUBMIT THE MERGE". The merge job
+>   checks for itself, before it moves anything, and stops with exit 2 and NOTHING moved on any failure (its inputs, the task list, no
+>   job of the group pending or running, the chunk check, merged/ absent: exit 3); then the plan, and only a clean plan is executed.
+>   IF the command before the last prints "THE RESUBMISSION LINE(S)" (sbatch --job-name=... --time=... --array=... --exclude=cn-05-08-07,...) and then
+506c517,518
+<   nothing. When squeue lists no gen3-s1-S job, block F-S again (the log counts then include the earlier attempts).
+---
+>   nothing. The last line has then printed "F-S NOT CLEAN -- the merge was not submitted". When squeue lists no gen3-s1-S job after the
+>   resubmission, the plan author gives the next step: the log count then includes the earlier attempts, so block FG-S prints NOT CLEAN by design.
+510,519d521
+< S1 BLOCK G-S (KOA login node; the merge of group S; one core, at most 6 h):
+< squeue -u charing
+< cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-S,gen3-s1-merge-S -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-S or gen3-s1-merge-S job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-S cluster/gen3_stage1_261012/s1_merge.sbatch S && echo "S: THE MERGE SUBMITTED" || echo "S: THIS PASTE DID NOT SUBMIT THE MERGE"
+< 
+<   Expected: no gen3-s1-S job in squeue; "CHECKS GOOD", "Submitted batch job <its number>" and "S: THE MERGE SUBMITTED". THE GUARD (decision 42):
+<   it submits only if squeue lists no gen3-s1-S and no gen3-s1-merge-S job (a failed squeue refuses), the scripts clone is at 7bdfb67 and
+<   /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/merged does not exist; a second paste prints "REFUSED: ..." and "S: THIS PASTE DID NOT SUBMIT THE MERGE". The merge job checks for itself, before it moves anything,
+<   and stops with exit 2 and NOTHING moved on any failure (its inputs, the task list, no job of the group pending or running, the
+<   chunk check, merged/ absent: exit 3); then the plan, and only a clean plan is executed.
+< 
+571c573
+< S1 BLOCK F-B1600 (KOA login node, when squeue -u charing lists no gen3-s1-B1600 job; every line only reads; paste everything):
+---
+> S1 BLOCK FG-B1600 (KOA login node, when squeue -u charing lists no gen3-s1-B1600 job; blocks F and G as ONE paste, decision 45 addendum 2: F's lines only read, the last line submits the merge only if F is clean; the merge: one core, at most 6 h; paste everything, once):
+579a582
+> if cd ~/harddisks_gen3_k2/hspist3 && [ "$(ls logs/gen3-s1-B1600_*.out 2>/dev/null | wc -l)" -eq 1462 ] && [ "$(grep -lx 'chunk [0-9]* done' logs/gen3-s1-B1600_*.out 2>/dev/null | wc -l)" -eq 1462 ] && [ "$(cat logs/gen3-s1-B1600_*.out 2>/dev/null | grep -c -e FAILED -e REFUSED)" -eq 0 ] && bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s1-B1600 /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/chunks cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B1600 >/dev/null 2>&1 && bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B1600 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B1600 2>/dev/null | grep -qx 'nothing to resubmit'; then cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B1600,gen3-s1-merge-B1600 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B1600 or gen3-s1-merge-B1600 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-B1600 cluster/gen3_stage1_261012/s1_merge.sbatch B1600 && echo "B1600: THE MERGE SUBMITTED" || echo "B1600: THIS PASTE DID NOT SUBMIT THE MERGE"; else echo 'F-B1600 NOT CLEAN -- the merge was not submitted'; fi
+590c593,601
+<   IF the last command prints "THE RESUBMISSION LINE(S)" (sbatch --job-name=... --time=... --array=... --exclude=cn-05-08-07,...) and then
+---
+>     then "CHECKS GOOD", "Submitted batch job <its number>" and "B1600: THE MERGE SUBMITTED" (block G's guarded line, inside the last line)
+>   THE LAST LINE (decision 45 addendum 2) types block G's guarded line, unchanged, only if all five hold: 1462 chunk logs, 1462 logs
+>   with their done line, 0 lines with FAILED or REFUSED, the chunk check exits 0, and "nothing to resubmit". Otherwise it prints
+>   "F-B1600 NOT CLEAN -- the merge was not submitted" and submits nothing: paste everything and wait. G's own guard (decision 42) still holds:
+>   it submits only if squeue lists no gen3-s1-B1600 and no gen3-s1-merge-B1600 job (a failed squeue refuses), the scripts clone is at 7bdfb67
+>   and /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/merged does not exist; so a second paste prints "REFUSED: ..." and "B1600: THIS PASTE DID NOT SUBMIT THE MERGE". The merge job
+>   checks for itself, before it moves anything, and stops with exit 2 and NOTHING moved on any failure (its inputs, the task list, no
+>   job of the group pending or running, the chunk check, merged/ absent: exit 3); then the plan, and only a clean plan is executed.
+>   IF the command before the last prints "THE RESUBMISSION LINE(S)" (sbatch --job-name=... --time=... --array=... --exclude=cn-05-08-07,...) and then
+596c607,608
+<   nothing. When squeue lists no gen3-s1-B1600 job, block F-B1600 again (the log counts then include the earlier attempts).
+---
+>   nothing. The last line has then printed "F-B1600 NOT CLEAN -- the merge was not submitted". When squeue lists no gen3-s1-B1600 job after the
+>   resubmission, the plan author gives the next step: the log count then includes the earlier attempts, so block FG-B1600 prints NOT CLEAN by design.
+600,609d611
+< S1 BLOCK G-B1600 (KOA login node; the merge of group B1600; one core, at most 6 h):
+< squeue -u charing
+< cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B1600,gen3-s1-merge-B1600 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B1600 or gen3-s1-merge-B1600 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-B1600 cluster/gen3_stage1_261012/s1_merge.sbatch B1600 && echo "B1600: THE MERGE SUBMITTED" || echo "B1600: THIS PASTE DID NOT SUBMIT THE MERGE"
+< 
+<   Expected: no gen3-s1-B1600 job in squeue; "CHECKS GOOD", "Submitted batch job <its number>" and "B1600: THE MERGE SUBMITTED". THE GUARD (decision 42):
+<   it submits only if squeue lists no gen3-s1-B1600 and no gen3-s1-merge-B1600 job (a failed squeue refuses), the scripts clone is at 7bdfb67 and
+<   /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/merged does not exist; a second paste prints "REFUSED: ..." and "B1600: THIS PASTE DID NOT SUBMIT THE MERGE". The merge job checks for itself, before it moves anything,
+<   and stops with exit 2 and NOTHING moved on any failure (its inputs, the task list, no job of the group pending or running, the
+<   chunk check, merged/ absent: exit 3); then the plan, and only a clean plan is executed.
+< 

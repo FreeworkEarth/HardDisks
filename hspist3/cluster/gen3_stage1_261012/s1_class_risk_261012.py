@@ -38,7 +38,7 @@ def main():
     CT = [l.rstrip("\n").split("\t") for l in open(a.chunks)][1:]          # chunk first last lines group cell M predicted_s_E5 limit_min class_min
     print(f"# INTERIM -- the time-class risk table of {a.target.replace(',', ' and ')} (s1_class_risk_261012.py; at risk: measured maximum x "
           f"predicted > {LIMIT} x class)\n")
-    meas, used = {}, []
+    meas, used, per = {}, [], {}
     for g in a.measured.split(","):
         p = os.path.join(a.timing, f"timing_{g}.tsv")
         if not os.path.exists(p): print(f"- {g}: no timing table {rp(p)} (run s1_timing_261012.py {g} after its fetch)"); continue
@@ -48,14 +48,18 @@ def main():
             if int(r[6]) == 0 or r[10] == "no log with its done line": continue
             k = (eta_of(r[1]), short(r[10])); v = (float(r[8]), g, int(r[0]))
             if k not in meas or v[0] > meas[k][0]: meas[k] = v
+            if (g,) + k not in per or v[0] > per[(g,) + k][0]: per[(g,) + k] = v
             n += 1
         used.append(g); print(f"- {g}: {n} chunks timed ({rp(p)})")
     cpus = sorted({k[1] for k in meas})
-    print(f"\nthe measured maximum ratio per eta and CPU model, over {', '.join(used) or 'no group'} (ratio (group, chunk)):\n")
+    print(f"\nthe measured maximum ratio per eta and CPU model, per measured group (ratio (chunk)), and over {', '.join(used) or 'no group'}:\n")
     if cpus:
-        print("| eta | " + " | ".join(cpus) + " |\n|---|" + "---|" * len(cpus))
+        cols = [(g, c) for c in cpus for g in used]
+        print("| eta | " + " | ".join(f"{c}, {g}" for g, c in cols) + " | " + " | ".join(f"{c}, all" for c in cpus) + " |\n|---|"
+              + "---|" * (len(cols) + len(cpus)))
         for e in sorted({k[0] for k in meas}):
-            print(f"| {e:.6f} | " + " | ".join(f"{meas[(e, c)][0]:.3f} ({meas[(e, c)][1]}, {meas[(e, c)][2]})" if (e, c) in meas else "-" for c in cpus) + " |")
+            print(f"| {e:.6f} | " + " | ".join(f"{per[(g, e, c)][0]:.3f} ({per[(g, e, c)][2]})" if (g, e, c) in per else "-" for g, c in cols) + " | "
+                  + " | ".join(f"**{meas[(e, c)][0]:.3f}**" if (e, c) in meas else "-" for c in cpus) + " |")
     else:
         print("(none yet)")
     risk, unassessed = [], []

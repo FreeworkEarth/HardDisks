@@ -1,0 +1,80 @@
+# INTERIM -- STAGE 1, PART B: the tables and verdicts by the registered rules (s1_verdict_261012.py)
+
+groups present: B100, D, S; stopped by the stop rule: none
+
+## Health per group (sec. 4.8.5)
+
+| group | (cell, mass) | expected | present | excluded | missing | fit failures | flagged (group rule) |
+|---|---|---|---|---|---|---|---|
+| B100 | 144 | 3600 | 31 | 0 | 3569 | 0 | 143 |
+| D | 54 | 1350 | 2 | 0 | 1348 | 0 | 54 |
+| S | 80 | 800 | 4 | 0 | 796 | 0 | 80 |
+
+## Per cell: E1, E0, Z, psi6, the stationarity tests, delta_0.5, k_S^dyn
+
+| cell | lines (left/right) | E1 c_s +- sigma (masses, chi2/dof) | low-Q | E0 c_s +- err_scaled | E1 - E0 | KR | Z +- SE (n) | psi6 | hold t | record z | delta_0.5 [%] | k_S^dyn | eta_int |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| B_N0100_eta0.050000 | x/x | none (< 5 masses) | - | - | - | 1.56662 | 1.11072 +- 0.00048 (25) | 0.0748 | +0.22 | +0.56 | - | - | - |
+| B_N0100_eta0.100000 | - | none (< 5 masses) | - | - | - | 1.74414 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| B_N0100_eta0.150000 | - | none (< 5 masses) | - | - | - | 1.95254 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| B_N0100_eta0.200000 | - | none (< 5 masses) | - | - | - | 2.19932 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| B_N0100_eta0.250000 | - | none (< 5 masses) | - | - | - | 2.49447 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| B_N0100_eta0.300000 | - | none (< 5 masses) | - | - | - | 2.85150 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| B_N0100_eta0.350000 | - | none (< 5 masses) | - | - | - | 3.28907 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| B_N0100_eta0.392699 | x/x | none (< 5 masses) | - | - | - | 3.74608 | nan +- nan (0) | nan | +nan | +nan | - | - | 0.4261 (2) |
+| B_N0100_eta0.450000 | - | none (< 5 masses) | - | - | - | 4.52339 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| B_N0100_eta0.500000 | - | none (< 5 masses) | - | - | - | 5.41622 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| B_N0100_eta0.550000 | - | none (< 5 masses) | - | - | - | 6.60187 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| B_N0100_eta0.600000 | - | none (< 5 masses) | - | - | - | 8.22261 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| B_N0100_eta0.630000 | - | none (< 5 masses) | - | - | - | 9.48067 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| B_N0100_eta0.660000 | - | none (< 5 masses) | - | - | - | 10.92711 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| B_N0100_eta0.680000 | - | none (< 5 masses) | - | - | - | 11.67121 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| B_N0100_eta0.690000 | - | none (< 5 masses) | - | - | - | 11.55097 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| D_N0100_eta0.020000 | - | none (< 5 masses) | - | - | - | 1.47247 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| D_N0100_eta0.035000 | - | none (< 5 masses) | - | - | - | 1.51848 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| D_N0100_eta0.075000 | y/y | none (< 5 masses) | - | - | - | 1.65192 | nan +- nan (0) | nan | +nan | +nan | - | - | 0.0839 (2) |
+| D_N0400_eta0.020000 | - | none (< 5 masses) | - | - | - | 1.47247 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| D_N0400_eta0.035000 | - | none (< 5 masses) | - | - | - | 1.51848 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| D_N0400_eta0.075000 | - | none (< 5 masses) | - | - | - | 1.65192 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0100_eta0.600000_start0 | x/x | none (< 5 masses) | - | - | - | 8.22261 | nan +- nan (0) | nan | +nan | +nan | - | - | nan (2) |
+| S_N0100_eta0.600000_turned | y/y | none (< 5 masses) | - | - | - | 8.22261 | nan +- nan (0) | nan | +nan | +nan | - | - | nan (2) |
+| S_N0100_eta0.630000_start0 | - | none (< 5 masses) | - | - | - | 9.48067 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0100_eta0.630000_turned | - | none (< 5 masses) | - | - | - | 9.48067 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0100_eta0.660000_start0 | - | none (< 5 masses) | - | - | - | 10.92711 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0100_eta0.660000_turned | - | none (< 5 masses) | - | - | - | 10.92711 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0100_eta0.680000_start0 | - | none (< 5 masses) | - | - | - | 11.67121 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0100_eta0.680000_turned | - | none (< 5 masses) | - | - | - | 11.67121 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0100_eta0.690000_start0 | - | none (< 5 masses) | - | - | - | 11.55097 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0100_eta0.690000_turned | - | none (< 5 masses) | - | - | - | 11.55097 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0400_eta0.600000_start0 | - | none (< 5 masses) | - | - | - | 8.22261 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0400_eta0.600000_turned | - | none (< 5 masses) | - | - | - | 8.22261 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0400_eta0.630000_start0 | - | none (< 5 masses) | - | - | - | 9.48067 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0400_eta0.630000_turned | - | none (< 5 masses) | - | - | - | 9.48067 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0400_eta0.660000_start0 | - | none (< 5 masses) | - | - | - | 10.92711 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0400_eta0.660000_turned | - | none (< 5 masses) | - | - | - | 10.92711 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0400_eta0.680000_start0 | - | none (< 5 masses) | - | - | - | 11.67121 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0400_eta0.680000_turned | - | none (< 5 masses) | - | - | - | 11.67121 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0400_eta0.690000_start0 | - | none (< 5 masses) | - | - | - | 11.55097 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0400_eta0.690000_turned | - | none (< 5 masses) | - | - | - | 11.55097 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0900_eta0.600000_start0 | - | none (< 5 masses) | - | - | - | 8.22261 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0900_eta0.600000_turned | - | none (< 5 masses) | - | - | - | 8.22261 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0900_eta0.630000_start0 | - | none (< 5 masses) | - | - | - | 9.48067 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0900_eta0.630000_turned | - | none (< 5 masses) | - | - | - | 9.48067 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0900_eta0.660000_start0 | - | none (< 5 masses) | - | - | - | 10.92711 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0900_eta0.660000_turned | - | none (< 5 masses) | - | - | - | 10.92711 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0900_eta0.680000_start0 | - | none (< 5 masses) | - | - | - | 11.67121 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0900_eta0.680000_turned | - | none (< 5 masses) | - | - | - | 11.67121 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0900_eta0.690000_start0 | - | none (< 5 masses) | - | - | - | 11.55097 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N0900_eta0.690000_turned | - | none (< 5 masses) | - | - | - | 11.55097 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N1600_eta0.600000_start0 | - | none (< 5 masses) | - | - | - | 8.22261 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N1600_eta0.600000_turned | - | none (< 5 masses) | - | - | - | 8.22261 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N1600_eta0.630000_start0 | - | none (< 5 masses) | - | - | - | 9.48067 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N1600_eta0.630000_turned | - | none (< 5 masses) | - | - | - | 9.48067 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N1600_eta0.660000_start0 | - | none (< 5 masses) | - | - | - | 10.92711 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N1600_eta0.660000_turned | - | none (< 5 masses) | - | - | - | 10.92711 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N1600_eta0.680000_start0 | - | none (< 5 masses) | - | - | - | 11.67121 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N1600_eta0.680000_turned | - | none (< 5 masses) | - | - | - | 11.67121 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N1600_eta0.690000_start0 | - | none (< 5 masses) | - | - | - | 11.55097 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+| S_N1600_eta0.690000_turned | - | none (< 5 masses) | - | - | - | 11.55097 | nan +- nan (0) | nan | +nan | +nan | - | - | - |
+
+INTERIM: the fits, Verdict K, the pressure fits and Verdict I are printed once, when all four sizes are present (sec. 4.8.9)

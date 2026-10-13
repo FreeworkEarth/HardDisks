@@ -1,0 +1,128 @@
+# stage 1 rehearsal (gate G4): package 1bb9ae8b9ec0eaf0a7aad6f05e4c281c66af81ae (engine-gen3), root /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e
+
+    -> 1. the build (rehearse_s1_build_mac.py: build_s1_koa.sh, record_s1_build.sh on a fresh f72d764 clone): PASS (['BUILD REHEARSAL: PASS (8 of 8)'])
+    -> 2-3. after the gate (the build record, the manifests) and the substitutions: PASS (rewritten ['s1_koa.sbatch', 's1_merge.sbatch', 'fetch_s1_koa.sh']; stand-in commit af73f370be59)
+    -> 4. the mini runsheet (make_s1_runsheet.py on the mini table): PASS (A, B, C, D, E-B100, F-B100, G-B100, H-B100, I-B100, E-D, FG-D, H-D, I-D, E-S, FG-S, H-S, I-S)
+  block A: exit 0, 1 s, log logs/block_A.out
+    -> block A: PASS (exit 0)
+  block B: exit 0, 2 s, log logs/block_B.out
+    -> block B (without its two update lines): PASS (checks [True, True, True, True, True, True, True, True, True]; SHA lines 13 of 13)
+  block C: exit 0, 62 s, log logs/block_C.out
+    -> block C (chunk 1 alone): PASS (940001_1 cluster/gen3_stage1_261012/s1_koa.sbatch 0)
+  block D: exit 0, 0 s, log logs/block_D.out
+    -> block D (chunk 1's checks, G6 (e)): PASS (checks [True, True, True, True, True])
+  block E-B100: exit 0, 15 s, log logs/block_E-B100.out
+    -> block E-B100 typed once (after chunk 1: the guard allows exactly its folder and its done log): PASS (checks [True, True, True, True, True, True])
+  block E-B100_second: exit 0, 0 s, log logs/block_E-B100_second.out
+    -> block E-B100 typed a second time: PASS (REFUSED: the chunk folders of B100 are not exactly chunk_1)
+  block F-B100: exit 0, 0 s, log logs/block_F-B100.out
+    -> block F-B100: PASS (checks [True, True, True, True, True, True, True, True])
+  block G-B100_pending: exit 0, 0 s, log logs/block_G-B100_pending.out
+    -> block G-B100 typed with a pretended pending job: PASS (REFUSED: squeue failed or lists a gen3-s1-B100 or gen3-s1-merge-B100 job: 940999_7 PENDING)
+  block G-B100_heldaside: exit 0, 0 s, log logs/block_G-B100_heldaside.out
+    -> the merge of B100: chunk 4's done log held aside: PASS (940004 cluster/gen3_stage1_261012/s1_merge.sbatch 2)
+  block G-B100: exit 0, 5 s, log logs/block_G-B100.out
+  block H-B100: exit 0, 0 s, log logs/block_H-B100.out
+    -> blocks G-B100 (typed once) and H-B100 (the merge, the reduction, the compression; its record): PASS (checks [True, True, True, True, True, True, True, True, True, True, True])
+  block G-B100_second: exit 0, 0 s, log logs/block_G-B100_second.out
+    -> block G-B100 typed a second time: PASS (REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/l)
+  block G-B100_raw_second: exit 0, 0 s, log logs/block_G-B100_raw_second.out
+    -> the merge job of B100 submitted a second time without its guard: PASS (940006 cluster/gen3_stage1_261012/s1_merge.sbatch 3)
+  block I-B100: exit 0, 0 s, log logs/block_I-B100.out
+    -> block I-B100 (the fetch, local): PASS (118 files; checks [True, True, True, True, True, True, True])
+  block E-D_pending: exit 0, 0 s, log logs/block_E-D_pending.out
+    -> block E-D typed with a pretended pending job of the group: PASS (REFUSED: squeue failed or lists a gen3-s1-D job: 940998_5 PENDING)
+  block E-D_squeuefail: exit 0, 0 s, log logs/block_E-D_squeuefail.out
+    -> block E-D typed with a failing squeue: PASS (REFUSED: squeue failed or lists a gen3-s1-D job: slurm_load_jobs error: Socket timed out on send/recv operation (rehearsal shim))
+  block E-D: exit 0, 9 s, log logs/block_E-D.out
+    -> block E-D typed once: PASS (checks [True, True, True, True, True, True])
+  block E-D_second: exit 0, 0 s, log logs/block_E-D_second.out
+    -> block E-D typed a second time: PASS (REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/l)
+  block FG-D_extralog: exit 0, 0 s, log logs/block_FG-D_extralog.out
+    -> block FG-D typed with an extra log of its chunk that did not finish (logs != chunks; the other four hold): PASS (2; 1; 0; earlier attempt of chunk 5, started and not finished: gen3-s1-D_940990_5.out (its last line: chunk 5 on cn-00-00-00 (rehearsal: a pretended extra attempt): group D, lines 32-33; it did not finish); chunk logs: 2; chunks done: 1 of 1 (group D; each with its folder and exactly one log with 'c)
+  block FG-D_nodone: exit 0, 0 s, log logs/block_FG-D_nodone.out
+    -> block FG-D typed with its chunk's log without the done line (done logs != chunks; the chunk check fails too): PASS (1; 0; 0; earlier attempt of chunk 5, started and not finished: gen3-s1-D_940007_5.out (its last line: chunk 5 on Christophs-MacBook-Pro-875 (Apple M3 Max (Mac rehearsal)): group D, lines 32-33; 00ALLINONE git f72d764 target koa); chunk logs: 1; chunks done: 0 of 1 (group D; each with its folder and )
+  block FG-D_failed: exit 0, 0 s, log logs/block_FG-D_failed.out
+    -> block FG-D typed with a FAILED line in its chunk's log (0 FAILED or REFUSED fails; the other four hold): PASS (1; 1; 1; chunk logs: 1; chunks done: 1 of 1 (group D; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished; nothing to resubmit; F-D NOT CLEAN -- the merge was not submitted)
+  block FG-D_nofolder: exit 0, 0 s, log logs/block_FG-D_nofolder.out
+    -> block FG-D typed with its chunk folder moved aside (the chunk check exits 2; the other four hold): PASS (1; 1; 0; chunk logs: 1; chunks done: 0 of 1 (group D; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished; NOT DONE: 5(no folder); nothing to resubmit; F-D NOT CLEAN -- the merge was not submitted)
+    -> group D after the four cases: PASS (gen3-s1-D_940007_5.out, chunk_5)
+  block FG-D: exit 0, 2 s, log logs/block_FG-D.out
+    -> block FG-D: PASS (checks [True, True, True, True, True, True, True, True, True, True, True, True])
+  block H-D: exit 0, 0 s, log logs/block_H-D.out
+    -> block FG-D (F clean: the merge submitted inside it) and H-D (the merge, the reduction, the compression; its record): PASS (checks [True, True, True, True, True, True, True, True, True, True, True, True])
+  block FG-D_second: exit 0, 0 s, log logs/block_FG-D_second.out
+    -> block FG-D typed a second time (F still clean: block G's own guard refuses, merged/ exists): PASS (REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/l)
+  block I-D: exit 0, 0 s, log logs/block_I-D.out
+    -> block I-D (the fetch, local): PASS (17 files; checks [True, True, True, True, True, True])
+  block E-S_faulty: exit 0, 0 s, log logs/block_E-S_faulty.out
+    -> block E-S typed once, on a pretended faulty node: PASS (checks [True, True, True, True, True, True, True, True])
+  block E-S_second: exit 0, 0 s, log logs/block_E-S_second.out
+    -> block E-S typed a second time: PASS (REFUSED: logs/gen3-s1-S_*.out exist)
+  block FG-S_first: exit 0, 0 s, log logs/block_FG-S_first.out
+    -> block FG-S after the faulty attempt: PASS (checks [True, True, True, True, True, True, True])
+  block R-S: exit 0, 11 s, log logs/block_R-S.out
+    -> the guarded resubmission line of FG-S typed once: PASS (checks [True, True, True, True, True])
+  block R-S_second: exit 0, 0 s, log logs/block_R-S_second.out
+    -> block R-S typed a second time: PASS (REFUSED: a listed chunk has a log with its done line)
+  block FG-S_again: exit 0, 0 s, log logs/block_FG-S_again.out
+    -> block FG-S again, after the resubmission: PASS (checks [True, True, True, True, True, True, True, True, True, True, True])
+  block G-S_alone: exit 0, 3 s, log logs/block_G-S_alone.out
+  block H-S: exit 0, 0 s, log logs/block_H-S.out
+    -> block G-S's guarded line alone (the plan author's go after the NOT CLEAN by design) and H-S (the merge, the reduction, the compression; its record): PASS (checks [True, True, True, True, True, True, True, True, True, True, True])
+  block G-S_alone_second: exit 0, 0 s, log logs/block_G-S_alone_second.out
+    -> block G-S typed alone, a second time: PASS (REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/l)
+  block FG-S_second: exit 0, 0 s, log logs/block_FG-S_second.out
+    -> block FG-S typed a second time (NOT CLEAN by design: the earlier attempts' logs): PASS (4; 2; 0; earlier attempt of chunk 6, stopped in the start-up checks (ran nothing): gen3-s1-S_940009_6.out: STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones (cluster/gen3_stage1_261012/s1_inputs.sha256); earlier attempt of chunk 7, stopped in the start-up checks (ran nothing): gen3-s)
+  block I-S: exit 0, 0 s, log logs/block_I-S.out
+    -> block I-S (the fetch, local): PASS (33 files; checks [True, True, True, True, True, True])
+    -> 5. the verdict script (G5) on the fetched folder, --interim: PASS (exit 0; B_N0100_eta0.050000: x/x; B_N0100_eta0.100000: -; B_N0100_eta0.150000: -; B_N0100_eta0.200000: -; B_N0100_eta0.250000: -; B_N0100_eta0.300000: -; B_N0100_eta0.350000: -; B_N0100_eta0.392699: x/x; B_N0100_eta0.450000: -; B_N0100_eta0.500000: -; B_N0100_eta0.550000: -; B_N0100_eta0.600000: -; B_N0100_eta0.630000: -; B_N0100_eta0.660000: -; B_N0100_eta0.680000: -; B_N0100_eta0.690000: -; D_N0100_eta0.020000: -; D_N0100_eta0.035000: -; D_N0100_eta0.075000: y/y; S_N0100_eta0.600000_start0: x/x; S_N0100_eta0.600000_turned: y/y; S_N0100_eta0.630000_start0: -; S_N0100_eta0.630000_turned: -; S_N0100_eta0.660000_start0: -; S_N0100_eta0.660000_turned: -; S_N0100_eta0.680000_start0: -; S_N0100_eta0.680000_turned: -; S_N0100_eta0.690000_start0: -; S_N0100_eta0.690000_turned: -)
+
+| step | criterion | result | evidence |
+|---|---|---|---|
+| 1. the build (rehearse_s1_build_mac.py: build_s1_koa.sh, record_s1_build.sh on a fresh f72d764 clone) | BUILD REHEARSAL: PASS | PASS | ['BUILD REHEARSAL: PASS (8 of 8)'] |
+| 2-3. after the gate (the build record, the manifests) and the substitutions | mini list 37 lines, mini table 7 chunks, 3 scripts rewritten, 2 manifests; one local commit | PASS | rewritten ['s1_koa.sbatch', 's1_merge.sbatch', 'fetch_s1_koa.sh']; stand-in commit af73f370be59 |
+| 4. the mini runsheet (make_s1_runsheet.py on the mini table) | blocks A-D, E-I for B100; E, FG, H, I for D and S (decision 45 addendum 2) | PASS | A, B, C, D, E-B100, F-B100, G-B100, H-B100, I-B100, E-D, FG-D, H-D, I-D, E-S, FG-S, H-S, I-S |
+| block A | squeue, srun (shims) | PASS | exit 0 |
+| block B (without its two update lines) | the runsheet's good lines | PASS | checks [True, True, True, True, True, True, True, True, True]; SHA lines 13 of 13 |
+| block C (chunk 1 alone) | Submitted batch job; chunk 1 exit 0 | PASS | 940001_1 cluster/gen3_stage1_261012/s1_koa.sbatch 0 |
+| block D (chunk 1's checks, G6 (e)) | the runsheet's good lines | PASS | checks [True, True, True, True, True] |
+| block E-B100 typed once (after chunk 1: the guard allows exactly its folder and its done log) | CHECKS GOOD, 2 array line(s) submitted, every task exit 0 | PASS | checks [True, True, True, True, True, True] |
+| block E-B100 typed a second time | REFUSED, nothing submitted | PASS | REFUSED: the chunk folders of B100 are not exactly chunk_1 |
+| block F-B100 | the counts, the chunk check, nothing to resubmit | PASS | checks [True, True, True, True, True, True, True, True] |
+| block G-B100 typed with a pretended pending job | REFUSED, nothing submitted | PASS | REFUSED: squeue failed or lists a gen3-s1-B100 or gen3-s1-merge-B100 job: 940999_7 PENDING |
+| the merge of B100: chunk 4's done log held aside | the guard passes (CHECKS GOOD); the merge job itself: exit 2, 'NOT DONE: 4(no log with its done line)', nothing moved | PASS | 940004 cluster/gen3_stage1_261012/s1_merge.sbatch 2 |
+| blocks G-B100 (typed once) and H-B100 (the merge, the reduction, the compression; its record) | CHECKS GOOD, 1 submitted, exit 0; 'APPEND 8, EQUAL 4, MOVE 95, PER CHUNK 31'; the merged line; 'destinations 3; reduce_B exit 0: 2; reduce_s1 exit 0: 3; compressed: 3' | PASS | checks [True, True, True, True, True, True, True, True, True, True, True] |
+| block G-B100 typed a second time | REFUSED, nothing submitted | PASS | REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/l |
+| the merge job of B100 submitted a second time without its guard | exit 3 (merged/ exists) | PASS | 940006 cluster/gen3_stage1_261012/s1_merge.sbatch 3 |
+| block I-B100 (the fetch, local) | the merge record and the tables; no chunk folder; no trace, psi6, virial or run folder outside the (100, pi/8) cell, which comes whole; every snapshot | PASS | 118 files; checks [True, True, True, True, True, True, True] |
+| block E-D typed with a pretended pending job of the group | REFUSED, nothing submitted | PASS | REFUSED: squeue failed or lists a gen3-s1-D job: 940998_5 PENDING |
+| block E-D typed with a failing squeue | REFUSED, nothing submitted | PASS | REFUSED: squeue failed or lists a gen3-s1-D job: slurm_load_jobs error: Socket timed out on send/recv operation (rehearsal shim) |
+| block E-D typed once | CHECKS GOOD, 1 array line(s) submitted, every task exit 0 | PASS | checks [True, True, True, True, True, True] |
+| block E-D typed a second time | REFUSED, nothing submitted | PASS | REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/l |
+| block FG-D typed with an extra log of its chunk that did not finish (logs != chunks; the other four hold) | 'F-D NOT CLEAN -- the merge was not submitted', nothing submitted | PASS | 2; 1; 0; earlier attempt of chunk 5, started and not finished: gen3-s1-D_940990_5.out (its last line: chunk 5 on cn-00-00-00 (rehearsal: a pretended extra attempt): group D, lines 32-33; it did not finish); chunk logs: 2; chunks done: 1 of 1 (group D; each with its folder and exactly one log with 'c |
+| block FG-D typed with its chunk's log without the done line (done logs != chunks; the chunk check fails too) | 'F-D NOT CLEAN -- the merge was not submitted', nothing submitted | PASS | 1; 0; 0; earlier attempt of chunk 5, started and not finished: gen3-s1-D_940007_5.out (its last line: chunk 5 on Christophs-MacBook-Pro-875 (Apple M3 Max (Mac rehearsal)): group D, lines 32-33; 00ALLINONE git f72d764 target koa); chunk logs: 1; chunks done: 0 of 1 (group D; each with its folder and  |
+| block FG-D typed with a FAILED line in its chunk's log (0 FAILED or REFUSED fails; the other four hold) | 'F-D NOT CLEAN -- the merge was not submitted', nothing submitted | PASS | 1; 1; 1; chunk logs: 1; chunks done: 1 of 1 (group D; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished; nothing to resubmit; F-D NOT CLEAN -- the merge was not submitted |
+| block FG-D typed with its chunk folder moved aside (the chunk check exits 2; the other four hold) | 'F-D NOT CLEAN -- the merge was not submitted', nothing submitted | PASS | 1; 1; 0; chunk logs: 1; chunks done: 0 of 1 (group D; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished; NOT DONE: 5(no folder); nothing to resubmit; F-D NOT CLEAN -- the merge was not submitted |
+| group D after the four cases | its chunk log and folder back as they were; nothing submitted | PASS | gen3-s1-D_940007_5.out, chunk_5 |
+| block FG-D | the counts, the chunk check, nothing to resubmit; F clean: CHECKS GOOD and 'D: THE MERGE SUBMITTED' (block G's guarded line inside the last line) | PASS | checks [True, True, True, True, True, True, True, True, True, True, True, True] |
+| block FG-D (F clean: the merge submitted inside it) and H-D (the merge, the reduction, the compression; its record) | CHECKS GOOD, 1 submitted, exit 0; 'APPEND 2, EQUAL 1, MOVE 8, PER CHUNK 2'; the merged line; 'destinations 1; reduce_B exit 0: 1; reduce_s1 exit 0: 1; compressed: 1' | PASS | checks [True, True, True, True, True, True, True, True, True, True, True, True] |
+| block FG-D typed a second time (F still clean: block G's own guard refuses, merged/ exists) | REFUSED, nothing submitted | PASS | REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/l |
+| block I-D (the fetch, local) | the merge record and the tables; no chunk folder; no trace, psi6, virial or run folder outside the (100, pi/8) cell, which comes whole; every snapshot | PASS | 17 files; checks [True, True, True, True, True, True] |
+| block E-S typed once, on a pretended faulty node | CHECKS GOOD, 2 array lines submitted; every chunk STOP: [cn-07-07-07] before 'chunk j on'; no chunk folder | PASS | checks [True, True, True, True, True, True, True, True] |
+| block E-S typed a second time | REFUSED, nothing submitted | PASS | REFUSED: logs/gen3-s1-S_*.out exist |
+| block FG-S after the faulty attempt | the two plain lines, one per class, and ONE guarded line holding both, unchanged and in order; then 'F-S NOT CLEAN -- the merge was not submitted' (no 'nothing to resubmit'), nothing submitted | PASS | checks [True, True, True, True, True, True, True] |
+| the guarded resubmission line of FG-S typed once | CHECKS GOOD, 2 lines submitted, both chunks exit 0 | PASS | checks [True, True, True, True, True] |
+| block R-S typed a second time | REFUSED, nothing submitted | PASS | REFUSED: a listed chunk has a log with its done line |
+| block FG-S again, after the resubmission | the counts, the chunk check, nothing to resubmit; then 'F-S NOT CLEAN -- the merge was not submitted' BY DESIGN (4 logs for 2 chunks: the earlier attempts), nothing submitted | PASS | checks [True, True, True, True, True, True, True, True, True, True, True] |
+| block G-S's guarded line alone (the plan author's go after the NOT CLEAN by design) and H-S (the merge, the reduction, the compression; its record) | CHECKS GOOD, 1 submitted, exit 0; 'APPEND 4, EQUAL 2, MOVE 16, PER CHUNK 4'; the merged line; 'destinations 2; reduce_B exit 0: 2; reduce_s1 exit 0: 2; compressed: 2' | PASS | checks [True, True, True, True, True, True, True, True, True, True, True] |
+| block G-S typed alone, a second time | REFUSED, nothing submitted | PASS | REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/l |
+| block FG-S typed a second time (NOT CLEAN by design: the earlier attempts' logs) | 'F-S NOT CLEAN -- the merge was not submitted', nothing submitted | PASS | 4; 2; 0; earlier attempt of chunk 6, stopped in the start-up checks (ran nothing): gen3-s1-S_940009_6.out: STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones (cluster/gen3_stage1_261012/s1_inputs.sha256); earlier attempt of chunk 7, stopped in the start-up checks (ran nothing): gen3-s |
+| block I-S (the fetch, local) | the merge record and the tables; no chunk folder; no trace, psi6, virial or run folder outside the (100, pi/8) cell, which comes whole; every snapshot | PASS | 33 files; checks [True, True, True, True, True, True] |
+| 5. the verdict script (G5) on the fetched folder, --interim | exit 0; INTERIM; the five mini cells in the per-cell table with their crystal orientation | PASS | exit 0; B_N0100_eta0.050000: x/x; B_N0100_eta0.100000: -; B_N0100_eta0.150000: -; B_N0100_eta0.200000: -; B_N0100_eta0.250000: -; B_N0100_eta0.300000: -; B_N0100_eta0.350000: -; B_N0100_eta0.392699: x/x; B_N0100_eta0.450000: -; B_N0100_eta0.500000: -; B_N0100_eta0.550000: -; B_N0100_eta0.600000: -; B_N0100_eta0.630000: -; B_N0100_eta0.660000: -; B_N0100_eta0.680000: -; B_N0100_eta0.690000: -; D_N0100_eta0.020000: -; D_N0100_eta0.035000: -; D_N0100_eta0.075000: y/y; S_N0100_eta0.600000_start0: x/x; S_N0100_eta0.600000_turned: y/y; S_N0100_eta0.630000_start0: -; S_N0100_eta0.630000_turned: -; S_N0100_eta0.660000_start0: -; S_N0100_eta0.660000_turned: -; S_N0100_eta0.680000_start0: -; S_N0100_eta0.680000_turned: -; S_N0100_eta0.690000_start0: -; S_N0100_eta0.690000_turned: - |
+
+RESIDUAL DIFFERENCES: the shims (Slurm commands, module, gcc --version, lscpu, hostname, sha256sum); the Mac binaries (f72d764, the koa target's name, Mac flags); the mini list (37 registered lines) with its SHA-256 file and the mini chunk table (7 chunks); the build record and the manifests written in the scratch clone and committed there (the stage 1 commit's stand-in); block B without its two update lines; the Lustre path; the local fetch; group S's first attempt on a pretended faulty node
+
+REHEARSAL G4: PASS (40 of 40)
+data under /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e: 44M
+rehearsal exit 0

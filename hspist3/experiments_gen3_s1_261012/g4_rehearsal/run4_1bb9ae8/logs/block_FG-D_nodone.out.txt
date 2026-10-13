@@ -1,0 +1,11 @@
+       1
+       0
+0
+   1 (Apple M3 Max (Mac rehearsal))
+earlier attempt of chunk 5, started and not finished: gen3-s1-D_940007_5.out (its last line: chunk 5 on Christophs-MacBook-Pro-875 (Apple M3 Max (Mac rehearsal)): group D, lines 32-33; 00ALLINONE  git f72d764  target koa)
+chunk logs: 1; chunks done: 0 of 1 (group D; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 1 started and not finished
+NOT DONE: 5(no log with its done line)
+chunk 5: started and did not finish (1 log(s)): needs the plan author
+group D without a done log: stopped once 0, stopped twice or more 0, started and not finished 1, no log 0
+nothing to resubmit
+F-D NOT CLEAN -- the merge was not submitted

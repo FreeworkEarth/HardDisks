@@ -14,3 +14,15 @@ chunks (groups B100, D, S; chunks 3 and 4 into one folder), and the mini runshee
 - manifest_check_at_2c871b5_output.txt   sha256sum -c of both manifests on the files of 2c871b52: 21 OK (decision 42 item 5 c)
 - runsheet_command_diff_88d2eaf0_6398ae1e.txt   the stage 1 runsheet's command lines, 88d2eaf0 against 6398ae1e: 18 of 34 blocks
                   changed (E, F, G of each group), each holding its old command(s) unchanged and in their order (decision 42 item 5 d)
+- run4_1bb9ae8/   ##CHRIS 2026-10-13 (plan-author decision 45 addendum 2): engine-gen3 1bb9ae8b, blocks F and G as ONE paste (block FG) for
+                  D and S of the mini table (and B900, B1600 of the full one): REHEARSAL G4: PASS (40 of 40). Group D's block FG typed while F
+                  is not clean -- an extra log of its chunk that did not finish (logs != chunks), its chunk's log without the done line (done
+                  logs != chunks; the chunk check fails too), a FAILED line, its chunk folder moved aside (the chunk check exits 2) -- each
+                  prints "F-D NOT CLEAN -- the merge was not submitted" and submits nothing (every change undone by moving files back); then
+                  clean (the merge submitted inside it, exit 0) and a second time (G's own guard refuses: merged/ exists). Group S's block FG
+                  prints NOT CLEAN after the faulty attempt (the resubmission lines; no "nothing to resubmit") and, by design, again after
+                  the resubmission (4 logs for 2 chunks); G's guarded line alone (the then-branch of FG's last line) then stands in for the
+                  plan author's go: once (exit 0) and a second time (refused); FG-S a second time: NOT CLEAN. Group B100 as in run 3.
+- runsheet_diff_6398ae1e_a3eb77e4.txt   the stage 1 runsheet, 6398ae1e against a3eb77e4 (make_s1_runsheet.py at 1bb9ae8b, --commit 7bdfb67e):
+                  blocks F and G of D, B900, S, B1600 replaced by block FG (F's command lines unchanged and first; G's guarded line inside
+                  FG's last line byte for byte as before) and two header lines; every other block byte for byte unchanged

@@ -1,0 +1,8 @@
+       1
+       1
+1
+   1 (Apple M3 Max (Mac rehearsal))
+chunk logs: 1; chunks done: 1 of 1 (group D; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished
+group D without a done log: stopped once 0, stopped twice or more 0, started and not finished 0, no log 0
+nothing to resubmit
+F-D NOT CLEAN -- the merge was not submitted

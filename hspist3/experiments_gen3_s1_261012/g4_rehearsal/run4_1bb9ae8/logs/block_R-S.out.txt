@@ -1,0 +1,4 @@
+CHECKS GOOD
+Submitted batch job 940011
+Submitted batch job 940012
+S: ALL 2 RESUBMISSION LINE(S) SUBMITTED
