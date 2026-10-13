@@ -1,0 +1,50 @@
+# The timing table (decision 41, the watch rule), from fetched files: chunk table /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d39/g4b/build/home/harddisks_gen3_k2/hspist3/cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv, task list /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d39/g4b/build/home/harddisks_gen3_k2/hspist3/cluster/gen3_stage1_261012/tasks_stage1_koa_261012.txt
+
+## group B100: 4 chunks of the chunk table; run records found for 31 of 31 task lines; the full table: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d41_timing_test2/timing_B100.tsv
+
+every chunk:
+
+| chunk | cell | M | class [min] | predicted s (E5) | runs found / lines | sum of ##RUN s | ratio | node | CPU model |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | B_N0100_eta0.050000 | 50 | 30 | 415.3 | 25 / 25 | 62 | 0.149 | Christophs-MacBook-Pro-875 | Apple M3 Max |
+| 2 | B_N0100_eta0.392699 | 50 | 30 | 5.3 | 2 / 2 | 3 | 0.566 | Christophs-MacBook-Pro-875 | Apple M3 Max |
+| 3 | B_N0100_eta0.392699 | 500 | 30 | 11.3 | 2 / 2 | 6 | 0.531 | Christophs-MacBook-Pro-875 | Apple M3 Max |
+| 4 | B_N0100_eta0.392699 | 500 | 60 | 11.3 | 2 / 2 | 5 | 0.442 | Christophs-MacBook-Pro-875 | Apple M3 Max |
+
+| CPU model | chunks | minimum | median | maximum |
+|---|---|---|---|---|
+| Apple M3 Max | 4 | 0.149 | 0.487 | 0.566 |
+
+WATCH RULE (decision 41 item 3): no chunk of group B100 ran on an E5 model (no E5 maximum)
+
+## group D: 1 chunks of the chunk table; run records found for 2 of 2 task lines; the full table: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d41_timing_test2/timing_D.tsv
+
+every chunk:
+
+| chunk | cell | M | class [min] | predicted s (E5) | runs found / lines | sum of ##RUN s | ratio | node | CPU model |
+|---|---|---|---|---|---|---|---|---|---|
+| 5 | D_N0100_eta0.075000 | 500 | 30 | 54.3 | 2 / 2 | 9 | 0.166 | Christophs-MacBook-Pro-875 | Apple M3 Max |
+
+| CPU model | chunks | minimum | median | maximum |
+|---|---|---|---|---|
+| Apple M3 Max | 1 | 0.166 | 0.166 | 0.166 |
+
+WATCH RULE (decision 41 item 3): no chunk of group D ran on an E5 model (no E5 maximum)
+
+## group S: 2 chunks of the chunk table; run records found for 4 of 4 task lines; the full table: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d41_timing_test2/timing_S.tsv
+
+every chunk:
+
+| chunk | cell | M | class [min] | predicted s (E5) | runs found / lines | sum of ##RUN s | ratio | node | CPU model |
+|---|---|---|---|---|---|---|---|---|---|
+| 6 | S_N0100_eta0.600000_start0 | 100 | 30 | 7.5 | 2 / 2 | 5 | 0.667 | Christophs-MacBook-Pro-875 | Apple M3 Max |
+| 7 | S_N0100_eta0.600000_turned | 100 | 60 | 7.5 | 2 / 2 | 5 | 0.667 | Christophs-MacBook-Pro-875 | Apple M3 Max |
+
+| CPU model | chunks | minimum | median | maximum |
+|---|---|---|---|---|
+| Apple M3 Max | 2 | 0.667 | 0.667 | 0.667 |
+
+WATCH RULE (decision 41 item 3): no chunk of group S ran on an E5 model (no E5 maximum)
+
+== --paste, chunk 1 (the fetched merged run.log of B_N0100_eta0.050000/m_50):
+chunk 1 (B_N0100_eta0.050000, M 50): run records 25 of 25; sum of ##RUN seconds 62; predicted (E5) 415.3 s; ratio 0.149; time limit 30 min = 4.33 x predicted
