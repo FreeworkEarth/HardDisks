@@ -1,0 +1,14 @@
+# git version 2.50.1 (Apple Git-155)
+(1) clean worktree, gitlink not populated:
+    exit 0, folder left: no
+(2) populated gitlink (a nested clone):
+    fatal: working trees containing submodules cannot be moved or removed
+    folder left: yes
+(2b) the nested clone moved out:
+    status:  D sub
+    fatal: '../wt2' contains modified or untracked files, use --force to delete it
+(2c) its empty folder recreated:
+    folder left: no
+(3) only an ignored file:
+    status: !! ignored_data.txt
+    exit 0, folder left: no (the ignored file went with it)

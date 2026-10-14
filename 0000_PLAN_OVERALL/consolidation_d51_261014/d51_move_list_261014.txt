@@ -1,0 +1,103 @@
+# d51_move_untracked.py --list (read-only): /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3 -> /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks
+
+## to the main checkout, same relative path (?? untracked, !! ignored)
+
+| kind | folder | files | MB |
+|---|---|---|---|
+| ?? | hspist3/experiments_gen3_stage1_koa_261012 | 7992 | 268.1 |
+| ?? | hspist3/experiments_gen3_psi6c_261010 | 15633 | 201.9 |
+| ?? | hspist3/experiments_gen3_p4_261010 | 48 | 75.4 |
+| !! | hspist3/experiments_gen3_stage1_koa_261012 | 2133 | 73.9 |
+| ?? | hspist3/experiments_gen3_p3_261009 | 84 | 71.3 |
+| !! | hspist3/experiments_gen3_m5_solid_koa_261012 | 17 | 63.2 |
+| ?? | hspist3/experiments_gen3_p6_261010 | 40 | 63.0 |
+| ?? | hspist3/experiments_gen3_d18_261010 | 235 | 59.4 |
+| ?? | hspist3/experiments_gen3_p3a_261009 | 111 | 53.5 |
+| ?? | hspist3/experiments_gen3_p1_261009 | 2179 | 48.1 |
+| ?? | hspist3/experiments_gen3_m3_261009 | 56 | 40.8 |
+| ?? | hspist3/experiments_gen3_p2_261009 | 1729 | 36.8 |
+| ?? | hspist3/experiments_gen3_h3b_261009 | 77 | 32.0 |
+| ?? | hspist3/experiments_gen3_h_261009 | 97 | 26.9 |
+| ?? | hspist3/experiments_gen3_d34a_261012 | 17 | 25.1 |
+| ?? | hspist3/experiments_gen3_p5_261010 | 34 | 22.2 |
+| ?? | hspist3/experiments_gen3_sym_261009 | 80 | 18.4 |
+| ?? | hspist3/experiments_gen3_d19_261010 | 19 | 17.6 |
+| !! | hspist3/experiments_gen3_d18_261010 | 359 | 16.7 |
+| !! | hspist3/experiments_gen3_p3a_261009 | 124 | 15.3 |
+| !! | hspist3/experiments_gen3_h3b_261009 | 89 | 14.1 |
+| !! | hspist3/experiments_gen3_d50_261014 | 109 | 10.6 |
+| !! | hspist3/experiments_gen3_psi6c_261010 | 83 | 10.0 |
+| ?? | hspist3/experiments_gen3_d50_261014 | 581 | 7.8 |
+| ?? | hspist3/experiments_gen3_d34s_261012 | 15 | 5.3 |
+| ?? | hspist3/experiments_gen3_m4b_261009 | 26 | 4.2 |
+| !! | hspist3/experiments_gen3_m3_261009 | 79 | 3.2 |
+| ?? | hspist3/experiments_gen3_s10_261012 | 1 | 3.0 |
+| !! | hspist3/experiments_gen3_s10_261012 | 15 | 2.7 |
+| !! | hspist3/experiments_gen3_m4_261009 | 200 | 2.2 |
+| !! | hspist3/experiments_gen3_h_261009 | 71 | 2.0 |
+| !! | hspist3/experiments_gen3_m4b_261009 | 62 | 1.9 |
+| !! | hspist3/experiments_gen3_d19_261010 | 43 | 1.9 |
+| !! | hspist3/experiments_gen3_d34a_261012 | 41 | 1.9 |
+| !! | hspist3/experiments_gen3_d34s_261012 | 42 | 1.9 |
+| ?? | hspist3/experiments_gen3_m5_261009 | 7 | 1.8 |
+| !! | hspist3/experiments_gen3_m5_261009 | 28 | 1.8 |
+| !! | hspist3/experiments_gen3_s1_gate_koa_261012 | 64 | 1.5 |
+| ?? | hspist3/experiments_gen3_d48_261013 | 2 | 1.4 |
+| ?? | hspist3/experiments_gen3_m4_261009 | 4 | 0.9 |
+| !! | hspist3/experiments_gen3_p1_261009 | 398 | 0.9 |
+| ?? | hspist3/experiments_gen3_d16_261010 | 1 | 0.8 |
+| !! | hspist3/experiments_gen3_p2_261009 | 146 | 0.6 |
+| !! | hspist3/experiments_gen3_p3_261009 | 171 | 0.5 |
+| ?? | hspist3/experiments_gen3_s1_261012 | 3 | 0.4 |
+| !! | hspist3/experiments_gen3_sym_261009 | 163 | 0.4 |
+| !! | hspist3/cluster | 14 | 0.4 |
+| !! | hspist3/experiments_gen3_p4_261010 | 75 | 0.2 |
+| !! | hspist3/experiments_gen3_p6_261010 | 63 | 0.2 |
+| !! | hspist3/experiments_gen3_p5_261010 | 53 | 0.2 |
+| !! | hspist3/experiments_speed_of_sound | 12 | 0.0 |
+| !! | hspist3/experiments_gen3_d16_261010 | 3 | 0.0 |
+
+33728 files, 1314.5 MB to the main checkout
+
+## to Repo/HardDisks_d51_hold (the target exists in the main checkout, or a run output)
+
+-  M hspist3/energy_log.csv (74558 bytes): tracked file rewritten by runs; its committed version is restored in the worktree
+-  M hspist3/wall_position.csv (3110197 bytes): tracked file rewritten by runs; its committed version is restored in the worktree
+- ?? hspist3/00_COMMAND.md (526 bytes): exists
+- ?? hspist3/run_params.json (420 bytes): exists
+- ?? hspist3/wall_position_run_params.json (420 bytes): exists
+- !! hspist3/00ALLINONE (607672 bytes): exists
+- !! hspist3/__pycache__/plot_speed_of_sound_edmd.cpython-313.pyc (105350 bytes): exists
+- !! hspist3/cluster/gen3_gate_261009/__pycache__/gen_testG_261009.cpython-313.pyc (15326 bytes): exists
+- !! hspist3/cluster/gen3_koa_261009/__pycache__/rehearse_k2_mac.cpython-313.pyc (84411 bytes): exists
+- !! hspist3/cluster/gen3_koa_261009/__pycache__/koa_k2_m5_rates_261010.cpython-313.pyc (22492 bytes): exists
+- !! hspist3/cluster/gen3_koa_261009/__pycache__/g3_rate_ld_koa.cpython-313.pyc (12794 bytes): exists
+- !! hspist3/cluster/gen3_koa_261009/__pycache__/g3_xnode_compare.cpython-313.pyc (9506 bytes): exists
+- !! hspist3/cluster/gen3_testR_261011/__pycache__/reduce_testR_koa.cpython-313.pyc (12905 bytes): exists
+- !! hspist3/cluster/resched_gate_261005/__pycache__/audit_runs_261007.cpython-313.pyc (28847 bytes): exists
+- !! hspist3/validation/__pycache__/resched_testT_261007.cpython-313.pyc (29128 bytes): exists
+- !! hspist3/validation/__pycache__/edmd3_health_guard.cpython-313.pyc (11061 bytes): exists
+- !! hspist3/validation/__pycache__/paper1_confinement_results_261004.cpython-313.pyc (76940 bytes): exists
+- !! hspist3/validation/__pycache__/paper1_confinement_prereg_20261012.cpython-313.pyc (29151 bytes): exists
+- !! hspist3/validation/__pycache__/paper1_populate_cs_err_20261002.cpython-313.pyc (19729 bytes): exists
+- !! hspist3/validation/__pycache__/tests_20260913.cpython-313.pyc (111340 bytes): exists
+- !! hspist3/validation/__pycache__/edmd_acc_guard.cpython-313.pyc (11040 bytes): exists
+- !! hspist3/validation/__pycache__/provenance_edmd_acc_261009.cpython-313.pyc (39446 bytes): exists
+- !! hspist3/validation/__pycache__/resched_testT_followup_261007.cpython-313.pyc (43206 bytes): exists
+- the nested clone hspist3/kissfft (whole folder, 1.4 MB): a populated gitlink; the empty folder is recreated after the move
+
+24 entries to the hold folder
+
+## processes whose working directory is inside the worktree (quit them before --go)
+
+- PID 35435 zsh: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3
+- PID 50636 zsh: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3
+- PID 66834 00ALLINONE: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3
+- PID 89407 00ALLINONE: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3
+- PID 95056 zsh: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3
+
+## problems
+
+-  M hspist3/00ALLINONE.c: a tracked change (commit it on engine-gen3 first)
+
+VERDICT: NOT READY

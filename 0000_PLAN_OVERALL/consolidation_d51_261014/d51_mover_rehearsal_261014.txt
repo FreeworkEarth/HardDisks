@@ -1,0 +1,59 @@
+the mover's domain: 10 files plus the nested clone's working files
+== the list
+    # d51_move_untracked.py --list (read-only): /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d51/mover_rehearsal_2/HardDisks_gen3 -> /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d51/mover_rehearsal_2/HardDisks
+    
+    ## to the main checkout, same relative path (?? untracked, !! ignored)
+    
+    | kind | folder | files | MB |
+    |---|---|---|---|
+    | ?? | hspist3/experiments_gen3_x | 3 | 0.2 |
+    | !! | hspist3/bigdata | 1 | 0.1 |
+    | ?? | hspist3/exp_old | 1 | 0.0 |
+    | !! | hspist3/ | 1 | 0.0 |
+    
+    6 files, 0.3 MB to the main checkout
+    
+    ## to Repo/HardDisks_d51_hold (the target exists in the main checkout, or a run output)
+    
+    -  M hspist3/energy_log.csv (3 bytes): tracked file rewritten by runs; its committed version is restored in the worktree
+    -  M hspist3/wall_position.csv (3 bytes): tracked file rewritten by runs; its committed version is restored in the worktree
+    - ?? hspist3/00_COMMAND.md (17 bytes): exists
+    - !! hspist3/__pycache__/x.cpython-313.pyc (9 bytes): exists
+    - the nested clone hspist3/kissfft (whole folder, 0.0 MB): a populated gitlink; the empty folder is recreated after the move
+    
+    5 entries to the hold folder
+    
+    ## processes whose working directory is inside the worktree (quit them before --go)
+    
+    - none
+    
+    ## problems
+    
+    - none
+    
+    VERDICT: READY
+== --go (its last two lines)
+    moved 6 files to the main checkout and 5 entries to /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d51/mover_rehearsal_2/HardDisks_d51_hold; restored 2 tracked files; manifest /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d51/mover_rehearsal_2/HardDisks_d51_hold/MANIFEST_d51_move.tsv
+    GOOD: the worktree is clean (2 emptied ignored folders, which go with it); next: git worktree remove ../HardDisks_gen3
+== git worktree remove ../HardDisks_gen3
+    exit 0; worktree folder left: no
+== git worktree list
+    /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d51/mover_rehearsal_2/HardDisks  42138dc [main]
+    branch engine-gen3: 9e4ae8b
+== checks
+    main checkout: hspist3/experiments_gen3_x/tests/run1/stdout.log present
+    main checkout: hspist3/experiments_gen3_x/bin_abc/00ALLINONE present
+    main checkout: hspist3/exp_old/new_in_tracked_folder.txt present
+    main checkout: hspist3/ign_note.txt present
+    main checkout: hspist3/bigdata/sub/raw.bin present
+    main checkout: hspist3/experiments_gen3_x/link_to_kept present
+    hold: hspist3/energy_log.csv present (t1 )
+    hold: hspist3/wall_position.csv present (w1 )
+    hold: hspist3/00_COMMAND.md present (gen3's untracked )
+    hold: hspist3/__pycache__/x.cpython-313.pyc present (pyc-gen3 )
+    hold: hspist3/kissfft/k.c present (k mod )
+    hold: MANIFEST_d51_move.tsv present (path	destination	bytes hspist3/exp_old/n)
+    main's own files untouched: 00_COMMAND.md 'main's untracked', pyc 'pyc-main', energy_log.csv 't0'
+    the moved files read back
+    SHA-256 of the 11 distinct files the mover handled (untracked, ignored, run outputs, the nested clone's files): not found after: 0
+    tracked files of the worktree are in git: engine-gen3 9e4ae8b, 7 files

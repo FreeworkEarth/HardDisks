@@ -1,0 +1,58 @@
+# d51_dryrun.sh, 2026-10-14 10:46:56 HST, git version 2.50.1 (Apple Git-155)
+
+## the heads (repository refs)
+- main c64d482e, origin/main 0733b0ca, ahead/behind 17/0
+- engine-gen3 37748898, origin/engine-gen3 8ee95868, ahead/behind 35/0
+- engine-divider-resched 7c9a6402, origin/engine-divider-resched 8d42a150, ahead/behind 17/0
+- merge base main / engine-gen3: 86269ae9 2026-10-05 draft: sigma_c 0.045; Bernard–Krauth and Engel bibitems
+- commits on main only: 183; on engine-gen3 only: 263
+- engine-divider-resched is NOT an ancestor of engine-gen3: 123 commits not in it; base df7185c5 2026-10-08
+  files it changed since that base: 44; of them not identical in engine-gen3: hspist3/00ALLINONE.c hspist3/validation/edmd_acc_guard.py
+
+## the clone
+- /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d51/clone_dryrun_script: main c64d482e, sparse (two files written)
+
+## git merge --no-ff --no-commit engine-gen3
+- exit 1
+    Auto-merging hspist3/00ALLINONE.c
+    CONFLICT (content): Merge conflict in hspist3/00ALLINONE.c
+    Automatic merge failed; fix conflicts and then commit the result.
+- conflicts: 1
+  - hspist3/00ALLINONE.c: main's commits on it since the base: d3eb64a4 
+    main added 16 lines, 0 of them missing in engine-gen3's version; main removed 1 lines, 0 of them still in it: CONTAINED (engine-gen3 wins, nothing of main lost)
+
+## the merged index (conflicts taken from engine-gen3)
+- against engine-gen3:  442 A;
+     114 0000_PLAN_OVERALL/paper1_speedofsound/experiments/exploratory_261008_window
+       1 hspist3/experiments_gen3_design_261009
+     325 hspist3/experiments_gen3_preview_koa_261011
+       2 hspist3/validation
+- files of engine-gen3 changed or removed by the merge: 0
+- against main: 11673 A; 9 M;  11682 files changed, 968751 insertions(+), 415 deletions(-)
+    M hspist3/00ALLINONE.c
+    M hspist3/Makefile
+    M hspist3/cluster/confinement_20261013/conf_worker.sh
+    M hspist3/cluster/confinement_20261013/reduce_B.py
+    M hspist3/cluster/koa_crossnode_det.sh
+    M hspist3/cluster/koa_smoketest.sh
+    M hspist3/cluster/profile_edmd_koa.sh
+    M hspist3/edmd_core/edmd.c
+    M hspist3/edmd_core/edmd.h
+
+## the merge against the main checkout
+- main checkout: 23 local changes, 40049 untracked, 13318 ignored entries
+- in the merge's paths: local changes 0, untracked 0, ignored 0
+
+## the stage 1 manifests from the merged index
+- s1_inputs.sha256:    6 OK
+- s1_merge_inputs.sha256:   15 OK
+- hspist3/00ALLINONE.c: merged ba47b01e17a7, engine-gen3 ba47b01e17a7
+
+## the runsheet's merge lines, rehearsed on a branch of the clone
+- git merge: exit 1, 1 CONFLICT line(s): CONFLICT (content): Merge conflict in hspist3/00ALLINONE.c 
+- the commit: b13e92f8, parents c64d482e 37748898, "consolidate: engine-gen3 into main after stage 1 (decision 51)"
+- its tree against engine-gen3:  442 A;
+
+## the size
+- the clone without .git: 3.6M; .git: 4.0G, of it new (not hardlinked) 3.2 MB
+- the work files:  13M in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d51/clone_dryrun_script.work
