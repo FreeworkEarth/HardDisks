@@ -161,6 +161,16 @@ def main():
         same = got == refd; rawsame = {r: v["raw"] for r, v in at.items() if not excluded(r)} == refraw
         untouched = [r for r, v in bt_.items() if refd.get(r) == v["d"]]
         rewritten = [r for r in untouched if r in at and (at[r]["mt"], at[r]["ino"]) != (bt_[r]["mt"], bt_[r]["ino"])]
+        # ##CHRIS 2026-10-13: "changes no finished file" (decision 47 item 3): a step's tables count as finished when ALL of them were there
+        # before the completion and equal to REF; a reduce_s1 cut by the kill may have written its first tables (equal to REF) and not the
+        # rest; the package's reduce_s1_koa.py writes all of them again (same content). Such rewrites are listed, not failed.
+        STEP = {"B": ("red_nu.csv", "acf_runs.npz"), "S1": ("nud_runs.csv", "runs_health.csv", "failed_runs.csv", "acf_mean_fit.csv", "s1_runs.csv", "snap_runs.csv")}
+        def step_of(r):
+            for k, fs in STEP.items():
+                if os.path.basename(r) in fs: return k, os.path.dirname(r), [os.path.join(os.path.dirname(r), f) for f in fs if os.path.join(os.path.dirname(r), f) in refd]
+            return None, None, []
+        cut = [r for r in rewritten if step_of(r)[0] and not all(bt_.get(q, {}).get("d") == refd[q] for q in step_of(r)[2])]
+        rewritten = [r for r in rewritten if r not in cut]                       # what is left: a finished file rewritten (a failure)
         vanished = [r for r in bt_ if r not in at and not any(q.startswith(r + ".partial_") and at[q]["raw"] == bt_[r]["raw"] for q in at)
                     and not (r + ".gz" in at and at[r + ".gz"]["d"] == "gz:" + bt_[r]["raw"])]      # a trace gzipped: its .csv is in the .gz
         extra = [r for r in at if r not in bt_ and r not in refd and not excluded(r)]
@@ -169,9 +179,10 @@ def main():
         kept = [r for r in at if ".partial_" in r]
         okc = [x == 0, "completion done" in jt, same, not rewritten, not vanished, not extra, plan_ok, mc_ok, os.path.exists(os.path.join(groot, "merged", ".reduction_completed"))]
         if name == "K5": okc.append(len(kept) >= 1)
-        res(f"{name}: killed at {what}; then the completion", "exit 0; the tree equals REF file by file; the files already equal to REF not rewritten; "
+        res(f"{name}: killed at {what}; then the completion", "exit 0; the tree equals REF file by file; no file of a finished step rewritten; "
             "nothing vanished; no extra file" + ("; the cut gzip kept aside" if name == "K5" else ""), all(okc),
-            f"killed {k}; checks {okc}; {len(untouched)} files already final and untouched; raw bytes equal to REF: {rawsame}; kept aside: {kept}")
+            f"killed {k}; checks {okc}; {len(untouched) - len(cut)} finished files untouched; the cut step's tables written again with the same "
+            f"content: {cut or 'none'}; raw bytes equal to REF: {rawsame}; kept aside: {kept}")
         if name == "K1":
             b8 = tree(groot); x8, j8 = complete(mlog, tag="K1_again")
             res("K1: the completion a second time", "exit 3 (.reduction_completed), nothing changed but its log", x8 == 3

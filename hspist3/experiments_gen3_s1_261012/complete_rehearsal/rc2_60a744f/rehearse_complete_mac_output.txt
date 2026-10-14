@@ -1,0 +1,44 @@
+# the reduction completion rehearsal (decision 47 item 3): package 60a744f3ef7a366e3bccb230f47cc12ebd5d4baa (engine-gen3), root /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2
+
+    -> the build (rehearse_s1_build_mac.py): PASS (['BUILD REHEARSAL: PASS (8 of 8)'])
+    -> the substitutions; the completion's Lustre path and manifest; the clone home/harddisks_gen3_rc: PASS (s1_complete_inputs.sha256: 18 files (2 of the completion, 16 of the stage 1 package); OK lines 39; stand-in c1a48152d008)
+  block C: exit 0, 64 s, log logs/block_C.out
+  block E-B100: exit 0, 15 s, log logs/block_E-B100.out
+    -> group B100's mini chunks (blocks C and E-B100): PASS (940003_4 cluster/gen3_stage1_261012/s1_koa.sbatch 0)
+    -> REF: the merge to its end: PASS (455 files; log gen3-s1-merge-B100_940004.out)
+    -> REF: the completion on a finished merge: PASS (exit 0)
+  K1: killed True at 'the first reduce_s1 table of the first folder'; to complete: | stage1/gen3/B_N0100_eta0.050000/m_50 | 25 | done | TO DO | 0 of 25 compressed | reduce_s1, the SHA-256 lines and gzip of 25 |; | stage1/gen3/B_N0100_eta0.392699/m_50 | 2 | TO DO | TO DO | 0 of 2 compressed | reduce_B, reduce_s1, the SHA-256 lines and gzip of 2 |; | stage1/gen3/B_N0100_eta0.392699/m_500 | 4 | TO DO | TO DO | 0 of 4 compressed | reduce_B, reduce_s1, the SHA-256 lines and gzip of 4 |
+    -> K1: killed at the first reduce_s1 table of the first folder; then the completion: **FAIL** (killed True; checks [True, True, True, False, True, True, True, True, True]; 395 files already final and untouched; raw bytes equal to REF: True; kept aside: [])
+    -> K1: the completion a second time: PASS (exit 3)
+  K2: killed True at 'the first .gz of the first folder'; to complete: | stage1/gen3/B_N0100_eta0.050000/m_50 | 25 | done | done | 1 of 25 compressed | gzip of 25 (1 partial .gz moved aside) |; | stage1/gen3/B_N0100_eta0.392699/m_50 | 2 | TO DO | TO DO | 0 of 2 compressed | reduce_B, reduce_s1, the SHA-256 lines and gzip of 2 |; | stage1/gen3/B_N0100_eta0.392699/m_500 | 4 | TO DO | TO DO | 0 of 4 compressed | reduce_B, reduce_s1, the SHA-256 lines and gzip of 4 |
+    -> K2: the completion with a pretended running merge job: PASS (exit 2)
+    -> K2: killed at the first .gz of the first folder; then the completion: PASS (killed True; checks [True, True, True, True, True, True, True, True, True]; 400 files already final and untouched; raw bytes equal to REF: True; kept aside: ['merged/stage1/gen3/B_N0100_eta0.050000/m_50/wall_x_positions_L0_785_wallmassfactor_50_run0.csv.gz.partial_940011'])
+  K3: killed True at 'reduce_B's red_nu.csv of the second cell's first folder'; to complete: | stage1/gen3/B_N0100_eta0.392699/m_50 | 2 | done | TO DO | 0 of 2 compressed | reduce_s1, the SHA-256 lines and gzip of 2 |; | stage1/gen3/B_N0100_eta0.392699/m_500 | 4 | TO DO | TO DO | 0 of 4 compressed | reduce_B, reduce_s1, the SHA-256 lines and gzip of 4 |
+    -> K3: killed at reduce_B's red_nu.csv of the second cell's first folder; then the completion: PASS (killed True; checks [True, True, True, True, True, True, True, True, True]; 427 files already final and untouched; raw bytes equal to REF: True; kept aside: [])
+  K4: killed True at 'the first reduce_s1 table of the last folder'; to complete: | stage1/gen3/B_N0100_eta0.392699/m_50 | 2 | done | done | 0 of 2 compressed | the SHA-256 lines and gzip of 2 |; | stage1/gen3/B_N0100_eta0.392699/m_500 | 4 | done | TO DO | 0 of 4 compressed | reduce_s1, the SHA-256 lines and gzip of 4 |
+    -> K4: killed at the first reduce_s1 table of the last folder; then the completion: **FAIL** (killed True; checks [True, True, True, False, True, True, True, True, True]; 435 files already final and untouched; raw bytes equal to REF: True; kept aside: [])
+  K5: killed True at 'the first .gz of the last folder, then a cut gzip for its next trace'; to complete: | stage1/gen3/B_N0100_eta0.392699/m_500 | 4 | done | done | 2 of 4 compressed | gzip of 4 (2 partial .gz moved aside) |
+    -> K5: killed at the first .gz of the last folder, then a cut gzip for its next trace; then the completion: PASS (killed True; checks [True, True, True, True, True, True, True, True, True, True]; 444 files already final and untouched; raw bytes equal to REF: True; kept aside: ['merged/stage1/gen3/B_N0100_eta0.392699/m_500/wall_x_positions_L0_100_wallmassfactor_500_run0.csv.gz.partial_940017', 'merged/stage1/gen3/B_N0100_eta0.392699/m_500/wall_x_positions_L0_100_wallmassfactor_500_run1.csv.gz.partial_940017'])
+    -> K6: merged/ without .merge_complete (a merge stopped during its moves): PASS (exit 2)
+
+| step | criterion | result | evidence |
+|---|---|---|---|
+| the build (rehearse_s1_build_mac.py) | BUILD REHEARSAL: PASS | PASS | ['BUILD REHEARSAL: PASS (8 of 8)'] |
+| the substitutions; the completion's Lustre path and manifest; the clone home/harddisks_gen3_rc | the three manifests pass in the rc clone | PASS | s1_complete_inputs.sha256: 18 files (2 of the completion, 16 of the stage 1 package); OK lines 39; stand-in c1a48152d008 |
+| group B100's mini chunks (blocks C and E-B100) | 4 chunk folders, every chunk exit 0 | PASS | 940003_4 cluster/gen3_stage1_261012/s1_koa.sbatch 0 |
+| REF: the merge to its end | .merge_complete; every folder reduced and compressed | PASS | 455 files; log gen3-s1-merge-B100_940004.out |
+| REF: the completion on a finished merge | exit 0, 'nothing to complete', nothing changed but the logs copied | PASS | exit 0 |
+| K1: killed at the first reduce_s1 table of the first folder; then the completion | exit 0; the tree equals REF file by file; the files already equal to REF not rewritten; nothing vanished; no extra file | **FAIL** | killed True; checks [True, True, True, False, True, True, True, True, True]; 395 files already final and untouched; raw bytes equal to REF: True; kept aside: [] |
+| K1: the completion a second time | exit 3 (.reduction_completed), nothing changed but its log | PASS | exit 3 |
+| K2: the completion with a pretended running merge job | exit 2, nothing changed | PASS | exit 2 |
+| K2: killed at the first .gz of the first folder; then the completion | exit 0; the tree equals REF file by file; the files already equal to REF not rewritten; nothing vanished; no extra file | PASS | killed True; checks [True, True, True, True, True, True, True, True, True]; 400 files already final and untouched; raw bytes equal to REF: True; kept aside: ['merged/stage1/gen3/B_N0100_eta0.050000/m_50/wall_x_positions_L0_785_wallmassfactor_50_run0.csv.gz.partial_940011'] |
+| K3: killed at reduce_B's red_nu.csv of the second cell's first folder; then the completion | exit 0; the tree equals REF file by file; the files already equal to REF not rewritten; nothing vanished; no extra file | PASS | killed True; checks [True, True, True, True, True, True, True, True, True]; 427 files already final and untouched; raw bytes equal to REF: True; kept aside: [] |
+| K4: killed at the first reduce_s1 table of the last folder; then the completion | exit 0; the tree equals REF file by file; the files already equal to REF not rewritten; nothing vanished; no extra file | **FAIL** | killed True; checks [True, True, True, False, True, True, True, True, True]; 435 files already final and untouched; raw bytes equal to REF: True; kept aside: [] |
+| K5: killed at the first .gz of the last folder, then a cut gzip for its next trace; then the completion | exit 0; the tree equals REF file by file; the files already equal to REF not rewritten; nothing vanished; no extra file; the cut gzip kept aside | PASS | killed True; checks [True, True, True, True, True, True, True, True, True, True]; 444 files already final and untouched; raw bytes equal to REF: True; kept aside: ['merged/stage1/gen3/B_N0100_eta0.392699/m_500/wall_x_positions_L0_100_wallmassfactor_500_run0.csv.gz.partial_940017', 'merged/stage1/gen3/B_N0100_eta0.392699/m_500/wall_x_positions_L0_100_wallmassfactor_500_run1.csv.gz.partial_940017'] |
+| K6: merged/ without .merge_complete (a merge stopped during its moves) | exit 2, nothing changed | PASS | exit 2 |
+
+RESIDUAL DIFFERENCES: the shims (Slurm commands, module, gcc --version, lscpu, hostname, sha256sum); the Mac binaries; the mini list and table; the Lustre path; the kills by SIGKILL to the shim's process group at a file's appearance (on KOA: Slurm's time limit)
+
+COMPLETION REHEARSAL: FAIL (11 of 13)
+data under /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2: 159M
+rehearsal exit 0

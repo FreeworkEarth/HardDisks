@@ -1,0 +1,15 @@
+# the reduction completion rehearsal (decision 47 item 3): package f434f13b1cc086251eecaaf11963957c63611bb3 (engine-gen3), root /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc1
+
+    -> the build (rehearse_s1_build_mac.py): PASS (['BUILD REHEARSAL: PASS (8 of 8)'])
+STOP: git clone -q --shared /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc1/build/home/harddisks_gen3_k2 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc1/build/home/harddisks_gen3_rc (in None) exit 128: sdk.zip (ea9e2e5dc5b4231854cf49c538467c38a5e363b90b80d430613dcc298e9dcd06): error transferring "ea9e2e5dc5b4231854cf49c538467c38a5e363b90b80d430613dcc298e9dcd06": [0] remote missing object ea9e2e5dc5b4231854cf49c538467c38a5e363b90b80d430613dcc298e9dcd06
+
+Errors logged to '/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc1/build/home/harddisks_gen3_rc/.git/lfs/logs/20261013T170855.213655.log'.
+Use `git lfs logs last` to view the log.
+error: external filter 'git-lfs filter-process' failed
+fatal: hspist2/MacOSX10.6.sdk.zip: smudge filter lfs failed
+warning: Clone succeeded, but checkout failed.
+You can inspect what was checked out with 'git status'
+and retry with 'git restore --source=HEAD :/'
+
+
+rehearsal exit 1

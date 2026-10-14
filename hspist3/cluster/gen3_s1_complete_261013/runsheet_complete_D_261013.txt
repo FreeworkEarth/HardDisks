@@ -1,0 +1,89 @@
+##CHRIS 2026-10-13 (plan-author decision 47 item 3) -- THE CONTINGENCY RUNSHEET: THE REDUCTION COMPLETION OF GROUP D. PREPARED, NOT TYPED.
+It is typed only if block H-D and decision 46's sacct line show that D's merge (job 15055588) stopped during its reduction, and only on
+the plan author's go:
+- sacct's State is TIMEOUT;
+- H-D's `cat .../D/merged/.merge_complete` prints its time (the moves were complete);
+- the merge log has no "merge done" line and no "this job's log is copied" line.
+Then H-D's counts do NOT show how far the reduction got. merge_s1_koa.py's lines are block-buffered, so at a kill the log loses its last
+part or all of it: in the Mac rehearsal every killed merge's log ends at "FAILED lines in the chunk logs (logs/): 0". RC block B's plan,
+read from the files, shows the state.
+Chris types every command.
+
+WHAT IT DOES. The merge stops at its 6 h limit after its moves (merged/.merge_complete exists), during the reduction of D's 54
+(cell, mass) folders. The completion job (cluster/gen3_s1_complete_261013/, engine-gen3 60a744f) runs from a NEW clone,
+~/harddisks_gen3_rc, at 60a744f. The scripts clone ~/harddisks_gen3_k2 stays at 7bdfb67 and is not touched, so every runsheet
+guard that checks its HEAD still holds.
+- The package's files in the new clone are byte for byte the stage 1 package's: s1_inputs.sha256 and s1_merge_inputs.sha256 pass.
+  Its own manifest s1_complete_inputs.sha256 lists every file the completion runs.
+- The job reads from the files which folders the merge finished. It does the merge's own remaining steps for the rest, in the
+  merge's order: reduce_B.py for the masses without valid tables, reduce_s1_koa.py, the SHA-256 lines, gzip -9.
+- It changes no finished file. A cut gzip is kept as <name>.gz.partial_<job id>.
+- Every check comes before any change; a failed check stops it with "STOP: ..." and NOTHING changed.
+- It writes merged/.reduction_completed at its end.
+Rehearsed on the Mac (rehearse_complete_mac.py; engine-gen3 experiments_gen3_s1_261012/complete_rehearsal/): merges killed at five
+points, each completed to a tree equal to an uninterrupted merge's, file by file.
+
+RC BLOCK A (KOA login node; opens the sandbox shell; then wait for the cn-... prompt):
+squeue -u charing
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+
+  Expected: squeue lists no gen3-s1-merge-D job. Paste block B only at the cn-... prompt.
+
+RC BLOCK B (in the sandbox shell: the new clone ~/harddisks_gen3_rc at 60a744f, its manifests, the plan -- read only on D's tree):
+ls -d ~/harddisks_gen3_rc 2>&1 | head -1
+cd ~ && git clone --depth 1 --branch engine-gen3 --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_gen3_rc
+cd ~/harddisks_gen3_rc && git fetch --depth 1 origin 60a744f3ef7a366e3bccb230f47cc12ebd5d4baa
+git -c advice.detachedHead=false checkout 60a744f3ef7a366e3bccb230f47cc12ebd5d4baa
+git sparse-checkout set --no-cone "/hspist3/*.py" "/hspist3/cluster/" "/hspist3/validation/"
+git log -1 --format='%h %s' | cut -c1-80
+cd hspist3 && mkdir -p logs && sha256sum -c cluster/gen3_stage1_261012/s1_inputs.sha256 cluster/gen3_stage1_261012/s1_merge_inputs.sha256 cluster/gen3_s1_complete_261013/s1_complete_inputs.sha256 | grep -c ': OK$'
+source cluster/koa_env.sh && python3 cluster/gen3_s1_complete_261013/complete_s1_koa.py /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D --plan-only
+exit
+
+  THE LINES THAT SHOW IT IS GOOD (paste everything):
+    "ls: cannot access '/home/charing/harddisks_gen3_rc': No such file or directory" (a fresh clone)
+    the clone's lines; the fetch of 60a744f3ef7a366e3bccb230f47cc12ebd5d4baa; "HEAD is now at 60a744f ..."; the log line starting with 60a744f
+    39         (the three manifests: 6 + 15 + 18 files, each ": OK")
+    "env: gcc (GCC) 14.3.0 | Python ... at /home/charing/envs/hd/bin/python3 | ..."
+    the plan: "## the plan (--plan-only): 6 cells, 54 (cell, mass) folders under stage1/gen3", one row per folder (finished, or its
+    steps), "folders finished: <a>; folders to complete: <b>" with a + b = 54, and "--plan-only: nothing was changed"
+  STOP RULE: a "STOP: ..." line, a "REFUSED" row, other counts: type exit, paste everything, wait.
+
+RC BLOCK C (KOA login node, after block B's exit, ONLY on the plan author's go; the completion; one core, at most 24 h):
+squeue -u charing
+cd ~/harddisks_gen3_rc/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-merge-D,gen3-s1-complete-D -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-merge-D or gen3-s1-complete-D job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 60a744f3ef7a366e3bccb230f47cc12ebd5d4baa ] || { echo "REFUSED: the rc clone is not at 60a744f"; false; }; } && { [ -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged/.merge_complete ] || { echo "REFUSED: D's merged/.merge_complete is missing: the merge did not finish its moves (not this job's case)"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged/.reduction_completed ] || { echo "REFUSED: D's reduction was completed before"; false; }; } && { [ -f ~/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-D_15055588.out ] || { echo "REFUSED: the merge log ~/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-D_15055588.out is missing"; false; }; } && echo "CHECKS GOOD" && sbatch --time=24:00:00 --job-name=gen3-s1-complete-D cluster/gen3_s1_complete_261013/s1_complete.sbatch D $HOME/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-D_15055588.out && echo "D: THE COMPLETION SUBMITTED" || echo "D: THIS PASTE DID NOT SUBMIT THE COMPLETION"
+
+  Expected: "CHECKS GOOD", "Submitted batch job <its number>" and "D: THE COMPLETION SUBMITTED".
+  THE GUARD: it submits only if all of these hold, else it prints "REFUSED: ..." and "D: THIS PASTE DID NOT SUBMIT THE COMPLETION":
+    - squeue lists no gen3-s1-merge-D and no gen3-s1-complete-D job (a failed squeue refuses);
+    - the rc clone is at 60a744f;
+    - D's merged/.merge_complete exists and merged/.reduction_completed does not;
+    - the merge log ~/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-D_15055588.out exists.
+  A second paste therefore refuses while the job is queued and after it has finished.
+  The job checks everything again for itself before it changes anything.
+
+RC BLOCK D (KOA login node, when squeue -u charing lists no gen3-s1-complete-D job; every line only reads; paste everything):
+squeue -u charing
+L=$(ls -t ~/harddisks_gen3_rc/hspist3/logs/gen3-s1-complete-D_*.out | head -1) && echo "$L"
+grep -v -e '^| stage1/gen3/' -e '^reduce_B stage1/gen3/.*: exit 0 ' -e 'trajectories reduced *$' -e '^reduce_s1 stage1/gen3/.*: exit 0 ' -e ': [0-9]* traces compressed$' "$L"
+echo "reduce_B exit 0: $(grep -c '^reduce_B stage1/gen3/.*: exit 0 ' "$L"); reduce_s1 exit 0: $(grep -c '^reduce_s1 stage1/gen3/.*: exit 0 ' "$L"); compressed: $(grep -c ': [0-9]* traces compressed$' "$L")"
+grep -h '^reduce_s1 ' "$L" | grep -o '([0-9]* fit failures)' | sort | uniq -c
+cat /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged/.reduction_completed
+ls /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/job_logs | wc -l
+
+  THE LINES THAT SHOW IT IS GOOD:
+    - squeue: its header line only; the log's name;
+    - the log without its per-folder lines:
+      - "env: ..."; "completion of the reduction of ... by the scripts of ~/harddisks_gen3_rc (...; the three manifests: OK); ...";
+      - four SHA-256 lines; the merge log's last line;
+      - the two plan summaries ("folders finished: <a>; folders to complete: <b>", then the same again);
+      - "reduction completed by job <n>: reduce_B in ..., reduce_s1 in <b'> folders, <b> folders compressed (<traces> traces), <k> cut gzip files kept aside, 0 steps with an exit other than 0";
+      - "completion done; ..." and "this job's log is copied to .../job_logs/ as the last command";
+    - the counts: reduce_s1 and compressed equal to the folders the plan listed;
+    - the fit-failure counts of the folders it reduced;
+    - .reduction_completed: its time and the same "reduction completed by job ..." line;
+    - the job logs: D's chunk logs, the merge log and the completion's log.
+  STOP RULE: an exit other than 0, a STOP line, other counts: paste, change nothing, wait.
+
+THEN block I-D (the fetch) as in the runsheet, unchanged. The fetch carries .reduction_completed and the completion's log, and CC prints
+D's INTERIM report.
