@@ -1,7 +1,10 @@
 # Decision 48 (261012 sec. 4.7.104): the viewer's gen3 cell width -- the build and the tests (2026-10-13; Report D48 accepted by decision 48 addendum 1, sec. 4.7.106; committed with the edit, local only until the plan author's word)
 
 - **The commit:** the edit and this folder, committed together on engine-gen3, with the message the plan author gave in decision 48 addendum 1 item 2. The binaries are not committed, as in the earlier evidence folders.
-- **The clean rebuild for Chris's viewer** (addendum 1 item 2) is made from that commit with experiments_gen3_m3_261009/build_clean.sh, into `bin_<its short hash>/`, in the next commit. bin_4ede56f7-dirty/ stays.
+- **The clean rebuild for Chris's viewer** (addendum 1 item 2) was made from that commit, d2dc1773, with experiments_gen3_m3_261009/build_clean.sh: **bin_d2dc177/00ALLINONE**. bin_4ede56f7-dirty/ stays.
+  - It reports `git d2dc177  target mac-O3-e0pre`; its 00ALLINONE.c is byte-identical to the tested edit. -Wall -Wextra gives the same 25 warnings; the harnesses give 0.
+  - The smoke test (tests/RESULTS_clean.md): scene 1 builds with a 44 px cell, 37,977 events after the APPLY, clean=1. Scene 3 builds with a 32 px cell, clean=1, with the same event hashes as the old viewer (08bf879143d890ed, bda502aee2a9339f).
+  - The build's 188 MB source copy and its test binaries stay in the session scratchpad; bin_d2dc177/ holds the viewer and the text records.
 - **The edit:** hspist3/00ALLINONE.c, made in the engine-gen3 worktree on HEAD 4ede56f7, two places marked ##CHRIS 2026-10-13 (decision 48):
   - g3_cell_arg, before g3_build: in the window's scene and without --gen3-cell-px, the larger of 32 px and the diameter rounded up to whole pixels; otherwise cli_gen3_cell_px, as before;
   - the status line (g3_gui_engine_line): the cell width next to "engine: gen3 (provisional display)".

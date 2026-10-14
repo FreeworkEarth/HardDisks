@@ -8,6 +8,7 @@ SP=/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-system
 G=/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3
 OLD=$G/experiments_gen3_d34s_261012/bin_406044f/00ALLINONE
 NEW=$G/experiments_gen3_d48_261013/bin_4ede56f7-dirty/00ALLINONE
+CLEAN=$G/experiments_gen3_d48_261013/bin_d2dc177/00ALLINONE   # decision 48 addendum 1 item 2: the clean build of d2dc1773
 BASE=(--show-simulation --mode=edmd --engine=gen3 --edmd-acc=0 --seed-drift-order=drift-first --kbt1 --l0=89.5904 --height=70.7107
       --num-walls=1 --wall-positions=89.5904 --wall-mass-factors=50 --wall-hold-steps=600 --fixed-dt=0.4 --seed=9300 --gui-time-scale=200
       --auto-release)   # the scene starts by itself (as the decision-34 acceptance runs; otherwise it waits for SPACE)
@@ -32,6 +33,8 @@ for t in "$@"; do
                           --gui-shot=3000:"$SP/d48/runs/t6_new_scene1_shot/t6_scene1_step3000.bmp" "${KEYS[@]}" ;;
     t7_new_scene1_cellpx32) run $t "$NEW" 90 -- "${BASE[@]}" "${ET[@]}" "${S1[@]}" --gen3-cell-px=32 --gui-window=2000x1200 \
                           --gui-shot=1:"$SP/d48/runs/t7_new_scene1_cellpx32/t7_scene1_refused.bmp" --gui-keys=120:Q --gui-run-seconds=10 ;;
+    c1_clean_scene1) run $t "$CLEAN" 240 -- "${BASE[@]}" "${ET[@]}" "${S1[@]}" "${KEYS[@]}" ;;
+    c3_clean_scene3_default) run $t "$CLEAN" 240 -- "${BASE[@]}" "${ET[@]}" "${S3[@]}" "${KEYS[@]}" ;;
     *) echo "unknown test $t"; exit 1 ;;
   esac
 done
