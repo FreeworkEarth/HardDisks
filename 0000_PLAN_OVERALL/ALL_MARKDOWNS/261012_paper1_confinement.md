@@ -25192,3 +25192,93 @@ none
 - The fetched folders themselves are not committed; their SHA lists are.
 
 Written for: the plan author
+
+### 4.7.99 Plan-author decision 47: Report D46 accepted; the fit failures accepted as registered outcomes (the counts are KOA's; near the limit the outcome depends on the scipy version); the merges of B900, S and B1600 with --time=24:00:00; queue guards for E-S and E-B1600; the plan author's timing line in every FG; a contingency job for D's merge; THE GO FOR S AND B1600; the first-look notes for the record (2026-10-13 16:59 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 47** (relayed by Chris at about 16:59 HST, machine date; the plan author's time "~17:00 HST").
+- **1. Report D46 is accepted.**
+  - None of decision 46's cancel triggers is met; B900 continues.
+  - The fit-failure rates (0.17 %, 0.44 %; all at the maxfev limit, high Q) are accepted as registered outcomes. The fit is not changed.
+  - CC's inference (more failures at η 0.05–0.10 for B900 and B1600, cells possibly below 5 masses) is recorded as a risk to E1 in those cells. A secondary estimator, if ever, comes only by a dated POST-HOC amendment after all four sizes exist.
+  - **For the record:** the registered counts are KOA's, and near the limit the outcome depends on the scipy version.
+- **2. The merge limit.**
+  - The merges of B900, S and B1600 are submitted with `--time=24:00:00` on the sbatch command line, which overrides the script's 6 h. The package and both manifests stay as they are.
+  - CC regenerates the runsheet:
+    - the G line inside FG-B900, FG-S and FG-B1600 reads "sbatch --time=24:00:00 --job-name=gen3-s1-merge-<g> ...";
+    - E-S refuses while any gen3-s1-B900 job is in squeue, and E-B1600 while any gen3-s1-S or gen3-s1-B900 job is (the 64-core rule of sec. 4.8.8; the merges may run beside the next group's arrays);
+    - the plan author's timing line stands among F's lines in every FG.
+  - CC rehearses on the mini table and reports the new runsheet's SHA-256 and the command diff.
+  - Chris types FG-B900 and E-S tonight, from blocks the plan author gave him with exactly these changes.
+- **3. D's merge (job 15055588) may be killed at 6 h.** CC prepares now, as a contingency, a reduction-completion job:
+  - it runs the package's own reduce_B.py, reduce_s1_koa.py, the SHA-256 lines and gzip -9 on the (cell, mass) folders of a merged/ tree that the merge did not finish;
+  - it skips the finished ones, changes no finished file, and prints what it did;
+  - its inputs are listed in a manifest;
+  - it is rehearsed on the mini data with a merge stopped half way (a pretended kill).
+  - Report only. It is typed only if H-D shows the kill, on the plan author's go.
+- **4. THE GO FOR S AND B1600 is given,** in the registered order, with the queue guards of item 2 enforcing the sequence. The watch rule, A3 and the cancel triggers of decision 46 stay.
+- **5. After each fetch (D, B900, S, B1600):** the INTERIM report as for B100 and B400, with the first-look tables. For B900 and B1600 also: the η 0.05 and 0.10 cells' fit failures per mass and the masses left for E1.
+- **6. From the first look, for the record, no action:**
+  - the E1 chi-square per cell is large (60–111 on 7 dof) exactly where ψ6 > 0.2 (N 100 at η ≥ 0.60, N 400 at η ≥ 0.66), where the standing-wave model is not expected to hold;
+  - delta_0.5 at N 100 over Φ is mostly negative (−0.2 to −0.6 %), and at N 400 near zero.
+  - Prediction 6 is evaluated at the end.
+
+**The message, verbatim** (relayed by Chris on 2026-10-13 at about 16:59 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record in a new
+section.
+
+DECISION 47 (2026-10-13 ~17:00 HST)
+ 1. Report D46 (the INTERIM report): ACCEPTED. None of decision
+    46's cancel triggers is met; B900 continues. The fit-failure
+    rates (0.17 %, 0.44 %; all at the maxfev limit, high Q) are
+    accepted as registered outcomes. The fit is not changed. Your
+    inference (more failures at eta 0.05-0.10 for B900 and B1600,
+    cells possibly below 5 masses) is recorded as a risk to E1 in
+    those cells; a secondary estimator, if ever, only by a dated
+    POST-HOC amendment after all four sizes exist. Record that the
+    registered counts are KOA's and that near the limit the outcome
+    depends on the scipy version.
+ 2. THE MERGE LIMIT. The merges of B900, S and B1600 are submitted
+    with --time=24:00:00 on the sbatch command line, which overrides
+    the script's 6 h; the package and both manifests stay as they
+    are. Regenerate the runsheet so that the G line inside FG-B900,
+    FG-S and FG-B1600 reads "sbatch --time=24:00:00
+    --job-name=gen3-s1-merge-<g> ...", and so that E-S also refuses
+    while any gen3-s1-B900 job is in squeue and E-B1600 while any
+    gen3-s1-S or gen3-s1-B900 job is (the 64-core rule of sec.
+    4.8.8; the merges may run beside the next group's arrays). Add
+    my timing line among F's lines in every FG. Rehearse on the
+    mini table; report the new runsheet's SHA-256 and the command
+    diff. Chris types FG-B900 and E-S tonight from blocks I gave
+    him with exactly these changes.
+ 3. D's MERGE (job 15055588) may be killed at 6 h. Prepare NOW, as
+    a contingency: a reduction-completion job that runs the
+    package's own reduce_B.py, reduce_s1_koa.py, the SHA-256 lines
+    and gzip -9 on the (cell, mass) folders of a merged/ tree that
+    the merge did not finish, skips the finished ones, changes no
+    finished file, and prints what it did; its inputs listed in a
+    manifest; rehearsed on the mini data with a merge stopped half
+    way (a pretended kill). Report only; typed only if H-D shows the
+    kill, on my go.
+ 4. THE GO FOR S AND B1600 is given, in the registered order, with
+    the queue guards of item 2 enforcing the sequence. The watch
+    rule, A3 and the cancel triggers of decision 46 stay.
+ 5. After each fetch (D, B900, S, B1600): the INTERIM report as for
+    B100 and B400, with the first-look tables. For B900 and B1600
+    add: the eta 0.05 and 0.10 cells' fit failures per mass and the
+    masses left for E1.
+ 6. From the first look, two things for the record, no action: the
+    E1 chi-square per cell is large (60-111 on 7 dof) exactly where
+    psi6 > 0.2 (N 100 at eta >= 0.60, N 400 at eta >= 0.66), i.e.
+    where the standing-wave model is not expected to hold; and
+    delta_0.5 at N 100 over Phi is mostly negative (-0.2 to -0.6 %),
+    at N 400 near zero. Prediction 6 is evaluated at the end.
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
