@@ -1526,10 +1526,22 @@ static int g3_soft_stop(const char* what, const char* why){
     gui_scene_stopped(what, why);
     return 1;
 }
+/* ##CHRIS 2026-10-13 (plan-author decision 48; 261012 sec. 4.7.104): THE CELL WIDTH OF THE WINDOW'S SCENE. gen3 refuses a cell
+   narrower than a diameter (edmd3_create; sec. 4.7.1, a), and without --gen3-cell-px it takes EDMD3_DEFAULT_CELL_PX = 32 px, sized
+   for R = 12 px. The F3 panel's radius goes beyond that (any radius above 0.667 sigma), so the window could not build such a scene.
+   In the window's scene, without --gen3-cell-px: the larger of the default and the diameter rounded up to whole pixels (gen3 takes
+   whole pixels only), so at least one diameter and never below the old default. --gen3-cell-px is passed as given. Everywhere else
+   the argument is cli_gen3_cell_px, as before: g3_build also builds gen3 at the first advance of every headless run and every
+   experiment loop (edmd_backend_advance_to) and at a restart (g3_restart_apply), and those builds stay exactly as they were. The
+   window's scene is told apart as g3_soft_stop tells it apart (g3_soft_window, set by simulation_loop, and no --headless). */
+static double g3_cell_arg(const EDMD_Params* p){
+    if (cli_gen3_cell_px > 0.0 || !g3_soft_window || cli_headless) return cli_gen3_cell_px;
+    return fmax(EDMD3_DEFAULT_CELL_PX, ceil(2.0 * p->radius));
+}
 static void g3_build(const EDMD* S){
     char err[256];
     const EDMD_Params* p = edmd_params(S);
-    g_edmd3 = edmd3_create(p, cli_gen3_cell_px, err, sizeof err);
+    g_edmd3 = edmd3_create(p, g3_cell_arg(p), err, sizeof err);   /* ##CHRIS 2026-10-13 (decision 48): was cli_gen3_cell_px */
     if (!g_edmd3) { if (g3_soft_stop("gen3 cannot build this scene", err)) return; g3_stop(err); }
     const double t0 = isnan(g3_load_time) ? edmd_time(S) : g3_load_time;
     if (!edmd3_load(g_edmd3, edmd_particles(S), t0, err, sizeof err)) {
@@ -11848,10 +11860,12 @@ static void g3_gui_engine_line(char* buf, size_t n){
     if (cli_engine != 3)
         snprintf(buf, n, "engine: gen2 %s", sim_mode == MODE_EDMD ? "EDMD" : sim_mode == MODE_EDMD_HYBRID ? "HYBRID PP-EDMD"
                                              : sim_mode == MODE_RK4 ? "RK4" : "TIME");
-    else if (!g_edmd3)
-        snprintf(buf, n, "engine: gen3 (provisional display)  clean=-  (built at the first step)");
-    else
-        snprintf(buf, n, "engine: gen3 (provisional display)  clean=%d  events/s=%.3g", edmd3_health_clean(g_edmd3), g3_gui_rate);
+    else if (!g_edmd3) {   /* ##CHRIS 2026-10-13 (decision 48): the cell width the build will ask for (g3_cell_arg; 0: the default) */
+        const double w = g_edmd ? g3_cell_arg(edmd_params(g_edmd)) : cli_gen3_cell_px;
+        snprintf(buf, n, "engine: gen3 (provisional display)  cell=%g px  clean=-  (built at the first step)", w > 0.0 ? w : EDMD3_DEFAULT_CELL_PX);
+    } else   /* ##CHRIS 2026-10-13 (decision 48): the cell width gen3 was built with */
+        snprintf(buf, n, "engine: gen3 (provisional display)  cell=%g px  clean=%d  events/s=%.3g", edmd3_cell_px(g_edmd3),
+                 edmd3_health_clean(g_edmd3), g3_gui_rate);
 }
 /* a key under gen3: 1 if it is handled here (refused with a note, or gen3's version of the action) */
 static int g3_gui_key(SDL_Keycode k){
