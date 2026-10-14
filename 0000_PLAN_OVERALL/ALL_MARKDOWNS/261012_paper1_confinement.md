@@ -25736,16 +25736,21 @@ End with "Written for: the plan author".
   - 1,350 of 1,350 trajectories present, 0 excluded;
   - 23 fit failures (1.7 %) in 11 folders;
   - 3 folders flagged by the group rule.
-- **The three flagged folders:**
-  - D_N0100_eta0.035000, M 2000 (α 20): 5 failures;
-  - D_N0400_eta0.075000, M 3000 (α 7.5): 3 failures;
-  - D_N0400_eta0.075000, M 4000 (α 10): 5 failures.
-  - **The criterion, the fit repeated on the Mac:** 10 of the 13 fail the same way, at the fit's evaluation limit ("Optimal parameters not found: The maximum number of function evaluations is exceeded."), with tau_T still at its start value 2 / nu_ref; their Q_k are 69.5, 142.5 and 130.0. The other 3 converge on the Mac: D_N0100_eta0.035000 M 2000 run 17 (after 87 evaluations), D_N0400_eta0.075000 M 4000 run 13 and M 3000 run 6. The other way round, D_N0100_eta0.035000 M 2000 run 11 (seed 1088311305) and D_N0400_eta0.075000 M 4000 run 20 (seed 2904370409) converge on KOA and reach the limit on the Mac (`D/b3_fit_ok_mac_vs_koa_output.txt`). The registered counts are KOA's (decision 47 item 1).
+- **The three flagged folders are the one with 3 failures and the two with 5** (the failing runs with their seeds; the full rows in sec. 2):
+  - D_N0100_eta0.035000, M 2000 (α 20, Q_k 69.54): 5 failures: runs 5 (seed 2366091599), 6 (775698329), 13 (4206898265), 16 (3764732721), 17 (1702057009);
+  - D_N0400_eta0.075000, M 3000 (α 7.5, Q_k 129.98): 3 failures: runs 0 (4281358706), 6 (701709786), 23 (523463092);
+  - D_N0400_eta0.075000, M 4000 (α 10, Q_k 142.45): 5 failures: runs 0 (2531157907), 1 (356331519), 13 (1964167360), 16 (3914017783), 18 (2586999987).
+- **The criterion, the fit repeated on the Mac:**
+  - 10 of the 13 fail the same way: the fit's evaluation limit ("Optimal parameters not found: The maximum number of function evaluations is exceeded."), with tau_T still at its start value 2 / nu_ref.
+  - The other 3 converge on the Mac: M 2000 run 17 (after 87 evaluations), M 3000 run 6 (98,109) and M 4000 run 13 (7,739).
+  - The other way round, M 2000 run 11 (seed 1088311305) and M 4000 run 20 (seed 2904370409) converge on KOA and reach the limit on the Mac (interim_261013/D/b3_fit_ok_mac_vs_koa_output.txt).
+  - The registered counts are KOA's (decision 47 item 1).
 - **Every cell keeps its E1.** The masses α ≥ 1 left are 8, 7 and 8 at N 100 (η 0.02, 0.035, 0.075) and 8, 8 and 6 at N 400.
 - **Timing:**
   - E5-2670 v3: 135 chunks, 0.170 / 0.191 / 0.453 (min / median / max);
   - E5-4640 v2: 46 chunks, 0.192 / 0.199 / 0.258;
-  - as the plan author's line (min 0.17, median 0.20, max 0.45). The watch rule's E5 maximum is 0.453.
+  - over all 181 chunks: min 0.170 (chunk 443), median 0.196, max 0.453 (chunk 364), the same as the plan author's timing line for D in decision 46 item 2 (min 0.17, median 0.20, max 0.45);
+  - the watch rule's E5 maximum is 0.453, below its 2.0 (decision 41).
 - **The merge, from sacct's start (23:07:54 UTC) to its log's copy (03:49:46 UTC): 4:41:52.** sacct gives 04:41:53.
   - The phases: the scan 1:06, the moves 0:56, reduce_B 1:29, reduce_s1 4:34:46 (97.5 %), sha 1:14, gzip 2:21.
   - reduce_s1 per cell, in seconds:
@@ -25765,7 +25770,7 @@ End with "Written for: the plan author".
   - E-S in eb024a55 refuses only while a gen3-s1-B900 job is queued; it does not check the 128-core rule.
   - Tonight's E-S beside B1600 therefore rested on the plan author's sinfo reading (60/26/4/90: 26 of 90 idle, 29 %).
   - No block still to be typed depends on it (E-S and E-B1600 are typed).
-- **Data this message:** about 0.3 MB.
+- **Data this message:** about 1.3 MB: about 0.25 MB in the repository (D's INTERIM outputs and the notes) and about 1 MB in the scratchpad, mostly three temporary git indexes of the propagation (0.3 MB each, kept).
 
 ## 1. D's INTERIM tables (s1_verdict_261012.py --data <a view holding only D> --interim; verbatim)
 
