@@ -25640,3 +25640,86 @@ D's INTERIM report.
 - The two stage 1 manifests are unchanged (21 OK).
 
 Written for: the plan author
+
+### 4.7.102 Plan-author decision 47, addendum 2: Report D47 accepted (the runsheet eb024a55 of record; the contingency accepted and not needed: D's merge COMPLETED in 04:41:53); A4's wording corrected; tonight's facts (B900's arrays and FG-B900 clean, its merge job 15058268; B1600's arrays since about 19:50 HST and S's since 20:17 HST, side by side under the 128-core rule; H-D clean; the merges' sacct times); rc1's deletion is Chris's decision; THE D FETCH IS DONE: D's INTERIM report (2026-10-13 20:25 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 47, addendum 2** (relayed by Chris at about 20:25 HST, machine date; the plan author's time "~20:25 HST").
+- **Just before it, Chris sent one line of the plan author's note to him,** cut at its start: "...d tell CC: “the D fetch is done” together with the addendum-2 block from my message of 20:08. Then CC prints the dilute tables."
+- **1. Report D47 is accepted.**
+  - The runsheet eb024a55 is the runsheet of record from here on.
+  - The contingency (gen3_s1_complete_261013, 60a744f3) is accepted as prepared and is NOT needed for D: sacct shows 15055588 COMPLETED, 2026-10-13T23:07:54 to 2026-10-14T03:49:47 UTC, 04:41:53, on cn-04-21-00.
+  - The K1/K4 misses are read as CC read them. The rerun with the sharpened check waits for the data budget.
+- **2. A4's wording, corrected:** B1600's arrays may run before or after S's arrays, or beside them only under the 128-core rule (at least 10 % of the shared nodes idle at submission, printed by the guard); beside any merge always.
+- **3. Tonight's facts:**
+  - **B900:** its arrays are done. FG-B900 is clean: 600 of 600, 0 FAILED; timing min 0.15 (chunk 654), median 0.30, max 1.17 (chunk 1052); 511 chunks on E5-2670 v3, 89 on E5-4640 v2. Its merge was submitted with --time=24:00:00, job 15058268.
+  - **B1600:** its six arrays 15056775–15056780 have run since about 19:50 HST under A4 (sinfo 60/26/4/90).
+  - **S:** its five arrays 15058270–15058274 were submitted at 20:17 HST, beside B1600, under the 128-core rule (sinfo 60/26/4/90).
+  - **H-D is clean:**
+    - 181 chunks merged; 54 folders reduced and compressed;
+    - fit failures: 43 folders with 0, 6 with 1, 2 with 2, 1 with 3, 2 with 5;
+    - .merge_complete 23:09:56 UTC.
+  - **sacct, the merges:** B100 01:28:03, B400 03:06:25, D 04:41:53, all COMPLETED.
+- **4. The data cap:** CC's stop was right. Whether scratchpad/d45/rc1 is deleted is Chris's decision alone; the plan author has no objection.
+- **5. THE D FETCH IS DONE** (19M, merge record 2026-10-13 23:09:56 UTC). CC prints D's INTERIM report as for B100 and B400, with:
+  - the three flagged folders and the two with 5 failures (cell, mass, seeds, criterion);
+  - the masses left for E1 per cell;
+  - the timing table;
+  - the merge time (sacct's start above);
+  - the first look: c_s and Z against KR at η 0.02, 0.035, 0.075 for N 100 and N 400, with the ideal-gas limit √2 as the reference line too.
+- **6. Tomorrow, after the B900 fetch:** B900's INTERIM report, with decision 47 item 5.
+
+**The line before it, verbatim** (relayed by Chris on 2026-10-13 at about 20:23 HST, machine date):
+
+```
+d tell CC: “the D fetch is done” together with the addendum-2 block from my message of 20:08. Then CC prints the dilute tables.
+```
+
+**The message, verbatim** (relayed by Chris on 2026-10-13 at about 20:25 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record in a new
+section.
+
+DECISION 47, ADDENDUM 2 (2026-10-13 ~20:25 HST)
+ 1. Report D47: ACCEPTED. The runsheet eb024a55 is the runsheet of
+    record from here on. The contingency (gen3_s1_complete_261013,
+    60a744f3) is accepted as prepared and is NOT needed for D: sacct
+    shows 15055588 COMPLETED, 2026-10-13T23:07:54 to
+    2026-10-14T03:49:47 UTC, 04:41:53, cn-04-21-00. The two K1/K4
+    misses are read as you read them; the rerun with the sharpened
+    check waits for the data budget.
+ 2. A4's wording, corrected: B1600's arrays may run before or after
+    S's arrays, or beside them only under the 128-core rule (at
+    least 10 % of the shared nodes idle at submission, printed by
+    the guard); beside any merge always.
+ 3. Facts tonight: B900's arrays done (FG-B900 clean: 600 of 600, 0
+    FAILED, timing min 0.15 (chunk 654), median 0.30, max 1.17
+    (chunk 1052); 511 chunks on E5-2670 v3, 89 on E5-4640 v2);
+    B900's merge submitted with --time=24:00:00, job 15058268.
+    B1600's six arrays 15056775-15056780 running since about 19:50
+    HST under A4 (sinfo 60/26/4/90). S's five arrays 15058270-
+    15058274 submitted at 20:17 HST beside B1600 under the 128 rule
+    (sinfo 60/26/4/90). H-D clean: 181 chunks merged, 54 folders
+    reduced and compressed, fit failures 43 x 0, 6 x 1, 2 x 2, 1 x
+    3, 2 x 5; .merge_complete 23:09:56 UTC. sacct: merge B100
+    01:28:03, merge B400 03:06:25, merge D 04:41:53, all COMPLETED.
+ 4. The data cap: your stop is right. Whether scratchpad/d45/rc1 is
+    deleted is Chris's decision alone; I have no objection.
+ 5. THE D FETCH IS DONE (19M, merge record 2026-10-13 23:09:56 UTC).
+    Print D's INTERIM report as for B100 and B400 (decision 45 item
+    5, addendum 1), with: the three flagged folders and the two
+    with 5 failures (which cell, mass, seeds, criterion), the
+    masses left for E1 per cell, the timing table, the merge time
+    (sacct's start is above), and the first look (c_s and Z against
+    KR at eta 0.02, 0.035, 0.075 for N 100 and N 400; the ideal-gas
+    limit sqrt(2) as the reference line too).
+ 6. Tomorrow after the B900 fetch: B900's INTERIM report with
+    decision 47 item 5.
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
