@@ -1,0 +1,6 @@
+# INTERIM -- the continuity checks (sec. 4.8.7.7) as information lines (s1_continuity_261012.py; groups present: B100, B400; expected |z| < 3; a miss is reported as a difference, it fails nothing)
+
+- C-a: E0 at (100, pi/8) 3.81296 +- 0.00677 against A1 v2 3.80884 +- 0.011193: z = +0.32
+- C-b: nu_arg at (100, pi/8), M = 300: 0.0370382 +- 8.71e-05 against Test G on KOA 0.0370087 +- 2.35e-05: z = +0.33
+- C-b: nu_arg at (100, pi/8), M = 1500: 0.0172666 +- 2.94e-05 against Test G on KOA 0.0172607 +- 5.87e-06: z = +0.20
+- C-c: Z at (400, pi/8) 2.82002 +- 0.00031 against 2.81977 +- 0.00013: z = +0.74
