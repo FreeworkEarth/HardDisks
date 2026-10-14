@@ -26341,3 +26341,87 @@ index a7ed2adf..ba47b01e 100644
 - engine-gen3: nothing of the viewer work. The edit, the binary and the evidence wait for the plan author's review (decision 48 item 5).
 
 Written for: the plan author
+
+### 4.7.106 Plan-author decision 48, addendum 1: Report D48 accepted (the edit approved as written: the new cell width limited to the window's scene; the evidence accepted); commit the edit and the evidence on engine-gen3, local only, no push tonight; one clean rebuild of the viewer for Chris; two OPEN ITEMS for the later list; tonight's facts (FG-S clean, S's merge 15058845 at 24 h, B900's merge and B1600's arrays running, every group's arrays submitted or done); tomorrow's order (H-B900, fetch, INTERIM B900; then H-S, fetch, INTERIM S) (2026-10-13 22:12 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 48, addendum 1** (relayed by Chris at about 22:09 HST, machine date; the plan author's time "~22:10 HST").
+  - Before it in the paste: the plan author's note to Chris on FG-S.
+  - After it: a line to Chris whose KOA command for tomorrow morning did not reach CC.
+- **1. Report D48 is accepted.**
+  - The edit is approved as written: g3_cell_arg limited to the window's scene (g3_soft_window, not --headless) is the right reading. The plan author's "line 1532" was incomplete, since g3_build serves every build.
+  - The evidence is accepted: the equal event hashes old/new at R = 12 px; the old viewer's exact refusal; headless still refusing (t5); --gen3-cell-px kept (t4, t7); scenes 1–3 clean=1; the manifests 21 of 21.
+- **2. Commit on engine-gen3 now, the edit and the evidence folder, local only.**
+  - No push tonight: it goes with the next pushed batch, after the plan author's word.
+  - The message: "viewer: gen3 cell width of the window's scene follows the disk diameter (decision 48)".
+  - Then rebuild the viewer once from the committed tree into experiments_gen3_d48_261013/bin_<clean short hash>/, so Chris's viewer carries a clean BUILD_GIT. bin_4ede56f7-dirty is kept (nothing is deleted).
+  - CC tells Chris the new command line (the same flags, the new path).
+- **3. OPEN ITEMS (the later list; no code change now):**
+  - **(a)** the x-density panel's "wave watch" label shows cs = sqrt(2 kBT/m), the ideal-gas value, at every η;
+  - **(b)** g3_run_header should print edmd3_cell_px if the new cell-width rule is ever extended beyond the window.
+- **4. Tonight's facts:**
+  - **FG-S is clean:** 122 of 122 chunk logs and done lines, 0 FAILED or REFUSED, all 122 on E5-2670 v3, "nothing to resubmit".
+    - Timing: min 0.67 (chunk 1191), median 0.83, max 2.77 (chunk 1122).
+    - Chunk 1122 has 10 trajectories at N 100, 37.6 s predicted, a 30 min class; it used about 104 s of 1,800. Start-up overhead on a small chunk, no time-limit risk.
+  - **S's merge** was submitted at 22:03 HST with --time=24:00:00, job 15058845.
+  - **B900's merge** 15058268 has run since about 20:17 HST.
+  - **B1600's arrays** 15056775–15056780 are running, until about Wed 23:00 by the note.
+  - **Every group's arrays** are now submitted or done.
+- **5. Tomorrow, in this order,** each step after Chris pastes the result to the plan author:
+  - H-B900, the B900 fetch, and CC's INTERIM B900 report (decision 47 item 5; the per-mass fit failures at η 0.05 and 0.10 especially);
+  - then H-S, the S fetch, and INTERIM S.
+  - D's INTERIM report is due as soon as CC has it, if not already printed.
+
+**The message, verbatim** (relayed by Chris on 2026-10-13 at about 22:09 HST, machine date):
+
+```
+S is clean: 122 of 122, no FAILED, all on E5-2670 v3, timing median 0.83, CHECKS GOOD, merge job 15058845 submitted (24 h limit). The max 2.77 is chunk 1122 — a tiny chunk (N 100, 10 trajectories, 37.6 s predicted, 30 min class, so it used ~104 s of 1,800): start-up overhead on a small chunk, no risk to any time limit. All six groups’ arrays are now submitted or done; B900’s merge is 1 h 45 min in, S’s merge starts when a core is free, B1600’s arrays run until ~Wed 23:00.
+
+Step now (CC, last thing tonight): paste this to CC.
+
+From the plan author (Cowork), relayed by Chris. Record as decision 48,
+addendum 1.
+
+DECISION 48, ADDENDUM 1 (2026-10-13 ~22:10 HST): REPORT D48 ACCEPTED
+ 1. The edit is approved as written: g3_cell_arg limited to the
+    window's scene (g3_soft_window, not --headless) is the right
+    reading -- the plan author's "line 1532" was incomplete, g3_build
+    serves every build; thank you for catching it and keeping the
+    experiments' builds byte-identical. Evidence accepted: equal event
+    hashes old/new at R = 12 px, the old viewer reproducing the exact
+    refusal, headless still refusing (t5), --gen3-cell-px kept (t4,
+    t7), scenes 1-3 clean=1, manifests 21 of 21.
+ 2. Commit the edit and the evidence folder on engine-gen3 now (local
+    commit only; NO push tonight -- it goes with the next pushed batch
+    after the plan author's word). Message: "viewer: gen3 cell width
+    of the window's scene follows the disk diameter (decision 48)".
+    Then rebuild the viewer once from the committed tree into
+    experiments_gen3_d48_261013/bin_<clean short hash>/ so Chris's
+    viewer carries a clean BUILD_GIT; keep bin_4ede56f7-dirty (delete
+    nothing). Tell Chris the new command line (same flags, new path).
+ 3. Later list (not now): the x-density panel's "wave watch" label
+    shows cs = sqrt(2 kBT/m) at every eta; and g3_run_header should
+    print edmd3_cell_px if the rule is ever extended. Record both as
+    open items in the notes, no code change.
+ 4. Campaign facts tonight: FG-S clean: 122 of 122 chunk logs and done
+    lines, 0 FAILED/REFUSED, all 122 on E5-2670 v3, "nothing to
+    resubmit"; timing min 0.67 (chunk 1191), median 0.83, max 2.77
+    (chunk 1122 -- a 10-trajectory N 100 chunk, predicted 37.6 s,
+    class 30 min; no time-limit risk). S's merge submitted at 22:03
+    HST with --time=24:00:00, job 15058845. B900's merge 15058268
+    running since ~20:17 HST. B1600's arrays 15056775-15056780
+    running. Every group's arrays are now submitted or done.
+ 5. Tomorrow, in this order, each after Chris pastes the result to
+    the plan author: H-B900, fetch B900, your INTERIM B900 report
+    (decision 47 item 5; per-mass fit failures at eta 0.05 and 0.10
+    especially); then H-S, fetch S, INTERIM S. D's INTERIM report is
+    due as soon as you have it, if not already printed.
+
+End with "Written for: the plan author".
+
+After that: nothing more tonight. Tomorrow morning, first thing, paste on KOA:
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
