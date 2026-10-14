@@ -1,0 +1,14 @@
+# the guard of E-B1600 (amendment A4), from ../../../../../../..cluster/gen3_stage1_261012/runsheet_stage1_261012.txt (eb024a5570256b2342c508d14fdc175db504fd57964bf71e826f95e1a4ab4c78): 6 array line(s)
+
+| case | expected | submitted | printed (CHECKS GOOD / REFUSED / sinfo) | result |
+|---|---|---|---|---|
+| idle 12 of 90, a B900 array and merge job running | submits | 6 | sinfo -p shared -s -h -o %F: 70/12/8/90; CHECKS GOOD; B1600: ALL 6 ARRAY LINE(S) SUBMITTED | PASS |
+| idle 9 of 90 (exactly 10 %) | submits | 6 | sinfo -p shared -s -h -o %F: 73/9/8/90; CHECKS GOOD; B1600: ALL 6 ARRAY LINE(S) SUBMITTED | PASS |
+| idle 8 of 90 (below 10 %) | refuses: the 128-core rule | 0 | sinfo -p shared -s -h -o %F: 74/8/8/90; REFUSED: the 128-core rule (amendment A4): fewer than 10 % of the shared nodes are idle, or sinfo failed: 74/8/8/90; B1600: THIS PASTE DID NOT SUBMIT ALL 6 ARRAY LINE(S) | PASS |
+| a gen3-s1-S array job queued | refuses: gen3-s1-S job | 0 | REFUSED: squeue failed or lists a gen3-s1-S job (amendment A4: B1600's arrays wait): 9003_2 PENDING gen3-s1-S; B1600: THIS PASTE DID NOT SUBMIT ALL 6 ARRAY LINE(S) | PASS |
+| only S's merge job running (not its arrays) | submits | 6 | sinfo -p shared -s -h -o %F: 70/12/8/90; CHECKS GOOD; B1600: ALL 6 ARRAY LINE(S) SUBMITTED | PASS |
+| sinfo fails | refuses: the 128-core rule | 0 | REFUSED: the 128-core rule (amendment A4): fewer than 10 % of the shared nodes are idle, or sinfo failed: sinfo: error: Unable to contact slurm controller (test shim); B1600: THIS PASTE DID NOT SUBMIT ALL 6 ARRAY LINE(S) | PASS |
+| sinfo prints no A/I/O/T line | refuses: the 128-core rule | 0 | sinfo -p shared -s -h -o %F: n/a; REFUSED: the 128-core rule (amendment A4): fewer than 10 % of the shared nodes are idle, or sinfo failed: n/a; B1600: THIS PASTE DID NOT SUBMIT ALL 6 ARRAY LINE(S) | PASS |
+| a second paste: B1600's arrays queued | refuses: gen3-s1-B1600 job | 0 | REFUSED: squeue failed or lists a gen3-s1-B1600 job: 9005_1 PENDING gen3-s1-B1600; B1600: THIS PASTE DID NOT SUBMIT ALL 6 ARRAY LINE(S) | PASS |
+
+E-B1600 GUARD TEST: PASS (8 cases)

@@ -18,6 +18,9 @@
          line (it overrides s1_merge.sbatch's 6 h; the package unchanged); E-S also refuses while any gen3-s1-B900 job is in squeue, E-B1600
          while any gen3-s1-S or gen3-s1-B900 job is (the 64-core rule of sec. 4.8.8; a merge may run beside the next group's arrays); every
          FG holds the plan author's timing line (decision 43 rule d) among F's lines, before its last line.
+  ##CHRIS 2026-10-13 (plan-author decision 47 addendum 1, AMENDMENT A4 to sec. 4.8.8): E-B1600 may go before group S and beside B900's
+         arrays, only under the recorded 128-core rule: its guard prints sinfo's A/I/O/T line of the shared partition and needs idle x 10
+         >= total, and refuses while any gen3-s1-S job is queued (instead of decision 47 item 2's S/B900 refusal).
 The rehearsal (rehearse_s1_mac.py, gate G4) runs this script on its mini chunk table and runs the blocks it writes.
 usage (from hspist3/): python3 cluster/gen3_stage1_261012/make_s1_runsheet.py [--commit <stage 1 commit>] [--chunks T] [--tasks L] [--out F]
   without --commit the update lines name AFTER_THE_GATE (the commit exists only after the gate's fetch) and the SHA-256 lines of the build
@@ -34,7 +37,8 @@ PKG = ["s1_koa.sbatch", "s1_worker_koa.sh", "s1_merge.sbatch", "merge_s1_koa.py"
 AFTER = ["build_record_f72d764.txt", "s1_inputs.sha256", "s1_merge_inputs.sha256"]
 FG_ONE = ("D", "B900", "S", "B1600")                  # ##CHRIS 2026-10-13 (decision 45 addendum 2): the groups whose F and G are one paste
 MERGE_24H = ("B900", "S", "B1600")                     # ##CHRIS 2026-10-13 (decision 47 item 2): their merges with --time=24:00:00
-PREV_ARRAYS = {"S": ("B900",), "B1600": ("S", "B900")}  # decision 47 item 2: E-<g> refuses while these groups' arrays are in squeue
+PREV_ARRAYS = {"S": ("B900",), "B1600": ("S",)}        # decision 47 item 2 and addendum 1 (A4): E-<g> refuses while these groups' arrays are in squeue
+CORES128 = ("B1600",)                                   # ##CHRIS 2026-10-13 (decision 47 addendum 1, amendment A4): E-<g> only under the 128-core rule
 # decision 47 item 2: the plan author's timing line (decision 43 rule d), as he gave it for F-B100 (sec. 4.7.90), with @G@ for the group
 TIMING_LINE = r"""R=/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/@G@/chunks; awk -F"\t" 'NR>1 && $5=="@G@"{print $1, $8}' cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv | while read j p; do s=$(cat $R/chunk_$j/stage1/gen3/*/m_*/run.log 2>/dev/null | sed -n 's/^##RUN .*(\([0-9]*\) s)$/\1/p' | awk '{s+=$1} END{print s+0}'); echo "$j $s $p"; done | awk '{print $2/$3, $1}' | sort -n | awk '{a[NR]=$1; c[NR]=$2} END{printf "chunks timed %d; measured / predicted: min %.2f (chunk %s), median %.2f, max %.2f (chunk %s)\n", NR, a[1], c[1], a[int((NR+1)/2)], a[NR], c[NR]}'"""
 
@@ -95,6 +99,14 @@ def f_awk(g, commit, P):
             + awk_str(f" RESUBMISSION LINE(S) SUBMITTED\" || echo \"{g}: THIS PASTE DID NOT SUBMIT ALL ") + " n " + awk_str(" RESUBMISSION LINE(S)\"") + " } }")
     if "'" in prog: sys.exit("STOP: the awk program holds a single quote")
     return f"bash {P}/s1_stopped_chunks.sh logs {PFX} {P}/chunks_stage1_koa_261012.tsv {g} | awk '{prog}'"
+
+
+def sinfo_128():
+    """##CHRIS 2026-10-13 (plan-author decision 47 addendum 1, amendment A4 to sec. 4.8.8): the recorded 128-core rule as a guard -- the
+    shared partition's node counts A/I/O/T from "sinfo -p shared -s -h -o %F", printed, and idle x 10 >= total"""
+    return check("F=$(sinfo -p shared -s -h -o %F 2>&1) && echo \"sinfo -p shared -s -h -o %F: $F\" && echo \"$F\" | grep -qx '[0-9][0-9]*/[0-9][0-9]*/[0-9][0-9]*/[0-9][0-9]*'"
+                 " && [ $(( $(echo \"$F\" | cut -d/ -f2) * 10 )) -ge $(echo \"$F\" | cut -d/ -f4) ]",
+                 "the 128-core rule (amendment A4): fewer than 10 % of the shared nodes are idle, or sinfo failed: $F")
 
 
 def g_line(g, R, PFX, commit):
@@ -293,21 +305,25 @@ def write(args):
         else:
             prev = ",".join(f"gen3-s1-{x}" for x in PREV_ARRAYS.get(g, ()))   # ##CHRIS 2026-10-13 (decision 47 item 2)
             ec = [sq(PFX)] + ([check(f"Q=$(squeue -h -u charing -n {prev} -o %i 2>&1) && [ -z \"$Q\" ]",
-                                     f"squeue failed or lists a {prev.replace(',', ' or ')} job (the 64-core rule: {g}'s arrays wait): $Q")] if prev else []) + [
+                                     f"squeue failed or lists a {prev.replace(',', ' or ')} job (" + ("amendment A4" if g in CORES128 else "the 64-core rule")
+                                     + f": {g}'s arrays wait): $Q")] if prev else []) + [
+                  ] + ([sinfo_128()] if g in CORES128 else []) + [                  # ##CHRIS 2026-10-13 (A4)
                   head_ok(args.commit), check(f"[ ! -e {R} ]", f"{R} exists"),
                   check(f"! ls logs/{PFX}_*.out >/dev/null 2>&1", f"logs/{PFX}_*.out exist")]
         w(guarded(ec, [a[4] for a in ar], f"{g}: ALL {len(ar)} ARRAY LINE(S) SUBMITTED", f"{g}: THIS PASTE DID NOT SUBMIT ALL {len(ar)} ARRAY LINE(S)"))
         w("")
         if g in PREV_ARRAYS:                                           # ##CHRIS 2026-10-13 (decision 47 item 2)
             w(f"  Expected: squeue lists no {PFX} job and no array job of " + " or ".join(PREV_ARRAYS[g]) + " (their merges may still run: decision 47);"
-              " the sinfo line, for the record;")
+              + (" B900's arrays and merge may run (amendment A4); the guard prints sinfo's A/I/O/T line and needs idle x 10 >= total (the 128-core rule);"
+                 if g in CORES128 else " the sinfo line, for the record;"))
         else:
             w(f"  Expected: squeue lists no gen3-s1 job ({'chunk 1 has ended and the plan author has read block D' if g == g1 else 'the previous group has ended: its block H was clean'}); the sinfo line, for the record;")
         w(f"  then \"CHECKS GOOD\", {len(ar)} line(s) \"Submitted batch job <number>\" and \"{g}: ALL {len(ar)} ARRAY LINE(S) SUBMITTED\". The arrays: "
           + "; ".join(f"{hm(a[0])[:-3]} h: {a[1]} chunks, at most {a[2]} at once" for a in ar) + ".")
         w(f"  THE GUARD (decision 42): the last line is ONE command line; it submits the {len(ar)} sbatch line(s) inside it, unchanged and in their order,")
         w(f"  only if squeue lists no {PFX} job (a failed squeue refuses), "
-          + (f"no " + " or ".join(f"gen3-s1-{x}" for x in PREV_ARRAYS[g]) + " job (decision 47: the 64-core rule), " if g in PREV_ARRAYS else "")
+          + (f"no " + " or ".join(f"gen3-s1-{x}" for x in PREV_ARRAYS[g]) + (" job (amendment A4), at least 10 % of the shared nodes idle (the 128-core rule), "
+             if g in CORES128 else " job (decision 47: the 64-core rule), ") if g in PREV_ARRAYS else "")
           + f"the scripts clone is at {args.commit[:7]}, and "
           + ("exactly chunk 1's folder and its one log with \"chunk 1 done\" exist (block C ran chunk 1)." if g == g1 else f"no {R} and no logs/{PFX}_*.out exist."))
         w(f"  A second paste prints \"REFUSED: ...\" and \"{g}: THIS PASTE DID NOT SUBMIT ALL {len(ar)} ARRAY LINE(S)\" and submits nothing. If it prints that line")
