@@ -26,3 +26,11 @@ chunks (groups B100, D, S; chunks 3 and 4 into one folder), and the mini runshee
 - runsheet_diff_6398ae1e_a3eb77e4.txt   the stage 1 runsheet, 6398ae1e against a3eb77e4 (make_s1_runsheet.py at 1bb9ae8b, --commit 7bdfb67e):
                   blocks F and G of D, B900, S, B1600 replaced by block FG (F's command lines unchanged and first; G's guarded line inside
                   FG's last line byte for byte as before) and two header lines; every other block byte for byte unchanged
+- run5_c1b2016/   ##CHRIS 2026-10-13 (plan-author decision 47 item 2): engine-gen3 c1b20169, the runsheet with the merges of B900, S and B1600 at
+                  --time=24:00:00, the queue guards of E-S (no gen3-s1-B900 job) and E-B1600 (no gen3-s1-S or gen3-s1-B900 job), and the plan
+                  author's timing line in every FG: REHEARSAL G4: PASS (41 of 41). The squeue shim filters a pretended queue by -n; E-S is
+                  refused while a pretended gen3-s1-B900 array job is queued and submits beside a pretended gen3-s1-merge-B900 job; FG-D and
+                  FG-S print the timing line; D's merge is submitted without --time, S's (G-S's line alone, after the NOT CLEAN by design)
+                  with --time=24:00:00.
+- runsheet_diff_a3eb77e4_19101796.txt, runsheet_command_diff_a3eb77e4_19101796.txt   the stage 1 runsheet a3eb77e4 against 19101796 (all
+                  lines; command lines only): FG-D, FG-B900, FG-S, FG-B1600, E-S and E-B1600 changed, every other block unchanged

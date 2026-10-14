@@ -1,0 +1,10 @@
+       1
+       1
+0
+   1 (Apple M3 Max (Mac rehearsal))
+chunk logs: 1; chunks done: 1 of 1 (group D; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished
+group D without a done log: stopped once 0, stopped twice or more 0, started and not finished 0, no log 0
+nothing to resubmit
+chunks timed 1; measured / predicted: min 0.15 (chunk 5), median 0.15, max 0.15 (chunk 5)
+REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4f/lustre/harddisks_gen3/stage1/D/merged exists
+D: THIS PASTE DID NOT SUBMIT THE MERGE

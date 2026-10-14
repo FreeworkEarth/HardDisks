@@ -1,0 +1,32 @@
+/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4f/build/home/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-S_940013.out
+env: gcc (GCC) 14.3.0 [rehearsal shim; here: Apple clang version 17.0.0 (clang-1700.4.4.1)] | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+merge of /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4f/lustre/harddisks_gen3/stage1/S by the scripts of ~/harddisks_gen3_k2 (no git at run time; both input manifests: OK); the scripts it runs:
+  58d324e09452cceeb181960a0b416612979f941053d850ea9a4ce8eb16b61185  cluster/gen3_stage1_261012/merge_s1_koa.py
+  c32ab31682f85bc9228b2485a57d9801fa19908d3dbf6bb4e75229d8b7bf3c26  cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh
+  f13061c82b62076f3ac41002d46631dfb10903d3f8d12c2c74c80d4bcc5e15ea  cluster/gen3_stage1_261012/reduce_s1_koa.py
+  b636aa6e8161460cdf55b4dac1b0cb07ad564b6bab8c32872cb97861a95c973f  cluster/confinement_20261013/reduce_B.py
+group S: 2 chunks of the chunk table; no gen3-s1-S job pending or running
+chunk logs in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4f/lustre/harddisks_gen3/stage1/S/job_logs/ (copied, no overwrite): 4
+earlier attempt of chunk 6, stopped in the start-up checks (ran nothing): gen3-s1-S_940009_6.out: STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones (cluster/gen3_stage1_261012/s1_inputs.sha256)
+earlier attempt of chunk 7, stopped in the start-up checks (ran nothing): gen3-s1-S_940010_7.out: STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones (cluster/gen3_stage1_261012/s1_inputs.sha256)
+chunk logs: 4; chunks done: 2 of 2 (group S; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 2 stopped in the start-up checks, 0 started and not finished
+FAILED lines in the chunk logs (logs/): 0
+the task list: 37 lines; group S: 2 chunks of the chunk table (6-7); top-level folder stage1
+scan: 2 chunks, 26 plan entries, 0 problem(s); plan written to /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4f/lustre/harddisks_gen3/stage1/S/merge_plan_20261013_170419.tsv
+
+## the merge plan: every destination folder, the chunks that deliver into it, and the names found in more than one chunk for that destination
+
+| destination (under merged/) | chunks | names in more than one chunk: treatment |
+|---|---|---|
+
+plan entries by treatment: APPEND 4, EQUAL 2, MOVE 16, PER CHUNK 4
+names inside the moved run folders .done_runs/run<r> (each run's own folder; they never meet at the cell level): 00_COMMAND.md x4, 00_COMMAND_AND_PLOT_COMMAND.md x4, 01_PLOT_COMMANDS.md x4, experiments_speed_of_sound/ x4, run_params.json x4, speed_of_sound_batch_status.json x4, speed_of_sound_psi6.csv x4, stdout.log x4
+
+merged 2 chunks: 16 files moved, 4 files appended, 4 kept per chunk (0 failed-run folders), 0 incomplete run folders, 0 locks or temp files left in place, 2 build files equal; build '00ALLINONE  git f72d764  target koa'
+merge done; next: the fetch (fetch_s1_koa.sh S) and the tables on the Mac
+this job's log is copied to /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4f/lustre/harddisks_gen3/stage1/S/job_logs/ as the last command
+destinations 2; reduce_B exit 0: 2; reduce_s1 exit 0: 2; compressed: 2
+   2 (0 fit failures)
+2026-10-13 17:04:19 HST
+merged 2 chunks: 16 files moved, 4 files appended, 4 kept per chunk (0 failed-run folders), 0 incomplete run folders, 0 locks or temp files left in place, 2 build files equal; build '00ALLINONE  git f72d764  target koa'
+       5

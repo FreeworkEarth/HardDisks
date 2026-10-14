@@ -1,0 +1,3 @@
+CHECKS GOOD
+Submitted batch job 940005
+B100: THE MERGE SUBMITTED
