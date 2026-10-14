@@ -26425,3 +26425,63 @@ After that: nothing more tonight. Tomorrow morning, first thing, paste on KOA:
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.107 Report D48-1 — decision 48 addendum 1: the edit and the evidence committed on engine-gen3 (local only, nothing pushed); the viewer rebuilt cleanly from the commit (bin_d2dc177, BUILD_GIT d2dc177) with a smoke test; Chris's new command line; the two open items recorded; D's INTERIM report already printed (Report D47-2) (2026-10-13 22:15 HST, machine date) [CODE, COMMITTED LOCALLY]
+
+**Plain summary.**
+- **Recorded:** decision 48 addendum 1 (sec. 4.7.106), with the plan author's note to Chris on FG-S, verbatim. The line for tomorrow morning ends at "paste on KOA:"; its command did not reach CC.
+- **Item 2, the commits on engine-gen3** (local only; nothing pushed):
+  - **d2dc1773** "viewer: gen3 cell width of the window's scene follows the disk diameter (decision 48)": the edit and the evidence folder.
+  - **942c3b63:** the 24 test logs. The repository's .gitignore ignores *.cmd (line 50) and *.out (line 71) everywhere, so git left these logs out of d2dc1773; this commit adds them with -f. No earlier evidence folder has files of these two types.
+  - **dc7ede04:** the clean build's record and its smoke test.
+  - **The binaries are not committed**, as in the earlier evidence folders. bin_4ede56f7-dirty/ is kept.
+- **Item 2, the clean rebuild:** experiments_gen3_m3_261009/build_clean.sh on d2dc1773 (git archive of the commit; kissfft copied and recorded as for 406044f) gives **experiments_gen3_d48_261013/bin_d2dc177/00ALLINONE**.
+  - **Its label:** it reports "git d2dc177  target mac-O3-e0pre", with no -dirty.
+  - **Its source and warnings:** its 00ALLINONE.c is byte-identical to the tested edit. -Wall -Wextra gives the same 25 warnings; the harnesses build with 0.
+  - **The smoke test** (headless, as for Report D48):
+    - scene 1: a 44 px cell, 37,977 events after the APPLY, clean=1;
+    - scene 3: a 32 px cell, clean=1, with the same event hashes as the old viewer (08bf879143d890ed, bda502aee2a9339f).
+- **Chris's new command line** is the same flags with the new path (sec. 1).
+- **Item 3: the two OPEN ITEMS are recorded** in sec. 4.7.106 under that name; no code changed.
+  - (a) the wave-watch label's cs = sqrt(2 kBT/m) at every η;
+  - (b) g3_run_header and edmd3_cell_px, if the rule is ever extended.
+- **Item 4, for the record:**
+  - S's E5 maximum, 2.77, is above the watch rule's 2.0 (decision 41).
+  - The plan author's reading in item 4 is the decision that rule asks for: start-up overhead on a chunk predicted at 37.6 s, no time-limit risk.
+  - No group's block E remains.
+- **Item 5:**
+  - **D's INTERIM report is already printed:** Report D47-2, sec. 4.7.103, at 20:53 HST. The standalone file is experiments_gen3_s1_261012/REPORT_D47-2_261013.md (engine-gen3 13368ac0); the plan author may not have it yet.
+  - **Tomorrow's order is ready:**
+    - H-B900, the fetch, and INTERIM B900, with s1_fitfail_261012.py --per-mass 0.05,0.1 for the per-mass fit failures at η 0.05 and 0.10;
+    - then H-S, the fetch, and INTERIM S.
+- **Data this message:** about 192 MB, almost all of it the clean build's source copy in the scratchpad (188 MB: build_clean.sh extracts hspist3 by git archive; kept). Within the 500 MB; 74 GB free.
+
+## 1. Chris's command line for the viewer (from hspist3/ of the engine-gen3 worktree; the flags of his command of 20:55, the new path)
+
+```
+cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3 && experiments_gen3_d48_261013/bin_d2dc177/00ALLINONE --show-simulation --mode=edmd --engine=gen3 --edmd-acc=0 --seed-drift-order=drift-first --kbt1 --particles=5000 --particles-boxes=2500,2500 --particle-radius=0.5 --l0=89.5904 --height=70.7107 --num-walls=1 --wall-positions=89.5904 --wall-mass-factors=50 --wall-hold-steps=600 --fixed-dt=0.4 --seed=9300 --gui-time-scale=200
+```
+
+## 2. The commits (engine-gen3, local; git log --format='%h %s')
+
+```
+dc7ede04 viewer: the clean build d2dc177 for Chris's viewer (its build record, no binary) and its smoke test, scenes 1 and 3 clean=1 (decision 48 addendum 1 item 2)
+942c3b63 viewer: decision 48's test logs (tests/*.cmd and *.out), added with -f past .gitignore's *.cmd and *.out rules (decision 48 addendum 1 item 2: the evidence folder)
+d2dc1773 viewer: gen3 cell width of the window's scene follows the disk diameter (decision 48)
+```
+
+## 3. The smoke test of bin_d2dc177 (experiments_gen3_d48_261013/tests/RESULTS_clean.md; verbatim)
+
+```
+| test | N | radius [σ] (R [px]) | η (APPLY) | cell width of the builds [px] | events before APPLY / after | clean before / after | worst gap [px] | event hash before / after | exit |
+|---|---|---|---|---|---|---|---|---|---|
+| c1_clean_scene1 | 341 | 0.9079 (21.791) | 0.139 | 44, 44 | 709 / 37,977 | 1 / 1 | -9.52e-13 | 8dfa331671f1147b / 2e1d14a0daa42f7e | 0 |
+| c3_clean_scene3_default | 341 | 0.5000 (12.000) | 0.042 | 32, 32 | 878 / 44,308 | 1 / 1 | -9.09e-13 | 08bf879143d890ed / bda502aee2a9339f | 0 |
+```
+
+## Commits
+
+- main: decision 48 addendum 1 (sec. 4.7.106) and this report (4.7.107); the copies on engine-gen3 and engine-divider-resched.
+- engine-gen3: d2dc1773, 942c3b63, dc7ede04 (sec. 2). Nothing pushed; the next pushed batch waits for the plan author's word.
+
+Written for: the plan author
