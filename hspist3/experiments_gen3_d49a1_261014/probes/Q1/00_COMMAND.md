@@ -1,0 +1,8 @@
+# Command
+
+- Timestamp: 2026-10-14 09:40:12 HST
+- CWD: `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d49a1_261014/probes/Q1`
+
+```sh
+/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d18_261010/bin_f72d764/00ALLINONE --mode=edmd --experiment=energy_transfer --headless --quiet --edmd-acc=0 --seed-drift-order=drift-first --energy-transfer-summary=/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d49a1_261014/probes/Q1/summary.csv --energy-transfer-trace=/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d49a1_261014/probes/Q1/tr.csv --trace-every=60 --particles=400 --particles-boxes=200,200 --particle-radius=0.5 --l0=26.179938779914945 --height=20 --num-walls=1 --wall-positions=26.179938779914945 --wall-mass-factors=1000000000 --wall-thickness=0.05 --wall-thickness-vis=0.05 --eff-output=wall-ke --wall-hold-steps=600 --steps=60 --fixed-dt=0.4 --kbt1 --seed=7740101 --engine=gen3
+```

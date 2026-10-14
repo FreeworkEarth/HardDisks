@@ -1,0 +1,167 @@
+# Part A survey at N = 400 (partA_survey_n400.py; decision 49 addendum 1; read-only)
+
+## (A) The held path's code at f72d764 and at the engine-gen3 head 393c8d8e
+
+- (a) the start and the exact box: refused outside the speed-of-sound experiment (the AF command is --experiment=energy_transfer):
+    f72d764 hspist3/00ALLINONE.c:22390: else if ((cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial) && !sos)
+    f72d764 hspist3/00ALLINONE.c:22391: why = "--gen3-seeding, --gen3-exact-box and --gen3-dump-initial are wired to the speed-of-sound experiment only";
+    f72d764 hspist3/00ALLINONE.c:22393: why = "--gen3-checkpoint and --gen3-restart are wired to the speed-of-sound experiment only";
+    f72d764 hspist3/00ALLINONE.c:22396: why = "--gen3-virial-blocks and --gen3-snapshots are wired to the speed-of-sound experiment only";
+    f72d764 hspist3/00ALLINONE.c:22398: why = "--gen3-psi6-compartments is wired to the speed-of-sound experiment only";
+    HEAD hspist3/00ALLINONE.c:23283: else if ((cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial) && !sos)
+    HEAD hspist3/00ALLINONE.c:23284: why = "--gen3-seeding, --gen3-exact-box and --gen3-dump-initial are wired to the speed-of-sound experiment only";
+    HEAD hspist3/00ALLINONE.c:23286: why = "--gen3-checkpoint and --gen3-restart are wired to the speed-of-sound experiment only";
+    HEAD hspist3/00ALLINONE.c:23289: why = "--gen3-virial-blocks and --gen3-snapshots are wired to the speed-of-sound experiment only";
+    HEAD hspist3/00ALLINONE.c:23291: why = "--gen3-psi6-compartments is wired to the speed-of-sound experiment only";
+- (b) the box on the 1/48 grid, the divider as a float fraction of the box width, the position check at 1e-5 sigma:
+    f72d764 hspist3/00ALLINONE.c:333: fprintf(stderr, "WARNING: L_0 not on the 1/48 sigma grid: box truncated by %.6f sigma\n",
+    f72d764 hspist3/00ALLINONE.c:3354: all_wall_positions[w] = XW1 + frac * width_px;
+    f72d764 hspist3/00ALLINONE.c:5169: the run (initial_wall_position_mismatch). Every reference run used
+    f72d764 hspist3/00ALLINONE.c:5174: float frac = pos_sigma / fmaxf(1e-6f, span_sigma);
+    f72d764 hspist3/00ALLINONE.c:5224: float frac = pos_sigma / fmaxf(1e-6f, 2.0f * L0_UNITS);
+    f72d764 hspist3/00ALLINONE.c:18103: const double position_tolerance_sigma = 1e-5;
+    f72d764 hspist3/00ALLINONE.c:18115: &validator, "initialization", "initial_wall_position_mismatch",
+    HEAD hspist3/00ALLINONE.c:333: fprintf(stderr, "WARNING: L_0 not on the 1/48 sigma grid: box truncated by %.6f sigma\n",
+    HEAD hspist3/00ALLINONE.c:3577: all_wall_positions[w] = XW1 + frac * width_px;
+    HEAD hspist3/00ALLINONE.c:5425: the run (initial_wall_position_mismatch). Every reference run used
+    HEAD hspist3/00ALLINONE.c:5430: float frac = pos_sigma / fmaxf(1e-6f, span_sigma);
+    HEAD hspist3/00ALLINONE.c:5480: float frac = pos_sigma / fmaxf(1e-6f, 2.0f * L0_UNITS);
+    HEAD hspist3/00ALLINONE.c:18771: const double position_tolerance_sigma = 1e-5;
+    HEAD hspist3/00ALLINONE.c:18783: &validator, "initialization", "initial_wall_position_mismatch",
+- (c) the event log under gen3: outer-wall rows and divider/piston rows; u = the body's velocity, dE = the particle's KE change if M = 0:
+    f72d764 hspist3/edmd_core/edmd_gen3.c:179: static void evlog_row(const EDMD3* S, const char* kind, real u, real v0, real v1, real dE){
+    f72d764 hspist3/edmd_core/edmd_gen3.c:729: if (S->evlog) evlog_row(S, WALL_NAME[s], 0.0, v0, A->vx, 0.0); }
+    f72d764 hspist3/edmd_core/edmd_gen3.c:731: if (S->evlog) evlog_row(S, WALL_NAME[s], 0.0, v0, A->vy, 0.0); }
+    f72d764 hspist3/edmd_core/edmd_gen3.c:824: evlog_row(S, kb, u2, u1, v1, O->M > 0.0 ? 0.5 * O->M * (v2 * v2 - u2 * u2) : 0.5 * (v1 * v1 - u1 * u1));
+    HEAD hspist3/edmd_core/edmd_gen3.c:179: static void evlog_row(const EDMD3* S, const char* kind, real u, real v0, real v1, real dE){
+    HEAD hspist3/edmd_core/edmd_gen3.c:729: if (S->evlog) evlog_row(S, WALL_NAME[s], 0.0, v0, A->vx, 0.0); }
+    HEAD hspist3/edmd_core/edmd_gen3.c:731: if (S->evlog) evlog_row(S, WALL_NAME[s], 0.0, v0, A->vy, 0.0); }
+    HEAD hspist3/edmd_core/edmd_gen3.c:824: evlog_row(S, kb, u2, u1, v1, O->M > 0.0 ? 0.5 * O->M * (v2 * v2 - u2 * u2) : 0.5 * (v1 * v1 - u1 * u1));
+- (c), (e) the log's switch: HD_PISTON_EVENTS, energy-transfer mode only:
+    f72d764 hspist3/00ALLINONE.c:18002: energy-transfer mode only, off unless HD_PISTON_EVENTS names a file.
+    f72d764 hspist3/00ALLINONE.c:18006: const char* ev_path = getenv("HD_PISTON_EVENTS");
+    HEAD hspist3/00ALLINONE.c:18670: energy-transfer mode only, off unless HD_PISTON_EVENTS names a file.
+    HEAD hspist3/00ALLINONE.c:18674: const char* ev_path = getenv("HD_PISTON_EVENTS");
+- (c), (d), (e) the AF command: hold (equilibration 200 + record 5000 sigma-time), the released tail, t0 = 200 passed to reduce_AF.py:
+    f72d764 hspist3/cluster/confinement_20261013/conf_worker.sh:8: #   AF <rel_pos_dir> <x_wall> <seed> <L0> <H> <Ns> <hold> <post> <every>  divider held for the WHOLE record (sec. 3)
+    f72d764 hspist3/cluster/confinement_20261013/conf_worker.sh:147: # divider collision is still logged (edmd.c:1183). hold = 12000 (equilibration, 200 sigma-time) + 300000 (record,
+    f72d764 hspist3/cluster/confinement_20261013/conf_worker.sh:163: --wall-hold-steps=$hold --steps=$post --fixed-dt=0.4 --kbt1 --seed=$seed > "$d/run_${seed}.log" 2>&1
+    f72d764 hspist3/cluster/confinement_20261013/conf_worker.sh:167: python3 "$HERE/reduce_AF.py" "$d/ev_${seed}.csv" "$d/tr_${seed}.csv" "$d/red_${seed}.csv" 200 "$t1" || { echo "AF $rel seed=$seed reduction FAILED"; e
+    HEAD hspist3/cluster/confinement_20261013/conf_worker.sh:8: #   AF <rel_pos_dir> <x_wall> <seed> <L0> <H> <Ns> <hold> <post> <every>  divider held for the WHOLE record (sec. 3)
+    HEAD hspist3/cluster/confinement_20261013/conf_worker.sh:147: # divider collision is still logged (edmd.c:1183). hold = 12000 (equilibration, 200 sigma-time) + 300000 (record,
+    HEAD hspist3/cluster/confinement_20261013/conf_worker.sh:163: --wall-hold-steps=$hold --steps=$post --fixed-dt=0.4 --kbt1 --seed=$seed > "$d/run_${seed}.log" 2>&1
+    HEAD hspist3/cluster/confinement_20261013/conf_worker.sh:167: python3 "$HERE/reduce_AF.py" "$d/ev_${seed}.csv" "$d/tr_${seed}.csv" "$d/red_${seed}.csv" 200 "$t1" || { echo "AF $rel seed=$seed reduction FAILED"; e
+- (c), (e) reduce_AF.py: the whole log read, the D0 rows of [t0, t1), F_L and F_R, u_wall_max and W_div:
+    f72d764 hspist3/cluster/confinement_20261013/reduce_AF.py:13: e = pd.read_csv(ev, usecols=["t_sigma", "kind", "u_wall", "dE", "dp"])
+    f72d764 hspist3/cluster/confinement_20261013/reduce_AF.py:16: d = e[(e["kind"] == "D0") & (e["t_sigma"] >= t0) & (e["t_sigma"] < t1)]
+    f72d764 hspist3/cluster/confinement_20261013/reduce_AF.py:19: FL = -dp[dp < 0].sum() / Tw; FR = dp[dp > 0].sum() / Tw
+    f72d764 hspist3/cluster/confinement_20261013/reduce_AF.py:24: N_L=NL, N_R=NR, u_wall_max=float(np.abs(d["u_wall"]).max()) if len(d) else 0.0,
+    HEAD hspist3/cluster/confinement_20261013/reduce_AF.py:13: e = pd.read_csv(ev, usecols=["t_sigma", "kind", "u_wall", "dE", "dp"])
+    HEAD hspist3/cluster/confinement_20261013/reduce_AF.py:16: d = e[(e["kind"] == "D0") & (e["t_sigma"] >= t0) & (e["t_sigma"] < t1)]
+    HEAD hspist3/cluster/confinement_20261013/reduce_AF.py:19: FL = -dp[dp < 0].sum() / Tw; FR = dp[dp > 0].sum() / Tw
+    HEAD hspist3/cluster/confinement_20261013/reduce_AF.py:24: N_L=NL, N_R=NR, u_wall_max=float(np.abs(d["u_wall"]).max()) if len(d) else 0.0,
+- (c) the drift f from the temperatures (C4 formula; |1 - f| < 0.002):
+    f72d764 hspist3/validation/paper1_confinement_heldwall_posthoc_261004.py:53: def drift(c, cell_dir=None):
+    HEAD hspist3/validation/paper1_confinement_heldwall_posthoc_261004.py:53: def drift(c, cell_dir=None):
+- (e) a streaming reader of the log (gate G6 tool):
+    f72d764 hspist3/cluster/gen3_gate_261009/af_stream_reduce.py:17: data = fh.read()                                   # until the binary closes the log (at its exit)
+    HEAD hspist3/cluster/gen3_gate_261009/af_stream_reduce.py:17: data = fh.read()                                   # until the binary closes the log (at its exit)
+
+## (B) The stencil per N = 400 cell (H = 20, N_s = 200 per side, t = 0.05; L_eff = L0 - 2r - t/2; KR: Z, Z', c_s^2 = Z + eta Z' + Z^2)
+
+| eta | L0 (registered) | L0 on the 1/48 grid? | L0 rounded to 1/48 | its eta | d eta / eta | sigma_x | dL = sigma_x/2 | bias, exact dL | grid rule dL | span +-2dL [sigma_x] | bias, grid dL | flag (> 0.1 %) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.05 | 157.079633 | no | 157.083333 | 0.049999 | -0.002 % | 4.9806 | 2.4903 | -3.7e-07 | 2.5000 (60/24) | 1.00 | -3.8e-07 | - |
+| 0.1 | 78.539816 | no | 78.541667 | 0.099998 | -0.002 % | 2.2221 | 1.1111 | -3.4e-07 | 1.1250 (27/24) | 1.01 | -3.5e-07 | - |
+| 0.15 | 52.359878 | no | 52.354167 | 0.150016 | +0.011 % | 1.3146 | 0.6573 | -3.0e-07 | 0.6667 (16/24) | 1.01 | -3.1e-07 | - |
+| 0.2 | 39.269908 | no | 39.270833 | 0.199995 | -0.002 % | 0.8695 | 0.4347 | -2.5e-07 | 0.4167 (10/24) | 0.96 | -2.1e-07 | - |
+| 0.25 | 31.415927 | no | 31.416667 | 0.249994 | -0.002 % | 0.6092 | 0.3046 | -2.1e-07 | 0.2917 (7/24) | 0.96 | -1.7e-07 | - |
+| 0.3 | 26.179939 | no | 26.187500 | 0.299913 | -0.029 % | 0.4411 | 0.2205 | -1.7e-07 | 0.2083 (5/24) | 0.94 | -1.3e-07 | - |
+| 0.35 | 22.439948 | no | 22.437500 | 0.350038 | +0.011 % | 0.3255 | 0.1628 | -1.3e-07 | 0.1667 (4/24) | 1.02 | -1.4e-07 | - |
+| 0.3927 | 20.000000 | yes | 20.000000 | 0.392699 | +0.000 % | 0.2533 | 0.1266 | -1.0e-07 | 0.1250 (3/24) | 0.99 | -9.7e-08 | - |
+| 0.45 | 17.453293 | no | 17.458333 | 0.449870 | -0.029 % | 0.1816 | 0.0908 | -7.2e-08 | 0.0833 (2/24) | 0.92 | -5.1e-08 | - |
+| 0.5 | 15.707963 | no | 15.708333 | 0.499988 | -0.002 % | 0.1355 | 0.0678 | -5.1e-08 | 0.0833 (2/24) | 1.23 | -1.2e-07 | - |
+| 0.55 | 14.279967 | no | 14.270833 | 0.550352 | +0.064 % | 0.1004 | 0.0502 | -3.3e-08 | 0.0417 (1/24) | 0.83 | -1.6e-08 | - |
+| 0.6 | 13.089969 | no | 13.083333 | 0.600304 | +0.051 % | 0.0734 | 0.0367 | -5.6e-09 | 0.0417 (1/24) | 1.14 | -9.3e-09 | - |
+| 0.63 | 12.466638 | no | 12.458333 | 0.630420 | +0.067 % | 0.0603 | 0.0302 | +5.2e-08 | 0.0417 (1/24) | 1.38 | +1.9e-07 | - |
+| 0.66 | 11.899972 | no | 11.895833 | 0.660230 | +0.035 % | 0.0498 | 0.0249 | +4.3e-07 | 0.0417 (1/24) | 1.67 | +3.4e-06 | - |
+| 0.68 | 11.549973 | no | 11.541667 | 0.680489 | +0.072 % | 0.0451 | 0.0225 | +2.1e-06 | 0.0417 (1/24) | 1.85 | +2.4e-05 | - |
+| 0.69 | 11.382582 | no | 11.375000 | 0.690460 | +0.067 % | 0.0448 | 0.0224 | -4.7e-06 | 0.0417 (1/24) | 1.86 | -6.4e-05 | - |
+
+## (C) The event log per (seed, position) at N = 400: held T_eq + 5000 sigma-time + the 20 sigma-time tail
+
+rows per sigma-time = 1.12 x the bulk estimate rho Z_KR / sqrt(2 pi) x (4 H + 4 L0); the divider's share 2 H / (4 H + 4 L0); 65.3 bytes per row (partA_probes_n400.py)
+
+| eta | L0 | T_eq | rows per sigma-time | rows | log size | divider share | a divider-only log would be |
+|---|---|---|---|---|---|---|---|
+| 0.05 | 157.0796 | 1000 | 22.3 | 134,439 | 9 MB | 5.6 % | 0 MB |
+| 0.1 | 78.5398 | 1000 | 27.7 | 166,869 | 11 MB | 10.1 % | 1 MB |
+| 0.15 | 52.3599 | 1000 | 34.3 | 206,388 | 13 MB | 13.8 % | 2 MB |
+| 0.2 | 39.2699 | 1000 | 42.4 | 255,012 | 17 MB | 16.9 % | 3 MB |
+| 0.25 | 31.4159 | 1000 | 52.4 | 315,479 | 21 MB | 19.4 % | 4 MB |
+| 0.3 | 26.1799 | 1000 | 65.0 | 391,583 | 26 MB | 21.7 % | 6 MB |
+| 0.35 | 22.4399 | 1000 | 81.2 | 488,675 | 32 MB | 23.6 % | 8 MB |
+| 0.3927 | 20.0000 | 1000 | 98.7 | 593,941 | 39 MB | 25.0 % | 10 MB |
+| 0.45 | 17.4533 | 1000 | 129.7 | 780,519 | 51 MB | 26.7 % | 14 MB |
+| 0.5 | 15.7080 | 1000 | 166.8 | 1,004,355 | 66 MB | 28.0 % | 18 MB |
+| 0.55 | 14.2800 | 1000 | 218.3 | 1,314,005 | 86 MB | 29.2 % | 25 MB |
+| 0.6 | 13.0900 | 1000 | 291.7 | 1,755,744 | 115 MB | 30.2 % | 35 MB |
+| 0.63 | 12.4666 | 5000 | 351.1 | 3,518,391 | 230 MB | 30.8 % | 71 MB |
+| 0.66 | 11.9000 | 5000 | 425.4 | 4,262,369 | 278 MB | 31.3 % | 87 MB |
+| 0.68 | 11.5500 | 5000 | 479.8 | 4,808,063 | 314 MB | 31.7 % | 100 MB |
+| 0.69 | 11.3826 | 5000 | 502.7 | 5,036,561 | 329 MB | 31.9 % | 105 MB |
+
+## (D) The cost in E5 core-hours (the generator's model x the median measured ratio of the cell's E5-2670 v3 chunks)
+
+| eta | T_eq | model s per sigma-time (N 400) | measured ratio (B400) | E5 s per sigma-time | per (seed, position) [core-h] | the N 400 pilot, 4 seeds x 5 positions [core-h] | seeds per position (eps0 0.2710, PLANNING) | full N 400 Part A [core-h] |
+|---|---|---|---|---|---|---|---|---|
+| 0.05 | 1000 | 0.0015 | 0.205 | 0.0003 | 0.001 | 0.0 | 134 (T_pos 6.66e+05) | 0.4 |
+| 0.1 | 1000 | 0.0017 | 0.259 | 0.0004 | 0.001 | 0.0 | 137 (T_pos 6.82e+05) | 0.5 |
+| 0.15 | 1000 | 0.0019 | 0.322 | 0.0006 | 0.001 | 0.0 | 141 (T_pos 7.04e+05) | 0.7 |
+| 0.2 | 1000 | 0.0021 | 0.385 | 0.0008 | 0.001 | 0.0 | 147 (T_pos 7.32e+05) | 1.0 |
+| 0.25 | 1000 | 0.0024 | 0.466 | 0.0011 | 0.002 | 0.0 | 154 (T_pos 7.7e+05) | 1.5 |
+| 0.3 | 1000 | 0.0028 | 0.543 | 0.0015 | 0.003 | 0.1 | 164 (T_pos 8.18e+05) | 2.1 |
+| 0.35 | 1000 | 0.0032 | 0.602 | 0.0020 | 0.003 | 0.1 | 176 (T_pos 8.79e+05) | 2.9 |
+| 0.3927 | 1000 | 0.0037 | 0.671 | 0.0025 | 0.004 | 0.1 | 189 (T_pos 9.45e+05) | 3.9 |
+| 0.45 | 1000 | 0.0046 | 0.754 | 0.0035 | 0.006 | 0.1 | 212 (T_pos 1.06e+06) | 6.2 |
+| 0.5 | 1000 | 0.0057 | 0.824 | 0.0047 | 0.008 | 0.2 | 239 (T_pos 1.19e+06) | 9.3 |
+| 0.55 | 1000 | 0.0071 | 0.899 | 0.0064 | 0.011 | 0.2 | 274 (T_pos 1.37e+06) | 14.6 |
+| 0.6 | 1000 | 0.0091 | 0.992 | 0.0090 | 0.015 | 0.3 | 323 (T_pos 1.61e+06) | 24.4 |
+| 0.63 | 5000 | 0.0107 | 0.996 | 0.0107 | 0.030 | 0.6 | 366 (T_pos 1.83e+06) | 54.4 |
+| 0.66 | 5000 | 0.0127 | 0.990 | 0.0126 | 0.035 | 0.7 | 400 (T_pos 2.24e+06) | 70.1 |
+| 0.68 | 5000 | 0.0142 | 1.015 | 0.0144 | 0.040 | 0.8 | 400 (T_pos 3.31e+06) | 80.0 |
+| 0.69 | 5000 | 0.0147 | 1.034 | 0.0152 | 0.042 | 0.8 | 400 (T_pos 6.36e+06) | 84.8 |
+
+the N 400 pilot: 16 cells x 5 positions x 4 seeds = 320 trajectories, 4 E5 core-hours; the full N 400 Part A at the planning eps0: 357 E5 core-hours
+
+the registered pilot at N 100: 16 x 5 x 4 = 320 trajectories, 1 E5 core-hours
+the registered pilot at N 1600: 16 x 5 x 4 = 320 trajectories, 21 E5 core-hours (B900's measured ratios as a stand-in (B1600 not fetched))
+(cells without an E5-2670 v3 chunk, their ratio from every CPU model: B_N0100_eta0.350000)
+
+## (C') The event-log volume at N = 400, written by the AF command as it is (one full log per (seed, position))
+
+- the N 400 pilot (16 cells x 5 positions x 4 seeds): 32.7 GB; a divider-only log: 9.7 GB
+- the full N 400 Part A at the planning seeds of (D): 2.83 TB; a divider-only log: 0.87 TB
+- the largest single log: 329 MB (eta 0.69); reduce_AF.py reads it whole
+
+## (E) k_S^dyn per N = 400 cell (sec. 4.8.6.5; B400's INTERIM tables, interim_261013/B400/a_interim_tables.txt)
+
+| eta | k_S^dyn +- SE [kT/sigma^2] | relative SE | N_s c_KR^2 / L_eff^2 (KR, for scale) | k_S^dyn / that |
+|---|---|---|---|---|
+| 0.05 | 0.02028 +- 1e-05 | 0.049 % | 0.0201559 | 1.0062 |
+| 0.1 | 0.1024 +- 4.4e-05 | 0.043 % | 0.101257 | 1.0113 |
+| 0.15 | 0.2936 +- 0.00013 | 0.044 % | 0.289337 | 1.0147 |
+| 0.2 | 0.6737 +- 0.0003 | 0.045 % | 0.661392 | 1.0186 |
+| 0.25 | 1.374 +- 0.0006 | 0.044 % | 1.34741 | 1.0197 |
+| 0.3 | 2.627 +- 0.0011 | 0.042 % | 2.56998 | 1.0222 |
+| 0.35 | 4.829 +- 0.0026 | 0.054 % | 4.71782 | 1.0236 |
+| 0.3927 | 7.984 +- 0.0039 | 0.049 % | 7.79507 | 1.0242 |
+| 0.45 | 15.53 +- 0.009 | 0.058 % | 15.1626 | 1.0242 |
+| 0.5 | 27.9 +- 0.017 | 0.061 % | 27.2142 | 1.0252 |
+| 0.55 | 50.98 +- 0.041 | 0.080 % | 49.6143 | 1.0275 |
+| 0.6 | 94.44 +- 0.08 | 0.085 % | 92.8961 | 1.0166 |
+| 0.63 | 135.9 +- 0.2 | 0.147 % | 137.319 | 0.9897 |
+| 0.66 | 199.5 +- 0.42 | 0.211 % | 201.922 | 0.9880 |
+| 0.68 | 277.3 +- 0.46 | 0.166 % | 245.935 | 1.1275 |
+| 0.69 | 331.8 +- 0.76 | 0.229 % | 248.743 | 1.3339 |
+
