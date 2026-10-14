@@ -10,6 +10,9 @@ usage (from hspist3/): python3 cluster/gen3_stage1_261012/s1_firstlook_261012.py
 ##CHRIS 2026-10-13 (plan-author decision 47 addendum 2 item 5): --block D takes block D's cells (eta 0.02, 0.035, 0.075) and adds, for c_s,
 the ideal-gas limit sqrt(2) (c_s^2 = Z + eta Z' + Z^2 -> 2 as eta -> 0) as a second reference: E1's c_s / sqrt(2) - 1 [%] per size.
   python3 cluster/gen3_stage1_261012/s1_firstlook_261012.py --data <the fetched folder> --block D
+##CHRIS 2026-10-14 (plan-author decision 49 item 2): --sqrt2 adds that sqrt(2) column for block B too (block D has it always); without it
+block B's output is unchanged. N 100, 400 and 900 side by side:
+  python3 cluster/gen3_stage1_261012/s1_firstlook_261012.py --data <a folder holding B100, B400, B900> --sizes 100,400,900 --sqrt2
 """
 import argparse, math, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
@@ -27,14 +30,15 @@ def eset(e): return ("Phi" if e in V.PHI else "approach") if BLK == "B" else BLK
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--data", required=True); ap.add_argument("--sizes", default="100,400")
-    ap.add_argument("--block", default="B", choices=["B", "D"]); a = ap.parse_args()
+    ap.add_argument("--block", default="B", choices=["B", "D"])
+    ap.add_argument("--sqrt2", action="store_true"); a = ap.parse_args()   # ##CHRIS 2026-10-14 (decision 49 item 2)
     global BLK; BLK = a.block; ETAS = V.GEN.ETA_B if BLK == "B" else V.GEN.ETA_D; R2 = math.sqrt(2.0)
     Ns = [int(x) for x in a.sizes.split(",")]
     res = V.analyse(a.data, interim=True, jackknife=True, quiet=True)
     print(f"# INTERIM -- a first look at the physics (s1_firstlook_261012.py; block {BLK}; groups present: {', '.join(res['groups_present']) or 'none'}; "
           "no fit over N, no verdict)\n")
     print("## c_s against KR per cell: Delta = c_s / c_s^KR - 1 [%] +- its error (E1: sigma; E0: err_scaled), z = Delta / error\n")
-    extra = BLK == "D"
+    extra = BLK == "D" or a.sqrt2
     print("| eta | set | c_s^KR | " + " | ".join(f"N {N}: E1 Delta [%] (z; masses) | N {N}: E0 Delta [%] (z)" + (f" | N {N}: E1 c_s / sqrt(2) - 1 [%] (z)" if extra else "")
           for N in Ns) + " |\n|---|---|---|" + "---|" * ((3 if extra else 2) * len(Ns)))
     for e in ETAS:
