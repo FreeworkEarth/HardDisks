@@ -25282,3 +25282,76 @@ End with "Written for: the plan author".
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.100 Plan-author decision 47, addendum 1: AMENDMENT A4 to sec. 4.8.8 (B1600's arrays may be submitted before group S and beside B900's running arrays, only under the recorded 128-core rule; E-B1600's guard computes it from sinfo and refuses while a gen3-s1-S job is queued); the plan author's INTERIM figure of c_s against eta for N 100 and N 400, with the note to Chris on it (why KR bends, Liu 2021) (2026-10-13 17:12 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 47, addendum 1** (relayed by Chris at about 17:12 HST, machine date; the plan author's time "~17:30 HST"). It is recorded with decision 47.
+  - The paste begins with items 2–4 of the plan author's note to Chris; item 1 of the note did not reach CC.
+  - It ends with the title of an attached PDF, "261013 interim cs vs eta n100 n400", which did not reach CC either.
+- **The note to Chris, items 2–4:**
+  - **The plot.** The plan author built an INTERIM figure from CC's INTERIM tables, in the style of the old plot:
+    - the phase regions shaded; KR, SPT and Henderson; the A1 v2 points for reference; the deviation from KR below. No fit over N.
+    - **What it shows:** both sizes sit above KR in the whole fluid, 400 disks about half as far as 100. At 0.60 the 100-disk box is already partly ordered and drops below the curves; above 0.66 it leaves the chart. The 400-disk box follows the fluid curves up to 0.66 and leaves them at 0.68.
+  - **Why KR "falls off".** c_s comes from the slope of the pressure (c_s² = Z + ηZ′ + Z²). KR is a fit to fluid pressure data up to about η = 0.70, and near the end of its range the fit's slope flattens, so c_s turns over at about 0.68. It is a feature of the fit, not of the gas, and the reason the registration compares with KR only up to 0.69.
+  - **Liu 2021** is in the plot.
+    - Its fluid branch is close to KR up to 0.69, then bends into a van der Waals loop; it leaves a gap at 0.705–0.716. Its solid branch runs from 0.720 up.
+    - In the fluid, Liu and KR differ by less than 0.5 % up to 0.65.
+    - The ordered small boxes at 0.68–0.69 are neither a fluid nor a bulk crystal: the stage 2 question.
+- **1. AMENDMENT A4 to sec. 4.8.8** (dated 2026-10-13, before any B1600 data), verbatim from item 1:
+  - "B1600's arrays may be submitted before and beside group S, and beside B900's running arrays, only under the recorded 128-core rule."
+  - "The guard in the E-B1600 block Chris types computes it from "sinfo -p shared -s -h -o %F" (idle x 10 >= total) and prints the sinfo line; it also refuses while any gen3-s1-S job is queued."
+  - "The registered order of the data and the verdicts is unchanged; only the submission order is."
+  - CC regenerates E-B1600 with this guard, instead of the S/B900 refusal of decision 47 item 2.
+- **2. The plan author's INTERIM figure** (261013_interim_cs_vs_eta_N100_N400.png, in the chat; Chris may save it to experiments_gen3_s1_261012/interim_261013/):
+  - E1 and E0 for N 100 and N 400 with KR, SPT, Henderson and the Liu 2021 global EOS (plot_speed_of_sound_edmd.py's functions; liu_eos_self_check passed);
+  - the phase regions shaded; residuals against KR and against Liu.
+  - Nothing changes for the registered figures (sec. 4.8.11), which are made once, at the end, by script.
+
+**The message, verbatim** (relayed by Chris on 2026-10-13 at about 17:12 HST, machine date):
+
+```
+2. The plot
+
+The file 261013_interim_cs_vs_eta_N100_N400.png (and the PDF) is in the chat. It is built from CC’s INTERIM tables, in the style of the old plot: the phase regions shaded (dilute, dense isotropic, stiff dense fluid; liquid–hexatic coexistence 0.700–0.716; hexatic 0.716–0.720; crystal above), KR in red, SPT and Henderson next to it, the old A1 v2 points in grey for reference, and the lower panel the deviation from KR. Labelled INTERIM; no fit over N yet.
+
+What it shows: both sizes sit above KR in the whole fluid, 400 disks about half as far as 100 disks. At 0.60 the 100-disk box is already partly ordered and drops below the curves; above 0.66 it goes off the chart (ordered box). The 400-disk box follows the fluid curves up to 0.66 and leaves them at 0.68.
+
+3. Why KR “falls off”
+
+It is the same curve as in the old plots; the preview figure simply stopped at η = 0.65, before the bend. The reason for the bend: the speed of sound is not read from the pressure itself but from its slope (c_s² = Z + ηZ′ + Z²). KR is a fit to pressure data of the fluid up to about η = 0.70. Near the end of its range the fit’s slope flattens, so c_s turns over at about 0.68 and drops. Kolafa and Rottner themselves warn that their last interval may carry finite-size effects. It is a feature of the fit, not of the gas, and it is why the registration compares with KR only up to 0.69.
+
+4. Liu 2021
+
+It is in the plot now (black line). Liu’s global EOS has three parts: the fluid branch (close to KR up to 0.69, then it also bends, into a van der Waals loop where c_s² would be negative, the gap you see at 0.705–0.716), and the solid branch from 0.720 upward, which rises steeply. The lower panel shows the deviation of the data from Liu as open triangles and Liu against KR as a black line: in the fluid the two differ by less than 0.5 % up to 0.65, so the choice of reference does not matter there. In the dense regime the only reference is Liu’s solid branch, and the ordered small boxes at 0.68–0.69 are not on it either: at those densities a 100- or 400-disk box is neither a fluid nor a bulk crystal. That is the stage 2 question, not stage 1’s.
+
+For CC (add to decision 47)
+DECISION 47, ADDENDUM 1 (2026-10-13 ~17:30 HST), from the plan
+author, relayed by Chris. Record with decision 47.
+ 1. AMENDMENT A4 to sec. 4.8.8 (dated 2026-10-13, before any B1600
+    data): B1600's arrays may be submitted before and beside group
+    S, and beside B900's running arrays, only under the recorded
+    128-core rule. The guard in the E-B1600 block Chris types
+    computes it from "sinfo -p shared -s -h -o %F" (idle x 10 >=
+    total) and prints the sinfo line; it also refuses while any
+    gen3-s1-S job is queued. The registered order of the data and
+    the verdicts is unchanged; only the submission order is.
+    Record A4 verbatim and regenerate E-B1600 in the runsheet with
+    this guard (instead of the S/B900 refusal of item 2).
+ 2. The plan author made an INTERIM figure from the fetched tables
+    (261013_interim_cs_vs_eta_N100_N400.png, in the chat; Chris
+    can save it to experiments_gen3_s1_261012/interim_261013/ if
+    he wishes): E1 and E0 for N 100 and N 400 with KR, SPT,
+    Henderson and the Liu 2021 global EOS (plot_speed_of_sound_
+    edmd.py's functions; liu_eos_self_check passed), the phase
+    regions shaded, residuals against KR and against Liu. Nothing
+    changes for the registered figures (sec. 4.8.11), which are
+    made once, at the end, by script.
+End with "Written for: the plan author".
+261013 interim cs vs eta n100 n400
+Document·PDF
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
