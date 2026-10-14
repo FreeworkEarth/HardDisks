@@ -25355,3 +25355,288 @@ Document·PDF
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.101 Report D47 — decision 47 and its addendum: the runsheet eb024a55 (the merges of B900, S and B1600 at 24 h; E-S's queue guard; A4's E-B1600 guard; the timing line in every FG), rehearsed; the contingency for D's merge (the reduction completion, its runsheet, its rehearsal, its submit guard); THE DATA CAP OF THIS MESSAGE BROKEN (2026-10-13 17:19 HST, machine date) [DATA]
+
+**Plain summary.**
+- **Recorded:** decision 47 (sec. 4.7.99) and its addendum 1 with AMENDMENT A4 (sec. 4.7.100).
+- **THE DATA CAP OF THIS MESSAGE IS BROKEN: 554 MB of new data against 500 MB.**
+  - 383 MB of it is the first completion rehearsal (rc1). Its clone home/harddisks_gen3_rc checked out the whole repository and then failed on an LFS file outside hspist3.
+  - By the disk rule CC stopped launching: the completion rehearsal is not rerun with its sharpened check in this message.
+  - Nothing is deleted, compressed or moved. rc1 (383 MB, no further use) may be deleted on Chris's word.
+- **Item 2, the runsheet: now eb024a55** (657 lines; from a3eb77e4 via 19101796). Only these six blocks changed:
+  - **FG-B900, FG-S and FG-B1600:** the G line reads `sbatch --time=24:00:00 --job-name=gen3-s1-merge-<g> cluster/gen3_stage1_261012/s1_merge.sbatch <g>`. FG-D's G line is unchanged (D's merge has run).
+  - **E-S:** refuses while any gen3-s1-B900 job is in squeue.
+  - **E-B1600 (A4):**
+    - its guard prints sinfo's A/I/O/T line and needs idle × 10 ≥ total;
+    - it refuses while any gen3-s1-S job is queued;
+    - B900's arrays and the merges may run beside it.
+  - **Every FG (D, B900, S, B1600):** the plan author's timing line among F's lines, before the last line. It is byte for byte the line he gave for F-B100 (sec. 4.7.90), with the group substituted.
+  - Every other block is unchanged; the command diff is below.
+- **The rehearsal G4, run 5** (the mini table, c1b20169): **PASS 41 of 41.**
+  - E-S is refused beside a pretended gen3-s1-B900 array job, and submits beside a pretended gen3-s1-merge-B900 job.
+  - FG-D and FG-S print the timing line.
+  - S's merge goes in with --time=24:00:00, D's without.
+  - The mini table has no B1600, so E-B1600's guard was run as typed, with shims: **PASS 8 of 8.**
+- **A point for the plan author on A4's wording.**
+  - A4 says B1600 may go "before and beside group S".
+  - The guard it describes refuses while any gen3-s1-S job is queued. So B1600's arrays can go before S's arrays or after them, but not beside them; beside S's merge is allowed.
+  - CC built the guard as written.
+- **Item 3, the contingency for D's merge,** prepared and rehearsed; report only.
+  - **What it is:**
+    - cluster/gen3_s1_complete_261013/ with complete_s1_koa.py, s1_complete.sbatch and s1_complete_inputs.sha256 (18 files: its own 2, and 16 of the package, byte for byte the package's);
+    - runsheet_complete_D_261013.txt (RC blocks A–D): a NEW clone ~/harddisks_gen3_rc at 60a744f3 (~/harddisks_gen3_k2 stays at 7bdfb67), a read-only plan, the guarded submission (--time=24:00:00), the record.
+  - **Finished is read from the files, never from the merge log.** merge_s1_koa.py's lines are block-buffered. In the rehearsal every killed merge's log ends at "FAILED lines in the chunk logs (logs/): 0", with none of the script's lines. If D's merge is killed, H-D's counts will not show how far it got; RC block B's plan will.
+  - **The rehearsal (rc2):** merges killed (SIGKILL to the job's process group) at five points (K1–K5), each then completed.
+    - Every completed tree equals the uninterrupted merge's, file by file and in raw bytes. Nothing vanished; no extra file; the cut gzips were kept aside.
+    - The refusals hold: on a finished merge, a second run, a running merge job, no .merge_complete.
+    - **Result: 11 of 13.** K1 and K4 fail one check only: that no file already equal to the reference is written again.
+      - In both, the kill came inside reduce_s1 of a folder that had written its first tables.
+      - The completion ran that folder's reduce_s1 again; the package's script writes all six tables, so those tables were rewritten with the same content.
+      - These are tables of the step the kill cut, not of a finished step. The check now separates the two; its rerun waits for the data budget.
+  - **RC block C's guarded line,** as typed with shims: **PASS 7 of 7.**
+- **Item 5** (B900's and B1600's η 0.05 and 0.10 fit failures per mass) comes with those reports.
+
+## 1. The runsheet's command diff, a3eb77e4 against eb024a55 (decision 47 item 2 and A4), verbatim
+
+```
+# ##CHRIS 2026-10-13 (plan-author decision 47 item 2 and addendum 1, A4): the stage 1 runsheet's COMMAND lines, a3eb77e4 against eb024a55
+# Unchanged: A, B, C, D, E-B100, F-B100, G-B100, H-B100, I-B100, E-B400, F-B400, G-B400, H-B400, I-B400, E-D, H-D, I-D, E-B900, H-B900, I-B900, H-S, I-S, H-B1600, I-B1600
+
+== block FG-D: 9 command lines -> 10
++ R=/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/chunks; awk -F"\t" 'NR>1 && $5=="D"{print $1, $8}' cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv | while read j p; do s=$(cat $R/chunk_$j/stage1/gen3/*/m_*/run.log 2>/dev/null | sed -n 's/^##RUN .*(\([0-9]*\) s)$/\1/p' | awk '{s+=$1} END{print s+0}'); echo "$j $s $p"; done | awk '{print $2/$3, $1}' | sort -n | awk '{a[NR]=$1; c[NR]=$2} END{printf "chunks timed %d; measured / predicted: min %.2f (chunk %s), median %.2f, max %.2f (chunk %s)\n", NR, a[1], c[1], a[int((NR+1)/2)], a[NR], c[NR]}'
+
+== block FG-B900: 9 command lines -> 10
+- if cd ~/harddisks_gen3_k2/hspist3 && [ "$(ls logs/gen3-s1-B900_*.out 2>/dev/null | wc -l)" -eq 600 ] && [ "$(grep -lx 'chunk [0-9]* done' logs/gen3-s1-B900_*.out 2>/dev/null | wc -l)" -eq 600 ] && [ "$(cat logs/gen3-s1-B900_*.out 2>/dev/null | grep -c -e FAILED -e REFUSED)" -eq 0 ] && bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s1-B900 /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/chunks cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B900 >/dev/null 2>&1 && bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B900 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B900 2>/dev/null | grep -qx 'nothing to resubmit'; then cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B900,gen3-s1-merge-B900 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B900 or gen3-s1-merge-B900 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-B900 cluster/gen3_stage1_261012/s1_merge.sbatch B900 && echo "B900: THE MERGE SUBMITTED" || echo "B900: THIS PASTE DID NOT SUBMIT THE MERGE"; else echo 'F-B900 NOT CLEAN -- the merge was not submitted'; fi
++ R=/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/chunks; awk -F"\t" 'NR>1 && $5=="B900"{print $1, $8}' cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv | while read j p; do s=$(cat $R/chunk_$j/stage1/gen3/*/m_*/run.log 2>/dev/null | sed -n 's/^##RUN .*(\([0-9]*\) s)$/\1/p' | awk '{s+=$1} END{print s+0}'); echo "$j $s $p"; done | awk '{print $2/$3, $1}' | sort -n | awk '{a[NR]=$1; c[NR]=$2} END{printf "chunks timed %d; measured / predicted: min %.2f (chunk %s), median %.2f, max %.2f (chunk %s)\n", NR, a[1], c[1], a[int((NR+1)/2)], a[NR], c[NR]}'
++ if cd ~/harddisks_gen3_k2/hspist3 && [ "$(ls logs/gen3-s1-B900_*.out 2>/dev/null | wc -l)" -eq 600 ] && [ "$(grep -lx 'chunk [0-9]* done' logs/gen3-s1-B900_*.out 2>/dev/null | wc -l)" -eq 600 ] && [ "$(cat logs/gen3-s1-B900_*.out 2>/dev/null | grep -c -e FAILED -e REFUSED)" -eq 0 ] && bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s1-B900 /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/chunks cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B900 >/dev/null 2>&1 && bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B900 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B900 2>/dev/null | grep -qx 'nothing to resubmit'; then cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B900,gen3-s1-merge-B900 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B900 or gen3-s1-merge-B900 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B900/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --time=24:00:00 --job-name=gen3-s1-merge-B900 cluster/gen3_stage1_261012/s1_merge.sbatch B900 && echo "B900: THE MERGE SUBMITTED" || echo "B900: THIS PASTE DID NOT SUBMIT THE MERGE"; else echo 'F-B900 NOT CLEAN -- the merge was not submitted'; fi
+
+== block E-S: 3 command lines -> 3
+- cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-S -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-S job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S exists"; false; }; } && { ! ls logs/gen3-s1-S_*.out >/dev/null 2>&1 || { echo "REFUSED: logs/gen3-s1-S_*.out exist"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-S --time=0:30:00 --array=1122-1142,1144%1 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-S --time=1:00:00 --array=1143,1145-1150,1152,1154,1156,1158,1160%3 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-S --time=2:00:00 --array=1151,1153,1155,1157,1159,1161-1162,1164,1167-1168,1170-1171,1173-1174,1176-1177,1179-1180,1182-1183,1185-1186,1188-1189,1212-1213,1218-1219,1224-1225,1230-1231,1236-1237,1242-1243%18 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-S --time=3:00:00 --array=1163,1165-1166,1169,1172,1175,1178,1181,1184,1187,1190-1199,1201-1204,1206-1211,1214-1217,1220-1223,1226-1229,1232-1235,1238-1241%40 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-S --time=4:00:00 --array=1200,1205%2 cluster/gen3_stage1_261012/s1_koa.sbatch && echo "S: ALL 5 ARRAY LINE(S) SUBMITTED" || echo "S: THIS PASTE DID NOT SUBMIT ALL 5 ARRAY LINE(S)"
++ cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-S -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-S job: $Q"; false; }; } && { Q=$(squeue -h -u charing -n gen3-s1-B900 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B900 job (the 64-core rule: S's arrays wait): $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S exists"; false; }; } && { ! ls logs/gen3-s1-S_*.out >/dev/null 2>&1 || { echo "REFUSED: logs/gen3-s1-S_*.out exist"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-S --time=0:30:00 --array=1122-1142,1144%1 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-S --time=1:00:00 --array=1143,1145-1150,1152,1154,1156,1158,1160%3 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-S --time=2:00:00 --array=1151,1153,1155,1157,1159,1161-1162,1164,1167-1168,1170-1171,1173-1174,1176-1177,1179-1180,1182-1183,1185-1186,1188-1189,1212-1213,1218-1219,1224-1225,1230-1231,1236-1237,1242-1243%18 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-S --time=3:00:00 --array=1163,1165-1166,1169,1172,1175,1178,1181,1184,1187,1190-1199,1201-1204,1206-1211,1214-1217,1220-1223,1226-1229,1232-1235,1238-1241%40 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-S --time=4:00:00 --array=1200,1205%2 cluster/gen3_stage1_261012/s1_koa.sbatch && echo "S: ALL 5 ARRAY LINE(S) SUBMITTED" || echo "S: THIS PASTE DID NOT SUBMIT ALL 5 ARRAY LINE(S)"
+
+== block FG-S: 9 command lines -> 10
+- if cd ~/harddisks_gen3_k2/hspist3 && [ "$(ls logs/gen3-s1-S_*.out 2>/dev/null | wc -l)" -eq 122 ] && [ "$(grep -lx 'chunk [0-9]* done' logs/gen3-s1-S_*.out 2>/dev/null | wc -l)" -eq 122 ] && [ "$(cat logs/gen3-s1-S_*.out 2>/dev/null | grep -c -e FAILED -e REFUSED)" -eq 0 ] && bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s1-S /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/chunks cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv S >/dev/null 2>&1 && bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-S cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv S 2>/dev/null | grep -qx 'nothing to resubmit'; then cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-S,gen3-s1-merge-S -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-S or gen3-s1-merge-S job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-S cluster/gen3_stage1_261012/s1_merge.sbatch S && echo "S: THE MERGE SUBMITTED" || echo "S: THIS PASTE DID NOT SUBMIT THE MERGE"; else echo 'F-S NOT CLEAN -- the merge was not submitted'; fi
++ R=/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/chunks; awk -F"\t" 'NR>1 && $5=="S"{print $1, $8}' cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv | while read j p; do s=$(cat $R/chunk_$j/stage1/gen3/*/m_*/run.log 2>/dev/null | sed -n 's/^##RUN .*(\([0-9]*\) s)$/\1/p' | awk '{s+=$1} END{print s+0}'); echo "$j $s $p"; done | awk '{print $2/$3, $1}' | sort -n | awk '{a[NR]=$1; c[NR]=$2} END{printf "chunks timed %d; measured / predicted: min %.2f (chunk %s), median %.2f, max %.2f (chunk %s)\n", NR, a[1], c[1], a[int((NR+1)/2)], a[NR], c[NR]}'
++ if cd ~/harddisks_gen3_k2/hspist3 && [ "$(ls logs/gen3-s1-S_*.out 2>/dev/null | wc -l)" -eq 122 ] && [ "$(grep -lx 'chunk [0-9]* done' logs/gen3-s1-S_*.out 2>/dev/null | wc -l)" -eq 122 ] && [ "$(cat logs/gen3-s1-S_*.out 2>/dev/null | grep -c -e FAILED -e REFUSED)" -eq 0 ] && bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s1-S /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/chunks cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv S >/dev/null 2>&1 && bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-S cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv S 2>/dev/null | grep -qx 'nothing to resubmit'; then cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-S,gen3-s1-merge-S -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-S or gen3-s1-merge-S job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/S/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --time=24:00:00 --job-name=gen3-s1-merge-S cluster/gen3_stage1_261012/s1_merge.sbatch S && echo "S: THE MERGE SUBMITTED" || echo "S: THIS PASTE DID NOT SUBMIT THE MERGE"; else echo 'F-S NOT CLEAN -- the merge was not submitted'; fi
+
+== block E-B1600: 3 command lines -> 3
+- cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B1600 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B1600 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600 ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600 exists"; false; }; } && { ! ls logs/gen3-s1-B1600_*.out >/dev/null 2>&1 || { echo "REFUSED: logs/gen3-s1-B1600_*.out exist"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-B1600 --time=2:00:00 --array=1486,1495-1503,1663-1664,1688,1697-1705,1819-1820,1843,1854-1858,1981-1983,2085-2089,2098-2106,2166,2177-2181,2249,2362-2363,2455-2456%2 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=3:00:00 --array=1249-1288,1469-1485,1509-1548,1653-1662,1668-1675,1711-1725,1728-1748,1800-1818,1826-1842,1866-1876,1881-1897,1899-1926,1928-1932,1937-1939,1941-1947,1953-1957,1959-1969,1992-2000,2006-2029,2031-2035,2040-2042,2050-2051,2055-2062,2064-2074,2107-2110,2112-2119,2121-2125,2127-2133,2141-2142,2146-2165,2183-2193,2195-2199,2204-2206,2208-2214,2220-2224,2226-2236,2250-2252,2254-2255,2257-2264,2266-2270,2275-2277,2279-2285,2291-2295,2299-2321,2323-2334,2339-2341,2349-2350,2356-2361,2364-2370,2372-2379,2381-2385,2390-2392,2394-2400,2408-2409,2411-2427,2429-2433,2435-2439,2441-2454,2458-2470,2472-2483,2488-2490,2492-2498,2506-2507,2513-2532,2534-2545,2550-2552,2554-2560,2568-2569,2575-2589,2591-2595,2597-2601,2606-2608,2613-2615,2617-2623,2631-2632,2638-2652,2654-2658,2660-2671,2676-2678,2680-2686,2694-2695,2701-2705%24 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=4:00:00 --array=1289-1313,1464-1468,1487-1494,1549-1573,1649-1652,1665-1667,1676-1687,1689-1696,1749-1799,1821-1825,1844-1853,1927,1933-1936,1940,1948-1952,1970-1980,2030,2036-2039,2043-2049,2052-2054,2075-2084,2090-2097,2111,2120,2126,2134-2140,2143-2145,2167-2176,2182,2194,2200-2203,2207,2215-2219,2225,2237-2248,2253,2256,2265,2271-2274,2278,2286-2290,2296-2298,2322,2335-2338,2342-2348,2351-2355,2371,2380,2386-2389,2393,2401-2407,2410,2428,2434,2440,2457,2471,2484-2487,2491,2499-2505,2508-2512,2533,2546-2549,2553,2561-2567,2570-2574,2590,2596,2602-2605,2609-2612,2616,2624-2630,2633-2637,2653,2659,2672-2675,2679,2687-2693,2696-2700%16 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=6:00:00 --array=1244-1248,1314-1363,1504-1508,1574-1648,1706-1710,1726-1727,1859-1865,1877-1880,1898,1958,1984-1991,2001-2005,2063%10 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=8:00:00 --array=1364-1388%3 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=12:00:00 --array=1389-1463%9 cluster/gen3_stage1_261012/s1_koa.sbatch && echo "B1600: ALL 6 ARRAY LINE(S) SUBMITTED" || echo "B1600: THIS PASTE DID NOT SUBMIT ALL 6 ARRAY LINE(S)"
++ cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B1600 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B1600 job: $Q"; false; }; } && { Q=$(squeue -h -u charing -n gen3-s1-S -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-S job (amendment A4: B1600's arrays wait): $Q"; false; }; } && { F=$(sinfo -p shared -s -h -o %F 2>&1) && echo "sinfo -p shared -s -h -o %F: $F" && echo "$F" | grep -qx '[0-9][0-9]*/[0-9][0-9]*/[0-9][0-9]*/[0-9][0-9]*' && [ $(( $(echo "$F" | cut -d/ -f2) * 10 )) -ge $(echo "$F" | cut -d/ -f4) ] || { echo "REFUSED: the 128-core rule (amendment A4): fewer than 10 % of the shared nodes are idle, or sinfo failed: $F"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600 ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600 exists"; false; }; } && { ! ls logs/gen3-s1-B1600_*.out >/dev/null 2>&1 || { echo "REFUSED: logs/gen3-s1-B1600_*.out exist"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-B1600 --time=2:00:00 --array=1486,1495-1503,1663-1664,1688,1697-1705,1819-1820,1843,1854-1858,1981-1983,2085-2089,2098-2106,2166,2177-2181,2249,2362-2363,2455-2456%2 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=3:00:00 --array=1249-1288,1469-1485,1509-1548,1653-1662,1668-1675,1711-1725,1728-1748,1800-1818,1826-1842,1866-1876,1881-1897,1899-1926,1928-1932,1937-1939,1941-1947,1953-1957,1959-1969,1992-2000,2006-2029,2031-2035,2040-2042,2050-2051,2055-2062,2064-2074,2107-2110,2112-2119,2121-2125,2127-2133,2141-2142,2146-2165,2183-2193,2195-2199,2204-2206,2208-2214,2220-2224,2226-2236,2250-2252,2254-2255,2257-2264,2266-2270,2275-2277,2279-2285,2291-2295,2299-2321,2323-2334,2339-2341,2349-2350,2356-2361,2364-2370,2372-2379,2381-2385,2390-2392,2394-2400,2408-2409,2411-2427,2429-2433,2435-2439,2441-2454,2458-2470,2472-2483,2488-2490,2492-2498,2506-2507,2513-2532,2534-2545,2550-2552,2554-2560,2568-2569,2575-2589,2591-2595,2597-2601,2606-2608,2613-2615,2617-2623,2631-2632,2638-2652,2654-2658,2660-2671,2676-2678,2680-2686,2694-2695,2701-2705%24 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=4:00:00 --array=1289-1313,1464-1468,1487-1494,1549-1573,1649-1652,1665-1667,1676-1687,1689-1696,1749-1799,1821-1825,1844-1853,1927,1933-1936,1940,1948-1952,1970-1980,2030,2036-2039,2043-2049,2052-2054,2075-2084,2090-2097,2111,2120,2126,2134-2140,2143-2145,2167-2176,2182,2194,2200-2203,2207,2215-2219,2225,2237-2248,2253,2256,2265,2271-2274,2278,2286-2290,2296-2298,2322,2335-2338,2342-2348,2351-2355,2371,2380,2386-2389,2393,2401-2407,2410,2428,2434,2440,2457,2471,2484-2487,2491,2499-2505,2508-2512,2533,2546-2549,2553,2561-2567,2570-2574,2590,2596,2602-2605,2609-2612,2616,2624-2630,2633-2637,2653,2659,2672-2675,2679,2687-2693,2696-2700%16 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=6:00:00 --array=1244-1248,1314-1363,1504-1508,1574-1648,1706-1710,1726-1727,1859-1865,1877-1880,1898,1958,1984-1991,2001-2005,2063%10 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=8:00:00 --array=1364-1388%3 cluster/gen3_stage1_261012/s1_koa.sbatch && sbatch --job-name=gen3-s1-B1600 --time=12:00:00 --array=1389-1463%9 cluster/gen3_stage1_261012/s1_koa.sbatch && echo "B1600: ALL 6 ARRAY LINE(S) SUBMITTED" || echo "B1600: THIS PASTE DID NOT SUBMIT ALL 6 ARRAY LINE(S)"
+
+== block FG-B1600: 9 command lines -> 10
+- if cd ~/harddisks_gen3_k2/hspist3 && [ "$(ls logs/gen3-s1-B1600_*.out 2>/dev/null | wc -l)" -eq 1462 ] && [ "$(grep -lx 'chunk [0-9]* done' logs/gen3-s1-B1600_*.out 2>/dev/null | wc -l)" -eq 1462 ] && [ "$(cat logs/gen3-s1-B1600_*.out 2>/dev/null | grep -c -e FAILED -e REFUSED)" -eq 0 ] && bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s1-B1600 /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/chunks cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B1600 >/dev/null 2>&1 && bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B1600 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B1600 2>/dev/null | grep -qx 'nothing to resubmit'; then cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B1600,gen3-s1-merge-B1600 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B1600 or gen3-s1-merge-B1600 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --job-name=gen3-s1-merge-B1600 cluster/gen3_stage1_261012/s1_merge.sbatch B1600 && echo "B1600: THE MERGE SUBMITTED" || echo "B1600: THIS PASTE DID NOT SUBMIT THE MERGE"; else echo 'F-B1600 NOT CLEAN -- the merge was not submitted'; fi
++ R=/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/chunks; awk -F"\t" 'NR>1 && $5=="B1600"{print $1, $8}' cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv | while read j p; do s=$(cat $R/chunk_$j/stage1/gen3/*/m_*/run.log 2>/dev/null | sed -n 's/^##RUN .*(\([0-9]*\) s)$/\1/p' | awk '{s+=$1} END{print s+0}'); echo "$j $s $p"; done | awk '{print $2/$3, $1}' | sort -n | awk '{a[NR]=$1; c[NR]=$2} END{printf "chunks timed %d; measured / predicted: min %.2f (chunk %s), median %.2f, max %.2f (chunk %s)\n", NR, a[1], c[1], a[int((NR+1)/2)], a[NR], c[NR]}'
++ if cd ~/harddisks_gen3_k2/hspist3 && [ "$(ls logs/gen3-s1-B1600_*.out 2>/dev/null | wc -l)" -eq 1462 ] && [ "$(grep -lx 'chunk [0-9]* done' logs/gen3-s1-B1600_*.out 2>/dev/null | wc -l)" -eq 1462 ] && [ "$(cat logs/gen3-s1-B1600_*.out 2>/dev/null | grep -c -e FAILED -e REFUSED)" -eq 0 ] && bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s1-B1600 /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/chunks cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B1600 >/dev/null 2>&1 && bash cluster/gen3_stage1_261012/s1_stopped_chunks.sh logs gen3-s1-B1600 cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv B1600 2>/dev/null | grep -qx 'nothing to resubmit'; then cd ~/harddisks_gen3_k2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-B1600,gen3-s1-merge-B1600 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-B1600 or gen3-s1-merge-B1600 job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 7bdfb67ec99500bd901e2a138a1af74e5be18ebb ] || { echo "REFUSED: the scripts clone is not at 7bdfb67"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/merged ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/B1600/merged exists"; false; }; } && echo "CHECKS GOOD" && sbatch --time=24:00:00 --job-name=gen3-s1-merge-B1600 cluster/gen3_stage1_261012/s1_merge.sbatch B1600 && echo "B1600: THE MERGE SUBMITTED" || echo "B1600: THIS PASTE DID NOT SUBMIT THE MERGE"; else echo 'F-B1600 NOT CLEAN -- the merge was not submitted'; fi
+```
+
+## 2. The rehearsals of the runsheet
+
+**G4 run 5** (rehearse_s1_mac.py at c1b20169; the rows of decision 47's checks and the summary, verbatim; the full table in experiments_gen3_s1_261012/g4_rehearsal/run5_c1b2016/):
+
+```
+| block FG-D | the counts, the chunk check, nothing to resubmit; F clean: CHECKS GOOD and 'D: THE MERGE SUBMITTED' (block G's guarded line inside the last line) | PASS | checks [True, True, True, True, True, True, True, True, True, True, True, True, True, True] |
+| block FG-D (F clean: the merge submitted inside it) and H-D (the merge, the reduction, the compression; its record) | CHECKS GOOD, 1 submitted, exit 0; 'APPEND 2, EQUAL 1, MOVE 8, PER CHUNK 2'; the merged line; 'destinations 1; reduce_B exit 0: 1; reduce_s1 exit 0: 1; compressed: 1' | PASS | checks [True, True, True, True, True, True, True, True, True, True, True, True, True, True] |
+| block E-S typed while a gen3-s1-B900 array job is in squeue | REFUSED, nothing submitted | PASS | REFUSED: squeue failed or lists a gen3-s1-B900 job (the 64-core rule: S's arrays wait): 940996_9 RUNNING gen3-s1-B900 |
+| block E-S typed once, on a pretended faulty node, beside a pretended gen3-s1-merge-B900 job | CHECKS GOOD, 2 array lines submitted (a merge does not hold it); every chunk STOP: [cn-07-07-07] before 'chunk j on'; no chunk folder | PASS | checks [True, True, True, True, True, True, True, True] |
+| block FG-S again, after the resubmission | the counts, the chunk check, nothing to resubmit; then 'F-S NOT CLEAN -- the merge was not submitted' BY DESIGN (4 logs for 2 chunks: the earlier attempts), nothing submitted | PASS | checks [True, True, True, True, True, True, True, True, True, True, True, True] |
+| block G-S's guarded line alone (the plan author's go after the NOT CLEAN by design) and H-S (the merge, the reduction, the compression; its record) | CHECKS GOOD, 1 submitted, exit 0; 'APPEND 4, EQUAL 2, MOVE 16, PER CHUNK 4'; the merged line; 'destinations 2; reduce_B exit 0: 2; reduce_s1 exit 0: 2; compressed: 2' | PASS | checks [True, True, True, True, True, True, True, True, True, True, True, True, True] |
+REHEARSAL G4: PASS (41 of 41)
+```
+
+**E-B1600's guard (A4)** as typed, with shims (experiments_gen3_s1_261012/e_b1600_guard_test/; verbatim):
+
+```
+# the guard of E-B1600 (amendment A4), from cluster/gen3_stage1_261012/runsheet_stage1_261012.txt (eb024a5570256b2342c508d14fdc175db504fd57964bf71e826f95e1a4ab4c78): 6 array line(s)
+
+| case | expected | submitted | printed (CHECKS GOOD / REFUSED / sinfo) | result |
+|---|---|---|---|---|
+| idle 12 of 90, a B900 array and merge job running | submits | 6 | sinfo -p shared -s -h -o %F: 70/12/8/90; CHECKS GOOD; B1600: ALL 6 ARRAY LINE(S) SUBMITTED | PASS |
+| idle 9 of 90 (exactly 10 %) | submits | 6 | sinfo -p shared -s -h -o %F: 73/9/8/90; CHECKS GOOD; B1600: ALL 6 ARRAY LINE(S) SUBMITTED | PASS |
+| idle 8 of 90 (below 10 %) | refuses: the 128-core rule | 0 | sinfo -p shared -s -h -o %F: 74/8/8/90; REFUSED: the 128-core rule (amendment A4): fewer than 10 % of the shared nodes are idle, or sinfo failed: 74/8/8/90; B1600: THIS PASTE DID NOT SUBMIT ALL 6 ARRAY LINE(S) | PASS |
+| a gen3-s1-S array job queued | refuses: gen3-s1-S job | 0 | REFUSED: squeue failed or lists a gen3-s1-S job (amendment A4: B1600's arrays wait): 9003_2 PENDING gen3-s1-S; B1600: THIS PASTE DID NOT SUBMIT ALL 6 ARRAY LINE(S) | PASS |
+| only S's merge job running (not its arrays) | submits | 6 | sinfo -p shared -s -h -o %F: 70/12/8/90; CHECKS GOOD; B1600: ALL 6 ARRAY LINE(S) SUBMITTED | PASS |
+| sinfo fails | refuses: the 128-core rule | 0 | REFUSED: the 128-core rule (amendment A4): fewer than 10 % of the shared nodes are idle, or sinfo failed: sinfo: error: Unable to contact slurm controller (test shim); B1600: THIS PASTE DID NOT SUBMIT ALL 6 ARRAY LINE(S) | PASS |
+| sinfo prints no A/I/O/T line | refuses: the 128-core rule | 0 | sinfo -p shared -s -h -o %F: n/a; REFUSED: the 128-core rule (amendment A4): fewer than 10 % of the shared nodes are idle, or sinfo failed: n/a; B1600: THIS PASTE DID NOT SUBMIT ALL 6 ARRAY LINE(S) | PASS |
+| a second paste: B1600's arrays queued | refuses: gen3-s1-B1600 job | 0 | REFUSED: squeue failed or lists a gen3-s1-B1600 job: 9005_1 PENDING gen3-s1-B1600; B1600: THIS PASTE DID NOT SUBMIT ALL 6 ARRAY LINE(S) | PASS |
+
+E-B1600 GUARD TEST: PASS (8 cases)
+```
+
+## 3. The contingency for D's merge (decision 47 item 3)
+
+**Where each pretended kill left the tree** (the completion's read-only plan, per case; verbatim):
+
+```
+  K1: killed True at 'the first reduce_s1 table of the first folder'; to complete: | stage1/gen3/B_N0100_eta0.050000/m_50 | 25 | done | TO DO | 0 of 25 compressed | reduce_s1, the SHA-256 lines and gzip of 25 |; | stage1/gen3/B_N0100_eta0.392699/m_50 | 2 | TO DO | TO DO | 0 of 2 compressed | reduce_B, reduce_s1, the SHA-256 lines and gzip of 2 |; | stage1/gen3/B_N0100_eta0.392699/m_500 | 4 | TO DO | TO DO | 0 of 4 compressed | reduce_B, reduce_s1, the SHA-256 lines and gzip of 4 |
+  K2: killed True at 'the first .gz of the first folder'; to complete: | stage1/gen3/B_N0100_eta0.050000/m_50 | 25 | done | done | 1 of 25 compressed | gzip of 25 (1 partial .gz moved aside) |; | stage1/gen3/B_N0100_eta0.392699/m_50 | 2 | TO DO | TO DO | 0 of 2 compressed | reduce_B, reduce_s1, the SHA-256 lines and gzip of 2 |; | stage1/gen3/B_N0100_eta0.392699/m_500 | 4 | TO DO | TO DO | 0 of 4 compressed | reduce_B, reduce_s1, the SHA-256 lines and gzip of 4 |
+  K3: killed True at 'reduce_B's red_nu.csv of the second cell's first folder'; to complete: | stage1/gen3/B_N0100_eta0.392699/m_50 | 2 | done | TO DO | 0 of 2 compressed | reduce_s1, the SHA-256 lines and gzip of 2 |; | stage1/gen3/B_N0100_eta0.392699/m_500 | 4 | TO DO | TO DO | 0 of 4 compressed | reduce_B, reduce_s1, the SHA-256 lines and gzip of 4 |
+  K4: killed True at 'the first reduce_s1 table of the last folder'; to complete: | stage1/gen3/B_N0100_eta0.392699/m_50 | 2 | done | done | 0 of 2 compressed | the SHA-256 lines and gzip of 2 |; | stage1/gen3/B_N0100_eta0.392699/m_500 | 4 | done | TO DO | 0 of 4 compressed | reduce_s1, the SHA-256 lines and gzip of 4 |
+  K5: killed True at 'the first .gz of the last folder, then a cut gzip for its next trace'; to complete: | stage1/gen3/B_N0100_eta0.392699/m_500 | 4 | done | done | 2 of 4 compressed | gzip of 4 (2 partial .gz moved aside) |
+```
+
+**The rehearsal's table** (rehearse_complete_mac.py at 60a744f3, run rc2; verbatim):
+
+```
+| step | criterion | result | evidence |
+|---|---|---|---|
+| the build (rehearse_s1_build_mac.py) | BUILD REHEARSAL: PASS | PASS | ['BUILD REHEARSAL: PASS (8 of 8)'] |
+| the substitutions; the completion's Lustre path and manifest; the clone home/harddisks_gen3_rc | the three manifests pass in the rc clone | PASS | s1_complete_inputs.sha256: 18 files (2 of the completion, 16 of the stage 1 package); OK lines 39; stand-in c1a48152d008 |
+| group B100's mini chunks (blocks C and E-B100) | 4 chunk folders, every chunk exit 0 | PASS | 940003_4 cluster/gen3_stage1_261012/s1_koa.sbatch 0 |
+| REF: the merge to its end | .merge_complete; every folder reduced and compressed | PASS | 455 files; log gen3-s1-merge-B100_940004.out |
+| REF: the completion on a finished merge | exit 0, 'nothing to complete', nothing changed but the logs copied | PASS | exit 0 |
+| K1: killed at the first reduce_s1 table of the first folder; then the completion | exit 0; the tree equals REF file by file; the files already equal to REF not rewritten; nothing vanished; no extra file | **FAIL** | killed True; checks [True, True, True, False, True, True, True, True, True]; 395 files already final and untouched; raw bytes equal to REF: True; kept aside: [] |
+| K1: the completion a second time | exit 3 (.reduction_completed), nothing changed but its log | PASS | exit 3 |
+| K2: the completion with a pretended running merge job | exit 2, nothing changed | PASS | exit 2 |
+| K2: killed at the first .gz of the first folder; then the completion | exit 0; the tree equals REF file by file; the files already equal to REF not rewritten; nothing vanished; no extra file | PASS | killed True; checks [True, True, True, True, True, True, True, True, True]; 400 files already final and untouched; raw bytes equal to REF: True; kept aside: ['merged/stage1/gen3/B_N0100_eta0.050000/m_50/wall_x_positions_L0_785_wallmassfactor_50_run0.csv.gz.partial_940011'] |
+| K3: killed at reduce_B's red_nu.csv of the second cell's first folder; then the completion | exit 0; the tree equals REF file by file; the files already equal to REF not rewritten; nothing vanished; no extra file | PASS | killed True; checks [True, True, True, True, True, True, True, True, True]; 427 files already final and untouched; raw bytes equal to REF: True; kept aside: [] |
+| K4: killed at the first reduce_s1 table of the last folder; then the completion | exit 0; the tree equals REF file by file; the files already equal to REF not rewritten; nothing vanished; no extra file | **FAIL** | killed True; checks [True, True, True, False, True, True, True, True, True]; 435 files already final and untouched; raw bytes equal to REF: True; kept aside: [] |
+| K5: killed at the first .gz of the last folder, then a cut gzip for its next trace; then the completion | exit 0; the tree equals REF file by file; the files already equal to REF not rewritten; nothing vanished; no extra file; the cut gzip kept aside | PASS | killed True; checks [True, True, True, True, True, True, True, True, True, True]; 444 files already final and untouched; raw bytes equal to REF: True; kept aside: ['merged/stage1/gen3/B_N0100_eta0.392699/m_500/wall_x_positions_L0_100_wallmassfactor_500_run0.csv.gz.partial_940017', 'merged/stage1/gen3/B_N0100_eta0.392699/m_500/wall_x_positions_L0_100_wallmassfactor_500_run1.csv.gz.partial_940017'] |
+| K6: merged/ without .merge_complete (a merge stopped during its moves) | exit 2, nothing changed | PASS | exit 2 |
+
+RESIDUAL DIFFERENCES: the shims (Slurm commands, module, gcc --version, lscpu, hostname, sha256sum); the Mac binaries; the mini list and table; the Lustre path; the kills by SIGKILL to the shim's process group at a file's appearance (on KOA: Slurm's time limit)
+
+COMPLETION REHEARSAL: FAIL (11 of 13)
+```
+
+**RC block C's guarded line** as typed, with shims (verbatim):
+
+```
+# RC block C's guard, from runsheet_complete_D_261013.txt (commit 60a744f; D's root replaced by a scratch folder)
+
+| case | expected | submitted | printed | result |
+|---|---|---|---|---|
+| all checks hold | submits | 1 | CHECKS GOOD; D: THE COMPLETION SUBMITTED | PASS |
+| the merge job still in squeue | refuses: gen3-s1-merge-D | 0 | REFUSED: squeue failed or lists a gen3-s1-merge-D or gen3-s1-complete-D job: 9100 RUNNING gen3-s1-merge-D; D: THIS PASTE DID NOT SUBMIT THE COMPLETION | PASS |
+| a completion already queued (a second paste) | refuses: gen3-s1-complete-D | 0 | REFUSED: squeue failed or lists a gen3-s1-merge-D or gen3-s1-complete-D job: 9101 PENDING gen3-s1-complete-D; D: THIS PASTE DID NOT SUBMIT THE COMPLETION | PASS |
+| the rc clone at another commit | refuses: the rc clone is not at | 0 | REFUSED: the rc clone is not at 60a744f; D: THIS PASTE DID NOT SUBMIT THE COMPLETION | PASS |
+| no .merge_complete (the merge stopped during its moves) | refuses: .merge_complete is missing | 0 | REFUSED: D's merged/.merge_complete is missing: the merge did not finish its moves (not this job's case); D: THIS PASTE DID NOT SUBMIT THE COMPLETION | PASS |
+| .reduction_completed exists | refuses: completed before | 0 | REFUSED: D's reduction was completed before; D: THIS PASTE DID NOT SUBMIT THE COMPLETION | PASS |
+| the merge log missing | refuses: the merge log | 0 | REFUSED: the merge log ~/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-D_15055588.out is missing; D: THIS PASTE DID NOT SUBMIT THE COMPLETION | PASS |
+
+RC BLOCK C GUARD TEST: PASS (7 cases)
+```
+
+**The contingency runsheet,** cluster/gen3_s1_complete_261013/runsheet_complete_D_261013.txt, verbatim. Typed only if H-D shows the kill, on the plan author's go:
+
+```
+##CHRIS 2026-10-13 (plan-author decision 47 item 3) -- THE CONTINGENCY RUNSHEET: THE REDUCTION COMPLETION OF GROUP D. PREPARED, NOT TYPED.
+It is typed only if block H-D and decision 46's sacct line show that D's merge (job 15055588) stopped during its reduction, and only on
+the plan author's go:
+- sacct's State is TIMEOUT;
+- H-D's `cat .../D/merged/.merge_complete` prints its time (the moves were complete);
+- the merge log has no "merge done" line and no "this job's log is copied" line.
+Then H-D's counts do NOT show how far the reduction got. merge_s1_koa.py's lines are block-buffered, so at a kill the log loses its last
+part or all of it: in the Mac rehearsal every killed merge's log ends at "FAILED lines in the chunk logs (logs/): 0". RC block B's plan,
+read from the files, shows the state.
+Chris types every command.
+
+WHAT IT DOES. The merge stops at its 6 h limit after its moves (merged/.merge_complete exists), during the reduction of D's 54
+(cell, mass) folders. The completion job (cluster/gen3_s1_complete_261013/, engine-gen3 60a744f) runs from a NEW clone,
+~/harddisks_gen3_rc, at 60a744f. The scripts clone ~/harddisks_gen3_k2 stays at 7bdfb67 and is not touched, so every runsheet
+guard that checks its HEAD still holds.
+- The package's files in the new clone are byte for byte the stage 1 package's: s1_inputs.sha256 and s1_merge_inputs.sha256 pass.
+  Its own manifest s1_complete_inputs.sha256 lists every file the completion runs.
+- The job reads from the files which folders the merge finished. It does the merge's own remaining steps for the rest, in the
+  merge's order: reduce_B.py for the masses without valid tables, reduce_s1_koa.py, the SHA-256 lines, gzip -9.
+- It changes no finished file. A cut gzip is kept as <name>.gz.partial_<job id>.
+- Every check comes before any change; a failed check stops it with "STOP: ..." and NOTHING changed.
+- It writes merged/.reduction_completed at its end.
+Rehearsed on the Mac (rehearse_complete_mac.py; engine-gen3 experiments_gen3_s1_261012/complete_rehearsal/): merges killed at five
+points, each completed to a tree equal to an uninterrupted merge's, file by file.
+
+RC BLOCK A (KOA login node; opens the sandbox shell; then wait for the cn-... prompt):
+squeue -u charing
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+
+  Expected: squeue lists no gen3-s1-merge-D job. Paste block B only at the cn-... prompt.
+
+RC BLOCK B (in the sandbox shell: the new clone ~/harddisks_gen3_rc at 60a744f, its manifests, the plan -- read only on D's tree):
+ls -d ~/harddisks_gen3_rc 2>&1 | head -1
+cd ~ && git clone --depth 1 --branch engine-gen3 --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_gen3_rc
+cd ~/harddisks_gen3_rc && git fetch --depth 1 origin 60a744f3ef7a366e3bccb230f47cc12ebd5d4baa
+git -c advice.detachedHead=false checkout 60a744f3ef7a366e3bccb230f47cc12ebd5d4baa
+git sparse-checkout set --no-cone "/hspist3/*.py" "/hspist3/cluster/" "/hspist3/validation/"
+git log -1 --format='%h %s' | cut -c1-80
+cd hspist3 && mkdir -p logs && sha256sum -c cluster/gen3_stage1_261012/s1_inputs.sha256 cluster/gen3_stage1_261012/s1_merge_inputs.sha256 cluster/gen3_s1_complete_261013/s1_complete_inputs.sha256 | grep -c ': OK$'
+source cluster/koa_env.sh && python3 cluster/gen3_s1_complete_261013/complete_s1_koa.py /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D --plan-only
+exit
+
+  THE LINES THAT SHOW IT IS GOOD (paste everything):
+    "ls: cannot access '/home/charing/harddisks_gen3_rc': No such file or directory" (a fresh clone)
+    the clone's lines; the fetch of 60a744f3ef7a366e3bccb230f47cc12ebd5d4baa; "HEAD is now at 60a744f ..."; the log line starting with 60a744f
+    39         (the three manifests: 6 + 15 + 18 files, each ": OK")
+    "env: gcc (GCC) 14.3.0 | Python ... at /home/charing/envs/hd/bin/python3 | ..."
+    the plan: "## the plan (--plan-only): 6 cells, 54 (cell, mass) folders under stage1/gen3", one row per folder (finished, or its
+    steps), "folders finished: <a>; folders to complete: <b>" with a + b = 54, and "--plan-only: nothing was changed"
+  STOP RULE: a "STOP: ..." line, a "REFUSED" row, other counts: type exit, paste everything, wait.
+
+RC BLOCK C (KOA login node, after block B's exit, ONLY on the plan author's go; the completion; one core, at most 24 h):
+squeue -u charing
+cd ~/harddisks_gen3_rc/hspist3 && { Q=$(squeue -h -u charing -n gen3-s1-merge-D,gen3-s1-complete-D -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s1-merge-D or gen3-s1-complete-D job: $Q"; false; }; } && { [ "$(cat ../.git/HEAD)" = 60a744f3ef7a366e3bccb230f47cc12ebd5d4baa ] || { echo "REFUSED: the rc clone is not at 60a744f"; false; }; } && { [ -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged/.merge_complete ] || { echo "REFUSED: D's merged/.merge_complete is missing: the merge did not finish its moves (not this job's case)"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged/.reduction_completed ] || { echo "REFUSED: D's reduction was completed before"; false; }; } && { [ -f ~/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-D_15055588.out ] || { echo "REFUSED: the merge log ~/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-D_15055588.out is missing"; false; }; } && echo "CHECKS GOOD" && sbatch --time=24:00:00 --job-name=gen3-s1-complete-D cluster/gen3_s1_complete_261013/s1_complete.sbatch D $HOME/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-D_15055588.out && echo "D: THE COMPLETION SUBMITTED" || echo "D: THIS PASTE DID NOT SUBMIT THE COMPLETION"
+
+  Expected: "CHECKS GOOD", "Submitted batch job <its number>" and "D: THE COMPLETION SUBMITTED".
+  THE GUARD: it submits only if all of these hold, else it prints "REFUSED: ..." and "D: THIS PASTE DID NOT SUBMIT THE COMPLETION":
+    - squeue lists no gen3-s1-merge-D and no gen3-s1-complete-D job (a failed squeue refuses);
+    - the rc clone is at 60a744f;
+    - D's merged/.merge_complete exists and merged/.reduction_completed does not;
+    - the merge log ~/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-D_15055588.out exists.
+  A second paste therefore refuses while the job is queued and after it has finished.
+  The job checks everything again for itself before it changes anything.
+
+RC BLOCK D (KOA login node, when squeue -u charing lists no gen3-s1-complete-D job; every line only reads; paste everything):
+squeue -u charing
+L=$(ls -t ~/harddisks_gen3_rc/hspist3/logs/gen3-s1-complete-D_*.out | head -1) && echo "$L"
+grep -v -e '^| stage1/gen3/' -e '^reduce_B stage1/gen3/.*: exit 0 ' -e 'trajectories reduced *$' -e '^reduce_s1 stage1/gen3/.*: exit 0 ' -e ': [0-9]* traces compressed$' "$L"
+echo "reduce_B exit 0: $(grep -c '^reduce_B stage1/gen3/.*: exit 0 ' "$L"); reduce_s1 exit 0: $(grep -c '^reduce_s1 stage1/gen3/.*: exit 0 ' "$L"); compressed: $(grep -c ': [0-9]* traces compressed$' "$L")"
+grep -h '^reduce_s1 ' "$L" | grep -o '([0-9]* fit failures)' | sort | uniq -c
+cat /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/merged/.reduction_completed
+ls /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/D/job_logs | wc -l
+
+  THE LINES THAT SHOW IT IS GOOD:
+    - squeue: its header line only; the log's name;
+    - the log without its per-folder lines:
+      - "env: ..."; "completion of the reduction of ... by the scripts of ~/harddisks_gen3_rc (...; the three manifests: OK); ...";
+      - four SHA-256 lines; the merge log's last line;
+      - the two plan summaries ("folders finished: <a>; folders to complete: <b>", then the same again);
+      - "reduction completed by job <n>: reduce_B in ..., reduce_s1 in <b'> folders, <b> folders compressed (<traces> traces), <k> cut gzip files kept aside, 0 steps with an exit other than 0";
+      - "completion done; ..." and "this job's log is copied to .../job_logs/ as the last command";
+    - the counts: reduce_s1 and compressed equal to the folders the plan listed;
+    - the fit-failure counts of the folders it reduced;
+    - .reduction_completed: its time and the same "reduction completed by job ..." line;
+    - the job logs: D's chunk logs, the merge log and the completion's log.
+  STOP RULE: an exit other than 0, a STOP line, other counts: paste, change nothing, wait.
+
+THEN block I-D (the fetch) as in the runsheet, unchanged. The fetch carries .reduction_completed and the completion's log, and CC prints
+D's INTERIM report.
+```
+
+## 4. The data cap (the disk rule: stop and report)
+
+| this message's new data | MB |
+|---|---|
+| rc1, the first completion rehearsal (its full checkout) | 383 |
+| rc2, the completion rehearsal | 159 |
+| G4 run 5 | 44 |
+| the rest (records, evidence, tests) | about 1 |
+| **total since decision 47 arrived** | **554 (cap 500)** |
+
+- CC launched nothing further: the completion rehearsal is not rerun with its sharpened check.
+- Nothing was deleted, compressed or moved.
+- Free space: 83 GiB.
+- The clone is now made as the other rehearsals make theirs: no checkout, the K2 sparse set, then the commit. The cause is in CC's working notes.
+
+## Commits
+
+- main: decision 47 (sec. 4.7.99), addendum 1 (4.7.100) and this report (4.7.101); the copies on engine-gen3 and engine-divider-resched.
+- engine-gen3:
+  - c1b20169: the generator and the rehearsal for item 2;
+  - 088d1f1d: the runsheet 19101796 and G4 run 5;
+  - f434f13b: the reduction completion;
+  - 60a744f3: its rehearsal's clone;
+  - 4785a863: A4's guard and the runsheet eb024a55, with the guard test;
+  - 4035476d: the contingency runsheet, RC block C's test and the rehearsal's evidence;
+  - a7f21ac3: the command diff.
+- The two stage 1 manifests are unchanged (21 OK).
+
+Written for: the plan author
