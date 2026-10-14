@@ -27207,3 +27207,113 @@ WATCH RULE (decision 41 item 3): the E5 maximum of group S is 2.766: 2.0 OR MORE
 - engine-gen3: e4fe5eb6: s1_startcheck_261014.py (new) and s1_firstlook_261012.py --sqrt2; S's INTERIM outputs (experiments_gen3_s1_261012/interim_261013/S/).
 
 Written for: the plan author
+
+### 4.7.111 Plan-author decision 49, addendum 1: the Part A survey, after the INTERIM reports (read-only code facts of the held path under gen3 at f72d764 and at the engine-gen3 head; the stencil at N 400; the pilot for ε₀ and the cost of Part A at N 400; a one-page proposal, the legacy held path or a gen3 start with the exact position; k_S^dyn at N 400 from Part B); before it, Chris's questions and the plan author's answer (the final runs; what was done and what is plotted; ψ6; the held-wall experiment not yet run, no KOA command today) (2026-10-14 09:36 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 49, addendum 1** (relayed by Chris at about 09:30 HST, machine date; the plan author's time "~09:00 HST"). It queues behind the INTERIM reports of B900 and S, which stay first.
+- **Before it, Chris's questions to the plan author:**
+  - Are these the final runs?
+  - What exactly was done, and what will be evaluated and plotted?
+  - How is ψ6 shown?
+  - Was the fixed-wall experiment run (static pressure or force on the wall while L0 is changed, to compare with the dynamic speed of sound)? If not, Chris asks for a KOA command, starting with N 400.
+- **The plan author's answer, in short:**
+  - **Yes, Part B is the registered production data.** B1600 finishes tonight, its merge runs Thursday, then CC prints the full report with the registered verdicts. Nothing is rerun or tuned afterwards.
+  - **What was done:** the protocol and the registered analysis (E1 and E0, Δ against 1/N_s per density, Verdict K, Z against KR, Verdict S).
+  - **What is plotted:** the seven registered figures.
+  - **ψ6:** per cell, and how it is plotted.
+  - **The held-wall experiment is Part A (sec. 4.8.4) and has NOT run yet.** There is no KOA command today. Part A launches on its own go after its pilot, and gate G0 (f) found the held path cannot run as written under gen3. It needs a written amendment, a pilot (for ε₀) and a rehearsed runsheet.
+  - **N 400 first is the right choice.**
+  - **The plan:** CC's survey today, the amendment tomorrow, an N 400 pilot on KOA after B1600's arrays end (Thursday/Friday).
+- **The addendum.** The order of work is B900's INTERIM report, then S's, THEN this. CC reports the code facts, read-only, with no code change and no KOA:
+  1. **The held path** (the worker's AF command, reduce_AF.py) under gen3 at f72d764 and at the current engine-gen3 head:
+     - (a) the start: lattice + --gen3-exact-box, or the legacy seeder only;
+     - (b) the divider position: an exact off-grid length, or grid-rounded;
+     - (c) the forces F_L and F_R from gen3's divider events, with the checks u_wall = 0, W_div = 0, |1 − f| < 0.002;
+     - (d) the released tail of 20 σ-time that writes the temperatures;
+     - (e) the event log: its size per seed at N 400 for the 16 cells, and whether a divider-only log exists.
+     - For each, the file and line, and what is missing. This repeats and sharpens G0 (f).
+  2. **The stencil per cell at N 400:** σ_x = L_eff / sqrt(2 N_s c_KR²), δL = σ_x / 2.
+     - If the position is grid-rounded: the old rule max(1/24, rounded), with the span in σ_x and the truncation bias (Table A, sec. 1.4b).
+     - Flag the cells above 0.1 %.
+  3. **The pilot for ε₀,** the force-noise coefficient (sec. 4.8.4): what the registration says it needs (cells, length, repeats) and its cost at N 400 in E5 core-hours, plus the cost of the full N 400 Part A at the registered repeats.
+  4. **A one-page proposal for Part A at N 400:**
+     - (i) on the legacy held path as it is. Test R showed gen2 = gen3 on the free divider; say what that does and does not cover for the held divider.
+     - (ii) after adding the gen3 start and the exact position to the held path, with an estimate of the work and the tests.
+     - The plan author decides and writes the amendment. Nothing of Part A is run or committed before that, and Part A runs after B1600's arrays, not beside them.
+  5. **k_S^dyn at N 400:** from the fetched Part B data, what the identity's dynamic side (sec. 4.8.6.5) already gives per cell, so the static side knows what it has to meet.
+- **After it, a line to Chris:** CC's B900 INTERIM report goes to the plan author, who reads it before 13:30.
+
+**The message, verbatim** (relayed by Chris on 2026-10-14 at about 09:30 HST, machine date):
+
+```
+k are these already our. final runs?? 
+
+can you explain me exactly what we did here now and what data we will wevaluate and plot ? how do we show the psi 6 plots. and ost important did we also run the experiemntes with fixed wall and static pressure/ force where we chanfge l0 and measure how many impulse  the wall gets from particles to compare to the mearuings with dynamical speed of sound. if not can yo please gove me a command to do thos too on KOA. maybe lets run first with 400 particles as it seems a good tradeoff between 100 and 1600 in terms of corrctness and finite size effectw
+
+Searched project knowledge
+Short answers first, then the detail.
+
+Are these the final runs? Yes. Stage 1, Part B is the registered production data for Paper 1’s fluid section: 16 densities × 4 box sizes × 9 divider masses × 25 seeds, plus the dilute block D and the start check S. Five of the six groups are merged and fetched; B1600 finishes tonight, its merge runs Thursday, then CC prints the full report with the registered verdicts. Nothing in these groups gets rerun or tuned afterwards — that is the point of the registration. What is not run yet is Part A (the held divider), see below.
+
+What we did, in plain words. Every cell is one box: height H = 10·√(N/100), a divider in the middle, N/2 disks on each side, the compartment length L₀ set by η. The gas is seeded on a lattice, the divider is clamped while the gas settles (T_eq); during the last quarter of that hold we measure the pressure from the virial, i.e. Z. Then the divider is released and swings 200 periods; the two gases act as springs. From the divider’s motion we fit a damped cosine and get its frequency ν_d, damping Γ and quality factor Q. The standing-wave relation turns ν_d into a sound speed per divider mass; E1 averages the eight masses α ≥ 1 with inverse-variance weights (α = 0.5 is left out and reported as the light-divider deficit δ_0.5); E0 is the old Paper 1 slope method, printed beside it for continuity. 25 seeds per mass give the errors. Then the registered analysis: Δ(η, N) = c_s/c_s^KR − 1 per cell, fitted against 1/N_s per density, extrapolated to N → ∞ → Verdict K (“KR-CONSISTENT” or not), with prediction 1 that Δ shrinks with N — which holds so far at every density in B100/B400/D. Z against KR (reported, no verdict). Block S: lattice start 0° vs turned at η 0.60–0.69 → Verdict S per cell (start-independent or not).
+
+What we plot (registered figures, drawn by script at the end): (1) c_s vs η for N 100/400/900/1600 with KR, SPT, Henderson and the shaded phase regions — the interim version you have; (2) Δ vs 1/N_s per density with the fit lines, the extrapolation figure that carries Verdict K; (3) Z vs η and ΔZ vs KR; (4) ψ6 vs η; (5) δ_0.5 vs η; (6) Γ and Q vs η per mass (the inputs for Paper 2); (7) S: the four z-values per cell.
+
+How we show ψ6. ψ6 is the six-fold bond-order parameter: 0 for a disordered fluid, towards 1 for a triangular crystal. Per trajectory it is the mean of the two compartments’ record means; per cell mean ± SE over 225 trajectories. The plot is ψ6 vs η, one curve per N, with the fluid set, the approach cells 0.63–0.69 and the shaded regions; the N 100 box orders from η ≈ 0.65 (ψ6 0.5–0.6) while N 400 stays fluid at the same η — that curve shows it directly. Because N 100 near the transition is multi-state, we also show the per-seed scatter there (open symbols), and for η 0.63–0.69 the start check gives ψ6 for both lattice orientations. The snapshots (seeds 0 and 1 of α = 5 in every cell) allow real configuration pictures as an inset — fluid, hexatic patches, crystal.
+
+The held-wall / static-pressure experiment: NOT run yet — and it is exactly Part A of the registration (§ 4.8.4). Divider clamped at L₀ + j·δL, j = −2…+2; the force on each face from the momentum the disks transfer per time (your “impulses”); k_T = −dF/dx by a five-point stencil; then the identity k_S = k_T + F²/(N_s kT) against the dynamic k_S from the swinging divider → Verdict I. Note that the pressure itself (Z) is already measured in every Part B cell during the hold; what Part A adds is the stiffness dF/dx and the identity.
+
+Why I cannot give you a KOA command for it today: the registration says Part A launches on its own go after its pilot, and gate G0 (f) found that the held path cannot run as written under gen3 — the held path has no gen3 start with the exact box, the divider position is not an exact length (60 of 64 cells stop), the AF reduction’s window and the event-log size (up to 590 MB per seed at N 1600) need settling. It needs a written amendment, then a pilot (the registration itself asks for a short pilot to measure the force-noise coefficient ε₀ that sets the repeats), then a rehearsed runsheet. Your choice of N 400 first is right: it is the cheapest size with moderate finite-size effects, and it also keeps the pilot off the B1600 cores. Realistic: CC’s code survey today, the amendment tomorrow, a N 400 pilot on KOA after B1600’s arrays end (Thursday/Friday).
+
+Step now: paste this to CC (it queues behind the INTERIM reports, which stay first):
+
+From the plan author (Cowork), relayed by Chris. Record as decision 49,
+addendum 1.
+
+DECISION 49, ADDENDUM 1 (2026-10-14 ~09:00 HST): PART A SURVEY, AFTER
+THE INTERIM REPORTS
+ Order of work: B900's INTERIM report, S's INTERIM report (decision 49),
+ THEN this. Chris wants Part A (the held divider, sec. 4.8.4: five held
+ positions L0 + j dL, the force from the divider events, k_T by the
+ five-point stencil, the identity k_S = k_T + F^2/(N_s kT), Verdict I),
+ starting with N 400. Before any amendment is written, report the code
+ facts (read-only; no code change, no KOA):
+ 1. What the held path (the worker's AF command, reduce_AF.py) offers
+    TODAY under gen3 at f72d764 and at the current engine-gen3 head:
+    (a) start: lattice + --gen3-exact-box, or the legacy seeder only;
+    (b) the divider position: exact off-grid length or grid-rounded;
+    (c) the forces F_L, F_R: from the gen3 divider events, with the
+    checks u_wall = 0, W_div = 0, |1 - f| < 0.002; (d) the released
+    tail of 20 sigma-time that writes the temperatures; (e) the event
+    log: size per seed at N 400 for the 16 cells, and whether a
+    divider-only log exists. For each: the file and line, and what is
+    missing. This repeats and sharpens G0 (f).
+ 2. The stencil per cell at N 400: sigma_x = L_eff / sqrt(2 N_s c_KR^2),
+    dL = sigma_x / 2, and, if the position is grid-rounded, the old
+    rule max(1/24, rounded) with the span in sigma_x and the
+    truncation bias (Table A of notes sec. 1.4b); flag cells above
+    0.1 %.
+ 3. The pilot for epsilon_0 (the force-noise coefficient, sec. 4.8.4):
+    what the registration says it needs (cells, length, repeats) and
+    an estimate of its cost at N 400 in E5 core-hours, plus the cost
+    of the full N 400 Part A at the registered repeats.
+ 4. Your proposal in one page: run Part A at N 400 (i) on the legacy
+    held path as it is (Test R showed gen2 = gen3 on the free divider;
+    say what that does and does not cover for the held divider), or
+    (ii) after adding the gen3 start and the exact position to the
+    held path (estimate the work and the tests). The plan author
+    decides and writes the amendment; nothing of Part A is run or
+    committed before that. Part A runs after B1600's arrays (not
+    beside them).
+ 5. Also list, from the fetched Part B data, what the identity's
+    dynamic side k_S^dyn (sec. 4.8.6.5) already gives per cell at
+    N 400, so the static side knows what it has to meet.
+
+End with "Written for: the plan author".
+Next step after that: CC’s B900 INTERIM report → paste it to me; I read it before 13:30.
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
