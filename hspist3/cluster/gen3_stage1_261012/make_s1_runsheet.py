@@ -14,6 +14,10 @@
          paste: F's lines, then "if <F's five good conditions>; then <block G's guarded line>; else echo 'F-<g> NOT CLEAN -- the merge
          was not submitted'; fi". The five: logs = chunks, done logs = chunks, 0 FAILED or REFUSED, the chunk check exit 0, "nothing to
          resubmit". B100's and B400's blocks F and G stay as they were typed.
+  ##CHRIS 2026-10-13 (plan-author decision 47 item 2): the merges of B900, S and B1600 are submitted with --time=24:00:00 on the sbatch
+         line (it overrides s1_merge.sbatch's 6 h; the package unchanged); E-S also refuses while any gen3-s1-B900 job is in squeue, E-B1600
+         while any gen3-s1-S or gen3-s1-B900 job is (the 64-core rule of sec. 4.8.8; a merge may run beside the next group's arrays); every
+         FG holds the plan author's timing line (decision 43 rule d) among F's lines, before its last line.
 The rehearsal (rehearse_s1_mac.py, gate G4) runs this script on its mini chunk table and runs the blocks it writes.
 usage (from hspist3/): python3 cluster/gen3_stage1_261012/make_s1_runsheet.py [--commit <stage 1 commit>] [--chunks T] [--tasks L] [--out F]
   without --commit the update lines name AFTER_THE_GATE (the commit exists only after the gate's fetch) and the SHA-256 lines of the build
@@ -29,6 +33,10 @@ PKG = ["s1_koa.sbatch", "s1_worker_koa.sh", "s1_merge.sbatch", "merge_s1_koa.py"
        "s1_stopped_chunks.sh", "test_merge_s1_plan.py", "tasks_stage1_koa_261012.sha256", "chunks_stage1_koa_261012.tsv"]
 AFTER = ["build_record_f72d764.txt", "s1_inputs.sha256", "s1_merge_inputs.sha256"]
 FG_ONE = ("D", "B900", "S", "B1600")                  # ##CHRIS 2026-10-13 (decision 45 addendum 2): the groups whose F and G are one paste
+MERGE_24H = ("B900", "S", "B1600")                     # ##CHRIS 2026-10-13 (decision 47 item 2): their merges with --time=24:00:00
+PREV_ARRAYS = {"S": ("B900",), "B1600": ("S", "B900")}  # decision 47 item 2: E-<g> refuses while these groups' arrays are in squeue
+# decision 47 item 2: the plan author's timing line (decision 43 rule d), as he gave it for F-B100 (sec. 4.7.90), with @G@ for the group
+TIMING_LINE = r"""R=/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage1/@G@/chunks; awk -F"\t" 'NR>1 && $5=="@G@"{print $1, $8}' cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv | while read j p; do s=$(cat $R/chunk_$j/stage1/gen3/*/m_*/run.log 2>/dev/null | sed -n 's/^##RUN .*(\([0-9]*\) s)$/\1/p' | awk '{s+=$1} END{print s+0}'); echo "$j $s $p"; done | awk '{print $2/$3, $1}' | sort -n | awk '{a[NR]=$1; c[NR]=$2} END{printf "chunks timed %d; measured / predicted: min %.2f (chunk %s), median %.2f, max %.2f (chunk %s)\n", NR, a[1], c[1], a[int((NR+1)/2)], a[NR], c[NR]}'"""
 
 
 def sha(p): return hashlib.sha256(open(p, "rb").read()).hexdigest()
@@ -91,8 +99,9 @@ def f_awk(g, commit, P):
 
 def g_line(g, R, PFX, commit):
     """block G's guarded line (decision 42 item 5), as before; ##CHRIS 2026-10-13: a function, so block FG holds the same line"""
+    tl = " --time=24:00:00" if g in MERGE_24H else ""                 # ##CHRIS 2026-10-13 (decision 47 item 2)
     return guarded([sq(f"{PFX},gen3-s1-merge-{g}"), head_ok(commit), check(f"[ ! -e {R}/merged ]", f"{R}/merged exists")],
-                   [f"sbatch --job-name=gen3-s1-merge-{g} {P}/s1_merge.sbatch {g}"], f"{g}: THE MERGE SUBMITTED", f"{g}: THIS PASTE DID NOT SUBMIT THE MERGE")
+                   [f"sbatch{tl} --job-name=gen3-s1-merge-{g} {P}/s1_merge.sbatch {g}"], f"{g}: THE MERGE SUBMITTED", f"{g}: THIS PASTE DID NOT SUBMIT THE MERGE")
 
 
 def fg_line(g, nch, R, PFX, commit):
@@ -282,15 +291,24 @@ def write(args):
                   check(f"[ \"$(ls logs/{PFX}_*.out 2>/dev/null | wc -l)\" -eq 1 ]", f"logs/{PFX}_*.out are not exactly one log"),
                   check(f"grep -qx 'chunk 1 done' logs/{PFX}_*_1.out", "the log of chunk 1 has no line 'chunk 1 done'")]
         else:
-            ec = [sq(PFX), head_ok(args.commit), check(f"[ ! -e {R} ]", f"{R} exists"),
+            prev = ",".join(f"gen3-s1-{x}" for x in PREV_ARRAYS.get(g, ()))   # ##CHRIS 2026-10-13 (decision 47 item 2)
+            ec = [sq(PFX)] + ([check(f"Q=$(squeue -h -u charing -n {prev} -o %i 2>&1) && [ -z \"$Q\" ]",
+                                     f"squeue failed or lists a {prev.replace(',', ' or ')} job (the 64-core rule: {g}'s arrays wait): $Q")] if prev else []) + [
+                  head_ok(args.commit), check(f"[ ! -e {R} ]", f"{R} exists"),
                   check(f"! ls logs/{PFX}_*.out >/dev/null 2>&1", f"logs/{PFX}_*.out exist")]
         w(guarded(ec, [a[4] for a in ar], f"{g}: ALL {len(ar)} ARRAY LINE(S) SUBMITTED", f"{g}: THIS PASTE DID NOT SUBMIT ALL {len(ar)} ARRAY LINE(S)"))
         w("")
-        w(f"  Expected: squeue lists no gen3-s1 job ({'chunk 1 has ended and the plan author has read block D' if g == g1 else 'the previous group has ended: its block H was clean'}); the sinfo line, for the record;")
+        if g in PREV_ARRAYS:                                           # ##CHRIS 2026-10-13 (decision 47 item 2)
+            w(f"  Expected: squeue lists no {PFX} job and no array job of " + " or ".join(PREV_ARRAYS[g]) + " (their merges may still run: decision 47);"
+              " the sinfo line, for the record;")
+        else:
+            w(f"  Expected: squeue lists no gen3-s1 job ({'chunk 1 has ended and the plan author has read block D' if g == g1 else 'the previous group has ended: its block H was clean'}); the sinfo line, for the record;")
         w(f"  then \"CHECKS GOOD\", {len(ar)} line(s) \"Submitted batch job <number>\" and \"{g}: ALL {len(ar)} ARRAY LINE(S) SUBMITTED\". The arrays: "
           + "; ".join(f"{hm(a[0])[:-3]} h: {a[1]} chunks, at most {a[2]} at once" for a in ar) + ".")
         w(f"  THE GUARD (decision 42): the last line is ONE command line; it submits the {len(ar)} sbatch line(s) inside it, unchanged and in their order,")
-        w(f"  only if squeue lists no {PFX} job (a failed squeue refuses), the scripts clone is at {args.commit[:7]}, and "
+        w(f"  only if squeue lists no {PFX} job (a failed squeue refuses), "
+          + (f"no " + " or ".join(f"gen3-s1-{x}" for x in PREV_ARRAYS[g]) + " job (decision 47: the 64-core rule), " if g in PREV_ARRAYS else "")
+          + f"the scripts clone is at {args.commit[:7]}, and "
           + ("exactly chunk 1's folder and its one log with \"chunk 1 done\" exist (block C ran chunk 1)." if g == g1 else f"no {R} and no logs/{PFX}_*.out exist."))
         w(f"  A second paste prints \"REFUSED: ...\" and \"{g}: THIS PASTE DID NOT SUBMIT ALL {len(ar)} ARRAY LINE(S)\" and submits nothing. If it prints that line")
         w("  after some \"Submitted batch job\" lines, a submission failed half way: paste everything, type nothing more, wait.")
@@ -298,7 +316,8 @@ def write(args):
         one = g in FG_ONE                                     # ##CHRIS 2026-10-13 (plan-author decision 45 addendum 2): F and G as one paste
         if one:
             w(f"S1 BLOCK FG-{g} (KOA login node, when squeue -u charing lists no {PFX} job; blocks F and G as ONE paste, decision 45 addendum 2: F's "
-              "lines only read, the last line submits the merge only if F is clean; the merge: one core, at most 6 h; paste everything, once):")
+              f"lines only read, the last line submits the merge only if F is clean; the merge: one core, at most {'24 h (--time=24:00:00, decision 47)' if g in MERGE_24H else '6 h'}; "
+              "paste everything, once):")
         else:
             w(f"S1 BLOCK F-{g} (KOA login node, when squeue -u charing lists no {PFX} job; every line only reads; paste everything):")
         w("squeue -u charing"); w("cd ~/harddisks_gen3_k2/hspist3")
@@ -308,6 +327,7 @@ def write(args):
         w(f"grep -h '^chunk [0-9]* on ' logs/{PFX}_*.out | sed 's/: group.*//; s/^chunk [0-9]* on [^ ]* //' | sort | uniq -c")
         w(f"bash {P}/s1_chunk_logs_koa.sh logs {PFX} {R}/chunks {P}/chunks_stage1_koa_261012.tsv {g}")
         w(f_awk(g, args.commit, P))
+        if one: w(TIMING_LINE.replace("@G@", g))                     # ##CHRIS 2026-10-13 (decision 47 item 2): the plan author's timing line
         if one: w(fg_line(g, v["nch"], R, PFX, args.commit))
         w("")
         w("  THE LINES THAT SHOW IT IS GOOD:")
@@ -320,6 +340,7 @@ def write(args):
         w(f"    \"chunk logs: {v['nch']}; chunks done: {v['nch']} of {v['nch']} (group {g}; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished\"")
         w(f"    \"group {g} without a done log: stopped once 0, stopped twice or more 0, started and not finished 0, no log 0\" and \"nothing to resubmit\"")
         if one:
+            w(f"    the plan author's timing line: \"chunks timed {v['nch']}; measured / predicted: min ..., median ..., max ...\" (decision 43 rule d)")
             w(f"    then \"CHECKS GOOD\", \"Submitted batch job <its number>\" and \"{g}: THE MERGE SUBMITTED\" (block G's guarded line, inside the last line)")
             w(f"  THE LAST LINE (decision 45 addendum 2) types block G's guarded line, unchanged, only if all five hold: {v['nch']} chunk logs, {v['nch']} logs")
             w("  with their done line, 0 lines with FAILED or REFUSED, the chunk check exits 0, and \"nothing to resubmit\". Otherwise it prints")

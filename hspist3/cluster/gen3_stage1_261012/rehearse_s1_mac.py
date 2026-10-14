@@ -32,6 +32,10 @@ the done line; a FAILED line; its chunk folder moved aside -- each undone by mov
 then a second time (block G's own guard refuses); group S's block FG prints NOT CLEAN after the faulty attempt (the resubmission lines,
 no "nothing to resubmit") and, by design, again after the resubmission (4 logs for 2 chunks); block G's guarded line alone (the then-branch
 of its last line) then stands in for the plan author's go, once and a second time.
+##CHRIS 2026-10-13 (plan-author decision 47 item 2): the squeue shim filters a pretended queue by -n when its lines name a job (third
+field); E-S is typed with a pretended gen3-s1-B900 array job (refused: the 64-core rule) and on the faulty node beside a pretended
+gen3-s1-merge-B900 job (submits: a merge may run beside the next group's arrays); every FG prints the plan author's timing line; the merge of
+S is submitted with --time=24:00:00 (FG-S's G line), D's without.
 SHIMS (residual differences, each printed in the table): squeue (empty, or the lines of REHEARSAL_SQUEUE), sinfo (a pretended line), srun
 (not run), sbatch (runs the job at once with a pretended job id and its #SBATCH output name; --array lists one after the other, the
 throttle %N dropped; --job-name, --time, --exclude, --dependency taken or recorded; the script's arguments passed), module (nothing), gcc
@@ -118,7 +122,9 @@ def shims(R):
         "squeue": "#!/bin/bash\n# rehearsal shim: Slurm's queue -- empty, or the lines of the file REHEARSAL_SQUEUE (a pretended pending job); with\n"
                   "# REHEARSAL_SQUEUE_FAIL set it fails as a slurmctld time-out would (decision 42: a failed squeue refuses)\n"
                   "[ -n \"${REHEARSAL_SQUEUE_FAIL:-}\" ] && { echo 'slurm_load_jobs error: Socket timed out on send/recv operation (rehearsal shim)' >&2; exit 1; }\n"
-                  "[ -n \"${REHEARSAL_SQUEUE:-}\" ] && cat \"$REHEARSAL_SQUEUE\"\nexit 0\n",
+                  "# ##CHRIS 2026-10-13 (decision 47): a line '<id> <state> <name>' is printed only for the names of -n; a line without a name always\n"
+                  "N=''; while [ $# -gt 0 ]; do case \"$1\" in -n) N=$2; shift;; esac; shift; done\n"
+                  "[ -n \"${REHEARSAL_SQUEUE:-}\" ] && awk -v n=\",$N,\" 'NF < 3 || n == \",,\" || index(n, \",\" $3 \",\")' \"$REHEARSAL_SQUEUE\"\nexit 0\n",
         "sinfo": "#!/bin/bash\n# rehearsal shim: a pretended summary line of the shared partition\n"
                  "echo 'PARTITION AVAIL  TIMELIMIT   NODES(A/I/O/T) NODELIST'; echo 'shared       up 3-00:00:00        70/12/8/90 cn-[...] (rehearsal shim)'\n",
         "srun": "#!/bin/bash\n# rehearsal shim: the sandbox shell is not opened (the next block runs in a new shell)\necho \"rehearsal shim: srun $* (not run)\"\nexit 0\n",
@@ -275,7 +281,11 @@ def main():
             q = os.path.join(R, "logs", "pretend_squeue_E.txt"); open(q, "w").write("940998_5 PENDING\n")
             refused(f"E-{g}", B[f"E-{g}"], env_for(R, home, shim, REHEARSAL_SQUEUE=q), "_pending", "with a pretended pending job of the group")
             refused(f"E-{g}", B[f"E-{g}"], env_for(R, home, shim, REHEARSAL_SQUEUE_FAIL=1), "_squeuefail", "with a failing squeue")
-        envE = env_for(R, home, shim, REHEARSAL_STARTUP_FAIL=1, REHEARSAL_HOST="cn-07-07-07") if g == "S" else E
+        if g == "S":                      # ##CHRIS 2026-10-13 (decision 47 item 2): the 64-core rule's guard
+            q = os.path.join(R, "logs", "pretend_squeue_B900.txt"); open(q, "w").write("940996_9 RUNNING gen3-s1-B900\n")
+            refused(f"E-{g}", B[f"E-{g}"], env_for(R, home, shim, REHEARSAL_SQUEUE=q), "_b900array", "while a gen3-s1-B900 array job is in squeue")
+            qm = os.path.join(R, "logs", "pretend_squeue_mergeB900.txt"); open(qm, "w").write("940995 RUNNING gen3-s1-merge-B900\n")
+        envE = env_for(R, home, shim, REHEARSAL_STARTUP_FAIL=1, REHEARSAL_HOST="cn-07-07-07", REHEARSAL_SQUEUE=qm) if g == "S" else E
         n0 = nex(); rc, out = run_block(R, f"E-{g}", B[f"E-{g}"], envE, "_faulty" if g == "S" else "")
         ex = tasks_since(n0)
         okE = [rc == 0, "CHECKS GOOD" in out, out.count("Submitted batch job") == nsb, f"{g}: ALL {nsb} ARRAY LINE(S) SUBMITTED" in out, "REFUSED" not in out]
@@ -284,8 +294,8 @@ def main():
             st = [open(os.path.join(hs, "logs", p)).read() for p in logs]
             okE += [len(st) == ncg, all("STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones" in s and not re.search(r"^chunk \d+ on ", s, re.M) for s in st),
                     not os.path.exists(os.path.join(root, "chunks"))]
-            res(f"block E-{g} typed once, on a pretended faulty node", f"CHECKS GOOD, {nsb} array lines submitted; every chunk STOP: [cn-07-07-07] before "
-                "'chunk j on'; no chunk folder", all(okE), f"checks {okE}")
+            res(f"block E-{g} typed once, on a pretended faulty node, beside a pretended gen3-s1-merge-B900 job", f"CHECKS GOOD, {nsb} array lines submitted "
+                "(a merge does not hold it); every chunk STOP: [cn-07-07-07] before 'chunk j on'; no chunk folder", all(okE), f"checks {okE}")
         else:
             okE.append(len(ex) == ncg - (1 if g == "B100" else 0) and all(l.endswith(" 0") for l in ex))
             res(f"block E-{g} typed once" + (" (after chunk 1: the guard allows exactly its folder and its done log)" if g == "B100" else ""),
@@ -309,7 +319,8 @@ def main():
             res(f"the guarded resubmission line of {FB} typed once", "CHECKS GOOD, 2 lines submitted, both chunks exit 0", all(okR), f"checks {okR}")
             refused(f"R-{g}", [gline], E, "_second", "a second time")
             n0 = nex(); rc, out = run_block(R, FB, B[FB], E, "_again")
-            nlog = 2 * ncg; fg_ok = [f"F-{g} NOT CLEAN -- the merge was not submitted" in out, not re.search(r"^CHECKS GOOD$", out, re.M), nex() == n0]
+            nlog = 2 * ncg; fg_ok = [f"F-{g} NOT CLEAN -- the merge was not submitted" in out, not re.search(r"^CHECKS GOOD$", out, re.M), nex() == n0,
+                                     bool(re.search(rf"^chunks timed {ncg}; measured / predicted: min ", out, re.M))]      # decision 47: the timing line
         else:
             if g == "D":
                 # ##CHRIS 2026-10-13 (decision 45 addendum 2): block FG-D typed while F is not clean, one condition at a time where the five can
@@ -339,7 +350,8 @@ def main():
             n0 = nex(); rc, out = run_block(R, FB, B[FB], E)
             nlog = ncg; fg_out = out
             fg_ok = ([bool(re.search(r"^CHECKS GOOD$", out, re.M)), f"{g}: THE MERGE SUBMITTED" in out, out.count("Submitted batch job") == 1,
-                      "NOT CLEAN" not in out] if one else [])
+                      "NOT CLEAN" not in out, bool(re.search(rf"^chunks timed {ncg}; measured / predicted: min ", out, re.M)),   # decision 47: the timing line
+                      bool(re.search(rf" submit \S*s1_merge\.sbatch {g} name=gen3-s1-merge-{g} time=default ", open(EX).read()))] if one else [])
         okF = [str(nlog) in L(out), str(ncg) in L(out), "0" in L(out), f"chunk logs: {nlog}; chunks done: {ncg} of {ncg} (group {g};" in out,
                f"earlier attempts: {ncg if g == 'S' else 0} stopped in the start-up checks, 0 started and not finished" in out,
                f"group {g} without a done log: stopped once 0, stopped twice or more 0, started and not finished 0, no log 0" in out,
@@ -370,7 +382,9 @@ def main():
             fgl = [l for l in B[FB] if l.startswith("if cd ~/harddisks_gen3_k2/hspist3 && ")][0]
             gl = fgl.split("; then ", 1)[1].rsplit(f"; else echo 'F-{g} NOT CLEAN -- the merge was not submitted'; fi", 1)[0]
             rc, out = run_block(R, f"G-{g}", ["squeue -u charing", gl], E, "_alone")
-            gx = last_exit(R); okG = ["CHECKS GOOD" in out, f"{g}: THE MERGE SUBMITTED" in out, out.count("Submitted batch job") == 1]
+            gx = last_exit(R); okG = ["CHECKS GOOD" in out, f"{g}: THE MERGE SUBMITTED" in out, out.count("Submitted batch job") == 1,
+                                     "sbatch --time=24:00:00 --job-name=gen3-s1-merge-S " in gl,                       # decision 47 item 2
+                                     bool(re.search(rf" submit \S*s1_merge\.sbatch {g} name=gen3-s1-merge-{g} time=24:00:00 ", open(EX).read()))]
         rc, out = run_block(R, f"H-{g}", B[f"H-{g}"], E)
         rs_txt = open(rs).read().split(f"S1 BLOCK H-{g} (")[1].split(f"S1 BLOCK I-{g} (")[0]
         exp_plan = re.search(r'"plan entries by treatment: ([^"]+)"', rs_txt).group(1)
