@@ -1,0 +1,161 @@
+Usage: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d34s_261012/bin_406044f/00ALLINONE [options]
+Options:
+  --experiments               Run the speed-of-sound experiment batch
+  --no-experiments            Force interactive SDL mode even if experiments are enabled
+  --walls=N                   Number of internal divider walls (default 1)
+  --experiment=NAME           Use a preset:
+                               speed_of_sound     - Standard speed of sound experiment
+                               energy_transfer    - Energy transfer efficiency (right→left)
+                               simple_prediction_box - Single gas box with stochastic piston protocol
+                               simple_gas_box    - Alias for simple_prediction_box
+                               particlelife       - Particle-life artificial life simulation
+
+Interactive control
+  --show-simulation           Open SDL window (alias of --no-experiments)
+  --no-gui, --headless        Run without SDL window (faster, still writes CSV)
+  --left-empty                Seed zero particles in the leftmost segment
+  --no-pp-collisions          Disable particle–particle collisions (ideal gas limit)
+  --seed=value                RNG seed (integer) or 'time'
+                               multi_wall         - Multi-wall system analysis
+                               szilard_engine     - Szilard engine entropy experiments
+                               atp_synthase       - ATP synthase analog experiments
+                               protocol_optimization - Find optimal piston protocols
+                               dynamic_ib         - Dynamic information bottleneck
+                               wall_mid           - Single wall in middle
+                               2wall_exp_with_1_wall, 2wall_exp_with_2_wall
+  --lengths=L0,...            Override experiment half-lengths (sigma units)
+  --wall-masses=f1,...        Override experiment wall-mass factors (multiples of particle mass)
+  --speed-sound-run-dir=PATH  Speed-of-sound: write mode1 CSVs into this exact directory
+  --speed-sound-exact-seed=N  Speed-of-sound DEBUG: force this exact per-run seed for every
+                              trajectory, bypassing the (l,m,r) index hash. Use to reproduce a
+                              specific trajectory from a full sweep in a single run.
+  --speed-sound-log-stride=N  Speed-of-sound: write only every Nth post-release sample
+                              ('auto' targets ~256 samples per predicted period;
+                               default 1 = every sample). Affects file size only.
+  --edmd-debug-particles=A,B  EDMD DEBUG: watch the surface gap of this particle pair and
+                              dump the preceding events when it first goes negative
+  --edmd-debug-event-history=N  EDMD DEBUG: how many events to keep in that ring buffer
+  --num-walls=N               Number of walls (1-5, default 1)
+  --wall-positions=x1,x2,...  Wall positions from left to right (sigma units)
+  --wall-mass-factors=m1,m2,... Wall mass factors from left to right (default 200 each)
+  --seed-drift-order=MODE     old (default) | drift-first: order of CM-drift removal
+                              and per-compartment kT rescale at seeding
+  --seeding=MODE              Seeding mode: grid (default), honeycomb, random
+  --distribute=area           Distribute particles ∝ segment area (width×height)
+  --protocol=NAME             Piston protocol: step, sigmoidal, linear, sinusoidal, optimal
+  --piston-speed=value        Piston max speed for protocol (σ per σ-time)
+  --piston-duration=value     Ramp duration for non-step protocols (σ-time units)
+  --piston-travel-sigma=value Right piston travel distance for step trigger (σ)
+  --energy-transfer-summary=PATH  Append energy-transfer run summary rows to PATH (CSV)
+  --energy-transfer-trace=PATH    Write energy-transfer trace CSV to PATH (default: experiments_energy_transfer/energy_transfer_trace.csv)
+  --piston-right-protocol-mode=MODE   step|linear|ramp|sigmoidal (alias for --protocol)
+  --piston-ramp-time=T                ramp mode: linear 0->u->0 over T sigma-time each end
+  --demo                      GUI demo: start paused; SPACE run/pause, R release wall,
+                              P start piston, +/- speed, S screenshot, Q quit
+  --demo-shot=PATH[,STEPS]    save one BMP frame (on key S, or automatically after STEPS)
+  --render=experiment|paper   experiment (default): the normal GUI with panels.
+                              paper: figure scene only -- box, walls, piston, coil, one HUD line.
+  --max-right-piston-travel=value     Right piston travel (σ) (alias for --piston-travel-sigma)
+  --velocity-right-piston-step=value  Step protocol constant speed (σ/σ-time)
+  --velocity-right-piston-t0=value    Initial speed for linear/sigmoidal (σ/σ-time)
+  --velocity-right-piston-gradient=value Linear accel (σ/(σ-time)^2)
+  --velocity-right-piston-max=value   Max speed cap (σ/σ-time)
+  --piston-right-duration=value       Duration for linear/sigmoidal (σ-time)
+  --piston-right-sigmoid-steepness=value Sigmoid steepness (dimensionless)
+  --piston-work-target=value      Stop piston when ΔW_in reaches target (same units as PistonWork Δ)
+  --spring-k=value            Spring constant for energy measurement (code units)
+  --spring-eq=value          Spring equilibrium position (sigma units from left)
+  --calibrate-work=target,tol,min,max  Approximate place rightmost wall to match target piston work
+  --repeats=N                 Number of repeats per experiment configuration
+  --steps=N                   Steps to simulate after wall release (default derived from TIME_UNITS_SIMULATION)
+  --target-oscillations=N     Speed of sound: plan each (L0,M) trace for N fundamental cycles
+  --oscillations=N            Alias for --target-oscillations
+  --oscillation-safety=x      Duration safety multiplier (default 1.50; includes 20% FFT transient drop)
+  --oscillation-min-steps=N   Lower clamp for target-oscillation traces (default 10000)
+  --oscillation-max-steps=N   Upper clamp for target-oscillation traces (default 10000000)
+  --single-test               Run headless (no SDL window) but output to main directory for quick testing
+  --l0=value                  Set initial half-length for interactive mode
+  --height=value              Set box height (in sigma units) for interactive mode
+  --wall-mass-factor=value    Set wall mass factor for interactive mode (M_wall = factor * m_particle)
+  --wall-thickness=value      Set wall thickness in sigma units (physics)
+  --wall-thickness-vis=value  Set visual wall thickness in sigma units (render-only)
+  --wall-hold-steps=value    Steps to hold wall before release (default 10000)
+  --auto-release             Start with wall released (no hold)
+  --auto-piston-step         Auto-trigger piston step (like pressing 't')
+  --auto-release-after-hold  Auto-release wall when hold steps reached (GUI)
+  --quiet                    Suppress per-particle seeding logs (keeps progress updates)
+  --particle-radius=value     Set particle radius in σ units (default 0.5)
+  --particle-diameter=value   Set particle diameter in σ units
+  --eta=value                 Auto-calculate radius for desired packing fraction (0 < eta < 0.9069)
+  --packing-fraction=value    Alias for --eta
+  --particles=N               Total active particles (<= MAX buffer)
+  --phi-max=value             Max packing fraction cap for seeding (default 0.78)
+  --particles-boxes=a,b,...   Target counts per segment (left→right)
+  --spring-wall=INDEX         Declare which wall carries the spring (0-based, left to right).
+                              Without it --spring-k / --spring-eq are inert; the compartment
+                              behind that wall must be empty or the run aborts.
+  --spring-k-sigma=K          Spring constant in kT/sigma^2 (PHYSICAL units). Prefer this.
+                              --spring-k is per PIXEL^2, i.e. 576 times smaller for the
+                              same physical spring; it is kept only for old commands.
+  --particles-box-left=n      Shorthand: left count for 2 boxes
+  --particles-box-right=n     Shorthand: right count for 2 boxes
+  --pl-tensor=FILE            Load custom particle-life interaction tensor from file
+  --energy-measurement        Enable spring-based energy measurement
+  --colourcode=mode           Particle coloring: none (default), temperature, velocity
+  --colorcode=mode            Alias of --colourcode
+  --memory-view=mode          Szilard particle view: species (default), memory, overlay
+  --memory=mode               Alias for --memory-view
+  --temperature=value         Set initial gas temperature (reduced units)
+  --hb-temp=value             Set heat bath temperature and auto-enable it (reduced units)
+  --timescale=value           Speed multiplier for interactive run (default 1.0)
+  --output-dt=value           CSV logging interval (sim units), 0=every step
+  --trace-every=N             Energy-transfer trace: write 1 row every N steps (default 1)
+  --fixed-dt=value            Override fixed timestep (σ-time units)
+  --substeps=N                Collision substeps per fixed step (reduces tunneling at high speeds)
+  --substeps-auto             Adaptive collision substeps (auto-increase during shocks/collapse)
+  --substeps-auto-min=N       Min substeps when --substeps-auto is enabled (default 1)
+  --substeps-auto-max=N       Max substeps when --substeps-auto is enabled (default 200)
+  --substeps-auto-dx-frac=f   Max relative displacement per substep as fraction of diameter (default 0.25)
+  --pp-toi                    Use particle–particle time-of-impact correction (slower, more accurate)
+  --pp-toi-max-events=N       Max PP-TOI correction iterations per substep (default 4)
+  --pp-toi-neighbor-ring=N    Grid neighbor radius for PP-TOI (default 1)
+  --dist-log                  Log x/y/speed distributions (energy_transfer only)
+  --dist-dt=value             Distribution log cadence (sigma-time), 0=every step
+  --dist-bins=N               Histogram bins for distributions (default 50)
+  --dist-max-speed=value      Speed histogram vmax (sigma-time), 0=auto
+  --dist-log-path=PATH        Distribution CSV path (supports {seed} and {ts})
+  --eff-window=T              Energy-transfer: window length Tw after piston stops for Gain_win (sigma-time, default 20)
+  --eff-stop-after-window     Energy-transfer: stop run after Tw completes (faster EDMD)
+  --eff-output=MODE           Energy-transfer: output metric for W_out (spring | wall-ke; default spring)
+  --szilard-equil-steps=N     Szilard: equilibration steps before measurement (default 10000)
+  --szilard-sep-duration=T    Szilard: separation/recombine duration (sigma-time, default 6.000)
+  --szilard-species-ratio=r   Szilard: fraction of species-0 (default 0.50)
+  --szilard-perm-swap=0|1     Szilard: swap permeability on recombine (default 1)
+  --szilard-unstick=0|1       Szilard: nudge pinned particles off outer walls (default 1)
+  --szilard-unstick-hits=N    Szilard: consecutive boundary hits before nudge (default 200)
+  --szilard-unstick-vx-frac=f Szilard: redirect fraction of speed into x (default 0.05)
+  --szilard-log=PATH          Szilard: write info/work/heat log CSV to PATH
+  --szilard-log-dt=T          Szilard: log cadence (sigma-time), 0=every step (default 0.200)
+  --szilard-n=N               Szilard: override particle count (alias for --particles)
+  --simple-box-cycles=N       Simple box: number of drive/relax protocol steps (default 40)
+  --simple-box-equil-steps=N  Simple box: equilibration steps before logging state 0 (default 4000)
+  --simple-box-relax-steps=N  Simple box: relaxation steps after each drive (default 800)
+  --simple-box-log-dt=T       Simple box: trace cadence in sigma-time, 0=every step (default 0.250)
+  --simple-box-target-protocol=MODE  Simple box: iid | correlated | periodic (default correlated)
+  --simple-box-target-min=value  Simple box: minimum right-piston position x_t in sigma from left wall
+  --simple-box-target-max=value  Simple box: maximum right-piston position x_t in sigma from left wall
+  --simple-box-initial-target=value  Simple box: initial equilibration piston position in sigma from left wall
+  --simple-box-corr-alpha=value   Simple box: persistence of correlated protocol in [0,1] (default 0.85)
+  --simple-box-noise=value        Simple box: stochastic target noise scale in sigma (default 2.000)
+  --simple-box-period=N           Simple box: period for periodic protocol (default 8)
+  --simple-box-run-dir=PATH       Simple box: write this run into a specific directory
+  --simple-box-run-label=NAME     Simple box: prefix timestamped run directory with NAME
+  --simple-box-render-every=N     Simple box GUI: render every N simulation steps (default 1)
+  --simple-box-gui-delay-ms=N     Simple box GUI: delay after each rendered frame (default 8 ms)
+  --time=value                Stop after this many sim units post-release (interactive)
+  --kbt1                      Force k_B*T = 1 (reduced units); adjusts k_B at runtime
+  --edmd-acc=0|1              Accelerated EDMD backend: DISABLED (misses collisions, 261012 sec. 4.7); 0 only
+  --legacy-resched            EDMD: full O(N^2) reschedule after every divider event (old behaviour; default: minimal)
+  --resched-audit[=all]       EDMD diagnostics: compare the live schedule with a legacy full schedule after divider (or all) events
+  --mode=NAME                 time (default) | rk4 | edmd | edmd-hybrid | hybrid | event-split
+  --help                      Show this help message and exit

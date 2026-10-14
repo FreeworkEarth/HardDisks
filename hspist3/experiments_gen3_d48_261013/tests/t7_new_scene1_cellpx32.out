@@ -1,0 +1,50 @@
+
+========== Simulation Info ==========
+Mode: MOLECULAR (Normalized units)
+Experiment Mode: OFF (default dt)
+Fixed Time Step (dt): 4.00e-02
+Runtime Time Step (dt_runtime): 4.00e-01
+Fixed dt override: 4.00e-01
+Collision substeps: 1
+EDMD backend: default
+TAU scaling factor: 1.0000
+Tau (dimensionless, for f* = f·tau): 1.000000
+Temperature (runtime): 100.000
+k_B (effective): 0.010000
+k_B*T (effective): 1.000000
+k_B*T=1 mode: ON
+Time scale (interactive): 1.00×
+L0 (half-length): 89.590 σ,  L_eff = L0 − 1 = 88.590 σ
+Particle radius: 0.908 σ (diameter: 1.816 σ)
+Wall hold mode: Enabled
+Wall hold steps: 600
+Internal walls: 1
+Wall Mass Factor:50.000000
+Target total simulation time: 1200.000
+Calculated steps to reach target: 3000
+======================================
+
+[GUI] no accelerated renderer (Couldn't find matching render driver); using the software renderer
+✅ Particles placed with buffer. Wall_x = 2350.000
+✅ Scaling factor for velocities: 1.0039
+[SEED] MAX(buffer)=120000 requested=341 active=341 phi_max=0.780
+[SEED] caps: L=1860 R=1860  targets: L=0 R=341
+[EDMD-RESCHED] divider events: minimal (default)
+[EDMD-ENGINE] gen3 (edmd_core/edmd_gen3.c; the gen2 core only holds the setup): the line above does not apply
+[EDMD] initialized: N=341  box=(179.2σ,70.7σ) -> (4300.0px,1697.0px)  R=0.9079σ -> 21.791px  scale=24.0 px/σ
+▶ Simulation auto-started (headless=0, auto-release=1)
+[GUI-STOP] gen3 cannot build this scene: edmd_gen3: cell width 32 px < diameter 43.581211090087891 px (sec. 4.7.1, a); the window pauses (P and SPACE do not resume; ESC or the F3 panel's APPLY rebuilds the scene, Q ends it)
+✅ Wall released at t = 0.017
+[GUI-SHOT] /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d48/runs/t7_new_scene1_cellpx32/t7_scene1_refused.bmp (2000 x 1200 device pixels, UI scale 1)
+[GUI-STATS] engine=gen3 window=1 N=341 frames=895 steps=1 wall_s=10.020 fps=89.317 sigma_time=0.0166667 sigma_per_wall_s=0.00166326 events=0 events_per_wall_s=0 engine_s=0.000 time_scale=200
+[EDMD3-HEALTH] scene: clean=0 no gen3 state (the run never advanced)
+Particle 0: Vx = -0.710174, Vy = 2.203795
+Particle 1: Vx = -1.895735, Vy = 0.697091
+Particle 2: Vx = -0.317438, Vy = 0.735663
+Particle 3: Vx = -1.060824, Vy = 0.437342
+Particle 4: Vx = -0.757538, Vy = -0.964224
+Particle 5: Vx = -0.938068, Vy = -0.443346
+Particle 6: Vx = -0.191614, Vy = -0.003448
+Particle 7: Vx = 0.452619, Vy = 1.792676
+Particle 8: Vx = -0.702367, Vy = -0.454362
+Particle 9: Vx = -0.473166, Vy = -0.519736

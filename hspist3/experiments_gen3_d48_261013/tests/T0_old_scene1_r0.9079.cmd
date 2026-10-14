@@ -1,0 +1,4 @@
+# T0_old_scene1_r0.9079: 2026-10-13 21:44:28 HST
+# binary: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d34s_261012/bin_406044f/00ALLINONE (f3bd70b03262ecac)
+# flags: --show-simulation\ --mode=edmd\ --engine=gen3\ --edmd-acc=0\ --seed-drift-order=drift-first\ --kbt1\ --l0=89.5904\ --height=70.7107\ --num-walls=1\ --wall-positions=89.5904\ --wall-mass-factors=50\ --wall-hold-steps=600\ --fixed-dt=0.4\ --seed=9300\ --gui-time-scale=200 --particles=341\ --particles-boxes=0\,341\ --particle-radius=0.9079419\ --wall-thickness=3.829\ --spring-k-sigma=11.52\ --spring-wall=0 --gui-keys=120:apply-gen3\,6000:Q --gui-run-seconds=20
+# exit code 1 after 0 s

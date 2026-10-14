@@ -1,0 +1,35 @@
+
+========== Simulation Info ==========
+Mode: MOLECULAR (Normalized units)
+Experiment Mode: OFF (default dt)
+Fixed Time Step (dt): 4.00e-02
+Runtime Time Step (dt_runtime): 4.00e-01
+Fixed dt override: 4.00e-01
+Collision substeps: 1
+EDMD backend: default
+TAU scaling factor: 1.0000
+Tau (dimensionless, for f* = f·tau): 1.000000
+Temperature (runtime): 100.000
+k_B (effective): 0.010000
+k_B*T (effective): 1.000000
+k_B*T=1 mode: ON
+Time scale (interactive): 1.00×
+L0 (half-length): 89.590 σ,  L_eff = L0 − 1 = 88.590 σ
+Particle radius: 0.908 σ (diameter: 1.816 σ)
+Wall hold mode: Enabled
+Wall hold steps: 600
+Internal walls: 1
+Wall Mass Factor:50.000000
+Target total simulation time: 1200.000
+Calculated steps to reach target: 3000
+======================================
+
+Running in headless mode (no GUI, CSV output enabled)
+✅ Particles placed with buffer. Wall_x = 2350.000
+✅ Scaling factor for velocities: 1.0039
+[SEED] MAX(buffer)=120000 requested=341 active=341 phi_max=0.780
+[SEED] caps: L=1860 R=1860  targets: L=0 R=341
+[EDMD-RESCHED] divider events: minimal (default)
+[EDMD-ENGINE] gen3 (edmd_core/edmd_gen3.c; the gen2 core only holds the setup): the line above does not apply
+[EDMD] initialized: N=341  box=(179.2σ,70.7σ) -> (4300.0px,1697.0px)  R=0.9079σ -> 21.791px  scale=24.0 px/σ
+▶ Simulation auto-started (headless=1, auto-release=1)
