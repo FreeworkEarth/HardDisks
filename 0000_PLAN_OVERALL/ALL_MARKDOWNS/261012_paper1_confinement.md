@@ -25723,3 +25723,362 @@ End with "Written for: the plan author".
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.103 Report D47-2 — D's INTERIM report (decision 47 addendum 2 item 5): the INTERIM tables; the three flagged folders (cell, mass, seeds, criterion); the masses left for E1 per cell; the timing table; the merge's time from sacct's start; the first look at η 0.02, 0.035 and 0.075 for N 100 and 400, against KR and the ideal-gas √2 (2026-10-13 20:53 HST, machine date) [DATA, INTERIM: the fetched D]
+
+**Plain summary.**
+- **Recorded:** addendum 2 of decision 47 (sec. 4.7.102), with the line of the plan author's note to Chris that came before it.
+- **D's fetch is complete and checked:**
+  - 19 MB, 742 files; the SHA-256 of every file is kept;
+  - all 54 (cell, mass) folders have every table;
+  - the merge log ends normally ("merge done ...").
+- **Health:**
+  - 1,350 of 1,350 trajectories present, 0 excluded;
+  - 23 fit failures (1.7 %) in 11 folders;
+  - 3 folders flagged by the group rule.
+- **The three flagged folders:**
+  - D_N0100_eta0.035000, M 2000 (α 20): 5 failures;
+  - D_N0400_eta0.075000, M 3000 (α 7.5): 3 failures;
+  - D_N0400_eta0.075000, M 4000 (α 10): 5 failures.
+  - **The criterion, the fit repeated on the Mac:** 10 of the 13 fail the same way, at the fit's evaluation limit ("Optimal parameters not found: The maximum number of function evaluations is exceeded."), with tau_T still at its start value 2 / nu_ref; their Q_k are 69.5, 142.5 and 130.0. The other 3 converge on the Mac: D_N0100_eta0.035000 M 2000 run 17 (after 87 evaluations), D_N0400_eta0.075000 M 4000 run 13 and M 3000 run 6. The other way round, D_N0100_eta0.035000 M 2000 run 11 (seed 1088311305) and D_N0400_eta0.075000 M 4000 run 20 (seed 2904370409) converge on KOA and reach the limit on the Mac (`D/b3_fit_ok_mac_vs_koa_output.txt`). The registered counts are KOA's (decision 47 item 1).
+- **Every cell keeps its E1.** The masses α ≥ 1 left are 8, 7 and 8 at N 100 (η 0.02, 0.035, 0.075) and 8, 8 and 6 at N 400.
+- **Timing:**
+  - E5-2670 v3: 135 chunks, 0.170 / 0.191 / 0.453 (min / median / max);
+  - E5-4640 v2: 46 chunks, 0.192 / 0.199 / 0.258;
+  - as the plan author's line (min 0.17, median 0.20, max 0.45). The watch rule's E5 maximum is 0.453.
+- **The merge, from sacct's start (23:07:54 UTC) to its log's copy (03:49:46 UTC): 4:41:52.** sacct gives 04:41:53.
+  - The phases: the scan 1:06, the moves 0:56, reduce_B 1:29, reduce_s1 4:34:46 (97.5 %), sha 1:14, gzip 2:21.
+  - reduce_s1 per cell, in seconds:
+
+    | | η 0.02 | η 0.035 | η 0.075 |
+    |---|---|---|---|
+    | N 100 | 1598 | 4963 | 2039 |
+    | N 400 | 332 | 2908 | 4646 |
+
+- **The first look (no fit over N, no verdict):**
+  - **c_s against KR:** E1 lies above KR at N 100 by +0.60, +0.79, +1.01 % (η 0.02, 0.035, 0.075) and at N 400 by +0.17, +0.32, +0.45 %, smaller at N 400 at each η.
+  - **Against √2:** E1 lies +4.74, +8.22, +17.99 % above √2 at N 100 and +4.29, +7.71, +17.33 % at N 400. KR itself lies +4.12, +7.37, +16.81 % above √2 at these η.
+  - **Z against KR:** +0.05, +0.11, +0.29 % at N 100 and +0.06, +0.10, +0.26 % at N 400: nearly the same at both sizes here, unlike the B cells above η 0.05.
+  - **No low-Q flag:** the smallest Q_k is 19.6 at N 100 and 39.8 at N 400.
+  - **No stationarity flag:** the largest |record z| is 2.74, at N 400, η 0.02.
+- **A note on A4's corrected wording.**
+  - E-S in eb024a55 refuses only while a gen3-s1-B900 job is queued; it does not check the 128-core rule.
+  - Tonight's E-S beside B1600 therefore rested on the plan author's sinfo reading (60/26/4/90: 26 of 90 idle, 29 %).
+  - No block still to be typed depends on it (E-S and E-B1600 are typed).
+- **Data this message:** about 0.3 MB.
+
+## 1. D's INTERIM tables (s1_verdict_261012.py --data <a view holding only D> --interim; verbatim)
+
+```
+# INTERIM -- STAGE 1, PART B: the tables and verdicts by the registered rules (s1_verdict_261012.py)
+
+groups present: D; stopped by the stop rule: none
+
+## Health per group (sec. 4.8.5)
+
+| group | (cell, mass) | expected | present | excluded | missing | fit failures | flagged (group rule) |
+|---|---|---|---|---|---|---|---|
+| D | 54 | 1350 | 1350 | 0 | 0 | 23 | 3 |
+
+## Per cell: E1, E0, Z, psi6, the stationarity tests, delta_0.5, k_S^dyn
+
+| cell | lines (left/right) | E1 c_s +- sigma (masses, chi2/dof) | low-Q | E0 c_s +- err_scaled | E1 - E0 | KR | Z +- SE (n) | psi6 | hold t | record z | delta_0.5 [%] | k_S^dyn | eta_int |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| D_N0100_eta0.020000 | y/y | 1.48124 +- 0.00054 (8, 2.3/7) | - | 1.47894 +- 0.00263 | +0.00230 | 1.47247 | 1.04176 +- 0.00009 (225) | 0.0457 | -0.62 | +1.01 | -0.166 +- 0.234 | 0.002875 +- 2.3e-06 | 0.0222 (2) |
+| D_N0100_eta0.035000 | x/x | 1.53047 +- 0.00055 (7, 5.6/6) | - | 1.53052 +- 0.00300 | -0.00005 | 1.51848 | 1.07523 +- 0.00013 (200) | 0.0624 | +1.27 | +0.42 | +0.032 +- 0.302 | 0.009473 +- 8.1e-06 | 0.0392 (2) |
+| D_N0100_eta0.075000 | y/y | 1.66861 +- 0.00060 (8, 9.5/7) | - | 1.66935 +- 0.00290 | -0.00075 | 1.65192 | 1.17301 +- 0.00017 (225) | 0.0898 | -1.19 | +0.77 | -0.115 +- 0.291 | 0.0528 +- 3.6e-05 | 0.0844 (2) |
+| D_N0400_eta0.020000 | x/x | 1.47490 +- 0.00037 (8, 5.6/7) | - | 1.47537 +- 0.00169 | -0.00046 | 1.47247 | 1.04187 +- 0.00005 (225) | 0.0241 | +0.41 | +2.74 | +0.045 +- 0.162 | 0.002835 +- 1.8e-06 | 0.0211 (2) |
+| D_N0400_eta0.035000 | x/x | 1.52328 +- 0.00047 (8, 7.4/7) | - | 1.52090 +- 0.00255 | +0.00238 | 1.51848 | 1.07511 +- 0.00006 (225) | 0.0317 | +0.46 | +1.54 | -0.150 +- 0.151 | 0.009301 +- 6.9e-06 | 0.0368 (2) |
+| D_N0400_eta0.075000 | x/x | 1.65932 +- 0.00060 (6, 8.5/5) | - | 1.65898 +- 0.00163 | +0.00034 | 1.65192 | 1.17259 +- 0.00010 (175) | 0.0449 | +1.16 | +1.48 | -0.103 +- 0.192 | 0.05119 +- 3.3e-05 | 0.0790 (2) |
+
+INTERIM: the fits, Verdict K, the pressure fits and Verdict I are printed once, when all four sizes are present (sec. 4.8.9)
+```
+
+## 2. The three flagged folders (s1_fitfail_261012.py D --min 3, the fit repeated on the Mac; verbatim)
+
+```
+# INTERIM -- group D: the nu_d fit failures (s1_fitfail_261012.py; the fit repeated on the Mac: python 3.13.2, scipy 1.16.2, numpy 2.3.3)
+
+folders with nud_runs.csv: 54; by fit failures: 43 with 0, 6 with 1, 2 with 2, 1 with 3, 2 with 5
+
+## D_N0100_eta0.035000, M = 2000 (alpha 20; N 100, eta 0.035000): 5 fit failures
+
+- trajectories: expected 25, present 25, excluded 0 (health rule), missing 0, fit failures 5, used 20, lost 5: the group rule FLAGS it (more than 2 lost): it is left out of the cell's fits
+- Q of the folder: Q_k = pi nu_d-bar tau_r over its 20 used seeds = 69.54; the KOA reduction's Q_meanfit over all 25 trajectories = 76.47 (fit_ok 1, n 25)
+- the fit's inputs: 25 ACFs cut to 641 lags, dt 64.8069, nu_ref 0.0004848128 (the folder's argmax mean)
+
+| run | seed | nu_arg | the registered fit on the Mac | criterion | least_squares (information): status, evaluations | last iterate: nu_d / nu_ref, tau_r, Q = omega tau_r / 2, A, B, tau_T, phi | bounds it ends on | sign changes (10 periods) |
+|---|---|---|---|---|---|---|---|---|
+| 5 | 2366091599 | 0.0004866438 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0042, 1.136e+04, 17.4, 0.235, 1.17, 4125, +0.027 | none | 20 |
+| 6 | 775698329 | 0.0004890529 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0054, 1.136e+04, 17.4, 0.237, 1.17, 4125, +0.015 | none | 20 |
+| 13 | 4206898265 | 0.0004866438 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0023, 1.172e+04, 17.9, 0.23, 1.22, 4125, +0.047 | none | 20 |
+| 16 | 3764732721 | 0.0004866438 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0035, 1.118e+04, 17.1, 0.247, 1.13, 4125, +0.025 | none | 20 |
+| 17 | 1702057009 | 0.0004866438 | CONVERGES on the Mac: nu_d 0.0004864184 (KOA: fit_ok 0) | - | 3 (`xtol` termination condition is satisfied.), 87 | 1.0033, 1.349e+04, 20.6, 0.165, 1.27, 4125, +0.038 | none | 20 |
+
+the repetition check: fit_ok equal on the Mac and on KOA for 23 of 25 trajectories; largest |nu_d (Mac) / nu_d (KOA) - 1| over the 19 fitted on both: 5.78e-12 (593 s)
+
+## D_N0400_eta0.075000, M = 4000 (alpha 10; N 400, eta 0.075000): 5 fit failures
+
+- trajectories: expected 25, present 25, excluded 0 (health rule), missing 0, fit failures 5, used 20, lost 5: the group rule FLAGS it (more than 2 lost): it is left out of the cell's fits
+- Q of the folder: Q_k = pi nu_d-bar tau_r over its 20 used seeds = 142.45; the KOA reduction's Q_meanfit over all 25 trajectories = 150.74 (fit_ok 1, n 25)
+- the fit's inputs: 25 ACFs cut to 642 lags, dt 39.6116, nu_ref 0.0007918443 (the folder's argmax mean)
+
+| run | seed | nu_arg | the registered fit on the Mac | criterion | least_squares (information): status, evaluations | last iterate: nu_d / nu_ref, tau_r, Q = omega tau_r / 2, A, B, tau_T, phi | bounds it ends on | sign changes (10 periods) |
+|---|---|---|---|---|---|---|---|---|
+| 0 | 2531157907 | 0.000795309 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0028, 8320, 20.8, 0.228, 1.23, 2526, +0.025 | none | 20 |
+| 1 | 356331519 | 0.0007913718 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 0.9969, 1.001e+04, 24.8, 0.19, 1.25, 2526, +0.031 | none | 20 |
+| 13 | 1964167360 | 0.000795309 | CONVERGES on the Mac: nu_d 0.0007936649 (KOA: fit_ok 0) | - | 2 (`ftol` termination condition is satisfied.), 7739 | 1.0023, 2.343e+05, 584, 0.00708, 0.979, 1.8e+04, +0.000 | none | 20 |
+| 16 | 3914017783 | 0.000795309 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0033, 9846, 24.6, 0.185, 1.27, 2526, -0.023 | none | 20 |
+| 18 | 2586999987 | 0.000795309 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0032, 8376, 20.9, 0.231, 1.23, 2526, +0.030 | none | 20 |
+
+the repetition check: fit_ok equal on the Mac and on KOA for 23 of 25 trajectories; largest |nu_d (Mac) / nu_d (KOA) - 1| over the 19 fitted on both: 1.60e-10 (600 s)
+
+## D_N0400_eta0.075000, M = 3000 (alpha 7.5; N 400, eta 0.075000): 3 fit failures
+
+- trajectories: expected 25, present 25, excluded 0 (health rule), missing 0, fit failures 3, used 22, lost 3: the group rule FLAGS it (more than 2 lost): it is left out of the cell's fits
+- Q of the folder: Q_k = pi nu_d-bar tau_r over its 22 used seeds = 129.98; the KOA reduction's Q_meanfit over all 25 trajectories = 129.34 (fit_ok 1, n 25)
+- the fit's inputs: 25 ACFs cut to 642 lags, dt 34.4966, nu_ref 0.0009092145 (the folder's argmax mean)
+
+| run | seed | nu_arg | the registered fit on the Mac | criterion | least_squares (information): status, evaluations | last iterate: nu_d / nu_ref, tau_r, Q = omega tau_r / 2, A, B, tau_T, phi | bounds it ends on | sign changes (10 periods) |
+|---|---|---|---|---|---|---|---|---|
+| 0 | 4281358706 | 0.0009133744 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0044, 7864, 22.6, 0.225, 1.24, 2200, +0.018 | none | 20 |
+| 6 | 701709786 | 0.0009088528 | CONVERGES on the Mac: nu_d 0.0009120081 (KOA: fit_ok 0) | - | 2 (`ftol` termination condition is satisfied.), 98109 | 1.0031, 5.844e+04, 167, 0.0142, 1, 4.938e+04, +0.011 | none | 20 |
+| 23 | 523463092 | 0.0009133744 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0059, 8162, 23.5, 0.204, 1.27, 2200, +0.026 | none | 20 |
+
+the repetition check: fit_ok equal on the Mac and on KOA for 24 of 25 trajectories; largest |nu_d (Mac) / nu_d (KOA) - 1| over the 22 fitted on both: 1.19e-09 (331 s)
+
+## the group rule in cell D_N0100_eta0.035000: flagged 2000; the masses alpha >= 1 left for E1: 7 of 8 (left: 100, 200, 300, 500, 750, 1000, 1500; out: 2000): 5 or more -- the cell keeps its E1 value
+
+## the group rule in cell D_N0400_eta0.075000: flagged 4000, 3000; the masses alpha >= 1 left for E1: 6 of 8 (left: 400, 800, 1200, 2000, 6000, 8000; out: 3000, 4000): 5 or more -- the cell keeps its E1 value
+```
+
+## 3. The fit failures per mass and the masses left for E1, per cell (s1_fitfail_261012.py D --per-mass; verbatim)
+
+```
+# INTERIM -- group D: the fit failures per mass and the masses left for E1 (s1_fitfail_261012.py --per-mass; from the fetched tables; nothing fitted again)
+
+## D_N0100_eta0.020000 (N 100, eta 0.02)
+
+| M | alpha | present | excluded | fit failures | lost | group rule | Q_k |
+|---|---|---|---|---|---|---|---|
+| 50 | 0.5 | 25 | 0 | 0 | 0 | - | 14.3 |
+| 100 | 1 | 25 | 0 | 0 | 0 | - | 19.6 |
+| 200 | 2 | 25 | 0 | 0 | 0 | - | 29.0 |
+| 300 | 3 | 25 | 0 | 0 | 0 | - | 38.6 |
+| 500 | 5 | 25 | 0 | 0 | 0 | - | 47.6 |
+| 750 | 7.5 | 25 | 0 | 1 | 1 | - | 49.1 |
+| 1000 | 10 | 25 | 0 | 0 | 0 | - | 66.1 |
+| 1500 | 15 | 25 | 0 | 0 | 0 | - | 72.7 |
+| 2000 | 20 | 25 | 0 | 0 | 0 | - | 84.9 |
+
+the masses alpha >= 1 left for E1: 8 of 8 (100, 200, 300, 500, 750, 1000, 1500, 2000): 5 or more -- the cell keeps its E1 value
+
+## D_N0100_eta0.035000 (N 100, eta 0.035)
+
+| M | alpha | present | excluded | fit failures | lost | group rule | Q_k |
+|---|---|---|---|---|---|---|---|
+| 50 | 0.5 | 25 | 0 | 0 | 0 | - | 13.4 |
+| 100 | 1 | 25 | 0 | 0 | 0 | - | 21.4 |
+| 200 | 2 | 25 | 0 | 0 | 0 | - | 34.3 |
+| 300 | 3 | 25 | 0 | 0 | 0 | - | 40.5 |
+| 500 | 5 | 25 | 0 | 0 | 0 | - | 46.4 |
+| 750 | 7.5 | 25 | 0 | 0 | 0 | - | 65.1 |
+| 1000 | 10 | 25 | 0 | 0 | 0 | - | 74.5 |
+| 1500 | 15 | 25 | 0 | 1 | 1 | - | 82.8 |
+| 2000 | 20 | 25 | 0 | 5 | 5 | FLAGGED | 69.5 |
+
+the masses alpha >= 1 left for E1: 7 of 8 (100, 200, 300, 500, 750, 1000, 1500): 5 or more -- the cell keeps its E1 value
+
+## D_N0100_eta0.075000 (N 100, eta 0.075)
+
+| M | alpha | present | excluded | fit failures | lost | group rule | Q_k |
+|---|---|---|---|---|---|---|---|
+| 50 | 0.5 | 25 | 0 | 0 | 0 | - | 14.1 |
+| 100 | 1 | 25 | 0 | 0 | 0 | - | 23.2 |
+| 200 | 2 | 25 | 0 | 0 | 0 | - | 33.2 |
+| 300 | 3 | 25 | 0 | 0 | 0 | - | 37.8 |
+| 500 | 5 | 25 | 0 | 0 | 0 | - | 51.1 |
+| 750 | 7.5 | 25 | 0 | 0 | 0 | - | 57.1 |
+| 1000 | 10 | 25 | 0 | 0 | 0 | - | 84.9 |
+| 1500 | 15 | 25 | 0 | 0 | 0 | - | 81.4 |
+| 2000 | 20 | 25 | 0 | 1 | 1 | - | 89.1 |
+
+the masses alpha >= 1 left for E1: 8 of 8 (100, 200, 300, 500, 750, 1000, 1500, 2000): 5 or more -- the cell keeps its E1 value
+
+## D_N0400_eta0.020000 (N 400, eta 0.02)
+
+| M | alpha | present | excluded | fit failures | lost | group rule | Q_k |
+|---|---|---|---|---|---|---|---|
+| 200 | 0.5 | 25 | 0 | 0 | 0 | - | 32.7 |
+| 400 | 1 | 25 | 0 | 0 | 0 | - | 58.6 |
+| 800 | 2 | 25 | 0 | 0 | 0 | - | 62.0 |
+| 1200 | 3 | 25 | 0 | 0 | 0 | - | 88.9 |
+| 2000 | 5 | 25 | 0 | 0 | 0 | - | 101.5 |
+| 3000 | 7.5 | 25 | 0 | 0 | 0 | - | 108.0 |
+| 4000 | 10 | 25 | 0 | 0 | 0 | - | 111.4 |
+| 6000 | 15 | 25 | 0 | 0 | 0 | - | 142.8 |
+| 8000 | 20 | 25 | 0 | 0 | 0 | - | 168.8 |
+
+the masses alpha >= 1 left for E1: 8 of 8 (400, 800, 1200, 2000, 3000, 4000, 6000, 8000): 5 or more -- the cell keeps its E1 value
+
+## D_N0400_eta0.035000 (N 400, eta 0.035)
+
+| M | alpha | present | excluded | fit failures | lost | group rule | Q_k |
+|---|---|---|---|---|---|---|---|
+| 200 | 0.5 | 25 | 0 | 0 | 0 | - | 29.3 |
+| 400 | 1 | 25 | 0 | 0 | 0 | - | 39.8 |
+| 800 | 2 | 25 | 0 | 1 | 1 | - | 55.9 |
+| 1200 | 3 | 25 | 0 | 2 | 2 | - | 78.5 |
+| 2000 | 5 | 25 | 0 | 1 | 1 | - | 113.0 |
+| 3000 | 7.5 | 25 | 0 | 0 | 0 | - | 115.0 |
+| 4000 | 10 | 25 | 0 | 0 | 0 | - | 129.0 |
+| 6000 | 15 | 25 | 0 | 0 | 0 | - | 188.1 |
+| 8000 | 20 | 25 | 0 | 0 | 0 | - | 191.7 |
+
+the masses alpha >= 1 left for E1: 8 of 8 (400, 800, 1200, 2000, 3000, 4000, 6000, 8000): 5 or more -- the cell keeps its E1 value
+
+## D_N0400_eta0.075000 (N 400, eta 0.075)
+
+| M | alpha | present | excluded | fit failures | lost | group rule | Q_k |
+|---|---|---|---|---|---|---|---|
+| 200 | 0.5 | 25 | 0 | 0 | 0 | - | 27.2 |
+| 400 | 1 | 25 | 0 | 0 | 0 | - | 52.7 |
+| 800 | 2 | 25 | 0 | 0 | 0 | - | 66.6 |
+| 1200 | 3 | 25 | 0 | 0 | 0 | - | 83.9 |
+| 2000 | 5 | 25 | 0 | 0 | 0 | - | 120.7 |
+| 3000 | 7.5 | 25 | 0 | 3 | 3 | FLAGGED | 130.0 |
+| 4000 | 10 | 25 | 0 | 5 | 5 | FLAGGED | 142.5 |
+| 6000 | 15 | 25 | 0 | 2 | 2 | - | 137.6 |
+| 8000 | 20 | 25 | 0 | 1 | 1 | - | 268.2 |
+
+the masses alpha >= 1 left for E1: 6 of 8 (400, 800, 1200, 2000, 6000, 8000): 5 or more -- the cell keeps its E1 value
+```
+
+## 4. The timing table (s1_timing_261012.py D; verbatim)
+
+```
+# The timing table (decision 41, the watch rule), from fetched files: chunk table cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv, task list cluster/gen3_stage1_261012/tasks_stage1_koa_261012.txt
+
+## group D: 181 chunks of the chunk table; run records found for 1350 of 1350 task lines; the full table: experiments_gen3_s1_261012/interim_261013/timing/timing_D.tsv
+
+the 20 largest ratios:
+
+| chunk | cell | M | class [min] | predicted s (E5) | runs found / lines | sum of ##RUN s | ratio | node | CPU model |
+|---|---|---|---|---|---|---|---|---|---|
+| 364 | D_N0100_eta0.075000 | 300 | 30 | 538.8 | 25 / 25 | 244 | 0.453 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 368 | D_N0100_eta0.075000 | 1500 | 60 | 1146.0 | 25 / 25 | 514 | 0.449 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 362 | D_N0100_eta0.075000 | 100 | 30 | 345.4 | 25 / 25 | 153 | 0.443 | cn-03-38-02 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 367 | D_N0100_eta0.075000 | 1000 | 60 | 942.2 | 25 / 25 | 406 | 0.431 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 363 | D_N0100_eta0.075000 | 200 | 30 | 452.5 | 25 / 25 | 192 | 0.424 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 369 | D_N0100_eta0.075000 | 2000 | 120 | 1318.5 | 25 / 25 | 525 | 0.398 | cn-03-38-03 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 365 | D_N0100_eta0.075000 | 500 | 60 | 679.2 | 25 / 25 | 261 | 0.384 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 361 | D_N0100_eta0.075000 | 50 | 30 | 277.4 | 25 / 25 | 102 | 0.368 | cn-03-38-02 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 366 | D_N0100_eta0.075000 | 750 | 60 | 821.3 | 25 / 25 | 300 | 0.365 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 353 | D_N0100_eta0.035000 | 100 | 60 | 740.4 | 25 / 25 | 239 | 0.323 | cn-03-38-02 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 354 | D_N0100_eta0.035000 | 200 | 60 | 973.0 | 25 / 25 | 294 | 0.302 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 358 | D_N0100_eta0.035000 | 1000 | 120 | 2035.8 | 25 / 25 | 613 | 0.301 | cn-03-38-03 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 360 | D_N0100_eta0.035000 | 2000 | 180 | 2852.8 | 25 / 25 | 853 | 0.299 | cn-03-38-05 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 357 | D_N0100_eta0.035000 | 750 | 120 | 1773.6 | 25 / 25 | 523 | 0.295 | cn-03-38-03 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 355 | D_N0100_eta0.035000 | 300 | 60 | 1160.3 | 25 / 25 | 341 | 0.294 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 352 | D_N0100_eta0.035000 | 50 | 30 | 592.9 | 25 / 25 | 172 | 0.290 | cn-03-38-02 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 359 | D_N0100_eta0.035000 | 1500 | 180 | 2478.3 | 25 / 25 | 714 | 0.288 | cn-03-38-04 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 356 | D_N0100_eta0.035000 | 500 | 120 | 1464.9 | 25 / 25 | 417 | 0.285 | cn-03-38-03 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 347 | D_N0100_eta0.020000 | 1000 | 180 | 3576.0 | 25 / 25 | 963 | 0.269 | cn-03-38-03 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 343 | D_N0100_eta0.020000 | 200 | 120 | 1706.2 | 25 / 25 | 454 | 0.266 | cn-03-38-03 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+
+| CPU model | chunks | minimum | median | maximum |
+|---|---|---|---|---|
+| Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz | 135 | 0.170 | 0.191 | 0.453 |
+| Intel(R) Xeon(R) CPU E5-4640 v2 @ 2.20GHz | 46 | 0.192 | 0.199 | 0.258 |
+
+the maximum ratio per cell (eta) for each CPU model (chunks timed, maximum (chunk)):
+
+| cell | eta | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz | Intel(R) Xeon(R) CPU E5-4640 v2 @ 2.20GHz | every CPU model |
+|---|---|---|---|---|
+| D_N0100_eta0.020000 | 0.020000 | 11, 0.269 (347) | - | 11, 0.269 (347) |
+| D_N0400_eta0.020000 | 0.020000 | 44, 0.206 (394) | 36, 0.258 (401) | 80, 0.258 (401) |
+| D_N0100_eta0.035000 | 0.035000 | 9, 0.323 (353) | - | 9, 0.323 (353) |
+| D_N0400_eta0.035000 | 0.035000 | 37, 0.197 (473) | 10, 0.250 (490) | 47, 0.250 (490) |
+| D_N0100_eta0.075000 | 0.075000 | 9, 0.453 (364) | - | 9, 0.453 (364) |
+| D_N0400_eta0.075000 | 0.075000 | 25, 0.256 (498) | - | 25, 0.256 (498) |
+
+WATCH RULE (decision 41 item 3): the E5 maximum of group D is 0.453: below 2.0
+```
+
+## 5. The merge's time and its split (s1_merge_time_261012.py D --start '2026-10-13 23:07:54', sacct's start; verbatim)
+
+```
+# INTERIM -- group D: the merge job's time and where it went (s1_merge_time_261012.py, from the fetched files' times; UTC)
+
+- the files keep the merge's times: the plan's name says 23:09:00 UTC, its file 23:09:00; .merge_complete says '2026-10-13 23:09:56 UTC', its file 23:09:56 UTC (file minus record: +0 s and +0 s)
+- the merge log (job_logs/gen3-s1-merge-D_15055588.out, job 15055588): 114 step lines, in the order assumed here (cells sorted; reduce_B, then reduce_s1 per m_<M>, then sha and gzip per m_<M>); exit codes other than 0 in reduce_B / reduce_s1: 0
+
+| phase | from | to | seconds | h:mm:ss | share of the job |
+|---|---|---|---|---|---|
+| scan (the job's checks and the scan; to the plan) | 23:07:54 | 23:09:00 | 66 | 0:01:06 | 0.4 % |
+| moves (to .merge_complete) | 23:09:00 | 23:09:56 | 56 | 0:00:56 | 0.3 % |
+| reduce_B (6 cells) |  |  | 89 | 0:01:29 | 0.5 % |
+| reduce_s1 (reduce_s1_koa.py, 54 folders) |  |  | 16486 | 4:34:46 | 97.5 % |
+| sha (the SHA-256 lines of the traces) |  |  | 74 | 0:01:14 | 0.4 % |
+| gzip -9 of the traces |  |  | 141 | 0:02:21 | 0.8 % |
+| after the last folder (to the job log's copy) |  |  | 0 | 0:00:00 | 0.0 % |
+| **the job** | 23:07:54 | 03:49:46 | 16912 | 4:41:52 | |
+
+from the plan to the end: 16846 s (4:40:46); the job's start 2026-10-13 23:07:54 UTC (given); the end 2026-10-14 03:49:46 UTC (the merge log's copy)
+
+per cell (seconds):
+
+| cell | m_<M> folders | reduce_B | reduce_s1 | sha | gzip | total |
+|---|---|---|---|---|---|---|
+| D_N0100_eta0.020000 | 9 | 22 | 1598 | 8 | 15 | 1643 |
+| D_N0100_eta0.035000 | 9 | 13 | 4963 | 6 | 14 | 4996 |
+| D_N0100_eta0.075000 | 9 | 13 | 2039 | 2 | 15 | 2069 |
+| D_N0400_eta0.020000 | 9 | 13 | 332 | 36 | 53 | 434 |
+| D_N0400_eta0.035000 | 9 | 15 | 2908 | 4 | 18 | 2945 |
+| D_N0400_eta0.075000 | 9 | 13 | 4646 | 18 | 26 | 4703 |
+| all | 54 | 89 | 16486 | 74 | 141 | 16790 |
+```
+
+## 6. The first look (s1_firstlook_261012.py --block D: c_s and Z against KR, c_s against √2; verbatim)
+
+```
+# INTERIM -- a first look at the physics (s1_firstlook_261012.py; block D; groups present: D; no fit over N, no verdict)
+
+## c_s against KR per cell: Delta = c_s / c_s^KR - 1 [%] +- its error (E1: sigma; E0: err_scaled), z = Delta / error
+
+| eta | set | c_s^KR | N 100: E1 Delta [%] (z; masses) | N 100: E0 Delta [%] (z) | N 100: E1 c_s / sqrt(2) - 1 [%] (z) | N 400: E1 Delta [%] (z; masses) | N 400: E0 Delta [%] (z) | N 400: E1 c_s / sqrt(2) - 1 [%] (z) |
+|---|---|---|---|---|---|---|---|---|
+| 0.02 | D | 1.47247 | +0.595 +- 0.037 (+16.2; 8) | +0.440 +- 0.178 (+2.5) | +4.739 +- 0.038 (+123.7) | +0.165 +- 0.025 (+6.6; 8) | +0.197 +- 0.115 (+1.7) | +4.292 +- 0.026 (+165.0) |
+| 0.035 | D | 1.51848 | +0.790 +- 0.036 (+21.6; 7) | +0.793 +- 0.198 (+4.0) | +8.221 +- 0.039 (+209.9) | +0.316 +- 0.031 (+10.1; 8) | +0.159 +- 0.168 (+1.0) | +7.712 +- 0.034 (+230.1) |
+| 0.075 | D | 1.65192 | +1.011 +- 0.037 (+27.6; 8) | +1.056 +- 0.176 (+6.0) | +17.989 +- 0.043 (+420.5) | +0.448 +- 0.037 (+12.3; 6) | +0.428 +- 0.099 (+4.3) | +17.332 +- 0.043 (+406.0) |
+
+(the ideal-gas limit: c_s = sqrt(2) = 1.41421)
+
+## Z per cell against Z_KR: Delta^Z = Z / Z_KR - 1 [%] +- SE (n trajectories)
+
+| eta | set | Z_KR | N 100: Z +- SE | N 100: Delta^Z [%] (z) | N 400: Z +- SE | N 400: Delta^Z [%] (z) |
+|---|---|---|---|---|---|---|
+| 0.02 | D | 1.04129 | 1.04176 +- 0.00009 (225) | +0.046 +- 0.009 (+5.3) | 1.04187 +- 0.00005 (225) | +0.056 +- 0.005 (+11.6) |
+| 0.035 | D | 1.07402 | 1.07523 +- 0.00013 (200) | +0.113 +- 0.012 (+9.5) | 1.07511 +- 0.00006 (225) | +0.101 +- 0.006 (+18.0) |
+| 0.075 | D | 1.16958 | 1.17301 +- 0.00017 (225) | +0.294 +- 0.015 (+19.9) | 1.17259 +- 0.00010 (175) | +0.258 +- 0.008 (+30.5) |
+
+## The low-Q flags (sec. 4.8.6.2: a cell in which any used mass has Q_k < 5)
+
+| N | eta | low-Q flag | used masses with Q_k < 5 (M: Q_k) | smallest Q_k of the used masses (M) |
+|---|---|---|---|---|
+| 100 | 0.02 | - | - | 19.56 (100) |
+| 100 | 0.035 | - | - | 21.38 (100) |
+| 100 | 0.075 | - | - | 23.16 (100) |
+| 400 | 0.02 | - | - | 58.58 (400) |
+| 400 | 0.035 | - | - | 39.84 (400) |
+| 400 | 0.075 | - | - | 52.67 (400) |
+```
+
+## Commits
+
+- main: addendum 2 (sec. 4.7.102) and this report (4.7.103); the copies on engine-gen3 and engine-divider-resched.
+- engine-gen3:
+  - 6981d949: s1_fitfail_261012.py --per-mass, s1_firstlook_261012.py --block D;
+  - 3328be39: D's INTERIM outputs (experiments_gen3_s1_261012/interim_261013/D/).
+
+Written for: the plan author
