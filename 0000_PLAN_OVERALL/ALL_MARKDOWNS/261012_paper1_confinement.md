@@ -27734,3 +27734,116 @@ Nothing on KOA until tomorrow (FG-B1600). When CC prints the push line, type it 
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.114 Plan-author decision 51: ONE TREE — consolidate engine-gen3 into main and remove the worktree (one working tree Repo/HardDisks, one VS Code window; the engines stay selectable by flag, gen2 byte-identical to 7b08827); PREPARE NOW, read-only: the inventory of everything that names Repo/HardDisks_gen3, a dry run of the merge in a scratch clone, the runsheet for Chris's terminal; EXECUTE only on the plan author's go after B1600 is merged and fetched (Thursday); option (ii) continues on engine-gen3 meanwhile; the paper keeps the speed-up numbers and gets an appendix figure gen2 beside gen3 per N from existing data; before it, the plan author's note to Chris (Homebrew Python for the figures; why not a bare worktree move) (2026-10-14 10:33 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 51** (relayed by Chris at about 10:31 HST, machine date; the plan author's time "~10:30 HST").
+- **Before it, the plan author's note to Chris:**
+  - The figure runs on the Mac now (Homebrew Python). That interpreter is the one for the gen3 plots; the venv in Chris's prompt belongs to NeurAIpil.
+  - Not a bare git worktree move into HardDisks. A worktree moved inside the main checkout is a nested repository:
+    - main sees it as an untracked folder, and a git add -A in HardDisks can swallow it as a bogus sub-repo entry;
+    - every VS Code search finds each file twice;
+    - CC's three-head propagation keeps running.
+  - The wanted end state, in one operation: engine-gen3 merged into main, the worktree gone, one hspist3.
+  - CC prepares it now (dry run, inventory) and executes on the plan author's go right after B1600 is merged and fetched (Thursday). Until then Chris opens both folders in one VS Code window.
+- **Decision 51:**
+  - **The goal:** one working tree (Repo/HardDisks) and one VS Code window; no second checkout, no copy, no nested worktree.
+    - The engines stay selectable by flag (--engine=gen2 | gen3).
+    - gen2 stays byte-identical to 7b08827 (rule 4), the validated reference.
+  - **Prepare now, read-only** (nothing merged, moved or deleted):
+    1. **The inventory** of every place that names Repo/HardDisks_gen3 or depends on the worktree. Table: file, line, and what it needs after the move.
+       - CC's scripts: rec_report.sh, the three-head propagation, the quote assemblers, fetch_s1_koa.sh and the stage 1 package's paths, the INTERIM helpers, the viewer command lines, the build records' paths.
+       - CC's memory notes, any .code-workspace or VS Code settings, and the notes' standing instructions.
+    2. **A dry run of the merge** in a scratch clone (git clone --local into the scratchpad, not in the working trees): main ← engine-gen3 with --no-ff --no-commit.
+       - Report the conflicts (none expected in the notes), the hspist3 files that differ between main and engine-gen3 and which side wins (engine-gen3's hspist3 is kept), and the number of files changed.
+       - Report whether engine-divider-resched is already in engine-gen3 (git merge-base --is-ancestor).
+       - Delete nothing. The clone counts against the data cap: report its size.
+    3. **The runsheet** for Chris's terminal, every line he types with its "good" lines:
+       - (a) all three heads pushed and equal to origin;
+       - (b) git worktree remove Repo/HardDisks_gen3, which refuses if anything is uncommitted (that is the check). The untracked folders in it (experiments_gen3_d49a1_261014, figures_cowork, scratch) are first committed or moved to Repo/HardDisks, listed by name;
+       - (c) on main: git merge --no-ff engine-gen3, message "consolidate: engine-gen3 into main after stage 1 (decision 51)";
+       - (d) git push origin main;
+       - (e) engine-gen3 and engine-divider-resched stay as branches, frozen, not deleted (KOA's clones pin their commits; the registration cites them);
+       - (f) CC's scripts switched to the one tree, the propagation reduced to main only;
+       - (g) the checks: git status clean; hspist3/00ALLINONE.c on main equal to engine-gen3's (SHA-256); the stage 1 manifests 21 of 21 from the main checkout; the viewer builds from main with the same BUILD sources; Chris's fetch of B1600 works from Repo/HardDisks.
+    4. **Report** the inventory, the dry run and the runsheet.
+       - Execution only after the plan author's go, which comes after B1600 is merged and fetched (Thursday), so that the fetch and the full report run from one settled tree.
+       - Part A's option (ii) continues meanwhile on engine-gen3 (decision 50) and is carried over by the merge.
+    5. **Also recorded, from Chris:** the paper keeps the speed-up numbers (Report P1, Test R rates, the m1 rate figure). It gets an appendix figure with gen2 beside gen3 per N, from existing data (A1 v2, the old size ladder, Test R, stage 1); no gen2 rerun.
+- **After it, a line to Chris:**
+  - Until the go: in VS Code, File → Add Folder to Workspace… → Repo/HardDisks_gen3, then File → Save Workspace As… HardDisks.code-workspace. One window, nothing moved.
+  - Decision 50 stays in force.
+
+**The message, verbatim** (relayed by Chris on 2026-10-14 at about 10:31 HST, machine date):
+
+```
+The figure runs on your Mac now (Homebrew Python). Use that interpreter for the gen-3 plots; the venv in your prompt belongs to NeurAIpil.
+
+On the move: I will give you the full prompt, but for the consolidation, not for a bare git worktree move into HardDisks. Reason in one paragraph: a worktree moved inside the main checkout is a nested repository — main sees it as an untracked folder, a git add -A in HardDisks can swallow it as a bogus sub-repo entry, every search in VS Code finds each file twice, and CC’s three-head propagation keeps running. It solves the window problem and creates a git problem. What you want is the end state: engine-gen3 merged into main, the worktree gone, one hspist3. That is one operation; doing it twice (move now, merge later) doubles the risk for nothing. So: CC prepares it now (dry run, inventory of everything that points at the old path), executes it on my go right after B1600 is merged and fetched (Thursday), and until then you open both folders in one window with File → Add Folder to Workspace.
+
+Step now: paste this to CC.
+
+From the plan author (Cowork), relayed by Chris. Record as decision 51.
+
+DECISION 51 (2026-10-14 ~10:30 HST): ONE TREE -- CONSOLIDATE engine-gen3
+INTO main AND REMOVE THE WORKTREE; PREPARE NOW, EXECUTE ON THE GO
+ Chris wants one working tree (Repo/HardDisks) and one VS Code window;
+ no second checkout, no copy, no nested worktree. The engines stay
+ selectable by flag (--engine=gen2 | gen3); gen2 stays byte-identical
+ to 7b08827 (rule 4) as the validated reference.
+ PREPARE NOW (read-only, nothing merged, nothing moved, nothing deleted):
+ 1. Inventory every place that names the path Repo/HardDisks_gen3 or
+    depends on the worktree: your scripts (rec_report.sh, the
+    three-head propagation, the quote assemblers, fetch_s1_koa.sh and
+    the stage 1 package's paths, the INTERIM helpers, the viewer
+    command lines, the build records' paths), your memory notes, the
+    .code-workspace or VS Code settings if any, and the notes'
+    standing instructions. Table: file, line, what it needs after the
+    move (relative path, or the new absolute path).
+ 2. A dry run of the merge in a scratch clone (git clone --local of
+    the repo into the scratchpad; NOT in the working trees): main <-
+    engine-gen3 with --no-ff --no-commit; report: conflicts (expect
+    none in the notes, since every record is on all three heads
+    identically; report what hspist3 files differ between main and
+    engine-gen3 and which side wins -- engine-gen3's hspist3 is the
+    one we keep), the number of files changed, and whether
+    engine-divider-resched is already contained in engine-gen3 (git
+    merge-base --is-ancestor). Delete nothing; the scratch clone
+    counts against the data cap: report its size.
+ 3. The execution plan, as a numbered runsheet for Chris's terminal
+    (every line he types, with the "good" lines): (a) all three heads
+    pushed and equal to origin; (b) git worktree remove
+    Repo/HardDisks_gen3 (refuses if anything is uncommitted: that is
+    the check; the untracked folders in it -- experiments_gen3_d49a1_
+    261014, figures_cowork, scratch -- are committed or moved to
+    Repo/HardDisks first, listed by name); (c) on main: git merge
+    --no-ff engine-gen3 with the message "consolidate: engine-gen3
+    into main after stage 1 (decision 51)"; (d) git push origin main;
+    (e) engine-gen3 and engine-divider-resched stay as branches,
+    frozen, not deleted (KOA's clones pin their commits; the
+    registration cites them); (f) your scripts switched to the one
+    tree, the propagation reduced to main only; (g) the checks:
+    git status clean, hspist3/00ALLINONE.c on main == engine-gen3's
+    (sha256), the stage 1 manifests 21 of 21 from the main checkout,
+    the viewer builds from main with the same BUILD sources, Chris's
+    fetch of B1600 works from Repo/HardDisks.
+ 4. Report the inventory, the dry run and the runsheet. EXECUTION only
+    after the plan author's go, which comes after B1600 is merged and
+    fetched (Thursday), so the fetch and the full report run from one
+    settled tree. Part A's option (ii) work continues meanwhile on
+    engine-gen3 as decided (decision 50) and is carried over by the
+    merge.
+ 5. Also recorded (from Chris): the paper keeps the speed-up numbers
+    (Report P1, Test R rates, the m1 rate figure) and gets an appendix
+    figure gen2 beside gen3 per N from existing data (A1 v2, the old
+    size ladder, Test R, stage 1); no gen2 rerun.
+
+End with "Written for: the plan author".
+
+Until the go: in VS Code, File → Add Folder to Workspace… → Repo/HardDisks_gen3, then File → Save Workspace As… HardDisks.code-workspace. One window, nothing moved. Decision 50 (the previous block) stays in force; if you have not pasted it yet, paste it before this one.
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
