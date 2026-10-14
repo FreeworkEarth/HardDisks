@@ -26485,3 +26485,95 @@ d2dc1773 viewer: gen3 cell width of the window's scene follows the disk diameter
 - engine-gen3: d2dc1773, 942c3b63, dc7ede04 (sec. 2). Nothing pushed; the next pushed batch waits for the plan author's word.
 
 Written for: the plan author
+
+### 4.7.108 Plan-author decision 49: B900 and S merged and fetched (H-B900 and H-S clean; the merge times; B900's fit failures, four folders above the group rule's 2); the INTERIM reports, B900 first and alone (the tables, the flagged folders, the masses left for E1, the timing, the merge time, the first look at N 100, 400 and 900 against KR and √2, the low-Q and stationarity flags), then S (the start check, ψ6 and Z of both starts, the timing); Chris's meeting at 13:30 HST (2026-10-14 08:27 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 49** (relayed by Chris at about 08:25 HST, machine date; the plan author's time "~08:25 HST").
+  - Before it, the plan author's note to Chris: both fetches are complete.
+  - The plan author checked B900's folder on the Mac: all 16 cells under merged/stage1/gen3/, .merge_complete present, the plan file 3 MB. S: 98 MB, record 08:04:18 UTC.
+- **1. Facts:**
+  - **H-B900 is clean.**
+    - Merge job 15058268 on cn-05-08-09; sacct 2026-10-14T06:17:03 to 10:12:36 UTC, 03:55:33, COMPLETED.
+    - 600 of 600 chunks; plan 0 problems; APPEND 1200 / EQUAL 600 / MOVE 10832 / PER CHUNK 3600; 0 incomplete; 600 build files equal.
+    - Destinations 144, reduce_B 16, reduce_s1 144, compressed 144.
+    - Fit failures: 134 × 0, 3 × 1, 3 × 2, 2 × 3, 1 × 4, 1 × 6 (25 of 3600). Four folders are above the group rule's 2.
+    - .merge_complete 06:26:54 UTC; 601 logs.
+  - **H-S is clean.**
+    - Merge job 15058845 on cn-05-03-04; sacct 08:03:24 to 08:11:48 UTC, 00:08:24, COMPLETED.
+    - 122 of 122; plan 0 problems; APPEND 244 / EQUAL 122 / MOVE 2480 / PER CHUNK 800.
+    - Destinations 80, reduce_B 40, reduce_s1 80, compressed 80; fit failures 80 × 0.
+    - .merge_complete 08:04:18 UTC; 123 logs.
+  - **FG-S's timing (last night):** min 0.67 (chunk 1191), median 0.83, max 2.77 (chunk 1122), all 122 chunks on E5-2670 v3.
+  - **Both fetches are done:** experiments_gen3_stage1_koa_261012/B900 (record 06:26:54 UTC) and /S (98M, record 08:04:18 UTC).
+  - **B1600's arrays** are running, ending about 23:00 HST.
+- **2. B900's INTERIM report comes first, alone, as for D** (decision 47 item 5; 47-2 item 5). It holds:
+  - the INTERIM tables;
+  - the four flagged folders (cell, mass, seeds, criterion);
+  - s1_fitfail --per-mass 0.05,0.1 with the masses left for E1 per cell. Any cell below 5 masses is named in the first line;
+  - the timing table per CPU model and per cell;
+  - the merge time from sacct's start, 06:17:03 UTC;
+  - the first look against KR and √2, with N 100, 400 and 900 side by side per η (E1 and E0; Z against Z_KR). No fit over N, no verdict;
+  - the low-Q and stationarity flags.
+  - B900's a_interim_tables file also goes into interim_261013/B900/, as for B100 and B400; the plan author draws the N 100/400/900 figure from them.
+- **3. Then S's INTERIM report:**
+  - the start check as the registration defines it (sec. 4.8: start0 against turned, per cell, N 100 to 1600, η 0.60–0.69), with the registered table as the verdict script prints it at INTERIM;
+  - the per-cell ψ6 and Z of both starts;
+  - the timing table.
+  - No verdict, no fit.
+- **4. Chris's meeting is at 13:30 HST.** B900's report is wanted by about 11:00 if it can be done; S's after. The deletion of CC's scratch (d45/rc1, the 188 MB source copy) remains Chris's call.
+
+**The message, verbatim** (relayed by Chris on 2026-10-14 at about 08:25 HST, machine date):
+
+```
+Both fetches are complete — I checked B900’s folder on your Mac: all 16 cells under merged/stage1/gen3/, .merge_complete present, the plan file 3 MB. S: 98 MB, record 08:04:18 UTC.
+
+Step now: paste this to CC. It gets B900’s INTERIM report first (that is what you want for 13:30), S after.
+
+From the plan author (Cowork), relayed by Chris. Record as decision 49.
+
+DECISION 49 (2026-10-14 ~08:25 HST): B900 AND S MERGED, FETCHED; INTERIM
+REPORTS, B900 FIRST
+ 1. Facts: H-B900 clean (merge job 15058268, cn-05-08-09, sacct
+    2026-10-14T06:17:03 to 10:12:36 UTC, 03:55:33, COMPLETED): 600 of
+    600 chunks, plan 0 problems, APPEND 1200 / EQUAL 600 / MOVE 10832 /
+    PER CHUNK 3600, 0 incomplete, 600 build files equal; destinations
+    144, reduce_B 16, reduce_s1 144, compressed 144; fit failures
+    134 x 0, 3 x 1, 3 x 2, 2 x 3, 1 x 4, 1 x 6 (25 of 3600; four
+    folders above the group rule's 2); .merge_complete 06:26:54 UTC;
+    601 logs. H-S clean (merge job 15058845, cn-05-03-04, sacct
+    08:03:24 to 08:11:48 UTC, 00:08:24, COMPLETED): 122 of 122, plan 0
+    problems, APPEND 244 / EQUAL 122 / MOVE 2480 / PER CHUNK 800;
+    destinations 80, reduce_B 40, reduce_s1 80, compressed 80; fit
+    failures 80 x 0; .merge_complete 08:04:18 UTC; 123 logs. FG-S's
+    timing (last night): min 0.67 (1191), median 0.83, max 2.77
+    (1122), all 122 chunks on E5-2670 v3. BOTH FETCHES ARE DONE:
+    experiments_gen3_stage1_koa_261012/B900 (record 06:26:54 UTC) and
+    /S (98M, record 08:04:18 UTC). B1600's arrays are running (ends
+    ~23:00 HST).
+ 2. B900's INTERIM report FIRST, alone, as for D (decision 47 item 5 /
+    47-2 item 5): the INTERIM tables; the four flagged folders (cell,
+    mass, seeds, criterion) and s1_fitfail --per-mass 0.05,0.1 with
+    the masses left for E1 per cell (any cell below 5 masses: say so
+    in the first line); the timing table per CPU model and per cell;
+    the merge time from sacct's start 06:17:03 UTC; the first look
+    against KR and sqrt(2) with N 100, 400 AND 900 side by side per
+    eta (E1 and E0; Z against Z_KR), no fit over N, no verdict; the
+    low-Q and stationarity flags. Also write B900's a_interim_tables
+    file into interim_261013/B900/ as for B100 and B400 (the plan
+    author draws the N 100/400/900 figure from them).
+ 3. Then S's INTERIM report: the start check as the registration
+    defines it (sec. 4.8: start0 against turned per cell, N 100 to
+    1600, eta 0.60-0.69) -- the registered table as the verdict script
+    prints it at INTERIM, the per-cell psi6 and Z of both starts, and
+    the timing table. No verdict, no fit.
+ 4. Chris's meeting is at 13:30 HST: B900's report by ~11:00 if it
+    can be done; S after. Deletion of your scratch (d45/rc1, the
+    188 MB source copy) remains Chris's call.
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
