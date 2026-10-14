@@ -1,0 +1,29 @@
+# INTERIM -- group D: the merge job's time and where it went (s1_merge_time_261012.py, from the fetched files' times; UTC)
+
+- the files keep the merge's times: the plan's name says 23:09:00 UTC, its file 23:09:00; .merge_complete says '2026-10-13 23:09:56 UTC', its file 23:09:56 UTC (file minus record: +0 s and +0 s)
+- the merge log (job_logs/gen3-s1-merge-D_15055588.out, job 15055588): 114 step lines, in the order assumed here (cells sorted; reduce_B, then reduce_s1 per m_<M>, then sha and gzip per m_<M>); exit codes other than 0 in reduce_B / reduce_s1: 0
+
+| phase | from | to | seconds | h:mm:ss | share of the job |
+|---|---|---|---|---|---|
+| scan (the job's checks and the scan; to the plan) | 23:07:54 | 23:09:00 | 66 | 0:01:06 | 0.4 % |
+| moves (to .merge_complete) | 23:09:00 | 23:09:56 | 56 | 0:00:56 | 0.3 % |
+| reduce_B (6 cells) |  |  | 89 | 0:01:29 | 0.5 % |
+| reduce_s1 (reduce_s1_koa.py, 54 folders) |  |  | 16486 | 4:34:46 | 97.5 % |
+| sha (the SHA-256 lines of the traces) |  |  | 74 | 0:01:14 | 0.4 % |
+| gzip -9 of the traces |  |  | 141 | 0:02:21 | 0.8 % |
+| after the last folder (to the job log's copy) |  |  | 0 | 0:00:00 | 0.0 % |
+| **the job** | 23:07:54 | 03:49:46 | 16912 | 4:41:52 | |
+
+from the plan to the end: 16846 s (4:40:46); the job's start 2026-10-13 23:07:54 UTC (given); the end 2026-10-14 03:49:46 UTC (the merge log's copy)
+
+per cell (seconds):
+
+| cell | m_<M> folders | reduce_B | reduce_s1 | sha | gzip | total |
+|---|---|---|---|---|---|---|
+| D_N0100_eta0.020000 | 9 | 22 | 1598 | 8 | 15 | 1643 |
+| D_N0100_eta0.035000 | 9 | 13 | 4963 | 6 | 14 | 4996 |
+| D_N0100_eta0.075000 | 9 | 13 | 2039 | 2 | 15 | 2069 |
+| D_N0400_eta0.020000 | 9 | 13 | 332 | 36 | 53 | 434 |
+| D_N0400_eta0.035000 | 9 | 15 | 2908 | 4 | 18 | 2945 |
+| D_N0400_eta0.075000 | 9 | 13 | 4646 | 18 | 26 | 4703 |
+| all | 54 | 89 | 16486 | 74 | 141 | 16790 |
