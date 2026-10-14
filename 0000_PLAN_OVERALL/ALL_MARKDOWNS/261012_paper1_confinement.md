@@ -26087,3 +26087,93 @@ per cell (seconds):
   - 3328be39: D's INTERIM outputs (experiments_gen3_s1_261012/interim_261013/D/).
 
 Written for: the plan author
+
+### 4.7.104 Plan-author decision 48: THE VIEWER CANNOT BUILD GEN3 SCENES WITH DISKS ABOVE 0.667 σ -- the cell width in the live-scene path (the cause: the window's scene asks gen3 for its 32 px default cell whatever the radius; the fix: at least one diameter in whole pixels, never below 32 px, an explicit --gen3-cell-px kept; the cell width in the status line; three scenes tested on the Mac; the other 32 px and R = 12 px assumptions listed; no commit before the plan author's review) (2026-10-13 21:38 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 48** (relayed by Chris at about 21:30 HST, machine date; the plan author's time "~21:00 HST").
+  - The paste also holds Chris's two messages to the plan author and the plan author's note to Chris.
+  - A screenshot of the paused window came with it.
+- **The symptom** (the screenshot): the banner "PAUSED: gen3 cannot build this scene. edmd_gen3: cell width 32 px < diameter 43.581211090087891 px (sec. 4.7.1, a)".
+  - The scene, from the F3 panel: energy transfer on EDMD gen3 (display); 1 wall; N 341, all in box 2; radius 0.9079 σ; η 0.139; spring L0 89.58 σ, k 11.52 kT/σ²; wall thickness 3.829 σ; M1 50; box 179.2 × 70.7 σ at 24 px/σ.
+  - The same happens with radius 1.9146 σ (diameter 91.9 px).
+- **The cause, as the plan author reads it:**
+  - The live scene's build (00ALLINONE.c line ~1532) passes cli_gen3_cell_px, which is 0 unless --gen3-cell-px is given.
+  - gen3 then uses its 32 px default (sized for R = 12 px), and the radius slider scales the disks beyond it.
+  - The engine's refusal is right; the caller is wrong.
+- **The note's workaround for tonight:** start the viewer with --gen3-cell-px=64 (radius up to 1.33 σ), or 96 for the 1.91 σ scene.
+- **What CC does:**
+  1. **The fix, in the live-scene build path only:** with no --gen3-cell-px, the cell width is the larger of 32 px and the diameter rounded up to whole pixels.
+     - Not changed: line ~17093 (the experiments' path), edmd_gen3.c, edmd_gen3.h, the default, any campaign file.
+     - Marked ##CHRIS 2026-10-13 (decision 48).
+  2. **The status line** shows the cell width next to "engine: gen3 (provisional display)".
+  3. **Rebuild and test on the Mac:** the two scenes above and one with the default radius build and run, with clean=1 for at least 1000 events each.
+  4. **List** what else in the live-scene path assumes 32 px cells or R = 12 px; change nothing else without a go.
+  5. **Report** the diff and the three scenes (N, radius, η, cell width, events, clean flag). The code is not committed before the plan author's review.
+- **Not touched:** the KOA build and the clone on KOA ("no git, no push tonight", item 3). The campaign on KOA continues: S's arrays and B900's merge are running, FG-S is tonight.
+- **Chris's KOA step, unchanged:** at about 21:30, paste `squeue -u charing -n gen3-s1-S` to the plan author.
+
+**The message, verbatim** (relayed by Chris on 2026-10-13 at about 21:30 HST, machine date):
+
+```
+yeah no theres an error in the gui simulaiton this has to work!!!
+
+Listed files on your computer, read files on your computer
+why does not build ?? grid initiolization fails i think whatever but this has to work
+
+Searched files, read a file, read files on your computer
+You are right that it has to work, and your guess is right too: it is the cell-grid set-up that refuses, and it is a bug in how the viewer calls the engine, not in the engine.
+
+What I found in the code (read from your Mac just now). edmd3_create(prm, cell_px, …) in edmd_core/edmd_gen3.c line 1087 takes the cell width as an argument; 0 means “use the default”, and the default is EDMD3_DEFAULT_CELL_PX = 32.0 (edmd_gen3.h line 34, comment: “1.33 diameters at R = 12 px”). The campaign and all harnesses run disks with R = 12 px, diameter 24 px, so 32 px is always enough there. The viewer’s live scene (00ALLINONE.c line 1532) passes cli_gen3_cell_px, which is 0 unless you started the program with --gen3-cell-px=W. So the viewer always asks for 32 px cells — but the viewer’s radius slider scales the disks freely: at 24 px/σ your radius 0.9079 σ is 21.8 px, diameter 43.6 px, and any radius above 0.667 σ hits the refusal. The refusal itself is correct (a cell narrower than a diameter would miss collisions); the mistake is that the viewer never adapts the cell width to the scene it builds.
+
+The fix is one line in the viewer’s build path: when no --gen3-cell-px was given, take the cell width from the scene — the default 32 px or the diameter rounded up to whole pixels, whichever is larger. The engine’s own rule stays untouched; cells larger than a diameter are always correct, just a little slower per event. Line 17093 (the experiments’ path, R = 12 px) stays as it is, so the campaign source paths do not change. Nothing of this touches KOA: the stage 1 build f72d764 and the scripts clone are frozen, no push tonight.
+
+Quick way to see it work right now, before any code change: quit the viewer (Q) and start it with the cell width given on the command line, e.g. --gen3-cell-px=64 added to the command you use (that covers any diameter up to 64 px, i.e. radius up to 1.33 σ at 24 px/σ; for the 1.91 σ scene from before use 96).
+
+Paste this to CC:
+
+From the plan author (Cowork), relayed by Chris. Record as decision 48.
+
+DECISION 48 (2026-10-13 ~21:00 HST): THE VIEWER CANNOT BUILD GEN3 SCENES
+WITH DISKS ABOVE 0.667 SIGMA -- FIX THE CELL WIDTH IN THE LIVE-SCENE PATH
+ Symptom (screenshots): "PAUSED: gen3 cannot build this scene.
+ edmd_gen3: cell width 32 px < diameter 43.58 px (sec. 4.7.1, a)" for
+ N 341, radius 0.9079 sigma, eta 0.139, box 179.2 x 70.7 sigma at
+ 24 px/sigma; the same with radius 1.9146 (diameter 91.9 px).
+ Cause: 00ALLINONE.c line ~1532 builds the live scene with
+ edmd3_create(p, cli_gen3_cell_px, ...); cli_gen3_cell_px is 0 unless
+ --gen3-cell-px was given, so the cell width is always
+ EDMD3_DEFAULT_CELL_PX = 32 px (sized for R = 12 px). The viewer's
+ radius slider scales disks beyond that. The engine's refusal is
+ correct; the caller is wrong.
+ Do:
+ 1. In the live-scene build path only (the g_edmd3 = edmd3_create call
+    near line 1532): when cli_gen3_cell_px <= 0, pass
+    fmax(EDMD3_DEFAULT_CELL_PX, ceil(2.0 * p->radius)) -- whole pixels,
+    at least one diameter, never below the old default. An explicit
+    --gen3-cell-px is kept as given. Do NOT change line ~17093 (the
+    experiments' path), edmd_gen3.c, edmd_gen3.h, the default, or any
+    campaign file. Mark the edit ##CHRIS 2026-10-13 (decision 48).
+ 2. Show in the status line which cell width the live scene uses
+    (next to "engine: gen3 (provisional display)").
+ 3. Rebuild the viewer the usual way (the Mac GUI build; the KOA build
+    and ~/harddisks_gen3_s1 are not touched -- no git, no push
+    tonight). Verify on the Mac: the two scenes above build and run,
+    plus one scene with the default radius; the validator stays clean
+    (clean=1) for at least 1000 events in each.
+ 4. Check whether anything else in the live-scene path assumes 32 px
+    cells or R = 12 px (ccap, draw scale, the x-density cell map) and
+    list what you find; change nothing beyond item 1 without a go.
+ 5. Report: the diff, the three test scenes with N, radius, eta, the
+    cell width used, events run, clean flag. Not a commit yet; the
+    commit and its message come after the plan author's review.
+ This is viewer work beside the campaign; the campaign steps on KOA
+ continue unchanged (S arrays and B900 merge running, FG-S tonight).
+
+End with "Written for: the plan author".
+KOA step plan unchanged: at about 21:30 paste squeue -u charing -n gen3-s1-S and send me the output.
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
