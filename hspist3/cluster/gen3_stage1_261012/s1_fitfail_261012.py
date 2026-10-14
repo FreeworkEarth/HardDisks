@@ -19,6 +19,10 @@ nothing is written into the fetched folder):
   per cell with a flagged folder: the masses left for E1 (alpha >= 1, not flagged, its seed-averaged fit done) and whether they are 5 or
   more (sec. 4.8.6.2: "A cell with fewer than 5 masses left has no E1 value").
 usage (from hspist3/): python3 cluster/gen3_stage1_261012/s1_fitfail_261012.py <group> [--root R] [--min K]
+##CHRIS 2026-10-13 (plan-author decision 47 item 5 and addendum 2 item 5): --per-mass [<eta>,...] prints instead, per cell of the group (all
+cells, or those of the etas given), one row per mass: present, excluded, fit failures, lost, flagged by the group rule, Q_k; and the masses
+alpha >= 1 left for E1 (not flagged, their seed-averaged fit done) out of 8, against the 5 that E1 needs. Nothing is fitted again there.
+  python3 cluster/gen3_stage1_261012/s1_fitfail_261012.py <group> --per-mass [0.05,0.1] [--root R]
 """
 import argparse, glob, math, os, re, sys, time, warnings
 import numpy as np, pandas as pd, scipy
@@ -57,12 +61,37 @@ def lsq(a, dt, nu_ref):
     return r, on
 
 
+def per_mass_tables(a, base, C):
+    """##CHRIS 2026-10-13 (decision 47 item 5, addendum 2 item 5): per cell, the fit failures per mass and the masses left for E1"""
+    want = None if a.per_mass in ("", "all") else [float(x) for x in a.per_mass.split(",")]
+    cells = sorted((c for c in C.values() if c["g"] == a.group and (want is None or any(abs(c["eta"] - w) < 1e-9 for w in want))),
+                   key=lambda c: (c["N"], c["eta"], c["start"]))
+    print(f"# INTERIM -- group {a.group}: the fit failures per mass and the masses left for E1 (s1_fitfail_261012.py --per-mass; from the fetched "
+          f"tables; nothing fitted again)\n")
+    for c in cells:
+        rows = []
+        for M in sorted(c["masses"]):
+            d = os.path.join(base, c["cid"], f"m_{M}")
+            rows.append(V.per_mass(c, M, V.read_mass(d), jackknife=False) if os.path.isdir(d) else None)
+        print(f"## {c['cid']} (N {c['N']}, eta {c['eta']:.6g})\n")
+        print("| M | alpha | present | excluded | fit failures | lost | group rule | Q_k |\n|---|---|---|---|---|---|---|---|")
+        for M, r in zip(sorted(c["masses"]), rows):
+            if r is None: print(f"| {M} | {c['masses'][M]:g} | no folder | | | | | |"); continue
+            q = f"{r['Q']:.1f}" if math.isfinite(r.get("Q", math.nan)) else "-"
+            print(f"| {M} | {r['alpha']:g} | {r['present']} | {r['excluded']} | {r['fitfail']} | {r['lost']} | {'FLAGGED' if r['flagged'] else '-'} | {q} |")
+        left = [M for M, r in zip(sorted(c["masses"]), rows) if r and r["alpha"] >= 1 and not r["flagged"] and math.isfinite(r.get("c", math.nan))]
+        n8 = sum(1 for M in c["masses"] if c["masses"][M] >= 1)
+        print(f"\nthe masses alpha >= 1 left for E1: {len(left)} of {n8} ({', '.join(map(str, left)) or 'none'}): "
+              + ("5 or more -- the cell keeps its E1 value" if len(left) >= 5 else "FEWER THAN 5 -- the cell has no E1 value") + "\n")
+
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("group"); ap.add_argument("--root", default=os.path.join(HS, "experiments_gen3_stage1_koa_261012"))
-    ap.add_argument("--min", type=int, default=3); a = ap.parse_args()
+    ap.add_argument("--min", type=int, default=3); ap.add_argument("--per-mass", nargs="?", const="all", default=None); a = ap.parse_args()
     base = os.path.join(a.root, a.group, "merged", "stage1", "gen3")
     if not os.path.isdir(base): sys.exit(f"STOP: no fetched folder {base}")
     C = V.registered()
+    if a.per_mass is not None: per_mass_tables(a, base, C); return
     print(f"# INTERIM -- group {a.group}: the nu_d fit failures (s1_fitfail_261012.py; the fit repeated on the Mac: python {sys.version.split()[0]}, "
           f"scipy {scipy.__version__}, numpy {np.__version__})\n")
     allf = []
