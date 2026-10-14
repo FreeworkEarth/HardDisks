@@ -27630,3 +27630,107 @@ Q4: event log over the 50.00 held sigma-time: 1100 rows, 22.0 rows per sigma-tim
   - The tables' first two printings (partA_survey_tables_v1.txt, with the N 100 pilot's cost undefined, and _v2.txt, without the log totals) are kept beside them.
 
 Written for: the plan author
+
+### 4.7.113 Plan-author decision 50: Reports D49-B900 and D49-S accepted (B900 no cancel trigger; S 80 of 80 |z| < 2.6); Report D49-1 accepted, PART A GOES OPTION (ii) (the gen3 lattice start, the exact box, an exact divider position, the forces from the engine's per-face impulse counters; the ε₀ pilot also on (ii), at N 100 and N 400 first; amendment A5 after CC's implementation report; nothing of Part A on KOA before A5); start (ii) now on engine-gen3, steps (a)–(d), one local commit per step, the Part B event hashes first; commit the survey folder; PUSH; B1600 tomorrow; the plan author's meeting notes for Chris (2026-10-14 10:06 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 50** (relayed by Chris at about 10:10 HST, machine date; the plan author's time "~10:05 HST").
+- **Before it, the plan author's notes to Chris for the 13:30 meeting.** The figure is 261014_interim_cs_vs_eta_N100_N400_N900.
+  - **B900:** clean, and Prediction 1 holds everywhere so far.
+    - The plan author's observation, not a verdict: at η 0.30 the three sizes lie closer to a 1/H law (≈ +0.86 % at N 900) than to a pure 1/N_s line (≈ +0.97 %); measured +0.79 %. "To be settled by Verdict K."
+    - Z falls with N almost exactly as 1/H.
+    - The approach cells order differently per size.
+    - Block S's interior densities explain why smaller boxes order earlier.
+  - **S:** every cell will read START-INDEPENDENT when the verdict is printed.
+  - **Watch item for B1600:** a dilute N 1600 cell could lose its E1.
+  - **Part A:** the plan author's decision is option (ii); earliest KOA run Friday; time to push.
+- **1. Reports D49-B900 and D49-S are accepted,** read in full from the Mac.
+  - B900: no cancel trigger. The low-Q flag at η 0.69 stays in and is reported.
+  - S: 80 of 80 |z| < 2.6, no flag.
+  - Noted for B1600: the fit failures follow Q and reached η 0.15 at N 900. An N 1600 cell without E1 would be a registered outcome; no rule changes.
+- **2. Report D49-1 is accepted. DECISION: Part A runs on option (ii).**
+  - Option (i) is not used: grid-rounded boxes shift the KR stiffness by up to 0.55 %, and a second runsheet for a noise coefficient is not worth it.
+  - The ε₀ pilot also runs on (ii), at N 100 and N 400 first, as (ii)'s first KOA step.
+  - The plan author writes amendment A5 after CC's implementation report. It covers the pilot sizes, the impulse-counter readout as the registered force estimator (with the event log as its check on a subset) and the t0 = T_eq window.
+  - Nothing of Part A runs on KOA before A5.
+- **3. Start (ii) now, on engine-gen3, in the order of Report D49-1 sec. 1:**
+  - (a) the exact box and an exact double divider position in the held path, with the position check at 1e-9;
+  - (b) the gen3 lattice start (g3_m4_seed) in the held geometry;
+  - (c) F_L and F_R from edmd3_divider_impulse / edmd3_divider_events at T_eq and at the end of the hold, printed in the run record;
+  - (d) the worker with t0 = T_eq, the hold, the tail, and a reducer of the record lines.
+  - The tests as listed; the first is the Part B path's event hashes, unchanged (as for decision 48).
+  - CC reports, with the diff, when (a)–(d) pass on the Mac. One commit per step, local.
+- **4. Commit the survey folder** experiments_gen3_d49a1_261014/ on engine-gen3 (its scripts and outputs; no binaries).
+- **5. PUSH:** after item 4, Chris pushes main, engine-gen3 and engine-divider-resched (the viewer commits, the survey, the notes). CC prints the push line for him.
+- **6. B1600 and the scratch files:**
+  - B1600's arrays end about 23:00 HST; FG-B1600 is tomorrow's first KOA step (from runsheet eb024a55).
+  - The two 0-byte /tmp files and CC's scratch copies are Chris's call; the plan author has no objection to deleting the /tmp files.
+- **After it, a line to Chris:** nothing on KOA until tomorrow (FG-B1600). When CC prints the push line, Chris types it on the Mac and pastes its output to the plan author.
+
+**The message, verbatim** (relayed by Chris on 2026-10-14 at about 10:10 HST, machine date):
+
+```
+Shared 2 files, read 4 files, and 5 more steps
+I read all three reports from your Mac (B900, S, the Part A survey). The figure 261014_interim_cs_vs_eta_N100_N400_N900 is the one for 13:30.
+
+B900 — what to say at the meeting
+
+Clean: 3,600 of 3,600 trajectories, none excluded; 25 fit failures (0.69 %), four (cell, mass) folders flagged, every cell keeps 6–8 of 8 masses, so every cell has its E1. Timing max 1.17, no time-limit issue. Merge 3:56.
+The main result so far: at every density of the fluid set up to 0.55 the excess over KR falls with N, now across three sizes — at η 0.30: +1.87, +1.11, +0.79 % for N 100, 400, 900. Prediction 1 holds everywhere. One honest observation for the discussion, not a verdict: the three points do not fall on a pure 1/N_s line (that would predict ≈ +0.97 % at N 900, measured +0.79); they are closer to a 1/H law (≈ +0.86 %). The registered fits with N 1600 decide; by eye the extrapolation lands a few tenths of a percent above KR at mid densities. Say it as “to be settled by Verdict K”.
+The pressure Z: above KR and falling with N; at η 0.60: +7.1, +3.7, +2.5 % — almost exactly proportional to 1/H (71, 75, 75 when divided by 1/H). That is the wall effect on the virial, as the registration anticipated.
+The approach cells 0.63–0.69 behave as predicted and differently per size: N 100 orders (ψ6 0.5–0.6, c_s far above KR), N 400 orders at 0.68–0.69, N 900 at 0.66–0.69 lies below KR by 1.7–2.7 % with ψ6 0.14–0.38 and χ²/dof of 100–300 — the standing-wave model fails where the box is partly ordered. Its Z falls below Z_KR at 0.68/0.69 (−2.1, −4.7 %): the onset of ordering lowers the pressure. One low-Q flag (N 900, η 0.69, the two heaviest masses, Q ≈ 4.8): it stays in, reported.
+Why smaller boxes order earlier: block S’s interior-density column shows it. At nominal η 0.69 the interior sits at 0.707 (N 400), 0.695 (N 900), 0.694 (N 1600) — the wall depletion layers push the interior above the nominal density, into the coexistence region at N 400. A good slide.
+S (the start check): 800 of 800, 0 fit failures, 0 flagged. All 80 z-values between the two lattice orientations are below 2.6 (threshold 3.5) — every cell will read START-INDEPENDENT when the verdict is printed. ψ6 at η 0.69: 0.62 / 0.39 / 0.385 / 0.35 for N 100 / 400 / 900 / 1600, the same for both starts. And N 1600’s Z and ψ6 at 0.60–0.69 are now known from S before B1600 is merged.
+
+Watch item for B1600 (no action): the fit failures track high Q, and Q grows with N: at N 900 they reached η 0.15. At N 1600 a dilute cell could drop below 5 masses and have no E1 — a registered outcome; the fit over N would then rest on three sizes at that density.
+
+Part A — my decision (decision 50): option (ii), CC’s proposal: add the gen3 lattice start, the exact box and an exact divider position to the held path, and read the forces from the engine’s own per-face impulse counters instead of a 2.8 TB event log. Option (i) would shift the KR stiffness by up to 0.55 % through grid-rounded boxes — half the budget of the identity test — and would need a second runsheet for nothing. The ε₀ pilot also runs on (ii), at N 100 and N 400 first (cheap: ~5 core-hours), as (ii)’s first KOA step and its smoke test; I write amendment A5 when CC’s implementation report is in. No KOA command for Part A before that; earliest KOA run Friday. Also: time to push — all three branches carry last night’s viewer commits and today’s notes.
+
+Step now: paste this to CC.
+
+From the plan author (Cowork), relayed by Chris. Record as decision 50.
+
+DECISION 50 (2026-10-14 ~10:05 HST): B900 AND S INTERIM READ; PART A
+GOES OPTION (ii); PUSH
+ 1. Reports D49-B900 and D49-S: ACCEPTED, read in full from the Mac.
+    B900: no cancel trigger (0 excluded, 0.69 % fit failures, every
+    cell keeps >= 6 masses; low-Q flag at eta 0.69 stays in and is
+    reported). S: 80 of 80 |z| < 2.6, no flag. Noted for B1600: fit
+    failures follow Q and reached eta 0.15 at N 900; a N 1600 cell
+    without E1 would be a registered outcome, no rule changes.
+ 2. Report D49-1 (the Part A survey): ACCEPTED. DECISION: Part A runs
+    on option (ii). Option (i) is not used (grid-rounded boxes shift
+    the KR stiffness by up to 0.55 %; a second runsheet for a noise
+    coefficient is not worth it). The epsilon_0 pilot also runs on
+    (ii), at N 100 and N 400 first, as (ii)'s first KOA step; the
+    plan author writes amendment A5 (pilot sizes, the impulse-counter
+    readout as the registered force estimator with the event log as
+    its check on a subset, the t0 = T_eq window) after your
+    implementation report. Nothing of Part A runs on KOA before A5.
+ 3. Start (ii) now, on engine-gen3, in the order of your sec. 1:
+    (a) the exact box and an exact double divider position in the
+    held path, position check at 1e-9; (b) the gen3 lattice start
+    (g3_m4_seed) in the held geometry; (c) F_L, F_R from
+    edmd3_divider_impulse / edmd3_divider_events at T_eq and at the
+    end of the hold, printed in the run record; (d) the worker with
+    t0 = T_eq, the hold, the tail, and a reducer of the record lines.
+    Tests as you listed them; the first test is the Part B path's
+    event hashes unchanged (as for decision 48). Report when (a)-(d)
+    pass on the Mac, with the diff. One commit per step, local.
+ 4. Commit the survey folder experiments_gen3_d49a1_261014/ on
+    engine-gen3 (its scripts and outputs; no binaries).
+ 5. PUSH: Chris pushes main, engine-gen3 and engine-divider-resched
+    after item 4 (the viewer commits, the survey, the notes). Print
+    the push line for him.
+ 6. B1600: its arrays end ~23:00 HST; FG-B1600 is tomorrow's first
+    KOA step (from runsheet eb024a55). The two /tmp 0-byte files and
+    your scratch copies: Chris's call; I have no objection to deleting
+    the /tmp files.
+
+End with "Written for: the plan author".
+Nothing on KOA until tomorrow (FG-B1600). When CC prints the push line, type it on the Mac and paste its output to me.
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
