@@ -76,7 +76,10 @@ def main():
     G.sh(["git", "-C", k2, "add", "-u"]); G.sh(["git", "-C", k2, "add", f"hspist3/{G.P}/build_record_f72d764.txt", f"hspist3/{G.P}/s1_inputs.sha256", f"hspist3/{G.P}/s1_merge_inputs.sha256"])
     G.sh(["git", "-C", k2, "-c", "user.name=rehearsal", "-c", "user.email=rehearsal@localhost", "commit", "-q", "-m", "REHEARSAL stand-in: mini list and table, Lustre path, manifests"])
     Q = G.sh(["git", "-C", k2, "rev-parse", "HEAD"]).stdout.strip()
-    rc_ = os.path.join(home, "harddisks_gen3_rc"); G.sh(["git", "clone", "-q", "--shared", k2, rc_]); G.sh(["git", "-C", rc_, "-c", "advice.detachedHead=false", "checkout", "-q", Q])
+    rc_ = os.path.join(home, "harddisks_gen3_rc")                       # as the runsheet's block B: a sparse clone (K2's set) at the commit
+    G.sh(["git", "clone", "-q", "--no-checkout", "--shared", k2, rc_]); G.sh(["git", "-C", rc_, "config", "core.sparseCheckout", "true"])
+    open(os.path.join(rc_, ".git", "info", "sparse-checkout"), "w").write("/hspist3/*.py\n/hspist3/cluster/\n/hspist3/validation/\n")
+    G.sh(["git", "-C", rc_, "-c", "advice.detachedHead=false", "checkout", "-q", Q])
     rcs = os.path.join(rc_, "hspist3"); os.makedirs(os.path.join(rcs, "logs"))
     chk = G.sh(["bash", "-c", "shasum -a 256 -c cluster/gen3_stage1_261012/s1_inputs.sha256 cluster/gen3_stage1_261012/s1_merge_inputs.sha256 cluster/gen3_s1_complete_261013/s1_complete_inputs.sha256 | grep -c ': OK$'"], cwd=rcs, check=False).stdout.strip()
     res("the substitutions; the completion's Lustre path and manifest; the clone home/harddisks_gen3_rc", "the three manifests pass in the rc clone",
