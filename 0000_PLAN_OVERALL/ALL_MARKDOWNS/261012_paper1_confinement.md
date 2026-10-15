@@ -29328,3 +29328,83 @@ B_N0400_eta0.680000  2 1302120951       0 lines along x lines along x      alt 1
 - engine-gen3: the pin is committed right after Chris's push lands, with its evidence (the package's pa_orient.py, the table, the worker, the reducer, the generator, the READMEs; tests g1_pin, g2_C2P, g3_pin_rehearsal; the two scripts). It stays local, and its hash follows.
 
 Written for: the plan author
+
+### 4.7.120 Plan-author decision 52, addendum 1: the return-map panel is the next deliverable, built now before anything else (the Stage 2 / D2 sizing waits behind it); the spec in one place (per disk θ_n and θ_n+1 of consecutive collisions, a 90 × 90 log-scale histogram over the last K collisions, K halved and doubled by keys, a counter; line of centres by default, walls in a second colour with a key to hide them, a key for the velocity after the hit, a key for one compartment; one free key opens and closes it, in the help line; live at the display's rate from the gen3 events of the window's scene); the rules (a gather hook that does nothing unless open; no engine state, event order, experiment-loop or KOA path touched); the tests (equal event hashes closed, open from the start, toggled; Part B's six task lines; PNG frames at η 0.30 and 0.69, N 400); the delivery (a local commit, a clean build in a new folder, Chris's command line and the key list, with the report; if unfinished tonight, where it stands first thing tomorrow) (2026-10-14 22:06 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 52, addendum 1** (relayed by Chris at about 22:04 HST, machine date; the plan author's time "~22:05 HST").
+- **State at relay time:**
+  - Chris's push had landed: the three heads equal origin (main c6600e96, engine-gen3 11b87b28, engine-divider-resched 26514b21). The four (ii) commits are out.
+  - The orientation pin of Report D53-2 has since been committed locally on engine-gen3 as a102d011. That is the commit A5's KOA build names (decision 53 item 2).
+- **1. The panel first.** Build the collision return-map panel of decision 52 item 2 now, before anything else; the Stage 2 / D2 sizing of decision 53 item 4 waits behind it. Chris wants it in the viewer behind one key.
+- **2. The spec, in one place:**
+  - **What is plotted:** per disk, θ_n in [0, 2π) of its n-th collision. The pairs (θ_n, θ_n+1) of consecutive collisions of the same disk form a 2D histogram.
+  - **The histogram:**
+    - 90 × 90 bins, a log colour scale, axes 0 to 2π with ticks at multiples of π/3;
+    - over the last K collisions (K default 20,000; keys halve and double it);
+    - with a counter of the events used.
+  - **The angle:**
+    - Default: the line of centres from the disk to its partner at a pair collision.
+    - Wall hits are drawn as the wall normal in a second colour, with a key to hide them.
+    - A key switches to the direction of the disk's velocity after the hit.
+  - **Compartments:** both by default, a key for left or right only.
+  - **Opening:** one free key opens and closes the panel; it goes in the help line.
+  - **Updating:** live at the display's rate, built from the gen3 events of the window's scene.
+- **3. Rules:**
+  - A gather hook that does nothing unless the panel is open.
+  - No engine state, no event order, no experiment-loop or KOA path touched.
+  - A window run with the panel is a demonstration, never data.
+- **The tests:**
+  - equal event hashes for the same scene with the panel closed, open from the start, and toggled during the run;
+  - Part B's six registered task lines unchanged;
+  - a frame of the panel as PNG at a fluid density (η 0.30) and at η 0.69, N 400.
+- **4. Deliver:**
+  - the commit (local, engine-gen3);
+  - a clean build into a new folder;
+  - Chris's command line (his usual flags, the new path) and the key list;
+  - the report.
+  - If it is not finished tonight, report where it stands first thing tomorrow.
+
+**The message, verbatim** (relayed by Chris on 2026-10-14 at about 22:04 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record as decision 52,
+addendum 1.
+
+DECISION 52, ADDENDUM 1 (2026-10-14 ~22:05 HST): THE RETURN-MAP PANEL
+IS THE NEXT DELIVERABLE
+ 1. Build the collision return-map panel of decision 52 item 2 now,
+    before anything else (the Stage 2 / D2 sizing of decision 53 item
+    4 waits behind it). Chris wants it in the viewer behind one key.
+ 2. The spec, in one place: per disk, theta_n in [0, 2 pi) of its
+    n-th collision; the panel plots the pairs (theta_n, theta_n+1) of
+    consecutive collisions of the same disk as a 2D histogram, 90 x 90
+    bins, log colour scale, axes 0..2 pi with ticks at multiples of
+    pi/3, over the last K collisions (K default 20,000; keys to halve
+    and double it), with a counter of the events used. Default angle:
+    the line of centres from the disk to its partner at a pair
+    collision; wall hits as the wall normal in a second colour, with a
+    key to hide them; a key switches to the direction of the disk's
+    velocity after the hit. Both compartments by default, a key for
+    left or right only. One key opens and closes the panel (choose a
+    free one; put it in the help line). It updates live at the
+    display's rate and is built from the gen3 events of the window's
+    scene.
+ 3. Rules: a gather hook that does nothing unless the panel is open;
+    no engine state, no event order, no experiment-loop or KOA path
+    touched. Tests: equal event hashes for the same scene with the
+    panel closed, open from the start, and toggled during the run;
+    Part B's six registered task lines unchanged; a frame of the
+    panel at a fluid density (eta 0.30) and at eta 0.69, N 400, as
+    PNG. A window run with the panel is a demonstration, never data.
+ 4. Deliver: the commit (local, engine-gen3), a clean build into a
+    new folder, Chris's command line (his usual flags, the new path)
+    and the key list, with the report. If it is not finished tonight,
+    report where it stands first thing tomorrow.
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
