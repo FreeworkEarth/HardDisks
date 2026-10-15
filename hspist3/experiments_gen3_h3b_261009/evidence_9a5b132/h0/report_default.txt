@@ -1,0 +1,50 @@
+## Schedule-equivalence audit and contact audit (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_h3b_261009/evidence_9a5b132/h0/default)
+
+| case | version (audit run) | mode | audited events | matched | missing | extra | abs(dt) > 1e-9 | duplicate live disagreeing | max abs(dt) matched | abs(dt) > 1e-9 and > 1e-10 of horizon | max abs(dt)/horizon | max contact gap [px] (dd, wall, div, piston) | audit vs plain | plain vs ref |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | git 9a5b132  target mac-O3-e0pre | 2 | 104866 | 58275689 | 0 | 0 | 696 | 0 | 2.42e-08 | 0 | 1.84e-13 | 4.7e-12, 4.0e-12, 2.3e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+| ctrl_leg | git 9a5b132  target mac-O3-e0pre | 2 | 104776 | 58349834 | 0 | 0 | 423 | 0 | 2.86e-06 | 0 | 4.59e-12 | 5.2e-12, 3.0e-12, 3.0e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+
+### E2 as amended (2026-10-07, item 1) and E0
+
+| case | mode | audited events | missing | extra | dup. disagreeing | abs(dt) > 1e-9 (engine) | printed | above 1e-8 of horizon (dt) | no true contact | heap error > 1e-8 of horizon | largest heap error / horizon | count above 1e-10 | max contact [px] | plain vs ref | E2 row |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | 2 | 104866 | 0 | 0 | 0 | 696 | 696 | 0 | 0 | 0 | 1.54e-12 | 0 | 4.7e-12 | IDENTICAL | information |
+| ctrl_leg | 2 | 104776 | 0 | 0 | 0 | 423 | 423 | 0 | 0 | 0 | 7.21e-11 | 0 | 5.2e-12 | IDENTICAL | information |
+
+minimum sizes: free_M50_long 0 audited (>= 100000: NO); free_M2000 0 audited (>= 100000: NO); afix 0 audited (>= 10000: NO); dense state present: NO
+largest heap error / horizon, minimal-path mode-1 cases: nan; legacy control (ctrl_leg): 7.21e-11
+E2 (amended): FAIL; E0 (plain vs ref IDENTICAL in ctrl_min, ctrl_leg): FAIL (or not run)
+
+RULE (mode-1 audits of the minimal path): missing + extra + (abs(dt) > 1e-9) summed over all runs = 0 -> ZERO: the minimal schedule equals the legacy schedule on these trajectories
+same with the relative criterion (abs(dt) > 1e-9 AND > 1e-10 of the prediction horizon; information, not registered): 0
+
+### Every reported event, recomputed at 60 digits (validation/resched_audit_bruteforce_261007.py)
+
+(the first 50 reported events of each run; the engine counts all of them, see the table above)
+
+**ctrl_min**
+
+brute-force summary over 696 reported events: largest |t_heap - t_true| / horizon = 1.54e-12; largest |t_legacy - t_true| / horizon = 1.54e-12; longest horizon 4.116e+07 px-time; events with no true contact: 0
+**ctrl_leg**
+
+brute-force summary over 423 reported events: largest |t_heap - t_true| / horizon = 7.21e-11; largest |t_legacy - t_true| / horizon = 7.21e-11; longest horizon 5.396e+09 px-time; events with no true contact: 0
+
+first 12 events in full:
+
+| kind | type | a | b/d | now | horizon t_true - now | t_legacy - t_true | t_heap - t_true | heap error / horizon | brute force |
+|---|---|---|---|---|---|---|---|---|---|
+| dt | WR | 58 | - | 333.355291 | 2.0224e+06 | -7.167e-12 | +1.593e-09 | 7.88e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.504990 | 2.0224e+06 | +3.074e-11 | +1.631e-09 | 8.06e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.516952 | 2.0224e+06 | +9.670e-11 | +1.497e-09 | 7.40e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.583669 | 2.0224e+06 | -8.967e-11 | +1.510e-09 | 7.47e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.635798 | 2.0224e+06 | +1.971e-11 | +1.620e-09 | 8.01e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.666545 | 2.0224e+06 | +1.441e-10 | +1.544e-09 | 7.64e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.839086 | 2.0224e+06 | +2.577e-10 | +1.358e-09 | 6.71e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.870853 | 2.0224e+06 | -2.786e-11 | +1.072e-09 | 5.30e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.961298 | 2.0224e+06 | +1.924e-11 | +1.119e-09 | 5.53e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 334.000476 | 2.0224e+06 | +1.453e-10 | +1.245e-09 | 6.16e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 334.006705 | 2.0224e+06 | +9.169e-11 | +1.192e-09 | 5.89e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 334.127026 | 2.0224e+06 | +1.077e-10 | +1.508e-09 | 7.45e-16 | gap 1.623e+2 px |
+
+brute-force summary over 12 reported events: largest |t_heap - t_true| / horizon = 8.06e-16; largest |t_legacy - t_true| / horizon = 1.27e-16; longest horizon 2.022e+06 px-time; events with no true contact: 0

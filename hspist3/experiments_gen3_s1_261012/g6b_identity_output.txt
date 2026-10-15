@@ -1,0 +1,73 @@
+# Gate G6 (b): the sources compiled into 00ALLINONE at a643bc7 and f72d764 (decision 39 item 5 b), printed by experiments_gen3_s1_261012/g6b_identity.py
+
+the Makefile's link line, both commits: $(TG).c $(KISSFFT_SRCS) $(EDMD_SRCS) $(VALIDATION_SRCS) -> 00ALLINONE.c kissfft/kiss_fft.c kissfft/kiss_fftr.c edmd_core/edmd.c edmd_core/edmd_accelerated.c edmd_core/edmd_gen3.c experiment_validation.c
+compiled sources and their #include closure: a643bc7 15 files, f72d764 15 files; the same list: True
+
+| file | SHA-256 at a643bc7 | SHA-256 at f72d764 | identical |
+|---|---|---|---|
+| 00ALLINONE.c | fd8eae55ef981ffb455f7b773106a9228bc178e4650552c8d123f685372d5eff | eebaaeca31efb262a5036e2cc2b40d7739000f3f3e3ab2e7351a3448f18ab3f7 | **NO** |
+| Makefile | ea23468cd6627957eaff5f8c4097ea47d6c847c8d95a47d345b8cc97a10c8530 | ea23468cd6627957eaff5f8c4097ea47d6c847c8d95a47d345b8cc97a10c8530 | yes |
+| edmd_core/edmd.c | 3fffcb598994e65b20a3651993892395945091919d04b6ce6305de41f0540d8f | 3fffcb598994e65b20a3651993892395945091919d04b6ce6305de41f0540d8f | yes |
+| edmd_core/edmd.h | 9eb7803620799c4d3f48ab9057e71d22d23bafa16da732e5f2f1b381c786b419 | 9eb7803620799c4d3f48ab9057e71d22d23bafa16da732e5f2f1b381c786b419 | yes |
+| edmd_core/edmd_accelerated.c | 0013bf0f6baffef79399dc742ab959f875f9d36bb7cabc98ece6e08b09e54340 | 0013bf0f6baffef79399dc742ab959f875f9d36bb7cabc98ece6e08b09e54340 | yes |
+| edmd_core/edmd_accelerated.h | 0a6d3c244f6cf504d9bd069ef2263c23d9609b29b68cd95b94ad0e7e5dc01175 | 0a6d3c244f6cf504d9bd069ef2263c23d9609b29b68cd95b94ad0e7e5dc01175 | yes |
+| edmd_core/edmd_gen3.c | 352aa780c259ea8a5dcdd98319c02ff0fe6e5545d90eb41766f662c3fe576273 | 352aa780c259ea8a5dcdd98319c02ff0fe6e5545d90eb41766f662c3fe576273 | yes |
+| edmd_core/edmd_gen3.h | 359743aec025b8c016300dd3a6aa55c932a462e701d6992c1d4f4e168e03f0ce | 359743aec025b8c016300dd3a6aa55c932a462e701d6992c1d4f4e168e03f0ce | yes |
+| experiment_validation.c | bdd8f2eaba9f188b712dfc6a21990e25764a209a170a27ce7abc95781c14c26e | bdd8f2eaba9f188b712dfc6a21990e25764a209a170a27ce7abc95781c14c26e | yes |
+| experiment_validation.h | e1c5cfeeef4f9a17543d51fb9219c264e37c285dbc838e75fbac7fa6eac16f97 | e1c5cfeeef4f9a17543d51fb9219c264e37c285dbc838e75fbac7fa6eac16f97 | yes |
+| kissfft/_kiss_fft_guts.h (submodule febd4cae) | dd1731891d0fff0e297198847de39216c5c8b9677ea4fe53160d1f6c74218d40 | dd1731891d0fff0e297198847de39216c5c8b9677ea4fe53160d1f6c74218d40 | yes |
+| kissfft/kiss_fft.c (submodule febd4cae) | 3e8af99313c7e94f952ac12db46d3d5c5dd4a9bf93e0c32d43efa5fe39724051 | 3e8af99313c7e94f952ac12db46d3d5c5dd4a9bf93e0c32d43efa5fe39724051 | yes |
+| kissfft/kiss_fft.h (submodule febd4cae) | 9d6c7ddf520932c0aad669c86c064a24e571e594681be9f1491c14c9c9c75693 | 9d6c7ddf520932c0aad669c86c064a24e571e594681be9f1491c14c9c9c75693 | yes |
+| kissfft/kiss_fft_log.h (submodule febd4cae) | f954cb6890ec999f7fbc80cdd1c8c0194bbaeb0f1c27e11bd23450f53871cf8c | f954cb6890ec999f7fbc80cdd1c8c0194bbaeb0f1c27e11bd23450f53871cf8c | yes |
+| kissfft/kiss_fftr.c (submodule febd4cae) | 128b651120725e8d55f6b9edf5d44b06dc022b260894eac078c6ff8aa7159561 | 128b651120725e8d55f6b9edf5d44b06dc022b260894eac078c6ff8aa7159561 | yes |
+| kissfft/kiss_fftr.h (submodule febd4cae) | a0f72c1bddc3126d7a51ad80e965b58f6af77e4419aa882a0b11951e783632a8 | a0f72c1bddc3126d7a51ad80e965b58f6af77e4419aa882a0b11951e783632a8 | yes |
+
+files that differ: 00ALLINONE.c
+kissfft gitlink: a643bc7 febd4caeed32e33ad8b2e0bb5ea77542c40f18ec, f72d764 febd4caeed32e33ad8b2e0bb5ea77542c40f18ec
+
+git diff --stat a643bc7 f72d764 -- <the same paths>:
+
+     hspist3/00ALLINONE.c | 382 +++++++++++++++++++++++++++++++++++++++++++++++++--
+     1 file changed, 369 insertions(+), 13 deletions(-)
+
+EVERY COMPILED SOURCE EXCEPT 00ALLINONE.c IS BYTE-IDENTICAL BETWEEN a643bc7 AND f72d764: YES
+(the build also passes -DBUILD_GIT=<commit> (Makefile PROVENANCE): the version line, "git a643bc7" or "git f72d764", differs by design)
+
+## The parts of 00ALLINONE.c that differ: 32 hunks (git diff -U0 a643bc7 f72d764; the full diff with context in g6b_00ALLINONE_diff.txt)
+
+| # | a643bc7 lines | f72d764 lines | - / + | enclosing function (git's hunk header) | the change, by its ##CHRIS tag or first changed line |
+|---|---|---|---|---|---|
+| 1 | 1281-1281 (0) | 1282-1283 (2) | 0 / 2 | static int    cli_gen3_orient = -1;            /* --gen3-lattice=auto  | static int cli_gen3_cryst = -1; /* ##CHRIS 2026-10-10 (decision 18, item 2, M4c): --gen3-lattice-orientation=0 (0) \| turned (1): |
+| 2 | 1299-1299 (0) | 1302-1311 (10) | 0 / 10 | static double cli_gen3_snapshots = 0.0;       /* --gen3-snapshots=T: e | /* ##CHRIS 2026-10-10 (plan-author decision 17; 261012 sec. 4.7.40): PROVISIONAL -- psi6 per compartment (psi6_compartments) */ |
+| 3 | 4881-4881 (0) | 4894-4894 (1) | 0 / 1 | static void parse_cli_options(int argc, char **argv) { | else if (strcmp(v, "compressed") == 0) cli_gen3_seeding = 2; /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b */ |
+| 4 | 4883-4883 (1) | 4896-4906 (11) | 1 / 11 | static void parse_cli_options(int argc, char **argv) { | \|\| strncmp(arg, "--gen3-compress-speed=", strlen("--gen3-compress-speed=")) == 0) { /* ##CHRIS 2026-10-09 (decision 13, item 4) */ |
+| 5 | 4889-4889 (0) | 4913-4917 (5) | 0 / 5 | static void parse_cli_options(int argc, char **argv) { | } else if (strncmp(arg, "--gen3-lattice-orientation=", strlen("--gen3-lattice-orientation=")) == 0) { /* ##CHRIS 2026-10-10 (decision 18, M4c) */ |
+| 6 | 4916-4916 (0) | 4945-4948 (4) | 0 / 4 | static void parse_cli_options(int argc, char **argv) { | } else if (strcmp(arg, "--gen3-psi6-compartments") == 0) { /* ##CHRIS 2026-10-10 (decision 17): provisional */ |
+| 7 | 15720-15720 (0) | 15753-15800 (48) | 0 / 48 | static Psi6Result compute_psi6_from_edmd(const EDMD *state, double cut | /* ##CHRIS 2026-10-10 (plan-author decision 17, "after P5"; 261012 sec. 4.7.40) -- PROVISIONAL: PSI6 PER COMPARTMENT. |
+| 8 | 16019-16019 (0) | 16100-16129 (30) | 0 / 30 | static int write_speed_sound_batch_status(const char *folder, | /* ##CHRIS 2026-10-10 (decision 17; provisional): with --gen3-psi6-compartments each row ends with the compartments' psi6 of |
+| 9 | 16025-16025 (1) | 16135-16137 (3) | 1 / 3 | static void g3_psi6_series_sample(FILE* f, double* next_t, const char* | g3_psi6_comp_row(f); /* ##CHRIS 2026-10-10 (decision 17): nothing without --gen3-psi6-compartments */ |
+| 10 | 16091-16091 (1) | 16203-16204 (2) | 1 / 2 | static void g3_run_extras(void){ | typedef struct { int ok, orient, alt, ns, nr, nvac; double as, ar, g, gw, s, jit; int cryst; } G3Lattice; /* alt: shifted rows hold n_r - 1 |
+| 11 | 16118-16118 (1) | 16231-16244 (14) | 1 / 14 | static int g3_lat_sites(int ns, int nr, int alt){ return alt ? ((ns +  | /* ##CHRIS 2026-10-10 (plan-author decision 18, item 2; 261012 sec. 4.7.41-4.7.42): M4c, THE CRYSTAL ORIENTATION of an arrangement -- |
+| 12 | 16139-16139 (0) | 16266-16266 (1) | 0 / 1 | static int g3_lattice_fit(int n_disks, double R, double Wx, double Hy, | if (cryst_req >= 0 && g3_lat_cryst(o, ns, nr, as, ar) != cryst_req) continue; /* ##CHRIS (decision 18, M4c) */ |
+| 13 | 16142-16142 (0) | 16270-16270 (1) | 0 / 1 | static int g3_lattice_fit(int n_disks, double R, double Wx, double Hy, | L->cryst = g3_lat_cryst(o, ns, nr, as, ar); |
+| 14 | 16183-16183 (1) | 16311-16312 (2) | 1 / 2 | static void g3_lattice_place(G3Lattice* L, double R, double x0, double | int cryst_req){ /* ##CHRIS 2026-10-10 (decision 18, M4c): cryst_req -1 for M4b and for M4 without the flag */ |
+| 15 | 16186-16187 (2) | 16315-16320 (6) | 2 / 6 | static void g3_m4_seed(EDMD_Particle* P, int N, int NL, double boxW, d | if (cryst_req >= 0) /* ##CHRIS 2026-10-10 (decision 18, M4c): the request and the arrangements found, before any stop */ |
+| 16 | 16215-16215 (1) | 16348-16348 (1) | 1 / 1 | static void g3_m4_init_driver(double L0d, unsigned run_seed){ | g3_m4_seed(g3_m4_P, N, NL, boxW, boxH, (double)PARTICLE_RADIUS, c, (double)WALL_THICKNESS, run_seed, cli_gen3_cryst); /* ##CHRIS (decision 18, M4c) */ |
+| 17 | 16239-16239 (0) | 16373-16516 (144) | 0 / 144 | static void g3_m4_init_driver(double L0d, unsigned run_seed){ | /* ##CHRIS 2026-10-09 (plan-author decision 13, item 4; 261012 sec. 4.7.30): M4b, THE COMPRESSED-FLUID START (gen3 only, |
+| 18 | 16257-16257 (1) | 16534-16534 (1) | 1 / 1 | static void g3_run_header(const char* id, double boxW, double boxH, in | (double)N * M_PI * (double)PARTICLE_RADIUS * (double)PARTICLE_RADIUS / (boxW * boxH), N, NL, N - NL, cli_gen3_seeding == 2 ? "compressed (M4b; the lat |
+| 19 | 16427-16427 (0) | 16705-16705 (1) | 0 / 1 | typedef struct { | int psi6_comp; /* ##CHRIS 2026-10-10 (decision 18, item 1): --gen3-psi6-compartments (the psi6(t) columns) */ |
+| 20 | 16429-16429 (1) | 16707-16707 (1) | 1 / 1 | typedef struct { | #define G3_RUN_CKPT_MAGIC "g3-run-ckpt-v3" /* v2 (part 3a): the virial blocks and the snapshots; v3 (decision 18): psi6_comp */ |
+| 21 | 16440-16440 (0) | 16719-16719 (1) | 0 / 1 | static void g3_ckpt_identity(G3RunCkpt* c, const G3RunRefs* rf){ | c->psi6_comp = cli_gen3_psi6_comp; /* ##CHRIS 2026-10-10 (decision 18, item 1) */ |
+| 22 | 16500-16500 (1) | 16779-16779 (1) | 1 / 1 | static int g3_restart_apply(const G3RunRefs* rf){ | if (fread(&c, sizeof c, 1, f) != 1 \|\| memcmp(c.magic, G3_RUN_CKPT_MAGIC, sizeof G3_RUN_CKPT_MAGIC) != 0) g3_stop("restart: not a gen3 run checkpoint ( |
+| 23 | 16506-16506 (0) | 16786-16787 (2) | 0 / 2 | static int g3_restart_apply(const G3RunRefs* rf){ | if (c.psi6_comp != me.psi6_comp) /* ##CHRIS 2026-10-10 (decision 18, item 1): the restored psi6(t) file must keep its columns */ |
+| 24 | 16703-16703 (1) | 16984-16985 (2) | 1 / 2 | void run_speed_of_sound_experiments() { | if (cli_gen3_seeding == 2) g3_m4b_init_driver(L0d, run_seed, (double)L0, wall_mass_factors[m], r); /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b */ |
+| 25 | 16920-16920 (0) | 17203-17204 (2) | 0 / 2 | void run_speed_of_sound_experiments() { | if (cli_gen3_seeding == 2) /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b's rescaled velocities, as doubles */ |
+| 26 | 16923-16923 (0) | 17208-17212 (5) | 0 / 5 | void run_speed_of_sound_experiments() { | if (cli_gen3_seeding == 2) { /* ##CHRIS 2026-10-09 (decision 13, item 4): psi6 of the carried state, read-only */ |
+| 27 | 16984-16984 (1) | 17273-17275 (3) | 1 / 3 | void run_speed_of_sound_experiments() { | g3_psi6_comp_header(psi6_series); /* ##CHRIS 2026-10-10 (decision 17): nothing without --gen3-psi6-compartments */ |
+| 28 | 21957-21957 (0) | 22249-22290 (42) | 0 / 42 | static int run_gen3_replay(const char* path){ | /* ##CHRIS 2026-10-10 (plan-author decision 17; 261012 sec. 4.7.40) -- PROVISIONAL: --gen3-psi6-snapshots=FILE reads a snapshot file |
+| 29 | 21964-21964 (0) | 22298-22298 (1) | 0 / 1 | int main(int argc, char* argv[]) { | if (cli_gen3_psi6_snaps) return run_gen3_psi6_snapshots(cli_gen3_psi6_snaps); /* ##CHRIS 2026-10-10 (decision 17): provisional */ |
+| 30 | 22062-22062 (0) | 22397-22406 (10) | 0 / 10 | int main(int argc, char* argv[]) { | else if (cli_gen3_psi6_comp && !sos) /* ##CHRIS 2026-10-10 (decision 17; since decision 18 item 1 a checkpoint carries it) */ |
+| 31 | 22064-22064 (0) | 22409-22416 (8) | 0 / 8 | int main(int argc, char* argv[]) { | if (cli_engine != 3 && cli_gen3_cryst >= 0) { /* ##CHRIS 2026-10-10 (decision 18, M4c) */ |
+| 32 | 22076-22076 (0) | 22429-22432 (4) | 0 / 4 | int main(int argc, char* argv[]) { | if (cli_engine != 3 && cli_gen3_psi6_comp) { /* ##CHRIS 2026-10-10 (decision 17): provisional */ |
+
+00ALLINONE.c: +369 -13 lines; the commits: f72d764a decision 18 items 1-2 (261012 sec. 4.7.42): checkpoint carries --gen3-psi6-compartments (format v3); ; 0d7f1ca9 decision 17, after P5 (261012 sec. 4.7.40): PROVISIONAL psi6 per compartment -- --gen3-psi6-compartme; 06e72484 decision 13, item 4 (261012 sec. 4.7.30): M4b, the compressed-fluid start -- code and evidence script

@@ -1,0 +1,8 @@
+# Command
+
+- Timestamp: 2026-10-10 17:01:54 HST
+- CWD: `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d19_261010/evidence_7f6adca/steer/gen2_window`
+
+```sh
+/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d19_261010/bin_7f6adca/00ALLINONE --show-simulation --mode=edmd --engine=gen2 --edmd-acc=0 --seed-drift-order=drift-first --kbt1 --particles=400 --particles-boxes=200,200 --particle-radius=0.5 --l0=25.3400 --height=20.0000 --num-walls=1 --wall-positions=25.3400 --wall-mass-factors=50 --wall-hold-steps=600 --fixed-dt=0.4 --seed=9300 --demo --demo-shot=/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d19_261010/evidence_7f6adca/steer/gen2_window/shot.bmp,700 --piston-right-protocol-mode=step --velocity-right-piston-step=0.02 --max-right-piston-travel=3 --time=40 --gui-stats
+```

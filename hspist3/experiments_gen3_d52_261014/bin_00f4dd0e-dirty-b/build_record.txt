@@ -1,0 +1,335 @@
+# the return-map panel (panel-b), decision 52 (261012 sec. 4.7.120): 00f4dd0e-dirty (00f4dd0ec5955da9c5d2c3a71248e67b2e310f12 plus the uncommitted edits of 00ALLINONE.c and edmd_core), 2026-10-14 22:14:29 HST, Apple M3 Max, Apple clang version 17.0.0 (clang-1700.4.4.1)
+
+- built from the engine-gen3 worktree; the other dirty files of the worktree are not sources of the build
+- the command (that of experiments_gen3_d48_261013/scripts/build_d48.sh, with BUILD_GIT and the output changed), 6 s:
+  `cc -o /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d52_261014/bin_00f4dd0e-dirty-b/00ALLINONE 00ALLINONE.c kissfft/kiss_fft.c kissfft/kiss_fftr.c edmd_core/edmd.c edmd_core/edmd_accelerated.c edmd_core/edmd_gen3.c experiment_validation.c -O3 -ffp-contract=off -I/opt/homebrew/include/SDL2 -I/opt/homebrew/include -D_THREAD_SAFE -I/opt/homebrew/Cellar/harfbuzz/12.2.0_1/include/harfbuzz -I/opt/homebrew/Cellar/glib/2.86.3/include/glib-2.0 -I/opt/homebrew/Cellar/glib/2.86.3/lib/glib-2.0/include -I/opt/homebrew/opt/gettext/include -I/opt/homebrew/Cellar/pcre2/10.47_1/include -I/opt/homebrew/Cellar/graphite2/1.3.14/include -I/opt/homebrew/opt/freetype/include/freetype2 -I/opt/homebrew/opt/libpng/include/libpng16 -DBUILD_GIT=\"00f4dd0e-dirty\" -DBUILD_TARGET=\"mac-O3-e0pre\" -DBUILD_CFLAGS=\"-O3\ -ffp-contract=off\" -L/opt/homebrew/Cellar/sdl2_ttf/2.24.0/lib -lSDL2_ttf -L/opt/homebrew/lib -lSDL2 -L/opt/homebrew/lib -lGLEW -framework OpenGL -framework CoreGraphics `
+- -Wall -Wextra on the driver's sources (syntax only): 25 warnings, by file:   25 00ALLINONE.c;
+
+## SHA-256 of the sources and of the binary
+
+    727dc1f51b6127bdf73a2edc2dcc16302894faa0fb294c029d0750a83f4bc5a9  00ALLINONE.c
+    3e8af99313c7e94f952ac12db46d3d5c5dd4a9bf93e0c32d43efa5fe39724051  kissfft/kiss_fft.c
+    128b651120725e8d55f6b9edf5d44b06dc022b260894eac078c6ff8aa7159561  kissfft/kiss_fftr.c
+    3fffcb598994e65b20a3651993892395945091919d04b6ce6305de41f0540d8f  edmd_core/edmd.c
+    0013bf0f6baffef79399dc742ab959f875f9d36bb7cabc98ece6e08b09e54340  edmd_core/edmd_accelerated.c
+    965333031b1e0c1a52e3a3d0ea1f96a5668baa898b1f7e9fe0380e50c2190d9b  edmd_core/edmd_gen3.c
+    bdd8f2eaba9f188b712dfc6a21990e25764a209a170a27ce7abc95781c14c26e  experiment_validation.c
+    3343c08af43c8083523bfa15c1f95ca8595b13341c1e3ba63e5338cce7439155  edmd_core/edmd_gen3.h
+    9eb7803620799c4d3f48ab9057e71d22d23bafa16da732e5f2f1b381c786b419  edmd_core/edmd.h
+    dd1731891d0fff0e297198847de39216c5c8b9677ea4fe53160d1f6c74218d40  kissfft/_kiss_fft_guts.h
+    9d6c7ddf520932c0aad669c86c064a24e571e594681be9f1491c14c9c9c75693  kissfft/kiss_fft.h
+    4c04367e1ce88f8382c611fed8a5ad62a956efa40bbf59632cd2df9930cba965  kissfft/kiss_fft_log.h
+    a6a4e2109642c49a9d8d7424391b655f1b8d5b13e14b672157343f5390151fcf  00ALLINONE
+
+## the edit (git diff HEAD -- hspist3/00ALLINONE.c hspist3/edmd_core)
+
+    diff --git a/hspist3/00ALLINONE.c b/hspist3/00ALLINONE.c
+    index c571732a..220fcf56 100644
+    --- a/hspist3/00ALLINONE.c
+    +++ b/hspist3/00ALLINONE.c
+    @@ -11934,9 +11934,195 @@ static void g3_gui_guard_pistons(double dt){
+         }
+     }
+     
+    +/* ##CHRIS 2026-10-14 (plan-author decision 52 item 2 and addendum 1; 261012 sec. 4.7.116, 4.7.120): THE COLLISION RETURN-MAP PANEL
+    +   (Rob's plot) in the window's gen3 scene. DISPLAY ONLY: a window run with the panel is a demonstration, never data.
+    +   What it shows: per disk, the angle theta_n in [0, 2 pi) of its n-th collision, and for each two consecutive collisions of the same
+    +   disk the point (theta_n, theta_n+1); a 90 x 90 histogram of the points of the last K disk collisions (a pair collision counts once
+    +   for each of its two disks), log colour scale, axes 0 .. 2 pi with ticks at multiples of pi/3, and the number of points shown.
+    +     angle (key 1): the line of centres from the disk to its partner at a pair collision (the default) and, at an outer wall, a
+    +       divider face or a piston face, the direction from the disk to it (0, pi/2, pi, 3 pi/2: the wall normal); or the direction of
+    +       the disk's velocity after the collision. Angles in the engine's x-y frame (y as the box's y coordinate).
+    +     walls (key 2): a point with a wall, divider or piston collision on either side is drawn in a second colour (cyan), or hidden.
+    +     side (key 3): both compartments, the left one or the right one (the disk's compartment at the load: left or right of the first
+    +       divider).
+    +     K (keys 4 and 5): halved or doubled, 625 .. 1,280,000 (default 20,000).
+    +   I opens and closes it (the help line). Switching the angle clears it; the other keys only change what is drawn.
+    +   How: gen3's collision gather hook (edmd3_set_coll_hook), set only while the panel is open and only on the window's gen3 state (every
+    +   frame, rm_frame), hands the panel a copy of each collision's result. The engine's state, its event order and every output are
+    +   unchanged (tested: equal event hashes with the panel closed, open, and toggled); no experiment loop and no KOA path sets it. */
+    +#define RM_BINS 90
+    +#define RM_KMIN 625L
+    +#define RM_KMAX 1280000L
+    +static struct {
+    +    int    open, mode, walls, side;                 /* mode 0: line of centres, 1: velocity after; walls 1: shown; side 0 both, 1 left, 2 right */
+    +    long   K, builds;                               /* the ring's length; g3_builds of the state the hook is on (-1: none) */
+    +    float* prev; unsigned char* prevk; int nprev;   /* per disk: the angle of its last collision (NAN: none yet); 1: it was a wall/body */
+    +    uint32_t* ring; long n, head;                   /* the last K points: bx | by << 7 | class << 14 | right << 15 */
+    +    int    hist[2][2][RM_BINS][RM_BINS];            /* [right][class][by][bx]; class 1: a wall, divider or piston on either side */
+    +    long   gathered;                                /* disk collisions since the last clear */
+    +    SDL_Texture* tex;
+    +} rm;
+    +static void rm_clear(void){
+    +    memset(rm.hist, 0, sizeof rm.hist);
+    +    rm.n = 0; rm.head = 0; rm.gathered = 0;
+    +    for (int i = 0; i < rm.nprev; ++i) { rm.prev[i] = NAN; rm.prevk[i] = 0; }
+    +}
+    +static int rm_bin(double th){ const int b = (int)(th * ((double)RM_BINS / (2.0 * M_PI))); return b < 0 ? 0 : (b >= RM_BINS ? RM_BINS - 1 : b); }
+    +static void rm_pop(void){   /* the oldest point leaves the ring */
+    +    const uint32_t v = rm.ring[(rm.head - rm.n + RM_KMAX) % RM_KMAX];
+    +    rm.hist[(v >> 15) & 1u][(v >> 14) & 1u][(v >> 7) & 127u][v & 127u]--;
+    +    rm.n--;
+    +}
+    +static void rm_point(int i, int wall, int comp, double th){   /* disk i's collision at angle th */
+    +    if (i < 0 || i >= rm.nprev) return;
+    +    if (th < 0.0) th += 2.0 * M_PI;
+    +    const float p = rm.prev[i]; const int pk = rm.prevk[i];
+    +    rm.prev[i] = (float)th; rm.prevk[i] = (unsigned char)(wall != 0);
+    +    rm.gathered++;
+    +    if (isnan(p)) return;
+    +    while (rm.n >= rm.K) rm_pop();
+    +    const int bx = rm_bin((double)p), by = rm_bin(th), cls = pk || wall, right = comp > 0;
+    +    rm.ring[rm.head] = (uint32_t)bx | ((uint32_t)by << 7) | ((uint32_t)cls << 14) | ((uint32_t)right << 15);
+    +    rm.head = (rm.head + 1) % RM_KMAX; rm.n++;
+    +    rm.hist[right][cls][by][bx]++;
+    +}
+    +static void rm_hook(void* ctx, const EDMD3_Coll* c){   /* called by gen3 at each collision while the panel is open: reads its copy only */
+    +    (void)ctx;
+    +    const int wall = c->kind != 0;
+    +    if (rm.mode == 0) {
+    +        rm_point(c->a, wall, c->comp_a, atan2(c->ny, c->nx));
+    +        if (c->b >= 0) rm_point(c->b, 0, c->comp_b, atan2(-c->ny, -c->nx));
+    +    } else {
+    +        rm_point(c->a, wall, c->comp_a, atan2(c->vay, c->vax));
+    +        if (c->b >= 0) rm_point(c->b, 0, c->comp_b, atan2(c->vby, c->vbx));
+    +    }
+    +}
+    +static void rm_frame(void){   /* the window, every frame: while the panel is open, the hook is on the current gen3 state */
+    +    if (!rm.open || cli_engine != 3) return;
+    +    if (!g_edmd3) { rm.builds = -1; return; }
+    +    if (rm.builds == g3_builds) return;
+    +    const int n = edmd3_count(g_edmd3);
+    +    if (n != rm.nprev) {
+    +        free(rm.prev); free(rm.prevk);
+    +        rm.prev = (float*)malloc((size_t)(n > 0 ? n : 1) * sizeof *rm.prev); rm.prevk = (unsigned char*)malloc((size_t)(n > 0 ? n : 1));
+    +        rm.nprev = (rm.prev && rm.prevk) ? n : 0;
+    +    }
+    +    rm_clear();
+    +    edmd3_set_coll_hook(g_edmd3, rm_hook, NULL);
+    +    rm.builds = g3_builds;
+    +}
+    +static void rm_note(void){
+    +    char b[200];
+    +    snprintf(b, sizeof b, "return map: angle %s, walls %s, side %s, K %ld", rm.mode ? "velocity after" : "line of centres",
+    +             rm.walls ? "shown" : "hidden", rm.side == 0 ? "both" : (rm.side == 1 ? "left" : "right"), rm.K);
+    +    g3_gui_note(b);
+    +}
+    +static int rm_key(SDL_Keycode k){   /* 1 if it is the panel's key */
+    +    if (k == SDLK_i) {
+    +        if (cli_engine != 3) { g3_gui_note("I (return map) needs gen3: the panel reads gen3's collisions"); return 1; }
+    +        if (!rm.ring) {
+    +            rm.ring = (uint32_t*)malloc((size_t)RM_KMAX * sizeof *rm.ring);
+    +            if (!rm.ring) { g3_gui_note("I (return map): out of memory"); return 1; }
+    +            rm.K = 20000L; rm.walls = 1; rm.builds = -1;
+    +        }
+    +        rm.open = !rm.open;
+    +        if (rm.open) { rm.builds = -1; rm_frame(); rm_note(); }
+    +        else { edmd3_set_coll_hook(NULL, NULL, NULL); rm.builds = -1; g3_gui_note("I: return map closed"); }
+    +        return 1;
+    +    }
+    +    if (!rm.open) return 0;
+    +    switch (k) {
+    +        case SDLK_1: rm.mode = !rm.mode; rm_clear(); rm_note(); return 1;
+    +        case SDLK_2: rm.walls = !rm.walls; rm_note(); return 1;
+    +        case SDLK_3: rm.side = (rm.side + 1) % 3; rm_note(); return 1;
+    +        case SDLK_4: if (rm.K > RM_KMIN) { rm.K /= 2; while (rm.n > rm.K) rm_pop(); } rm_note(); return 1;
+    +        case SDLK_5: if (rm.K < RM_KMAX) rm.K *= 2; rm_note(); return 1;
+    +        default: return 0;
+    +    }
+    +}
+    +static void rm_colour(double t, Uint8* r, Uint8* g, Uint8* b){   /* the pair points' scale: dark blue, purple, orange, pale yellow */
+    +    static const double S[4][3] = {{28, 30, 80}, {130, 40, 150}, {245, 120, 40}, {255, 245, 190}};
+    +    t = t < 0.0 ? 0.0 : (t > 1.0 ? 1.0 : t);
+    +    const double u = t * 3.0; int k = (int)u; if (k > 2) k = 2;
+    +    const double w = u - (double)k;
+    +    *r = (Uint8)(S[k][0] + w * (S[k + 1][0] - S[k][0])); *g = (Uint8)(S[k][1] + w * (S[k + 1][1] - S[k][1]));
+    +    *b = (Uint8)(S[k][2] + w * (S[k + 1][2] - S[k][2]));
+    +}
+    +static void rm_draw(SDL_Renderer* r, TTF_Font* f){   /* in the UI pass (window points); bottom right, left of the F2/F3 panels */
+    +    if (!rm.open || !r) return;
+    +    enum { PW = 270, ML = 52, MR = 14, MT = 66, MB = 30 };
+    +    const int W = ML + PW + MR, H = MT + PW + MB;
+    +    int x0 = gui_controls_column_left_ui() - 8 - W, y0 = MAX_Y - 8 - H;
+    +    if (x0 < 8) x0 = 8;
+    +    if (y0 < 8) y0 = 8;
+    +    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
+    +    SDL_SetRenderDrawColor(r, 10, 12, 22, 238);
+    +    SDL_Rect bg = {x0, y0, W, H};
+    +    SDL_RenderFillRect(r, &bg);
+    +    SDL_SetRenderDrawColor(r, 120, 130, 170, 255);
+    +    SDL_RenderDrawRect(r, &bg);
+    +    static int c0[RM_BINS][RM_BINS], c1[RM_BINS][RM_BINS];
+    +    static uint32_t px[RM_BINS * RM_BINS];
+    +    int m0 = 0, m1 = 0; long shown = 0;
+    +    for (int by = 0; by < RM_BINS; ++by)
+    +        for (int bx = 0; bx < RM_BINS; ++bx) {
+    +            int a = 0, w = 0;
+    +            for (int s = 0; s < 2; ++s) {
+    +                if ((rm.side == 1 && s == 1) || (rm.side == 2 && s == 0)) continue;
+    +                a += rm.hist[s][0][by][bx]; w += rm.hist[s][1][by][bx];
+    +            }
+    +            if (!rm.walls) w = 0;
+    +            c0[by][bx] = a; c1[by][bx] = w; shown += a + w;
+    +            if (a > m0) m0 = a;
+    +            if (w > m1) m1 = w;
+    +        }
+    +    const double l0 = log1p((double)(m0 > 0 ? m0 : 1)), l1 = log1p((double)(m1 > 0 ? m1 : 1));
+    +    for (int by = 0; by < RM_BINS; ++by)
+    +        for (int bx = 0; bx < RM_BINS; ++bx) {
+    +            Uint8 R = 16, G = 18, B = 30;
+    +            if (c0[by][bx] > 0) rm_colour(log1p((double)c0[by][bx]) / l0, &R, &G, &B);
+    +            if (c1[by][bx] > 0) {   /* the second colour: cyan, by its own log scale */
+    +                const double al = 0.35 + 0.65 * log1p((double)c1[by][bx]) / l1;
+    +                R = (Uint8)((1.0 - al) * R + al * 70.0); G = (Uint8)((1.0 - al) * G + al * 235.0); B = (Uint8)((1.0 - al) * B + al * 235.0);
+    +            }
+    +            px[(RM_BINS - 1 - by) * RM_BINS + bx] = 0xFF000000u | ((uint32_t)R << 16) | ((uint32_t)G << 8) | (uint32_t)B;
+    +        }
+    +    if (!rm.tex) {
+    +        rm.tex = SDL_CreateTexture(r, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, RM_BINS, RM_BINS);
+    +#if SDL_VERSION_ATLEAST(2, 0, 12)
+    +        if (rm.tex) SDL_SetTextureScaleMode(rm.tex, SDL_ScaleModeNearest);
+    +#endif
+    +    }
+    +    const SDL_Rect plot = {x0 + ML, y0 + MT, PW, PW};
+    +    if (rm.tex && SDL_UpdateTexture(rm.tex, NULL, px, RM_BINS * (int)sizeof px[0]) == 0) SDL_RenderCopy(r, rm.tex, NULL, &plot);
+    +    SDL_SetRenderDrawColor(r, 170, 175, 200, 255);
+    +    SDL_RenderDrawRect(r, &plot);
+    +    const SDL_Color white = {235, 235, 245, 255}, muted = {170, 175, 200, 255}, cyan = {90, 230, 230, 255};
+    +    static const char* const TL[7] = {"0", "π/3", "2π/3", "π", "4π/3", "5π/3", "2π"};
+    +    for (int k = 0; k <= 6; ++k) {
+    +        const int tx = plot.x + k * PW / 6, ty = plot.y + PW - k * PW / 6;
+    +        SDL_Rect a = {tx, plot.y + PW, 1, 5}, b = {plot.x - 5, ty, 5, 1};
+    +        SDL_RenderFillRect(r, &a); SDL_RenderFillRect(r, &b);
+    +        if (f) {
+    +            draw_text(r, f, TL[k], tx - (k == 0 ? 3 : 12), plot.y + PW + 7, muted);
+    +            draw_text(r, f, TL[k], plot.x - 44, ty - 8, muted);
+    +        }
+    +    }
+    +    if (f) {
+    +        char l2t[200], l3t[200];
+    +        snprintf(l2t, sizeof l2t, "1 %s | 2 walls %s | 3 %s", rm.mode ? "velocity after the hit" : "line of centres",
+    +                 rm.walls ? "cyan" : "hidden", rm.side == 0 ? "both sides" : (rm.side == 1 ? "left side" : "right side"));
+    +        snprintf(l3t, sizeof l3t, "4/5 K %ld | points %ld | log colour", rm.K, shown);
+    +        draw_text(r, f, "Return map: x = θn, y = θn+1  (i close)", x0 + 10, y0 + 6, white);
+    +        draw_text_clipped(r, f, l2t, x0 + 10, y0 + 24, rm.walls ? cyan : muted, W - 20);
+    +        draw_text_clipped(r, f, l3t, x0 + 10, y0 + 42, muted, W - 20);
+    +    }
+    +}
+    +
+     ////////// KEYBOARD INPUT HANDLING //////////
+     // Keyboard input handling
+     void keysSimulation(SDL_Event e) {
+    +    if (e.type == SDL_KEYDOWN && rm_key(e.key.keysym.sym)) return;   /* ##CHRIS 2026-10-14 (decision 52): the return-map panel's keys */
+         if (cli_engine == 3 && e.type == SDL_KEYDOWN && g3_gui_key(e.key.keysym.sym)) return;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+         if (gui_div_limit_paused && e.type == SDL_KEYDOWN && (e.key.keysym.sym == SDLK_p || e.key.keysym.sym == SDLK_SPACE)) {
+             /* ##CHRIS 2026-10-12 (decision 34, addition, item C): a divider at the end of its range is not resumed */
+    @@ -15844,6 +16030,7 @@ static int hud_build_experiment_key_lines(char lines[][256], int max_lines) {
+             if (n < max_lines) snprintf(lines[n++], 256, "Pistons: a/d left | left/right right | s/up stop");
+             if (n < max_lines) snprintf(lines[n++], 256, "View: v panels | x/y density | f vmax | z exact");
+             if (n < max_lines) snprintf(lines[n++], 256, "Wall: r release | e print energy");
+    +        if (n < max_lines) snprintf(lines[n++], 256, "Return map: i open/close | 1 angle | 2 walls | 3 side | 4/5 K");   /* ##CHRIS (decision 52) */
+             if (n < max_lines) snprintf(lines[n++], 256, "n/a (gen3): w wall | [ ] \\ T | b HB | k , . Andersen");
+             return n;
+         }
+    @@ -22709,6 +22896,7 @@ void simulation_loop() {
+                 // (Physics state remains at simulation_time; this only affects visualization.)
+                 gui_render_dt_rem = accumulator;
+                 if (cli_engine == 3) g3_gui_rate_update();   /* ##CHRIS 2026-10-10 (decision 19, item 2): the HUD's events/s */
+    +            rm_frame();   /* ##CHRIS 2026-10-14 (decision 52): while the return map is open, the hook is on the current gen3 state */
+     
+                 if (cli_render_paper) {
+                     /* ##CHRIS 2026-09-19: figure-grade scene, drawn instead of the debug view.
+    @@ -22741,6 +22929,7 @@ void simulation_loop() {
+                 render_energy_hud(_renderer, font);
+                 render_live_controls(_renderer, font_small ? font_small : font);
+                 gui_div_limit_banner();   /* item C */
+    +            rm_draw(_renderer, font_small ? font_small : font);   /* ##CHRIS 2026-10-14 (decision 52): the return-map panel, if open */
+                 gui_end_ui_view();
+                 float T_measured = compute_measured_temperature_from_ke();
+                 char temp_label[128];
+    diff --git a/hspist3/edmd_core/edmd_gen3.c b/hspist3/edmd_core/edmd_gen3.c
+    index 1119d0be..e7d9ce3e 100644
+    --- a/hspist3/edmd_core/edmd_gen3.c
+    +++ b/hspist3/edmd_core/edmd_gen3.c
+    @@ -697,6 +697,16 @@ static void contact_audit(EDMD3* S, const Ev3* e){
+         if (R_(fabs)(gap) > S->contact_max[k]) S->contact_max[k] = R_(fabs)(gap);
+         S->contact_events++;
+     }
+    +/* ##CHRIS 2026-10-14 (plan-author decision 52 item 2 and addendum 1; 261012 sec. 4.7.116, 4.7.120): THE COLLISION GATHER HOOK of the
+    +   viewer's return-map panel (edmd_gen3.h). Display only and off unless set: the hook and the state it belongs to are kept here, outside
+    +   struct EDMD3, so the state's size, its checkpoint format and every event are unchanged; the three collision rules below hand it a copy
+    +   of their own results after the velocities are set, and the driver's function only reads that copy. */
+    +static EDMD3*         coll_hook_S = NULL;
+    +static EDMD3_CollHook coll_hook_fn = NULL;
+    +static void*          coll_hook_ctx = NULL;
+    +void edmd3_set_coll_hook(EDMD3* S, EDMD3_CollHook fn, void* ctx){
+    +    coll_hook_S = fn ? S : NULL; coll_hook_fn = fn; coll_hook_ctx = fn ? ctx : NULL;
+    +}
+     static void exec_pair(EDMD3* S, const Ev3* e){
+         const int i = e->a, j = e->b;
+         advance(S, i); advance(S, j);
+    @@ -717,6 +727,10 @@ static void exec_pair(EDMD3* S, const Ev3* e){
+         S->ledSE += 4.0 * (A->vx * A->vx + A->vy * A->vy + B->vx * B->vx + B->vy * B->vy);
+         A->cnt++; B->cnt++; A->last = j; B->last = i;
+         S->H.ev_pair++;
+    +    if (coll_hook_fn && coll_hook_S == S) {   /* ##CHRIS 2026-10-14 (decision 52): display only, a copy */
+    +        const EDMD3_Coll c = {0, i, j, A->comp, B->comp, (double)nx, (double)ny, (double)A->vx, (double)A->vy, (double)B->vx, (double)B->vy};
+    +        coll_hook_fn(coll_hook_ctx, &c);
+    +    }
+         predict_all(S, i); predict_all(S, j);
+         local_check(S, i); local_check(S, j);    /* after the predictions: a repair bumps cnt and so retires them */
+     }
+    @@ -732,6 +746,11 @@ static void exec_wall(EDMD3* S, const Ev3* e){
+         S->wall_events[s]++;
+         A->cnt++; A->last = -1;
+         S->H.ev_wall++;
+    +    if (coll_hook_fn && coll_hook_S == S) {   /* ##CHRIS 2026-10-14 (decision 52): display only, a copy */
+    +        static const double WNX[4] = {-1.0, 1.0, 0.0, 0.0}, WNY[4] = {0.0, 0.0, -1.0, 1.0};
+    +        const EDMD3_Coll c = {1, i, -1, A->comp, -1, WNX[s], WNY[s], (double)A->vx, (double)A->vy, 0.0, 0.0};
+    +        coll_hook_fn(coll_hook_ctx, &c);
+    +    }
+         predict_all(S, i);
+         local_check(S, i);
+     }
+    @@ -825,6 +844,11 @@ static void exec_obj(EDMD3* S, const Ev3* e){
+         }
+         A->vx = v1; A->cnt++; A->last = -2 - o; O->last = i;
+         if (e->type == T_DIV) S->H.ev_div++; else S->H.ev_piston++;
+    +    if (coll_hook_fn && coll_hook_S == S) {   /* ##CHRIS 2026-10-14 (decision 52): display only, a copy */
+    +        const double dir = e->type == T_DIV ? (f == 0 ? 1.0 : -1.0) : (e->b == 0 ? -1.0 : 1.0);
+    +        const EDMD3_Coll c = {e->type == T_DIV ? 2 : 3, i, -1, A->comp, -1, dir, 0.0, (double)A->vx, (double)A->vy, 0.0, 0.0};
+    +        coll_hook_fn(coll_hook_ctx, &c);
+    +    }
+         if (v2 != u2) { O->v = v2; obj_changed(S, o, i); }
+         predict_all(S, i);
+         local_check(S, i);
+    @@ -1153,6 +1177,7 @@ EDMD3* edmd3_create(const EDMD_Params* prm, double cell_px, char* err, size_t er
+     
+     void edmd3_destroy(EDMD3* S){
+         if (!S) return;
+    +    if (coll_hook_S == S) edmd3_set_coll_hook(NULL, NULL, NULL);   /* ##CHRIS 2026-10-14 (decision 52): the hook goes with its state */
+         free(S->cell); free(S->ccount); free(S->D); free(S->out); free(S->heap.d);
+         free(S->alx); free(S->aly); free(S->acr); free(S->acd); free(S->awl); free(S->ahk); free(S->aht); free(S->ahm);
+         free(S->aot); free(S->aob);
+    diff --git a/hspist3/edmd_core/edmd_gen3.h b/hspist3/edmd_core/edmd_gen3.h
+    index f8d63559..6616f999 100644
+    --- a/hspist3/edmd_core/edmd_gen3.h
+    +++ b/hspist3/edmd_core/edmd_gen3.h
+    @@ -173,6 +173,17 @@ void   edmd3_set_check_interval(EDMD3* S, double units); /* full validator caden
+     /* ##CHRIS 2026-10-09 (M3): edmd.c's gated event log (t_sigma, kind, u_wall, v_before, v_after, dE, dp) per wall, divider-face and
+        piston collision; f NULL = off (the default); time_scale converts internal time to sigma-time (the driver passes 24) */
+     void   edmd3_set_event_log(EDMD3* S, FILE* f, double time_scale);
+    +/* ##CHRIS 2026-10-14 (plan-author decision 52 item 2 and addendum 1; 261012 sec. 4.7.116, 4.7.120): the collision gather hook of the
+    +   viewer's return-map panel. DISPLAY ONLY: off (NULL, the default) unless the window's panel is open. When it is set, each pair,
+    +   outer-wall, divider-face and piston collision of that state hands a copy of what the collision rule already computed to fn, which
+    +   reads it; nothing of the state changes (the hook is kept outside the state, so the state's size, its checkpoint format and every
+    +   event stay as they are). kind 0: a disk pair (a, b; n the unit line of centres from a to b at contact); 1: an outer wall
+    +   (n = (-1,0), (1,0), (0,-1), (0,1) for the left, right, y = 0 and y = H walls: the direction from the disk to the wall); 2: a divider
+    +   face (n = (1,0) at the left face, (-1,0) at the right face); 3: a piston face (n = (-1,0) left, (1,0) right). b = -1 unless kind 0.
+    +   comp_a, comp_b: the disks' compartments (the dividers left of the disk at the load). v*: the velocities after the collision. */
+    +typedef struct { int kind, a, b, comp_a, comp_b; double nx, ny, vax, vay, vbx, vby; } EDMD3_Coll;
+    +typedef void (*EDMD3_CollHook)(void* ctx, const EDMD3_Coll* c);
+    +void   edmd3_set_coll_hook(EDMD3* S, EDMD3_CollHook fn, void* ctx);   /* fn NULL: off; one state at a time */
+     
+     /* read-only audits: neither changes any stored number, so outputs are identical with and without them */
+     void   edmd3_set_contact_audit(EDMD3* S, int on);

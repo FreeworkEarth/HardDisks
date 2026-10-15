@@ -1,0 +1,5 @@
+WARNING: L_0 not on the 1/48 sigma grid: box truncated by 0.026545 sigma
+WARNING: L_0 not on the 1/48 sigma grid: box truncated by 0.026545 sigma
+ABORTING INVALID RUN [initial_wall_position_mismatch]: Wall 0 initialized at 26.1666667 sigma; command requested 26.1799393 sigma.
+Partial trace preserved at: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d49a1_261014/probes/Q1/tr.csv
+Failure record appended to: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d49a1_261014/probes/Q1/summary.failures.csv

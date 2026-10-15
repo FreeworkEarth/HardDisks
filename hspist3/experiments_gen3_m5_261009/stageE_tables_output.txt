@@ -1,0 +1,48 @@
+# Stage E2 (M5) evidence tables, printed by experiments_gen3_m5_261009/stageE_tables.py
+
+## 1. The frozen binaries
+
+| binary | --version | SHA-256 | = build record |
+|---|---|---|---|
+| 00ALLINONE | 00ALLINONE  git 78ff48d  target mac-O3-e0pre | c56169e4f03e069a38db12ff385cb042bbcf5021c352c98bcf02c0da8bb893e1 | yes |
+| 00ALLINONE_ld | 00ALLINONE  git 78ff48d  target mac-O3-e0pre-ld | 5e188d708bfe10dff21868baea9ba292b6ff40b733b1315725bc9ce8babe2c41 | yes |
+| gen3_m1 | - | 79a4375da64d33e10d2737297661cbbdfeb7e1c3cbe8b3a0b79cae598ac20093 | yes |
+| gen3_m1_ld | - | 276644f12f0c61aa75c3ba11a4478c77c26539e7291f5e2c121583dbce16edc2 | yes |
+| gen3_m2 | - | 4c2be3b682addbb4811875384ec8f85d3daf61eec5e4e97d5649fecf23ce6c48 | yes |
+| gen3_m2_ld | - | ee958c3f293ce2c54f30f6aaf68f4c15b15ee959b4eb34f701d1791ac4f1e744 | yes |
+
+## 2. E2a: the default build on the M1 and M2 harness outputs (the committed ones)
+
+| output | identical |
+|---|---|
+| m1_audit_output.txt | IDENTICAL |
+| m2_audit_quick_output.txt | IDENTICAL |
+| m2_audit_output.txt | IDENTICAL |
+
+## 3. E2b: the long-double harnesses against the default build's outputs (this Mac: long double = double)
+
+| output | identical |
+|---|---|
+| m1_audit_output.txt | IDENTICAL |
+| m2_audit_quick_output.txt | IDENTICAL |
+| m2_audit_output.txt | IDENTICAL |
+
+## 4. E2c: the long-double driver against the default driver, two harness cells replayed
+
+```
+default m1_fluid: [EDMD3-REPLAY] fluid: hash 554d54d53b262d95, harness 554d54d53b262d95; events 522304, harness 522304: MATCH; targets 400, changes 0, advance stops 400 (substeps 1), reader passes 400 (every 1 targets), smallest surface gap seen by the readers
+default m1_fluid: [EDMD3-HEALTH] replay fluid: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wa
+ld m1_fluid: [EDMD3-REPLAY] fluid: hash 554d54d53b262d95, harness 554d54d53b262d95; events 522304, harness 522304: MATCH; targets 400, changes 0, advance stops 400 (substeps 1), reader passes 400 (every 1 targets), smallest surface gap seen by the readers 4.76
+ld m1_fluid: [EDMD3-HEALTH] replay fluid: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_co
+default m2_spring_pi8: [EDMD3-REPLAY] spring_pi8: hash f5acedfa3635e766, harness f5acedfa3635e766; events 527607, harness 527607: MATCH; targets 1600, changes 1, advance stops 1600 (substeps 1), reader passes 1600 (every 1 targets), smallest surface gap seen b
+default m2_spring_pi8: [EDMD3-HEALTH] replay spring_pi8: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contac
+ld m2_spring_pi8: [EDMD3-REPLAY] spring_pi8: hash f5acedfa3635e766, harness f5acedfa3635e766; events 527607, harness 527607: MATCH; targets 1600, changes 1, advance stops 1600 (substeps 1), reader passes 1600 (every 1 targets), smallest surface gap seen by the
+ld m2_spring_pi8: [EDMD3-HEALTH] replay spring_pi8: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now
+```
+m1_fluid: default ('554d54d53b262d95', '522304', 'MATCH'), long double ('554d54d53b262d95', '522304', 'MATCH'): IDENTICAL hash and events, both MATCH
+m2_spring_pi8: default ('f5acedfa3635e766', '527607', 'MATCH'), long double ('f5acedfa3635e766', '527607', 'MATCH'): IDENTICAL hash and events, both MATCH
+
+## 5. Rule 4: gen2 byte identity with 7b08827 after the Makefile and 00ALLINONE.c changes (ctrl_min, ctrl_leg)
+
+default build: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL
+--engine=gen2: ctrl_min: audit vs plain IDENTICAL, plain vs ref IDENTICAL; ctrl_leg: audit vs plain IDENTICAL, plain vs ref IDENTICAL

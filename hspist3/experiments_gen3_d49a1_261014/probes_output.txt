@@ -1,0 +1,15 @@
+# Part A code-fact probes at N = 400 (partA_probes_n400.py); binary experiments_gen3_d18_261010/bin_f72d764/00ALLINONE SHA-256 d0a8c782c36269c1...: in its build record
+
+| probe | L0 | eta exact | divider requested | exit | seconds | the lines that decide |
+|---|---|---|---|---|---|---|
+| Q1 | 26.179938780 | 0.300000 | 26.179938780 | 2 | 0.0 | WARNING: L_0 not on the 1/48 sigma grid: box truncated by 0.026545 sigma; WARNING: L_0 not on the 1/48 sigma grid: box truncated by 0.026545 sigma; ABORTING INVALID RUN [initial_wall_position_mismatch]: Wall 0 initialized at 26.1666667 sigma; command requested 26.1799393 sigma. |
+| Q2 | 20.000000000 | 0.392699 | 20.126632348 | 0 | 0.0 | [EDMD3-HEALTH] energy-transfer seed=7740102: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_finding |
+| Q3 | 11.375000000 | 0.690460 | 11.375000000 | 0 | 0.5 | ✅ Particles placed with buffer. Wall_x = 473.000; [SEED] MAX(buffer)=120000 requested=400 active=400 phi_max=0.780; [SEED] caps: L=195 R=195  targets: L=200 R=200; [EDMD3-HEALTH] energy-transfer seed=7740103: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_finding |
+| Q4 | 157.083333333 | 0.049999 | 157.083333333 | 0 | 0.0 | [EDMD3-HEALTH] energy-transfer seed=7740104: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_finding |
+
+Q2: the divider at the first trace row (after the hold) at 20.126633000 sigma; requested 20.126632348 (difference +6.52e-07)
+Q2: event log over the 10.00 held sigma-time: 974 rows, 97.4 rows per sigma-time, divider rows 25.4 %, 66.1 bytes per row; kinds D0 247, WB 240, WT 234, WL 130, WR 123
+Q3: the divider at the first trace row (after the hold) at 11.375000000 sigma; requested 11.375000000 (difference +0.00e+00)
+Q3: event log over the 50.00 held sigma-time: 25208 rows, 504.2 rows per sigma-time, divider rows 31.8 %, 65.2 bytes per row; kinds D0 8009, WB 4607, WT 4513, WR 4156, WL 3923
+Q4: the divider at the first trace row (after the hold) at 157.083333000 sigma; requested 157.083333333 (difference -3.33e-07)
+Q4: event log over the 50.00 held sigma-time: 1100 rows, 22.0 rows per sigma-time, divider rows 5.5 %, 65.4 bytes per row; kinds WB 489, WT 472, D0 60, WR 40, WL 39

@@ -1,0 +1,44 @@
+               cell  j       seed     pin      pin_left     pin_right             left            right        F_L        F_R  dF_L_rel_log  dF_R_rel_log
+B_N0100_eta0.050000 -2 3936421655       0 lines along x lines along x       alt 33x2 0       alt 33x2 0   0.677233   0.520183           NaN           NaN
+B_N0100_eta0.050000 -2 3936421662 default           NaN           NaN       alt 33x2 0       alt 33x2 0   0.556945   0.726891           NaN           NaN
+B_N0100_eta0.050000 -1 2673960932       0 lines along x lines along x       alt 33x2 0       alt 33x2 0   0.875319   0.675020           NaN           NaN
+B_N0100_eta0.050000  0 1915874848       0 lines along x lines along x       alt 33x2 0       alt 33x2 0   0.420715   0.455827  2.826628e-13 -2.371436e-13
+B_N0100_eta0.050000  1  531442626       0 lines along x lines along x       alt 33x2 0       alt 33x2 0   0.912166   0.591490           NaN           NaN
+B_N0100_eta0.050000  2 2494868495       0 lines along x lines along x       alt 33x2 0       alt 33x2 0   0.840876   0.877075           NaN           NaN
+B_N0100_eta0.392699 -2 1755169372       0 lines along x lines along x       equ 13x4 0       equ 13x4 0  17.116374  14.699592           NaN           NaN
+B_N0100_eta0.392699 -1 1701469420       0 lines along x lines along x       equ 13x4 0       equ 13x4 0  16.359113  15.502846           NaN           NaN
+B_N0100_eta0.392699  0   27634490       0 lines along x lines along x       equ 13x4 0       equ 13x4 0  16.343319  15.782641 -4.063416e-14 -1.435518e-13
+B_N0100_eta0.392699  1 1811007549       0 lines along x lines along x       equ 13x4 0       equ 13x4 0  15.515093  16.673810           NaN           NaN
+B_N0100_eta0.392699  2 3519400347       0 lines along x lines along x       equ 13x4 0       equ 13x4 0  15.291995  17.004391           NaN           NaN
+B_N0100_eta0.660000 -2 1381211308  turned lines along y lines along y   alt 6x9 turned   alt 6x9 turned  98.942858  88.470093           NaN           NaN
+B_N0100_eta0.660000 -1  701676132  turned lines along y lines along y   alt 6x9 turned   alt 6x9 turned  95.927944  87.492822           NaN           NaN
+B_N0100_eta0.660000  0 1210218136  turned lines along y lines along y   alt 6x9 turned   alt 6x9 turned  91.026184  94.335721  5.173639e-14 -2.908784e-14
+B_N0100_eta0.660000  1 3314465862  turned lines along y lines along y   alt 6x9 turned   alt 6x9 turned  89.476200  95.437756           NaN           NaN
+B_N0100_eta0.660000  2  393975480  turned lines along y lines along y   alt 6x9 turned   alt 6x9 turned  89.503480  95.171887           NaN           NaN
+B_N0100_eta0.680000 -2  852115329  turned lines along y lines along y   alt 6x9 turned   alt 6x9 turned 123.893381 109.508697           NaN           NaN
+B_N0100_eta0.680000 -1 3180664647  turned lines along y lines along y   alt 6x9 turned   alt 6x9 turned 124.399986 111.796545           NaN           NaN
+B_N0100_eta0.680000  0 3085309377  turned lines along y lines along y   alt 6x9 turned   alt 6x9 turned 118.901748 117.460832  7.993606e-15  1.620926e-14
+B_N0100_eta0.680000  1  157945853  turned lines along y lines along y   alt 6x9 turned   alt 6x9 turned 111.811145 119.473689           NaN           NaN
+B_N0100_eta0.680000  2  829315376  turned lines along y lines along y   alt 6x9 turned   alt 6x9 turned 111.187091 125.217522           NaN           NaN
+B_N0400_eta0.050000 -2 3974543202  turned lines along y lines along y  alt 45x5 turned  alt 45x5 turned   1.184702   1.581779           NaN           NaN
+B_N0400_eta0.050000 -1  693869070  turned lines along y lines along y  alt 45x5 turned  alt 45x5 turned   1.451102   1.185968           NaN           NaN
+B_N0400_eta0.050000  0 2380305916  turned lines along y lines along y  alt 45x5 turned  alt 45x5 turned   1.375165   1.071158  3.796963e-14 -8.415491e-14
+B_N0400_eta0.050000  1 3863581220  turned lines along y lines along y  alt 45x5 turned  alt 45x5 turned   1.131346   1.714588           NaN           NaN
+B_N0400_eta0.050000  2 2122127122  turned lines along y lines along y  alt 45x5 turned  alt 45x5 turned   1.283713   1.807642           NaN           NaN
+B_N0400_eta0.392699 -2 2055918021       0 lines along x lines along x       equ 25x8 0       equ 25x8 0  30.154712  28.347418           NaN           NaN
+B_N0400_eta0.392699 -1 3101425860       0 lines along x lines along x       equ 25x8 0       equ 25x8 0  30.110914  29.201715           NaN           NaN
+B_N0400_eta0.392699  0 2931607275       0 lines along x lines along x       equ 25x8 0       equ 25x8 0  29.380404  29.779834 -6.872281e-14  3.996803e-15
+B_N0400_eta0.392699  1 2480604506       0 lines along x lines along x       equ 25x8 0       equ 25x8 0  28.550553  30.508075           NaN           NaN
+B_N0400_eta0.392699  2  425080403       0 lines along x lines along x       equ 25x8 0       equ 25x8 0  28.574413  30.316184           NaN           NaN
+B_N0400_eta0.660000 -2 3679552938  turned lines along y lines along y equ 12x17 turned equ 12x17 turned 167.285234 158.204645           NaN           NaN
+B_N0400_eta0.660000 -1 1089965798  turned lines along y lines along y equ 12x17 turned equ 12x17 turned 163.134269 162.754302           NaN           NaN
+B_N0400_eta0.660000  0 1435410558  turned lines along y lines along y equ 12x17 turned equ 12x17 turned 162.070924 163.748110 -5.773160e-15  4.263256e-14
+B_N0400_eta0.660000  1 2866515826  turned lines along y lines along y equ 12x17 turned equ 12x17 turned 164.089519 161.744635           NaN           NaN
+B_N0400_eta0.660000  2 1525037129  turned lines along y lines along y equ 12x17 turned equ 12x17 turned 158.123582 169.174526           NaN           NaN
+B_N0400_eta0.680000 -2 2037225380       0 lines along x lines along x      alt 19x11 0      alt 19x11 0 193.296159 184.456381           NaN           NaN
+B_N0400_eta0.680000 -1 3190712639       0 lines along x lines along x      alt 19x11 0      alt 19x11 0 194.083445 189.766307           NaN           NaN
+B_N0400_eta0.680000  0  351201557       0 lines along x lines along x      alt 19x11 0      alt 19x11 0 188.101557 187.677550  5.551115e-15 -6.106227e-15
+B_N0400_eta0.680000  1 3674561005       0 lines along x lines along x      alt 19x11 0      alt 19x11 0 189.520969 193.788371           NaN           NaN
+B_N0400_eta0.680000  2 1302120951       0 lines along x lines along x      alt 19x11 0      alt 19x11 0 183.840895 191.018142           NaN           NaN
+
+41 rows; rows whose compartments do not carry the pin: 0

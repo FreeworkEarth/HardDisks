@@ -51,9 +51,51 @@ guard() {   # guard <dir> <glob of finished outputs, relative to dir>
   [ "$have" = "$BUILD" ] && return 0
   echo "REFUSED $dir: written by '$have', this binary is '$BUILD'"; return 1
 }
+# ##CHRIS 2026-10-05 (engine gate G-E6, 261012 sec. 4.4): build-GENERATION guard on the whole data root. guard() above keeps
+# two builds out of one directory; this keeps them out of one ROOT, so that cells of the 279282b campaign and cells of the
+# engine-divider-resched generation can never end up side by side in one tree (and later in one figure). The root records
+# its build in $HD_DATA/.build_generation, written by the first worker into an EMPTY root (no .build_git anywhere below).
+# A root that holds data but no record is refused: its build is unknown (the 279282b root on KOA is such a root -- write
+# its record by hand before using it again, runsheet). A different build is refused unless HD_ALLOW_BUILD_MIX=1 (explicit).
+# The engine-gate sbatch files (cluster/resched_gate_261005) derive HD_DATA from the clone's name ($SCRATCH/<clone>/hspist3),
+# so they write to their own root by construction. The older campaign sbatch files (conf_*.sbatch and their generators)
+# still name $SCRATCH/harddisks/hspist3; submitted from a second clone they are stopped here (no record there, or another
+# build's record).  (corrected 2026-10-05 after the branch review)
+root_guard() {
+  local f="$HD_DATA/.build_generation" lock="$HD_DATA/.build_generation.lock" have="" i=0
+  if [ ! -e "$f" ]; then
+    mkdir -p "$HD_DATA"
+    until mkdir "$lock" 2>/dev/null; do
+      i=$((i + 1)); [ "$i" -le 600 ] || { echo "REFUSED root $HD_DATA: lock $lock not free within 60 s"; return 1; }
+      sleep 0.1
+    done
+    trap 'rmdir "$lock" 2>/dev/null' EXIT
+    trap 'rmdir "$lock" 2>/dev/null; exit 143' TERM INT
+    if [ ! -e "$f" ]; then
+      if [ -n "$(find "$HD_DATA" -maxdepth 9 -name .build_git -print -quit 2>/dev/null)" ]; then
+        rmdir "$lock"; trap - EXIT TERM INT
+        echo "REFUSED root $HD_DATA: it holds data but no .build_generation record (build unknown). Write the record by hand with the build that WROTE this root -- for the 279282b root on KOA that line is '00ALLINONE  git 279282b  target koa' (runsheet step 11) -- never the current binary's line unless it wrote the data"
+        return 1
+      fi
+      printf '%s\n' "$BUILD" > "$f.tmp$$" && mv "$f.tmp$$" "$f"
+    fi
+    rmdir "$lock"; trap - EXIT TERM INT
+  fi
+  have=$(cat "$f")
+  [ "$have" = "$BUILD" ] && return 0
+  if [ "${HD_ALLOW_BUILD_MIX:-0}" = 1 ]; then
+    echo "WARNING root $HD_DATA: generation '$have', this binary '$BUILD' -- mixing ALLOWED by HD_ALLOW_BUILD_MIX=1"; return 0
+  fi
+  echo "REFUSED root $HD_DATA: build generation '$have', this binary is '$BUILD' (HD_ALLOW_BUILD_MIX=1 overrides)"; return 1
+}
+root_guard || { echo "$* FAILED root build guard"; exit 3; }
 mode=$1; shift
 if [ "$mode" = B ]; then
   rel=$1 M=$2 r=$3 seed=$4 L0=$5 H=$6 NS=$7 stride=$8 base=$9
+  # ##CHRIS 2026-10-07 (gate v2, Test T): optional 10th field = rescheduling policy of this trajectory (minimal | legacy).
+  # Absent: the binary's default, as before. legacy adds --legacy-resched. Anything else refuses the line.
+  pol=${10:-}; EXTRA=()
+  case "$pol" in "" | minimal) ;; legacy) EXTRA=(--legacy-resched) ;; *) echo "B $rel M=$M r=$r FAILED unknown policy '$pol'"; exit 2 ;; esac
   cell="$HD_DATA/$rel"; mkdir -p "$cell"
   guard "$cell" 'wall_x_positions_L0_*_run*.csv' || { echo "B $rel M=$M r=$r FAILED build guard"; exit 3; }
   ls "$cell"/wall_x_positions_L0_*_wallmassfactor_${M}_run${r}.csv >/dev/null 2>&1 && exit 0     # done before
@@ -69,13 +111,13 @@ if [ "$mode" = B ]; then
      --wall-thickness=0.05 --wall-thickness-vis=0.05 --lengths=$L0 --wall-masses=$M --repeats=1 --seed=$base \
      --wall-hold-steps=2000 --fixed-dt=0.4 --target-oscillations=200 --oscillation-safety=1.0 \
      --oscillation-min-steps=10000 --oscillation-max-steps=400000000 --speed-sound-log-stride=$stride \
-     --speed-sound-run-dir="$tmp" --speed-sound-exact-seed=$seed > "$tmp/stdout.log" 2>&1
+     --speed-sound-run-dir="$tmp" --speed-sound-exact-seed=$seed ${EXTRA[@]+"${EXTRA[@]}"} > "$tmp/stdout.log" 2>&1
   rc=$?; cd "$cell" || exit 1; h=$(grep -cE "$HEALTH" "$tmp/stdout.log" 2>/dev/null) || true
   tr=$(ls "$tmp"/wall_x_positions_L0_*_wallmassfactor_${M}_run0.csv 2>/dev/null | head -1)
   if [ "$rc" -ne 0 ] || [ "${h:-0}" -ne 0 ] || [ -z "$tr" ]; then
     echo "B $rel M=$M r=$r FAILED rc=$rc health=${h:-0}"; mv "$tmp" "$cell/.failed_run${r}_$(date +%Y%m%d_%H%M%S)"; exit 1; fi
   mv "$tr" "$cell/$(basename "${tr%run0.csv}")run$r.csv"
-  ( flock 9; { printf '\n##RUN %s run %s seed %s (%s s)\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$r" "$seed" "$((SECONDS-t0))"
+  ( flock 9; { printf '\n##RUN %s run %s seed %s node %s (%s s)\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$r" "$seed" "$(hostname)" "$((SECONDS-t0))"
                sed -e "s/run = 0,/run = $r,/" "$tmp/stdout.log"; } >> "$cell/run.log" ) 9>"$cell/.runlog.lock"
   rm -rf "$tmp"
 elif [ "$mode" = A ]; then

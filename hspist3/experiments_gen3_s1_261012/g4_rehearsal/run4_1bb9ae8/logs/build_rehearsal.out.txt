@@ -1,0 +1,53 @@
+[PASS] the fresh campaign clone at f72d764 and the scripts clone: f72d764a8a7e; 1bb9ae8b9ec0
+[PASS] the scripts clone's shim (build_s1_koa.sh's /tmp): M hspist3/cluster/gen3_s1_gate_261012/build_s1_koa.sh
+[PASS] f72d764's own build_gen3_koa.sh in the new clone: refused: STOP: build from the gen3 clone ~/harddisks_gen3, not harddisks_gen3_s1
+[PASS] block B: build_s1_koa.sh (the build): BUILD OK: ./00ALLINONE (koa), bin/00ALLINONE_ld (koa-ld), bin/gen3_m1 and bin/gen3_m2 of f72d764
+== build_s1_koa.sh 2>&1 | tail -20
+env: gcc (GCC) 14.3.0 | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+== HEAD f72d764 f72d764a8a7e837644c26bd8abc175d9e2cac268 (decision 18 items 1-2 (261012 sec. 4.7.42): checkpoint carries --gen3-psi6-compa)
+== long-double build (koa-ld)
+gcc -Wl,-rpath,/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/build/home/envs/hd/lib  -L/opt/homebrew/lib -L/opt/homebrew/opt/mesa/lib -o 00ALLINONE 00ALLINONE.c kissfft/kiss_fft.c kissfft/kiss_fftr.c edmd_core/edmd.c edmd_core/edmd_accelerated.c edmd_core/edmd_gen3.c experiment_validation.c -O2 -ffp-contract=off -I/opt/homebrew/include/SDL2 -I/opt/homebrew/include -D_THREAD_SAFE -I/opt/homebrew/Cellar/harfbuzz/12.2.0_1/include/harfbuzz -I/opt/homebrew/Cellar/glib/2.86.3/include/glib-2.0 -I/opt/homebrew/Cellar/glib/2.86.3/lib/glib-2.0/include -I/opt/homebrew/opt/gettext/include -I/opt/homebrew/Cellar/pcre2/10.47_1/include -I/opt/homebrew/Cellar/graphite2/1.3.14/include -I/opt/homebrew/opt/freetype/include/freetype2 -I/opt/homebrew/opt/libpng/include/libpng16 -DEDMD3_LONG_DOUBLE -DBUILD_GIT='"f72d764"' -DBUILD_TARGET='"koa-ld"' -DBUILD_CFLAGS='"-O2 -ffp-contract=off -DEDMD3_LONG_DOUBLE [mac rehearsal]"' -L/opt/homebrew/Cellar/sdl2_ttf/2.24.0/lib -lSDL2_ttf -L/opt/homebrew/lib -lSDL2 -lGLEW -framework OpenGL -framework CoreGraphics 
+00ALLINONE  git f72d764  target koa-ld
+18e329000032843f3049d4a108eda046da09d525fa9f76ce7d57e30df05afc7c  00ALLINONE_ld
+== default build (koa)
+gcc -Wl,-rpath,/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/build/home/envs/hd/lib  -L/opt/homebrew/lib -L/opt/homebrew/opt/mesa/lib -o 00ALLINONE 00ALLINONE.c kissfft/kiss_fft.c kissfft/kiss_fftr.c edmd_core/edmd.c edmd_core/edmd_accelerated.c edmd_core/edmd_gen3.c experiment_validation.c -O2 -ffp-contract=off -I/opt/homebrew/include/SDL2 -I/opt/homebrew/include -D_THREAD_SAFE -I/opt/homebrew/Cellar/harfbuzz/12.2.0_1/include/harfbuzz -I/opt/homebrew/Cellar/glib/2.86.3/include/glib-2.0 -I/opt/homebrew/Cellar/glib/2.86.3/lib/glib-2.0/include -I/opt/homebrew/opt/gettext/include -I/opt/homebrew/Cellar/pcre2/10.47_1/include -I/opt/homebrew/Cellar/graphite2/1.3.14/include -I/opt/homebrew/opt/freetype/include/freetype2 -I/opt/homebrew/opt/libpng/include/libpng16 -DBUILD_GIT='"f72d764"' -DBUILD_TARGET='"koa"' -DBUILD_CFLAGS='"-O2 -ffp-contract=off [mac rehearsal]"' -L/opt/homebrew/Cellar/sdl2_ttf/2.24.0/lib -lSDL2_ttf -L/opt/homebrew/lib -lSDL2 -lGLEW -framework OpenGL -framework CoreGraphics 
+00ALLINONE  git f72d764  target koa
+ec675d6467604f15e25fa958ff88377fd61730b72f82fbb05ab5adc8b1edbdff  00ALLINONE
+== the M1/M2 harnesses (the koa target's flags)
+4cff618b9f313df843caab3fc8f1c929a9a8f641f5946aa39722e1662f46a911  gen3_m1
+cba6a498e7e2db5b627cef5eda38868c4d3695174203e14c6e1a3ea877ea020e  gen3_m2
+== long double on this node: LDBL_MANT_DIG 53, sizeof 8
+BUILD OK: ./00ALLINONE (koa), bin/00ALLINONE_ld (koa-ld), bin/gen3_m1 and bin/gen3_m2 of f72d764
+[PASS] block B: record_s1_build.sh (the build-time record): BUILD RECORD OK: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/build/home/harddisks_gen3_s1/hspist3/logs/BUILD_RECORD_S1.txt
+== record_s1_build.sh
+env: gcc (GCC) 14.3.0 | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+# the build-time record of the stage 1 campaign build (decision 39 item 5 a): written once by record_s1_build.sh after build_s1_koa.sh
+commit f72d764a8a7e837644c26bd8abc175d9e2cac268
+version 00ALLINONE  git f72d764  target koa
+version_ld 00ALLINONE  git f72d764  target koa-ld
+sha256 ec675d6467604f15e25fa958ff88377fd61730b72f82fbb05ab5adc8b1edbdff 00ALLINONE
+sha256 18e329000032843f3049d4a108eda046da09d525fa9f76ce7d57e30df05afc7c bin/00ALLINONE_ld
+sha256 4cff618b9f313df843caab3fc8f1c929a9a8f641f5946aa39722e1662f46a911 bin/gen3_m1
+sha256 cba6a498e7e2db5b627cef5eda38868c4d3695174203e14c6e1a3ea877ea020e bin/gen3_m2
+compiler gcc (GCC) 14.3.0
+built 2026-10-13 13:18:40 HST on Christophs-MacBook-Pro-875.local
+BUILD RECORD OK: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/build/home/harddisks_gen3_s1/hspist3/logs/BUILD_RECORD_S1.txt
+
+[PASS] STOP check: the build a second time: STOP: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/buil
+[PASS] STOP check: the record a second time: STOP: [Christophs-MacBook-Pro-875.local] /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d
+[PASS] the record holds the four binaries' SHA-256: 4 sha256 lines
+== the rehearsal
+
+| step | result | detail |
+|---|---|---|
+| the fresh campaign clone at f72d764 and the scripts clone | PASS | f72d764a8a7e; 1bb9ae8b9ec0 |
+| the scripts clone's shim (build_s1_koa.sh's /tmp) | PASS | M hspist3/cluster/gen3_s1_gate_261012/build_s1_koa.sh |
+| f72d764's own build_gen3_koa.sh in the new clone: refused | PASS | STOP: build from the gen3 clone ~/harddisks_gen3, not harddisks_gen3_s1 |
+| block B: build_s1_koa.sh (the build) | PASS | BUILD OK: ./00ALLINONE (koa), bin/00ALLINONE_ld (koa-ld), bin/gen3_m1 and bin/gen3_m2 of f72d764 |
+| block B: record_s1_build.sh (the build-time record) | PASS | BUILD RECORD OK: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/build/home/harddisks_gen3_s1/hspist3/logs/BUILD_RECORD_S1.txt |
+| STOP check: the build a second time | PASS | STOP: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/buil |
+| STOP check: the record a second time | PASS | STOP: [Christophs-MacBook-Pro-875.local] /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d |
+| the record holds the four binaries' SHA-256 | PASS | 4 sha256 lines |
+
+BUILD REHEARSAL: PASS (8 of 8)
+data under /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/build: 30M

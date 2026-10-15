@@ -1,0 +1,19 @@
+env: gcc (GCC) 14.3.0 | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+M5 solid cell on Christophs-MacBook-Pro-875.local (Apple M3 Max): out /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d38/m5_rehearsal/lustre/harddisks_gen3/m5_solid_koa/job_9100001
+binaries: 00ALLINONE  git a643bc7  target koa (96c427e2aecc8a29c545c5933b5d94db776c12775158caa5b9f5d83ea0f8f6d0); 00ALLINONE  git a643bc7  target koa-ld (614982e944211fa46edbc30fa3e2089b38f9636f811f090edbb673c7de0db0a9)
+== M5, the solid cell: N 400, eta 0.74, M 500 (alpha 1.25), H 20, L0 10.613488694560111; 4 seeds per build (run_seed(20261219, 2, 400, r)): 3627127649, 2405664135, 3253290098, 2555073433; held 2000 steps, 200 predicted periods
+   trace stride 1 steps (sos(): KR nu with tests_20260913.N_SIDE = 50); about 1.0 samples per KR period at alpha 1.25 (information)
+
+the 8 runs ended after 10 s; exit codes 0, 0, 0, 0, 0, 0, 0, 0
+
+| N | M | eta | seed | build | clean | events | event hash | max contact gap [px] | u_t | gap / u_t [px/unit] | argmax nu |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 400 | 500 | 0.74 | 0 | koa | 1 | 7615826 | 0bb6e6637c724048 | 3.15e-12 | 1.82e-12 | 1.73 | 0.269209 |
+| 400 | 500 | 0.74 | 0 | koa-ld | 1 | 7615826 | 0bb6e6637c724048 | 3.15e-12 | 1.82e-12 | 1.73 | 0.269209 |
+| 400 | 500 | 0.74 | 1 | koa | 1 | 7538793 | 93458e169a5fb5de | 3.56e-12 | 1.82e-12 | 1.96 | 0.233635 |
+| 400 | 500 | 0.74 | 1 | koa-ld | 1 | 7538793 | 93458e169a5fb5de | 3.56e-12 | 1.82e-12 | 1.96 | 0.233635 |
+| 400 | 500 | 0.74 | 2 | koa | 1 | 7682936 | e135abc9f5e48ad2 | 3.46e-12 | 1.82e-12 | 1.9 | 0.270171 |
+| 400 | 500 | 0.74 | 2 | koa-ld | 1 | 7682936 | e135abc9f5e48ad2 | 3.46e-12 | 1.82e-12 | 1.9 | 0.270171 |
+| 400 | 500 | 0.74 | 3 | koa | 1 | 7673766 | 32fe680f9b468237 | 3.06e-12 | 1.82e-12 | 1.68 | 0.274978 |
+| 400 | 500 | 0.74 | 3 | koa-ld | 1 | 7673766 | 32fe680f9b468237 | 3.06e-12 | 1.82e-12 | 1.68 | 0.274978 |
+M5 solid cell done; paste everything from 'M5 solid cell on' to here

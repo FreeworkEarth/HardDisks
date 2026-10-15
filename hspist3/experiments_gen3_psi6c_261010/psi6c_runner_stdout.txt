@@ -1,0 +1,40 @@
+# psi6 per compartment, acceptance evidence 2026-10-10 10:22:15 HST: new build /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_psi6c_261010/bin_0d7f1ca/00ALLINONE (00ALLINONE  git 0d7f1ca  target mac-O3-e0pre); old /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_m4b_261009/bin_m4b/00ALLINONE
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.7Ti    61Gi    97%     10M  643M    2%   /System/Volumes/Data
+vm.swapusage: total = 10240.00M  used = 9389.50M  free = 850.50M  (encrypted)
+  start S3 P4a A seed 1 replay, columns on (load 1, free 61.3 GiB)
+  start S0 rule 4 default (load 3, free 61.3 GiB)
+  start S0 rule 4 gen2flag (load 5, free 61.3 GiB)
+  start S1 M1/M2 harnesses (load 6, free 61.3 GiB)
+  start S2 old (load 7, free 61.3 GiB)
+  start S2 off (load 8, free 61.3 GiB)
+  start S2 on (load 7, free 61.3 GiB)
+  start S4 P4a A seed 1 (load 8, free 61.3 GiB)
+  S0 rule 4 default: exit 0, 7 s
+  start S4 P4a A seed 0 (load 6, free 61.3 GiB)
+  start S4 P4a B seed 0 (load 7, free 61.3 GiB)
+  start S4 P4a B seed 1 (load 8, free 61.3 GiB)
+  S0 rule 4 gen2flag: exit 0, 8 s
+  S4 P4a A seed 1: exit 0, 1 s
+  start S5 refusal: gen2 (load 6, free 61.3 GiB)
+  start S5 refusal: checkpoint (load 7, free 61.3 GiB)
+  start S5 refusal: energy transfer (load 8, free 61.3 GiB)
+  S4 P4a A seed 0: exit 0, 1 s
+  S4 P4a B seed 0: exit 0, 1 s
+  S4 P4a B seed 1: exit 0, 1 s
+  S5 refusal: gen2: exit 2, 1 s
+  S5 refusal: checkpoint: exit 2, 1 s
+  S5 refusal: energy transfer: exit 2, 1 s
+  S2 old: exit 0, 18 s
+  S2 off: exit 0, 18 s
+  S2 on: exit 0, 18 s
+  S1 M1/M2 harnesses: exit 0, 388 s
+  S3 P4a A seed 1 replay, columns on: exit 0, 884 s
+  start S4 S2 on's own snapshots (load 1, free 61.3 GiB)
+  start S4 S3's own snapshots (load 2, free 61.3 GiB)
+  S4 S2 on's own snapshots: exit 0, 1 s
+  S4 S3's own snapshots: exit 0, 1 s
+# done 2026-10-10 10:37:00 HST
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.7Ti    61Gi    97%     10M  642M    2%   /System/Volumes/Data
+vm.swapusage: total = 10240.00M  used = 9381.50M  free = 858.50M  (encrypted)

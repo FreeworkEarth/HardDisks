@@ -1,0 +1,215 @@
+# Stage A (M3) evidence tables, printed by experiments_gen3_m3_261009/stageA_tables.py
+
+## 1. The frozen binaries (rule 5): built from the committed tree by build_clean.sh
+
+| binary | SHA-256 (frozen copy) | = build record |
+|---|---|---|
+| 00ALLINONE | bc6e8170741bb0a4c301f3c9d77a769f3cf9bbc9d80b6256d5758861e63eb58d | yes |
+| gen3_m1 | 2741147d68c4436a0c2df3c58e1aaf35150d35ed45a174e3e361157c4818ef92 | yes |
+| gen3_m2 | bee91bca714d8813475a36d7e63166bf2f945c445be80a0ab4f29d8c22a650ca | yes |
+| gen3_body_rule_test | 0231f6877c987b46117e220eb17ea0b2f7d9de781916a3984ec3f14151b9c093 | yes |
+| gen3_band_edge_test | 90ad9d3adaa27f06a9573ba10c0dfbe63f645e0e041bd2b5ffc44ec5bca8f9ea | yes |
+| gen3_band_edge_ties | d169ae8d46296bebd37341815a2b5ed92ad6c2e74be56ce618b980d80cd96c54 | yes |
+
+`00ALLINONE --version`: 00ALLINONE  git f42befb  target mac-O3-e0pre (no -dirty)
+
+## 2. Acceptance 1 / rule 4: gen2 byte identity with 7b08827 (ctrl_min, ctrl_leg)
+
+### default build
+
+
+| case | version (audit run) | mode | audited events | matched | missing | extra | abs(dt) > 1e-9 | duplicate live disagreeing | max abs(dt) matched | abs(dt) > 1e-9 and > 1e-10 of horizon | max abs(dt)/horizon | max contact gap [px] (dd, wall, div, piston) | audit vs plain | plain vs ref |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | git f42befb  target mac-O3-e0pre | 2 | 104866 | 58275689 | 0 | 0 | 696 | 0 | 2.42e-08 | 0 | 1.84e-13 | 4.7e-12, 4.0e-12, 2.3e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+| ctrl_leg | git f42befb  target mac-O3-e0pre | 2 | 104776 | 58349834 | 0 | 0 | 423 | 0 | 2.86e-06 | 0 | 4.59e-12 | 5.2e-12, 3.0e-12, 3.0e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+
+| case | mode | audited events | missing | extra | dup. disagreeing | abs(dt) > 1e-9 (engine) | printed | above 1e-8 of horizon (dt) | no true contact | heap error > 1e-8 of horizon | largest heap error / horizon | count above 1e-10 | max contact [px] | plain vs ref | E2 row |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | 2 | 104866 | 0 | 0 | 0 | 696 | 696 | 0 | 0 | 0 | 1.54e-12 | 0 | 4.7e-12 | IDENTICAL | information |
+| ctrl_leg | 2 | 104776 | 0 | 0 | 0 | 423 | 423 | 0 | 0 | 0 | 7.21e-11 | 0 | 5.2e-12 | IDENTICAL | information |
+
+### --engine=gen2 (every command plus the flag)
+
+
+| case | version (audit run) | mode | audited events | matched | missing | extra | abs(dt) > 1e-9 | duplicate live disagreeing | max abs(dt) matched | abs(dt) > 1e-9 and > 1e-10 of horizon | max abs(dt)/horizon | max contact gap [px] (dd, wall, div, piston) | audit vs plain | plain vs ref |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | git f42befb  target mac-O3-e0pre | 2 | 104866 | 58275689 | 0 | 0 | 696 | 0 | 2.42e-08 | 0 | 1.84e-13 | 4.7e-12, 4.0e-12, 2.3e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+| ctrl_leg | git f42befb  target mac-O3-e0pre | 2 | 104776 | 58349834 | 0 | 0 | 423 | 0 | 2.86e-06 | 0 | 4.59e-12 | 5.2e-12, 3.0e-12, 3.0e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+
+| case | mode | audited events | missing | extra | dup. disagreeing | abs(dt) > 1e-9 (engine) | printed | above 1e-8 of horizon (dt) | no true contact | heap error > 1e-8 of horizon | largest heap error / horizon | count above 1e-10 | max contact [px] | plain vs ref | E2 row |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | 2 | 104866 | 0 | 0 | 0 | 696 | 696 | 0 | 0 | 0 | 1.54e-12 | 0 | 4.7e-12 | IDENTICAL | information |
+| ctrl_leg | 2 | 104776 | 0 | 0 | 0 | 423 | 423 | 0 | 0 | 0 | 7.21e-11 | 0 | 5.2e-12 | IDENTICAL | information |
+
+## 3. Rule 8 after the engine changes: the M1 and M2 harness outputs, byte for byte
+
+| output | this build | committed output | SHA-256 (this build) | identical |
+|---|---|---|---|---|
+| m1_audit_output.txt | 13096 bytes | experiments_gen3_m1_261008/m1_audit_output.txt | 3b1347742ac82881023f882b30b1e23bbc1815c99aeef7bcd8c72f32ada00a8b | IDENTICAL |
+| m2_audit_quick_output.txt | 60092 bytes | experiments_gen3_m2_261009/m2_audit_quick_output.txt | 98e78bc5c9c8a42f7a7bcf671eb9df79b4706654c40d0165611a3c64e942e07d | IDENTICAL |
+| m2_audit_output.txt | 60503 bytes | experiments_gen3_m2_261009/m2_audit_output.txt | d1b59d23695c0bb29754a7ee73bbaec1bf43882c5be287fd20ceea40371c9c11 | IDENTICAL |
+| body_rule_test_output.txt | 1224 bytes | experiments_gen3_m2_261009/body_rule_test_output.txt | 8dcd99dc5a3b8f17660fc08a543365e6f7bb9d66426f69542f307caee43e2752 | random-case line (the first line) IDENTICAL; the committed file's second line 'exit=0' was appended by the M2 run command; new: the constructed categories of amendment b |
+
+### Amendment b: the constructed categories (gen3_body_rule_test 20000, the part after the random cases)
+
+constructed cases (amendment b), 2000 per category; worst = max relative contact-time difference to the independent answer (for the slow approach: max |dt - expected minimum| / T, which is below 1 inside the expected stretch):
+
+| category | cases | failures | worst |
+|---|---|---|---|
+| near-tangent touching, drift 0 (first two periods) | 2000 | 0 | 5.89e-11 |
+| near-tangent missing, drift 0 | 2000 | 0 | 0 |
+| near-tangent touching at the k-th minimum (jump path) | 2000 | 0 | 1.9e-12 |
+| near-tangent missing at the k-th minimum (contact one period later) | 2000 | 0 | 1.11e-15 |
+| turning point, oscillating g, first period | 2000 | 0 | 1.49e-13 |
+| turning point, oscillating g, k-th period (jump path) | 2000 | 0 | 1.29e-15 |
+| turning point, monotone g (disk faster than the face) | 2000 | 0 | 4.92e-15 |
+| slow approach, k = 10 .. 1e9 periods (jump path) | 2000 | 0 | 0.234 |
+
+constructed failures: 0
+
+### Amendment a: the band-edge stress cells (gen3_band_edge_test)
+
+# gen3 band-edge stress cells (amendment a): dyadic geometry, the band reach ending exactly on a column boundary
+
+w = 32 px, R = 12 px, divider thickness 1 px, h = 12.5 px; disks on the boundary, just outside and just inside the reach; schedule audit after every event, body audit after every BAND event and API change, contact audit
+
+| cell | N | T [units] | events pair / wall / divider / band / crossing | audited states | missing (all classes) | extra | deferred early | time disagreements (rel > 1e-10) and duplicates | bands missing / extra / short | contacts within rounding | max divider contact gap [px] | clean |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| held_right (exact) | 40 | 480 | 57 / 13 / 24 / 0 / 226 | 321 | 10 | 1 | 0 | 0 | 0 / 0 / 0 | 9 | 2e-12 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+| held_left (exact) | 40 | 480 | 58 / 11 / 24 / 0 / 228 | 322 | 10 | 8 | 0 | 0 | 0 / 0 / 0 | 8 | 2e-12 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+| driven (exact) | 40 | 640 | 161 / 51 / 34 / 5 / 513 | 775 | 9 | 0 | 0 | 0 | 0 / 0 / 0 | 0 | 8.5e-14 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+| spring (exact) | 40 | 800 | 140 / 44 / 38 / 7 / 538 | 775 | 18 | 0 | 0 | 5 | 0 / 0 / 0 | 30 | 2e-12 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+| held_right (generic y) | 40 | 480 | 57 / 14 / 26 / 0 / 225 | 323 | 0 | 0 | 0 | 0 | 0 / 0 / 0 | 9 | 2e-12 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+| held_left (generic y) | 40 | 480 | 50 / 11 / 23 / 0 / 222 | 307 | 0 | 0 | 0 | 0 | 0 / 0 / 0 | 7 | 2e-12 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+| driven (generic y) | 40 | 640 | 154 / 59 / 36 / 5 / 511 | 776 | 0 | 0 | 0 | 0 | 0 / 0 / 0 | 0 | 1.1e-13 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+| spring (generic y) | 40 | 800 | 139 / 47 / 38 / 5 / 546 | 781 | 0 | 0 | 0 | 0 | 0 / 0 / 0 | 29 | 2e-12 | 1 |
+|  | health: overlap_repair 0, obj_overlap_repair 0, wall_overdue 0, past_event 0, clamp 0, cell 0, grid 0, local/full findings 0/0, body findings 0 |  |  |  |  |  |  |  |  |  |  |  |  |
+
+cells with a band finding (bands missing, extra or short), clean = 0 or a load failure: 0 of 8; generic-y cells with any finding in any class: 0 of 4
+
+(audit lines printed by the engine, not repeated here: 61)
+
+### Amendment a: the numbers behind each audit finding of the exact cells (gen3_band_edge_ties)
+
+| cell | finding (first occurrence) | at t | quantities | class |
+|---|---|---|---|---|
+| held_right (exact) | missing PAIR a=1 b=32 | 42.666666666666664 | dv = (0.625, 0); r_x local -34.333333333334359 / absolute -34.333333333334338; r_y local -24 / absolute -24; disc local -5.68e-14 / absolute 5.68e-14; heap nan, brute force 97.599999389650748; K bound 4.09e-13; opposite sides of the divider: yes | G |
+| held_right (exact) | wrong-direction CROSS a=21 b=2 | 128.00000000537622 | cell (12,5), local (1.3440555335364479e-09, 24.000000000336016), v (0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 0 at 256; audit: direction 2 | C |
+| held_right (exact) | extra PAIR a=0 b=9 | 192.00000000000003 | dv = (-1.63258e-13, 0); r_x local 39.999999999989043 / absolute 39.999999999989029; r_y local 24 / absolute 24; disc local 1.18e-38 / absolute 0; heap 245010516292499.97, brute force nan; K bound 3.79e-38; opposite sides of the divider: no | G |
+| held_right (exact) | wrong-direction CROSS a=15 b=2 | 239.94644463885018 | cell (12,8), local (16.053555361149819, 28.989958369784411), v (-1, 0.1875); x and y crossing at 256 / 256 (from the stamp at 224: 256 / 256); heap: direction 1 at 256; audit: direction 2 | C |
+| held_right (exact) | occurrences of missing PAIR a=1 b=32: 6 |  |  |  |
+| held_right (exact) | occurrences of wrong-direction CROSS a=21 b=2: 3 |  |  |  |
+| held_right (exact) | occurrences of extra PAIR a=0 b=9: 1 |  |  |  |
+| held_right (exact) | occurrences of wrong-direction CROSS a=15 b=2: 1 |  |  |  |
+| held_left (exact) | missing PAIR a=25 b=36 | 42.666666666666664 | dv = (-0.125, 0); r_x local 39.666666666666607 / absolute 39.6666666666666; r_y local -24 / absolute -24; disc local 0 / absolute 7.11e-15; heap nan, brute force 359.99999460522201; K bound 2.18e-14; opposite sides of the divider: yes | G |
+| held_left (exact) | missing PAIR a=2 b=9 | 102.39999999999998 | dv = (4.19387e-14, 0); r_x local -39.999999999998373 / absolute -39.99999999999838; r_y local -24 / absolute -24; disc local 0 / absolute 3.67e-40; heap nan, brute force 953773570015439.25; K bound 2.5e-39; opposite sides of the divider: no | G |
+| held_left (exact) | extra PAIR a=0 b=9 | 127.99999999999994 | dv = (8.3461e-14, 0); r_x local -39.999999999996035 / absolute -39.999999999996021; r_y local 24 / absolute 24; disc local 2.94e-39 / absolute 0; heap 479265665898622.06, brute force nan; K bound 9.9e-39; opposite sides of the divider: no | G |
+| held_left (exact) | wrong-direction CROSS a=5 b=2 | 128.00000000000668 | cell (7,5), local (31.99999999999833, 24.000000000000419), v (-0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 1 at 256; audit: direction 2 | C |
+| held_left (exact) | wrong-direction CROSS a=21 b=2 | 128.00000000000668 | cell (4,5), local (31.99999999999833, 24.000000000000419), v (-0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 1 at 256; audit: direction 2 | C |
+| held_left (exact) | occurrences of missing PAIR a=25 b=36: 3 |  |  |  |
+| held_left (exact) | occurrences of missing PAIR a=2 b=9: 1 |  |  |  |
+| held_left (exact) | occurrences of extra PAIR a=0 b=9: 8 |  |  |  |
+| held_left (exact) | occurrences of wrong-direction CROSS a=5 b=2: 1 |  |  |  |
+| held_left (exact) | occurrences of wrong-direction CROSS a=21 b=2: 5 |  |  |  |
+| driven (exact) | missing PAIR a=25 b=36 | 42.666666666666664 | dv = (0.625, 0); r_x local -50.333333333333279 / absolute -50.333333333333258; r_y local -24 / absolute -24; disc local 0 / absolute 1.14e-13; heap nan, brute force 123.19999913683338; K bound 8.79e-13; opposite sides of the divider: yes | G |
+| driven (exact) | missing PAIR a=1 b=32 | 43.503617297951436 | dv = (0.625, 0); r_x local -49.810239188781381 / absolute -49.810239188781367; r_y local -24 / absolute -24; disc local 0 / absolute 1.14e-13; heap nan, brute force 123.19999913683519; K bound 8.61e-13; opposite sides of the divider: yes | G |
+| driven (exact) | wrong-direction CROSS a=21 b=2 | 128.00000000537622 | cell (12,5), local (1.3440555335364479e-09, 24.000000000336016), v (0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 0 at 256; audit: direction 2 | C |
+| driven (exact) | occurrences of missing PAIR a=25 b=36: 1 |  |  |  |
+| driven (exact) | occurrences of missing PAIR a=1 b=32: 3 |  |  |  |
+| driven (exact) | occurrences of wrong-direction CROSS a=21 b=2: 5 |  |  |  |
+| spring (exact) | wrong-direction CROSS a=21 b=2 | 137.16957229380884 | cell (12,5), local (2.2923930734522102, 24.573098268363054), v (0.25, 0.0625); x and y crossing at 256 / 255.99999999999997 (from the stamp at 128: 256 / 256); heap: direction 0 at 256; audit: direction 2 | C |
+| spring (exact) | dt_rel PAIR a=12 b=18 | 256.00000000000409 | dv = (-2.17326e-14, 0.1875); r_x local 23.999999999996703 / absolute 23.999999999996703; r_y local -47.999999999999233 / absolute -47.999999999999233; disc local 1.5e-11 / absolute 1.5e-11; heap 511.99988991508729, brute force 511.99988996732213; K bound 2.65e-07; opposite sides of the divider: no | K |
+| spring (exact) | occurrences of wrong-direction CROSS a=21 b=2: 18 |  |  |  |
+| spring (exact) | occurrences of dt_rel PAIR a=12 b=18: 5 |  |  |  |
+
+findings (audit lines, all cells): 61 occurrences, 14 distinct; by cell: held_right (exact) 11; held_left (exact) 18; driven (exact) 9; spring (exact) 23; held_right (generic y) 0; held_left (generic y) 0; driven (generic y) 0; spring (generic y) 0;
+distinct findings by class: G exact graze 7, K near graze within rounding 1, V rounding-level relative velocity 0, C corner tie 6, U unclassified 0
+
+band_edge_test rc 0
+band_edge_ties rc 0
+
+## 4. Acceptances 2 and 3: the harness cells replayed through the driver (run_replays.sh)
+
+| variant | replays | MATCH | clean=1 |
+|---|---|---|---|
+| a | 16 | 16 | 16 |
+| b | 16 | 16 | 16 |
+| c | 16 | 16 | 16 |
+| d | 16 | 16 | 16 |
+
+replays: 64, MATCH with clean=1: 64
+
+## 5. Amendment d: one production-length run through the driver (N = 400, eta 0.70, free divider M = 500, 2e4 sigma-time)
+
+    [EDMD-CONTACT] executed events 101445679; max abs(contact distance) [px]: disk-disk 4.174e-12, outer walls 2.160e-12, divider 2.188e-12, pistons 0.000e+00
+    [EDMD3-LEDGER] momentum x: residual -2.35e-12, scale 8.3e-08, ratio 2.83e-05; y: residual 1.76e-12, scale 2.54e-08, ratio 6.93e-05; energy: residual -2.5e-12, scale 2.11e-07, ratio 1.19e-05 (E0 400, E 400, W 0)
+    [EDMD3-GAP] contact audit over 101445679 events: max gap [px] pair 4.17e-12, wall 2.16e-12, divider 2.19e-12, piston 0; time quantum u_t 1.81899e-12 units; max gap / u_t [px/unit] pair 2.29, wall 1.19, divider 1.2, piston 0; v_ref 40 px/unit
+    [EDMD3-AUDIT] audited states 111; missing pair/wall/cross/div/piston 0/0/0/0/0; extra 0/0/0/0/0; deferred earlier than eligible pair/wall/div/piston 0/0/0/0; bands missing/extra/short 0/0/0; duplicate disagreeing 0; cells inconsistent 0; max |dt| 4e-11; max |dt|/horizon (|dt| > 1e-9 only) 0
+
+| clean | t_end [sigma] | origin shifts | events | validator every [steps] | schedule audits | build | run [s] | engine [s] | driver share |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 20033.3 | 58 | 110306435 | 60 | 111 | "f42befb" mac-O3-e0pre | 167.600 | 147.900 | 0.1175 |
+
+health line: L0=11.2 M=500 run=0 seed=919674558: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=201289182 full_checks=120290 local_worst=-4.17e-12 full_worst=-2.79e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.04e-12 ev_pair=90982747 ev_wall=7207531 ev_cross=8860756 ev_div=3255401 ev_piston=0 ev_band=0 ev_stale=726344586 origin_shifts=58 syncs=58 heap_compactions=2597 heap_max=29743 validator_every=60 hash=0db66ff7a5d6edc9 t_end=480800.0071644783
+
+## 6. Stage A3 and acceptance 3: the event hash at every output cadence; acceptance 6: same-seed determinism
+
+| loop | run | validator every | trace / log / psi6 cadence | event hash | events | t_end [sigma] | clean | driver share |
+|---|---|---|---|---|---|---|---|---|
+| energy transfer (A-fixed protocol) | default | 60 | trace every 600 steps | 4428249ad3af787f | 2044509 | 5219.9834 | 1 | 0.0509 |
+| energy transfer (A-fixed protocol) | validator1 | 1 | trace every 600 steps | 4428249ad3af787f | 2044509 | 5219.9834 | 1 | 0.5672 |
+| energy transfer (A-fixed protocol) | validator1_trace1 | 1 | trace every step | 4428249ad3af787f | 2044509 | 5219.9834 | 1 | 0.5177 |
+| speed of sound (T-prime protocol, M = 300) | default | 60 | log 60 steps, psi6 0.25 | 61869f868bced42e | 2224656 | 5791.7334 | 1 | 0.3141 |
+| speed of sound (T-prime protocol, M = 300) | max_cadence | 1 | log every step, psi6 0.05 | 61869f868bced42e | 2224656 | 5791.7334 | 1 | 0.7537 |
+| speed of sound (T-prime protocol, M = 300) | min_cadence | 1000000 | log 600 steps, psi6 1000 | 61869f868bced42e | 2224656 | 5791.7334 | 1 | 0.0129 |
+| speed of sound (T-prime protocol, M = 300) | default_repeat | 60 | log 60 steps, psi6 0.25 | 61869f868bced42e | 2224656 | 5791.7334 | 1 | 0.3152 |
+
+A3: event logs (ev_9700.csv) of the three runs byte-identical: yes; trace default = validator1: yes; every row of the default trace (2) is a row of the every-step trace (1200): yes
+acceptance 6: the repeat's CSV outputs byte-identical: 3 of 3 (psi6_t_L0_100_wallmassfactor_300_run0.csv, speed_of_sound_psi6.csv, wall_x_positions_L0_100_wallmassfactor_300_run0.csv); its [EDMD3...] log lines identical apart from the wall-time fields (run_s, engine_s, driver_share): yes
+
+## 7. Acceptance 4: the gate's cases under gen3 (plain runs, contact audit); the validator cadence
+
+| case | records / builds | clean | validator every [steps] | events | max contact gap [px] disk-disk / walls / divider | t_end [sigma] | driver share |
+|---|---|---|---|---|---|---|---|
+| free_M50 | 1 / 1 | 1 | 60 | 1131538 | 3.46e-12 / 1.88e-12 / 1.68e-12 | 2959.2 | 0.3199 |
+| free_M500 | 1 / 1 | 1 | 60 | 2812054 | 2.94e-12 / 2.00e-12 / 1.68e-12 | 7312.6 | 0.3143 |
+| free_M1500 | 1 / 1 | 1 | 60 | 4768260 | 4.56e-12 / 2.57e-12 / 1.65e-12 | 12371.6 | 0.3154 |
+| free_M2000 | 1 / 1 | 1 | 60 | 5471516 | 3.55e-12 / 2.16e-12 / 2.56e-12 | 14241.3 | 0.3148 |
+| dense_M50 | 1 / 1 | 1 | 60 | 394828 | 2.40e-12 / 1.73e-12 / 1.62e-12 | 200.0 | 0.1092 |
+| dense_M2000 | 1 / 1 | 1 | 60 | 600439 | 2.50e-12 / 1.62e-12 / 1.56e-12 | 311.6 | 0.0563 |
+| ctrl_min | 1 / 1 | 1 | 60 | 153253 | 3.46e-12 / 1.47e-12 / 1.51e-12 | 399.1 | 0.3256 |
+| afix | 1 / 1 | 1 | 60 | 2044509 | 3.50e-12 / 1.76e-12 / 1.70e-12 | 5220.0 | 0.0569 |
+
+The driver's validator (experiment_validation.c) runs every --validator-every steps; under gen3 the default is 60 steps of 1/60 sigma-time = once per sigma-time (G3_VALIDATOR_EVERY), under gen2 every step as before; between validator steps the Left/Right counts are carried over (the trace documentation states it, stage A2).
+
+## 8. Acceptance 5, information: gen2 and gen3 on one fluid cell (N = 400, eta = pi/8, H = L0 = 20, M = 300; 8 seeds each, the same seeds; reduce_B.py's argmax estimator)
+
+| engine | n | mean nu | SE | seeds equal |
+|---|---|---|---|---|
+| gen2 | 8 | 0.030279 | 8.44e-05 | yes |
+| gen3 | 8 | 0.030262 | 2.62e-05 | yes |
+
+gen3 - gen2 = -1.79e-05 (-0.06 %), z = -0.20 (information; Test G is the test)
+
+outputs both methods need, under gen3: divider trace (dynamic): 8 files; impulses on the held divider and the walls (static: the event log): 1 files; psi6(t): 8 files
+event-log rows by kind (acc4 afix, gen3): D0 66369, WB 66487, WL 33225, WR 33163, WT 66337
+
+## 9. Stage A4: the driver's share of the run time (one run at a time, nothing else of mine running)
+
+| loop | N | eta | record [sigma] | events | run [s] | engine [s] | driver share | events per s (run) |
+|---|---|---|---|---|---|---|---|---|
+| speed of sound | 400 | pi/8 | 2033 | 2756960 | 3.4 | 1.8 | 0.469 | 8.15e+05 |
+| speed of sound | 400 | 0.70 | 2033 | 11164670 | 15.5 | 13.7 | 0.111 | 7.22e+05 |
+| speed of sound | 1600 | pi/8 | 2033 | 10689133 | 20.2 | 7.7 | 0.618 | 5.28e+05 |
+| speed of sound | 1600 | 0.70 | 2033 | 38244882 | 67.7 | 53.9 | 0.205 | 5.65e+05 |
+| energy transfer | 400 | pi/8 | 1020 | 1379903 | 0.9 | 0.8 | 0.050 | 1.58e+06 |
+| energy transfer | 400 | 0.70 | 1020 | 5750337 | 6.7 | 6.6 | 0.008 | 8.59e+05 |
+| energy transfer | 1600 | pi/8 | 1020 | 5356011 | 3.8 | 3.6 | 0.042 | 1.42e+06 |
+| energy transfer | 1600 | 0.70 | 1020 | 19246397 | 25.4 | 25.2 | 0.008 | 7.56e+05 |

@@ -1,0 +1,14 @@
+# STAGE 1, PART B -- the verdict script's design (gate G5; sec. 4.8.7: every threshold with its false-alarm rate, before any data)
+
+- Verdict K: p(X^2, 12 dof) >= 0.01 and max over the 12 densities of |z| < 3.5: false alarm <= 1 - (1 - 0.01) (1 - 0.000465)^12 = 0.0155 (the registration: about 1.6 % = 1 % + 0.56 %; P(max |z| >= 3.5) = 0.0056)
+- Verdict S: all four |z| < 3.5: false alarm 0.00186 per cell, 0.0365 for at least one of the 20 cells (the registration: 0.19 %, 3.7 %)
+- Stationarity: |t| >= 3.0 (hold) and |z| >= 3.0 (record): 0.0027 per test; about 220 tests: 0.59 false flags expected (registration: about 0.6)
+- F2 'form not adequate': p < 0.01 (1 dof): 1 % per density
+- Verdict I: p(chi2, 4 dof) >= 0.01 for rho_I = 0; else the c_I / N_s fit (3 dof) p >= 0.01: 1 % each (waits for Part A)
+- Continuity C-a, C-b (two masses), C-c: |z| < 3.0 expected: 0.0027 per check, 0.0108 for at least one of four
+- Prediction 2: |z| < 2 at 10 or more of 12 densities: fails by chance with P(3 or more of 12 with |z| >= 2) = 0.0152 (registration: 1.5 %)
+- The group rule: more than 2 of 25 (more than 1 of 10 in block S) lost in a (cell, mass): flagged, left out of the cell's fits; the stop rule: more than 1 % of a block's trajectories excluded: the block's analysis stops
+- E1 needs 5 or more of the eight masses alpha >= 1; the low-Q flag at Q < 5; E0 needs 3 or more masses (the canonical function)
+- The continuity references: C-a A1 v2 (N 100, pi/8) 3.80884 +- 0.011193 (methods sec. 14.2's table, c_s_err_scaled); C-b Test G on KOA, gen3 arm, M 300 0.0370087 +- 2.35e-05, M 1500 0.0172607 +- 5.87e-06; C-c 2.81977 +- 0.00013 (notes sec. 4.7.28)
+- KR: the project's module (plot_speed_of_sound_edmd: the rho_max = 0.90 fit); c_s^KR at the 16 densities: 0.05: 1.56662, 0.1: 1.74414, 0.15: 1.95254, 0.2: 2.19932, 0.25: 2.49447, 0.3: 2.85150, 0.35: 3.28907, 0.3927: 3.74608, 0.45: 4.52339, 0.5: 5.41622, 0.55: 6.60187, 0.6: 8.22261, 0.63: 9.48067, 0.66: 10.92711, 0.68: 11.67121, 0.69: 11.55097
+- The fluid set Phi: 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.3927, 0.45, 0.5, 0.55, 0.6; the approach cells: 0.63, 0.66, 0.68, 0.69

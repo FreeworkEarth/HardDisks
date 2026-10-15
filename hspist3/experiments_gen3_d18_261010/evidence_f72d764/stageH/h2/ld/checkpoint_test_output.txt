@@ -1,0 +1,101 @@
+# gen3 checkpoint and restart at an event boundary (261012 sec. 4.7.12 stage H), printed by edmd_core/tests/gen3_checkpoint_test.c
+
+build: Apple LLVM 17.0.0 (clang-1700.4.4.1), double 8 bytes; the M2 harness's cells and protocols at its full lengths
+
+| cell | events (all kinds) | origin shifts | checkpoint after sample k | C (wrote, went on) = U | R (fresh state read it) = U | R' (state that ran elsewhere read it) = U | R2 (chain: second checkpoint at k + (K-k)/2) = U | checkpoint bytes |
+|---|---|---|---|---|---|---|---|---|
+| cradle_exact | 41752 | 0 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 64872 |
+| cradle_exact | 41752 | 0 | 133 (t = 798 units, 0 shifts) | equal | equal | equal | equal | 71208 |
+| cradle_exact | 41752 | 0 | 266 (t = 1596 units, 0 shifts) | equal | equal | equal | equal | 70440 |
+| cradle_exact | 41752 | 0 | 399 (t = 2394 units, 0 shifts) | equal | equal | equal | - | 70248 |
+| cradle_round | 26742 | 0 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 68712 |
+| cradle_round | 26742 | 0 | 133 (t = 798 units, 0 shifts) | equal | equal | equal | equal | 67880 |
+| cradle_round | 26742 | 0 | 266 (t = 1596 units, 0 shifts) | equal | equal | equal | equal | 71656 |
+| cradle_round | 26742 | 0 | 399 (t = 2394 units, 0 shifts) | equal | equal | equal | - | 69736 |
+| cradle_round_late | 26742 | 1 | 1 (t = 8106 units, 0 shifts) | equal | equal | equal | equal | 68712 |
+| cradle_round_late | 26742 | 1 | 133 (t = 8898 units, 1 shifts) | equal | equal | equal | equal | 67880 |
+| cradle_round_late | 26742 | 1 | 15 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 67880 |
+| cradle_round_late | 26742 | 1 | 16 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 70600 |
+| cradle_round_late | 26742 | 1 | 266 (t = 9696 units, 1 shifts) | equal | equal | equal | equal | 71656 |
+| cradle_round_late | 26742 | 1 | 399 (t = 10494 units, 1 shifts) | equal | equal | equal | - | 69736 |
+| free_pi8_M50 | 577150 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 107144 |
+| free_pi8_M50 | 577150 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 325960 |
+| free_pi8_M50 | 577150 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 431272 |
+| free_pi8_M50 | 577150 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 438568 |
+| free_pi8_M50 | 577150 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 381832 |
+| free_pi8_M50 | 577150 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 481960 |
+| free_pi8_M500 | 565806 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 104264 |
+| free_pi8_M500 | 565806 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 370600 |
+| free_pi8_M500 | 565806 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 490824 |
+| free_pi8_M500 | 565806 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 488456 |
+| free_pi8_M500 | 565806 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 462056 |
+| free_pi8_M500 | 565806 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 512328 |
+| free_070_M50 | 2334759 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 367480 |
+| free_070_M50 | 2334759 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 863704 |
+| free_070_M50 | 2334759 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 739000 |
+| free_070_M50 | 2334759 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 965496 |
+| free_070_M50 | 2334759 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 765880 |
+| free_070_M50 | 2334759 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 864920 |
+| free_070_M500 | 2473393 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 377208 |
+| free_070_M500 | 2473393 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 811768 |
+| free_070_M500 | 2473393 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 643736 |
+| free_070_M500 | 2473393 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 841496 |
+| free_070_M500 | 2473393 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 209624 |
+| free_070_M500 | 2473393 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 933528 |
+| free_070_M500 (audits on) | 2473393 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 377208 |
+| free_070_M500 (audits on) | 2473393 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 811768 |
+| free_070_M500 (audits on) | 2473393 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 643736 |
+| free_070_M500 (audits on) | 2473393 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 841496 |
+| free_070_M500 (audits on) | 2473393 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 209624 |
+| free_070_M500 (audits on) | 2473393 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 933528 |
+| heavy_070_M4e7 | 2366559 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 360856 |
+| heavy_070_M4e7 | 2366559 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 989368 |
+| heavy_070_M4e7 | 2366559 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 301816 |
+| heavy_070_M4e7 | 2366559 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 594968 |
+| heavy_070_M4e7 | 2366559 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 791352 |
+| heavy_070_M4e7 | 2366559 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 721816 |
+| held_pi8 | 589685 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 104616 |
+| held_pi8 | 589685 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 178376 |
+| held_pi8 | 589685 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 181128 |
+| held_pi8 | 589685 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 181224 |
+| held_pi8 | 589685 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 181832 |
+| held_pi8 | 589685 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 184040 |
+| held_070 | 2466996 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 383864 |
+| held_070 | 2466996 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 826552 |
+| held_070 | 2466996 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 869688 |
+| held_070 | 2466996 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 856248 |
+| held_070 | 2466996 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 848632 |
+| held_070 | 2466996 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 850168 |
+| driven_pi8 | 818521 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 107272 |
+| driven_pi8 | 818521 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 196520 |
+| driven_pi8 | 818521 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 193000 |
+| driven_pi8 | 818521 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 192360 |
+| driven_pi8 | 818521 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 192872 |
+| driven_pi8 | 818521 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 196040 |
+| spring_pi8 | 527607 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 113880 |
+| spring_pi8 | 527607 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 244120 |
+| spring_pi8 | 527607 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 236312 |
+| spring_pi8 | 527607 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 238136 |
+| spring_pi8 | 527607 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 230648 |
+| spring_pi8 | 527607 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 244888 |
+| piston_push | 257042 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 124256 |
+| piston_push | 257042 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 139840 |
+| piston_push | 257042 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 139264 |
+| piston_push | 257042 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 139552 |
+| piston_push | 257042 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 138880 |
+| piston_push | 257042 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 139456 |
+| piston_push (audits on) | 257042 | 1 | 1 (t = 6 units, 0 shifts) | equal | equal | equal | equal | 124256 |
+| piston_push (audits on) | 257042 | 1 | 533 (t = 3198 units, 0 shifts) | equal | equal | equal | equal | 139840 |
+| piston_push (audits on) | 257042 | 1 | 1365 (t = 8190 units, 0 shifts) | equal | equal | equal | equal | 139264 |
+| piston_push (audits on) | 257042 | 1 | 1366 (t = 8196 units, 1 shifts) | equal | equal | equal | equal | 139552 |
+| piston_push (audits on) | 257042 | 1 | 1066 (t = 6396 units, 0 shifts) | equal | equal | equal | equal | 138880 |
+| piston_push (audits on) | 257042 | 1 | 1599 (t = 9594 units, 1 shifts) | equal | equal | equal | - | 139456 |
+
+## Refusals
+
+| case | result | message |
+|---|---|---|
+| read into a state of another cell (free_pi8_M50 into free_070_M50) | refused | edmd_gen3: checkpoint of another geometry (N 400, 480 cells of capacity 9, w 32, box 481.19999999999999 x 960 px) |
+| a truncated checkpoint (free_pi8_M50, half of 157704 bytes) | refused | edmd_gen3: checkpoint truncated (disks, cells or heap) |
+
+VERDICT: PASS -- 329 comparisons, 0 different; refusals both refused

@@ -1,0 +1,2 @@
+REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/lustre/harddisks_gen3/stage1/B100/merged exists
+B100: THIS PASTE DID NOT SUBMIT THE MERGE

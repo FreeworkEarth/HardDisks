@@ -1,0 +1,37 @@
+env: gcc (GCC) 14.3.0 [rehearsal shim; here: Apple clang version 17.0.0 (clang-1700.4.4.1)] | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+completion of the reduction of /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2/lustre/harddisks_gen3/stage1/B100 by the scripts of ~/harddisks_gen3_rc (no git at run time; the three manifests: OK); the merge log /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2/build/home/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-B100_940009.out; the scripts it runs:
+  48dbc1b13dd36aa58d94d048e9468e5d79c16022d314b24ab6f4c6da5698d610  cluster/gen3_s1_complete_261013/complete_s1_koa.py
+  f13061c82b62076f3ac41002d46631dfb10903d3f8d12c2c74c80d4bcc5e15ea  cluster/gen3_stage1_261012/reduce_s1_koa.py
+  b636aa6e8161460cdf55b4dac1b0cb07ad564b6bab8c32872cb97861a95c973f  cluster/confinement_20261013/reduce_B.py
+  131a1bd7a6b84e68631a1cf6525f8cf29a3679f746513ce49cc54c28a743458d  cluster/gen3_testR_261011/reduce_testR_koa.py
+the merge log's last line: FAILED lines in the chunk logs (logs/): 0
+## the plan (--plan-only): 2 cells, 3 (cell, mass) folders under stage1/gen3
+
+| folder | traces | reduce_B | reduce_s1 | compression | to do |
+|---|---|---|---|---|---|
+| stage1/gen3/B_N0100_eta0.050000/m_50 | 25 | done | done | 1 of 25 compressed | gzip of 25 (1 partial .gz moved aside) |
+| stage1/gen3/B_N0100_eta0.392699/m_50 | 2 | TO DO | TO DO | 0 of 2 compressed | reduce_B, reduce_s1, the SHA-256 lines and gzip of 2 |
+| stage1/gen3/B_N0100_eta0.392699/m_500 | 4 | TO DO | TO DO | 0 of 4 compressed | reduce_B, reduce_s1, the SHA-256 lines and gzip of 4 |
+
+folders finished: 0; folders to complete: 3
+--plan-only: nothing was changed
+## the plan (job 940011): 2 cells, 3 (cell, mass) folders under stage1/gen3
+
+| folder | traces | reduce_B | reduce_s1 | compression | to do |
+|---|---|---|---|---|---|
+| stage1/gen3/B_N0100_eta0.050000/m_50 | 25 | done | done | 1 of 25 compressed | gzip of 25 (1 partial .gz moved aside) |
+| stage1/gen3/B_N0100_eta0.392699/m_50 | 2 | TO DO | TO DO | 0 of 2 compressed | reduce_B, reduce_s1, the SHA-256 lines and gzip of 2 |
+| stage1/gen3/B_N0100_eta0.392699/m_500 | 4 | TO DO | TO DO | 0 of 4 compressed | reduce_B, reduce_s1, the SHA-256 lines and gzip of 4 |
+
+folders finished: 0; folders to complete: 3
+  stage1/gen3/B_N0100_eta0.050000/m_50/wall_x_positions_L0_785_wallmassfactor_50_run0.csv.gz: a cut gzip, renamed to wall_x_positions_L0_785_wallmassfactor_50_run0.csv.gz.partial_940011 (kept)
+  stage1/gen3/B_N0100_eta0.050000/m_50: 25 traces compressed
+reduce_B stage1/gen3/B_N0100_eta0.392699 (masses 50 500): exit 0 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2/lustre/harddisks_gen3/stage1/B100/merged/stage1/gen3/B_N0100_eta0.392699/m_50: 2 trajectories reduced
+/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2/lustre/harddisks_gen3/stage1/B100/merged/stage1/gen3/B_N0100_eta0.392699/m_500: 4 trajectories reduced 
+reduce_s1 stage1/gen3/B_N0100_eta0.392699/m_50: exit 0 2 trajectories: nud_runs.csv (0 fit failures), runs_health.csv (2 ##RUN sections), failed_runs.csv (0 failed runs), acf_mean_fit.csv (fit_ok 1), s1_runs.csv (2 rows; 0 without trace, psi6 or virial file), snap_runs.csv (0 files) 
+reduce_s1 stage1/gen3/B_N0100_eta0.392699/m_500: exit 0 4 trajectories: nud_runs.csv (0 fit failures), runs_health.csv (4 ##RUN sections), failed_runs.csv (0 failed runs), acf_mean_fit.csv (fit_ok 1), s1_runs.csv (4 rows; 0 without trace, psi6 or virial file), snap_runs.csv (2 files) 
+  stage1/gen3/B_N0100_eta0.392699/m_50: 2 traces compressed
+  stage1/gen3/B_N0100_eta0.392699/m_500: 4 traces compressed
+reduction completed by job 940011: reduce_B in 1 cells (2 masses), reduce_s1 in 2 folders, 3 folders compressed (31 traces), 1 cut gzip files kept aside, 0 steps with an exit other than 0
+completion done; next: block H-<group>'s counts from this job's log and the fetch
+this job's log is copied to /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2/lustre/harddisks_gen3/stage1/B100/job_logs/ as the last command

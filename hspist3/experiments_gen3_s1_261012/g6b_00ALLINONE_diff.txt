@@ -1,0 +1,576 @@
+diff --git a/hspist3/00ALLINONE.c b/hspist3/00ALLINONE.c
+index 702e6e2a..00b363a6 100644
+--- a/hspist3/00ALLINONE.c
++++ b/hspist3/00ALLINONE.c
+@@ -1279,6 +1279,8 @@ static inline int validator_every(void){ return cli_validator_every > 0 ? cli_va
+ /* ##CHRIS 2026-10-09 (stage C, M4; 261012 sec. 4.7.16): gen3's initial conditions (g3_m4_seed, below); all refused without gen3 */
+ static int    cli_gen3_seeding = 0;            /* --gen3-seeding=lattice (1); 0 (driver): the driver's seeding, unchanged */
+ static int    cli_gen3_orient = -1;            /* --gen3-lattice=auto (-1) | parallel (0) | perpendicular (1) */
++static int    cli_gen3_cryst = -1;             /* ##CHRIS 2026-10-10 (decision 18, item 2, M4c): --gen3-lattice-orientation=0 (0) | turned (1):
++                                                  the crystal orientation (g3_lat_cryst); -1, the default: the M4 family as before */
+ static double cli_gen3_jitter = 0.25;          /* --gen3-jitter=f: jitter radius f x the smallest surface gap (0: jitter-free) */
+ static int    cli_gen3_exact_box = 0;          /* --gen3-exact-box: box width 2 L0 with L0 exactly as written in --lengths */
+ static double* cli_lengths_d = NULL;           /* --lengths read as doubles (the exact box) */
+@@ -1297,6 +1299,16 @@ static uint64_t g3_init_hash = 0;              /* FNV-1a of the state gen3 was b
+ static double cli_gen3_virial_blocks = 0.0;   /* --gen3-virial-blocks=T: the pair virial per compartment in blocks of T sigma-time (0: off) */
+ static double cli_gen3_snapshots = 0.0;       /* --gen3-snapshots=T: every disk's position every T sigma-time (0: off); the runner passes it
+                                                  for its seed subset */
++/* ##CHRIS 2026-10-10 (plan-author decision 17; 261012 sec. 4.7.40): PROVISIONAL -- psi6 per compartment (psi6_compartments) */
++static int    cli_gen3_psi6_comp = 0;          /* --gen3-psi6-compartments: per-compartment columns at the end of the psi6(t) file (gen3,
++                                                  the speed-of-sound loop only; off: the file is byte-identical to before) */
++static const char* cli_gen3_psi6_snaps = NULL; /* --gen3-psi6-snapshots=FILE: those values for every snapshot in a snapshot file, then exit */
++/* ##CHRIS 2026-10-09 (plan-author decision 13, item 4; 261012 sec. 4.7.30): M4b, the compressed-fluid start (--gen3-seeding=compressed,
++   g3_m4b_init_driver); the three parameters are refused without it */
++static double cli_gen3_m4b_eta0 = 0.60;        /* --gen3-compress-eta0=x: the lattice's packing fraction in the long box */
++static double cli_gen3_m4b_melt = 500.0;       /* --gen3-compress-melt=T: the held time before the pistons move [sigma-time] */
++static double cli_gen3_m4b_u = 0.01;           /* --gen3-compress-speed=u: the pistons' inward speed [sigma per sigma-time] */
++static int    cli_gen3_m4b_set = 0;            /* one of the three was given */
+ 
+ static void g3_stop(const char* what){
+     fflush(stdout);
+@@ -4879,14 +4891,30 @@ static void parse_cli_options(int argc, char **argv) {
+         } else if (strncmp(arg, "--gen3-seeding=", strlen("--gen3-seeding=")) == 0) {   /* ##CHRIS 2026-10-09 (stage C, M4) */
+             const char* v = arg + strlen("--gen3-seeding=");
+             if (strcmp(v, "lattice") == 0) cli_gen3_seeding = 1;
++            else if (strcmp(v, "compressed") == 0) cli_gen3_seeding = 2;   /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b */
+             else if (strcmp(v, "driver") == 0) cli_gen3_seeding = 0;
+-            else { fprintf(stderr, "Invalid '%s' (lattice | driver).\n", arg); exit(EXIT_FAILURE); }
++            else { fprintf(stderr, "Invalid '%s' (lattice | compressed | driver).\n", arg); exit(EXIT_FAILURE); }
++        } else if (strncmp(arg, "--gen3-compress-eta0=", strlen("--gen3-compress-eta0=")) == 0
++                   || strncmp(arg, "--gen3-compress-melt=", strlen("--gen3-compress-melt=")) == 0
++                   || strncmp(arg, "--gen3-compress-speed=", strlen("--gen3-compress-speed=")) == 0) {   /* ##CHRIS 2026-10-09 (decision 13, item 4) */
++            char *endptr = NULL; const double v = strtod(strchr(arg, '=') + 1, &endptr);
++            const int which = arg[16] == 'e' ? 0 : (arg[16] == 'm' ? 1 : 2);   /* "--gen3-compress-" is 16 characters */
++            const int ok = endptr && *endptr == '\0' && isfinite(v)
++                           && (which == 0 ? (v > 0.05 && v < 0.85) : (which == 1 ? (v >= 0.0 && v <= 1e7) : (v > 0.0 && v <= 1.0)));
++            if (!ok) { fprintf(stderr, "Invalid '%s' (eta0 in (0.05, 0.85); melt >= 0 sigma-time; speed in (0, 1] sigma per sigma-time).\n", arg); exit(EXIT_FAILURE); }
++            if (which == 0) cli_gen3_m4b_eta0 = v; else if (which == 1) cli_gen3_m4b_melt = v; else cli_gen3_m4b_u = v;
++            cli_gen3_m4b_set = 1;
+         } else if (strncmp(arg, "--gen3-lattice=", strlen("--gen3-lattice=")) == 0) {
+             const char* v = arg + strlen("--gen3-lattice=");
+             if (strcmp(v, "auto") == 0) cli_gen3_orient = -1;
+             else if (strcmp(v, "parallel") == 0) cli_gen3_orient = 0;
+             else if (strcmp(v, "perpendicular") == 0) cli_gen3_orient = 1;
+             else { fprintf(stderr, "Invalid '%s' (auto | parallel | perpendicular).\n", arg); exit(EXIT_FAILURE); }
++        } else if (strncmp(arg, "--gen3-lattice-orientation=", strlen("--gen3-lattice-orientation=")) == 0) {   /* ##CHRIS 2026-10-10 (decision 18, M4c) */
++            const char* v = arg + strlen("--gen3-lattice-orientation=");
++            if (strcmp(v, "0") == 0) cli_gen3_cryst = 0;
++            else if (strcmp(v, "turned") == 0) cli_gen3_cryst = 1;
++            else { fprintf(stderr, "Invalid '%s' (0 | turned).\n", arg); exit(EXIT_FAILURE); }
+         } else if (strncmp(arg, "--gen3-jitter=", strlen("--gen3-jitter=")) == 0) {
+             char *endptr = NULL; const double v = strtod(arg + strlen("--gen3-jitter="), &endptr);
+             if (!endptr || *endptr != '\0' || !(v >= 0.0) || !(v < 0.5)) { fprintf(stderr, "Invalid '%s' (0 <= f < 0.5).\n", arg); exit(EXIT_FAILURE); }
+@@ -4914,6 +4942,10 @@ static void parse_cli_options(int argc, char **argv) {
+             char *endptr = NULL; const double v = strtod(strchr(arg, '=') + 1, &endptr);
+             if (!endptr || *endptr != '\0' || !(v > 0.0) || v > 1e9) { fprintf(stderr, "Invalid '%s' (an interval > 0 in sigma-time).\n", arg); exit(EXIT_FAILURE); }
+             if (vb) cli_gen3_virial_blocks = v; else cli_gen3_snapshots = v;
++        } else if (strcmp(arg, "--gen3-psi6-compartments") == 0) {   /* ##CHRIS 2026-10-10 (decision 17): provisional */
++            cli_gen3_psi6_comp = 1;
++        } else if (strncmp(arg, "--gen3-psi6-snapshots=", strlen("--gen3-psi6-snapshots=")) == 0) {
++            cli_gen3_psi6_snaps = arg + strlen("--gen3-psi6-snapshots=");
+         } else if (strncmp(arg, "--psi6-every=", strlen("--psi6-every=")) == 0) {   /* ##CHRIS 2026-10-09 (M3, stage A1) */
+             char *endptr = NULL; const double v = strtod(arg + strlen("--psi6-every="), &endptr);
+             if (!endptr || *endptr != '\0' || !(v > 0.0) || v > 1e6) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
+@@ -15718,6 +15750,54 @@ static Psi6Result compute_psi6_from_edmd(const EDMD *state, double cutoff_sigma)
+     return out;
+ }
+ 
++/* ##CHRIS 2026-10-10 (plan-author decision 17, "after P5"; 261012 sec. 4.7.40) -- PROVISIONAL: PSI6 PER COMPARTMENT.
++   compute_psi6_from_edmd's definition, split by compartment (sec. 4.7.37: P4a's "psi6 ~ 0.06" state is one compartment in M4's
++   0-degree lattice next to one turned by 30 degrees, and the two cancel in the global value). psi6(j) = the mean of exp(6 i theta_jk)
++   over the neighbours k of j within cutoff -- every disk, also across a divider, as for the global value; compartment c holds the
++   disks with c divider centres left of them (no disk crosses a divider); Psi_c = sum_{j in c} psi6(j) / N_c. Per compartment:
++   N_c; |Psi_c|; the orientation arg(Psi_c) / 6 in degrees, in (-30, 30] (the bonds' angle against the x axis, mod 60: M4's
++   "parallel" lattice is at 0, the turned one at +-30); and the local order <|psi6(j)|> over the compartment's disks with a
++   neighbour. sum_c N_c Psi_c = N x the global complex psi6, returned too (*global_abs). Plain coordinates in any length unit with
++   sigma in it, so that the run's columns (g3_psi6_series_sample, px) and the snapshot reader (--gen3-psi6-snapshots, sigma) run
++   the same code. A reader of positions only: it changes nothing in the engine or in the existing psi6 columns. */
++typedef struct { int n; double abs, orient_deg, local; } Psi6Comp;
++static int psi6_compartments(const double* x, const double* y, int N, double sigma, const double* div_x, int ndiv,
++                             double cutoff_sigma, Psi6Comp* out, int max, double* global_abs){
++    const int nc = 1 + ndiv;
++    if (N < 1 || ndiv < 0 || nc > max || nc > EDMD3_MAX_COMPARTMENTS) return -1;
++    double re_c[EDMD3_MAX_COMPARTMENTS] = {0}, im_c[EDMD3_MAX_COMPARTMENTS] = {0}, loc_c[EDMD3_MAX_COMPARTMENTS] = {0};
++    int n_c[EDMD3_MAX_COMPARTMENTS] = {0}, used_c[EDMD3_MAX_COMPARTMENTS] = {0};
++    const double cutoff = cutoff_sigma * sigma, cutoff2 = cutoff * cutoff;
++    double gre = 0.0, gim = 0.0;
++    for (int i = 0; i < N; ++i) {
++        double re = 0.0, im = 0.0; int nb = 0;
++        for (int j = 0; j < N; ++j) {
++            if (j == i) continue;
++            const double dx = x[j] - x[i], dy = y[j] - y[i], d2 = dx * dx + dy * dy;
++            if (d2 > cutoff2 || d2 <= 0.0) continue;
++            const double th = atan2(dy, dx);
++            re += cos(6.0 * th); im += sin(6.0 * th); nb++;
++        }
++        int c = 0;
++        for (int d = 0; d < ndiv; ++d) if (x[i] > div_x[d]) c++;
++        n_c[c]++;
++        if (nb > 0) {
++            re /= (double)nb; im /= (double)nb;
++            re_c[c] += re; im_c[c] += im; loc_c[c] += sqrt(re * re + im * im); used_c[c]++;
++            gre += re; gim += im;
++        }
++    }
++    for (int c = 0; c < nc; ++c) {
++        const double R = n_c[c] ? re_c[c] / (double)n_c[c] : 0.0, I = n_c[c] ? im_c[c] / (double)n_c[c] : 0.0;
++        out[c].n = n_c[c];
++        out[c].abs = sqrt(R * R + I * I);
++        out[c].orient_deg = out[c].abs > 0.0 ? atan2(I, R) * (180.0 / M_PI) / 6.0 : NAN;
++        out[c].local = used_c[c] ? loc_c[c] / (double)used_c[c] : NAN;
++    }
++    if (global_abs) { gre /= (double)N; gim /= (double)N; *global_abs = sqrt(gre * gre + gim * gim); }
++    return nc;
++}
++
+ /* ##CHRIS: psi_6 sampled ACROSS the measurement window.
+    The hold/end snapshots turned out not to classify the bistable region: psi_6
+    right after equilibration varies a lot between repeats, but by the end of the
+@@ -16017,12 +16097,44 @@ static int write_speed_sound_batch_status(const char *folder,
+    --psi6-every sigma-time (default 0.25; stage A1) through hold and record, one CSV per trajectory next to its trace
+    (psi6_t_L0_<L>_wallmassfactor_<M>_run<r>.csv: t_sigma since the start of the hold, phase, psi6 global, local, neighbours).
+    A reader of the synchronised copy, like every psi6 sample. gen2 writes no such file (its outputs stay as they were). */
++/* ##CHRIS 2026-10-10 (decision 17; provisional): with --gen3-psi6-compartments each row ends with the compartments' psi6 of
++   psi6_compartments() -- per compartment c the columns N_c, psi6_c (|Psi_c|), psi6_orient_deg_c, psi6_local_c -- computed from the
++   same synchronised copy as the first five columns, which keep their bytes (the row's end-of-line moved behind the new columns) */
++static int g3_psi6_ncomp(void){
++    const EDMD_Params* ep = edmd_backend_params(g_edmd);
++    return 1 + (ep->divider_count > 0 ? (ep->divider_count < EDMD_MAX_DIVIDERS ? ep->divider_count : EDMD_MAX_DIVIDERS) : 0);
++}
++static int g3_psi6_comp_nc = 0;   /* the compartments named in the file's header; every row must have as many */
++static void g3_psi6_comp_header(FILE* f){
++    if (!cli_gen3_psi6_comp) return;
++    g3_psi6_comp_nc = g3_psi6_ncomp();
++    for (int c = 0; c < g3_psi6_comp_nc; ++c) fprintf(f, ",N_%d,psi6_%d,psi6_orient_deg_%d,psi6_local_%d", c, c, c, c);
++}
++static void g3_psi6_comp_row(FILE* f){
++    if (!cli_gen3_psi6_comp) return;
++    const EDMD_Params* ep = edmd_backend_params(g_edmd);
++    const EDMD_Particle* P = edmd_backend_particles(g_edmd);
++    static double* xs = NULL; static double* ys = NULL; static int cap = 0;
++    if (ep->N > cap) {
++        free(xs); free(ys); cap = ep->N;
++        xs = (double*)malloc((size_t)cap * sizeof *xs); ys = (double*)malloc((size_t)cap * sizeof *ys);
++        if (!xs || !ys) g3_stop("out of memory (psi6 per compartment)");
++    }
++    for (int i = 0; i < ep->N; ++i) { xs[i] = P[i].x; ys[i] = P[i].y; }
++    Psi6Comp pc[EDMD3_MAX_COMPARTMENTS];
++    const int nc = psi6_compartments(xs, ys, ep->N, 2.0 * ep->radius, ep->divider_x, g3_psi6_ncomp() - 1, PSI6_CUTOFF_SIGMA, pc,
++                                     EDMD3_MAX_COMPARTMENTS, NULL);
++    if (nc < 1 || nc != g3_psi6_comp_nc) g3_stop("psi6 per compartment: the number of compartments differs from the file's header");
++    for (int c = 0; c < nc; ++c) fprintf(f, ",%d,%.6f,%.3f,%.6f", pc[c].n, pc[c].abs, pc[c].orient_deg, pc[c].local);
++}
+ static void g3_psi6_series_sample(FILE* f, double* next_t, const char* phase){
+     if (!f || !g_edmd) return;
+     const double t = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
+     if (t + 1e-9 < *next_t) return;
+     const Psi6Result pr = compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
+-    fprintf(f, "%.6f,%s,%.6f,%.6f,%.4f\n", t, phase, pr.global_abs, pr.local_mean, pr.mean_neighbors);
++    fprintf(f, "%.6f,%s,%.6f,%.6f,%.4f", t, phase, pr.global_abs, pr.local_mean, pr.mean_neighbors);
++    g3_psi6_comp_row(f);   /* ##CHRIS 2026-10-10 (decision 17): nothing without --gen3-psi6-compartments */
++    fputc('\n', f);
+     while (*next_t <= t + 1e-9) *next_t += cli_psi6_every;
+ }
+ /* ##CHRIS 2026-10-09 (M3, amendments d and e): with the run record, three information lines.
+@@ -16088,7 +16200,8 @@ static void g3_run_extras(void){
+    RUN HEADER: [EDMD3-RUN] at the start of every gen3 speed-of-sound trajectory: engine, build, cell width, origin shift, time
+    quantum, K, the box, eta, the seeding (the lattice per compartment), T_eq (the held-divider time), the record time, the psi6
+    interval, the validator cadence, the seed. */
+-typedef struct { int ok, orient, alt, ns, nr, nvac; double as, ar, g, gw, s, jit; } G3Lattice;   /* alt: shifted rows hold n_r - 1 disks */
++typedef struct { int ok, orient, alt, ns, nr, nvac; double as, ar, g, gw, s, jit; int cryst; } G3Lattice;   /* alt: shifted rows hold n_r - 1
++                                                                                                         disks; cryst: g3_lat_cryst (M4c) */
+ static G3Lattice g3_lat[2];
+ static double g3_eta_achieved = NAN;
+ static uint64_t g3_sm64(uint64_t* st){
+@@ -16115,7 +16228,20 @@ static double g3_lat_eval(int ns, int nr, int alt, double R, double Lr, double L
+     return d - 2.0 * R;
+ }
+ static int g3_lat_sites(int ns, int nr, int alt){ return alt ? ((ns + 1) / 2) * nr + (ns / 2) * (nr - 1) : ns * nr; }
+-static int g3_lattice_fit(int n_disks, double R, double Wx, double Hy, int orient_req, G3Lattice* L){
++/* ##CHRIS 2026-10-10 (plan-author decision 18, item 2; 261012 sec. 4.7.41-4.7.42): M4c, THE CRYSTAL ORIENTATION of an arrangement --
++   the direction of its close-packed lines, which psi6 per compartment measures (sec. 4.7.37, 4.7.40: lines along x read 0 deg,
++   lines along y read +-30 deg). The row direction above (parallel: rows along y; perpendicular: rows along x) is not that
++   direction: in this near-triangular family the close-packed lines run ALONG the rows when the in-row spacing is the shorter one
++   (a_r < 2 a_s; ideally a_r = d, a_s = d sqrt(3)/2) and ACROSS them when it is the longer one (a_r > 2 a_s; ideally a_r = d sqrt(3),
++   a_s = d/2: P4a's 19 x 11 "parallel" lattice, a_r 1.9 sigma, a_s 0.53 sigma, which reads 0 deg). One row: along it; one disk per
++   row: across. Returns 0 (lines along x) or 1 (lines along y, the turned crystal). --gen3-lattice-orientation=0|turned keeps only
++   the arrangements of that orientation in g3_lattice_fit (the rest of M4 unchanged: the largest gap, the vacancy rule, the seeded
++   jitter, the exact box, each compartment fitted alike); without it (cryst_req = -1) the fit is the M4 family exactly as before. */
++static int g3_lat_cryst(int orient, int ns, int nr, double as, double ar){
++    const int along_rows = ns < 2 ? 1 : (nr < 2 ? 0 : (ar < 2.0 * as));
++    return along_rows == (orient == 1) ? 0 : 1;
++}
++static int g3_lattice_fit(int n_disks, double R, double Wx, double Hy, int orient_req, int cryst_req, G3Lattice* L){
+     memset(L, 0, sizeof *L); L->s = -INFINITY;
+     for (int o = 0; o < 2; ++o) {
+         if (orient_req >= 0 && o != orient_req) continue;
+@@ -16137,9 +16263,11 @@ static int g3_lattice_fit(int n_disks, double R, double Wx, double Hy, int orien
+             } else g = fmin(0.5 * Ls - R, 0.5 * Lr - R);       /* one disk: centred */
+             sv = g3_lat_eval(ns, nr, alt, R, Lr, Ls, g, &as, &ar, &gw);
+             if (!(sv > 0.0) || !(gw > 0.0)) continue;
++            if (cryst_req >= 0 && g3_lat_cryst(o, ns, nr, as, ar) != cryst_req) continue;   /* ##CHRIS (decision 18, M4c) */
+             const int nvac = g3_lat_sites(ns, nr, alt) - n_disks;
+             if (sv > L->s || (sv == L->s && nvac < L->nvac)) {
+                 L->ok = 1; L->orient = o; L->alt = alt; L->ns = ns; L->nr = nr; L->nvac = nvac; L->as = as; L->ar = ar; L->g = g; L->gw = gw; L->s = sv;
++                L->cryst = g3_lat_cryst(o, ns, nr, as, ar);
+             }
+         }
+     }
+@@ -16180,11 +16308,16 @@ static void g3_lattice_place(G3Lattice* L, double R, double x0, double Wx, doubl
+     if (i != first + n_disks) g3_stop("M4 seeding: site count");
+ }
+ /* the M4 seeding of the container's particles (box coordinates); velocities untouched */
+-static void g3_m4_seed(EDMD_Particle* P, int N, int NL, double boxW, double boxH, double R, double c, double th, unsigned run_seed){
++static void g3_m4_seed(EDMD_Particle* P, int N, int NL, double boxW, double boxH, double R, double c, double th, unsigned run_seed,
++                       int cryst_req){   /* ##CHRIS 2026-10-10 (decision 18, M4c): cryst_req -1 for M4b and for M4 without the flag */
+     const int NR = N - NL;
+     const double WL = c - 0.5 * th, x0R = c + 0.5 * th, WR = boxW - x0R;
+-    const int okL = g3_lattice_fit(NL, R, WL, boxH, cli_gen3_orient, &g3_lat[0]);
+-    const int okR = g3_lattice_fit(NR, R, WR, boxH, cli_gen3_orient, &g3_lat[1]);
++    const int okL = g3_lattice_fit(NL, R, WL, boxH, cli_gen3_orient, cryst_req, &g3_lat[0]);
++    const int okR = g3_lattice_fit(NR, R, WR, boxH, cli_gen3_orient, cryst_req, &g3_lat[1]);
++    if (cryst_req >= 0)   /* ##CHRIS 2026-10-10 (decision 18, M4c): the request and the arrangements found, before any stop */
++        printf("[EDMD3-M4C] lattice orientation requested: %s; left %s, right %s\n",
++               cryst_req ? "turned (close-packed lines along y; psi6 orientation +-30 deg)" : "0 (close-packed lines along x; psi6 orientation 0 deg)",
++               okL ? (g3_lat[0].cryst ? "lines along y" : "lines along x") : "none", okR ? (g3_lat[1].cryst ? "lines along y" : "lines along x") : "none");
+     if (!okL || !okR) {
+         printf("[EDMD3-M4] INFEASIBLE: N_L %d in %.17g x %.17g px, N_R %d in %.17g x %.17g px (R %.17g px): no arrangement of the stated "
+                "lattice family has a positive gap (nominal eta %.6f)\n", NL, WL, boxH, NR, WR, boxH, R, N * M_PI * R * R / (boxW * boxH));
+@@ -16212,7 +16345,7 @@ static void g3_m4_init_driver(double L0d, unsigned run_seed){
+     free(g3_m4_P); g3_m4_P = (EDMD_Particle*)calloc((size_t)N, sizeof *g3_m4_P);
+     if (!g3_m4_P) g3_stop("out of memory (M4 seeding)");
+     g3_m4_N = N; g3_m4_NL = NL;
+-    g3_m4_seed(g3_m4_P, N, NL, boxW, boxH, (double)PARTICLE_RADIUS, c, (double)WALL_THICKNESS, run_seed);
++    g3_m4_seed(g3_m4_P, N, NL, boxW, boxH, (double)PARTICLE_RADIUS, c, (double)WALL_THICKNESS, run_seed, cli_gen3_cryst);   /* ##CHRIS (decision 18, M4c) */
+     particles_active = N;
+     for (int i = 0; i < N; ++i) {
+         X[i] = (float)((double)XW1 + g3_m4_P[i].x); Y[i] = (float)((double)YW1 + g3_m4_P[i].y);
+@@ -16237,6 +16370,150 @@ static void g3_m4_init_driver(double L0d, unsigned run_seed){
+     if (cli_temperature_segments && cli_temperature_segments_count > 0) apply_segment_temperatures(cli_temperature_segments, cli_temperature_segments_count);
+     write_run_params_json();
+ }
++/* ##CHRIS 2026-10-09 (plan-author decision 13, item 4; 261012 sec. 4.7.30): M4b, THE COMPRESSED-FLUID START (gen3 only,
++   --gen3-seeding=compressed with --gen3-exact-box): a second, disordered route to the same state, for two-start equilibration checks.
++   PROTOCOL.
++   (1) The M4 lattice (g3_m4_seed: the same family, vacancies, jitter and RNG stream) at eta_0 (--gen3-compress-eta0, default 0.60) in
++       a LONGER BOX: the same H and N, each compartment L0_0 = N pi R^2 / (2 eta_0 H) from its outer face to the divider centre, the
++       divider held at the centre. The pistons (mass 0, faces) are the outer faces; they start 1 sigma inside the long box's walls,
++       which no disk reaches. Velocities: the driver's draw as in M4 (one Maxwell-Boltzmann draw per particle, left compartment first),
++       then each compartment scaled to KE = N_s kT.
++   (2) Held for T_melt (--gen3-compress-melt, default 500 sigma-time); then both pistons move inward at u (--gen3-compress-speed, default
++       0.01 sigma per sigma-time) until each compartment has the target L0 (travel D = L0_0 - L0, so they stop at T_melt + D/u), and stop.
++   (3) The velocities of each compartment are rescaled so that KE = N_s kT exactly (for hard disks this only rescales time).
++   (4) The state is carried into the run's box of the target L0: x -> x - S, S = c_long - c the exact difference of the two divider
++       centres (Sterbenz: c <= c_long <= 2c is required), so the divider sits at the run's centre exactly and the run's outer walls sit
++       where the pistons stopped, to the pistons' rounding (recorded as the achieved L0). The stopped pistons thus stay the outer walls.
++       From here on the run is the speed-of-sound run of an M4 start -- the same box, hold, observers, checkpoint and run record; only
++       the initial positions and velocities differ (the velocities enter the container as doubles).
++   CHECKPOINT/RESTART: a checkpoint is written in the run proper (hold:K, record:K); a restart repeats this deterministic preparation, and
++   the checkpoint's identity check (g3_init_hash of the carried state) proves it is the same state. A checkpoint inside the compression
++   cannot be asked for (the flags name hold and record steps only).
++   THE RUN HEADER [EDMD3-M4B]: eta_0, T_melt, u; the long box; the requested and the achieved L0 per compartment; the piston work per
++   side; KE per compartment at the start, before and after the rescale; the KE gain against the piston work and the ledger's rounding
++   scale; the time at the end of the compression; its events, health and event hash; the carry; the smallest wall and divider gaps after
++   it. A second line, after the container load, gives psi6 of the carried state (the end of the compression). The compression state
++   must be clean and every disk keep its compartment, or the run stops. */
++static void g3_m4b_init_driver(double L0d, unsigned run_seed, double L0f, int mass, int r){
++    const int two = cli_particles_box_counts && cli_particles_box_counts_count == 2;
++    const int N = two ? cli_particles_box_counts[0] + cli_particles_box_counts[1] : (cli_override_particles > 0 ? cli_override_particles : particles_active);
++    const int NL = two ? cli_particles_box_counts[0] : N / 2, NR = N - NL;
++    if (N < 2 || N > NUM_PARTICLES || NL < 1 || NR < 1) g3_stop("M4b: particle count");
++    if (!cli_gen3_exact_box) g3_stop("M4b (--gen3-seeding=compressed) needs --gen3-exact-box");
++    const double pps = (double)PIXELS_PER_SIGMA, R = (double)PARTICLE_RADIUS, th = (double)WALL_THICKNESS, Hpx = (double)(YW2 - YW1);
++    const double ct = L0d * pps, boxWt = 2.0 * ct;                                     /* the run's divider centre and box width [px] */
++    const double eta0 = cli_gen3_m4b_eta0, L00 = (double)N * M_PI * R * R / (2.0 * eta0 * Hpx);   /* the long box's L0 [px] */
++    const double m = pps, cl = m + L00, boxWl = 2.0 * cl, S = cl - ct;               /* the pistons' start, the long box, the carry */
++    if (!(L00 > ct)) g3_stop("M4b: eta_0 must be below the target eta (the long box must be the longer one)");
++    if (!(cl <= 2.0 * ct)) g3_stop("M4b: the long divider centre is more than twice the run's (eta_0 too small for an exact carry)");
++    const double u = cli_gen3_m4b_u, t_melt = cli_gen3_m4b_melt * pps, D = L00 - ct, t_stop = t_melt + D / u;   /* u: px per unit */
++    /* (1) the lattice at eta_0, seeded in [0, 2 L0_0] and shifted by m; the velocities */
++    EDMD_Particle* P = (EDMD_Particle*)calloc((size_t)N, sizeof *P);
++    if (!P) g3_stop("out of memory (M4b)");
++    g3_m4_seed(P, N, NL, 2.0 * L00, Hpx, R, L00, th, run_seed, -1);   /* ##CHRIS (decision 18, M4c): M4b's lattice as before */
++    const double eta_seed = g3_eta_achieved;
++    for (int i = 0; i < N; ++i) P[i].x += m;
++    double ke[2] = {0.0, 0.0};
++    for (int i = 0; i < N; ++i) {
++        float vx, vy; maxwell_boltzmann_2D(temperature_runtime, &vx, &vy);
++        P[i].vx = (double)vx; P[i].vy = (double)vy;
++        ke[i < NL ? 0 : 1] += 0.5 * (double)PARTICLE_MASS * (P[i].vx * P[i].vx + P[i].vy * P[i].vy);
++    }
++    const double target[2] = { (double)(NL * K_B * temperature_runtime), (double)(NR * K_B * temperature_runtime) };
++    const double s0[2] = { sqrt(target[0] / ke[0]), sqrt(target[1] / ke[1]) };
++    double ke0[2] = {0.0, 0.0};
++    for (int i = 0; i < N; ++i) {
++        const int c = i < NL ? 0 : 1; P[i].vx *= s0[c]; P[i].vy *= s0[c];
++        ke0[c] += 0.5 * (double)PARTICLE_MASS * (P[i].vx * P[i].vx + P[i].vy * P[i].vy);
++    }
++    /* (2) the long box: the divider held at its centre, the two pistons (mass 0) at m and boxW_long - m; melt, compress, stop */
++    EDMD_Params pc; memset(&pc, 0, sizeof pc);
++    pc.boxW = boxWl; pc.boxH = Hpx; pc.radius = R; pc.N = N; pc.cell_size = 0.0;
++    pc.divider_count = 1; pc.divider_x[0] = cl; pc.divider_thickness[0] = th; pc.divider_mass[0] = 0.0; pc.divider_vx[0] = 0.0;
++    pc.heatbath_enabled = heatbath_enabled; pc.heatbath_temperature = (double)heatbath_temperature; pc.thermal_wall_mode = thermal_wall_mode;
++    pc.mb_overshoot_factor = (double)mb_overshoot_factor; pc.stability_window_percent = (double)stability_window_percent;
++    pc.particle_mass = (double)PARTICLE_MASS; pc.kB = (double)kB_effective(); pc.pp_collisions_enabled = cli_no_pp_collisions ? 0 : 1;
++    pc.has_pistonL = 1; pc.pistonL_x = m; pc.pistonL_vx = 0.0; pc.pistonL_mass = 0.0;
++    pc.has_pistonR = 1; pc.pistonR_x = boxWl - m; pc.pistonR_vx = 0.0; pc.pistonR_mass = 0.0;
++    char err[256]; const char* msg = NULL;
++    EDMD3* C = edmd3_create(&pc, cli_gen3_cell_px, err, sizeof err);
++    if (!C) g3_stop(err);
++    if (!edmd3_load(C, P, 0.0, err, sizeof err)) g3_stop(err);
++    edmd3_set_contact_audit(C, getenv("HD_CONTACT_AUDIT") != NULL);
++    const double tm0 = g3_mono();
++    edmd3_advance_to(C, t_melt);
++    if (edmd3_fatal(C, &msg)) g3_stop(msg ? msg : "M4b: the engine stopped in the melt");
++    if (!edmd3_set_piston_motion(C, 0, 0.0, u) || !edmd3_set_piston_motion(C, 1, 0.0, -u)) g3_stop("M4b: the engine refused the piston motion");
++    edmd3_advance_to(C, t_stop);
++    if (edmd3_fatal(C, &msg)) g3_stop(msg ? msg : "M4b: the engine stopped in the compression");
++    if (!edmd3_set_piston_motion(C, 0, 0.0, 0.0) || !edmd3_set_piston_motion(C, 1, 0.0, 0.0)) g3_stop("M4b: the engine refused to stop the pistons");
++    double xL, xR, vd; edmd3_piston_state(C, 0, &xL, &vd); edmd3_piston_state(C, 1, &xR, &vd);
++    const double wL = edmd3_work_piston(C, 0), wR = edmd3_work_piston(C, 1);
++    EDMD3_Ledger Lg; edmd3_ledger(C, &Lg);
++    const EDMD3_Health* Hh = edmd3_health(C);
++    const int clean = edmd3_health_clean(C);
++    const unsigned long long hash = (unsigned long long)edmd3_event_hash(C);
++    const long events = Hh->ev_pair + Hh->ev_wall + Hh->ev_cross + Hh->ev_div + Hh->ev_piston + Hh->ev_band;
++    double gaps[4] = {0.0, 0.0, 0.0, 0.0}; const long naud = edmd3_contact_audit_stats4(C, gaps);
++    const EDMD_Particle* Q = edmd3_particles(C);
++    double ke1[2] = {0.0, 0.0};
++    for (int i = 0; i < N; ++i) ke1[i < NL ? 0 : 1] += 0.5 * (double)PARTICLE_MASS * (Q[i].vx * Q[i].vx + Q[i].vy * Q[i].vy);
++    /* (3) the rescale and (4) the carry into the run's box */
++    free(g3_m4_P); g3_m4_P = (EDMD_Particle*)calloc((size_t)N, sizeof *g3_m4_P);
++    if (!g3_m4_P) g3_stop("out of memory (M4b)");
++    const double sc[2] = { sqrt(target[0] / ke1[0]), sqrt(target[1] / ke1[1]) };
++    double ke2[2] = {0.0, 0.0}, gw = INFINITY, gdv = INFINITY; int nl_left = 0, moved = 0;
++    for (int i = 0; i < N; ++i) {
++        const int c = i < NL ? 0 : 1;
++        g3_m4_P[i].x = Q[i].x - S; g3_m4_P[i].y = Q[i].y;
++        g3_m4_P[i].vx = Q[i].vx * sc[c]; g3_m4_P[i].vy = Q[i].vy * sc[c];
++        ke2[c] += 0.5 * (double)PARTICLE_MASS * (g3_m4_P[i].vx * g3_m4_P[i].vx + g3_m4_P[i].vy * g3_m4_P[i].vy);
++        const double x = g3_m4_P[i].x, y = g3_m4_P[i].y;
++        nl_left += x < ct; moved += (x < ct) != (c == 0);
++        gw = fmin(gw, fmin(fmin(x - R, boxWt - R - x), fmin(y - R, Hpx - R - y)));
++        gdv = fmin(gdv, fabs(x - ct) - 0.5 * th - R);
++    }
++    const double tol = 1e-6;   /* px: the validator's wall tolerance (experiment_validation.c; edmd_gen3's tol_wall at R = 12 px) */
++    const double kg = (ke1[0] + ke1[1]) - (ke0[0] + ke0[1]), wp = wL + wR, re = (Lg.E - Lg.E0) - Lg.W;
++    printf("[EDMD3-M4B] L0=%.1f M=%d run=%d seed=%u: eta_0=%.17g (seeded %.17g; target %.17g) T_melt=%.17g sigma-time u=%.17g sigma/sigma-time; "
++           "long box %.17g x %.17g px, divider %.17g px, pistons from %.17g and %.17g px; "
++           "L0 requested %.17g sigma, achieved left %.17g right %.17g sigma (minus requested %.3g, %.3g); pistons stopped at %.17g and %.17g px; "
++           "piston work left %.17g right %.17g; KE left/right at the start %.17g %.17g, before the rescale %.17g %.17g, after %.17g %.17g "
++           "(after/N_s kT - 1: %.3g %.3g); KE gain %.17g minus piston work %.17g = %.3g; ledger E - E0 - W %.3g, scale %.3g, ratio %.3g; "
++           "end of the compression t=%.17g sigma-time (melt %.17g + compression %.17g); events %ld (pair %ld wall %ld cross %ld div %ld "
++           "piston %ld band %ld); clean=%d overlap_repair=%ld wall_overdue=%ld past_event=%ld clamp_repair=%ld cell_repair=%ld grid_escape=%ld "
++           "stagnation=%ld obj_overlap_repair=%ld body_findings=%ld local_findings=%ld full_findings=%ld hash=%016llx; contact audit %ld events, "
++           "max gap [px] pair %.3g wall %.3g divider %.3g piston %.3g; carry S=%.17g px; N_L=%d N_R=%d (moved %d); smallest gap after the carry "
++           "[px]: walls %.3g, divider %.3g; %.1f s\n",
++           L0f, mass, r, run_seed, eta0, eta_seed, (double)N * M_PI * R * R / (boxWt * Hpx), cli_gen3_m4b_melt, u, boxWl, Hpx, cl, m, boxWl - m,
++           L0d, (cl - xL) / pps, (xR - cl) / pps, (cl - xL) / pps - L0d, (xR - cl) / pps - L0d, xL, xR,
++           wL, wR, ke0[0], ke0[1], ke1[0], ke1[1], ke2[0], ke2[1], ke2[0] / target[0] - 1.0, ke2[1] / target[1] - 1.0, kg, wp, kg - wp,
++           re, Lg.scale_E, fabs(re) / Lg.scale_E, t_stop / pps, cli_gen3_m4b_melt, (t_stop - t_melt) / pps, events, Hh->ev_pair, Hh->ev_wall,
++           Hh->ev_cross, Hh->ev_div, Hh->ev_piston, Hh->ev_band, clean, Hh->overlap_repair, Hh->wall_overdue, Hh->past_event, Hh->clamp_repair,
++           Hh->cell_repair, Hh->grid_escape, Hh->stagnation, Hh->obj_overlap_repair, Hh->body_findings, Hh->local_findings, Hh->full_findings,
++           hash, naud, gaps[0], gaps[1], gaps[2], gaps[3], S, nl_left, N - nl_left, moved, gw, gdv, g3_mono() - tm0);
++    fflush(stdout);
++    edmd3_destroy(C); free(P);
++    if (!clean) g3_stop("M4b: the compression state is not clean (its [EDMD3-M4B] line above)");
++    if (moved || nl_left != NL) g3_stop("M4b: a disk is in the other compartment after the carry");
++    if (gw < -tol || gdv < -tol) g3_stop("M4b: a disk overlaps a wall or the divider after the carry beyond the wall tolerance");
++    /* the driver's arrays, as g3_m4_init_driver leaves them */
++    g3_m4_N = N; g3_m4_NL = NL; particles_active = N;
++    g3_eta_achieved = (double)N * M_PI * R * R / (boxWt * Hpx);
++    for (int i = 0; i < N; ++i) {
++        X[i] = (float)((double)XW1 + g3_m4_P[i].x); Y[i] = (float)((double)YW1 + g3_m4_P[i].y);
++        Vx[i] = (float)g3_m4_P[i].vx; Vy[i] = (float)g3_m4_P[i].vy; V_init[i] = sqrtf(Vx[i] * Vx[i] + Vy[i] * Vy[i]); Radius[i] = PARTICLE_RADIUS;
++    }
++    if (segment_counts && segment_count > 0) {
++        memset(segment_counts, 0, (size_t)segment_count * sizeof(int));
++        for (int i = 0; i < particles_active; ++i) {
++            int seg = segment_index_for_position(X[i]);
++            if (seg < 0) seg = 0; if (seg >= segment_count) seg = segment_count - 1;
++            segment_counts[seg]++;
++        }
++    }
++    write_run_params_json();
++}
+ static void g3_dump_initial(const char* path, const EDMD_Particle* P, int N, int NL, double boxW, double boxH, double R, double c, double th){
+     FILE* f = fopen(path, "w");
+     if (!f) g3_stop("cannot open --gen3-dump-initial");
+@@ -16254,7 +16531,7 @@ static void g3_run_header(const char* id, double boxW, double boxH, int N, int N
+     printf("[EDMD3-RUN] %s: engine=gen3 build=\"%s\" target=%s cell_px=%g origin_shift=%g u_t=%a K=%g box=%.17g x %.17g px exact_box=%d "
+            "eta=%.17g N=%d N_L=%d N_R=%d seeding=%s", id, BUILD_GIT, BUILD_TARGET, cli_gen3_cell_px > 0.0 ? cli_gen3_cell_px : EDMD3_DEFAULT_CELL_PX,
+            EDMD3_ORIGIN_SHIFT, G3_U_T_HEADER, EDMD3_TOL_K, boxW, boxH, cli_gen3_exact_box,
+-           (double)N * M_PI * (double)PARTICLE_RADIUS * (double)PARTICLE_RADIUS / (boxW * boxH), N, NL, N - NL, cli_gen3_seeding ? "lattice" : "driver");
++           (double)N * M_PI * (double)PARTICLE_RADIUS * (double)PARTICLE_RADIUS / (boxW * boxH), N, NL, N - NL, cli_gen3_seeding == 2 ? "compressed (M4b; the lattice below is at eta_0 in the long box)" : (cli_gen3_seeding ? "lattice" : "driver"));
+     if (cli_gen3_seeding)
+         for (int k = 0; k < 2; ++k) {
+             const G3Lattice* L = &g3_lat[k];
+@@ -16425,8 +16702,9 @@ typedef struct {
+     long   trace_len, psi6_len;             /* then the trace's bytes, the psi6(t) file's bytes, ... */
+     double vb_T, snap_T; G3Obs obs;         /* ##CHRIS (decision 12, part 3a): the observations' intervals and state, */
+     long   vb_len, snap_len;                /* ... the virial-block file's bytes, the snapshot file's bytes, the engine */
++    int    psi6_comp;                       /* ##CHRIS 2026-10-10 (decision 18, item 1): --gen3-psi6-compartments (the psi6(t) columns) */
+ } G3RunCkpt;
+-#define G3_RUN_CKPT_MAGIC "g3-run-ckpt-v2"    /* v2 (part 3a): the virial blocks and the snapshots */
++#define G3_RUN_CKPT_MAGIC "g3-run-ckpt-v3"    /* v2 (part 3a): the virial blocks and the snapshots; v3 (decision 18): psi6_comp */
+ static int  g3_ckpt_written = 0;
+ static int  g3_restart_phase = -1; static long g3_restart_step = -1;
+ static char g3_psi6_path[700] = "";
+@@ -16438,6 +16716,7 @@ static void g3_ckpt_identity(G3RunCkpt* c, const G3RunRefs* rf){
+     c->N = rf->N; c->hold_steps = rf->hold_steps; c->record_steps = rf->record_steps; c->log_stride = rf->log_stride;
+     c->psi6_stride = rf->psi6_stride; c->validator_every = validator_every(); c->seed = rf->seed;
+     c->vb_T = cli_gen3_virial_blocks; c->snap_T = cli_gen3_snapshots;   /* ##CHRIS (decision 12, part 3a) */
++    c->psi6_comp = cli_gen3_psi6_comp;                                   /* ##CHRIS 2026-10-10 (decision 18, item 1) */
+ }
+ static char* g3_slurp(const char* path, long* n){       /* a whole file into memory */
+     FILE* f = fopen(path, "rb");
+@@ -16497,13 +16776,15 @@ static int g3_restart_apply(const G3RunRefs* rf){
+     FILE* f = fopen(cli_gen3_restart, "rb");
+     if (!f) g3_stop("restart: cannot open the checkpoint file");
+     G3RunCkpt c, me; memset(&me, 0, sizeof me);
+-    if (fread(&c, sizeof c, 1, f) != 1 || memcmp(c.magic, G3_RUN_CKPT_MAGIC, sizeof G3_RUN_CKPT_MAGIC) != 0) g3_stop("restart: not a gen3 run checkpoint (v2)");
++    if (fread(&c, sizeof c, 1, f) != 1 || memcmp(c.magic, G3_RUN_CKPT_MAGIC, sizeof G3_RUN_CKPT_MAGIC) != 0) g3_stop("restart: not a gen3 run checkpoint (v3)");
+     g3_ckpt_identity(&me, rf);
+     if (strcmp(c.build, me.build) || strcmp(c.target, me.target)) g3_stop("restart: the checkpoint was written by another build");
+     if (c.L0d != me.L0d || c.fixed_dt != me.fixed_dt || c.psi6_every != me.psi6_every || c.mass != me.mass || c.run != me.run || c.N != me.N
+         || c.hold_steps != me.hold_steps || c.record_steps != me.record_steps || c.log_stride != me.log_stride || c.psi6_stride != me.psi6_stride
+         || c.validator_every != me.validator_every || c.seed != me.seed || c.vb_T != me.vb_T || c.snap_T != me.snap_T)
+         g3_stop("restart: the checkpoint belongs to another trajectory (L0, mass, run, seed, N, steps, strides or cadences differ)");
++    if (c.psi6_comp != me.psi6_comp)   /* ##CHRIS 2026-10-10 (decision 18, item 1): the restored psi6(t) file must keep its columns */
++        g3_stop("restart: the checkpoint and this run differ in --gen3-psi6-compartments (the psi6(t) file's columns would differ)");
+     if (c.phase == 0 ? (c.step < 1 || c.step >= me.hold_steps) : (c.step < 0 || c.step >= me.record_steps)) g3_stop("restart: the checkpoint's step is outside this run");
+     if (g3_evlog) g3_stop("restart: the gated event log is not carried across a restart (run without it)");
+     if (!g3_live(g_edmd)) { g3_free(); g3_build(g_edmd); }   /* gen3 built as the first advance would build it */
+@@ -16700,7 +16981,8 @@ void run_speed_of_sound_experiments() {
+                 steps_elapsed     = 0;
+                 simulation_time   = 0.0;
+ 
+-                if (cli_gen3_seeding) g3_m4_init_driver(L0d, run_seed);   /* ##CHRIS 2026-10-09 (stage C, M4) */
++                if (cli_gen3_seeding == 2) g3_m4b_init_driver(L0d, run_seed, (double)L0, wall_mass_factors[m], r);   /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b */
++                else if (cli_gen3_seeding) g3_m4_init_driver(L0d, run_seed);   /* ##CHRIS 2026-10-09 (stage C, M4) */
+                 else initialize_simulation();
+ 
+                 char filename[640];
+@@ -16918,9 +17200,16 @@ void run_speed_of_sound_experiments() {
+                                                                                                             : particles_active / 2;
+                             if (!g3_m4_P || g3_m4_N != particles_active || g3_m4_NL != NL) g3_stop("M4 seeding: state");
+                             for (int i = 0; i < particles_active; ++i) { P[i].x = g3_m4_P[i].x; P[i].y = g3_m4_P[i].y; }   /* the doubles */
++                            if (cli_gen3_seeding == 2)   /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b's rescaled velocities, as doubles */
++                                for (int i = 0; i < particles_active; ++i) { P[i].vx = g3_m4_P[i].vx; P[i].vy = g3_m4_P[i].vy; }
+                             if (cli_gen3_dump_initial)
+                                 g3_dump_initial(cli_gen3_dump_initial, P, particles_active, NL, prm.boxW, prm.boxH, (double)PARTICLE_RADIUS,
+                                                 prm.divider_x[0], prm.divider_thickness[0]);
++                            if (cli_gen3_seeding == 2) {   /* ##CHRIS 2026-10-09 (decision 13, item 4): psi6 of the carried state, read-only */
++                                const Psi6Result pc6 = compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
++                                printf("[EDMD3-M4B] psi6 at the end of the compression (the carried state): global %.6f local %.6f neighbours %.4f\n",
++                                       pc6.global_abs, pc6.local_mean, pc6.mean_neighbors);
++                            }
+                         }
+                         if (cli_engine == 3) {   /* ##CHRIS 2026-10-09 (stage C, M4): the run header, T_eq included */
+                             char rid[200];
+@@ -16981,7 +17270,9 @@ void run_speed_of_sound_experiments() {
+                         psi6_series = fopen(ps_path, "w");
+                         if (!psi6_series) g3_stop("cannot open the psi6(t) file");
+                         snprintf(g3_psi6_path, sizeof g3_psi6_path, "%s", ps_path);   /* ##CHRIS 2026-10-09 (stage H): read back by a checkpoint */
+-                        fprintf(psi6_series, "t_sigma,phase,psi6_global,psi6_local,mean_neighbors\n");
++                        fprintf(psi6_series, "t_sigma,phase,psi6_global,psi6_local,mean_neighbors");
++                        g3_psi6_comp_header(psi6_series);   /* ##CHRIS 2026-10-10 (decision 17): nothing without --gen3-psi6-compartments */
++                        fputc('\n', psi6_series);
+                         psi6_next = 0.0;
+                         g3_psi6_series_sample(psi6_series, &psi6_next, "hold");
+                         g3_obs_open(mode_folder, L0_int, wall_mass_factor, r);   /* ##CHRIS 2026-10-09 (decision 12, part 3a): off unless asked */
+@@ -21955,6 +22246,48 @@ static int run_gen3_replay(const char* path){
+     return match ? 0 : 1;
+ }
+ 
++/* ##CHRIS 2026-10-10 (plan-author decision 17; 261012 sec. 4.7.40) -- PROVISIONAL: --gen3-psi6-snapshots=FILE reads a snapshot file
++   (G3SNAP1, g3_snapshot_sample: positions and divider centres in sigma) and prints for every snapshot the per-compartment psi6 of
++   psi6_compartments() -- the code of the run's --gen3-psi6-compartments columns, in the same format -- with the global |psi6| of
++   the same positions. No simulation and no engine. Its acceptance use: on P4a's snapshots it must separate the compartment that
++   turned from the one that did not (sec. 4.7.37). */
++static int run_gen3_psi6_snapshots(const char* path){
++    FILE* f = fopen(path, "rb");
++    if (!f) { fprintf(stderr, "psi6 snapshots: cannot open %s\n", path); return 2; }
++    char magic[8]; int32_t N = 0, nd = 0; double hd[4];
++    if (fread(magic, 1, 8, f) != 8 || memcmp(magic, "G3SNAP1\n", 8) != 0 || fread(&N, sizeof N, 1, f) != 1 || fread(&nd, sizeof nd, 1, f) != 1
++        || fread(hd, sizeof hd, 1, f) != 1 || N < 1 || nd < 0 || nd + 1 > EDMD3_MAX_COMPARTMENTS || !(hd[2] > 0.0)) {
++        fprintf(stderr, "psi6 snapshots: %s is not a G3SNAP1 file\n", path); fclose(f); return 2;
++    }
++    double* xy = (double*)malloc((size_t)N * 2 * sizeof *xy); double* xs = (double*)malloc((size_t)N * sizeof *xs);
++    double* ys = (double*)malloc((size_t)N * sizeof *ys);
++    if (!xy || !xs || !ys) { fprintf(stderr, "psi6 snapshots: out of memory\n"); fclose(f); return 2; }
++    printf("# --gen3-psi6-snapshots %s: N %d, dividers %d, box %.10g x %.10g sigma, radius %.10g sigma, interval %g sigma-time; "
++           "neighbours within %g sigma; build %s\n", path, (int)N, (int)nd, hd[0], hd[1], hd[2], hd[3], (double)PSI6_CUTOFF_SIGMA, BUILD_GIT);
++    printf("t_sigma,phase,psi6_global");
++    for (int c = 0; c <= nd; ++c) printf(",N_%d,psi6_%d,psi6_orient_deg_%d,psi6_local_%d", c, c, c, c);
++    printf("\n");
++    long k = 0; int bad = 0;
++    for (;;) {
++        double t; int32_t ph, ndk; double dv[EDMD3_MAX_COMPARTMENTS];
++        if (fread(&t, sizeof t, 1, f) != 1) break;                                  /* the end of the file */
++        if (fread(&ph, sizeof ph, 1, f) != 1 || fread(&ndk, sizeof ndk, 1, f) != 1 || ndk != nd
++            || (ndk > 0 && fread(dv, sizeof *dv, (size_t)ndk, f) != (size_t)ndk) || fread(xy, sizeof *xy, (size_t)N * 2, f) != (size_t)N * 2) {
++            bad = 1; break;
++        }
++        for (int i = 0; i < N; ++i) { xs[i] = xy[2 * i]; ys[i] = xy[2 * i + 1]; }
++        Psi6Comp pc[EDMD3_MAX_COMPARTMENTS]; double g = NAN;
++        const int nc = psi6_compartments(xs, ys, N, 2.0 * hd[2], dv, ndk, PSI6_CUTOFF_SIGMA, pc, EDMD3_MAX_COMPARTMENTS, &g);
++        if (nc != nd + 1) { bad = 1; break; }
++        printf("%.6f,%s,%.6f", t, ph ? "record" : "hold", g);
++        for (int c = 0; c < nc; ++c) printf(",%d,%.6f,%.3f,%.6f", pc[c].n, pc[c].abs, pc[c].orient_deg, pc[c].local);
++        printf("\n"); k++;
++    }
++    fclose(f); free(xy); free(xs); free(ys);
++    printf("# %ld snapshots%s\n", k, bad ? "; STOP: the file is truncated or inconsistent after them" : "");
++    return bad ? 1 : 0;
++}
++
+ int main(int argc, char* argv[]) {
+ 
+     g_main_argc = argc;
+@@ -21962,6 +22295,7 @@ int main(int argc, char* argv[]) {
+ 
+     parse_cli_options(argc, argv);
+     if (cli_engine_replay) return run_gen3_replay(cli_engine_replay);   /* ##CHRIS 2026-10-09 (M3): acceptances 2, 3 */
++    if (cli_gen3_psi6_snaps) return run_gen3_psi6_snapshots(cli_gen3_psi6_snaps);   /* ##CHRIS 2026-10-10 (decision 17): provisional */
+     init_output_dirs_from_argv0(argv[0]);
+     // Record the invoking command in the current working directory as well
+     // (useful when external scripts set cwd to a per-run output folder).
+@@ -22060,8 +22394,26 @@ int main(int argc, char* argv[]) {
+         else if (cli_gen3_ckpt_stop && cli_gen3_ckpt_phase < 0) why = "--gen3-checkpoint-stop needs --gen3-checkpoint";
+         else if ((cli_gen3_virial_blocks > 0.0 || cli_gen3_snapshots > 0.0) && !sos)   /* ##CHRIS (decision 12, part 3a) */
+             why = "--gen3-virial-blocks and --gen3-snapshots are wired to the speed-of-sound experiment only";
++        else if (cli_gen3_psi6_comp && !sos)   /* ##CHRIS 2026-10-10 (decision 17; since decision 18 item 1 a checkpoint carries it) */
++            why = "--gen3-psi6-compartments is wired to the speed-of-sound experiment only";
++        else if (cli_gen3_m4b_set && cli_gen3_seeding != 2)   /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b */
++            why = "--gen3-compress-eta0, --gen3-compress-melt and --gen3-compress-speed need --gen3-seeding=compressed";
++        else if (cli_gen3_seeding == 2 && !cli_gen3_exact_box)
++            why = "--gen3-seeding=compressed needs --gen3-exact-box (the carry into the run's box is exact only in the exact box)";
++        else if (cli_gen3_seeding == 2 && cli_temperature_segments && cli_temperature_segments_count > 0)
++            why = "--gen3-seeding=compressed sets KE = N_s kT per compartment; per-segment temperatures are not wired to it";
++        else if (cli_gen3_cryst >= 0 && cli_gen3_seeding != 1)   /* ##CHRIS 2026-10-10 (decision 18, M4c) */
++            why = "--gen3-lattice-orientation selects the M4 lattice start's orientation: it needs --gen3-seeding=lattice";
+         if (why) g3_stop(why);
+     }
++    if (cli_engine != 3 && cli_gen3_cryst >= 0) {   /* ##CHRIS 2026-10-10 (decision 18, M4c) */
++        fprintf(stderr, "STOP: --gen3-lattice-orientation needs --engine=gen3 (gen2's seeding is frozen)\n");
++        exit(2);
++    }
++    if (cli_engine != 3 && cli_gen3_m4b_set) {   /* ##CHRIS 2026-10-09 (decision 13, item 4) */
++        fprintf(stderr, "STOP: --gen3-compress-eta0, --gen3-compress-melt and --gen3-compress-speed need --engine=gen3\n");
++        exit(2);
++    }
+     if (cli_engine != 3 && (cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial)) {   /* ##CHRIS (stage C, M4) */
+         fprintf(stderr, "STOP: --gen3-seeding, --gen3-exact-box and --gen3-dump-initial need --engine=gen3 (gen2's seeding is frozen)\n");
+         exit(2);
+@@ -22074,6 +22426,10 @@ int main(int argc, char* argv[]) {
+         fprintf(stderr, "STOP: --gen3-virial-blocks and --gen3-snapshots need --engine=gen3\n");
+         exit(2);
+     }
++    if (cli_engine != 3 && cli_gen3_psi6_comp) {   /* ##CHRIS 2026-10-10 (decision 17): provisional */
++        fprintf(stderr, "STOP: --gen3-psi6-compartments needs --engine=gen3\n");
++        exit(2);
++    }
+ 
+     // Single-test mode takes priority over experiment modes
+     if (cli_single_test_mode) {

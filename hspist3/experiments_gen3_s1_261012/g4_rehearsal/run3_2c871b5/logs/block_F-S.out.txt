@@ -1,0 +1,11 @@
+       4
+       2
+0
+   2 (Apple M3 Max (Mac rehearsal))
+earlier attempt of chunk 6, stopped in the start-up checks (ran nothing): gen3-s1-S_940009_6.out: STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones (cluster/gen3_stage1_261012/s1_inputs.sha256)
+earlier attempt of chunk 7, stopped in the start-up checks (ran nothing): gen3-s1-S_940010_7.out: STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones (cluster/gen3_stage1_261012/s1_inputs.sha256)
+chunk logs: 4; chunks done: 2 of 2 (group S; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 2 stopped in the start-up checks, 0 started and not finished
+chunk 6: stopped in the start-up checks (ran nothing): gen3-s1-S_940009_6.out: STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones (cluster/gen3_stage1_261012/s1_inputs.sha256)
+chunk 7: stopped in the start-up checks (ran nothing): gen3-s1-S_940010_7.out: STOP: [cn-07-07-07] the stage 1 inputs are not the delivered ones (cluster/gen3_stage1_261012/s1_inputs.sha256)
+group S without a done log: stopped once 0, stopped twice or more 0, started and not finished 0, no log 0
+nothing to resubmit

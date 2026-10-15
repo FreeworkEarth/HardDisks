@@ -1,0 +1,47 @@
+# The timing table (decision 41, the watch rule), from fetched files: chunk table cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv, task list cluster/gen3_stage1_261012/tasks_stage1_koa_261012.txt
+
+## group D: 181 chunks of the chunk table; run records found for 1350 of 1350 task lines; the full table: experiments_gen3_s1_261012/interim_261013/timing/timing_D.tsv
+
+the 20 largest ratios:
+
+| chunk | cell | M | class [min] | predicted s (E5) | runs found / lines | sum of ##RUN s | ratio | node | CPU model |
+|---|---|---|---|---|---|---|---|---|---|
+| 364 | D_N0100_eta0.075000 | 300 | 30 | 538.8 | 25 / 25 | 244 | 0.453 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 368 | D_N0100_eta0.075000 | 1500 | 60 | 1146.0 | 25 / 25 | 514 | 0.449 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 362 | D_N0100_eta0.075000 | 100 | 30 | 345.4 | 25 / 25 | 153 | 0.443 | cn-03-38-02 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 367 | D_N0100_eta0.075000 | 1000 | 60 | 942.2 | 25 / 25 | 406 | 0.431 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 363 | D_N0100_eta0.075000 | 200 | 30 | 452.5 | 25 / 25 | 192 | 0.424 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 369 | D_N0100_eta0.075000 | 2000 | 120 | 1318.5 | 25 / 25 | 525 | 0.398 | cn-03-38-03 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 365 | D_N0100_eta0.075000 | 500 | 60 | 679.2 | 25 / 25 | 261 | 0.384 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 361 | D_N0100_eta0.075000 | 50 | 30 | 277.4 | 25 / 25 | 102 | 0.368 | cn-03-38-02 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 366 | D_N0100_eta0.075000 | 750 | 60 | 821.3 | 25 / 25 | 300 | 0.365 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 353 | D_N0100_eta0.035000 | 100 | 60 | 740.4 | 25 / 25 | 239 | 0.323 | cn-03-38-02 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 354 | D_N0100_eta0.035000 | 200 | 60 | 973.0 | 25 / 25 | 294 | 0.302 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 358 | D_N0100_eta0.035000 | 1000 | 120 | 2035.8 | 25 / 25 | 613 | 0.301 | cn-03-38-03 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 360 | D_N0100_eta0.035000 | 2000 | 180 | 2852.8 | 25 / 25 | 853 | 0.299 | cn-03-38-05 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 357 | D_N0100_eta0.035000 | 750 | 120 | 1773.6 | 25 / 25 | 523 | 0.295 | cn-03-38-03 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 355 | D_N0100_eta0.035000 | 300 | 60 | 1160.3 | 25 / 25 | 341 | 0.294 | cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 352 | D_N0100_eta0.035000 | 50 | 30 | 592.9 | 25 / 25 | 172 | 0.290 | cn-03-38-02 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 359 | D_N0100_eta0.035000 | 1500 | 180 | 2478.3 | 25 / 25 | 714 | 0.288 | cn-03-38-04 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 356 | D_N0100_eta0.035000 | 500 | 120 | 1464.9 | 25 / 25 | 417 | 0.285 | cn-03-38-03 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 347 | D_N0100_eta0.020000 | 1000 | 180 | 3576.0 | 25 / 25 | 963 | 0.269 | cn-03-38-03 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+| 343 | D_N0100_eta0.020000 | 200 | 120 | 1706.2 | 25 / 25 | 454 | 0.266 | cn-03-38-03 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz |
+
+| CPU model | chunks | minimum | median | maximum |
+|---|---|---|---|---|
+| Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz | 135 | 0.170 | 0.191 | 0.453 |
+| Intel(R) Xeon(R) CPU E5-4640 v2 @ 2.20GHz | 46 | 0.192 | 0.199 | 0.258 |
+
+the maximum ratio per cell (eta) for each CPU model (chunks timed, maximum (chunk)):
+
+| cell | eta | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz | Intel(R) Xeon(R) CPU E5-4640 v2 @ 2.20GHz | every CPU model |
+|---|---|---|---|---|
+| D_N0100_eta0.020000 | 0.020000 | 11, 0.269 (347) | - | 11, 0.269 (347) |
+| D_N0400_eta0.020000 | 0.020000 | 44, 0.206 (394) | 36, 0.258 (401) | 80, 0.258 (401) |
+| D_N0100_eta0.035000 | 0.035000 | 9, 0.323 (353) | - | 9, 0.323 (353) |
+| D_N0400_eta0.035000 | 0.035000 | 37, 0.197 (473) | 10, 0.250 (490) | 47, 0.250 (490) |
+| D_N0100_eta0.075000 | 0.075000 | 9, 0.453 (364) | - | 9, 0.453 (364) |
+| D_N0400_eta0.075000 | 0.075000 | 25, 0.256 (498) | - | 25, 0.256 (498) |
+
+WATCH RULE (decision 41 item 3): the E5 maximum of group D is 0.453: below 2.0
+

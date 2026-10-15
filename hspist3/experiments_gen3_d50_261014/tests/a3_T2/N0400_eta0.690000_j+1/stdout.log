@@ -1,0 +1,8 @@
+gen3 exact box: the physics uses 2 L0 exactly; SIM_WIDTH (the 1/48 grid) is for the display only
+gen3 exact box: the physics uses 2 L0 exactly; SIM_WIDTH (the 1/48 grid) is for the display only
+ABORTING INVALID RUN [particle_wall_penetration]: Particle 200 penetrated wall 0 by 0.158329098 px (particle x=486.16165161132812 vx=-1.9378967803474088, wall x=473.71998068558639 vx=0, radius=12, half-thickness=0.60000002384185791).
+Partial trace preserved at: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d50_261014/tests/a3_T2/N0400_eta0.690000_j+1/tr.csv
+Failure record appended to: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d50_261014/tests/a3_T2/N0400_eta0.690000_j+1/summary.failures.csv
+[EDMD-RESCHED] divider events: minimal (default)
+[EDMD-ENGINE] gen3 (edmd_core/edmd_gen3.c; the gen2 core only holds the setup): the line above does not apply
+[EDMD] initialized: N=400  box=(22.8σ,20.0σ) -> (546.4px,480.0px)  R=0.5000σ -> 12.000px  scale=24.0 px/σ

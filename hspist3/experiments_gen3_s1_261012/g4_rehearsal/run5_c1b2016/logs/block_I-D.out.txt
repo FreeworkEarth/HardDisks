@@ -1,0 +1,29 @@
+Transfer starting: 24 files
+./
+merge_plan_20261013_170405.tsv
+job_logs/
+job_logs/gen3-s1-D_940007_5.out
+job_logs/gen3-s1-merge-D_940008.out
+merged/
+merged/.merge_complete
+merged/stage1/
+merged/stage1/gen3/
+merged/stage1/gen3/D_N0100_eta0.075000/
+merged/stage1/gen3/D_N0100_eta0.075000/m_500/
+merged/stage1/gen3/D_N0100_eta0.075000/m_500/.build_git
+merged/stage1/gen3/D_N0100_eta0.075000/m_500/.sha256_uncompressed
+merged/stage1/gen3/D_N0100_eta0.075000/m_500/acf_mean_fit.csv
+merged/stage1/gen3/D_N0100_eta0.075000/m_500/acf_runs.npz
+merged/stage1/gen3/D_N0100_eta0.075000/m_500/failed_runs.csv
+merged/stage1/gen3/D_N0100_eta0.075000/m_500/nud_runs.csv
+merged/stage1/gen3/D_N0100_eta0.075000/m_500/red_nu.csv
+merged/stage1/gen3/D_N0100_eta0.075000/m_500/run.log
+merged/stage1/gen3/D_N0100_eta0.075000/m_500/runs_health.csv
+merged/stage1/gen3/D_N0100_eta0.075000/m_500/s1_runs.csv
+merged/stage1/gen3/D_N0100_eta0.075000/m_500/snap_runs.csv
+merged/stage1/gen3/D_N0100_eta0.075000/m_500/snapshots_L0_523_wallmassfactor_500_run0.bin.gz
+merged/stage1/gen3/D_N0100_eta0.075000/m_500/snapshots_L0_523_wallmassfactor_500_run1.bin.gz
+
+sent 340349 bytes  received 436 bytes  47997887 bytes/sec
+total size is 337782  speedup is 0.99
+fetched into /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4f/build/home/harddisks_gen3_k2/hspist3/experiments_gen3_stage1_koa_261012/D: 376K; merge record: 2026-10-13 17:04:05 HST

@@ -1,0 +1,43 @@
+# decision 19 item 2 evidence 2026-10-10 17:01:52 HST: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d19_261010/bin_7f6adca/00ALLINONE (00ALLINONE  git 7f6adca  target mac-O3-e0pre)
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.7Ti    50Gi    98%     10M  528M    2%   /System/Volumes/Data
+vm.swapusage: total = 21504.00M  used = 20115.00M  free = 1389.00M  (encrypted)
+17:01  up 3 days,  3:15, 1 user, load averages: 6.17 8.66 11.20
+  start P4 P4a A seed 1, new build (load 1, free 50.3 GiB)
+  start H0 default (load 3, free 50.3 GiB)
+  start H0 gen2flag (load 5, free 50.3 GiB)
+  start H1 M1 and M2 harness outputs (load 6, free 50.3 GiB)
+  start RP m2 dump, then the replay of m2_driven_pi8 variant a (load 7, free 50.3 GiB)
+  start ST gen3 window (load 8, free 50.3 GiB)
+  start ST gen3 headless (load 8, free 50.3 GiB)
+  ST gen3 window: exit 0, 1 s
+  start ST gen2 window (load 8, free 50.3 GiB)
+  ST gen3 headless: exit 0, 1 s
+  start ST gen2 headless (load 8, free 50.2 GiB)
+  ST gen2 window: exit 0, 3 s
+  ST gen2 headless: exit 0, 2 s
+  H0 default: exit 0, 7 s
+  H0 gen2flag: exit 0, 7 s
+  RP m2 dump, then the replay of m2_driven_pi8 variant a: exit 0, 16 s
+  H1 M1 and M2 harness outputs: exit 0, 405 s
+  P4 P4a A seed 1, new build: exit 0, 904 s
+17:16  up 3 days,  3:30, 1 user, load averages: 9.53 7.24 8.78
+  start PF N 5000 time scale 1 gen2 (load 1, free 58.5 GiB)
+  PF N 5000 time scale 1 gen2: exit 0, 31 s
+  start PF N 5000 time scale 1 gen3 (load 1, free 54.5 GiB)
+  PF N 5000 time scale 1 gen3: exit 0, 31 s
+  start PF N 5000 time scale 10000 gen2 (load 1, free 53.8 GiB)
+  PF N 5000 time scale 10000 gen2: exit 0, 431 s
+  start PF N 5000 time scale 10000 gen3 (load 1, free 45.1 GiB)
+  PF N 5000 time scale 10000 gen3: exit 0, 31 s
+  start PF N 8000 time scale 1 gen2 (load 1, free 45.1 GiB)
+  PF N 8000 time scale 1 gen2: exit 0, 31 s
+  start PF N 8000 time scale 1 gen3 (load 1, free 45.1 GiB)
+  PF N 8000 time scale 1 gen3: exit 0, 31 s
+  start PF N 8000 time scale 10000 gen2 (load 1, free 45.1 GiB)
+  PF N 8000 time scale 10000 gen2: exit 0, 1092 s
+  start PF N 8000 time scale 10000 gen3 (load 1, free 54.2 GiB)
+  PF N 8000 time scale 10000 gen3: exit 0, 33 s
+17:45  up 3 days,  3:59, 1 user, load averages: 4.46 4.93 5.87
+# done 2026-10-10 17:45:28 HST
+runner exit 0

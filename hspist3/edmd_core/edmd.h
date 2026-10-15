@@ -119,6 +119,23 @@ int    edmd_init_lattice_gas(EDMD* S, unsigned long long seed);
 void   edmd_set_event_log(const char* path, double time_scale);
 void   edmd_close_event_log(void);
 
+/* ##CHRIS 2026-10-05: divider rescheduling policy (process-wide; see edmd.c).
+   0 = minimal (default): after a divider event reschedule only that disk, plus every
+   disk's divider event if the divider's velocity changed. 1 = legacy full reschedule. */
+void   edmd_set_legacy_resched(int on);
+int    edmd_legacy_resched(void);
+/* events popped with a time before the current time and skipped (a time-ordering violation; must be 0) */
+long   edmd_past_event_count(const EDMD* S);
+/* contact audit (HD_CONTACT_AUDIT set): max |contact distance| in px at executed events, per class
+   [0] disk-disk, [1] outer walls, [2] divider faces, [3] pistons; returns the number of audited events */
+long   edmd_contact_audit_stats(const EDMD* S, double max_gap_px[4]);
+/* ##CHRIS 2026-10-07: schedule-equivalence audit (--resched-audit); mode 0 off, 1 after divider events, 2 after every event.
+   stats: out[0] audited events, [1] matched comparisons, [2] missing, [3] extra, [4] |dt| > 1e-9, [5] duplicate disagreements,
+   [6] |dt| > 1e-9 AND |dt| > 1e-10 x horizon; *maxrel = max |dt| / horizon over matched events with |dt| > 1e-9 */
+void   edmd_set_resched_audit(int mode);
+int    edmd_resched_audit_mode(void);
+void   edmd_resched_audit_stats(const EDMD* S, long out[7], double* maxdt, double* maxrel);
+
 /* access */
 double                edmd_time(const EDMD* S);
 const EDMD_Params*    edmd_params(const EDMD* S);

@@ -1,0 +1,1 @@
+# SHA-256 of each raw file before its lossless compression (gzip -9), 2026-10-09 13:28 HST; gunzip restores it byte for byte

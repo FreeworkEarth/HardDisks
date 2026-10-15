@@ -1,0 +1,108 @@
+# POST HOC (2026-10-15; decision 55 item 3), stage 1 Part B: information, never in place of the verdicts of record (decision 55 item 2)
+
+groups present: B100, B400, D, B900, S, B1600; stopped by the stop rule: none
+
+## (a) Verdict K's statistics on Phi, with and without eta 0.60 and 0.50 (the registered F2 fits, s1_verdict_261012.verdict_k)
+
+- all of Phi (the verdict of record): 12 densities: X^2 = 32.69 (12 dof), p = 0.0011, max |z| = 3.58 (eta 0.6); |z| >= 3.5 at: 0.6
+- without 0.60: 11 densities: X^2 = 19.84 (11 dof), p = 0.0476, max |z| = 2.58 (eta 0.3927); |z| >= 3.5 at: none
+- without 0.60 and 0.50: 10 densities: X^2 = 13.57 (10 dof), p = 0.1934, max |z| = 2.58 (eta 0.3927); |z| >= 3.5 at: none
+
+## (b) eta 0.60
+
+| N | psi6 +- SE (n) | E1 c_s +- sigma | masses | chi2/dof | Delta [%] | low-Q | hold t | record z |
+|---|---|---|---|---|---|---|---|---|
+| 100 | 0.2034 +- 0.0003 (225) | 8.16948 +- 0.02162 | 8 | 64.8/7 | -0.646 +- 0.263 | - | +0.28 | -0.12 |
+| 400 | 0.0940 +- 0.0001 (225) | 8.29180 +- 0.00478 | 8 | 14.6/7 | +0.841 +- 0.058 | - | +0.53 | -1.53 |
+| 900 | 0.0619 +- 0.0000 (225) | 8.26741 +- 0.00312 | 8 | 16.6/7 | +0.545 +- 0.038 | - | +0.03 | +0.71 |
+| 1600 | 0.0460 +- 0.0000 (225) | 8.26012 +- 0.00209 | 8 | 4.0/7 | +0.456 +- 0.025 | - | +0.83 | +0.24 |
+
+the per-seed psi6 of the N 100 cell at eta 0.60 and, for comparison, of N 100 at 0.55 and 0.63 and N 400 at 0.60 (every used trajectory, all masses):
+
+- N 100, eta 0.60:
+  - the record means psi6_rec (one per trajectory): n 225, mean 0.2034, SD 0.0038, min 0.1954, quartiles 0.2010 / 0.2026 / 0.2045, max 0.2244; skewness +1.68, excess kurtosis +4.68, BC 0.495 (<= 5/9); histogram (12 equal bins 0.195 .. 0.224): 4 32 80 64 17 11 10 4 2 0 0 1
+  - the compartments' record means psi6_rec_0 and psi6_rec_1 (two per trajectory): n 450, mean 0.2034, SD 0.0137, min 0.1727, quartiles 0.1942 / 0.2015 / 0.2108, max 0.2761; skewness +1.02, excess kurtosis +2.46, BC 0.372 (<= 5/9); histogram (12 equal bins 0.173 .. 0.276): 10 46 126 121 71 45 18 6 5 1 0 1; correlation of the two compartments -0.85
+  - the instantaneous value at the hold's end, psi6_hold_end_0 and _1 (two per trajectory): n 450, mean 0.2009, SD 0.1042, min 0.0046, quartiles 0.1198 / 0.1888 / 0.2665, max 0.5081; skewness +0.48, excess kurtosis -0.30, BC 0.451 (<= 5/9); histogram (12 equal bins 0.005 .. 0.508): 19 44 62 75 62 64 41 34 21 16 9 3
+  - the record means per mass, mean (SE): alpha 0.5 0.2078 (0.0009), alpha 1 0.2050 (0.0011), alpha 2 0.2034 (0.0007), alpha 3 0.2027 (0.0007), alpha 5 0.2032 (0.0005), alpha 7.5 0.2022 (0.0006), alpha 10 0.2022 (0.0004), alpha 15 0.2017 (0.0004), alpha 20 0.2020 (0.0005)
+  - the record means per mass (record length 200 predicted periods of each mass):
+
+    | M | alpha | n | mean | SD | min | max |
+    |---|---|---|---|---|---|---|
+    | 50 | 0.5 | 25 | 0.2078 | 0.0044 | 0.2006 | 0.2157 |
+    | 100 | 1 | 25 | 0.2050 | 0.0055 | 0.1972 | 0.2244 |
+    | 200 | 2 | 25 | 0.2034 | 0.0033 | 0.1982 | 0.2152 |
+    | 300 | 3 | 25 | 0.2027 | 0.0037 | 0.1973 | 0.2113 |
+    | 500 | 5 | 25 | 0.2032 | 0.0027 | 0.1993 | 0.2120 |
+    | 750 | 7.5 | 25 | 0.2022 | 0.0028 | 0.1983 | 0.2120 |
+    | 1000 | 10 | 25 | 0.2022 | 0.0022 | 0.1954 | 0.2061 |
+    | 1500 | 15 | 25 | 0.2017 | 0.0018 | 0.1988 | 0.2063 |
+    | 2000 | 20 | 25 | 0.2020 | 0.0026 | 0.1978 | 0.2086 |
+
+- N 100, eta 0.55:
+  - the record means psi6_rec (one per trajectory): n 225, mean 0.1509, SD 0.0013, min 0.1477, quartiles 0.1500 / 0.1508 / 0.1516, max 0.1555; skewness +0.32, excess kurtosis +0.62, BC 0.301 (<= 5/9); histogram (12 equal bins 0.148 .. 0.156): 7 7 26 32 51 45 25 16 12 2 0 2
+  - the compartments' record means psi6_rec_0 and psi6_rec_1 (two per trajectory): n 450, mean 0.1509, SD 0.0024, min 0.1439, quartiles 0.1493 / 0.1509 / 0.1523, max 0.1597; skewness +0.17, excess kurtosis +0.45, BC 0.297 (<= 5/9); histogram (12 equal bins 0.144 .. 0.160): 5 11 27 67 86 102 72 52 17 7 2 2; correlation of the two compartments -0.40
+  - the instantaneous value at the hold's end, psi6_hold_end_0 and _1 (two per trajectory): n 450, mean 0.1499, SD 0.0816, min 0.0079, quartiles 0.0879 / 0.1365 / 0.1923, max 0.4470; skewness +0.78, excess kurtosis +0.35, BC 0.475 (<= 5/9); histogram (12 equal bins 0.008 .. 0.447): 33 61 77 93 71 42 25 20 15 10 2 1
+  - the record means per mass, mean (SE): alpha 0.5 0.1514 (0.0003), alpha 1 0.1512 (0.0004), alpha 2 0.1509 (0.0002), alpha 3 0.1505 (0.0003), alpha 5 0.1510 (0.0003), alpha 7.5 0.1507 (0.0002), alpha 10 0.1503 (0.0002), alpha 15 0.1510 (0.0002), alpha 20 0.1511 (0.0002)
+- N 100, eta 0.63:
+  - the record means psi6_rec (one per trajectory): n 225, mean 0.3435, SD 0.0045, min 0.3300, quartiles 0.3404 / 0.3436 / 0.3464, max 0.3580; skewness +0.26, excess kurtosis +0.42, BC 0.308 (<= 5/9); histogram (12 equal bins 0.330 .. 0.358): 1 2 11 22 42 48 42 34 10 7 5 1
+  - the compartments' record means psi6_rec_0 and psi6_rec_1 (two per trajectory): n 450, mean 0.3435, SD 0.0269, min 0.2684, quartiles 0.3267 / 0.3427 / 0.3607, max 0.4255; skewness +0.13, excess kurtosis +0.25, BC 0.311 (<= 5/9); histogram (12 equal bins 0.268 .. 0.426): 6 10 24 42 82 102 68 57 31 16 7 5; correlation of the two compartments -0.95
+  - the instantaneous value at the hold's end, psi6_hold_end_0 and _1 (two per trajectory): n 450, mean 0.3462, SD 0.1421, min 0.0472, quartiles 0.2341 / 0.3510 / 0.4504, max 0.6695; skewness -0.07, excess kurtosis -0.82, BC 0.457 (<= 5/9); histogram (12 equal bins 0.047 .. 0.670): 20 28 33 52 43 55 54 59 47 34 17 8
+  - the record means per mass, mean (SE): alpha 0.5 0.3433 (0.0014), alpha 1 0.3451 (0.0010), alpha 2 0.3438 (0.0011), alpha 3 0.3437 (0.0007), alpha 5 0.3423 (0.0008), alpha 7.5 0.3438 (0.0008), alpha 10 0.3446 (0.0007), alpha 15 0.3424 (0.0005), alpha 20 0.3429 (0.0005)
+- N 400, eta 0.60:
+  - the record means psi6_rec (one per trajectory): n 225, mean 0.0940, SD 0.0009, min 0.0921, quartiles 0.0935 / 0.0940 / 0.0946, max 0.0965; skewness +0.17, excess kurtosis -0.02, BC 0.341 (<= 5/9); histogram (12 equal bins 0.092 .. 0.096): 9 11 20 29 37 42 33 17 13 8 3 3
+  - the compartments' record means psi6_rec_0 and psi6_rec_1 (two per trajectory): n 450, mean 0.0940, SD 0.0015, min 0.0896, quartiles 0.0931 / 0.0940 / 0.0949, max 0.0998; skewness +0.21, excess kurtosis +0.53, BC 0.294 (<= 5/9); histogram (12 equal bins 0.090 .. 0.100): 4 10 35 58 102 113 62 43 16 4 2 1; correlation of the two compartments -0.35
+  - the instantaneous value at the hold's end, psi6_hold_end_0 and _1 (two per trajectory): n 450, mean 0.0956, SD 0.0519, min 0.0034, quartiles 0.0574 / 0.0879 / 0.1316, max 0.2882; skewness +0.58, excess kurtosis -0.04, BC 0.448 (<= 5/9); histogram (12 equal bins 0.003 .. 0.288): 31 63 88 75 57 57 38 21 13 5 0 2
+  - the record means per mass, mean (SE): alpha 0.5 0.0940 (0.0002), alpha 1 0.0940 (0.0002), alpha 2 0.0939 (0.0001), alpha 3 0.0941 (0.0002), alpha 5 0.0937 (0.0002), alpha 7.5 0.0939 (0.0002), alpha 10 0.0941 (0.0002), alpha 15 0.0940 (0.0002), alpha 20 0.0941 (0.0002)
+
+the F1 fit without N 100 at eta 0.60 (as the verdict script prints it): a = +0.076 +- 0.077 %, b = +14.88 %, chi2 = 0.75 (1 dof), p = 0.385
+the F2 fit on the three sizes 400, 900, 1600 at eta 0.60 (3 points, 3 parameters, NO degree of freedom: the curve passes through the three points; sigma_a is the propagated point errors only, no goodness of fit exists): a = +0.429 +- 0.414 %, b = -6.07 %, d = +286.44 %, chi2 = 5.17e-28 (0 dof)
+
+## (c) Each density's share of Verdict K's X^2 (z = a / sigma_a of F2)
+
+| eta | z | z^2 | share of X^2 |
+|---|---|---|---|
+| 0.05 | +0.62 | 0.38 | 1.2 % |
+| 0.1 | -0.38 | 0.15 | 0.4 % |
+| 0.15 | -1.38 | 1.91 | 5.8 % |
+| 0.2 | -0.21 | 0.04 | 0.1 % |
+| 0.25 | +1.42 | 2.03 | 6.2 % |
+| 0.3 | +0.06 | 0.00 | 0.0 % |
+| 0.35 | +0.29 | 0.09 | 0.3 % |
+| 0.3927 | +2.58 | 6.67 | 20.4 % |
+| 0.45 | +1.52 | 2.31 | 7.1 % |
+| 0.5 | +2.50 | 6.27 | 19.2 % |
+| 0.55 | -0.03 | 0.00 | 0.0 % |
+| 0.6 | -3.58 | 12.84 | 39.3 % |
+| all | | 32.69 | 100 % |
+
+## (d) eta 0.50: the four Delta_N and the F2 residuals
+
+| N | u = N^(-1/2) | Delta [%] | sigma [%] | F2 at u [%] | residual [%] | residual / sigma |
+|---|---|---|---|---|---|---|
+| 100 | 0.10000 | +2.140 | 0.053 | +2.131 | +0.009 | +0.18 |
+| 400 | 0.05000 | +1.231 | 0.030 | +1.267 | -0.036 | -1.20 |
+| 900 | 0.03333 | +0.989 | 0.022 | +0.943 | +0.046 | +2.04 |
+| 1600 | 0.02500 | +0.730 | 0.029 | +0.775 | -0.045 | -1.55 |
+
+sum of (residual / sigma)^2 = 8.07 = F2's chi2 8.07 with 1 dof, p = 0.0045 (form not adequate: p < 0.01)
+
+## (e) The table for the paper: experiments_gen3_s1_261012/posthoc_261015/paper_table_s1_partB_posthoc_261015.csv (16 rows: every density of block B; the registered numbers, arranged POST HOC)
+
+| eta | set | a (F2) [%] | z | F2 p | a_Z [%] | Delta N 100 [%] | N 400 | N 900 | N 1600 |
+|---|---|---|---|---|---|---|---|---|---|
+| 0.05 | Phi | +0.049 +- 0.080 | +0.62 | 0.580 | -0.0059 +- 0.0177 | +0.827 +- 0.043 | +0.297 +- 0.024 | +0.199 +- 0.027 | +0.135 +- 0.024 |
+| 0.1 | Phi | -0.026 +- 0.068 | -0.38 | 0.092 | -0.0292 +- 0.0222 | +1.187 +- 0.041 | +0.551 +- 0.020 | +0.388 +- 0.019 | +0.247 +- 0.021 |
+| 0.15 | Phi | -0.090 +- 0.065 | -1.38 | 0.049 | +0.0185 +- 0.0257 | +1.425 +- 0.033 | +0.733 +- 0.022 | +0.526 +- 0.023 | +0.337 +- 0.017 |
+| 0.2 | Phi | -0.014 +- 0.067 | -0.21 | 0.645 | -0.0077 +- 0.0250 | +1.675 +- 0.032 | +0.917 +- 0.026 | +0.637 +- 0.017 | +0.474 +- 0.016 |
+| 0.25 | Phi | +0.084 +- 0.059 | +1.42 | 0.437 | -0.0315 +- 0.0269 | +1.763 +- 0.032 | +0.988 +- 0.020 | +0.719 +- 0.019 | +0.552 +- 0.016 |
+| 0.3 | Phi | +0.004 +- 0.058 | +0.06 | 0.563 | -0.0112 +- 0.0271 | +1.869 +- 0.044 | +1.106 +- 0.020 | +0.789 +- 0.016 | +0.598 +- 0.015 |
+| 0.35 | Phi | +0.023 +- 0.078 | +0.29 | 0.209 | -0.0113 +- 0.0270 | +1.855 +- 0.038 | +1.183 +- 0.028 | +0.819 +- 0.018 | +0.663 +- 0.020 |
+| 0.3927 | Phi | +0.222 +- 0.086 | +2.58 | 0.126 | -0.0382 +- 0.0262 | +1.742 +- 0.045 | +1.230 +- 0.042 | +0.893 +- 0.017 | +0.763 +- 0.017 |
+| 0.45 | Phi | +0.151 +- 0.099 | +1.52 | 0.699 | +0.0045 +- 0.0242 | +1.594 +- 0.066 | +1.215 +- 0.027 | +0.927 +- 0.022 | +0.772 +- 0.031 |
+| 0.5 | Phi | +0.244 +- 0.097 | +2.50 | 0.004 | +0.0154 +- 0.0224 | +2.140 +- 0.053 | +1.231 +- 0.030 | +0.989 +- 0.022 | +0.730 +- 0.029 |
+| 0.55 | Phi | -0.003 +- 0.099 | -0.03 | 0.024 | +0.1642 +- 0.0204 | +1.920 +- 0.106 | +1.386 +- 0.037 | +0.933 +- 0.026 | +0.782 +- 0.021 |
+| 0.6 | Phi | -0.537 +- 0.150 | -3.58 | 0.012 | -0.0492 +- 0.0216 | -0.646 +- 0.263 | +0.841 +- 0.058 | +0.545 +- 0.038 | +0.456 +- 0.025 |
+| 0.63 | approach | -0.423 +- 0.241 | -1.76 | 0.107 | -0.7285 +- 0.0119 | -0.414 +- 0.352 | -0.352 +- 0.134 | -0.560 +- 0.050 | -0.486 +- 0.035 |
+| 0.66 | approach | -5.011 +- 0.816 | -6.14 | 0.107 | -0.7407 +- 0.0225 | +7.158 +- 0.140 | -0.150 +- 0.361 | -2.663 +- 0.279 | -3.019 +- 0.164 |
+| 0.68 | approach | -17.164 +- 1.741 | -9.86 | 0.006 | -4.2757 +- 0.0372 | +23.580 +- 0.082 | +6.543 +- 0.272 | -2.721 +- 0.824 | -3.750 +- 0.674 |
+| 0.69 | approach | -21.355 +- 1.234 | -17.31 | 0.000 | -15.0274 +- 0.0507 | +42.464 +- 0.077 | +16.034 +- 0.308 | -1.696 +- 0.622 | -0.228 +- 0.413 |

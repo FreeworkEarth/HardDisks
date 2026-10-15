@@ -1,0 +1,224 @@
+# gen3 M1 harness: audit
+
+build: 14.3.0, double 8 bytes, long double 16 bytes; cell width 32 px, origin shift 8192 units
+
+## Audit cells
+
+### Cell fluid: N = 400, eta = 0.3927, box 960.0000 x 480.0000 px (40.0000 x 20.0000 sigma), T = 400 sigma-time, cell width 32 px
+
+| run | event hash | physical events | crossings | stale | final state equal to A |
+|---|---|---|---|---|---|
+| A gen3, audits on | d849652e16a84344 | 346861 | 176140 | 1497810 | - |
+| B gen3, audits off | d849652e16a84344 | 346861 | 176140 | 1497810 | yes |
+| C gen3, audits off, again | d849652e16a84344 | 346861 | 176140 | 1497810 | yes |
+
+audits do not steer (A = B): YES; deterministic (B = C): YES
+
+schedule audit (gen3, run A): 11562 audited states (every event for the first 10000 events, then every 500-th, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) |
+|---|---|---|---|---|---|---|
+| pairs | 3718365 | 0 | 0 | 0 | 0 | 25731632 |
+| outer walls | 384922 | 0 | 0 | 0 | 0 | 8864678 |
+| crossings | 4619094 | 0 | 0 | 0 | 0 | - |
+
+second live crossing of one disk (must be 0): 0
+
+max |dt| over matched events 5.38e-10, max |dt|/horizon (|dt| > 1e-9) 0; duplicate disagreements 0; disks outside their cell 0
+deferred events earlier than the next crossing of one of their disks (must be 0): pairs 0, walls 0
+
+contact audit: gen3 346861 events, max |gap| pairs 3.95e-12 px, walls 1.71e-12 px; gen2 346633 events, max |gap| pairs 5.17e-12 px, walls 3.18e-12 px
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 contact_now=0 local_checks=842549 local_findings=0 full_checks=402 full_findings=0 local_worst=-2.67e-12 full_worst=-9.7e-13 cross_residual_max=1.99e-12 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=4072
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0
+
+| engine | relative KE drift over the run | Z (virial), mean of 10 blocks after T/10 | SE |
+|---|---|---|---|
+| gen3 (B) | 2.95e-16 | 2.79979 | 0.00188 |
+| gen2 | 7.38e-16 | 2.80233 | 0.00469 |
+
+Z gen3 - gen2 = -0.00254, z = -0.50 (block SEs of one trajectory each; information, not a test)
+
+### Cell dense: N = 400, eta = 0.7000, box 538.5587 x 480.0000 px (22.4399 x 20.0000 sigma), T = 400 sigma-time, cell width 32 px
+
+| run | event hash | physical events | crossings | stale | final state equal to A |
+|---|---|---|---|---|---|
+| A gen3, audits on | e0e3e6440e93abe5 | 1878188 | 171953 | 12988594 | - |
+| B gen3, audits off | e0e3e6440e93abe5 | 1878188 | 171953 | 12988594 | yes |
+| C gen3, audits off, again | e0e3e6440e93abe5 | 1878188 | 171953 | 12988594 | yes |
+
+audits do not steer (A = B): YES; deterministic (B = C): YES
+
+schedule audit (gen3, run A): 18589 audited states (every event for the first 10000 events, then every 500-th, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) |
+|---|---|---|---|---|---|---|
+| pairs | 11616695 | 0 | 0 | 0 | 0 | 53636097 |
+| outer walls | 708984 | 0 | 0 | 4 | 0 | 14162216 |
+| crossings | 7419429 | 0 | 0 | 0 | 0 | - |
+
+second live crossing of one disk (must be 0): 0
+
+max |dt| over matched events 6.23e-09, max |dt|/horizon (|dt| > 1e-9) 6.3e-14; duplicate disagreements 0; disks outside their cell 0
+deferred events earlier than the next crossing of one of their disks (must be 0): pairs 0, walls 0
+
+contact audit: gen3 1878188 events, max |gap| pairs 2.87e-12 px, walls 1.82e-12 px; gen2 1895750 events, max |gap| pairs 6.14e-12 px, walls 4.09e-12 px
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 contact_now=0 local_checks=3793010 local_findings=0 full_checks=402 full_findings=0 local_worst=-2.87e-12 full_worst=-1.39e-12 cross_residual_max=1.99e-12 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=23003
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0
+
+| engine | relative KE drift over the run | Z (virial), mean of 10 blocks after T/10 | SE |
+|---|---|---|---|
+| gen3 (B) | -5.49e-15 | 10.50536 | 0.04344 |
+| gen2 | 5.49e-16 | 10.58581 | 0.03667 |
+
+Z gen3 - gen2 = -0.08045, z = -1.42 (block SEs of one trajectory each; information, not a test)
+
+### Cell lattice: N = 400, eta = 0.7000, box 538.5587 x 480.0000 px (22.4399 x 20.0000 sigma), T = 400 sigma-time, cell width 32 px
+
+| run | event hash | physical events | crossings | stale | final state equal to A |
+|---|---|---|---|---|---|
+| A gen3, audits on | 1fb0684c98ebcb03 | 1827310 | 167140 | 12635955 | - |
+| B gen3, audits off | 1fb0684c98ebcb03 | 1827310 | 167140 | 12635955 | yes |
+| C gen3, audits off, again | 1fb0684c98ebcb03 | 1827310 | 167140 | 12635955 | yes |
+
+audits do not steer (A = B): YES; deterministic (B = C): YES
+
+schedule audit (gen3, run A): 17977 audited states (every event for the first 10000 events, then every 500-th, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) |
+|---|---|---|---|---|---|---|
+| pairs | 11276777 | 0 | 0 | 0 | 0 | 51427549 |
+| outer walls | 685426 | 0 | 0 | 1 | 0 | 13696174 |
+| crossings | 7172351 | 0 | 0 | 0 | 0 | - |
+
+second live crossing of one disk (must be 0): 0
+
+max |dt| over matched events 3.9e-09, max |dt|/horizon (|dt| > 1e-9) 2.69e-14; duplicate disagreements 0; disks outside their cell 0
+deferred events earlier than the next crossing of one of their disks (must be 0): pairs 0, walls 0
+
+contact audit: gen3 1827310 events, max |gap| pairs 2.77e-12 px, walls 1.96e-12 px; gen2 1839165 events, max |gap| pairs 6.8e-12 px, walls 4.55e-12 px
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 contact_now=0 local_checks=3689898 local_findings=0 full_checks=402 full_findings=0 local_worst=-2.77e-12 full_worst=-1.5e-12 cross_residual_max=1.85e-12 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=23066
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0
+
+| engine | relative KE drift over the run | Z (virial), mean of 10 blocks after T/10 | SE |
+|---|---|---|---|
+| gen3 (B) | 1.74e-15 | 10.50198 | 0.03485 |
+| gen2 | -1.74e-15 | 10.58221 | 0.02206 |
+
+Z gen3 - gen2 = -0.08023, z = -1.95 (block SEs of one trajectory each; information, not a test)
+
+### Cell tie: N = 400, eta = 0.4007, box 672.0000 x 672.0000 px (28.0000 x 28.0000 sigma), T = 100 sigma-time, cell width 32 px
+
+| run | event hash | physical events | crossings | stale | final state equal to A |
+|---|---|---|---|---|---|
+| A gen3, audits on | 9a15ca6c9fd03b33 | 52500 | 55200 | 94640 | - |
+| B gen3, audits off | 9a15ca6c9fd03b33 | 52500 | 55200 | 94640 | yes |
+| C gen3, audits off, again | 9a15ca6c9fd03b33 | 52500 | 55200 | 94640 | yes |
+
+audits do not steer (A = B): YES; deterministic (B = C): YES
+
+schedule audit (gen3, run A): 10615 audited states (every event for the first 10000 events, then every 500-th, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) |
+|---|---|---|---|---|---|---|
+| pairs | 1124930 | 0 | 0 | 0 | 0 | 9444710 |
+| outer walls | 183024 | 0 | 0 | 0 | 0 | 4062976 |
+| crossings | 4062976 | 0 | 0 | 0 | 0 | - |
+
+second live crossing of one disk (must be 0): 0
+
+max |dt| over matched events 0, max |dt|/horizon (|dt| > 1e-9) 0; duplicate disagreements 0; disks outside their cell 0
+deferred events earlier than the next crossing of one of their disks (must be 0): pairs 0, walls 0
+
+contact audit: gen3 52500 events, max |gap| pairs 0 px, walls 0 px; gen2 52500 events, max |gap| pairs 0 px, walls 0 px
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 contact_now=0 local_checks=155200 local_findings=0 full_checks=101 full_findings=0 local_worst=0 full_worst=0 cross_residual_max=0 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=1841
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0
+
+| engine | relative KE drift over the run | Z (virial), mean of 10 blocks after T/10 | SE |
+|---|---|---|---|
+| gen3 (B) | 0 | 3.37333 | 0.00579 |
+| gen2 | 0 | 3.37333 | 0.00579 |
+
+Z gen3 - gen2 = 0.00000, z = 0.00 (block SEs of one trajectory each; information, not a test)
+
+### Cell solid: N = 400, eta = 0.8500, box 499.9787 x 425.7963 px (20.8324 x 17.7415 sigma), T = 100 sigma-time, cell width 32 px
+
+| run | event hash | physical events | crossings | stale | final state equal to A |
+|---|---|---|---|---|---|
+| A gen3, audits on | 965afff5462c7d48 | 2904749 | 79519 | 9900108 | - |
+| B gen3, audits off | 965afff5462c7d48 | 2904749 | 79519 | 9900108 | yes |
+| C gen3, audits off, again | 965afff5462c7d48 | 2904749 | 79519 | 9900108 | yes |
+
+audits do not steer (A = B): YES; deterministic (B = C): YES
+
+schedule audit (gen3, run A): 35639 audited states (every event for the first 10000 events, then every 500-th, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) |
+|---|---|---|---|---|---|---|
+| pairs | 29174412 | 0 | 0 | 0 | 0 | 109769556 |
+| outer walls | 1645119 | 0 | 0 | 2 | 0 | 26866081 |
+| crossings | 14246882 | 0 | 0 | 0 | 0 | - |
+
+second live crossing of one disk (must be 0): 0
+
+max |dt| over matched events 1.49e-08, max |dt|/horizon (|dt| > 1e-9) 3.72e-14; duplicate disagreements 0; disks outside their cell 0
+deferred events earlier than the next crossing of one of their disks (must be 0): pairs 0, walls 0
+
+contact audit: gen3 2904749 events, max |gap| pairs 1.52e-12 px, walls 9.09e-13 px; gen2 2905614 events, max |gap| pairs 2.35e-12 px, walls 1.88e-12 px
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 contact_now=0 local_checks=5675576 local_findings=0 full_checks=101 full_findings=0 local_worst=-1.52e-12 full_worst=-7.71e-13 cross_residual_max=8.29e-13 origin_shifts=0 syncs=0 heap_compactions=537 heap_max=29709
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0
+
+| engine | relative KE drift over the run | Z (virial), mean of 10 blocks after T/10 | SE |
+|---|---|---|---|
+| gen3 (B) | 2.46e-15 | 59.40422 | 0.00134 |
+| gen2 | -4.37e-15 | 59.40378 | 0.00227 |
+
+Z gen3 - gen2 = 0.00044, z = 0.17 (block SEs of one trajectory each; information, not a test)
+
+### Cell dense: N = 400, eta = 0.7000, box 538.5587 x 480.0000 px (22.4399 x 20.0000 sigma), T = 100 sigma-time, cell width 48 px
+
+| run | event hash | physical events | crossings | stale | final state equal to A |
+|---|---|---|---|---|---|
+| A gen3, audits on | a6694d08fd33a01a | 467358 | 21414 | 2011525 | - |
+| B gen3, audits off | a6694d08fd33a01a | 467358 | 21414 | 2011525 | yes |
+| C gen3, audits off, again | a6694d08fd33a01a | 467358 | 21414 | 2011525 | yes |
+
+audits do not steer (A = B): YES; deterministic (B = C): YES
+
+schedule audit (gen3, run A): 14654 audited states (every event for the first 10000 events, then every 500-th, and at the end)
+
+| class | compared | missing | extra | abs dt > 1e-9 | of them > 1e-10 x horizon | deferred (not yet eligible) |
+|---|---|---|---|---|---|---|
+| pairs | 14275919 | 0 | 0 | 0 | 0 | 37220690 |
+| outer walls | 1113893 | 0 | 0 | 3 | 0 | 10609307 |
+| crossings | 5836846 | 0 | 0 | 0 | 0 | - |
+
+second live crossing of one disk (must be 0): 0
+
+max |dt| over matched events 2.68e-09, max |dt|/horizon (|dt| > 1e-9) 2.11e-14; duplicate disagreements 0; disks outside their cell 0
+deferred events earlier than the next crossing of one of their disks (must be 0): pairs 0, walls 0
+
+contact audit: gen3 467358 events, max |gap| pairs 1.42e-12 px, walls 7.96e-13 px; gen2 469630 events, max |gap| pairs 2.7e-12 px, walls 4.09e-12 px
+
+[EDMD3-HEALTH] overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 contact_now=0 local_checks=922569 local_findings=0 full_checks=101 full_findings=0 local_worst=-1.42e-12 full_worst=-5.26e-13 cross_residual_max=7.03e-13 origin_shifts=0 syncs=0 heap_compactions=101 heap_max=29708
+[EDMD-HEALTH gen2] forced_advance=0 clamp_repair=0 overlap_repair=0 wall_overdue=0 past_event=0
+
+| engine | relative KE drift over the run | Z (virial), mean of 10 blocks after T/10 | SE |
+|---|---|---|---|
+| gen3 (B) | -6.87e-16 | 10.46442 | 0.07940 |
+| gen2 | -2.88e-15 | 10.50484 | 0.04906 |
+
+Z gen3 - gen2 = -0.04042, z = -0.43 (block SEs of one trajectory each; information, not a test)
+
+### Start-up invariant of the cell width (w >= d = 24 px, integer px)
+
+| cell width [px] | accepted | message |
+|---|---|---|
+| 20.0 | no | edmd_gen3: cell width 20 px < diameter 24 px (sec. 4.7.1, a) |
+| 23.0 | no | edmd_gen3: cell width 23 px < diameter 24 px (sec. 4.7.1, a) |
+| 24.0 | yes | - |
+| 32.5 | no | edmd_gen3: cell width 32.5 px must be an integer number of px (cx*w exact) |

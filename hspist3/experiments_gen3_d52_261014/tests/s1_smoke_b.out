@@ -1,0 +1,59 @@
+
+========== Simulation Info ==========
+Mode: MOLECULAR (Normalized units)
+Experiment Mode: OFF (default dt)
+Fixed Time Step (dt): 4.00e-02
+Runtime Time Step (dt_runtime): 4.00e-01
+Fixed dt override: 4.00e-01
+Collision substeps: 1
+EDMD backend: default
+TAU scaling factor: 1.0000
+Tau (dimensionless, for f* = f·tau): 1.000000
+Temperature (runtime): 100.000
+k_B (effective): 0.010000
+k_B*T (effective): 1.000000
+k_B*T=1 mode: ON
+Time scale (interactive): 1.00×
+L0 (half-length): 11.383 σ,  L_eff = L0 − 1 = 10.383 σ
+Particle radius: 0.500 σ (diameter: 1.000 σ)
+Wall hold mode: Enabled
+Wall hold steps: 600
+Internal walls: 1
+Wall Mass Factor:50.000000
+Target total simulation time: 1200.000
+Calculated steps to reach target: 3000
+======================================
+
+[GUI] no accelerated renderer (Couldn't find matching render driver); using the software renderer
+[SEED] Rectangular one-wall lattice cannot fit without overlap; using checked per-compartment hexagonal fallback.
+✅ Velocity rescaling: actual_ke=397.728, target_ke=400.000 (kBT=1.000), scale=1.0029
+[EDMD-RESCHED] divider events: minimal (default)
+[EDMD-ENGINE] gen3 (edmd_core/edmd_gen3.c; the gen2 core only holds the setup): the line above does not apply
+[EDMD] initialized: N=400  box=(22.8σ,20.0σ) -> (546.0px,480.0px)  R=0.5000σ -> 12.000px  scale=24.0 px/σ
+▶ Simulation auto-started (headless=0, auto-release=1)
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 546 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 1.39698e-08 px^2, tol_face 2.91948e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[GUI-KEYS] step 1: I
+✅ Wall released at t = 0.017
+[GEN3-GUI] return map: angle line of centres, walls shown, side both, K 20000
+[ENERGY] step=500  KE_p=3.996979e+02  KE_w=3.021275e-01  KE_tot=4.000000e+02  vx_wall=0.109932  E_spring=0.000000e+00  E_tot=4.000000e+02
+[E] step=1000  KEp=3.996302e+02  KEw=3.697606e-01  KE=4.000000e+02  Pwork=0.000000e+00  (KE-Pwork)=4.000000e+02  hits(L,R)=(0,0)
+[SEG] step=1000  S0=200 KE=2.027e+02 T=101.344  S1=200 KE=1.969e+02 T=98.471
+[ENERGY] step=1000  KE_p=3.996302e+02  KE_w=3.697606e-01  KE_tot=4.000000e+02  vx_wall=0.121616  E_spring=0.000000e+00  E_tot=4.000000e+02
+KE=399.630239364  vx_wall=0.121616  J_accum=0
+[ENERGY] step=1500  KE_p=3.999786e+02  KE_w=2.140661e-02  KE_tot=4.000000e+02  vx_wall=0.029262  E_spring=0.000000e+00  E_tot=4.000000e+02
+[GUI-SHOT] /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d52/runs/s1_smoke_b/shot_1500.bmp (2000 x 1200 device pixels, UI scale 1)
+[GUI-KEYS] step 1800: Q
+[GEN3-GUI] Q: the scene ends; the run record follows
+[GUI-STATS] engine=gen3 window=1 N=400 frames=290 steps=1802 wall_s=3.608 fps=80.370 sigma_time=30.0333 sigma_per_wall_s=8.32334 events=185601 events_per_wall_s=51436.8 engine_s=0.314 time_scale=200
+[EDMD3-LEDGER] momentum x: residual -3.27e-13, scale 8.37e-11, ratio 0.0039; y: residual -4.87e-13, scale 5.25e-11, ratio 0.00927; energy: residual 0, scale 3.81e-10, ratio 0 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=341101 full_checks=1833 local_worst=-3.41e-13 full_worst=-1.17e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.08e-13 ev_pair=155500 ev_wall=12277 ev_cross=11988 ev_div=5836 ev_piston=0 ev_band=0 ev_stale=1028078 origin_shifts=0 syncs=0 heap_compactions=15 heap_max=29725 validator_every=60 hash=d2f5404124e08e89 t_end=720.80001074075699 engine=gen3 build="00f4dd0e-dirty" target=mac-O3-e0pre run_s=3.607 engine_s=0.314 driver_share=0.9129
+Particle 0: Vx = -1.420352, Vy = 0.022350
+Particle 1: Vx = -0.124902, Vy = 0.216717
+Particle 2: Vx = 1.645297, Vy = 1.145018
+Particle 3: Vx = -0.560476, Vy = 0.456851
+Particle 4: Vx = 0.675015, Vy = 2.138889
+Particle 5: Vx = 0.914001, Vy = -2.442737
+Particle 6: Vx = -0.113760, Vy = 0.477028
+Particle 7: Vx = -1.300474, Vy = -0.705360
+Particle 8: Vx = 0.659416, Vy = -1.154264
+Particle 9: Vx = -1.377111, Vy = -0.059677

@@ -1,0 +1,7 @@
+# POST HOC (decision 55 item 3): the run, 2026-10-15 10:04:12 HST
+python: /opt/homebrew/opt/python@3.13/bin/python3.13 3.13.2 numpy 2.3.3 scipy 1.16.2 pandas 2.3.3
+engine-gen3 HEAD: 5fa0773c; uncommitted changes in cluster/ validation/: 0
+b31daa52bb07f697133419d630c6312995793c679247f7e98284fca6a982803e  cluster/gen3_stage1_261012/s1_posthoc_261015.py
+14115e7afeeddef58322719a1a71c3dab7dcd44ce9ba36c67777e2615f801100  cluster/gen3_stage1_261012/s1_verdict_261012.py
+command: python3 -B cluster/gen3_stage1_261012/s1_posthoc_261015.py --data experiments_gen3_stage1_koa_261012 --csv experiments_gen3_s1_261012/posthoc_261015/paper_table_s1_partB_posthoc_261015.csv > experiments_gen3_s1_261012/posthoc_261015/a_posthoc.txt
+exit 0, 308 s; 10:09:21

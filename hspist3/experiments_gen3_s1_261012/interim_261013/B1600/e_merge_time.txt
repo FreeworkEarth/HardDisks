@@ -1,0 +1,39 @@
+# INTERIM -- group B1600: the merge job's time and where it went (s1_merge_time_261012.py, from the fetched files' times; UTC)
+
+- the files keep the merge's times: the plan's name says 07:39:03 UTC, its file 07:39:03; .merge_complete says '2026-10-15 07:45:27 UTC', its file 07:45:27 UTC (file minus record: +0 s and +0 s)
+- the merge log (job_logs/gen3-s1-merge-B1600_15070701.out, job 15070701): 304 step lines, in the order assumed here (cells sorted; reduce_B, then reduce_s1 per m_<M>, then sha and gzip per m_<M>); exit codes other than 0 in reduce_B / reduce_s1: 0
+
+| phase | from | to | seconds | h:mm:ss | share of the job |
+|---|---|---|---|---|---|
+| scan (the job's checks and the scan; to the plan) | 07:31:42 | 07:39:03 | 441 | 0:07:21 | 2.6 % |
+| moves (to .merge_complete) | 07:39:03 | 07:45:27 | 384 | 0:06:24 | 2.3 % |
+| reduce_B (reduce_B.py, 16 cells) |  |  | 213 | 0:03:33 | 1.2 % |
+| reduce_s1 (reduce_s1_koa.py, 144 folders) |  |  | 15695 | 4:21:35 | 92.0 % |
+| sha (the SHA-256 lines of the traces) |  |  | 36 | 0:00:36 | 0.2 % |
+| gzip -9 of the traces |  |  | 289 | 0:04:49 | 1.7 % |
+| after the last folder (to the job log's copy) |  |  | 0 | 0:00:00 | 0.0 % |
+| **the job** | 07:31:42 | 12:16:00 | 17058 | 4:44:18 | |
+
+from the plan to the end: 16617 s (4:36:57); the job's start 2026-10-15 07:31:42 UTC (given); the end 2026-10-15 12:16:00 UTC (the merge log's copy)
+
+per cell (seconds):
+
+| cell | m_<M> folders | reduce_B | reduce_s1 | sha | gzip | total |
+|---|---|---|---|---|---|---|
+| B_N1600_eta0.050000 | 9 | 16 | 2836 | 2 | 27 | 2881 |
+| B_N1600_eta0.100000 | 9 | 12 | 4455 | 4 | 17 | 4488 |
+| B_N1600_eta0.150000 | 9 | 10 | 3695 | 4 | 15 | 3724 |
+| B_N1600_eta0.200000 | 9 | 13 | 1254 | 3 | 13 | 1283 |
+| B_N1600_eta0.250000 | 9 | 13 | 1625 | 3 | 16 | 1657 |
+| B_N1600_eta0.300000 | 9 | 11 | 843 | 1 | 16 | 871 |
+| B_N1600_eta0.350000 | 9 | 10 | 355 | 0 | 19 | 384 |
+| B_N1600_eta0.392699 | 9 | 11 | 181 | 2 | 18 | 212 |
+| B_N1600_eta0.450000 | 9 | 12 | 140 | 2 | 19 | 173 |
+| B_N1600_eta0.500000 | 9 | 11 | 68 | 0 | 19 | 98 |
+| B_N1600_eta0.550000 | 9 | 11 | 41 | 0 | 18 | 70 |
+| B_N1600_eta0.600000 | 9 | 11 | 36 | 1 | 23 | 71 |
+| B_N1600_eta0.630000 | 9 | 11 | 35 | 0 | 19 | 65 |
+| B_N1600_eta0.660000 | 9 | 11 | 33 | 12 | 15 | 71 |
+| B_N1600_eta0.680000 | 9 | 40 | 65 | 2 | 18 | 125 |
+| B_N1600_eta0.690000 | 9 | 10 | 33 | 0 | 17 | 60 |
+| all | 144 | 213 | 15695 | 36 | 289 | 16233 |

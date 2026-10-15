@@ -1,0 +1,2 @@
+00ALLINONE  git 7b08827  target koa
+  CFLAGS: -O2 -march=x86-64-v2 -mtune=generic -ffp-contract=off

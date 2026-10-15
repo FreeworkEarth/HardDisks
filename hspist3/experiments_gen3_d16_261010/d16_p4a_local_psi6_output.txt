@@ -1,0 +1,28 @@
+# Item 2b (261012 sec. 4.7.37; decision 16): P4a's local psi6 and mean neighbour number in the last tenth of the hold -- printed by experiments_gen3_d16_261010/d16_p4a_local_psi6.py from the existing psi6(t) files; information, no verdict, no runs
+
+cell N400_eta0.740 (N = 400, H = 20, eta 0.740, the divider held 1e5 sigma-time); the hold rows with 90000 <= t < 100000 sigma-time; neighbours within 1.4 sigma
+
+| group | start | seed | rows | psi6 global | psi6 local | mean neighbours |
+|---|---|---|---|---|---|---|
+| A, ending at psi6 ~ 0.06 | A | 1 | 10000 | 0.0587 | 0.8768 | 5.4492 |
+| A, ending at psi6 ~ 0.06 | A | 3 | 10000 | 0.0580 | 0.8772 | 5.4490 |
+| A, ending at psi6 ~ 0.06 | A | 4 | 10000 | 0.0570 | 0.8775 | 5.4492 |
+| A, ending at psi6 ~ 0.72 | A | 0 | 10000 | 0.7289 | 0.8604 | 5.4883 |
+| A, ending at psi6 ~ 0.72 | A | 2 | 10000 | 0.7168 | 0.8502 | 5.4523 |
+| A, ending at psi6 ~ 0.72 | A | 5 | 10000 | 0.7416 | 0.8553 | 5.4667 |
+| B (compressed start) | B | 0 | 10000 | 0.7473 | 0.8631 | 5.4930 |
+| B (compressed start) | B | 1 | 10000 | 0.7185 | 0.8577 | 5.4826 |
+| B (compressed start) | B | 2 | 10000 | 0.7166 | 0.8467 | 5.4488 |
+| B (compressed start) | B | 3 | 10000 | 0.7086 | 0.8514 | 5.4658 |
+| B (compressed start) | B | 4 | 10000 | 0.7228 | 0.8487 | 5.4511 |
+| B (compressed start) | B | 5 | 10000 | 0.7292 | 0.8600 | 5.4862 |
+
+### Group means (SE over the group's seeds)
+
+| group | seeds | psi6 global | psi6 local | mean neighbours |
+|---|---|---|---|---|
+| A, ending at psi6 ~ 0.06 | 3 | 0.0579 (0.0005) | 0.8772 (0.0002) | 5.4491 (0.0001) |
+| A, ending at psi6 ~ 0.72 | 3 | 0.7291 (0.0072) | 0.8553 (0.0030) | 5.4691 (0.0105) |
+| B (compressed start) | 6 | 0.7238 (0.0055) | 0.8546 (0.0027) | 5.4713 (0.0077) |
+
+(Information only; no verdict.)

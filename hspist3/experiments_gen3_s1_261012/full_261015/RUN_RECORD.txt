@@ -1,0 +1,42 @@
+# the full report's run (decision 54 item 2) and B1600's INTERIM parts (item 3); 2026-10-15 08:37:18 HST
+python: /opt/homebrew/opt/python@3.13/bin/python3.13 3.13.2 numpy 2.3.3 scipy 1.16.2 pandas 2.3.3
+engine-gen3 HEAD: 0f21e11c; s1_verdict_261012.py last commit: b63f6502; uncommitted changes in cluster/ validation/: 0
+14115e7afeeddef58322719a1a71c3dab7dcd44ce9ba36c67777e2615f801100  cluster/gen3_stage1_261012/s1_verdict_261012.py
+950a6b17de9494561fdd77d05c233dbcf1e341fa3c6d5a10547da9cb140c3d09  cluster/gen3_stage1_261012/s1_fitfail_261012.py
+ec2067a51a186a0615d599da113be8c9caa27de9a2c6214cd04e57cfee9b9f0f  cluster/gen3_stage1_261012/s1_timing_261012.py
+da5b3ff920fe5843cbbf410737a4674df359f0dec1124c48ee694fdbf360f5e7  cluster/gen3_stage1_261012/s1_merge_time_261012.py
+74259c2560aefdd035f1ca864dbd32e49f54545ec2a0fcfd60909c2be2bf85c8  cluster/gen3_stage1_261012/s1_firstlook_261012.py
+f2c34e9ca031d72e727e9432a7457625a26865398284593904c2f0f4c029cf74  cluster/gen3_stage1_261012/gen_stage1_koa_261012.py
+f47ed7ef59b6000ba28b7296b0cf7147ba96aa33173e61bf8697c893e52396fe  validation/tests_20260913.py
+5cab395e2b91706b4edc89fdaa85364377e070c625bcb8669ed20cc559cefa54  validation/resched_testT_followup_261007.py
+the fetched groups: B100 B1600 B400 B900 D S 
+commands:
+  (full) python3 cluster/gen3_stage1_261012/s1_verdict_261012.py --data experiments_gen3_stage1_koa_261012 > experiments_gen3_s1_261012/full_261015/a_verdict_full.txt
+  (a) python3 cluster/gen3_stage1_261012/s1_verdict_261012.py --data <a view holding only B1600> --interim > experiments_gen3_s1_261012/interim_261013/B1600/a_interim_tables.txt
+  (b) python3 cluster/gen3_stage1_261012/s1_fitfail_261012.py B1600 --root <the fetched folder> --min 3 > experiments_gen3_s1_261012/interim_261013/B1600/b_fit_failures.txt
+  (b2) python3 cluster/gen3_stage1_261012/s1_fitfail_261012.py B1600 --root <the fetched folder> --per-mass 0.05,0.1,0.15,0.2 > experiments_gen3_s1_261012/interim_261013/B1600/b2_fit_failures_per_mass.txt
+  (c) python3 cluster/gen3_stage1_261012/s1_timing_261012.py B1600 --root <the fetched folder> --chunks cluster/gen3_stage1_261012/chunks_stage1_koa_261012.tsv --tasks cluster/gen3_stage1_261012/tasks_stage1_koa_261012.txt --out experiments_gen3_s1_261012/interim_261013/timing > experiments_gen3_s1_261012/interim_261013/B1600/c_timing.txt
+  (e) python3 cluster/gen3_stage1_261012/s1_merge_time_261012.py B1600 --root <the fetched folder> --start '2026-10-15 07:31:42' > experiments_gen3_s1_261012/interim_261013/B1600/e_merge_time.txt
+  (f) python3 cluster/gen3_stage1_261012/s1_firstlook_261012.py --data <a view holding B100, B400, B900, B1600> --sizes 100,400,900,1600 --sqrt2 > experiments_gen3_s1_261012/interim_261013/B1600/physics_first_look_B100_B400_B900_B1600.txt
+  (sha) shasum -a 256 of every fetched B1600 file > experiments_gen3_s1_261012/interim_261013/B1600/FETCHED_SHA256_FILES.txt
+(e) exit 0, 0 s
+(c) exit 0, 0 s
+(sha) exit 0
+(b2) exit 0, 2 s
+(a) exit 0, 175 s
+(f) exit 0, 300 s
+(full) exit 0, 309 s
+# 2026-10-15 08:45:53 HST: the wrapper and the figures
+dac2c48f76f2f4083139901da5e3af3338253d476734cce7bc40828cf8860df1  cluster/gen3_stage1_261012/s1_verdict_noflag_261015.py
+e625315e8dba86cf5368994ac94b0bf77a200b833adcc6ca563140566bf5640a  cluster/gen3_stage1_261012/s1_figures_261015.py
+51ede8fbd880e1a40064e91beea238bc27a9b4024d7abbd71fdc2c17f92c5391  plot_speed_of_sound_edmd.py
+  (noflag) python3 cluster/gen3_stage1_261012/s1_verdict_noflag_261015.py --data experiments_gen3_stage1_koa_261012 > experiments_gen3_s1_261012/full_261015/b_verdict_noflag.txt
+  (fig) python3 cluster/gen3_stage1_261012/s1_figures_261015.py --data experiments_gen3_stage1_koa_261012 --out experiments_gen3_s1_261012/full_261015/figures_261015 --date 261015 > experiments_gen3_s1_261012/full_261015/c_figures.txt
+(noflag) exit 0, 309 s
+(fig) exit 0, 318 s
+# 2026-10-15 08:59:53 HST: the figures again, layout only (figures_261015 kept: residuals off scale, labels overlapping, the psi6 dots hidden)
+326830738386c44567c0d346e5694b682aefad3e3bdee95cf6731e565e91a929  cluster/gen3_stage1_261012/s1_figures_261015.py
+  (fig b) python3 cluster/gen3_stage1_261012/s1_figures_261015.py --data experiments_gen3_stage1_koa_261012 --out experiments_gen3_s1_261012/full_261015/figures_261015b --date 261015 > experiments_gen3_s1_261012/full_261015/c_figures_b.txt
+(fig b) exit 0, 314 s
+(b) exit 0, 2523 s
+all done in 2523 s; 2026-10-15 09:19:22 HST

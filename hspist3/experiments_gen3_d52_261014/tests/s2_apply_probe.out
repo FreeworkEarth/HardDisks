@@ -1,0 +1,74 @@
+
+========== Simulation Info ==========
+Mode: MOLECULAR (Normalized units)
+Experiment Mode: OFF (default dt)
+Fixed Time Step (dt): 4.00e-02
+Runtime Time Step (dt_runtime): 4.00e-01
+Fixed dt override: 4.00e-01
+Collision substeps: 1
+EDMD backend: default
+TAU scaling factor: 1.0000
+Tau (dimensionless, for f* = f·tau): 1.000000
+Temperature (runtime): 100.000
+k_B (effective): 0.010000
+k_B*T (effective): 1.000000
+k_B*T=1 mode: ON
+Time scale (interactive): 1.00×
+L0 (half-length): 26.180 σ,  L_eff = L0 − 1 = 25.180 σ
+Particle radius: 0.500 σ (diameter: 1.000 σ)
+Wall hold mode: Enabled
+Wall hold steps: 600
+Internal walls: 1
+Wall Mass Factor:50.000000
+Target total simulation time: 1200.000
+Calculated steps to reach target: 3000
+======================================
+
+[GUI] no accelerated renderer (Couldn't find matching render driver); using the software renderer
+✅ Particles placed with buffer. Wall_x = 828.000
+✅ Scaling factor for velocities: 1.0111
+[SEED] MAX(buffer)=120000 requested=400 active=400 phi_max=0.780
+[SEED] caps: L=475 R=475  targets: L=200 R=200
+[EDMD-RESCHED] divider events: minimal (default)
+[EDMD-ENGINE] gen3 (edmd_core/edmd_gen3.c; the gen2 core only holds the setup): the line above does not apply
+[EDMD] initialized: N=400  box=(52.3σ,20.0σ) -> (1256.0px,480.0px)  R=0.5000σ -> 12.000px  scale=24.0 px/σ
+▶ Simulation auto-started (headless=0, auto-release=1)
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1256 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 1.39698e-08 px^2, tol_face 2.92857e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+✅ Wall released at t = 0.017
+[ENERGY] step=500  KE_p=3.998775e+02  KE_w=1.224711e-01  KE_tot=4.000000e+02  vx_wall=0.0699918  E_spring=0.000000e+00  E_tot=4.000000e+02
+[E] step=1000  KEp=3.999614e+02  KEw=3.859805e-02  KE=4.000000e+02  Pwork=0.000000e+00  (KE-Pwork)=4.000000e+02  hits(L,R)=(0,0)
+[SEG] step=1000  S0=200 KE=1.952e+02 T=97.599  S1=200 KE=2.048e+02 T=102.381
+[ENERGY] step=1000  KE_p=3.999614e+02  KE_w=3.859805e-02  KE_tot=4.000000e+02  vx_wall=0.0392928  E_spring=0.000000e+00  E_tot=4.000000e+02
+KE=399.961401942  vx_wall=0.0392928  J_accum=0
+[GUI-KEYS] step 1200: apply-gen3
+🔩 spring: k = 0.02 /px^2 = 11.52 kT/sigma^2 | M_wall = 50 | omega_w = 0.48, T_w = 13.09 sigma-time | thermal rms = 0.2946 sigma
+🔬 Energy measurement initialized: mode=spring, equilibrium at 829.49
+Live spring force: ON
+Scene reset queued: mode=energy transfer engine=EDMD gen3 (display) walls=1 springL0=26.229σ springk=11.52 N=400 r=0.5000σ eta=0.601 thick=0.0000σ(auto) masses=50
+[EDMD3-LEDGER] momentum x: residual 1.78e-14, scale 4.41e-12, ratio 0.00403; y: residual 4e-15, scale 3.87e-12, ratio 0.00103; energy: residual -5.68e-14, scale 4.12e-11, ratio 0.00138 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] scene, before the rebuild: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=30786 full_checks=1225 local_worst=-1.39e-13 full_worst=-4.26e-14 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=9.24e-14 ev_pair=10182 ev_wall=1021 ev_cross=9096 ev_div=305 ev_piston=0 ev_band=0 ev_stale=44886 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=3242 validator_every=60 hash=b3ece283427180ac t_end=481.60000717639923 engine=gen3 build="00f4dd0e-dirty" target=mac-O3-e0pre run_s=2.404 engine_s=0.018 driver_share=0.9927
+✅ Particles placed with buffer. Wall_x = 829.174
+✅ Scaling factor for velocities: 0.9960
+[SEED] MAX(buffer)=120000 requested=400 active=400 phi_max=0.780
+[SEED] caps: L=475 R=475  targets: L=0 R=400
+🔩 spring: k = 0.02 /px^2 = 11.52 kT/sigma^2 | M_wall = 50 | omega_w = 0.48, T_w = 13.09 sigma-time | thermal rms = 0.2946 sigma
+🔬 Energy measurement initialized: mode=spring, equilibrium at 829.49
+Live scene rebuilt: walls=1 eta=0.601 r=0.5000σ
+[GEN3-GUI] the scene was rebuilt; engine: gen3 (provisional display)  cell=32 px  clean=-  (built at the first step)
+[EDMD3] built #2 at t = 0 (internal units): N = 400, box 1256 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 1.39698e-08 px^2, tol_face 2.92857e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+✅ Wall released at t = 0.017
+[GUI-KEYS] step 1500: Q
+[GEN3-GUI] Q: the scene ends; the run record follows
+[GUI-STATS] engine=gen3 window=1 N=400 frames=254 steps=1501 wall_s=3.025 fps=83.979 sigma_time=25.0167 sigma_per_wall_s=8.27113 events=11946 events_per_wall_s=3949.64 engine_s=0.019 time_scale=200
+[EDMD3-LEDGER] momentum x: residual 4.55e-13, scale 2.21e-11, ratio 0.0206; y: residual 2.84e-14, scale 3.31e-12, ratio 0.00857; energy: residual -6.82e-13, scale 4.4e-11, ratio 0.0155 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=21059 full_checks=302 local_worst=-1.14e-13 full_worst=0 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.49e-14 ev_pair=9113 ev_wall=629 ev_cross=2114 ev_div=90 ev_piston=0 ev_band=0 ev_stale=53362 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=9982 validator_every=60 hash=27f19e178d13e88b t_end=118.80000177025795 engine=gen3 build="00f4dd0e-dirty" target=mac-O3-e0pre run_s=0.604 engine_s=0.019 driver_share=0.9684
+Particle 0: Vx = -0.771483, Vy = 0.413853
+Particle 1: Vx = -0.867144, Vy = 0.276984
+Particle 2: Vx = 0.105096, Vy = -0.629864
+Particle 3: Vx = -1.153612, Vy = -0.484406
+Particle 4: Vx = -1.641947, Vy = -0.207046
+Particle 5: Vx = -2.369819, Vy = 0.068446
+Particle 6: Vx = -1.669749, Vy = -0.840700
+Particle 7: Vx = -0.010058, Vy = 0.826249
+Particle 8: Vx = -1.001749, Vy = 0.031790
+Particle 9: Vx = -1.278948, Vy = 0.588797

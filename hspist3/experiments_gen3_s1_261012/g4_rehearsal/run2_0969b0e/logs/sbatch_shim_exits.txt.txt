@@ -1,0 +1,29 @@
+940001 submit cluster/gen3_stage1_261012/s1_koa.sbatch  name=gen3-s1-B100 time=0:30:00 exclude=default dependency=none array=1
+940001_1 cluster/gen3_stage1_261012/s1_koa.sbatch 0
+940002 submit cluster/gen3_stage1_261012/s1_koa.sbatch  name=gen3-s1-B100 time=0:30:00 exclude=default dependency=none array=2-3
+940002_2 cluster/gen3_stage1_261012/s1_koa.sbatch 0
+940002_3 cluster/gen3_stage1_261012/s1_koa.sbatch 0
+940003 submit cluster/gen3_stage1_261012/s1_koa.sbatch  name=gen3-s1-B100 time=1:00:00 exclude=default dependency=none array=4
+940003_4 cluster/gen3_stage1_261012/s1_koa.sbatch 0
+940004 submit cluster/gen3_stage1_261012/s1_merge.sbatch B100 name=gen3-s1-merge-B100 time=default exclude=default dependency=none array=none
+940004 cluster/gen3_stage1_261012/s1_merge.sbatch 2
+940005 submit cluster/gen3_stage1_261012/s1_merge.sbatch B100 name=gen3-s1-merge-B100 time=default exclude=default dependency=none array=none
+940005 cluster/gen3_stage1_261012/s1_merge.sbatch 2
+940006 submit cluster/gen3_stage1_261012/s1_merge.sbatch B100 name=gen3-s1-merge-B100 time=default exclude=default dependency=none array=none
+940006 cluster/gen3_stage1_261012/s1_merge.sbatch 0
+940007 submit cluster/gen3_stage1_261012/s1_merge.sbatch B100 name=gen3-s1-merge-B100 time=default exclude=default dependency=none array=none
+940007 cluster/gen3_stage1_261012/s1_merge.sbatch 3
+940008 submit cluster/gen3_stage1_261012/s1_koa.sbatch  name=gen3-s1-D time=0:30:00 exclude=default dependency=none array=5
+940008_5 cluster/gen3_stage1_261012/s1_koa.sbatch 0
+940009 submit cluster/gen3_stage1_261012/s1_merge.sbatch D name=gen3-s1-merge-D time=default exclude=default dependency=none array=none
+940009 cluster/gen3_stage1_261012/s1_merge.sbatch 0
+940010 submit cluster/gen3_stage1_261012/s1_koa.sbatch  name=gen3-s1-S time=0:30:00 exclude=default dependency=none array=6
+940010_6 cluster/gen3_stage1_261012/s1_koa.sbatch 2
+940011 submit cluster/gen3_stage1_261012/s1_koa.sbatch  name=gen3-s1-S time=1:00:00 exclude=default dependency=none array=7
+940011_7 cluster/gen3_stage1_261012/s1_koa.sbatch 2
+940012 submit cluster/gen3_stage1_261012/s1_koa.sbatch  name=gen3-s1-S time=0:30:00 exclude=cn-05-08-07,cn-07-07-07 dependency=none array=6
+940012_6 cluster/gen3_stage1_261012/s1_koa.sbatch 0
+940013 submit cluster/gen3_stage1_261012/s1_koa.sbatch  name=gen3-s1-S time=1:00:00 exclude=cn-05-08-07,cn-07-07-07 dependency=none array=7
+940013_7 cluster/gen3_stage1_261012/s1_koa.sbatch 0
+940014 submit cluster/gen3_stage1_261012/s1_merge.sbatch S name=gen3-s1-merge-S time=default exclude=default dependency=none array=none
+940014 cluster/gen3_stage1_261012/s1_merge.sbatch 0

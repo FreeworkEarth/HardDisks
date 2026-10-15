@@ -1,0 +1,82 @@
+# stage 1 rehearsal (gate G4): package 631d8e3c84be252ef0bf2ae11506121ed6db3a6c (engine-gen3), root /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d39/g4
+
+    -> 1. the build (rehearse_s1_build_mac.py: build_s1_koa.sh, record_s1_build.sh on a fresh f72d764 clone): PASS (['BUILD REHEARSAL: PASS (8 of 8)'])
+    -> 2-3. after the gate (the build record, the manifests) and the substitutions: PASS (rewritten ['s1_koa.sbatch', 's1_merge.sbatch', 'fetch_s1_koa.sh']; stand-in commit 0f279b810b44)
+    -> 4. the mini runsheet (make_s1_runsheet.py on the mini table): PASS (A, B, C, D, E-B100, F-B100, G-B100, H-B100, I-B100, E-D, F-D, G-D, H-D, I-D, E-S, F-S, G-S, H-S, I-S)
+  block A: exit 0, 1 s, log logs/block_A.out
+    -> block A: PASS (exit 0)
+  block B: exit 0, 2 s, log logs/block_B.out
+    -> block B (without its two update lines): PASS (checks [True, True, True, True, True, True, True, True, True]; SHA lines 13 of 13)
+  block C: exit 0, 64 s, log logs/block_C.out
+    -> block C (chunk 1 alone): PASS (940001_1 cluster/gen3_stage1_261012/s1_koa.sbatch 0)
+  block D: exit 0, 0 s, log logs/block_D.out
+    -> block D (chunk 1's checks, G6 (e)): **FAIL** (checks [True, True, True, False, True])
+  block E-B100: exit 0, 15 s, log logs/block_E-B100.out
+    -> block E-B100: PASS (2 submissions)
+  block F-B100: exit 0, 0 s, log logs/block_F-B100.out
+    -> block F-B100: PASS (checks [True, True, True, True, True, True, True])
+  block G-B100_pending: exit 0, 0 s, log logs/block_G-B100_pending.out
+    -> the merge of B100: a pretended pending job: PASS (940004 cluster/gen3_stage1_261012/s1_merge.sbatch 2)
+  block G-B100_heldaside: exit 0, 0 s, log logs/block_G-B100_heldaside.out
+    -> the merge of B100: chunk 4's done log held aside: PASS (940005 cluster/gen3_stage1_261012/s1_merge.sbatch 2)
+  block G-B100: exit 0, 5 s, log logs/block_G-B100.out
+  block H-B100: exit 0, 0 s, log logs/block_H-B100.out
+    -> blocks G-B100, H-B100 (the merge, the reduction, the compression; its record): **FAIL** (checks [True, True, True, False, True, True, True])
+  block G-B100_second: exit 0, 0 s, log logs/block_G-B100_second.out
+    -> a second merge of B100: PASS (940007 cluster/gen3_stage1_261012/s1_merge.sbatch 3)
+  block I-B100: exit 0, 0 s, log logs/block_I-B100.out
+    -> block I-B100 (the fetch, local): PASS (118 files; checks [True, True, True, True, True, True, True])
+  block E-D: exit 0, 9 s, log logs/block_E-D.out
+    -> block E-D: **FAIL** (1 submissions)
+  block F-D: exit 0, 0 s, log logs/block_F-D.out
+    -> block F-D: PASS (checks [True, True, True, True, True, True, True])
+  block G-D: exit 0, 1 s, log logs/block_G-D.out
+  block H-D: exit 0, 0 s, log logs/block_H-D.out
+    -> blocks G-D, H-D (the merge, the reduction, the compression; its record): **FAIL** (checks [True, True, True, False, True, True, True])
+  block I-D: exit 0, 0 s, log logs/block_I-D.out
+    -> block I-D (the fetch, local): PASS (17 files; checks [True, True, True, True, True, True])
+  block E-S_faulty: exit 0, 0 s, log logs/block_E-S_faulty.out
+    -> block E-S, its first attempt on a pretended faulty node: PASS (2 logs)
+  block F-S_first: exit 0, 0 s, log logs/block_F-S_first.out
+    -> block F-S after the faulty attempt: PASS (['sbatch --job-name=gen3-s1-S --time=0:30:00 --array=6 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_stage1_261012/s1_koa.sbatch', 'sbatch --job-name=gen3-s1-S --time=1:00:00 --array=7 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_stage1_261012/s1_koa.sbatch'])
+  block R-S: exit 0, 11 s, log logs/block_R-S.out
+  block F-S: exit 0, 0 s, log logs/block_F-S.out
+    -> block F-S again, after the resubmission: PASS (checks [True, True, True, True, True, True, True])
+  block G-S: exit 0, 3 s, log logs/block_G-S.out
+  block H-S: exit 0, 0 s, log logs/block_H-S.out
+    -> blocks G-S, H-S (the merge, the reduction, the compression; its record): **FAIL** (checks [True, True, True, False, True, True, True])
+  block I-S: exit 0, 0 s, log logs/block_I-S.out
+    -> block I-S (the fetch, local): PASS (33 files; checks [True, True, True, True, True, True])
+    -> 5. the verdict script (G5) on the fetched folder, --interim: PASS (exit 0; B_N0100_eta0.050000: x/x; B_N0100_eta0.100000: -; B_N0100_eta0.150000: -; B_N0100_eta0.200000: -; B_N0100_eta0.250000: -; B_N0100_eta0.300000: -; B_N0100_eta0.350000: -; B_N0100_eta0.392699: x/x; B_N0100_eta0.450000: -; B_N0100_eta0.500000: -; B_N0100_eta0.550000: -; B_N0100_eta0.600000: -; B_N0100_eta0.630000: -; B_N0100_eta0.660000: -; B_N0100_eta0.680000: -; B_N0100_eta0.690000: -; D_N0100_eta0.020000: -; D_N0100_eta0.035000: -; D_N0100_eta0.075000: y/y; S_N0100_eta0.600000_start0: x/x; S_N0100_eta0.600000_turned: y/y; S_N0100_eta0.630000_start0: -; S_N0100_eta0.630000_turned: -; S_N0100_eta0.660000_start0: -; S_N0100_eta0.660000_turned: -; S_N0100_eta0.680000_start0: -; S_N0100_eta0.680000_turned: -; S_N0100_eta0.690000_start0: -; S_N0100_eta0.690000_turned: -)
+
+| step | criterion | result | evidence |
+|---|---|---|---|
+| 1. the build (rehearse_s1_build_mac.py: build_s1_koa.sh, record_s1_build.sh on a fresh f72d764 clone) | BUILD REHEARSAL: PASS | PASS | ['BUILD REHEARSAL: PASS (8 of 8)'] |
+| 2-3. after the gate (the build record, the manifests) and the substitutions | mini list 37 lines, mini table 7 chunks, 3 scripts rewritten, 2 manifests; one local commit | PASS | rewritten ['s1_koa.sbatch', 's1_merge.sbatch', 'fetch_s1_koa.sh']; stand-in commit 0f279b810b44 |
+| 4. the mini runsheet (make_s1_runsheet.py on the mini table) | blocks A-D and E-I for B100, D, S | PASS | A, B, C, D, E-B100, F-B100, G-B100, H-B100, I-B100, E-D, F-D, G-D, H-D, I-D, E-S, F-S, G-S, H-S, I-S |
+| block A | squeue, srun (shims) | PASS | exit 0 |
+| block B (without its two update lines) | the runsheet's good lines | PASS | checks [True, True, True, True, True, True, True, True, True]; SHA lines 13 of 13 |
+| block C (chunk 1 alone) | Submitted batch job; chunk 1 exit 0 | PASS | 940001_1 cluster/gen3_stage1_261012/s1_koa.sbatch 0 |
+| block D (chunk 1's checks, G6 (e)) | the runsheet's good lines | **FAIL** | checks [True, True, True, False, True] |
+| block E-B100 | its arrays submitted, every task exit 0 | PASS | 2 submissions |
+| block F-B100 | the counts, the chunk check, nothing to resubmit | PASS | checks [True, True, True, True, True, True, True] |
+| the merge of B100: a pretended pending job | exit 2, nothing moved | PASS | 940004 cluster/gen3_stage1_261012/s1_merge.sbatch 2 |
+| the merge of B100: chunk 4's done log held aside | exit 2, 'NOT DONE: 4(no log with its done line)', nothing moved | PASS | 940005 cluster/gen3_stage1_261012/s1_merge.sbatch 2 |
+| blocks G-B100, H-B100 (the merge, the reduction, the compression; its record) | exit 0; 'APPEND 8, EQUAL 4, MOVE 95, PER CHUNK 31'; the merged line; 'destinations $(grep -c '^| stage1/gen3/' ' | **FAIL** | checks [True, True, True, False, True, True, True] |
+| a second merge of B100 | exit 3 (merged/ exists) | PASS | 940007 cluster/gen3_stage1_261012/s1_merge.sbatch 3 |
+| block I-B100 (the fetch, local) | the merge record and the tables; no chunk folder; no trace, psi6, virial or run folder outside the (100, pi/8) cell, which comes whole; every snapshot | PASS | 118 files; checks [True, True, True, True, True, True, True] |
+| block E-D | its arrays submitted, every task exit 0 | **FAIL** | 1 submissions |
+| block F-D | the counts, the chunk check, nothing to resubmit | PASS | checks [True, True, True, True, True, True, True] |
+| blocks G-D, H-D (the merge, the reduction, the compression; its record) | exit 0; 'APPEND 2, EQUAL 1, MOVE 8, PER CHUNK 2'; the merged line; 'destinations $(grep -c '^| stage1/gen3/' ' | **FAIL** | checks [True, True, True, False, True, True, True] |
+| block I-D (the fetch, local) | the merge record and the tables; no chunk folder; no trace, psi6, virial or run folder outside the (100, pi/8) cell, which comes whole; every snapshot | PASS | 17 files; checks [True, True, True, True, True, True] |
+| block E-S, its first attempt on a pretended faulty node | every chunk: STOP: [cn-07-07-07] ... before 'chunk j on'; no chunk folder | PASS | 2 logs |
+| block F-S after the faulty attempt | two resubmission lines, one per class, --exclude=cn-05-08-07,cn-07-07-07 | PASS | ['sbatch --job-name=gen3-s1-S --time=0:30:00 --array=6 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_stage1_261012/s1_koa.sbatch', 'sbatch --job-name=gen3-s1-S --time=1:00:00 --array=7 --exclude=cn-05-08-07,cn-07-07-07 cluster/gen3_stage1_261012/s1_koa.sbatch'] |
+| block F-S again, after the resubmission | the counts, the chunk check, nothing to resubmit | PASS | checks [True, True, True, True, True, True, True] |
+| blocks G-S, H-S (the merge, the reduction, the compression; its record) | exit 0; 'APPEND 4, EQUAL 2, MOVE 16, PER CHUNK 4'; the merged line; 'destinations $(grep -c '^| stage1/gen3/' ' | **FAIL** | checks [True, True, True, False, True, True, True] |
+| block I-S (the fetch, local) | the merge record and the tables; no chunk folder; no trace, psi6, virial or run folder outside the (100, pi/8) cell, which comes whole; every snapshot | PASS | 33 files; checks [True, True, True, True, True, True] |
+| 5. the verdict script (G5) on the fetched folder, --interim | exit 0; INTERIM; the five mini cells in the per-cell table with their crystal orientation | PASS | exit 0; B_N0100_eta0.050000: x/x; B_N0100_eta0.100000: -; B_N0100_eta0.150000: -; B_N0100_eta0.200000: -; B_N0100_eta0.250000: -; B_N0100_eta0.300000: -; B_N0100_eta0.350000: -; B_N0100_eta0.392699: x/x; B_N0100_eta0.450000: -; B_N0100_eta0.500000: -; B_N0100_eta0.550000: -; B_N0100_eta0.600000: -; B_N0100_eta0.630000: -; B_N0100_eta0.660000: -; B_N0100_eta0.680000: -; B_N0100_eta0.690000: -; D_N0100_eta0.020000: -; D_N0100_eta0.035000: -; D_N0100_eta0.075000: y/y; S_N0100_eta0.600000_start0: x/x; S_N0100_eta0.600000_turned: y/y; S_N0100_eta0.630000_start0: -; S_N0100_eta0.630000_turned: -; S_N0100_eta0.660000_start0: -; S_N0100_eta0.660000_turned: -; S_N0100_eta0.680000_start0: -; S_N0100_eta0.680000_turned: -; S_N0100_eta0.690000_start0: -; S_N0100_eta0.690000_turned: - |
+
+RESIDUAL DIFFERENCES: the shims (Slurm commands, module, gcc --version, lscpu, hostname, sha256sum); the Mac binaries (f72d764, the koa target's name, Mac flags); the mini list (37 registered lines) with its SHA-256 file and the mini chunk table (7 chunks); the build record and the manifests written in the scratch clone and committed there (the stage 1 commit's stand-in); block B without its two update lines; the Lustre path; the local fetch; group S's first attempt on a pretended faulty node
+
+REHEARSAL G4: FAIL (19 of 24)
+data under /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d39/g4: 44M

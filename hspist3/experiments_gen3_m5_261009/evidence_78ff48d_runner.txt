@@ -1,0 +1,5 @@
+binaries /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_m5_261009/bin_stageE; out /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_m5_261009/evidence_78ff48d; 2026-10-09 13:20:48 HST
+/dev/disk3s5   1.8Ti   1.8Ti   9.1Gi   100%     10M   95M   10%   /System/Volumes/Data
+e2b exit 0
+e2a exit 0
+done 13:27:17

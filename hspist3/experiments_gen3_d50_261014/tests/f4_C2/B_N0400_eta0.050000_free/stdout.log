@@ -1,0 +1,64 @@
+gen3 exact box: the physics uses 2 L0 exactly; SIM_WIDTH (the 1/48 grid) is for the display only
+
+========== Simulation Info ==========
+Mode: MOLECULAR (Normalized units)
+Experiment Mode: OFF (default dt)
+Fixed Time Step (dt): 4.00e-02
+Runtime Time Step (dt_runtime): 4.00e-01
+Fixed dt override: 4.00e-01
+Collision substeps: 1
+EDMD backend: default
+TAU scaling factor: 1.0000
+Tau (dimensionless, for f* = f·tau): 1.000000
+Temperature (runtime): 100.000
+k_B (effective): 0.010000
+k_B*T (effective): 1.000000
+k_B*T=1 mode: ON
+Time scale (interactive): 1.00×
+L0 (half-length): 20.000 σ,  L_eff = L0 − 1 = 19.000 σ
+Particle radius: 0.500 σ (diameter: 1.000 σ)
+Wall hold mode: Enabled
+Wall hold steps: 60
+Internal walls: 1
+Wall Mass Factor:200.000000
+Target total simulation time: 1200.000
+Calculated steps to reach target: 3000
+======================================
+
+Running in headless mode (no GUI, CSV output enabled)
+📁 Output folder: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d50_261014/tests/f4_C2/B_N0400_eta0.050000_free
+Planning each experiment for 1 fundamental oscillations (safety 1.000, clamp 60..120 samples)
+[KE-AUDIT] 1 after velocity draw        N=400  KE_tot=431.754523  KE_left=225.015334  KE_right=206.739189  Px=-22.6975076  kT_mean=1.07938631
+[KE-AUDIT] 2a after global kT rescale   N=400  KE_tot=400  KE_left=208.465989  KE_right=191.534011  Px=-21.8468949  kT_mean=1
+[KE-AUDIT] 2b after per-segment equalize N=400  KE_tot=400  KE_left=200  KE_right=200  Px=7.54951657e-15  kT_mean=1
+🔬 Running: L0 = 157.1, M = 200*m, run = 0, seed = 1095518927
+🔍 Initial wall_x = 3969.911, vx_wall = 0.000000
+🕒 target=1 cycles  f_pred=0.0017193076  samples=120  T=2 sigma-time
+[EDMD-RESCHED] divider events: minimal (default)
+[EDMD-ENGINE] gen3 (edmd_core/edmd_gen3.c; the gen2 core only holds the setup): the line above does not apply
+[EDMD3-RUN] L0=157.1 M=200 run=0 seed=1095518927: engine=gen3 build="8f538a2" target=mac-O3-e0pre cell_px=32 origin_shift=8192 u_t=0x1p-39 K=4 box=7539.8223686155034 x 480 px exact_box=1 eta=0.050000000000000003 N=400 N_L=200 N_R=200 seeding=lattice left=[orient parallel rows alternate n_s 45 n_r 5 a_s 83.4843451 a_r 96 g 36 s 72 n_vac 3 jitter 18 px] right=[orient parallel rows alternate n_s 45 n_r 5 a_s 83.4843451 a_r 96 g 36 s 72 n_vac 3 jitter 18 px] jitter_f=0.25 T_eq=1.00000001 sigma-time (held divider, 60 steps) record=2.00000003 sigma-time psi6_every=58.163 validator_every=60
+[EDMD-ENERGY] 0 state loaded (hold)      t=0 E_gas=400 E_div=0 E_tot=400 resched=gen3
+[EDMD3-TIES] at the load: live events 400, sharing their time exactly with another live event 0, due at once 0
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 7539.8223686155034 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.98314e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD-ENERGY] 1 release                  t=24.000000357627869 E_gas=400.00000000000011 E_div=0 E_tot=400.00000000000011 resched=gen3
+🔔 Wall released (EDMD) at t = 1.000
+[EDMD-ENERGY] 2 end of record            t=72.000001072883606 E_gas=399.99815098045303 E_div=0.0018490195466937588 E_tot=399.99999999999972 resched=gen3
+[EDMD-CONTACT] executed events 163; max abs(contact distance) [px]: disk-disk 3.197e-14, outer walls 1.066e-14, divider 0.000e+00, pistons 0.000e+00
+   psi6: hold=0.0163  end=0.0354  run_mean=0.0220+-0.0103 (n=120, nb=1.03)
+[EDMD3-LEDGER] momentum x: residual -6.22e-15, scale 5.92e-13, ratio 0.0105; y: residual -7.11e-15, scale 6.73e-13, ratio 0.0106; energy: residual -2.84e-13, scale 1.83e-11, ratio 0.0155 (E0 400, E 400, W 0)
+[EDMD3-GAP] contact audit over 163 events: max gap [px] pair 3.2e-14, wall 1.07e-14, divider 0, piston 0; time quantum u_t 1.81899e-12 units; max gap / u_t [px/unit] pair 0.0176, wall 0.00586, divider 0, piston 0; v_ref 40 px/unit
+[EDMD3-HEALTH] L0=157.1 M=200 run=0 seed=1095518927: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=1693 full_checks=125 local_worst=-3.2e-14 full_worst=-1.42e-14 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.42e-14 ev_pair=105 ev_wall=54 ev_cross=1425 ev_div=4 ev_piston=0 ev_band=0 ev_stale=219 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=567 validator_every=60 hash=546ade89f0eabadc t_end=72.000001072883606 engine=gen3 build="8f538a2" target=mac-O3-e0pre run_s=0.011 engine_s=0.000 driver_share=0.9776
+[EDMD3-OBS] virial blocks 0 (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d50_261014/tests/f4_C2/B_N0400_eta0.050000_free/virial_blocks_L0_1570_wallmassfactor_200_run0.csv), snapshots 0 (off)
+✅ Finished valid run 0
+
+Speed-of-sound batch complete: 1 valid, 0 invalid, 1 requested.
+Particle 0: Vx = -0.198674, Vy = 0.002960
+Particle 1: Vx = -0.344532, Vy = 0.447098
+Particle 2: Vx = 1.141638, Vy = -1.102957
+Particle 3: Vx = 0.487284, Vy = 1.162628
+Particle 4: Vx = -0.685479, Vy = 0.414860
+Particle 5: Vx = -0.874928, Vy = -0.622778
+Particle 6: Vx = -1.102696, Vy = 0.654266
+Particle 7: Vx = -1.920076, Vy = 0.964803
+Particle 8: Vx = -0.510765, Vy = -1.862465
+Particle 9: Vx = -0.513395, Vy = 1.355289

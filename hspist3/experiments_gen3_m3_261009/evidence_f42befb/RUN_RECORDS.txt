@@ -1,0 +1,235 @@
+# Every run-record line of the stage A evidence logs (run.log and the replay output; the logs themselves are .gitignored),
+# extracted 2026-10-09 12:23 HST with: grep -E '^\[(EDMD3-HEALTH|EDMD3-GAP|EDMD3-LEDGER|EDMD3-AUDIT\] audited|EDMD-CONTACT|EDMD3\] built|EDMD3-REPLAY)' per file
+
+== ./a3/default/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 480 x 240 px, cell 32 px, dividers 1, pistons 1/1; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD3-LEDGER] momentum x: residual 2.72e-13, scale 3.65e-10, ratio 0.000744; y: residual -1.33e-14, scale 3.35e-10, ratio 3.98e-05; energy: residual -1.01e-12, scale 2.44e-09, ratio 0.000413 (E0 100, E 100, W 0)
+[EDMD3-HEALTH] energy-transfer seed=9700: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=3141958 full_checks=10456 local_worst=-3.5e-12 full_worst=-2.37e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.35e-12 ev_pair=1097449 ev_wall=199212 ev_cross=681479 ev_div=66369 ev_piston=0 ev_band=0 ev_stale=5594624 origin_shifts=15 syncs=15 heap_compactions=0 heap_max=1809 validator_every=60 hash=4428249ad3af787f t_end=125279.60186681151 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=1.399 engine_s=1.328 driver_share=0.0509
+
+== ./a3/validator1/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 480 x 240 px, cell 32 px, dividers 1, pistons 1/1; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD3-LEDGER] momentum x: residual 2.72e-13, scale 3.65e-10, ratio 0.000744; y: residual -1.33e-14, scale 3.35e-10, ratio 3.98e-05; energy: residual -1.01e-12, scale 2.44e-09, ratio 0.000413 (E0 100, E 100, W 0)
+[EDMD3-HEALTH] energy-transfer seed=9700: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=3141958 full_checks=318434 local_worst=-3.5e-12 full_worst=-2.37e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.35e-12 ev_pair=1097449 ev_wall=199212 ev_cross=681479 ev_div=66369 ev_piston=0 ev_band=0 ev_stale=5594624 origin_shifts=15 syncs=15 heap_compactions=0 heap_max=1809 validator_every=1 hash=4428249ad3af787f t_end=125279.60186681151 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=3.211 engine_s=1.390 driver_share=0.5672
+
+== ./a3/validator1_trace1/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 480 x 240 px, cell 32 px, dividers 1, pistons 1/1; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD3-LEDGER] momentum x: residual 2.72e-13, scale 3.65e-10, ratio 0.000744; y: residual -1.33e-14, scale 3.35e-10, ratio 3.98e-05; energy: residual -1.01e-12, scale 2.44e-09, ratio 0.000413 (E0 100, E 100, W 0)
+[EDMD3-HEALTH] energy-transfer seed=9700: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=3141958 full_checks=318434 local_worst=-3.5e-12 full_worst=-2.37e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.35e-12 ev_pair=1097449 ev_wall=199212 ev_cross=681479 ev_div=66369 ev_piston=0 ev_band=0 ev_stale=5594624 origin_shifts=15 syncs=15 heap_compactions=0 heap_max=1809 validator_every=1 hash=4428249ad3af787f t_end=125279.60186681151 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=3.621 engine_s=1.747 driver_share=0.5177
+
+== ./a4/et_N1600_070/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 1600, box 1076 x 960 px, cell 32 px, dividers 1, pistons 1/1; c_tol 2.79397e-08 px^2, tol_face 5.83896e-10 px, band margin 1.2e-05 px, v_ref 80 px/unit
+[EDMD3-LEDGER] momentum x: residual -3.84e-13, scale 5.88e-09, ratio 6.53e-05; y: residual 2.49e-12, scale 4.48e-09, ratio 0.000557; energy: residual 3.18e-12, scale 3.7e-08, ratio 8.61e-05 (E0 1600, E 1600, W 0)
+[EDMD3-HEALTH] energy-transfer seed=9711: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=35710558 full_checks=2043 local_worst=-3.56e-12 full_worst=-1.25e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.12e-12 ev_pair=16464161 ev_wall=635356 ev_cross=1844764 ev_div=302116 ev_piston=0 ev_band=0 ev_stale=124384684 origin_shifts=2 syncs=2 heap_compactions=4 heap_max=106513 validator_every=60 hash=7c6193b2921826e2 t_end=24479.600364774466 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=25.442 engine_s=25.245 driver_share=0.0077
+
+== ./a4/et_N1600_pi8/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 1600, box 1920 x 960 px, cell 32 px, dividers 1, pistons 1/1; c_tol 2.79397e-08 px^2, tol_face 5.83896e-10 px, band margin 1.2e-05 px, v_ref 80 px/unit
+[EDMD3-LEDGER] momentum x: residual 1.92e-13, scale 1.09e-09, ratio 0.000176; y: residual 6.47e-13, scale 1.04e-09, ratio 0.000622; energy: residual 4.55e-13, scale 7.63e-09, ratio 5.96e-05 (E0 1600, E 1600, W 0)
+[EDMD3-HEALTH] energy-transfer seed=9711: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=8658091 full_checks=2043 local_worst=-4.74e-12 full_worst=-1.92e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.7e-12 ev_pair=3302080 ev_wall=139784 ev_cross=1867197 ev_div=46950 ev_piston=0 ev_band=0 ev_stale=15547949 origin_shifts=2 syncs=2 heap_compactions=0 heap_max=19399 validator_every=60 hash=d210cdee87620bfb t_end=24479.600364774466 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=3.784 engine_s=3.627 driver_share=0.0416
+
+== ./a4/et_N400_070/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 538 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 1.39698e-08 px^2, tol_face 2.91948e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual -3.48e-13, scale 1.7e-09, ratio 0.000205; y: residual 5.98e-13, scale 1.3e-09, ratio 0.000458; energy: residual 3.92e-12, scale 1.04e-08, ratio 0.000376 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] energy-transfer seed=9711: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=10420399 full_checks=2043 local_worst=-2.98e-12 full_worst=-2.16e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.01e-12 ev_pair=4670062 ev_wall=369594 ev_cross=543362 ev_div=167319 ev_piston=0 ev_band=0 ev_stale=36215685 origin_shifts=2 syncs=2 heap_compactions=2 heap_max=29707 validator_every=60 hash=1a9257ad05b7b064 t_end=24479.600364774466 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=6.696 engine_s=6.643 driver_share=0.0079
+
+== ./a4/et_N400_pi8/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 960 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 1.39698e-08 px^2, tol_face 2.91948e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual 1.63e-13, scale 2.68e-10, ratio 0.00061; y: residual -2.56e-13, scale 2.49e-10, ratio 0.00103; energy: residual 7.96e-13, scale 1.88e-09, ratio 0.000422 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] energy-transfer seed=9711: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=2217278 full_checks=2043 local_worst=-2.7e-12 full_worst=-1.61e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.95e-12 ev_pair=837375 ev_wall=72615 ev_cross=445623 ev_div=24290 ev_piston=0 ev_band=0 ev_stale=4073793 origin_shifts=2 syncs=2 heap_compactions=0 heap_max=5848 validator_every=60 hash=2763e5199a1ca8e2 t_end=24479.600364774466 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=0.873 engine_s=0.829 driver_share=0.0502
+
+== ./a4/sos_N1600_070/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 1600, box 1076 x 960 px, cell 32 px, dividers 1, pistons 0/0; c_tol 2.79397e-08 px^2, tol_face 5.83896e-10 px, band margin 1.2e-05 px, v_ref 80 px/unit
+[EDMD3-LEDGER] momentum x: residual -3.41e-13, scale 1.73e-08, ratio 1.97e-05; y: residual 2.59e-12, scale 8.87e-09, ratio 0.000292; energy: residual -6.37e-12, scale 7.44e-08, ratio 8.55e-05 (E0 1600, E 1600, W 0)
+[EDMD3-HEALTH] L0=22.4 M=300 run=0 seed=624500685: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=70934752 full_checks=12237 local_worst=-3.73e-12 full_worst=-2.07e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.55e-12 ev_pair=32689870 ev_wall=1259842 ev_cross=3692031 ev_div=603139 ev_piston=0 ev_band=0 ev_stale=257392364 origin_shifts=5 syncs=5 heap_compactions=294 heap_max=106567 validator_every=60 hash=ba2977d6265fb999 t_end=48800.000727176666 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=67.715 engine_s=53.856 driver_share=0.2047
+
+== ./a4/sos_N1600_pi8/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 1600, box 1920 x 960 px, cell 32 px, dividers 1, pistons 0/0; c_tol 2.79397e-08 px^2, tol_face 5.83896e-10 px, band margin 1.2e-05 px, v_ref 80 px/unit
+[EDMD3-LEDGER] momentum x: residual -3.2e-13, scale 2.77e-09, ratio 0.000116; y: residual -4.26e-14, scale 1.93e-09, ratio 2.21e-05; energy: residual -3.41e-12, scale 1.51e-08, ratio 0.000226 (E0 1600, E 1600, W 0)
+[EDMD3-HEALTH] L0=40.0 M=300 run=0 seed=624500685: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=17264761 full_checks=12237 local_worst=-3.99e-12 full_worst=-1.45e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.71e-12 ev_pair=6575628 ev_wall=279111 ev_cross=3741107 ev_div=93287 ev_piston=0 ev_band=0 ev_stale=34174851 origin_shifts=5 syncs=5 heap_compactions=0 heap_max=30626 validator_every=60 hash=41d573e121e83360 t_end=48800.000727176666 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=20.249 engine_s=7.745 driver_share=0.6175
+
+== ./a4/sos_N400_070/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 538 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91948e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual 7.05e-13, scale 6.86e-09, ratio 0.000103; y: residual -2.7e-13, scale 2.56e-09, ratio 0.000106; energy: residual 2.56e-12, scale 2.12e-08, ratio 0.000121 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=11.2 M=300 run=0 seed=624500685: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=20322842 full_checks=12237 local_worst=-3.81e-12 full_worst=-2.52e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.11e-12 ev_pair=9158172 ev_wall=726272 ev_cross=953846 ev_div=326380 ev_piston=0 ev_band=0 ev_stale=74141900 origin_shifts=5 syncs=5 heap_compactions=187 heap_max=29735 validator_every=60 hash=c6b2c4aaaa26af62 t_end=48800.000727176666 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=15.463 engine_s=13.743 driver_share=0.1112
+
+== ./a4/sos_N400_pi8/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 960 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91948e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual 1.27e-13, scale 1.04e-09, ratio 0.000122; y: residual -9.24e-14, scale 5.01e-10, ratio 0.000184; energy: residual -1.14e-12, scale 3.84e-09, ratio 0.000296 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=20.0 M=300 run=0 seed=624500685: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=4427598 full_checks=12237 local_worst=-2.98e-12 full_worst=-2.32e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.49e-12 ev_pair=1670638 ev_wall=144466 ev_cross=893398 ev_div=48458 ev_piston=0 ev_band=0 ev_stale=8972565 origin_shifts=5 syncs=5 heap_compactions=0 heap_max=9849 validator_every=60 hash=893c6df6956d07c1 t_end=48800.000727176666 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=3.383 engine_s=1.795 driver_share=0.4693
+
+== ./acc3/default/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 480 x 240 px, cell 32 px, dividers 1, pistons 0/0; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD3-LEDGER] momentum x: residual 1.85e-13, scale 1.35e-09, ratio 0.000136; y: residual 1.42e-13, scale 3.75e-10, ratio 0.000379; energy: residual -5.68e-14, scale 2.88e-09, ratio 1.97e-05 (E0 100, E 100, W 0)
+[EDMD3-HEALTH] L0=10.0 M=300 run=0 seed=982861368: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=3444794 full_checks=34794 local_worst=-3.4e-12 full_worst=-1.9e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.12e-12 ev_pair=1220138 ev_wall=221122 ev_cross=708995 ev_div=74401 ev_piston=0 ev_band=0 ev_stale=6833288 origin_shifts=16 syncs=16 heap_compactions=0 heap_max=4155 validator_every=60 hash=61869f868bced42e t_end=139001.60207128525 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=1.840 engine_s=1.262 driver_share=0.3141
+
+== ./acc3/default_repeat/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 480 x 240 px, cell 32 px, dividers 1, pistons 0/0; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD3-LEDGER] momentum x: residual 1.85e-13, scale 1.35e-09, ratio 0.000136; y: residual 1.42e-13, scale 3.75e-10, ratio 0.000379; energy: residual -5.68e-14, scale 2.88e-09, ratio 1.97e-05 (E0 100, E 100, W 0)
+[EDMD3-HEALTH] L0=10.0 M=300 run=0 seed=982861368: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=3444794 full_checks=34794 local_worst=-3.4e-12 full_worst=-1.9e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.12e-12 ev_pair=1220138 ev_wall=221122 ev_cross=708995 ev_div=74401 ev_piston=0 ev_band=0 ev_stale=6833288 origin_shifts=16 syncs=16 heap_compactions=0 heap_max=4155 validator_every=60 hash=61869f868bced42e t_end=139001.60207128525 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=1.868 engine_s=1.279 driver_share=0.3152
+
+== ./acc3/max_cadence/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 480 x 240 px, cell 32 px, dividers 1, pistons 0/0; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD3-LEDGER] momentum x: residual 1.85e-13, scale 1.35e-09, ratio 0.000136; y: residual 1.42e-13, scale 3.75e-10, ratio 0.000379; energy: residual -5.68e-14, scale 2.88e-09, ratio 1.97e-05 (E0 100, E 100, W 0)
+[EDMD3-HEALTH] L0=10.0 M=300 run=0 seed=982861368: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=3444794 full_checks=353312 local_worst=-3.4e-12 full_worst=-1.9e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.12e-12 ev_pair=1220138 ev_wall=221122 ev_cross=708995 ev_div=74401 ev_piston=0 ev_band=0 ev_stale=6833288 origin_shifts=16 syncs=16 heap_compactions=0 heap_max=4155 validator_every=1 hash=61869f868bced42e t_end=139001.60207128525 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=5.578 engine_s=1.374 driver_share=0.7537
+
+== ./acc3/min_cadence/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 480 x 240 px, cell 32 px, dividers 1, pistons 0/0; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD3-LEDGER] momentum x: residual 1.85e-13, scale 1.35e-09, ratio 0.000136; y: residual 1.42e-13, scale 3.75e-10, ratio 0.000379; energy: residual -5.68e-14, scale 2.88e-09, ratio 1.97e-05 (E0 100, E 100, W 0)
+[EDMD3-HEALTH] L0=10.0 M=300 run=0 seed=982861368: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=3444794 full_checks=5880 local_worst=-3.4e-12 full_worst=-1.9e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.12e-12 ev_pair=1220138 ev_wall=221122 ev_cross=708995 ev_div=74401 ev_piston=0 ev_band=0 ev_stale=6833288 origin_shifts=16 syncs=16 heap_compactions=0 heap_max=4155 validator_every=1000000 hash=61869f868bced42e t_end=139001.60207128525 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=1.307 engine_s=1.290 driver_share=0.0129
+
+== ./acc4/afix/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 480 x 240 px, cell 32 px, dividers 1, pistons 1/1; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD-CONTACT] executed events 1363030; max abs(contact distance) [px]: disk-disk 3.499e-12, outer walls 1.762e-12, divider 1.705e-12, pistons 0.000e+00
+[EDMD3-LEDGER] momentum x: residual 2.72e-13, scale 3.65e-10, ratio 0.000744; y: residual -1.33e-14, scale 3.35e-10, ratio 3.98e-05; energy: residual -1.01e-12, scale 2.44e-09, ratio 0.000413 (E0 100, E 100, W 0)
+[EDMD3-GAP] contact audit over 1363030 events: max gap [px] pair 3.5e-12, wall 1.76e-12, divider 1.71e-12, piston 0; time quantum u_t 1.81899e-12 units; max gap / u_t [px/unit] pair 1.92, wall 0.969, divider 0.938, piston 0; v_ref 20 px/unit
+[EDMD3-HEALTH] energy-transfer seed=9700: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=3141958 full_checks=10456 local_worst=-3.5e-12 full_worst=-2.37e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.35e-12 ev_pair=1097449 ev_wall=199212 ev_cross=681479 ev_div=66369 ev_piston=0 ev_band=0 ev_stale=5594624 origin_shifts=15 syncs=15 heap_compactions=0 heap_max=1809 validator_every=60 hash=4428249ad3af787f t_end=125279.60186681151 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=1.646 engine_s=1.553 driver_share=0.0569
+
+== ./acc4/ctrl_min/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 480 x 240 px, cell 32 px, dividers 1, pistons 0/0; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD-CONTACT] executed events 104592; max abs(contact distance) [px]: disk-disk 3.464e-12, outer walls 1.474e-12, divider 1.506e-12, pistons 0.000e+00
+[EDMD3-LEDGER] momentum x: residual 4.44e-16, scale 5.44e-11, ratio 8.17e-06; y: residual -3.55e-15, scale 2.67e-11, ratio 0.000133; energy: residual 5.68e-14, scale 2e-10, ratio 0.000284 (E0 100, E 100, W 0)
+[EDMD3-GAP] contact audit over 104592 events: max gap [px] pair 3.46e-12, wall 1.47e-12, divider 1.51e-12, piston 0; time quantum u_t 1.81899e-12 units; max gap / u_t [px/unit] pair 1.9, wall 0.811, divider 0.828, piston 0; v_ref 20 px/unit
+[EDMD3-HEALTH] L0=10.0 M=50 run=0 seed=57831576: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=237405 full_checks=2416 local_worst=-3.46e-12 full_worst=-1.56e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.73e-12 ev_pair=84152 ev_wall=15279 ev_cross=48661 ev_div=5161 ev_piston=0 ev_band=0 ev_stale=470634 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=2330 validator_every=60 hash=7b4801da648b8f1f t_end=9577.6001427173615 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=0.138 engine_s=0.093 driver_share=0.3256
+
+== ./acc4/dense_M2000/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 269 x 240 px, cell 32 px, dividers 1, pistons 0/0; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD-CONTACT] executed events 549850; max abs(contact distance) [px]: disk-disk 2.505e-12, outer walls 1.618e-12, divider 1.563e-12, pistons 0.000e+00
+[EDMD3-LEDGER] momentum x: residual -3.98e-13, scale 8.99e-10, ratio 0.000443; y: residual 2.13e-14, scale 1.14e-10, ratio 0.000187; energy: residual 4.26e-13, scale 1.03e-09, ratio 0.000412 (E0 100, E 100, W 0)
+[EDMD3-GAP] contact audit over 549850 events: max gap [px] pair 2.5e-12, wall 1.62e-12, divider 1.56e-12, piston 0; time quantum u_t 1.81899e-12 units; max gap / u_t [px/unit] pair 1.38, wall 0.89, divider 0.859, piston 0; v_ref 20 px/unit
+[EDMD3-HEALTH] L0=5.6 M=2000 run=0 seed=195343139: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=1036174 full_checks=1903 local_worst=-2.5e-12 full_worst=-1.56e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.65e-12 ev_pair=435735 ev_wall=73514 ev_cross=50589 ev_div=40601 ev_piston=0 ev_band=0 ev_stale=3616267 origin_shifts=0 syncs=0 heap_compactions=58 heap_max=10522 validator_every=60 hash=060cc2cec861cf7f t_end=7477.2001114189625 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=0.679 engine_s=0.640 driver_share=0.0563
+
+== ./acc4/dense_M50/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 269 x 240 px, cell 32 px, dividers 1, pistons 0/0; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD-CONTACT] executed events 364680; max abs(contact distance) [px]: disk-disk 2.395e-12, outer walls 1.734e-12, divider 1.620e-12, pistons 0.000e+00
+[EDMD3-LEDGER] momentum x: residual -2.91e-14, scale 2.46e-10, ratio 0.000118; y: residual 7.82e-14, scale 7.64e-11, ratio 0.00102; energy: residual -6.39e-13, scale 7.02e-10, ratio 0.000912 (E0 100, E 100, W 0)
+[EDMD3-GAP] contact audit over 364680 events: max gap [px] pair 2.39e-12, wall 1.73e-12, divider 1.62e-12, piston 0; time quantum u_t 1.81899e-12 units; max gap / u_t [px/unit] pair 1.32, wall 0.953, divider 0.891, piston 0; v_ref 20 px/unit
+[EDMD3-HEALTH] L0=5.6 M=50 run=0 seed=57831576: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=683427 full_checks=1219 local_worst=-2.27e-12 full_worst=-8.67e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.42e-12 ev_pair=288599 ev_wall=48325 ev_cross=30148 ev_div=27756 ev_piston=0 ev_band=0 ev_stale=2367409 origin_shifts=0 syncs=0 heap_compactions=36 heap_max=10519 validator_every=60 hash=3266995ee6141f18 t_end=4800.0000715255737 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=0.472 engine_s=0.421 driver_share=0.1092
+
+== ./acc4/free_M1500/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 480 x 240 px, cell 32 px, dividers 1, pistons 0/0; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD-CONTACT] executed events 3235791; max abs(contact distance) [px]: disk-disk 4.558e-12, outer walls 2.574e-12, divider 1.648e-12, pistons 0.000e+00
+[EDMD3-LEDGER] momentum x: residual -1.05e-12, scale 4.89e-09, ratio 0.000215; y: residual -1.51e-13, scale 7.99e-10, ratio 0.000189; energy: residual 1.8e-12, scale 6.11e-09, ratio 0.000295 (E0 100, E 100, W 0)
+[EDMD3-GAP] contact audit over 3235791 events: max gap [px] pair 4.56e-12, wall 2.57e-12, divider 1.65e-12, piston 0; time quantum u_t 1.81899e-12 units; max gap / u_t [px/unit] pair 2.51, wall 1.42, divider 0.906, piston 0; v_ref 20 px/unit
+[EDMD3-HEALTH] L0=10.0 M=1500 run=0 seed=2015650600: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=7374123 full_checks=74294 local_worst=-4.56e-12 full_worst=-3.29e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.69e-12 ev_pair=2605863 ev_wall=471917 ev_cross=1532469 ev_div=158011 ev_piston=0 ev_band=0 ev_stale=14521183 origin_shifts=36 syncs=36 heap_compactions=0 heap_max=8183 validator_every=60 hash=cce67dd7da85650d t_end=296919.20442444086 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=4.029 engine_s=2.758 driver_share=0.3154
+
+== ./acc4/free_M2000/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 480 x 240 px, cell 32 px, dividers 1, pistons 0/0; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD-CONTACT] executed events 3720799; max abs(contact distance) [px]: disk-disk 3.549e-12, outer walls 2.160e-12, divider 2.558e-12, pistons 0.000e+00
+[EDMD3-LEDGER] momentum x: residual 6.31e-13, scale 7.03e-09, ratio 8.98e-05; y: residual -2.96e-13, scale 9.16e-10, ratio 0.000323; energy: residual 2.03e-12, scale 7.06e-09, ratio 0.000288 (E0 100, E 100, W 0)
+[EDMD3-GAP] contact audit over 3720799 events: max gap [px] pair 3.55e-12, wall 2.16e-12, divider 2.56e-12, piston 0; time quantum u_t 1.81899e-12 units; max gap / u_t [px/unit] pair 1.95, wall 1.19, divider 1.41, piston 0; v_ref 20 px/unit
+[EDMD3-HEALTH] L0=10.0 M=2000 run=0 seed=195343139: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=8467202 full_checks=85516 local_worst=-3.13e-12 full_worst=-2.82e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.54e-12 ev_pair=2995686 ev_wall=542924 ev_cross=1750717 ev_div=182189 ev_piston=0 ev_band=0 ev_stale=16749502 origin_shifts=41 syncs=41 heap_compactions=0 heap_max=7432 validator_every=60 hash=31d34ee3963be8a3 t_end=341791.60509309173 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=4.582 engine_s=3.139 driver_share=0.3148
+
+== ./acc4/free_M50/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 480 x 240 px, cell 32 px, dividers 1, pistons 0/0; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD-CONTACT] executed events 773008; max abs(contact distance) [px]: disk-disk 3.464e-12, outer walls 1.876e-12, divider 1.677e-12, pistons 0.000e+00
+[EDMD3-LEDGER] momentum x: residual -1.3e-13, scale 4.08e-10, ratio 0.000318; y: residual 1.43e-13, scale 1.91e-10, ratio 0.000749; energy: residual 2.84e-13, scale 1.47e-09, ratio 0.000193 (E0 100, E 100, W 0)
+[EDMD3-GAP] contact audit over 773008 events: max gap [px] pair 3.46e-12, wall 1.88e-12, divider 1.68e-12, piston 0; time quantum u_t 1.81899e-12 units; max gap / u_t [px/unit] pair 1.9, wall 1.03, divider 0.922, piston 0; v_ref 20 px/unit
+[EDMD3-HEALTH] L0=10.0 M=50 run=0 seed=57831576: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=1753326 full_checks=17783 local_worst=-3.46e-12 full_worst=-1.7e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.87e-12 ev_pair=621788 ev_wall=112807 ev_cross=358530 ev_div=38413 ev_piston=0 ev_band=0 ev_stale=3514640 origin_shifts=8 syncs=8 heap_compactions=0 heap_max=2961 validator_every=60 hash=0c71eb2c4acd757f t_end=71020.401058286428 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=0.955 engine_s=0.650 driver_share=0.3199
+
+== ./acc4/free_M500/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 100, box 480 x 240 px, cell 32 px, dividers 1, pistons 0/0; c_tol 6.98492e-09 px^2, tol_face 1.45974e-10 px, band margin 1.2e-05 px, v_ref 20 px/unit
+[EDMD-CONTACT] executed events 1912518; max abs(contact distance) [px]: disk-disk 2.938e-12, outer walls 2.004e-12, divider 1.677e-12, pistons 0.000e+00
+[EDMD3-LEDGER] momentum x: residual -5.97e-13, scale 2e-09, ratio 0.000298; y: residual -1.78e-15, scale 4.73e-10, ratio 3.75e-06; energy: residual 4.41e-13, scale 3.63e-09, ratio 0.000121 (E0 100, E 100, W 0)
+[EDMD3-GAP] contact audit over 1912518 events: max gap [px] pair 2.94e-12, wall 2e-12, divider 1.68e-12, piston 0; time quantum u_t 1.81899e-12 units; max gap / u_t [px/unit] pair 1.62, wall 1.1, divider 0.922, piston 0; v_ref 20 px/unit
+[EDMD3-HEALTH] L0=10.0 M=500 run=0 seed=1623140680: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=4351681 full_checks=43926 local_worst=-2.94e-12 full_worst=-1.88e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.12e-12 ev_pair=1539627 ev_wall=279333 ev_cross=899536 ev_div=93558 ev_piston=0 ev_band=0 ev_stale=8619882 origin_shifts=21 syncs=21 heap_compactions=0 heap_max=4797 validator_every=60 hash=e8f394fd21d0d5cd t_end=175502.80261519551 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=2.403 engine_s=1.648 driver_share=0.3143
+
+== ./acc5/gen2/cell/m_300/r0/run.log
+
+== ./acc5/gen2/cell/m_300/r1/run.log
+
+== ./acc5/gen2/cell/m_300/r2/run.log
+
+== ./acc5/gen2/cell/m_300/r3/run.log
+
+== ./acc5/gen2/cell/m_300/r4/run.log
+
+== ./acc5/gen2/cell/m_300/r5/run.log
+
+== ./acc5/gen2/cell/m_300/r6/run.log
+
+== ./acc5/gen2/cell/m_300/r7/run.log
+
+== ./acc5/gen3/cell/m_300/r0/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 960 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91948e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual -9.33e-13, scale 3.77e-09, ratio 0.000247; y: residual 3.89e-13, scale 1.75e-09, ratio 0.000223; energy: residual 2.44e-12, scale 1.33e-08, ratio 0.000184 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=20.0 M=300 run=0 seed=55617226: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=15313862 full_checks=42209 local_worst=-4.07e-12 full_worst=-1.96e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.84e-12 ev_pair=5775361 ev_wall=499841 ev_cross=3096402 ev_div=166897 ev_piston=0 ev_band=0 ev_stale=30991537 origin_shifts=20 syncs=20 heap_compactions=0 heap_max=11004 validator_every=60 hash=c2e40400d363972d t_end=168636.80251288414 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=11.883 engine_s=6.827 driver_share=0.4255
+
+== ./acc5/gen3/cell/m_300/r1/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 960 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91948e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual -8.63e-13, scale 3.94e-09, ratio 0.000219; y: residual -4.9e-13, scale 1.74e-09, ratio 0.000282; energy: residual -1.42e-12, scale 1.33e-08, ratio 0.000107 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=20.0 M=300 run=0 seed=199755599: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=15325676 full_checks=42209 local_worst=-3.39e-12 full_worst=-2.06e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.62e-12 ev_pair=5780067 ev_wall=499964 ev_cross=3098432 ev_div=167146 ev_piston=0 ev_band=0 ev_stale=31009041 origin_shifts=20 syncs=20 heap_compactions=0 heap_max=10601 validator_every=60 hash=6f49ac14216fdb69 t_end=168636.80251288414 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=12.166 engine_s=6.991 driver_share=0.4254
+
+== ./acc5/gen3/cell/m_300/r2/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 960 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91948e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual -9.31e-13, scale 3.74e-09, ratio 0.000249; y: residual -9.06e-13, scale 1.73e-09, ratio 0.000523; energy: residual 1.14e-12, scale 1.33e-08, ratio 8.58e-05 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=20.0 M=300 run=0 seed=2377511465: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=15324544 full_checks=42209 local_worst=-3.46e-12 full_worst=-2.04e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.87e-12 ev_pair=5777184 ev_wall=500156 ev_cross=3103257 ev_div=166763 ev_piston=0 ev_band=0 ev_stale=30974920 origin_shifts=20 syncs=20 heap_compactions=0 heap_max=10850 validator_every=60 hash=6cef3fa1e49de781 t_end=168636.80251288414 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=12.291 engine_s=7.065 driver_share=0.4252
+
+== ./acc5/gen3/cell/m_300/r3/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 960 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91948e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual -2.88e-13, scale 4.02e-09, ratio 7.17e-05; y: residual -1.08e-12, scale 1.73e-09, ratio 0.000622; energy: residual 5.68e-14, scale 1.33e-08, ratio 4.27e-06 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=20.0 M=300 run=0 seed=715619041: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=15335212 full_checks=42209 local_worst=-3.51e-12 full_worst=-1.7e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.63e-12 ev_pair=5779692 ev_wall=499397 ev_cross=3109150 ev_div=167281 ev_piston=0 ev_band=0 ev_stale=31002839 origin_shifts=20 syncs=20 heap_compactions=0 heap_max=10887 validator_every=60 hash=5da5827b99d83ea4 t_end=168636.80251288414 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=12.294 engine_s=7.049 driver_share=0.4266
+
+== ./acc5/gen3/cell/m_300/r4/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 960 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91948e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual -8.86e-13, scale 3.69e-09, ratio 0.00024; y: residual -5.58e-13, scale 1.73e-09, ratio 0.000322; energy: residual 4.55e-13, scale 1.32e-08, ratio 3.43e-05 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=20.0 M=300 run=0 seed=599659900: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=15326628 full_checks=42209 local_worst=-3.86e-12 full_worst=-2.09e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.06e-12 ev_pair=5778806 ev_wall=499400 ev_cross=3102923 ev_div=166693 ev_piston=0 ev_band=0 ev_stale=30990991 origin_shifts=20 syncs=20 heap_compactions=0 heap_max=11174 validator_every=60 hash=446309e724d36db0 t_end=168636.80251288414 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=13.016 engine_s=7.493 driver_share=0.4243
+
+== ./acc5/gen3/cell/m_300/r5/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 960 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91948e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual -1.53e-12, scale 3.8e-09, ratio 0.000403; y: residual 6.68e-13, scale 1.74e-09, ratio 0.000383; energy: residual -1.71e-12, scale 1.33e-08, ratio 0.000129 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=20.0 M=300 run=0 seed=3895718499: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=15332123 full_checks=42209 local_worst=-3.61e-12 full_worst=-1.88e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.34e-12 ev_pair=5777598 ev_wall=499922 ev_cross=3109702 ev_div=167303 ev_piston=0 ev_band=0 ev_stale=30969825 origin_shifts=20 syncs=20 heap_compactions=0 heap_max=10842 validator_every=60 hash=141b135b38bb426c t_end=168636.80251288414 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=13.743 engine_s=7.397 driver_share=0.4618
+
+== ./acc5/gen3/cell/m_300/r6/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 960 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91948e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual 1.24e-12, scale 3.66e-09, ratio 0.000338; y: residual -7.82e-13, scale 1.76e-09, ratio 0.000445; energy: residual 3.98e-12, scale 1.32e-08, ratio 0.0003 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=20.0 M=300 run=0 seed=3334348033: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=15307951 full_checks=42209 local_worst=-3.6e-12 full_worst=-1.95e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.74e-12 ev_pair=5775808 ev_wall=499023 ev_cross=3090214 ev_div=167098 ev_piston=0 ev_band=0 ev_stale=31045223 origin_shifts=20 syncs=20 heap_compactions=0 heap_max=11471 validator_every=60 hash=cefcc2802db38a96 t_end=168636.80251288414 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=14.081 engine_s=7.633 driver_share=0.4579
+
+== ./acc5/gen3/cell/m_300/r7/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 960 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91948e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual 8.51e-13, scale 4.01e-09, ratio 0.000212; y: residual -4.03e-13, scale 1.74e-09, ratio 0.000232; energy: residual 2.27e-12, scale 1.33e-08, ratio 0.000171 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=20.0 M=300 run=0 seed=1588314633: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=15328018 full_checks=42209 local_worst=-4.07e-12 full_worst=-3.13e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.48e-12 ev_pair=5777383 ev_wall=500261 ev_cross=3106146 ev_div=166845 ev_piston=0 ev_band=0 ev_stale=30979213 origin_shifts=20 syncs=20 heap_compactions=0 heap_max=10529 validator_every=60 hash=e9846c2eb7be753b t_end=168636.80251288414 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=13.494 engine_s=7.767 driver_share=0.4244
+
+== ./e0/default/ctrl_leg/audit/run.log
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== ./e0/default/ctrl_leg/plain/run.log
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== ./e0/default/ctrl_leg/ref/run.log
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== ./e0/default/ctrl_min/audit/run.log
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== ./e0/default/ctrl_min/plain/run.log
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== ./e0/default/ctrl_min/ref/run.log
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== ./e0/gen2flag/ctrl_leg/audit/run.log
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== ./e0/gen2flag/ctrl_leg/plain/run.log
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== ./e0/gen2flag/ctrl_leg/ref/run.log
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== ./e0/gen2flag/ctrl_min/audit/run.log
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== ./e0/gen2flag/ctrl_min/plain/run.log
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== ./e0/gen2flag/ctrl_min/ref/run.log
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== ./prod/run.log
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 538 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91948e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD-CONTACT] executed events 101445679; max abs(contact distance) [px]: disk-disk 4.174e-12, outer walls 2.160e-12, divider 2.188e-12, pistons 0.000e+00
+[EDMD3-LEDGER] momentum x: residual -2.35e-12, scale 8.3e-08, ratio 2.83e-05; y: residual 1.76e-12, scale 2.54e-08, ratio 6.93e-05; energy: residual -2.5e-12, scale 2.11e-07, ratio 1.19e-05 (E0 400, E 400, W 0)
+[EDMD3-GAP] contact audit over 101445679 events: max gap [px] pair 4.17e-12, wall 2.16e-12, divider 2.19e-12, piston 0; time quantum u_t 1.81899e-12 units; max gap / u_t [px/unit] pair 2.29, wall 1.19, divider 1.2, piston 0; v_ref 40 px/unit
+[EDMD3-AUDIT] audited states 111; missing pair/wall/cross/div/piston 0/0/0/0/0; extra 0/0/0/0/0; deferred earlier than eligible pair/wall/div/piston 0/0/0/0; bands missing/extra/short 0/0/0; duplicate disagreeing 0; cells inconsistent 0; max |dt| 4e-11; max |dt|/horizon (|dt| > 1e-9 only) 0
+[EDMD3-HEALTH] L0=11.2 M=500 run=0 seed=919674558: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=201289182 full_checks=120290 local_worst=-4.17e-12 full_worst=-2.79e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.04e-12 ev_pair=90982747 ev_wall=7207531 ev_cross=8860756 ev_div=3255401 ev_piston=0 ev_band=0 ev_stale=726344586 origin_shifts=58 syncs=58 heap_compactions=2597 heap_max=29743 validator_every=60 hash=0db66ff7a5d6edc9 t_end=480800.0071644783 engine=gen3 build="f42befb" target=mac-O3-e0pre run_s=167.600 engine_s=147.900 driver_share=0.1175
+
+== replay/replay_output.txt

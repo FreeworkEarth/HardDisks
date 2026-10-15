@@ -1,0 +1,8 @@
+selftest: the replica's default family = stage C's replica in all 24 grid cells: ok
+selftest orientation: orient parallel n_s 19 n_r 11 a_s 12.7 a_r 45.4: 0 (expected 0) ok
+selftest orientation: orient parallel n_s 11 n_r 19 a_s 20.8 a_r 24.0: 1 (expected 1) ok
+selftest orientation: orient perpendicular n_s 11 n_r 19 a_s 20.8 a_r 24.0: 0 (expected 0) ok
+selftest orientation: orient perpendicular n_s 19 n_r 11 a_s 12.7 a_r 45.4: 1 (expected 1) ok
+selftest orientation: orient parallel n_s 1 n_r 50 a_s 0.0 a_r 24.0: 1 (expected 1) ok
+selftest orientation: orient perpendicular n_s 1 n_r 50 a_s 0.0 a_r 24.0: 0 (expected 0) ok
+SELFTEST PASS

@@ -1,0 +1,153 @@
+# The stage 1 gate (G6 (c) and (d)), read from experiments_gen3_s1_gate_koa_261012
+
+## The build-time record (BUILD_RECORD_S1.txt)
+
+```
+# the build-time record of the stage 1 campaign build (decision 39 item 5 a): written once by record_s1_build.sh after build_s1_koa.sh
+commit f72d764a8a7e837644c26bd8abc175d9e2cac268
+version 00ALLINONE  git f72d764  target koa
+version_ld 00ALLINONE  git f72d764  target koa-ld
+sha256 0bb1929e92424242ecbcd57d1dec183ae08ff055fa4c29c21357dc5058348d58 00ALLINONE
+sha256 b79db442881f1bb9c58c94b193b29502698461eab95e1f75f227b9844bcc9467 bin/00ALLINONE_ld
+sha256 5eb49cf7ca7494beefbc4e16674a7840e05f248c2d3b0bcef4887b4e3dc03ac5 bin/gen3_m1
+sha256 c5c83443d01ac6bdc1578d11f737561ddad78aff0408269cce83141d0973fcb1 bin/gen3_m2
+compiler gcc (GCC) 14.3.0
+built 2026-10-13 07:03:35 UTC on cn-03-33-01
+```
+
+gate job node: cn-03-38-03 (Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz)
+
+## G6 (c): E0 (rule 4) with the campaign binary
+
+| build | case | result | detail |
+|---|---|---|---|
+| default | ctrl_min | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+| default | ctrl_leg | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+| default | afix | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+| default | afix_leg | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+| gen2flag | ctrl_min | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+| gen2flag | ctrl_leg | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+| gen2flag | afix | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+| gen2flag | afix_leg | IDENTICAL | audit vs plain IDENTICAL, plain vs ref IDENTICAL |
+
+## G6 (c): the M1/M2 harness outputs against the a643bc7 gate's KOA outputs
+
+| output | campaign SHA-256 | a643bc7 gate | equal |
+|---|---|---|---|
+| m1_audit_output.txt | cf1aa2ae8e52fd75d7282b0d6ace588792a57f48d8d07bbc8a9d48f8ef0aedfa | cf1aa2ae8e52fd75d7282b0d6ace588792a57f48d8d07bbc8a9d48f8ef0aedfa | yes |
+| m2_audit_quick_output.txt | 9736a19dd88cf60e79c9ba867ec8295e9318a63cfa227250396445e0180e5405 | 9736a19dd88cf60e79c9ba867ec8295e9318a63cfa227250396445e0180e5405 | yes |
+| m2_audit_output.txt | d9c68c880a8ba9420d3ab35abc619e90efed4337ba519c67e82db86fa343474c | d9c68c880a8ba9420d3ab35abc619e90efed4337ba519c67e82db86fa343474c | yes |
+
+## G6 (c): cross-node determinism with the campaign binary (the compare job's log)
+
+```
+env: gcc (GCC) 14.3.0 | Python 3.12.14 at /home/charing/envs/hd/bin/python3 | git version 2.52.0
+cross-node determinism: 8 tasks in /mnt/lustre/koa/scratch/charing/harddisks_gen3/s1_xnode
+  task_1: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_2: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_3: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_4: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_5: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_6: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_7: cn-03-38-01 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+  task_8: cn-03-38-02 | Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz
+
+== across nodes (the test): 2 distinct node(s) among the 8 finished tasks
+  pair cn-03-38-01 (task_1) vs cn-03-38-02 (task_8):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 0586b1e77639502b / 0586b1e77639502b: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: 72111cdaa7d26414 / 72111cdaa7d26414: IDENTICAL
+   cn-03-38-01 vs cn-03-38-02: IDENTICAL
+
+== within a node (information)
+  task_2 vs task_1 (both on cn-03-38-01):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 0586b1e77639502b / 0586b1e77639502b: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: 72111cdaa7d26414 / 72111cdaa7d26414: IDENTICAL
+   task_2 vs task_1: IDENTICAL
+  task_3 vs task_1 (both on cn-03-38-01):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 0586b1e77639502b / 0586b1e77639502b: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: 72111cdaa7d26414 / 72111cdaa7d26414: IDENTICAL
+   task_3 vs task_1: IDENTICAL
+  task_4 vs task_1 (both on cn-03-38-01):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 0586b1e77639502b / 0586b1e77639502b: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: 72111cdaa7d26414 / 72111cdaa7d26414: IDENTICAL
+   task_4 vs task_1: IDENTICAL
+  task_5 vs task_1 (both on cn-03-38-01):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 0586b1e77639502b / 0586b1e77639502b: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: 72111cdaa7d26414 / 72111cdaa7d26414: IDENTICAL
+   task_5 vs task_1: IDENTICAL
+  task_6 vs task_1 (both on cn-03-38-01):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 0586b1e77639502b / 0586b1e77639502b: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: 72111cdaa7d26414 / 72111cdaa7d26414: IDENTICAL
+   task_6 vs task_1: IDENTICAL
+  task_7 vs task_1 (both on cn-03-38-01):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 0586b1e77639502b / 0586b1e77639502b: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: 72111cdaa7d26414 / 72111cdaa7d26414: IDENTICAL
+   task_7 vs task_1: IDENTICAL
+
+RESULT: across nodes IDENTICAL (2 node(s)); within nodes IDENTICAL; tasks used 8 of 8
+cross-node compare done; paste from 'cross-node determinism:' to here
+```
+
+## G6 (d): Test G chunk 1, the 12 gen3 lines, the gate binary against the campaign binary
+
+| line | cell | M | r | seed | gate: clean, event hash | campaign: clean, event hash | event counts equal | equal |
+|---|---|---|---|---|---|---|---|---|
+| 1 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 0 | 2181659217 | 1, 8ebcd88fd0e89450 | 1, 8ebcd88fd0e89450 | yes | EQUAL |
+| 2 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 1 | 1695260360 | 1, 183435f8b0e4bbb1 | 1, 183435f8b0e4bbb1 | yes | EQUAL |
+| 3 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 2 | 3093807436 | 1, b073923f148496d0 | 1, b073923f148496d0 | yes | EQUAL |
+| 4 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 3 | 3583488288 | 1, db02cf086708f059 | 1, db02cf086708f059 | yes | EQUAL |
+| 5 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 4 | 1044020370 | 1, b7387be4a6d8b67b | 1, b7387be4a6d8b67b | yes | EQUAL |
+| 6 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 5 | 897179266 | 1, fcf0c2430ec438b6 | 1, fcf0c2430ec438b6 | yes | EQUAL |
+| 7 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 6 | 1975227116 | 1, 14aa0698701c412b | 1, 14aa0698701c412b | yes | EQUAL |
+| 8 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 7 | 2533786492 | 1, 9cd5afa53b3976d0 | 1, 9cd5afa53b3976d0 | yes | EQUAL |
+| 9 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 8 | 2570703150 | 1, 133e50eee3a59860 | 1, 133e50eee3a59860 | yes | EQUAL |
+| 10 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 9 | 1576492327 | 1, 767716a11188c073 | 1, 767716a11188c073 | yes | EQUAL |
+| 11 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 10 | 3766718114 | 1, 6ea16cc4951a1d2b | 1, 6ea16cc4951a1d2b | yes | EQUAL |
+| 12 | testG/gen3/epi8_H_H10_L10/m_50 | 50 | 11 | 2301849008 | 1, 35ee005c21cdc3e7 | 1, 35ee005c21cdc3e7 | yes | EQUAL |
+
+TEST G CHUNK 1 (12 gen3 lines): event hashes equal in 12 of 12
+
+G6 (c): PASS (E0 8 of 8 IDENTICAL; harness 3 of 3 equal; cross-node IDENTICAL across nodes)
+G6 (d): PASS (event hashes equal in 12 of 12)

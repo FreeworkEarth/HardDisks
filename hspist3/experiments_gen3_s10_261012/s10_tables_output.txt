@@ -1,0 +1,263 @@
+# Report S1-0, gate G0 (sec. 4.8.10): the code facts, printed by experiments_gen3_s10_261012/s10_tables.py
+
+## (a) The campaign commit against f72d764; the KOA binary of a643bc7
+
+The registered flags (sec. 4.8.3.2 and block S) in the argument parser, line of the first parse in each source:
+
+| flag | a643bc7 | f72d764 |
+|---|---|---|
+| `--engine` | 4939 | 4971 |
+| `--gen3-seeding` | 4879 | 4891 |
+| `--gen3-exact-box` | 4894 | 4922 |
+| `--gen3-psi6-compartments` | **absent** | 4945 |
+| `--psi6-every` | 4917 | 4949 |
+| `--gen3-virial-blocks` | 4911 | 4939 |
+| `--wall-hold-steps` | 4636 | 4648 |
+| `--gen3-snapshots` | 4912 | 4940 |
+| `--gen3-lattice-orientation` | **absent** | 4913 |
+| `--target-oscillations` | 4738 | 4750 |
+| `--oscillation-safety` | 4750 | 4762 |
+| `--oscillation-min-steps` | 4761 | 4773 |
+| `--oscillation-max-steps` | 4771 | 4783 |
+| `--speed-sound-log-stride` | 3889 | 3901 |
+| `--speed-sound-exact-seed` | 3877 | 3889 |
+| `--lengths` | 4718 | 4730 |
+| `--wall-masses` | 4723 | 4735 |
+| `--fixed-dt` | 4281 | 4293 |
+
+absent in a643bc7: --gen3-psi6-compartments, --gen3-lattice-orientation
+an unknown option stops the a643bc7 binary:
+    a643bc7 00ALLINONE.c:5005:             fprintf(stderr, "Unknown option '%s'.\n", arg);
+
+a643bc7 is an ancestor of f72d764: yes
+
+The build inputs (the files the build compiles: 00ALLINONE.c, experiment_validation.c, edmd_core/*.c, their headers; the kissfft submodule commit):
+
+| from | to | files that differ (git diff --numstat) |
+|---|---|---|
+| a643bc7 | f72d764 (f72d764a) | hspist3/00ALLINONE.c (+369 -13) |
+| f72d764 | engine-gen3 (f7914def) | hspist3/00ALLINONE.c (+1240 -360) |
+
+The commits between a643bc7 and f72d764 that change 00ALLINONE.c:
+- f72d764a decision 18 items 1-2 (261012 sec. 4.7.42): checkpoint carries --gen3-psi6-compartments (format v3); M4c --gen3-lattice-orientation=0|turned 
+- 0d7f1ca9 decision 17, after P5 (261012 sec. 4.7.40): PROVISIONAL psi6 per compartment -- --gen3-psi6-compartments (new columns at the end of the psi6(
+- 06e72484 decision 13, item 4 (261012 sec. 4.7.30): M4b, the compressed-fluid start -- code and evidence scripts (criteria before the run)
+
+The commits after f72d764 on engine-gen3 that change a build input:
+- 387d1e1e decision 34, the rest (decision 38 item 4; 261012 sec. 4.7.67) -- WORK IN PROGRESS, acceptance not yet run: the box fitted to the window (re-
+- c4dd9fc6 decision 34, addition (261012 sec. 4.7.73), the gen3 window -- WORK IN PROGRESS, acceptance not yet run: B a spring-constant row (k, kT/sigma
+- b416dfca decision 19 item 2 WORK IN PROGRESS (provisional DISPLAY feature, acceptance not yet run): gen3 in the window -- committed to a clean state b
+
+the KOA binary of a643bc7 (cluster/gen3_koa_261009/k2_binaries_a643bc7.sha256): 742aa2d3530e0b0c7e940260fbc5c69fefe7d56caca6a425c8ae2e4f65c5bbb2
+
+## (b) and (c) The flags of sec. 4.8.3.2 together, on the Mac (s10_runs.py, the Mac build of f72d764)
+
+Commands: data_f72d764/<case>/command.txt (Test G's B command with the changes of sec. 4.8.3.2; HD_KE_TRACE=1 and HD_CONTACT_AUDIT=1; snapshots on).
+
+| case | cell | exit | clean | exact box, eta (run record) | start (run record) | f_pred (binary / replication) | record: planned steps, sigma-time | trace rows; HD_KE_TRACE's [KE-AUDIT], [EDMD-ENERGY] lines; Box_Width_sigma | psi6 rows hold / record; per-compartment columns; spacing | virial blocks hold / record | snapshots hold / record | contact audit |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| B1 | N 100, eta 0.3, alpha 0.5, L0 13.089969389957473 | 0 | 1 | 1, 0.29999999999999999 | lattice, default: parallel rows alternate n_s 9 n_r 6 | 0.039483422 / 0.039483422 | 303926 (replication 303926), 5065.43 | 6609; 3, 3; 26.179939 (2 L0 = 26.179939) | 395 / 2000; 8 (N_0, psi6_0, psi6_orient_deg_0, psi6_local_0...); 2.5167-2.5333 (Delta_psi 2.5327) | 20 / 101 | 17 / 84 (N 100) | yes: disk-disk 3.489e-12, outer walls 1.744e-12, divider 1.705e-12, pistons 0.000e+00 |
+| S0 | N 100, eta 0.6, alpha 1.0, L0 6.5449846949787363 | 0 | 1 | 1, 0.59999999999999998 | lattice, requested 0: left lines along x, right lines along x | 0.18040792 / 0.18040792 | 66516 (replication 66516), 1108.6 | 7392; 3, 3; 13.089969 (2 L0 = 13.089969) | 1001 / 1108; 8 (N_0, psi6_0, psi6_orient_deg_0, psi6_local_0...); 1.0000-1.0000 (Delta_psi 1.0000) | 20 / 22 | 48 / 53 (N 100) | yes: disk-disk 3.165e-12, outer walls 1.876e-12, divider 1.876e-12, pistons 0.000e+00 |
+| ST | N 100, eta 0.6, alpha 1.0, L0 6.5449846949787363 | 0 | 1 | 1, 0.59999999999999998 | lattice, requested turned: left lines along y, right lines along y | 0.18040792 / 0.18040792 | 66516 (replication 66516), 1108.6 | 7392; 3, 3; 13.089969 (2 L0 = 13.089969) | 1001 / 1108; 8 (N_0, psi6_0, psi6_orient_deg_0, psi6_local_0...); 1.0000-1.0000 (Delta_psi 1.0000) | 20 / 22 | 48 / 53 (N 100) | yes: disk-disk 3.350e-12, outer walls 1.975e-12, divider 1.933e-12, pistons 0.000e+00 |
+
+(b), (c) on the Mac: every check above holds
+
+The loop's sampling calls (f72d764), the same in the hold and in the record:
+    f72d764 00ALLINONE.c:17294:                         g3_psi6_series_sample(psi6_series, &psi6_next, "hold");   /* ##CHRIS (M3): NULL under gen2 */
+    f72d764 00ALLINONE.c:17295:                         g3_virial_block_sample("hold"); g3_snapshot_sample(0);       /* ##CHRIS (decision 12, part 3a): no-ops unless asked */
+    f72d764 00ALLINONE.c:17422:                         g3_psi6_series_sample(psi6_series, &psi6_next, "record");   /* ##CHRIS (M3): NULL under gen2 */
+    f72d764 00ALLINONE.c:17423:                         g3_virial_block_sample("record"); g3_snapshot_sample(1);       /* ##CHRIS (decision 12, part 3a): no-ops unless asked */
+
+The recorded gen3 speed-of-sound commands (every committed command.txt on engine-gen3; environment variables are not in command.txt), by the registered flags they carry:
+
+| runs | flags | example |
+|---|---|---|
+| 142 | gen3-seeding=lattice gen3-exact-box psi6-every gen3-virial-blocks record-sigma-time | experiments_gen3_d16_261010/data_5d19aa7/pi8_seed1_hold2e4/command.txt |
+| 100 | gen3-seeding=lattice gen3-exact-box record-sigma-time | experiments_gen3_d18_261010/evidence_f72d764/m4c/ident/perp_new/command.txt |
+| 96 | gen3-seeding=lattice gen3-exact-box gen3-psi6-compartments gen3-lattice-orientation record-sigma-time | experiments_gen3_d18_261010/evidence_f72d764/m4c/grid/N100_eta0.600/long/command.txt |
+| 84 | gen3-seeding=lattice gen3-exact-box psi6-every target-oscillations | experiments_gen3_d18_261010/evidence_f72d764/stageH/h3/A/C_hold1/command.txt |
+| 70 | gen3-seeding=lattice gen3-exact-box psi6-every record-sigma-time | experiments_gen3_d18_261010/evidence_f72d764/stageH/h3/B/C_hold60000/command.txt |
+| 70 | gen3-exact-box psi6-every gen3-virial-blocks record-sigma-time | experiments_gen3_p3_261009/data_06e7248/N1600_eta0.700/B/seed0/command.txt |
+| 24 | gen3-seeding=lattice gen3-exact-box gen3-psi6-compartments record-sigma-time | experiments_gen3_d18_261010/evidence_f72d764/m4c/load/N100_eta0.600/default/command.txt |
+| 21 | gen3-seeding=lattice gen3-exact-box psi6-every gen3-virial-blocks gen3-snapshots record-sigma-time | experiments_gen3_d18_261010/evidence_f72d764/ckpt/refusals/on_ckpt_off_run/command.txt |
+| 21 | gen3-exact-box psi6-every gen3-virial-blocks gen3-snapshots record-sigma-time | experiments_gen3_d18_261010/evidence_f72d764/m4c/ident/m4b_new/command.txt |
+| 20 | gen3-seeding=lattice gen3-exact-box gen3-psi6-compartments psi6-every gen3-virial-blocks gen3-lattice-orientation record-sigma-time | experiments_gen3_p6_261010/data_f72d764/N1600_eta0.740/turned/seed2/command.txt |
+| 17 | target-oscillations | experiments_gen3_m3_261009/evidence_f42befb/acc3/default/command.txt |
+| 12 | gen3-exact-box psi6-every record-sigma-time | experiments_gen3_m4b_261009/evidence_06e7248/c/N1600_eta0.700/plain/command.txt |
+| 10 | gen3-seeding=lattice gen3-exact-box gen3-psi6-compartments psi6-every gen3-virial-blocks gen3-snapshots record-sigma-time | experiments_gen3_d18_261010/evidence_f72d764/ckpt/B/C_hold60000/command.txt |
+| 10 | gen3-seeding=lattice gen3-exact-box gen3-psi6-compartments psi6-every gen3-virial-blocks gen3-snapshots gen3-lattice-orientation record-sigma-time | experiments_gen3_p6_261010/data_f72d764/N1600_eta0.740/turned/seed0/command.txt |
+| 8 | gen3-seeding=lattice gen3-exact-box gen3-psi6-compartments psi6-every record-sigma-time | experiments_gen3_d18_261010/evidence_f72d764/ckpt/C/C_hold15000/command.txt |
+| 5 | target-oscillations record-sigma-time | experiments_gen3_m3_261009/evidence_f42befb/a4/sos_N1600_070/command.txt |
+| 2 | psi6-every target-oscillations | experiments_gen3_m3_261009/evidence_f42befb/acc3/max_cadence/command.txt |
+| 2 | gen3-seeding=lattice gen3-exact-box psi6-every gen3-snapshots record-sigma-time | experiments_gen3_p3a_261009/evidence_5d19aa7/e3/snap/command.txt |
+| 1 | psi6-every record-sigma-time | experiments_gen3_m4b_261009/evidence_06e7248/x/case2/command.txt |
+
+recorded with --target-oscillations: gen3-seeding=lattice, gen3-exact-box, psi6-every, record-sigma-time; never with --target-oscillations: gen3-psi6-compartments, gen3-virial-blocks, gen3-snapshots, gen3-lattice-orientation
+
+## (d) nu_pred in the trace header under the exact box
+
+    f72d764 00ALLINONE.c:17051:                 const double eta_nominal_const =
+    f72d764 00ALLINONE.c:17052:                     ((double)particles_active * M_PI * radius_sigma_const * radius_sigma_const)
+    f72d764 00ALLINONE.c:17053:                     / fmax(1e-12, (2.0 * (cli_gen3_exact_box ? L0d : (double)L0_UNITS) * height_sigma_const));
+    f72d764 00ALLINONE.c:17060:                 const double predicted_frequency =
+    f72d764 00ALLINONE.c:17061:                     speed_sound_henderson_frequency_estimate(
+    f72d764 00ALLINONE.c:17062:                         eta_nominal_const, (double)L0_UNITS,
+    f72d764 00ALLINONE.c:17063:                         2.0 * radius_sigma_const,
+    f72d764 00ALLINONE.c:17064:                         (double)wall_mass_factor,
+    f72d764 00ALLINONE.c:17065:                         particles_per_side_plan);
+    f72d764 00ALLINONE.c:16016: /* Román et al. Eq. (26), using Henderson a=1/8, is deliberately
+    f72d764 00ALLINONE.c:16017:    used only as a conservative planning estimate.  Frequency extraction
+    f72d764 00ALLINONE.c:16018:    remains a measurement and does not force the result onto this curve. */
+    f72d764 00ALLINONE.c:16023:     const double L_eff = L0_sigma - diameter_sigma;
+    f72d764 00ALLINONE.c:16963:                 L0_UNITS = L0;
+    f72d764 00ALLINONE.c:17027:                             "Time,Wall_X,Displacement(σ),Left_Count,Right_Count,L0,eta,Center_X(σ),Seed,"
+    f72d764 00ALLINONE.c:17028:                             "Target_Oscillations,Predicted_Frequency,Planned_Steps,Planned_Duration");
+
+over the 670 (cell, mass) pairs of blocks B, D and S: nu_pred finite and > 0 in all: True; nu_pred / nu_KR (KR c_s, L_eff = L0 - 1.025) from 0.8684 (N 100, eta 0.66, alpha 1) to 0.9998 (N 400, eta 0.02, alpha 5)
+reduce_B.py (engine-gen3) takes nu_pred from the trace (tests_20260913._load: the first row's Predicted_Frequency) and uses it for the analysed prefix (TD = 200 predicted periods), the argmax floor (bin TD / X_EDGE = 80, i.e. 0.4 nu_pred) and the ACF length (20 predicted periods); the record is ceil(200 / nu_pred / dt) steps, so the prefix is the whole record:
+    engine-gen3 cluster/confinement_20261013/reduce_B.py:24:         t, x, nup = T._load(p); dt = (t[-1] - t[0]) / (len(t) - 1)
+    engine-gen3 cluster/confinement_20261013/reduce_B.py:25:         n = T._prefix(t, nup, TD); P, df = T._spectrum(x[:n], dt); k = int(round(TD / X_EDGE))
+    engine-gen3 cluster/confinement_20261013/reduce_B.py:26:         nu = (k + int(np.argmax(P[k:]))) * df
+    engine-gen3 cluster/confinement_20261013/reduce_B.py:28:         y = x[:n] - x[:n].mean(); nl = int(20 / (nup * dt))
+    engine-gen3 validation/tests_20260913.py:477:     return d["Time"].to_numpy(float), d["Displacement(σ)"].to_numpy(float), float(r0["Predicted_Frequency"])
+    engine-gen3 validation/tests_20260913.py:480: def _prefix(t, nup, N):
+    engine-gen3 validation/tests_20260913.py:481:     Tc = N / nup
+    engine-gen3 validation/tests_20260913.py:482:     if t[-1] < 0.999 * Tc:
+    engine-gen3 validation/tests_20260913.py:483:         return None
+    engine-gen3 validation/tests_20260913.py:484:     return int(np.searchsorted(t, Tc * (1 + 1e-9), side="right"))
+the trace's Time starts at the release (B1: first row 0.016667 sigma-time after a 1000 sigma-time hold), so the prefix does not depend on the hold.
+
+## (e) The nu_d fit and the averaged-ACF fit (notes sec. 4.4.13 item 4a, as Test G and methods sec. 16 used them)
+
+The model, the start values, the bounds and the window (the whole stored ACF):
+    engine-gen3 validation/resched_testT_followup_261007.py:44: def _g(t, A, tT, B, tr, om, ph):
+    engine-gen3 validation/resched_testT_followup_261007.py:45:     return A * np.exp(-t / tT) + B * np.exp(-t / tr) * np.cos(om * t + ph)
+    engine-gen3 validation/resched_testT_followup_261007.py:48: def fit_acf(a, dt, nu_ref):
+    engine-gen3 validation/resched_testT_followup_261007.py:49:     c = a / a[0]; lag = np.arange(len(c)) * dt; om0 = 2 * math.pi * nu_ref; P = 1 / nu_ref
+    engine-gen3 validation/resched_testT_followup_261007.py:50:     p, _ = curve_fit(_g, lag, c, p0=[0.3, 2 * P, 0.7, 5 * P, om0, 0.0],
+    engine-gen3 validation/resched_testT_followup_261007.py:51:                      bounds=([0, 2 * dt, 0, 2 * dt, 0.2 * om0, -math.pi / 2], [1.5, 1e7, 1.5, 1e7, 5 * om0, math.pi / 2]), maxfev=200000)
+    engine-gen3 validation/resched_testT_followup_261007.py:52:     return p
+Per trajectory (nu_d), the reference frequency and the failure criterion (any exception of curve_fit: no convergence within maxfev = 200000 evaluations; a fit that ends on a bound is not a failure):
+    engine-gen3 validation/resched_testT_followup_261007.py:136:     ref = {M: 0.5 * (nu["minimal"][M].mean() + nu["legacy"][M].mean()) for M in Ms}
+    engine-gen3 validation/resched_testT_followup_261007.py:143:                 try: v.append(fit_acf(a, e["dt"], ref[M])[4] / (2 * math.pi))
+    engine-gen3 validation/resched_testT_followup_261007.py:144:                 except Exception: v.append(np.nan); ff += 1
+The seed-averaged ACF (tau_r, hence nu_0 and Q): the same model and start values on the mean of the trajectories' ACFs cut to the shortest; no failure handling there (an exception stops the script):
+    engine-gen3 validation/resched_testT_followup_261007.py:146:             p = fit_acf(np.mean([a[:min(len(b) for b in e["acf"])] for a in e["acf"]], axis=0), e["dt"], ref[M])   # seed-averaged ACF
+    engine-gen3 validation/resched_testT_followup_261007.py:147:             fit_mean[(pol, M)] = dict(nud=p[4] / (2 * math.pi), tau_r=p[3], A=p[0], B=p[2], tau_T=p[1], phi=p[5])
+    engine-gen3 validation/resched_testT_followup_261007.py:148:             n0[pol][M] = math.sqrt(nd[pol][M].mean() ** 2 + (1 / (2 * math.pi * p[3])) ** 2)
+Test G's nu_d (the G3 target values 0.0370095 and 0.0172665), the same fit with nu_ref = the mean of the two engines' argmax means:
+    engine-gen3 validation/testG_verdict_261009.py:210:         ref = 0.5 * (D[("gen3", M)]["red"]["nu"].mean() + D[("gen2", M)]["red"]["nu"].mean()); v = {}
+    engine-gen3 validation/testG_verdict_261009.py:214:                 try: w.append(F.fit_acf(z[f"run{r}"].astype(float), dt, ref)[4] / (2 * math.pi))
+    engine-gen3 validation/testG_verdict_261009.py:215:                 except Exception: w.append(np.nan)
+The ACF itself (reduce_B.py): the mean-removed position over the prefix, unbiased normalisation, lags to 20 predicted periods:
+    engine-gen3 cluster/confinement_20261013/reduce_B.py:28:         y = x[:n] - x[:n].mean(); nl = int(20 / (nup * dt))
+    engine-gen3 cluster/confinement_20261013/reduce_B.py:29:         f = np.fft.rfft(y, 2 * len(y)); a = np.fft.irfft(f * np.conj(f))[:nl + 1] / np.arange(len(y), len(y) - nl - 1, -1)
+
+## (f) Part A: the held path under gen3
+
+The start and the exact box: gen3 refuses both outside the speed-of-sound experiment (the AF command is --experiment=energy_transfer):
+    f72d764 00ALLINONE.c:22390:         else if ((cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial) && !sos)
+    f72d764 00ALLINONE.c:22391:             why = "--gen3-seeding, --gen3-exact-box and --gen3-dump-initial are wired to the speed-of-sound experiment only";
+    engine-gen3 cluster/confinement_20261013/conf_worker.sh:158:   HD_PISTON_EVENTS="$d/ev_${seed}.csv" "$HD_BIN" --mode=edmd --experiment=energy_transfer --headless --quiet \
+    engine-gen3 cluster/confinement_20261013/conf_worker.sh:159:      --edmd-acc=0 --seed-drift-order=drift-first --energy-transfer-summary="$d/summary_${seed}.csv" \
+    engine-gen3 cluster/confinement_20261013/conf_worker.sh:160:      --energy-transfer-trace="$d/tr_${seed}.csv" --trace-every=$every --particles=$((2*NS)) \
+    engine-gen3 cluster/confinement_20261013/conf_worker.sh:161:      --particles-boxes=$NS,$NS --particle-radius=0.5 --l0=$L0 --height=$H --num-walls=1 --wall-positions=$xw \
+    engine-gen3 cluster/confinement_20261013/conf_worker.sh:162:      --wall-mass-factors=1000000000 --wall-thickness=0.05 --wall-thickness-vis=0.05 --eff-output=wall-ke \
+    engine-gen3 cluster/confinement_20261013/conf_worker.sh:163:      --wall-hold-steps=$hold --steps=$post --fixed-dt=0.4 --kbt1 --seed=$seed > "$d/run_${seed}.log" 2>&1
+The divider's position: a fraction of the requested 2 L0, applied to the box width on the 1/48 grid; the validator then compares it with the request to 1e-5 sigma:
+    f72d764 00ALLINONE.c:5174:             float frac = pos_sigma / fmaxf(1e-6f, span_sigma);
+    f72d764 00ALLINONE.c:3354:             all_wall_positions[w] = XW1 + frac * width_px;
+    f72d764 00ALLINONE.c:18103:         const double position_tolerance_sigma = 1e-5;
+The same three rules in a643bc7 (Part A has the same answer with either binary):
+    a643bc7 00ALLINONE.c:22056:         else if ((cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial) && !sos)
+    a643bc7 00ALLINONE.c:3342:             all_wall_positions[w] = XW1 + frac * width_px;
+    a643bc7 00ALLINONE.c:17812:         const double position_tolerance_sigma = 1e-5;
+
+| probe | what | exit | the lines that decide |
+|---|---|---|---|
+| AF1 | eta 0.30 cell, --gen3-seeding=lattice | 2 | WARNING: L_0 not on the 1/48 sigma grid: box truncated by 0.013273 sigma; STOP (--engine=gen3): --gen3-seeding, --gen3-exact-box and --gen3-dump-initial are wired to the speed-of-sound experiment only |
+| AF2 | eta 0.30 cell, --gen3-exact-box | 2 | STOP (--engine=gen3): --gen3-seeding, --gen3-exact-box and --gen3-dump-initial are wired to the speed-of-sound experiment only |
+| AF3 | eta 0.30 cell (L0 off the 1/48 grid), legacy start, divider at L0 | 2 | WARNING: L_0 not on the 1/48 sigma grid: box truncated by 0.013273 sigma; ABORTING INVALID RUN [initial_wall_position_mismatch]: Wall 0 initialized at 13.0833333 sigma; command requested 13.0899696 sigma. |
+| AF4 | L0 = 628/48 (on the grid), divider at L0 + 0.0123 | 0 | [EDMD3-HEALTH] energy-transfer seed=7700104: clean=1 |
+| AF5 | N 100, L0 = 273/48 (eta 0.6905), legacy start | 0 | [EDMD3-HEALTH] energy-transfer seed=7700105: clean=1 |
+| AF6 | N 1600, L0 = 1092/48 (eta 0.6905), 50 sigma-time held | 0 | [EDMD3-HEALTH] energy-transfer seed=7700106: clean=1 |
+| AF5v | AF5 without --quiet (the seeder's lines) | 0 | [SEED] Rectangular one-wall lattice cannot fit without overlap; using checked per-compartment hexagonal fallback.; [EDMD3-HEALTH] energy-transfer seed=7700105: clean=1 |
+| AF6v | AF6 without --quiet (the seeder's lines) | 0 | ✅ Particles placed with buffer. Wall_x = 746.000; [SEED] MAX(buffer)=120000 requested=1600 active=1600 phi_max=0.780; [SEED] caps: L=842 R=842  targets: L=800 R=800; [EDMD3-HEALTH] energy-transfer seed=7700106: clean=1 |
+
+AF4: the divider at t = 0 at 13.095634 sigma (requested 13.095633): an off-grid position is taken when the box is on the grid.
+cells of block B whose L0 is on the 1/48 grid (they would pass the validator): 4 of 64: N 100 eta 0.3927 (L0 10), N 400 eta 0.3927 (L0 20), N 900 eta 0.3927 (L0 30), N 1600 eta 0.3927 (L0 40)
+
+The event log (HD_PISTON_EVENTS; under gen3 one row per outer-wall, divider-face and piston collision):
+    f72d764 edmd_core/edmd_gen3.c:171:     /* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14): edmd.c's gated event log (edmd_set_event_log), same columns and values,
+    f72d764 edmd_core/edmd_gen3.c:172:        one row per outer-wall, divider-face and piston collision. PRINT ONLY: written from the values the collision rule
+
+| log | rows | bytes | bytes per row | sigma-time | rows per sigma-time | of them divider (D0) | bulk estimate | measured / bulk |
+|---|---|---|---|---|---|---|---|---|
+| Test G (Mac), gen3, N 100, eta pi/8, held, ev_974863060 | 265,934 | 17,286,520 | 65.0 | 5219.98 | 50.9 | 25.0% | 44.0 | 1.157 |
+| AF6, N 1600, eta 0.6905, held 50 sigma-time | 46,223 | 3,012,725 | 65.2 | 50.98 | 906.6 | 32.1% | 899.1 | 1.008 |
+(bulk estimate: beta P / sqrt(2 pi) per unit wall length with beta P = rho Z_KR, the walls 4 H + 4 L0 long)
+
+Part A's event log at N = 1600 per (seed, position): the bulk estimate times 1.008 (AF6), 65.2 bytes per row, held T_eq + 5000 sigma-time (+ the 20 sigma-time tail):
+
+| eta | L0 | rows per sigma-time | held sigma-time | rows | size |
+|---|---|---|---|---|---|
+| 0.05 | 314.1593 | 40.2 | 6000 | 242,092 | 16 MB |
+| 0.1 | 157.0796 | 49.9 | 6000 | 300,490 | 20 MB |
+| 0.15 | 104.7198 | 61.7 | 6000 | 371,655 | 24 MB |
+| 0.2 | 78.5398 | 76.3 | 6000 | 459,214 | 30 MB |
+| 0.25 | 62.8319 | 94.4 | 6000 | 568,101 | 37 MB |
+| 0.3 | 52.3599 | 117.1 | 6000 | 705,145 | 46 MB |
+| 0.35 | 44.8799 | 146.2 | 6000 | 879,985 | 57 MB |
+| 0.3927 | 40.0000 | 177.7 | 6000 | 1,069,543 | 70 MB |
+| 0.45 | 34.9066 | 233.5 | 6000 | 1,405,525 | 92 MB |
+| 0.5 | 31.4159 | 300.4 | 6000 | 1,808,598 | 118 MB |
+| 0.55 | 28.5599 | 393.1 | 6000 | 2,366,203 | 154 MB |
+| 0.6 | 26.1799 | 525.2 | 6000 | 3,161,667 | 206 MB |
+| 0.63 | 24.9333 | 632.3 | 10000 | 6,335,764 | 413 MB |
+| 0.66 | 23.7999 | 766.0 | 10000 | 7,675,488 | 500 MB |
+| 0.68 | 23.0999 | 864.1 | 10000 | 8,658,149 | 564 MB |
+| 0.69 | 22.7652 | 905.2 | 10000 | 9,069,618 | 591 MB |
+
+reduce_AF.py's window: [t0, t1) from its arguments; the worker passes t0 = 200 and t1 = the release:
+    engine-gen3 cluster/confinement_20261013/reduce_AF.py:12: ev, tr, out, t0, t1 = sys.argv[1], sys.argv[2], sys.argv[3], float(sys.argv[4]), float(sys.argv[5])
+    engine-gen3 cluster/confinement_20261013/reduce_AF.py:13: e = pd.read_csv(ev, usecols=["t_sigma", "kind", "u_wall", "dE", "dp"])
+    engine-gen3 cluster/confinement_20261013/reduce_AF.py:16: d = e[(e["kind"] == "D0") & (e["t_sigma"] >= t0) & (e["t_sigma"] < t1)]
+    engine-gen3 cluster/confinement_20261013/conf_worker.sh:166:   t1=$(awk -v h="$hold" 'BEGIN{printf "%.9f", h * 0.4 / 24.0}')
+    engine-gen3 cluster/confinement_20261013/conf_worker.sh:167:   python3 "$HERE/reduce_AF.py" "$d/ev_${seed}.csv" "$d/tr_${seed}.csv" "$d/red_${seed}.csv" 200 "$t1" || { echo "AF $rel seed=$seed reduction FAILED"; exit 1; }
+    engine-gen3 cluster/gen3_gate_261009/af_stream_reduce.py:17:     data = fh.read()                                   # until the binary closes the log (at its exit)
+
+## (g) MaxArraySize on KOA
+
+    engine-gen3 cluster/KOA_RUNSHEET_261002.md:907: The cap is our own choice. KOA's limits (printed by Chris on 2026-10-08):
+    engine-gen3 cluster/KOA_RUNSHEET_261002.md:908: - no per-user CPU or job limit;
+    engine-gen3 cluster/KOA_RUNSHEET_261002.md:909: - MaxSubmit 60001;
+    engine-gen3 cluster/KOA_RUNSHEET_261002.md:910: - MaxArraySize 25001;
+    engine-gen3 cluster/KOA_RUNSHEET_261002.md:911: - `shared` has 3,012 CPUs on 90 nodes.
+
+registered trajectories: B 14,400 (25 seeds), D 1,350, S 800 (10 seeds, two starts); total 16,550: below 25001 even at one trajectory per array task
+
+## (h) The step limits of the B command against the longest record
+
+    f72d764 00ALLINONE.c:16041: static int speed_sound_steps_for_target_cycles(
+    f72d764 00ALLINONE.c:16042:         double predicted_frequency, double sample_dt_sigma) {
+    f72d764 00ALLINONE.c:16043:     if (cli_speed_sound_target_oscillations <= 0) return num_steps;
+    f72d764 00ALLINONE.c:16044:     if (!(predicted_frequency > 0.0) || !isfinite(predicted_frequency) ||
+    f72d764 00ALLINONE.c:16045:         !(sample_dt_sigma > 0.0) || !isfinite(sample_dt_sigma)) {
+    f72d764 00ALLINONE.c:16046:         return num_steps;
+    f72d764 00ALLINONE.c:16047:     }
+    f72d764 00ALLINONE.c:16048:     const double duration = cli_speed_sound_oscillation_safety *
+    f72d764 00ALLINONE.c:16049:         (double)cli_speed_sound_target_oscillations / predicted_frequency;
+    f72d764 00ALLINONE.c:16050:     double raw_steps = ceil(duration / sample_dt_sigma);
+    f72d764 00ALLINONE.c:16051:     if (raw_steps < (double)cli_speed_sound_min_steps)
+    f72d764 00ALLINONE.c:16052:         raw_steps = (double)cli_speed_sound_min_steps;
+    f72d764 00ALLINONE.c:16053:     if (raw_steps > (double)cli_speed_sound_max_steps)
+    f72d764 00ALLINONE.c:16054:         raw_steps = (double)cli_speed_sound_max_steps;
+    f72d764 00ALLINONE.c:16055:     if (raw_steps > (double)INT_MAX) raw_steps = (double)INT_MAX;
+    f72d764 00ALLINONE.c:16056:     return (int)raw_steps;
+    engine-gen3 cluster/gen3_koa_261009/testG_worker_koa.sh:90:      --oscillation-min-steps=10000 --oscillation-max-steps=400000000 --speed-sound-log-stride=$stride \
+
+planned record steps over the 670 (cell, mass) pairs (safety 1.0, target 200, dt = (double) 0.4f / 24):
+- longest: 90,452,798 steps = 1,507,547 sigma-time (block D, N 400, eta 0.02, alpha 20); the maximum is 400,000,000 (factor 4.42); INT_MAX 2,147,483,647
+- shortest: 29,655 steps (block B, N 100, eta 0.69, alpha 0.5); the minimum is 10,000
+- records cut short by the maximum: 0; lengthened by the minimum: 0
+- hold steps: 60,000 (T_eq 1000) and 300,000 (T_eq 5000), parsed as int (--wall-hold-steps)

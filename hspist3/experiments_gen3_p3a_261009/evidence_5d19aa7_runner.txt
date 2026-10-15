@@ -1,0 +1,43 @@
+# part 3a evidence 2026-10-09 18:34:37 HST: binaries /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_p3a_261009/bin_3a
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.8Ti   9.7Gi   100%     10M  101M    9%   /System/Volumes/Data
+  stage H runner: exit 0
+  start e3 plain
+  start e3 vb
+  start e3 snap
+  start e3 both
+  start e4 pi8 seed0
+  start e4 pi8 seed1
+  start e4 pi8 seed2
+  start e4 070 seed0
+  start e4 070 seed1
+  start e4 070 seed2
+  start e5 snapshots vs the initial dump
+  start e6 U
+  start e6 C hold:60000
+  start e6 C record:3000
+  start e6 R1 hold60000
+  start e6 R1 record3000
+  done e6 R1 hold60000: exit 0, 9 s
+  start e6 R2 hold60000
+  done e6 R1 record3000: exit 0, 18 s
+  start e6 R2 record3000
+  done e3 plain: exit 0, 39 s
+  done e3 vb: exit 0, 39 s
+  done e3 snap: exit 0, 39 s
+  done e3 both: exit 0, 39 s
+  done e4 pi8 seed0: exit 0, 39 s
+  done e4 pi8 seed1: exit 0, 39 s
+  done e4 pi8 seed2: exit 0, 39 s
+  done e4 070 seed0: exit 0, 45 s
+  done e4 070 seed1: exit 0, 46 s
+  done e4 070 seed2: exit 0, 46 s
+  done e5 snapshots vs the initial dump: exit 0, 39 s
+  done e6 U: exit 0, 39 s
+  done e6 C hold:60000: exit 0, 39 s
+  done e6 C record:3000: exit 0, 38 s
+  done e6 R2 hold60000: exit 0, 16 s
+  done e6 R2 record3000: exit 0, 7 s
+# done 2026-10-09 18:44:20 HST
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.8Ti   9.6Gi   100%     10M  101M    9%   /System/Volumes/Data

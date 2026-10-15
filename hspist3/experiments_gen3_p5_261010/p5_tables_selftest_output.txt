@@ -1,0 +1,3 @@
+selftest [EDMD3-M4B] parser: {'u': 0.01, 'kt_before': (7.430278383002053, 7.3774729122761915), 'kt_after': (0.9999999999999999, 0.999999999999999), 'melt': 500.0, 'comp_t': 495.29613907947214, 'wall_s': 30.2, 'psi_g': 0.733714, 'psi_l': 0.861015, 'nb': 5.6988}: ok
+selftest share: 0.500000 (direct 0.5), SE 0.123744 (numerical derivatives 0.123744): ok
+SELFTEST PASS

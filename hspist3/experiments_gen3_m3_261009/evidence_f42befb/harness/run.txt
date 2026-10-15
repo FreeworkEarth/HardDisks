@@ -1,0 +1,2 @@
+band_edge_test rc 0
+band_edge_ties rc 0

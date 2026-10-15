@@ -1,0 +1,49 @@
+binaries: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_m3_261009/bin_stageA; out: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_m3_261009/evidence_f42befb; 2026-10-09 12:08:44 HST
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.8Ti    11Gi   100%     10M  113M    8%   /System/Volumes/Data
+
+  done a3 default: rc 0, 3 s
+  done a3 validator1: rc 0, 4 s
+  done e0 default: rc 0, 7 s
+  done e0 gen2flag: rc 0, 7 s
+  done acc4 free_M50: rc 0, 1 s
+  done acc3 min_cadence: rc 0, 2 s
+  done acc4 dense_M50: rc 0, 1 s
+  done acc3 default: rc 0, 2 s
+  done acc3 default_repeat: rc 0, 2 s
+  done acc4 ctrl_min: rc 0, 1 s
+  done acc4 free_M500: rc 0, 3 s
+  done acc4 dense_M2000: rc 0, 1 s
+  done a3 validator1_trace1: rc 0, 4 s
+  done acc4 free_M1500: rc 0, 4 s
+  done acc4 afix: rc 0, 2 s
+  done acc4 free_M2000: rc 0, 5 s
+  done acc3 max_cadence: rc 0, 6 s
+  done acc5 gen3 r0: rc 0, 12 s
+  done acc5 gen3 r1: rc 0, 12 s
+  done acc5 gen3 r2: rc 0, 13 s
+  done acc5 gen3 r3: rc 0, 13 s
+  done acc5 gen3 r4: rc 0, 13 s
+  done acc5 gen3 r5: rc 0, 14 s
+  done acc5 gen3 r6: rc 0, 14 s
+  done acc5 gen3 r7: rc 0, 14 s
+  done acc5 gen2 r1: rc 0, 63 s
+  done acc5 gen2 r0: rc 0, 64 s
+  done acc5 gen2 r2: rc 0, 64 s
+  done acc5 gen2 r3: rc 0, 64 s
+  done acc5 gen2 r4: rc 0, 63 s
+  done acc5 gen2 r5: rc 0, 63 s
+  done acc5 gen2 r6: rc 0, 63 s
+  done acc5 gen2 r7: rc 0, 60 s
+  done replay: rc 0, 120 s
+  done prod: rc 0, 169 s
+  done harness: rc 0, 408 s
+  done a4 sos N400 pi8: rc 0, 4 s
+  done a4 sos N400 070: rc 0, 16 s
+  done a4 sos N1600 pi8: rc 0, 20 s
+  done a4 sos N1600 070: rc 0, 68 s
+  done a4 et N400 pi8: rc 0, 1 s
+  done a4 et N400 070: rc 0, 7 s
+  done a4 et N1600 pi8: rc 0, 4 s
+  done a4 et N1600 070: rc 0, 26 s
+finished 12:18:05; exit codes: a3 default 0, a3 validator1 0, e0 default 0, e0 gen2flag 0, acc4 free_M50 0, acc3 min_cadence 0, acc4 dense_M50 0, acc3 default 0, acc3 default_repeat 0, acc4 ctrl_min 0, acc4 free_M500 0, acc4 dense_M2000 0, a3 validator1_trace1 0, acc4 free_M1500 0, acc4 afix 0, acc4 free_M2000 0, acc3 max_cadence 0, acc5 gen3 r0 0, acc5 gen3 r1 0, acc5 gen3 r2 0, acc5 gen3 r3 0, acc5 gen3 r4 0, acc5 gen3 r5 0, acc5 gen3 r6 0, acc5 gen3 r7 0, acc5 gen2 r1 0, acc5 gen2 r0 0, acc5 gen2 r2 0, acc5 gen2 r3 0, acc5 gen2 r4 0, acc5 gen2 r5 0, acc5 gen2 r6 0, acc5 gen2 r7 0, replay 0, prod 0, harness 0, a4 sos N400 pi8 0, a4 sos N400 070 0, a4 sos N1600 pi8 0, a4 sos N1600 070 0, a4 et N400 pi8 0, a4 et N400 070 0, a4 et N1600 pi8 0, a4 et N1600 070 0

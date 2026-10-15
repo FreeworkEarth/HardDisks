@@ -1,0 +1,1 @@
+A partA/gen3/B_N0100_eta0.050000/x_m2_nopin j=-2 s=0 seed=3936421662 ok (0 s)

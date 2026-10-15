@@ -1,0 +1,7 @@
+       4
+       4
+0
+   4 (Apple M3 Max (Mac rehearsal))
+chunk logs: 4; chunks done: 4 of 4 (group B100; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished
+group B100 without a done log: stopped once 0, stopped twice or more 0, started and not finished 0, no log 0
+nothing to resubmit

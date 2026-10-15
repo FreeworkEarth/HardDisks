@@ -1,0 +1,8 @@
+# Command
+
+- Timestamp: 2026-10-09 18:34:38 HST
+- CWD: `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_p3a_261009/evidence_5d19aa7/h/h0/gen2flag/ctrl_min/audit`
+
+```sh
+/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_p3a_261009/bin_3a/00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --kbt1 --seed-drift-order=drift-first --edmd-acc=0 --particles=100 --particles-boxes=50,50 --height=10.0 --particle-radius=0.5 --wall-thickness=0.05 --wall-thickness-vis=0.05 --lengths=10.0000 --wall-masses=50 --repeats=1 --seed=20261013 --wall-hold-steps=2000 --fixed-dt=0.4 --target-oscillations=25 --oscillation-safety=1.0 --oscillation-min-steps=10000 --oscillation-max-steps=400000000 --speed-sound-log-stride=26 --speed-sound-run-dir=/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_p3a_261009/evidence_5d19aa7/h/h0/gen2flag/ctrl_min/audit --speed-sound-exact-seed=57831576 --resched-audit=all --engine=gen2
+```

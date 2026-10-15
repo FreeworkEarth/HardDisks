@@ -1,0 +1,2 @@
+00ALLINONE  git 7b08827  target mac-O3-gen3count
+  CFLAGS: -O3 -ffp-contract=off

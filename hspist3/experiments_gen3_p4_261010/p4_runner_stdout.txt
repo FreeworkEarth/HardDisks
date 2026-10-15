@@ -1,0 +1,80 @@
+# 2026-10-10 02:08:19 HST P4: binary /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_m4b_261009/bin_m4b/00ALLINONE (5d9ceb95e716e50d90a69ac8351e8065081c4160ce645c247d8a7f3136cd19ae; 00ALLINONE  git 06e7248  target mac-O3-e0pre); out /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_p4_261010/data_06e7248; jobs 8; cap file /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/p4_cap.txt
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.8Ti    19Gi    99%     10M  194M    5%   /System/Volumes/Data
+vm.swapusage: total = 11264.00M  used = 9915.38M  free = 1348.62M  (encrypted)
+  start N400_eta0.740 A seed0 (running 1, cap 8, free 18.5 GiB)
+  start N400_eta0.740 A seed1 (running 2, cap 8, free 18.5 GiB)
+  start N400_eta0.740 A seed2 (running 3, cap 8, free 18.5 GiB)
+  start N400_eta0.740 A seed3 (running 4, cap 8, free 18.5 GiB)
+  start N400_eta0.740 A seed4 (running 5, cap 8, free 18.5 GiB)
+  start N400_eta0.740 A seed5 (running 6, cap 8, free 18.5 GiB)
+  start N400_eta0.740 B seed0 (running 7, cap 8, free 18.5 GiB)
+  start N400_eta0.740 B seed1 (running 8, cap 8, free 18.5 GiB)
+  N400_eta0.740 A seed2: exit 0, 964 s
+  start N400_eta0.740 B seed2 (running 8, cap 8, free 16.1 GiB)
+  N400_eta0.740 B seed1: exit 0, 973 s
+  start N400_eta0.740 B seed3 (running 8, cap 8, free 16.1 GiB)
+  N400_eta0.740 A seed5: exit 0, 980 s
+  start N400_eta0.740 B seed4 (running 8, cap 8, free 16.1 GiB)
+  N400_eta0.740 B seed0: exit 0, 981 s
+  start N400_eta0.740 B seed5 (running 8, cap 8, free 16.1 GiB)
+  N400_eta0.740 A seed0: exit 0, 988 s
+  start N1600_eta0.740 A seed0 (running 8, cap 8, free 16.1 GiB)
+  N400_eta0.740 A seed1: exit 0, 992 s
+  start N1600_eta0.740 A seed1 (running 8, cap 8, free 16.1 GiB)
+  N400_eta0.740 A seed3: exit 0, 998 s
+  start N1600_eta0.740 A seed2 (running 8, cap 8, free 16.1 GiB)
+  N400_eta0.740 A seed4: exit 0, 1000 s
+  start N1600_eta0.740 A seed3 (running 8, cap 8, free 16.1 GiB)
+  N1600_eta0.740 A seed0: exit 0, 790 s
+  start N1600_eta0.740 A seed4 (running 8, cap 8, free 16.5 GiB)
+  N1600_eta0.740 A seed1: exit 0, 789 s
+  start N1600_eta0.740 A seed5 (running 8, cap 8, free 16.5 GiB)
+  N1600_eta0.740 A seed2: exit 0, 789 s
+  start N1600_eta0.740 B seed0 (running 8, cap 8, free 16.5 GiB)
+  N1600_eta0.740 A seed3: exit 0, 791 s
+  start N1600_eta0.740 B seed1 (running 8, cap 8, free 16.5 GiB)
+  N400_eta0.740 B seed2: exit 0, 1015 s
+  start N1600_eta0.740 B seed2 (running 8, cap 8, free 16.4 GiB)
+  N400_eta0.740 B seed4: exit 0, 1005 s
+  N400_eta0.740 B seed5: exit 0, 1004 s
+  start N1600_eta0.740 B seed3 (running 7, cap 8, free 16.3 GiB)
+  start N1600_eta0.740 B seed4 (running 8, cap 8, free 16.3 GiB)
+  N400_eta0.740 B seed3: exit 0, 1018 s
+  start N1600_eta0.740 B seed5 (running 8, cap 8, free 16.3 GiB)
+  N1600_eta0.740 A seed4: exit 0, 810 s
+  start N1600_eta0.780 A seed0 (running 8, cap 8, free 13.5 GiB)
+  N1600_eta0.740 A seed5: exit 0, 810 s
+  start N1600_eta0.780 A seed1 (running 8, cap 8, free 13.5 GiB)
+  N1600_eta0.740 B seed0: exit 0, 853 s
+  start N1600_eta0.780 A seed2 (running 8, cap 8, free 13.5 GiB)
+  N1600_eta0.740 B seed1: exit 0, 853 s
+  start N1600_eta0.780 A seed3 (running 8, cap 8, free 13.5 GiB)
+  N1600_eta0.740 B seed2: exit 0, 858 s
+  start N1600_eta0.780 A seed4 (running 8, cap 8, free 13.5 GiB)
+  N1600_eta0.740 B seed3: exit 0, 858 s
+  start N1600_eta0.780 A seed5 (running 8, cap 8, free 13.5 GiB)
+  N1600_eta0.740 B seed4: exit 0, 863 s
+  start N1600_eta0.780 B seed0 (running 8, cap 8, free 13.5 GiB)
+  N1600_eta0.740 B seed5: exit 0, 858 s
+  start N1600_eta0.780 B seed1 (running 8, cap 8, free 13.5 GiB)
+  N1600_eta0.780 A seed0: exit 0, 1034 s
+  start N1600_eta0.780 B seed2 (running 8, cap 8, free 12.5 GiB)
+  N1600_eta0.780 A seed1: exit 0, 1032 s
+  start N1600_eta0.780 B seed3 (running 8, cap 8, free 12.5 GiB)
+  N1600_eta0.780 A seed2: exit 0, 1034 s
+  start N1600_eta0.780 B seed4 (running 8, cap 8, free 12.5 GiB)
+  N1600_eta0.780 A seed3: exit 0, 1035 s
+  start N1600_eta0.780 B seed5 (running 8, cap 8, free 12.5 GiB)
+  N1600_eta0.780 A seed4: exit 0, 1028 s
+  N1600_eta0.780 A seed5: exit 0, 1029 s
+  N1600_eta0.780 B seed0: exit 0, 1086 s
+  N1600_eta0.780 B seed1: exit 0, 1089 s
+  N1600_eta0.780 B seed2: exit 0, 963 s
+  N1600_eta0.780 B seed3: exit 0, 966 s
+  N1600_eta0.780 B seed4: exit 0, 954 s
+  N1600_eta0.780 B seed5: exit 0, 955 s
+# done 2026-10-10 03:25:38 HST after 4639 s
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.8Ti    11Gi   100%     10M  112M    8%   /System/Volumes/Data
+vm.swapusage: total = 11264.00M  used = 9915.38M  free = 1348.62M  (encrypted)

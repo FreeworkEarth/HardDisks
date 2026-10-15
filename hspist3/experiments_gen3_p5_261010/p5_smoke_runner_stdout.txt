@@ -1,0 +1,10 @@
+# 2026-10-10 09:05:02 HST P5 SMOKE: binary /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_m4b_261009/bin_m4b/00ALLINONE (5d9ceb95e716e50d90a69ac8351e8065081c4160ce645c247d8a7f3136cd19ae; 00ALLINONE  git 06e7248  target mac-O3-e0pre); out /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_p5_261010/smoke_06e7248; jobs 1; cap file None
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.8Ti    14Gi   100%     10M  151M    6%   /System/Volumes/Data
+vm.swapusage: total = 11264.00M  used = 9875.38M  free = 1388.62M  (encrypted)
+  start smoke_N100_eta0.740_u0.0001 B seed0 (running 1, cap 1, free 14.4 GiB)
+  smoke_N100_eta0.740_u0.0001 B seed0: exit 0, 45 s
+# done 2026-10-10 09:05:48 HST after 46 s
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.8Ti    15Gi   100%     10M  158M    6%   /System/Volumes/Data
+vm.swapusage: total = 10240.00M  used = 9445.50M  free = 794.50M  (encrypted)

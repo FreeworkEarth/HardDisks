@@ -1,0 +1,5 @@
+ctrl_min/audit: exit 126
+ctrl_min/plain: exit 126
+ctrl_leg/audit: exit 126
+ctrl_leg/plain: exit 126
+wall time 1 s

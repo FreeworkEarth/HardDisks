@@ -18,6 +18,7 @@
 #include "kissfft/kiss_fftr.h"
 #include "edmd_core/edmd.h"
 #include "edmd_core/edmd_accelerated.h"
+#include "edmd_core/edmd_gen3.h"   /* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14): --engine=gen3 */
 #include "experiment_validation.h"
 
 
@@ -319,6 +320,7 @@ int HIST_WIDTH, HIST_HEIGHT;
 
 #define MIN_WINDOW_WIDTH 1300  // Minimum width for consistent UI (matches L0=20)
 
+static int cli_gen3_exact_box;   /* ##CHRIS 2026-10-09 (M4): tentative; defined with the gen3 options below */
 void initialize_simulation_dimensions() {
     SIM_WIDTH = (int)(2 * L0_UNITS * PIXELS_PER_SIGMA);
     SIM_HEIGHT = (int)(HEIGHT_UNITS * PIXELS_PER_SIGMA);
@@ -326,7 +328,8 @@ void initialize_simulation_dimensions() {
        physics uses the truncated box (prm.boxW = XW2 - XW1). Output only: warn, so it can never be silent again. */
     {
         const float wexact = 2 * L0_UNITS * PIXELS_PER_SIGMA;
-        if (wexact - (float)SIM_WIDTH > 1e-4f)
+        if (cli_gen3_exact_box) { if (wexact - (float)SIM_WIDTH > 1e-4f) fprintf(stderr, "gen3 exact box: the physics uses 2 L0 exactly; SIM_WIDTH (the 1/48 grid) is for the display only\n"); }   /* ##CHRIS (M4) */
+        else if (wexact - (float)SIM_WIDTH > 1e-4f)
             fprintf(stderr, "WARNING: L_0 not on the 1/48 sigma grid: box truncated by %.6f sigma\n",
                     (double)(wexact - (float)SIM_WIDTH) / (double)PIXELS_PER_SIGMA);
         const float hexact = HEIGHT_UNITS * PIXELS_PER_SIGMA;
@@ -760,6 +763,44 @@ int energy_histogram[NUM_BINS] = {0};
 SDL_Window* _window = NULL;
 SDL_Renderer* _renderer = NULL;
 
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item D; 261012 sec. 4.7.73): THE UI IN WINDOW POINTS. With
+   SDL_WINDOW_ALLOW_HIGHDPI the renderer has gui_ui_scale device pixels per window point (2 on a Retina Mac). The HUD, the F2 and F3
+   panels and their labels used to be drawn in device pixels, i.e. at half their size there. Between gui_begin_ui_view() and
+   gui_end_ui_view() MAX_X and MAX_Y are the window size in points and the render scale is gui_ui_scale; draw_text renders with the
+   fonts opened at gui_ui_scale times their size (gui_open_hi_fonts) and draws them at 1/gui_ui_scale, so the text stays sharp. The
+   mouse handlers use the same coordinates (gui_ui_coords_begin/end around live_controls_handle_event; gui_mouse_to_canvas_xy). The
+   scene (box, disks, divider, pistons and the distribution panels) keeps its own scale (gui_begin_scene_view). Display only. */
+static float gui_ui_scale = 1.0f;          /* device pixels per window point (gui_sync_renderer_canvas_size) */
+static float cli_gui_ui_scale = 0.0f;      /* --gui-ui-scale=U: a test override of the measured value (0: measured) */
+static int   gui_ui_active = 0;            /* MAX_X, MAX_Y are in window points (gui_ui_coords_begin) */
+static int   gui_ui_pass = 0;              /* the render scale is gui_ui_scale (gui_begin_ui_view) */
+static int   gui_ui_saved_max_x = 0, gui_ui_saved_max_y = 0;
+/* ##CHRIS 2026-10-12 (decision 34, addition, item C): the window is paused at a divider's limit (gui_divider_limit_check) */
+static int   gui_div_limit_paused = 0;
+static char  gui_div_limit_msg[2][240];
+static void gui_ui_coords_begin(void) {
+    if (gui_ui_active) return;
+    gui_ui_saved_max_x = MAX_X; gui_ui_saved_max_y = MAX_Y;
+    MAX_X = (int)floorf((float)MAX_X / gui_ui_scale);
+    MAX_Y = (int)floorf((float)MAX_Y / gui_ui_scale);
+    gui_ui_active = 1;
+}
+static void gui_ui_coords_end(void) {
+    if (!gui_ui_active) return;
+    MAX_X = gui_ui_saved_max_x; MAX_Y = gui_ui_saved_max_y;
+    gui_ui_active = 0;
+}
+static void gui_begin_ui_view(void) {
+    gui_ui_coords_begin();
+    if (_renderer) SDL_RenderSetScale(_renderer, gui_ui_scale, gui_ui_scale);
+    gui_ui_pass = 1;
+}
+static void gui_end_ui_view(void) {
+    if (_renderer) SDL_RenderSetScale(_renderer, 1.0f, 1.0f);
+    gui_ui_pass = 0;
+    gui_ui_coords_end();
+}
+
 static void gui_recompute_hist_extents(void) {
     HIST_WIDTH = MAX_X - SIM_WIDTH;
     HIST_HEIGHT = MAX_Y - SIM_HEIGHT;
@@ -769,10 +810,14 @@ static void gui_recompute_hist_extents(void) {
 
 static void gui_sync_renderer_canvas_size(void) {
     int w = 0, h = 0;
+    gui_ui_scale = cli_gui_ui_scale > 0.0f ? cli_gui_ui_scale : 1.0f;   /* ##CHRIS 2026-10-12 (decision 34, addition, item D) */
     if (_renderer && SDL_GetRendererOutputSize(_renderer, &w, &h) == 0 && w > 0 && h > 0) {
         MAX_X = w;
         MAX_Y = h;
         gui_recompute_hist_extents();
+        int ww = 0, wh = 0;   /* ##CHRIS (decision 34, addition, item D): device pixels per window point */
+        if (_window) SDL_GetWindowSize(_window, &ww, &wh);
+        if (cli_gui_ui_scale <= 0.0f && ww > 0) gui_ui_scale = fmaxf(1.0f, (float)w / (float)ww);
         return;
     }
     if (_window) {
@@ -796,8 +841,9 @@ static void gui_mouse_to_canvas_xy(int raw_x, int raw_y, int *canvas_x, int *can
             sy = (double)rh / (double)wh;
         }
     }
-    if (canvas_x) *canvas_x = (int)lround((double)raw_x * sx);
-    if (canvas_y) *canvas_y = (int)lround((double)raw_y * sy);
+    /* ##CHRIS 2026-10-12 (decision 34, addition, item D): in the UI's window points, as the panels are laid out */
+    if (canvas_x) *canvas_x = (int)lround((double)raw_x * sx / (double)gui_ui_scale);
+    if (canvas_y) *canvas_y = (int)lround((double)raw_y * sy / (double)gui_ui_scale);
 }
 
 // GUI toggles (interactive only)
@@ -818,7 +864,7 @@ static float gui_render_dt_rem = 0.0f;
 // GUI window sizing (pure UI; never changes physics).
 // Some displays (e.g. external monitors) have limited vertical resolution; allow shrinking the bottom plots.
 // Use PageUp/PageDown at runtime.
-static int gui_window_min_extra_y = 240;   // minimum pixels reserved below SIM_HEIGHT
+/* ##CHRIS 2026-10-12 (decision 34, item 1): gui_window_min_extra_y (pixels reserved below the box) is gone: the box is fitted to the window */
 static int gui_window_height_step = 80;    // pixels per PgUp/PgDn
 
 // GUI toggle: freeze velocity display x-range (vmax) so heating/cooling is visually obvious.
@@ -935,6 +981,7 @@ static int live_controls_drag_index = -1;
 static int live_scene_drag_index = -1;
 static int live_scene_drag_visible_row = -1;
 static int live_scene_rebuild_requested = 0;
+static int live_scene_engine_next = 0;   /* ##CHRIS 2026-10-10 (decision 19, item 2): the F3 panel's engine (2, 3), taken at the rebuild */
 #define LIVE_SCENE_MAX_WALLS 5
 /* ##CHRIS 2026-09-10: scene-reset rows. 0..4 are the original scalar parameters,
    row 5 is the new wall-thickness slider, rows 6..(6+MAX_WALLS-1) are the per-wall
@@ -942,7 +989,18 @@ static int live_scene_rebuild_requested = 0;
    speed-of-sound piston modes reachable from the CLI are also reachable here. */
 #define LIVE_SCENE_ROW_THICKNESS 5
 #define LIVE_SCENE_ROW_MASS0     6
-#define LIVE_SCENE_ROW_COUNT (LIVE_SCENE_ROW_MASS0 + LIVE_SCENE_MAX_WALLS)
+#define LIVE_SCENE_ROW_MASS_END  (LIVE_SCENE_ROW_MASS0 + LIVE_SCENE_MAX_WALLS)
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item B; 261012 sec. 4.7.73): the spring constant k of the energy-transfer
+   scene's spring divider, in kT/sigma^2, applied by APPLY like the other rows (run configuration, allowed under gen3): as
+   --spring-k-sigma=k --spring-wall=0 (--spring-eq is the spring L0 row), hence EDMD_Params.divider_k = k / 24^2 kT/px^2 and
+   divider_xeq = L0 -- the spring divider gen3 accepted in M2 (harmonic about x_eq once free with mass M1; the M2 cell spring_pi8:
+   k = 0.02 kT/px^2 = 11.52 kT/sigma^2, M = 50). Range 0.1 .. 1e4 kT/sigma^2 (log); default 11.52, or the command line's
+   --spring-k-sigma / --spring-k. Shown right after the spring L0 row (live_scene_index_for_visible_row). */
+#define LIVE_SCENE_ROW_SPRING_K  LIVE_SCENE_ROW_MASS_END
+#define LIVE_SCENE_ROW_COUNT     (LIVE_SCENE_ROW_SPRING_K + 1)
+#define LIVE_SCENE_SPRING_K_MIN  0.1
+#define LIVE_SCENE_SPRING_K_MAX  1.0e4
+#define LIVE_SCENE_SPRING_K_DEFAULT 11.52
 #define LIVE_SCENE_MASS_MIN      50.0
 #define LIVE_SCENE_MASS_MAX      1.0e6
 #define LIVE_SCENE_THICK_MIN_SIGMA 0.01
@@ -956,7 +1014,8 @@ typedef enum {
 typedef enum {
     LIVE_SCENE_ENGINE_TIME_TOI = 0,
     LIVE_SCENE_ENGINE_HYBRID = 1,
-    LIVE_SCENE_ENGINE_EDMD = 2
+    LIVE_SCENE_ENGINE_EDMD = 2,
+    LIVE_SCENE_ENGINE_GEN3 = 3     /* ##CHRIS 2026-10-10 (decision 19, item 2): EDMD on gen3 (provisional display) */
 } LiveSceneEngine;
 static LiveSceneMode live_scene_mode = LIVE_SCENE_MODE_ENERGY_TRANSFER;
 static int live_scene_mode_dropdown_open = 0;
@@ -966,6 +1025,7 @@ static int live_scene_particle_count = DEFAULT_PARTICLES_ACTIVE;
 static float live_scene_eta = 0.20f;
 static float live_scene_radius_sigma = 0.10f;
 static float live_scene_spring_l0_sigma = 20.0f;
+static float live_scene_spring_k_sigma = (float)LIVE_SCENE_SPRING_K_DEFAULT;   /* ##CHRIS 2026-10-12 (decision 34, addition, item B) */
 static float live_scene_wall_mass[LIVE_SCENE_MAX_WALLS] = {200.0f, 2000.0f, 200.0f, 200.0f, 200.0f};
 /* ##CHRIS: wall thickness in sigma. user_set stays 0 until the slider is dragged, so an
    untouched panel keeps the historical behaviour of recomputing the thickness as 2R. */
@@ -983,26 +1043,137 @@ static LiveSlider live_sliders[] = {
 
 static const int live_slider_count = (int)(sizeof(live_sliders) / sizeof(live_sliders[0]));
 
-static float gui_scene_view_scale = 1.0f;
-static int gui_scene_saved_max_x = 0;
-static int gui_scene_saved_max_y = 0;
-static int gui_scene_saved_hist_w = 0;
-static int gui_scene_saved_hist_h = 0;
-static int gui_scene_view_active = 0;
-
-static float gui_renderer_device_scale(void) {
-    if (!_window || !_renderer) return 1.0f;
-    int ww = 0, wh = 0, rw = 0, rh = 0;
-    SDL_GetWindowSize(_window, &ww, &wh);
-    if (SDL_GetRendererOutputSize(_renderer, &rw, &rh) != 0) return 1.0f;
-    if (ww <= 0 || wh <= 0 || rw <= 0 || rh <= 0) return 1.0f;
-    const float sx = (float)rw / (float)ww;
-    const float sy = (float)rh / (float)wh;
-    const float s = fminf(sx, sy);
-    return (s > 1.0f) ? s : 1.0f;
+/* ##CHRIS 2026-10-12 (plan-author decision 34, items 1 and 2, the rest; decision 38 item 4; 261012 sec. 4.7.67): THE BOX FITTED TO
+   THE WINDOW. The engine's units, the box (L0, H from N and eta) and every output are unchanged; only the drawing changes.
+   - The fit (gui_scene_fit, every frame, so a resized window re-fits at once): the scene area is the window (in points) left of the
+     HUD column (at least 520 pt) and of the F2/F3 panels, 8 pt from the edges (44 pt from the top in --demo, below its bar); with the
+     distribution panels on, the box gets at most 42 % of the height and the panels the rest. The box (its width plus the pistons drawn
+     at its edges) is drawn at s = min(area width / box width, area height / box height) points per world pixel, at most 2.6 device
+     pixels per world pixel (as before). gui_scene_s = s x the display's device pixels per point.
+   - The drawing: the scene functions (the box, the disks, the divider, the pistons, the spring) and the distribution panels draw in
+     the box's world pixels as before, but through the display transform below (gs_*), at the renderer's own scale 1: device x =
+     ax world x + bx, device y = ay world y + by. Every line, rectangle and point is at least one device pixel wide (a scaled-down
+     render scale would let thin lines vanish on the Mac's Metal renderer), text keeps the UI's size (it does not shrink with the box),
+     and a disk is drawn at device resolution (gs_disk). The scene: ax = ay = gui_scene_s. The panels: x as the scene (aligned with
+     the compartments), y in window points below the box (gui_begin_panel_view), so their text and rows keep their sizes.
+   - A disk of drawn radius R device pixels (R = its radius x gui_scene_s, at least the F2 slider "draw min r", default 1 px): R >= 1.5
+     a filled circle; below that a filled square of max(1, round(2 R)) pixels, i.e. 2 x 2 by default (1 x 1 point on a Retina display).
+   - The default window fits the display (98 % x 95 % of its usable area); the window no longer grows with the box. */
+static int   cli_demo_mode;                    /* (defined with the other demo flags below) */
+static float gui_scene_view_scale = 1.0f;      /* the scene's device pixels per world pixel (gui_scene_s), for older readers */
+static int   gui_scene_view_active = 0, gui_panel_view_active = 0;
+static float gui_scene_s = 1.0f, gui_scene_bx = 0.0f, gui_scene_by = 0.0f;   /* device = gui_scene_s world + b */
+static float gui_panel_top_ui = 0.0f, gui_panel_h_ui = 0.0f;                  /* the panel area below the box [points] */
+static int   gui_panel_saved_hw = 0, gui_panel_saved_hh = 0;
+static float gs_ax = 1.0f, gs_bx = 0.0f, gs_ay = 1.0f, gs_by = 0.0f, gs_tu = 1.0f;   /* the active transform; gs_tu: device px per font px */
+static TTF_Font *gui_font_base[2] = {NULL, NULL}, *gui_font_hi[2] = {NULL, NULL};   /* (decision 34, addition, item D: the sharp fonts) */
+static float gui_font_hi_scale = 0.0f;
+static void gs_set(float ax, float bx, float ay, float by, float tu) { gs_ax = ax; gs_bx = bx; gs_ay = ay; gs_by = by; gs_tu = tu; }
+static void gs_reset(void) { gs_set(1.0f, 0.0f, 1.0f, 0.0f, 1.0f); }
+static inline float gs_X(float x) { return gs_ax * x + gs_bx; }
+#define GUI_LG(pt_) ((int)lroundf((float)(pt_) * gs_tu / fmaxf(1e-6f, gs_ax)))   /* screen points as the transform's x units */
+static inline float gs_Y(float y) { return gs_ay * y + gs_by; }
+static void gs_fill_dev(float x0, float y0, float x1, float y1) {   /* a device rectangle between two corners, at least 1 x 1 pixel */
+    if (!_renderer) return;
+    int X0 = (int)floorf(fminf(x0, x1)), X1 = (int)ceilf(fmaxf(x0, x1)), Y0 = (int)floorf(fminf(y0, y1)), Y1 = (int)ceilf(fmaxf(y0, y1));
+    if (X1 <= X0) X1 = X0 + 1;
+    if (Y1 <= Y0) Y1 = Y0 + 1;
+    SDL_Rect r = { X0, Y0, X1 - X0, Y1 - Y0 };
+    SDL_RenderFillRect(_renderer, &r);
+}
+static int gs_fill_rect(const SDL_Rect* rc) {
+    if (!rc) return _renderer ? SDL_RenderFillRect(_renderer, NULL) : 0;
+    if (rc->w <= 0 || rc->h <= 0) return 0;
+    gs_fill_dev(gs_X((float)rc->x), gs_Y((float)rc->y), gs_X((float)(rc->x + rc->w)), gs_Y((float)(rc->y + rc->h)));
+    return 0;
+}
+static int gs_line(int x1, int y1, int x2, int y2) {   /* SDL's line includes both end points; a world pixel wide, at least 1 device px */
+    if (!_renderer) return 0;
+    const float tx = fmaxf(1.0f, roundf(gs_ax)), ty = fmaxf(1.0f, roundf(gs_ay));
+    if (x1 == x2) { gs_fill_dev(gs_X((float)x1), gs_Y((float)(y1 < y2 ? y1 : y2)), gs_X((float)x1) + tx, gs_Y((float)(y1 < y2 ? y2 : y1)) + ty); return 0; }
+    if (y1 == y2) { gs_fill_dev(gs_X((float)(x1 < x2 ? x1 : x2)), gs_Y((float)y1), gs_X((float)(x1 < x2 ? x2 : x1)) + tx, gs_Y((float)y1) + ty); return 0; }
+    const int X1 = (int)lroundf(gs_X((float)x1)), Y1 = (int)lroundf(gs_Y((float)y1)), X2 = (int)lroundf(gs_X((float)x2)), Y2 = (int)lroundf(gs_Y((float)y2));
+    const int t = (int)fminf(tx, ty), steep = abs(Y2 - Y1) > abs(X2 - X1);
+    for (int k = 0; k < t; ++k) SDL_RenderDrawLine(_renderer, X1 + (steep ? k : 0), Y1 + (steep ? 0 : k), X2 + (steep ? k : 0), Y2 + (steep ? 0 : k));
+    return 0;
+}
+static int gs_draw_rect(const SDL_Rect* rc) {
+    if (!rc || rc->w <= 0 || rc->h <= 0) return 0;
+    gs_line(rc->x, rc->y, rc->x + rc->w - 1, rc->y);
+    gs_line(rc->x, rc->y + rc->h - 1, rc->x + rc->w - 1, rc->y + rc->h - 1);
+    gs_line(rc->x, rc->y, rc->x, rc->y + rc->h - 1);
+    gs_line(rc->x + rc->w - 1, rc->y, rc->x + rc->w - 1, rc->y + rc->h - 1);
+    return 0;
+}
+static int gs_point(int x, int y) { gs_fill_dev(gs_X((float)x), gs_Y((float)y), gs_X((float)x) + fmaxf(1.0f, gs_ax), gs_Y((float)y) + fmaxf(1.0f, gs_ay)); return 0; }
+static void gs_disk(float cx, float cy, float r_world) {   /* a disk at device resolution (see the block above) */
+    if (!_renderer) return;
+    const float X = gs_X(cx), Y = gs_Y(cy);
+    float R = r_world * gs_ax;
+    if (R < gui_particle_draw_min_px) R = gui_particle_draw_min_px;
+    if (R < 1.5f) {
+        const float side = fmaxf(1.0f, roundf(2.0f * R));
+        gs_fill_dev(X - 0.5f * side, Y - 0.5f * side, X + 0.5f * side, Y + 0.5f * side);
+        return;
+    }
+    const int yc = (int)lroundf(Y), ri = (int)ceilf(R);
+    for (int dy = -ri; dy <= ri; ++dy) {
+        const float q = R * R - (float)(dy * dy);
+        if (q < 0.0f) continue;
+        const float hw = sqrtf(q);
+        const int xa = (int)lroundf(X - hw), xb = (int)lroundf(X + hw);
+        SDL_Rect r = { xa, yc + dy, xb - xa + 1, 1 };
+        SDL_RenderFillRect(_renderer, &r);
+    }
+}
+static TTF_Font* gs_font_for(TTF_Font* f, float* k) {   /* the font that renders f's text at gs_tu device pixels per font pixel */
+    *k = 1.0f;
+    if (gs_tu > 1.0f && gui_font_hi_scale == gs_tu)
+        for (int i = 0; i < 2; ++i) if (f == gui_font_base[i] && gui_font_hi[i]) { *k = gs_tu; return gui_font_hi[i]; }
+    return f;
+}
+static void gs_text(TTF_Font* f, const char* text, int x, int y, SDL_Color c) {   /* at the transformed point, at the UI's size */
+    if (!_renderer || !f || !text || !*text) return;
+    float k = 1.0f;
+    TTF_Font* rf = gs_font_for(f, &k);
+    SDL_Surface* s = TTF_RenderUTF8_Blended(rf, text, c);
+    if (!s) return;
+    SDL_Texture* t = SDL_CreateTextureFromSurface(_renderer, s);
+    if (t) {
+        const float g = gs_tu / k;   /* the remaining scale of the rendered surface */
+        SDL_Rect d = { (int)lroundf(gs_X((float)x)), (int)lroundf(gs_Y((float)y)), (int)lroundf((float)s->w * g), (int)lroundf((float)s->h * g) };
+        SDL_RenderCopy(_renderer, t, NULL, &d);
+        SDL_DestroyTexture(t);
+    }
+    SDL_FreeSurface(s);
+}
+static int gs_size(TTF_Font* f, const char* text, int* w, int* h) {   /* the text's size in the transform's units */
+    int fw = 0, fh = 0;
+    const int rc = TTF_SizeUTF8(f, text, &fw, &fh);
+    if (w) *w = (int)lroundf((float)fw * gs_tu / fmaxf(1e-6f, gs_ax));
+    if (h) *h = (int)lroundf((float)fh * gs_tu / fmaxf(1e-6f, gs_ay));
+    return rc;
+}
+static void gs_text_clipped(TTF_Font* f, const char* text, int x, int y, SDL_Color c, int max_w) {   /* max_w in the transform's x units */
+    if (!f || !text) return;
+    int w = 0;
+    if (max_w <= 0 || gs_size(f, text, &w, NULL) != 0 || w <= max_w) { gs_text(f, text, x, y, c); return; }
+    char tmp[1024];
+    size_t n = strlen(text);
+    if (n >= sizeof tmp - 4) n = sizeof tmp - 5;
+    size_t cut = 0;
+    for (size_t i = 0; i <= n; ++i) {   /* the longest prefix (whole UTF-8 characters) that fits with "..." */
+        if (i < n && (((unsigned char)text[i]) & 0xC0) == 0x80) continue;
+        memcpy(tmp, text, i); tmp[i] = '\0'; strcat(tmp, "...");
+        if (gs_size(f, tmp, &w, NULL) == 0 && w <= max_w) cut = i; else break;
+    }
+    memcpy(tmp, text, cut); tmp[cut] = '\0'; strcat(tmp, "...");
+    gs_text(f, tmp, x, y, c);
 }
 
-static int gui_controls_column_left(void) {
+static int gui_controls_column_left_ui(void) {   /* the left edge of the F2/F3 panels in window points (MAX_X in points if none) */
+    const int nested = gui_ui_active;
+    if (!nested) gui_ui_coords_begin();
     int left = MAX_X;
     if (live_controls_visible) {
         int x = 0, y = 0, w = 0, h = 0;
@@ -1014,56 +1185,65 @@ static int gui_controls_column_left(void) {
         live_scene_layout(&x, &y, &w, &h);
         if (w > 0 && x < left) left = x;
     }
+    if (!nested) gui_ui_coords_end();
     return left;
 }
-
-static float gui_compute_scene_view_scale(void) {
-    const int controls_left = gui_controls_column_left();
-    const float hud_min_w = 520.0f;
-    const float right_limit = (float)controls_left - hud_min_w - 24.0f;
-    const float max_scale_x = right_limit / fmaxf(1.0f, (float)XW2 + 10.0f);
-    const float min_plot_h = 300.0f;
-    const float max_scale_y = (float)MAX_Y / fmaxf(1.0f, (float)SIM_HEIGHT + min_plot_h);
-    float s = fminf(max_scale_x, max_scale_y);
-    const float device_s = gui_renderer_device_scale();
-    if (s < 1.0f) s = 1.0f;
-    if (s < device_s && max_scale_x >= device_s && max_scale_y >= device_s) s = device_s;
-    if (s > 2.6f) s = 2.6f;
-    return s;
+static void gui_scene_fit(void) {
+    const float u = gui_ui_scale;
+    gui_ui_coords_begin();
+    const float W = (float)MAX_X, H = (float)MAX_Y;
+    gui_ui_coords_end();
+    const float left = 8.0f, top = cli_demo_mode ? 44.0f : 8.0f;
+    const float right = (float)gui_controls_column_left_ui() - 8.0f - 520.0f - 16.0f;   /* the HUD column right of the box */
+    const float bw = (float)SIM_WIDTH + 12.0f, bh = (float)SIM_HEIGHT;                 /* the pistons are drawn 5 px outside */
+    const float aw = fmaxf(60.0f, right - left);
+    const float ah = gui_dist_mode != 0 ? fmaxf(60.0f, 0.42f * (H - top - 8.0f)) : fmaxf(60.0f, H - top - 8.0f);
+    float s = fminf(aw / fmaxf(1.0f, bw), ah / fmaxf(1.0f, bh));
+    if (s * u > 2.6f) s = 2.6f / u;
+    if (!(s > 0.0f) || !isfinite(s)) s = 1.0f / u;
+    gui_scene_s = s * u;
+    gui_scene_bx = u * (left + 6.0f * s) - gui_scene_s * (float)XW1;
+    gui_scene_by = u * top - gui_scene_s * (float)YW1;
+    gui_panel_top_ui = top + s * bh + 10.0f;
+    gui_panel_h_ui = fmaxf(0.0f, H - gui_panel_top_ui - 8.0f);
+    gui_scene_view_scale = gui_scene_s;
+    (void)W;
 }
 
-static int gui_scene_screen_x(float world_x) {
-    return (int)lroundf(world_x * gui_scene_view_scale);
+static int gui_scene_screen_x(float world_x) {   /* device pixels */
+    return (int)lroundf(gui_scene_s * world_x + gui_scene_bx);
+}
+static int gui_scene_screen_y(float world_y) {
+    return (int)lroundf(gui_scene_s * world_y + gui_scene_by);
 }
 
 static void gui_begin_scene_view(void) {
     if (!_renderer || gui_scene_view_active) return;
-    gui_scene_saved_max_x = MAX_X;
-    gui_scene_saved_max_y = MAX_Y;
-    gui_scene_saved_hist_w = HIST_WIDTH;
-    gui_scene_saved_hist_h = HIST_HEIGHT;
-    gui_scene_view_scale = gui_compute_scene_view_scale();
-    if (gui_scene_view_scale < 1.0f) gui_scene_view_scale = 1.0f;
-
-    if (gui_scene_view_scale > 1.001f) {
-        MAX_X = (int)floorf((float)gui_scene_saved_max_x / gui_scene_view_scale);
-        MAX_Y = (int)floorf((float)gui_scene_saved_max_y / gui_scene_view_scale);
-        if (MAX_X < XW2 + 20) MAX_X = XW2 + 20;
-        if (MAX_Y < YW2 + 80) MAX_Y = YW2 + 80;
-        gui_recompute_hist_extents();
-        SDL_RenderSetScale(_renderer, gui_scene_view_scale, gui_scene_view_scale);
-    }
+    gui_scene_fit();
+    SDL_RenderSetScale(_renderer, 1.0f, 1.0f);
+    gs_set(gui_scene_s, gui_scene_bx, gui_scene_s, gui_scene_by, gui_ui_scale);
     gui_scene_view_active = 1;
 }
 
 static void gui_end_scene_view(void) {
     if (!_renderer || !gui_scene_view_active) return;
-    SDL_RenderSetScale(_renderer, 1.0f, 1.0f);
-    MAX_X = gui_scene_saved_max_x;
-    MAX_Y = gui_scene_saved_max_y;
-    HIST_WIDTH = gui_scene_saved_hist_w;
-    HIST_HEIGHT = gui_scene_saved_hist_h;
+    gs_reset();
     gui_scene_view_active = 0;
+}
+
+static void gui_begin_panel_view(void) {   /* the distribution panels: x as the scene, y in window points below the box */
+    if (!_renderer || !gui_scene_view_active || gui_panel_view_active) return;
+    gui_panel_saved_hw = HIST_WIDTH; gui_panel_saved_hh = HIST_HEIGHT;
+    HIST_HEIGHT = (int)floorf(gui_panel_h_ui);
+    HIST_WIDTH = SIM_WIDTH / 4;
+    gs_set(gui_scene_s, gui_scene_bx, gui_ui_scale, gui_ui_scale * (gui_panel_top_ui - (float)(YW1 + SIM_HEIGHT)), gui_ui_scale);
+    gui_panel_view_active = 1;
+}
+static void gui_end_panel_view(void) {
+    if (!gui_panel_view_active) return;
+    HIST_WIDTH = gui_panel_saved_hw; HIST_HEIGHT = gui_panel_saved_hh;
+    gs_set(gui_scene_s, gui_scene_bx, gui_scene_s, gui_scene_by, gui_ui_scale);
+    gui_panel_view_active = 0;
 }
 
 
@@ -1185,6 +1365,8 @@ static void refuse_edmd_acc_backend(void) {
     exit(2);
 #endif
 }
+static int   cli_legacy_resched = 0;    // ##CHRIS 2026-10-05: --legacy-resched: full O(N^2) reschedule after divider events (pre-engine-divider-resched behaviour)
+static int   cli_resched_audit = 0;     // ##CHRIS 2026-10-07: --resched-audit[=all]: schedule-equivalence audit (1 divider events, 2 all events); diagnostics only
 static int   cli_force_kbt_one = 0; // --kbt1: force K_B*T == 1 (reduced units)
 /* ##CHRIS: --seed-drift-order=old|drift-first (default old).
    "old" is the historical order: rescale each compartment to N_s kT, THEN remove
@@ -1233,46 +1415,298 @@ static double dist_box_w_sigma = 0.0;
 static double dist_box_h_sigma = 0.0;
 static double dist_next_log_abs_time = 0.0;
 
+/* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14): the generation-3 engine (edmd_core/edmd_gen3.c) behind --engine=gen3.
+   --engine=gen2 (the default) changes nothing: every gen3 branch below sits behind cli_engine == 3.
+   DESIGN. g_edmd stays the driver's gen2 container: the driver builds it as always (parameters, seeding, setup) and reads it
+   until the dynamics start. At the first advance the gen3 state is built from the container's parameters and particles at
+   the container's time (edmd3_create + edmd3_load, the same calls as the harnesses). From then on:
+   - advancing goes to gen3; the container is never advanced again;
+   - readers get the bodies' current state through edmd_params() (divider and piston position and velocity, O(1) per body)
+     and the disks through edmd_particles(), a copy synchronised ON DEMAND with edmd3_particles() (computed, not stored, so
+     reading does not steer). The copy is handed out read-only: a reader that writes into it stops the run at the next advance;
+   - body changes go through the engine API (edmd3_set_divider_motion, edmd3_set_piston_motion), only when a mass or a
+     velocity really changes; repositioning a body, rescheduling the pair list, the GUI's repairs stop the run (fail-closed);
+   - work, the health counters and the event log come from gen3; the heat bath and gates are refused by edmd3_create.
+   The validator cadence and the run record are in the experiment loops (sec. 4.7.14). */
+static int    cli_engine = 2;                  /* --engine=gen2 | gen3 */
+static double cli_gen3_cell_px = 0.0;          /* --gen3-cell-px=W (0: the engine default, EDMD3_DEFAULT_CELL_PX) */
+static EDMD3* g_edmd3 = NULL;                  /* the gen3 state of the current run (NULL until its first advance) */
+static const EDMD* g3_owner = NULL;            /* the container it was built from */
+static EDMD_Params g3_prm;                     /* the container's parameters with the bodies' current masses and states */
+static EDMD_Particle* g3_copy = NULL;          /* the synchronised copy handed to readers */
+static EDMD_Particle* g3_seen = NULL;          /* the copy as handed out: a reader that wrote into it is caught */
+static int    g3_n = 0, g3_stale = 1, g3_handed = 0;
+static double g3_work0[EDMD_MAX_DIVIDERS], g3_work0_p[2];   /* edmd_reset_work: the engine's work at the reset */
+static double g3_load_time = NAN;              /* the absolute load time (replay of a harness cell); NAN: the container's time */
+static FILE*  g3_evlog = NULL; static double g3_evlog_scale = 1.0;
+static long   g3_builds = 0;                   /* gen3 states built in this process (the run record numbers them) */
+static int    cli_validator_every = 0;         /* --validator-every=K: the driver's validator every K-th step of the speed-of-sound
+                                                  record (0: the default, 1 under gen2, G3_VALIDATOR_EVERY under gen3) */
+static double cli_record_sigma_time = 0.0;      /* --record-sigma-time=T: speed-of-sound record of T sigma-time for every mass
+                                                  (sec. 4.7 "equal record time"); 0: the cycle-based planning, unchanged */
+static long   cli_gen3_audit_every = 0;        /* --gen3-audit-every=K: gen3's schedule audit after every K-th event (0: off) */
+static const char* cli_engine_replay = NULL;   /* --engine-replay=FILE: a harness cell through the driver (acceptances 2, 3) */
+static int    cli_replay_read_every = 1;       /* --replay-read-every=m: the readers every m-th target (0: none) */
+static int    cli_replay_substeps = 1;         /* --replay-substeps=n: n advance stops per target interval */
+static double cli_psi6_every = 0.25;           /* --psi6-every=T: gen3's psi6(t) interval in sigma-time (stage A1) */
+static double g3_engine_s = 0.0, g3_run_t0 = 0.0;   /* stage A4: seconds inside the engine; the run's start (monotonic) */
+static double g3_mono(void){ struct timespec ts; clock_gettime(CLOCK_MONOTONIC, &ts); return (double)ts.tv_sec + 1e-9 * (double)ts.tv_nsec; }
+#define G3_VALIDATOR_EVERY 60                  /* 60 steps of 1/60 sigma-time = once per sigma-time (sec. 4.7.14) */
+static inline int validator_every(void){ return cli_validator_every > 0 ? cli_validator_every : (cli_engine == 3 ? G3_VALIDATOR_EVERY : 1); }
+/* ##CHRIS 2026-10-09 (stage C, M4; 261012 sec. 4.7.16): gen3's initial conditions (g3_m4_seed, below); all refused without gen3 */
+static int    cli_gen3_seeding = 0;            /* --gen3-seeding=lattice (1); 0 (driver): the driver's seeding, unchanged */
+static int    cli_gen3_orient = -1;            /* --gen3-lattice=auto (-1) | parallel (0) | perpendicular (1) */
+static int    cli_gen3_cryst = -1;             /* ##CHRIS 2026-10-10 (decision 18, item 2, M4c): --gen3-lattice-orientation=0 (0) | turned (1):
+                                                  the crystal orientation (g3_lat_cryst); -1, the default: the M4 family as before */
+static double cli_gen3_jitter = 0.25;          /* --gen3-jitter=f: jitter radius f x the smallest surface gap (0: jitter-free) */
+static int    cli_gen3_exact_box = 0;          /* --gen3-exact-box: box width 2 L0 with L0 exactly as written in --lengths */
+static double* cli_lengths_d = NULL;           /* --lengths read as doubles (the exact box) */
+static size_t cli_lengths_d_count = 0;
+/* ##CHRIS 2026-10-14 (plan-author decision 50 item 3 a; 261012 sec. 4.7.113): PART A'S HELD PATH ON THE EXACT BOX. The held path is the
+   energy-transfer experiment (the worker's AF command). With --gen3-exact-box there, the engine's box is 2 L0 with L0 exactly as written
+   in --l0, and the divider sits exactly at the first --wall-positions value; both are read again as doubles here. The display keeps its
+   float grid (SIM_WIDTH, all_wall_positions), as in the speed-of-sound loop. The box and the position are checked at 1e-9 sigma. */
+static double cli_l0_d = 0.0;                                         /* --l0 as a double */
+static double cli_wall_positions_d[5] = {0.0, 0.0, 0.0, 0.0, 0.0};    /* --wall-positions as doubles */
+static int    cli_gen3_held_readout = 0;   /* ##CHRIS 2026-10-14 (decision 50, c): --gen3-held-readout=K: the held divider's per-face
+                                              counters read at step K (T_eq) and at the last step of the hold ([EDMD3-HELD] lines) */
+static const char* cli_gen3_dump_initial = NULL;   /* --gen3-dump-initial=PATH: the initial state after the seeding, %a */
+/* ##CHRIS 2026-10-09 (stage H; 261012 sec. 4.7.12 stage H, sec. 4.7 item 6): checkpoint and restart of one gen3 speed-of-sound
+   trajectory at a step boundary of the driver, which is an event boundary of the engine (g3_ckpt_write, g3_restart_apply) */
+static int    cli_gen3_ckpt_phase = -1;        /* --gen3-checkpoint=hold:K:PATH (0, after K hold steps) | record:K:PATH (1); -1 none */
+static long   cli_gen3_ckpt_step = -1;
+static const char* cli_gen3_ckpt_path = NULL;
+static int    cli_gen3_ckpt_stop = 0;          /* --gen3-checkpoint-stop: exit right after writing it (an interruption; for the tests) */
+static const char* cli_gen3_restart = NULL;    /* --gen3-restart=PATH: go on from a checkpoint of the same command */
+static uint64_t g3_init_hash = 0;              /* FNV-1a of the state gen3 was built from (the restart's identity check) */
+/* ##CHRIS 2026-10-09 (plan-author decision 12, part 3a; 261012 sec. 4.7.26): the two items stage A left out (gen3, the speed-of-sound
+   loop only; g3_virial_block_sample, g3_snapshot_sample) */
+static double cli_gen3_virial_blocks = 0.0;   /* --gen3-virial-blocks=T: the pair virial per compartment in blocks of T sigma-time (0: off) */
+static double cli_gen3_snapshots = 0.0;       /* --gen3-snapshots=T: every disk's position every T sigma-time (0: off); the runner passes it
+                                                 for its seed subset */
+/* ##CHRIS 2026-10-10 (plan-author decision 17; 261012 sec. 4.7.40): PROVISIONAL -- psi6 per compartment (psi6_compartments) */
+static int    cli_gen3_psi6_comp = 0;          /* --gen3-psi6-compartments: per-compartment columns at the end of the psi6(t) file (gen3,
+                                                  the speed-of-sound loop only; off: the file is byte-identical to before) */
+static const char* cli_gen3_psi6_snaps = NULL; /* --gen3-psi6-snapshots=FILE: those values for every snapshot in a snapshot file, then exit */
+/* ##CHRIS 2026-10-09 (plan-author decision 13, item 4; 261012 sec. 4.7.30): M4b, the compressed-fluid start (--gen3-seeding=compressed,
+   g3_m4b_init_driver); the three parameters are refused without it */
+static double cli_gen3_m4b_eta0 = 0.60;        /* --gen3-compress-eta0=x: the lattice's packing fraction in the long box */
+static double cli_gen3_m4b_melt = 500.0;       /* --gen3-compress-melt=T: the held time before the pistons move [sigma-time] */
+static double cli_gen3_m4b_u = 0.01;           /* --gen3-compress-speed=u: the pistons' inward speed [sigma per sigma-time] */
+static int    cli_gen3_m4b_set = 0;            /* one of the three was given */
+/* ##CHRIS 2026-10-10 (plan-author decision 19, item 2; 261012 sec. 4.7.46): PROVISIONAL test hooks of gen3 in the window (the
+   interactive scene, simulation_loop; see the block before keysSimulation). Off: the scene runs as before. */
+static int    cli_gui_stats = 0;               /* --gui-stats: the [GUI-STATS] line at the end of the scene under gen2 too */
+static double cli_gui_run_seconds = 0.0;       /* --gui-run-seconds=S: end the scene S wall seconds after its first step (0: off) */
+static double cli_gui_time_scale = 0.0;        /* --gui-time-scale=X: the window's initial time scale (0: unchanged; --timescale is
+                                                  read as --time by the parser's earlier prefix match on "--time") */
+static const char* cli_gui_keys = NULL;        /* --gui-keys=STEP:KEY,...: key presses put into the window's event queue at those steps */
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition): test hooks of the window (display only; refused without it) */
+static int    cli_gui_window_w = 0, cli_gui_window_h = 0;   /* --gui-window=WxH: the window's size in points, exactly (no display clamp) */
+#define GUI_SHOTS_MAX 4
+static int    gui_shot_n = 0;                  /* --gui-shot=STEP:FILE.bmp | limit:FILE.bmp: the frame after that step, or at the */
+static long   gui_shot_step[GUI_SHOTS_MAX];    /*   divider-limit pause (step -1) */
+static char   gui_shot_path[GUI_SHOTS_MAX][512];
+static int    gui_shot_done[GUI_SHOTS_MAX];
+
+static void g3_stop(const char* what){
+    fflush(stdout);
+    fprintf(stderr, "STOP (--engine=gen3): %s\n", what);
+    exit(2);
+}
+static void g3_free(void){
+    if (g_edmd3) edmd3_destroy(g_edmd3);
+    g_edmd3 = NULL; g3_owner = NULL;
+    free(g3_copy); free(g3_seen); g3_copy = NULL; g3_seen = NULL;
+    g3_n = 0; g3_stale = 1; g3_handed = 0;
+}
+/* ##CHRIS 2026-10-12 (plan-author decision 34 with decision 38 item 4: no exit on a scene gen3 cannot build): in the window's scene a
+   refused build (edmd3_create or edmd3_load) or a stopped engine (edmd3_fatal) no longer ends the program: the run record and the
+   reason are printed, the window pauses with the reason on the screen, and ESC or the F3 panel's APPLY rebuilds the scene (Q ends
+   it). Headless and in every experiment loop: the STOP and exit(2), as before (fail-closed). */
+static int  g3_soft_window = 0;     /* set by simulation_loop in the window */
+static void g3_run_record(const char* id);   /* (below) */
+static void gui_scene_stopped(const char* what, const char* why);   /* (the banner, with the divider's limit) */
+static int g3_soft_stop(const char* what, const char* why){
+    if (!g3_soft_window || cli_headless) return 0;
+    fflush(stdout);
+    fprintf(stderr, "STOPPED (--engine=gen3, in the window; the window pauses): %s: %s\n", what, why);
+    gui_scene_stopped(what, why);
+    return 1;
+}
+/* ##CHRIS 2026-10-13 (plan-author decision 48; 261012 sec. 4.7.104): THE CELL WIDTH OF THE WINDOW'S SCENE. gen3 refuses a cell
+   narrower than a diameter (edmd3_create; sec. 4.7.1, a), and without --gen3-cell-px it takes EDMD3_DEFAULT_CELL_PX = 32 px, sized
+   for R = 12 px. The F3 panel's radius goes beyond that (any radius above 0.667 sigma), so the window could not build such a scene.
+   In the window's scene, without --gen3-cell-px: the larger of the default and the diameter rounded up to whole pixels (gen3 takes
+   whole pixels only), so at least one diameter and never below the old default. --gen3-cell-px is passed as given. Everywhere else
+   the argument is cli_gen3_cell_px, as before: g3_build also builds gen3 at the first advance of every headless run and every
+   experiment loop (edmd_backend_advance_to) and at a restart (g3_restart_apply), and those builds stay exactly as they were. The
+   window's scene is told apart as g3_soft_stop tells it apart (g3_soft_window, set by simulation_loop, and no --headless). */
+static double g3_cell_arg(const EDMD_Params* p){
+    if (cli_gen3_cell_px > 0.0 || !g3_soft_window || cli_headless) return cli_gen3_cell_px;
+    return fmax(EDMD3_DEFAULT_CELL_PX, ceil(2.0 * p->radius));
+}
+static void g3_build(const EDMD* S){
+    char err[256];
+    const EDMD_Params* p = edmd_params(S);
+    g_edmd3 = edmd3_create(p, g3_cell_arg(p), err, sizeof err);   /* ##CHRIS 2026-10-13 (decision 48): was cli_gen3_cell_px */
+    if (!g_edmd3) { if (g3_soft_stop("gen3 cannot build this scene", err)) return; g3_stop(err); }
+    const double t0 = isnan(g3_load_time) ? edmd_time(S) : g3_load_time;
+    if (!edmd3_load(g_edmd3, edmd_particles(S), t0, err, sizeof err)) {
+        printf("[EDMD3] load refused: box %.17g x %.17g px, R %.17g px; dividers %d:", p->boxW, p->boxH, p->radius, p->divider_count);
+        for (int d = 0; d < p->divider_count && d < EDMD_MAX_DIVIDERS; ++d)
+            printf(" [x %.17g th %.17g M %.17g v %.17g k %.17g]", p->divider_x[d], p->divider_thickness[d], p->divider_mass[d], p->divider_vx[d], p->divider_k[d]);
+        printf("; piston L %d (x %.17g v %.17g M %.17g), R %d (x %.17g v %.17g M %.17g)\n", p->has_pistonL, p->pistonL_x, p->pistonL_vx,
+               p->pistonL_mass, p->has_pistonR, p->pistonR_x, p->pistonR_vx, p->pistonR_mass);
+        if (g3_soft_stop("gen3 refused the scene's start state", err)) { edmd3_destroy(g_edmd3); g_edmd3 = NULL; return; }   /* ##CHRIS (decision 34) */
+        g3_stop(err);
+    }
+    g3_owner = S; g3_prm = *p; g3_n = p->N; g3_stale = 1; g3_handed = 0;
+    {   /* ##CHRIS 2026-10-09 (stage H): the identity of the state gen3 starts from: box, bodies, load time, every disk */
+        uint64_t h = 1469598103934665603ULL;
+        #define G3_FNV(ptr, n) do { const unsigned char* q_ = (const unsigned char*)(ptr); for (size_t k_ = 0; k_ < (size_t)(n); ++k_) { h ^= q_[k_]; h *= 1099511628211ULL; } } while (0)
+        G3_FNV(&p->boxW, sizeof p->boxW); G3_FNV(&p->boxH, sizeof p->boxH); G3_FNV(&p->radius, sizeof p->radius); G3_FNV(&p->N, sizeof p->N);
+        G3_FNV(&p->divider_count, sizeof p->divider_count); G3_FNV(p->divider_x, sizeof p->divider_x); G3_FNV(p->divider_thickness, sizeof p->divider_thickness);
+        G3_FNV(p->divider_mass, sizeof p->divider_mass); G3_FNV(p->divider_vx, sizeof p->divider_vx); G3_FNV(&t0, sizeof t0);
+        const EDMD_Particle* Q = edmd_particles(S);
+        for (int i = 0; i < p->N; ++i) { G3_FNV(&Q[i].x, sizeof(double)); G3_FNV(&Q[i].y, sizeof(double)); G3_FNV(&Q[i].vx, sizeof(double)); G3_FNV(&Q[i].vy, sizeof(double)); }
+        #undef G3_FNV
+        g3_init_hash = h;
+    }
+    g3_copy = (EDMD_Particle*)malloc((size_t)g3_n * sizeof *g3_copy);
+    g3_seen = (EDMD_Particle*)malloc((size_t)g3_n * sizeof *g3_seen);
+    if (!g3_copy || !g3_seen) g3_stop("out of memory");
+    memset(g3_work0, 0, sizeof g3_work0); g3_work0_p[0] = g3_work0_p[1] = 0.0;
+    edmd3_set_contact_audit(g_edmd3, getenv("HD_CONTACT_AUDIT") != NULL);
+    if (cli_gen3_audit_every > 0) edmd3_set_schedule_audit(g_edmd3, cli_gen3_audit_every);   /* read-only; does not steer (sec. 4.7.3) */
+    if (g3_evlog) edmd3_set_event_log(g_edmd3, g3_evlog, g3_evlog_scale);
+    EDMD3_Tol tol; edmd3_tolerances(g_edmd3, &tol);
+    if (cli_gen3_seeding) {   /* ##CHRIS 2026-10-09 (stage C, M4): the ties of the initial state, read-only */
+        long nl = 0, nn = 0; const long k = edmd3_tie_stats(g_edmd3, &nl, &nn);
+        printf("[EDMD3-TIES] at the load: live events %ld, sharing their time exactly with another live event %ld, due at once %ld\n", nl, k, nn);
+    }
+    g3_builds++;
+    g3_engine_s = 0.0; g3_run_t0 = g3_mono();   /* stage A4 */
+    printf("[EDMD3] built #%ld at t = %.17g (internal units): N = %d, box %.17g x %.17g px, cell %.17g px, dividers %d, pistons %d/%d; "
+           "c_tol %.6g px^2, tol_face %.6g px, band margin %.6g px, v_ref %.6g px/unit\n",
+           g3_builds, t0, g3_n, p->boxW, p->boxH, edmd3_cell_px(g_edmd3), p->divider_count, p->has_pistonL, p->has_pistonR,
+           tol.c_tol, tol.tol_face, tol.band_margin, tol.v_ref);
+}
+static void g3_check_untouched(void){                 /* readers never write */
+    if (g3_handed && memcmp(g3_copy, g3_seen, (size_t)g3_n * sizeof *g3_copy) != 0)
+        g3_stop("a reader wrote into the synchronised particle copy; under gen3 disks change only through the engine");
+}
+static const EDMD_Particle* g3_particles(void){
+    if (g3_stale) {
+        memcpy(g3_copy, edmd3_particles(g_edmd3), (size_t)g3_n * sizeof *g3_copy);
+        memcpy(g3_seen, g3_copy, (size_t)g3_n * sizeof *g3_seen);
+        g3_stale = 0;
+    }
+    g3_handed = 1;
+    return g3_copy;
+}
+static const EDMD_Params* g3_params(void){
+    for (int d = 0; d < g3_prm.divider_count && d < EDMD_MAX_DIVIDERS; ++d)
+        edmd3_divider_state(g_edmd3, d, &g3_prm.divider_x[d], &g3_prm.divider_vx[d]);
+    if (g3_prm.has_pistonL) edmd3_piston_state(g_edmd3, 0, &g3_prm.pistonL_x, &g3_prm.pistonL_vx);
+    if (g3_prm.has_pistonR) edmd3_piston_state(g_edmd3, 1, &g3_prm.pistonR_x, &g3_prm.pistonR_vx);
+    return &g3_prm;
+}
+static inline int g3_live(const EDMD* S){ return cli_engine == 3 && g_edmd3 && g3_owner == S; }
+static void g3_piston(int side, int has_now, int has, double x, double vx, double m){
+    if (has != has_now) g3_stop("a piston was added or removed during the run");
+    if (!has) return;
+    double xc, vc; edmd3_piston_state(g_edmd3, side, &xc, &vc);
+    const double mc = side == 0 ? g3_prm.pistonL_mass : g3_prm.pistonR_mass;
+    if (x != xc) g3_stop("a piston was repositioned during the run (only its mass and velocity can change)");
+    if (vx == vc && m == mc) return;
+    if (!edmd3_set_piston_motion(g_edmd3, side, m, vx)) g3_stop("the engine refused a piston mass/velocity change");
+    if (side == 0) g3_prm.pistonL_mass = m; else g3_prm.pistonR_mass = m;
+    g3_stale = 1;
+}
+
 // EDMD backend dispatch (default vs accelerated). Only valid for the global g_edmd instance.
 static inline EDMD* edmd_backend_create(const EDMD_Params* prm) {
+    if (cli_engine == 3) g3_free();                /* ##CHRIS 2026-10-09 (M3): a new container, so a new gen3 state */
     if (cli_edmd_acc) refuse_edmd_acc_backend();   /* ##CHRIS 2026-10-09: defensive second guard (sec. 4.7.1, item 0) */
     g_edmd_is_acc = cli_edmd_acc ? 1 : 0;
+    /* ##CHRIS 2026-10-05: divider rescheduling policy of the default backend, recorded once per
+       process in the run log (the summary CSV also carries the full command line). */
+    edmd_set_legacy_resched(cli_legacy_resched);
+    edmd_set_resched_audit(cli_resched_audit);   /* ##CHRIS 2026-10-07 */
+    {
+        static int resched_printed = 0;
+        if (!resched_printed) {
+            resched_printed = 1;
+            printf("[EDMD-RESCHED] divider events: %s%s%s\n",
+                   cli_legacy_resched ? "legacy (full reschedule, --legacy-resched)" : "minimal (default)",
+                   cli_resched_audit == 0 ? "" : (cli_resched_audit == 1 ? "; schedule audit after divider events (--resched-audit)"
+                                                                         : "; schedule audit after every event (--resched-audit=all)"),
+                   g_edmd_is_acc ? " -- NOTE: accelerated backend active, policy applies to the default backend only" : "");
+            if (cli_engine == 3)   /* ##CHRIS 2026-10-09 (M3) */
+                printf("[EDMD-ENGINE] gen3 (edmd_core/edmd_gen3.c; the gen2 core only holds the setup): the line above does not apply\n");
+        }
+    }
     return g_edmd_is_acc ? edmd_acc_create(prm) : edmd_create(prm);
 }
 static inline void edmd_backend_destroy(EDMD* S) {
     if (!S) return;
+    if (cli_engine == 3 && g3_owner == S) g3_free();   /* ##CHRIS 2026-10-09 (M3) */
     if (g_edmd_is_acc) edmd_acc_destroy(S);
     else               edmd_destroy(S);
 }
 static inline double edmd_backend_time(const EDMD* S) {
+    if (g3_live(S)) return edmd3_time(g_edmd3);        /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? edmd_acc_time(S) : edmd_time(S);
 }
 static inline const EDMD_Params* edmd_backend_params(const EDMD* S) {
+    if (g3_live(S)) return g3_params();                /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? edmd_acc_params(S) : edmd_params(S);
 }
 static inline EDMD_Params* edmd_backend_params_mut(const EDMD* S) {
+    if (g3_live(S)) g3_stop("edmd_params_mut during the run (parameters would change outside the engine)");   /* ##CHRIS (M3) */
     return (EDMD_Params*)(g_edmd_is_acc ? edmd_acc_params(S) : edmd_params(S));
 }
 static inline const EDMD_Particle* edmd_backend_particles(const EDMD* S) {
+    if (g3_live(S)) return g3_particles();             /* ##CHRIS 2026-10-09 (M3): synchronised on demand */
     return g_edmd_is_acc ? edmd_acc_particles(S) : edmd_particles(S);
 }
 static inline void edmd_backend_reschedule_all(EDMD* S) {
+    if (g3_live(S)) { g3_check_untouched(); return; }  /* ##CHRIS 2026-10-09 (M3): gen3 keeps its own schedule; nothing to do */
     if (g_edmd_is_acc) edmd_acc_reschedule_all(S);
     else               edmd_reschedule_all(S);
 }
 static inline void edmd_backend_reschedule_all_pp_only(EDMD* S) {
+    if (g3_live(S)) g3_stop("pair-only rescheduling (GUI and gate paths) is not supported");   /* ##CHRIS (M3) */
     if (g_edmd_is_acc) edmd_acc_reschedule_all_pp_only(S);
     else               edmd_reschedule_all_pp_only(S);
 }
 static inline void edmd_backend_reset_work(EDMD* S) {
+    if (g3_live(S)) {                                  /* ##CHRIS 2026-10-09 (M3): the work from now on */
+        for (int d = 0; d < EDMD_MAX_DIVIDERS; ++d) g3_work0[d] = d < g3_prm.divider_count ? edmd3_work_divider(g_edmd3, d) : 0.0;
+        g3_work0_p[0] = edmd3_work_piston(g_edmd3, 0); g3_work0_p[1] = edmd3_work_piston(g_edmd3, 1);
+        return;
+    }
     if (g_edmd_is_acc) edmd_acc_reset_work(S);
     else               edmd_reset_work(S);
 }
 static inline void edmd_backend_config_dividers(EDMD* S, int count, const double* cx, const double* thickness) {
+    if (g3_live(S)) g3_stop("dividers were reconfigured during the run");   /* ##CHRIS 2026-10-09 (M3) */
     if (g_edmd_is_acc) edmd_acc_config_dividers(S, count, cx, thickness);
     else               edmd_config_dividers(S, count, cx, thickness);
 }
 static inline void edmd_backend_set_divider_motions(EDMD* S, int count, const double* mass, const double* vx) {
+    if (g3_live(S)) {                                  /* ##CHRIS 2026-10-09 (M3): only real changes reach the engine */
+        if (count > g3_prm.divider_count) g3_stop("divider motions for more dividers than the run has");
+        for (int d = 0; d < count; ++d) {
+            double x, v; edmd3_divider_state(g_edmd3, d, &x, &v);
+            if (mass[d] == g3_prm.divider_mass[d] && vx[d] == v) continue;
+            if (!edmd3_set_divider_motion(g_edmd3, d, mass[d], vx[d])) g3_stop("the engine refused a divider mass/velocity change");
+            g3_prm.divider_mass[d] = mass[d];
+            g3_stale = 1;
+        }
+        return;
+    }
     if (g_edmd_is_acc) edmd_acc_set_divider_motions(S, count, mass, vx);
     else               edmd_set_divider_motions(S, count, mass, vx);
 }
@@ -1280,46 +1714,102 @@ static inline void edmd_backend_config_pistons(EDMD* S,
                                               int hasL, double xL, double vxL, double mL,
                                               int hasR, double xR, double vxR, double mR)
 {
+    if (g3_live(S)) {                                  /* ##CHRIS 2026-10-09 (M3) */
+        g3_piston(0, g3_prm.has_pistonL, hasL, xL, vxL, mL);
+        g3_piston(1, g3_prm.has_pistonR, hasR, xR, vxR, mR);
+        return;
+    }
     if (g_edmd_is_acc) edmd_acc_config_pistons(S, hasL, xL, vxL, mL, hasR, xR, vxR, mR);
     else               edmd_config_pistons(S, hasL, xL, vxL, mL, hasR, xR, vxR, mR);
 }
 static inline double edmd_backend_advance_to(EDMD* S, double t_target) {
+    if (cli_engine == 3) {                             /* ##CHRIS 2026-10-09 (M3) */
+        if (!g3_live(S)) { g3_free(); g3_build(S); }
+        if (!g_edmd3) return edmd_time(S);             /* ##CHRIS 2026-10-12 (decision 34): the window's refused build: no step */
+        g3_check_untouched();
+        const double ta = g3_mono();                                       /* stage A4: the engine's share */
+        const double t = edmd3_advance_to(g_edmd3, t_target);
+        g3_engine_s += g3_mono() - ta;
+        g3_stale = 1; g3_handed = 0;
+        const char* msg = NULL;
+        if (edmd3_fatal(g_edmd3, &msg)) {
+            if (g3_soft_window && !cli_headless) { g3_run_record("scene, the engine stopped"); if (g3_soft_stop("the engine stopped", msg ? msg : "-")) return t; }
+            g3_stop(msg ? msg : "the engine stopped");
+        }
+        return t;
+    }
     return g_edmd_is_acc ? edmd_acc_advance_to(S, t_target) : edmd_advance_to(S, t_target);
 }
 static inline double edmd_backend_advance_pp_only_to(EDMD* S, double t_target) {
+    if (cli_engine == 3) g3_stop("pair-only advancing (GUI and gate paths) is not supported");   /* ##CHRIS (M3) */
     return g_edmd_is_acc ? edmd_acc_advance_pp_only_to(S, t_target) : edmd_advance_pp_only_to(S, t_target);
 }
 static inline void edmd_backend_divider_resolve_overlaps(EDMD* S) {
+    if (g3_live(S)) g3_stop("divider overlap repair (GUI and gate paths) is not supported");   /* ##CHRIS (M3) */
     if (g_edmd_is_acc) edmd_acc_divider_resolve_overlaps(S);
     else               edmd_divider_resolve_overlaps(S);
 }
 static inline double edmd_backend_work_divider(const EDMD* S) {
+    if (g3_live(S)) {                                  /* ##CHRIS 2026-10-09 (M3): as edmd_work_divider, the sum over dividers */
+        double w = 0.0;
+        for (int d = 0; d < g3_prm.divider_count && d < EDMD_MAX_DIVIDERS; ++d) w += edmd3_work_divider(g_edmd3, d) - g3_work0[d];
+        return w;
+    }
     return g_edmd_is_acc ? edmd_acc_work_divider(S) : edmd_work_divider(S);
 }
 static inline double edmd_backend_work_divider_i(const EDMD* S, int divider_index) {
+    if (g3_live(S)) return (divider_index >= 0 && divider_index < g3_prm.divider_count && divider_index < EDMD_MAX_DIVIDERS)
+                           ? edmd3_work_divider(g_edmd3, divider_index) - g3_work0[divider_index] : 0.0;   /* ##CHRIS (M3) */
     return g_edmd_is_acc ? edmd_acc_work_divider_i(S, divider_index) : edmd_work_divider_i(S, divider_index);
 }
 static inline double edmd_backend_work_pistonL(const EDMD* S) {
+    if (g3_live(S)) return edmd3_work_piston(g_edmd3, 0) - g3_work0_p[0];   /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? edmd_acc_work_pistonL(S) : edmd_work_pistonL(S);
 }
 static inline double edmd_backend_work_pistonR(const EDMD* S) {
+    if (g3_live(S)) return edmd3_work_piston(g_edmd3, 1) - g3_work0_p[1];   /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? edmd_acc_work_pistonR(S) : edmd_work_pistonR(S);
 }
 static inline double edmd_backend_heat_bath(const EDMD* S) {
+    if (g3_live(S)) return 0.0;                        /* ##CHRIS 2026-10-09 (M3): edmd3_create refuses the heat bath */
     return g_edmd_is_acc ? edmd_acc_heat_bath(S) : edmd_heat_bath(S);
 }
 static inline long edmd_backend_forced_advance_count(const EDMD* S) {
+    if (g3_live(S)) return 0;                          /* ##CHRIS 2026-10-09 (M3): gen3 has no forced advance */
     return g_edmd_is_acc ? edmd_acc_forced_advance_count(S) : edmd_forced_advance_count(S);
 }
 // ##CHRIS: engine health counters; both stay 0 in a correct run.
 static inline long edmd_backend_clamp_repair_count(const EDMD* S) {
+    if (g3_live(S)) return edmd3_health(g_edmd3)->clamp_repair;     /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? edmd_acc_clamp_repair_count(S) : edmd_clamp_repair_count(S);
 }
 static inline long edmd_backend_overlap_repair_count(const EDMD* S) {
+    if (g3_live(S)) return edmd3_health(g_edmd3)->overlap_repair;   /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? edmd_acc_overlap_repair_count(S) : edmd_overlap_repair_count(S);
 }
 static inline long edmd_backend_wall_overdue_count(const EDMD* S) {
+    if (g3_live(S)) return edmd3_health(g_edmd3)->wall_overdue;     /* ##CHRIS 2026-10-09 (M3) */
     return g_edmd_is_acc ? edmd_acc_wall_overdue_count(S) : edmd_wall_overdue_count(S);
+}
+static inline long edmd_backend_past_event_count(const EDMD* S) {   /* ##CHRIS 2026-10-05: default backend only */
+    if (g3_live(S)) return edmd3_health(g_edmd3)->past_event;       /* ##CHRIS 2026-10-09 (M3) */
+    return g_edmd_is_acc ? 0 : edmd_past_event_count(S);
+}
+/* ##CHRIS 2026-10-09 (M3): the gated event log. gen2: edmd_set_event_log, unchanged. gen3: the driver opens the file with
+   edmd.c's header and the engine writes edmd.c's rows (edmd3_set_event_log); attached at the build if set before it. */
+static void g3_close_event_log(void){ if (g3_evlog) { fflush(g3_evlog); fclose(g3_evlog); g3_evlog = NULL; } }
+static void edmd_backend_set_event_log(const char* path, double time_scale){
+    if (cli_engine != 3) { edmd_set_event_log(path, time_scale); return; }
+    static int registered = 0;
+    if (!registered) { registered = 1; atexit(g3_close_event_log); }
+    if (g_edmd3) edmd3_set_event_log(g_edmd3, NULL, 1.0);
+    g3_close_event_log();
+    g3_evlog_scale = time_scale > 0.0 ? time_scale : 1.0;
+    if (!path || !*path) return;
+    g3_evlog = fopen(path, "w");
+    if (!g3_evlog) g3_stop("cannot open the event log");
+    fprintf(g3_evlog, "t_sigma,kind,u_wall,v_before,v_after,dE,dp\n");
+    if (g_edmd3) edmd3_set_event_log(g_edmd3, g3_evlog, g3_evlog_scale);
 }
 
 /* ##CHRIS: diagnostic only, driver-side, gated by HD_OVERDUE_TRACE=1. Time-stamps
@@ -1979,6 +2469,45 @@ static void ke_audit(const char* where){
     fflush(stdout);
 }
 
+/* ##CHRIS 2026-10-05 (261012 sec. 4.4, engine gate G-E2): gated energy line of the EDMD state, HD_KE_TRACE=1 only.
+   Gas KE plus the KE of every finite-mass divider, at %.17g, in the engine's own convention (particle mass 1 in
+   resolve_wall, divider mass in particle-mass units; a held divider has mass 0 and holds no energy). Print only: reads
+   the state, changes nothing, draws no random numbers. Points: 0 = state loaded, 1 = release, 2 = end of record. */
+static void edmd_energy_audit(const char* where){
+    if (getenv("HD_KE_TRACE") == NULL || !g_edmd) return;
+    const EDMD_Params* ep = edmd_params(g_edmd);
+    const EDMD_Particle* P = edmd_particles(g_edmd);
+    double eg = 0.0, ed = 0.0;
+    for (int i = 0; i < ep->N; ++i) eg += 0.5 * (P[i].vx * P[i].vx + P[i].vy * P[i].vy);
+    for (int d = 0; d < ep->divider_count && d < EDMD_MAX_DIVIDERS; ++d)
+        if (ep->divider_mass[d] > 0.0) ed += 0.5 * ep->divider_mass[d] * ep->divider_vx[d] * ep->divider_vx[d];
+    printf("[EDMD-ENERGY] %-26s t=%.17g E_gas=%.17g E_div=%.17g E_tot=%.17g resched=%s\n",
+           where, edmd_time(g_edmd), eg, ed, eg + ed,
+           cli_engine == 3 ? "gen3" : (edmd_legacy_resched() ? "legacy" : "minimal"));   /* ##CHRIS 2026-10-09 (M3): gen3 label */
+    fflush(stdout);
+}
+
+/* ##CHRIS 2026-10-05 (engine gate G-E2/G-E3): the engine's contact audit, printed once at the end of a run when
+   HD_CONTACT_AUDIT is set (default backend only; the accelerated backend has no audit). Print only. */
+static void edmd_contact_report(void){
+    /* ##CHRIS 2026-10-07: the schedule-equivalence audit's counts (--resched-audit), printed at the same point */
+    if (cli_resched_audit && g_edmd && !g_edmd_is_acc) {
+        long a[7]; double mx, mr;
+        edmd_resched_audit_stats(g_edmd, a, &mx, &mr);
+        printf("[EDMD-AUDIT] mode %d: audited events %ld; matched comparisons %ld; missing %ld; extra %ld; |dt| > 1e-9 %ld; "
+               "duplicate live events disagreeing %ld; max |dt| over matched %.3e; |dt| > 1e-9 and > 1e-10 of the horizon %ld; "
+               "max |dt|/horizon %.3e\n", cli_resched_audit, a[0], a[1], a[2], a[3], a[4], a[5], mx, a[6], mr);
+        fflush(stdout);
+    }
+    if (getenv("HD_CONTACT_AUDIT") == NULL || !g_edmd || g_edmd_is_acc) return;
+    double g[4];
+    /* ##CHRIS 2026-10-09 (M3): under gen3 its own contact audit, printed in the same line format */
+    const long n = g3_live(g_edmd) ? edmd3_contact_audit_stats4(g_edmd3, g) : edmd_contact_audit_stats(g_edmd, g);
+    printf("[EDMD-CONTACT] executed events %ld; max abs(contact distance) [px]: disk-disk %.3e, outer walls %.3e, "
+           "divider %.3e, pistons %.3e\n", n, g[0], g[1], g[2], g[3]);
+    fflush(stdout);
+}
+
 /* ##CHRIS: optional per-compartment gas kinetic energy columns KE_L,KE_R in the
    speed-of-sound trace (HD_KE_COLUMNS=1), for the slow-wander / adiabatic-piston
    check. Logging only: reads velocities, changes no state and draws no random
@@ -2486,6 +3015,7 @@ static void reset_simulation_state(void) {
     steps_elapsed = 0;
     simulation_started = 0;
     paused = false;
+    gui_div_limit_paused = 0;   /* ##CHRIS 2026-10-12 (decision 34, addition, item C): a rebuilt scene is not at a limit */
     piston_work_left = piston_work_right = 0.0;
     piston_hits_left = piston_hits_right = 0;
     missed_collision_events = 0;
@@ -2748,6 +3278,16 @@ static void write_speed_of_sound_plot_commands_to_dir(const char *dir_path) {
     if (!g) return;
 
     fprintf(g, "# Command and Plot Commands\n\n");
+    if (cli_engine == 3) {   /* ##CHRIS 2026-10-09 (M3, stage A2): the trace documentation under gen3 */
+        fprintf(g, "## Trace columns under --engine=gen3\n\n"
+                   "- `Left_Count`, `Right_Count`: computed from a synchronised particle copy at the driver's validator steps "
+                   "(every --validator-every steps, default %d = 1 sigma-time), at the first recorded row and at the last step; "
+                   "in the rows between they carry the last computed values. No disk can cross the divider, and the validator "
+                   "checks every disk's compartment against its initial one at each of its steps.\n"
+                   "- `psi6_t_L0_<L>_wallmassfactor_<M>_run<r>.csv`: psi6(t) every %g sigma-time (--psi6-every) through hold and record.\n"
+                   "- The run log holds each trajectory's run record `[EDMD3-HEALTH] ...: clean=...` (every health counter, the engine "
+                   "and the build line).\n\n", G3_VALIDATOR_EVERY, cli_psi6_every);
+    }
     fprintf(g, "## Simulation Command\n\n");
     fprintf(g, "```sh\n");
     for (int i = 0; i < g_main_argc; ++i) {
@@ -2922,6 +3462,30 @@ static void ensure_csv_header_schema(const char *path, const char *expected_head
     }
 }
 
+/* ##CHRIS 2026-10-09 (stage C, M4): the same list read as doubles (--lengths for gen3's exact box) */
+static void cli_parse_double_list(const char *value, double **buffer, size_t *count) {
+    char *copy = cli_strdup(value);
+    char *token = strtok(copy, ",");
+    double *list = NULL;
+    size_t items = 0;
+    while (token) {
+        errno = 0;
+        char *endptr = NULL;
+        const double v = strtod(token, &endptr);
+        if (errno != 0 || endptr == token || *endptr != '\0') {
+            fprintf(stderr, "Invalid value '%s' in list '%s'.\n", token, value);
+            free(copy);
+            exit(EXIT_FAILURE);
+        }
+        list = (double *)cli_checked_realloc(list, (items + 1) * sizeof(double));
+        list[items++] = v;
+        token = strtok(NULL, ",");
+    }
+    free(*buffer);
+    *buffer = list;
+    *count = items;
+    free(copy);
+}
 static void cli_parse_float_list(const char *value, float **buffer, size_t *count) {
     char *copy = cli_strdup(value);
     char *token = strtok(copy, ",");
@@ -3498,6 +4062,8 @@ static void print_cli_usage(const char *exe_name) {
     printf("  --time=value                Stop after this many sim units post-release (interactive)\n");
     printf("  --kbt1                      Force k_B*T = 1 (reduced units); adjusts k_B at runtime\n");
     printf("  --edmd-acc=0|1              Accelerated EDMD backend: DISABLED (misses collisions, 261012 sec. 4.7); 0 only\n");
+    printf("  --legacy-resched            EDMD: full O(N^2) reschedule after every divider event (old behaviour; default: minimal)\n");   /* ##CHRIS 2026-10-05 */
+    printf("  --resched-audit[=all]       EDMD diagnostics: compare the live schedule with a legacy full schedule after divider (or all) events\n");   /* ##CHRIS 2026-10-07 */
     printf("  --mode=NAME                 time (default) | rk4 | edmd | edmd-hybrid | hybrid | event-split\n");
     printf("  --help                      Show this help message and exit\n");
 }
@@ -4035,6 +4601,7 @@ static void parse_cli_options(int argc, char **argv) {
                 // Skip whitespace
                 while (*token == ' ') token++;
                 cli_wall_positions[pos_count] = atof(token);
+                cli_wall_positions_d[pos_count] = atof(token);   /* ##CHRIS 2026-10-14 (decision 50, a): the exact divider position */
                 token = strtok(NULL, ",");
                 pos_count++;
             }
@@ -4395,6 +4962,7 @@ static void parse_cli_options(int argc, char **argv) {
         } else if (strncmp(arg, "--lengths", 9) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
             cli_parse_float_list(value, &cli_experiment_lengths, &cli_experiment_lengths_count);
+            cli_parse_double_list(value, &cli_lengths_d, &cli_lengths_d_count);   /* ##CHRIS 2026-10-09 (M4): the exact box */
             enable_speed_of_sound_experiments = true;
         } else if (strncmp(arg, "--wall-masses", 13) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
@@ -4474,6 +5042,7 @@ static void parse_cli_options(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
             cli_override_L0_units = v;
+            cli_l0_d = strtod(value, NULL);   /* ##CHRIS 2026-10-14 (decision 50, a): the exact L0 of the held path */
         } else if (strncmp(arg, "--height", 8) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
             errno = 0;
@@ -4552,6 +5121,148 @@ static void parse_cli_options(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
             time_scale_runtime = v;
+        } else if (strncmp(arg, "--gen3-seeding=", strlen("--gen3-seeding=")) == 0) {   /* ##CHRIS 2026-10-09 (stage C, M4) */
+            const char* v = arg + strlen("--gen3-seeding=");
+            if (strcmp(v, "lattice") == 0) cli_gen3_seeding = 1;
+            else if (strcmp(v, "compressed") == 0) cli_gen3_seeding = 2;   /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b */
+            else if (strcmp(v, "driver") == 0) cli_gen3_seeding = 0;
+            else { fprintf(stderr, "Invalid '%s' (lattice | compressed | driver).\n", arg); exit(EXIT_FAILURE); }
+        } else if (strncmp(arg, "--gen3-compress-eta0=", strlen("--gen3-compress-eta0=")) == 0
+                   || strncmp(arg, "--gen3-compress-melt=", strlen("--gen3-compress-melt=")) == 0
+                   || strncmp(arg, "--gen3-compress-speed=", strlen("--gen3-compress-speed=")) == 0) {   /* ##CHRIS 2026-10-09 (decision 13, item 4) */
+            char *endptr = NULL; const double v = strtod(strchr(arg, '=') + 1, &endptr);
+            const int which = arg[16] == 'e' ? 0 : (arg[16] == 'm' ? 1 : 2);   /* "--gen3-compress-" is 16 characters */
+            const int ok = endptr && *endptr == '\0' && isfinite(v)
+                           && (which == 0 ? (v > 0.05 && v < 0.85) : (which == 1 ? (v >= 0.0 && v <= 1e7) : (v > 0.0 && v <= 1.0)));
+            if (!ok) { fprintf(stderr, "Invalid '%s' (eta0 in (0.05, 0.85); melt >= 0 sigma-time; speed in (0, 1] sigma per sigma-time).\n", arg); exit(EXIT_FAILURE); }
+            if (which == 0) cli_gen3_m4b_eta0 = v; else if (which == 1) cli_gen3_m4b_melt = v; else cli_gen3_m4b_u = v;
+            cli_gen3_m4b_set = 1;
+        } else if (strncmp(arg, "--gen3-lattice=", strlen("--gen3-lattice=")) == 0) {
+            const char* v = arg + strlen("--gen3-lattice=");
+            if (strcmp(v, "auto") == 0) cli_gen3_orient = -1;
+            else if (strcmp(v, "parallel") == 0) cli_gen3_orient = 0;
+            else if (strcmp(v, "perpendicular") == 0) cli_gen3_orient = 1;
+            else { fprintf(stderr, "Invalid '%s' (auto | parallel | perpendicular).\n", arg); exit(EXIT_FAILURE); }
+        } else if (strncmp(arg, "--gen3-lattice-orientation=", strlen("--gen3-lattice-orientation=")) == 0) {   /* ##CHRIS 2026-10-10 (decision 18, M4c) */
+            const char* v = arg + strlen("--gen3-lattice-orientation=");
+            if (strcmp(v, "0") == 0) cli_gen3_cryst = 0;
+            else if (strcmp(v, "turned") == 0) cli_gen3_cryst = 1;
+            else { fprintf(stderr, "Invalid '%s' (0 | turned).\n", arg); exit(EXIT_FAILURE); }
+        } else if (strncmp(arg, "--gen3-jitter=", strlen("--gen3-jitter=")) == 0) {
+            char *endptr = NULL; const double v = strtod(arg + strlen("--gen3-jitter="), &endptr);
+            if (!endptr || *endptr != '\0' || !(v >= 0.0) || !(v < 0.5)) { fprintf(stderr, "Invalid '%s' (0 <= f < 0.5).\n", arg); exit(EXIT_FAILURE); }
+            cli_gen3_jitter = v;
+        } else if (strcmp(arg, "--gen3-exact-box") == 0) {
+            cli_gen3_exact_box = 1;
+        } else if (strncmp(arg, "--gen3-dump-initial=", strlen("--gen3-dump-initial=")) == 0) {
+            cli_gen3_dump_initial = arg + strlen("--gen3-dump-initial=");
+        } else if (strncmp(arg, "--gen3-held-readout=", strlen("--gen3-held-readout=")) == 0) {   /* ##CHRIS 2026-10-14 (decision 50, c) */
+            char* end = NULL; errno = 0;
+            const long v = strtol(arg + strlen("--gen3-held-readout="), &end, 10);
+            if (errno != 0 || !end || *end != '\0' || v < 1 || v > INT_MAX / 2) {
+                fprintf(stderr, "Invalid --gen3-held-readout '%s' (the step of T_eq, >= 1).\n", arg + strlen("--gen3-held-readout="));
+                exit(EXIT_FAILURE);
+            }
+            cli_gen3_held_readout = (int)v;
+        } else if (strncmp(arg, "--gen3-checkpoint=", strlen("--gen3-checkpoint=")) == 0) {   /* ##CHRIS 2026-10-09 (stage H) */
+            const char* v = arg + strlen("--gen3-checkpoint=");
+            char ph[16] = ""; long k = -1; int used = 0;
+            if (sscanf(v, "%15[a-z]:%ld:%n", ph, &k, &used) != 2 || used <= 0 || !v[used] || (strcmp(ph, "hold") && strcmp(ph, "record"))
+                || (!strcmp(ph, "hold") && k < 1) || k < 0) {
+                fprintf(stderr, "Invalid '%s' (hold:K:PATH with K >= 1 hold steps done, or record:K:PATH with K >= 0 record steps done).\n", arg);
+                exit(EXIT_FAILURE);
+            }
+            cli_gen3_ckpt_phase = strcmp(ph, "hold") ? 1 : 0; cli_gen3_ckpt_step = k; cli_gen3_ckpt_path = v + used;
+        } else if (strcmp(arg, "--gen3-checkpoint-stop") == 0) {
+            cli_gen3_ckpt_stop = 1;
+        } else if (strncmp(arg, "--gen3-restart=", strlen("--gen3-restart=")) == 0) {
+            cli_gen3_restart = arg + strlen("--gen3-restart=");
+        } else if (strncmp(arg, "--gen3-virial-blocks=", strlen("--gen3-virial-blocks=")) == 0
+                   || strncmp(arg, "--gen3-snapshots=", strlen("--gen3-snapshots=")) == 0) {   /* ##CHRIS 2026-10-09 (decision 12, part 3a) */
+            const int vb = strncmp(arg, "--gen3-virial-blocks=", strlen("--gen3-virial-blocks=")) == 0;
+            char *endptr = NULL; const double v = strtod(strchr(arg, '=') + 1, &endptr);
+            if (!endptr || *endptr != '\0' || !(v > 0.0) || v > 1e9) { fprintf(stderr, "Invalid '%s' (an interval > 0 in sigma-time).\n", arg); exit(EXIT_FAILURE); }
+            if (vb) cli_gen3_virial_blocks = v; else cli_gen3_snapshots = v;
+        } else if (strcmp(arg, "--gen3-psi6-compartments") == 0) {   /* ##CHRIS 2026-10-10 (decision 17): provisional */
+            cli_gen3_psi6_comp = 1;
+        } else if (strncmp(arg, "--gen3-psi6-snapshots=", strlen("--gen3-psi6-snapshots=")) == 0) {
+            cli_gen3_psi6_snaps = arg + strlen("--gen3-psi6-snapshots=");
+        } else if (strncmp(arg, "--psi6-every=", strlen("--psi6-every=")) == 0) {   /* ##CHRIS 2026-10-09 (M3, stage A1) */
+            char *endptr = NULL; const double v = strtod(arg + strlen("--psi6-every="), &endptr);
+            if (!endptr || *endptr != '\0' || !(v > 0.0) || v > 1e6) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_psi6_every = v;
+        } else if (strncmp(arg, "--record-sigma-time=", strlen("--record-sigma-time=")) == 0) {   /* ##CHRIS 2026-10-09 (M3) */
+            char *endptr = NULL; const double v = strtod(arg + strlen("--record-sigma-time="), &endptr);
+            if (!endptr || *endptr != '\0' || !(v > 0.0) || v > 1e9) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_record_sigma_time = v;
+        } else if (strncmp(arg, "--gen3-audit-every=", strlen("--gen3-audit-every=")) == 0) {
+            char *endptr = NULL; const long v = strtol(arg + strlen("--gen3-audit-every="), &endptr, 10);
+            if (!endptr || *endptr != '\0' || v < 1) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_gen3_audit_every = v;
+        } else if (strncmp(arg, "--engine-replay=", strlen("--engine-replay=")) == 0) {   /* ##CHRIS 2026-10-09 (M3) */
+            cli_engine_replay = arg + strlen("--engine-replay="); cli_engine = 3;
+        } else if (strncmp(arg, "--replay-read-every=", strlen("--replay-read-every=")) == 0) {
+            char *endptr = NULL; const long v = strtol(arg + strlen("--replay-read-every="), &endptr, 10);
+            if (!endptr || *endptr != '\0' || v < 0 || v > 100000000L) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_replay_read_every = (int)v;
+        } else if (strncmp(arg, "--replay-substeps=", strlen("--replay-substeps=")) == 0) {
+            char *endptr = NULL; const long v = strtol(arg + strlen("--replay-substeps="), &endptr, 10);
+            if (!endptr || *endptr != '\0' || v < 1 || v > 1000000L) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_replay_substeps = (int)v;
+        } else if (strcmp(arg, "--engine=gen2") == 0) {      /* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14) */
+            cli_engine = 2;
+        } else if (strcmp(arg, "--engine=gen3") == 0) {
+            cli_engine = 3;
+        } else if (strcmp(arg, "--gui-stats") == 0) {        /* ##CHRIS 2026-10-10 (decision 19, item 2): provisional */
+            cli_gui_stats = 1;
+        } else if (strncmp(arg, "--gui-run-seconds=", strlen("--gui-run-seconds=")) == 0) {
+            char *endptr = NULL; const double v = strtod(arg + strlen("--gui-run-seconds="), &endptr);
+            if (!endptr || *endptr != '\0' || !(v > 0.0)) { fprintf(stderr, "Invalid '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_gui_run_seconds = v;
+        } else if (strncmp(arg, "--gui-time-scale=", strlen("--gui-time-scale=")) == 0) {
+            char *endptr = NULL; const double v = strtod(arg + strlen("--gui-time-scale="), &endptr);
+            if (!endptr || *endptr != '\0' || !(v >= 0.01 && v <= 10000.0)) { fprintf(stderr, "Invalid '%s' (0.01 .. 10000).\n", arg); exit(EXIT_FAILURE); }
+            cli_gui_time_scale = v;
+        } else if (strncmp(arg, "--gui-keys=", strlen("--gui-keys=")) == 0) {
+            cli_gui_keys = arg + strlen("--gui-keys=");
+        } else if (strncmp(arg, "--gui-window=", strlen("--gui-window=")) == 0) {   /* ##CHRIS 2026-10-12 (decision 34, addition): test hooks */
+            char tail = 0;
+            if (sscanf(arg + strlen("--gui-window="), "%dx%d%c", &cli_gui_window_w, &cli_gui_window_h, &tail) != 2
+                || cli_gui_window_w < 320 || cli_gui_window_h < 240 || cli_gui_window_w > 16384 || cli_gui_window_h > 16384) {
+                fprintf(stderr, "Invalid '%s' (WxH in points, 320x240 .. 16384x16384).\n", arg); exit(EXIT_FAILURE);
+            }
+        } else if (strncmp(arg, "--gui-ui-scale=", strlen("--gui-ui-scale=")) == 0) {
+            char *endptr = NULL; const double v = strtod(arg + strlen("--gui-ui-scale="), &endptr);
+            if (!endptr || *endptr != '\0' || !(v >= 1.0 && v <= 4.0)) { fprintf(stderr, "Invalid '%s' (1 .. 4).\n", arg); exit(EXIT_FAILURE); }
+            cli_gui_ui_scale = (float)v;
+        } else if (strncmp(arg, "--gui-shot=", strlen("--gui-shot=")) == 0) {
+            const char *s = arg + strlen("--gui-shot="), *colon = strchr(s, ':');
+            long st = -1;
+            if (colon && strncmp(s, "limit:", 6) != 0) { char *e = NULL; st = strtol(s, &e, 10); if (e != colon || st < 1) colon = NULL; }
+            if (!colon || !colon[1] || gui_shot_n >= GUI_SHOTS_MAX || strlen(colon + 1) >= sizeof gui_shot_path[0]) {
+                fprintf(stderr, "Invalid '%s' (STEP:FILE.bmp or limit:FILE.bmp, at most %d).\n", arg, GUI_SHOTS_MAX); exit(EXIT_FAILURE);
+            }
+            gui_shot_step[gui_shot_n] = st;
+            snprintf(gui_shot_path[gui_shot_n], sizeof gui_shot_path[0], "%s", colon + 1);
+            gui_shot_done[gui_shot_n] = 0;
+            gui_shot_n++;
+        } else if (strncmp(arg, "--engine", strlen("--engine")) == 0 && (arg[8] == '=' || arg[8] == '\0')) {
+            fprintf(stderr, "Invalid --engine '%s': use --engine=gen2 (default) or --engine=gen3.\n", arg);
+            exit(EXIT_FAILURE);
+        } else if (strncmp(arg, "--gen3-cell-px=", strlen("--gen3-cell-px=")) == 0) {
+            char *endptr = NULL; const double v = strtod(arg + strlen("--gen3-cell-px="), &endptr);
+            if (!endptr || *endptr != '\0' || !(v > 0.0)) { fprintf(stderr, "Invalid --gen3-cell-px '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_gen3_cell_px = v;
+        } else if (strncmp(arg, "--validator-every=", strlen("--validator-every=")) == 0) {
+            char *endptr = NULL; const long v = strtol(arg + strlen("--validator-every="), &endptr, 10);
+            if (!endptr || *endptr != '\0' || v < 1 || v > 100000000L) { fprintf(stderr, "Invalid --validator-every '%s'.\n", arg); exit(EXIT_FAILURE); }
+            cli_validator_every = (int)v;
+        } else if (strcmp(arg, "--legacy-resched") == 0) {   /* ##CHRIS 2026-10-05 */
+            cli_legacy_resched = 1;
+        } else if (strcmp(arg, "--resched-audit") == 0) {    /* ##CHRIS 2026-10-07 */
+            cli_resched_audit = 1;
+        } else if (strcmp(arg, "--resched-audit=all") == 0) {
+            cli_resched_audit = 2;
         } else if (strcmp(arg, "--edmd-acc") == 0) {
             refuse_edmd_acc_backend();   /* ##CHRIS 2026-10-09 (sec. 4.7.1, item 0) */
             cli_edmd_acc = 1;
@@ -5052,28 +5763,19 @@ void initSDL() {
     }
     // Pre-clamp against the primary display so the initial window isn't absurdly large.
     // (We do a second clamp after window creation using the window's actual display index.)
-    {
+    if (cli_gui_window_w > 0) { MAX_X = cli_gui_window_w; MAX_Y = cli_gui_window_h; }   /* ##CHRIS 2026-10-12 (decision 34, addition): --gui-window, exact */
+    else {   /* ##CHRIS 2026-10-12 (decision 34, item 1): the default window fits the display (98 % x 95 % of its usable area), in
+                points; it no longer grows with the box, which is fitted to it (gui_scene_fit) */
+        SDL_Rect ub;
         SDL_DisplayMode dm;
-        if (SDL_GetCurrentDisplayMode(0, &dm) == 0) {
-            const int max_w = (int)(0.98 * (double)dm.w);
-            const int max_h = (int)(0.95 * (double)dm.h);
-
-            // If we have room, expand width to use the screen for HUD/plots.
-            // Do NOT auto-expand height to full-screen: users often want vertical space for other apps.
-            if (gui_dist_mode != 0) {
-                if (MAX_X < max_w) MAX_X = max_w;
-            }
-
-            // Clamp to fit display.
-            if (MAX_X > max_w) MAX_X = max_w;
-            if (MAX_Y > max_h) MAX_Y = max_h;
-
-            // Ensure some bottom area remains for plots.
-            const int min_h = YW2 + gui_window_min_extra_y;
-            if (MAX_Y < min_h) MAX_Y = min_h;
-
-            gui_recompute_hist_extents();
+        if (SDL_GetDisplayUsableBounds(0, &ub) == 0 && ub.w > 0 && ub.h > 0) {
+            MAX_X = (int)(0.98 * (double)ub.w);
+            MAX_Y = (int)(0.95 * (double)ub.h);
+        } else if (SDL_GetCurrentDisplayMode(0, &dm) == 0) {
+            MAX_X = (int)(0.98 * (double)dm.w);
+            MAX_Y = (int)(0.95 * (double)dm.h);
         }
+        gui_recompute_hist_extents();
     }
     _window = SDL_CreateWindow(
         "Hard Spheres Simulation",
@@ -5088,24 +5790,24 @@ void initSDL() {
         exit(1);
     }
     _renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED);
+    if (!_renderer) {   /* ##CHRIS 2026-10-10 (decision 19, item 2): no accelerated renderer (the SDL dummy video driver of the
+                           acceptance runs): the software renderer draws the same frame */
+        printf("[GUI] no accelerated renderer (%s); using the software renderer\n", SDL_GetError());
+        _renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_SOFTWARE);
+    }
     if (!_renderer) {
         printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
         exit(1);
     }
 
     // Post-clamp to the actual display the window ended up on (important for external monitors).
-    {
+    if (cli_gui_window_w <= 0) {   /* ##CHRIS 2026-10-12 (decision 34, addition): not with --gui-window */
         int display_index = SDL_GetWindowDisplayIndex(_window);
         if (display_index < 0) display_index = 0;
-        SDL_DisplayMode dm;
-        if (SDL_GetCurrentDisplayMode(display_index, &dm) == 0) {
-            const int max_w = (int)(0.98 * (double)dm.w);
-            const int max_h = (int)(0.95 * (double)dm.h);
-            if (gui_dist_mode != 0 && MAX_X < max_w) MAX_X = max_w;
-            if (MAX_X > max_w) MAX_X = max_w;
-            if (MAX_Y > max_h) MAX_Y = max_h;
-            const int min_h = YW2 + gui_window_min_extra_y;
-            if (MAX_Y < min_h) MAX_Y = min_h;
+        SDL_Rect ub;   /* ##CHRIS 2026-10-12 (decision 34, item 1): the display the window is on */
+        if (SDL_GetDisplayUsableBounds(display_index, &ub) == 0 && ub.w > 0 && ub.h > 0) {
+            MAX_X = (int)(0.98 * (double)ub.w);
+            MAX_Y = (int)(0.95 * (double)ub.h);
             SDL_SetWindowSize(_window, MAX_X, MAX_Y);
             gui_sync_renderer_canvas_size();
         }
@@ -5129,7 +5831,7 @@ static void gui_adjust_window_height(int delta) {
         max_h = (int)(0.95 * (double)dm.h);
     }
 
-    const int min_h = YW2 + gui_window_min_extra_y;
+    const int min_h = 480;   /* ##CHRIS 2026-10-12 (decision 34, item 1): points; the box is fitted to the window */
     if (desired_h < min_h) desired_h = min_h;
     if (desired_h > max_h) desired_h = max_h;
 
@@ -6234,6 +6936,14 @@ void initialize_simulation(void) {
 /////////////////// PISTON FUNCTIONS /////////////////////////
 
 // Function to render pistons
+/* ##CHRIS 2026-10-12 (decision 34, the drawing scale): this region draws in the box's world pixels through the display transform gs_* */
+#define SDL_RenderDrawLine(r_, ...) gs_line(__VA_ARGS__)   /* variadic: an argument may hold a compound literal's commas */
+#define SDL_RenderFillRect(r_, ...) gs_fill_rect(__VA_ARGS__)
+#define SDL_RenderDrawRect(r_, ...) gs_draw_rect(__VA_ARGS__)
+#define SDL_RenderDrawPoint(r_, ...) gs_point(__VA_ARGS__)
+#define draw_text(r_, ...) gs_text(__VA_ARGS__)
+#define draw_text_clipped(r_, ...) gs_text_clipped(__VA_ARGS__)
+#define TTF_SizeUTF8(...) gs_size(__VA_ARGS__)
 void render_pistons() {
     SDL_SetRenderDrawColor(_renderer, 0, 255, 0, 150);
     SDL_Rect left_piston = { (int)piston_left_x , 0, 5, YW2 };
@@ -6267,6 +6977,13 @@ static void render_left_spring() {
 
 
 
+#undef SDL_RenderDrawLine
+#undef SDL_RenderFillRect
+#undef SDL_RenderDrawRect
+#undef SDL_RenderDrawPoint
+#undef draw_text
+#undef draw_text_clipped
+#undef TTF_SizeUTF8   /* ##CHRIS (decision 34, the drawing scale): end of the region */
 void move_left_piston(float dt) {
     float left_box_edge = (float)XW1;
     float piston_width = 20.0f;
@@ -6725,9 +7442,8 @@ void render_particles() {
 
     for (int i = 0; i < n; i++) {
         // Use rounding (not truncation) to reduce 1–2px visual "overlaps" at contact.
-        int pixel_x = (int)lroundf((float)X[i]);
-        int pixel_y = (int)lroundf((float)Y[i]);
-        int radius_pixels = (int)lroundf(fmaxf((float)PARTICLE_RADIUS, gui_particle_draw_min_px));
+        /* ##CHRIS 2026-10-12 (decision 34, the drawing scale): at device resolution (gs_disk; the smallest drawn radius in device px) */
+        const float rad_w = (float)PARTICLE_RADIUS;
 
         // Szilard mode:
         //  - species view: full fill encodes x
@@ -6738,20 +7454,20 @@ void render_particles() {
                 if (sz_memory && sz_memory[i] == 0) SDL_SetRenderDrawColor(_renderer, 80, 220, 120, 255);
                 else if (sz_memory && sz_memory[i] == 1) SDL_SetRenderDrawColor(_renderer, 255, 220, 80, 255);
                 else SDL_SetRenderDrawColor(_renderer, 215, 215, 215, 255);
-                SDL_RenderFillCircle(_renderer, pixel_x, pixel_y, radius_pixels);
+                gs_disk((float)X[i], (float)Y[i], rad_w);
             } else if (sz_view_mode == SZ_VIEW_SPECIES) {
                 if (sz_species[i] == 0) SDL_SetRenderDrawColor(_renderer, 255, 80, 80, 255);
                 else                    SDL_SetRenderDrawColor(_renderer, 80, 120, 255, 255);
-                SDL_RenderFillCircle(_renderer, pixel_x, pixel_y, radius_pixels);
+                gs_disk((float)X[i], (float)Y[i], rad_w);
             } else {
                 if (sz_memory && (sz_memory[i] == 0 || sz_memory[i] == 1)) {
                     if (sz_memory[i] == 0) SDL_SetRenderDrawColor(_renderer, 80, 220, 120, 255);
                     else                   SDL_SetRenderDrawColor(_renderer, 255, 220, 80, 255);
-                    SDL_RenderFillCircle(_renderer, pixel_x, pixel_y, radius_pixels + 2);
+                    gs_disk((float)X[i], (float)Y[i], rad_w + 2.0f);
                 }
                 if (sz_species[i] == 0) SDL_SetRenderDrawColor(_renderer, 255, 80, 80, 255);
                 else                    SDL_SetRenderDrawColor(_renderer, 80, 120, 255, 255);
-                SDL_RenderFillCircle(_renderer, pixel_x, pixel_y, radius_pixels);
+                gs_disk((float)X[i], (float)Y[i], rad_w);
             }
             continue;
         }
@@ -6759,7 +7475,7 @@ void render_particles() {
             float vx = (float)Vx[i], vy = (float)Vy[i];
             float speed = sqrtf(vx * vx + vy * vy);
             set_draw_color_speed_heat(speed / vmax, 255);
-            SDL_RenderFillCircle(_renderer, pixel_x, pixel_y, radius_pixels);
+            gs_disk((float)X[i], (float)Y[i], rad_w);
             continue;
         }
         // ##CHRIS: Particle-life mode uses type-based colors
@@ -6790,7 +7506,7 @@ void render_particles() {
             set_draw_color_blue_purple_red((float)a);
         }
 
-        SDL_RenderFillCircle(_renderer, pixel_x, pixel_y, radius_pixels);
+        gs_disk((float)X[i], (float)Y[i], rad_w);
     }
 }
 
@@ -7937,12 +8653,21 @@ static inline void handle_piston_collisions_ccd_substep(int i, float sub_dt,
 
 //////// WALL FUNCTIONS /////////
 
+/* ##CHRIS 2026-10-12 (decision 34, the drawing scale): this region draws in the box's world pixels through the display transform gs_* */
+#define SDL_RenderDrawLine(r_, ...) gs_line(__VA_ARGS__)   /* variadic: an argument may hold a compound literal's commas */
+#define SDL_RenderFillRect(r_, ...) gs_fill_rect(__VA_ARGS__)
+#define SDL_RenderDrawRect(r_, ...) gs_draw_rect(__VA_ARGS__)
+#define SDL_RenderDrawPoint(r_, ...) gs_point(__VA_ARGS__)
+#define draw_text(r_, ...) gs_text(__VA_ARGS__)
+#define draw_text_clipped(r_, ...) gs_text_clipped(__VA_ARGS__)
+#define TTF_SizeUTF8(...) gs_size(__VA_ARGS__)
 void draw_wall() {
     if (!wall_enabled) return;  // Don't draw if the wall is disabled
-       if (isnan(wall_x) || wall_x < XW1 || wall_x > XW2) {
-        printf("🚨 Invalid wall_x = %f\n", wall_x);
-            exit(1);
-        }
+    /* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item C): a drawing function no longer ends the program. A divider
+       outside the box (neither engine has a divider-outer-wall event; the window pauses before that, gui_divider_limit_check) is
+       drawn where it is, in red; the old exit(1) after "Invalid wall_x" is gone */
+    if (isnan(wall_x)) return;
+    const int wall_outside = wall_x < XW1 || wall_x > XW2;
     const bool sz_mode = (cli_experiment_preset == EXPERIMENT_PRESET_SZILARD_ENGINE && sz_interactive_enabled);
     float vis_thick = (wall_thickness_visual_runtime > 0.0f) ? wall_thickness_visual_runtime : WALL_THICKNESS;
     // In Szilard mode use a thin visual wall for both red/blue barriers.
@@ -7963,6 +8688,7 @@ void draw_wall() {
     } else {
         SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);  // default white
     }
+    if (wall_outside) SDL_SetRenderDrawColor(_renderer, 255, 60, 60, 255);   /* ##CHRIS (decision 34, addition, item C) */
 
     SDL_RenderFillRect(_renderer, &wall_rect);
 
@@ -7998,6 +8724,13 @@ void draw_wall() {
         SDL_RenderFillRect(_renderer, &extra_rect);
     }
 }
+#undef SDL_RenderDrawLine
+#undef SDL_RenderFillRect
+#undef SDL_RenderDrawRect
+#undef SDL_RenderDrawPoint
+#undef draw_text
+#undef draw_text_clipped
+#undef TTF_SizeUTF8   /* ##CHRIS (decision 34, the drawing scale): end of the region */
 
 
 // Function to update wall position and velocity
@@ -11088,9 +11821,315 @@ static void log_distributions(double t_abs, double t_rel, int released) {
 
 
 
+/* ##CHRIS 2026-10-10 (plan-author decision 19, item 2; 261012 sec. 4.7.46): PROVISIONAL -- gen3 in the window, a DISPLAY feature;
+   no campaign script uses it. --engine=gen3 --show-simulation runs the interactive scene (simulation_loop: in the window, or with
+   --headless) on gen3. Every step advances the engine, and the frame is drawn from its synchronised copy, read-only (a reader that
+   writes into it stops the run: g3_check_untouched). The keys and sliders reach the bodies only through gen3's body API: R releases
+   the held dividers (edmd_set_divider_motions -> edmd3_set_divider_motion); T, A/D/S and the arrow keys set the piston velocities
+   (edmd_config_pistons -> edmd3_set_piston_motion); ESC and the F3 panel's APPLY rebuild the scene, gen3 with it at the next step.
+   What gen3 does not have -- the heat bath and the Andersen thermostat, species gates (the Szilard scene), the time-stepping modes,
+   the wall toggle (W), temperature rescaling ([ ] \), a live spring change -- is refused at the start (main) or marked "n/a (gen3)"
+   in the window; using it prints a [GEN3-GUI] note (on the HUD for 6 s) and changes nothing. The F3 panel's engine row has a gen3
+   entry, and the HUD names the engine in every frame, so a change to gen2 is never silent.
+   A driven piston that would leave the box, reach a divider or close its compartment beyond eta 0.80 is stopped with a note: gen3
+   stops the run at a jam (its stagnation guard), and a body outside the box is a validator finding.
+   At the end of the scene: the run record ([EDMD3-HEALTH] scene: ..., with the event hash; also before every rebuild) and
+   [GUI-STATS] (frames, fps, sigma-time per wall second, events per wall second, from the scene's first step). Under gen3, Q ends
+   the loop instead of exit(0), so both are printed. */
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition; 261012 sec. 4.7.73): THE ENERGY-TRANSFER SCENE IN THE GEN3 WINDOW.
+   B: the F3 panel has a spring-constant row (k, kT/sigma^2) for the energy-transfer scene, applied by APPLY like N, radius, eta,
+      spring L0 and M1 (run configuration, allowed under gen3); the HUD shows k as the engine has it and E_spring, and the [ENERGY]
+      line prints E_spring and E_tot = KE_tot + E_spring. A live change of the spring during a run stays n/a under gen3.
+   C: a divider at the end of its range pauses the window (gui_divider_limit_check); draw_wall no longer calls exit(1).
+   D: the UI in window points (gui_begin_ui_view: full-size, sharp panels and text on a high-DPI display), UTF-8 text (sigma),
+      the hold counter stops at 0 ("R releases it"), HUD lines wrap instead of being cut at the panel edge.
+   Test hooks (window only): --gui-window=WxH (the window's size in points, exactly), --gui-ui-scale=U (instead of the measured
+   device pixels per point), --gui-shot=STEP:FILE.bmp or limit:FILE.bmp (the frame after that step, or at the divider-limit pause).
+   All of it is display: the physics and every output file are unchanged; a run with the window gives the headless event hash. */
+#define G3_GUI_ETA_STOP 0.80
+static int    g3_gui_quit = 0;                    /* Q under gen3: the loop ends */
+static char   g3_gui_note_text[200] = "";
+static Uint32 g3_gui_note_until = 0;              /* SDL ticks until which the HUD shows the note */
+static double g3_gui_rate = 0.0, g3_gui_rate_t = -1.0;   /* events per wall second over the last >= 0.5 s; its sample time */
+static long   g3_gui_rate_ev = 0;
+static void g3_gui_note(const char* what){
+    printf("[GEN3-GUI] %s\n", what);
+    fflush(stdout);
+    snprintf(g3_gui_note_text, sizeof g3_gui_note_text, "gen3: %s", what);
+    g3_gui_note_until = cli_headless ? 0 : SDL_GetTicks() + 6000;
+}
+static const char* g3_gui_note_now(void){
+    return (g3_gui_note_text[0] && !cli_headless && SDL_GetTicks() < g3_gui_note_until) ? g3_gui_note_text : NULL;
+}
+static long g3_gui_events(void){                  /* the executed events of the current gen3 state */
+    if (!g_edmd3) return 0;
+    const EDMD3_Health* H = edmd3_health(g_edmd3);
+    return H->ev_pair + H->ev_wall + H->ev_cross + H->ev_div + H->ev_piston + H->ev_band;
+}
+static void g3_gui_rate_update(void){
+    const double t = g3_mono();
+    const long ev = g3_gui_events();
+    if (g3_gui_rate_t < 0.0 || ev < g3_gui_rate_ev) { g3_gui_rate_t = t; g3_gui_rate_ev = ev; g3_gui_rate = 0.0; return; }
+    if (t - g3_gui_rate_t < 0.5) return;
+    g3_gui_rate = (double)(ev - g3_gui_rate_ev) / (t - g3_gui_rate_t);
+    g3_gui_rate_t = t; g3_gui_rate_ev = ev;
+}
+static void g3_gui_engine_line(char* buf, size_t n){
+    if (cli_engine != 3)
+        snprintf(buf, n, "engine: gen2 %s", sim_mode == MODE_EDMD ? "EDMD" : sim_mode == MODE_EDMD_HYBRID ? "HYBRID PP-EDMD"
+                                             : sim_mode == MODE_RK4 ? "RK4" : "TIME");
+    else if (!g_edmd3) {   /* ##CHRIS 2026-10-13 (decision 48): the cell width the build will ask for (g3_cell_arg; 0: the default) */
+        const double w = g_edmd ? g3_cell_arg(edmd_params(g_edmd)) : cli_gen3_cell_px;
+        snprintf(buf, n, "engine: gen3 (provisional display)  cell=%g px  clean=-  (built at the first step)", w > 0.0 ? w : EDMD3_DEFAULT_CELL_PX);
+    } else   /* ##CHRIS 2026-10-13 (decision 48): the cell width gen3 was built with */
+        snprintf(buf, n, "engine: gen3 (provisional display)  cell=%g px  clean=%d  events/s=%.3g", edmd3_cell_px(g_edmd3),
+                 edmd3_health_clean(g_edmd3), g3_gui_rate);
+}
+/* a key under gen3: 1 if it is handled here (refused with a note, or gen3's version of the action) */
+static int g3_gui_key(SDL_Keycode k){
+    switch (k) {
+        case SDLK_w: g3_gui_note("W (wall toggle) n/a: the dividers belong to the scene; rebuild it (ESC or the F3 panel)"); return 1;
+        case SDLK_LEFTBRACKET: case SDLK_RIGHTBRACKET: case SDLK_BACKSLASH:
+            g3_gui_note("[ ] \\ (temperature rescale) n/a: the velocities change only through the engine"); return 1;
+        case SDLK_b: g3_gui_note("B (heat bath) n/a: gen3 has no heat bath"); return 1;
+        case SDLK_k: case SDLK_COMMA: case SDLK_PERIOD: g3_gui_note("K , . (Andersen thermostat) n/a: gen3 has no thermostat"); return 1;
+        case SDLK_ESCAPE: live_scene_rebuild_requested = 1; g3_gui_note("ESC: scene reset; gen3 is rebuilt at its first step"); return 1;
+        case SDLK_q: g3_gui_quit = 1; g3_gui_note("Q: the scene ends; the run record follows"); return 1;
+        default: return 0;
+    }
+}
+/* the piston guard under gen3 (above), before every step: from the bodies' state and the disks at the step's start */
+static void g3_gui_guard_pistons(double dt){
+    if (cli_engine != 3 || !g_edmd) return;
+    const EDMD_Params* ep = edmd_params(g_edmd);
+    const double R = ep->radius;
+    for (int side = 0; side < 2; ++side) {
+        if (!(side == 0 ? ep->has_pistonL : ep->has_pistonR)) continue;
+        float* v = side == 0 ? &vx_piston_left : &vx_piston_right;
+        const double x = side == 0 ? ep->pistonL_x : ep->pistonR_x, xn = x + (double)*v * dt;
+        const char* why = NULL;
+        if (side == 0 ? (*v < 0.0f) : (*v > 0.0f)) {                 /* outward */
+            if (xn < 0.0 || xn > ep->boxW) why = "it would leave the box";
+        } else if (*v != 0.0f) {                                     /* inward: its compartment ends at the nearest divider face */
+            double lo = side == 0 ? xn : (ep->has_pistonL ? ep->pistonL_x : 0.0);
+            double hi = side == 0 ? (ep->has_pistonR ? ep->pistonR_x : ep->boxW) : xn;
+            for (int d = 0; d < ep->divider_count && d < EDMD_MAX_DIVIDERS; ++d) {
+                const double c = ep->divider_x[d], h = 0.5 * ep->divider_thickness[d];
+                if (side == 0 && c > x && c - h < hi) hi = c - h;
+                if (side == 1 && c < x && c + h > lo) lo = c + h;
+            }
+            const double a = side == 0 ? x : lo, b = side == 0 ? hi : x;
+            int n = 0;
+            for (int i = 0; i < particles_active; ++i) { const double px = X[i] - (double)XW1; if (px > a && px < b) ++n; }
+            const double w = hi - lo;
+            if (w <= (n > 0 ? 2.0 * R : 0.0)) why = "it would reach the divider";
+            else if (n > 0 && (double)n * M_PI * R * R / (w * ep->boxH) > G3_GUI_ETA_STOP) why = "it would close its compartment beyond eta 0.80";
+        }
+        if (!why) continue;
+        *v = 0.0f;
+        if (side == 1) { piston_step_active = false; piston_protocol_start_time = -1.0f; }
+        char msg[160];
+        snprintf(msg, sizeof msg, "the %s piston is stopped: %s", side == 0 ? "left" : "right", why);
+        g3_gui_note(msg);
+    }
+}
+
+/* ##CHRIS 2026-10-14 (plan-author decision 52 item 2 and addendum 1; 261012 sec. 4.7.116, 4.7.120): THE COLLISION RETURN-MAP PANEL
+   (Rob's plot) in the window's gen3 scene. DISPLAY ONLY: a window run with the panel is a demonstration, never data.
+   What it shows: per disk, the angle theta_n in [0, 2 pi) of its n-th collision, and for each two consecutive collisions of the same
+   disk the point (theta_n, theta_n+1); a 90 x 90 histogram of the points of the last K disk collisions (a pair collision counts once
+   for each of its two disks), log colour scale, axes 0 .. 2 pi with ticks at multiples of pi/3, and the number of points shown.
+     angle (key 1): the line of centres from the disk to its partner at a pair collision (the default) and, at an outer wall, a
+       divider face or a piston face, the direction from the disk to it (0, pi/2, pi, 3 pi/2: the wall normal); or the direction of
+       the disk's velocity after the collision. Angles in the engine's x-y frame (y as the box's y coordinate).
+     walls (key 2): a point with a wall, divider or piston collision on either side is drawn in a second colour (cyan), or hidden.
+     side (key 3): both compartments, the left one or the right one (the disk's compartment at the load: left or right of the first
+       divider).
+     K (keys 4 and 5): halved or doubled, 625 .. 1,280,000 (default 20,000).
+   I opens and closes it (the help line). Switching the angle clears it; the other keys only change what is drawn.
+   How: gen3's collision gather hook (edmd3_set_coll_hook), set only while the panel is open and only on the window's gen3 state (every
+   frame, rm_frame), hands the panel a copy of each collision's result. The engine's state, its event order and every output are
+   unchanged (tested: equal event hashes with the panel closed, open, and toggled); no experiment loop and no KOA path sets it. */
+#define RM_BINS 90
+#define RM_KMIN 625L
+#define RM_KMAX 1280000L
+static struct {
+    int    open, mode, walls, side;                 /* mode 0: line of centres, 1: velocity after; walls 1: shown; side 0 both, 1 left, 2 right */
+    long   K, builds;                               /* the ring's length; g3_builds of the state the hook is on (-1: none) */
+    float* prev; unsigned char* prevk; int nprev;   /* per disk: the angle of its last collision (NAN: none yet); 1: it was a wall/body */
+    uint32_t* ring; long n, head;                   /* the last K points: bx | by << 7 | class << 14 | right << 15 */
+    int    hist[2][2][RM_BINS][RM_BINS];            /* [right][class][by][bx]; class 1: a wall, divider or piston on either side */
+    long   gathered;                                /* disk collisions since the last clear */
+    SDL_Texture* tex;
+} rm;
+static void rm_clear(void){
+    memset(rm.hist, 0, sizeof rm.hist);
+    rm.n = 0; rm.head = 0; rm.gathered = 0;
+    for (int i = 0; i < rm.nprev; ++i) { rm.prev[i] = NAN; rm.prevk[i] = 0; }
+}
+static int rm_bin(double th){ const int b = (int)(th * ((double)RM_BINS / (2.0 * M_PI))); return b < 0 ? 0 : (b >= RM_BINS ? RM_BINS - 1 : b); }
+static void rm_pop(void){   /* the oldest point leaves the ring */
+    const uint32_t v = rm.ring[(rm.head - rm.n + RM_KMAX) % RM_KMAX];
+    rm.hist[(v >> 15) & 1u][(v >> 14) & 1u][(v >> 7) & 127u][v & 127u]--;
+    rm.n--;
+}
+static void rm_point(int i, int wall, int comp, double th){   /* disk i's collision at angle th */
+    if (i < 0 || i >= rm.nprev) return;
+    if (th < 0.0) th += 2.0 * M_PI;
+    const float p = rm.prev[i]; const int pk = rm.prevk[i];
+    rm.prev[i] = (float)th; rm.prevk[i] = (unsigned char)(wall != 0);
+    rm.gathered++;
+    if (isnan(p)) return;
+    while (rm.n >= rm.K) rm_pop();
+    const int bx = rm_bin((double)p), by = rm_bin(th), cls = pk || wall, right = comp > 0;
+    rm.ring[rm.head] = (uint32_t)bx | ((uint32_t)by << 7) | ((uint32_t)cls << 14) | ((uint32_t)right << 15);
+    rm.head = (rm.head + 1) % RM_KMAX; rm.n++;
+    rm.hist[right][cls][by][bx]++;
+}
+static void rm_hook(void* ctx, const EDMD3_Coll* c){   /* called by gen3 at each collision while the panel is open: reads its copy only */
+    (void)ctx;
+    const int wall = c->kind != 0;
+    if (rm.mode == 0) {
+        rm_point(c->a, wall, c->comp_a, atan2(c->ny, c->nx));
+        if (c->b >= 0) rm_point(c->b, 0, c->comp_b, atan2(-c->ny, -c->nx));
+    } else {
+        rm_point(c->a, wall, c->comp_a, atan2(c->vay, c->vax));
+        if (c->b >= 0) rm_point(c->b, 0, c->comp_b, atan2(c->vby, c->vbx));
+    }
+}
+static void rm_frame(void){   /* the window, every frame: while the panel is open, the hook is on the current gen3 state */
+    if (!rm.open || cli_engine != 3) return;
+    if (!g_edmd3) { rm.builds = -1; return; }
+    if (rm.builds == g3_builds) return;
+    const int n = edmd3_count(g_edmd3);
+    if (n != rm.nprev) {
+        free(rm.prev); free(rm.prevk);
+        rm.prev = (float*)malloc((size_t)(n > 0 ? n : 1) * sizeof *rm.prev); rm.prevk = (unsigned char*)malloc((size_t)(n > 0 ? n : 1));
+        rm.nprev = (rm.prev && rm.prevk) ? n : 0;
+    }
+    rm_clear();
+    edmd3_set_coll_hook(g_edmd3, rm_hook, NULL);
+    rm.builds = g3_builds;
+}
+static void rm_note(void){
+    char b[200];
+    snprintf(b, sizeof b, "return map: angle %s, walls %s, side %s, K %ld", rm.mode ? "velocity after" : "line of centres",
+             rm.walls ? "shown" : "hidden", rm.side == 0 ? "both" : (rm.side == 1 ? "left" : "right"), rm.K);
+    g3_gui_note(b);
+}
+static int rm_key(SDL_Keycode k){   /* 1 if it is the panel's key */
+    if (k == SDLK_i) {
+        if (cli_engine != 3) { g3_gui_note("I (return map) needs gen3: the panel reads gen3's collisions"); return 1; }
+        if (!rm.ring) {
+            rm.ring = (uint32_t*)malloc((size_t)RM_KMAX * sizeof *rm.ring);
+            if (!rm.ring) { g3_gui_note("I (return map): out of memory"); return 1; }
+            rm.K = 20000L; rm.walls = 1; rm.builds = -1;
+        }
+        rm.open = !rm.open;
+        if (rm.open) { rm.builds = -1; rm_frame(); rm_note(); }
+        else { edmd3_set_coll_hook(NULL, NULL, NULL); rm.builds = -1; g3_gui_note("I: return map closed"); }
+        return 1;
+    }
+    if (!rm.open) return 0;
+    switch (k) {
+        case SDLK_1: rm.mode = !rm.mode; rm_clear(); rm_note(); return 1;
+        case SDLK_2: rm.walls = !rm.walls; rm_note(); return 1;
+        case SDLK_3: rm.side = (rm.side + 1) % 3; rm_note(); return 1;
+        case SDLK_4: if (rm.K > RM_KMIN) { rm.K /= 2; while (rm.n > rm.K) rm_pop(); } rm_note(); return 1;
+        case SDLK_5: if (rm.K < RM_KMAX) rm.K *= 2; rm_note(); return 1;
+        default: return 0;
+    }
+}
+static void rm_colour(double t, Uint8* r, Uint8* g, Uint8* b){   /* the pair points' scale: dark blue, purple, orange, pale yellow */
+    static const double S[4][3] = {{28, 30, 80}, {130, 40, 150}, {245, 120, 40}, {255, 245, 190}};
+    t = t < 0.0 ? 0.0 : (t > 1.0 ? 1.0 : t);
+    const double u = t * 3.0; int k = (int)u; if (k > 2) k = 2;
+    const double w = u - (double)k;
+    *r = (Uint8)(S[k][0] + w * (S[k + 1][0] - S[k][0])); *g = (Uint8)(S[k][1] + w * (S[k + 1][1] - S[k][1]));
+    *b = (Uint8)(S[k][2] + w * (S[k + 1][2] - S[k][2]));
+}
+static void rm_draw(SDL_Renderer* r, TTF_Font* f){   /* in the UI pass (window points); bottom right, left of the F2/F3 panels */
+    if (!rm.open || !r) return;
+    enum { PW = 270, ML = 52, MR = 14, MT = 66, MB = 30 };
+    const int W = ML + PW + MR, H = MT + PW + MB;
+    int x0 = gui_controls_column_left_ui() - 8 - W, y0 = MAX_Y - 8 - H;
+    if (x0 < 8) x0 = 8;
+    if (y0 < 8) y0 = 8;
+    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(r, 10, 12, 22, 238);
+    SDL_Rect bg = {x0, y0, W, H};
+    SDL_RenderFillRect(r, &bg);
+    SDL_SetRenderDrawColor(r, 120, 130, 170, 255);
+    SDL_RenderDrawRect(r, &bg);
+    static int c0[RM_BINS][RM_BINS], c1[RM_BINS][RM_BINS];
+    static uint32_t px[RM_BINS * RM_BINS];
+    int m0 = 0, m1 = 0; long shown = 0;
+    for (int by = 0; by < RM_BINS; ++by)
+        for (int bx = 0; bx < RM_BINS; ++bx) {
+            int a = 0, w = 0;
+            for (int s = 0; s < 2; ++s) {
+                if ((rm.side == 1 && s == 1) || (rm.side == 2 && s == 0)) continue;
+                a += rm.hist[s][0][by][bx]; w += rm.hist[s][1][by][bx];
+            }
+            if (!rm.walls) w = 0;
+            c0[by][bx] = a; c1[by][bx] = w; shown += a + w;
+            if (a > m0) m0 = a;
+            if (w > m1) m1 = w;
+        }
+    const double l0 = log1p((double)(m0 > 0 ? m0 : 1)), l1 = log1p((double)(m1 > 0 ? m1 : 1));
+    for (int by = 0; by < RM_BINS; ++by)
+        for (int bx = 0; bx < RM_BINS; ++bx) {
+            Uint8 R = 16, G = 18, B = 30;
+            if (c0[by][bx] > 0) rm_colour(log1p((double)c0[by][bx]) / l0, &R, &G, &B);
+            if (c1[by][bx] > 0) {   /* the second colour: cyan, by its own log scale */
+                const double al = 0.35 + 0.65 * log1p((double)c1[by][bx]) / l1;
+                R = (Uint8)((1.0 - al) * R + al * 70.0); G = (Uint8)((1.0 - al) * G + al * 235.0); B = (Uint8)((1.0 - al) * B + al * 235.0);
+            }
+            px[(RM_BINS - 1 - by) * RM_BINS + bx] = 0xFF000000u | ((uint32_t)R << 16) | ((uint32_t)G << 8) | (uint32_t)B;
+        }
+    if (!rm.tex) {
+        rm.tex = SDL_CreateTexture(r, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, RM_BINS, RM_BINS);
+#if SDL_VERSION_ATLEAST(2, 0, 12)
+        if (rm.tex) SDL_SetTextureScaleMode(rm.tex, SDL_ScaleModeNearest);
+#endif
+    }
+    const SDL_Rect plot = {x0 + ML, y0 + MT, PW, PW};
+    if (rm.tex && SDL_UpdateTexture(rm.tex, NULL, px, RM_BINS * (int)sizeof px[0]) == 0) SDL_RenderCopy(r, rm.tex, NULL, &plot);
+    SDL_SetRenderDrawColor(r, 170, 175, 200, 255);
+    SDL_RenderDrawRect(r, &plot);
+    const SDL_Color white = {235, 235, 245, 255}, muted = {170, 175, 200, 255}, cyan = {90, 230, 230, 255};
+    static const char* const TL[7] = {"0", "π/3", "2π/3", "π", "4π/3", "5π/3", "2π"};
+    for (int k = 0; k <= 6; ++k) {
+        const int tx = plot.x + k * PW / 6, ty = plot.y + PW - k * PW / 6;
+        SDL_Rect a = {tx, plot.y + PW, 1, 5}, b = {plot.x - 5, ty, 5, 1};
+        SDL_RenderFillRect(r, &a); SDL_RenderFillRect(r, &b);
+        if (f) {
+            draw_text(r, f, TL[k], tx - (k == 0 ? 3 : 12), plot.y + PW + 7, muted);
+            draw_text(r, f, TL[k], plot.x - 44, ty - 8, muted);
+        }
+    }
+    if (f) {
+        char l2t[200], l3t[200];
+        snprintf(l2t, sizeof l2t, "1 %s | 2 walls %s | 3 %s", rm.mode ? "velocity after the hit" : "line of centres",
+                 rm.walls ? "cyan" : "hidden", rm.side == 0 ? "both sides" : (rm.side == 1 ? "left side" : "right side"));
+        snprintf(l3t, sizeof l3t, "4/5 K %ld | points %ld | log colour", rm.K, shown);
+        draw_text(r, f, "Return map: x = θn, y = θn+1  (i close)", x0 + 10, y0 + 6, white);
+        draw_text_clipped(r, f, l2t, x0 + 10, y0 + 24, rm.walls ? cyan : muted, W - 20);
+        draw_text_clipped(r, f, l3t, x0 + 10, y0 + 42, muted, W - 20);
+    }
+}
+
 ////////// KEYBOARD INPUT HANDLING //////////
 // Keyboard input handling
 void keysSimulation(SDL_Event e) {
+    if (e.type == SDL_KEYDOWN && rm_key(e.key.keysym.sym)) return;   /* ##CHRIS 2026-10-14 (decision 52): the return-map panel's keys */
+    if (cli_engine == 3 && e.type == SDL_KEYDOWN && g3_gui_key(e.key.keysym.sym)) return;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+    if (gui_div_limit_paused && e.type == SDL_KEYDOWN && (e.key.keysym.sym == SDLK_p || e.key.keysym.sym == SDLK_SPACE)) {
+        /* ##CHRIS 2026-10-12 (decision 34, addition, item C): a divider at the end of its range is not resumed */
+        printf("[GUI-LIMIT] the scene is paused (the banner says why): ESC or the F3 panel's APPLY rebuilds the scene, Q ends it\n");
+        fflush(stdout);
+        return;
+    }
     /* ##CHRIS 2026-09-19: demo mode owns SPACE / P / S / + / - so each stage begins on a key.
        R (release) and Q (quit) fall through to the handlers below, which already do the right thing. */
     if (cli_demo_mode && e.type == SDL_KEYDOWN) {
@@ -11685,6 +12724,14 @@ void keysPiston(SDL_Event e) {
 /////////  HISTO AND SIMULATION RENDERING /////////
 // Function to handle particle- piston collisions
 
+/* ##CHRIS 2026-10-12 (decision 34, the drawing scale): this region draws in the box's world pixels through the display transform gs_* */
+#define SDL_RenderDrawLine(r_, ...) gs_line(__VA_ARGS__)   /* variadic: an argument may hold a compound literal's commas */
+#define SDL_RenderFillRect(r_, ...) gs_fill_rect(__VA_ARGS__)
+#define SDL_RenderDrawRect(r_, ...) gs_draw_rect(__VA_ARGS__)
+#define SDL_RenderDrawPoint(r_, ...) gs_point(__VA_ARGS__)
+#define draw_text(r_, ...) gs_text(__VA_ARGS__)
+#define draw_text_clipped(r_, ...) gs_text_clipped(__VA_ARGS__)
+#define TTF_SizeUTF8(...) gs_size(__VA_ARGS__)
 void draw_maxwell_boltzmann_curve(float temperature, int max_count) {
     float sigma = sqrt(kB_effective() * temperature / PARTICLE_MASS);
     float norm_factor = NUM_PARTICLES * (SIM_WIDTH / NUM_BINS);
@@ -11703,6 +12750,7 @@ void draw_maxwell_boltzmann_curve(float temperature, int max_count) {
 
 
 void draw_thick_line_vertical(SDL_Renderer *renderer, int x, int y1, int y2, int thickness) {
+    (void)renderer;   /* ##CHRIS (decision 34): the region's macros draw on _renderer */
     if (y1 > y2) {
         int temp = y1;
         y1 = y2;
@@ -11964,7 +13012,7 @@ static inline int gui_bins_for_xdensity(float width_px, int max_bins) {
     bins = gui_clamp_int(bins, 16, max_bins);
     // Ensure we can draw at least ~1px per bin in tight compartments.
     if (width_px > 0.0f) {
-        int cap = (int)floorf(width_px);
+        int cap = (int)floorf(width_px * gs_ax);   /* ##CHRIS 2026-10-12 (decision 34, the drawing scale): screen pixels */
         if (cap >= 8 && bins > cap) bins = cap;
     }
     if (bins < 8) bins = 8;
@@ -11978,7 +13026,7 @@ static inline int gui_bins_for_velocity(int n_samples, float seg_w_px, int max_b
     bins = gui_clamp_int(bins, 24, max_bins);
     // Rendering cap: avoid many bins mapping to the same x pixel in narrow segments.
     if (seg_w_px > 0.0f) {
-        int cap = (int)floorf(seg_w_px);
+        int cap = (int)floorf(seg_w_px * gs_ax);   /* ##CHRIS 2026-10-12 (decision 34, the drawing scale): screen pixels */
         if (cap >= 8 && bins > cap) bins = cap;
     }
     if (bins < 8) bins = 8;
@@ -12336,20 +13384,28 @@ static void render_velocity_histograms_by_segment_panel(int y0, int h) {
                      gui_hist_exact ? "  EXACT(z)" : "",
                      gui_dist_markers ? "" : "  markers(off)");
         }
-        draw_text(_renderer, font, label, panel_left + 8, y0 + 4, txt);
+        /* ##CHRIS 2026-10-12 (decision 34, the layout): each legend item after the measured width of the one before, gaps in points */
+        const int lx0 = panel_left + GUI_LG(8);
+        int lw = 0, lh = 0;
+        draw_text(_renderer, font, label, lx0, y0 + 4, txt);
+        if (TTF_SizeUTF8(font, label, &lw, &lh) != 0) lw = GUI_LG(160);
         SDL_SetRenderDrawColor(_renderer, 180, 180, 180, 220);
-        SDL_RenderDrawLine(_renderer, panel_left + 30, y0 + 12, panel_left + 60, y0 + 12);
-        draw_text(_renderer, font, "vy (yellow)", panel_left + 180, y0 + 4, txt);
+        SDL_RenderDrawLine(_renderer, lx0 + GUI_LG(22), y0 + 12, lx0 + GUI_LG(52), y0 + 12);
+        const int lx1 = lx0 + lw + GUI_LG(22);
+        draw_text(_renderer, font, "vy (yellow)", lx1, y0 + 4, txt);
         SDL_SetRenderDrawColor(_renderer, 255, 220, 0, 220);
-        SDL_RenderDrawLine(_renderer, panel_left + 170, y0 + 12, panel_left + 200, y0 + 12);
+        SDL_RenderDrawLine(_renderer, lx1 - GUI_LG(10), y0 + 12, lx1 + GUI_LG(20), y0 + 12);
 
         // Mean/median legend (solid line = mean; dashed ticks = median)
         if (gui_dist_markers) {
-            draw_text(_renderer, font, "mean|median", panel_left + 300, y0 + 4, txt);
+            int vw = 0;
+            if (TTF_SizeUTF8(font, "vy (yellow)", &vw, &lh) != 0) vw = GUI_LG(90);
+            const int lx2 = lx1 + vw + GUI_LG(30);
+            draw_text(_renderer, font, "mean|median", lx2, y0 + 4, txt);
             SDL_SetRenderDrawColor(_renderer, 235, 235, 235, 170);
-            SDL_RenderDrawLine(_renderer, panel_left + 292, y0 + 6, panel_left + 292, y0 + 18);
+            SDL_RenderDrawLine(_renderer, lx2 - GUI_LG(8), y0 + 6, lx2 - GUI_LG(8), y0 + 18);
             SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 120);
-            for (int yy = y0 + 6; yy < y0 + 18; yy += 5) SDL_RenderDrawLine(_renderer, panel_left + 284, yy, panel_left + 284, yy + 2);
+            for (int yy = y0 + 6; yy < y0 + 18; yy += 5) SDL_RenderDrawLine(_renderer, lx2 - GUI_LG(16), yy, lx2 - GUI_LG(16), yy + 2);
         }
     }
 }
@@ -12809,9 +13865,9 @@ static void render_speed_histograms_by_segment_panel(int y0, int h) {
                 snprintf(l3, sizeof(l3), "sd=%.2f", sd);
 
                 int tw1 = 0, th1 = 0, tw2 = 0, th2 = 0, tw3 = 0, th3 = 0;
-                TTF_SizeText(ff, l1, &tw1, &th1);
-                TTF_SizeText(ff, l2, &tw2, &th2);
-                TTF_SizeText(ff, l3, &tw3, &th3);
+                TTF_SizeUTF8(ff, l1, &tw1, &th1);
+                TTF_SizeUTF8(ff, l2, &tw2, &th2);
+                TTF_SizeUTF8(ff, l3, &tw3, &th3);
                 int bg_w = tw1;
                 if (tw2 > bg_w) bg_w = tw2;
                 if (tw3 > bg_w) bg_w = tw3;
@@ -12885,15 +13941,19 @@ static void render_speed_histograms_by_segment_panel(int y0, int h) {
                      gui_hist_exact ? "  EXACT(z)" : "",
                      gui_dist_markers ? "" : "  markers(off)");
         }
-        draw_text(_renderer, font, label, panel_left + 8, y0 + 4, txt);
+        const int lx0 = panel_left + GUI_LG(8);   /* ##CHRIS 2026-10-12 (decision 34, the layout): the legend after the label's width */
+        int lw = 0, lh = 0;
+        draw_text(_renderer, font, label, lx0, y0 + 4, txt);
+        if (TTF_SizeUTF8(font, label, &lw, &lh) != 0) lw = GUI_LG(220);
 
         // Mean/median legend (solid line = mean; dashed ticks = median)
         if (gui_dist_markers) {
-            draw_text(_renderer, font, "mean|median", panel_left + 300, y0 + 4, txt);
+            const int lx2 = lx0 + lw + GUI_LG(30);
+            draw_text(_renderer, font, "mean|median", lx2, y0 + 4, txt);
             SDL_SetRenderDrawColor(_renderer, 220, 255, 220, 170);
-            SDL_RenderDrawLine(_renderer, panel_left + 292, y0 + 6, panel_left + 292, y0 + 18);
+            SDL_RenderDrawLine(_renderer, lx2 - GUI_LG(8), y0 + 6, lx2 - GUI_LG(8), y0 + 18);
             SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 120);
-            for (int yy = y0 + 6; yy < y0 + 18; yy += 5) SDL_RenderDrawLine(_renderer, panel_left + 284, yy, panel_left + 284, yy + 2);
+            for (int yy = y0 + 6; yy < y0 + 18; yy += 5) SDL_RenderDrawLine(_renderer, lx2 - GUI_LG(16), yy, lx2 - GUI_LG(16), yy + 2);
         }
     }
 }
@@ -13268,30 +14328,59 @@ void draw_coordinate_system(SDL_Renderer *renderer) {
 
 
 
+#undef SDL_RenderDrawLine
+#undef SDL_RenderFillRect
+#undef SDL_RenderDrawRect
+#undef SDL_RenderDrawPoint
+#undef draw_text
+#undef draw_text_clipped
+#undef TTF_SizeUTF8   /* ##CHRIS (decision 34, the drawing scale): end of the region */
 // draw text
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item D): UTF-8 -- TTF_RenderText_* reads the bytes as Latin-1, so "σ"
+   came out as two wrong glyphs, one of them a box (Roboto has σ Δ ν ² × · ° – — −); in the UI pass (gui_begin_ui_view) the text
+   is rendered with the font opened at gui_ui_scale times the size and drawn at 1/gui_ui_scale, sharp on a high-DPI display; an
+   empty or unrenderable text draws nothing (it used to dereference a NULL surface). Text widths are measured with TTF_SizeUTF8. */
 void draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text, int x, int y, SDL_Color color) {
-    SDL_Surface *text_surface = TTF_RenderText_Blended(font, text, color);
+    if (!renderer || !font || !text || !*text) return;
+    TTF_Font *rf = font;
+    float k = 1.0f;
+    if (gui_ui_pass && gui_ui_scale > 1.0f && gui_font_hi_scale == gui_ui_scale) {
+        for (int i = 0; i < 2; ++i)
+            if (font == gui_font_base[i] && gui_font_hi[i]) { rf = gui_font_hi[i]; k = gui_ui_scale; }
+    }
+    SDL_Surface *text_surface = TTF_RenderUTF8_Blended(rf, text, color);
+    if (!text_surface) return;
     SDL_Texture *text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-    SDL_Rect dst = { x, y, text_surface->w, text_surface->h };
-    SDL_RenderCopy(renderer, text_texture, NULL, &dst);
+    if (text_texture) {
+        SDL_Rect dst = { x, y, (int)lroundf((float)text_surface->w / k), (int)lroundf((float)text_surface->h / k) };
+        SDL_RenderCopy(renderer, text_texture, NULL, &dst);
+        SDL_DestroyTexture(text_texture);
+    }
     SDL_FreeSurface(text_surface);
-    SDL_DestroyTexture(text_texture);
+}
+static void gui_open_hi_fonts(void) {   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): the fonts at gui_ui_scale times their size */
+    for (int i = 0; i < 2; ++i) if (gui_font_hi[i]) { TTF_CloseFont(gui_font_hi[i]); gui_font_hi[i] = NULL; }
+    gui_font_base[0] = font; gui_font_base[1] = font_small;
+    gui_font_hi_scale = gui_ui_scale;
+    if (!(gui_ui_scale > 1.0f)) return;
+    if (font) gui_font_hi[0] = TTF_OpenFont("Roboto-Regular.ttf", (int)lroundf(18.0f * gui_ui_scale));
+    if (font_small) gui_font_hi[1] = TTF_OpenFont("Roboto-Regular.ttf", (int)lroundf(12.0f * gui_ui_scale));
 }
 
 // Draw text truncated to fit max_w pixels (adds "..." when truncated).
 static void draw_text_clipped(SDL_Renderer *renderer, TTF_Font *font, const char *text, int x, int y, SDL_Color color, int max_w) {
-    if (!text) return;
+    if (!text || !font) return;
     if (max_w <= 0) { draw_text(renderer, font, text, x, y, color); return; }
 
     int w = 0, h = 0;
-    if (TTF_SizeText(font, text, &w, &h) != 0 || w <= max_w) {
+    if (TTF_SizeUTF8(font, text, &w, &h) != 0 || w <= max_w) {
         draw_text(renderer, font, text, x, y, color);
         return;
     }
 
     const char *ellipsis = "...";
     int w_ell = 0, h_ell = 0;
-    if (TTF_SizeText(font, ellipsis, &w_ell, &h_ell) != 0) {
+    if (TTF_SizeUTF8(font, ellipsis, &w_ell, &h_ell) != 0) {
         draw_text(renderer, font, text, x, y, color);
         return;
     }
@@ -13299,22 +14388,76 @@ static void draw_text_clipped(SDL_Renderer *renderer, TTF_Font *font, const char
 
     size_t n = strlen(text);
     char tmp[1024];
-    if (n >= sizeof(tmp)) n = sizeof(tmp) - 1;
-
-    size_t lo = 0, hi = n;
+    if (n >= sizeof(tmp) - 4) n = sizeof(tmp) - 5;
+    /* ##CHRIS 2026-10-12 (decision 34, addition, item D): cut only at UTF-8 character starts */
+    size_t cut[1024];
+    size_t nc = 0;
+    for (size_t i = 0; i <= n; ++i)
+        if (i == n || (((unsigned char)text[i]) & 0xC0) != 0x80) cut[nc++] = i;
+    size_t lo = 0, hi = nc - 1;   /* cut[lo] bytes + "..." fit; cut[hi] bytes (the whole text) do not */
     while (lo + 1 < hi) {
-        size_t mid = (lo + hi) / 2;
-        memcpy(tmp, text, mid);
-        tmp[mid] = '\0';
+        const size_t mid = (lo + hi) / 2;
+        memcpy(tmp, text, cut[mid]);
+        tmp[cut[mid]] = '\0';
         strncat(tmp, ellipsis, sizeof(tmp) - strlen(tmp) - 1);
         int ww = 0, hh = 0;
-        if (TTF_SizeText(font, tmp, &ww, &hh) == 0 && ww <= max_w) lo = mid;
+        if (TTF_SizeUTF8(font, tmp, &ww, &hh) == 0 && ww <= max_w) lo = mid;
         else hi = mid;
     }
-    memcpy(tmp, text, lo);
-    tmp[lo] = '\0';
+    memcpy(tmp, text, cut[lo]);
+    tmp[cut[lo]] = '\0';
     strncat(tmp, ellipsis, sizeof(tmp) - strlen(tmp) - 1);
     draw_text(renderer, font, tmp, x, y, color);
+}
+
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item D): a HUD line wider than its column continues on the next rows,
+   indented, instead of being cut at the panel edge; it breaks at spaces (a single word wider than the column is cut). Returns the
+   rows used: the first row is always drawn, as before; further rows only above y_max. */
+static int hud_text_wrapped(SDL_Renderer *r, TTF_Font *f, const char *text, int x, int y, SDL_Color c, int max_w, int dy, int y_max) {
+    if (!text || !*text || !f) return 1;
+    int w = 0, h = 0;
+    if (max_w <= 0 || TTF_SizeUTF8(f, text, &w, &h) != 0 || w <= max_w) { draw_text(r, f, text, x, y, c); return 1; }
+    const int indent = 18;
+    const size_t n = strlen(text);
+    char buf[1024];
+    size_t pos = 0;
+    int rows = 0;
+    while (pos < n) {
+        while (pos < n && text[pos] == ' ') ++pos;
+        if (pos >= n) break;
+        if (rows > 0 && y + rows * dy + dy > y_max) break;
+        const int xr = rows ? x + indent : x, wr = rows ? max_w - indent : max_w;
+        size_t best = 0, k = pos;
+        while (k < n) {
+            size_t e = k;
+            while (e < n && text[e] != ' ') ++e;
+            const size_t len = e - pos;
+            if (len >= sizeof buf) break;
+            memcpy(buf, text + pos, len);
+            buf[len] = '\0';
+            int ww = 0, hh = 0;
+            if (TTF_SizeUTF8(f, buf, &ww, &hh) != 0 || ww > wr) break;
+            best = len;
+            k = e;
+            while (k < n && text[k] == ' ') ++k;
+        }
+        if (best == 0) {   /* one word wider than the row: cut */
+            size_t e = pos;
+            while (e < n && text[e] != ' ') ++e;
+            const size_t len = e - pos < sizeof buf ? e - pos : sizeof buf - 1;
+            memcpy(buf, text + pos, len);
+            buf[len] = '\0';
+            draw_text_clipped(r, f, buf, xr, y + rows * dy, c, wr);
+            pos = e;
+        } else {
+            memcpy(buf, text + pos, best);
+            buf[best] = '\0';
+            draw_text(r, f, buf, xr, y + rows * dy, c);
+            pos += best;
+        }
+        ++rows;
+    }
+    return rows > 0 ? rows : 1;
 }
 
 static double live_clamp(double value, double lo, double hi) {
@@ -13332,6 +14475,10 @@ static double live_slider_get_value(const LiveSlider *slider) {
 static void live_slider_set_value(int slider_index, double value) {
     if (slider_index < 0 || slider_index >= live_slider_count) return;
     LiveSlider *slider = &live_sliders[slider_index];
+    if (cli_engine == 3 && &heatbath_temperature == slider->target) {   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+        g3_gui_note("HB target T n/a: gen3 has no heat bath");
+        return;
+    }
     value = live_clamp(value, slider->min_value, slider->max_value);
     if (slider->type == LIVE_PARAM_DOUBLE) *((double *)slider->target) = value;
     else *((float *)slider->target) = (float)value;
@@ -13357,6 +14504,8 @@ static void live_slider_set_value(int slider_index, double value) {
 
 static void live_sync_edmd_spring_settings(void) {
     if (!g_edmd || num_internal_walls <= 0) return;
+    if (g3_live(g_edmd)) return;   /* ##CHRIS 2026-10-10 (decision 19, item 2): under gen3 the spring is set when the scene is built
+                                      (the APPLY that calls this rebuilds it next; the F2 toggle is refused) */
 
     EDMD_Params *ep = edmd_backend_params_mut(g_edmd);
     if (!ep || ep->divider_count <= 0) return;
@@ -13448,6 +14597,7 @@ static int live_scene_spring_available(void) {
 static const char *live_scene_engine_label(void) {
     switch (live_scene_engine) {
         case LIVE_SCENE_ENGINE_EDMD: return "EDMD";
+        case LIVE_SCENE_ENGINE_GEN3: return "EDMD gen3 (display)";   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
         case LIVE_SCENE_ENGINE_HYBRID: return "HYBRID PP-EDMD";
         case LIVE_SCENE_ENGINE_TIME_TOI:
         default: return "TIME+TOI";
@@ -13459,15 +14609,11 @@ static void live_scene_cycle_engine(int direction) {
         live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
         return;
     }
-    if (direction >= 0) {
-        if (live_scene_engine == LIVE_SCENE_ENGINE_EDMD) live_scene_engine = LIVE_SCENE_ENGINE_HYBRID;
-        else if (live_scene_engine == LIVE_SCENE_ENGINE_HYBRID) live_scene_engine = LIVE_SCENE_ENGINE_TIME_TOI;
-        else live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
-    } else {
-        if (live_scene_engine == LIVE_SCENE_ENGINE_EDMD) live_scene_engine = LIVE_SCENE_ENGINE_TIME_TOI;
-        else if (live_scene_engine == LIVE_SCENE_ENGINE_TIME_TOI) live_scene_engine = LIVE_SCENE_ENGINE_HYBRID;
-        else live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
-    }
+    /* ##CHRIS 2026-10-10 (decision 19, item 2): EDMD -> EDMD gen3 -> HYBRID -> TIME+TOI -> EDMD (right click: backwards) */
+    static const LiveSceneEngine order[4] = { LIVE_SCENE_ENGINE_EDMD, LIVE_SCENE_ENGINE_GEN3, LIVE_SCENE_ENGINE_HYBRID, LIVE_SCENE_ENGINE_TIME_TOI };
+    int k = 0;
+    while (k < 4 && order[k] != live_scene_engine) ++k;
+    live_scene_engine = order[((k < 4 ? k : 0) + (direction >= 0 ? 1 : 3)) % 4];
 }
 
 static double live_scene_spring_l0_min_sigma(void) {
@@ -13485,11 +14631,12 @@ static double live_scene_clamped_spring_l0_sigma(void) {
 }
 
 static int live_scene_param_visible(int index) {
+    if (index == LIVE_SCENE_ROW_SPRING_K) return live_scene_mode == LIVE_SCENE_MODE_ENERGY_TRANSFER;   /* ##CHRIS (decision 34, addition, item B) */
     if (index == 0) return live_scene_fixed_wall_count() == 0;
     if (index >= 1 && index <= 3) return 1;
     if (index == 4) return live_scene_mode == LIVE_SCENE_MODE_ENERGY_TRANSFER;
     if (index == LIVE_SCENE_ROW_THICKNESS) return 1;
-    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT) {
+    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_MASS_END) {
         return (live_scene_mode == LIVE_SCENE_MODE_ENERGY_TRANSFER ||
                 live_scene_mode == LIVE_SCENE_MODE_SPEED_OF_SOUND) &&
                (index - LIVE_SCENE_ROW_MASS0) < live_scene_wall_count;
@@ -13507,7 +14654,8 @@ static int live_scene_visible_param_count(void) {
 
 static int live_scene_index_for_visible_row(int visible_row) {
     int row = 0;
-    for (int i = 0; i < LIVE_SCENE_ROW_COUNT; ++i) {
+    for (int k = 0; k < LIVE_SCENE_ROW_COUNT; ++k) {   /* ##CHRIS 2026-10-12 (decision 34, addition, item B): spring k right after spring L0 */
+        const int i = k <= 4 ? k : (k == 5 ? LIVE_SCENE_ROW_SPRING_K : k - 1);
         if (!live_scene_param_visible(i)) continue;
         if (row == visible_row) return i;
         row++;
@@ -13662,14 +14810,19 @@ static void live_scene_set_mode(LiveSceneMode mode) {
         live_scene_wall_count = 2;
         live_scene_spring_l0_sigma = (float)L0_UNITS;
     }
-    if (live_scene_mode == LIVE_SCENE_MODE_SZILARD) live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
+    if (live_scene_mode == LIVE_SCENE_MODE_SZILARD) {
+        if (live_scene_engine == LIVE_SCENE_ENGINE_GEN3)   /* ##CHRIS 2026-10-10 (decision 19, item 2): visible, never silent */
+            g3_gui_note("the Szilard scene needs species gates, which gen3 does not have: its engine row is EDMD gen2");
+        live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
+    }
     live_scene_apply_mode_constraints();
     live_scene_update_radius_from_eta();
 }
 
 static void live_scene_sync_from_runtime(void) {
     live_scene_mode = live_scene_mode_from_preset();
-    if (sim_mode == MODE_EDMD) live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
+    if (sim_mode == MODE_EDMD && cli_engine == 3) live_scene_engine = LIVE_SCENE_ENGINE_GEN3;   /* ##CHRIS (decision 19, item 2) */
+    else if (sim_mode == MODE_EDMD) live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
     else if (sim_mode == MODE_EDMD_HYBRID) live_scene_engine = LIVE_SCENE_ENGINE_HYBRID;
     else live_scene_engine = LIVE_SCENE_ENGINE_TIME_TOI;
     live_scene_wall_count = num_internal_walls;
@@ -13712,6 +14865,9 @@ static void live_scene_sync_from_runtime(void) {
             live_scene_spring_l0_sigma = (float)L0_UNITS;
         }
         live_scene_spring_l0_sigma = (float)live_scene_clamped_spring_l0_sigma();
+        if (cli_spring_k_set && cli_spring_k > 0.0f)   /* ##CHRIS 2026-10-12 (decision 34, addition, item B): the command line's k */
+            live_scene_spring_k_sigma = (float)live_clamp((double)cli_spring_k * (double)PIXELS_PER_SIGMA * (double)PIXELS_PER_SIGMA,
+                                                          LIVE_SCENE_SPRING_K_MIN, LIVE_SCENE_SPRING_K_MAX);
         if (radius_is_primary_control) live_scene_update_eta_from_radius();
         else live_scene_update_radius_from_eta();
     }
@@ -13747,8 +14903,9 @@ static double live_scene_get_value(int index) {
     if (index == 2) return (double)live_scene_radius_sigma;
     if (index == 3) return (double)live_scene_eta;
     if (index == 4) return (double)live_scene_spring_l0_sigma;
+    if (index == LIVE_SCENE_ROW_SPRING_K) return (double)live_scene_spring_k_sigma;   /* ##CHRIS (decision 34, addition, item B) */
     if (index == LIVE_SCENE_ROW_THICKNESS) return (double)live_scene_wall_thickness_sigma;
-    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT)
+    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_MASS_END)
         return (double)live_scene_wall_mass[index - LIVE_SCENE_ROW_MASS0];
     return 0.0;
 }
@@ -13783,7 +14940,9 @@ static void live_scene_set_value(int index, double value) {
                                                            LIVE_SCENE_THICK_MIN_SIGMA,
                                                            LIVE_SCENE_THICK_MAX_SIGMA);
         live_scene_wall_thickness_user_set = 1;
-    } else if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT) {
+    } else if (index == LIVE_SCENE_ROW_SPRING_K) {   /* ##CHRIS 2026-10-12 (decision 34, addition, item B) */
+        live_scene_spring_k_sigma = (float)live_clamp(value, LIVE_SCENE_SPRING_K_MIN, LIVE_SCENE_SPRING_K_MAX);
+    } else if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_MASS_END) {
         live_scene_wall_mass[index - LIVE_SCENE_ROW_MASS0] =
             (float)live_clamp(value, LIVE_SCENE_MASS_MIN, LIVE_SCENE_MASS_MAX);
     }
@@ -13794,10 +14953,11 @@ static const char *live_scene_label(int index) {
     if (index == 0) return "walls";
     if (index == 1) return "particles";
     if (index == 2) return "radius σ";
-    if (index == 3) return "eta";
+    if (index == 3) return live_scene_mode == LIVE_SCENE_MODE_ENERGY_TRANSFER ? "eta (gas)" : "eta (fullest)";   /* ##CHRIS (decision 34) */
     if (index == 4) return "spring L0";
+    if (index == LIVE_SCENE_ROW_SPRING_K) return "k (kT/σ²)";   /* ##CHRIS (decision 34, addition, item B) */
     if (index == LIVE_SCENE_ROW_THICKNESS) return "wall thick";
-    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT) {
+    if (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_MASS_END) {
         snprintf(label, sizeof(label), "M%d", index - LIVE_SCENE_ROW_MASS0 + 1);
         return label;
     }
@@ -13805,8 +14965,8 @@ static const char *live_scene_label(int index) {
 }
 
 static int live_scene_log_scale(int index) {
-    return (index == 1 || index == 2 || index == LIVE_SCENE_ROW_THICKNESS ||
-            (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_COUNT));
+    return (index == 1 || index == 2 || index == LIVE_SCENE_ROW_THICKNESS || index == LIVE_SCENE_ROW_SPRING_K ||
+            (index >= LIVE_SCENE_ROW_MASS0 && index < LIVE_SCENE_ROW_MASS_END));
 }
 
 static double live_scene_min_value(int index) {
@@ -13816,6 +14976,7 @@ static double live_scene_min_value(int index) {
     if (index == 3) return 0.02;
     if (index == 4) return live_scene_spring_l0_min_sigma();
     if (index == LIVE_SCENE_ROW_THICKNESS) return LIVE_SCENE_THICK_MIN_SIGMA;
+    if (index == LIVE_SCENE_ROW_SPRING_K) return LIVE_SCENE_SPRING_K_MIN;   /* ##CHRIS (decision 34, addition, item B) */
     return LIVE_SCENE_MASS_MIN;
 }
 
@@ -13829,6 +14990,7 @@ static double live_scene_max_value(int index) {
     if (index == 3) return 0.75;
     if (index == 4) return live_scene_spring_l0_max_sigma();
     if (index == LIVE_SCENE_ROW_THICKNESS) return LIVE_SCENE_THICK_MAX_SIGMA;
+    if (index == LIVE_SCENE_ROW_SPRING_K) return LIVE_SCENE_SPRING_K_MAX;   /* ##CHRIS (decision 34, addition, item B) */
     return LIVE_SCENE_MASS_MAX;
 }
 
@@ -13854,15 +15016,17 @@ static void live_scene_layout(int *x, int *y, int *w, int *h) {
     const int panel_w = 420;
     const int visible_rows = live_scene_visible_param_count();
     const int panel_h = 134 + visible_rows * 30 + 72;
+    /* ##CHRIS 2026-10-12 (decision 34, addition, item D): window points (the box's XW1, YW1 no longer enter); below the F2 panel
+       when it fits there, else beside it */
     int panel_x = MAX_X - panel_w - 12;
-    if (panel_x < XW1 + 12) panel_x = XW1 + 12;
-    int panel_y = YW1 + 12;
+    if (panel_x < 12) panel_x = 12;
+    int panel_y = 12;
     if (live_controls_visible) {
         int cx = 0, cy = 0, cw = 0, ch = 0;
         live_controls_layout(&cx, &cy, &cw, &ch);
         panel_y = cy + ch + 10;
+        if (panel_y + panel_h > MAX_Y - 6 && cx - panel_w - 12 >= 12) { panel_x = cx - panel_w - 12; panel_y = cy; }
     }
-    if (panel_y < YW1 + 10) panel_y = YW1 + 10;
     if (panel_y + panel_h > MAX_Y - 6) panel_y = MAX_Y - panel_h - 6;
     if (panel_y < 6) panel_y = 6;
     if (x) *x = panel_x;
@@ -13922,10 +15086,82 @@ static void live_scene_set_from_mouse(int index, int visible_row, int mouse_x) {
     live_scene_set_value(index, live_scene_norm_to_value(index, norm));
 }
 
+/* ##CHRIS 2026-10-12 (decision 34 with decision 38 item 4: no crash on oversized disks): the scene-reset APPLY no longer starts a
+   rebuild the seeder cannot place. The seeder (initialize_simulation_segmented_grid) puts each compartment's disks on a rectangular
+   grid or, if that does not fit, on a hexagonal lattice of spacing 2R x 1.0005 inside the compartment less R plus a pad -- the
+   compartment from compute_segment_bounds (the walls' faces) less another half thickness at each divider -- and
+   ends the program (exit 1, "Could only place ...") if even that holds fewer. This repeats its arithmetic for the panel's values: the
+   walls at live_scene_wall_position_sigma, the thickness the rebuild will use, the counts of live_scene_counts_for. A compartment
+   that would not hold its disks refuses the APPLY with a note; nothing is rebuilt, nothing exits. Returns 1 if the scene fits. */
+static int live_scene_seeding_fits(int walls, int n, float radius_sigma, char* why, size_t whylen) {
+    const double pps = (double)PIXELS_PER_SIGMA, R = (double)radius_sigma * pps;
+    const double th = (live_scene_wall_thickness_user_set ? (double)live_scene_wall_thickness_sigma
+                       : (cli_override_wall_thickness_sigma > 0.0f ? (double)cli_override_wall_thickness_sigma : 2.0 * (double)radius_sigma)) * pps;
+    int counts[LIVE_SCENE_MAX_WALLS + 1];
+    const int segments = live_scene_segments_for_walls(walls);
+    live_scene_counts_for(walls, n, counts, (int)(sizeof(counts) / sizeof(counts[0])));
+    for (int s = 0; s < segments; ++s) {
+        if (counts[s] <= 0) continue;
+        /* compute_segment_bounds: the walls' faces (centre -/+ th/2) and the box edges; the seeder then keeps another th/2 */
+        const double sl = (s == 0) ? (double)XW1 : (double)XW1 + live_scene_wall_position_sigma(walls, s - 1) * pps + 0.5 * th;
+        const double sr = (s == segments - 1) ? (double)XW2 : (double)XW1 + live_scene_wall_position_sigma(walls, s) * pps - 0.5 * th;
+        const double pad = fmax(0.05, 0.005 * 2.0 * R), margin = R + pad;
+        const double lb = sl + (s > 0 ? 0.5 * th : 0.0) + margin, rb = sr - (s < segments - 1 ? 0.5 * th : 0.0) - margin;
+        const double top = (double)YW1 + margin, bottom = (double)YW2 - margin;
+        const double w = rb - lb, h = bottom - top, gap = 2.0 * R * 1.0005, dyh = gap * 0.8660254038;
+        long cap = 0;
+        if (w >= 0.0 && h >= 0.0) {
+            const int rows = (int)floor(h / dyh) + 1;
+            for (int r = 0; r < rows; ++r) {
+                if (top + r * dyh > bottom + 1e-3) break;
+                const double x0 = lb + ((r & 1) ? 0.5 * gap : 0.0);
+                if (rb - x0 < -1e-3) continue;
+                cap += (long)floor((rb - x0) / gap) + 1;
+            }
+        }
+        if (counts[s] > cap) {
+            snprintf(why, whylen, "compartment %d holds at most %ld disks of radius %.4f sigma (hexagonal lattice inside its walls), the panel asks %d",
+                     s + 1, cap, (double)radius_sigma, counts[s]);
+            return 0;
+        }
+    }
+    return 1;
+}
 static void live_scene_prepare_rebuild(void) {
     live_scene_apply_mode_constraints();
-    if (live_scene_mode == LIVE_SCENE_MODE_SZILARD) live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
-    if (live_scene_engine == LIVE_SCENE_ENGINE_EDMD) {
+    if (live_scene_mode == LIVE_SCENE_MODE_SZILARD) {
+        if (live_scene_engine == LIVE_SCENE_ENGINE_GEN3)   /* ##CHRIS 2026-10-10 (decision 19, item 2): visible, never silent */
+            g3_gui_note("the Szilard scene needs species gates, which gen3 does not have: it is rebuilt on EDMD gen2");
+        live_scene_engine = LIVE_SCENE_ENGINE_EDMD;
+    }
+    if (live_scene_engine == LIVE_SCENE_ENGINE_GEN3 && (heatbath_enabled || andersen_enabled)) {   /* ##CHRIS (decision 19, item 2) */
+        g3_gui_note("APPLY refused: gen3 has no heat bath and no Andersen thermostat; switch them off (B, K) and APPLY again");
+        return;
+    }
+    {   /* ##CHRIS 2026-10-12 (decision 34 with decision 38 item 4): no rebuild the seeder cannot place -- checked before anything
+           changes, with the clamps the rebuild applies below (walls, N, the radius at most that of eta 0.75) */
+        int walls_c = live_scene_fixed_wall_count() > 0 ? live_scene_fixed_wall_count() : live_scene_wall_count;
+        if (walls_c < 1) walls_c = 1;
+        if (walls_c > LIVE_SCENE_MAX_WALLS) walls_c = LIVE_SCENE_MAX_WALLS;
+        int n_c = live_scene_particle_count;
+        if (n_c < 1) n_c = 1;
+        if (n_c > live_scene_particle_max()) n_c = live_scene_particle_max();
+        float r_c = live_scene_radius_sigma;
+        const float r_c_max = (float)live_scene_radius_for_eta_value(walls_c, n_c, 0.75);
+        if (r_c < 0.005f) r_c = 0.005f;
+        if (r_c > r_c_max) r_c = r_c_max;
+        char why[220];
+        if (!live_scene_seeding_fits(walls_c, n_c, r_c, why, sizeof why)) {
+            char note[300];
+            snprintf(note, sizeof note, "APPLY refused: %s; lower N or the radius, or widen the compartment (nothing was rebuilt)", why);
+            printf("[GUI] %s\n", note);
+            fflush(stdout);
+            snprintf(g3_gui_note_text, sizeof g3_gui_note_text, "%s", note);
+            g3_gui_note_until = SDL_GetTicks() + 8000;
+            return;
+        }
+    }
+    if (live_scene_engine == LIVE_SCENE_ENGINE_EDMD || live_scene_engine == LIVE_SCENE_ENGINE_GEN3) {
         sim_mode = MODE_EDMD;
     } else if (live_scene_engine == LIVE_SCENE_ENGINE_HYBRID) {
         sim_mode = MODE_EDMD_HYBRID;
@@ -13967,6 +15203,13 @@ static void live_scene_prepare_rebuild(void) {
         cli_enable_energy_measurement = true;
         cli_eff_output_mode = EFF_OUTPUT_SPRING;
         live_scene_spring_l0_sigma = (float)live_scene_clamped_spring_l0_sigma();
+        /* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item B): the k row, as --spring-k-sigma=k --spring-wall=0; the rebuild
+           passes it to the engine (EDMD_Params.divider_k, live_rebuild_edmd_from_current_state), gen3 takes it at its build */
+        cli_spring_k_set = 1;
+        cli_spring_k = (float)((double)live_scene_spring_k_sigma / ((double)PIXELS_PER_SIGMA * (double)PIXELS_PER_SIGMA));
+        cli_spring_wall_set = 1;
+        cli_spring_wall_index = 0;
+        energy_measurement.spring_constant = cli_spring_k;
         live_apply_spring_enabled(1);
     } else if (live_scene_mode == LIVE_SCENE_MODE_SZILARD) {
         sim_mode = MODE_EDMD;
@@ -14080,10 +15323,13 @@ static void live_scene_prepare_rebuild(void) {
     live_scene_counts_for(walls, n_particles, cli_particles_box_counts, segments);
 
     live_scene_rebuild_requested = 1;
+    live_scene_engine_next = live_scene_engine == LIVE_SCENE_ENGINE_GEN3 ? 3 : 2;   /* ##CHRIS 2026-10-10 (decision 19, item 2): the
+                                                                                      engine row, taken by the rebuild (simulation_loop) */
     if (!cli_quiet) {
-        printf("Scene reset queued: mode=%s engine=%s walls=%d springL0=%.3fσ N=%d r=%.4fσ eta=%.3f thick=%.4fσ%s masses=",
+        printf("Scene reset queued: mode=%s engine=%s walls=%d springL0=%.3fσ springk=%.4g N=%d r=%.4fσ eta=%.3f thick=%.4fσ%s masses=",
                live_scene_mode_label(live_scene_mode), live_scene_engine_label(),
                walls, (double)live_scene_spring_l0_sigma,
+               live_scene_mode == LIVE_SCENE_MODE_ENERGY_TRANSFER ? (double)live_scene_spring_k_sigma : 0.0,   /* ##CHRIS (decision 34, addition, item B) */
                n_particles, (double)radius_sigma, (double)eta,
                (double)((double)WALL_THICKNESS / (double)PIXELS_PER_SIGMA),
                live_scene_wall_thickness_user_set ? "" : "(auto)");
@@ -14208,10 +15454,9 @@ static double live_slider_norm_to_value(const LiveSlider *slider, double norm) {
 static void live_controls_layout(int *x, int *y, int *w, int *h) {
     const int panel_w = 420;
     const int panel_h = 58 + live_slider_count * 34 + 136;
-    int panel_x = MAX_X - panel_w - 12;
-    if (panel_x < XW1 + 12) panel_x = XW1 + 12;
-    int panel_y = YW1 + 12;
-    if (panel_y < YW1 + 10) panel_y = YW1 + 10;
+    int panel_x = MAX_X - panel_w - 12;   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): window points */
+    if (panel_x < 12) panel_x = 12;
+    int panel_y = 12;
     if (panel_y + panel_h > MAX_Y - 6) panel_y = MAX_Y - panel_h - 6;
     if (panel_y < 6) panel_y = 6;
     if (x) *x = panel_x;
@@ -14307,7 +15552,9 @@ static int live_controls_runtime_panel_handle_event(const SDL_Event *e) {
         SDL_Rect spring_row = { px + 8, py + 38 + live_slider_count * 34, pw - 16, 30 };
         if (live_point_in_rect(mx, my, spring_row)) {
             live_controls_drag_index = -1;
-            if (live_scene_spring_available()) {
+            if (cli_engine == 3) {   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+                g3_gui_note("a live spring change n/a: set spring k and L0 in the F3 panel (energy-transfer mode) and APPLY");   /* ##CHRIS 2026-10-12 (decision 34, addition, item B) */
+            } else if (live_scene_spring_available()) {
                 live_apply_spring_enabled(!energy_measurement.spring_enabled);
             } else if (!cli_quiet) {
                 printf("Live spring force: unavailable for %s\n", live_scene_mode_label(live_scene_mode));
@@ -14369,7 +15616,7 @@ static int live_controls_runtime_panel_handle_event(const SDL_Event *e) {
     return 0;
 }
 
-static int live_controls_handle_event(const SDL_Event *e) {
+static int live_controls_handle_event_ui(const SDL_Event *e) {
     if (!e) return 0;
 
     if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F2) {
@@ -14465,6 +15712,7 @@ static int live_controls_handle_event(const SDL_Event *e) {
                             else if (i == 1) live_scene_set_value(i, (double)DEFAULT_PARTICLES_ACTIVE);
                             else if (i == 2) { live_scene_set_value(3, 0.20); }
                             else if (i == 3) live_scene_set_value(i, 0.20);
+                            else if (i == LIVE_SCENE_ROW_SPRING_K) live_scene_set_value(i, LIVE_SCENE_SPRING_K_DEFAULT);   /* ##CHRIS (decision 34, addition, item B) */
                             else if (i == 4) live_scene_set_value(i, (double)L0_UNITS);
                             else live_scene_set_value(i, 200.0);
                             live_scene_drag_index = -1;
@@ -14498,6 +15746,14 @@ static int live_controls_handle_event(const SDL_Event *e) {
     return 0;
 }
 
+/* ##CHRIS 2026-10-12 (decision 34, addition, item D): the panels' mouse handling in the UI's window points */
+static int live_controls_handle_event(const SDL_Event *e) {
+    gui_ui_coords_begin();
+    const int r = live_controls_handle_event_ui(e);
+    gui_ui_coords_end();
+    return r;
+}
+
 static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
     if (!renderer || !font) return;
 
@@ -14507,7 +15763,7 @@ static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
     SDL_Color green = {80, 230, 150, 255};
 
     if (!live_controls_visible) {
-        draw_text(renderer, font, "F2: live sliders", XW1 + 10, YW2 - 28, muted);
+        draw_text(renderer, font, "F2: live sliders", MAX_X - 260, MAX_Y - 22, muted);   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): window points */
     } else {
         int px = 0, py = 0, pw = 0, ph = 0;
         live_controls_layout(&px, &py, &pw, &ph);
@@ -14537,8 +15793,11 @@ static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
                 snprintf(value_text, sizeof(value_text), "%.3f%s", value, slider->unit ? slider->unit : "");
             }
 
-            draw_text_clipped(renderer, font, slider->label, px + 10, row_y, white, 96);
-            draw_text_clipped(renderer, font, value_text, px + pw - 78, row_y, white, 64);
+            {   /* ##CHRIS 2026-10-10 (decision 19, item 2): the heat-bath slider is n/a under gen3 */
+                const int na = cli_engine == 3 && &heatbath_temperature == slider->target;
+                draw_text_clipped(renderer, font, na ? "HB n/a (gen3)" : slider->label, px + 10, row_y, na ? muted : white, 96);
+                draw_text_clipped(renderer, font, value_text, px + pw - 78, row_y, na ? muted : white, 64);
+            }
 
             SDL_SetRenderDrawColor(renderer, 70, 80, 84, 230);
             SDL_RenderFillRect(renderer, &track);
@@ -14566,8 +15825,8 @@ static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
             const int spring_on = energy_measurement.spring_enabled ? 1 : 0;
             const int spring_available = live_scene_spring_available();
             draw_text_clipped(renderer, font,
-                              spring_available ? "spring force" : "spring force n/a",
-                              px + 10, row_y, spring_available ? white : muted, 150);
+                              cli_engine == 3 ? "spring (scene, gen3)" : (spring_available ? "spring force" : "spring force n/a"),   /* ##CHRIS (decision 19, item 2) */
+                              px + 10, row_y, (spring_available && cli_engine != 3) ? white : muted, 150);
             SDL_SetRenderDrawColor(renderer,
                                    spring_available ? (spring_on ? 60 : 78) : 55,
                                    spring_available ? (spring_on ? 190 : 80) : 55,
@@ -14633,7 +15892,7 @@ static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
     }
 
     if (!live_scene_visible) {
-        draw_text(renderer, font, "F3: scene reset", XW1 + 10, YW2 - 50, muted);
+        draw_text(renderer, font, "F3: scene reset", MAX_X - 130, MAX_Y - 22, muted);   /* ##CHRIS (decision 34, addition, item D) */
         return;
     }
 
@@ -14668,10 +15927,11 @@ static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
         const int locked = (live_scene_mode == LIVE_SCENE_MODE_SZILARD);
         const int is_edmd = live_scene_engine == LIVE_SCENE_ENGINE_EDMD;
         const int is_hybrid = live_scene_engine == LIVE_SCENE_ENGINE_HYBRID;
+        const int is_gen3 = live_scene_engine == LIVE_SCENE_ENGINE_GEN3;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
         SDL_SetRenderDrawColor(renderer,
-                               is_edmd ? 54 : (is_hybrid ? 54 : 88),
-                               is_edmd ? 78 : (is_hybrid ? 86 : 54),
-                               is_edmd ? 126 : (is_hybrid ? 54 : 34),
+                               is_gen3 ? 92 : (is_edmd ? 54 : (is_hybrid ? 54 : 88)),
+                               is_gen3 ? 48 : (is_edmd ? 78 : (is_hybrid ? 86 : 54)),
+                               is_gen3 ? 120 : (is_edmd ? 126 : (is_hybrid ? 54 : 34)),
                                235);
         SDL_RenderFillRect(renderer, &engine_box);
         SDL_SetRenderDrawColor(renderer, locked ? 170 : 255, locked ? 170 : 180, locked ? 170 : 90, 245);
@@ -14700,6 +15960,7 @@ static void render_live_controls(SDL_Renderer *renderer, TTF_Font *font) {
         else if (i == 3) snprintf(value_text, sizeof(value_text), "%.3f", (double)live_scene_eta);
         else if (i == 4) snprintf(value_text, sizeof(value_text), "%.2f", (double)live_scene_spring_l0_sigma);
         else if (i == LIVE_SCENE_ROW_THICKNESS) snprintf(value_text, sizeof(value_text), "%.3f", (double)live_scene_wall_thickness_sigma);
+        else if (i == LIVE_SCENE_ROW_SPRING_K) snprintf(value_text, sizeof(value_text), "%.4g", (double)live_scene_spring_k_sigma);   /* ##CHRIS (decision 34, addition, item B) */
         else snprintf(value_text, sizeof(value_text), "%.4g", (double)live_scene_wall_mass[i - LIVE_SCENE_ROW_MASS0]);
 
         draw_text_clipped(renderer, font, live_scene_label(i), sx + 10, row_y, row_color, 96);
@@ -14762,6 +16023,18 @@ static int hud_build_experiment_key_lines(char lines[][256], int max_lines) {
     int n = 0;
     if (!lines || max_lines <= 0) return 0;
 
+    if (cli_engine == 3) {   /* ##CHRIS 2026-10-10 (decision 19, item 2): the keys under gen3 */
+        if (n < max_lines) snprintf(lines[n++], 256, "Controls (gen3)");
+        if (n < max_lines) snprintf(lines[n++], 256, "Run: space start | t protocol | p pause | q quit | esc reset");
+        if (n < max_lines) snprintf(lines[n++], 256, "Speed: -/+ /0 time | F2 live | F3 scene");
+        if (n < max_lines) snprintf(lines[n++], 256, "Pistons: a/d left | left/right right | s/up stop");
+        if (n < max_lines) snprintf(lines[n++], 256, "View: v panels | x/y density | f vmax | z exact");
+        if (n < max_lines) snprintf(lines[n++], 256, "Wall: r release | e print energy");
+        if (n < max_lines) snprintf(lines[n++], 256, "Return map: i open/close | 1 angle | 2 walls | 3 side | 4/5 K");   /* ##CHRIS (decision 52) */
+        if (n < max_lines) snprintf(lines[n++], 256, "n/a (gen3): w wall | [ ] \\ T | b HB | k , . Andersen");
+        return n;
+    }
+
     switch (cli_experiment_preset) {
         case EXPERIMENT_PRESET_ENERGY_TRANSFER:
             if (n < max_lines) snprintf(lines[n++], 256, "Controls");
@@ -14800,6 +16073,30 @@ static int hud_build_experiment_key_lines(char lines[][256], int max_lines) {
 }
 
 // ---------- HUD: energy & temperature ----------
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item B): the HUD's spring line. k is read from the engine's parameters
+   (under gen3 the state it was built with, g3_params), so a spring that did not reach the engine shows k = 0. */
+static double gui_spring_k_engine_px(void) {
+    if (g_edmd && (sim_mode == MODE_EDMD || sim_mode == MODE_EDMD_HYBRID)) {
+        const EDMD_Params* ep = edmd_params(g_edmd);
+        int d = primary_wall_index;
+        if (d < 0 || d >= ep->divider_count) d = 0;
+        return ep->divider_count > 0 ? ep->divider_k[d] : 0.0;
+    }
+    return (double)energy_measurement.spring_constant;
+}
+static void hud_spring_line(char* buf, size_t n, double KEt, int wall_ke) {
+    if (wall_ke) {
+        snprintf(buf, n, "LoadKE: %.3e (max %.3e)", (double)energy_measurement.spring_energy, (double)energy_measurement.spring_energy_max);
+    } else if (energy_measurement.spring_enabled) {
+        const double k = gui_spring_k_engine_px();
+        snprintf(buf, n, "Spring: k = %.4g kT/σ² (%.4g kT/px²)  E_spring = %.4e (max %.3e)  KE + E_spring = %.7e",
+                 k * (double)PIXELS_PER_SIGMA * (double)PIXELS_PER_SIGMA, k, (double)energy_measurement.spring_energy,
+                 (double)energy_measurement.spring_energy_max, KEt + (double)energy_measurement.spring_energy);
+    } else {
+        snprintf(buf, n, "SpringE: (disabled)");
+    }
+}
+
 static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
     // compute energies
     const double KEp = kinetic_energy();
@@ -14827,23 +16124,32 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
              (double)simulation_time, (double)fixed_dt_runtime, g_last_substeps_used, (double)time_scale_runtime);
     char line_scale[256];
     char line_eta_target[256];
-    const double draw_r_px = fmax((double)PARTICLE_RADIUS, (double)gui_particle_draw_min_px);
+    const double draw_r_px = fmax((double)PARTICLE_RADIUS * (double)gui_scene_s, (double)gui_particle_draw_min_px);   /* ##CHRIS (decision 34): on the screen */
     const double r_sigma_hud = (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA;
     const double eta_global_hud = live_current_nominal_eta();
     const double eta_target_hud = (cli_packing_fraction > 0.0f)
         ? (double)cli_packing_fraction
         : eta_global_hud;
     snprintf(line_scale, sizeof(line_scale),
-             "box: %.1fσ x %.1fσ -> %dpx x %dpx  r: %.4fσ -> %.3fpx draw %.2fpx  scale: %.1f px/σ",
+             "box: %.1fσ x %.1fσ (%dpx x %dpx at %.0f px/σ)  r: %.4fσ  drawn at %.2f pt/σ, disk radius %.2f screen px",
              (double)L0_UNITS * 2.0, (double)HEIGHT_UNITS,
-             SIM_WIDTH, SIM_HEIGHT,
+             SIM_WIDTH, SIM_HEIGHT, (double)PIXELS_PER_SIGMA,
              r_sigma_hud,
-             (double)PARTICLE_RADIUS,
-             draw_r_px,
-             (double)PIXELS_PER_SIGMA);
-    snprintf(line_eta_target, sizeof(line_eta_target),
-             "eta_target=%.3f  eta_global=%.3f  eta_now below uses moving/compressed box widths",
-             eta_target_hud, eta_global_hud);
+             (double)gui_scene_s / (double)gui_ui_scale * (double)PIXELS_PER_SIGMA,
+             draw_r_px);   /* ##CHRIS 2026-10-12 (decision 34): the drawing scale */
+    {   /* ##CHRIS 2026-10-12 (decision 34 with decision 38 item 4): the density of the compartments that hold disks first */
+        double a_fill = 0.0; long n_fill = 0; int k_fill = 0;
+        if (segment_counts && segment_count > 0 && segment_count <= MAX_DIVIDER_CAPACITY + 1) {
+            float lb[MAX_DIVIDER_CAPACITY + 1], rb[MAX_DIVIDER_CAPACITY + 1];
+            compute_segment_bounds(lb, rb);
+            for (int s = 0; s < segment_count; ++s)
+                if (segment_counts[s] > 0) { n_fill += segment_counts[s]; a_fill += (double)(rb[s] - lb[s]) / (double)PIXELS_PER_SIGMA * (double)HEIGHT_UNITS; k_fill++; }
+        }
+        const double eta_fill = (a_fill > 0.0) ? (double)n_fill * M_PI * r_sigma_hud * r_sigma_hud / a_fill : eta_global_hud;
+        snprintf(line_eta_target, sizeof(line_eta_target),
+                 "η now = %.3f in the %d compartment%s with disks (requested %.3f; whole box %.3f)",
+                 eta_fill, k_fill, k_fill == 1 ? "" : "s", eta_target_hud, eta_global_hud);
+    }
     // Runtime thermo HUD: T, kB_eff, kBT, kBT1 mode
     char line_thermo[256];
     snprintf(line_thermo, sizeof(line_thermo), "T: %.3f  kB: %.6f  kBT: %.6f  kBT1:%s",
@@ -14991,7 +16297,7 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
     // Prefer a right-side "log panel" when the window is wide enough.
     // This avoids cutting off HUD lines when we also draw distributions below the box.
     const int hud_piston_gutter = 34;
-    const int panel_x = gui_scene_screen_x((float)XW2) + hud_piston_gutter;
+    const int panel_x = (int)floorf((float)gui_scene_screen_x((float)XW2) / gui_ui_scale) + hud_piston_gutter;   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): window points */
     int hud_right = MAX_X - 10;
     if (live_controls_visible || live_scene_visible) {
         int ux = MAX_X;
@@ -15008,8 +16314,14 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
         if (ux < MAX_X) hud_right = ux - 12;
     }
     const int panel_w = hud_right - panel_x;
-    const int panel_y = YW1 + 10;
+    const int panel_y = 10;   /* ##CHRIS (decision 34, addition, item D) */
     const bool use_right_panel = (panel_w >= 260);
+    /* ##CHRIS 2026-10-10 (decision 19, item 2): first the engine (under gen3 its clean flag and events/s) and a gen3 note */
+    char line_engine[200];
+    g3_gui_engine_line(line_engine, sizeof line_engine);
+    const char *line_note = g3_gui_note_now();
+    const SDL_Color engine_col = cli_engine == 3 ? (SDL_Color){190, 150, 255, 255} : white;
+    const SDL_Color note_col = {255, 200, 90, 255};
 
 		    if (use_right_panel) {
 		        int x = panel_x;
@@ -15018,16 +16330,24 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
                 const int dy = 20;
 
 		        // Compact HUD (single column)
-			        draw_text_clipped(r, f, line_clock, x, y, white, panel_w); y += dy;
-			        draw_text_clipped(r, f, line_scale, x, y, white, panel_w); y += dy;
-                    draw_text_clipped(r, f, line_eta_target, x, y, white, panel_w); y += dy;
-			        draw_text_clipped(r, f, line_thermo, x, y, white, panel_w); y += dy;
+                y += dy * hud_text_wrapped(r, f, line_engine, x, y, engine_col, panel_w, dy, y_max);   /* ##CHRIS (decision 19, item 2) */
+                if (line_note) { y += dy * hud_text_wrapped(r, f, line_note, x, y, note_col, panel_w, dy, y_max); }
+			        y += dy * hud_text_wrapped(r, f, line_clock, x, y, white, panel_w, dy, y_max);
+			        y += dy * hud_text_wrapped(r, f, line_scale, x, y, white, panel_w, dy, y_max);
+                    y += dy * hud_text_wrapped(r, f, line_eta_target, x, y, white, panel_w, dy, y_max);
+			        y += dy * hud_text_wrapped(r, f, line_thermo, x, y, white, panel_w, dy, y_max);
                 // Restore the "classic" thermo/KE block in the right HUD panel (it used to be in the bottom HUD).
-                draw_text_clipped(r, f, line0, x, y, white, panel_w); y += dy;
+                y += dy * hud_text_wrapped(r, f, line0, x, y, white, panel_w, dy, y_max);
 
 		        char ke_line[256];
 		        snprintf(ke_line, sizeof(ke_line), "KEp=%.3e  KEw=%.3e", KEp, KEw);
-		        draw_text_clipped(r, f, ke_line, x, y, white, panel_w); y += dy;
+		        y += dy * hud_text_wrapped(r, f, ke_line, x, y, white, panel_w, dy, y_max);
+                {   /* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item B): right after the energies -- k as the engine has it
+                       (gui_spring_k_engine_px), E_spring and KE + E_spring; this line was further down, below the work lines */
+                    char spring_line[320];
+                    hud_spring_line(spring_line, sizeof spring_line, KEt, eff_is_wall_ke);
+                    y += dy * hud_text_wrapped(r, f, spring_line, x, y, white, panel_w, dy, y_max);
+                }
 
         // Per-compartment summary (counts/KE/T) — useful when the text overlay inside compartments is hard to read.
                 if (segment_counts && segment_ke && segment_temperature && segment_count > 0) {
@@ -15052,8 +16372,7 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
                                  (double)segment_ke[seg],
                                  (double)segment_temperature[seg],
                                  eta_seg);
-                        draw_text_clipped(r, f, seg_line, x, y, white, panel_w);
-                        y += dy;
+                        y += dy * hud_text_wrapped(r, f, seg_line, x, y, white, panel_w, dy, y_max);
 
                         // Optional: compact velocity distribution parameters (mean/std) for quick sanity checks.
                         if (segment_vx_mean && segment_vx_var && segment_speed_mean && segment_speed_var) {
@@ -15074,53 +16393,43 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
                             snprintf(vel_line, sizeof(vel_line), "   vx(mu=%.2f sd=%.2f)  |v|(mu=%.2f med=%.2f sd=%.2f)",
                                      (double)segment_vx_mean[seg], sx,
                                      (double)segment_speed_mean[seg], v_med, ss);
-                            draw_text_clipped(r, f, vel_line, x, y, white, panel_w);
-                            y += dy;
+                            y += dy * hud_text_wrapped(r, f, vel_line, x, y, white, panel_w, dy, y_max);
                         }
                     }
                 }
 
-		        if (y + dy <= y_max) { draw_text_clipped(r, f, line6, x, y, white, panel_w); y += dy; } // piston work delta
-                if (y + dy <= y_max) { draw_text_clipped(r, f, line_work_total, x, y, white, panel_w); y += dy; }
-                if (y + dy <= y_max) { draw_text_clipped(r, f, line_compare, x, y, white, panel_w); y += dy; }
-                if (y + dy <= y_max) { draw_text_clipped(r, f, line_compare2, x, y, white, panel_w); y += dy; }
-                if (line_sz_mode[0] && y + dy <= y_max) { draw_text_clipped(r, f, line_sz_mode, x, y, white, panel_w); y += dy; }
-                if (line_sz_branch[0] && y + dy <= y_max) { draw_text_clipped(r, f, line_sz_branch, x, y, white, panel_w); y += dy; }
-                if (line_sz_sep[0] && y + dy <= y_max) { draw_text_clipped(r, f, line_sz_sep, x, y, white, panel_w); y += dy; }
-                if (line_sz_info[0] && y + dy <= y_max) { draw_text_clipped(r, f, line_sz_info, x, y, white, panel_w); y += dy; }
-                if (line_sz_work[0] && y + dy <= y_max) { draw_text_clipped(r, f, line_sz_work, x, y, white, panel_w); y += dy; }
-                if (line_pp_ov[0] && y + dy <= y_max) { draw_text_clipped(r, f, line_pp_ov, x, y, white, panel_w); y += dy; }
+		        if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line6, x, y, white, panel_w, dy, y_max); } // piston work delta
+                if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_work_total, x, y, white, panel_w, dy, y_max); }
+                if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_compare, x, y, white, panel_w, dy, y_max); }
+                if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_compare2, x, y, white, panel_w, dy, y_max); }
+                if (line_sz_mode[0] && y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_sz_mode, x, y, white, panel_w, dy, y_max); }
+                if (line_sz_branch[0] && y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_sz_branch, x, y, white, panel_w, dy, y_max); }
+                if (line_sz_sep[0] && y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_sz_sep, x, y, white, panel_w, dy, y_max); }
+                if (line_sz_info[0] && y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_sz_info, x, y, white, panel_w, dy, y_max); }
+                if (line_sz_work[0] && y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_sz_work, x, y, white, panel_w, dy, y_max); }
+                if (line_pp_ov[0] && y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, line_pp_ov, x, y, white, panel_w, dy, y_max); }
 
-	        // Spring energy summary
-	        char spring_line[256];
-	        if (eff_is_wall_ke) {
-            snprintf(spring_line, sizeof(spring_line), "LoadKE: %.3e (max %.3e)",
-                     (double)energy_measurement.spring_energy,
-                     (double)energy_measurement.spring_energy_max);
-        } else if (energy_measurement.spring_enabled) {
-            snprintf(spring_line, sizeof(spring_line), "SpringE: %.3e (max %.3e)",
-                     (double)energy_measurement.spring_energy,
-                     (double)energy_measurement.spring_energy_max);
-	        } else {
-	            snprintf(spring_line, sizeof(spring_line), "SpringE: (disabled)");
-	        }
-		        if (y + dy <= y_max) { draw_text_clipped(r, f, spring_line, x, y, white, panel_w); y += dy; }
+                /* ##CHRIS 2026-10-12 (decision 34, addition, item B): the spring line is drawn right after the energies (above) */
 
 	        // Thermostat status
 	        char hb_line[256], andersen_line[256];
-	        if (heatbath_enabled) {
+	        if (cli_engine == 3) {   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+	            snprintf(hb_line, sizeof(hb_line), "HB: n/a (gen3)");
+	        } else if (heatbath_enabled) {
             snprintf(hb_line, sizeof(hb_line), "HB: ON (T=%.3f, mode=%d)",
                      (double)heatbath_temperature, thermal_wall_mode);
 	        } else {
 	            snprintf(hb_line, sizeof(hb_line), "HB: off");
 	        }
-		        if (y + dy <= y_max) { draw_text_clipped(r, f, hb_line, x, y, white, panel_w); y += dy; }
-	        if (andersen_enabled) {
+		        if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, hb_line, x, y, white, panel_w, dy, y_max); }
+	        if (cli_engine == 3) {   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+	            snprintf(andersen_line, sizeof(andersen_line), "Andersen: n/a (gen3)");
+	        } else if (andersen_enabled) {
 	            snprintf(andersen_line, sizeof(andersen_line), "Andersen: ON (ν=%.3f)", andersen_collision_freq);
 	        } else {
 	            snprintf(andersen_line, sizeof(andersen_line), "Andersen: off");
 	        }
-		        if (y + dy <= y_max) { draw_text_clipped(r, f, andersen_line, x, y, white, panel_w); y += dy; }
+		        if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, andersen_line, x, y, white, panel_w, dy, y_max); }
 
 	        // Windowed metric info
         if (energy_measurement.eff_window_started) {
@@ -15128,7 +16437,7 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
             double t_stop_rel = (wall_release_time >= 0.0) ? (energy_measurement.eff_piston_stop_time - (float)wall_release_time) : NAN;
             snprintf(win_line, sizeof(win_line), "t_stop(rel)=%.3f  Tw=%.3g",
                      (double)t_stop_rel, (double)cli_eff_window_sigma);
-		            if (y + dy <= y_max) { draw_text_clipped(r, f, win_line, x, y, white, panel_w); y += dy; }
+		            if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, win_line, x, y, white, panel_w, dy, y_max); }
 
 	            // Peak timing diagnostics (helps choose Tw large enough to capture the true peak)
 	            char peak_line[256];
@@ -15136,23 +16445,24 @@ static inline void render_energy_hud(SDL_Renderer *r, TTF_Font *f) {
 	            double dt_peak = (isfinite(t_stop_rel) && isfinite(t_peak_rel)) ? (t_peak_rel - t_stop_rel) : NAN;
             snprintf(peak_line, sizeof(peak_line), "t_peak(rel)=%.3f  Δt_peak=%.3f",
                      (double)t_peak_rel, (double)dt_peak);
-	            if (y + dy <= y_max) { draw_text_clipped(r, f, peak_line, x, y, white, panel_w); y += dy; }
+	            if (y + dy <= y_max) { y += dy * hud_text_wrapped(r, f, peak_line, x, y, white, panel_w, dy, y_max); }
 	        }
             {
                 char key_lines[8][256];
                 int key_n = hud_build_experiment_key_lines(key_lines, 8);
                 for (int i = 0; i < key_n; ++i) {
                     if (y + dy > y_max) break;
-                    draw_text_clipped(r, f, key_lines[i], x, y, white, panel_w);
-                    y += dy;
+                    y += dy * hud_text_wrapped(r, f, key_lines[i], x, y, white, panel_w, dy, y_max);
                 }
             }
 	        return;
 	    }
 
     // Fallback: draw HUD under the simulation window (older layout)
-    int x = XW1 + 5;
-    int y = YW1 + SIM_HEIGHT + 5;
+    int x = (int)floorf((float)gui_scene_screen_x((float)XW1) / gui_ui_scale) + 5;   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): window points */
+    int y = (int)floorf((float)gui_scene_screen_y((float)(YW1 + SIM_HEIGHT)) / gui_ui_scale) + 5;
+    draw_text(r, f, line_engine, x, y, engine_col); y += 20;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+    if (line_note) { draw_text(r, f, line_note, x, y, note_col); y += 20; }
     draw_text(r, f, line0, x, y, white);  y += 20;
     draw_text(r, f, line_clock, x, y, white); y += 20;
     draw_text(r, f, line_scale, x, y, white); y += 20;
@@ -15311,6 +16621,54 @@ static Psi6Result compute_psi6_from_edmd(const EDMD *state, double cutoff_sigma)
     out.mean_neighbors = sum_nb / (double)n_used;
     out.n_used = n_used;
     return out;
+}
+
+/* ##CHRIS 2026-10-10 (plan-author decision 17, "after P5"; 261012 sec. 4.7.40) -- PROVISIONAL: PSI6 PER COMPARTMENT.
+   compute_psi6_from_edmd's definition, split by compartment (sec. 4.7.37: P4a's "psi6 ~ 0.06" state is one compartment in M4's
+   0-degree lattice next to one turned by 30 degrees, and the two cancel in the global value). psi6(j) = the mean of exp(6 i theta_jk)
+   over the neighbours k of j within cutoff -- every disk, also across a divider, as for the global value; compartment c holds the
+   disks with c divider centres left of them (no disk crosses a divider); Psi_c = sum_{j in c} psi6(j) / N_c. Per compartment:
+   N_c; |Psi_c|; the orientation arg(Psi_c) / 6 in degrees, in (-30, 30] (the bonds' angle against the x axis, mod 60: M4's
+   "parallel" lattice is at 0, the turned one at +-30); and the local order <|psi6(j)|> over the compartment's disks with a
+   neighbour. sum_c N_c Psi_c = N x the global complex psi6, returned too (*global_abs). Plain coordinates in any length unit with
+   sigma in it, so that the run's columns (g3_psi6_series_sample, px) and the snapshot reader (--gen3-psi6-snapshots, sigma) run
+   the same code. A reader of positions only: it changes nothing in the engine or in the existing psi6 columns. */
+typedef struct { int n; double abs, orient_deg, local; } Psi6Comp;
+static int psi6_compartments(const double* x, const double* y, int N, double sigma, const double* div_x, int ndiv,
+                             double cutoff_sigma, Psi6Comp* out, int max, double* global_abs){
+    const int nc = 1 + ndiv;
+    if (N < 1 || ndiv < 0 || nc > max || nc > EDMD3_MAX_COMPARTMENTS) return -1;
+    double re_c[EDMD3_MAX_COMPARTMENTS] = {0}, im_c[EDMD3_MAX_COMPARTMENTS] = {0}, loc_c[EDMD3_MAX_COMPARTMENTS] = {0};
+    int n_c[EDMD3_MAX_COMPARTMENTS] = {0}, used_c[EDMD3_MAX_COMPARTMENTS] = {0};
+    const double cutoff = cutoff_sigma * sigma, cutoff2 = cutoff * cutoff;
+    double gre = 0.0, gim = 0.0;
+    for (int i = 0; i < N; ++i) {
+        double re = 0.0, im = 0.0; int nb = 0;
+        for (int j = 0; j < N; ++j) {
+            if (j == i) continue;
+            const double dx = x[j] - x[i], dy = y[j] - y[i], d2 = dx * dx + dy * dy;
+            if (d2 > cutoff2 || d2 <= 0.0) continue;
+            const double th = atan2(dy, dx);
+            re += cos(6.0 * th); im += sin(6.0 * th); nb++;
+        }
+        int c = 0;
+        for (int d = 0; d < ndiv; ++d) if (x[i] > div_x[d]) c++;
+        n_c[c]++;
+        if (nb > 0) {
+            re /= (double)nb; im /= (double)nb;
+            re_c[c] += re; im_c[c] += im; loc_c[c] += sqrt(re * re + im * im); used_c[c]++;
+            gre += re; gim += im;
+        }
+    }
+    for (int c = 0; c < nc; ++c) {
+        const double R = n_c[c] ? re_c[c] / (double)n_c[c] : 0.0, I = n_c[c] ? im_c[c] / (double)n_c[c] : 0.0;
+        out[c].n = n_c[c];
+        out[c].abs = sqrt(R * R + I * I);
+        out[c].orient_deg = out[c].abs > 0.0 ? atan2(I, R) * (180.0 / M_PI) / 6.0 : NAN;
+        out[c].local = used_c[c] ? loc_c[c] / (double)used_c[c] : NAN;
+    }
+    if (global_abs) { gre /= (double)N; gim /= (double)N; *global_abs = sqrt(gre * gre + gim * gim); }
+    return nc;
 }
 
 /* ##CHRIS: psi_6 sampled ACROSS the measurement window.
@@ -15608,6 +16966,738 @@ static int write_speed_sound_batch_status(const char *folder,
     return 1;
 }
 
+/* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14; sec. 4.7 "psi6(t)"): under gen3 the structural clock psi6(t) every
+   --psi6-every sigma-time (default 0.25; stage A1) through hold and record, one CSV per trajectory next to its trace
+   (psi6_t_L0_<L>_wallmassfactor_<M>_run<r>.csv: t_sigma since the start of the hold, phase, psi6 global, local, neighbours).
+   A reader of the synchronised copy, like every psi6 sample. gen2 writes no such file (its outputs stay as they were). */
+/* ##CHRIS 2026-10-10 (decision 17; provisional): with --gen3-psi6-compartments each row ends with the compartments' psi6 of
+   psi6_compartments() -- per compartment c the columns N_c, psi6_c (|Psi_c|), psi6_orient_deg_c, psi6_local_c -- computed from the
+   same synchronised copy as the first five columns, which keep their bytes (the row's end-of-line moved behind the new columns) */
+static int g3_psi6_ncomp(void){
+    const EDMD_Params* ep = edmd_backend_params(g_edmd);
+    return 1 + (ep->divider_count > 0 ? (ep->divider_count < EDMD_MAX_DIVIDERS ? ep->divider_count : EDMD_MAX_DIVIDERS) : 0);
+}
+static int g3_psi6_comp_nc = 0;   /* the compartments named in the file's header; every row must have as many */
+static void g3_psi6_comp_header(FILE* f){
+    if (!cli_gen3_psi6_comp) return;
+    g3_psi6_comp_nc = g3_psi6_ncomp();
+    for (int c = 0; c < g3_psi6_comp_nc; ++c) fprintf(f, ",N_%d,psi6_%d,psi6_orient_deg_%d,psi6_local_%d", c, c, c, c);
+}
+static void g3_psi6_comp_row(FILE* f){
+    if (!cli_gen3_psi6_comp) return;
+    const EDMD_Params* ep = edmd_backend_params(g_edmd);
+    const EDMD_Particle* P = edmd_backend_particles(g_edmd);
+    static double* xs = NULL; static double* ys = NULL; static int cap = 0;
+    if (ep->N > cap) {
+        free(xs); free(ys); cap = ep->N;
+        xs = (double*)malloc((size_t)cap * sizeof *xs); ys = (double*)malloc((size_t)cap * sizeof *ys);
+        if (!xs || !ys) g3_stop("out of memory (psi6 per compartment)");
+    }
+    for (int i = 0; i < ep->N; ++i) { xs[i] = P[i].x; ys[i] = P[i].y; }
+    Psi6Comp pc[EDMD3_MAX_COMPARTMENTS];
+    const int nc = psi6_compartments(xs, ys, ep->N, 2.0 * ep->radius, ep->divider_x, g3_psi6_ncomp() - 1, PSI6_CUTOFF_SIGMA, pc,
+                                     EDMD3_MAX_COMPARTMENTS, NULL);
+    if (nc < 1 || nc != g3_psi6_comp_nc) g3_stop("psi6 per compartment: the number of compartments differs from the file's header");
+    for (int c = 0; c < nc; ++c) fprintf(f, ",%d,%.6f,%.3f,%.6f", pc[c].n, pc[c].abs, pc[c].orient_deg, pc[c].local);
+}
+static void g3_psi6_series_sample(FILE* f, double* next_t, const char* phase){
+    if (!f || !g_edmd) return;
+    const double t = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
+    if (t + 1e-9 < *next_t) return;
+    const Psi6Result pr = compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
+    fprintf(f, "%.6f,%s,%.6f,%.6f,%.4f", t, phase, pr.global_abs, pr.local_mean, pr.mean_neighbors);
+    g3_psi6_comp_row(f);   /* ##CHRIS 2026-10-10 (decision 17): nothing without --gen3-psi6-compartments */
+    fputc('\n', f);
+    while (*next_t <= t + 1e-9) *next_t += cli_psi6_every;
+}
+/* ##CHRIS 2026-10-09 (M3, amendments d and e): with the run record, three information lines.
+   [EDMD3-LEDGER] momentum per axis and energy: (P - P0) - J and (E - E0) - W against their rounding scale (u x the sum of the
+                  rounded terms), as the M2 harness prints them; [EDMD3-GAP] (HD_CONTACT_AUDIT) the largest contact gap per class
+                  and that over the time quantum u_t = ulp(2^13), which gen3's origin shift keeps constant over the run;
+   [EDMD3-AUDIT]  (--gen3-audit-every) the schedule audit's counts. */
+static void g3_run_extras(void){
+    if (!g_edmd3) return;
+    EDMD3_Ledger L; edmd3_ledger(g_edmd3, &L);
+    EDMD3_Tol T; edmd3_tolerances(g_edmd3, &T);
+    const double rx = (L.P[0] - L.P0[0]) - L.J[0], ry = (L.P[1] - L.P0[1]) - L.J[1], re = (L.E - L.E0) - L.W;
+    printf("[EDMD3-LEDGER] momentum x: residual %.3g, scale %.3g, ratio %.3g; y: residual %.3g, scale %.3g, ratio %.3g; "
+           "energy: residual %.3g, scale %.3g, ratio %.3g (E0 %.12g, E %.12g, W %.6g)\n",
+           rx, L.scale_P[0], fabs(rx) / L.scale_P[0], ry, L.scale_P[1], fabs(ry) / L.scale_P[1], re, L.scale_E, fabs(re) / L.scale_E,
+           L.E0, L.E, L.W);
+    double g[4] = {0, 0, 0, 0};
+    const long n = edmd3_contact_audit_stats4(g_edmd3, g);
+    if (n > 0)
+        printf("[EDMD3-GAP] contact audit over %ld events: max gap [px] pair %.3g, wall %.3g, divider %.3g, piston %.3g; "
+               "time quantum u_t %.6g units; max gap / u_t [px/unit] pair %.3g, wall %.3g, divider %.3g, piston %.3g; v_ref %.6g px/unit\n",
+               n, g[0], g[1], g[2], g[3], T.u_time, g[0] / T.u_time, g[1] / T.u_time, g[2] / T.u_time, g[3] / T.u_time, T.v_ref);
+    if (cli_gen3_audit_every > 0) edmd3_schedule_audit_now(g_edmd3);   /* a last audit at the end of the run (read-only) */
+    const EDMD3_Audit* A = edmd3_schedule_audit_stats(g_edmd3);
+    if (A->audits > 0)
+        printf("[EDMD3-AUDIT] audited states %ld; missing pair/wall/cross/div/piston %ld/%ld/%ld/%ld/%ld; extra %ld/%ld/%ld/%ld/%ld; "
+               "deferred earlier than eligible pair/wall/div/piston %ld/%ld/%ld/%ld; bands missing/extra/short %ld/%ld/%ld; "
+               "duplicate disagreeing %ld; cells inconsistent %ld; max |dt| %.3g; max |dt|/horizon (|dt| > 1e-9 only) %.3g\n",
+               A->audits, A->pair_missing, A->wall_missing, A->cross_missing, A->div_missing, A->pis_missing,
+               A->pair_extra, A->wall_extra, A->cross_extra, A->div_extra, A->pis_extra,
+               A->pair_deferred_early, A->wall_deferred_early, A->div_deferred_early, A->pis_deferred_early,
+               A->band_missing, A->band_extra, A->band_short, A->dup_disagree, A->cell_inconsistent, A->max_dt, A->max_rel);
+    fflush(stdout);
+}
+/* ##CHRIS 2026-10-09 (stage C, M4; 261012 sec. 4.7.16; sec. 4.7 "initial conditions", sec. 4.7.1 d and f): gen3's initial
+   conditions for the speed-of-sound experiment, behind --gen3-seeding=lattice (gen2's seeding and outputs are untouched: the flags
+   are refused without --engine=gen3).
+   LATTICE. Each compartment ([0, c - th/2] and [c + th/2, boxW] x [0, boxH]; c the divider centre, th its thickness) gets the stated
+   arrangement of its N_s disks: n_s rows of n_r disks; orientation "parallel" (rows along y, the divider) or "perpendicular" (rows
+   along x); along a row the spacing a_r, alternate rows shifted by a_r/2; across rows the spacing a_s; the outermost disks have the
+   clearance g from every wall and from the divider face (their centres at R + g). For each orientation (or the one asked) and each
+   n_s, with n_r = ceil(N_s / n_s), the smallest centre distance of the arrangement is d = min(a_r, sqrt(a_s^2 + a_r^2/4), 2 a_s) (the
+   only candidates in this family), the smallest surface gap s = d - 2R, and g = s/2 (the walls act as mirrors at half the gap;
+   fixed-point iteration). TWO FORMS are searched: "equal" rows (every row n_r disks, so a shifted row needs a_r/2 more room:
+   a_r = (L_r - 2(R + g)) / (n_r - 1/2)) and "alternate" rows (the shifted rows hold n_r - 1 disks inside the same span:
+   a_r = (L_r - 2(R + g)) / (n_r - 1); the hexagonal packing of a box, denser near the limit: it lifts the largest feasible eta at
+   N = 100, H = 10 from 0.761 to 0.7815). The arrangement with the largest s is taken (ties: fewer vacancies, then parallel). If no arrangement has
+   s > 0 the request is infeasible in this family and the run stops: hard walls cost a boundary layer, so for example no N_s = 50
+   arrangement in a 10 sigma high compartment reaches the nominal eta 0.85.
+   COMMENSURATE CALCULATOR: g3_lattice_fit gives the arrangement for a box; the reverse (the box of an n_s x n_r lattice of spacing
+   a, the table of sec. 4.7) follows from the same formulas with g given.
+   VACANCIES: n_vac = n_s n_r - N_s sites removed, uniformly (seeded) among the interior sites (row index 2 .. n_s - 3 and position
+   2 .. n_r - 3, i.e. two full rows from every wall); all sites if the interior has fewer than n_vac.
+   JITTER: every disk moves by a vector uniform in a disk of radius j = f min(s, 2 g_w) (--gen3-jitter=f, default 0.25; f = 0 is the
+   jitter-free lattice, the tie-break stress test of sec. 4.7.1 d), g_w the smallest wall clearance. Disk-disk gaps >= s (1 - 2f) and
+   wall gaps >= g_w (1 - 2f) after it: > 0 for f < 1/2.
+   RNG: splitmix64 seeded with the trajectory's run seed XOR 0x4D344C4154544943 ("M4LATTIC"), its own stream; left compartment first,
+   two draws per vacancy and per disk. The driver's velocity draw (Maxwell-Boltzmann, KE scaling, per-compartment temperature) is
+   untouched; only the positions are replaced, with the same particle indices per compartment (0 .. N_L - 1 left).
+   EXACT BOX (--gen3-exact-box): the box width is 2 L0 exactly, L0 as written in --lengths read as a double, instead of the 1/48
+   sigma pixel grid (SIM_WIDTH); the divider starts at the exact centre. eta = N pi R^2 / (boxW boxH) is then the requested value to
+   rounding.
+   RUN HEADER: [EDMD3-RUN] at the start of every gen3 speed-of-sound trajectory: engine, build, cell width, origin shift, time
+   quantum, K, the box, eta, the seeding (the lattice per compartment), T_eq (the held-divider time), the record time, the psi6
+   interval, the validator cadence, the seed. */
+typedef struct { int ok, orient, alt, ns, nr, nvac; double as, ar, g, gw, s, jit; int cryst; } G3Lattice;   /* alt: shifted rows hold n_r - 1
+                                                                                                         disks; cryst: g3_lat_cryst (M4c) */
+static G3Lattice g3_lat[2];
+static double g3_eta_achieved = NAN;
+static uint64_t g3_sm64(uint64_t* st){
+    uint64_t z = (*st += 0x9E3779B97F4A7C15ULL);
+    z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL; z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
+    return z ^ (z >> 31);
+}
+static double g3_u01(uint64_t* st){ return (double)(g3_sm64(st) >> 11) * 0x1p-53; }
+/* one arrangement: spacings, the smallest surface gap and the wall clearance at clearance g */
+static double g3_lat_eval(int ns, int nr, int alt, double R, double Lr, double Ls, double g, double* as, double* ar, double* gw){
+    const double us = Ls - 2.0 * (R + g), ur = Lr - 2.0 * (R + g);
+    if (!(us >= 0.0) || !(ur >= 0.0)) return -INFINITY;
+    if (alt && (ns < 2 || nr < 2)) return -INFINITY;
+    *as = ns > 1 ? us / (double)(ns - 1) : 0.0;
+    if (alt) *ar = ur / (double)(nr - 1);                      /* shifted rows: n_r - 1 disks inside the same span */
+    else *ar = nr > 1 ? ur / ((double)(nr - 1) + (ns > 1 ? 0.5 : 0.0)) : (ns > 1 ? 2.0 * ur : 0.0);
+    double d = INFINITY;
+    if (nr > 1) d = *ar;
+    if (ns > 1) { const double dd = sqrt(*as * *as + 0.25 * *ar * *ar); if (dd < d) d = dd; }
+    if (ns > 2 && 2.0 * *as < d) d = 2.0 * *as;
+    *gw = g;
+    if (ns == 1) *gw = fmin(g, 0.5 * Ls - R);                 /* one row: centred across */
+    if (ns == 1 && nr == 1) *gw = fmin(0.5 * Ls - R, 0.5 * Lr - R);
+    return d - 2.0 * R;
+}
+static int g3_lat_sites(int ns, int nr, int alt){ return alt ? ((ns + 1) / 2) * nr + (ns / 2) * (nr - 1) : ns * nr; }
+/* ##CHRIS 2026-10-10 (plan-author decision 18, item 2; 261012 sec. 4.7.41-4.7.42): M4c, THE CRYSTAL ORIENTATION of an arrangement --
+   the direction of its close-packed lines, which psi6 per compartment measures (sec. 4.7.37, 4.7.40: lines along x read 0 deg,
+   lines along y read +-30 deg). The row direction above (parallel: rows along y; perpendicular: rows along x) is not that
+   direction: in this near-triangular family the close-packed lines run ALONG the rows when the in-row spacing is the shorter one
+   (a_r < 2 a_s; ideally a_r = d, a_s = d sqrt(3)/2) and ACROSS them when it is the longer one (a_r > 2 a_s; ideally a_r = d sqrt(3),
+   a_s = d/2: P4a's 19 x 11 "parallel" lattice, a_r 1.9 sigma, a_s 0.53 sigma, which reads 0 deg). One row: along it; one disk per
+   row: across. Returns 0 (lines along x) or 1 (lines along y, the turned crystal). --gen3-lattice-orientation=0|turned keeps only
+   the arrangements of that orientation in g3_lattice_fit (the rest of M4 unchanged: the largest gap, the vacancy rule, the seeded
+   jitter, the exact box, each compartment fitted alike); without it (cryst_req = -1) the fit is the M4 family exactly as before. */
+static int g3_lat_cryst(int orient, int ns, int nr, double as, double ar){
+    const int along_rows = ns < 2 ? 1 : (nr < 2 ? 0 : (ar < 2.0 * as));
+    return along_rows == (orient == 1) ? 0 : 1;
+}
+static int g3_lattice_fit(int n_disks, double R, double Wx, double Hy, int orient_req, int cryst_req, G3Lattice* L){
+    memset(L, 0, sizeof *L); L->s = -INFINITY;
+    for (int o = 0; o < 2; ++o) {
+        if (orient_req >= 0 && o != orient_req) continue;
+        const double Lr = o == 0 ? Hy : Wx, Ls = o == 0 ? Wx : Hy;
+        for (int alt = 0; alt < 2; ++alt)
+        for (int ns = 1; ns <= n_disks; ++ns) {
+            int nr = (n_disks + ns - 1) / ns;
+            if (alt) { if (ns < 2) continue; nr = 2; while (g3_lat_sites(ns, nr, 1) < n_disks) nr++; }
+            double as = 0.0, ar = 0.0, gw = 0.0, g = 0.0;
+            double sv = g3_lat_eval(ns, nr, alt, R, Lr, Ls, 0.0, &as, &ar, &gw);
+            if (!(sv > 0.0)) continue;
+            if (isfinite(sv)) {
+                for (int it = 0; it < 200; ++it) {                /* g = s(g)/2: s decreases with g; a contraction */
+                    const double gn = 0.5 * g3_lat_eval(ns, nr, alt, R, Lr, Ls, g, &as, &ar, &gw);
+                    if (!(gn > 0.0)) { g = 0.0; break; }
+                    if (fabs(gn - g) <= 1e-15 * (1.0 + gn)) { g = gn; break; }
+                    g = gn;
+                }
+            } else g = fmin(0.5 * Ls - R, 0.5 * Lr - R);       /* one disk: centred */
+            sv = g3_lat_eval(ns, nr, alt, R, Lr, Ls, g, &as, &ar, &gw);
+            if (!(sv > 0.0) || !(gw > 0.0)) continue;
+            if (cryst_req >= 0 && g3_lat_cryst(o, ns, nr, as, ar) != cryst_req) continue;   /* ##CHRIS (decision 18, M4c) */
+            const int nvac = g3_lat_sites(ns, nr, alt) - n_disks;
+            if (sv > L->s || (sv == L->s && nvac < L->nvac)) {
+                L->ok = 1; L->orient = o; L->alt = alt; L->ns = ns; L->nr = nr; L->nvac = nvac; L->as = as; L->ar = ar; L->g = g; L->gw = gw; L->s = sv;
+                L->cryst = g3_lat_cryst(o, ns, nr, as, ar);
+            }
+        }
+    }
+    return L->ok;
+}
+/* the disks first .. first + n_disks - 1 into [x0, x0 + Wx] x [0, Hy] (box coordinates, px) */
+static void g3_lattice_place(G3Lattice* L, double R, double x0, double Wx, double Hy, EDMD_Particle* P, int first, int n_disks,
+                             uint64_t* st, double f){
+    const double Lr = L->orient == 0 ? Hy : Wx, Ls = L->orient == 0 ? Wx : Hy;
+    const int nsite = L->ns * L->nr;                              /* indexed k * n_r + j; a row of n_r - 1 leaves its last index free */
+    char* vac = (char*)calloc((size_t)nsite, 1); int* cand = (int*)malloc((size_t)nsite * sizeof(int));
+    if (!vac || !cand) g3_stop("out of memory (M4 seeding)");
+    int nc = 0;
+    for (int k = 0; k < L->ns; ++k) {
+        const int nk = (L->alt && (k & 1)) ? L->nr - 1 : L->nr;
+        for (int j = 0; j < nk; ++j)
+            if (k >= 2 && k <= L->ns - 3 && j >= 2 && j <= nk - 3) cand[nc++] = k * L->nr + j;
+    }
+    if (nc < L->nvac) { nc = 0; for (int k = 0; k < L->ns; ++k) for (int j = 0; j < ((L->alt && (k & 1)) ? L->nr - 1 : L->nr); ++j) cand[nc++] = k * L->nr + j; }
+    for (int v = 0; v < L->nvac; ++v) {
+        int pick = v + (int)(g3_u01(st) * (double)(nc - v)); if (pick >= nc) pick = nc - 1;
+        const int tmp = cand[v]; cand[v] = cand[pick]; cand[pick] = tmp; vac[cand[v]] = 1;
+        (void)g3_u01(st);                                      /* two draws per vacancy (fixed stream layout) */
+    }
+    L->jit = f * fmin(L->s, 2.0 * L->gw);
+    int i = first;
+    for (int k = 0; k < L->ns; ++k) for (int j = 0; j < ((L->alt && (k & 1)) ? L->nr - 1 : L->nr); ++j) {
+        if (vac[k * L->nr + j]) continue;
+        const double S = L->ns == 1 ? 0.5 * Ls : R + L->g + (double)k * L->as;
+        const double T = (L->ns == 1 && L->nr == 1) ? 0.5 * Lr
+                       : R + L->g + (double)j * L->ar + ((L->ns > 1 && (k & 1)) ? 0.5 * L->ar : 0.0);
+        const double rho = L->jit * sqrt(g3_u01(st)), phi = 6.283185307179586476925 * g3_u01(st);
+        P[i].x = x0 + (L->orient == 0 ? S : T) + rho * cos(phi);
+        P[i].y = (L->orient == 0 ? T : S) + rho * sin(phi);
+        i++;
+    }
+    free(vac); free(cand);
+    if (i != first + n_disks) g3_stop("M4 seeding: site count");
+}
+/* the M4 seeding of the container's particles (box coordinates); velocities untouched */
+static void g3_m4_seed(EDMD_Particle* P, int N, int NL, double boxW, double boxH, double R, double c, double th, unsigned run_seed,
+                       int cryst_req){   /* ##CHRIS 2026-10-10 (decision 18, M4c): cryst_req -1 for M4b and for M4 without the flag */
+    const int NR = N - NL;
+    const double WL = c - 0.5 * th, x0R = c + 0.5 * th, WR = boxW - x0R;
+    const int okL = g3_lattice_fit(NL, R, WL, boxH, cli_gen3_orient, cryst_req, &g3_lat[0]);
+    const int okR = g3_lattice_fit(NR, R, WR, boxH, cli_gen3_orient, cryst_req, &g3_lat[1]);
+    if (cryst_req >= 0)   /* ##CHRIS 2026-10-10 (decision 18, M4c): the request and the arrangements found, before any stop */
+        printf("[EDMD3-M4C] lattice orientation requested: %s; left %s, right %s\n",
+               cryst_req ? "turned (close-packed lines along y; psi6 orientation +-30 deg)" : "0 (close-packed lines along x; psi6 orientation 0 deg)",
+               okL ? (g3_lat[0].cryst ? "lines along y" : "lines along x") : "none", okR ? (g3_lat[1].cryst ? "lines along y" : "lines along x") : "none");
+    if (!okL || !okR) {
+        printf("[EDMD3-M4] INFEASIBLE: N_L %d in %.17g x %.17g px, N_R %d in %.17g x %.17g px (R %.17g px): no arrangement of the stated "
+               "lattice family has a positive gap (nominal eta %.6f)\n", NL, WL, boxH, NR, WR, boxH, R, N * M_PI * R * R / (boxW * boxH));
+        g3_stop("M4 seeding: the requested packing is infeasible in the stated lattice family (hard walls)");
+    }
+    uint64_t st = (uint64_t)run_seed ^ 0x4D344C4154544943ULL;
+    g3_lattice_place(&g3_lat[0], R, 0.0, WL, boxH, P, 0, NL, &st, cli_gen3_jitter);
+    g3_lattice_place(&g3_lat[1], R, x0R, WR, boxH, P, NL, NR, &st, cli_gen3_jitter);
+    g3_eta_achieved = (double)N * M_PI * R * R / (boxW * boxH);
+}
+/* M4 replaces the driver's seeder (initialize_simulation) in the speed-of-sound loop: the lattice positions (kept as doubles in
+   g3_m4_P for the container load), then the legacy seeder's own velocity steps in its order -- one Maxwell-Boltzmann draw per
+   particle, left compartment first, the global KE scaling, the per-compartment temperature, run_params.json. The legacy seeder
+   cannot place N_s disks where only a hexagonal packing fits (it stops at eta 0.85 with N = 100), so M4 does not depend on it. */
+static EDMD_Particle* g3_m4_P = NULL;
+static int g3_m4_N = 0, g3_m4_NL = 0;
+/* ##CHRIS 2026-10-14 (plan-author decision 50 item 3 b; 261012 sec. 4.7.113): the body of the M4 start takes its geometry -- boxW, the
+   box width, and c, the divider's centre (px, box coordinates) -- so that the held path (the energy-transfer experiment) seeds the same
+   lattice in its own geometry. g3_m4_init_driver below passes the speed-of-sound loop's geometry, computed exactly as before. */
+static void g3_m4_init_core(double boxW, double c, unsigned run_seed){
+    const int two = cli_particles_box_counts && cli_particles_box_counts_count == 2;
+    const int N = two ? cli_particles_box_counts[0] + cli_particles_box_counts[1] : (cli_override_particles > 0 ? cli_override_particles : particles_active);
+    const int NL = two ? cli_particles_box_counts[0] : N / 2;
+    if (N < 1 || N > NUM_PARTICLES) g3_stop("M4 seeding: particle count");
+    const double boxH = (double)(YW2 - YW1);
+    free(g3_m4_P); g3_m4_P = (EDMD_Particle*)calloc((size_t)N, sizeof *g3_m4_P);
+    if (!g3_m4_P) g3_stop("out of memory (M4 seeding)");
+    g3_m4_N = N; g3_m4_NL = NL;
+    g3_m4_seed(g3_m4_P, N, NL, boxW, boxH, (double)PARTICLE_RADIUS, c, (double)WALL_THICKNESS, run_seed, cli_gen3_cryst);   /* ##CHRIS (decision 18, M4c) */
+    particles_active = N;
+    for (int i = 0; i < N; ++i) {
+        X[i] = (float)((double)XW1 + g3_m4_P[i].x); Y[i] = (float)((double)YW1 + g3_m4_P[i].y);
+        float vx, vy; maxwell_boltzmann_2D(temperature_runtime, &vx, &vy);
+        Vx[i] = vx; Vy[i] = vy; V_init[i] = sqrtf(vx * vx + vy * vy); Radius[i] = PARTICLE_RADIUS;
+    }
+    ke_audit("1 after velocity draw");
+    const double actual_ke = kinetic_energy(), target_ke = particles_active * K_B * temperature_runtime;
+    const double scale = sqrt(target_ke / actual_ke);
+    for (int i = 0; i < particles_active; i++) { Vx[i] *= scale; Vy[i] *= scale; }
+    if (segment_counts && segment_count > 0) {
+        memset(segment_counts, 0, (size_t)segment_count * sizeof(int));
+        for (int i = 0; i < particles_active; ++i) {
+            int seg = segment_index_for_position(X[i]);
+            if (seg < 0) seg = 0; if (seg >= segment_count) seg = segment_count - 1;
+            segment_counts[seg]++;
+        }
+    }
+    ke_audit("2a after global kT rescale");
+    equalize_temperature_per_segment(temperature_runtime);
+    ke_audit("2b after per-segment equalize");
+    if (cli_temperature_segments && cli_temperature_segments_count > 0) apply_segment_temperatures(cli_temperature_segments, cli_temperature_segments_count);
+    write_run_params_json();
+}
+static void g3_m4_init_driver(double L0d, unsigned run_seed){   /* ##CHRIS 2026-10-14 (decision 50, b): the speed-of-sound loop's geometry */
+    g3_m4_init_core(cli_gen3_exact_box ? 2.0 * L0d * (double)PIXELS_PER_SIGMA : (double)(XW2 - XW1),
+                    cli_gen3_exact_box ? L0d * (double)PIXELS_PER_SIGMA : (double)(wall_x - (double)XW1), run_seed);
+}
+/* ##CHRIS 2026-10-09 (plan-author decision 13, item 4; 261012 sec. 4.7.30): M4b, THE COMPRESSED-FLUID START (gen3 only,
+   --gen3-seeding=compressed with --gen3-exact-box): a second, disordered route to the same state, for two-start equilibration checks.
+   PROTOCOL.
+   (1) The M4 lattice (g3_m4_seed: the same family, vacancies, jitter and RNG stream) at eta_0 (--gen3-compress-eta0, default 0.60) in
+       a LONGER BOX: the same H and N, each compartment L0_0 = N pi R^2 / (2 eta_0 H) from its outer face to the divider centre, the
+       divider held at the centre. The pistons (mass 0, faces) are the outer faces; they start 1 sigma inside the long box's walls,
+       which no disk reaches. Velocities: the driver's draw as in M4 (one Maxwell-Boltzmann draw per particle, left compartment first),
+       then each compartment scaled to KE = N_s kT.
+   (2) Held for T_melt (--gen3-compress-melt, default 500 sigma-time); then both pistons move inward at u (--gen3-compress-speed, default
+       0.01 sigma per sigma-time) until each compartment has the target L0 (travel D = L0_0 - L0, so they stop at T_melt + D/u), and stop.
+   (3) The velocities of each compartment are rescaled so that KE = N_s kT exactly (for hard disks this only rescales time).
+   (4) The state is carried into the run's box of the target L0: x -> x - S, S = c_long - c the exact difference of the two divider
+       centres (Sterbenz: c <= c_long <= 2c is required), so the divider sits at the run's centre exactly and the run's outer walls sit
+       where the pistons stopped, to the pistons' rounding (recorded as the achieved L0). The stopped pistons thus stay the outer walls.
+       From here on the run is the speed-of-sound run of an M4 start -- the same box, hold, observers, checkpoint and run record; only
+       the initial positions and velocities differ (the velocities enter the container as doubles).
+   CHECKPOINT/RESTART: a checkpoint is written in the run proper (hold:K, record:K); a restart repeats this deterministic preparation, and
+   the checkpoint's identity check (g3_init_hash of the carried state) proves it is the same state. A checkpoint inside the compression
+   cannot be asked for (the flags name hold and record steps only).
+   THE RUN HEADER [EDMD3-M4B]: eta_0, T_melt, u; the long box; the requested and the achieved L0 per compartment; the piston work per
+   side; KE per compartment at the start, before and after the rescale; the KE gain against the piston work and the ledger's rounding
+   scale; the time at the end of the compression; its events, health and event hash; the carry; the smallest wall and divider gaps after
+   it. A second line, after the container load, gives psi6 of the carried state (the end of the compression). The compression state
+   must be clean and every disk keep its compartment, or the run stops. */
+static void g3_m4b_init_driver(double L0d, unsigned run_seed, double L0f, int mass, int r){
+    const int two = cli_particles_box_counts && cli_particles_box_counts_count == 2;
+    const int N = two ? cli_particles_box_counts[0] + cli_particles_box_counts[1] : (cli_override_particles > 0 ? cli_override_particles : particles_active);
+    const int NL = two ? cli_particles_box_counts[0] : N / 2, NR = N - NL;
+    if (N < 2 || N > NUM_PARTICLES || NL < 1 || NR < 1) g3_stop("M4b: particle count");
+    if (!cli_gen3_exact_box) g3_stop("M4b (--gen3-seeding=compressed) needs --gen3-exact-box");
+    const double pps = (double)PIXELS_PER_SIGMA, R = (double)PARTICLE_RADIUS, th = (double)WALL_THICKNESS, Hpx = (double)(YW2 - YW1);
+    const double ct = L0d * pps, boxWt = 2.0 * ct;                                     /* the run's divider centre and box width [px] */
+    const double eta0 = cli_gen3_m4b_eta0, L00 = (double)N * M_PI * R * R / (2.0 * eta0 * Hpx);   /* the long box's L0 [px] */
+    const double m = pps, cl = m + L00, boxWl = 2.0 * cl, S = cl - ct;               /* the pistons' start, the long box, the carry */
+    if (!(L00 > ct)) g3_stop("M4b: eta_0 must be below the target eta (the long box must be the longer one)");
+    if (!(cl <= 2.0 * ct)) g3_stop("M4b: the long divider centre is more than twice the run's (eta_0 too small for an exact carry)");
+    const double u = cli_gen3_m4b_u, t_melt = cli_gen3_m4b_melt * pps, D = L00 - ct, t_stop = t_melt + D / u;   /* u: px per unit */
+    /* (1) the lattice at eta_0, seeded in [0, 2 L0_0] and shifted by m; the velocities */
+    EDMD_Particle* P = (EDMD_Particle*)calloc((size_t)N, sizeof *P);
+    if (!P) g3_stop("out of memory (M4b)");
+    g3_m4_seed(P, N, NL, 2.0 * L00, Hpx, R, L00, th, run_seed, -1);   /* ##CHRIS (decision 18, M4c): M4b's lattice as before */
+    const double eta_seed = g3_eta_achieved;
+    for (int i = 0; i < N; ++i) P[i].x += m;
+    double ke[2] = {0.0, 0.0};
+    for (int i = 0; i < N; ++i) {
+        float vx, vy; maxwell_boltzmann_2D(temperature_runtime, &vx, &vy);
+        P[i].vx = (double)vx; P[i].vy = (double)vy;
+        ke[i < NL ? 0 : 1] += 0.5 * (double)PARTICLE_MASS * (P[i].vx * P[i].vx + P[i].vy * P[i].vy);
+    }
+    const double target[2] = { (double)(NL * K_B * temperature_runtime), (double)(NR * K_B * temperature_runtime) };
+    const double s0[2] = { sqrt(target[0] / ke[0]), sqrt(target[1] / ke[1]) };
+    double ke0[2] = {0.0, 0.0};
+    for (int i = 0; i < N; ++i) {
+        const int c = i < NL ? 0 : 1; P[i].vx *= s0[c]; P[i].vy *= s0[c];
+        ke0[c] += 0.5 * (double)PARTICLE_MASS * (P[i].vx * P[i].vx + P[i].vy * P[i].vy);
+    }
+    /* (2) the long box: the divider held at its centre, the two pistons (mass 0) at m and boxW_long - m; melt, compress, stop */
+    EDMD_Params pc; memset(&pc, 0, sizeof pc);
+    pc.boxW = boxWl; pc.boxH = Hpx; pc.radius = R; pc.N = N; pc.cell_size = 0.0;
+    pc.divider_count = 1; pc.divider_x[0] = cl; pc.divider_thickness[0] = th; pc.divider_mass[0] = 0.0; pc.divider_vx[0] = 0.0;
+    pc.heatbath_enabled = heatbath_enabled; pc.heatbath_temperature = (double)heatbath_temperature; pc.thermal_wall_mode = thermal_wall_mode;
+    pc.mb_overshoot_factor = (double)mb_overshoot_factor; pc.stability_window_percent = (double)stability_window_percent;
+    pc.particle_mass = (double)PARTICLE_MASS; pc.kB = (double)kB_effective(); pc.pp_collisions_enabled = cli_no_pp_collisions ? 0 : 1;
+    pc.has_pistonL = 1; pc.pistonL_x = m; pc.pistonL_vx = 0.0; pc.pistonL_mass = 0.0;
+    pc.has_pistonR = 1; pc.pistonR_x = boxWl - m; pc.pistonR_vx = 0.0; pc.pistonR_mass = 0.0;
+    char err[256]; const char* msg = NULL;
+    EDMD3* C = edmd3_create(&pc, cli_gen3_cell_px, err, sizeof err);
+    if (!C) g3_stop(err);
+    if (!edmd3_load(C, P, 0.0, err, sizeof err)) g3_stop(err);
+    edmd3_set_contact_audit(C, getenv("HD_CONTACT_AUDIT") != NULL);
+    const double tm0 = g3_mono();
+    edmd3_advance_to(C, t_melt);
+    if (edmd3_fatal(C, &msg)) g3_stop(msg ? msg : "M4b: the engine stopped in the melt");
+    if (!edmd3_set_piston_motion(C, 0, 0.0, u) || !edmd3_set_piston_motion(C, 1, 0.0, -u)) g3_stop("M4b: the engine refused the piston motion");
+    edmd3_advance_to(C, t_stop);
+    if (edmd3_fatal(C, &msg)) g3_stop(msg ? msg : "M4b: the engine stopped in the compression");
+    if (!edmd3_set_piston_motion(C, 0, 0.0, 0.0) || !edmd3_set_piston_motion(C, 1, 0.0, 0.0)) g3_stop("M4b: the engine refused to stop the pistons");
+    double xL, xR, vd; edmd3_piston_state(C, 0, &xL, &vd); edmd3_piston_state(C, 1, &xR, &vd);
+    const double wL = edmd3_work_piston(C, 0), wR = edmd3_work_piston(C, 1);
+    EDMD3_Ledger Lg; edmd3_ledger(C, &Lg);
+    const EDMD3_Health* Hh = edmd3_health(C);
+    const int clean = edmd3_health_clean(C);
+    const unsigned long long hash = (unsigned long long)edmd3_event_hash(C);
+    const long events = Hh->ev_pair + Hh->ev_wall + Hh->ev_cross + Hh->ev_div + Hh->ev_piston + Hh->ev_band;
+    double gaps[4] = {0.0, 0.0, 0.0, 0.0}; const long naud = edmd3_contact_audit_stats4(C, gaps);
+    const EDMD_Particle* Q = edmd3_particles(C);
+    double ke1[2] = {0.0, 0.0};
+    for (int i = 0; i < N; ++i) ke1[i < NL ? 0 : 1] += 0.5 * (double)PARTICLE_MASS * (Q[i].vx * Q[i].vx + Q[i].vy * Q[i].vy);
+    /* (3) the rescale and (4) the carry into the run's box */
+    free(g3_m4_P); g3_m4_P = (EDMD_Particle*)calloc((size_t)N, sizeof *g3_m4_P);
+    if (!g3_m4_P) g3_stop("out of memory (M4b)");
+    const double sc[2] = { sqrt(target[0] / ke1[0]), sqrt(target[1] / ke1[1]) };
+    double ke2[2] = {0.0, 0.0}, gw = INFINITY, gdv = INFINITY; int nl_left = 0, moved = 0;
+    for (int i = 0; i < N; ++i) {
+        const int c = i < NL ? 0 : 1;
+        g3_m4_P[i].x = Q[i].x - S; g3_m4_P[i].y = Q[i].y;
+        g3_m4_P[i].vx = Q[i].vx * sc[c]; g3_m4_P[i].vy = Q[i].vy * sc[c];
+        ke2[c] += 0.5 * (double)PARTICLE_MASS * (g3_m4_P[i].vx * g3_m4_P[i].vx + g3_m4_P[i].vy * g3_m4_P[i].vy);
+        const double x = g3_m4_P[i].x, y = g3_m4_P[i].y;
+        nl_left += x < ct; moved += (x < ct) != (c == 0);
+        gw = fmin(gw, fmin(fmin(x - R, boxWt - R - x), fmin(y - R, Hpx - R - y)));
+        gdv = fmin(gdv, fabs(x - ct) - 0.5 * th - R);
+    }
+    const double tol = 1e-6;   /* px: the validator's wall tolerance (experiment_validation.c; edmd_gen3's tol_wall at R = 12 px) */
+    const double kg = (ke1[0] + ke1[1]) - (ke0[0] + ke0[1]), wp = wL + wR, re = (Lg.E - Lg.E0) - Lg.W;
+    printf("[EDMD3-M4B] L0=%.1f M=%d run=%d seed=%u: eta_0=%.17g (seeded %.17g; target %.17g) T_melt=%.17g sigma-time u=%.17g sigma/sigma-time; "
+           "long box %.17g x %.17g px, divider %.17g px, pistons from %.17g and %.17g px; "
+           "L0 requested %.17g sigma, achieved left %.17g right %.17g sigma (minus requested %.3g, %.3g); pistons stopped at %.17g and %.17g px; "
+           "piston work left %.17g right %.17g; KE left/right at the start %.17g %.17g, before the rescale %.17g %.17g, after %.17g %.17g "
+           "(after/N_s kT - 1: %.3g %.3g); KE gain %.17g minus piston work %.17g = %.3g; ledger E - E0 - W %.3g, scale %.3g, ratio %.3g; "
+           "end of the compression t=%.17g sigma-time (melt %.17g + compression %.17g); events %ld (pair %ld wall %ld cross %ld div %ld "
+           "piston %ld band %ld); clean=%d overlap_repair=%ld wall_overdue=%ld past_event=%ld clamp_repair=%ld cell_repair=%ld grid_escape=%ld "
+           "stagnation=%ld obj_overlap_repair=%ld body_findings=%ld local_findings=%ld full_findings=%ld hash=%016llx; contact audit %ld events, "
+           "max gap [px] pair %.3g wall %.3g divider %.3g piston %.3g; carry S=%.17g px; N_L=%d N_R=%d (moved %d); smallest gap after the carry "
+           "[px]: walls %.3g, divider %.3g; %.1f s\n",
+           L0f, mass, r, run_seed, eta0, eta_seed, (double)N * M_PI * R * R / (boxWt * Hpx), cli_gen3_m4b_melt, u, boxWl, Hpx, cl, m, boxWl - m,
+           L0d, (cl - xL) / pps, (xR - cl) / pps, (cl - xL) / pps - L0d, (xR - cl) / pps - L0d, xL, xR,
+           wL, wR, ke0[0], ke0[1], ke1[0], ke1[1], ke2[0], ke2[1], ke2[0] / target[0] - 1.0, ke2[1] / target[1] - 1.0, kg, wp, kg - wp,
+           re, Lg.scale_E, fabs(re) / Lg.scale_E, t_stop / pps, cli_gen3_m4b_melt, (t_stop - t_melt) / pps, events, Hh->ev_pair, Hh->ev_wall,
+           Hh->ev_cross, Hh->ev_div, Hh->ev_piston, Hh->ev_band, clean, Hh->overlap_repair, Hh->wall_overdue, Hh->past_event, Hh->clamp_repair,
+           Hh->cell_repair, Hh->grid_escape, Hh->stagnation, Hh->obj_overlap_repair, Hh->body_findings, Hh->local_findings, Hh->full_findings,
+           hash, naud, gaps[0], gaps[1], gaps[2], gaps[3], S, nl_left, N - nl_left, moved, gw, gdv, g3_mono() - tm0);
+    fflush(stdout);
+    edmd3_destroy(C); free(P);
+    if (!clean) g3_stop("M4b: the compression state is not clean (its [EDMD3-M4B] line above)");
+    if (moved || nl_left != NL) g3_stop("M4b: a disk is in the other compartment after the carry");
+    if (gw < -tol || gdv < -tol) g3_stop("M4b: a disk overlaps a wall or the divider after the carry beyond the wall tolerance");
+    /* the driver's arrays, as g3_m4_init_driver leaves them */
+    g3_m4_N = N; g3_m4_NL = NL; particles_active = N;
+    g3_eta_achieved = (double)N * M_PI * R * R / (boxWt * Hpx);
+    for (int i = 0; i < N; ++i) {
+        X[i] = (float)((double)XW1 + g3_m4_P[i].x); Y[i] = (float)((double)YW1 + g3_m4_P[i].y);
+        Vx[i] = (float)g3_m4_P[i].vx; Vy[i] = (float)g3_m4_P[i].vy; V_init[i] = sqrtf(Vx[i] * Vx[i] + Vy[i] * Vy[i]); Radius[i] = PARTICLE_RADIUS;
+    }
+    if (segment_counts && segment_count > 0) {
+        memset(segment_counts, 0, (size_t)segment_count * sizeof(int));
+        for (int i = 0; i < particles_active; ++i) {
+            int seg = segment_index_for_position(X[i]);
+            if (seg < 0) seg = 0; if (seg >= segment_count) seg = segment_count - 1;
+            segment_counts[seg]++;
+        }
+    }
+    write_run_params_json();
+}
+static void g3_dump_initial(const char* path, const EDMD_Particle* P, int N, int NL, double boxW, double boxH, double R, double c, double th){
+    FILE* f = fopen(path, "w");
+    if (!f) g3_stop("cannot open --gen3-dump-initial");
+    fprintf(f, "gen3-initial v1\nN %d N_L %d\nboxW %a\nboxH %a\nradius %a\ndivider %a %a\n", N, NL, boxW, boxH, R, c, th);
+    for (int i = 0; i < N; ++i) fprintf(f, "%a %a %a %a\n", P[i].x, P[i].y, P[i].vx, P[i].vy);
+    if (fclose(f) != 0) g3_stop("cannot write --gen3-dump-initial");
+}
+/* ##CHRIS 2026-10-09 (stage E2): the engine's time quantum ulp(2^13) for this build (the driver is compiled with the same flags) */
+#ifdef EDMD3_LONG_DOUBLE
+#define G3_U_T_HEADER ldexp(1.0, 13 - (LDBL_MANT_DIG - 1))
+#else
+#define G3_U_T_HEADER ldexp(1.0, -39)
+#endif
+static void g3_run_header(const char* id, double boxW, double boxH, int N, int NL, double hold_sigma, int hold_steps, double record_sigma){
+    printf("[EDMD3-RUN] %s: engine=gen3 build=\"%s\" target=%s cell_px=%g origin_shift=%g u_t=%a K=%g box=%.17g x %.17g px exact_box=%d "
+           "eta=%.17g N=%d N_L=%d N_R=%d seeding=%s", id, BUILD_GIT, BUILD_TARGET, cli_gen3_cell_px > 0.0 ? cli_gen3_cell_px : EDMD3_DEFAULT_CELL_PX,
+           EDMD3_ORIGIN_SHIFT, G3_U_T_HEADER, EDMD3_TOL_K, boxW, boxH, cli_gen3_exact_box,
+           (double)N * M_PI * (double)PARTICLE_RADIUS * (double)PARTICLE_RADIUS / (boxW * boxH), N, NL, N - NL, cli_gen3_seeding == 2 ? "compressed (M4b; the lattice below is at eta_0 in the long box)" : (cli_gen3_seeding ? "lattice" : "driver"));
+    if (cli_gen3_seeding)
+        for (int k = 0; k < 2; ++k) {
+            const G3Lattice* L = &g3_lat[k];
+            printf(" %s=[orient %s rows %s n_s %d n_r %d a_s %.9g a_r %.9g g %.9g s %.9g n_vac %d jitter %.9g px]", k ? "right" : "left",
+                   L->orient ? "perpendicular" : "parallel", L->alt ? "alternate" : "equal", L->ns, L->nr, L->as, L->ar, L->g, L->s, L->nvac, L->jit);
+        }
+    printf(" jitter_f=%g T_eq=%.9g sigma-time (held divider, %d steps) record=%.9g sigma-time psi6_every=%g validator_every=%d\n",
+           cli_gen3_seeding ? cli_gen3_jitter : 0.0, hold_sigma, hold_steps, record_sigma, cli_psi6_every, validator_every());
+    fflush(stdout);
+}
+
+/* ##CHRIS 2026-10-09 (M3, amendment e): THE RUN RECORD of a gen3 trajectory, printed once at its end into the run log
+   (stdout) ALWAYS, also when every counter is 0, so a missing line is itself a finding. One line:
+     [EDMD3-HEALTH] <run id>: clean=<1|0> <every EDMD3_Health counter as name=value> validator_every=<K> hash=<16 hex digits>
+       t_end=<internal units>
+   clean = edmd3_health_clean(): 1 iff every safety net, validator and body count is 0. contact_now, obj_contact_now and
+   wall_contact_now count contacts within rounding (not repairs). The loaders refuse a gen3 run whose line says clean=0, or
+   that has no such line (validation/edmd3_health_guard.py). The line ends with the engine, the build line (stage A5) and the
+   run's wall time split: run_s from the build to the record, engine_s inside edmd3_advance_to, driver_share = 1 - engine_s /
+   run_s, the share of the driver's own loop (stage A4). */
+static void g3_run_record(const char* id){
+    if (!g_edmd3) { printf("[EDMD3-HEALTH] %s: clean=0 no gen3 state (the run never advanced)\n", id); return; }
+    const EDMD3_Health* H = edmd3_health(g_edmd3);
+    g3_run_extras();
+    printf("[EDMD3-HEALTH] %s: clean=%d overlap_repair=%ld wall_overdue=%ld past_event=%ld clamp_repair=%ld cell_repair=%ld "
+           "grid_escape=%ld stagnation=%ld obj_overlap_repair=%ld body_findings=%ld local_findings=%ld full_findings=%ld "
+           "contact_now=%ld obj_contact_now=%ld wall_contact_now=%ld local_checks=%ld full_checks=%ld local_worst=%.3g "
+           "full_worst=%.3g contact_c_min=%.3g obj_contact_gap_min=%.3g cross_residual_max=%.3g ev_pair=%ld ev_wall=%ld "
+           "ev_cross=%ld ev_div=%ld ev_piston=%ld ev_band=%ld ev_stale=%ld origin_shifts=%ld syncs=%ld heap_compactions=%ld "
+           "heap_max=%ld validator_every=%d hash=%016llx t_end=%.17g engine=gen3 build=\"%s\" target=%s "
+           "run_s=%.3f engine_s=%.3f driver_share=%.4f\n",
+           id, edmd3_health_clean(g_edmd3), H->overlap_repair, H->wall_overdue, H->past_event, H->clamp_repair, H->cell_repair,
+           H->grid_escape, H->stagnation, H->obj_overlap_repair, H->body_findings, H->local_findings, H->full_findings,
+           H->contact_now, H->obj_contact_now, H->wall_contact_now, H->local_checks, H->full_checks, H->local_worst,
+           H->full_worst, H->contact_c_min, H->obj_contact_gap_min, H->cross_residual_max, H->ev_pair, H->ev_wall,
+           H->ev_cross, H->ev_div, H->ev_piston, H->ev_band, H->ev_stale, H->origin_shifts, H->syncs, H->heap_compactions,
+           H->heap_max, validator_every(), (unsigned long long)edmd3_event_hash(g_edmd3), edmd3_time(g_edmd3),
+           BUILD_GIT, BUILD_TARGET, g3_mono() - g3_run_t0, g3_engine_s,
+           (g3_mono() - g3_run_t0) > 0.0 ? 1.0 - g3_engine_s / (g3_mono() - g3_run_t0) : 0.0);
+    fflush(stdout);
+}
+
+/* ##CHRIS 2026-10-09 (plan-author decision 12, part 3a; 261012 sec. 4.7.26): THE TWO ITEMS STAGE A LEFT OUT, gen3 only, in the
+   speed-of-sound loop (hold and record), both pure readers (the event hash is the same with and without them):
+   - the pair virial per compartment (--gen3-virial-blocks=T): every T sigma-time since the start of the hold (at the first driver
+     step at or after it) one row of virial_blocks_L0_<L>_wallmassfactor_<M>_run<r>.csv: the block's end and length, then per
+     compartment (the spaces between dividers; edmd3_virial_compartments) its disks, kinetic energy, pair events in the block and
+     Z_c = 1 + dW_c / (2 KE_c dt), then the block's pair events and global Z = 1 + dW / (2 KE dt) from the engine's own global sum, the
+     KE-weighted mean of the Z_c and its difference from the global Z (rounding only). The block values are differences of the
+     engine's cumulative sums; nothing is reset;
+   - position snapshots (--gen3-snapshots=T): every T sigma-time from the start of the hold, every disk's position (sigma, box
+     coordinates) and the dividers' centres in snapshots_L0_<L>_wallmassfactor_<M>_run<r>.bin, binary, little-endian: a header of
+     8 bytes "G3SNAP1\n", int32 N, int32 dividers, double box width, box height, radius, interval [sigma]; then per snapshot double t
+     [sigma-time since the start of the hold], int32 phase (0 hold, 1 record), int32 dividers, double divider centres, N x (double
+     x, double y). The campaign runner passes the flag for its seed subset.
+   A checkpoint carries both files' bytes and this state (G3Obs). */
+typedef struct {
+    double next;                                   /* virial: the next block's end [sigma-time] */
+    double tu_prev;                                /* the engine's window length at the last block's end [internal units] */
+    double W_prev[EDMD3_MAX_COMPARTMENTS], Wg_prev; long n_prev[EDMD3_MAX_COMPARTMENTS], ng_prev;
+    int    block, ncomp;
+    double snap_next; long snaps;                  /* snapshots: the next snapshot time [sigma-time]; written so far */
+} G3Obs;
+static G3Obs g3_obs;
+static FILE* g3_vb_file = NULL;   static char g3_vb_path[700] = "";
+static FILE* g3_snap_file = NULL; static char g3_snap_path[700] = "";
+
+static void g3_obs_open(const char* folder, int L0_int, int mass, int r){
+    memset(&g3_obs, 0, sizeof g3_obs);
+    const EDMD_Params* ep = edmd_backend_params(g_edmd);
+    g3_obs.ncomp = 1 + (ep->divider_count > 0 ? (ep->divider_count < EDMD_MAX_DIVIDERS ? ep->divider_count : EDMD_MAX_DIVIDERS) : 0);
+    if (cli_gen3_virial_blocks > 0.0) {
+        snprintf(g3_vb_path, sizeof g3_vb_path, "%s/virial_blocks_L0_%d_wallmassfactor_%d_run%d.csv", folder, L0_int, mass, r);
+        g3_vb_file = fopen(g3_vb_path, "w");
+        if (!g3_vb_file) g3_stop("cannot open the virial-block file");
+        fprintf(g3_vb_file, "t_sigma,phase,block,dt_sigma");
+        for (int c = 0; c < g3_obs.ncomp; ++c) fprintf(g3_vb_file, ",N_%d,KE_%d,pair_events_%d,Z_%d", c, c, c, c);
+        fprintf(g3_vb_file, ",pair_events,Z_global,Z_KE_weighted_mean,weighted_minus_global\n");
+        g3_obs.next = cli_gen3_virial_blocks;
+    }
+    if (cli_gen3_snapshots > 0.0) {
+        snprintf(g3_snap_path, sizeof g3_snap_path, "%s/snapshots_L0_%d_wallmassfactor_%d_run%d.bin", folder, L0_int, mass, r);
+        g3_snap_file = fopen(g3_snap_path, "wb");
+        if (!g3_snap_file) g3_stop("cannot open the snapshot file");
+        const int32_t n = ep->N, nd = g3_obs.ncomp - 1;
+        const double hd[4] = { ep->boxW / (double)PIXELS_PER_SIGMA, ep->boxH / (double)PIXELS_PER_SIGMA, ep->radius / (double)PIXELS_PER_SIGMA,
+                               cli_gen3_snapshots };
+        if (fwrite("G3SNAP1\n", 1, 8, g3_snap_file) != 8 || fwrite(&n, sizeof n, 1, g3_snap_file) != 1 || fwrite(&nd, sizeof nd, 1, g3_snap_file) != 1
+            || fwrite(hd, sizeof hd, 1, g3_snap_file) != 1) g3_stop("cannot write the snapshot file");
+        g3_obs.snap_next = 0.0;
+    }
+}
+static void g3_virial_block_sample(const char* phase){
+    if (!g3_vb_file || !g_edmd3) return;
+    const double t = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
+    if (t + 1e-9 < g3_obs.next) return;
+    double W[EDMD3_MAX_COMPARTMENTS], KE[EDMD3_MAX_COMPARTMENTS], tu; long np[EDMD3_MAX_COMPARTMENTS]; int nd[EDMD3_MAX_COMPARTMENTS];
+    const int nc = edmd3_virial_compartments(g_edmd3, EDMD3_MAX_COMPARTMENTS, W, KE, np, nd, &tu);
+    if (nc != g3_obs.ncomp) g3_stop("virial blocks: the number of compartments changed");
+    const double Wg = edmd3_virial_sum(g_edmd3); const long ng = edmd3_virial_pair_events(g_edmd3);
+    const double ke = edmd3_kinetic_energy(g_edmd3), dtu = tu - g3_obs.tu_prev;
+    fprintf(g3_vb_file, "%.6f,%s,%d,%.9g", t, phase, g3_obs.block, dtu / (double)PIXELS_PER_SIGMA);
+    double zw = 0.0, kw = 0.0;
+    for (int c = 0; c < nc; ++c) {
+        const double z = 1.0 + (W[c] - g3_obs.W_prev[c]) / (2.0 * KE[c] * dtu);
+        fprintf(g3_vb_file, ",%d,%.12g,%ld,%.12g", nd[c], KE[c], np[c] - g3_obs.n_prev[c], z);
+        zw += KE[c] * z; kw += KE[c];
+        g3_obs.W_prev[c] = W[c]; g3_obs.n_prev[c] = np[c];
+    }
+    const double zg = 1.0 + (Wg - g3_obs.Wg_prev) / (2.0 * ke * dtu);
+    fprintf(g3_vb_file, ",%ld,%.12g,%.12g,%.3e\n", ng - g3_obs.ng_prev, zg, zw / kw, zw / kw - zg);
+    g3_obs.Wg_prev = Wg; g3_obs.ng_prev = ng; g3_obs.tu_prev = tu; g3_obs.block++;
+    while (g3_obs.next <= t + 1e-9) g3_obs.next += cli_gen3_virial_blocks;
+}
+static void g3_snapshot_sample(int phase){
+    if (!g3_snap_file) return;
+    const double t = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
+    if (t + 1e-9 < g3_obs.snap_next) return;
+    const EDMD_Params* ep = edmd_backend_params(g_edmd);
+    const EDMD_Particle* P = edmd_backend_particles(g_edmd);
+    const int32_t ph = phase, nd = g3_obs.ncomp - 1;
+    int ok = fwrite(&t, sizeof t, 1, g3_snap_file) == 1 && fwrite(&ph, sizeof ph, 1, g3_snap_file) == 1 && fwrite(&nd, sizeof nd, 1, g3_snap_file) == 1;
+    for (int d = 0; ok && d < nd; ++d) { const double x = ep->divider_x[d] / (double)PIXELS_PER_SIGMA; ok = fwrite(&x, sizeof x, 1, g3_snap_file) == 1; }
+    for (int i = 0; ok && i < ep->N; ++i) {
+        const double xy[2] = { P[i].x / (double)PIXELS_PER_SIGMA, P[i].y / (double)PIXELS_PER_SIGMA };
+        ok = fwrite(xy, sizeof xy, 1, g3_snap_file) == 1;
+    }
+    if (!ok) g3_stop("cannot write the snapshot file");
+    g3_obs.snaps++;
+    while (g3_obs.snap_next <= t + 1e-9) g3_obs.snap_next += cli_gen3_snapshots;
+}
+static void g3_obs_close(void){
+    if (g3_vb_file || g3_snap_file)
+        printf("[EDMD3-OBS] virial blocks %d (%s), snapshots %ld (%s)\n", g3_obs.block, g3_vb_file ? g3_vb_path : "off", g3_obs.snaps,
+               g3_snap_file ? g3_snap_path : "off");
+    if (g3_vb_file) { fclose(g3_vb_file); g3_vb_file = NULL; }
+    if (g3_snap_file) { fclose(g3_snap_file); g3_snap_file = NULL; }
+}
+
+/* ##CHRIS 2026-10-09 (stage H; 261012 sec. 4.7.12 stage H, sec. 4.7 item 6): CHECKPOINT AND RESTART of one gen3 speed-of-sound
+   trajectory. A checkpoint is taken at the top of a hold step (after K hold steps; --gen3-checkpoint=hold:K:PATH) or of a record
+   step (after K record steps, K = 0 right after the release; record:K:PATH): between two advances, so the engine is at an event
+   boundary. It holds the run's identity (build, L0, mass, run, seed, N, the step plans, the cadences and a hash of the state gen3
+   was built from), the driver's state of the trajectory (the psi6(t) clock, the record step, the compartment counts, psi6 at the
+   release and the run's psi6 accumulator, the release time and flags, the bodies' masses in the container's parameters, the work
+   baselines), the bytes of the trace and of the psi6(t) file so far, and the engine (edmd3_checkpoint_write). It is written to
+   PATH.tmp and renamed, so a crash while writing leaves the previous file.
+   A restart (--gen3-restart=PATH) is the SAME command plus that flag: the driver sets the run up as always (the seeding is
+   deterministic per seed, and the identity check refuses anything else), builds gen3 from it as its first advance would, then
+   reads the checkpoint over it, puts back the two files' bytes and the driver's state, and goes on from that step. In the record
+   phase the hold and the release are skipped (their results are in the checkpoint). Refused: a different build, trajectory or
+   initial state, and the gated event log (its rows before the checkpoint are not carried). The validator needs nothing: it holds
+   only its initial snapshot, rebuilt identically by the set-up, and a failure flag that is clear at any checkpoint. */
+typedef struct {
+    double* psi6_next; int* recorded_steps; int* left; int* right; Psi6Result* psi6_hold; Psi6Accum* psi6_run;
+    FILE* trace; const char* trace_path; FILE* psi6; const char* psi6_path;
+    double L0d; int mass, run; unsigned seed; int N, hold_steps, record_steps, log_stride, psi6_stride;
+} G3RunRefs;
+typedef struct {
+    char   magic[16];                       /* "g3-run-ckpt-v1" */
+    char   build[64], target[32];
+    int    phase; long step;
+    double L0d, fixed_dt, psi6_every; int mass, run, N, hold_steps, record_steps, log_stride, psi6_stride, validator_every; unsigned seed;
+    uint64_t init_hash;
+    double psi6_next, wall_release_time; int wall_is_released, wall_hold_enabled, recorded_steps, left, right;
+    Psi6Result psi6_hold; Psi6Accum psi6_run;
+    double div_mass[EDMD_MAX_DIVIDERS], pistonL_mass, pistonR_mass, work0[EDMD_MAX_DIVIDERS], work0_p[2];
+    long   trace_len, psi6_len;             /* then the trace's bytes, the psi6(t) file's bytes, ... */
+    double vb_T, snap_T; G3Obs obs;         /* ##CHRIS (decision 12, part 3a): the observations' intervals and state, */
+    long   vb_len, snap_len;                /* ... the virial-block file's bytes, the snapshot file's bytes, the engine */
+    int    psi6_comp;                       /* ##CHRIS 2026-10-10 (decision 18, item 1): --gen3-psi6-compartments (the psi6(t) columns) */
+} G3RunCkpt;
+#define G3_RUN_CKPT_MAGIC "g3-run-ckpt-v3"    /* v2 (part 3a): the virial blocks and the snapshots; v3 (decision 18): psi6_comp */
+static int  g3_ckpt_written = 0;
+static int  g3_restart_phase = -1; static long g3_restart_step = -1;
+static char g3_psi6_path[700] = "";
+
+static void g3_ckpt_identity(G3RunCkpt* c, const G3RunRefs* rf){
+    memcpy(c->magic, G3_RUN_CKPT_MAGIC, sizeof G3_RUN_CKPT_MAGIC);
+    snprintf(c->build, sizeof c->build, "%s", BUILD_GIT); snprintf(c->target, sizeof c->target, "%s", BUILD_TARGET);
+    c->L0d = rf->L0d; c->fixed_dt = (double)fixed_dt_runtime; c->psi6_every = cli_psi6_every; c->mass = rf->mass; c->run = rf->run;
+    c->N = rf->N; c->hold_steps = rf->hold_steps; c->record_steps = rf->record_steps; c->log_stride = rf->log_stride;
+    c->psi6_stride = rf->psi6_stride; c->validator_every = validator_every(); c->seed = rf->seed;
+    c->vb_T = cli_gen3_virial_blocks; c->snap_T = cli_gen3_snapshots;   /* ##CHRIS (decision 12, part 3a) */
+    c->psi6_comp = cli_gen3_psi6_comp;                                   /* ##CHRIS 2026-10-10 (decision 18, item 1) */
+}
+static char* g3_slurp(const char* path, long* n){       /* a whole file into memory */
+    FILE* f = fopen(path, "rb");
+    if (!f) g3_stop("checkpoint: cannot read back an output file");
+    if (fseek(f, 0, SEEK_END)) g3_stop("checkpoint: cannot seek an output file");
+    *n = ftell(f); rewind(f);
+    char* b = (char*)malloc((size_t)(*n > 0 ? *n : 1));
+    if (!b || (*n > 0 && fread(b, 1, (size_t)*n, f) != (size_t)*n)) g3_stop("checkpoint: cannot read back an output file");
+    fclose(f);
+    return b;
+}
+static void g3_ckpt_write(const G3RunRefs* rf, int phase, long step){
+    if (!g_edmd3) g3_stop("checkpoint: no gen3 state yet");
+    if (g3_evlog) g3_stop("checkpoint: the gated event log is not carried across a restart (run without it)");
+    G3RunCkpt c; memset(&c, 0, sizeof c);
+    g3_ckpt_identity(&c, rf);
+    c.phase = phase; c.step = step; c.init_hash = g3_init_hash;
+    c.psi6_next = *rf->psi6_next; c.wall_release_time = wall_release_time; c.wall_is_released = wall_is_released ? 1 : 0;
+    c.wall_hold_enabled = wall_hold_enabled ? 1 : 0; c.recorded_steps = *rf->recorded_steps; c.left = *rf->left; c.right = *rf->right;
+    c.psi6_hold = *rf->psi6_hold; c.psi6_run = *rf->psi6_run;
+    for (int d = 0; d < EDMD_MAX_DIVIDERS; ++d) { c.div_mass[d] = g3_prm.divider_mass[d]; c.work0[d] = g3_work0[d]; }
+    c.pistonL_mass = g3_prm.pistonL_mass; c.pistonR_mass = g3_prm.pistonR_mass; c.work0_p[0] = g3_work0_p[0]; c.work0_p[1] = g3_work0_p[1];
+    c.obs = g3_obs;   /* ##CHRIS (decision 12, part 3a) */
+    if ((rf->trace && fflush(rf->trace)) || (rf->psi6 && fflush(rf->psi6)) || (g3_vb_file && fflush(g3_vb_file)) || (g3_snap_file && fflush(g3_snap_file)))
+        g3_stop("checkpoint: cannot flush the output files");
+    char* tb = rf->trace ? g3_slurp(rf->trace_path, &c.trace_len) : NULL;
+    char* pb = rf->psi6 ? g3_slurp(rf->psi6_path, &c.psi6_len) : NULL;
+    char* vb = g3_vb_file ? g3_slurp(g3_vb_path, &c.vb_len) : NULL;
+    char* sb = g3_snap_file ? g3_slurp(g3_snap_path, &c.snap_len) : NULL;
+    char tmp[1200]; snprintf(tmp, sizeof tmp, "%s.tmp", cli_gen3_ckpt_path);
+    FILE* f = fopen(tmp, "wb");
+    if (!f) g3_stop("checkpoint: cannot open the checkpoint file");
+    const int ok = fwrite(&c, sizeof c, 1, f) == 1 && (c.trace_len == 0 || fwrite(tb, 1, (size_t)c.trace_len, f) == (size_t)c.trace_len)
+                   && (c.psi6_len == 0 || fwrite(pb, 1, (size_t)c.psi6_len, f) == (size_t)c.psi6_len)
+                   && (c.vb_len == 0 || fwrite(vb, 1, (size_t)c.vb_len, f) == (size_t)c.vb_len)
+                   && (c.snap_len == 0 || fwrite(sb, 1, (size_t)c.snap_len, f) == (size_t)c.snap_len) && edmd3_checkpoint_write(g_edmd3, f);
+    const long bytes = ftell(f);
+    if (fclose(f) != 0 || !ok || rename(tmp, cli_gen3_ckpt_path) != 0) g3_stop("checkpoint: writing the checkpoint file failed");
+    free(tb); free(pb); free(vb); free(sb);
+    const EDMD3_Health* H = edmd3_health(g_edmd3);
+    printf("[EDMD3-CHECKPOINT] wrote %s: %s step %ld, t = %.17g units, events %ld, hash %016llx, %ld bytes (trace %ld, psi6(t) %ld, "
+           "virial blocks %ld, snapshots %ld)\n",
+           cli_gen3_ckpt_path, phase ? "record" : "hold", step, edmd3_time(g_edmd3),
+           H->ev_pair + H->ev_wall + H->ev_cross + H->ev_div + H->ev_piston + H->ev_band, (unsigned long long)edmd3_event_hash(g_edmd3),
+           bytes, c.trace_len, c.psi6_len, c.vb_len, c.snap_len);
+    fflush(stdout);
+    g3_ckpt_written = 1;
+    if (cli_gen3_ckpt_stop) { printf("[EDMD3-CHECKPOINT] stopping after the checkpoint (--gen3-checkpoint-stop)\n"); fflush(stdout); exit(0); }
+}
+static void g3_put_bytes(FILE* f, const char* b, long n){   /* the file becomes exactly these bytes, positioned at the end */
+    if (!f) return;
+    if (fflush(f) || fseek(f, 0, SEEK_SET) || (n > 0 && fwrite(b, 1, (size_t)n, f) != (size_t)n) || fflush(f) || ftruncate(fileno(f), (off_t)n))
+        g3_stop("restart: cannot restore an output file");
+}
+/* returns the hold step to start from (the hold's length for a record-phase checkpoint) */
+static int g3_restart_apply(const G3RunRefs* rf){
+    FILE* f = fopen(cli_gen3_restart, "rb");
+    if (!f) g3_stop("restart: cannot open the checkpoint file");
+    G3RunCkpt c, me; memset(&me, 0, sizeof me);
+    if (fread(&c, sizeof c, 1, f) != 1 || memcmp(c.magic, G3_RUN_CKPT_MAGIC, sizeof G3_RUN_CKPT_MAGIC) != 0) g3_stop("restart: not a gen3 run checkpoint (v3)");
+    g3_ckpt_identity(&me, rf);
+    if (strcmp(c.build, me.build) || strcmp(c.target, me.target)) g3_stop("restart: the checkpoint was written by another build");
+    if (c.L0d != me.L0d || c.fixed_dt != me.fixed_dt || c.psi6_every != me.psi6_every || c.mass != me.mass || c.run != me.run || c.N != me.N
+        || c.hold_steps != me.hold_steps || c.record_steps != me.record_steps || c.log_stride != me.log_stride || c.psi6_stride != me.psi6_stride
+        || c.validator_every != me.validator_every || c.seed != me.seed || c.vb_T != me.vb_T || c.snap_T != me.snap_T)
+        g3_stop("restart: the checkpoint belongs to another trajectory (L0, mass, run, seed, N, steps, strides or cadences differ)");
+    if (c.psi6_comp != me.psi6_comp)   /* ##CHRIS 2026-10-10 (decision 18, item 1): the restored psi6(t) file must keep its columns */
+        g3_stop("restart: the checkpoint and this run differ in --gen3-psi6-compartments (the psi6(t) file's columns would differ)");
+    if (c.phase == 0 ? (c.step < 1 || c.step >= me.hold_steps) : (c.step < 0 || c.step >= me.record_steps)) g3_stop("restart: the checkpoint's step is outside this run");
+    if (g3_evlog) g3_stop("restart: the gated event log is not carried across a restart (run without it)");
+    if (!g3_live(g_edmd)) { g3_free(); g3_build(g_edmd); }   /* gen3 built as the first advance would build it */
+    if (g3_init_hash != c.init_hash) g3_stop("restart: the run's initial state is not the checkpoint's (another command or seed)");
+    char* tb = (char*)malloc((size_t)(c.trace_len > 0 ? c.trace_len : 1)); char* pb = (char*)malloc((size_t)(c.psi6_len > 0 ? c.psi6_len : 1));
+    char* vb = (char*)malloc((size_t)(c.vb_len > 0 ? c.vb_len : 1)); char* sb = (char*)malloc((size_t)(c.snap_len > 0 ? c.snap_len : 1));
+    if (!tb || !pb || !vb || !sb || (c.trace_len > 0 && fread(tb, 1, (size_t)c.trace_len, f) != (size_t)c.trace_len)
+        || (c.psi6_len > 0 && fread(pb, 1, (size_t)c.psi6_len, f) != (size_t)c.psi6_len)
+        || (c.vb_len > 0 && fread(vb, 1, (size_t)c.vb_len, f) != (size_t)c.vb_len)
+        || (c.snap_len > 0 && fread(sb, 1, (size_t)c.snap_len, f) != (size_t)c.snap_len)) g3_stop("restart: the checkpoint is truncated (files)");
+    char err[256];
+    if (!edmd3_checkpoint_read(g_edmd3, f, err, sizeof err)) g3_stop(err);
+    if (fgetc(f) != EOF) g3_stop("restart: trailing bytes after the engine state");
+    fclose(f);
+    if ((c.trace_len > 0) != (rf->trace != NULL) || (c.psi6_len > 0) != (rf->psi6 != NULL)
+        || (c.vb_len > 0) != (g3_vb_file != NULL) || (c.snap_len > 0) != (g3_snap_file != NULL)) g3_stop("restart: the output files do not match the checkpoint's");
+    g3_put_bytes(rf->trace, tb, c.trace_len); g3_put_bytes(rf->psi6, pb, c.psi6_len);
+    g3_put_bytes(g3_vb_file, vb, c.vb_len); g3_put_bytes(g3_snap_file, sb, c.snap_len);   /* ##CHRIS (decision 12, part 3a) */
+    g3_obs = c.obs;
+    free(tb); free(pb); free(vb); free(sb);
+    *rf->psi6_next = c.psi6_next; *rf->recorded_steps = c.recorded_steps; *rf->left = c.left; *rf->right = c.right;
+    *rf->psi6_hold = c.psi6_hold; *rf->psi6_run = c.psi6_run;
+    wall_release_time = c.wall_release_time; wall_is_released = c.wall_is_released != 0; wall_hold_enabled = c.wall_hold_enabled != 0;
+    for (int d = 0; d < EDMD_MAX_DIVIDERS; ++d) { g3_prm.divider_mass[d] = c.div_mass[d]; g3_work0[d] = c.work0[d]; }
+    g3_prm.pistonL_mass = c.pistonL_mass; g3_prm.pistonR_mass = c.pistonR_mass; g3_work0_p[0] = c.work0_p[0]; g3_work0_p[1] = c.work0_p[1];
+    g3_stale = 1; g3_handed = 0;
+    g3_restart_phase = c.phase; g3_restart_step = c.step;
+    const EDMD3_Health* H = edmd3_health(g_edmd3);
+    printf("[EDMD3-RESTART] read %s: %s step %ld, t = %.17g units, events %ld, hash %016llx\n", cli_gen3_restart, c.phase ? "record" : "hold",
+           c.step, edmd3_time(g_edmd3), H->ev_pair + H->ev_wall + H->ev_cross + H->ev_div + H->ev_piston + H->ev_band,
+           (unsigned long long)edmd3_event_hash(g_edmd3));
+    fflush(stdout);
+    return c.phase == 0 ? (int)c.step : rf->hold_steps;
+}
+
 /*
  * run_speed_of_sound_experiments
  * -------------------------------
@@ -15679,6 +17769,8 @@ void run_speed_of_sound_experiments() {
 
     int num_repeats = cli_experiment_repeats > 0 ? cli_experiment_repeats : 1;
     const int requested_runs = (int)(lengths_count * wall_mass_count * (size_t)num_repeats);
+    if ((cli_gen3_ckpt_phase >= 0 || cli_gen3_restart) && requested_runs != 1)   /* ##CHRIS 2026-10-09 (stage H) */
+        g3_stop("--gen3-checkpoint and --gen3-restart take one trajectory per process (one length, one mass, --repeats=1)");
     int valid_runs = 0;
     int invalid_runs = 0;
     if (!write_speed_sound_batch_status(
@@ -15742,6 +17834,8 @@ void run_speed_of_sound_experiments() {
                 srand(run_seed);
 
                 float L0 = lengths[l];
+                /* ##CHRIS 2026-10-09 (stage C, M4): gen3's exact box: L0 as written, a double (gen2: the float, unchanged) */
+                const double L0d = (cli_gen3_exact_box && cli_lengths_d && l < cli_lengths_d_count) ? cli_lengths_d[l] : (double)L0;
                 int wall_mass_factor = wall_mass_factors[m];
                 wall_mass_runtime = PARTICLE_MASS * wall_mass_factor;
                 L0_UNITS = L0;
@@ -15765,11 +17859,14 @@ void run_speed_of_sound_experiments() {
                 steps_elapsed     = 0;
                 simulation_time   = 0.0;
 
-                initialize_simulation();
+                if (cli_gen3_seeding == 2) g3_m4b_init_driver(L0d, run_seed, (double)L0, wall_mass_factors[m], r);   /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b */
+                else if (cli_gen3_seeding) g3_m4_init_driver(L0d, run_seed);   /* ##CHRIS 2026-10-09 (stage C, M4) */
+                else initialize_simulation();
 
                 char filename[640];
                 char partial_filename[640];
                 char invalid_filename[640];
+                FILE* psi6_series = NULL; double psi6_next = 0.0;   /* ##CHRIS 2026-10-09 (M3): gen3's psi6(t) file */
                 /* Keep the legacy filename token for compatibility.  Exact L0
                    is written in every CSV row and is canonical for analysis. */
                 int L0_int = (int)(L0 * 10);
@@ -15821,14 +17918,17 @@ void run_speed_of_sound_experiments() {
                 int recorded_steps = 0;
                 missed_collision_events = 0;
                 worst_penetration_observed = 0.0;
-                const double center_x_sigma_const = ((double)XW1 + (double)XW2) / (2.0 * (double)PIXELS_PER_SIGMA);
-                const double box_width_sigma_const = ((double)XW2 - (double)XW1) / (double)PIXELS_PER_SIGMA;  /* ##CHRIS 2026-10-14 */
+                const double center_x_sigma_const = cli_gen3_exact_box   /* ##CHRIS 2026-10-09 (M4): the exact centre */
+                    ? ((double)XW1 + L0d * (double)PIXELS_PER_SIGMA) / (double)PIXELS_PER_SIGMA
+                    : ((double)XW1 + (double)XW2) / (2.0 * (double)PIXELS_PER_SIGMA);
+                const double box_width_sigma_const = cli_gen3_exact_box ? 2.0 * L0d
+                    : ((double)XW2 - (double)XW1) / (double)PIXELS_PER_SIGMA;  /* ##CHRIS 2026-10-14 */
                 const double height_sigma_const = ((double)YW2 - (double)YW1) / (double)PIXELS_PER_SIGMA;
                 const double radius_sigma_const =
                     (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA;
                 const double eta_nominal_const =
                     ((double)particles_active * M_PI * radius_sigma_const * radius_sigma_const)
-                    / fmax(1e-12, (2.0 * (double)L0_UNITS * height_sigma_const));
+                    / fmax(1e-12, (2.0 * (cli_gen3_exact_box ? L0d : (double)L0_UNITS) * height_sigma_const));
                 // ##CHRIS: psi_6 snapshot taken just before wall release; written out
                 // together with the end-of-run value once the trajectory completes.
                 Psi6Result psi6_hold = { NAN, NAN, 0.0, 0 };
@@ -15861,8 +17961,9 @@ void run_speed_of_sound_experiments() {
                 }
                 if (log_stride < 1) log_stride = 1;
 
-                const int target_recorded_steps =
-                    speed_sound_steps_for_target_cycles(
+                const int target_recorded_steps = cli_record_sigma_time > 0.0   /* ##CHRIS 2026-10-09 (M3): equal record time */
+                    ? (int)llround(cli_record_sigma_time / sample_dt_sigma)
+                    : speed_sound_steps_for_target_cycles(
                         predicted_frequency, sample_dt_sigma);
                 int psi6_sample_stride = target_recorded_steps / PSI6_RUN_SAMPLES;
                 if (psi6_sample_stride < 1) psi6_sample_stride = 1;
@@ -15908,13 +18009,13 @@ void run_speed_of_sound_experiments() {
                     // Build EDMD state from the currently seeded particles/wall.
                     if (g_edmd) { edmd_backend_destroy(g_edmd); g_edmd = NULL; }
                     EDMD_Params prm = {0};
-                    prm.boxW = (double)(XW2 - XW1);
+                    prm.boxW = cli_gen3_exact_box ? 2.0 * L0d * (double)PIXELS_PER_SIGMA : (double)(XW2 - XW1);   /* ##CHRIS (M4) */
                     prm.boxH = (double)(YW2 - YW1);
                     prm.radius = (double)PARTICLE_RADIUS;
                     prm.N = particles_active;
                     prm.cell_size = 0.0; // auto
                     prm.divider_count = 1;
-                    prm.divider_x[0] = (double)(wall_x - (double)XW1);
+                    prm.divider_x[0] = cli_gen3_exact_box ? L0d * (double)PIXELS_PER_SIGMA : (double)(wall_x - (double)XW1);
                     prm.divider_thickness[0] = (double)WALL_THICKNESS;
                     prm.divider_mass[0] = 0.0; // held phase: infinite mass (fixed divider)
                     prm.divider_vx[0] = 0.0;
@@ -15972,7 +18073,32 @@ void run_speed_of_sound_experiments() {
                             P[i].vy = (double)Vy[i];
                             P[i].coll_count = 0;
                         }
+                        if (cli_gen3_seeding) {   /* ##CHRIS 2026-10-09 (stage C, M4): the stated lattice replaces the positions */
+                            const int NL = (cli_particles_box_counts && cli_particles_box_counts_count == 2) ? cli_particles_box_counts[0]
+                                                                                                            : particles_active / 2;
+                            if (!g3_m4_P || g3_m4_N != particles_active || g3_m4_NL != NL) g3_stop("M4 seeding: state");
+                            for (int i = 0; i < particles_active; ++i) { P[i].x = g3_m4_P[i].x; P[i].y = g3_m4_P[i].y; }   /* the doubles */
+                            if (cli_gen3_seeding == 2)   /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b's rescaled velocities, as doubles */
+                                for (int i = 0; i < particles_active; ++i) { P[i].vx = g3_m4_P[i].vx; P[i].vy = g3_m4_P[i].vy; }
+                            if (cli_gen3_dump_initial)
+                                g3_dump_initial(cli_gen3_dump_initial, P, particles_active, NL, prm.boxW, prm.boxH, (double)PARTICLE_RADIUS,
+                                                prm.divider_x[0], prm.divider_thickness[0]);
+                            if (cli_gen3_seeding == 2) {   /* ##CHRIS 2026-10-09 (decision 13, item 4): psi6 of the carried state, read-only */
+                                const Psi6Result pc6 = compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
+                                printf("[EDMD3-M4B] psi6 at the end of the compression (the carried state): global %.6f local %.6f neighbours %.4f\n",
+                                       pc6.global_abs, pc6.local_mean, pc6.mean_neighbors);
+                            }
+                        }
+                        if (cli_engine == 3) {   /* ##CHRIS 2026-10-09 (stage C, M4): the run header, T_eq included */
+                            char rid[200];
+                            snprintf(rid, sizeof rid, "L0=%.1f M=%d run=%d seed=%u", (double)L0, wall_mass_factor, r, run_seed);
+                            const int NL = (cli_particles_box_counts && cli_particles_box_counts_count == 2) ? cli_particles_box_counts[0]
+                                                                                                            : particles_active / 2;
+                            g3_run_header(rid, prm.boxW, prm.boxH, particles_active, NL, (double)wall_hold_steps * sample_dt_sigma, wall_hold_steps,
+                                          (double)target_recorded_steps * sample_dt_sigma);
+                        }
                         edmd_backend_reschedule_all(g_edmd);
+                        edmd_energy_audit("0 state loaded (hold)");   /* ##CHRIS 2026-10-05 */
 
                         build_speed_sound_edmd_validation_state(
                             &validation_state,
@@ -16015,10 +18141,39 @@ void run_speed_of_sound_experiments() {
                     wall_is_released = false;
                     wall_hold_enabled = true;
                     speed_sound_overdue_scan_t0(g_edmd);
-                    for (int s = 0; !validator.failure.failed && s < wall_hold_steps; ++s) {
+                    /* ##CHRIS 2026-10-09 (M3): under gen3 the psi6(t) series of this trajectory (see g3_psi6_series_sample) */
+                    if (cli_engine == 3) {
+                        char ps_path[700];
+                        snprintf(ps_path, sizeof ps_path, "%s/psi6_t_L0_%d_wallmassfactor_%d_run%d.csv", mode_folder, L0_int, wall_mass_factor, r);
+                        psi6_series = fopen(ps_path, "w");
+                        if (!psi6_series) g3_stop("cannot open the psi6(t) file");
+                        snprintf(g3_psi6_path, sizeof g3_psi6_path, "%s", ps_path);   /* ##CHRIS 2026-10-09 (stage H): read back by a checkpoint */
+                        fprintf(psi6_series, "t_sigma,phase,psi6_global,psi6_local,mean_neighbors");
+                        g3_psi6_comp_header(psi6_series);   /* ##CHRIS 2026-10-10 (decision 17): nothing without --gen3-psi6-compartments */
+                        fputc('\n', psi6_series);
+                        psi6_next = 0.0;
+                        g3_psi6_series_sample(psi6_series, &psi6_next, "hold");
+                        g3_obs_open(mode_folder, L0_int, wall_mass_factor, r);   /* ##CHRIS 2026-10-09 (decision 12, part 3a): off unless asked */
+                        g3_snapshot_sample(0);
+                    }
+                    /* ##CHRIS 2026-10-09 (stage H): checkpoint and restart under gen3 (g3_ckpt_write, g3_restart_apply); without
+                       --gen3-checkpoint and --gen3-restart (refused under gen2) g3_s0 = 0 and nothing below runs */
+                    G3RunRefs g3rf = { &psi6_next, &recorded_steps, &left_particles, &right_particles, &psi6_hold, &psi6_run,
+                                       wall_log, partial_filename, psi6_series, g3_psi6_path, L0d, wall_mass_factor, r, run_seed,
+                                       particles_active, wall_hold_steps, target_recorded_steps, log_stride, psi6_sample_stride };
+                    int g3_s0 = 0;
+                    if (cli_gen3_restart && !validator.failure.failed) g3_s0 = g3_restart_apply(&g3rf);
+                    for (int s = g3_s0; !validator.failure.failed && s < wall_hold_steps; ++s) {
+                        if (cli_gen3_ckpt_phase == 0 && s == cli_gen3_ckpt_step && !(g3_restart_phase == 0 && g3_restart_step == s))
+                            g3_ckpt_write(&g3rf, 0, s);   /* ##CHRIS (stage H): after s hold steps */
                         double t0 = edmd_backend_time(g_edmd);
                         edmd_backend_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
                         speed_sound_overdue_poll(g_edmd, "wall_hold", s + 1);
+                        g3_psi6_series_sample(psi6_series, &psi6_next, "hold");   /* ##CHRIS (M3): NULL under gen2 */
+                        g3_virial_block_sample("hold"); g3_snapshot_sample(0);       /* ##CHRIS (decision 12, part 3a): no-ops unless asked */
+                        /* ##CHRIS 2026-10-09 (M3): the validator every validator_every() steps and at the last hold step;
+                           validator_every() is 1 under gen2, so gen2 checks every step exactly as before */
+                        if ((s + 1) % validator_every() != 0 && s + 1 != wall_hold_steps) continue;
                         build_speed_sound_edmd_validation_state(
                             &validation_state,
                             audit_storage,
@@ -16033,18 +18188,21 @@ void run_speed_of_sound_experiments() {
 
                     // ##CHRIS: psi_6 immediately after equilibration, i.e. the ordering of
                     // the state whose sound speed we are about to measure.
-                    if (!validator.failure.failed) {
+                    // ##CHRIS 2026-10-09 (stage H): these three blocks are skipped only after a restart from a record-phase
+                    // checkpoint (g3_restart_phase == 1), which carries their results; -1 otherwise, so they run as before.
+                    if (!validator.failure.failed && g3_restart_phase != 1) {
                         psi6_hold = compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
                     }
 
                     // Release: set finite wall mass
-                    if (!validator.failure.failed) {
+                    if (!validator.failure.failed && g3_restart_phase != 1) {
                         const double mass = (double)wall_mass_factor;
                         const double vx = 0.0;
                         edmd_backend_set_divider_motions(g_edmd, 1, &mass, &vx);
                         edmd_backend_reschedule_all(g_edmd);
+                        edmd_energy_audit("1 release");   /* ##CHRIS 2026-10-05 */
                     }
-                    if (!validator.failure.failed) {
+                    if (!validator.failure.failed && g3_restart_phase != 1) {
                         wall_release_time = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
                         wall_is_released = true;
                         wall_hold_enabled = false;
@@ -16055,11 +18213,20 @@ void run_speed_of_sound_experiments() {
                     }
 
                     while (!validator.failure.failed && recorded_steps < target_recorded_steps) {
+                        if (cli_gen3_ckpt_phase == 1 && recorded_steps == cli_gen3_ckpt_step && !(g3_restart_phase == 1 && g3_restart_step == recorded_steps))
+                            g3_ckpt_write(&g3rf, 1, recorded_steps);   /* ##CHRIS 2026-10-09 (stage H): after recorded_steps record steps */
                         // Advance EDMD to the next sample time (sampling interval = fixed_dt_runtime).
                         double t0 = edmd_backend_time(g_edmd);
                         edmd_backend_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
                         speed_sound_overdue_poll(g_edmd, "post_release", recorded_steps + 1);
 
+                        /* ##CHRIS 2026-10-09 (M3): the validator, and the compartment counts that need every disk, at the
+                           validator's cadence and at the last step; under gen2 (cadence 1) every step exactly as before.
+                           Between two checks the counts carry over: no disk can cross the divider, and the validator checks
+                           every disk's compartment against its initial one at each of its steps. */
+                        const int validator_due = ((recorded_steps + 1) % validator_every() == 0)
+                                                  || (recorded_steps + 1 == target_recorded_steps);
+                        if (validator_due) {
                         build_speed_sound_edmd_validation_state(
                             &validation_state,
                             audit_storage,
@@ -16073,10 +18240,13 @@ void run_speed_of_sound_experiments() {
                             edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA,
                             1);
                         if (validator.failure.failed) break;
+                        }
 
                         const EDMD_Params* ep = edmd_backend_params(g_edmd);
-                        const EDMD_Particle* Pnow = edmd_backend_particles(g_edmd);
+                        const EDMD_Particle* Pnow = NULL;
                         const double div_x_px = ep->divider_x[0];
+                        if (validator_due || recorded_steps == 0) {   /* ##CHRIS (M3): and the first row; gen2: every step */
+                        Pnow = edmd_backend_particles(g_edmd);
                         int leftN = 0, rightN = 0;
                         for (int i = 0; i < particles_active; ++i) {
                             if (Pnow[i].x < div_x_px) leftN++;
@@ -16084,11 +18254,12 @@ void run_speed_of_sound_experiments() {
                         }
                         left_particles = leftN;
                         right_particles = rightN;
+                        }
 
                         // Convert to σ-units for logging (Time is σ-time after release).
                         const double t_sigma = edmd_backend_time(g_edmd) / (double)PIXELS_PER_SIGMA;
                         const double wall_x_sigma = ((double)XW1 + div_x_px) / (double)PIXELS_PER_SIGMA;
-                        const double disp = wall_x_sigma - ((double)XW1 + (double)XW2) / (2.0 * (double)PIXELS_PER_SIGMA);
+                        const double disp = wall_x_sigma - center_x_sigma_const;   /* ##CHRIS (M4): the same value under gen2 */
                         const double t_after = t_sigma - wall_release_time;
                         // ##CHRIS: stride affects only what is written; recorded_steps still
                         // counts every simulated sample, so run length, validation cadence and
@@ -16107,6 +18278,7 @@ void run_speed_of_sound_experiments() {
                                     planned_duration_sigma);
                             if (speed_sound_ke_columns_enabled()) {
                                 /* ##CHRIS: same side convention as Left_Count/Right_Count. */
+                                if (!Pnow) Pnow = edmd_backend_particles(g_edmd);   /* ##CHRIS 2026-10-09 (M3): gen3, off-cadence rows */
                                 double ke_l = 0.0, ke_r = 0.0;
                                 for (int i = 0; i < particles_active; ++i) {
                                     const double e = 0.5 * (double)PARTICLE_MASS
@@ -16125,9 +18297,15 @@ void run_speed_of_sound_experiments() {
                                 compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
                             psi6_accum_add(&psi6_run, pr.global_abs);
                         }
+                        g3_psi6_series_sample(psi6_series, &psi6_next, "record");   /* ##CHRIS (M3): NULL under gen2 */
+                        g3_virial_block_sample("record"); g3_snapshot_sample(1);       /* ##CHRIS (decision 12, part 3a): no-ops unless asked */
 
                         recorded_steps++;
                     }
+                    edmd_energy_audit("2 end of record");   /* ##CHRIS 2026-10-05 */
+                    if (cli_gen3_ckpt_phase >= 0 && !g3_ckpt_written && !validator.failure.failed)   /* ##CHRIS 2026-10-09 (stage H) */
+                        g3_stop("the checkpoint step was never reached (hold:K needs 1 <= K < the hold steps, record:K needs K < the record steps)");
+                    edmd_contact_report();                   /* ##CHRIS 2026-10-05 */
                 } else {
                     build_speed_sound_time_validation_state(
                         &validation_state, &audit_wall_x, &audit_wall_vx);
@@ -16269,14 +18447,22 @@ void run_speed_of_sound_experiments() {
                     const long n_clamp   = edmd_backend_clamp_repair_count(g_edmd);
                     const long n_overlap = edmd_backend_overlap_repair_count(g_edmd);
                     const long n_overdue = edmd_backend_wall_overdue_count(g_edmd);
-                    if (n_forced || n_clamp || n_overlap || n_overdue) {
+                    const long n_past    = edmd_backend_past_event_count(g_edmd);   /* ##CHRIS 2026-10-05 */
+                    if (n_forced || n_clamp || n_overlap || n_overdue || n_past) {
                         printf("⚠️ [EDMD-HEALTH] L0=%.1f M=%d run=%d seed=%u: "
                                "forced_advance=%ld wall_clamp_repairs=%ld overlap_repairs=%ld "
-                               "wall_overdue=%ld\n",
+                               "wall_overdue=%ld past_events=%ld\n",
                                (double)L0, wall_mass_factor, r, run_seed,
-                               n_forced, n_clamp, n_overlap, n_overdue);
+                               n_forced, n_clamp, n_overlap, n_overdue, n_past);
                     }
                 }
+                if (cli_engine == 3) {   /* ##CHRIS 2026-10-09 (M3, amendment e): the gen3 run record, always printed */
+                    char rid[200];
+                    snprintf(rid, sizeof rid, "L0=%.1f M=%d run=%d seed=%u", (double)L0, wall_mass_factor, r, run_seed);
+                    g3_run_record(rid);
+                }
+                if (psi6_series) { fclose(psi6_series); psi6_series = NULL; }   /* ##CHRIS (M3) */
+                g3_obs_close();                                                   /* ##CHRIS (decision 12, part 3a) */
 
                 if (!validator.failure.failed && recorded_steps != target_recorded_steps) {
                     experiment_validator_record_failure(
@@ -16448,6 +18634,45 @@ static void write_energy_transfer_failure(const char *summary_path,
     fprintf(stderr, "Failure record appended to: %s\n", failure_path);
 }
 
+/* ##CHRIS 2026-10-14 (decision 50, a): the held path on the exact box (gen3, --gen3-exact-box, the energy-transfer experiment) */
+static inline int g3_held_exact(void){
+    return cli_engine == 3 && cli_gen3_exact_box && !cli_force_no_experiments && cli_experiment_preset == EXPERIMENT_PRESET_ENERGY_TRANSFER;
+}
+static inline int g3_held_lattice(void){ return g3_held_exact() && cli_gen3_seeding == 1; }   /* ##CHRIS 2026-10-14 (decision 50, b) */
+/* ##CHRIS 2026-10-14 (plan-author decision 50 item 3 c; 261012 sec. 4.7.113): THE HELD DIVIDER'S FORCES FROM THE ENGINE'S OWN COUNTERS.
+   gen3 keeps, per divider face, the x impulse the disks gave the divider and the number of hits (edmd_gen3.c exec_obj:
+   O->Jf[f] -= v1 - u1, O->nf[f]++; face 0 = left, 1 = right). --gen3-held-readout=K reads them at step K (T_eq) and at the last step of
+   the hold, before the release. Over the window (t0, t1]:
+     F_L = (J_L(t1) - J_L(t0)) / T_w,   F_R = -(J_R(t1) - J_R(t0)) / T_w,   T_w = (t1 - t0) / PIXELS_PER_SIGMA,
+   the impulse being numerically sigma per sigma-time at unit disk mass, as the event log's dp; so F_L = -sum(dp < 0) / T_w and
+   F_R = sum(dp > 0) / T_w as reduce_AF.py forms them from the log. The reads are pure (edmd3_time, edmd3_divider_impulse, _events,
+   _state and edmd3_work_divider compute without storing): no event changes. Printed in the run's log, next to the run record:
+     [EDMD3-HELD] t0|t1 step=n t_sigma J_L J_R n_L n_R x_div v_div W_div, then the exact t, J_L, J_R, x_div in %a;
+     [EDMD3-HELD] window T_w F_L F_R n_L n_R dx_div v_div_t0 v_div_t1 dW_div (after t1).
+   Held, the divider has mass 0: v_div = 0, dx_div = 0 and dW_div = 0 exactly (a disk leaves with -u1, so dE = 0). */
+static double g3h_t[2], g3h_J[2][2], g3h_x[2], g3h_v[2], g3h_W[2];
+static long   g3h_n[2][2];
+static int    g3h_have[2];
+static void g3_held_readout(int k, int step){
+    if (!g_edmd3) g3_stop("--gen3-held-readout: no gen3 state");
+    const double pps = (double)PIXELS_PER_SIGMA;
+    g3h_t[k] = edmd3_time(g_edmd3);
+    for (int f = 0; f < 2; ++f) { g3h_J[k][f] = edmd3_divider_impulse(g_edmd3, 0, f); g3h_n[k][f] = edmd3_divider_events(g_edmd3, 0, f); }
+    if (!edmd3_divider_state(g_edmd3, 0, &g3h_x[k], &g3h_v[k])) g3_stop("--gen3-held-readout: no divider 0");
+    g3h_W[k] = edmd3_work_divider(g_edmd3, 0);
+    g3h_have[k] = 1;
+    printf("[EDMD3-HELD] %s step=%d t_sigma=%.17g J_L=%.17g J_R=%.17g n_L=%ld n_R=%ld x_div=%.17g v_div=%.17g W_div=%.17g exact t=%a J_L=%a J_R=%a x_div=%a\n",
+           k ? "t1" : "t0", step, g3h_t[k] / pps, g3h_J[k][0], g3h_J[k][1], g3h_n[k][0], g3h_n[k][1], g3h_x[k] / pps, g3h_v[k], g3h_W[k],
+           g3h_t[k], g3h_J[k][0], g3h_J[k][1], g3h_x[k]);
+    if (k == 1) {
+        if (!g3h_have[0]) g3_stop("--gen3-held-readout: the end of the hold came before T_eq");
+        const double Tw = (g3h_t[1] - g3h_t[0]) / pps;
+        printf("[EDMD3-HELD] window T_w=%.17g F_L=%.17g F_R=%.17g n_L=%ld n_R=%ld dx_div=%.17g v_div_t0=%.17g v_div_t1=%.17g dW_div=%.17g\n",
+               Tw, (g3h_J[1][0] - g3h_J[0][0]) / Tw, -(g3h_J[1][1] - g3h_J[0][1]) / Tw, g3h_n[1][0] - g3h_n[0][0], g3h_n[1][1] - g3h_n[0][1],
+               (g3h_x[1] - g3h_x[0]) / pps, g3h_v[0], g3h_v[1], g3h_W[1] - g3h_W[0]);
+    }
+    fflush(stdout);
+}
 static void build_energy_transfer_validation_state(ExperimentValidationState *state,
                                                    double *wall_positions,
                                                    double *wall_velocities) {
@@ -16487,7 +18712,7 @@ static void build_energy_transfer_validation_state(ExperimentValidationState *st
         ? fmax((double)XW1, (double)XW1 + ep->pistonL_x)
         : fmax((double)XW1, (double)piston_left_x + 5.0);
     state->x_max_face = ep
-        ? fmin((double)XW2, (double)XW1 + ep->pistonR_x)
+        ? fmin(g3_held_exact() ? (double)XW1 + ep->boxW : (double)XW2, (double)XW1 + ep->pistonR_x)   /* ##CHRIS 2026-10-14 (decision 50, a): the exact box */
         : fmin((double)XW2, (double)piston_right_x);
     state->y_min = (double)YW1;
     state->y_max = (double)YW2;
@@ -16506,6 +18731,19 @@ static void build_energy_transfer_validation_state(ExperimentValidationState *st
         ? edmd_forced_advance_count(g_edmd) : 0;
 }
 
+/* ##CHRIS 2026-10-09 (M3b, 261012 sec. 4.7.14, stage A3): the energy-transfer steps that read the particle arrays (X, Y, Vx,
+   Vy, the segment statistics, the validator), so that under gen3 the synchronised copy is made only there: the validator's
+   steps (every validator_every()), the first step, the release step (its energy audit), every trace row (--trace-every), the
+   last step, and every step while the distribution log is on. Under gen2: every step, as before. */
+static int et_particles_due(int steps_elapsed, int recorded_steps, int target_steps, int wall_hold_steps, bool wall_is_released){
+    if (cli_engine != 3) return 1;
+    if (steps_elapsed % validator_every() == 0 || steps_elapsed == 1) return 1;
+    if (!wall_is_released && steps_elapsed == wall_hold_steps) return 1;
+    if (wall_is_released && (cli_trace_every <= 1 || (recorded_steps % cli_trace_every) == 0)) return 1;
+    if (wall_is_released && recorded_steps + 1 >= target_steps) return 1;
+    if (dist_log) return 1;
+    return 0;
+}
 static void run_energy_transfer_experiment(void) {
     mkdir_p(g_energy_transfer_dir);
     /* ##CHRIS: write the provenance file next to the trace the caller asked for.
@@ -16578,7 +18816,12 @@ static void run_energy_transfer_experiment(void) {
     // Reset sim
     initialize_simulation_dimensions();
     initialize_simulation_parameters();
-    initialize_simulation();
+    if (g3_held_lattice()) {   /* ##CHRIS 2026-10-14 (decision 50, b): the gen3 lattice start (M4) in the held geometry: the box 2 L0 and the
+                                  divider at the requested position, both exact; srand right before it, as the speed-of-sound loop seeds each
+                                  trajectory right before its start, so that the held start at L0 equals the free start for the same seed */
+        srand(cli_seed);
+        g3_m4_init_core(2.0 * cli_l0_d * (double)PIXELS_PER_SIGMA, cli_wall_positions_d[0] * (double)PIXELS_PER_SIGMA, cli_seed);
+    } else initialize_simulation();
     steps_elapsed = 0;
     wall_is_released = false;
     simulation_time = 0.0f;
@@ -16619,7 +18862,7 @@ static void run_energy_transfer_experiment(void) {
         }
         if (g_edmd) { edmd_destroy(g_edmd); g_edmd = NULL; }
         EDMD_Params prm = {0};
-        prm.boxW = (double)(XW2 - XW1);
+        prm.boxW = g3_held_exact() ? 2.0 * cli_l0_d * (double)PIXELS_PER_SIGMA : (double)(XW2 - XW1);   /* ##CHRIS 2026-10-14 (decision 50, a) */
         prm.boxH = (double)(YW2 - YW1);
         prm.radius = (double)PARTICLE_RADIUS;
         prm.N = particles_active;
@@ -16633,7 +18876,8 @@ static void run_energy_transfer_experiment(void) {
             int extra_idx = 0;
             for (int w = 0; w < dcount; ++w) {
                 double pos_px = (all_wall_positions ? (double)all_wall_positions[w] : (double)wall_x);
-                prm.divider_x[w] = pos_px - (double)XW1;
+                prm.divider_x[w] = (g3_held_exact() && w == 0) ? cli_wall_positions_d[0] * (double)PIXELS_PER_SIGMA   /* ##CHRIS (decision 50, a) */
+                                                               : pos_px - (double)XW1;
                 prm.divider_thickness[w] = (double)WALL_THICKNESS;
                 double mf = (double)(WALL_MASS / PARTICLE_MASS);
                 if (cli_wall_masses_set && w < (int)(sizeof(cli_wall_masses) / sizeof(cli_wall_masses[0])) && cli_wall_masses[w] > 0.0f) {
@@ -16684,7 +18928,7 @@ static void run_energy_transfer_experiment(void) {
         {
             const char* ev_path = getenv("HD_PISTON_EVENTS");
             if (ev_path && *ev_path) {
-                edmd_set_event_log(ev_path, (double)PIXELS_PER_SIGMA);
+                edmd_backend_set_event_log(ev_path, (double)PIXELS_PER_SIGMA);   /* ##CHRIS 2026-10-09 (M3): gen2 or gen3 */
                 if (!cli_quiet) printf("[EVENTLOG] piston/divider events -> %s\n", ev_path);
             }
         }
@@ -16703,11 +18947,26 @@ static void run_energy_transfer_experiment(void) {
             P[i].vy = (double)Vy[i];
             P[i].coll_count = 0;
         }
+        if (g3_held_lattice()) {   /* ##CHRIS 2026-10-14 (decision 50, b): the lattice's doubles replace the loaded positions, as in the
+                                      speed-of-sound loop; the initial state (--gen3-dump-initial) and the run header as there */
+            const int NL = (cli_particles_box_counts && cli_particles_box_counts_count == 2) ? cli_particles_box_counts[0] : particles_active / 2;
+            if (!g3_m4_P || g3_m4_N != particles_active || g3_m4_NL != NL) g3_stop("M4 seeding (held path): state");
+            for (int i = 0; i < particles_active; ++i) { P[i].x = g3_m4_P[i].x; P[i].y = g3_m4_P[i].y; }   /* the doubles */
+            if (cli_gen3_dump_initial)
+                g3_dump_initial(cli_gen3_dump_initial, P, particles_active, NL, prm.boxW, prm.boxH, (double)PARTICLE_RADIUS,
+                                prm.divider_x[0], prm.divider_thickness[0]);
+            char rid[200];
+            snprintf(rid, sizeof rid, "held L0=%.17g x_div=%.17g seed=%u", cli_l0_d, cli_wall_positions_d[0], cli_seed);
+            const double dt_sigma = (double)fixed_dt_runtime / (double)PIXELS_PER_SIGMA;
+            g3_run_header(rid, prm.boxW, prm.boxH, particles_active, NL, (double)wall_hold_steps * dt_sigma, wall_hold_steps,
+                          (double)target_steps * dt_sigma);
+        }
         /* Do not repair initialization in scientific runs. The validator below
            must observe and reject any overlap produced by seeding. */
         if (sim_mode == MODE_EDMD) {
             edmd_reschedule_all(g_edmd);
             edmd_reset_work(g_edmd);
+            edmd_energy_audit("0 state loaded (hold)");   /* ##CHRIS 2026-10-05 */
             printf("[EDMD] initialized: N=%d  box=(%.1fσ,%.1fσ) -> (%.1fpx,%.1fpx)  R=%.4fσ -> %.3fpx  scale=%.1f px/σ\n",
                    prm.N,
                    prm.boxW / (double)PIXELS_PER_SIGMA,
@@ -16775,7 +19034,53 @@ static void run_energy_transfer_experiment(void) {
         }
     }
 
-    if (!validator.failure.failed && cli_num_walls == num_internal_walls &&
+    if (g3_held_exact()) {
+        /* ##CHRIS 2026-10-14 (plan-author decision 50 item 3 a; 261012 sec. 4.7.113): THE HELD PATH ON THE EXACT BOX. The engine's
+           box and divider are checked against --l0 and --wall-positions read as doubles, at 1e-9 sigma (the float check below is
+           the grid path's), and the held geometry is printed once for gate C2 (the held and the free geometry equal to 1e-9):
+           the box, the divider's centre and thickness, the radius, N_L and N_R from the engine's positions, the compartment
+           widths w = x_div - t/2 and 2 L0 - x_div - t/2, and L_eff = w - 2 R, all in sigma. */
+        const EDMD_Params *gp = (g_edmd && sim_mode == MODE_EDMD) ? edmd_params(g_edmd) : NULL;
+        const double pps = (double)PIXELS_PER_SIGMA, tol_sigma = 1e-9;
+        if (!validator.failure.failed && (!gp || gp->divider_count != 1)) {
+            experiment_validator_record_failure(
+                &validator, "initialization", "held_exact_state",
+                "The held path on the exact box needs the event-driven state with one divider.",
+                0, 0.0, -1, -1, -1, -1, gp ? (double)gp->divider_count : NAN, 1.0);
+        }
+        if (!validator.failure.failed) {
+            const double box_sigma = gp->boxW / pps, x_sigma = gp->divider_x[0] / pps;
+            char detail[256];
+            if (fabs(box_sigma - 2.0 * cli_l0_d) > tol_sigma) {
+                snprintf(detail, sizeof(detail), "Box initialized at %.17g sigma; 2 L0 requested %.17g sigma (tolerance 1e-9).",
+                         box_sigma, 2.0 * cli_l0_d);
+                experiment_validator_record_failure(
+                    &validator, "initialization", "initial_box_mismatch",
+                    detail, 0, 0.0, -1, -1, -1, -1, box_sigma, 2.0 * cli_l0_d);
+            } else if (fabs(x_sigma - cli_wall_positions_d[0]) > tol_sigma) {
+                snprintf(detail, sizeof(detail), "Wall 0 initialized at %.17g sigma; command requested %.17g sigma (tolerance 1e-9).",
+                         x_sigma, cli_wall_positions_d[0]);
+                experiment_validator_record_failure(
+                    &validator, "initialization", "initial_wall_position_mismatch",
+                    detail, 0, 0.0, -1, -1, 0, -1, x_sigma, cli_wall_positions_d[0]);
+            }
+        }
+        if (!validator.failure.failed) {
+            const EDMD_Particle *gq = edmd_particles(g_edmd);
+            int nl = 0;
+            for (int i = 0; i < particles_active; ++i) if (gq[i].x < gp->divider_x[0]) nl++;
+            const double box_sigma = gp->boxW / pps, h_sigma = gp->boxH / pps, x_sigma = gp->divider_x[0] / pps;
+            const double t_sigma = gp->divider_thickness[0] / pps, r_sigma = gp->radius / pps;
+            const double wl = x_sigma - 0.5 * t_sigma, wr = box_sigma - x_sigma - 0.5 * t_sigma;
+            printf("[EDMD3-HELD-GEOMETRY] box=%.17g x %.17g sigma (2 L0 %.17g, |dW| %.3g) x_div=%.17g sigma (requested %.17g, |dx| %.3g) "
+                   "t=%.17g R=%.17g N=%d N_L=%d N_R=%d w_L=%.17g w_R=%.17g L_eff_L=%.17g L_eff_R=%.17g eta=%.17g\n",
+                   box_sigma, h_sigma, 2.0 * cli_l0_d, fabs(box_sigma - 2.0 * cli_l0_d), x_sigma, cli_wall_positions_d[0],
+                   fabs(x_sigma - cli_wall_positions_d[0]), t_sigma, r_sigma, particles_active, nl, particles_active - nl,
+                   wl, wr, wl - 2.0 * r_sigma, wr - 2.0 * r_sigma,
+                   (double)particles_active * M_PI * r_sigma * r_sigma / (box_sigma * h_sigma));
+            fflush(stdout);
+        }
+    } else if (!validator.failure.failed && cli_num_walls == num_internal_walls &&
         all_wall_positions) {
         /* CLI wall positions and the simulation arrays are float-valued. */
         const double position_tolerance_sigma = 1e-5;
@@ -16866,9 +19171,11 @@ static void run_energy_transfer_experiment(void) {
         }
     }
 
+    int et_need = 1;   /* ##CHRIS 2026-10-09 (M3b): 1 = this step reads the particles (always under gen2) */
     while (!validator.failure.failed && recorded_steps < target_steps) {
         wall_x_old = wall_x;
         steps_elapsed++;
+        et_need = 1;
 
         wall_impulse_x_accum = 0.f;
         if (sim_mode == MODE_EDMD || sim_mode == MODE_EDMD_HYBRID) {
@@ -16943,12 +19250,20 @@ static void run_energy_transfer_experiment(void) {
 
                 double t0 = edmd_time(g_edmd);
                 edmd_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
+                if (cli_gen3_held_readout > 0 && !wall_is_released &&
+                    (steps_elapsed == cli_gen3_held_readout || steps_elapsed == wall_hold_steps))   /* ##CHRIS 2026-10-14 (decision 50, c) */
+                    g3_held_readout(steps_elapsed == wall_hold_steps, steps_elapsed);
+                /* ##CHRIS 2026-10-09 (M3b, 261012 sec. 4.7.14, stage A3): under gen3 the particle copy, the segment statistics and
+                   the validator run only on the steps that read them (et_particles_due); under gen2 on every step, as before. */
+                et_need = et_particles_due(steps_elapsed, recorded_steps, target_steps, wall_hold_steps, wall_is_released);
+                if (et_need) {
                 const EDMD_Particle* P = edmd_particles(g_edmd);
                 for (int i=0;i<particles_active;i++) {
                     X[i] = (double)XW1 + (double)P[i].x;
                     Y[i] = (double)YW1 + (double)P[i].y;
                     Vx[i] = (double)P[i].vx;
                     Vy[i] = (double)P[i].vy;
+                }
                 }
                 const EDMD_Params* ep = edmd_params(g_edmd);
                 int dcount2 = ep->divider_count;
@@ -16977,10 +19292,12 @@ static void run_energy_transfer_experiment(void) {
                 edmd_prev_work_L = wL;
                 edmd_prev_work_R = wR;
                 edmd_prev_work_div = wD;
+                if (et_need) {   /* ##CHRIS (M3b): gen3 carries the counts between its synchronised steps */
                 recompute_segment_stats_counts_and_temperature();
                 if (segment_counts && segment_count >= 2) {
                     left_particles = segment_counts[0];
                     right_particles = segment_counts[1];
+                }
                 }
             } else {
                 // EDMD-HYBRID
@@ -17033,6 +19350,7 @@ static void run_energy_transfer_experiment(void) {
         // ##CHRIS: Convert pixel-time to σ-time units (TIME mode fix)
         simulation_time += fixed_dt_runtime / PIXELS_PER_SIGMA;
 
+        if (et_need)   /* ##CHRIS (M3b): gen2 every step */
         build_energy_transfer_validation_state(&validation_state,
                                                validation_wall_x,
                                                validation_wall_vx);
@@ -17059,6 +19377,7 @@ static void run_energy_transfer_experiment(void) {
                 }
             }
         }
+        if (et_need)   /* ##CHRIS (M3b): gen2 every step */
         experiment_validator_check(&validator, &validation_state,
                                    wall_is_released ? "post_release" : "wall_hold",
                                    steps_elapsed, (double)simulation_time, 1);
@@ -17066,6 +19385,7 @@ static void run_energy_transfer_experiment(void) {
 
         if (steps_elapsed == wall_hold_steps && !wall_is_released) {
             ke_audit("3 end of hold (at release)");
+            edmd_energy_audit("1 end of hold (release)");   /* ##CHRIS 2026-10-05 */
             wall_release_time = simulation_time;
             wall_is_released  = true;
             recorded_steps    = 0;
@@ -17277,6 +19597,30 @@ static void run_energy_transfer_experiment(void) {
 
     if (!cli_quiet) {
         printf("✅ Energy transfer experiment done. Output → %s\n", trace_path);
+    }
+
+    /* ##CHRIS 2026-10-05 (261012 sec. 4.4, gate G-E3): the EDMD health counters in energy-transfer mode too. Until now
+       only the speed-of-sound branch printed them ([EDMD-HEALTH] above), so method A / A-fixed runs never reported
+       overlap repairs and their "health 0" checks could not fail. Same rule as there: printed only when a counter is
+       non-zero, so the workers' health grep (conf_worker.sh HEALTH) keeps its meaning. */
+    if (g_edmd && sim_mode == MODE_EDMD) {
+        edmd_energy_audit("2 end of run");
+        edmd_contact_report();
+        const long n_forced  = edmd_backend_forced_advance_count(g_edmd);
+        const long n_clamp   = edmd_backend_clamp_repair_count(g_edmd);
+        const long n_overlap = edmd_backend_overlap_repair_count(g_edmd);
+        const long n_overdue = edmd_backend_wall_overdue_count(g_edmd);
+        const long n_past    = edmd_backend_past_event_count(g_edmd);
+        if (n_forced || n_clamp || n_overlap || n_overdue || n_past) {
+            printf("⚠️ [EDMD-HEALTH] energy-transfer seed=%u: forced_advance=%ld wall_clamp_repairs=%ld overlap_repairs=%ld "
+                   "wall_overdue=%ld past_events=%ld\n", cli_seed, n_forced, n_clamp, n_overlap, n_overdue, n_past);
+        }
+        if (cli_engine == 3) {   /* ##CHRIS 2026-10-09 (M3, amendment e): the gen3 run record, always printed */
+            char rid[64];
+            snprintf(rid, sizeof rid, "energy-transfer seed=%u", cli_seed);
+            g3_run_record(rid);
+            if (g3_evlog) fflush(g3_evlog);
+        }
     }
 
 	    // Append per-run summary for quick parameter sweeps.
@@ -18221,6 +20565,7 @@ static void simple_box_render_preview(const char *run_dir,
     render_particles();
     render_pistons();
     gui_end_scene_view();
+    gui_begin_ui_view();   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): window points */
     render_energy_hud(_renderer, font);
     render_live_controls(_renderer, font_small ? font_small : font);
 
@@ -18291,6 +20636,7 @@ static void simple_box_render_preview(const char *run_dir,
             draw_text(_renderer, font_small ? font_small : font, "Press h to toggle key help", XW1 + 8, 74, red);
         }
     }
+    gui_end_ui_view();   /* ##CHRIS (decision 34, addition, item D) */
 
     SDL_RenderPresent(_renderer);
     if (cli_simple_box_gui_delay_ms > 0) {
@@ -18948,6 +21294,265 @@ static void run_szilard_engine_experiment(void) {
 
 
 
+/* ##CHRIS 2026-10-10 (decision 19, item 2): --gui-keys=STEP:KEY,... (a provisional test hook; the window only). At the scene's
+   STEP-th executed step the key is put into SDL's event queue (pressed, then released) and is handled with the next frame's events,
+   as a key press is. KEY: an SDL key name (R, T, B, W, K, P, Q, Space, Escape, Left, Right, Up, F2, F3, [, ], \, ...), "comma",
+   "period", with a trailing "+" pressed and held (no release); or "apply-gen3" / "apply-gen2": the F3 panel synced to the running
+   scene, its engine row set to EDMD gen3 / EDMD and its APPLY (live_scene_prepare_rebuild), as the mouse would; or "hash" (##CHRIS
+   2026-10-14, decision 52 addendum 1: the return map's test): [GUI-HASH] with gen3's event hash, its time and its executed events at
+   exactly that step (printed inside the step loop; the reads change nothing), so that runs whose frames differ compare exactly. */
+#define G3_GUI_KEYS_MAX 64
+static long g3_gui_key_step[G3_GUI_KEYS_MAX];
+static char g3_gui_key_name[G3_GUI_KEYS_MAX][24];
+static int  g3_gui_key_n = 0, g3_gui_key_next = 0;
+static SDL_Keycode g3_gui_key_code(const char* nm, int* hold){   /* the key of a --gui-keys name; *hold: its trailing "+" */
+    const size_t n = strlen(nm);
+    char b[24];
+    *hold = n > 1 && nm[n - 1] == '+';
+    snprintf(b, sizeof b, "%.*s", (int)(n - (*hold ? 1 : 0)), nm);
+    return !strcmp(b, "comma") ? SDLK_COMMA : (!strcmp(b, "period") ? SDLK_PERIOD : SDL_GetKeyFromName(b));
+}
+static void g3_gui_keys_parse(void){
+    if (!cli_gui_keys) return;
+    if (cli_headless) { fprintf(stderr, "--gui-keys needs the window (no --headless)\n"); exit(EXIT_FAILURE); }
+    const char* p = cli_gui_keys;
+    while (*p) {
+        char tok[48]; size_t k = 0;
+        while (*p && *p != ',' && k + 1 < sizeof tok) tok[k++] = *p++;
+        tok[k] = '\0';
+        if (*p == ',') ++p;
+        char* colon = strchr(tok, ':');
+        char* end = NULL;
+        const long st = colon ? strtol(tok, &end, 10) : -1;
+        const char* nm = colon ? colon + 1 : "";
+        int hold = 0;
+        if (!colon || end != colon || st < 1 || !*nm || strlen(nm) >= sizeof g3_gui_key_name[0] || g3_gui_key_n >= G3_GUI_KEYS_MAX
+            || (g3_gui_key_n > 0 && st < g3_gui_key_step[g3_gui_key_n - 1])
+            || (strcmp(nm, "apply-gen3") && strcmp(nm, "apply-gen2") && strcmp(nm, "hash") && g3_gui_key_code(nm, &hold) == SDLK_UNKNOWN)) {
+            fprintf(stderr, "Invalid --gui-keys entry '%s' (STEP:KEY, steps ascending, at most %d)\n", tok, G3_GUI_KEYS_MAX);
+            exit(EXIT_FAILURE);
+        }
+        g3_gui_key_step[g3_gui_key_n] = st;
+        snprintf(g3_gui_key_name[g3_gui_key_n], sizeof g3_gui_key_name[0], "%s", nm);
+        g3_gui_key_n++;
+    }
+}
+static void g3_gui_keys_pump(long steps_done){
+    while (g3_gui_key_next < g3_gui_key_n && g3_gui_key_step[g3_gui_key_next] <= steps_done) {
+        const char* nm = g3_gui_key_name[g3_gui_key_next++];
+        printf("[GUI-KEYS] step %ld: %s\n", steps_done, nm);
+        if (!strcmp(nm, "hash")) {   /* ##CHRIS 2026-10-14 (decision 52 addendum 1): an exact cut for the return map's test */
+            if (g_edmd3) printf("[GUI-HASH] step %ld: hash=%016llx t=%.17g events=%ld\n", steps_done,
+                                (unsigned long long)edmd3_event_hash(g_edmd3), edmd3_time(g_edmd3), g3_gui_events());
+            else printf("[GUI-HASH] step %ld: no gen3 state\n", steps_done);
+            fflush(stdout);
+            continue;
+        }
+        if (!strcmp(nm, "apply-gen3") || !strcmp(nm, "apply-gen2")) {
+            live_scene_sync_from_runtime();
+            live_scene_engine = nm[9] == '3' ? LIVE_SCENE_ENGINE_GEN3 : LIVE_SCENE_ENGINE_EDMD;
+            live_scene_prepare_rebuild();
+            continue;
+        }
+        int hold = 0;
+        const SDL_Keycode k = g3_gui_key_code(nm, &hold);
+        SDL_Event ev;
+        memset(&ev, 0, sizeof ev);
+        ev.type = SDL_KEYDOWN; ev.key.state = SDL_PRESSED;
+        ev.key.keysym.sym = k; ev.key.keysym.scancode = SDL_GetScancodeFromKey(k);
+        SDL_PushEvent(&ev);
+        if (hold) continue;
+        ev.type = SDL_KEYUP; ev.key.state = SDL_RELEASED;
+        SDL_PushEvent(&ev);
+    }
+}
+
+/* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item C; 261012 sec. 4.7.73): THE DIVIDER'S ALLOWED RANGE IN THE WINDOW.
+   Neither engine has an event between a divider and an outer wall, a piston or another divider: gen3's events are disk pairs,
+   disk-outer wall, cell crossings, disk-divider faces, disk-piston faces and band expiries (edmd_gen3.c), and its validator counts
+   a divider outside the box or out of order as a body finding (edmd_gen3.c, the body checks of the full validator); gen2's EDMD has
+   the same event classes (edmd.c). A free divider with an empty compartment behind it (the energy-transfer scene without a spring)
+   therefore runs through the outer wall, and draw_wall() then ended the program (exit(1), "Invalid wall_x"). Now, before every
+   step in the window: when a divider would reach the end of its range within the next step -- a face at the outer wall or at a
+   piston face, or at the next divider's face, with 1 px plus twice its displacement in one step as the margin -- the window pauses
+   before that step, with a message on the screen; [GUI-LIMIT] and, under gen3, the run record are printed. P and SPACE do not
+   resume it; ESC (or the F3 panel's APPLY) rebuilds the scene, Q ends it. It only reads the bodies as they are drawn (wall_x,
+   extra_wall_positions, their velocities, the piston faces), so a run that never reaches a limit steps exactly as before.
+   Only in the event-driven mode (gen2's EDMD and gen3): the time-stepping wall clamps or bounces at the box edge itself
+   (update_wall). Headless scenes: no check; a divider outside the box shows in gen3's run record (body_findings, clean=0). */
+static int gui_divider_limit_check(double dt, long steps_done) {
+    if (cli_headless || gui_div_limit_paused || !wall_enabled || num_internal_walls <= 0 || sim_mode != MODE_EDMD) return 0;
+    enum { G_NMAX = 9 };
+    double c[G_NMAX], v[G_NMAX];
+    int n = 0;
+    c[n] = (double)wall_x; v[n] = (double)vx_wall; n++;
+    if (extra_wall_positions && extra_wall_velocity)
+        for (int j = 0; j < extra_wall_count && n < G_NMAX; ++j) { c[n] = (double)extra_wall_positions[j]; v[n] = (double)extra_wall_velocity[j]; n++; }
+    for (int i = 1; i < n; ++i)
+        for (int j = i; j > 0 && c[j] < c[j - 1]; --j) { double t = c[j]; c[j] = c[j - 1]; c[j - 1] = t; t = v[j]; v[j] = v[j - 1]; v[j - 1] = t; }
+    const double h = 0.5 * (double)WALL_THICKNESS, m = 1.0;
+    const double lo_wall = (double)XW1, hi_wall = (double)XW2;
+    const double pl = (double)piston_left_x + 5.0, pr = (double)piston_right_x;            /* the piston faces, as drawn */
+    const double lo = (pl > lo_wall && pl < hi_wall) ? pl : lo_wall, hi = (pr > lo_wall && pr < hi_wall) ? pr : hi_wall;
+    for (int i = 0; i < n; ++i) {
+        if (isnan(c[i])) continue;
+        const double lf = c[i] - h + 2.0 * fmin(0.0, v[i]) * dt, rf = c[i] + h + 2.0 * fmax(0.0, v[i]) * dt;
+        const double lb = i == 0 ? lo : c[i - 1] + h + 2.0 * fmax(0.0, v[i - 1]) * dt;
+        const double rb = i == n - 1 ? hi : c[i + 1] - h + 2.0 * fmin(0.0, v[i + 1]) * dt;
+        const char* where = NULL;
+        if (lf <= lb + m && (v[i] < 0.0 || lf <= lb)) where = i > 0 ? "the next divider" : (lo > lo_wall ? "the left piston" : "the left outer wall");
+        else if (rf >= rb - m && (v[i] > 0.0 || rf >= rb)) where = i < n - 1 ? "the next divider" : (hi < hi_wall ? "the right piston" : "the right outer wall");
+        if (!where) continue;
+        gui_div_limit_paused = 1;
+        paused = true;
+        const double xs = (c[i] - (double)XW1) / (double)PIXELS_PER_SIGMA;
+        snprintf(gui_div_limit_msg[0], sizeof gui_div_limit_msg[0],
+                 "PAUSED: the divider reached %s at t = %.3f σ-time (x = %.3f σ, v = %.3g σ per σ-time)", where, (double)simulation_time, xs, v[i]);
+        snprintf(gui_div_limit_msg[1], sizeof gui_div_limit_msg[1],
+                 "%s has no divider-wall event, so the run stops here.   ESC or F3 APPLY: rebuild the scene.   Q: end it.",
+                 cli_engine == 3 ? "gen3" : "The engine");
+        printf("[GUI-LIMIT] step %ld, t = %.6f sigma-time: a divider (x = %.6f sigma, v = %.6g sigma per sigma-time) would reach %s within "
+               "the next step; the window pauses (P and SPACE do not resume; ESC or the F3 panel's APPLY rebuilds the scene, Q ends it)\n",
+               steps_done, (double)simulation_time, xs, v[i], where);
+        if (cli_engine == 3) g3_run_record("scene, a divider at the end of its range");
+        fflush(stdout);
+        return 1;
+    }
+    return 0;
+}
+/* ##CHRIS 2026-10-12 (decision 34, the layout): the compartment labels (count, T, eta now, KE) and the hold counter, in the UI pass
+   (window points) at the compartments' places on the screen; they used to be drawn in the box's world pixels and so shrank with it */
+static void gui_draw_compartment_labels(int left_particles, int right_particles) {
+    if (!font) return;
+    const float u = gui_ui_scale;
+    #define GUI_UX(wx) ((gui_scene_s * (float)(wx) + gui_scene_bx) / u)
+    #define GUI_UY(wy) ((gui_scene_s * (float)(wy) + gui_scene_by) / u)
+    SDL_Color segment_palette[] = {
+        {255, 120, 0, 255},
+        {0, 180, 255, 255},
+        {170, 255, 0, 255},
+        {255, 80, 180, 255},
+        {240, 240, 240, 255}
+    };
+    const int palette_size = (int)(sizeof(segment_palette) / sizeof(segment_palette[0]));
+    SDL_Color yellow = {255, 255, 0, 255};
+    if (segment_counts && segment_count > 0 && segment_count <= MAX_DIVIDER_CAPACITY + 1) {
+        float left_bounds[MAX_DIVIDER_CAPACITY + 1];
+        float right_bounds[MAX_DIVIDER_CAPACITY + 1];
+        compute_segment_bounds(left_bounds, right_bounds);
+        for (int seg = 0; seg < segment_count; ++seg) {
+            int count = segment_counts[seg];
+            const float xl = GUI_UX(left_bounds[seg]), xr = GUI_UX(right_bounds[seg]);
+            int seg_px_w = (int)fmaxf(0.0f, (xr - xl) - 8.0f);
+            if (seg_px_w < 40) continue;   /* too narrow to label cleanly */
+            SDL_Color color = segment_palette[seg % palette_size];
+            double ke_val = (segment_ke) ? segment_ke[seg] : 0.0;
+            double temp_val = 0.0;
+            if (segment_temperature) temp_val = segment_temperature[seg];
+            else if (count > 0) temp_val = ke_val / (count * K_B);
+            const double r_sigma = (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA;
+            const double area_particle = M_PI * r_sigma * r_sigma;
+            const double seg_w_sigma = fmax(1e-9, (double)(right_bounds[seg] - left_bounds[seg]) / (double)PIXELS_PER_SIGMA);
+            const double area_seg = seg_w_sigma * (double)HEIGHT_UNITS;
+            const double eta_seg = (area_seg > 0.0) ? ((double)count * area_particle / area_seg) : 0.0;
+            char seg_buffer_1[96];
+            char seg_buffer_2[64];
+            if (seg_px_w < 140) snprintf(seg_buffer_1, sizeof(seg_buffer_1), "N=%d", count);
+            else snprintf(seg_buffer_1, sizeof(seg_buffer_1), "Box %d: N=%d", seg + 1, count);
+            if (seg_px_w >= 160) snprintf(seg_buffer_2, sizeof(seg_buffer_2), "T=%.2f  eta_now=%.3f", temp_val, eta_seg);
+            else snprintf(seg_buffer_2, sizeof(seg_buffer_2), "T=%.2f", temp_val);
+            const int text_y = (int)GUI_UY(YW1) + 6;
+            int tw = 0, th = 0;
+            int text_x = (int)xl + 4;
+            if (TTF_SizeUTF8(font, seg_buffer_1, &tw, &th) == 0) {
+                const int max_x = (int)xr - 4 - tw;
+                if (text_x > max_x) text_x = max_x;
+                if (text_x < (int)xl + 2) text_x = (int)xl + 2;
+            }
+            draw_text(_renderer, font, seg_buffer_1, text_x, text_y, color);
+            int xT = (int)xl + 4;
+            if (TTF_SizeUTF8(font, seg_buffer_2, &tw, &th) == 0) {
+                const int max_xT = (int)xr - 4 - tw;
+                if (xT > max_xT) xT = max_xT;
+                if (xT < (int)xl + 2) xT = (int)xl + 2;
+            }
+            draw_text(_renderer, font, seg_buffer_2, xT, text_y + 18, color);
+            if (seg_px_w >= 220 && gui_dist_mode != 3) {   /* the KE line when there is room (mode 3 shows it in its panels) */
+                char ke_buffer[80];
+                snprintf(ke_buffer, sizeof(ke_buffer), "KE=%.2e", ke_val);
+                int x2 = (int)xl + 4;
+                if (TTF_SizeUTF8(font, ke_buffer, &tw, &th) == 0) {
+                    const int max_x2 = (int)xr - 4 - tw;
+                    if (x2 > max_x2) x2 = max_x2;
+                    if (x2 < (int)xl + 2) x2 = (int)xl + 2;
+                }
+                draw_text(_renderer, font, ke_buffer, x2, text_y + 36, color);
+            }
+        }
+    } else {
+        SDL_Color white = {255, 255, 255, 255};
+        char fallback[64];
+        snprintf(fallback, sizeof(fallback), "Left: %d", left_particles);
+        draw_text(_renderer, font, fallback, (int)GUI_UX(XW1) + 5, (int)GUI_UY(YW1) + 10, white);
+        snprintf(fallback, sizeof(fallback), "Right: %d", right_particles);
+        draw_text(_renderer, font, fallback, (int)GUI_UX(XW2) - 120, (int)GUI_UY(YW1) + 10, white);
+    }
+    if (wall_hold_enabled && !wall_is_released) {   /* (decision 34, addition, item D): no count below 0 */
+        char buffer[64];
+        const int hold_left = wall_hold_steps - steps_elapsed;
+        if (hold_left > 0) snprintf(buffer, sizeof(buffer), "Wall held: %d steps left", hold_left);
+        else snprintf(buffer, sizeof(buffer), "Wall held: R releases it");
+        draw_text(_renderer, font, buffer, (int)GUI_UX(XW1) + 5, (int)GUI_UY(YW1) + 58, yellow);
+    }
+    #undef GUI_UX
+    #undef GUI_UY
+}
+static void gui_scene_stopped(const char* what, const char* why) {   /* ##CHRIS 2026-10-12 (decision 34): a scene that cannot go on */
+    gui_div_limit_paused = 1;
+    paused = true;
+    snprintf(gui_div_limit_msg[0], sizeof gui_div_limit_msg[0], "PAUSED: %s.", what);
+    snprintf(gui_div_limit_msg[1], sizeof gui_div_limit_msg[1], "%s   ESC or F3 APPLY: rebuild the scene.   Q: end it.", why);
+    printf("[GUI-STOP] %s: %s; the window pauses (P and SPACE do not resume; ESC or the F3 panel's APPLY rebuilds the scene, Q ends it)\n", what, why);
+    fflush(stdout);
+}
+static void gui_div_limit_banner(void) {   /* in the UI pass */
+    if (!gui_div_limit_paused || !font || !_renderer) return;
+    int w = MAX_X - 40;
+    if (w > 1100) w = 1100;
+    if (w < 200) return;
+    const int x = (MAX_X - w) / 2, y = 44;
+    SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
+    SDL_Rect box = { x, y, w, 62 };
+    SDL_SetRenderDrawColor(_renderer, 70, 0, 0, 235);
+    SDL_RenderFillRect(_renderer, &box);
+    SDL_SetRenderDrawColor(_renderer, 255, 70, 70, 255);
+    SDL_RenderDrawRect(_renderer, &box);
+    const SDL_Color c0 = {255, 225, 225, 255}, c1 = {255, 255, 255, 255};
+    draw_text_clipped(_renderer, font, gui_div_limit_msg[0], x + 12, y + 8, c0, w - 24);
+    draw_text_clipped(_renderer, font_small ? font_small : font, gui_div_limit_msg[1], x + 12, y + 36, c1, w - 24);
+}
+/* ##CHRIS 2026-10-12 (decision 34, addition): --gui-shot, the frame as drawn (device pixels), read before it is shown */
+static void gui_save_bmp(const char* path) {
+    int w = 0, h = 0;
+    if (!_renderer || !path || !*path || SDL_GetRendererOutputSize(_renderer, &w, &h) != 0 || w <= 0 || h <= 0) return;
+    SDL_Surface *s = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_ARGB8888);
+    if (!s) return;
+    if (SDL_RenderReadPixels(_renderer, NULL, SDL_PIXELFORMAT_ARGB8888, s->pixels, s->pitch) == 0 && SDL_SaveBMP(s, path) == 0)
+        printf("[GUI-SHOT] %s (%d x %d device pixels, UI scale %.3g)\n", path, w, h, (double)gui_ui_scale);
+    else
+        fprintf(stderr, "[GUI-SHOT] failed: %s\n", SDL_GetError());
+    SDL_FreeSurface(s);
+    fflush(stdout);
+}
+static void gui_shot_maybe(long steps_done) {
+    for (int i = 0; i < gui_shot_n; ++i) {
+        if (gui_shot_done[i]) continue;
+        if (gui_shot_step[i] < 0 ? !gui_div_limit_paused : steps_done < gui_shot_step[i]) continue;
+        gui_save_bmp(gui_shot_path[i]);
+        gui_shot_done[i] = 1;
+    }
+}
+
 ///////////////////// VISUAL SIMULATION FUNCTIONS //////////////////////
 /*
  * simulation_loop
@@ -19384,6 +21989,12 @@ void simulation_loop() {
     double next_wall_log_rel_time = 0.0;
     // Logging cadence (absolute time) for energy_transfer_wall_positions.csv
     double next_et_log_abs_time = 0.0;
+    /* ##CHRIS 2026-10-10 (decision 19, item 2): [GUI-STATS] from the scene's first step; the provisional test hooks */
+    double gui_t_first = -1.0, gui_sigma = 0.0;
+    long gui_frames = 0, gui_steps = 0;
+    g3_gui_keys_parse();
+    if (cli_gui_time_scale > 0.0) time_scale_runtime = (float)cli_gui_time_scale;
+    g3_soft_window = !cli_headless;   /* ##CHRIS 2026-10-12 (decision 34): a refused gen3 build pauses the window instead of exiting */
 
     while (running) {
         // ##CHRIS: Handle timing differently in headless vs interactive mode
@@ -19404,6 +22015,7 @@ void simulation_loop() {
                     // Use drawable pixels, not logical window points, so Retina/HiDPI
                     // layouts and mouse hit boxes use the same coordinate system.
                     gui_sync_renderer_canvas_size();
+                    if (gui_font_hi_scale != gui_ui_scale) gui_open_hi_fonts();   /* ##CHRIS 2026-10-12 (decision 34, addition, item D) */
                 }
                 if (live_controls_handle_event(&e)) {
                     continue;
@@ -19415,11 +22027,15 @@ void simulation_loop() {
             // ##CHRIS: In headless mode, just accumulate one timestep per iteration (run as fast as possible)
             accumulator += fixed_dt_runtime;
         }
+        if (g3_gui_quit) running = 0;   /* ##CHRIS 2026-10-10 (decision 19, item 2): Q under gen3; --gui-run-seconds */
+        if (cli_gui_run_seconds > 0.0 && gui_t_first >= 0.0 && g3_mono() - gui_t_first >= cli_gui_run_seconds) running = 0;
 
         if (live_scene_rebuild_requested) {
             const bool spring_was_enabled = energy_measurement.spring_enabled;
 
             live_scene_rebuild_requested = 0;
+            if (g_edmd3) g3_run_record("scene, before the rebuild");   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+            if (live_scene_engine_next) { cli_engine = live_scene_engine_next; live_scene_engine_next = 0; }   /* the F3 engine row */
             reset_simulation_state();
 
             wall_enabled = (num_internal_walls > 0) ? 1 : 0;
@@ -19442,6 +22058,8 @@ void simulation_loop() {
                 }
             }
 
+            const int g3_left = g_edmd3 != NULL && cli_engine != 3;   /* ##CHRIS 2026-10-10 (decision 19, item 2): the F3 panel left gen3 */
+            if (g3_left) g3_free();
             live_rebuild_edmd_from_current_state();
             if (cli_experiment_preset == EXPERIMENT_PRESET_SZILARD_ENGINE) {
                 szilard_sync_edmd_from_globals();
@@ -19458,6 +22076,11 @@ void simulation_loop() {
                        (double)cli_packing_fraction,
                        (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA);
             }
+            if (cli_engine == 3 || g3_left) {   /* ##CHRIS (decision 19, item 2) */
+                char eng[200];
+                g3_gui_engine_line(eng, sizeof eng);
+                printf("[GEN3-GUI] the scene was rebuilt; %s\n", eng);
+            }
         }
 
         int left_particles = 0, right_particles = 0;
@@ -19465,7 +22088,10 @@ void simulation_loop() {
         if (cli_demo_mode && simulation_started && !paused && demo_steps_per_frame > 1)
             accumulator += fixed_dt_runtime * (float)(demo_steps_per_frame - 1);   /* ##CHRIS */
         while (accumulator >= fixed_dt_runtime) {
+            if (!running && cli_engine == 3) break;   /* ##CHRIS 2026-10-10 (decision 19, item 2): the scene stopped (--time, Q):
+                                                         no more steps in this frame, so the window ends on the headless step */
             if (simulation_started && !paused) {
+                if (gui_divider_limit_check((double)fixed_dt_runtime, gui_steps)) break;   /* ##CHRIS 2026-10-12 (decision 34, addition, item C) */
                 if (cli_demo_mode) {
                     demo_steps_done++;
                     /* ##CHRIS: scripted stages, capture runs only -- interactive demos never get here */
@@ -19496,6 +22122,7 @@ void simulation_loop() {
                     break;
                 }
                 // --- START OF STEP ---
+                if (gui_t_first < 0.0) gui_t_first = g3_mono();   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
                 wall_x_old = wall_x;
                 steps_elapsed++;
 
@@ -19619,13 +22246,16 @@ void simulation_loop() {
                     // when --eff-output=spring is used. Do not apply timestep impulses here.
 
                     // Configure divider motion for EDMD (positions from EDMD state; velocities possibly updated)
-                    edmd_config_dividers(g_edmd, dcount, div_x, div_th);
+                    /* ##CHRIS 2026-10-10 (decision 19, item 2): under gen3 the engine owns the divider positions; only the
+                       hold/release (mass, velocity) reaches it, through edmd_set_divider_motions (gen3's body API) */
+                    if (cli_engine != 3) edmd_config_dividers(g_edmd, dcount, div_x, div_th);
                     edmd_set_divider_motions(g_edmd, dcount, div_mass, div_vx);
 
                     // Keep pistons in sync with interactive controls; if velocities changed, update
                     static double prev_vxL = 0.0, prev_vxR = 0.0;
                     // Apply protocol-driven velocities (do not move positions here; EDMD owns positions)
                     apply_piston_protocol(fixed_dt_runtime);
+                    g3_gui_guard_pistons((double)fixed_dt_runtime);   /* ##CHRIS 2026-10-10 (decision 19, item 2): gen3 only */
                     if (vx_piston_left != prev_vxL || vx_piston_right != prev_vxR) {
                         const EDMD_Params* epc = edmd_params(g_edmd);
                         edmd_config_pistons(g_edmd,
@@ -19642,7 +22272,7 @@ void simulation_loop() {
                     // Szilard semipermeable walls are handled inside EDMD; do not apply a hard-wall overlap reflect.
                     const bool sz_gate = (cli_experiment_preset == EXPERIMENT_PRESET_SZILARD_ENGINE &&
                                           (sz_perm_active || sz_perm_dual_active || sz_fixed_gate_active));
-                    if (!sz_gate) edmd_divider_resolve_overlaps(g_edmd);
+                    if (!sz_gate && cli_engine != 3) edmd_divider_resolve_overlaps(g_edmd);   /* ##CHRIS (decision 19, item 2): gen3 has nothing to repair */
                     // Szilard: if any PP overlaps exist (rare, but possible after non-EDMD push-outs),
                     // relax them to keep EDMD in a valid state.
                     edmd_relax_pp_overlaps_szilard(g_edmd);
@@ -19803,6 +22433,9 @@ void simulation_loop() {
                 // ##CHRIS: EDMD uses pixel coordinates, so dt is in pixel-time units.
                 // Convert to σ-time units for logging by dividing by PIXELS_PER_SIGMA.
                 simulation_time += fixed_dt_runtime / PIXELS_PER_SIGMA;
+                gui_steps++;   /* ##CHRIS 2026-10-10 (decision 19, item 2): [GUI-STATS]; --gui-keys (window) */
+                gui_sigma += (double)(fixed_dt_runtime / PIXELS_PER_SIGMA);
+                if (!cli_headless) g3_gui_keys_pump(gui_steps);
 
                 // Update piston push energy tracking (interactive mode)
                 if (piston_push_tracking) {
@@ -19853,8 +22486,12 @@ void simulation_loop() {
                 if (!cli_quiet && (steps_elapsed % 500) == 0) {
                     double ke_p = kinetic_energy();
                     double ke_w = kinetic_energy_walls_total();
-                    printf("[ENERGY] step=%d  KE_p=%.6e  KE_w=%.6e  KE_tot=%.6e  vx_wall=%.6g\n",
-                        steps_elapsed, ke_p, ke_w, ke_p + ke_w, vx_wall);
+                    /* ##CHRIS 2026-10-12 (plan-author decision 34, addition, item B): with the spring term -- E_spring = k (x - x_eq)^2 / 2
+                       of the engine's spring divider (0 without one) and E_tot = KE_tot + E_spring */
+                    const double e_spring = (energy_measurement.spring_enabled && energy_measurement.eff_output_mode == EFF_OUTPUT_SPRING)
+                                            ? (double)energy_measurement.spring_energy : 0.0;
+                    printf("[ENERGY] step=%d  KE_p=%.6e  KE_w=%.6e  KE_tot=%.6e  vx_wall=%.6g  E_spring=%.6e  E_tot=%.6e\n",
+                        steps_elapsed, ke_p, ke_w, ke_p + ke_w, vx_wall, e_spring, ke_p + ke_w + e_spring);
                 }
 
                 if (!cli_quiet && (steps_elapsed % 1000) == 0) {
@@ -20267,6 +22904,8 @@ void simulation_loop() {
             // GUI-only: stash the leftover accumulator time for smooth boundary extrapolation in histograms.
             // (Physics state remains at simulation_time; this only affects visualization.)
             gui_render_dt_rem = accumulator;
+            if (cli_engine == 3) g3_gui_rate_update();   /* ##CHRIS 2026-10-10 (decision 19, item 2): the HUD's events/s */
+            rm_frame();   /* ##CHRIS 2026-10-14 (decision 52): while the return map is open, the hook is on the current gen3 state */
 
             if (cli_render_paper) {
                 /* ##CHRIS 2026-09-19: figure-grade scene, drawn instead of the debug view.
@@ -20282,124 +22921,25 @@ void simulation_loop() {
             if (wall_enabled) draw_wall();
             // Draw spring visualization on leftmost segment
             render_left_spring();
-
-        SDL_Color segment_palette[] = {
-            {255, 120, 0, 255},
-            {0, 180, 255, 255},
-            {170, 255, 0, 255},
-            {255, 80, 180, 255},
-            {240, 240, 240, 255}
-        };
-        const int palette_size = (int)(sizeof(segment_palette) / sizeof(segment_palette[0]));
-        SDL_Color yellow = {255, 255, 0, 255};
-
-        if (segment_counts && segment_count > 0 && segment_count <= MAX_DIVIDER_CAPACITY + 1) {
-            float left_bounds[MAX_DIVIDER_CAPACITY + 1];
-            float right_bounds[MAX_DIVIDER_CAPACITY + 1];
-            compute_segment_bounds(left_bounds, right_bounds);
-
-            for (int seg = 0; seg < segment_count; ++seg) {
-                int count = segment_counts[seg];
-                float xl = left_bounds[seg];
-                float xr = right_bounds[seg];
-                int seg_px_w = (int)fmaxf(0.0f, (xr - xl) - 8.0f);
-                if (seg_px_w < 40) continue; // too narrow to label cleanly
-
-                SDL_Color color = segment_palette[seg % palette_size];
-
-                // Choose a compact label when the compartment is narrow to avoid overlaps.
-                // Also show a lightweight per-compartment temperature estimate for live tracking.
-                double ke_val = (segment_ke) ? segment_ke[seg] : 0.0;
-                double temp_val = 0.0;
-                if (segment_temperature) {
-                    temp_val = segment_temperature[seg];
-                } else if (count > 0) {
-                    temp_val = ke_val / (count * K_B);
-                }
-                // Live packing fraction per compartment (nominal geometric area).
-                // Uses the current compartment width between boundaries (including piston motion).
-                const double r_sigma = (double)PARTICLE_RADIUS / (double)PIXELS_PER_SIGMA;
-                const double area_particle = M_PI * r_sigma * r_sigma;
-                const double seg_w_sigma = fmax(1e-9, (double)(xr - xl) / (double)PIXELS_PER_SIGMA);
-                const double area_seg = seg_w_sigma * (double)HEIGHT_UNITS;
-                const double eta_seg = (area_seg > 0.0) ? ((double)count * area_particle / area_seg) : 0.0;
-
-                char seg_buffer_1[96];
-                char seg_buffer_2[64];
-                if (seg_px_w < 140) {
-                    snprintf(seg_buffer_1, sizeof(seg_buffer_1), "N=%d", count);
-                } else {
-                    snprintf(seg_buffer_1, sizeof(seg_buffer_1), "Box %d: N=%d", seg + 1, count);
-                }
-                if (seg_px_w >= 160) {
-                    snprintf(seg_buffer_2, sizeof(seg_buffer_2), "T=%.2f  eta_now=%.3f", temp_val, eta_seg);
-                } else {
-                    snprintf(seg_buffer_2, sizeof(seg_buffer_2), "T=%.2f", temp_val);
-                }
-
-                int text_y = YW1 + 6;
-                int text_x = (int)xl + 4;
-                int tw = 0, th = 0;
-                if (TTF_SizeText(font, seg_buffer_1, &tw, &th) == 0) {
-                    int max_x = (int)xr - 4 - tw;
-                    if (text_x > max_x) text_x = max_x;
-                    if (text_x < (int)xl + 2) text_x = (int)xl + 2;
-                }
-                draw_text(_renderer, font, seg_buffer_1, text_x, text_y, color);
-
-                int twT = 0, thT = 0;
-                int xT = (int)xl + 4;
-                if (TTF_SizeText(font, seg_buffer_2, &twT, &thT) == 0) {
-                    int max_xT = (int)xr - 4 - twT;
-                    if (xT > max_xT) xT = max_xT;
-                    if (xT < (int)xl + 2) xT = (int)xl + 2;
-                }
-                draw_text(_renderer, font, seg_buffer_2, xT, text_y + 18, color);
-
-                // Optional third line (KE) only when there is enough space.
-                if (seg_px_w >= 220) {
-                    // In stacked distribution mode we show distribution metrics inside the histogram panels
-                    // (less clutter inside the simulation box).
-                    if (gui_dist_mode != 3) {
-                        char ke_buffer[80];
-                        snprintf(ke_buffer, sizeof(ke_buffer), "KE=%.2e", ke_val);
-                        int tw2 = 0, th2 = 0;
-                        int x2 = (int)xl + 4;
-                        if (TTF_SizeText(font, ke_buffer, &tw2, &th2) == 0) {
-                            int max_x2 = (int)xr - 4 - tw2;
-                            if (x2 > max_x2) x2 = max_x2;
-                            if (x2 < (int)xl + 2) x2 = (int)xl + 2;
-                        }
-                        draw_text(_renderer, font, ke_buffer, x2, text_y + 36, color);
-                    }
-                }
+            /* ##CHRIS 2026-10-12 (decision 34, the layout): the distribution panels below the box, x aligned with its compartments, y in
+               window points (gui_begin_panel_view); the compartment labels and the hold counter in the UI pass, at the compartments */
+            gui_begin_panel_view();
+            if (gui_dist_mode == 1) {
+                render_velocity_histograms();
+            } else if (gui_dist_mode == 2) {
+                render_velocity_histograms_by_segment();
+            } else if (gui_dist_mode == 3) {
+                render_segment_distributions_stacked();
             }
-        } else {
-            SDL_Color white = {255, 255, 255, 255};
-            char fallback[64];
-            snprintf(fallback, sizeof(fallback), "Left: %d", left_particles);
-            draw_text(_renderer, font, fallback, XW1 + 5, YW1 + 10, white);
-            snprintf(fallback, sizeof(fallback), "Right: %d", right_particles);
-            draw_text(_renderer, font, fallback, XW2 - 120, YW1 + 10, white);
-        }
-
-        char buffer[64];
-
-        if (wall_hold_enabled && !wall_is_released) {
-            snprintf(buffer, sizeof(buffer), "Wall held: %d steps left", wall_hold_steps - steps_elapsed);
-            draw_text(_renderer, font, buffer, XW1 + 5, YW1 + 50, yellow);
-        }
-
-		            if (gui_dist_mode == 1) {
-		                render_velocity_histograms();
-		            } else if (gui_dist_mode == 2) {
-		                render_velocity_histograms_by_segment();
-		            } else if (gui_dist_mode == 3) {
-		                render_segment_distributions_stacked();
-		            }
+            gui_end_panel_view();
             gui_end_scene_view();
+            gui_begin_ui_view();   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): the HUD and the panels in window points */
+            gui_draw_compartment_labels(left_particles, right_particles);
             render_energy_hud(_renderer, font);
             render_live_controls(_renderer, font_small ? font_small : font);
+            gui_div_limit_banner();   /* item C */
+            rm_draw(_renderer, font_small ? font_small : font);   /* ##CHRIS 2026-10-14 (decision 52): the return-map panel, if open */
+            gui_end_ui_view();
             float T_measured = compute_measured_temperature_from_ke();
             char temp_label[128];
             snprintf(temp_label, sizeof(temp_label), "T_measured: %.2f", T_measured);
@@ -20410,11 +22950,11 @@ void simulation_loop() {
             /* ##CHRIS 2026-09-19: demo HUD -- one line at the top of the window, echoed to the
                terminal whenever the stage changes, plus the optional automated frame grab. */
             if (cli_demo_mode && !cli_render_paper) {
+                gui_begin_ui_view();   /* ##CHRIS 2026-10-12 (decision 34, addition, item D): window points */
                 demo_echo_stage_change();
                 char hud[256];
                 demo_hud_line(hud, sizeof(hud));
-                int _dw = 0, _dh = 0; SDL_GetRendererOutputSize(_renderer, &_dw, &_dh);
-                SDL_Rect bar = { 0, 0, _dw, 26 };
+                SDL_Rect bar = { 0, 0, MAX_X, 26 };
                 SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
                 SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 190);
                 SDL_RenderFillRect(_renderer, &bar);
@@ -20425,8 +22965,11 @@ void simulation_loop() {
                          paused ? "[PAUSED]" : "        ");
                 SDL_Color kc = { 190, 190, 190, 255 };
                 if (font_small) draw_text(_renderer, font_small, keys, 8, 26, kc);
+                gui_end_ui_view();
             }
+            gui_shot_maybe(gui_steps);   /* ##CHRIS 2026-10-12 (decision 34, addition): --gui-shot, before the frame is shown */
             SDL_RenderPresent(_renderer);
+            if (gui_t_first >= 0.0) gui_frames++;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
             if (cli_demo_mode) {
                 if (cli_render_paper) demo_echo_stage_change();
                 /* ##CHRIS 2026-09-19: fire on the STAGE, not on a step count. A count guesses when
@@ -20442,6 +22985,19 @@ void simulation_loop() {
             SDL_Delay(5);
         } // ##CHRIS: End of rendering block (skipped in headless mode)
     }
+
+    /* ##CHRIS 2026-10-10 (decision 19, item 2): the scene's statistics (from its first step; events: the last gen3 state's) and,
+       under gen3, its run record with the event hash */
+    if (cli_engine == 3 || cli_gui_stats) {
+        const double wall_s = gui_t_first >= 0.0 ? g3_mono() - gui_t_first : 0.0;
+        const long ev = g3_gui_events();
+        printf("[GUI-STATS] engine=%s window=%d N=%d frames=%ld steps=%ld wall_s=%.3f fps=%.3f sigma_time=%.6g sigma_per_wall_s=%.6g "
+               "events=%ld events_per_wall_s=%.6g engine_s=%.3f time_scale=%.6g\n",
+               cli_engine == 3 ? "gen3" : "gen2", cli_headless ? 0 : 1, particles_active, gui_frames, gui_steps, wall_s,
+               wall_s > 0.0 ? (double)gui_frames / wall_s : 0.0, gui_sigma, wall_s > 0.0 ? gui_sigma / wall_s : 0.0,
+               ev, wall_s > 0.0 ? (double)ev / wall_s : 0.0, cli_engine == 3 ? g3_engine_s : 0.0, (double)time_scale_runtime);
+    }
+    if (cli_engine == 3) g3_run_record("scene");
 
     fclose(logFile);
     fclose(wall_log);
@@ -20774,12 +23330,170 @@ void run_single_test_headless() {
 
 /////////////// MAIN FUNCTION /////////////
 // Main Function
+/* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14, acceptances 2 and 3): --engine-replay=FILE runs a harness cell (a state file
+   written by gen3_m1 / gen3_m2 dump, edmd_core/tests/gen3_state_io.h) THROUGH THE DRIVER'S DISPATCH LAYER: the gen2 container is
+   created with the cell's parameters (built as the harnesses build them), the cell's particles are written into it, and the
+   run goes through edmd_backend_advance_to (gen3 built at the first advance, loaded at the cell's t0), the body changes through
+   edmd_backend_set_divider_motions / edmd_backend_config_pistons, the readers through edmd_backend_params / particles and
+   compute_psi6_from_edmd. It advances to the harness's own targets, applies the harness's changes after the same targets,
+   and prints its event hash next to the harness's.
+     --replay-read-every=m  the readers every m-th target (0: none; default 1): the bodies' state, a synchronised particle copy
+                            (checksum and the smallest surface gap over all pairs, an O(N^2) check), psi6
+     --replay-substeps=n    n advance stops per target interval (the harness's targets themselves are kept exactly); default 1
+   Acceptance 3 replays the same file with other m and n: readers and stops must not change the hash. */
+static int run_gen3_replay(const char* path){
+    FILE* f = fopen(path, "r");
+    if (!f) { fprintf(stderr, "replay: cannot open %s\n", path); return 2; }
+    EDMD_Params prm; memset(&prm, 0, sizeof prm);
+    prm.pp_collisions_enabled = 1; prm.particle_mass = 1.0; prm.kB = 1.0;          /* as the harnesses' params() */
+    char key[64], name[160] = "?", hexs[40] = "";
+    double cell_px = 0.0, t0 = 0.0; long nt = 0, nch = 0, expect_events = -1; int N = 0, ok = 1;
+    double* tg = NULL; long* ch_after = NULL; char (*ch_what)[4] = NULL; double *ch_m = NULL, *ch_v = NULL;
+    EDMD_Particle* P = NULL;
+    if (fscanf(f, "%63s %63s", key, name) != 2 || strcmp(key, "gen3-state") || strcmp(name, "v1")) { fclose(f); fprintf(stderr, "replay: not a gen3-state v1 file\n"); return 2; }
+    while (ok && fscanf(f, "%63s", key) == 1) {
+        if (!strcmp(key, "end")) break;
+        else if (!strcmp(key, "name")) ok = fscanf(f, "%159s", name) == 1;
+        else if (!strcmp(key, "N")) { ok = fscanf(f, "%d", &N) == 1; prm.N = N; }
+        else if (!strcmp(key, "boxW")) ok = fscanf(f, "%la", &prm.boxW) == 1;
+        else if (!strcmp(key, "boxH")) ok = fscanf(f, "%la", &prm.boxH) == 1;
+        else if (!strcmp(key, "radius")) ok = fscanf(f, "%la", &prm.radius) == 1;
+        else if (!strcmp(key, "cell_px")) ok = fscanf(f, "%la", &cell_px) == 1;
+        else if (!strcmp(key, "t0")) ok = fscanf(f, "%la", &t0) == 1;
+        else if (!strcmp(key, "divider_count")) ok = fscanf(f, "%d", &prm.divider_count) == 1 && prm.divider_count >= 0 && prm.divider_count <= EDMD_MAX_DIVIDERS;
+        else if (!strcmp(key, "divider")) {
+            int d = -1; ok = fscanf(f, "%d", &d) == 1 && d >= 0 && d < EDMD_MAX_DIVIDERS
+                 && fscanf(f, "%la %la %la %la %la %la", &prm.divider_x[d], &prm.divider_thickness[d], &prm.divider_mass[d],
+                           &prm.divider_vx[d], &prm.divider_k[d], &prm.divider_xeq[d]) == 6;
+        } else if (!strcmp(key, "pistonL")) ok = fscanf(f, "%d %la %la %la", &prm.has_pistonL, &prm.pistonL_x, &prm.pistonL_vx, &prm.pistonL_mass) == 4;
+        else if (!strcmp(key, "pistonR")) ok = fscanf(f, "%d %la %la %la", &prm.has_pistonR, &prm.pistonR_x, &prm.pistonR_vx, &prm.pistonR_mass) == 4;
+        else if (!strcmp(key, "particles")) {
+            int n = 0; ok = fscanf(f, "%d", &n) == 1 && n == N && N > 0;
+            if (ok) { P = (EDMD_Particle*)calloc((size_t)N, sizeof *P); ok = P != NULL; }
+            for (int i = 0; ok && i < N; ++i) ok = fscanf(f, "%la %la %la %la", &P[i].x, &P[i].y, &P[i].vx, &P[i].vy) == 4;
+        } else if (!strcmp(key, "targets")) {
+            ok = fscanf(f, "%ld", &nt) == 1 && nt > 0 && nt < 100000000L;
+            if (ok) { tg = (double*)malloc((size_t)nt * sizeof *tg); ok = tg != NULL; }
+            for (long k = 0; ok && k < nt; ++k) ok = fscanf(f, "%la", &tg[k]) == 1;
+        } else if (!strcmp(key, "changes")) {
+            ok = fscanf(f, "%ld", &nch) == 1 && nch >= 0 && nch < 10000000L;
+            if (ok && nch) { ch_after = (long*)malloc((size_t)nch * sizeof *ch_after); ch_what = (char (*)[4])malloc((size_t)nch * 4);
+                             ch_m = (double*)malloc((size_t)nch * sizeof(double)); ch_v = (double*)malloc((size_t)nch * sizeof(double));
+                             ok = ch_after && ch_what && ch_m && ch_v; }
+            for (long k = 0; ok && k < nch; ++k) ok = fscanf(f, "%ld %3s %la %la", &ch_after[k], ch_what[k], &ch_m[k], &ch_v[k]) == 4;
+        } else if (!strcmp(key, "expect_hash")) ok = fscanf(f, "%39s", hexs) == 1;
+        else if (!strcmp(key, "expect_events")) ok = fscanf(f, "%ld", &expect_events) == 1;
+        else ok = 0;
+    }
+    fclose(f);
+    if (!ok || !P || !tg) { fprintf(stderr, "replay: malformed state file %s (at '%s')\n", path, key); return 2; }
+    /* the container, as the experiments build it; the cell's particles written into it; gen3 at the cell's t0 and cell width */
+    cli_gen3_cell_px = cell_px; g3_load_time = t0;
+    g_edmd = edmd_backend_create(&prm);
+    if (!g_edmd) { fprintf(stderr, "replay: the container could not be created\n"); return 2; }
+    {
+        EDMD_Particle* C = (EDMD_Particle*)edmd_backend_particles(g_edmd);
+        for (int i = 0; i < N; ++i) { C[i] = P[i]; C[i].coll_count = 0; }
+    }
+    long reads = 0, stops = 0, ich = 0; double gap_min = INFINITY, chk = 0.0;
+    const double t_wall0 = (double)clock() / CLOCKS_PER_SEC;
+    double prev = t0;
+    for (long k = 0; k < nt; ++k) {
+        for (int j = 1; j < cli_replay_substeps; ++j) { edmd_backend_advance_to(g_edmd, prev + (tg[k] - prev) * ((double)j / (double)cli_replay_substeps)); ++stops; }
+        edmd_backend_advance_to(g_edmd, tg[k]); ++stops; prev = tg[k];
+        while (ich < nch && ch_after[ich] == k) {
+            if (!strcmp(ch_what[ich], "D")) { const double m = ch_m[ich], v = ch_v[ich]; edmd_backend_set_divider_motions(g_edmd, 1, &m, &v); }
+            else if (!strcmp(ch_what[ich], "PR")) {
+                const EDMD_Params* q = edmd_backend_params(g_edmd);
+                edmd_backend_config_pistons(g_edmd, q->has_pistonL, q->pistonL_x, q->pistonL_vx, q->pistonL_mass,
+                                            q->has_pistonR, q->pistonR_x, ch_v[ich], ch_m[ich]);
+            } else { fprintf(stderr, "replay: unknown change '%s'\n", ch_what[ich]); return 2; }
+            ++ich;
+        }
+        if (cli_replay_read_every > 0 && (k + 1) % cli_replay_read_every == 0) {   /* the readers */
+            const EDMD_Params* q = edmd_backend_params(g_edmd);
+            for (int d = 0; d < q->divider_count; ++d) chk += q->divider_x[d];
+            const EDMD_Particle* Q = edmd_backend_particles(g_edmd);
+            for (int i = 0; i < N; ++i) {
+                chk += Q[i].x + Q[i].y;
+                for (int jj = i + 1; jj < N; ++jj) {
+                    const double dx = Q[i].x - Q[jj].x, dy = Q[i].y - Q[jj].y;
+                    const double g = sqrt(dx * dx + dy * dy) - 2.0 * prm.radius;
+                    if (g < gap_min) gap_min = g;
+                }
+            }
+            const Psi6Result pr = compute_psi6_from_edmd(g_edmd, PSI6_CUTOFF_SIGMA);
+            chk += pr.global_abs;
+            ++reads;
+        }
+    }
+    const double secs = (double)clock() / CLOCKS_PER_SEC - t_wall0;
+    const EDMD3_Health* H = edmd3_health(g_edmd3);
+    const long ev = H->ev_pair + H->ev_wall + H->ev_cross + H->ev_div + H->ev_piston + H->ev_band;
+    char got[40]; snprintf(got, sizeof got, "%016llx", (unsigned long long)edmd3_event_hash(g_edmd3));
+    const int match = !strcmp(got, hexs) && ev == expect_events;
+    printf("[EDMD3-REPLAY] %s: hash %s, harness %s; events %ld, harness %ld: %s; targets %ld, changes %ld, advance stops %ld "
+           "(substeps %d), reader passes %ld (every %d targets), smallest surface gap seen by the readers %.3g px, %.1f s\n",
+           name, got, hexs, ev, expect_events, match ? "MATCH" : "**MISMATCH**", nt, nch, stops, cli_replay_substeps, reads,
+           cli_replay_read_every, gap_min, secs);
+    (void)chk;
+    char rid[200]; snprintf(rid, sizeof rid, "replay %s", name);
+    g3_run_record(rid);
+    edmd_backend_destroy(g_edmd); g_edmd = NULL;
+    free(P); free(tg); free(ch_after); free(ch_what); free(ch_m); free(ch_v);
+    return match ? 0 : 1;
+}
+
+/* ##CHRIS 2026-10-10 (plan-author decision 17; 261012 sec. 4.7.40) -- PROVISIONAL: --gen3-psi6-snapshots=FILE reads a snapshot file
+   (G3SNAP1, g3_snapshot_sample: positions and divider centres in sigma) and prints for every snapshot the per-compartment psi6 of
+   psi6_compartments() -- the code of the run's --gen3-psi6-compartments columns, in the same format -- with the global |psi6| of
+   the same positions. No simulation and no engine. Its acceptance use: on P4a's snapshots it must separate the compartment that
+   turned from the one that did not (sec. 4.7.37). */
+static int run_gen3_psi6_snapshots(const char* path){
+    FILE* f = fopen(path, "rb");
+    if (!f) { fprintf(stderr, "psi6 snapshots: cannot open %s\n", path); return 2; }
+    char magic[8]; int32_t N = 0, nd = 0; double hd[4];
+    if (fread(magic, 1, 8, f) != 8 || memcmp(magic, "G3SNAP1\n", 8) != 0 || fread(&N, sizeof N, 1, f) != 1 || fread(&nd, sizeof nd, 1, f) != 1
+        || fread(hd, sizeof hd, 1, f) != 1 || N < 1 || nd < 0 || nd + 1 > EDMD3_MAX_COMPARTMENTS || !(hd[2] > 0.0)) {
+        fprintf(stderr, "psi6 snapshots: %s is not a G3SNAP1 file\n", path); fclose(f); return 2;
+    }
+    double* xy = (double*)malloc((size_t)N * 2 * sizeof *xy); double* xs = (double*)malloc((size_t)N * sizeof *xs);
+    double* ys = (double*)malloc((size_t)N * sizeof *ys);
+    if (!xy || !xs || !ys) { fprintf(stderr, "psi6 snapshots: out of memory\n"); fclose(f); return 2; }
+    printf("# --gen3-psi6-snapshots %s: N %d, dividers %d, box %.10g x %.10g sigma, radius %.10g sigma, interval %g sigma-time; "
+           "neighbours within %g sigma; build %s\n", path, (int)N, (int)nd, hd[0], hd[1], hd[2], hd[3], (double)PSI6_CUTOFF_SIGMA, BUILD_GIT);
+    printf("t_sigma,phase,psi6_global");
+    for (int c = 0; c <= nd; ++c) printf(",N_%d,psi6_%d,psi6_orient_deg_%d,psi6_local_%d", c, c, c, c);
+    printf("\n");
+    long k = 0; int bad = 0;
+    for (;;) {
+        double t; int32_t ph, ndk; double dv[EDMD3_MAX_COMPARTMENTS];
+        if (fread(&t, sizeof t, 1, f) != 1) break;                                  /* the end of the file */
+        if (fread(&ph, sizeof ph, 1, f) != 1 || fread(&ndk, sizeof ndk, 1, f) != 1 || ndk != nd
+            || (ndk > 0 && fread(dv, sizeof *dv, (size_t)ndk, f) != (size_t)ndk) || fread(xy, sizeof *xy, (size_t)N * 2, f) != (size_t)N * 2) {
+            bad = 1; break;
+        }
+        for (int i = 0; i < N; ++i) { xs[i] = xy[2 * i]; ys[i] = xy[2 * i + 1]; }
+        Psi6Comp pc[EDMD3_MAX_COMPARTMENTS]; double g = NAN;
+        const int nc = psi6_compartments(xs, ys, N, 2.0 * hd[2], dv, ndk, PSI6_CUTOFF_SIGMA, pc, EDMD3_MAX_COMPARTMENTS, &g);
+        if (nc != nd + 1) { bad = 1; break; }
+        printf("%.6f,%s,%.6f", t, ph ? "record" : "hold", g);
+        for (int c = 0; c < nc; ++c) printf(",%d,%.6f,%.3f,%.6f", pc[c].n, pc[c].abs, pc[c].orient_deg, pc[c].local);
+        printf("\n"); k++;
+    }
+    fclose(f); free(xy); free(xs); free(ys);
+    printf("# %ld snapshots%s\n", k, bad ? "; STOP: the file is truncated or inconsistent after them" : "");
+    return bad ? 1 : 0;
+}
+
 int main(int argc, char* argv[]) {
 
     g_main_argc = argc;
     g_main_argv = argv;
 
     parse_cli_options(argc, argv);
+    if (cli_engine_replay) return run_gen3_replay(cli_engine_replay);   /* ##CHRIS 2026-10-09 (M3): acceptances 2, 3 */
+    if (cli_gen3_psi6_snaps) return run_gen3_psi6_snapshots(cli_gen3_psi6_snaps);   /* ##CHRIS 2026-10-10 (decision 17): provisional */
     init_output_dirs_from_argv0(argv[0]);
     // Record the invoking command in the current working directory as well
     // (useful when external scripts set cwd to a per-run output folder).
@@ -20814,6 +23528,7 @@ int main(int argc, char* argv[]) {
         if (!font_small && !cli_quiet) {
             printf("⚠️  Failed to load small font (continuing): %s\n", TTF_GetError());
         }
+        gui_open_hi_fonts();   /* ##CHRIS 2026-10-12 (decision 34, addition, item D) */
     } else {
         if (!cli_quiet) {
             printf("Running in headless mode (no GUI, CSV output enabled)\n");
@@ -20856,6 +23571,101 @@ int main(int argc, char* argv[]) {
         energy_measurement.spring_constant = 0.0f;
     }
 
+    /* ##CHRIS 2026-10-09 (M3, 261012 sec. 4.7.14): --engine=gen3 runs only where it is wired and tested -- headless, pure EDMD,
+       the speed-of-sound or the energy-transfer experiment -- and the gen2 schedule options do not apply to it. Anything else
+       stops here instead of running a path the engine never saw. */
+    /* ##CHRIS 2026-10-10 (decision 19, item 2): PROVISIONAL -- the interactive scene (simulation_loop, in the window or with
+       --headless; the dispatch below) is wired to gen3 as a display feature (the block before keysSimulation) */
+    const int run_scene = !cli_single_test_mode
+                          && (cli_force_no_experiments || (cli_experiment_preset != EXPERIMENT_PRESET_SIMPLE_BOX_PREDICTION
+                                                           && cli_experiment_preset != EXPERIMENT_PRESET_ENERGY_TRANSFER
+                                                           && cli_experiment_preset != EXPERIMENT_PRESET_SZILARD_ENGINE
+                                                           && !enable_speed_of_sound_experiments));
+    if (!run_scene && (cli_gui_stats || cli_gui_run_seconds > 0.0 || cli_gui_time_scale > 0.0 || cli_gui_keys)) {
+        fprintf(stderr, "STOP: --gui-stats, --gui-run-seconds, --gui-time-scale and --gui-keys belong to the interactive scene (--show-simulation)\n");
+        exit(2);
+    }
+    if ((cli_gui_window_w > 0 || cli_gui_ui_scale > 0.0f || gui_shot_n > 0) && (!run_scene || cli_headless)) {   /* ##CHRIS 2026-10-12 (decision 34, addition) */
+        fprintf(stderr, "STOP: --gui-window, --gui-ui-scale and --gui-shot belong to the interactive scene in the window (--show-simulation, no --headless)\n");
+        exit(2);
+    }
+    if (cli_engine == 3) {
+        const char* why = NULL;
+        const int sos = !cli_force_no_experiments && enable_speed_of_sound_experiments
+                        && cli_experiment_preset != EXPERIMENT_PRESET_SIMPLE_BOX_PREDICTION
+                        && cli_experiment_preset != EXPERIMENT_PRESET_ENERGY_TRANSFER
+                        && cli_experiment_preset != EXPERIMENT_PRESET_SZILARD_ENGINE;
+        const int et = !cli_force_no_experiments && cli_experiment_preset == EXPERIMENT_PRESET_ENERGY_TRANSFER;
+        if (!cli_headless && !run_scene)   /* ##CHRIS 2026-10-10 (decision 19, item 2): was "the GUI is not wired to gen3" */
+            why = "with the window gen3 runs the interactive scene only (--show-simulation); the experiments need --headless";
+        else if (sim_mode != MODE_EDMD) why = "gen3 is an event-driven engine (use --mode=edmd)";
+        else if (cli_single_test_mode) why = "--single-test is not wired to gen3";
+        else if (!sos && !et && !run_scene)
+            why = "only the speed-of-sound and the energy-transfer experiments and the interactive scene (--show-simulation) are wired to gen3";
+        else if (run_scene && cli_experiment_preset == EXPERIMENT_PRESET_SZILARD_ENGINE)   /* ##CHRIS (decision 19, item 2) */
+            why = "the Szilard scene needs species and semipermeable gates, which gen3 does not have";
+        else if (run_scene && cli_experiment_preset == EXPERIMENT_PRESET_PARTICLELIFE)
+            why = "particle-life is not a hard-disk scene";
+        else if (run_scene && (heatbath_enabled || andersen_enabled))
+            why = "gen3 has no heat bath and no Andersen thermostat (--hb-temp)";
+        else if (cli_legacy_resched || cli_resched_audit) why = "--legacy-resched and --resched-audit are gen2 schedule options";
+        else if (et && (cli_gen3_exact_box || cli_gen3_seeding || cli_gen3_dump_initial) && !(cli_gen3_exact_box && cli_gen3_seeding == 1))   /* ##CHRIS 2026-10-14 (decision 50, b) */
+            why = "in the energy-transfer experiment (the held path) --gen3-exact-box and --gen3-seeding=lattice go together (the driver's seeder fills the 1/48-grid box), and --gen3-dump-initial needs both";
+        else if (et && cli_gen3_exact_box && (cli_num_walls != 1 || !(cli_l0_d > 0.0) || !cli_seed_set
+                                              || !(cli_wall_positions_d[0] > 0.0 && cli_wall_positions_d[0] < 2.0 * cli_l0_d)))   /* ##CHRIS 2026-10-14 (decision 50, a, b) */
+            why = "the held path on the exact box (the energy-transfer experiment) needs --num-walls=1, --l0, a --wall-positions value inside (0, 2 L0) and --seed";
+        else if ((cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial) && !sos && !et)   /* ##CHRIS (decision 50, a, b): and the held path */
+            why = "--gen3-seeding, --gen3-exact-box and --gen3-dump-initial are wired to the speed-of-sound experiment and to the held path (the energy-transfer experiment) only";
+        else if (cli_gen3_held_readout && !(et && cli_gen3_exact_box))   /* ##CHRIS 2026-10-14 (decision 50, c) */
+            why = "--gen3-held-readout is wired to the held path on the exact box (the energy-transfer experiment with --gen3-exact-box) only";
+        else if (cli_gen3_held_readout && cli_gen3_held_readout >= wall_hold_steps)
+            why = "--gen3-held-readout=K needs K below --wall-hold-steps (T_eq inside the hold)";
+        else if ((cli_gen3_ckpt_phase >= 0 || cli_gen3_restart) && !sos)   /* ##CHRIS 2026-10-09 (stage H) */
+            why = "--gen3-checkpoint and --gen3-restart are wired to the speed-of-sound experiment only";
+        else if (cli_gen3_ckpt_stop && cli_gen3_ckpt_phase < 0) why = "--gen3-checkpoint-stop needs --gen3-checkpoint";
+        else if ((cli_gen3_virial_blocks > 0.0 || cli_gen3_snapshots > 0.0) && !sos)   /* ##CHRIS (decision 12, part 3a) */
+            why = "--gen3-virial-blocks and --gen3-snapshots are wired to the speed-of-sound experiment only";
+        else if (cli_gen3_psi6_comp && !sos)   /* ##CHRIS 2026-10-10 (decision 17; since decision 18 item 1 a checkpoint carries it) */
+            why = "--gen3-psi6-compartments is wired to the speed-of-sound experiment only";
+        else if (cli_gen3_m4b_set && cli_gen3_seeding != 2)   /* ##CHRIS 2026-10-09 (decision 13, item 4): M4b */
+            why = "--gen3-compress-eta0, --gen3-compress-melt and --gen3-compress-speed need --gen3-seeding=compressed";
+        else if (cli_gen3_seeding == 2 && !cli_gen3_exact_box)
+            why = "--gen3-seeding=compressed needs --gen3-exact-box (the carry into the run's box is exact only in the exact box)";
+        else if (cli_gen3_seeding == 2 && cli_temperature_segments && cli_temperature_segments_count > 0)
+            why = "--gen3-seeding=compressed sets KE = N_s kT per compartment; per-segment temperatures are not wired to it";
+        else if (cli_gen3_cryst >= 0 && cli_gen3_seeding != 1)   /* ##CHRIS 2026-10-10 (decision 18, M4c) */
+            why = "--gen3-lattice-orientation selects the M4 lattice start's orientation: it needs --gen3-seeding=lattice";
+        if (why) g3_stop(why);
+    }
+    if (cli_engine != 3 && cli_gen3_cryst >= 0) {   /* ##CHRIS 2026-10-10 (decision 18, M4c) */
+        fprintf(stderr, "STOP: --gen3-lattice-orientation needs --engine=gen3 (gen2's seeding is frozen)\n");
+        exit(2);
+    }
+    if (cli_engine != 3 && cli_gen3_m4b_set) {   /* ##CHRIS 2026-10-09 (decision 13, item 4) */
+        fprintf(stderr, "STOP: --gen3-compress-eta0, --gen3-compress-melt and --gen3-compress-speed need --engine=gen3\n");
+        exit(2);
+    }
+    if (cli_engine != 3 && (cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial)) {   /* ##CHRIS (stage C, M4) */
+        fprintf(stderr, "STOP: --gen3-seeding, --gen3-exact-box and --gen3-dump-initial need --engine=gen3 (gen2's seeding is frozen)\n");
+        exit(2);
+    }
+    if (cli_engine != 3 && (cli_gen3_ckpt_phase >= 0 || cli_gen3_ckpt_stop || cli_gen3_restart)) {   /* ##CHRIS 2026-10-09 (stage H) */
+        fprintf(stderr, "STOP: --gen3-checkpoint, --gen3-checkpoint-stop and --gen3-restart need --engine=gen3\n");
+        exit(2);
+    }
+    if (cli_engine != 3 && (cli_gen3_virial_blocks > 0.0 || cli_gen3_snapshots > 0.0)) {   /* ##CHRIS 2026-10-09 (decision 12, part 3a) */
+        fprintf(stderr, "STOP: --gen3-virial-blocks and --gen3-snapshots need --engine=gen3\n");
+        exit(2);
+    }
+    if (cli_engine != 3 && cli_gen3_held_readout) {   /* ##CHRIS 2026-10-14 (decision 50, c) */
+        fprintf(stderr, "STOP: --gen3-held-readout needs --engine=gen3\n");
+        exit(2);
+    }
+    if (cli_engine != 3 && cli_gen3_psi6_comp) {   /* ##CHRIS 2026-10-10 (decision 17): provisional */
+        fprintf(stderr, "STOP: --gen3-psi6-compartments needs --engine=gen3\n");
+        exit(2);
+    }
+
     // Single-test mode takes priority over experiment modes
     if (cli_single_test_mode) {
         run_single_test_headless();
@@ -20884,6 +23694,7 @@ int main(int argc, char* argv[]) {
 	        SDL_DestroyRenderer(_renderer);
 	        SDL_DestroyWindow(_window);
 	        //free(fft_cfg);
+            for (int i = 0; i < 2; ++i) if (gui_font_hi[i]) { TTF_CloseFont(gui_font_hi[i]); gui_font_hi[i] = NULL; }   /* ##CHRIS (decision 34, addition, item D) */
             if (font_small) { TTF_CloseFont(font_small); font_small = NULL; }
 	        TTF_CloseFont(font);
 	        TTF_Quit();

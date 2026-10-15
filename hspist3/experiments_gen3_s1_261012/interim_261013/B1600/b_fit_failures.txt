@@ -1,0 +1,83 @@
+# INTERIM -- group B1600: the nu_d fit failures (s1_fitfail_261012.py; the fit repeated on the Mac: python 3.13.2, scipy 1.16.2, numpy 2.3.3)
+
+folders with nud_runs.csv: 144; by fit failures: 131 with 0, 6 with 1, 2 with 2, 3 with 3, 1 with 4, 1 with 5
+
+## B_N1600_eta0.100000, M = 4800 (alpha 3; N 1600, eta 0.100000): 5 fit failures
+
+- trajectories: expected 25, present 25, excluded 0 (health rule), missing 0, fit failures 5, used 20, lost 5: the group rule FLAGS it (more than 2 lost): it is left out of the cell's fits
+- Q of the folder: Q_k = pi nu_d-bar tau_r over its 20 used seeds = 151.41; the KOA reduction's Q_meanfit over all 25 trajectories = 169.25 (fit_ok 1, n 25)
+- the fit's inputs: 25 ACFs cut to 642 lags, dt 32.0981, nu_ref 0.0009739539 (the folder's argmax mean)
+
+| run | seed | nu_arg | the registered fit on the Mac | criterion | least_squares (information): status, evaluations | last iterate: nu_d / nu_ref, tau_r, Q = omega tau_r / 2, A, B, tau_T, phi | bounds it ends on | sign changes (10 periods) |
+|---|---|---|---|---|---|---|---|---|
+| 3 | 3267153994 | 0.0009805556 | CONVERGES on the Mac: nu_d 0.0009780025 (KOA: fit_ok 0) | - | 2 (`ftol` termination condition is satisfied.), 83846 | 1.0042, 1e+05, 307, 0.00458, 0.998, 4.512e+04, -0.013 | none | 20 |
+| 6 | 1805575771 | 0.0009757014 | CONVERGES on the Mac: nu_d 0.0009769126 (KOA: fit_ok 0) | - | 2 (`ftol` termination condition is satisfied.), 32267 | 1.0030, 3.746e+04, 115, 0.0241, 0.981, 2.286e+04, +0.011 | none | 20 |
+| 7 | 1160351521 | 0.0009805556 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0032, 7618, 23.4, 0.231, 1.25, 2053, +0.028 | none | 20 |
+| 15 | 182838808 | 0.0009708471 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 0.9945, 8101, 24.7, 0.226, 1.27, 2053, +0.013 | none | 20 |
+| 20 | 3033384993 | 0.0009757014 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0026, 7666, 23.5, 0.234, 1.25, 2053, +0.027 | none | 20 |
+
+the repetition check: fit_ok equal on the Mac and on KOA for 22 of 25 trajectories; largest |nu_d (Mac) / nu_d (KOA) - 1| over the 19 fitted on both: 2.29e-10 (601 s)
+
+## B_N1600_eta0.150000, M = 32000 (alpha 20; N 1600, eta 0.150000): 4 fit failures
+
+- trajectories: expected 25, present 25, excluded 0 (health rule), missing 0, fit failures 4, used 21, lost 4: the group rule FLAGS it (more than 2 lost): it is left out of the cell's fits
+- Q of the folder: Q_k = pi nu_d-bar tau_r over its 21 used seeds = 355.10; the KOA reduction's Q_meanfit over all 25 trajectories = 37.13 (fit_ok 1, n 25)
+- the fit's inputs: 25 ACFs cut to 644 lags, dt 47.0102, nu_ref 0.0006680941 (the folder's argmax mean)
+
+| run | seed | nu_arg | the registered fit on the Mac | criterion | least_squares (information): status, evaluations | last iterate: nu_d / nu_ref, tau_r, Q = omega tau_r / 2, A, B, tau_T, phi | bounds it ends on | sign changes (10 periods) |
+|---|---|---|---|---|---|---|---|---|
+| 5 | 2049647402 | 0.0006641291 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 0.9956, 9357, 19.6, 0.23, 1.24, 2994, +0.042 | none | 20 |
+| 11 | 3622816192 | 0.0006674333 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 0.9968, 8893, 18.6, 0.247, 1.17, 2994, +0.027 | none | 20 |
+| 15 | 1718385429 | 0.0006641291 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 0.9954, 9006, 18.8, 0.239, 1.19, 2994, +0.034 | none | 20 |
+| 19 | 1022272311 | 0.0006674333 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 0.9962, 8962, 18.7, 0.243, 1.18, 2994, +0.023 | none | 20 |
+
+the repetition check: fit_ok equal on the Mac and on KOA for 24 of 25 trajectories; largest |nu_d (Mac) / nu_d (KOA) - 1| over the 20 fitted on both: 4.23e-10 (582 s)
+
+## B_N1600_eta0.050000, M = 3200 (alpha 2; N 1600, eta 0.050000): 3 fit failures
+
+- trajectories: expected 25, present 25, excluded 0 (health rule), missing 0, fit failures 3, used 22, lost 3: the group rule FLAGS it (more than 2 lost): it is left out of the cell's fits
+- Q of the folder: Q_k = pi nu_d-bar tau_r over its 22 used seeds = 136.65; the KOA reduction's Q_meanfit over all 25 trajectories = 139.15 (fit_ok 1, n 25)
+- the fit's inputs: 25 ACFs cut to 641 lags, dt 60.0592, nu_ref 0.0005214957 (the folder's argmax mean)
+
+| run | seed | nu_arg | the registered fit on the Mac | criterion | least_squares (information): status, evaluations | last iterate: nu_d / nu_ref, tau_r, Q = omega tau_r / 2, A, B, tau_T, phi | bounds it ends on | sign changes (10 periods) |
+|---|---|---|---|---|---|---|---|---|
+| 13 | 586195176 | 0.0005198322 | CONVERGES on the Mac: nu_d 0.0005200574 (KOA: fit_ok 0) | - | 3 (`xtol` termination condition is satisfied.), 94 | 0.9972, 1.427e+04, 23.3, 0.121, 0.938, 2971, +0.067 | none | 20 |
+| 15 | 1968531834 | 0.0005198322 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 0.9963, 1.055e+04, 17.2, 0.25, 1.13, 3835, +0.022 | none | 20 |
+| 20 | 3312092276 | 0.0005224314 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0031, 1.216e+04, 20, 0.177, 1.32, 3835, +0.027 | none | 20 |
+
+the repetition check: fit_ok equal on the Mac and on KOA for 24 of 25 trajectories; largest |nu_d (Mac) / nu_d (KOA) - 1| over the 22 fitted on both: 1.75e-03 (328 s)
+
+## B_N1600_eta0.100000, M = 8000 (alpha 5; N 1600, eta 0.100000): 3 fit failures
+
+- trajectories: expected 25, present 25, excluded 0 (health rule), missing 0, fit failures 3, used 22, lost 3: the group rule FLAGS it (more than 2 lost): it is left out of the cell's fits
+- Q of the folder: Q_k = pi nu_d-bar tau_r over its 22 used seeds = 164.52; the KOA reduction's Q_meanfit over all 25 trajectories = 168.45 (fit_ok 1, n 25)
+- the fit's inputs: 25 ACFs cut to 642 lags, dt 40.582, nu_ref 0.0007719986 (the folder's argmax mean)
+
+| run | seed | nu_arg | the registered fit on the Mac | criterion | least_squares (information): status, evaluations | last iterate: nu_d / nu_ref, tau_r, Q = omega tau_r / 2, A, B, tau_T, phi | bounds it ends on | sign changes (10 periods) |
+|---|---|---|---|---|---|---|---|---|
+| 7 | 1253826722 | 0.000775685 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0022, 1.109e+04, 27, 0.177, 1.37, 2591, +0.062 | none | 20 |
+| 11 | 2470257322 | 0.000771845 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0027, 8759, 21.3, 0.225, 1.26, 2591, +0.029 | none | 20 |
+| 23 | 2444559562 | 0.000775685 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0024, 9583, 23.3, 0.206, 1.33, 2591, +0.029 | none | 20 |
+
+the repetition check: fit_ok equal on the Mac and on KOA for 24 of 25 trajectories; largest |nu_d (Mac) / nu_d (KOA) - 1| over the 21 fitted on both: 1.98e-03 (536 s)
+
+## B_N1600_eta0.150000, M = 16000 (alpha 10; N 1600, eta 0.150000): 3 fit failures
+
+- trajectories: expected 25, present 25, excluded 0 (health rule), missing 0, fit failures 3, used 22, lost 3: the group rule FLAGS it (more than 2 lost): it is left out of the cell's fits
+- Q of the folder: Q_k = pi nu_d-bar tau_r over its 22 used seeds = 202.95; the KOA reduction's Q_meanfit over all 25 trajectories = 209.59 (fit_ok 1, n 25)
+- the fit's inputs: 25 ACFs cut to 644 lags, dt 33.5152, nu_ref 0.0009346941 (the folder's argmax mean)
+
+| run | seed | nu_arg | the registered fit on the Mac | criterion | least_squares (information): status, evaluations | last iterate: nu_d / nu_ref, tau_r, Q = omega tau_r / 2, A, B, tau_T, phi | bounds it ends on | sign changes (10 periods) |
+|---|---|---|---|---|---|---|---|---|
+| 6 | 3851749024 | 0.0009361771 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0023, 9023, 26.6, 0.201, 1.25, 2140, +0.005 | none | 20 |
+| 17 | 4181079653 | 0.0009408117 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0029, 7794, 23, 0.228, 1.25, 2140, +0.025 | none | 20 |
+| 24 | 3354008030 | 0.0009361771 | raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. | no convergence within maxfev = 200000 evaluations | 0 (The maximum number of function evaluations is exceeded.), 200000 | 1.0040, 7682, 22.6, 0.233, 1.24, 2140, +0.017 | none | 20 |
+
+the repetition check: fit_ok equal on the Mac and on KOA for 25 of 25 trajectories; largest |nu_d (Mac) / nu_d (KOA) - 1| over the 22 fitted on both: 5.15e-10 (475 s)
+
+## the group rule in cell B_N1600_eta0.050000: flagged 3200; the masses alpha >= 1 left for E1: 7 of 8 (left: 1600, 4800, 8000, 12000, 16000, 24000, 32000; out: 3200): 5 or more -- the cell keeps its E1 value
+
+## the group rule in cell B_N1600_eta0.100000: flagged 4800, 8000; the masses alpha >= 1 left for E1: 6 of 8 (left: 1600, 3200, 12000, 16000, 24000, 32000; out: 4800, 8000): 5 or more -- the cell keeps its E1 value
+
+## the group rule in cell B_N1600_eta0.150000: flagged 32000, 16000; the masses alpha >= 1 left for E1: 6 of 8 (left: 1600, 3200, 4800, 8000, 12000, 24000; out: 16000, 32000): 5 or more -- the cell keeps its E1 value
+

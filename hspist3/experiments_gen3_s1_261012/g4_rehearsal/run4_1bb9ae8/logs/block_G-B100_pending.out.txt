@@ -1,0 +1,3 @@
+940999_7 PENDING
+REFUSED: squeue failed or lists a gen3-s1-B100 or gen3-s1-merge-B100 job: 940999_7 PENDING
+B100: THIS PASTE DID NOT SUBMIT THE MERGE

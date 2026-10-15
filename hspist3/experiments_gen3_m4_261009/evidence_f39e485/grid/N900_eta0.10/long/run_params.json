@@ -1,0 +1,20 @@
+{
+  "mode": "edmd",
+  "particles": 900,
+  "L0": 117.809723,
+  "height": 30.000000,
+  "num_walls": 1,
+  "wall_mass_factor": 300.000000,
+  "wall_thickness": 0.050000,
+  "wall_thickness_vis": 0.050000,
+  "temperature": 100,
+  "kbt1": 1,
+  "kB_effective": 0.00999999978,
+  "kBT": 1,
+  "dt": 0.400000006,
+  "output_dt": 1,
+  "time_span": -1,
+  "units": "reduced",
+  "radius_sigma": 0.500000,
+  "pixels_per_sigma": 24.000000
+}

@@ -1,0 +1,333 @@
+# Every key line ([EDMD3...], [EDMD-CONTACT], [GUI-STATS], [GEN3-GUI], [GUI-LIMIT], [GUI-SHOT], [GUI-KEYS], [ENERGY], the scene reset and spring lines, 'Invalid wall_x', STOP, Failed, [warn]) of the decision 34 addition's runs (the logs are .gitignored), and the runner's log in full; extracted 2026-10-12 01:20 HST
+
+
+== evidence_8bc9ac9/h0/default/ctrl_leg/audit/run.log (exit -)
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== evidence_8bc9ac9/h0/default/ctrl_leg/plain/run.log (exit -)
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== evidence_8bc9ac9/h0/default/ctrl_leg/ref/run.log (exit -)
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== evidence_8bc9ac9/h0/default/ctrl_min/audit/run.log (exit -)
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== evidence_8bc9ac9/h0/default/ctrl_min/plain/run.log (exit -)
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== evidence_8bc9ac9/h0/default/ctrl_min/ref/run.log (exit -)
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== evidence_8bc9ac9/h0/default_runner/run.log (exit 0)
+
+
+== evidence_8bc9ac9/h0/gen2flag/ctrl_leg/audit/run.log (exit -)
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== evidence_8bc9ac9/h0/gen2flag/ctrl_leg/plain/run.log (exit -)
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== evidence_8bc9ac9/h0/gen2flag/ctrl_leg/ref/run.log (exit -)
+[EDMD-CONTACT] executed events 104776; max abs(contact distance) [px]: disk-disk 5.198e-12, outer walls 3.013e-12, divider 3.013e-12, pistons 0.000e+00
+
+== evidence_8bc9ac9/h0/gen2flag/ctrl_min/audit/run.log (exit -)
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== evidence_8bc9ac9/h0/gen2flag/ctrl_min/plain/run.log (exit -)
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== evidence_8bc9ac9/h0/gen2flag/ctrl_min/ref/run.log (exit -)
+[EDMD-CONTACT] executed events 104866; max abs(contact distance) [px]: disk-disk 4.739e-12, outer walls 4.025e-12, divider 2.274e-12, pistons 0.000e+00
+
+== evidence_8bc9ac9/h0/gen2flag_runner/run.log (exit 0)
+
+
+== evidence_8bc9ac9/h1/run.log (exit 0)
+
+
+== evidence_8bc9ac9/limit/new_window_B/run.log (exit 0)
+🔩 spring: k = 1000 /px^2 = 576000 kT/sigma^2 | M_wall = 50 | omega_w = 107.33, T_w = 0.05854 sigma-time | thermal rms = 0.001318 sigma
+🔬 Energy measurement initialized: mode=spring, equilibrium at 808.00
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 6.03218e-09 px^2, tol_face 2.92857e-10 px, band margin 5.1816e-06 px, v_ref 40 px/unit
+[ENERGY] step=500  KE_p=3.624359e+02  KE_w=3.756408e+01  KE_tot=4.000000e+02  vx_wall=-1.22579  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=1000  KE_p=3.430734e+02  KE_w=5.692663e+01  KE_tot=4.000000e+02  vx_wall=-1.50899  E_spring=0.000000e+00  E_tot=4.000000e+02
+[GUI-LIMIT] step 1241, t = 20.683334 sigma-time: a divider (x = 0.294166 sigma, v = -1.63411 sigma per sigma-time) would reach the left outer wall within the next step; the window pauses (P and SPACE do not resume; ESC or the F3 panel's APPLY rebuilds the scene, Q ends it)
+[EDMD3-LEDGER] momentum x: residual 5.68e-14, scale 1.13e-11, ratio 0.00504; y: residual -1.78e-14, scale 1.93e-12, ratio 0.00921; energy: residual 5.68e-14, scale 2.61e-11, ratio 0.00218 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] scene, a divider at the end of its range: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=18121 full_checks=1262 local_worst=-1.58e-13 full_worst=-1.78e-15 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=8.17e-14 ev_pair=4198 ev_wall=538 ev_cross=9141 ev_div=46 ev_piston=0 ev_band=8 ev_stale=18011 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=1765 validator_every=60 hash=20b68830dd4d0d69 t_end=496.40000739693642 engine=gen3 build="8bc9ac9" target=mac-O3-e0pre run_s=0.481 engine_s=0.009 driver_share=0.9815
+[GUI-SHOT] /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d34a/shots_8bc9ac9/LM_window_B_pause.bmp (4112 x 2462 device pixels, UI scale 2)
+[GUI-STATS] engine=gen3 window=1 N=400 frames=1077 steps=1241 wall_s=30.030 fps=35.864 sigma_time=20.6833 sigma_per_wall_s=0.688751 events=13931 events_per_wall_s=463.899 engine_s=0.009 time_scale=1000
+[EDMD3-LEDGER] momentum x: residual 5.68e-14, scale 1.13e-11, ratio 0.00504; y: residual -1.78e-14, scale 1.93e-12, ratio 0.00921; energy: residual 5.68e-14, scale 2.61e-11, ratio 0.00218 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=18121 full_checks=1262 local_worst=-1.58e-13 full_worst=-1.78e-15 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=8.17e-14 ev_pair=4198 ev_wall=538 ev_cross=9141 ev_div=46 ev_piston=0 ev_band=8 ev_stale=18011 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=1765 validator_every=60 hash=20b68830dd4d0d69 t_end=496.40000739693642 engine=gen3 build="8bc9ac9" target=mac-O3-e0pre run_s=30.030 engine_s=0.009 driver_share=0.9997
+
+== evidence_8bc9ac9/limit/old_bin_7f6adca_window/run.log (exit 1)
+🔩 spring: k = 1000 /px^2 = 576000 kT/sigma^2 | M_wall = 50 | omega_w = 107.33, T_w = 0.05854 sigma-time | thermal rms = 0.001318 sigma
+🔬 Energy measurement initialized: mode=spring, equilibrium at 808.00
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 6.03218e-09 px^2, tol_face 2.92857e-10 px, band margin 5.1816e-06 px, v_ref 40 px/unit
+[ENERGY] step=500  KE_p=3.624359e+02  KE_w=3.756408e+01  KE_tot=4.000000e+02  vx_wall=-1.22579
+[ENERGY] step=1000  KE_p=3.430734e+02  KE_w=5.692663e+01  KE_tot=4.000000e+02  vx_wall=-1.50899
+🚨 Invalid wall_x = 184.454788
+
+== evidence_8bc9ac9/p4a_A1/run.log (exit 0)
+[EDMD3-RUN] L0=10.6 M=300 run=0 seed=2023561687: engine=gen3 build="8bc9ac9" target=mac-O3-e0pre cell_px=32 origin_shift=8192 u_t=0x1p-39 K=4 box=509.44745733888533 x 480 px exact_box=1 eta=0.73999999999999999 N=400 N_L=200 N_R=200 seeding=lattice left=[orient parallel rows alternate n_s 19 n_r 11 a_s 12.7061864 a_r 45.4587627 g 0.706186432 s 1.41237286 n_vac 0 jitter 0.353093216 px] right=[orient parallel rows alternate n_s 19 n_r 11 a_s 12.7061864 a_r 45.4587627 g 0.706186432 s 1.41237286 n_vac 0 jitter 0.353093216 px] jitter_f=0.25 T_eq=100000.001 sigma-time (held divider, 6000000 steps) record=1.00000001 sigma-time psi6_every=1 validator_every=60
+[EDMD3-TIES] at the load: live events 1129, sharing their time exactly with another live event 0, due at once 0
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 509.44745733888533 x 480 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.39698e-08 px^2, tol_face 2.91493e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[EDMD3-LEDGER] momentum x: residual -2.36e-12, scale 2.13e-07, ratio 1.11e-05; y: residual 7.86e-12, scale 1.58e-07, ratio 4.97e-05; energy: residual -5.91e-11, scale 1.31e-06, ratio 4.5e-05 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] L0=10.6 M=300 run=0 seed=2023561687: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=1286632079 full_checks=200354 local_worst=-4.37e-12 full_worst=-2.71e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.44e-12 ev_pair=588218990 ev_wall=46921328 ev_cross=39383255 ev_div=23889516 ev_piston=0 ev_band=0 ev_stale=4661649240 origin_shifts=292 syncs=292 heap_compactions=4281 heap_max=29711 validator_every=60 hash=bd25077c5f1c9c9f t_end=2400024.0357631445 engine=gen3 build="8bc9ac9" target=mac-O3-e0pre run_s=1141.647 engine_s=1119.344 driver_share=0.0195
+[EDMD3-OBS] virial blocks 2000 (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d34a_261012/evidence_8bc9ac9/p4a_A1/virial_blocks_L0_106_wallmassfactor_300_run0.csv), snapshots 51 (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d34a_261012/evidence_8bc9ac9/p4a_A1/snapshots_L0_106_wallmassfactor_300_run0.bin)
+
+== evidence_8bc9ac9/replay/run.log (exit 0)
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 481.19999999999999 x 960 px, cell 32 px, dividers 1, pistons 0/0; c_tol 1.41769e-08 px^2, tol_face 2.95807e-10 px, band margin 1.2e-05 px, v_ref 40.5929 px/unit
+[EDMD3-REPLAY] driven_pi8: hash 694fdf127f35d4b4, harness 694fdf127f35d4b4; events 818521, harness 818521: MATCH; targets 1600, changes 36, advance stops 1600 (substeps 1), reader passes 1600 (every 1 targets), smallest surface gap seen by the readers 1.25e-05 px, 1.1 s
+[EDMD3-LEDGER] momentum x: residual -3.41e-13, scale 4.63e-10, ratio 0.000737; y: residual 3.2e-14, scale 1.81e-10, ratio 0.000177; energy: residual 8.75e-12, scale 4.1e-09, ratio 0.00214 (E0 411.945389721, E 1084.94844683, W 673.003)
+[EDMD3-HEALTH] replay driven_pi8: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=1315862 full_checks=2001 local_worst=-5.48e-12 full_worst=-2.04e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.66e-12 ev_pair=497377 ev_wall=43961 ev_cross=246409 ev_div=30738 ev_piston=0 ev_band=36 ev_stale=2564325 origin_shifts=1 syncs=1 heap_compactions=0 heap_max=5155 validator_every=60 hash=694fdf127f35d4b4 t_end=9600 engine=gen3 build="8bc9ac9" target=mac-O3-e0pre run_s=1.067 engine_s=0.664 driver_share=0.3773
+
+== evidence_8bc9ac9/spring/k11.52_headless/run.log (exit 0)
+🔩 spring: k = 0.02 /px^2 = 11.52 kT/sigma^2 | M_wall = 50 | omega_w = 0.48, T_w = 13.09 sigma-time | thermal rms = 0.2946 sigma
+🔬 Energy measurement initialized: mode=spring, equilibrium at 808.16
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 6.03218e-09 px^2, tol_face 2.92857e-10 px, band margin 5.1816e-06 px, v_ref 40 px/unit
+[ENERGY] step=500  KE_p=3.714090e+02  KE_w=1.222028e+00  KE_tot=3.726310e+02  vx_wall=0.221091  E_spring=2.736922e+01  E_tot=4.000003e+02
+[ENERGY] step=1000  KE_p=3.843831e+02  KE_w=5.200650e-01  KE_tot=3.849032e+02  vx_wall=-0.144231  E_spring=1.509708e+01  E_tot=4.000003e+02
+[ENERGY] step=1500  KE_p=3.779596e+02  KE_w=1.228223e-01  KE_tot=3.780824e+02  vx_wall=0.070092  E_spring=2.191787e+01  E_tot=4.000003e+02
+[ENERGY] step=2000  KE_p=3.891868e+02  KE_w=7.351353e-02  KE_tot=3.892604e+02  vx_wall=-0.0542268  E_spring=1.073990e+01  E_tot=4.000003e+02
+[ENERGY] step=2500  KE_p=3.816085e+02  KE_w=3.463587e-01  KE_tot=3.819548e+02  vx_wall=0.117704  E_spring=1.804545e+01  E_tot=4.000003e+02
+[ENERGY] step=3000  KE_p=3.866940e+02  KE_w=3.275710e-02  KE_tot=3.867268e+02  vx_wall=-0.0361978  E_spring=1.327347e+01  E_tot=4.000003e+02
+[ENERGY] step=3500  KE_p=3.804529e+02  KE_w=5.489880e-01  KE_tot=3.810019e+02  vx_wall=0.148187  E_spring=1.899832e+01  E_tot=4.000003e+02
+[ENERGY] step=4000  KE_p=3.836392e+02  KE_w=1.925145e-01  KE_tot=3.838317e+02  vx_wall=0.0877529  E_spring=1.616859e+01  E_tot=4.000003e+02
+[ENERGY] step=4500  KE_p=3.775562e+02  KE_w=4.158610e+00  KE_tot=3.817148e+02  vx_wall=-0.407853  E_spring=1.828548e+01  E_tot=4.000003e+02
+[ENERGY] step=5000  KE_p=3.885270e+02  KE_w=2.986484e-02  KE_tot=3.885569e+02  vx_wall=0.0345629  E_spring=1.144339e+01  E_tot=4.000003e+02
+[ENERGY] step=5500  KE_p=3.871973e+02  KE_w=5.665040e-01  KE_tot=3.877638e+02  vx_wall=0.150533  E_spring=1.223646e+01  E_tot=4.000003e+02
+[ENERGY] step=6000  KE_p=3.855325e+02  KE_w=1.339696e+00  KE_tot=3.868722e+02  vx_wall=-0.23149  E_spring=1.312808e+01  E_tot=4.000003e+02
+[ENERGY] step=6500  KE_p=3.845047e+02  KE_w=2.560921e-01  KE_tot=3.847608e+02  vx_wall=-0.101211  E_spring=1.523942e+01  E_tot=4.000003e+02
+[ENERGY] step=7000  KE_p=3.774067e+02  KE_w=6.548422e-02  KE_tot=3.774722e+02  vx_wall=0.0511798  E_spring=2.252808e+01  E_tot=4.000003e+02
+[ENERGY] step=7500  KE_p=3.820295e+02  KE_w=3.392209e-01  KE_tot=3.823687e+02  vx_wall=0.116485  E_spring=1.763156e+01  E_tot=4.000003e+02
+[ENERGY] step=8000  KE_p=3.794144e+02  KE_w=3.354843e-01  KE_tot=3.797498e+02  vx_wall=-0.115842  E_spring=2.025041e+01  E_tot=4.000003e+02
+[ENERGY] step=8500  KE_p=3.811783e+02  KE_w=8.118177e-02  KE_tot=3.812594e+02  vx_wall=0.0569848  E_spring=1.874082e+01  E_tot=4.000003e+02
+[ENERGY] step=9000  KE_p=3.850707e+02  KE_w=6.630911e-01  KE_tot=3.857338e+02  vx_wall=-0.162861  E_spring=1.426651e+01  E_tot=4.000003e+02
+[ENERGY] step=9500  KE_p=3.845971e+02  KE_w=1.061084e+00  KE_tot=3.856582e+02  vx_wall=0.206018  E_spring=1.434205e+01  E_tot=4.000003e+02
+[ENERGY] step=10000  KE_p=3.807217e+02  KE_w=6.087800e-01  KE_tot=3.813305e+02  vx_wall=-0.156049  E_spring=1.866979e+01  E_tot=4.000003e+02
+[ENERGY] step=10500  KE_p=3.882837e+02  KE_w=2.636054e-01  KE_tot=3.885474e+02  vx_wall=-0.102685  E_spring=1.145290e+01  E_tot=4.000003e+02
+[ENERGY] step=11000  KE_p=3.852122e+02  KE_w=4.972799e-01  KE_tot=3.857094e+02  vx_wall=0.141036  E_spring=1.429083e+01  E_tot=4.000003e+02
+[ENERGY] step=11500  KE_p=3.847205e+02  KE_w=1.078684e+00  KE_tot=3.857992e+02  vx_wall=0.207719  E_spring=1.420110e+01  E_tot=4.000003e+02
+[ENERGY] step=12000  KE_p=3.796265e+02  KE_w=3.478284e-01  KE_tot=3.799743e+02  vx_wall=-0.117954  E_spring=2.002592e+01  E_tot=4.000003e+02
+[GUI-STATS] engine=gen3 window=0 N=400 frames=0 steps=12001 wall_s=0.679 fps=0.000 sigma_time=200.017 sigma_per_wall_s=294.64 events=152185 events_per_wall_s=224181 engine_s=0.150 time_scale=1
+[EDMD3-LEDGER] momentum x: residual 1.09e-13, scale 7.87e-11, ratio 0.00139; y: residual -2.84e-14, scale 1.87e-11, ratio 0.00152; energy: residual 5.12e-13, scale 1.81e-10, ratio 0.00282 (E0 400.000256109, E 400.000256109, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=206890 full_checks=12202 local_worst=-2.13e-12 full_worst=-9.04e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.58e-12 ev_pair=54705 ev_wall=5596 ev_cross=90352 ev_div=1532 ev_piston=0 ev_band=0 ev_stale=284400 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=2618 validator_every=60 hash=6b2f8433a857ae37 t_end=4800.4000715315342 engine=gen3 build="8bc9ac9" target=mac-O3-e0pre run_s=0.678 engine_s=0.150 driver_share=0.7785
+
+== evidence_8bc9ac9/spring/k11.52_window_A/run.log (exit 0)
+🔩 spring: k = 0.02 /px^2 = 11.52 kT/sigma^2 | M_wall = 50 | omega_w = 0.48, T_w = 13.09 sigma-time | thermal rms = 0.2946 sigma
+🔬 Energy measurement initialized: mode=spring, equilibrium at 808.16
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 6.03218e-09 px^2, tol_face 2.92857e-10 px, band margin 5.1816e-06 px, v_ref 40 px/unit
+[ENERGY] step=500  KE_p=3.714090e+02  KE_w=1.222028e+00  KE_tot=3.726310e+02  vx_wall=0.221091  E_spring=2.736922e+01  E_tot=4.000003e+02
+[ENERGY] step=1000  KE_p=3.843831e+02  KE_w=5.200650e-01  KE_tot=3.849032e+02  vx_wall=-0.144231  E_spring=1.509708e+01  E_tot=4.000003e+02
+[ENERGY] step=1500  KE_p=3.779596e+02  KE_w=1.228223e-01  KE_tot=3.780824e+02  vx_wall=0.070092  E_spring=2.191787e+01  E_tot=4.000003e+02
+[ENERGY] step=2000  KE_p=3.891868e+02  KE_w=7.351353e-02  KE_tot=3.892604e+02  vx_wall=-0.0542268  E_spring=1.073990e+01  E_tot=4.000003e+02
+[ENERGY] step=2500  KE_p=3.816085e+02  KE_w=3.463587e-01  KE_tot=3.819548e+02  vx_wall=0.117704  E_spring=1.804545e+01  E_tot=4.000003e+02
+[ENERGY] step=3000  KE_p=3.866940e+02  KE_w=3.275710e-02  KE_tot=3.867268e+02  vx_wall=-0.0361978  E_spring=1.327347e+01  E_tot=4.000003e+02
+[ENERGY] step=3500  KE_p=3.804529e+02  KE_w=5.489880e-01  KE_tot=3.810019e+02  vx_wall=0.148187  E_spring=1.899832e+01  E_tot=4.000003e+02
+[ENERGY] step=4000  KE_p=3.836392e+02  KE_w=1.925145e-01  KE_tot=3.838317e+02  vx_wall=0.0877529  E_spring=1.616859e+01  E_tot=4.000003e+02
+[ENERGY] step=4500  KE_p=3.775562e+02  KE_w=4.158610e+00  KE_tot=3.817148e+02  vx_wall=-0.407853  E_spring=1.828548e+01  E_tot=4.000003e+02
+[ENERGY] step=5000  KE_p=3.885270e+02  KE_w=2.986484e-02  KE_tot=3.885569e+02  vx_wall=0.0345629  E_spring=1.144339e+01  E_tot=4.000003e+02
+[ENERGY] step=5500  KE_p=3.871973e+02  KE_w=5.665040e-01  KE_tot=3.877638e+02  vx_wall=0.150533  E_spring=1.223646e+01  E_tot=4.000003e+02
+[ENERGY] step=6000  KE_p=3.855325e+02  KE_w=1.339696e+00  KE_tot=3.868722e+02  vx_wall=-0.23149  E_spring=1.312808e+01  E_tot=4.000003e+02
+[ENERGY] step=6500  KE_p=3.845047e+02  KE_w=2.560921e-01  KE_tot=3.847608e+02  vx_wall=-0.101211  E_spring=1.523942e+01  E_tot=4.000003e+02
+[ENERGY] step=7000  KE_p=3.774067e+02  KE_w=6.548422e-02  KE_tot=3.774722e+02  vx_wall=0.0511798  E_spring=2.252808e+01  E_tot=4.000003e+02
+[ENERGY] step=7500  KE_p=3.820295e+02  KE_w=3.392209e-01  KE_tot=3.823687e+02  vx_wall=0.116485  E_spring=1.763156e+01  E_tot=4.000003e+02
+[ENERGY] step=8000  KE_p=3.794144e+02  KE_w=3.354843e-01  KE_tot=3.797498e+02  vx_wall=-0.115842  E_spring=2.025041e+01  E_tot=4.000003e+02
+[ENERGY] step=8500  KE_p=3.811783e+02  KE_w=8.118177e-02  KE_tot=3.812594e+02  vx_wall=0.0569848  E_spring=1.874082e+01  E_tot=4.000003e+02
+[ENERGY] step=9000  KE_p=3.850707e+02  KE_w=6.630911e-01  KE_tot=3.857338e+02  vx_wall=-0.162861  E_spring=1.426651e+01  E_tot=4.000003e+02
+[ENERGY] step=9500  KE_p=3.845971e+02  KE_w=1.061084e+00  KE_tot=3.856582e+02  vx_wall=0.206018  E_spring=1.434205e+01  E_tot=4.000003e+02
+[ENERGY] step=10000  KE_p=3.807217e+02  KE_w=6.087800e-01  KE_tot=3.813305e+02  vx_wall=-0.156049  E_spring=1.866979e+01  E_tot=4.000003e+02
+[ENERGY] step=10500  KE_p=3.882837e+02  KE_w=2.636054e-01  KE_tot=3.885474e+02  vx_wall=-0.102685  E_spring=1.145290e+01  E_tot=4.000003e+02
+[ENERGY] step=11000  KE_p=3.852122e+02  KE_w=4.972799e-01  KE_tot=3.857094e+02  vx_wall=0.141036  E_spring=1.429083e+01  E_tot=4.000003e+02
+[ENERGY] step=11500  KE_p=3.847205e+02  KE_w=1.078684e+00  KE_tot=3.857992e+02  vx_wall=0.207719  E_spring=1.420110e+01  E_tot=4.000003e+02
+[ENERGY] step=12000  KE_p=3.796265e+02  KE_w=3.478284e-01  KE_tot=3.799743e+02  vx_wall=-0.117954  E_spring=2.002592e+01  E_tot=4.000003e+02
+[GUI-STATS] engine=gen3 window=1 N=400 frames=148 steps=12001 wall_s=2.411 fps=61.376 sigma_time=200.017 sigma_per_wall_s=82.9472 events=152185 events_per_wall_s=63111.3 engine_s=0.152 time_scale=2000
+[EDMD3-LEDGER] momentum x: residual 1.09e-13, scale 7.87e-11, ratio 0.00139; y: residual -2.84e-14, scale 1.87e-11, ratio 0.00152; energy: residual 5.12e-13, scale 1.81e-10, ratio 0.00282 (E0 400.000256109, E 400.000256109, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=206890 full_checks=12202 local_worst=-2.13e-12 full_worst=-9.04e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.58e-12 ev_pair=54705 ev_wall=5596 ev_cross=90352 ev_div=1532 ev_piston=0 ev_band=0 ev_stale=284400 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=2618 validator_every=60 hash=6b2f8433a857ae37 t_end=4800.4000715315342 engine=gen3 build="8bc9ac9" target=mac-O3-e0pre run_s=2.410 engine_s=0.152 driver_share=0.9367
+
+== evidence_8bc9ac9/spring/k115.2_headless/run.log (exit 0)
+🔩 spring: k = 0.2 /px^2 = 115.2 kT/sigma^2 | M_wall = 50 | omega_w = 1.5179, T_w = 4.1394 sigma-time | thermal rms = 0.09317 sigma
+🔬 Energy measurement initialized: mode=spring, equilibrium at 808.16
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 6.0322e-09 px^2, tol_face 2.92858e-10 px, band margin 5.1816e-06 px, v_ref 40.0001 px/unit
+[ENERGY] step=500  KE_p=3.994363e+02  KE_w=2.465965e-04  KE_tot=3.994366e+02  vx_wall=-0.00314068  E_spring=5.659885e-01  E_tot=4.000026e+02
+[ENERGY] step=1000  KE_p=3.975198e+02  KE_w=1.293174e+00  KE_tot=3.988130e+02  vx_wall=0.227436  E_spring=1.189554e+00  E_tot=4.000026e+02
+[ENERGY] step=1500  KE_p=3.928884e+02  KE_w=3.911524e-01  KE_tot=3.932795e+02  vx_wall=-0.125084  E_spring=6.723021e+00  E_tot=4.000026e+02
+[ENERGY] step=2000  KE_p=3.945704e+02  KE_w=1.501775e+00  KE_tot=3.960722e+02  vx_wall=-0.245094  E_spring=3.930382e+00  E_tot=4.000026e+02
+[ENERGY] step=2500  KE_p=3.970665e+02  KE_w=1.985980e+00  KE_tot=3.990524e+02  vx_wall=0.28185  E_spring=9.501130e-01  E_tot=4.000026e+02
+[ENERGY] step=3000  KE_p=3.957520e+02  KE_w=1.089132e-01  KE_tot=3.958609e+02  vx_wall=0.066004  E_spring=4.141677e+00  E_tot=4.000026e+02
+[ENERGY] step=3500  KE_p=3.972008e+02  KE_w=2.932706e-01  KE_tot=3.974941e+02  vx_wall=-0.108309  E_spring=2.508447e+00  E_tot=4.000026e+02
+[ENERGY] step=4000  KE_p=3.990480e+02  KE_w=2.024031e-02  KE_tot=3.990682e+02  vx_wall=0.0284537  E_spring=9.343654e-01  E_tot=4.000026e+02
+[ENERGY] step=4500  KE_p=3.977005e+02  KE_w=7.087308e-01  KE_tot=3.984092e+02  vx_wall=0.168372  E_spring=1.593329e+00  E_tot=4.000026e+02
+[ENERGY] step=5000  KE_p=3.996929e+02  KE_w=3.096304e-01  KE_tot=4.000026e+02  vx_wall=-0.111289  E_spring=8.787588e-06  E_tot=4.000026e+02
+[ENERGY] step=5500  KE_p=3.989114e+02  KE_w=3.874118e-01  KE_tot=3.992989e+02  vx_wall=-0.124485  E_spring=7.037001e-01  E_tot=4.000026e+02
+[ENERGY] step=6000  KE_p=3.954759e+02  KE_w=2.401735e-02  KE_tot=3.954999e+02  vx_wall=-0.0309951  E_spring=4.502685e+00  E_tot=4.000026e+02
+[ENERGY] step=6500  KE_p=3.929512e+02  KE_w=3.406321e-02  KE_tot=3.929853e+02  vx_wall=-0.0369124  E_spring=7.017249e+00  E_tot=4.000026e+02
+[ENERGY] step=7000  KE_p=3.967278e+02  KE_w=1.420418e-01  KE_tot=3.968699e+02  vx_wall=0.0753769  E_spring=3.132702e+00  E_tot=4.000026e+02
+[ENERGY] step=7500  KE_p=3.976938e+02  KE_w=1.376935e+00  KE_tot=3.990707e+02  vx_wall=0.234686  E_spring=9.318176e-01  E_tot=4.000026e+02
+[ENERGY] step=8000  KE_p=3.988543e+02  KE_w=3.749270e-01  KE_tot=3.992292e+02  vx_wall=0.122463  E_spring=7.733401e-01  E_tot=4.000026e+02
+[ENERGY] step=8500  KE_p=3.981961e+02  KE_w=2.312362e-02  KE_tot=3.982192e+02  vx_wall=-0.0304129  E_spring=1.783361e+00  E_tot=4.000026e+02
+[ENERGY] step=9000  KE_p=3.955739e+02  KE_w=2.618651e-03  KE_tot=3.955765e+02  vx_wall=0.0102346  E_spring=4.426040e+00  E_tot=4.000026e+02
+[ENERGY] step=9500  KE_p=3.976940e+02  KE_w=4.720375e-02  KE_tot=3.977412e+02  vx_wall=-0.0434528  E_spring=2.261393e+00  E_tot=4.000026e+02
+[ENERGY] step=10000  KE_p=3.971834e+02  KE_w=1.077434e+00  KE_tot=3.982609e+02  vx_wall=-0.207599  E_spring=1.741681e+00  E_tot=4.000026e+02
+[ENERGY] step=10500  KE_p=3.970842e+02  KE_w=4.830769e-02  KE_tot=3.971325e+02  vx_wall=-0.043958  E_spring=2.870044e+00  E_tot=4.000026e+02
+[ENERGY] step=11000  KE_p=3.954617e+02  KE_w=2.744426e-02  KE_tot=3.954892e+02  vx_wall=0.0331326  E_spring=4.513382e+00  E_tot=4.000026e+02
+[ENERGY] step=11500  KE_p=3.972056e+02  KE_w=2.068635e+00  KE_tot=3.992742e+02  vx_wall=-0.287655  E_spring=7.283202e-01  E_tot=4.000026e+02
+[ENERGY] step=12000  KE_p=3.978108e+02  KE_w=4.629852e-01  KE_tot=3.982738e+02  vx_wall=-0.136086  E_spring=1.728800e+00  E_tot=4.000026e+02
+[GUI-STATS] engine=gen3 window=0 N=400 frames=0 steps=12001 wall_s=0.689 fps=0.000 sigma_time=200.017 sigma_per_wall_s=290.458 events=157940 events_per_wall_s=229356 engine_s=0.140 time_scale=1
+[EDMD3-LEDGER] momentum x: residual 1.6e-14, scale 5.15e-11, ratio 0.00031; y: residual 1.49e-13, scale 2.1e-11, ratio 0.00712; energy: residual 0, scale 1.61e-10, ratio 0 (E0 400.002561094, E 400.002561094, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=217131 full_checks=12202 local_worst=-2.12e-12 full_worst=-1.04e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.62e-12 ev_pair=59191 ev_wall=5795 ev_cross=91300 ev_div=1654 ev_piston=0 ev_band=0 ev_stale=291144 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=2482 validator_every=60 hash=0af7413aabf2c92a t_end=4800.4000715315342 engine=gen3 build="8bc9ac9" target=mac-O3-e0pre run_s=0.687 engine_s=0.140 driver_share=0.7958
+
+== evidence_8bc9ac9/spring/k115.2_window_A/run.log (exit 0)
+🔩 spring: k = 0.2 /px^2 = 115.2 kT/sigma^2 | M_wall = 50 | omega_w = 1.5179, T_w = 4.1394 sigma-time | thermal rms = 0.09317 sigma
+🔬 Energy measurement initialized: mode=spring, equilibrium at 808.16
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 6.0322e-09 px^2, tol_face 2.92858e-10 px, band margin 5.1816e-06 px, v_ref 40.0001 px/unit
+[ENERGY] step=500  KE_p=3.994363e+02  KE_w=2.465965e-04  KE_tot=3.994366e+02  vx_wall=-0.00314068  E_spring=5.659885e-01  E_tot=4.000026e+02
+[ENERGY] step=1000  KE_p=3.975198e+02  KE_w=1.293174e+00  KE_tot=3.988130e+02  vx_wall=0.227436  E_spring=1.189554e+00  E_tot=4.000026e+02
+[ENERGY] step=1500  KE_p=3.928884e+02  KE_w=3.911524e-01  KE_tot=3.932795e+02  vx_wall=-0.125084  E_spring=6.723021e+00  E_tot=4.000026e+02
+[ENERGY] step=2000  KE_p=3.945704e+02  KE_w=1.501775e+00  KE_tot=3.960722e+02  vx_wall=-0.245094  E_spring=3.930382e+00  E_tot=4.000026e+02
+[ENERGY] step=2500  KE_p=3.970665e+02  KE_w=1.985980e+00  KE_tot=3.990524e+02  vx_wall=0.28185  E_spring=9.501130e-01  E_tot=4.000026e+02
+[ENERGY] step=3000  KE_p=3.957520e+02  KE_w=1.089132e-01  KE_tot=3.958609e+02  vx_wall=0.066004  E_spring=4.141677e+00  E_tot=4.000026e+02
+[ENERGY] step=3500  KE_p=3.972008e+02  KE_w=2.932706e-01  KE_tot=3.974941e+02  vx_wall=-0.108309  E_spring=2.508447e+00  E_tot=4.000026e+02
+[ENERGY] step=4000  KE_p=3.990480e+02  KE_w=2.024031e-02  KE_tot=3.990682e+02  vx_wall=0.0284537  E_spring=9.343654e-01  E_tot=4.000026e+02
+[ENERGY] step=4500  KE_p=3.977005e+02  KE_w=7.087308e-01  KE_tot=3.984092e+02  vx_wall=0.168372  E_spring=1.593329e+00  E_tot=4.000026e+02
+[ENERGY] step=5000  KE_p=3.996929e+02  KE_w=3.096304e-01  KE_tot=4.000026e+02  vx_wall=-0.111289  E_spring=8.787588e-06  E_tot=4.000026e+02
+[ENERGY] step=5500  KE_p=3.989114e+02  KE_w=3.874118e-01  KE_tot=3.992989e+02  vx_wall=-0.124485  E_spring=7.037001e-01  E_tot=4.000026e+02
+[ENERGY] step=6000  KE_p=3.954759e+02  KE_w=2.401735e-02  KE_tot=3.954999e+02  vx_wall=-0.0309951  E_spring=4.502685e+00  E_tot=4.000026e+02
+[ENERGY] step=6500  KE_p=3.929512e+02  KE_w=3.406321e-02  KE_tot=3.929853e+02  vx_wall=-0.0369124  E_spring=7.017249e+00  E_tot=4.000026e+02
+[ENERGY] step=7000  KE_p=3.967278e+02  KE_w=1.420418e-01  KE_tot=3.968699e+02  vx_wall=0.0753769  E_spring=3.132702e+00  E_tot=4.000026e+02
+[ENERGY] step=7500  KE_p=3.976938e+02  KE_w=1.376935e+00  KE_tot=3.990707e+02  vx_wall=0.234686  E_spring=9.318176e-01  E_tot=4.000026e+02
+[ENERGY] step=8000  KE_p=3.988543e+02  KE_w=3.749270e-01  KE_tot=3.992292e+02  vx_wall=0.122463  E_spring=7.733401e-01  E_tot=4.000026e+02
+[ENERGY] step=8500  KE_p=3.981961e+02  KE_w=2.312362e-02  KE_tot=3.982192e+02  vx_wall=-0.0304129  E_spring=1.783361e+00  E_tot=4.000026e+02
+[ENERGY] step=9000  KE_p=3.955739e+02  KE_w=2.618651e-03  KE_tot=3.955765e+02  vx_wall=0.0102346  E_spring=4.426040e+00  E_tot=4.000026e+02
+[ENERGY] step=9500  KE_p=3.976940e+02  KE_w=4.720375e-02  KE_tot=3.977412e+02  vx_wall=-0.0434528  E_spring=2.261393e+00  E_tot=4.000026e+02
+[ENERGY] step=10000  KE_p=3.971834e+02  KE_w=1.077434e+00  KE_tot=3.982609e+02  vx_wall=-0.207599  E_spring=1.741681e+00  E_tot=4.000026e+02
+[ENERGY] step=10500  KE_p=3.970842e+02  KE_w=4.830769e-02  KE_tot=3.971325e+02  vx_wall=-0.043958  E_spring=2.870044e+00  E_tot=4.000026e+02
+[ENERGY] step=11000  KE_p=3.954617e+02  KE_w=2.744426e-02  KE_tot=3.954892e+02  vx_wall=0.0331326  E_spring=4.513382e+00  E_tot=4.000026e+02
+[ENERGY] step=11500  KE_p=3.972056e+02  KE_w=2.068635e+00  KE_tot=3.992742e+02  vx_wall=-0.287655  E_spring=7.283202e-01  E_tot=4.000026e+02
+[ENERGY] step=12000  KE_p=3.978108e+02  KE_w=4.629852e-01  KE_tot=3.982738e+02  vx_wall=-0.136086  E_spring=1.728800e+00  E_tot=4.000026e+02
+[GUI-STATS] engine=gen3 window=1 N=400 frames=148 steps=12001 wall_s=2.408 fps=61.464 sigma_time=200.017 sigma_per_wall_s=83.0668 events=157940 events_per_wall_s=65592.4 engine_s=0.141 time_scale=2000
+[EDMD3-LEDGER] momentum x: residual 1.6e-14, scale 5.15e-11, ratio 0.00031; y: residual 1.49e-13, scale 2.1e-11, ratio 0.00712; energy: residual 0, scale 1.61e-10, ratio 0 (E0 400.002561094, E 400.002561094, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=217131 full_checks=12202 local_worst=-2.12e-12 full_worst=-1.04e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.62e-12 ev_pair=59191 ev_wall=5795 ev_cross=91300 ev_div=1654 ev_piston=0 ev_band=0 ev_stale=291144 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=2482 validator_every=60 hash=0af7413aabf2c92a t_end=4800.4000715315342 engine=gen3 build="8bc9ac9" target=mac-O3-e0pre run_s=2.406 engine_s=0.141 driver_share=0.9413
+
+== evidence_8bc9ac9/spring_f3/k11.52_window_B/run.log (exit 0)
+🔩 spring: k = 0.02 /px^2 = 11.52 kT/sigma^2 | M_wall = 50 | omega_w = 0.48, T_w = 13.09 sigma-time | thermal rms = 0.2946 sigma
+🔬 Energy measurement initialized: mode=spring, equilibrium at 808.16
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 6.03218e-09 px^2, tol_face 2.92857e-10 px, band margin 5.1816e-06 px, v_ref 40 px/unit
+[GUI-KEYS] step 1: apply-gen3
+Scene reset queued: mode=energy transfer engine=EDMD gen3 (display) walls=1 springL0=25.340σ springk=11.52 N=400 r=0.2159σ eta=0.116 thick=0.0000σ(auto) masses=50
+[EDMD3-LEDGER] momentum x: residual 7.11e-15, scale 1.74e-12, ratio 0.00408; y: residual -1.73e-14, scale 1.06e-12, ratio 0.0164; energy: residual -3.41e-13, scale 1.93e-11, ratio 0.0177 (E0 400.000256109, E 400.000256109, W 0)
+[EDMD3-HEALTH] scene, before the rebuild: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=2966 full_checks=172 local_worst=-1.14e-13 full_worst=0 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.78e-14 ev_pair=755 ev_wall=103 ev_cross=1331 ev_div=22 ev_piston=0 ev_band=0 ev_stale=2567 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=1980 validator_every=60 hash=013b31ecffa7a9ef t_end=67.600001007318497 engine=gen3 build="8bc9ac9" target=mac-O3-e0pre run_s=0.036 engine_s=0.002 driver_share=0.9478
+🔩 spring: k = 0.02 /px^2 = 11.52 kT/sigma^2 | M_wall = 50 | omega_w = 0.48, T_w = 13.09 sigma-time | thermal rms = 0.2946 sigma
+🔬 Energy measurement initialized: mode=spring, equilibrium at 808.16
+[GEN3-GUI] the scene was rebuilt; engine: gen3 (provisional display)  clean=-  (built at the first step)
+[EDMD3] built #2 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 6.03218e-09 px^2, tol_face 2.92857e-10 px, band margin 5.1816e-06 px, v_ref 40 px/unit
+[ENERGY] step=500  KE_p=3.769625e+02  KE_w=8.024798e-02  KE_tot=3.770427e+02  vx_wall=-0.0566561  E_spring=2.295729e+01  E_tot=4.000000e+02
+[ENERGY] step=1000  KE_p=3.808253e+02  KE_w=2.908302e-01  KE_tot=3.811161e+02  vx_wall=-0.107857  E_spring=1.888386e+01  E_tot=4.000000e+02
+[ENERGY] step=1500  KE_p=3.751714e+02  KE_w=1.345501e-03  KE_tot=3.751727e+02  vx_wall=-0.00733621  E_spring=2.482730e+01  E_tot=4.000000e+02
+[ENERGY] step=2000  KE_p=3.877511e+02  KE_w=5.732016e-02  KE_tot=3.878084e+02  vx_wall=0.0478833  E_spring=1.219159e+01  E_tot=4.000000e+02
+[ENERGY] step=2500  KE_p=3.873313e+02  KE_w=1.781195e-01  KE_tot=3.875095e+02  vx_wall=-0.0844084  E_spring=1.249055e+01  E_tot=4.000000e+02
+[GUI-SHOT] /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d34a/shots_8bc9ac9/SF_k11.52_window_B_step3000.bmp (4112 x 2462 device pixels, UI scale 2)
+[ENERGY] step=3000  KE_p=3.829256e+02  KE_w=4.091544e-01  KE_tot=3.833348e+02  vx_wall=-0.12793  E_spring=1.666520e+01  E_tot=4.000000e+02
+[ENERGY] step=3500  KE_p=3.832034e+02  KE_w=1.042922e+00  KE_tot=3.842463e+02  vx_wall=-0.204247  E_spring=1.575370e+01  E_tot=4.000000e+02
+[ENERGY] step=4000  KE_p=3.815534e+02  KE_w=5.183181e-01  KE_tot=3.820717e+02  vx_wall=-0.143989  E_spring=1.792826e+01  E_tot=4.000000e+02
+[ENERGY] step=4500  KE_p=3.838720e+02  KE_w=2.318310e-01  KE_tot=3.841039e+02  vx_wall=0.0962977  E_spring=1.589613e+01  E_tot=4.000000e+02
+[ENERGY] step=5000  KE_p=3.880886e+02  KE_w=2.303284e-01  KE_tot=3.883189e+02  vx_wall=-0.0959851  E_spring=1.168106e+01  E_tot=4.000000e+02
+[ENERGY] step=5500  KE_p=3.733049e+02  KE_w=2.013724e+00  KE_tot=3.753186e+02  vx_wall=0.283811  E_spring=2.468136e+01  E_tot=4.000000e+02
+[ENERGY] step=6000  KE_p=3.848608e+02  KE_w=1.472449e-01  KE_tot=3.850080e+02  vx_wall=0.076745  E_spring=1.499200e+01  E_tot=4.000000e+02
+[ENERGY] step=6500  KE_p=3.878109e+02  KE_w=4.011281e-01  KE_tot=3.882121e+02  vx_wall=0.126669  E_spring=1.178794e+01  E_tot=4.000000e+02
+[ENERGY] step=7000  KE_p=3.952213e+02  KE_w=7.660839e-02  KE_tot=3.952979e+02  vx_wall=0.0553564  E_spring=4.702084e+00  E_tot=4.000000e+02
+[ENERGY] step=7500  KE_p=3.770701e+02  KE_w=1.345328e-02  KE_tot=3.770836e+02  vx_wall=0.0231977  E_spring=2.291642e+01  E_tot=4.000000e+02
+[ENERGY] step=8000  KE_p=3.852989e+02  KE_w=1.605705e-01  KE_tot=3.854594e+02  vx_wall=0.0801425  E_spring=1.454057e+01  E_tot=4.000000e+02
+[ENERGY] step=8500  KE_p=3.870861e+02  KE_w=5.524594e-02  KE_tot=3.871413e+02  vx_wall=-0.0470089  E_spring=1.285866e+01  E_tot=4.000000e+02
+[ENERGY] step=9000  KE_p=3.871318e+02  KE_w=6.735864e-01  KE_tot=3.878053e+02  vx_wall=0.164145  E_spring=1.219466e+01  E_tot=4.000000e+02
+[ENERGY] step=9500  KE_p=3.764278e+02  KE_w=1.501973e+00  KE_tot=3.779298e+02  vx_wall=-0.24511  E_spring=2.207021e+01  E_tot=4.000000e+02
+[ENERGY] step=10000  KE_p=3.846707e+02  KE_w=5.941166e-01  KE_tot=3.852648e+02  vx_wall=-0.154158  E_spring=1.473516e+01  E_tot=4.000000e+02
+[ENERGY] step=10500  KE_p=3.839529e+02  KE_w=2.676137e-01  KE_tot=3.842205e+02  vx_wall=0.103463  E_spring=1.577948e+01  E_tot=4.000000e+02
+[ENERGY] step=11000  KE_p=3.930634e+02  KE_w=3.456991e-02  KE_tot=3.930980e+02  vx_wall=0.037186  E_spring=6.901992e+00  E_tot=4.000000e+02
+[ENERGY] step=11500  KE_p=3.800122e+02  KE_w=1.973590e-02  KE_tot=3.800319e+02  vx_wall=0.0280969  E_spring=1.996806e+01  E_tot=4.000000e+02
+[ENERGY] step=12000  KE_p=3.873949e+02  KE_w=1.019227e-01  KE_tot=3.874968e+02  vx_wall=0.0638507  E_spring=1.250316e+01  E_tot=4.000000e+02
+[GUI-STATS] engine=gen3 window=1 N=400 frames=64 steps=12170 wall_s=2.503 fps=25.573 sigma_time=202.833 sigma_per_wall_s=81.0468 events=152131 events_per_wall_s=60787.5 engine_s=0.148 time_scale=2000
+[EDMD3-LEDGER] momentum x: residual -2.26e-14, scale 8.07e-11, ratio 0.000281; y: residual 3.2e-14, scale 1.89e-11, ratio 0.00169; energy: residual -1.93e-12, scale 1.81e-10, ratio 0.0107 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=206771 full_checks=12202 local_worst=-2.33e-12 full_worst=-4.99e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.48e-12 ev_pair=54640 ev_wall=5552 ev_cross=90454 ev_div=1485 ev_piston=0 ev_band=0 ev_stale=278991 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=2565 validator_every=60 hash=931592d878cd03d6 t_end=4800.4000715315342 engine=gen3 build="8bc9ac9" target=mac-O3-e0pre run_s=2.435 engine_s=0.148 driver_share=0.9392
+
+== evidence_8bc9ac9/steer/headless/run.log (exit 0)
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 1.39698e-08 px^2, tol_face 2.92857e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[ENERGY] step=500  KE_p=4.000000e+02  KE_w=0.000000e+00  KE_tot=4.000000e+02  vx_wall=0  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=1000  KE_p=3.999310e+02  KE_w=6.902015e-02  KE_tot=4.000000e+02  vx_wall=-0.0525434  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=1500  KE_p=3.989957e+02  KE_w=1.004287e+00  KE_tot=4.000000e+02  vx_wall=0.200428  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=2000  KE_p=4.029684e+02  KE_w=2.033067e-02  KE_tot=4.029888e+02  vx_wall=0.0285171  E_spring=0.000000e+00  E_tot=4.029888e+02
+[ENERGY] step=2500  KE_p=4.053776e+02  KE_w=1.133513e+00  KE_tot=4.065112e+02  vx_wall=-0.212933  E_spring=0.000000e+00  E_tot=4.065112e+02
+[ENERGY] step=3000  KE_p=4.096226e+02  KE_w=2.249045e-02  KE_tot=4.096451e+02  vx_wall=-0.0299936  E_spring=0.000000e+00  E_tot=4.096451e+02
+[GUI-STATS] engine=gen3 window=0 N=400 frames=0 steps=3000 wall_s=0.116 fps=0.000 sigma_time=50 sigma_per_wall_s=430.871 events=53527 events_per_wall_s=461265 engine_s=0.038 time_scale=1
+[EDMD3-LEDGER] momentum x: residual -8.88e-15, scale 1.09e-11, ratio 0.000818; y: residual -5.68e-14, scale 1.04e-11, ratio 0.00545; energy: residual -4.12e-13, scale 8.11e-11, ratio 0.00508 (E0 400, E 409.645065628, W 9.64507)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=80502 full_checks=3050 local_worst=-5.68e-13 full_worst=-1.39e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.62e-13 ev_pair=26975 ev_wall=2421 ev_cross=23185 ev_div=761 ev_piston=185 ev_band=0 ev_stale=120413 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=3555 validator_every=60 hash=daea5de1378282dc t_end=1200.0000178813934 engine=gen3 build="8bc9ac9" target=mac-O3-e0pre run_s=0.115 engine_s=0.038 driver_share=0.6700
+
+== evidence_8bc9ac9/steer/window_A/run.log (exit 0)
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 1.39698e-08 px^2, tol_face 2.92857e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[ENERGY] step=500  KE_p=4.000000e+02  KE_w=0.000000e+00  KE_tot=4.000000e+02  vx_wall=0  E_spring=0.000000e+00  E_tot=4.000000e+02
+[DEMO] screenshot -> /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d34a/shots_8bc9ac9/ST_window_A_demo.bmp
+[ENERGY] step=1000  KE_p=3.999310e+02  KE_w=6.902015e-02  KE_tot=4.000000e+02  vx_wall=-0.0525434  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=1500  KE_p=3.989957e+02  KE_w=1.004287e+00  KE_tot=4.000000e+02  vx_wall=0.200428  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=2000  KE_p=4.029684e+02  KE_w=2.033067e-02  KE_tot=4.029888e+02  vx_wall=0.0285171  E_spring=0.000000e+00  E_tot=4.029888e+02
+[ENERGY] step=2500  KE_p=4.053776e+02  KE_w=1.133513e+00  KE_tot=4.065112e+02  vx_wall=-0.212933  E_spring=0.000000e+00  E_tot=4.065112e+02
+[ENERGY] step=3000  KE_p=4.096226e+02  KE_w=2.249045e-02  KE_tot=4.096451e+02  vx_wall=-0.0299936  E_spring=0.000000e+00  E_tot=4.096451e+02
+[GUI-STATS] engine=gen3 window=1 N=400 frames=48 steps=3000 wall_s=1.134 fps=42.320 sigma_time=50 sigma_per_wall_s=44.083 events=53527 events_per_wall_s=47192.6 engine_s=0.040 time_scale=1
+[EDMD3-LEDGER] momentum x: residual -8.88e-15, scale 1.09e-11, ratio 0.000818; y: residual -5.68e-14, scale 1.04e-11, ratio 0.00545; energy: residual -4.12e-13, scale 8.11e-11, ratio 0.00508 (E0 400, E 409.645065628, W 9.64507)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=80502 full_checks=3050 local_worst=-5.68e-13 full_worst=-1.39e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.62e-13 ev_pair=26975 ev_wall=2421 ev_cross=23185 ev_div=761 ev_piston=185 ev_band=0 ev_stale=120413 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=3555 validator_every=60 hash=daea5de1378282dc t_end=1200.0000178813934 engine=gen3 build="8bc9ac9" target=mac-O3-e0pre run_s=1.134 engine_s=0.040 driver_share=0.9643
+
+== evidence_8bc9ac9/steer/window_B/run.log (exit 0)
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1216 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 1.39698e-08 px^2, tol_face 2.92857e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[ENERGY] step=500  KE_p=4.000000e+02  KE_w=0.000000e+00  KE_tot=4.000000e+02  vx_wall=0  E_spring=0.000000e+00  E_tot=4.000000e+02
+[DEMO] screenshot -> /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d34a/shots_8bc9ac9/ST_window_B_demo.bmp
+[ENERGY] step=1000  KE_p=3.999310e+02  KE_w=6.902015e-02  KE_tot=4.000000e+02  vx_wall=-0.0525434  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=1500  KE_p=3.989957e+02  KE_w=1.004287e+00  KE_tot=4.000000e+02  vx_wall=0.200428  E_spring=0.000000e+00  E_tot=4.000000e+02
+[ENERGY] step=2000  KE_p=4.029684e+02  KE_w=2.033067e-02  KE_tot=4.029888e+02  vx_wall=0.0285171  E_spring=0.000000e+00  E_tot=4.029888e+02
+[ENERGY] step=2500  KE_p=4.053776e+02  KE_w=1.133513e+00  KE_tot=4.065112e+02  vx_wall=-0.212933  E_spring=0.000000e+00  E_tot=4.065112e+02
+[ENERGY] step=3000  KE_p=4.096226e+02  KE_w=2.249045e-02  KE_tot=4.096451e+02  vx_wall=-0.0299936  E_spring=0.000000e+00  E_tot=4.096451e+02
+[GUI-STATS] engine=gen3 window=1 N=400 frames=48 steps=3000 wall_s=2.033 fps=23.613 sigma_time=50 sigma_per_wall_s=24.5964 events=53527 events_per_wall_s=26331.4 engine_s=0.041 time_scale=1
+[EDMD3-LEDGER] momentum x: residual -8.88e-15, scale 1.09e-11, ratio 0.000818; y: residual -5.68e-14, scale 1.04e-11, ratio 0.00545; energy: residual -4.12e-13, scale 8.11e-11, ratio 0.00508 (E0 400, E 409.645065628, W 9.64507)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=80502 full_checks=3050 local_worst=-5.68e-13 full_worst=-1.39e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=3.62e-13 ev_pair=26975 ev_wall=2421 ev_cross=23185 ev_div=761 ev_piston=185 ev_band=0 ev_stale=120413 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=3555 validator_every=60 hash=daea5de1378282dc t_end=1200.0000178813934 engine=gen3 build="8bc9ac9" target=mac-O3-e0pre run_s=2.032 engine_s=0.041 driver_share=0.9800
+
+== evidence_8bc9ac9/runner.log (in full)
+# decision 34 addition evidence 2026-10-12 01:00:25 HST: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d34a_261012/bin_8bc9ac9/00ALLINONE (00ALLINONE  git 8bc9ac9  target mac-O3-e0pre)
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.7Ti    57Gi    97%    9.9M  602M    2%   /System/Volumes/Data
+vm.swapusage: total = 27648.00M  used = 26210.00M  free = 1438.00M  (encrypted)
+1:00  up 4 days, 11:14, 1 user, load averages: 4.46 6.56 10.84
+  start P4 P4a A seed 1, new build (load 1, free 57.4 GiB)
+  start H0 default (load 3, free 57.4 GiB)
+  start H0 gen2flag (load 5, free 57.4 GiB)
+  start H1 M1 and M2 harness outputs (load 6, free 57.4 GiB)
+  start RP m2 dump, then the replay of m2_driven_pi8 variant a (load 7, free 57.4 GiB)
+  start ST gen3 headless (load 8, free 57.4 GiB)
+  start ST gen3 window_A (load 8, free 57.4 GiB)
+  ST gen3 headless: exit 0, 1 s
+  start ST gen3 window_B (load 8, free 57.4 GiB)
+  ST gen3 window_A: exit 0, 2 s
+  start SP k=11.52 headless (load 8, free 57.4 GiB)
+  ST gen3 window_B: exit 0, 3 s
+  start SP k=11.52 window_A (load 8, free 57.4 GiB)
+  SP k=11.52 headless: exit 0, 1 s
+  start SP k=115.2 headless (load 8, free 57.4 GiB)
+  SP k=11.52 window_A: exit 0, 3 s
+  start SP k=115.2 window_A (load 6, free 57.4 GiB)
+  start SF k=11.52 F3 APPLY window B (load 7, free 57.4 GiB)
+  start LM no spring, window B (pause) (load 8, free 57.4 GiB)
+  H0 default: exit 0, 9 s
+  SP k=115.2 headless: exit 0, 1 s
+  start LO no spring, bin_7f6adca (information) (load 7, free 57.4 GiB)
+  H0 gen2flag: exit 0, 10 s
+  LO no spring, bin_7f6adca (information): exit 1, 1 s
+  SP k=115.2 window_A: exit 0, 3 s
+  SF k=11.52 F3 APPLY window B: exit 0, 3 s
+  RP m2 dump, then the replay of m2_driven_pi8 variant a: exit 0, 21 s
+  LM no spring, window B (pause): exit 0, 30 s
+  H1 M1 and M2 harness outputs: exit 0, 505 s
+  P4 P4a A seed 1, new build: exit 0, 1142 s
+  screenshot LM_window_B_pause.bmp (4112 x 2462) -> screenshots/LM_window_B_pause.png (0.51 MB)
+  screenshot SF_k11.52_window_B_step3000.bmp (4112 x 2462) -> screenshots/SF_k11.52_window_B_step3000.png (0.50 MB)
+  screenshot ST_window_A_demo.bmp (1003 x 729) -> screenshots/ST_window_A_demo.png (0.17 MB)
+  screenshot ST_window_B_demo.bmp (4112 x 2462) -> screenshots/ST_window_B_demo.png (0.57 MB)
+1:19  up 4 days, 11:33, 1 user, load averages: 3.85 4.80 6.55
+# done 2026-10-12 01:19:30 HST

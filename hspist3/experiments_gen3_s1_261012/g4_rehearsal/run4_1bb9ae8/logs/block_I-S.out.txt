@@ -1,0 +1,47 @@
+Transfer starting: 42 files
+./
+merge_plan_20261013_132032.tsv
+job_logs/
+job_logs/gen3-s1-S_940009_6.out
+job_logs/gen3-s1-S_940010_7.out
+job_logs/gen3-s1-S_940011_6.out
+job_logs/gen3-s1-S_940012_7.out
+job_logs/gen3-s1-merge-S_940013.out
+merged/
+merged/.merge_complete
+merged/stage1/
+merged/stage1/gen3/
+merged/stage1/gen3/S_N0100_eta0.600000_start0/
+merged/stage1/gen3/S_N0100_eta0.600000_start0/m_100/
+merged/stage1/gen3/S_N0100_eta0.600000_start0/m_100/.build_git
+merged/stage1/gen3/S_N0100_eta0.600000_start0/m_100/.sha256_uncompressed
+merged/stage1/gen3/S_N0100_eta0.600000_start0/m_100/acf_mean_fit.csv
+merged/stage1/gen3/S_N0100_eta0.600000_start0/m_100/acf_runs.npz
+merged/stage1/gen3/S_N0100_eta0.600000_start0/m_100/failed_runs.csv
+merged/stage1/gen3/S_N0100_eta0.600000_start0/m_100/nud_runs.csv
+merged/stage1/gen3/S_N0100_eta0.600000_start0/m_100/red_nu.csv
+merged/stage1/gen3/S_N0100_eta0.600000_start0/m_100/run.log
+merged/stage1/gen3/S_N0100_eta0.600000_start0/m_100/runs_health.csv
+merged/stage1/gen3/S_N0100_eta0.600000_start0/m_100/s1_runs.csv
+merged/stage1/gen3/S_N0100_eta0.600000_start0/m_100/snap_runs.csv
+merged/stage1/gen3/S_N0100_eta0.600000_start0/m_100/snapshots_L0_65_wallmassfactor_100_run0.bin.gz
+merged/stage1/gen3/S_N0100_eta0.600000_start0/m_100/snapshots_L0_65_wallmassfactor_100_run1.bin.gz
+merged/stage1/gen3/S_N0100_eta0.600000_turned/
+merged/stage1/gen3/S_N0100_eta0.600000_turned/m_100/
+merged/stage1/gen3/S_N0100_eta0.600000_turned/m_100/.build_git
+merged/stage1/gen3/S_N0100_eta0.600000_turned/m_100/.sha256_uncompressed
+merged/stage1/gen3/S_N0100_eta0.600000_turned/m_100/acf_mean_fit.csv
+merged/stage1/gen3/S_N0100_eta0.600000_turned/m_100/acf_runs.npz
+merged/stage1/gen3/S_N0100_eta0.600000_turned/m_100/failed_runs.csv
+merged/stage1/gen3/S_N0100_eta0.600000_turned/m_100/nud_runs.csv
+merged/stage1/gen3/S_N0100_eta0.600000_turned/m_100/red_nu.csv
+merged/stage1/gen3/S_N0100_eta0.600000_turned/m_100/run.log
+merged/stage1/gen3/S_N0100_eta0.600000_turned/m_100/runs_health.csv
+merged/stage1/gen3/S_N0100_eta0.600000_turned/m_100/s1_runs.csv
+merged/stage1/gen3/S_N0100_eta0.600000_turned/m_100/snap_runs.csv
+merged/stage1/gen3/S_N0100_eta0.600000_turned/m_100/snapshots_L0_65_wallmassfactor_100_run0.bin.gz
+merged/stage1/gen3/S_N0100_eta0.600000_turned/m_100/snapshots_L0_65_wallmassfactor_100_run1.bin.gz
+
+sent 679774 bytes  received 800 bytes  61312972 bytes/sec
+total size is 674776  speedup is 0.99
+fetched into /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/g4e/build/home/harddisks_gen3_k2/hspist3/experiments_gen3_stage1_koa_261012/S: 764K; merge record: 2026-10-13 13:20:32 HST

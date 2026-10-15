@@ -1,0 +1,87 @@
+env: gcc (GCC) 14.3.0 | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+cross-node determinism: 8 tasks in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d39/gate_reh/lustre/harddisks_gen3/s1_xnode
+  task_1: cn-r1 | Apple M3 Max
+  task_2: cn-r2 | Apple M3 Max
+  task_3: cn-r1 | Apple M3 Max
+  task_4: cn-r2 | Apple M3 Max
+  task_5: cn-r1 | Apple M3 Max
+  task_6: cn-r2 | Apple M3 Max
+  task_7: cn-r1 | Apple M3 Max
+  task_8: cn-r2 | Apple M3 Max
+
+== across nodes (the test): 2 distinct node(s) among the 8 finished tasks
+  pair cn-r1 (task_1) vs cn-r2 (task_2):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 23bbc950a931c8e5 / 23bbc950a931c8e5: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: c405c8d3e6522bc9 / c405c8d3e6522bc9: IDENTICAL
+   cn-r1 vs cn-r2: IDENTICAL
+
+== within a node (information)
+  task_3 vs task_1 (both on cn-r1):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 23bbc950a931c8e5 / 23bbc950a931c8e5: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: c405c8d3e6522bc9 / c405c8d3e6522bc9: IDENTICAL
+   task_3 vs task_1: IDENTICAL
+  task_4 vs task_2 (both on cn-r2):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 23bbc950a931c8e5 / 23bbc950a931c8e5: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: c405c8d3e6522bc9 / c405c8d3e6522bc9: IDENTICAL
+   task_4 vs task_2: IDENTICAL
+  task_5 vs task_1 (both on cn-r1):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 23bbc950a931c8e5 / 23bbc950a931c8e5: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: c405c8d3e6522bc9 / c405c8d3e6522bc9: IDENTICAL
+   task_5 vs task_1: IDENTICAL
+  task_6 vs task_2 (both on cn-r2):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 23bbc950a931c8e5 / 23bbc950a931c8e5: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: c405c8d3e6522bc9 / c405c8d3e6522bc9: IDENTICAL
+   task_6 vs task_2: IDENTICAL
+  task_7 vs task_1 (both on cn-r1):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 23bbc950a931c8e5 / 23bbc950a931c8e5: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: c405c8d3e6522bc9 / c405c8d3e6522bc9: IDENTICAL
+   task_7 vs task_1: IDENTICAL
+  task_8 vs task_2 (both on cn-r2):
+     N400_eta070_M500/psi6_t_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/wall_x_positions_L0_112_wallmassfactor_500_run0.csv: IDENTICAL
+     N400_eta070_M500/speed_of_sound_psi6.csv: IDENTICAL
+     N400_eta070_M500 event hash: 23bbc950a931c8e5 / 23bbc950a931c8e5: IDENTICAL
+     Tprime_cell_M300/psi6_t_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/wall_x_positions_L0_100_wallmassfactor_300_run0.csv: IDENTICAL
+     Tprime_cell_M300/speed_of_sound_psi6.csv: IDENTICAL
+     Tprime_cell_M300 event hash: c405c8d3e6522bc9 / c405c8d3e6522bc9: IDENTICAL
+   task_8 vs task_2: IDENTICAL
+
+RESULT: across nodes IDENTICAL (2 node(s)); within nodes IDENTICAL; tasks used 8 of 8
+cross-node compare done; paste from 'cross-node determinism:' to here

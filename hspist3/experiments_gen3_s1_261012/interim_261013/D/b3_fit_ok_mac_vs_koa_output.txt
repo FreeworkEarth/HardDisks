@@ -1,0 +1,2 @@
+D_N0100_eta0.035000/m_2000 run 11 seed 1088311305: KOA fit_ok 1 (nu_d 0.0004867624128), the Mac raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. (66 s)
+D_N0400_eta0.075000/m_4000 run 20 seed 2904370409: KOA fit_ok 1 (nu_d 0.0007935643617), the Mac raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. (66 s)

@@ -1,0 +1,11 @@
+# 2026-10-10 09:05:02 HST item 2a: seed 1684874396; binary /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_p3a_261009/bin_3a/00ALLINONE (7bece7ac861a2013e5241b22d563e95adf89cf9281c784098a4e3aa64cc81e25)
+against the original's command.txt: same binary path True; same arguments in the same order (the dump flag aside) True
+  original: None
+  this run: --gen3-dump-initial=/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d16_261010/data_5d19aa7/pi8_seed1_hold2e4/initial_state.txt
+  original: --speed-sound-run-dir=/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_p3a_261009/evidence_5d19aa7/e4/pi8_seed1
+  this run: --speed-sound-run-dir=/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d16_261010/data_5d19aa7/pi8_seed1_hold2e4
+  original: --wall-hold-steps=300000
+  this run: --wall-hold-steps=1200000
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   1.8Ti   1.8Ti    14Gi   100%     10M  151M    6%   /System/Volumes/Data
+# done 2026-10-10 09:05:21 HST: exit 0, 19 s

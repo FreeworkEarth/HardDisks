@@ -1,0 +1,31 @@
+# the registered figures (s1_figures_261015.py), from experiments_gen3_stage1_koa_261012: groups B100, B400, D, B900, S, B1600; stopped: none
+- check: KR's c_s curve (analytic Z') against the verdict's kr_cs (numerical Z') at the 16 densities: largest relative difference 1.0e-08
+- check: the per-trajectory psi6 dots against the verdict's cell means: largest |mean of the dots - psi6 of the cell| 0.0e+00
+- (sec. 4.8.11 item 5, the identity rho_I against 1/N_s and R_C(eta), waits for Part A: not drawn)
+- written into experiments_gen3_s1_261012/full_261015/figures_261015:
+  261015_s1_fig1_cs_vs_eta_E1_N100-1600.csv
+  261015_s1_fig2_Delta_vs_Nm12_per_eta_F1_F2_fits.csv
+  261015_s1_fig1_cs_vs_eta_E1_N100-1600.png
+  261015_s1_fig1_cs_vs_eta_E1_N100-1600.pdf
+  261015_s1_fig2_Delta_vs_Nm12_per_eta_F1_F2.png
+  261015_s1_fig2_Delta_vs_Nm12_per_eta_F1_F2.pdf
+  261015_s1_fig3_cs_ideal_gas_zoom_eta_le_0.15_B_D.csv
+  261015_s1_fig3_cs_ideal_gas_zoom_eta_le_0.15_B_D.png
+  261015_s1_fig3_cs_ideal_gas_zoom_eta_le_0.15_B_D.pdf
+  261015_s1_fig4_Z_vs_eta_and_DeltaZ_N100-1600.csv
+  261015_s1_fig4_Z_vs_eta_and_DeltaZ_N100-1600_fits.csv
+  261015_s1_fig4_Z_vs_eta_and_DeltaZ_N100-1600.png
+  261015_s1_fig4_Z_vs_eta_and_DeltaZ_N100-1600.pdf
+  261015_s1_fig5_delta05_vs_eta_N100-1600.csv
+  261015_s1_fig5_delta05_vs_eta_N100-1600.png
+  261015_s1_fig5_delta05_vs_eta_N100-1600.pdf
+  261015_s1_fig6_Gamma_and_Q_per_mass_vs_eta_N100-1600.csv
+  261015_s1_fig6_Gamma_and_Q_per_mass_vs_eta_N100-1600.png
+  261015_s1_fig6_Gamma_and_Q_per_mass_vs_eta_N100-1600.pdf
+  261015_s1_fig7_psi6_vs_eta_N100-1600.csv
+  261015_s1_fig7_psi6_vs_eta_N100-1600_trajectories.csv
+  261015_s1_fig7_psi6_vs_eta_N100-1600.png
+  261015_s1_fig7_psi6_vs_eta_N100-1600.pdf
+  261015_s1_fig8_verdictS_four_z_per_cell.csv
+  261015_s1_fig8_verdictS_four_z_per_cell.png
+  261015_s1_fig8_verdictS_four_z_per_cell.pdf

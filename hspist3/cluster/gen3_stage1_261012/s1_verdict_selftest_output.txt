@@ -1,0 +1,17 @@
+# STAGE 1 verdict script: --selftest
+
+1. Verdict K by simulation (20000 replicas, 12 densities x 4 sizes, a = 0): KR-INCONSISTENT in 0.0132 (design about 0.016, +- 0.0035): PASS; power at a = +0.4 % everywhere: 0.595
+
+2. End to end on a synthetic fetched tree (16 block B cells and 2 block S cells; injected: a start difference, a hold drift, 3 refused runs, a low Q)
+
+| check | result | detail |
+|---|---|---|
+| E1 recovers the constructed c_s (|z| < 3 in every synthetic block B cell; block S has 2 masses, no E1) | PASS | 16 cells, max |z| 1.94 |
+| the group rule flags exactly the injected (cell, mass) | PASS | [('B_N0100_eta0.600000', 200)] |
+| Verdict S: START-DEPENDENT exactly at the injected (400, 0.63) | PASS | [(400, 0.63)] |
+| the hold stationarity flags exactly the injected cell | PASS | ['B_N0900_eta0.600000'] |
+| no low-Q flag from alpha = 0.5 (it is not used in E1) | PASS | [] |
+| delta_0.5 consistent with 0 (|z| < 3) where it exists | PASS | 16 cells |
+| F2 at eta 0.10 recovers a = 0 (|z| < 3) | PASS | +7.75e-04 +- 7.2e-04 |
+
+SELFTEST: PASS (8 of 8)

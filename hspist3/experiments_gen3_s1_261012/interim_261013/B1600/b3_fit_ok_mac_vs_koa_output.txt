@@ -1,0 +1,11 @@
+# B1600: every trajectory KOA fitted (fit_ok 1) in the five flagged folders, fitted again on the Mac with the registered fit (interim_261013/B400/b2_fit_ok_mac_vs_koa.py); the trajectories that fail on the Mac:
+B_N1600_eta0.050000/m_3200: none
+  (B_N1600_eta0.050000/m_3200: script finished: 1)
+B_N1600_eta0.100000/m_4800 run 9 seed 1321838685: KOA fit_ok 1 (nu_d 0.0009757230897), the Mac raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. (68 s)
+  (B_N1600_eta0.100000/m_4800: script finished: 1)
+B_N1600_eta0.100000/m_8000 run 8 seed 1125822676: KOA fit_ok 1 (nu_d 0.0007684366977), the Mac raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. (66 s)
+  (B_N1600_eta0.100000/m_8000: script finished: 1)
+B_N1600_eta0.150000/m_16000: none
+  (B_N1600_eta0.150000/m_16000: script finished: 1)
+B_N1600_eta0.150000/m_32000 run 0 seed 2705140108: KOA fit_ok 1 (nu_d 0.0006657437532), the Mac raises RuntimeError: Optimal parameters not found: The maximum number of function evaluations is exceeded. (66 s)
+  (B_N1600_eta0.150000/m_32000: script finished: 1)

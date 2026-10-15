@@ -1,0 +1,3 @@
+WARNING: L_0 not on the 1/48 sigma grid: box truncated by 0.014140 sigma
+WARNING: H not on the 1/24 sigma grid: box height truncated by 0.002370 sigma
+STOP (--engine=gen3): edmd_gen3: cell width 32 px < diameter 43.581211090087891 px (sec. 4.7.1, a)

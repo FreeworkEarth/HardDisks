@@ -13,6 +13,52 @@
 #endif
 static long g_edmd_avalanche_warning_count = 0;
 
+/* ##CHRIS 2026-10-05 (branch engine-divider-resched, 261012 sec. 4.4): minimal rescheduling
+   after a disk-divider collision.
+   LEGACY (g_edmd_legacy_resched = 1, --legacy-resched): every divider event clears the heap
+   and reschedules all N(N-1)/2 pairs (reschedule_all_internal) -- O(N^2) per divider event,
+   also for a held (mass 0) divider that cannot move.
+   MINIMAL (default): after a divider event of disk i, only disk i is rescheduled (walls,
+   dividers, pistons, all partners: schedule_for, the same call as after a disk-wall event);
+   if and only if the divider's velocity changed (a free divider), every other disk's event
+   with THAT divider is recomputed too (one O(N) pass). Pairs not involving i are untouched.
+   Invalidation: disk events keep the per-disk coll_count snapshots; divider events also carry
+   the divider's velocity epoch div_epoch[d] in Event.cb (unused for non-AB events before),
+   bumped whenever a collision changes divider_vx[d]. External changes of the divider state
+   (edmd_set_divider_motions etc.) are always followed by edmd_reschedule_all in the driver,
+   which flushes the heap, so they need no epoch. Without the periodic flush, stale events
+   accumulate: the heap is compacted (stale entries dropped, Floyd re-heapify) whenever it
+   exceeds max(2 x live entries at the last compaction, 64 N + 4096), and stale pops do not
+   count towards the EDMD_ADVANCE_MAX_EVENTS avalanche budget (they used to be few because
+   the heap was flushed at every divider event). Collision-time arithmetic is unchanged.
+   Pistons (EV_PL/EV_PR) keep the full reschedule in both modes. */
+static int g_edmd_legacy_resched = 0;
+void edmd_set_legacy_resched(int on){ g_edmd_legacy_resched = on ? 1 : 0; }
+int  edmd_legacy_resched(void){ return g_edmd_legacy_resched; }
+/* ##CHRIS 2026-10-05 (gate G-E2/G-E3, added after the branch review): CONTACT AUDIT, only when HD_CONTACT_AUDIT is set.
+   Right before an executed (accepted) event is resolved, the distance between the touching surfaces is measured:
+   AB |r_a - r_b| - 2R; outer walls x - R, (boxW - R) - x, y - R, (boxH - R) - y; divider faces (x_d - th/2) - (x + R) and
+   (x - R) - (x_d + th/2); pistons likewise; in px. A correctly scheduled event has a gap at rounding level (~1e-10 px); a
+   stale event accepted by mistake has a gap of the order of the displacement since its state changed. Such an event
+   conserves energy and need not produce an overlap, so no other gate check sees it directly. Read-only: the maxima are
+   kept in S and printed by the driver at the end of a run. */
+static int g_edmd_contact_audit = -1;
+/* ##CHRIS 2026-10-07 (engine gate v2, E0/E2; 261012 sec. 4.4.10): SCHEDULE-EQUIVALENCE AUDIT, --resched-audit (off by
+   default). Mode 1: after every disk-divider event; mode 2 (--resched-audit=all): after every executed event. Once the
+   event is resolved and rescheduled (and the heap compacted), the legacy FULL schedule of the SAME state is computed into a
+   scratch heap -- walls, dividers and pistons of every disk and all N(N-1)/2 pairs, as reschedule_all_internal does, but
+   WITHOUT grid_build -- and compared event by event with the LIVE events of the real heap (event_live): legacy events the
+   heap lacks ("missing"), live heap events the legacy schedule lacks ("extra"), and common events whose absolute times
+   differ by more than 1e-9 px-time; of those, also the ones whose difference exceeds 1e-10 of the prediction horizon
+   (t_legacy - now): rounding of a correct prediction stays near 1e-16 to 1e-13 of its horizon, a wrong event is order 1.
+   Read-only: the real heap is swapped out and back untouched, and the two counters the scheduling functions bump
+   (overlap_repair_count, wall_overdue_count) are restored, so the audit cannot steer. Counts are kept in S and printed by
+   the driver; every mismatch (up to 100000 per run) is printed with the particles' state at %.17g for an independent
+   high-precision recomputation (validation/resched_audit_bruteforce_261007.py). */
+static int g_edmd_resched_audit = 0;
+void edmd_set_resched_audit(int mode){ g_edmd_resched_audit = mode; }
+int  edmd_resched_audit_mode(void){ return g_edmd_resched_audit; }
+
 /* ------------------------ internal types ------------------------ */
 
 /* event kind: AB = particle-particle, WL/WR/WB/WT = walls (left/right/bottom/top) */
@@ -131,6 +177,21 @@ struct EDMD {
     double cell_size;
 
     Heap heap;
+    /* ##CHRIS 2026-10-05: minimal divider rescheduling (see top of file) */
+    int   div_epoch[EDMD_MAX_DIVIDERS]; /* bumped when a collision changes divider_vx[d] */
+    int   heap_compact_at;              /* compact the heap above this size (0 = not set yet) */
+    long  heap_compactions;             /* telemetry */
+    long  past_event_count;             /* events popped with e.t < S->t and skipped: a heap-order violation (must stay 0) */
+    /* ##CHRIS 2026-10-05 (gate G-E2/G-E3, after the branch review): contact audit, HD_CONTACT_AUDIT only */
+    double contact_max[4];              /* max |contact distance| [px] at executed events: AB, outer walls, divider, pistons */
+    long   contact_events;              /* executed events audited */
+    /* ##CHRIS 2026-10-07: schedule-equivalence audit (--resched-audit), see the top of the file */
+    Heap   audit_heap;                  /* scratch heap for the legacy schedule of the current state */
+    double *audit_tl, *audit_tm;        /* per-key times: legacy schedule, live minimal heap (NAN = absent) */
+    long   audit_cap;                   /* size of the two key tables */
+    long   audit_n, audit_cmp, audit_missing, audit_extra, audit_dt, audit_dupdis, audit_printed, audit_dtrel;
+    double audit_maxdt;                 /* max |t_legacy - t_heap| over matched events */
+    double audit_maxrel;                /* max |t_legacy - t_heap| / (t_legacy - now) over matched events with |dt| > 1e-9 */
 };
 
 static inline int edmd_trace_active(const EDMD* S){
@@ -704,16 +765,169 @@ static int collide_time_divider_R(const EDMD* S, const EDMD_Particle* A, int d, 
     if(t<=1e-12) return 0; *tcol=t; return 1;
 }
 
+/* ##CHRIS 2026-10-05: one divider d for disk i; Event.cb carries the divider's velocity epoch
+   (was 0). The collision-time arithmetic is the unchanged collide_time_divider_L/R. */
+static void schedule_divider_one(EDMD* S, int i, int d){
+    double t;
+    if(collide_time_divider_L(S, &S->P[i], d, &t))
+        heap_push(&S->heap, (Event){ S->t+t, i, d, S->P[i].coll_count, S->div_epoch[d], EV_DL });
+    if(collide_time_divider_R(S, &S->P[i], d, &t))
+        heap_push(&S->heap, (Event){ S->t+t, i, d, S->P[i].coll_count, S->div_epoch[d], EV_DR });
+}
 static void schedule_divider(EDMD* S, int i){
     if(S->prm.divider_count <= 0) return;
     int dcount = clamp_dividers(S->prm.divider_count);
-    for (int d = 0; d < dcount; ++d) {
-        double t;
-        if(collide_time_divider_L(S, &S->P[i], d, &t))
-            heap_push(&S->heap, (Event){ S->t+t, i, d, S->P[i].coll_count,0, EV_DL });
-        if(collide_time_divider_R(S, &S->P[i], d, &t))
-            heap_push(&S->heap, (Event){ S->t+t, i, d, S->P[i].coll_count,0, EV_DR });
+    for (int d = 0; d < dcount; ++d) schedule_divider_one(S, i, d);
+}
+
+/* ##CHRIS 2026-10-05: is a queued event still valid? The same tests the event loop applies
+   at pop time (coll_count snapshots; divider velocity epoch for DL/DR). */
+static int event_live(const EDMD* S, const Event* e){
+    if(e->a < 0 || e->a >= S->prm.N) return 0;
+    if(S->P[e->a].coll_count != e->ca) return 0;
+    if(e->type == EV_AB){
+        if(e->b < 0 || e->b >= S->prm.N) return 0;
+        if(S->P[e->b].coll_count != e->cb) return 0;
+    } else if(e->type == EV_DL || e->type == EV_DR){
+        if(e->b >= 0 && e->b < EDMD_MAX_DIVIDERS && S->div_epoch[e->b] != e->cb) return 0;
     }
+    return 1;
+}
+
+/* ##CHRIS 2026-10-05: contact audit of one executed event (see g_edmd_contact_audit). Reads state only. */
+static void edmd_contact_audit(EDMD* S, const Event* e){
+    const EDMD_Particle* A = &S->P[e->a]; const double R = S->prm.radius; double gap = 0.0; int k = 0;
+    switch (e->type) {
+        case EV_AB: { const EDMD_Particle* B = &S->P[e->b]; const double dx = B->x - A->x, dy = B->y - A->y;
+                      gap = sqrt(dx*dx + dy*dy) - 2.0*R; k = 0; break; }
+        case EV_WL: gap = A->x - R; k = 1; break;
+        case EV_WR: gap = (S->prm.boxW - R) - A->x; k = 1; break;
+        case EV_WB: gap = A->y - R; k = 1; break;
+        case EV_WT: gap = (S->prm.boxH - R) - A->y; k = 1; break;
+        case EV_DL: case EV_DR: {
+            const int d = e->b;
+            if (d < 0 || d >= clamp_dividers(S->prm.divider_count)) return;
+            const double th = S->prm.divider_thickness[d];
+            gap = (e->type == EV_DL) ? (S->prm.divider_x[d] - 0.5*th) - (A->x + R) : (A->x - R) - (S->prm.divider_x[d] + 0.5*th);
+            k = 2; break; }
+        case EV_PL: gap = (A->x - R) - S->prm.pistonL_x; k = 3; break;
+        case EV_PR: gap = S->prm.pistonR_x - (A->x + R); k = 3; break;
+        default: return;
+    }
+    if (fabs(gap) > S->contact_max[k]) S->contact_max[k] = fabs(gap);
+    S->contact_events++;
+}
+
+/* ##CHRIS 2026-10-07: schedule-equivalence audit (--resched-audit; top of file). Key of an event in a direct table:
+   disk-disk pairs a<b, outer walls (disk, side), divider faces (disk, divider, face), piston faces (disk, face). */
+static void schedule_pistons(EDMD* S, int i);   /* defined below */
+static void schedule_ab(EDMD* S, int i, int j);
+static long audit_key(const EDMD* S, const Event* e){
+    const long N = S->prm.N, D = clamp_dividers(S->prm.divider_count);
+    switch (e->type) {
+        case EV_AB: { const long a = e->a < e->b ? e->a : e->b, b = e->a < e->b ? e->b : e->a; return a * N + b; }
+        case EV_WL: case EV_WR: case EV_WB: case EV_WT: return N * N + (long)e->a * 4 + (e->type - EV_WL);
+        case EV_DL: case EV_DR:
+            if (e->b < 0 || e->b >= D) return -1;
+            return N * N + 4 * N + ((long)e->a * D + e->b) * 2 + (e->type == EV_DR);
+        case EV_PL: case EV_PR: return N * N + 4 * N + 2 * N * D + (long)e->a * 2 + (e->type == EV_PR);
+        default: return -1;
+    }
+}
+static void audit_print(const EDMD* S, const char* kind, long k, double tl, double tm){
+    const long N = S->prm.N, D = clamp_dividers(S->prm.divider_count);
+    const double R = S->prm.radius;
+    if (k < N * N) {
+        const int a = (int)(k / N), b = (int)(k % N); const EDMD_Particle *A = &S->P[a], *B = &S->P[b];
+        printf("[EDMD-AUDIT-EV] %s type=AB a=%d b=%d now=%.17g t_legacy=%.17g t_heap=%.17g R=%.17g "
+               "A=%.17g,%.17g,%.17g,%.17g B=%.17g,%.17g,%.17g,%.17g\n", kind, a, b, S->t, tl, tm, R,
+               A->x, A->y, A->vx, A->vy, B->x, B->y, B->vx, B->vy);
+    } else if (k < N * N + 4 * N) {
+        const int a = (int)((k - N * N) / 4), w = (int)((k - N * N) % 4); const EDMD_Particle *A = &S->P[a];
+        static const char* wn[4] = {"WL", "WR", "WB", "WT"};
+        printf("[EDMD-AUDIT-EV] %s type=%s a=%d now=%.17g t_legacy=%.17g t_heap=%.17g R=%.17g boxW=%.17g boxH=%.17g "
+               "A=%.17g,%.17g,%.17g,%.17g\n", kind, wn[w], a, S->t, tl, tm, R, S->prm.boxW, S->prm.boxH, A->x, A->y, A->vx, A->vy);
+    } else if (k < N * N + 4 * N + 2 * N * D) {
+        const long r = k - N * N - 4 * N; const int a = (int)(r / (2 * D)), d = (int)((r / 2) % D), f = (int)(r % 2);
+        const EDMD_Particle *A = &S->P[a];
+        printf("[EDMD-AUDIT-EV] %s type=%s a=%d d=%d now=%.17g t_legacy=%.17g t_heap=%.17g R=%.17g div_x=%.17g div_vx=%.17g "
+               "div_th=%.17g div_mass=%.17g A=%.17g,%.17g,%.17g,%.17g\n", kind, f ? "DR" : "DL", a, d, S->t, tl, tm, R,
+               S->prm.divider_x[d], S->prm.divider_vx[d], S->prm.divider_thickness[d], S->prm.divider_mass[d], A->x, A->y, A->vx, A->vy);
+    } else {
+        const long r = k - N * N - 4 * N - 2 * N * D; const int a = (int)(r / 2), f = (int)(r % 2); const EDMD_Particle *A = &S->P[a];
+        printf("[EDMD-AUDIT-EV] %s type=%s a=%d now=%.17g t_legacy=%.17g t_heap=%.17g R=%.17g pistonL_x=%.17g pistonR_x=%.17g "
+               "A=%.17g,%.17g,%.17g,%.17g\n", kind, f ? "PR" : "PL", a, S->t, tl, tm, R, S->prm.pistonL_x, S->prm.pistonR_x,
+               A->x, A->y, A->vx, A->vy);
+    }
+}
+static void edmd_resched_audit_run(EDMD* S){
+    const long N = S->prm.N, D = clamp_dividers(S->prm.divider_count);
+    const long K = N * N + 4 * N + 2 * N * D + 2 * N;
+    if (S->audit_cap < K) {
+        S->audit_tl = (double*)realloc(S->audit_tl, (size_t)K * sizeof(double));
+        S->audit_tm = (double*)realloc(S->audit_tm, (size_t)K * sizeof(double));
+        S->audit_cap = K;
+    }
+    for (long k = 0; k < K; ++k) { S->audit_tl[k] = NAN; S->audit_tm[k] = NAN; }
+    /* the legacy full schedule of this state, into the scratch heap; nothing else is touched */
+    const Heap real = S->heap; const long ov = S->overlap_repair_count, wo = S->wall_overdue_count;
+    S->heap = S->audit_heap; S->heap.n = 0;
+    for (int i = 0; i < S->prm.N; ++i) { schedule_walls(S, i); schedule_divider(S, i); schedule_pistons(S, i); }
+    for (int i = 0; i < S->prm.N; ++i) for (int j = i + 1; j < S->prm.N; ++j) schedule_ab(S, i, j);
+    S->audit_heap = S->heap; S->heap = real; S->overlap_repair_count = ov; S->wall_overdue_count = wo;
+    for (int q = 0; q < S->audit_heap.n; ++q) {
+        const long k = audit_key(S, &S->audit_heap.data[q]); if (k < 0) continue;
+        const double t = S->audit_heap.data[q].t;
+        if (isnan(S->audit_tl[k]) || t < S->audit_tl[k]) S->audit_tl[k] = t;
+    }
+    for (int q = 0; q < S->heap.n; ++q) {
+        const Event* e = &S->heap.data[q];
+        if (!event_live(S, e)) continue;
+        const long k = audit_key(S, e); if (k < 0) continue;
+        if (isnan(S->audit_tm[k])) S->audit_tm[k] = e->t;
+        else { if (fabs(S->audit_tm[k] - e->t) > 1e-9) S->audit_dupdis++; if (e->t < S->audit_tm[k]) S->audit_tm[k] = e->t; }
+    }
+    for (long k = 0; k < K; ++k) {
+        const double tl = S->audit_tl[k], tm = S->audit_tm[k];
+        if (isnan(tl) && isnan(tm)) continue;
+        const char* kind = NULL;
+        if (isnan(tm)) { S->audit_missing++; kind = "missing"; }
+        else if (isnan(tl)) { S->audit_extra++; kind = "extra"; }
+        else {
+            const double d = fabs(tl - tm); S->audit_cmp++;
+            if (d > S->audit_maxdt) S->audit_maxdt = d;
+            if (d > 1e-9) {
+                const double hz = tl - S->t, rel = hz > 0.0 ? d / hz : INFINITY;
+                S->audit_dt++; kind = "dt";
+                if (rel > S->audit_maxrel) S->audit_maxrel = rel;
+                if (rel > 1e-10) { S->audit_dtrel++; kind = "dt_rel"; }
+            }
+        }
+        if (kind && S->audit_printed < 100000) { S->audit_printed++; audit_print(S, kind, k, tl, tm); }
+    }
+    S->audit_n++;
+}
+
+/* ##CHRIS 2026-10-05: drop stale events (order of the survivors kept) and re-heapify
+   bottom-up (Floyd), with the comparisons of heap_pop. Deterministic. Minimal mode only. */
+static void heap_compact(EDMD* S){
+    Heap* H = &S->heap;
+    int n = 0;
+    for (int k = 0; k < H->n; ++k) if (event_live(S, &H->data[k])) H->data[n++] = H->data[k];
+    H->n = n;
+    for (int s0 = n/2 - 1; s0 >= 0; --s0) {
+        int i = s0;
+        for(;;){
+            int l=2*i+1, r=l+1, s=i;
+            if(l<H->n && H->data[l].t < H->data[s].t) s=l;
+            if(r<H->n && H->data[r].t < H->data[s].t) s=r;
+            if(s==i) break;
+            heap_swap(&H->data[i], &H->data[s]); i=s;
+        }
+    }
+    const int floor_n = 64*S->prm.N + 4096;
+    S->heap_compact_at = (2*n > floor_n) ? 2*n : floor_n;
+    S->heap_compactions++;
 }
 
 /* Pistons: left piston right face at xL, right piston left face at xR */
@@ -1190,7 +1404,9 @@ static void resolve_wall(EDMD* S, int i, EvType type, int b){
             double dE = 0.5 * M * (v2*v2 - u2*u2);
             S->work_divider[d] += dE;
             { char kb[8]; snprintf(kb, sizeof kb, "D%d", d); edmd_log_event(S, kb, u2, u1, v1, dE); }
-            A->vx = v1; S->prm.divider_vx[d] = v2; A->coll_count++; return;
+            A->vx = v1; S->prm.divider_vx[d] = v2; A->coll_count++;
+            S->div_epoch[d]++;   /* ##CHRIS 2026-10-05: every queued event with divider d is now stale */
+            return;
         }
     }
     if(type==EV_PL || type==EV_PR){
@@ -1258,6 +1474,8 @@ EDMD* edmd_create(const EDMD_Params* prm_in){
 void edmd_destroy(EDMD* S){
     if(!S) return;
     heap_free(&S->heap);
+    if (S->audit_heap.data) heap_free(&S->audit_heap);   /* ##CHRIS 2026-10-07 */
+    free(S->audit_tl); free(S->audit_tm);
     grid_free(S);
     free(S->P);
     free(S->clamped);   /* ##CHRIS */
@@ -1448,6 +1666,12 @@ double edmd_advance_to(EDMD* S, double t_target){
             edmd_trace_check(S, "free-flight (heap empty)"); /* ##CHRIS */
             break;
         }
+        /* ##CHRIS 2026-10-05: minimal mode drops a stale event here, before the O(N) position
+           jump and the avalanche counters (legacy validates after the jump, below, unchanged). */
+        if (!g_edmd_legacy_resched && !event_live(S, &e)) {
+            edmd_trace_record(S, &e, 0);
+            continue;
+        }
         events_processed++;
         if (e.type >= EV_AB && e.type <= EV_PR) type_counts[(int)e.type]++;
         if (fabs(e.t - last_event_t) <= 1e-13) stagnant_events++;
@@ -1497,7 +1721,7 @@ double edmd_advance_to(EDMD* S, double t_target){
             heap_push(&S->heap, e);
             break;
         }
-        if(e.t < S->t) continue; /* guard (shouldn’t happen often) */
+        if(e.t < S->t){ S->past_event_count++; continue; } /* guard (shouldn’t happen often); ##CHRIS 2026-10-05: counted */
 
         /* jump all particles to event time */
         double dt = e.t - S->t;
@@ -1523,6 +1747,8 @@ double edmd_advance_to(EDMD* S, double t_target){
         edmd_trace_record(S, &e, ev_ok);      /* ##CHRIS */
         edmd_trace_check(S, "position jump to event time"); /* ##CHRIS */
         if(!ev_ok) continue;
+        if (g_edmd_contact_audit < 0) g_edmd_contact_audit = (getenv("HD_CONTACT_AUDIT") != NULL);   /* ##CHRIS 2026-10-05 */
+        if (g_edmd_contact_audit) edmd_contact_audit(S, &e);
 
         /* resolve */
         if(e.type==EV_AB) {
@@ -1532,16 +1758,35 @@ double edmd_advance_to(EDMD* S, double t_target){
             schedule_for(S, e.b);
             reschedule_clamped(S);   /* ##CHRIS: cover particles grid_build had to bounce */
         } else {
+            const int is_div = (e.type==EV_DL || e.type==EV_DR);
+            const int d_ev = (is_div && e.b >= 0 && e.b < clamp_dividers(S->prm.divider_count)) ? e.b : -1;
+            const int epoch0 = (d_ev >= 0) ? S->div_epoch[d_ev] : 0;
             resolve_wall(S, e.a, e.type, e.b);
             /* moving boundary velocities may have changed (divider/pistons): rebuild and reschedule all */
-            if (e.type==EV_DL || e.type==EV_DR || e.type==EV_PL || e.type==EV_PR) {
+            if (e.type==EV_PL || e.type==EV_PR || (is_div && g_edmd_legacy_resched)) {
                 reschedule_all_internal(S);
+            } else if (is_div) {
+                /* ##CHRIS 2026-10-05: minimal rescheduling (top of file). Disk e.a as after a wall
+                   event; if the divider's velocity changed, every other disk's event with it. */
+                grid_build(S);
+                schedule_for(S, e.a);
+                if (d_ev >= 0 && S->div_epoch[d_ev] != epoch0) {
+                    for (int j = 0; j < S->prm.N; ++j) if (j != e.a) schedule_divider_one(S, j, d_ev);
+                }
+                reschedule_clamped(S);
             } else {
                 grid_build(S);
                 schedule_for(S, e.a);
                 reschedule_clamped(S);   /* ##CHRIS */
             }
         }
+        /* ##CHRIS 2026-10-05: minimal mode has no periodic heap flush -- compact (top of file). */
+        if (!g_edmd_legacy_resched) {
+            if (S->heap_compact_at == 0) S->heap_compact_at = 64*S->prm.N + 4096;
+            if (S->heap.n > S->heap_compact_at) heap_compact(S);
+        }
+        /* ##CHRIS 2026-10-07: schedule-equivalence audit (--resched-audit; top of file). Read-only. */
+        if (g_edmd_resched_audit && (g_edmd_resched_audit == 2 || e.type == EV_DL || e.type == EV_DR)) edmd_resched_audit_run(S);
     }
     return S->t;
 }
@@ -1613,6 +1858,20 @@ double edmd_compressibility_Z(const EDMD* S){
 
 long edmd_clamp_repair_count(const EDMD* S){
     return S ? S->clamp_repair_count : 0;
+}
+long edmd_past_event_count(const EDMD* S){ return S ? S->past_event_count : 0; }   /* ##CHRIS 2026-10-05 */
+/* ##CHRIS 2026-10-07: schedule-equivalence audit results (--resched-audit). out: audited events, matched comparisons,
+   missing, extra, |dt| > 1e-9, duplicate live events disagreeing by > 1e-9; *maxdt = max |dt| over matched events. */
+void edmd_resched_audit_stats(const EDMD* S, long out[7], double* maxdt, double* maxrel){
+    out[0] = S ? S->audit_n : 0; out[1] = S ? S->audit_cmp : 0; out[2] = S ? S->audit_missing : 0;
+    out[3] = S ? S->audit_extra : 0; out[4] = S ? S->audit_dt : 0; out[5] = S ? S->audit_dupdis : 0;
+    out[6] = S ? S->audit_dtrel : 0;
+    *maxdt = S ? S->audit_maxdt : 0.0; *maxrel = S ? S->audit_maxrel : 0.0;
+}
+/* ##CHRIS 2026-10-05: contact audit results (HD_CONTACT_AUDIT); returns the number of audited events */
+long edmd_contact_audit_stats(const EDMD* S, double max_gap_px[4]){
+    for (int k = 0; k < 4; ++k) max_gap_px[k] = S ? S->contact_max[k] : 0.0;
+    return S ? S->contact_events : 0;
 }
 long edmd_overlap_repair_count(const EDMD* S){
     return S ? S->overlap_repair_count : 0;

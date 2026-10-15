@@ -1,0 +1,39 @@
+# INTERIM -- group B400: the merge job's time and where it went (s1_merge_time_261012.py, from the fetched files' times; UTC)
+
+- the files keep the merge's times: the plan's name says 18:06:54 UTC, its file 18:06:54; .merge_complete says '2026-10-13 18:09:27 UTC', its file 18:09:27 UTC (file minus record: +0 s and +0 s)
+- the merge log (job_logs/gen3-s1-merge-B400_15053737.out, job 15053737): 304 step lines, in the order assumed here (cells sorted; reduce_B, then reduce_s1 per m_<M>, then sha and gzip per m_<M>); exit codes other than 0 in reduce_B / reduce_s1: 0
+
+| phase | from | to | seconds | h:mm:ss | share of the span from the plan to the end |
+|---|---|---|---|---|---|
+| scan (the job's checks and the scan; to the plan) | unknown | 18:06:54 | - | - | - |
+| moves (to .merge_complete) | 18:06:54 | 18:09:27 | 153 | 0:02:33 | 1.4 % |
+| reduce_B (reduce_B.py, 16 cells) |  |  | 431 | 0:07:11 | 4.1 % |
+| reduce_s1 (reduce_s1_koa.py, 144 folders) |  |  | 9476 | 2:37:56 | 89.8 % |
+| sha (the SHA-256 lines of the traces) |  |  | 155 | 0:02:35 | 1.5 % |
+| gzip -9 of the traces |  |  | 340 | 0:05:40 | 3.2 % |
+| after the last folder (to the job log's copy) |  |  | 0 | 0:00:00 | 0.0 % |
+| **the job** | unknown | 21:02:49 | - | - | |
+
+from the plan to the end: 10555 s (2:55:55); the job's start is in no fetched file (sacct gives it); the end 2026-10-13 21:02:49 UTC (the merge log's copy)
+
+per cell (seconds):
+
+| cell | m_<M> folders | reduce_B | reduce_s1 | sha | gzip | total |
+|---|---|---|---|---|---|---|
+| B_N0400_eta0.050000 | 9 | 43 | 3488 | 6 | 21 | 3558 |
+| B_N0400_eta0.100000 | 9 | 12 | 3124 | 1 | 17 | 3154 |
+| B_N0400_eta0.150000 | 9 | 11 | 1230 | 4 | 15 | 1260 |
+| B_N0400_eta0.200000 | 9 | 11 | 680 | 44 | 18 | 753 |
+| B_N0400_eta0.250000 | 9 | 32 | 289 | 0 | 17 | 338 |
+| B_N0400_eta0.300000 | 9 | 13 | 179 | 3 | 15 | 210 |
+| B_N0400_eta0.350000 | 9 | 11 | 107 | 50 | 18 | 186 |
+| B_N0400_eta0.392699 | 9 | 92 | 64 | 11 | 50 | 217 |
+| B_N0400_eta0.450000 | 9 | 68 | 81 | 7 | 26 | 182 |
+| B_N0400_eta0.500000 | 9 | 47 | 36 | 0 | 19 | 102 |
+| B_N0400_eta0.550000 | 9 | 12 | 31 | 1 | 19 | 63 |
+| B_N0400_eta0.600000 | 9 | 11 | 31 | 1 | 21 | 64 |
+| B_N0400_eta0.630000 | 9 | 11 | 32 | 1 | 21 | 65 |
+| B_N0400_eta0.660000 | 9 | 11 | 32 | 9 | 20 | 72 |
+| B_N0400_eta0.680000 | 9 | 32 | 40 | 15 | 26 | 113 |
+| B_N0400_eta0.690000 | 9 | 14 | 32 | 2 | 17 | 65 |
+| all | 144 | 431 | 9476 | 155 | 340 | 10402 |

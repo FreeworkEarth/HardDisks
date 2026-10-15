@@ -1,0 +1,32 @@
+940001 submit cluster/gen3_stage1_261012/s1_koa.sbatch  name=gen3-s1-B100 time=0:30:00 exclude=default dependency=none array=1
+940001_1 cluster/gen3_stage1_261012/s1_koa.sbatch 0
+940002 submit cluster/gen3_stage1_261012/s1_koa.sbatch  name=gen3-s1-B100 time=0:30:00 exclude=default dependency=none array=2-3
+940002_2 cluster/gen3_stage1_261012/s1_koa.sbatch 0
+940002_3 cluster/gen3_stage1_261012/s1_koa.sbatch 0
+940003 submit cluster/gen3_stage1_261012/s1_koa.sbatch  name=gen3-s1-B100 time=1:00:00 exclude=default dependency=none array=4
+940003_4 cluster/gen3_stage1_261012/s1_koa.sbatch 0
+940004 submit cluster/gen3_stage1_261012/s1_merge.sbatch B100 name=gen3-s1-merge-B100 time=default exclude=default dependency=none array=none
+940004 cluster/gen3_stage1_261012/s1_merge.sbatch 0
+940005 submit cluster/gen3_s1_complete_261013/s1_complete.sbatch B100 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2/build/home/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-B100_940004.out name=gen3-s1-complete-B100 time=24:00:00 exclude=default dependency=none array=none
+940005 cluster/gen3_s1_complete_261013/s1_complete.sbatch 0
+940006 submit cluster/gen3_stage1_261012/s1_merge.sbatch B100 name=gen3-s1-merge-B100 time=default exclude=default dependency=none array=none
+940007 submit cluster/gen3_s1_complete_261013/s1_complete.sbatch B100 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2/build/home/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-B100_940006.out name=gen3-s1-complete-B100 time=24:00:00 exclude=default dependency=none array=none
+940007 cluster/gen3_s1_complete_261013/s1_complete.sbatch 0
+940008 submit cluster/gen3_s1_complete_261013/s1_complete.sbatch B100 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2/build/home/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-B100_940006.out name=gen3-s1-complete-B100 time=24:00:00 exclude=default dependency=none array=none
+940008 cluster/gen3_s1_complete_261013/s1_complete.sbatch 3
+940009 submit cluster/gen3_stage1_261012/s1_merge.sbatch B100 name=gen3-s1-merge-B100 time=default exclude=default dependency=none array=none
+940010 submit cluster/gen3_s1_complete_261013/s1_complete.sbatch B100 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2/build/home/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-B100_940009.out name=gen3-s1-complete-B100 time=24:00:00 exclude=default dependency=none array=none
+940010 cluster/gen3_s1_complete_261013/s1_complete.sbatch 2
+940011 submit cluster/gen3_s1_complete_261013/s1_complete.sbatch B100 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2/build/home/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-B100_940009.out name=gen3-s1-complete-B100 time=24:00:00 exclude=default dependency=none array=none
+940011 cluster/gen3_s1_complete_261013/s1_complete.sbatch 0
+940012 submit cluster/gen3_stage1_261012/s1_merge.sbatch B100 name=gen3-s1-merge-B100 time=default exclude=default dependency=none array=none
+940013 submit cluster/gen3_s1_complete_261013/s1_complete.sbatch B100 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2/build/home/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-B100_940012.out name=gen3-s1-complete-B100 time=24:00:00 exclude=default dependency=none array=none
+940013 cluster/gen3_s1_complete_261013/s1_complete.sbatch 0
+940014 submit cluster/gen3_stage1_261012/s1_merge.sbatch B100 name=gen3-s1-merge-B100 time=default exclude=default dependency=none array=none
+940015 submit cluster/gen3_s1_complete_261013/s1_complete.sbatch B100 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2/build/home/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-B100_940014.out name=gen3-s1-complete-B100 time=24:00:00 exclude=default dependency=none array=none
+940015 cluster/gen3_s1_complete_261013/s1_complete.sbatch 0
+940016 submit cluster/gen3_stage1_261012/s1_merge.sbatch B100 name=gen3-s1-merge-B100 time=default exclude=default dependency=none array=none
+940017 submit cluster/gen3_s1_complete_261013/s1_complete.sbatch B100 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2/build/home/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-B100_940016.out name=gen3-s1-complete-B100 time=24:00:00 exclude=default dependency=none array=none
+940017 cluster/gen3_s1_complete_261013/s1_complete.sbatch 0
+940018 submit cluster/gen3_s1_complete_261013/s1_complete.sbatch B100 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d45/rc2/logs/no_such_merge_log.out name=gen3-s1-complete-B100 time=24:00:00 exclude=default dependency=none array=none
+940018 cluster/gen3_s1_complete_261013/s1_complete.sbatch 2

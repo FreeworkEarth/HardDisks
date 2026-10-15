@@ -1,0 +1,2 @@
+HD_DATA must be an absolute path
+HD_DATA must be an absolute path

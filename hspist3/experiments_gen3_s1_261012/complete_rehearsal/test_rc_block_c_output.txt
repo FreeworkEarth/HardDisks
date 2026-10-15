@@ -1,0 +1,13 @@
+# RC block C's guard, from runsheet_complete_D_261013.txt (commit 60a744f; D's root replaced by a scratch folder)
+
+| case | expected | submitted | printed | result |
+|---|---|---|---|---|
+| all checks hold | submits | 1 | CHECKS GOOD; D: THE COMPLETION SUBMITTED | PASS |
+| the merge job still in squeue | refuses: gen3-s1-merge-D | 0 | REFUSED: squeue failed or lists a gen3-s1-merge-D or gen3-s1-complete-D job: 9100 RUNNING gen3-s1-merge-D; D: THIS PASTE DID NOT SUBMIT THE COMPLETION | PASS |
+| a completion already queued (a second paste) | refuses: gen3-s1-complete-D | 0 | REFUSED: squeue failed or lists a gen3-s1-merge-D or gen3-s1-complete-D job: 9101 PENDING gen3-s1-complete-D; D: THIS PASTE DID NOT SUBMIT THE COMPLETION | PASS |
+| the rc clone at another commit | refuses: the rc clone is not at | 0 | REFUSED: the rc clone is not at 60a744f; D: THIS PASTE DID NOT SUBMIT THE COMPLETION | PASS |
+| no .merge_complete (the merge stopped during its moves) | refuses: .merge_complete is missing | 0 | REFUSED: D's merged/.merge_complete is missing: the merge did not finish its moves (not this job's case); D: THIS PASTE DID NOT SUBMIT THE COMPLETION | PASS |
+| .reduction_completed exists | refuses: completed before | 0 | REFUSED: D's reduction was completed before; D: THIS PASTE DID NOT SUBMIT THE COMPLETION | PASS |
+| the merge log missing | refuses: the merge log | 0 | REFUSED: the merge log ~/harddisks_gen3_k2/hspist3/logs/gen3-s1-merge-D_15055588.out is missing; D: THIS PASTE DID NOT SUBMIT THE COMPLETION | PASS |
+
+RC BLOCK C GUARD TEST: PASS (7 cases)

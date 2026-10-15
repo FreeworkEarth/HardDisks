@@ -1,0 +1,14 @@
+# P2's record parameters per cell from the compressed traces' first data row (Predicted_Frequency [1/sigma-time], Planned_Duration [sigma-time], eta), distinct values over the 12 seeds; printed 2026-10-09 15:38 HST by:
+# for c in eta*_M*; do printf "%s " $c; for s in $c/seed*/wall_x_positions_*_run0.csv.gz; do gzip -dc $s | sed -n 2p | awk -F, '{printf "%s %s %s\n", $11, $13, $7}'; done | sort -u | tr '\n' ';'; echo; done   (run in data/; the shell's echo had expanded the backslash escapes of this line when it was first written, so the line was rewritten literally)
+eta0.6905_M2000 0.0835990339425 2392.38336898 0.690460;
+eta0.6905_M300 0.206268170368 969.616681115 0.690460;
+eta0.6905_M50 0.405958987237 492.666674008 0.690460;
+eta0.7060_M2000 0.0933034740577 2143.55003194 0.705976;
+eta0.7060_M300 0.230212431594 868.766679612 0.705976;
+eta0.7060_M50 0.453083989705 441.433339911 0.705976;
+eta0.7113_M2000 0.0969693224207 2062.5166974 0.711304;
+eta0.7113_M300 0.239257366673 835.93334579 0.711304;
+eta0.7113_M50 0.470885440495 424.733339662 0.711304;
+eta0.7167_M2000 0.100884927904 1982.46669621 0.716713;
+eta0.7167_M300 0.248918540264 803.483345306 0.716713;
+eta0.7167_M50 0.489899718071 408.250006083 0.716713;

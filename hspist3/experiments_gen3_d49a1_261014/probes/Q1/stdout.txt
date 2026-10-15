@@ -1,0 +1,3 @@
+[EDMD-RESCHED] divider events: minimal (default)
+[EDMD-ENGINE] gen3 (edmd_core/edmd_gen3.c; the gen2 core only holds the setup): the line above does not apply
+[EDMD] initialized: N=400  box=(52.3σ,20.0σ) -> (1256.0px,480.0px)  R=0.5000σ -> 12.000px  scale=24.0 px/σ

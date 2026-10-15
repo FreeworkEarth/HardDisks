@@ -1,0 +1,28 @@
+
+========== Simulation Info ==========
+Mode: MOLECULAR (Normalized units)
+Experiment Mode: OFF (default dt)
+Fixed Time Step (dt): 4.00e-02
+Runtime Time Step (dt_runtime): 4.00e-01
+Fixed dt override: 4.00e-01
+Collision substeps: 1
+EDMD backend: default
+TAU scaling factor: 1.0000
+Tau (dimensionless, for f* = f·tau): 1.000000
+Temperature (runtime): 100.000
+k_B (effective): 0.010000
+k_B*T (effective): 1.000000
+k_B*T=1 mode: ON
+Time scale (interactive): 1.00×
+L0 (half-length): 89.590 σ,  L_eff = L0 − 1 = 88.590 σ
+Particle radius: 0.908 σ (diameter: 1.816 σ)
+Wall hold mode: Enabled
+Wall hold steps: 600
+Internal walls: 1
+Wall Mass Factor:50.000000
+Target total simulation time: 1200.000
+Calculated steps to reach target: 3000
+======================================
+
+[GUI] no accelerated renderer (Couldn't find matching render driver); using the software renderer
+✅ Particles placed with buffer. Wall_x = 2350.000
