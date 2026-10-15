@@ -29160,3 +29160,171 @@ Nothing on KOA tonight. Tomorrow morning, first thing, paste on KOA:
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.119 Report D53-2 — decision 53 item 2: the orientation pin of Part A (A5 option b). Every block B cell's crystal orientation at j = 0 is tabulated (40 cells 0, 24 turned), and the pin is feasible at all 64 cells × 5 positions. In 61 cells the pinned start is j = 0's arrangement at every position; in 3 fluid cells only the row count still follows the width. The two dense cells (N 400, η 0.66 and 0.68) now start identically at all five positions. The task field and the worker line are added; gate C2 with the pin passes 6 of 6 (byte-identical); the worker is rehearsed with the pin. No C source changed (2026-10-14 21:30 HST, machine date) [CODE, MAC TESTS]
+
+**Plain summary.**
+- **Recorded:** decision 53 (sec. 4.7.118).
+- **The push line was printed for Chris** (all three branches). Not landed at the time of this report.
+  - The pin is ready but not yet committed. It will be committed on engine-gen3 right after the push lands, so that the push carries exactly what decision 53 released. Its hash follows in the next report.
+- **How the pin works:** --gen3-lattice-orientation=0|turned (M4c, since decision 18) restricts the lattice fit to one crystal orientation and prints [EDMD3-M4C] with what each compartment got. So the pin needs no C change; the binary of 8f538a21 (the clean build bin_8f538a2) runs it.
+- **The table** (cluster/gen3_partA_261014/pa_orient.py → pa_orient_261014.tsv):
+  - the default lattice start of every block B cell at j = 0;
+  - its crystal orientation as g3_lat_cryst computes it. At j = 0 both compartments agree in all 64 cells.
+  - 40 cells get the pin 0 (close-packed lines along x), 24 turned (along y).
+- **Feasibility** (the start only, all 64 cells × 5 positions with the cell's pin): 64 of 64 cells are feasible at every position, with no INFEASIBLE start and no failed run.
+  - **In 61 cells** the pinned start is exactly j = 0's arrangement at all five positions.
+  - **In 3 fluid cells** the orientation is pinned, but the row count follows the compartment's width at some positions:
+    - N 100, η 0.55: 10×5 / 11×5, orientation x;
+    - N 400, η 0.25: 20×10 / 19×11, turned;
+    - N 900, π/8: 23×20 / 24×19, turned.
+  - **The dense cells** of Report D50: N 400 at η 0.66 is 12×17 turned at all five positions, and at η 0.68 it is 19×11 x at all five.
+- **Gate C2 with the pin: 6 of 6 EQUAL.** The held start at j = 0 carrying its pin is byte-identical to the free start without it (the same dumps as the unpinned C2). At j = 0 the pin selects the default arrangement itself.
+- **The worker with the pin** (tests/g3_pin_rehearsal):
+  - 40 pinned 15-field tasks ok (N 100 and 400 at π/8, 0.05, 0.66 and 0.68), and one unpinned line ok;
+  - in all 41 rows each compartment carries the requested orientation.
+- **The changes:**
+  - pa_worker_koa.sh: a 15th field (default | 0 | turned) and the line passing --gen3-lattice-orientation.
+  - pa_reduce.py: the columns pin, pin_left and pin_right. It fails closed unless [EDMD3-M4C] reports the pin in both compartments, or if a pin appears in an unpinned run.
+  - pa_tasks.py: writes the field from the table, and stops for a cell without an entry.
+  - The tests: tests_d50.py gains the C2P mode; a new script rehearse_pin_mac.sh.
+- **For A5** (decision 53 item 2):
+  - The pin is the table's orientation for every position of a cell.
+  - pa_tasks.py's defaults already give the rest: BASE_A 20261014; `--sizes 100,400 --seeds 4` for the pilot (4 seeds × 5 positions × 16 η per size, 640 tasks); `--log s0j0` for the event log on s = 0 at j = 0 per cell; t0 = T_eq.
+  - The KOA build: the C sources are those of 8f538a21 (the pin changes none); the KOA clone must hold the pin's commit for the worker, the reducer, the generator and the table.
+- **Data this report:** about 15 MB (g1_pin 7.5 MB, g2_C2P 1.1 MB, g3_pin_rehearsal 6.1 MB). 67 GB free.
+
+## 1. The table (cluster/gen3_partA_261014/pa_orient_261014.tsv, verbatim)
+
+```
+cell	N	eta	orientation	arrangement_j0
+B_N0100_eta0.050000	100	0.050000	0	para alt 33x2 x
+B_N0100_eta0.100000	100	0.100000	0	para equ 25x2 x
+B_N0100_eta0.150000	100	0.150000	0	para alt 20x3 x
+B_N0100_eta0.200000	100	0.200000	turned	para alt 11x5 turned
+B_N0100_eta0.250000	100	0.250000	turned	para equ 10x5 turned
+B_N0100_eta0.300000	100	0.300000	turned	para alt 9x6 turned
+B_N0100_eta0.350000	100	0.350000	turned	para alt 9x6 turned
+B_N0100_eta0.392699	100	0.392699	0	para equ 13x4 x
+B_N0100_eta0.450000	100	0.450000	0	para alt 11x5 x
+B_N0100_eta0.500000	100	0.500000	0	para alt 11x5 x
+B_N0100_eta0.550000	100	0.550000	0	para alt 11x5 x
+B_N0100_eta0.600000	100	0.600000	0	para equ 10x5 x
+B_N0100_eta0.630000	100	0.630000	0	para equ 10x5 x
+B_N0100_eta0.660000	100	0.660000	turned	para alt 6x9 turned
+B_N0100_eta0.680000	100	0.680000	turned	para alt 6x9 turned
+B_N0100_eta0.690000	100	0.690000	turned	para alt 6x9 turned
+B_N0400_eta0.050000	400	0.050000	turned	para alt 45x5 turned
+B_N0400_eta0.100000	400	0.100000	0	para equ 50x4 x
+B_N0400_eta0.150000	400	0.150000	turned	para equ 25x8 turned
+B_N0400_eta0.200000	400	0.200000	0	para alt 37x6 x
+B_N0400_eta0.250000	400	0.250000	turned	para equ 20x10 turned
+B_N0400_eta0.300000	400	0.300000	turned	para alt 18x12 turned
+B_N0400_eta0.350000	400	0.350000	0	para alt 27x8 x
+B_N0400_eta0.392699	400	0.392699	0	para equ 25x8 x
+B_N0400_eta0.450000	400	0.450000	0	para alt 24x9 x
+B_N0400_eta0.500000	400	0.500000	turned	para alt 14x15 turned
+B_N0400_eta0.550000	400	0.550000	turned	para alt 13x16 turned
+B_N0400_eta0.600000	400	0.600000	0	para alt 21x10 x
+B_N0400_eta0.630000	400	0.630000	0	para equ 20x10 x
+B_N0400_eta0.660000	400	0.660000	turned	para equ 12x17 turned
+B_N0400_eta0.680000	400	0.680000	0	para alt 19x11 x
+B_N0400_eta0.690000	400	0.690000	0	para alt 19x11 x
+B_N0900_eta0.050000	900	0.050000	0	para equ 113x4 x
+B_N0900_eta0.100000	900	0.100000	0	para equ 75x6 x
+B_N0900_eta0.150000	900	0.150000	turned	para equ 38x12 turned
+B_N0900_eta0.200000	900	0.200000	0	para alt 53x9 x
+B_N0900_eta0.250000	900	0.250000	turned	para alt 29x16 turned
+B_N0900_eta0.300000	900	0.300000	0	para equ 45x10 x
+B_N0900_eta0.350000	900	0.350000	0	para equ 41x11 x
+B_N0900_eta0.392699	900	0.392699	turned	para equ 23x20 turned
+B_N0900_eta0.450000	900	0.450000	0	para alt 36x13 x
+B_N0900_eta0.500000	900	0.500000	0	para equ 35x13 x
+B_N0900_eta0.550000	900	0.550000	turned	para alt 20x23 turned
+B_N0900_eta0.600000	900	0.600000	0	para alt 31x15 x
+B_N0900_eta0.630000	900	0.630000	turned	para equ 18x25 turned
+B_N0900_eta0.660000	900	0.660000	0	para equ 30x15 x
+B_N0900_eta0.680000	900	0.680000	0	para alt 29x16 x
+B_N0900_eta0.690000	900	0.690000	0	para alt 29x16 x
+B_N1600_eta0.050000	1600	0.050000	0	para alt 146x6 x
+B_N1600_eta0.100000	1600	0.100000	turned	para equ 62x13 turned
+B_N1600_eta0.150000	1600	0.150000	0	para alt 85x10 x
+B_N1600_eta0.200000	1600	0.200000	0	para equ 73x11 x
+B_N1600_eta0.250000	1600	0.250000	turned	para alt 39x21 turned
+B_N1600_eta0.300000	1600	0.300000	0	para alt 60x14 x
+B_N1600_eta0.350000	1600	0.350000	0	para alt 56x15 x
+B_N1600_eta0.392699	1600	0.392699	0	para alt 52x16 x
+B_N1600_eta0.450000	1600	0.450000	0	para alt 49x17 x
+B_N1600_eta0.500000	1600	0.500000	0	para alt 46x18 x
+B_N1600_eta0.550000	1600	0.550000	turned	para equ 26x31 turned
+B_N1600_eta0.600000	1600	0.600000	turned	para equ 25x32 turned
+B_N1600_eta0.630000	1600	0.630000	0	para alt 41x20 x
+B_N1600_eta0.660000	1600	0.660000	0	para equ 40x20 x
+B_N1600_eta0.680000	1600	0.680000	0	para alt 39x21 x
+B_N1600_eta0.690000	1600	0.690000	turned	para equ 23x35 turned
+```
+
+## 2. Feasibility (tests/g1_pin/REPORT.md: the header, the 3 cells whose arrangement still differs, the two dense cells of Report D50, and the summary; every cell's row is in the file)
+
+```
+| cell | pinned orientation (j = 0's) | j = -2: left / right | j = -1 | j = 0 | j = +1 | j = +2 | the pinned start |
+|---|---|---|---|---|---|---|---|
+| B_N0100_eta0.550000 | 0 | para equ 10x5 x / para alt 11x5 x | para equ 10x5 x / para alt 11x5 x | para alt 11x5 x / para alt 11x5 x | para alt 11x5 x / para equ 10x5 x | para alt 11x5 x / para equ 10x5 x | FEASIBLE, arrangement differs |
+| B_N0400_eta0.250000 | turned | para alt 19x11 turned / para equ 20x10 turned | para alt 19x11 turned / para equ 20x10 turned | para equ 20x10 turned / para equ 20x10 turned | para equ 20x10 turned / para alt 19x11 turned | para equ 20x10 turned / para alt 19x11 turned | FEASIBLE, arrangement differs |
+| B_N0400_eta0.660000 | turned | para equ 12x17 turned / para equ 12x17 turned | para equ 12x17 turned / para equ 12x17 turned | para equ 12x17 turned / para equ 12x17 turned | para equ 12x17 turned / para equ 12x17 turned | para equ 12x17 turned / para equ 12x17 turned | FEASIBLE, as j = 0 |
+| B_N0400_eta0.680000 | 0 | para alt 19x11 x / para alt 19x11 x | para alt 19x11 x / para alt 19x11 x | para alt 19x11 x / para alt 19x11 x | para alt 19x11 x / para alt 19x11 x | para alt 19x11 x / para alt 19x11 x | FEASIBLE, as j = 0 |
+| B_N0900_eta0.392699 | turned | para equ 23x20 turned / para equ 24x19 turned | para equ 23x20 turned / para equ 24x19 turned | para equ 23x20 turned / para equ 23x20 turned | para equ 24x19 turned / para equ 23x20 turned | para equ 24x19 turned / para equ 23x20 turned | FEASIBLE, arrangement differs |
+
+64 of 64 cells have an orientation at j = 0; 64 of 64 are feasible at all five positions with it; in 61 the pinned arrangement equals j = 0's at every position.
+Problems: none
+```
+
+## 3. Gate C2 with the pin (tests/g2_C2P/RESULTS.md, verbatim)
+
+```
+# C2P (g2_C2P), 2026-10-14 21:28:12 HST
+
+NEW experiments_gen3_d50_261014/bin_8f538a2/00ALLINONE SHA-256 ae9f450765705334e81c0f62af878edc359bddd1a02ea80afc27cf1589a8ceac
+
+| cell | exact seed | L0 [sigma] | N | exit free / held | clean free / held | disks in the dump | dump SHA-256 free / held | run header's lattice | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| B_N0100_eta0.392699 (pin 0) | 4150605455 | 10 | 100 | 0 / 0 | 1 / 1 | 100 | 3db63f44beff359f / 3db63f44beff359f | equal | EQUAL |
+| B_N0400_eta0.392699 (pin 0) | 1774095278 | 20 | 400 | 0 / 0 | 1 / 1 | 400 | 14cb82950799671f / 14cb82950799671f | equal | EQUAL |
+| B_N0900_eta0.392699 (pin turned) | 1395037345 | 30.000000000000004 | 900 | 0 / 0 | 1 / 1 | 900 | c5d68147d056932e / c5d68147d056932e | equal | EQUAL |
+| B_N1600_eta0.392699 (pin 0) | 2708099220 | 40 | 1600 | 0 / 0 | 1 / 1 | 1600 | a5e187ff0d638ea1 / a5e187ff0d638ea1 | equal | EQUAL |
+| B_N0400_eta0.050000 (pin turned) | 1095518927 | 157.07963267948966 | 400 | 0 / 0 | 1 / 1 | 400 | d4cc1eb055c07aab / d4cc1eb055c07aab | equal | EQUAL |
+| B_N0400_eta0.690000 (pin 0) | 181999126 | 11.382582078223889 | 400 | 0 / 0 | 1 / 1 | 400 | e7f3bffd004c0b24 / e7f3bffd004c0b24 | equal | EQUAL |
+
+6 of 6 EQUAL
+```
+
+## 4. The worker with the pin (tests/g3_pin_rehearsal)
+
+```
+tasks_pin.txt: 40 lines; orientation field: 20 0;20 turned;
+P1_worker_lines.txt: 40 lines ok, 0 FAILED
+P2_worker_lines.txt: A partA/gen3/B_N0100_eta0.050000/x_m2_nopin j=-2 s=0 seed=3936421662 ok (0 s)
+
+summary.txt (the columns, the dense cells and the unpinned line):
+               cell  j       seed     pin      pin_left     pin_right             left            right        F_L        F_R  dF_L_rel_log  dF_R_rel_log
+B_N0100_eta0.050000 -2 3936421662 default           NaN           NaN       alt 33x2 0       alt 33x2 0   0.556945   0.726891           NaN           NaN
+B_N0400_eta0.660000 -2 3679552938  turned lines along y lines along y equ 12x17 turned equ 12x17 turned 167.285234 158.204645           NaN           NaN
+B_N0400_eta0.660000 -1 1089965798  turned lines along y lines along y equ 12x17 turned equ 12x17 turned 163.134269 162.754302           NaN           NaN
+B_N0400_eta0.660000  0 1435410558  turned lines along y lines along y equ 12x17 turned equ 12x17 turned 162.070924 163.748110 -5.773160e-15  4.263256e-14
+B_N0400_eta0.660000  1 2866515826  turned lines along y lines along y equ 12x17 turned equ 12x17 turned 164.089519 161.744635           NaN           NaN
+B_N0400_eta0.660000  2 1525037129  turned lines along y lines along y equ 12x17 turned equ 12x17 turned 158.123582 169.174526           NaN           NaN
+B_N0400_eta0.680000 -2 2037225380       0 lines along x lines along x      alt 19x11 0      alt 19x11 0 193.296159 184.456381           NaN           NaN
+B_N0400_eta0.680000 -1 3190712639       0 lines along x lines along x      alt 19x11 0      alt 19x11 0 194.083445 189.766307           NaN           NaN
+B_N0400_eta0.680000  0  351201557       0 lines along x lines along x      alt 19x11 0      alt 19x11 0 188.101557 187.677550  5.551115e-15 -6.106227e-15
+B_N0400_eta0.680000  1 3674561005       0 lines along x lines along x      alt 19x11 0      alt 19x11 0 189.520969 193.788371           NaN           NaN
+B_N0400_eta0.680000  2 1302120951       0 lines along x lines along x      alt 19x11 0      alt 19x11 0 183.840895 191.018142           NaN           NaN
+
+41 rows; rows whose compartments do not carry the pin: 0
+```
+
+## Commits
+
+- main: decision 53 (sec. 4.7.118) and this report (4.7.119); their copies on engine-gen3 and engine-divider-resched.
+- engine-gen3: the pin is committed right after Chris's push lands, with its evidence (the package's pa_orient.py, the table, the worker, the reducer, the generator, the READMEs; tests g1_pin, g2_C2P, g3_pin_rehearsal; the two scripts). It stays local, and its hash follows.
+
+Written for: the plan author
