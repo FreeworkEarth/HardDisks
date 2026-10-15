@@ -1462,6 +1462,12 @@ static double cli_gen3_jitter = 0.25;          /* --gen3-jitter=f: jitter radius
 static int    cli_gen3_exact_box = 0;          /* --gen3-exact-box: box width 2 L0 with L0 exactly as written in --lengths */
 static double* cli_lengths_d = NULL;           /* --lengths read as doubles (the exact box) */
 static size_t cli_lengths_d_count = 0;
+/* ##CHRIS 2026-10-14 (plan-author decision 50 item 3 a; 261012 sec. 4.7.113): PART A'S HELD PATH ON THE EXACT BOX. The held path is the
+   energy-transfer experiment (the worker's AF command). With --gen3-exact-box there, the engine's box is 2 L0 with L0 exactly as written
+   in --l0, and the divider sits exactly at the first --wall-positions value; both are read again as doubles here. The display keeps its
+   float grid (SIM_WIDTH, all_wall_positions), as in the speed-of-sound loop. The box and the position are checked at 1e-9 sigma. */
+static double cli_l0_d = 0.0;                                         /* --l0 as a double */
+static double cli_wall_positions_d[5] = {0.0, 0.0, 0.0, 0.0, 0.0};    /* --wall-positions as doubles */
 static const char* cli_gen3_dump_initial = NULL;   /* --gen3-dump-initial=PATH: the initial state after the seeding, %a */
 /* ##CHRIS 2026-10-09 (stage H; 261012 sec. 4.7.12 stage H, sec. 4.7 item 6): checkpoint and restart of one gen3 speed-of-sound
    trajectory at a step boundary of the driver, which is an event boundary of the engine (g3_ckpt_write, g3_restart_apply) */
@@ -4593,6 +4599,7 @@ static void parse_cli_options(int argc, char **argv) {
                 // Skip whitespace
                 while (*token == ' ') token++;
                 cli_wall_positions[pos_count] = atof(token);
+                cli_wall_positions_d[pos_count] = atof(token);   /* ##CHRIS 2026-10-14 (decision 50, a): the exact divider position */
                 token = strtok(NULL, ",");
                 pos_count++;
             }
@@ -5033,6 +5040,7 @@ static void parse_cli_options(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
             cli_override_L0_units = v;
+            cli_l0_d = strtod(value, NULL);   /* ##CHRIS 2026-10-14 (decision 50, a): the exact L0 of the held path */
         } else if (strncmp(arg, "--height", 8) == 0) {
             const char *value = cli_option_value(arg, argc, argv, &i);
             errno = 0;
@@ -18424,6 +18432,10 @@ static void write_energy_transfer_failure(const char *summary_path,
     fprintf(stderr, "Failure record appended to: %s\n", failure_path);
 }
 
+/* ##CHRIS 2026-10-14 (decision 50, a): the held path on the exact box (gen3, --gen3-exact-box, the energy-transfer experiment) */
+static inline int g3_held_exact(void){
+    return cli_engine == 3 && cli_gen3_exact_box && !cli_force_no_experiments && cli_experiment_preset == EXPERIMENT_PRESET_ENERGY_TRANSFER;
+}
 static void build_energy_transfer_validation_state(ExperimentValidationState *state,
                                                    double *wall_positions,
                                                    double *wall_velocities) {
@@ -18463,7 +18475,7 @@ static void build_energy_transfer_validation_state(ExperimentValidationState *st
         ? fmax((double)XW1, (double)XW1 + ep->pistonL_x)
         : fmax((double)XW1, (double)piston_left_x + 5.0);
     state->x_max_face = ep
-        ? fmin((double)XW2, (double)XW1 + ep->pistonR_x)
+        ? fmin(g3_held_exact() ? (double)XW1 + ep->boxW : (double)XW2, (double)XW1 + ep->pistonR_x)   /* ##CHRIS 2026-10-14 (decision 50, a): the exact box */
         : fmin((double)XW2, (double)piston_right_x);
     state->y_min = (double)YW1;
     state->y_max = (double)YW2;
@@ -18608,7 +18620,7 @@ static void run_energy_transfer_experiment(void) {
         }
         if (g_edmd) { edmd_destroy(g_edmd); g_edmd = NULL; }
         EDMD_Params prm = {0};
-        prm.boxW = (double)(XW2 - XW1);
+        prm.boxW = g3_held_exact() ? 2.0 * cli_l0_d * (double)PIXELS_PER_SIGMA : (double)(XW2 - XW1);   /* ##CHRIS 2026-10-14 (decision 50, a) */
         prm.boxH = (double)(YW2 - YW1);
         prm.radius = (double)PARTICLE_RADIUS;
         prm.N = particles_active;
@@ -18622,7 +18634,8 @@ static void run_energy_transfer_experiment(void) {
             int extra_idx = 0;
             for (int w = 0; w < dcount; ++w) {
                 double pos_px = (all_wall_positions ? (double)all_wall_positions[w] : (double)wall_x);
-                prm.divider_x[w] = pos_px - (double)XW1;
+                prm.divider_x[w] = (g3_held_exact() && w == 0) ? cli_wall_positions_d[0] * (double)PIXELS_PER_SIGMA   /* ##CHRIS (decision 50, a) */
+                                                               : pos_px - (double)XW1;
                 prm.divider_thickness[w] = (double)WALL_THICKNESS;
                 double mf = (double)(WALL_MASS / PARTICLE_MASS);
                 if (cli_wall_masses_set && w < (int)(sizeof(cli_wall_masses) / sizeof(cli_wall_masses[0])) && cli_wall_masses[w] > 0.0f) {
@@ -18765,7 +18778,53 @@ static void run_energy_transfer_experiment(void) {
         }
     }
 
-    if (!validator.failure.failed && cli_num_walls == num_internal_walls &&
+    if (g3_held_exact()) {
+        /* ##CHRIS 2026-10-14 (plan-author decision 50 item 3 a; 261012 sec. 4.7.113): THE HELD PATH ON THE EXACT BOX. The engine's
+           box and divider are checked against --l0 and --wall-positions read as doubles, at 1e-9 sigma (the float check below is
+           the grid path's), and the held geometry is printed once for gate C2 (the held and the free geometry equal to 1e-9):
+           the box, the divider's centre and thickness, the radius, N_L and N_R from the engine's positions, the compartment
+           widths w = x_div - t/2 and 2 L0 - x_div - t/2, and L_eff = w - 2 R, all in sigma. */
+        const EDMD_Params *gp = (g_edmd && sim_mode == MODE_EDMD) ? edmd_params(g_edmd) : NULL;
+        const double pps = (double)PIXELS_PER_SIGMA, tol_sigma = 1e-9;
+        if (!validator.failure.failed && (!gp || gp->divider_count != 1)) {
+            experiment_validator_record_failure(
+                &validator, "initialization", "held_exact_state",
+                "The held path on the exact box needs the event-driven state with one divider.",
+                0, 0.0, -1, -1, -1, -1, gp ? (double)gp->divider_count : NAN, 1.0);
+        }
+        if (!validator.failure.failed) {
+            const double box_sigma = gp->boxW / pps, x_sigma = gp->divider_x[0] / pps;
+            char detail[256];
+            if (fabs(box_sigma - 2.0 * cli_l0_d) > tol_sigma) {
+                snprintf(detail, sizeof(detail), "Box initialized at %.17g sigma; 2 L0 requested %.17g sigma (tolerance 1e-9).",
+                         box_sigma, 2.0 * cli_l0_d);
+                experiment_validator_record_failure(
+                    &validator, "initialization", "initial_box_mismatch",
+                    detail, 0, 0.0, -1, -1, -1, -1, box_sigma, 2.0 * cli_l0_d);
+            } else if (fabs(x_sigma - cli_wall_positions_d[0]) > tol_sigma) {
+                snprintf(detail, sizeof(detail), "Wall 0 initialized at %.17g sigma; command requested %.17g sigma (tolerance 1e-9).",
+                         x_sigma, cli_wall_positions_d[0]);
+                experiment_validator_record_failure(
+                    &validator, "initialization", "initial_wall_position_mismatch",
+                    detail, 0, 0.0, -1, -1, 0, -1, x_sigma, cli_wall_positions_d[0]);
+            }
+        }
+        if (!validator.failure.failed) {
+            const EDMD_Particle *gq = edmd_particles(g_edmd);
+            int nl = 0;
+            for (int i = 0; i < particles_active; ++i) if (gq[i].x < gp->divider_x[0]) nl++;
+            const double box_sigma = gp->boxW / pps, h_sigma = gp->boxH / pps, x_sigma = gp->divider_x[0] / pps;
+            const double t_sigma = gp->divider_thickness[0] / pps, r_sigma = gp->radius / pps;
+            const double wl = x_sigma - 0.5 * t_sigma, wr = box_sigma - x_sigma - 0.5 * t_sigma;
+            printf("[EDMD3-HELD-GEOMETRY] box=%.17g x %.17g sigma (2 L0 %.17g, |dW| %.3g) x_div=%.17g sigma (requested %.17g, |dx| %.3g) "
+                   "t=%.17g R=%.17g N=%d N_L=%d N_R=%d w_L=%.17g w_R=%.17g L_eff_L=%.17g L_eff_R=%.17g eta=%.17g\n",
+                   box_sigma, h_sigma, 2.0 * cli_l0_d, fabs(box_sigma - 2.0 * cli_l0_d), x_sigma, cli_wall_positions_d[0],
+                   fabs(x_sigma - cli_wall_positions_d[0]), t_sigma, r_sigma, particles_active, nl, particles_active - nl,
+                   wl, wr, wl - 2.0 * r_sigma, wr - 2.0 * r_sigma,
+                   (double)particles_active * M_PI * r_sigma * r_sigma / (box_sigma * h_sigma));
+            fflush(stdout);
+        }
+    } else if (!validator.failure.failed && cli_num_walls == num_internal_walls &&
         all_wall_positions) {
         /* CLI wall positions and the simulation arrays are float-valued. */
         const double position_tolerance_sigma = 1e-5;
@@ -23280,8 +23339,11 @@ int main(int argc, char* argv[]) {
         else if (run_scene && (heatbath_enabled || andersen_enabled))
             why = "gen3 has no heat bath and no Andersen thermostat (--hb-temp)";
         else if (cli_legacy_resched || cli_resched_audit) why = "--legacy-resched and --resched-audit are gen2 schedule options";
-        else if ((cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial) && !sos)
-            why = "--gen3-seeding, --gen3-exact-box and --gen3-dump-initial are wired to the speed-of-sound experiment only";
+        else if (cli_gen3_exact_box && et && (cli_num_walls != 1 || !(cli_l0_d > 0.0)
+                                              || !(cli_wall_positions_d[0] > 0.0 && cli_wall_positions_d[0] < 2.0 * cli_l0_d)))   /* ##CHRIS 2026-10-14 (decision 50, a) */
+            why = "--gen3-exact-box in the energy-transfer experiment (the held path) needs --num-walls=1, --l0 and a --wall-positions value inside (0, 2 L0)";
+        else if ((cli_gen3_seeding || (cli_gen3_exact_box && !et) || cli_gen3_dump_initial) && !sos)   /* ##CHRIS (decision 50, a): the held path takes the exact box */
+            why = "--gen3-seeding and --gen3-dump-initial are wired to the speed-of-sound experiment only, --gen3-exact-box to it and to the energy-transfer experiment";
         else if ((cli_gen3_ckpt_phase >= 0 || cli_gen3_restart) && !sos)   /* ##CHRIS 2026-10-09 (stage H) */
             why = "--gen3-checkpoint and --gen3-restart are wired to the speed-of-sound experiment only";
         else if (cli_gen3_ckpt_stop && cli_gen3_ckpt_phase < 0) why = "--gen3-checkpoint-stop needs --gen3-checkpoint";
