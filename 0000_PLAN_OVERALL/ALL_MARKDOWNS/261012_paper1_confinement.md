@@ -29047,3 +29047,116 @@ index ba47b01e..c571732a 100644
 - **The push line for now:** main and engine-divider-resched only. engine-gen3 carries the four local commits and waits for the plan author's word.
 
 Written for: the plan author
+
+### 4.7.118 Plan-author decision 53: Report D50 accepted (the four commits of option (ii) may be pushed: the push line for all three branches); for A5, decided: option (b), pin each cell's crystal orientation at every stencil position to the arrangement of j = 0 with --gen3-lattice-orientation (the task field, the worker line, the feasibility check; A5 after the pin report: BASE_A 20261014, the pilot at N 100 and N 400, the impulse-counter readout as the registered force estimator with the event log on s = 0 at j = 0 per cell as its check, t0 = T_eq, the KOA build at the pin's commit); the return-map panel continues; after it, size D2 (N 900 and 1600 at η 0.02, 0.035, 0.075) and Stage 2 (η 0.70–0.80 at N 900 and 1600), read-only; tomorrow FG-B1600, the merge, the fetch, the full report, then the consolidation on the go; before it, the plan author's note to Chris on the dilute end and the solid (2026-10-14 21:26 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 53** (relayed by Chris at about 21:24 HST, machine date; the plan author's time "~21:20 HST").
+  - At relay time the four (ii) commits, decision 52's record and Report D50 were not yet pushed: main 2, engine-gen3 6 and engine-divider-resched 2 commits ahead of origin.
+- **Before it, the plan author's note to Chris:**
+  - **The push** had landed (main b6462719, engine-gen3 760d6c27, engine-divider-resched c5519e35).
+  - **Report D50 is accepted.**
+  - **The A5 question:** pin the orientation to the j = 0 arrangement in every cell — "the stencil must measure one state, and F(±2) enters k_T with the largest weight".
+  - **The dilute end and η > 0.69 for N 900 and 1600.**
+    - Block D measured η 0.02, 0.035 and 0.075 at N 100 and 400. The figure 261014_interim_cs_vs_eta_N100_N400_N900_D shows them, with the ideal-gas line c_s = √2 labelled. At η 0.02 the gas is within 4 % of the ideal-gas value, and KR describes it.
+    - Both new blocks are reasonable, but neither can be typed on KOA this week.
+    - **D2** (0.02, 0.035, 0.075 at N 900 and 1600):
+      - The boxes are long (L0 = 785 σ at N 1600, η 0.02) and the divider swings slowly, so a trajectory costs 20–60× a D trajectory. The plan author's guess is 700–1,300 core-hours for 1,350 trajectories.
+      - The real obstacle is the fit. The failures track high Q, these cells have the highest Q of all, and at N 1600, η 0.02 most masses would lose E1.
+      - So D2 needs a fit amendment first (a bounded damping time or a fixed-damping fallback), registered before D2's data.
+    - **Stage 2** (η 0.69 → 0.80 at N 900 and 1600) is the solid campaign, with its own registration by design.
+      - The divider's frequency there measures the crystal's longitudinal stiffness along x. That depends on the orientation state, and the damped-cosine fit already fails at 0.66–0.69 (χ²/dof 100–300).
+      - Stage 2 must define its estimator (E0's argmax plus ψ6, orientation and Z per compartment, reported per state), its densities below the ceilings (N 900: 0.84/0.85; N 1600: 0.87/0.86) and its equilibration.
+      - The plan author's cost guess is about 2,700 trajectories at about 1 core-hour each, about two days at 64 cores.
+  - **Order:** B1600's merge and full report (Friday), the consolidation, Part A's pilot, then Stage 2 and D2 as registered blocks. CC sizes both now.
+- **Decision 53:**
+  1. **Report D50 is accepted on its tests.** The four commits bcb0e3b1, dda7f4a6, 8f538a21 and 6e2ee550 may be pushed: CC prints the push line for all three branches.
+  2. **For A5, decided: option (b).**
+     - Pin each cell's crystal orientation at every stencil position to the arrangement of j = 0, with --gen3-lattice-orientation.
+     - Add the task field and the worker line, and run the feasibility check: every pinned position has an arrangement, and any cell that has not is listed.
+     - A5 will carry:
+       - BASE_A 20261014;
+       - the pilot at N 100 and N 400 (4 seeds × 5 positions × 16 η each);
+       - the impulse-counter readout as the registered force estimator, with the event log kept on s = 0 at j = 0 per cell as its check;
+       - the window t0 = T_eq;
+       - the KOA build at the commit that holds the pin.
+     - The plan author writes A5 after CC's pin report.
+  3. **The return-map panel** (decision 52) continues as planned.
+  4. **Size, read-only** (no task list, no KOA): a cost and feasibility note for the plan author, after the panel.
+     - **(a) D2:** block D's three densities 0.02, 0.035 and 0.075 at N 900 and N 1600, with block D's registered protocol (T_eq, T_rec in periods, 9 masses, 25 seeds).
+       - L0 and H per cell.
+       - The predicted E5 seconds per trajectory, from the stage 1 generator's model with the measured ratios of D and B900.
+       - Core-hours per cell and in all, the wall time at 64 cores, the scratch size.
+       - The expected Q_k per mass (from D's and B900's Q against η and N), with the masses that would exceed the Q where the fits started failing.
+     - **(b) Stage 2, solid:** η 0.70, 0.72, 0.74, 0.76, 0.78 and 0.80 at N 900 and 1600, with the stage 1 protocol as a placeholder.
+       - The same cost columns.
+       - What the stage 1 data already say about the estimator there: χ²/dof and ψ6 of the 0.66–0.69 cells at N 900, and the S cells at N 1600.
+       - Which observables Stage 2 should register per compartment (ψ6, orientation, Z, ν_d per state).
+       - No proposal of verdict rules; that is the registration's job.
+  5. **Tomorrow:** FG-B1600 after Chris's squeue (the first KOA step), the merge, the fetch, the full report. The consolidation (decision 51) follows the fetch, on the plan author's go.
+- **After it, a line to Chris:** nothing on KOA tonight; tomorrow morning, first thing, a KOA command. The paste ends there.
+
+**The message, verbatim** (relayed by Chris on 2026-10-14 at about 21:24 HST, machine date):
+
+```
+The push landed (main b6462719, engine-gen3 760d6c27, engine-divider-resched c5519e35). CC’s Report D50 then followed: option (ii) is built and passes every Mac test — Part B’s event hashes unchanged (6 of 6), the held start byte-identical to the free start (gate C2, 6 of 6), the new force readout equal to the event log to 3e-13, a full-length N 400 η 0.69 task in 63 s. Accepted. One decision it asks of me for A5: in 21 of 64 cells the default lattice start changes between the five stencil positions (two dense cells turn a compartment’s crystal orientation at j = ±2). I decide: pin the orientation to the j = 0 arrangement in every cell — the stencil must measure one state, and F(±2) enters k_T with the largest weight.
+
+On the dilute end and η > 0.69, for N 900 and 1600. The dilute end is partly there already: block D measured η 0.02, 0.035 and 0.075 at N 100 and 400; the figure 261014_interim_cs_vs_eta_N100_N400_N900_D now shows them, with the ideal-gas line c_s = √2 labelled (it was in the earlier figure too, as the dotted line at 1.41). At η 0.02 the gas is already within 4 % of the ideal-gas value and KR describes it. What you ask for are two new blocks, and both are reasonable, but neither can be typed on KOA this week:
+
+D2, dilute at N 900 and 1600 (0.02, 0.035, 0.075): the boxes get long (L₀ = 785 σ at N 1600, η 0.02) and the divider swings slowly, so a trajectory costs 20–60× a D trajectory; CC’s model will say precisely, my guess is 700–1,300 core-hours for 1,350 trajectories. The real obstacle is the fit: the failures track high Q, and these cells have the highest Q of all — at N 1600, η 0.02 most masses would lose E1. So D2 needs the fit amendment first (a bounded damping time or a fixed-damping fallback, registered before D2’s data).
+Stage 2, η 0.69 → 0.80 at N 900 and 1600: that is the solid campaign, which has its own registration by design. The swinging divider still has a frequency there, but it no longer measures a fluid’s c_s: it measures the crystal’s longitudinal stiffness along x, which depends on the orientation state (0° or turned), and the damped-cosine fit already fails at 0.66–0.69 (χ²/dof 100–300). Stage 2 must define its estimator (E0’s argmax plus ψ6, orientation and Z per compartment, reported per state), its densities below the ceilings (N 900: 0.84/0.85; N 1600: 0.87/0.86), and its equilibration — the state note’s warnings about multi-state boxes come from exactly this region. Cost at a guess: 6 densities × 2 sizes × 9 masses × 25 seeds ≈ 2,700 trajectories at ~1 core-hour each, about two days at 64 cores.
+
+Order: B1600’s merge and full report (Friday), the consolidation, Part A’s pilot, then Stage 2 and D2 as registered blocks. CC sizes both now so you have the numbers.
+
+Step now: paste this to CC.
+
+From the plan author (Cowork), relayed by Chris. Record as decision 53.
+
+DECISION 53 (2026-10-14 ~21:20 HST): REPORT D50 ACCEPTED; A5 ITEM
+DECIDED; PUSH engine-gen3; SIZE STAGE 2 AND D2
+ 1. Report D50: ACCEPTED on its tests (Part B hashes 6/6, legacy held
+    path equal, geometry 83/83, C2 6/6, readout neutral 5/5 and equal
+    to the log 5/5, worker rehearsal). The four commits bcb0e3b1,
+    dda7f4a6, 8f538a21, 6e2ee550 may be pushed: print the push line
+    for all three branches for Chris.
+ 2. For A5, decided: option (b) -- pin each cell's crystal orientation
+    at every stencil position to the arrangement of j = 0, with
+    --gen3-lattice-orientation; add the task field and the worker
+    line; run the feasibility check (every pinned position has an
+    arrangement; list any cell that has not). A5 will carry: BASE_A
+    20261014; the pilot at N 100 and N 400 (4 seeds x 5 positions x
+    16 eta each); the impulse-counter readout as the registered force
+    estimator with the event log kept on s = 0 at j = 0 per cell as
+    its check; the window t0 = T_eq; the KOA build at the commit that
+    holds (b)'s pin. The plan author writes A5 after your pin report.
+ 3. The return-map panel (decision 52) continues as planned.
+ 4. SIZE, read-only, no task list, no KOA (a cost and feasibility
+    note for the plan author, after the panel):
+    (a) D2: block D's three densities 0.02, 0.035, 0.075 at N 900 and
+    N 1600, the registered protocol of block D (T_eq, T_rec in
+    periods, 9 masses, 25 seeds): L0 and H per cell, the predicted
+    E5 seconds per trajectory from the stage 1 generator's model with
+    the measured ratios of D and B900, core-hours per cell and in
+    all, wall time at 64 cores, scratch size, and the expected Q_k
+    per mass (from D's and B900's Q against eta and N) with the
+    masses that would exceed the Q where the fits started failing.
+    (b) Stage 2, solid: eta 0.70, 0.72, 0.74, 0.76, 0.78, 0.80 at
+    N 900 and 1600 (below the ceilings of the state note), the stage
+    1 protocol as a placeholder: the same cost columns, plus what the
+    stage 1 data already say about the estimator there (chi2/dof and
+    psi6 of the 0.66-0.69 cells at N 900, the S cells at N 1600) and
+    which observables Stage 2 should register per compartment (psi6,
+    orientation, Z, nu_d per state). No proposal of verdict rules;
+    that is the registration's job.
+ 5. Tomorrow: FG-B1600 after Chris's squeue (first KOA step), the
+    merge, the fetch, the full report; the consolidation (decision
+    51) after the fetch on the plan author's go.
+
+End with "Written for: the plan author".
+
+Nothing on KOA tonight. Tomorrow morning, first thing, paste on KOA:
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
