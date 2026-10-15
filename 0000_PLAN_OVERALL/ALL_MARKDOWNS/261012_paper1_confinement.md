@@ -31496,3 +31496,75 @@ The record: Repo/HardDisks/0000_PLAN_OVERALL/ALL_MARKDOWNS/261012_paper1_confine
 - **main:** decision 55 addendum 1 (sec. 4.7.129) and this report (4.7.130); their copies on engine-gen3 and engine-divider-resched.
 
 Written for: the plan author
+
+### 4.7.131 Plan-author decision 55, addendum 2: CC executes the merge steps; the folder stays one week. Chris has run step (a) twice, (b)1, (b)2 READY, (b)3 --go (41,890 files to the main checkout, 26 entries to the hold folder, 2 tracked files restored) and (b)4–(b)5 (HardDisks_gen3 07a4c5e5 [engine-gen3] locked). CC runs (c), (e), (f) and (g) in Repo/HardDisks exactly as written, stops at the first deviation, does not push, then (h) README_FROZEN.md. The report gives every step's command and output, the merge commit and the checks table, then the two push lines. The folder stays locked until 2026-10-22, then unlock + remove on Chris's word. After the push: the fetch check, figure 1 with block D, the Stage 2 sizing (2026-10-15 11:27 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 55, addendum 2** (relayed by Chris at about 11:17 HST, machine date; the plan author's time "~11:15 HST").
+- **Done by Chris so far:**
+  - step (a) twice: the heads equal origin at main 3bf5320e, engine-gen3 07a4c5e5 and engine-divider-resched 1c818a68;
+  - (b)1: the viewer quit, the terminals out of the folder;
+  - (b)2: READY;
+  - (b)3 --go: "moved 41890 files to the main checkout and 26 entries to Repo/HardDisks_d51_hold; restored 2 tracked files", GOOD;
+  - (b)4: the lock;
+  - (b)5: the list shows HardDisks_gen3 07a4c5e5 [engine-gen3] locked.
+- **1. CC executes runsheet steps (c), (e), (f) and (g) now, in Repo/HardDisks,** exactly as written in Report D51 sec. 4 and D55a1:
+  - (c) the merge --no-ff with the message "consolidate: engine-gen3 into main after stage 1 (decision 51)"; the one expected conflict, hspist3/00ALLINONE.c, resolved with engine-gen3's version; the commit; the two-parent log line;
+  - (e) the branches kept;
+  - (f) CC's scripts and memory to the one tree, recording on main only;
+  - (g) every check: the local-change count unchanged, the 00ALLINONE.c hashes equal, 0 engine-gen3 files changed or removed, 451 main-only files, the manifests 21 OK, the viewer rebuilt from the one tree with equal sources and Part B event hashes, rule 4 (gen2 byte-identical to 7b08827) on the main build.
+  - STOP at the first deviation (any second CONFLICT line: git merge --abort) and report. Do not push.
+  - Then (h): README_FROZEN.md committed on engine-gen3 in the locked folder, as proposed in D55a1.
+- **2. The report:** each step's command and output verbatim, the merge commit hash, the checks table. Then the two push lines for Chris: `git push origin main` (step d) and `git push origin engine-gen3` (for the README).
+- **3. One week:** the folder Repo/HardDisks_gen3 stays locked until 2026-10-22; then, on Chris's word, git worktree unlock + remove. The README notes the date. Repo/HardDisks_d51_hold and the scratch clones stay until Chris's word.
+- **4. After the push:**
+  - the fetch check ((g)7, the B1600 fetch from the one tree, typed by Chris);
+  - figure 1 with block D (addendum 1 item 2);
+  - then the Stage 2 sizing.
+
+**The message, verbatim** (relayed by Chris on 2026-10-15 at about 11:17 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record as decision 55,
+addendum 2.
+
+DECISION 55, ADDENDUM 2 (2026-10-15 ~11:15 HST): CC EXECUTES THE MERGE
+STEPS; THE FOLDER STAYS ONE WEEK
+ Done by Chris so far: step (a) twice (heads equal origin at main
+ 3bf5320e, engine-gen3 07a4c5e5, engine-divider-resched 1c818a68);
+ (b)1 (viewer quit, terminals out); (b)2 READY; (b)3 --go: "moved
+ 41890 files to the main checkout and 26 entries to Repo/HardDisks_d51
+ _hold; restored 2 tracked files", GOOD; (b)4 the lock; (b)5 the list
+ shows HardDisks_gen3 07a4c5e5 [engine-gen3] locked.
+ 1. Execute runsheet steps (c), (e), (f) and (g) yourself, now, in
+    Repo/HardDisks, exactly as written in Report D51 sec. 4 and
+    D55a1: (c) the merge --no-ff with the message "consolidate:
+    engine-gen3 into main after stage 1 (decision 51)", the one
+    expected conflict hspist3/00ALLINONE.c resolved with engine-gen3's
+    version, the commit, the two-parent log line; (e) the branches
+    kept; (f) your scripts and memory to the one tree, recording on
+    main only; (g) every check: local-change count unchanged,
+    00ALLINONE.c hashes equal, 0 engine-gen3 files changed/removed,
+    451 main-only files, manifests 21 OK, the viewer rebuilt from the
+    one tree with equal sources and Part B event hashes, rule 4
+    (gen2 byte-identical to 7b08827) on the main build. STOP at the
+    first deviation (any second CONFLICT line: git merge --abort) and
+    report. Do not push. Then (h): README_FROZEN.md committed on
+    engine-gen3 in the locked folder, as you proposed.
+ 2. Report: each step's command and output verbatim, the merge
+    commit hash, the checks table. Then print for Chris the two push
+    lines: git push origin main (step d) and git push origin
+    engine-gen3 (for the README).
+ 3. The folder Repo/HardDisks_gen3 stays locked for ONE WEEK: on
+    2026-10-22, on Chris's word, git worktree unlock + remove (the
+    README notes the date). Repo/HardDisks_d51_hold and the scratch
+    clones stay until Chris's word.
+ 4. After the push: the fetch check (g, the B1600 fetch from the one
+    tree, typed by Chris), figure 1 with block D (addendum 1 item 2),
+    then the Stage 2 sizing.
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main only: this record (the propagation is retired, step f).
