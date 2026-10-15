@@ -28370,3 +28370,99 @@ The paper keeps the speed-up numbers and gets an appendix figure with gen2 besid
 - Option (ii) step (a): uncommitted until the push has landed.
 
 Written for: the plan author
+
+### 4.7.116 Plan-author decision 52: Report D51 accepted (the mover and the runsheet are the plan of record; execution only on the plan author's go after B1600 is merged and fetched; step 0, the dry run on the day's heads, required; the hold folder and the scratch clones stay until Chris's word; commit option (ii) step (a) once the push has landed); NEW, display only: the collision return-map panel in the viewer (Rob's plot), with equal event hashes for the panel closed, open and toggled; order of work: (ii) steps (b)–(d) first, then the panel; FG-B1600 tomorrow morning, nothing on KOA today; before it, the plan author's note to Chris on Rob's plot (2026-10-14 15:14 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 52** (relayed by Chris at about 15:13 HST, machine date; the plan author's time "~15:00 HST").
+  - Chris's push had landed: the three heads equal origin (main b6462719, engine-gen3 760d6c27, engine-divider-resched c5519e35).
+- **Before it, the plan author's note to Chris on Rob's plot:**
+  - It is a return map of collision angles. For one disk, take the angle of its n-th collision (0 to 2π) and the angle of its next collision; every pair (θ_n, θ_n+1) is a point in a square.
+  - In a fluid the points fill the square almost uniformly. In a crystal or hexatic patch they pile into bands at multiples of 60°.
+  - So the map shows order directly, without ψ6. It changes character where the ψ6 column does (η 0.60 → 0.69, differently per N).
+  - Two angles are possible. The plan author asks CC to build the line of centres at the hit as the default (it shows the lattice most clearly), with the velocity after the hit as a switch.
+  - It becomes a key in the viewer that opens the map as a live panel from the last few thousand collisions.
+  - Display only: a key pressed is a demonstration, never data. The panel must not change a single event; CC verifies equal event hashes with the panel on and off.
+  - A still for the paper (four densities per N) can come later, by script, from the fetched snapshots.
+- **Decision 52:**
+  1. **Report D51 accepted as prepared.**
+     - The mover and the runsheet are the plan of record. Execution only on the plan author's go after B1600 is merged and fetched.
+     - Step 0 (the dry run on the day's heads) is required.
+     - The hold folder and the scratch clones stay until Chris's word.
+     - Commit (ii) step (a) as soon as the push has landed.
+  2. **NEW, display only (as the viewer, decision 48): the collision return map.**
+     - **The angles:** for each disk, the angle θ_n in [0, 2π) of its n-th collision, and the point (θ_n, θ_n+1) of consecutive collisions of the same disk.
+       - Default: the direction of the line of centres at a pair collision, from this disk to its partner.
+       - Wall hits: the wall normal (0, π/2, π, 3π/2), drawn in another colour or left out by a switch.
+       - A second mode: the direction of the disk's velocity after the hit.
+     - **The panel:**
+       - a 2D histogram (e.g. 90 × 90 bins) over the last K collisions (K adjustable, default the last 20,000 events);
+       - a log colour scale, and axes 0 to 2π with ticks at multiples of π/3;
+       - a counter of the events used;
+       - opened and closed by one free key in the window, listed in the help line;
+       - updated live at the display's rate;
+       - one compartment or both, by a switch.
+     - **The implementation rule:**
+       - a gather hook that is off unless the panel is open;
+       - no change to any engine state or event order;
+       - no new KOA or experiment-loop path touched, and Part B's registered paths byte-identical.
+     - **The test:** equal event hashes for the same scene with the panel closed, open, and toggled during the run.
+     - A window run with the panel is a demonstration, never data.
+  3. **Order of work:**
+     - (ii) steps (b)–(d) first (Part A), then the panel. If (ii) blocks on anything that needs the plan author, the panel is done meanwhile.
+     - Each is reported with its diff and tests.
+     - Later, not now: the same map as a still figure by script from the fetched snapshots, four densities per N, for the paper's discussion of order.
+  4. **FG-B1600 tomorrow morning is the next KOA step;** nothing on KOA today.
+
+**The message, verbatim** (relayed by Chris on 2026-10-14 at about 15:13 HST, machine date):
+
+```
+Rob’s plot — yes, and it is a good one. What he drew is a return map of collision angles: for one disk, take the angle of its n-th collision (0…2π), then the angle of its next collision, and put every pair (θₙ, θₙ₊₁) as a point in a square. In a fluid the points fill the square almost uniformly — each hit forgets the last. In a crystal or hexatic patch the collisions happen along the lattice directions, so the points pile into bands at multiples of 60°: the map shows order directly, without computing ψ6, and it changes character exactly where our ψ6 column does (η 0.60 → 0.69, differently per N). Two angles are possible: the direction of the line of centres at the hit (what shows the lattice most clearly) and the direction of the disk’s velocity after the hit; I ask CC to build the first with the second as a switch. It becomes a key in the viewer that opens the map as a panel, live, from the last few thousand collisions. Display only, like the viewer: a key pressed is a demonstration, never data, and the panel must not change a single event (CC verifies equal event hashes with the panel on and off). For the paper a still of the map at four densities per N can come from the fetched snapshots later, by script.
+
+After the push, paste this to CC:
+
+From the plan author (Cowork), relayed by Chris. Record as decision 52.
+
+DECISION 52 (2026-10-14 ~15:00 HST): REPORT D51 ACCEPTED; THE COLLISION
+RETURN-MAP PANEL (ROB'S PLOT); ORDER OF WORK
+ 1. Report D51: ACCEPTED as prepared. The mover and the runsheet are
+    the plan of record; execution only on the plan author's go after
+    B1600 is merged and fetched. Step 0 (the dry run on the day's
+    heads) is required. The hold folder and the scratch clones stay
+    until Chris's word. Commit (ii) step (a) as soon as the push has
+    landed (Chris pushes now).
+ 2. NEW, display only (as the viewer, decision 48): the COLLISION
+    RETURN MAP. For each disk, the angle theta_n in [0, 2 pi) of its
+    n-th collision, and the point (theta_n, theta_n+1) of consecutive
+    collisions of the same disk. Default angle: the direction of the
+    line of centres at a pair collision (from this disk to its
+    partner); wall hits: the wall normal (0, pi/2, pi, 3pi/2) and
+    drawn in another colour or left out by a switch; a second mode
+    uses the direction of the disk's velocity after the hit. The
+    panel: a 2D histogram (e.g. 90 x 90 bins) over the last K
+    collisions (K adjustable, default the last 20,000 events), log
+    colour scale, axes 0..2 pi with ticks at multiples of pi/3, a
+    counter of events used; opened and closed by one key in the
+    window (pick a free key; list it in the help line), updated live
+    at the display's rate; one compartment or both by a switch.
+    Implementation rule: a gather hook that is off unless the panel
+    is open, no change to any engine state or event order; the test
+    is equal event hashes for the same scene with the panel closed,
+    open, and toggled during the run; no new KOA or experiment-loop
+    path touched; Part B's registered paths byte-identical. A window
+    run with the panel is a demonstration, never data.
+ 3. Order of work: (ii) steps (b)-(d) first (Part A), then the panel;
+    if (ii) blocks on anything that needs the plan author, do the
+    panel meanwhile. Report each with its diff and tests. Later (not
+    now): the same map as a still figure by script from the fetched
+    snapshots, four densities per N, for the paper's order
+    discussion.
+ 4. FG-B1600 tomorrow morning is the next KOA step; nothing on KOA
+    today.
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
