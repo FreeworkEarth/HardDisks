@@ -1,0 +1,198 @@
+# the consolidation's steps (c), (e), (f), (g), (h), run by CC (decision 55 addendum 2), 2026-10-15 11:20:32 HST, in /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks, git version 2.50.1 (Apple Git-155)
+
+$ (c)1 git branch --show-current; git status --short --untracked-files=no | wc -l
+main
+      23
+
+$ (c)2 git merge --no-ff -m "consolidate: engine-gen3 into main after stage 1 (decision 51)" engine-gen3
+Auto-merging hspist3/00ALLINONE.c
+CONFLICT (content): Merge conflict in hspist3/00ALLINONE.c
+Automatic merge failed; fix conflicts and then commit the result.
+(exit 1)
+
+$ (c)3 git checkout --theirs -- hspist3/00ALLINONE.c && git add hspist3/00ALLINONE.c && git diff --cached --name-only --diff-filter=U | wc -l
+       0
+
+$ (c)4 git commit -m "consolidate: engine-gen3 into main after stage 1 (decision 51)" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+[main 0544b7e8] consolidate: engine-gen3 into main after stage 1 (decision 51)
+
+$ (c)5 git log -1 --format='%h %p %s'
+0544b7e8 3bf5320e 07a4c5e5 consolidate: engine-gen3 into main after stage 1 (decision 51)
+
+(d) the push: Chris, after this report (git push origin main)
+
+$ (e) git branch --list engine-gen3 engine-divider-resched
+  engine-divider-resched
++ engine-gen3
+
+(f) CC: the scratch scripts and the memory notes to the one tree, recording on main only (no repo change):
+- retired, refuse to run: propagate.sh, d49/propagate_rebuilt_from_oct9.sh
+- d49/rec_report.sh: the worktree index check and the propagation call removed (main only)
+- to Repo/HardDisks/hspist3: d45/d46_assemble.py, d48/build_d48.sh, run_scene.sh, tests_d48.sh, d49/b900_parts.sh, d50/build_d50.sh, run_final_tests.sh, tests_d50.py, d54/b3_run.sh, d54_parts.sh, d54_wrap_fig.sh, fig_iter.py, d55/test_posthoc.py; d39/newdata.sh: its comment
+- not changed: the copies of committed files in the rehearsal homes and build exports (records, not run again), the d51 copies of the mover
+- memory: gen3-worktree-and-harness-traps.md (rewritten: one tree, engine-gen3 frozen, the folder locked until 2026-10-22), MEMORY.md (its index lines), scratchpad-under-tmp-is-cleaned.md (propagate.sh retired), accelerated-backend-data-to-avoid.md, koa-package-delivery-traps.md, koa-runsheet-conventions.md (main = engine-gen3 now)
+
+$ (g)1 git status --short --untracked-files=no | wc -l
+      23
+
+$ (g)2 git rev-parse main:hspist3/00ALLINONE.c engine-gen3:hspist3/00ALLINONE.c; shasum -a 256 hspist3/00ALLINONE.c; git show engine-gen3:hspist3/00ALLINONE.c | shasum -a 256
+173d04aaca08c1dfc8defd3693b6efe6374b255b
+173d04aaca08c1dfc8defd3693b6efe6374b255b
+d482848478cefa46466140905e5035212d59bcd2e6eef0fe3081d3816a0454ca  hspist3/00ALLINONE.c
+d482848478cefa46466140905e5035212d59bcd2e6eef0fe3081d3816a0454ca  -
+
+$ (g)3 git diff --name-only --diff-filter=MD engine-gen3 main | wc -l; git diff --name-only --diff-filter=A engine-gen3 main | wc -l
+       0
+     451
+
+$ (g)4 cd hspist3 && shasum -a 256 -c cluster/gen3_stage1_261012/s1_inputs.sha256 cluster/gen3_stage1_261012/s1_merge_inputs.sha256 | grep -c ': OK$'; cd ..
+21
+
+$ (g)5 bash $SP/d50/build_d50.sh g5   (G = Repo/HardDisks/hspist3 since step f)
+built /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_d50_261014/bin_0544b7e8-dirty/00ALLINONE in 6 s; warnings: 25
+
+the sources' SHA-256 against engine-gen3 (the build record's list; kissfft against bin_a71f394's record):
+| source | the build from the one tree (bin_0544b7e8-dirty) | engine-gen3 | equal |
+|---|---|---|---|
+| 00ALLINONE.c | d482848478cefa46 | d482848478cefa46 (git show engine-gen3:) | yes |
+| kissfft/kiss_fft.c | 3e8af99313c7e94f | 3e8af99313c7e94f (bin_a71f394's record: kissfft is a gitlink) | yes |
+| kissfft/kiss_fftr.c | 128b651120725e8d | 128b651120725e8d (bin_a71f394's record: kissfft is a gitlink) | yes |
+| edmd_core/edmd.c | 3fffcb598994e65b | 3fffcb598994e65b (git show engine-gen3:) | yes |
+| edmd_core/edmd_accelerated.c | 0013bf0f6baffef7 | 0013bf0f6baffef7 (git show engine-gen3:) | yes |
+| edmd_core/edmd_gen3.c | 965333031b1e0c1a | 965333031b1e0c1a (git show engine-gen3:) | yes |
+| experiment_validation.c | bdd8f2eaba9f188b | bdd8f2eaba9f188b (git show engine-gen3:) | yes |
+| edmd_core/edmd_gen3.h | 3343c08af43c8083 | 3343c08af43c8083 (git show engine-gen3:) | yes |
+| edmd_core/edmd.h | 9eb7803620799c4d | 9eb7803620799c4d (git show engine-gen3:) | yes |
+| kissfft/_kiss_fft_guts.h | dd1731891d0fff0e | dd1731891d0fff0e (bin_a71f394's record: kissfft is a gitlink) | yes |
+| kissfft/kiss_fft.h | 9d6c7ddf520932c0 | 9d6c7ddf520932c0 (bin_a71f394's record: kissfft is a gitlink) | yes |
+| kissfft/kiss_fft_log.h | 4c04367e1ce88f83 | 4c04367e1ce88f83 (bin_a71f394's record: kissfft is a gitlink) | yes |
+
+every source equal: yes (12 files)
+
+(g)5, Part B event hashes: TESTS_OUTROOT=hspist3/experiments_gen3_d55_261015/tests python3 $SP/d50/tests_d50.py g5_T1 T1 <the new build> experiments_gen3_d52_261014/bin_a71f394/00ALLINONE
+# T1 (g5_T1), 2026-10-15 11:24:42 HST
+
+NEW experiments_gen3_d50_261014/bin_0544b7e8-dirty/00ALLINONE SHA-256 3fce4a4628639c598309b1062230a704b621a82cc7f9d982c5787b0acb72df53
+OLD experiments_gen3_d52_261014/bin_a71f394/00ALLINONE SHA-256 5f9f898ee47cbd317290bc2fc6b2b4044c19214c9224075c244a8e4005a174ea
+
+| run (cell, mass, replicate) | exit old / new | clean old / new | event hash old / new | t_end old / new | output files, SHA-256 | seconds old / new | verdict |
+|---|---|---|---|---|---|---|---|
+| B_N0100_eta0.050000_m_50_r0 | 0 / 0 | 1 / 1 | c0f9d2f44e79b50e / c0f9d2f44e79b50e | 1410967.2210250497 / 1410967.2210250497 | 6 / 6, all equal | 2 / 3 | EQUAL |
+| B_N0100_eta0.050000_m_500_r0 | 0 / 0 | 1 / 1 | 6e080a8610263d56 / 6e080a8610263d56 | 3474666.4517765641 / 3474666.4517765641 | 7 / 7, all equal | 5 / 5 | EQUAL |
+| S_N0100_eta0.600000_start0_m_100_r0 | 0 / 0 | 1 / 1 | 8eec382384445253 / 8eec382384445253 | 50606.400754094124 / 50606.400754094124 | 7 / 7, all equal | 2 / 3 | EQUAL |
+| S_N0100_eta0.690000_turned_m_1000_r1 | 0 / 0 | 1 / 1 | c982a87bb55e5762 / c982a87bb55e5762 | 161066.00240007043 / 161066.00240007043 | 6 / 6, all equal | 14 / 14 | EQUAL |
+| D_N0100_eta0.020000_m_50_r0 | 0 / 0 | 1 / 1 | 0773df71d42a6cf7 / 0773df71d42a6cf7 | 3739874.0557284653 / 3739874.0557284653 | 6 / 6, all equal | 4 / 4 | EQUAL |
+| B_N0400_eta0.392699_m_200_r0 | 0 / 0 | 1 / 1 | d6c7ed35b4926076 / d6c7ed35b4926076 | 172243.20256662369 / 172243.20256662369 | 6 / 6, all equal | 9 / 9 | EQUAL |
+
+
+(g)6, rule 4: python3 cluster/resched_gate_261005/audit_runs_261007.py run --bin <the new build> --out hspist3/experiments_gen3_d55_261015/e0/default --cases ctrl_min,ctrl_leg --jobs 4; the same with --bin experiments_gen3_d55_261015/bin_engine_gen2.sh (every command plus --engine=gen2) --out .../e0/gen2flag; the 7b08827 references copied next to them from experiments_gen3_m3_261009/evidence_f42befb/e0/<tag>/<case>/ref (as stageA_evidence.py did); then report:
+
+### default
+## Schedule-equivalence audit and contact audit (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_d55_261015/e0/default)
+
+| case | version (audit run) | mode | audited events | matched | missing | extra | abs(dt) > 1e-9 | duplicate live disagreeing | max abs(dt) matched | abs(dt) > 1e-9 and > 1e-10 of horizon | max abs(dt)/horizon | max contact gap [px] (dd, wall, div, piston) | audit vs plain | plain vs ref |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | git 0544b7e8-dirty  target mac-O3-e0pre | 2 | 104866 | 58275689 | 0 | 0 | 696 | 0 | 2.42e-08 | 0 | 1.84e-13 | 4.7e-12, 4.0e-12, 2.3e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+| ctrl_leg | git 0544b7e8-dirty  target mac-O3-e0pre | 2 | 104776 | 58349834 | 0 | 0 | 423 | 0 | 2.86e-06 | 0 | 4.59e-12 | 5.2e-12, 3.0e-12, 3.0e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+
+### E2 as amended (2026-10-07, item 1) and E0
+
+| case | mode | audited events | missing | extra | dup. disagreeing | abs(dt) > 1e-9 (engine) | printed | above 1e-8 of horizon (dt) | no true contact | heap error > 1e-8 of horizon | largest heap error / horizon | count above 1e-10 | max contact [px] | plain vs ref | E2 row |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | 2 | 104866 | 0 | 0 | 0 | 696 | 696 | 0 | 0 | 0 | 1.54e-12 | 0 | 4.7e-12 | IDENTICAL | information |
+| ctrl_leg | 2 | 104776 | 0 | 0 | 0 | 423 | 423 | 0 | 0 | 0 | 7.21e-11 | 0 | 5.2e-12 | IDENTICAL | information |
+
+minimum sizes: free_M50_long 0 audited (>= 100000: NO); free_M2000 0 audited (>= 100000: NO); afix 0 audited (>= 10000: NO); dense state present: NO
+largest heap error / horizon, minimal-path mode-1 cases: nan; legacy control (ctrl_leg): 7.21e-11
+E2 (amended): FAIL; E0 (plain vs ref IDENTICAL in ctrl_min, ctrl_leg): FAIL (or not run)
+
+RULE (mode-1 audits of the minimal path): missing + extra + (abs(dt) > 1e-9) summed over all runs = 0 -> ZERO: the minimal schedule equals the legacy schedule on these trajectories
+same with the relative criterion (abs(dt) > 1e-9 AND > 1e-10 of the prediction horizon; information, not registered): 0
+
+### Every reported event, recomputed at 60 digits (validation/resched_audit_bruteforce_261007.py)
+
+(the first 50 reported events of each run; the engine counts all of them, see the table above)
+
+**ctrl_min**
+
+brute-force summary over 696 reported events: largest |t_heap - t_true| / horizon = 1.54e-12; largest |t_legacy - t_true| / horizon = 1.54e-12; longest horizon 4.116e+07 px-time; events with no true contact: 0
+**ctrl_leg**
+
+brute-force summary over 423 reported events: largest |t_heap - t_true| / horizon = 7.21e-11; largest |t_legacy - t_true| / horizon = 7.21e-11; longest horizon 5.396e+09 px-time; events with no true contact: 0
+
+first 12 events in full:
+
+| kind | type | a | b/d | now | horizon t_true - now | t_legacy - t_true | t_heap - t_true | heap error / horizon | brute force |
+|---|---|---|---|---|---|---|---|---|---|
+| dt | WR | 58 | - | 333.355291 | 2.0224e+06 | -7.167e-12 | +1.593e-09 | 7.88e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.504990 | 2.0224e+06 | +3.074e-11 | +1.631e-09 | 8.06e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.516952 | 2.0224e+06 | +9.670e-11 | +1.497e-09 | 7.40e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.583669 | 2.0224e+06 | -8.967e-11 | +1.510e-09 | 7.47e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.635798 | 2.0224e+06 | +1.971e-11 | +1.620e-09 | 8.01e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.666545 | 2.0224e+06 | +1.441e-10 | +1.544e-09 | 7.64e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.839086 | 2.0224e+06 | +2.577e-10 | +1.358e-09 | 6.71e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.870853 | 2.0224e+06 | -2.786e-11 | +1.072e-09 | 5.30e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.961298 | 2.0224e+06 | +1.924e-11 | +1.119e-09 | 5.53e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 334.000476 | 2.0224e+06 | +1.453e-10 | +1.245e-09 | 6.16e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 334.006705 | 2.0224e+06 | +9.169e-11 | +1.192e-09 | 5.89e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 334.127026 | 2.0224e+06 | +1.077e-10 | +1.508e-09 | 7.45e-16 | gap 1.623e+2 px |
+
+brute-force summary over 12 reported events: largest |t_heap - t_true| / horizon = 8.06e-16; largest |t_legacy - t_true| / horizon = 1.27e-16; longest horizon 2.022e+06 px-time; events with no true contact: 0
+
+### gen2flag
+## Schedule-equivalence audit and contact audit (/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_d55_261015/e0/gen2flag)
+
+| case | version (audit run) | mode | audited events | matched | missing | extra | abs(dt) > 1e-9 | duplicate live disagreeing | max abs(dt) matched | abs(dt) > 1e-9 and > 1e-10 of horizon | max abs(dt)/horizon | max contact gap [px] (dd, wall, div, piston) | audit vs plain | plain vs ref |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | git 0544b7e8-dirty  target mac-O3-e0pre | 2 | 104866 | 58275689 | 0 | 0 | 696 | 0 | 2.42e-08 | 0 | 1.84e-13 | 4.7e-12, 4.0e-12, 2.3e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+| ctrl_leg | git 0544b7e8-dirty  target mac-O3-e0pre | 2 | 104776 | 58349834 | 0 | 0 | 423 | 0 | 2.86e-06 | 0 | 4.59e-12 | 5.2e-12, 3.0e-12, 3.0e-12, 0.0e+00 | IDENTICAL | IDENTICAL |
+
+### E2 as amended (2026-10-07, item 1) and E0
+
+| case | mode | audited events | missing | extra | dup. disagreeing | abs(dt) > 1e-9 (engine) | printed | above 1e-8 of horizon (dt) | no true contact | heap error > 1e-8 of horizon | largest heap error / horizon | count above 1e-10 | max contact [px] | plain vs ref | E2 row |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ctrl_min | 2 | 104866 | 0 | 0 | 0 | 696 | 696 | 0 | 0 | 0 | 1.54e-12 | 0 | 4.7e-12 | IDENTICAL | information |
+| ctrl_leg | 2 | 104776 | 0 | 0 | 0 | 423 | 423 | 0 | 0 | 0 | 7.21e-11 | 0 | 5.2e-12 | IDENTICAL | information |
+
+minimum sizes: free_M50_long 0 audited (>= 100000: NO); free_M2000 0 audited (>= 100000: NO); afix 0 audited (>= 10000: NO); dense state present: NO
+largest heap error / horizon, minimal-path mode-1 cases: nan; legacy control (ctrl_leg): 7.21e-11
+E2 (amended): FAIL; E0 (plain vs ref IDENTICAL in ctrl_min, ctrl_leg): FAIL (or not run)
+
+RULE (mode-1 audits of the minimal path): missing + extra + (abs(dt) > 1e-9) summed over all runs = 0 -> ZERO: the minimal schedule equals the legacy schedule on these trajectories
+same with the relative criterion (abs(dt) > 1e-9 AND > 1e-10 of the prediction horizon; information, not registered): 0
+
+### Every reported event, recomputed at 60 digits (validation/resched_audit_bruteforce_261007.py)
+
+(the first 50 reported events of each run; the engine counts all of them, see the table above)
+
+**ctrl_min**
+
+brute-force summary over 696 reported events: largest |t_heap - t_true| / horizon = 1.54e-12; largest |t_legacy - t_true| / horizon = 1.54e-12; longest horizon 4.116e+07 px-time; events with no true contact: 0
+**ctrl_leg**
+
+brute-force summary over 423 reported events: largest |t_heap - t_true| / horizon = 7.21e-11; largest |t_legacy - t_true| / horizon = 7.21e-11; longest horizon 5.396e+09 px-time; events with no true contact: 0
+
+first 12 events in full:
+
+| kind | type | a | b/d | now | horizon t_true - now | t_legacy - t_true | t_heap - t_true | heap error / horizon | brute force |
+|---|---|---|---|---|---|---|---|---|---|
+| dt | WR | 58 | - | 333.355291 | 2.0224e+06 | -7.167e-12 | +1.593e-09 | 7.88e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.504990 | 2.0224e+06 | +3.074e-11 | +1.631e-09 | 8.06e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.516952 | 2.0224e+06 | +9.670e-11 | +1.497e-09 | 7.40e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.583669 | 2.0224e+06 | -8.967e-11 | +1.510e-09 | 7.47e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.635798 | 2.0224e+06 | +1.971e-11 | +1.620e-09 | 8.01e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.666545 | 2.0224e+06 | +1.441e-10 | +1.544e-09 | 7.64e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.839086 | 2.0224e+06 | +2.577e-10 | +1.358e-09 | 6.71e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.870853 | 2.0224e+06 | -2.786e-11 | +1.072e-09 | 5.30e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 333.961298 | 2.0224e+06 | +1.924e-11 | +1.119e-09 | 5.53e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 334.000476 | 2.0224e+06 | +1.453e-10 | +1.245e-09 | 6.16e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 334.006705 | 2.0224e+06 | +9.169e-11 | +1.192e-09 | 5.89e-16 | gap 1.623e+2 px |
+| dt | WR | 58 | - | 334.127026 | 2.0224e+06 | +1.077e-10 | +1.508e-09 | 7.45e-16 | gap 1.623e+2 px |
+
+brute-force summary over 12 reported events: largest |t_heap - t_true| / horizon = 8.06e-16; largest |t_legacy - t_true| / horizon = 1.27e-16; longest horizon 2.022e+06 px-time; events with no true contact: 0
+
+$ (h) in Repo/HardDisks_gen3 (locked): git add README_FROZEN.md && git commit -F <message> && git log -1 --format="%h %p %s"
+a75e4cd4 07a4c5e5 README_FROZEN.md: this worktree is frozen and locked (plan-author decisions 51 and 55, addenda 1 and 2)
+uncommitted entries in the folder after the commit:        0
+/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks       0544b7e8 [main]
+/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3  a75e4cd4 [engine-gen3] locked

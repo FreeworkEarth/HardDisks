@@ -1,0 +1,25 @@
+# option (ii), step (g5), decision 50 (261012 sec. 4.7.113): 0544b7e8-dirty (0544b7e81dd06f597ed0df112af9a548e8c96f3e plus the uncommitted edit of 00ALLINONE.c), 2026-10-15 11:24:09 HST, Apple M3 Max, Apple clang version 17.0.0 (clang-1700.4.4.1)
+
+- built from the one tree Repo/HardDisks (decisions 51 and 55); the other dirty files of the tree are not sources of the build
+- the command (that of experiments_gen3_d48_261013/scripts/build_d48.sh, with BUILD_GIT and the output changed), 6 s:
+  `cc -o /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_d50_261014/bin_0544b7e8-dirty/00ALLINONE 00ALLINONE.c kissfft/kiss_fft.c kissfft/kiss_fftr.c edmd_core/edmd.c edmd_core/edmd_accelerated.c edmd_core/edmd_gen3.c experiment_validation.c -O3 -ffp-contract=off -I/opt/homebrew/include/SDL2 -I/opt/homebrew/include -D_THREAD_SAFE -I/opt/homebrew/Cellar/harfbuzz/12.2.0_1/include/harfbuzz -I/opt/homebrew/Cellar/glib/2.86.3/include/glib-2.0 -I/opt/homebrew/Cellar/glib/2.86.3/lib/glib-2.0/include -I/opt/homebrew/opt/gettext/include -I/opt/homebrew/Cellar/pcre2/10.47_1/include -I/opt/homebrew/Cellar/graphite2/1.3.14/include -I/opt/homebrew/opt/freetype/include/freetype2 -I/opt/homebrew/opt/libpng/include/libpng16 -DBUILD_GIT=\"0544b7e8-dirty\" -DBUILD_TARGET=\"mac-O3-e0pre\" -DBUILD_CFLAGS=\"-O3\ -ffp-contract=off\" -L/opt/homebrew/Cellar/sdl2_ttf/2.24.0/lib -lSDL2_ttf -L/opt/homebrew/lib -lSDL2 -L/opt/homebrew/lib -lGLEW -framework OpenGL -framework CoreGraphics `
+- -Wall -Wextra on the driver's sources (syntax only): 25 warnings, by file:   25 00ALLINONE.c;
+
+## SHA-256 of the sources and of the binary
+
+    d482848478cefa46466140905e5035212d59bcd2e6eef0fe3081d3816a0454ca  00ALLINONE.c
+    3e8af99313c7e94f952ac12db46d3d5c5dd4a9bf93e0c32d43efa5fe39724051  kissfft/kiss_fft.c
+    128b651120725e8d55f6b9edf5d44b06dc022b260894eac078c6ff8aa7159561  kissfft/kiss_fftr.c
+    3fffcb598994e65b20a3651993892395945091919d04b6ce6305de41f0540d8f  edmd_core/edmd.c
+    0013bf0f6baffef79399dc742ab959f875f9d36bb7cabc98ece6e08b09e54340  edmd_core/edmd_accelerated.c
+    965333031b1e0c1a52e3a3d0ea1f96a5668baa898b1f7e9fe0380e50c2190d9b  edmd_core/edmd_gen3.c
+    bdd8f2eaba9f188b712dfc6a21990e25764a209a170a27ce7abc95781c14c26e  experiment_validation.c
+    3343c08af43c8083523bfa15c1f95ca8595b13341c1e3ba63e5338cce7439155  edmd_core/edmd_gen3.h
+    9eb7803620799c4d3f48ab9057e71d22d23bafa16da732e5f2f1b381c786b419  edmd_core/edmd.h
+    dd1731891d0fff0e297198847de39216c5c8b9677ea4fe53160d1f6c74218d40  kissfft/_kiss_fft_guts.h
+    9d6c7ddf520932c0aad669c86c064a24e571e594681be9f1491c14c9c9c75693  kissfft/kiss_fft.h
+    4c04367e1ce88f8382c611fed8a5ad62a956efa40bbf59632cd2df9930cba965  kissfft/kiss_fft_log.h
+    3fce4a4628639c598309b1062230a704b621a82cc7f9d982c5787b0acb72df53  00ALLINONE
+
+## the edit (git diff HEAD -- hspist3/00ALLINONE.c)
+
