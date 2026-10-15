@@ -10,8 +10,12 @@
         dL = sigma_x / 2 by the registered formulas), and at eta pi/8, j = 0, for N 100, 900 and 1600. Passes when the run exits 0
         with one clean run record and its [EDMD3-HELD-GEOMETRY] line gives |box - 2 L0| <= 1e-9, |x_div - requested| <= 1e-9 and
         N_L = N_R = N_s.
+  C2    gate C2, the held start against the free start (step b): a registered Part B line (shortened: the start does not depend on
+        the hold or the record) and the held path at j = 0 with --seed = the line's exact seed, both with --gen3-dump-initial; equal
+        when the two dumps (the box, the divider, every disk's x, y, vx, vy in %a) are byte-identical and the run headers' lattices
+        agree. At pi/8 for N 100, 400, 900, 1600, and at eta 0.05 and 0.69 for N 400.
 Runs go into experiments_gen3_d50_261014/tests/<label>/<run>/ (a new folder each; an existing one is refused). At most 6 processes (Chris's two viewers run beside them).
-usage (from hspist3/): python3 tests_d50.py <label> <T1|T1AF|T2> <NEW binary> [OLD binary] [--seeder=legacy|lattice]
+usage (from hspist3/): python3 tests_d50.py <label> <T1|T1AF|T2|C2> <NEW binary> [OLD binary] [--seeder=legacy|lattice]
 """
 import concurrent.futures as cf, hashlib, math, os, re, subprocess, sys, time, importlib.util
 
@@ -170,6 +174,49 @@ def t2(label, NEW, seeder):
     return hdr + "\n" + "\n".join(rows) + f"\n\n{sum('PASS' in r for r in rows)} of {len(rows)} PASS"
 
 
+C2_CELLS = ["B_N0100_eta0.392699", "B_N0400_eta0.392699", "B_N0900_eta0.392699", "B_N1600_eta0.392699",
+            "B_N0400_eta0.050000", "B_N0400_eta0.690000"]
+
+
+def lattice_of(log):
+    """the run header's lattice description (left=[...] right=[...]), or None"""
+    for l in open(log, errors="replace"):
+        if l.startswith("[EDMD3-RUN]"):
+            m = re.search(r" (left=\[.*?\]) (right=\[.*?\])", l)
+            return (m.group(1) + " " + m.group(2)) if m else None
+    return None
+
+
+def c2(label, NEW):
+    lines = [l.split() for l in open(TASKS)]
+    rows = []
+
+    def one(cell):
+        f = next(x for x in lines if x[1].split("/")[-2] == cell and x[3] == "0")
+        rel, M, r, seed, L0, H, NS = f[1:8]
+        df = os.path.join(OUTROOT, label, cell + "_free"); dh = os.path.join(OUTROOT, label, cell + "_held")
+        fb = list(f[1:]); fb[9] = "60"                                     # the hold: 60 steps (the start comes before it)
+        argv = b_cmd(NEW, df, fb)
+        argv = [a for a in argv if not a.startswith(("--target-oscillations=", "--oscillation-min-steps=", "--oscillation-max-steps="))]
+        argv += ["--target-oscillations=1", "--oscillation-min-steps=60", "--oscillation-max-steps=120", f"--gen3-dump-initial={df}/initial.dump"]
+        rcf, _ = run(df, argv, dict(ENV, HD_KE_TRACE="1"), df)
+        N = 2 * int(NS)
+        ah = af_cmd(NEW, dh, N, float(H), float(L0), float(L0), int(seed), 60, 6, 6, True, "lattice") + [f"--gen3-dump-initial={dh}/initial.dump"]
+        rch, _ = run(dh, ah, ENV)
+        a, b = os.path.join(df, "initial.dump"), os.path.join(dh, "initial.dump")
+        same = os.path.exists(a) and os.path.exists(b) and open(a, "rb").read() == open(b, "rb").read()
+        la, lb = lattice_of(os.path.join(df, "stdout.log")), lattice_of(os.path.join(dh, "stdout.log"))
+        okf, _, _ = health(os.path.join(df, "stdout.log")); okh, _, _ = health(os.path.join(dh, "stdout.log"))
+        n = sum(1 for _ in open(a)) - 6 if os.path.exists(a) else -1
+        return (f"| {cell} | {seed} | {L0} | {N} | {rcf} / {rch} | {int(okf)} / {int(okh)} | {n} | "
+                f"{sha(a)[:16] if os.path.exists(a) else '-'} / {sha(b)[:16] if os.path.exists(b) else '-'} | "
+                f"{'equal' if la and la == lb else 'DIFFERENT'} | {'EQUAL' if same and la == lb and rcf == rch == 0 and okf and okh else 'DIFFERENT'} |")
+    with cf.ThreadPoolExecutor(3) as ex: rows = list(ex.map(one, C2_CELLS))   # each cell runs its two starts in turn: at most 3 processes
+    hdr = ("| cell | exact seed | L0 [sigma] | N | exit free / held | clean free / held | disks in the dump | dump SHA-256 free / held "
+           "| run header's lattice | verdict |\n|---|---|---|---|---|---|---|---|---|---|")
+    return hdr + "\n" + "\n".join(rows) + f"\n\n{sum('| EQUAL |' in r for r in rows)} of {len(rows)} EQUAL"
+
+
 def main():
     label, test, NEW = sys.argv[1], sys.argv[2], os.path.abspath(sys.argv[3])
     OLD = os.path.abspath(sys.argv[4]) if len(sys.argv) > 4 and not sys.argv[4].startswith("--") else None
@@ -179,7 +226,8 @@ def main():
     os.makedirs(d)
     head = (f"# {test} ({label}), {time.strftime('%Y-%m-%d %H:%M:%S %Z')}\n\nNEW {os.path.relpath(NEW, HS)} SHA-256 {sha(NEW)}\n"
             + (f"OLD {os.path.relpath(OLD, HS)} SHA-256 {sha(OLD)}\n" if OLD else "") + (f"seeder {seeder}\n" if test == "T2" else "") + "\n")
-    body = t1(label, NEW, OLD) if test == "T1" else t1af(label, NEW, OLD) if test == "T1AF" else t2(label, NEW, seeder)
+    body = (t1(label, NEW, OLD) if test == "T1" else t1af(label, NEW, OLD) if test == "T1AF" else c2(label, NEW) if test == "C2"
+            else t2(label, NEW, seeder))
     out = head + body + "\n"
     open(os.path.join(d, "RESULTS.md"), "w").write(out)
     print(out)

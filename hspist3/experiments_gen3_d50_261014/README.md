@@ -27,3 +27,17 @@ The four steps, one local commit each:
   - Step (b)'s lattice start is the registered start, and it runs every cell.
 
 Committed: each run's cmd.txt and stdout.log (added with -f, since *.log is ignored) and each test's RESULTS.md. The runs' data files are not committed; RESULTS.md compares their SHA-256.
+
+## Step (b)
+
+- Build: `bin_bcb0e3b1-dirty` (00ALLINONE.c of the step on bcb0e3b1, step a's commit).
+- The code change:
+  - The M4 start's body takes its geometry (g3_m4_init_core(boxW, c, seed)); g3_m4_init_driver passes the speed-of-sound loop's geometry, computed as before.
+  - The held path with --gen3-exact-box --gen3-seeding=lattice seeds it in the box 2 L0 with the divider at the requested position. It calls srand(seed) right before the start, as the speed-of-sound loop does per trajectory.
+  - The lattice's doubles replace the loaded positions. --gen3-dump-initial and the run header [EDMD3-RUN] are written as in the speed-of-sound loop.
+  - The guard: in the held path, --gen3-exact-box and --gen3-seeding=lattice go together, and --seed is required.
+- `tests/b1_T1`: 6 of 6 EQUAL against bin_d2dc177.
+- `tests/b2_T1AF`: EQUAL.
+- `tests/b3_T2`, with the lattice start: 83 of 83 PASS. Box and divider are within 7.1e-15 sigma, N_L = N_R = N_s, and every run is clean.
+- `tests/b4_C2` (gate C2): 6 of 6 EQUAL. The held start at j = 0 and the free start with the same seed give byte-identical initial dumps (the box, the divider, every disk's x, y, vx, vy in %a), at pi/8 for N 100, 400, 900 and 1600 and at eta 0.05 and 0.69 for N 400. The dumps are committed.
+

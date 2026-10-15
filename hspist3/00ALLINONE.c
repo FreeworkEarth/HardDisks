@@ -17010,14 +17010,15 @@ static void g3_m4_seed(EDMD_Particle* P, int N, int NL, double boxW, double boxH
    cannot place N_s disks where only a hexagonal packing fits (it stops at eta 0.85 with N = 100), so M4 does not depend on it. */
 static EDMD_Particle* g3_m4_P = NULL;
 static int g3_m4_N = 0, g3_m4_NL = 0;
-static void g3_m4_init_driver(double L0d, unsigned run_seed){
+/* ##CHRIS 2026-10-14 (plan-author decision 50 item 3 b; 261012 sec. 4.7.113): the body of the M4 start takes its geometry -- boxW, the
+   box width, and c, the divider's centre (px, box coordinates) -- so that the held path (the energy-transfer experiment) seeds the same
+   lattice in its own geometry. g3_m4_init_driver below passes the speed-of-sound loop's geometry, computed exactly as before. */
+static void g3_m4_init_core(double boxW, double c, unsigned run_seed){
     const int two = cli_particles_box_counts && cli_particles_box_counts_count == 2;
     const int N = two ? cli_particles_box_counts[0] + cli_particles_box_counts[1] : (cli_override_particles > 0 ? cli_override_particles : particles_active);
     const int NL = two ? cli_particles_box_counts[0] : N / 2;
     if (N < 1 || N > NUM_PARTICLES) g3_stop("M4 seeding: particle count");
-    const double boxW = cli_gen3_exact_box ? 2.0 * L0d * (double)PIXELS_PER_SIGMA : (double)(XW2 - XW1);
     const double boxH = (double)(YW2 - YW1);
-    const double c = cli_gen3_exact_box ? L0d * (double)PIXELS_PER_SIGMA : (double)(wall_x - (double)XW1);
     free(g3_m4_P); g3_m4_P = (EDMD_Particle*)calloc((size_t)N, sizeof *g3_m4_P);
     if (!g3_m4_P) g3_stop("out of memory (M4 seeding)");
     g3_m4_N = N; g3_m4_NL = NL;
@@ -17045,6 +17046,10 @@ static void g3_m4_init_driver(double L0d, unsigned run_seed){
     ke_audit("2b after per-segment equalize");
     if (cli_temperature_segments && cli_temperature_segments_count > 0) apply_segment_temperatures(cli_temperature_segments, cli_temperature_segments_count);
     write_run_params_json();
+}
+static void g3_m4_init_driver(double L0d, unsigned run_seed){   /* ##CHRIS 2026-10-14 (decision 50, b): the speed-of-sound loop's geometry */
+    g3_m4_init_core(cli_gen3_exact_box ? 2.0 * L0d * (double)PIXELS_PER_SIGMA : (double)(XW2 - XW1),
+                    cli_gen3_exact_box ? L0d * (double)PIXELS_PER_SIGMA : (double)(wall_x - (double)XW1), run_seed);
 }
 /* ##CHRIS 2026-10-09 (plan-author decision 13, item 4; 261012 sec. 4.7.30): M4b, THE COMPRESSED-FLUID START (gen3 only,
    --gen3-seeding=compressed with --gen3-exact-box): a second, disordered route to the same state, for two-start equilibration checks.
@@ -18436,6 +18441,7 @@ static void write_energy_transfer_failure(const char *summary_path,
 static inline int g3_held_exact(void){
     return cli_engine == 3 && cli_gen3_exact_box && !cli_force_no_experiments && cli_experiment_preset == EXPERIMENT_PRESET_ENERGY_TRANSFER;
 }
+static inline int g3_held_lattice(void){ return g3_held_exact() && cli_gen3_seeding == 1; }   /* ##CHRIS 2026-10-14 (decision 50, b) */
 static void build_energy_transfer_validation_state(ExperimentValidationState *state,
                                                    double *wall_positions,
                                                    double *wall_velocities) {
@@ -18579,7 +18585,12 @@ static void run_energy_transfer_experiment(void) {
     // Reset sim
     initialize_simulation_dimensions();
     initialize_simulation_parameters();
-    initialize_simulation();
+    if (g3_held_lattice()) {   /* ##CHRIS 2026-10-14 (decision 50, b): the gen3 lattice start (M4) in the held geometry: the box 2 L0 and the
+                                  divider at the requested position, both exact; srand right before it, as the speed-of-sound loop seeds each
+                                  trajectory right before its start, so that the held start at L0 equals the free start for the same seed */
+        srand(cli_seed);
+        g3_m4_init_core(2.0 * cli_l0_d * (double)PIXELS_PER_SIGMA, cli_wall_positions_d[0] * (double)PIXELS_PER_SIGMA, cli_seed);
+    } else initialize_simulation();
     steps_elapsed = 0;
     wall_is_released = false;
     simulation_time = 0.0f;
@@ -18704,6 +18715,20 @@ static void run_energy_transfer_experiment(void) {
             P[i].vx = (double)Vx[i];
             P[i].vy = (double)Vy[i];
             P[i].coll_count = 0;
+        }
+        if (g3_held_lattice()) {   /* ##CHRIS 2026-10-14 (decision 50, b): the lattice's doubles replace the loaded positions, as in the
+                                      speed-of-sound loop; the initial state (--gen3-dump-initial) and the run header as there */
+            const int NL = (cli_particles_box_counts && cli_particles_box_counts_count == 2) ? cli_particles_box_counts[0] : particles_active / 2;
+            if (!g3_m4_P || g3_m4_N != particles_active || g3_m4_NL != NL) g3_stop("M4 seeding (held path): state");
+            for (int i = 0; i < particles_active; ++i) { P[i].x = g3_m4_P[i].x; P[i].y = g3_m4_P[i].y; }   /* the doubles */
+            if (cli_gen3_dump_initial)
+                g3_dump_initial(cli_gen3_dump_initial, P, particles_active, NL, prm.boxW, prm.boxH, (double)PARTICLE_RADIUS,
+                                prm.divider_x[0], prm.divider_thickness[0]);
+            char rid[200];
+            snprintf(rid, sizeof rid, "held L0=%.17g x_div=%.17g seed=%u", cli_l0_d, cli_wall_positions_d[0], cli_seed);
+            const double dt_sigma = (double)fixed_dt_runtime / (double)PIXELS_PER_SIGMA;
+            g3_run_header(rid, prm.boxW, prm.boxH, particles_active, NL, (double)wall_hold_steps * dt_sigma, wall_hold_steps,
+                          (double)target_steps * dt_sigma);
         }
         /* Do not repair initialization in scientific runs. The validator below
            must observe and reject any overlap produced by seeding. */
@@ -23339,11 +23364,13 @@ int main(int argc, char* argv[]) {
         else if (run_scene && (heatbath_enabled || andersen_enabled))
             why = "gen3 has no heat bath and no Andersen thermostat (--hb-temp)";
         else if (cli_legacy_resched || cli_resched_audit) why = "--legacy-resched and --resched-audit are gen2 schedule options";
-        else if (cli_gen3_exact_box && et && (cli_num_walls != 1 || !(cli_l0_d > 0.0)
-                                              || !(cli_wall_positions_d[0] > 0.0 && cli_wall_positions_d[0] < 2.0 * cli_l0_d)))   /* ##CHRIS 2026-10-14 (decision 50, a) */
-            why = "--gen3-exact-box in the energy-transfer experiment (the held path) needs --num-walls=1, --l0 and a --wall-positions value inside (0, 2 L0)";
-        else if ((cli_gen3_seeding || (cli_gen3_exact_box && !et) || cli_gen3_dump_initial) && !sos)   /* ##CHRIS (decision 50, a): the held path takes the exact box */
-            why = "--gen3-seeding and --gen3-dump-initial are wired to the speed-of-sound experiment only, --gen3-exact-box to it and to the energy-transfer experiment";
+        else if (et && (cli_gen3_exact_box || cli_gen3_seeding || cli_gen3_dump_initial) && !(cli_gen3_exact_box && cli_gen3_seeding == 1))   /* ##CHRIS 2026-10-14 (decision 50, b) */
+            why = "in the energy-transfer experiment (the held path) --gen3-exact-box and --gen3-seeding=lattice go together (the driver's seeder fills the 1/48-grid box), and --gen3-dump-initial needs both";
+        else if (et && cli_gen3_exact_box && (cli_num_walls != 1 || !(cli_l0_d > 0.0) || !cli_seed_set
+                                              || !(cli_wall_positions_d[0] > 0.0 && cli_wall_positions_d[0] < 2.0 * cli_l0_d)))   /* ##CHRIS 2026-10-14 (decision 50, a, b) */
+            why = "the held path on the exact box (the energy-transfer experiment) needs --num-walls=1, --l0, a --wall-positions value inside (0, 2 L0) and --seed";
+        else if ((cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial) && !sos && !et)   /* ##CHRIS (decision 50, a, b): and the held path */
+            why = "--gen3-seeding, --gen3-exact-box and --gen3-dump-initial are wired to the speed-of-sound experiment and to the held path (the energy-transfer experiment) only";
         else if ((cli_gen3_ckpt_phase >= 0 || cli_gen3_restart) && !sos)   /* ##CHRIS 2026-10-09 (stage H) */
             why = "--gen3-checkpoint and --gen3-restart are wired to the speed-of-sound experiment only";
         else if (cli_gen3_ckpt_stop && cli_gen3_ckpt_phase < 0) why = "--gen3-checkpoint-stop needs --gen3-checkpoint";
