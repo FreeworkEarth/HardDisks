@@ -30816,3 +30816,89 @@ per cell (seconds):
 - **main:** this report (4.7.124); its copies on engine-gen3 and engine-divider-resched.
 
 Written for: the plan author
+
+### 4.7.125 Report D54-3 — decision 54 item 4: THE FULL REPORT of stage 1 Part B, part 3 of 4: the registered figures by script, from the fetched data only. Each is a PNG and a PDF, with the CSV of the numbers drawn. Eight figures: sec. 4.8.11 items 1, 2, 3, 4 and 6, and the three more of the plan author's list in sec. 4.7.111 (ψ6, Γ and Q per mass, Verdict S's four z). Item 5, the identity, waits for Part A (2026-10-15 09:25 HST, machine date) [DATA, FIGURES]
+
+**Plain summary.**
+- **The script:** s1_figures_261015.py (new, cluster/gen3_stage1_261012/).
+  - It runs s1_verdict_261012.analyse on the fetched folder: all six groups, not --interim, with its jackknife. So every number drawn is the full report's; the script fits and estimates nothing of its own.
+  - Its two checks: KR's curve against the verdict's kr_cs at the 16 densities, largest relative difference 1.0e-08; the per-trajectory ψ6 dots against the cells' means, 0.
+- **Where:** hspist3/experiments_gen3_s1_261012/full_261015/figures_261015b/ on engine-gen3 (681d231e, local).
+- **The conventions of sec. 4.8.11:**
+  - one build generation (gen3 at f72d764); error bars everywhere;
+  - KR red, drawn to η 0.69; Román et al. 2002 black (figs 1 and 3); own data blue, the four sizes in four blues with four marker shapes;
+  - SPT and Henderson next to KR;
+  - the regions shaded by the project's add_eta_regime_shading. Its 0.700, 0.716 and 0.720 are Engel et al. 2013's phase boundaries; its 0.02, 0.20 and 0.50 are analysis labels, not transitions.
+  - N, the disk radius, L0 and H are in every footer, with the figure's data file and the script.
+  - Open symbols mark cells with a stationarity flag. There are none, so every cell symbol is filled. In fig 6 open symbols also mark the 12 block B folders the group rule leaves out.
+- **Where the figures depart from the decision's wording:**
+  - "Δ vs 1/N_s": fig 2 draws Δ against u = N^(−1/2), the fits' own variable, as sec. 4.8.11 item 2 registers it. The four sizes are marked on the axis.
+  - "sec. 4.8.9's list": the registered list is sec. 4.8.11 (six items), and the plan author's answer of sec. 4.7.111 lists seven. All are drawn except the identity (item 5, Part A). The ideal-gas zoom (sec. 4.8.11 item 3) is drawn although item 4 does not name it.
+  - The residual axes of figs 1 and 4 are symmetric-log: linear within ±2.5 % and ±0.5 %, logarithmic beyond. So the approach cells (−21 % to +42 %) stay on scale, and the fluid set keeps its resolution.
+  - Fig 7 has a second panel: η 0.60–0.69 on a linear scale, with every trajectory's ψ6 as a dot. On the log panel the dots hide under the markers.
+  - In figs 5 and 7 the sizes are offset in η by ±0.0015 and ±0.0045 for legibility; the axis label says so.
+- **The eight figures** (file stem 261015_s1_figN_...; each .png and .pdf with its .csv):
+
+| fig | what (sec. 4.8.11 item, or sec. 4.7.111) | data file |
+|---|---|---|
+| 1 | c_s(η), E1 ± σ, four sizes, with KR, SPT, Henderson, Román and the regions; below it Δ [%] with a(η) of F2 and F1 (item 1) | fig1_cs_vs_eta_E1_N100-1600.csv; fig2_Delta_vs_Nm12_per_eta_F1_F2_fits.csv |
+| 2 | Δ against N^(−1/2), one panel per density (16), with F2 and F1 and a ± σ_a at u = 0; Verdict K in the title (item 2) | the fig1 CSV (points), the fig2 fits CSV |
+| 3 | the ideal-gas zoom, η ≤ 0.15: blocks D and B, with KR, SPT, Henderson, √2 and Román; Δ below (item 3) | fig3_cs_ideal_gas_zoom_eta_le_0.15_B_D.csv |
+| 4 | Z(η), four sizes, with KR, SPT and Henderson; Δ^Z below, with a_Z of F2 and the band \|a_Z\| < 0.3 % (item 4) | fig4_Z_vs_eta_and_DeltaZ_N100-1600.csv and _fits.csv |
+| 5 | δ_0.5 per cell (item 6) | fig5_delta05_vs_eta_N100-1600.csv |
+| 6 | Γ = 2/τ_r and Q_k per (cell, mass): one column per N, one line per α; Q = 5 marked (item 6; "Γ and Q per mass") | fig6_Gamma_and_Q_per_mass_vs_eta_N100-1600.csv |
+| 7 | ψ6 per cell (log scale), and η 0.60–0.69 on a linear scale with every trajectory ("ψ6 vs η per N") | fig7_psi6_vs_eta_N100-1600.csv and _trajectories.csv |
+| 8 | Verdict S: the four z per block S cell, with ±3.5 ("Verdict S's four z") | fig8_verdictS_four_z_per_cell.csv |
+
+- **What they show,** read from the tables of parts 1 and 2:
+  - **Fig 1:** on Φ, Δ is at most +2.14 % (N 100, η 0.50), at N 1600 at most +0.78 %; the one cell below KR is N 100 at η 0.60 (−0.65 %). a(η) of F2 lies within ±0.25 % except at η 0.60 (−0.54 %). In the approach, N 100 and 400 rise far above KR from 0.66 (N 100) or 0.68 (N 400) on, and N 900 and 1600 lie below it at all four densities.
+  - **Fig 2:** at η 0.60 the F2 curve turns down through N 100's point; the F1 line stays near the other three.
+  - **Fig 4:** Δ^Z falls with N at every Φ density; a_Z lies inside the ±0.3 % band at all 12. At N 900 and 1600, Z falls below Z_KR from η 0.66 (N 1600) or 0.68 (N 900) on.
+  - **Fig 7:** on Φ, ψ6 lies between 0.019 (N 1600, η 0.05) and 0.203 (N 100, η 0.60) and falls with N at every density. N 100's ψ6 rises from 0.15 at η 0.55 to 0.62 at 0.69; its 225 trajectories spread over 0.531–0.615 at η 0.68 and 0.541–0.642 at 0.69.
+  - **Fig 8:** all 80 z lie within ±2.60.
+- **The first drawing is kept:** figures_261015/, same numbers, with byte-identical CSVs. Its residual panels put the approach cells off scale under an overlapping note, and its ψ6 dots hid under the markers. Only the layout changed (full_261015/README.md).
+- **To open them (Chris):** `open ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_s1_261012/full_261015/figures_261015b/*.png`
+- **Data:** counted in part 2 (the two figure sets, 4.4 MB each).
+
+## 1. The script's output (full_261015/c_figures_b.txt; verbatim)
+
+```
+# the registered figures (s1_figures_261015.py), from experiments_gen3_stage1_koa_261012: groups B100, B400, D, B900, S, B1600; stopped: none
+- check: KR's c_s curve (analytic Z') against the verdict's kr_cs (numerical Z') at the 16 densities: largest relative difference 1.0e-08
+- check: the per-trajectory psi6 dots against the verdict's cell means: largest |mean of the dots - psi6 of the cell| 0.0e+00
+- (sec. 4.8.11 item 5, the identity rho_I against 1/N_s and R_C(eta), waits for Part A: not drawn)
+- written into experiments_gen3_s1_261012/full_261015/figures_261015b:
+  261015_s1_fig1_cs_vs_eta_E1_N100-1600.csv
+  261015_s1_fig2_Delta_vs_Nm12_per_eta_F1_F2_fits.csv
+  261015_s1_fig1_cs_vs_eta_E1_N100-1600.png
+  261015_s1_fig1_cs_vs_eta_E1_N100-1600.pdf
+  261015_s1_fig2_Delta_vs_Nm12_per_eta_F1_F2.png
+  261015_s1_fig2_Delta_vs_Nm12_per_eta_F1_F2.pdf
+  261015_s1_fig3_cs_ideal_gas_zoom_eta_le_0.15_B_D.csv
+  261015_s1_fig3_cs_ideal_gas_zoom_eta_le_0.15_B_D.png
+  261015_s1_fig3_cs_ideal_gas_zoom_eta_le_0.15_B_D.pdf
+  261015_s1_fig4_Z_vs_eta_and_DeltaZ_N100-1600.csv
+  261015_s1_fig4_Z_vs_eta_and_DeltaZ_N100-1600_fits.csv
+  261015_s1_fig4_Z_vs_eta_and_DeltaZ_N100-1600.png
+  261015_s1_fig4_Z_vs_eta_and_DeltaZ_N100-1600.pdf
+  261015_s1_fig5_delta05_vs_eta_N100-1600.csv
+  261015_s1_fig5_delta05_vs_eta_N100-1600.png
+  261015_s1_fig5_delta05_vs_eta_N100-1600.pdf
+  261015_s1_fig6_Gamma_and_Q_per_mass_vs_eta_N100-1600.csv
+  261015_s1_fig6_Gamma_and_Q_per_mass_vs_eta_N100-1600.png
+  261015_s1_fig6_Gamma_and_Q_per_mass_vs_eta_N100-1600.pdf
+  261015_s1_fig7_psi6_vs_eta_N100-1600.csv
+  261015_s1_fig7_psi6_vs_eta_N100-1600_trajectories.csv
+  261015_s1_fig7_psi6_vs_eta_N100-1600.png
+  261015_s1_fig7_psi6_vs_eta_N100-1600.pdf
+  261015_s1_fig8_verdictS_four_z_per_cell.csv
+  261015_s1_fig8_verdictS_four_z_per_cell.png
+  261015_s1_fig8_verdictS_four_z_per_cell.pdf
+```
+
+## Commits
+
+- **engine-gen3:** 681d231e (local): s1_figures_261015.py (new); full_261015/README.md, RUN_RECORD.txt, c_figures.txt, c_figures_b.txt; figures_261015/ and figures_261015b/ (26 files each).
+- **main:** this report (4.7.125); its copies on engine-gen3 and engine-divider-resched.
+
+Written for: the plan author
