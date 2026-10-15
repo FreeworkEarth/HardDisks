@@ -31377,3 +31377,58 @@ sum of (residual / sigma)^2 = 8.07 = F2's chi2 8.07 with 1 dof, p = 0.0045 (form
 - **main:** this report (4.7.128); its copies on engine-gen3 and engine-divider-resched.
 
 Written for: the plan author
+
+### 4.7.129 Plan-author decision 55, addendum 1: decision 51 changed on Chris's wish, so the worktree folder Repo/HardDisks_gen3 is kept, not removed. In runsheet step (b) the mover runs as written; instead of git worktree remove, git worktree lock (reason "frozen after decision 51/55; work on main in Repo/HardDisks"), and a top-level README_FROZEN.md, the one tracked change allowed there, committed on engine-gen3. Nothing is deleted; the rest of the runsheet is unchanged; all fetches, builds and reports go to Repo/HardDisks from now on. Figure 1 gains block D's six cells and the √2 line (figures_261015c/, after the consolidation, from the one tree). Stage 2 comes next: after the consolidation the sizing of decision 53 item 4 (b) first, then (a); the plan author writes the Stage 2 pilot registration today (2026-10-15 10:20 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 55, addendum 1** (relayed by Chris at about 10:18 HST, machine date; the plan author's time "~10:15 HST"). At relay time step (a) had run: the three heads equal origin (main 567ac2bd, engine-gen3 ea33f953, engine-divider-resched 46c4232e).
+- **1. Decision 51 changed on Chris's wish: Repo/HardDisks_gen3 is kept, not removed.**
+  - Runsheet step (b): the mover runs as written. Every untracked and ignored file moves to Repo/HardDisks; the hold folder is as written.
+  - Then, instead of git worktree remove: `git worktree lock --reason "frozen after decision 51/55; work on main in Repo/HardDisks" ../HardDisks_gen3`.
+  - A top-level README_FROZEN.md in the folder says the same. It is the one tracked change allowed there, committed on engine-gen3.
+  - Nothing is deleted.
+  - The rest of the runsheet is unchanged: the merge, the push, the checks, and CC's scripts and memory moving to the one tree.
+  - All fetches, builds and reports go to Repo/HardDisks from now on.
+- **2. Figure 1** (261015_s1_fig1_cs_vs_eta_E1_N100-1600):
+  - add block D's six cells (η 0.02, 0.035 and 0.075 at N 100 and 400, with the same markers) and the ideal-gas line c_s = √2, labelled;
+  - figure 3 stays as the zoom;
+  - layout only; the CSV gains D's rows;
+  - redrawn into figures_261015c/ after the consolidation, from the one tree.
+- **3. Stage 2 (the dense regime) is next,** as Chris wants.
+  - After the consolidation: the sizing of decision 53 item 4 (b) first, then (a).
+  - The plan author writes the Stage 2 pilot registration today; the package and the Mac rehearsal follow on main.
+
+**The message, verbatim** (relayed by Chris on 2026-10-15 at about 10:18 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record as decision 55,
+addendum 1.
+
+DECISION 55, ADDENDUM 1 (2026-10-15 ~10:15 HST)
+ 1. Decision 51 changed on Chris's wish: the worktree folder
+    Repo/HardDisks_gen3 is KEPT, not removed. Runsheet step (b): the
+    mover runs as written (every untracked and ignored file moves to
+    Repo/HardDisks, the hold folder as written); then, instead of
+    git worktree remove: git worktree lock --reason "frozen after
+    decision 51/55; work on main in Repo/HardDisks" ../HardDisks_gen3,
+    and a top-level README_FROZEN.md in it saying the same (the one
+    tracked change allowed there, committed on engine-gen3). Nothing
+    is deleted. Everything else of the runsheet unchanged: the merge,
+    the push, the checks, your scripts and memory to the one tree.
+    All fetches, builds and reports from now on go to Repo/HardDisks.
+ 2. Figure 1 (261015_s1_fig1_cs_vs_eta_E1_N100-1600): add block D's
+    six cells (eta 0.02, 0.035, 0.075 at N 100 and 400, same markers)
+    and the ideal-gas line c_s = sqrt(2), labelled; keep figure 3 as
+    the zoom. Layout only; the CSV gains D's rows. Redraw into
+    figures_261015c/ after the consolidation, from the one tree.
+ 3. Stage 2 (the dense regime): Chris wants it next. After the
+    consolidation, the sizing of decision 53 item 4 (b) first, then
+    (a). The plan author writes the Stage 2 PILOT registration today;
+    the package and the Mac rehearsal follow on main.
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
