@@ -31986,3 +31986,221 @@ End with "Written for: the plan author".
 
 **Commits.**
 - main only: this record.
+
+### 4.7.134 Report D56-1 — decision 56 tasks 1–3, Mac only: figure 1 with block D (figures_261015c/); the Stage 2 sizing: (a) 5–19 min per run on KOA's E5-2670 v3 nodes over η 0.69–0.80, 478–578 core-hours for 14 cells × 9 masses × 25 seeds; (b) the pinned lattice start feasible in all 14 cells in both orientations, start strains −9 % to +5 %, the divider's equilibrium at L0 by symmetry; (c) E1 survives in the solid: at η 0.76 the divider rings cleanly (Q ≈ 19), neither locked nor creeping; (d) D2's long, narrow boxes, runs up to 49 min, about 300 core-hours, and block D's fit record: the 20-period window is shorter than τ_r above Q ≈ 65, where 23 fits fail and 57 stall (2026-10-15 13:52 HST, machine date) [MAC RUNS, PLANNING]
+
+**Plain summary.**
+- **Recorded:** decision 55 addendum 3 and decision 56 (sec. 4.7.133), on main only.
+- **Task 1, figure 1 with block D:** done in full_261015/figures_261015c/ (png, pdf, csv and RUN_RECORD.txt), with the script s1_figures_261015c.py. figures_261015b/ is untouched.
+  - One departure: the phase bands are the project's (coexistence 0.700–0.716, hexatic 0.716–0.720, solid from 0.720), not the decision's "hexatic 0.700–0.716".
+- **Task 2 (a), wall time:** per run at α 5 on KOA's E5-2670 v3 nodes, N 900 takes 5.4 min at η 0.69 and 6.9–8.9 min at 0.80; N 1600 takes 12.1 and 14.6–18.7 min.
+  - All 14 cells × 9 masses × 25 seeds: 478–578 core-hours on v3; with 4 masses, 215–260.
+  - The merge, per N: about 15 min by B1600's dense cells' own cost (2:04 by a plain run-count scaling of its 4:44).
+  - The event rate follows r = 1.20 (Z − 1) with the measured Z (rms 2.3 %). In the solid, Liu's bulk Z falls 27 % below the confined crystal's, hence the ranges.
+- **(b), the lattice start:** 42 of 42 starts are clean, with no overlap and the divider at L0. Both pins are feasible in all 14 cells; the start strains run from −9.0 % to +5.1 %.
+  - The divider's equilibrium is L0 by symmetry at every aspect; the aspect sets the strain instead.
+- **(c), the estimator in the solid:** E1 applies at η 0.76 for this cell. Q is 18.7 (better than 0.69's 6.3), the fit rms 0.035, with one spectral line; the divider is not locked and not creeping, and the crystal keeps its turned orientation.
+  - c = 15.96 is 5.8 % above Liu's bulk c_s. The binary's Henderson ν_pred runs 4 % high.
+- **(d), D2:** the boxes run from 314 × 30 to 1571 × 40 σ (long and narrow). An α 5 run takes 5–25 min (the heaviest mass up to 49); the six cells need about 300 core-hours.
+  - Block D's fit trouble is the high-Q regime: above Q ≈ 65 the 20-period window is shorter than τ_r. Its 23 non-convergences and 57 stalls (fit_ok, but ended at the initial guess) sit there. The damping correction is at most 7 × 10⁻⁴.
+- **Commits:** 1423d1e5 and this record, on main. Nothing is pushed.
+
+## 1. Figure 1 with the dilute block (task 1)
+
+- **The figure:** `hspist3/experiments_gen3_s1_261012/full_261015/figures_261015c/261015_s1_fig1c_cs_vs_eta_E1_blocks_B_D_N100-1600.png` (attach this one), with the .pdf and the .csv beside it. The script is `hspist3/cluster/gen3_stage1_261012/s1_figures_261015c.py`, and the folder's RUN_RECORD.txt holds the command, the time, the versions and the SHA-256 of the script, its inputs and its outputs.
+- **What it shows:**
+  - c_s(η) by E1 ± σ for N 100, 400, 900 and 1600 over η 0.02–0.69: block B (0.05–0.69) at all four N, and block D (0.02, 0.035, 0.075) at N 100 and 400;
+  - KR (the ρ_max 0.90 fit) as the reference curve from η → 0 to 0.69; SPT and Henderson thin; c_s = √2 dashed; a linear η axis;
+  - the phase regions shaded;
+  - an inset for η ≤ 0.16 (figure 3 stays the dilute zoom);
+  - a residual panel, Δ = c_s / c_s^KR − 1, with F2's a(η) ± σ_a (N → ∞) as filled stars and F1's as open stars, as before. The panel is linear within ±2.5 % and logarithmic beyond.
+- **Inputs:** figures_261015b's CSVs, read only. figures_261015b/ is untouched (git shows no change). A check: figure 3's 12 block B rows equal figure 1's (largest difference 0).
+- **One departure:** the phase bands are the project's constants (Bernard and Krauth 2011; Engel et al. 2013):
+  - fluid below 0.700;
+  - liquid–hexatic coexistence 0.700–0.716;
+  - hexatic 0.716–0.720;
+  - solid from 0.720.
+  - Your text had "hexatic 0.700–0.716, solid > 0.716". The band 0.700–0.716 is the first-order coexistence; the hexatic phase proper is the narrow band 0.716–0.720. Your three bands instead would be a one-line change.
+
+## 2. Stage 2 sizing (task 2)
+
+All of it is in `hspist3/experiments_gen3_d56_261015/` (README.md, RUN_RECORD.txt, scripts/). Mac only; no KOA, no engine change. These are planning numbers; nothing in them is registered.
+
+### (a) Wall time per run against η
+
+- **The fit.** It uses stage 1's 7,200 runs of B900 and B1600 (16 cells × 9 masses × 25 seeds; the seconds, the events and the node per run; the CPU per node from the timing tables). The event rate per disk and σ-time, r = events / (N T), with T = T_eq + T_rec, is fitted against the collision rate, Z − 1 = 2ηχ(η):
+  - with each run's measured Z: r = 1.200 (Z − 1) + 0.011, relative rms 2.3 %; every cell with η ≥ 0.25 is within ±1.25 %. The dilute cells fall low (to −9.7 % at N 900, η 0.05) because wall hits are not in Z;
+  - with KR's ηχ in place of the measured Z (your form): r = 1.170 (Z_KR − 1) + 0.102, rms 14 %, dominated by η ≤ 0.15; for η ≥ 0.35 within −4.7 % to +5.5 %.
+- **The check in the solid.** The pilot (N 900, η 0.76) executed 17.81 events per disk and σ-time.
+  - The fit with its measured Z (15.73) gives 17.69 (−0.7 %).
+  - With Liu's bulk-solid Z (12.41) it gives 13.70 (−23 %).
+  - The confined crystal's Z is 27 % above Liu's bulk value (see (c)). So each solid cell gets a range in the table: Liu's Z (lower) to Liu's Z × 1.268 (upper).
+- **Time per event on KOA** (the dense cells, η ≥ 0.63, median; B900 and B1600 ran on two CPU models only, 83 % and 17 % of the runs):
+  - E5-2670 v3: 3.53 µs at N 900, 3.84 µs at N 1600;
+  - E5-4640 v2: 4.24 and 4.58 µs.
+  - The check: (900, 0.69) at α 5, its 25 runs on v3: 307–347 s, mean 319 s. The table gives 5.4 min (325 s).
+- **The collision rate does not triple between 0.69 and 0.80.** It rises × 1.7 (Liu) to × 2.2 (the upper value), and the record gets shorter as the frequency rises. So the events per run rise only × 1.3–1.6.
+- **The run length** follows stage 1's rules: T_eq 5000, then 200 periods of the binary's Henderson ν_pred per mass. In the solid, Henderson runs high: at 0.76 it predicts 0.0792, against a measured 0.0759 (4 % high). So 200 predicted periods are 192 measured ones.
+
+| η | N | Z: EOS → upper | events per run, α 5 | minutes per run, α 5: v3 (v2) | minutes per run, mean of 9 masses (v3) | core-hours 9 × 25 (v3) | core-hours 4 × 25 (v3) |
+|---|---|---|---|---|---|---|---|
+| 0.69 | 900 | 10.20 (KR) | 92 M | 5.4 (6.5) | 5.6 | 21 | 9 |
+| 0.70 | 900 | 10.32 (Liu, coexistence) | 90 M | 5.3 (6.4) | 5.5 | 20 | 9 |
+| 0.72 | 900 | 10.03 → 12.72 | 82–107 M | 4.8–6.3 (5.8–7.5) | 5.0–6.5 | 19–24 | 8–11 |
+| 0.74 | 900 | 11.02 → 13.98 | 86–112 M | 5.1–6.6 (6.1–7.9) | 5.2–6.7 | 20–25 | 9–11 |
+| 0.76 | 900 | 12.41 → 15.73 | 93–120 M | 5.5–7.1 (6.6–8.5) | 5.6–7.2 | 21–27 | 9–12 |
+| 0.78 | 900 | 14.30 → 18.13 | 103–132 M | 6.0–7.8 (7.3–9.3) | 6.2–7.9 | 23–30 | 10–13 |
+| 0.80 | 900 | 16.94 → 21.48 | 117–150 M | 6.9–8.9 (8.3–10.6) | 7.0–9.0 | 26–34 | 12–15 |
+| 0.69 | 1600 | 10.20 (KR) | 189 M | 12.1 (14.5) | 12.5 | 47 | 21 |
+| 0.70 | 1600 | 10.32 (Liu, coexistence) | 185 M | 11.8 (14.1) | 12.3 | 46 | 21 |
+| 0.72 | 1600 | 10.03 → 12.72 | 167–217 M | 10.7–13.9 (12.8–16.6) | 11.0–14.3 | 41–54 | 19–24 |
+| 0.74 | 1600 | 11.02 → 13.98 | 173–224 M | 11.1–14.3 (13.2–17.1) | 11.4–14.8 | 43–55 | 19–25 |
+| 0.76 | 1600 | 12.41 → 15.73 | 185–238 M | 11.8–15.2 (14.1–18.2) | 12.1–15.7 | 46–59 | 20–26 |
+| 0.78 | 1600 | 14.30 → 18.13 | 202–260 M | 12.9–16.6 (15.4–19.9) | 13.2–17.0 | 50–64 | 22–29 |
+| 0.80 | 1600 | 16.94 → 21.48 | 228–293 M | 14.6–18.7 (17.4–22.3) | 14.9–19.1 | 56–72 | 25–32 |
+| all 7 | 900 | | | | | 150–181 | 67–82 |
+| all 7 | 1600 | | | | | 328–396 | 148–178 |
+| all 14 | | | | | | 478–578 (v2: 572–691) | 215–260 (v2: 257–311) |
+
+- **The merge,** from B1600's record (4:44:18 by its files, 4:44:19 by sacct; 3,600 runs):
+  - Scaled by the run count, one N's 7 cells take 2:04:23 at 9 masses × 25 seeds (1,575 runs) and 0:55:17 at 4 masses (700 runs).
+  - That overstates it. B1600's merge was dominated by its dilute cells: η ≤ 0.25 took 14,033 of the 16,233 s of per-cell work. Its six cells at η 0.60–0.69 took 60–125 s each.
+  - Scaled by those cells' own cost (0.58 s per run, the scan and the moves included), it is 0:15:10 for 1,575 runs and 0:06:44 for 700, per N.
+
+### (b) The lattice start, pinned
+
+- **The runs.** 42 starts: 14 cells × (default, pin 0, pin turned).
+  - Each used pa_orient.cmd unchanged plus --gen3-dump-initial, with the merged main's binary (experiments_gen3_d50_261014/bin_0544b7e8-dirty). Geometry: H = 10 √(N/100), L0 = Nπ / (8Hη), the divider at L0.
+- **Results.**
+  - 42 of 42 exit 0, with a clean health record and no overlap.
+  - In all 28 pinned starts, [EDMD3-M4C] reports the requested orientation in both compartments.
+  - Left equals right in all 42 (the arrangement, the spacings, the vacancies); N_L = N_R = N/2.
+  - The divider sits at L0: |c − L0| ≤ 4 × 10⁻¹⁵ σ.
+  - The smallest gaps in the dumped starts, after the jitter: disks 0.0128 σ, walls 0.0066 σ, divider 0.0061 σ. All three occur at (900, 0.80, pin 0).
+- **A Python replica of g3_lattice_fit** reproduces the binary's arrangement and spacings in 42 of 42. I used it for what the binary does not print:
+  - the start's strain e: the spacing between neighbouring close-packed lines over (√3/2) × the spacing along them, minus 1. Negative means compressed across the lines;
+  - η*: the packing fraction at which the same arrangement, at the same H, is strain free.
+
+| η | N | aspect W/H | default | pin 0: n_s × n_r (rows), vacancies, gap [σ], strain e, η* | pin turned: n_s × n_r (rows), vacancies, gap [σ], strain e, η* |
+|---|---|---|---|---|---|
+| 0.69 | 900 | 0.568 | 0 | 29 × 16 (alt), 0, 0.118, -2.3 %, 0.705 | 17 × 27 (alt), 1, 0.111, +3.5 %, 0.713 |
+| 0.70 | 900 | 0.560 | 0 | 29 × 16 (alt), 0, 0.114, -0.8 %, 0.705 | 17 × 27 (alt), 1, 0.111, +1.9 %, 0.713 |
+| 0.72 | 900 | 0.545 | turned | 29 × 16 (alt), 0, 0.089, +2.2 %, 0.705 | 17 × 27 (alt), 1, 0.102, -1.1 %, 0.713 |
+| 0.74 | 900 | 0.530 | turned | 29 × 16 (alt), 0, 0.060, +5.1 %, 0.705 | 17 × 27 (alt), 1, 0.080, -3.9 %, 0.713 |
+| 0.76 | 900 | 0.516 | turned | 28 × 17 (alt), 12, 0.051, -2.2 %, 0.776 | 17 × 27 (alt), 1, 0.059, -6.5 %, 0.713 |
+| 0.78 | 900 | 0.503 | 0 | 28 × 17 (alt), 12, 0.040, +0.5 %, 0.776 | 17 × 27 (alt), 1, 0.039, -9.0 %, 0.713 |
+| 0.80 | 900 | 0.490 | turned | 27 × 17 (equ), 9, 0.024, -3.6 %, 0.828 | 16 × 29 (alt), 6, 0.034, +1.7 %, 0.813 |
+| 0.69 | 1600 | 0.569 | turned | 39 × 21 (alt), 0, 0.126, -1.4 %, 0.699 | 23 × 35 (equ), 5, 0.127, +0.7 %, 0.694 |
+| 0.70 | 1600 | 0.560 | 0 | 39 × 21 (alt), 0, 0.121, +0.1 %, 0.699 | 23 × 35 (equ), 5, 0.120, -0.8 %, 0.694 |
+| 0.72 | 1600 | 0.545 | turned | 39 × 21 (alt), 0, 0.090, +3.1 %, 0.699 | 23 × 35 (equ), 5, 0.097, -3.7 %, 0.694 |
+| 0.74 | 1600 | 0.530 | turned | 38 × 22 (alt), 17, 0.075, -1.6 %, 0.752 | 22 × 37 (alt), 3, 0.081, +2.3 %, 0.756 |
+| 0.76 | 1600 | 0.516 | turned | 38 × 22 (alt), 17, 0.059, +1.1 %, 0.752 | 22 × 37 (alt), 3, 0.077, -0.5 %, 0.756 |
+| 0.78 | 1600 | 0.503 | turned | 37 × 22 (equ), 14, 0.049, -1.2 %, 0.789 | 22 × 37 (alt), 3, 0.056, -3.1 %, 0.756 |
+| 0.80 | 1600 | 0.490 | turned | 36 × 23 (alt), 10, 0.033, -3.7 %, 0.829 | 22 × 37 (alt), 3, 0.037, -5.6 %, 0.756 |
+
+- **Both orientations are feasible in all 14 cells.** The default orientation changes with η (N 900: 0, 0, turned, turned, turned, 0, turned). Without a pin, the Stage 2 cells would not share one state.
+- **The equilibrium divider position against the box aspect.**
+  - With the pin, both compartments get the same arrangement (checked in all 42). The divider's mechanical equilibrium is therefore L0 at every aspect, by symmetry. The pilot's record means are +0.003 and −0.004 σ from L0 (sd 0.03).
+  - What the aspect sets is the start's anisotropic strain. The rows are whole numbers, so each arrangement is strain free at one density for the given H (η* above). The pinned starts span e = −9.0 % to +5.1 %. Examples:
+    - turned at N 900 is the 17 × 27 crystal, strain free at η* 0.713: −6.5 % at 0.76 (the pilot's cell) and −9.0 % at 0.78;
+    - turned at N 1600, 0.76 (22 × 37) is within −0.5 %.
+  - A strain-free start at a chosen η needs the compartment's aspect W/H matched to the arrangement. W* per start is in b_lattice/b_starts.csv.
+
+### (c) Does the damped cosine survive in the solid?
+
+- **The runs:** five on the Mac, through the stage 1 worker, unchanged:
+  - (900, 0.69), M 4500 (α 5), s = 0, 1, 2: the registered task lines, rerun. Same protocol and seeds as KOA, but other trajectories (events 87.95, 87.93 and 87.94 M here; 87.82, 87.78 and 87.79 M on KOA).
+  - The pilot cell (900, 0.76), M 4500 (α 5, the middle of the nine masses), s = 0, 1: seeds run_seed(20261015, 0, 4, s), the stage 1 run length (T_eq 5000; T_rec 2524.9 = 200 / ν_pred), the default lattice start (turned).
+  - All five are clean (gen3 health clean=1) and took 176–228 s each, five at once.
+- **The analysis.** The registered reducers (reduce_B.py, reduce_s1_koa.py) ran unchanged. E1 is computed as in s1_verdict_261012.per_mass.
+  - sd_E1 is the position sd that the cell's E1 speed implies for a divider between two columns of that stiffness. A locked divider would sit far below it.
+
+| η | s (seed) | ν_d | τ_r | Q | fit − ACF: rms (largest) | power within ±20 % of ν_d | sd / sd_E1 | drift per 1000 σ-time [σ] | Z | ψ6 per compartment (magnitude) | orientation [deg] |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.69 | 0 (3227069107) | 0.04898 | 43.5 | 6.69 | 0.038 (0.119) | 58 % | 1.16 | +0.006 | 9.76 | 0.371 / 0.392 | 30.0 / 30.0 |
+| 0.69 | 1 (1470420657) | 0.04837 | 32.3 | 4.91 | 0.052 (0.128) | 53 % | 1.20 | +0.010 | 9.72 | 0.368 / 0.387 | 30.1 / 30.0 |
+| 0.69 | 2 (3149991795) | 0.05002 | 65.4 | 10.28 | 0.061 (0.240) | 56 % | 1.25 | +0.007 | 9.74 | 0.370 / 0.387 | 30.0 / 30.1 |
+| 0.76 | 0 (3493757348) | 0.07615 | 93.5 | 22.37 | 0.035 (0.101) | 85 % | 1.03 | +0.010 | 15.67 | 0.713 / 0.701 | 30.2 / 29.9 |
+| 0.76 | 1 (3773953463) | 0.07568 | 61.7 | 14.67 | 0.034 (0.098) | 74 % | 0.83 | -0.012 | 15.79 | 0.711 / 0.704 | 29.8 / 29.8 |
+
+- **Per cell, E1 from the seed-averaged ACF:**
+  - (900, 0.69): the Mac's 3 seeds give Q 6.34 and c 11.480 ± 0.103. KOA's tables for the same 3 seeds give Q 8.05 and c 11.386 ± 0.202; KOA's 25 seeds give Q 6.57 and c 11.346 ± 0.047. KR gives 11.551.
+  - (900, 0.76), the Mac's 2 seeds: ν_d 0.07591, τ_r 78.6, Q 18.75, ν_0 0.07594, c 15.958 (no jackknife with 2 trajectories).
+    - Liu's bulk-solid c_s is 15.082 (c is 5.8 % above it); Henderson gives 22.03.
+    - The binary's ν_pred is 0.0792, 4.3 % above ν_d.
+- **The low-Q flag at (900, 0.69)** comes from its two heaviest masses: KOA's 25 seeds give Q 4.95 at α 15 and 4.73 at α 20. At α 5 Q is 6.57, and over the nine masses 4.7–7.3. At N 1600, 0.69, Q is 7.8–9.9.
+- **The crystal.**
+  - At 0.76, both compartments keep the start's turned orientation (30° ± 1° over the hold and the record). ψ6 per compartment is 0.70–0.71; 89–95 % of the disks are locally ordered (local ψ6 ≥ 0.7).
+  - The rows next to the top and bottom walls turn to 0° during the hold: wall layers, with a disordered seam between them and the bulk. They stay so.
+  - At 0.69, the 0° start melts during the hold into a liquid with orientational patches: ψ6 0.37–0.39 per compartment, 64–66 % locally ordered in s = 0's snapshots, the patches at 30°.
+- **The plots** are in `hspist3/experiments_gen3_d56_261015/c_analysis_b/`:
+  - fig_c1_N0900_eta0.69_traces_fits_spectra_psi6.png and fig_c2_N0900_eta0.76_traces_fits_spectra_psi6.png. Per seed they show the whole trace with its running mean, the first 10 periods, the ACF with the item-4a fit, the periodogram with a Welch estimate, and ψ6 with its orientation per compartment over time;
+  - fig_c3_snapshots_local_psi6.png: the crystal disk by disk at the start, at the hold's end and at the record's end.
+  - c_analysis/ is the first run, kept and superseded: its two orientation columns were linear means of an angle that wraps at ±30°. Its figures and its other tables are byte-identical.
+
+### (d) D2 sizing
+
+- **Protocol and geometry.** Block D's registered protocol: T_eq 1000 σ-time, 200 periods, 9 masses (α 0.5–20), 25 seeds. H = 10 √(N/100) = 30 (N 900) and 40 (N 1600); L0 = Nπ / (8Hη).
+  - The boxes are long and narrow, not square. N 1600 at η 0.02 is 1571 × 40 σ (your text said ~250σ × 250σ; that is the square box of the same area).
+  - The period scales with L0 = 785 σ there.
+- **The period from c_s = √2:** P = 2π L_eff / (√2 K(α)), with L_eff = L0 − 1.025 (E1's x_k).
+  - At η 0.075, c_s is already 1.659–1.669 (block D's E1), 17–18 % above √2. The real period there is about 15 % shorter than the √2 one.
+  - The binary's Henderson ν_pred, which sets the protocol's 200 periods, gives periods 4 % (η 0.02) to 14 % (η 0.075) shorter than √2's.
+- **Events per run,** extrapolated from block D (1,350 runs). The event rate is fitted as r = 1.169 (Z − 1) + 0.922 (1/H + 1/L0).
+  - The wall term is close to a dilute gas's 0.798 (1/H + 1/L0).
+  - Checked outside the fit, on B900 and B1600 at η 0.05 and 0.10: the model is +1.7 % to +3.2 % against the measured rate.
+- **Time per event on KOA's E5-2670 v3:** u = 2.22 + 0.444 n_x µs, where n_x is the number of 4/3-σ cells a disk crosses between two events (about 12–13 at η 0.02 for N 900 and 1600).
+  - Checked outside the fit, on B900 and B1600 at η 0.05 and 0.10: the model is −10.5 % to −1.0 %, low at the biggest box. Plan +10 %.
+
+| η | N | box 2 L0 × H [σ] | mean free path [σ] (/ H) | period, α 5 (9 masses) | 200 periods, α 5 | events per run, α 5 (mean of 9) | µs per event (v3) | minutes per run, α 5 (mean of 9; longest) | core-hours 9 × 25 (v3) |
+|---|---|---|---|---|---|---|---|---|---|
+| 0.020 | 900 | 1178 × 30 | 27.8 (0.93) | 6036 (2426–11781) | 1.21 × 10⁶ | 88 M (94 M) | 7.4 | 11 (12; 21) | 43 |
+| 0.035 | 900 | 673 × 30 | 15.9 (0.53) | 3444 (1384–6723) | 6.89 × 10⁵ | 75 M (80 M) | 5.7 | 7 (8; 14) | 28 |
+| 0.075 | 900 | 314 × 30 | 7.4 (0.25) | 1602 (644–3126) | 3.20 × 10⁵ | 69 M (74 M) | 4.0 | 5 (5; 9) | 18 |
+| 0.020 | 1600 | 1571 × 40 | 27.8 (0.69) | 8051 (3236–15715) | 1.61 × 10⁶ | 188 M (201 M) | 7.9 | 25 (27; 49) | 100 |
+| 0.035 | 1600 | 898 × 40 | 15.9 (0.40) | 4596 (1847–8971) | 9.19 × 10⁵ | 166 M (178 M) | 5.9 | 16 (18; 32) | 66 |
+| 0.075 | 1600 | 419 × 40 | 7.4 (0.19) | 2139 (860–4176) | 4.28 × 10⁵ | 157 M (168 M) | 4.0 | 11 (11; 21) | 42 |
+| all 6 | | | | | | | | | 298 |
+
+### Block D's own fit record (for the fit amendment)
+
+All 54 (cell, mass) are in `d_d2/d_fit_record.csv`; the per-run refits are in `d_runs_fit.csv`; plots are fig_d1 (the seed-averaged ACF, the fit and the residual, α 1, 5, 20 per cell) and fig_d2 (Q_k per mass, the flags, the per-run deviation).
+
+| cell | Q_k over the 9 masses: median (range) | fit failures (KOA) | flagged masses | τ_r / window: median (range) | seed-averaged fit − ACF: rms median (largest) | per run: rms median, Q median (10–90 %) at α 5 | per-run fits that stall, that miss (rms > 0.15) |
+|---|---|---|---|---|---|---|---|
+| D_N0100_eta0.020000 | 48 (14–85) | 1 | none | 0.75 (0.23–1.34) | 0.0054 (0.0106) | 0.0252, 46 (24–99) | 13, 21 |
+| D_N0100_eta0.035000 | 46 (13–83) | 6 | α 20 | 0.73 (0.21–1.31) | 0.0051 (0.0143) | 0.0274, 49 (28–78) | 0, 5 |
+| D_N0100_eta0.075000 | 51 (14–89) | 1 | none | 0.80 (0.22–1.40) | 0.0041 (0.0088) | 0.0255, 52 (36–108) | 0, 0 |
+| D_N0400_eta0.020000 | 101 (33–169) | 0 | none | 1.61 (0.52–2.68) | 0.0029 (0.0102) | 0.0159, 79 (16–167) | 34, 57 |
+| D_N0400_eta0.035000 | 113 (29–192) | 4 | none | 1.79 (0.46–3.03) | 0.0025 (0.0064) | 0.0155, 93 (33–262) | 10, 38 |
+| D_N0400_eta0.075000 | 121 (27–268) | 11 | α 7.5, α 10 | 1.91 (0.43–4.24) | 0.0036 (0.0064) | 0.0147, 96 (47–237) | 0, 5 |
+
+**What block D's record says (for the amendment):**
+
+1. **The window.** The registered fit uses the ACF to 20 predicted periods. τ_r / window rises with the mass and with N: from 0.2 at α 0.5 to 1.1–1.4 at α 20 for N 100, and to 2.7–4.2 for N 400. The median Q_k is 48 at N 100 and 108 at N 400, at the same η. Where τ_r / window ≥ 1 (Q ≳ 65), the ACF keeps more than a third of its amplitude at the window's end, and τ_r is barely constrained.
+2. **Two failure modes of the per-run fit, both in that regime:**
+   - 23 non-convergences (maxfev 200,000; KOA's fit_ok 0), at τ_r / window 0.78–4.24. They lost the seeds that flagged three (cell, mass): (100, 0.035) α 20, and (400, 0.075) α 7.5 and 10.
+   - 57 stalls: the fit reports convergence but ends at its initial guess (A 0.3, B 0.7, τ_T 2P, τ_r 5P; only ω moves). They count as fit_ok in the registered tables. All 57 sit at τ_r / window ≥ 1, most at η 0.02.
+   - With the other poor fits, 126 per-run fits miss their ACF by rms > 0.15; 118 of them sit at τ_r / window ≥ 1.
+   - The frequency of these fits still holds: ν_d / ν_ref of the misses has an sd of 0.70 %, against 0.60 % for the rest. Their τ_r and Q do not.
+3. **The seed-averaged ACF is a clean damped cosine** in all 54 (cell, mass): the fit deviates by rms 0.0011–0.0143 (fig_d1).
+4. **At these Q the damping correction hardly matters.** E1's correction, ν_0 / ν_d − 1 = 1 / (8Q²), is 1.7 × 10⁻⁶ to 7.0 × 10⁻⁴. τ_r matters for Q and Γ, hardly for c_s. E1 and E0 agree within E0's error in all six D cells (E1 − E0 from −0.0008 to +0.0024).
+5. **D2 sits deeper in this regime.** Q doubles from N 100 to N 400 at the same η, and D2's compartments are 1.5–2 × N 400's (L0 589 and 785 against 393 at η 0.02). Under the registered fit, more of D2's masses will sit at τ_r / window > 1. This is a planning expectation, not a measurement.
+6. **The repetition.** The Mac's refits equal KOA's ν_d to 10⁻⁹ in 1,285 of 1,320 runs. 15 differ by more than 10⁻⁶ (up to 2.2 × 10⁻³), 13 of them misses: ill-conditioned fits end at different points on the two platforms. 7 of KOA's 1,327 converged fits do not converge on the Mac.
+
+## 3. Assessment of (c), five lines
+
+1. **E1 applies at η 0.76.** The divider rings at one frequency: ν_d 0.0759 (0.96 of the binary's ν_pred), Q 18.7 on the seed-averaged ACF (22.4 and 14.7 per run). The damped cosine lies within rms 0.035 of each run's ACF; 74–85 % of the position power is within ±20 % of ν_d; there is one spectral peak.
+2. **The divider is neither locked nor creeping, and rings at no other frequency.** Its position sd is what the measured stiffness implies (sd / sd_E1 1.03 and 0.83). The record means sit 0.003–0.004 σ from L0, the drift is at most 0.012 σ per 1000 σ-time, and the spectrum has no second line.
+3. **The solid rings more cleanly than the dense fluid.** (900, 0.69) gives Q 6.3 on the Mac's 3 seeds and 6.6 on KOA's 25 at α 5. Its low-Q flag comes from α 15 and 20 (Q 4.95 and 4.73), where the lattice start melts into a patchy liquid near coexistence.
+4. **What changes in the solid is the reference, not the estimator.** c = 15.96 (2 seeds, no error bar) is 5.8 % above Liu's bulk c_s, the sign a shear modulus gives. The measured Z (15.7) is 27 % above Liu's bulk Z, so what is measured is the confined, strained crystal (start strain −6.5 % here). The binary's Henderson ν_pred runs 4 % high.
+5. **One cell and two seeds are not a verdict on 0.72–0.80.** Still untested: the cells with the largest start strains (to −9 %) and 0.70–0.72 near coexistence. The run-length predictor in the solid (Henderson) needs replacing before the registration.
+
+## 4. Commits
+
+- **main:** 1423d1e5 (figure 1c with its script and record; experiments_gen3_d56_261015: the scripts, the five runs' reduced tables, logs and snapshots, the analyses, the tables and the figures) and this report (sec. 4.7.134). Recorded on main only. Nothing is pushed.
+- The five raw traces stay on the Mac (the repository ignores them); their SHA-256 are in RUN_RECORD.txt.
+- **Data:** 25 MB in experiments_gen3_d56_261015 and 0.5 MB in figures_261015c, plus 31 MB of trial runs in my scratchpad: 57 MB in all. 47 GiB free.
+- **A side effect:** the lattice starts' energy-transfer runs made an empty folder, experiments_energy_transfer/, inside experiments_gen3_d50_261014/bin_0544b7e8-dirty/ (the binary's default output folder, beside itself). It is left in place and untracked.
+
+Written for: the plan author
