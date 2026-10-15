@@ -30902,3 +30902,227 @@ Written for: the plan author
 - **main:** this report (4.7.125); its copies on engine-gen3 and engine-divider-resched.
 
 Written for: the plan author
+
+### 4.7.126 Report D54-4 — decision 54 item 5: the consolidation's step 0 (decision 51, the runsheet of Report D51 sec. 4, "0. Before the go"): the dry run on the day's heads, into a new folder. The conflict list is hspist3/00ALLINONE.c alone, CONTAINED, as expected. The merge changes no file of engine-gen3, main keeps 451 files of its own, and the stage 1 manifests from the merged index are 21 OK. The mover's read-only list: problems none; NOT READY only for the three processes inside the worktree (Chris's viewer and two terminals), which runsheet step (b)1 closes. Its counts for step (b)2 are now 41,889 files, 1,548.9 MB, 24 entries to the hold folder. Nothing merged, moved or deleted; waiting for the plan author's go (2026-10-15 09:28 HST, machine date) [READ-ONLY]
+
+**Plain summary.**
+- **Step 0 of the runsheet** (Report D51 sec. 4):
+  - **"(ii)'s steps are committed on engine-gen3":** yes, bcb0e3b1, dda7f4a6, 8f538a21 and 6e2ee550. Since then engine-gen3 has also the pin (a102d011), the panel (a71f394d, 4668d579) and today's report commits.
+  - **"The dry run runs again on the day's heads into a new folder":** d51_dryrun.sh $SP/d54/clone_dryrun_step0b, at 09:26 HST, at main 49f02b1f, engine-gen3 af9c024e and engine-divider-resched 128dd9bb (sec. 1, verbatim).
+  - **"CC reports the conflict list. Expected: hspist3/00ALLINONE.c alone, CONTAINED":** it is. Main's 16 added lines are all in engine-gen3's version, and its 1 removed line is gone from it.
+- **The rest of the dry run:**
+  - The merge changes or removes 0 files of engine-gen3.
+  - Main keeps 451 files of its own: yesterday's 442 and the 9 files of the consolidation folder.
+  - Against main the merge adds 13,941 files and modifies 9: the same 9 as yesterday (00ALLINONE.c, the Makefile, edmd.c, edmd.h and five cluster scripts).
+  - None of the merge's paths is a local change, an untracked or an ignored file in the main checkout. The main checkout has 23 local changes, 40,049 untracked and 13,318 ignored entries, as yesterday.
+  - The stage 1 manifests from the merged index: s1_inputs 6 OK, s1_merge_inputs 15 OK (21). The merged 00ALLINONE.c is engine-gen3's blob (173d04aaca08).
+  - The runsheet's merge lines, rehearsed on a branch of the clone: one CONFLICT line; the commit has two parents (main, then engine-gen3); its tree is engine-gen3's plus main's 451 files.
+  - A first run one minute earlier (clone_dryrun_step0, engine-gen3 at 8e69641d) gave the same lists. Between the two, engine-gen3 got one commit, af9c024e: the last two lines of full_261015/RUN_RECORD.txt. The mover's first list had flagged that file as an uncommitted tracked change.
+- **The mover's list** (d51_move_untracked.py without --go, read-only; sec. 2, verbatim):
+  - 41,889 files, 1,548.9 MB to the main checkout; 24 entries to the hold folder (the same 24 as yesterday); problems: none.
+  - **VERDICT: NOT READY, only for the processes** whose working directory is inside the worktree:
+    - PID 70559, Chris's viewer (the panel build, bin_a71f394);
+    - PIDs 50636 and 95056, two zsh terminals.
+    - Runsheet step (b)1 quits the viewer and closes or moves these terminals before (b)2. The mover is READY when it finds no process and no problem.
+  - **Against the runsheet's step (b)2** ("33,728 files, 1,314.5 MB, 24 entries, plus B1600's fetched folder"): +8,161 files and +234.6 MB.
+    - B1600's fetch: +2,953 files, +115.1 MB;
+    - the run outputs of the option (ii) and pin work outside git (experiments_gen3_d50_261014): +4,903 files, +82.3 MB;
+    - the panel's scene tests and its clean build (experiments_gen3_d52_261014): +300 files, +36.5 MB;
+    - experiments_gen3_s1_261012 (the plan author's figures_cowork files): +3 files, +0.6 MB;
+    - two Python caches in cluster/: +2 files.
+    - So the "Good" of (b)2 now reads 41,889 files, 1,548.9 MB and 24 entries, if nothing is added before the go.
+- **Step (a), the push:**
+  - main is 4 commits ahead of origin, engine-gen3 8 and engine-divider-resched 4, before this report's own commits.
+  - The pin and the panel are already on origin: Chris's push of 23:02 HST yesterday took engine-gen3 to cee3994a. engine-gen3's 8 are all today's: the notes copies, the full report's evidence and figures, and the run record.
+- **This report's own commits** (the notes on main and their copies) moved the heads after the dry run. They touch the two notes files only, which are identical on main and engine-gen3.
+- **Nothing is merged, moved or deleted.** The scratch clones (d51's, and today's clone_dryrun_step0 and clone_dryrun_step0b) stay until Chris's word.
+- **Data:** each dry-run clone has 3.6 MB of new files in .git (the rest are hardlinks), 3.9 MB checked out and 13 MB of work files: about 41 MB for the two. In this message, about 57 MB in all; 62 GB free.
+- **Waiting for the plan author's go.**
+
+## 1. The dry run (d51_dryrun.sh $SP/d54/clone_dryrun_step0b; the scratchpad's path written as $SP; verbatim)
+
+```
+# d51_dryrun.sh, 2026-10-15 09:26:43 HST, git version 2.50.1 (Apple Git-155)
+
+## the heads (repository refs)
+- main 49f02b1f, origin/main c080bc35, ahead/behind 4/0
+- engine-gen3 af9c024e, origin/engine-gen3 cee3994a, ahead/behind 8/0
+- engine-divider-resched 128dd9bb, origin/engine-divider-resched 6af7ce39, ahead/behind 4/0
+- merge base main / engine-gen3: 86269ae9 2026-10-05 draft: sigma_c 0.045; Bernard–Krauth and Engel bibitems
+- commits on main only: 195; on engine-gen3 only: 285
+- engine-divider-resched is NOT an ancestor of engine-gen3: 134 commits not in it; base df7185c5 2026-10-08
+  files it changed since that base: 44; of them not identical in engine-gen3: hspist3/00ALLINONE.c hspist3/validation/edmd_acc_guard.py
+
+## the clone
+- $SP/d54/clone_dryrun_step0b: main 49f02b1f, sparse (two files written)
+
+## git merge --no-ff --no-commit engine-gen3
+- exit 1
+    Auto-merging hspist3/00ALLINONE.c
+    CONFLICT (content): Merge conflict in hspist3/00ALLINONE.c
+    Automatic merge failed; fix conflicts and then commit the result.
+- conflicts: 1
+  - hspist3/00ALLINONE.c: main's commits on it since the base: d3eb64a4 
+    main added 16 lines, 0 of them missing in engine-gen3's version; main removed 1 lines, 0 of them still in it: CONTAINED (engine-gen3 wins, nothing of main lost)
+
+## the merged index (conflicts taken from engine-gen3)
+- against engine-gen3:  451 A;
+       1 0000_PLAN_OVERALL/consolidation_d51_261014/README.md/
+       1 0000_PLAN_OVERALL/consolidation_d51_261014/d51_dryrun.sh/
+       1 0000_PLAN_OVERALL/consolidation_d51_261014/d51_dryrun_261014.txt/
+       1 0000_PLAN_OVERALL/consolidation_d51_261014/d51_move_list_261014.txt/
+       1 0000_PLAN_OVERALL/consolidation_d51_261014/d51_move_untracked.py/
+       1 0000_PLAN_OVERALL/consolidation_d51_261014/d51_mover_rehearsal.sh/
+       1 0000_PLAN_OVERALL/consolidation_d51_261014/d51_mover_rehearsal_261014.txt/
+       1 0000_PLAN_OVERALL/consolidation_d51_261014/d51_worktree_remove_test.sh/
+       1 0000_PLAN_OVERALL/consolidation_d51_261014/d51_worktree_remove_test_261014.txt/
+     114 0000_PLAN_OVERALL/paper1_speedofsound/experiments/exploratory_261008_window
+       1 hspist3/experiments_gen3_design_261009
+     325 hspist3/experiments_gen3_preview_koa_261011
+       2 hspist3/validation
+- files of engine-gen3 changed or removed by the merge: 0
+- against main: 13941 A; 9 M;  13950 files changed, 1055977 insertions(+), 420 deletions(-)
+    M hspist3/00ALLINONE.c
+    M hspist3/Makefile
+    M hspist3/cluster/confinement_20261013/conf_worker.sh
+    M hspist3/cluster/confinement_20261013/reduce_B.py
+    M hspist3/cluster/koa_crossnode_det.sh
+    M hspist3/cluster/koa_smoketest.sh
+    M hspist3/cluster/profile_edmd_koa.sh
+    M hspist3/edmd_core/edmd.c
+    M hspist3/edmd_core/edmd.h
+
+## the merge against the main checkout
+- main checkout: 23 local changes, 40049 untracked, 13318 ignored entries
+- in the merge's paths: local changes 0, untracked 0, ignored 0
+
+## the stage 1 manifests from the merged index
+- s1_inputs.sha256:    6 OK
+- s1_merge_inputs.sha256:   15 OK
+- hspist3/00ALLINONE.c: merged 173d04aaca08, engine-gen3 173d04aaca08
+
+## the runsheet's merge lines, rehearsed on a branch of the clone
+- git merge: exit 1, 1 CONFLICT line(s): CONFLICT (content): Merge conflict in hspist3/00ALLINONE.c 
+- the commit: 8c44135a, parents 49f02b1f af9c024e, "consolidate: engine-gen3 into main after stage 1 (decision 51)"
+- its tree against engine-gen3:  451 A;
+
+## the size
+- the clone without .git: 3.9M; .git: 4.0G, of it new (not hardlinked) 3.6 MB
+- the work files:  13M in $SP/d54/clone_dryrun_step0b.work
+```
+
+## 2. The mover's list (d51_move_untracked.py, read-only; verbatim)
+
+```
+# d51_move_untracked.py --list (read-only): /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3 -> /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks
+
+## to the main checkout, same relative path (?? untracked, !! ignored)
+
+| kind | folder | files | MB |
+|---|---|---|---|
+| ?? | hspist3/experiments_gen3_stage1_koa_261012 | 9322 | 362.7 |
+| ?? | hspist3/experiments_gen3_psi6c_261010 | 15633 | 201.9 |
+| !! | hspist3/experiments_gen3_stage1_koa_261012 | 3756 | 94.4 |
+| ?? | hspist3/experiments_gen3_p4_261010 | 48 | 75.4 |
+| ?? | hspist3/experiments_gen3_p3_261009 | 84 | 71.3 |
+| !! | hspist3/experiments_gen3_m5_solid_koa_261012 | 17 | 63.2 |
+| ?? | hspist3/experiments_gen3_p6_261010 | 40 | 63.0 |
+| ?? | hspist3/experiments_gen3_d18_261010 | 235 | 59.4 |
+| !! | hspist3/experiments_gen3_d50_261014 | 254 | 57.0 |
+| ?? | hspist3/experiments_gen3_p3a_261009 | 111 | 53.5 |
+| ?? | hspist3/experiments_gen3_p1_261009 | 2179 | 48.1 |
+| ?? | hspist3/experiments_gen3_d50_261014 | 5339 | 43.7 |
+| ?? | hspist3/experiments_gen3_m3_261009 | 56 | 40.8 |
+| ?? | hspist3/experiments_gen3_p2_261009 | 1729 | 36.8 |
+| ?? | hspist3/experiments_gen3_h3b_261009 | 77 | 32.0 |
+| ?? | hspist3/experiments_gen3_h_261009 | 97 | 26.9 |
+| ?? | hspist3/experiments_gen3_d34a_261012 | 17 | 25.1 |
+| ?? | hspist3/experiments_gen3_p5_261010 | 34 | 22.2 |
+| !! | hspist3/experiments_gen3_d52_261014 | 24 | 20.8 |
+| ?? | hspist3/experiments_gen3_sym_261009 | 80 | 18.4 |
+| ?? | hspist3/experiments_gen3_d19_261010 | 19 | 17.6 |
+| !! | hspist3/experiments_gen3_d18_261010 | 359 | 16.7 |
+| ?? | hspist3/experiments_gen3_d52_261014 | 276 | 15.7 |
+| !! | hspist3/experiments_gen3_p3a_261009 | 124 | 15.3 |
+| !! | hspist3/experiments_gen3_h3b_261009 | 89 | 14.1 |
+| !! | hspist3/experiments_gen3_psi6c_261010 | 83 | 10.0 |
+| ?? | hspist3/experiments_gen3_d34s_261012 | 15 | 5.3 |
+| ?? | hspist3/experiments_gen3_m4b_261009 | 26 | 4.2 |
+| !! | hspist3/experiments_gen3_m3_261009 | 79 | 3.2 |
+| ?? | hspist3/experiments_gen3_s10_261012 | 1 | 3.0 |
+| !! | hspist3/experiments_gen3_s10_261012 | 15 | 2.7 |
+| !! | hspist3/experiments_gen3_m4_261009 | 200 | 2.2 |
+| !! | hspist3/experiments_gen3_h_261009 | 71 | 2.0 |
+| !! | hspist3/experiments_gen3_m4b_261009 | 62 | 1.9 |
+| !! | hspist3/experiments_gen3_d19_261010 | 43 | 1.9 |
+| !! | hspist3/experiments_gen3_d34a_261012 | 41 | 1.9 |
+| !! | hspist3/experiments_gen3_d34s_261012 | 42 | 1.9 |
+| ?? | hspist3/experiments_gen3_m5_261009 | 7 | 1.8 |
+| !! | hspist3/experiments_gen3_m5_261009 | 28 | 1.8 |
+| !! | hspist3/experiments_gen3_s1_gate_koa_261012 | 64 | 1.5 |
+| ?? | hspist3/experiments_gen3_d48_261013 | 2 | 1.4 |
+| ?? | hspist3/experiments_gen3_s1_261012 | 6 | 1.0 |
+| ?? | hspist3/experiments_gen3_m4_261009 | 4 | 0.9 |
+| !! | hspist3/experiments_gen3_p1_261009 | 398 | 0.9 |
+| ?? | hspist3/experiments_gen3_d16_261010 | 1 | 0.8 |
+| !! | hspist3/experiments_gen3_p2_261009 | 146 | 0.6 |
+| !! | hspist3/experiments_gen3_p3_261009 | 171 | 0.5 |
+| !! | hspist3/cluster | 16 | 0.5 |
+| !! | hspist3/experiments_gen3_sym_261009 | 163 | 0.4 |
+| !! | hspist3/experiments_gen3_p4_261010 | 75 | 0.2 |
+| !! | hspist3/experiments_gen3_p6_261010 | 63 | 0.2 |
+| !! | hspist3/experiments_gen3_p5_261010 | 53 | 0.2 |
+| !! | hspist3/experiments_speed_of_sound | 12 | 0.0 |
+| !! | hspist3/experiments_gen3_d16_261010 | 3 | 0.0 |
+
+41889 files, 1549.2 MB to the main checkout
+
+## to Repo/HardDisks_d51_hold (the target exists in the main checkout, or a run output)
+
+-  M hspist3/energy_log.csv (383539 bytes): tracked file rewritten by runs; its committed version is restored in the worktree
+-  M hspist3/wall_position.csv (817832 bytes): tracked file rewritten by runs; its committed version is restored in the worktree
+- ?? hspist3/00_COMMAND.md (526 bytes): exists
+- ?? hspist3/run_params.json (420 bytes): exists
+- ?? hspist3/wall_position_run_params.json (420 bytes): exists
+- !! hspist3/00ALLINONE (607672 bytes): exists
+- !! hspist3/__pycache__/plot_speed_of_sound_edmd.cpython-313.pyc (105350 bytes): exists
+- !! hspist3/cluster/gen3_gate_261009/__pycache__/gen_testG_261009.cpython-313.pyc (15326 bytes): exists
+- !! hspist3/cluster/gen3_koa_261009/__pycache__/rehearse_k2_mac.cpython-313.pyc (84411 bytes): exists
+- !! hspist3/cluster/gen3_koa_261009/__pycache__/koa_k2_m5_rates_261010.cpython-313.pyc (22492 bytes): exists
+- !! hspist3/cluster/gen3_koa_261009/__pycache__/g3_rate_ld_koa.cpython-313.pyc (12794 bytes): exists
+- !! hspist3/cluster/gen3_koa_261009/__pycache__/g3_xnode_compare.cpython-313.pyc (9506 bytes): exists
+- !! hspist3/cluster/gen3_testR_261011/__pycache__/reduce_testR_koa.cpython-313.pyc (12905 bytes): exists
+- !! hspist3/cluster/resched_gate_261005/__pycache__/audit_runs_261007.cpython-313.pyc (28847 bytes): exists
+- !! hspist3/validation/__pycache__/resched_testT_261007.cpython-313.pyc (29128 bytes): exists
+- !! hspist3/validation/__pycache__/edmd3_health_guard.cpython-313.pyc (11061 bytes): exists
+- !! hspist3/validation/__pycache__/paper1_confinement_results_261004.cpython-313.pyc (76940 bytes): exists
+- !! hspist3/validation/__pycache__/paper1_confinement_prereg_20261012.cpython-313.pyc (29151 bytes): exists
+- !! hspist3/validation/__pycache__/paper1_populate_cs_err_20261002.cpython-313.pyc (19729 bytes): exists
+- !! hspist3/validation/__pycache__/tests_20260913.cpython-313.pyc (111340 bytes): exists
+- !! hspist3/validation/__pycache__/edmd_acc_guard.cpython-313.pyc (11040 bytes): exists
+- !! hspist3/validation/__pycache__/provenance_edmd_acc_261009.cpython-313.pyc (39446 bytes): exists
+- !! hspist3/validation/__pycache__/resched_testT_followup_261007.cpython-313.pyc (43206 bytes): exists
+- the nested clone hspist3/kissfft (whole folder, 1.4 MB): a populated gitlink; the empty folder is recreated after the move
+
+24 entries to the hold folder
+
+## processes whose working directory is inside the worktree (quit them before --go)
+
+- PID 50636 zsh: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3
+- PID 70559 00ALLINONE: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3
+- PID 95056 zsh: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3
+
+## problems
+
+- none
+
+VERDICT: NOT READY
+```
+
+## Commits
+
+- **main:** this report (4.7.126); its copies on engine-gen3 and engine-divider-resched.
+- **engine-gen3:** af9c024e (local): full_261015/RUN_RECORD.txt, its last two lines.
+- The dry-run outputs and the two lists are in the scratchpad (d54/) and here.
+
+Written for: the plan author
