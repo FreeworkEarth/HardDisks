@@ -14,6 +14,8 @@
         the hold or the record) and the held path at j = 0 with --seed = the line's exact seed, both with --gen3-dump-initial; equal
         when the two dumps (the box, the divider, every disk's x, y, vx, vy in %a) are byte-identical and the run headers' lattices
         agree. At pi/8 for N 100, 400, 900, 1600, and at eta 0.05 and 0.69 for N 400.
+  C2P   gate C2 with the orientation pin (decision 53 item 2): as C2, the held start at j = 0 carrying the cell's pin
+        (--gen3-lattice-orientation from cluster/gen3_partA_261014/pa_orient_261014.tsv) against the free start without it.
   R0    the readout changes nothing (step c): held lattice runs with and without --gen3-held-readout=K; equal when the event hash,
         t_end and every output file's SHA-256 are equal.
   R1    the readout against the event log (step c): held lattice runs with --gen3-held-readout=K and HD_PISTON_EVENTS; F_L, F_R, n_L,
@@ -25,7 +27,7 @@
         rows, n_s x n_r) and its crystal orientation (g3_lat_cryst: close-packed lines along x = 0, along y = turned), and whether
         they change across j.
 Runs go into experiments_gen3_d50_261014/tests/<label>/<run>/ (a new folder each; an existing one is refused). At most 6 processes (Chris's two viewers run beside them).
-usage (from hspist3/): python3 tests_d50.py <label> <T1|T1AF|T2|C2|R0|R1|LAT> <NEW binary> [OLD binary] [--seeder=legacy|lattice]
+usage (from hspist3/): python3 tests_d50.py <label> <T1|T1AF|T2|C2|C2P|R0|R1|LAT> <NEW binary> [OLD binary] [--seeder=legacy|lattice]
 """
 import concurrent.futures as cf, hashlib, math, os, re, subprocess, sys, time, importlib.util
 
@@ -197,9 +199,13 @@ def lattice_of(log):
     return None
 
 
-def c2(label, NEW):
+def c2(label, NEW, pinned=False):
     lines = [l.split() for l in open(TASKS)]
     rows = []
+    pins = {}
+    if pinned:   # ##CHRIS 2026-10-14 (decision 53 item 2): the cell's orientation pin
+        for l in open(os.path.join(HS, "cluster", "gen3_partA_261014", "pa_orient_261014.tsv")).read().splitlines()[1:]:
+            f = l.split("\t"); pins[f[0]] = f[3]
 
     def one(cell):
         f = next(x for x in lines if x[1].split("/")[-2] == cell and x[3] == "0")
@@ -212,13 +218,16 @@ def c2(label, NEW):
         rcf, _ = run(df, argv, dict(ENV, HD_KE_TRACE="1"), df)
         N = 2 * int(NS)
         ah = af_cmd(NEW, dh, N, float(H), float(L0), float(L0), int(seed), 60, 6, 6, True, "lattice") + [f"--gen3-dump-initial={dh}/initial.dump"]
+        if pinned:
+            ah.append(f"--gen3-lattice-orientation={pins[cell]}")
         rch, _ = run(dh, ah, ENV)
         a, b = os.path.join(df, "initial.dump"), os.path.join(dh, "initial.dump")
         same = os.path.exists(a) and os.path.exists(b) and open(a, "rb").read() == open(b, "rb").read()
         la, lb = lattice_of(os.path.join(df, "stdout.log")), lattice_of(os.path.join(dh, "stdout.log"))
         okf, _, _ = health(os.path.join(df, "stdout.log")); okh, _, _ = health(os.path.join(dh, "stdout.log"))
         n = sum(1 for _ in open(a)) - 6 if os.path.exists(a) else -1
-        return (f"| {cell} | {seed} | {L0} | {N} | {rcf} / {rch} | {int(okf)} / {int(okh)} | {n} | "
+        pin_txt = f" (pin {pins[cell]})" if pinned else ""
+        return (f"| {cell}{pin_txt} | {seed} | {L0} | {N} | {rcf} / {rch} | {int(okf)} / {int(okh)} | {n} | "
                 f"{sha(a)[:16] if os.path.exists(a) else '-'} / {sha(b)[:16] if os.path.exists(b) else '-'} | "
                 f"{'equal' if la and la == lb else 'DIFFERENT'} | {'EQUAL' if same and la == lb and rcf == rch == 0 and okf and okh else 'DIFFERENT'} |")
     with cf.ThreadPoolExecutor(3) as ex: rows = list(ex.map(one, C2_CELLS))   # each cell runs its two starts in turn: at most 3 processes
@@ -362,6 +371,7 @@ def main():
     head = (f"# {test} ({label}), {time.strftime('%Y-%m-%d %H:%M:%S %Z')}\n\nNEW {os.path.relpath(NEW, HS)} SHA-256 {sha(NEW)}\n"
             + (f"OLD {os.path.relpath(OLD, HS)} SHA-256 {sha(OLD)}\n" if OLD else "") + (f"seeder {seeder}\n" if test == "T2" else "") + "\n")
     body = (t1(label, NEW, OLD) if test == "T1" else t1af(label, NEW, OLD) if test == "T1AF" else c2(label, NEW) if test == "C2"
+            else c2(label, NEW, True) if test == "C2P"
             else r0(label, NEW) if test == "R0" else r1(label, NEW) if test == "R1" else lat(label, NEW) if test == "LAT"
             else t2(label, NEW, seeder))
     out = head + body + "\n"

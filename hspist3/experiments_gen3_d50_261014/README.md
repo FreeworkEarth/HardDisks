@@ -81,3 +81,18 @@ Committed: each run's cmd.txt and stdout.log (added with -f, since *.log is igno
   - `tests/d2_rehearsal` (R5 ran into R1's root; its tasks share R1's seeds, so they were skipped as "done before"; fixed by giving R5 its own root).
   - Both are kept as they ran.
 
+## The orientation pin (decision 53 item 2, A5 option b)
+
+- No C source changes: --gen3-lattice-orientation (M4c) already restricts the lattice fit to one crystal orientation.
+- The package: pa_orient.py and its table pa_orient_261014.tsv; the 15th task field (orientation) in pa_worker_koa.sh, pa_reduce.py (columns pin, pin_left, pin_right; it fails closed unless [EDMD3-M4C] reports the pin in both compartments) and pa_tasks.py.
+- `tests/g1_pin` (pa_orient.py with bin_8f538a2):
+  - every block B cell's orientation at j = 0 (40 cells `0`, 24 `turned`; the two compartments always agree);
+  - the pinned start at the five positions: 64 of 64 cells feasible, no problem;
+  - in 61 cells the pinned arrangement equals j = 0's everywhere;
+  - in 3 fluid cells the row count still follows the width with the orientation pinned: N 100 eta 0.55, N 400 eta 0.25, N 900 pi/8.
+- `tests/g2_C2P`: gate C2 with the pin, 6 of 6 EQUAL. The dumps equal the unpinned C2's: at j = 0 the pin is the default arrangement.
+- `tests/g3_pin_rehearsal` (`scripts/rehearse_pin_mac.sh`):
+  - 40 pinned 15-field tasks ok (N 100 and 400 at pi/8, 0.05, 0.66, 0.68), and one unpinned line ok;
+  - every row's compartments carry the pin;
+  - the dense N 400 cells (0.66, 0.68) start with one arrangement at all five positions.
+

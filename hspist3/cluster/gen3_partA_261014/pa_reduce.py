@@ -5,6 +5,7 @@ one held trajectory's run folder -> one row.
 It reads the record lines of the run's log:
   [EDMD3-HELD-GEOMETRY]   the geometry (gate C2's quantities: the box, the divider's centre and thickness, the compartments, L_eff, eta);
   [EDMD3-RUN]             the lattice of each compartment (the start), T_eq;
+  [EDMD3-M4C]             the orientation pin (decision 53 item 2): requested, and what each compartment got;
   [EDMD3-HELD] t0, t1     the divider's per-face impulse counters at T_eq and at the last step of the hold (exact values in %a);
   [EDMD3-HELD] window     F_L, F_R over (t0, t1];
   [EDMD3-HEALTH]          clean, the event hash, t_end.
@@ -19,8 +20,9 @@ FAILS CLOSED (exit 1, nothing written) when:
   - the counts are not N_s each, or the geometry is off by more than 1e-9 sigma;
   - T_w differs from the window steps x dt by more than 1e-9 (relative);
   - the held divider moved or worked (v_div, dx_div or dW_div not exactly 0);
-  - with a log: the counts differ, the forces differ by more than 1e-9 (relative; the log prints 12 digits), or u_wall or W_div is not 0.
-usage: pa_reduce.py <run folder> <out csv> <rel> <j> <s> <seed> <N_s> <T_eq steps> <window steps>
+  - with a log: the counts differ, the forces differ by more than 1e-9 (relative; the log prints 12 digits), or u_wall or W_div is not 0;
+  - with a pin: the [EDMD3-M4C] line is missing, or a compartment did not get the requested orientation.
+usage: pa_reduce.py <run folder> <out csv> <rel> <j> <s> <seed> <N_s> <T_eq steps> <window steps> <orientation default|0|turned>
 """
 import os, re, sys
 import numpy as np, pandas as pd
@@ -29,7 +31,8 @@ PPS = 24.0                                   # internal units per sigma (and per
 DT = float(np.float32(0.4)) / PPS            # the driver's step, --fixed-dt=0.4 as a float, in sigma-time
 COLS = ["rel", "cell", "j", "s", "seed", "N", "N_s", "L0", "x_div_requested", "box", "H", "x_div", "t_div", "R", "w_L", "w_R",
         "L_eff_L", "L_eff_R", "eta", "dW_box", "dx_requested", "lattice_left", "lattice_right", "T_eq_header", "t0", "t1", "T_w",
-        "F_L", "F_R", "n_L", "n_R", "v_div_t0", "v_div_t1", "dx_div", "dW_div", "T_L", "T_R", "clean", "hash", "t_end",
+        "F_L", "F_R", "n_L", "n_R", "v_div_t0", "v_div_t1", "dx_div", "dW_div", "T_L", "T_R", "clean", "hash", "t_end", "pin",
+        "pin_left", "pin_right",
         "F_L_log", "F_R_log", "n_L_log", "n_R_log", "u_wall_max_log", "W_div_log", "dF_L_rel_log", "dF_R_rel_log"]
 
 
@@ -59,9 +62,9 @@ def held(lines, which, step):
 
 
 def main():
-    if len(sys.argv) != 10:
+    if len(sys.argv) != 11:
         sys.exit(__doc__)
-    d, out, rel, j, s, seed, NS, teq, win = sys.argv[1:10]
+    d, out, rel, j, s, seed, NS, teq, win, pin = sys.argv[1:11]
     j, s, NS, teq, win = int(j), int(s), int(NS), int(teq), int(win)
     lines = open(os.path.join(d, "stdout.log"), errors="replace").read().splitlines()
 
@@ -82,6 +85,19 @@ def main():
     teq_h = re.search(r" T_eq=(\S+) sigma-time", hdr)
     L0 = float(re.search(r"held L0=(\S+) ", hdr).group(1))
 
+    m4c = [l for l in lines if l.startswith("[EDMD3-M4C] ")]
+    if pin == "default":
+        if m4c:
+            die("an orientation pin in a run that asked for none")
+        pl = pr = ""
+    else:
+        if len(m4c) != 1:
+            die(f"{len(m4c)} [EDMD3-M4C] lines with the pin {pin} (exactly one expected)")
+        mm = re.match(r"\[EDMD3-M4C\] lattice orientation requested: (\S+) .*?; left (.+?), right (.+)$", m4c[0])
+        want = {"0": "lines along x", "turned": "lines along y"}[pin]
+        if not mm or mm.group(1) != pin or mm.group(2) != want or mm.group(3) != want:
+            die(f"the pin {pin} was not met: {m4c[0]}")
+        pl, pr = mm.group(2), mm.group(3)
     a, b = held(lines, "t0", teq), held(lines, "t1", teq + win)
     w = kv(one(lines, "[EDMD3-HELD] window "))
     Tw = (b["t"] - a["t"]) / PPS
@@ -114,7 +130,8 @@ def main():
                lattice_left=lat.group(1) if lat else "", lattice_right=lat.group(2) if lat else "",
                T_eq_header=float(teq_h.group(1)) if teq_h else np.nan, t0=a["t"] / PPS, t1=b["t"] / PPS, T_w=Tw, F_L=FL, F_R=FR,
                n_L=b["n_L"] - a["n_L"], n_R=b["n_R"] - a["n_R"], v_div_t0=a["v_div"], v_div_t1=b["v_div"], dx_div=float(w["dx_div"]),
-               dW_div=float(w["dW_div"]), T_L=TL, T_R=TR, clean=1, hash=h.get("hash", ""), t_end=float(h.get("t_end", "nan")))
+               dW_div=float(w["dW_div"]), T_L=TL, T_R=TR, clean=1, hash=h.get("hash", ""), t_end=float(h.get("t_end", "nan")),
+               pin=pin, pin_left=pl, pin_right=pr)
     ev = os.path.join(d, "ev.csv")
     if os.path.exists(ev):
         e = pd.read_csv(ev, usecols=["t_sigma", "kind", "u_wall", "dE", "dp"])
