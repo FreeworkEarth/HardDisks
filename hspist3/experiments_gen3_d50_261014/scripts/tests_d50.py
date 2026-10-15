@@ -20,8 +20,12 @@
         n_R of the [EDMD3-HELD] window line against reduce_AF.py's formulas on the log's D0 rows in [t0, t1) (t0, t1 the readout's;
         the log prints 12 significant digits, so the forces must agree to 1e-9 and the counts exactly);
         also u_wall_max and W_div from the log, v_div, dx_div and dW_div from the readout.
+  LAT   the lattice start across the stencil (information): every block B cell (16 eta x N 100, 400, 900, 1600) at the five positions,
+        the start only (60 held steps); the run header's arrangement per compartment (orientation of the rows, equal or alternate
+        rows, n_s x n_r) and its crystal orientation (g3_lat_cryst: close-packed lines along x = 0, along y = turned), and whether
+        they change across j.
 Runs go into experiments_gen3_d50_261014/tests/<label>/<run>/ (a new folder each; an existing one is refused). At most 6 processes (Chris's two viewers run beside them).
-usage (from hspist3/): python3 tests_d50.py <label> <T1|T1AF|T2|C2|R0|R1> <NEW binary> [OLD binary] [--seeder=legacy|lattice]
+usage (from hspist3/): python3 tests_d50.py <label> <T1|T1AF|T2|C2|R0|R1|LAT> <NEW binary> [OLD binary] [--seeder=legacy|lattice]
 """
 import concurrent.futures as cf, hashlib, math, os, re, subprocess, sys, time, importlib.util
 
@@ -295,6 +299,59 @@ def r1(label, NEW):
     return hdr + "\n" + "\n".join(rows) + f"\n\n{sum('| PASS |' in r for r in rows)} of {len(rows)} PASS"
 
 
+def arrangement(log):
+    """per compartment: (orient, rows, n_s, n_r, cryst) from the run header; cryst as g3_lat_cryst in 00ALLINONE.c"""
+    for l in open(log, errors="replace"):
+        if l.startswith("[EDMD3-RUN]"):
+            out = []
+            for side in ("left", "right"):
+                m = re.search(side + r"=\[orient (\w+) rows (\w+) n_s (\d+) n_r (\d+) a_s (\S+) a_r (\S+) ", l)
+                o, rows, ns, nr, a_s, a_r = m.group(1), m.group(2), int(m.group(3)), int(m.group(4)), float(m.group(5)), float(m.group(6))
+                along = 1 if ns < 2 else (0 if nr < 2 else int(a_r < 2.0 * a_s))
+                cryst = 0 if along == int(o == "perpendicular") else 1
+                out.append((o, rows, ns, nr, cryst))
+            return out
+    return None
+
+
+def lat(label, NEW):
+    lines = [l.split() for l in open(TASKS)]
+    cells, seen = [], set()
+    for f in lines:
+        c = f[1].split("/")[-2]
+        if c.startswith("B_N") and c not in seen:
+            seen.add(c); cells.append((c, int(f[7]), float(f[5]), float(f[6])))
+    jobs = []
+    for i, (c, NS, L0, H) in enumerate(cells):
+        e = P.eta_of(NS, H, L0); dL = 0.5 * P.leff(L0) / math.sqrt(2 * NS * P.cs2(e))
+        for j in (-2, -1, 0, 1, 2):
+            jobs.append((c, NS, L0, H, j, L0 + j * dL, 7780000 + 10 * i + j + 2))
+
+    def one(job):
+        c, NS, L0, H, j, xw, seed = job
+        d = os.path.join(OUTROOT, label, f"{c}_j{j:+d}")
+        rc, dt = run(d, af_cmd(NEW, d, 2 * NS, H, L0, xw, seed, 60, 6, 6, True, "lattice"), ENV)
+        return job, rc, arrangement(os.path.join(d, "stdout.log"))
+    with cf.ThreadPoolExecutor(6) as ex: res = list(ex.map(one, jobs))
+    by = {}
+    for (c, NS, L0, H, j, xw, seed), rc, arr in res:
+        by.setdefault(c, {})[j] = (rc, arr)
+    fmt = lambda a: f"{a[0][:4]} {a[1][:3]} {a[2]}x{a[3]} {'turned' if a[4] else 'x'}"
+    rows, nch = [], 0
+    for c, _, _, _ in cells:
+        d = by[c]; ok = all(d[j][0] == 0 and d[j][1] for j in d)
+        arrs = [d[j][1] for j in (-2, -1, 0, 1, 2)]
+        same_arr = ok and all(a == arrs[2] for a in arrs)
+        same_cr = ok and all((a[0][4], a[1][4]) == (arrs[2][0][4], arrs[2][1][4]) for a in arrs)
+        nch += (not same_arr)
+        rows.append(f"| {c} | " + " | ".join(f"{fmt(a[0])} / {fmt(a[1])}" if a else "-" for a in arrs) +
+                    f" | {'same' if same_arr else 'CHANGES'} | {'same' if same_cr else 'CHANGES'} |")
+    hdr = ("| cell | j = -2: left / right | j = -1 | j = 0 | j = +1 | j = +2 | arrangement across j | crystal orientation across j |\n"
+           "|---|---|---|---|---|---|---|---|")
+    return (hdr + "\n" + "\n".join(rows) + f"\n\n{nch} of {len(cells)} cells change the arrangement across the stencil; "
+            "entries: rows' orientation (para/perp), rows (equal/alt), n_s x n_r, crystal orientation (x: close-packed lines along x; turned: along y)")
+
+
 def main():
     label, test, NEW = sys.argv[1], sys.argv[2], os.path.abspath(sys.argv[3])
     OLD = os.path.abspath(sys.argv[4]) if len(sys.argv) > 4 and not sys.argv[4].startswith("--") else None
@@ -305,7 +362,8 @@ def main():
     head = (f"# {test} ({label}), {time.strftime('%Y-%m-%d %H:%M:%S %Z')}\n\nNEW {os.path.relpath(NEW, HS)} SHA-256 {sha(NEW)}\n"
             + (f"OLD {os.path.relpath(OLD, HS)} SHA-256 {sha(OLD)}\n" if OLD else "") + (f"seeder {seeder}\n" if test == "T2" else "") + "\n")
     body = (t1(label, NEW, OLD) if test == "T1" else t1af(label, NEW, OLD) if test == "T1AF" else c2(label, NEW) if test == "C2"
-            else r0(label, NEW) if test == "R0" else r1(label, NEW) if test == "R1" else t2(label, NEW, seeder))
+            else r0(label, NEW) if test == "R0" else r1(label, NEW) if test == "R1" else lat(label, NEW) if test == "LAT"
+            else t2(label, NEW, seeder))
     out = head + body + "\n"
     open(os.path.join(d, "RESULTS.md"), "w").write(out)
     print(out)

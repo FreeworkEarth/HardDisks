@@ -1,0 +1,2 @@
+A partA/gen3/B_N0100_eta0.050000/x_m2 j=-2 s=0 seed=3936421655 ok (1 s)
+A partA/gen3/B_N0400_eta0.690000/x_p1 j=1 s=0 seed=989499522 ok (63 s)

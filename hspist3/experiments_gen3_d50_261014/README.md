@@ -58,3 +58,26 @@ Committed: each run's cmd.txt and stdout.log (added with -f, since *.log is igno
   - The event logs are not committed.
 - Note: a step advances (double)0.4f = 0.40000000596 internal units, so 300,000 steps are 5000.0000745 sigma-time. The readout divides by the engine's own t1 - t0.
 
+## Step (d)
+
+- The package: cluster/gen3_partA_261014/ (pa_worker_koa.sh, pa_reduce.py, the draft pa_tasks.py; its README).
+- The clean build of the final code: `bin_8f538a2` (build_clean.sh of 8f538a21, a git archive export; the binary's build line reads git 8f538a2). Step (d) changes no C source.
+- The whole suite on bin_8f538a2 (`scripts/run_final_tests.sh`):
+  - `tests/f1_T1`: 6 of 6 EQUAL; `tests/f2_T1AF`: EQUAL;
+  - `tests/f3_T2`: 83 of 83 PASS; `tests/f4_C2`: 6 of 6 EQUAL;
+  - `tests/f5_R0`: 5 of 5 EQUAL; `tests/f6_R1`: 5 of 5 PASS.
+  - The values are those of the per-step builds.
+- `tests/f7_LAT` (information): the lattice start of every block B cell at the five positions. 21 of 64 cells change the arrangement across the stencil.
+  - Nearly all of them also change a compartment's crystal orientation.
+  - The dense ones are N 400 at eta 0.66 and 0.68, with one compartment turned at j = +-2. The rest are eta <= 0.55.
+- `scripts/rehearse_pa_mac.sh`, the worker rehearsed on the Mac with bin_8f538a2:
+  - `tests/d3_rehearsal`:
+    - R1: 40 short tasks ok (N 100 and 400, four densities, five positions; 8 with the event log, which agrees with the readout to 3e-13).
+    - R2: the same 40 lines are skipped as "done before".
+    - R3: a different binary is refused by the build guard (exit 3).
+    - R4: a divider outside the box is refused by the binary; the worker reports FAILED and keeps the folder.
+    - R5: two tasks at the registered lengths, N 100 eta 0.05 j = -2 in 1 s and N 400 eta 0.69 j = +1 in 63 s, with T_w = 5000.0000745 sigma-time.
+  - `tests/d1_rehearsal` (the data root was given as a relative path; the worker refused it, so nothing ran).
+  - `tests/d2_rehearsal` (R5 ran into R1's root; its tasks share R1's seeds, so they were skipped as "done before"; fixed by giving R5 its own root).
+  - Both are kept as they ran.
+

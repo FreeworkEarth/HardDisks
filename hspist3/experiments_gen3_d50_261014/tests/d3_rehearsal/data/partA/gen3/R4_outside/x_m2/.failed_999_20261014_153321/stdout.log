@@ -1,0 +1,2 @@
+gen3 exact box: the physics uses 2 L0 exactly; SIM_WIDTH (the 1/48 grid) is for the display only
+STOP (--engine=gen3): the held path on the exact box (the energy-transfer experiment) needs --num-walls=1, --l0, a --wall-positions value inside (0, 2 L0) and --seed
