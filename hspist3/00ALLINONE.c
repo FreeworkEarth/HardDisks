@@ -1468,6 +1468,8 @@ static size_t cli_lengths_d_count = 0;
    float grid (SIM_WIDTH, all_wall_positions), as in the speed-of-sound loop. The box and the position are checked at 1e-9 sigma. */
 static double cli_l0_d = 0.0;                                         /* --l0 as a double */
 static double cli_wall_positions_d[5] = {0.0, 0.0, 0.0, 0.0, 0.0};    /* --wall-positions as doubles */
+static int    cli_gen3_held_readout = 0;   /* ##CHRIS 2026-10-14 (decision 50, c): --gen3-held-readout=K: the held divider's per-face
+                                              counters read at step K (T_eq) and at the last step of the hold ([EDMD3-HELD] lines) */
 static const char* cli_gen3_dump_initial = NULL;   /* --gen3-dump-initial=PATH: the initial state after the seeding, %a */
 /* ##CHRIS 2026-10-09 (stage H; 261012 sec. 4.7.12 stage H, sec. 4.7 item 6): checkpoint and restart of one gen3 speed-of-sound
    trajectory at a step boundary of the driver, which is an event boundary of the engine (g3_ckpt_write, g3_restart_apply) */
@@ -5154,6 +5156,14 @@ static void parse_cli_options(int argc, char **argv) {
             cli_gen3_exact_box = 1;
         } else if (strncmp(arg, "--gen3-dump-initial=", strlen("--gen3-dump-initial=")) == 0) {
             cli_gen3_dump_initial = arg + strlen("--gen3-dump-initial=");
+        } else if (strncmp(arg, "--gen3-held-readout=", strlen("--gen3-held-readout=")) == 0) {   /* ##CHRIS 2026-10-14 (decision 50, c) */
+            char* end = NULL; errno = 0;
+            const long v = strtol(arg + strlen("--gen3-held-readout="), &end, 10);
+            if (errno != 0 || !end || *end != '\0' || v < 1 || v > INT_MAX / 2) {
+                fprintf(stderr, "Invalid --gen3-held-readout '%s' (the step of T_eq, >= 1).\n", arg + strlen("--gen3-held-readout="));
+                exit(EXIT_FAILURE);
+            }
+            cli_gen3_held_readout = (int)v;
         } else if (strncmp(arg, "--gen3-checkpoint=", strlen("--gen3-checkpoint=")) == 0) {   /* ##CHRIS 2026-10-09 (stage H) */
             const char* v = arg + strlen("--gen3-checkpoint=");
             char ph[16] = ""; long k = -1; int used = 0;
@@ -18442,6 +18452,40 @@ static inline int g3_held_exact(void){
     return cli_engine == 3 && cli_gen3_exact_box && !cli_force_no_experiments && cli_experiment_preset == EXPERIMENT_PRESET_ENERGY_TRANSFER;
 }
 static inline int g3_held_lattice(void){ return g3_held_exact() && cli_gen3_seeding == 1; }   /* ##CHRIS 2026-10-14 (decision 50, b) */
+/* ##CHRIS 2026-10-14 (plan-author decision 50 item 3 c; 261012 sec. 4.7.113): THE HELD DIVIDER'S FORCES FROM THE ENGINE'S OWN COUNTERS.
+   gen3 keeps, per divider face, the x impulse the disks gave the divider and the number of hits (edmd_gen3.c exec_obj:
+   O->Jf[f] -= v1 - u1, O->nf[f]++; face 0 = left, 1 = right). --gen3-held-readout=K reads them at step K (T_eq) and at the last step of
+   the hold, before the release. Over the window (t0, t1]:
+     F_L = (J_L(t1) - J_L(t0)) / T_w,   F_R = -(J_R(t1) - J_R(t0)) / T_w,   T_w = (t1 - t0) / PIXELS_PER_SIGMA,
+   the impulse being numerically sigma per sigma-time at unit disk mass, as the event log's dp; so F_L = -sum(dp < 0) / T_w and
+   F_R = sum(dp > 0) / T_w as reduce_AF.py forms them from the log. The reads are pure (edmd3_time, edmd3_divider_impulse, _events,
+   _state and edmd3_work_divider compute without storing): no event changes. Printed in the run's log, next to the run record:
+     [EDMD3-HELD] t0|t1 step=n t_sigma J_L J_R n_L n_R x_div v_div W_div, then the exact t, J_L, J_R, x_div in %a;
+     [EDMD3-HELD] window T_w F_L F_R n_L n_R dx_div v_div_t0 v_div_t1 dW_div (after t1).
+   Held, the divider has mass 0: v_div = 0, dx_div = 0 and dW_div = 0 exactly (a disk leaves with -u1, so dE = 0). */
+static double g3h_t[2], g3h_J[2][2], g3h_x[2], g3h_v[2], g3h_W[2];
+static long   g3h_n[2][2];
+static int    g3h_have[2];
+static void g3_held_readout(int k, int step){
+    if (!g_edmd3) g3_stop("--gen3-held-readout: no gen3 state");
+    const double pps = (double)PIXELS_PER_SIGMA;
+    g3h_t[k] = edmd3_time(g_edmd3);
+    for (int f = 0; f < 2; ++f) { g3h_J[k][f] = edmd3_divider_impulse(g_edmd3, 0, f); g3h_n[k][f] = edmd3_divider_events(g_edmd3, 0, f); }
+    if (!edmd3_divider_state(g_edmd3, 0, &g3h_x[k], &g3h_v[k])) g3_stop("--gen3-held-readout: no divider 0");
+    g3h_W[k] = edmd3_work_divider(g_edmd3, 0);
+    g3h_have[k] = 1;
+    printf("[EDMD3-HELD] %s step=%d t_sigma=%.17g J_L=%.17g J_R=%.17g n_L=%ld n_R=%ld x_div=%.17g v_div=%.17g W_div=%.17g exact t=%a J_L=%a J_R=%a x_div=%a\n",
+           k ? "t1" : "t0", step, g3h_t[k] / pps, g3h_J[k][0], g3h_J[k][1], g3h_n[k][0], g3h_n[k][1], g3h_x[k] / pps, g3h_v[k], g3h_W[k],
+           g3h_t[k], g3h_J[k][0], g3h_J[k][1], g3h_x[k]);
+    if (k == 1) {
+        if (!g3h_have[0]) g3_stop("--gen3-held-readout: the end of the hold came before T_eq");
+        const double Tw = (g3h_t[1] - g3h_t[0]) / pps;
+        printf("[EDMD3-HELD] window T_w=%.17g F_L=%.17g F_R=%.17g n_L=%ld n_R=%ld dx_div=%.17g v_div_t0=%.17g v_div_t1=%.17g dW_div=%.17g\n",
+               Tw, (g3h_J[1][0] - g3h_J[0][0]) / Tw, -(g3h_J[1][1] - g3h_J[0][1]) / Tw, g3h_n[1][0] - g3h_n[0][0], g3h_n[1][1] - g3h_n[0][1],
+               (g3h_x[1] - g3h_x[0]) / pps, g3h_v[0], g3h_v[1], g3h_W[1] - g3h_W[0]);
+    }
+    fflush(stdout);
+}
 static void build_energy_transfer_validation_state(ExperimentValidationState *state,
                                                    double *wall_positions,
                                                    double *wall_velocities) {
@@ -19019,6 +19063,9 @@ static void run_energy_transfer_experiment(void) {
 
                 double t0 = edmd_time(g_edmd);
                 edmd_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
+                if (cli_gen3_held_readout > 0 && !wall_is_released &&
+                    (steps_elapsed == cli_gen3_held_readout || steps_elapsed == wall_hold_steps))   /* ##CHRIS 2026-10-14 (decision 50, c) */
+                    g3_held_readout(steps_elapsed == wall_hold_steps, steps_elapsed);
                 /* ##CHRIS 2026-10-09 (M3b, 261012 sec. 4.7.14, stage A3): under gen3 the particle copy, the segment statistics and
                    the validator run only on the steps that read them (et_particles_due); under gen2 on every step, as before. */
                 et_need = et_particles_due(steps_elapsed, recorded_steps, target_steps, wall_hold_steps, wall_is_released);
@@ -23371,6 +23418,10 @@ int main(int argc, char* argv[]) {
             why = "the held path on the exact box (the energy-transfer experiment) needs --num-walls=1, --l0, a --wall-positions value inside (0, 2 L0) and --seed";
         else if ((cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial) && !sos && !et)   /* ##CHRIS (decision 50, a, b): and the held path */
             why = "--gen3-seeding, --gen3-exact-box and --gen3-dump-initial are wired to the speed-of-sound experiment and to the held path (the energy-transfer experiment) only";
+        else if (cli_gen3_held_readout && !(et && cli_gen3_exact_box))   /* ##CHRIS 2026-10-14 (decision 50, c) */
+            why = "--gen3-held-readout is wired to the held path on the exact box (the energy-transfer experiment with --gen3-exact-box) only";
+        else if (cli_gen3_held_readout && cli_gen3_held_readout >= wall_hold_steps)
+            why = "--gen3-held-readout=K needs K below --wall-hold-steps (T_eq inside the hold)";
         else if ((cli_gen3_ckpt_phase >= 0 || cli_gen3_restart) && !sos)   /* ##CHRIS 2026-10-09 (stage H) */
             why = "--gen3-checkpoint and --gen3-restart are wired to the speed-of-sound experiment only";
         else if (cli_gen3_ckpt_stop && cli_gen3_ckpt_phase < 0) why = "--gen3-checkpoint-stop needs --gen3-checkpoint";
@@ -23406,6 +23457,10 @@ int main(int argc, char* argv[]) {
     }
     if (cli_engine != 3 && (cli_gen3_virial_blocks > 0.0 || cli_gen3_snapshots > 0.0)) {   /* ##CHRIS 2026-10-09 (decision 12, part 3a) */
         fprintf(stderr, "STOP: --gen3-virial-blocks and --gen3-snapshots need --engine=gen3\n");
+        exit(2);
+    }
+    if (cli_engine != 3 && cli_gen3_held_readout) {   /* ##CHRIS 2026-10-14 (decision 50, c) */
+        fprintf(stderr, "STOP: --gen3-held-readout needs --engine=gen3\n");
         exit(2);
     }
     if (cli_engine != 3 && cli_gen3_psi6_comp) {   /* ##CHRIS 2026-10-10 (decision 17): provisional */

@@ -14,8 +14,14 @@
         the hold or the record) and the held path at j = 0 with --seed = the line's exact seed, both with --gen3-dump-initial; equal
         when the two dumps (the box, the divider, every disk's x, y, vx, vy in %a) are byte-identical and the run headers' lattices
         agree. At pi/8 for N 100, 400, 900, 1600, and at eta 0.05 and 0.69 for N 400.
+  R0    the readout changes nothing (step c): held lattice runs with and without --gen3-held-readout=K; equal when the event hash,
+        t_end and every output file's SHA-256 are equal.
+  R1    the readout against the event log (step c): held lattice runs with --gen3-held-readout=K and HD_PISTON_EVENTS; F_L, F_R, n_L,
+        n_R of the [EDMD3-HELD] window line against reduce_AF.py's formulas on the log's D0 rows in [t0, t1) (t0, t1 the readout's;
+        the log prints 12 significant digits, so the forces must agree to 1e-9 and the counts exactly);
+        also u_wall_max and W_div from the log, v_div, dx_div and dW_div from the readout.
 Runs go into experiments_gen3_d50_261014/tests/<label>/<run>/ (a new folder each; an existing one is refused). At most 6 processes (Chris's two viewers run beside them).
-usage (from hspist3/): python3 tests_d50.py <label> <T1|T1AF|T2|C2> <NEW binary> [OLD binary] [--seeder=legacy|lattice]
+usage (from hspist3/): python3 tests_d50.py <label> <T1|T1AF|T2|C2|R0|R1> <NEW binary> [OLD binary] [--seeder=legacy|lattice]
 """
 import concurrent.futures as cf, hashlib, math, os, re, subprocess, sys, time, importlib.util
 
@@ -217,6 +223,78 @@ def c2(label, NEW):
     return hdr + "\n" + "\n".join(rows) + f"\n\n{sum('| EQUAL |' in r for r in rows)} of {len(rows)} EQUAL"
 
 
+R_CELLS = [(400, 0.05, 1), (400, math.pi / 8, 1), (400, 0.69, 1), (100, math.pi / 8, -2), (1600, 0.60, 2)]
+R_HOLD, R_K, R_POST = 3000, 600, 60       # 50 sigma-time held, T_eq = 10 sigma-time, a 1 sigma-time tail
+
+
+def held_window(log):
+    for l in open(log, errors="replace"):
+        if l.startswith("[EDMD3-HELD] window"):
+            return {k: float(v) for k, v in re.findall(r" (\w+)=(\S+)", l)}
+    return None
+
+
+def held_t(log, which):
+    for l in open(log, errors="replace"):
+        if l.startswith(f"[EDMD3-HELD] {which} "):
+            return {k: v for k, v in re.findall(r" (\w+)=(\S+)", l.split(" exact ")[0])}
+    return None
+
+
+def r_jobs():
+    out = []
+    for i, (N, eta, j) in enumerate(R_CELLS):
+        NS, H, L0, dL = stencil(N, eta)
+        out.append((N, eta, j, H, L0, L0 + j * dL, 7770000 + 10 * i))
+    return out
+
+
+def r0(label, NEW):
+    rows = []
+    for N, eta, j, H, L0, xw, seed in r_jobs():
+        res = {}
+        for tag, extra in (("off", []), ("on", [f"--gen3-held-readout={R_K}"])):
+            d = os.path.join(OUTROOT, label, f"N{N:04d}_eta{eta:.6f}_j{j:+d}_{tag}")
+            rc, dt = run(d, af_cmd(NEW, d, N, H, L0, xw, seed, R_HOLD, R_POST, 6, True, "lattice") + extra, ENV)
+            ok, hv, te = health(os.path.join(d, "stdout.log"))
+            res[tag] = dict(rc=rc, ok=ok, hash=hv, t_end=te, files=outputs(d), win=held_window(os.path.join(d, "stdout.log")))
+        a, b = res["off"], res["on"]
+        eq = a["rc"] == b["rc"] == 0 and a["ok"] and b["ok"] and a["hash"] == b["hash"] and a["t_end"] == b["t_end"] and a["files"] == b["files"]
+        rows.append(f"| {N} | {eta:.6f} | {j:+d} | {a['rc']} / {b['rc']} | {int(a['ok'])} / {int(b['ok'])} | {a['hash']} / {b['hash']} | "
+                    f"{a['t_end']} / {b['t_end']} | {len(a['files'])} / {len(b['files'])}, {'all equal' if a['files'] == b['files'] else 'DIFFER'} | "
+                    f"{'none' if a['win'] is None else 'PRESENT'} / {'present' if b['win'] else 'MISSING'} | {'EQUAL' if eq and b['win'] else 'DIFFERENT'} |")
+    hdr = ("| N | eta | j | exit off / on | clean off / on | event hash off / on | t_end off / on | output files, SHA-256 | window line off / on | verdict |"
+           "\n|---|---|---|---|---|---|---|---|---|---|")
+    return hdr + "\n" + "\n".join(rows) + f"\n\n{sum('| EQUAL |' in r for r in rows)} of {len(rows)} EQUAL"
+
+
+def r1(label, NEW):
+    import numpy as np, pandas as pd
+    rows = []
+    for N, eta, j, H, L0, xw, seed in r_jobs():
+        d = os.path.join(OUTROOT, label, f"N{N:04d}_eta{eta:.6f}_j{j:+d}")
+        rc, dt = run(d, af_cmd(NEW, d, N, H, L0, xw, seed, R_HOLD, R_POST, 6, True, "lattice") + [f"--gen3-held-readout={R_K}"],
+                     dict(ENV, HD_PISTON_EVENTS=os.path.join(d, "ev.csv")))
+        ok, hv, te = health(os.path.join(d, "stdout.log"))
+        w = held_window(os.path.join(d, "stdout.log")); a, b = held_t(os.path.join(d, "stdout.log"), "t0"), held_t(os.path.join(d, "stdout.log"), "t1")
+        t0, t1 = float(a["t_sigma"]), float(b["t_sigma"])
+        e = pd.read_csv(os.path.join(d, "ev.csv"), usecols=["t_sigma", "kind", "u_wall", "dE", "dp"])
+        dd = e[(e["kind"] == "D0") & (e["t_sigma"] >= t0) & (e["t_sigma"] < t1)]; dp = dd["dp"].to_numpy(); Tw = t1 - t0
+        FL, FR = -dp[dp < 0].sum() / Tw, dp[dp > 0].sum() / Tw
+        nL, nR = int((dp < 0).sum()), int((dp > 0).sum())
+        uw, Wd = float(np.abs(dd["u_wall"]).max()) if len(dd) else 0.0, float(dd["dE"].sum())
+        rl, rr = abs(w["F_L"] / FL - 1), abs(w["F_R"] / FR - 1)
+        good = (rc == 0 and ok and int(w["n_L"]) == nL and int(w["n_R"]) == nR and rl < 1e-9 and rr < 1e-9 and uw == 0.0 and Wd == 0.0
+                and w["v_div_t0"] == 0.0 and w["v_div_t1"] == 0.0 and w["dx_div"] == 0.0 and w["dW_div"] == 0.0 and abs(w["T_w"] / Tw - 1) < 1e-15)
+        rows.append(f"| {N} | {eta:.6f} | {j:+d} | {t0:.6f}, {t1:.6f} | {w['F_L']:.12f} / {FL:.12f} | {rl:.1e} | {w['F_R']:.12f} / {FR:.12f} | {rr:.1e} | "
+                    f"{int(w['n_L'])} / {nL} | {int(w['n_R'])} / {nR} | {uw:g}, {Wd:g} | {w['v_div_t0']:g}, {w['v_div_t1']:g}, {w['dx_div']:g}, {w['dW_div']:g} | "
+                    f"{rc} | {int(ok)} | {'PASS' if good else 'FAIL'} |")
+    hdr = ("| N | eta | j | window (t0, t1) [sigma-time] | F_L readout / log | rel. diff | F_R readout / log | rel. diff | n_L readout / log | "
+           "n_R readout / log | log: u_wall_max, W_div | readout: v_div t0, t1, dx_div, dW_div | exit | clean | verdict |\n"
+           "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    return hdr + "\n" + "\n".join(rows) + f"\n\n{sum('| PASS |' in r for r in rows)} of {len(rows)} PASS"
+
+
 def main():
     label, test, NEW = sys.argv[1], sys.argv[2], os.path.abspath(sys.argv[3])
     OLD = os.path.abspath(sys.argv[4]) if len(sys.argv) > 4 and not sys.argv[4].startswith("--") else None
@@ -227,7 +305,7 @@ def main():
     head = (f"# {test} ({label}), {time.strftime('%Y-%m-%d %H:%M:%S %Z')}\n\nNEW {os.path.relpath(NEW, HS)} SHA-256 {sha(NEW)}\n"
             + (f"OLD {os.path.relpath(OLD, HS)} SHA-256 {sha(OLD)}\n" if OLD else "") + (f"seeder {seeder}\n" if test == "T2" else "") + "\n")
     body = (t1(label, NEW, OLD) if test == "T1" else t1af(label, NEW, OLD) if test == "T1AF" else c2(label, NEW) if test == "C2"
-            else t2(label, NEW, seeder))
+            else r0(label, NEW) if test == "R0" else r1(label, NEW) if test == "R1" else t2(label, NEW, seeder))
     out = head + body + "\n"
     open(os.path.join(d, "RESULTS.md"), "w").write(out)
     print(out)

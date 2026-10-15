@@ -41,3 +41,20 @@ Committed: each run's cmd.txt and stdout.log (added with -f, since *.log is igno
 - `tests/b3_T2`, with the lattice start: 83 of 83 PASS. Box and divider are within 7.1e-15 sigma, N_L = N_R = N_s, and every run is clean.
 - `tests/b4_C2` (gate C2): 6 of 6 EQUAL. The held start at j = 0 and the free start with the same seed give byte-identical initial dumps (the box, the divider, every disk's x, y, vx, vy in %a), at pi/8 for N 100, 400, 900 and 1600 and at eta 0.05 and 0.69 for N 400. The dumps are committed.
 
+## Step (c)
+
+- Build: `bin_dda7f4a6-dirty` (00ALLINONE.c of the step on dda7f4a6, step b's commit).
+- The code change: --gen3-held-readout=K, accepted on the held path on the exact box only.
+  - It reads gen3's per-face counters of the divider (edmd3_divider_impulse, edmd3_divider_events), its state (edmd3_divider_state), its work (edmd3_work_divider) and the clock (edmd3_time). The reads are pure.
+  - Read at step K (T_eq) and at the last step of the hold, before the release.
+  - Printed: `[EDMD3-HELD] t0` and `t1` (cumulative values, also in %a), then `[EDMD3-HELD] window` with T_w, F_L = dJ_L/T_w, F_R = -dJ_R/T_w, n_L, n_R, dx_div, v_div at t0 and t1, and dW_div.
+- `tests/c1_T1`: 6 of 6 EQUAL against bin_d2dc177.
+- `tests/c2_T1AF`: EQUAL.
+- `tests/c3_R0`: 5 of 5 EQUAL. The same held runs with and without the readout give the same event hash, t_end and output files.
+- `tests/c4_R1`: 5 of 5 PASS. The readout against the event log (reduce_AF.py's formulas on the D0 rows of the readout's window):
+  - F_L and F_R agree to at most 2.6e-13 relative (the log prints 12 digits);
+  - n_L and n_R agree exactly;
+  - the log's u_wall_max and W_div are 0, and the readout's v_div, dx_div and dW_div are 0.
+  - The event logs are not committed.
+- Note: a step advances (double)0.4f = 0.40000000596 internal units, so 300,000 steps are 5000.0000745 sigma-time. The readout divides by the engine's own t1 - t0.
+
