@@ -1,0 +1,89 @@
+# d56_a_timing.py: the wall time per run against eta (decision 56 task 2 a)
+
+stage 1 runs read: 7200 (B900 3600, B1600 3600); CPU models: Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz 5987, Intel(R) Xeon(R) CPU E5-4640 v2 @ 2.20GHz 1213
+
+## The event rate per disk and sigma-time, r = events / (N T), against the collision rate (Z - 1 = 2 eta chi)
+
+- (i) Z measured per run: r = 1.2004 (Z - 1) + 0.0112; relative residual rms 2.30 %, largest 11.57 %
+- (ii) Z from KR (eta chi of the reference EOS): r = 1.1702 (Z_KR - 1) + 0.1020; relative residual rms 14.48 %, largest 53.63 %
+- the stage 1 generator's planning rule (gen_stage1_koa_261012.events_per_sigma): r = 1.128 (Z_KR - 1) + 1.2
+
+per cell (the mean over its 225 runs): eta, N, measured Z, r, the residual of (i) and of (ii):
+
+  0.0500   900  Z   1.1096  r   0.1581  (i)  -9.67 %  (ii) +44.75 %
+  0.1000   900  Z   1.2392  r   0.3127  (i)  -4.60 %  (ii) +20.98 %
+  0.1500   900  Z   1.3938  r   0.4974  (i)  -2.71 %  (ii) +11.79 %
+  0.2000   900  Z   1.5799  r   0.7201  (i)  -1.78 %  (ii)  +6.85 %
+  0.2500   900  Z   1.8064  r   0.9914  (i)  -1.23 %  (ii)  +3.72 %
+  0.3000   900  Z   2.0850  r   1.3259  (i)  -0.93 %  (ii)  +1.53 %
+  0.3500   900  Z   2.4326  r   1.7440  (i)  -0.75 %  (ii)  -0.11 %
+  0.3927   900  Z   2.8024  r   2.1887  (i)  -0.64 %  (ii)  -1.24 %
+  0.4500   900  Z   3.4427  r   2.9610  (i)  -0.60 %  (ii)  -2.48 %
+  0.5000   900  Z   4.1930  r   3.8683  (i)  -0.63 %  (ii)  -3.39 %
+  0.5500   900  Z   5.2098  r   5.0983  (i)  -0.66 %  (ii)  -4.18 %
+  0.6000   900  Z   6.6164  r   6.8042  (i)  -0.75 %  (ii)  -4.68 %
+  0.6300   900  Z   7.6957  r   8.1153  (i)  -0.82 %  (ii)  -4.38 %
+  0.6600   900  Z   8.8830  r   9.5609  (i)  -0.91 %  (ii)  -2.50 %
+  0.6800   900  Z   9.6230  r  10.4589  (i)  -0.93 %  (ii)  -0.24 %
+  0.6900   900  Z   9.7224  r  10.5933  (i)  -1.06 %  (ii)  +2.60 %
+  0.0500  1600  Z   1.1093  r   0.1490  (i)  -4.37 %  (ii) +53.60 %
+  0.1000  1600  Z   1.2385  r   0.3010  (i)  -1.13 %  (ii) +25.69 %
+  0.1500  1600  Z   1.3927  r   0.4823  (i)  +0.06 %  (ii) +15.28 %
+  0.2000  1600  Z   1.5777  r   0.7008  (i)  +0.56 %  (ii)  +9.80 %
+  0.2500  1600  Z   1.8029  r   0.9666  (i)  +0.87 %  (ii)  +6.39 %
+  0.3000  1600  Z   2.0800  r   1.2940  (i)  +1.06 %  (ii)  +4.03 %
+  0.3500  1600  Z   2.4255  r   1.7028  (i)  +1.15 %  (ii)  +2.30 %
+  0.3927  1600  Z   2.7923  r   2.1374  (i)  +1.18 %  (ii)  +1.14 %
+  0.4500  1600  Z   3.4283  r   2.8914  (i)  +1.20 %  (ii)  -0.13 %
+  0.5000  1600  Z   4.1731  r   3.7760  (i)  +1.17 %  (ii)  -1.03 %
+  0.5500  1600  Z   5.1804  r   4.9742  (i)  +1.11 %  (ii)  -1.79 %
+  0.6000  1600  Z   6.5774  r   6.6370  (i)  +1.04 %  (ii)  -2.28 %
+  0.6300  1600  Z   7.6563  r   7.9231  (i)  +0.99 %  (ii)  -2.06 %
+  0.6600  1600  Z   8.8578  r   9.3580  (i)  +0.91 %  (ii)  -0.39 %
+  0.6800  1600  Z   9.5534  r  10.1903  (i)  +0.87 %  (ii)  +2.39 %
+  0.6900  1600  Z   9.6379  r  10.2997  (i)  +0.78 %  (ii)  +5.53 %
+
+## Microseconds per event (the dense cells, eta >= 0.63; median, 10 and 90 % quantiles)
+
+- N 900, Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz: 3.533 (3.404 .. 3.695), runs 793
+- N 900, Intel(R) Xeon(R) CPU E5-4640 v2 @ 2.20GHz: 4.242 (3.902 .. 4.552), runs 107
+- N 1600, Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz: 3.836 (3.711 .. 4.103), runs 580
+- N 1600, Intel(R) Xeon(R) CPU E5-4640 v2 @ 2.20GHz: 4.580 (4.360 .. 4.905), runs 320
+
+## The pilot (N 900, eta 0.76, alpha 5, the Mac; d56_c_analysis.py)
+
+- measured: Z 15.726 (Liu solid 12.406: x 1.268); r 17.8105 per disk and sigma-time; the fit (i) with the measured Z: 17.6882 (-0.69 %); with Liu's Z: 13.7027 (-23.06 %)
+- the Mac: 1.886 microseconds per event (five runs at once)
+
+## Stage 2 (planning; minutes and core-hours at the dense cells' median microseconds per event; v3 = E5-2670 v3, v2 = E5-4640 v2)
+
+The lower value of each range: Z from the EOS (KR, Liu); the upper: the solid cells' Z times the pilot's measured excess (x 1.268 at 0.76). The run length: T_eq 5000 + 200 periods of the binary's nu_pred per mass; 4 masses: alpha 3, 5, 7.5, 10.
+
+| eta | N | Z (EOS) | Z (upper) | events per disk and sigma-time | run length alpha 5 (mean of 9) [sigma-time] | events per run, alpha 5 | minutes per run, alpha 5 (v3 / v2) | minutes per run, mean of 9 (v3) | core-hours 9 x 25 (v3) | core-hours 4 x 25 (v3) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0.69 | 900 | 10.20 (KR) | 10.20 | 11.06 .. 11.06 | 9213 (9498) | 92 .. 92 M | 5.4 .. 5.4 / 6.5 .. 6.5 | 5.6 .. 5.6 | 21 .. 21 | 9 .. 9 |
+| 0.70 | 900 | 10.32 (Liu global (coexistence)) | 10.32 | 11.20 .. 11.20 | 8936 (9202) | 90 .. 90 M | 5.3 .. 5.3 / 6.4 .. 6.4 | 5.5 .. 5.5 | 20 .. 20 | 9 .. 9 |
+| 0.72 | 900 | 10.03 (Liu solid) | 12.72 | 10.86 .. 14.08 | 8419 (8650) | 82 .. 107 M | 4.8 .. 6.3 / 5.8 .. 7.5 | 5.0 .. 6.5 | 19 .. 24 | 8 .. 11 |
+| 0.74 | 900 | 11.02 (Liu solid) | 13.98 | 12.04 .. 15.59 | 7950 (8150) | 86 .. 112 M | 5.1 .. 6.6 / 6.1 .. 7.9 | 5.2 .. 6.7 | 20 .. 25 | 9 .. 11 |
+| 0.76 | 900 | 12.41 (Liu solid) | 15.73 | 13.70 .. 17.69 | 7525 (7696) | 93 .. 120 M | 5.5 .. 7.1 / 6.6 .. 8.5 | 5.6 .. 7.2 | 21 .. 27 | 9 .. 12 |
+| 0.78 | 900 | 14.30 (Liu solid) | 18.13 | 15.97 .. 20.57 | 7140 (7285) | 103 .. 132 M | 6.0 .. 7.8 / 7.3 .. 9.3 | 6.2 .. 7.9 | 23 .. 30 | 10 .. 13 |
+| 0.80 | 900 | 16.94 (Liu solid) | 21.48 | 19.15 .. 24.59 | 6793 (6914) | 117 .. 150 M | 6.9 .. 8.9 / 8.3 .. 10.6 | 7.0 .. 9.0 | 26 .. 34 | 12 .. 15 |
+| 0.69 | 1600 | 10.20 (KR) | 10.20 | 11.06 .. 11.06 | 10705 (11091) | 189 .. 189 M | 12.1 .. 12.1 / 14.5 .. 14.5 | 12.5 .. 12.5 | 47 .. 47 | 21 .. 21 |
+| 0.70 | 1600 | 10.32 (Liu global (coexistence)) | 10.32 | 11.20 .. 11.20 | 10330 (10691) | 185 .. 185 M | 11.8 .. 11.8 / 14.1 .. 14.1 | 12.3 .. 12.3 | 46 .. 46 | 21 .. 21 |
+| 0.72 | 1600 | 10.03 (Liu solid) | 12.72 | 10.86 .. 14.08 | 9633 (9946) | 167 .. 217 M | 10.7 .. 13.9 / 12.8 .. 16.6 | 11.0 .. 14.3 | 41 .. 54 | 19 .. 24 |
+| 0.74 | 1600 | 11.02 (Liu solid) | 13.98 | 12.04 .. 15.59 | 8999 (9270) | 173 .. 224 M | 11.1 .. 14.3 / 13.2 .. 17.1 | 11.4 .. 14.8 | 43 .. 55 | 19 .. 25 |
+| 0.76 | 1600 | 12.41 (Liu solid) | 15.73 | 13.70 .. 17.69 | 8425 (8656) | 185 .. 238 M | 11.8 .. 15.2 / 14.1 .. 18.2 | 12.1 .. 15.7 | 46 .. 59 | 20 .. 26 |
+| 0.78 | 1600 | 14.30 (Liu solid) | 18.13 | 15.97 .. 20.57 | 7904 (8101) | 202 .. 260 M | 12.9 .. 16.6 / 15.4 .. 19.9 | 13.2 .. 17.0 | 50 .. 64 | 22 .. 29 |
+| 0.80 | 1600 | 16.94 (Liu solid) | 21.48 | 19.15 .. 24.59 | 7434 (7599) | 228 .. 293 M | 14.6 .. 18.7 / 17.4 .. 22.3 | 14.9 .. 19.1 | 56 .. 72 | 25 .. 32 |
+| all 7 | 900 | | | | | | | | 150 .. 181 | 67 .. 82 |
+| all 7 | 1600 | | | | | | | | 328 .. 396 | 148 .. 178 |
+| all 14 | | | | | | | | | 478 .. 578 (v2: 572 .. 691) | 215 .. 260 (v2: 257 .. 311) |
+
+## The merge, from B1600's record (scan, moves and per cell: experiments_gen3_s1_261012/interim_261013/B1600/e_merge_time.txt)
+
+- B1600: the job 4:44:18 for 3600 runs (16 cells x 9 masses x 25 seeds); the scan and the moves 825 s; the cells with eta <= 0.25 took 14033 s of the 16233 s of per-cell work, the six cells eta 0.60-0.69 392 s (60-125 s each, 225 runs)
+- per run, from the dense cells: 0.578 s (their mean per-cell work / 225 + the scan and the moves per run)
+- Stage 2, N 900, 7 cells x 9 masses x 25 seeds = 1575 runs: by the run count 2:04:23; by the dense cells' cost 0:15:10
+- Stage 2, N 900, 7 cells x 4 masses x 25 seeds = 700 runs: by the run count 0:55:17; by the dense cells' cost 0:06:44
+- Stage 2, N 1600, 7 cells x 9 masses x 25 seeds = 1575 runs: by the run count 2:04:23; by the dense cells' cost 0:15:10
+- Stage 2, N 1600, 7 cells x 4 masses x 25 seeds = 700 runs: by the run count 0:55:17; by the dense cells' cost 0:06:44

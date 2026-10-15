@@ -1,0 +1,3 @@
+run,seed,node,seconds,built_lines,gen3_records,gen3_clean,engine_gen3_line,gen2_policy_line,edmd3_lines,health_lines,contact_line,contact_max_px,E_div,E_tot
+0,3493757348,Christophs-MacBook-Pro-875,227,1,1,1,1,1,7,0,1,4.3490000000000001e-12,0.22022128223192228,899.9999999999975
+1,3773953463,Christophs-MacBook-Pro-875,228,1,1,1,1,1,7,0,1,4.7640000000000003e-12,0.059662873617946359,899.99999999999136

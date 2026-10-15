@@ -1,0 +1,29 @@
+# figure 1 with block D (plan-author decision 56 task 1, notes 261012 sec. 4.7.133); 2026-10-15 13:08:50 HST, machine date
+python: /opt/homebrew/opt/python@3.13/bin/python3.13 3.13.2 numpy 2.3.3 scipy 1.16.2 pandas 2.3.3 matplotlib 3.10.6
+main HEAD: 595f8d0b; the script is new (uncommitted at the run, committed with this folder)
+0fc680c88c0321fbaadce77c9aad69e93a37dc2a2d00ce26be08217a73f4319f  cluster/gen3_stage1_261012/s1_figures_261015c.py
+51ede8fbd880e1a40064e91beea238bc27a9b4024d7abbd71fdc2c17f92c5391  plot_speed_of_sound_edmd.py
+54b4f011de8b2642fce4d94974a061fdd037b65c285234c510773b179884236e  experiments_gen3_s1_261012/full_261015/figures_261015b/261015_s1_fig1_cs_vs_eta_E1_N100-1600.csv
+94c2a1a27f92277607e4c1aac47a24d271c42f19c40f209a87e246affeb57801  experiments_gen3_s1_261012/full_261015/figures_261015b/261015_s1_fig3_cs_ideal_gas_zoom_eta_le_0.15_B_D.csv
+a96e18beb665b942d1f73450b91837499e5897436af2b022e3682a3e861ce345  experiments_gen3_s1_261012/full_261015/figures_261015b/261015_s1_fig2_Delta_vs_Nm12_per_eta_F1_F2_fits.csv
+command (from hspist3/):
+  python3 cluster/gen3_stage1_261012/s1_figures_261015c.py --out experiments_gen3_s1_261012/full_261015/figures_261015c --date 261015
+its output:
+REFUSED: experiments_gen3_s1_261012/full_261015/figures_261015c exists (a new folder only)
+exit 1, 1 s
+the outputs:
+# again, 2026-10-15 13:09:07 HST: the first try above was refused by the script's own guard (it refused any existing folder, and this record had made the folder); the guard now refuses a folder holding anything but this RUN_RECORD.txt
+46d0bee07263bc9bf544822e256b14291f2a94d9b0298963004b1621cea23a12  cluster/gen3_stage1_261012/s1_figures_261015c.py
+command (from hspist3/):
+  python3 cluster/gen3_stage1_261012/s1_figures_261015c.py --out experiments_gen3_s1_261012/full_261015/figures_261015c --date 261015
+its output:
+# figure 1 with block D (s1_figures_261015c.py)
+- inputs: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_s1_261012/full_261015/figures_261015b/261015_s1_fig1_cs_vs_eta_E1_N100-1600.csv, /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_s1_261012/full_261015/figures_261015b/261015_s1_fig3_cs_ideal_gas_zoom_eta_le_0.15_B_D.csv, /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_s1_261012/full_261015/figures_261015b/261015_s1_fig2_Delta_vs_Nm12_per_eta_F1_F2_fits.csv
+- check: fig3's block B rows against fig1's: largest |c_s difference| 0.0e+00 (12 rows)
+- rows: 64 of block B, 6 of block D
+- written into experiments_gen3_s1_261012/full_261015/figures_261015c: 261015_s1_fig1c_cs_vs_eta_E1_blocks_B_D_N100-1600.csv, 261015_s1_fig1c_cs_vs_eta_E1_blocks_B_D_N100-1600.png, 261015_s1_fig1c_cs_vs_eta_E1_blocks_B_D_N100-1600.pdf
+exit 0, 2 s
+the outputs:
+d9071b5fe16832404fd42fb75b1ea44641a0a3ae608a240b234c03e2a115a3ce  261015_s1_fig1c_cs_vs_eta_E1_blocks_B_D_N100-1600.csv
+399f31b9b0e6be1c33b3700938e1a27af68f98fb8c6e5e42d13eb59a7dc386dc  261015_s1_fig1c_cs_vs_eta_E1_blocks_B_D_N100-1600.pdf
+9825cfe2cbd9a5c4aaf4ca926c6e1489e6df14472d026af7a5f7d9b4c567aa58  261015_s1_fig1c_cs_vs_eta_E1_blocks_B_D_N100-1600.png

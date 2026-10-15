@@ -1,0 +1,83 @@
+# experiments_gen3_d56_261015: plan-author decision 56 task 2 (the Stage 2 and D2 sizing, Report D56-1; notes 261012 sec. 4.7.133). Mac only.
+python: /opt/homebrew/opt/python@3.13/bin/python3.13 3.13.2 numpy 2.3.3 scipy 1.16.2 pandas 2.3.3 matplotlib 3.10.6
+main HEAD at the runs: 595f8d0b; the binary: experiments_gen3_d56_261015/../experiments_gen3_d50_261014/bin_0544b7e8-dirty/00ALLINONE (the merged main's build, Report D55a2)
+3fce4a4628639c598309b1062230a704b621a82cc7f9d982c5787b0acb72df53  experiments_gen3_d50_261014/bin_0544b7e8-dirty/00ALLINONE
+ab22d983422b43cc68c8e8e841deac3860ca22d3207fc99764955fc61ad7e578  cluster/gen3_stage1_261012/s1_worker_koa.sh
+f2c34e9ca031d72e727e9432a7457625a26865398284593904c2f0f4c029cf74  cluster/gen3_stage1_261012/gen_stage1_koa_261012.py
+e3e3e945ca1e6015a505faf1632efd1081918294f0b35863a592298b2f1c0b24  cluster/gen3_stage1_261012/tasks_stage1_koa_261012.txt
+
+## (c) 1. the five runs (recorded after the run, from run_d56_pilot.out and the run logs)
+8784b17d45675040faa19f2c1afa01850cea1bc4544711f6ce7560d2bbf9b634  experiments_gen3_d56_261015/scripts/d56_pilot.py
+54975dff9dd9dec78eb8a913949bcf69eb1eea440e6fab6cfca7a44d2ce0f7f4  experiments_gen3_d56_261015/tasks_d56.txt
+  python3 -B experiments_gen3_d56_261015/scripts/d56_pilot.py > experiments_gen3_d56_261015/run_d56_pilot.out 2>&1   (started 2026-10-15 about 13:04 HST; five processes at once)
+  ##RUN 2026-10-15 13:07:33 run 0 seed 3227069107 node Christophs-MacBook-Pro-875 (176 s)
+  ##RUN 2026-10-15 13:07:33 run 1 seed 1470420657 node Christophs-MacBook-Pro-875 (176 s)
+  ##RUN 2026-10-15 13:07:34 run 2 seed 3149991795 node Christophs-MacBook-Pro-875 (177 s)
+  ##RUN 2026-10-15 13:08:24 run 0 seed 3493757348 node Christophs-MacBook-Pro-875 (227 s)
+  ##RUN 2026-10-15 13:08:25 run 1 seed 3773953463 node Christophs-MacBook-Pro-875 (228 s)
+  exit 0: stage1/gen3/B_N0900_eta0.690000/m_4500 4500 0 3227069107  (176 s)
+  exit 0: stage1/gen3/B_N0900_eta0.690000/m_4500 4500 1 1470420657  (176 s)
+  exit 0: stage1/gen3/B_N0900_eta0.690000/m_4500 4500 2 3149991795  (177 s)
+  exit 0: pilot/P2_N0900_eta0.760000/m_4500 4500 0 3493757348  (227 s)
+  exit 0: pilot/P2_N0900_eta0.760000/m_4500 4500 1 3773953463  (228 s)
+
+## (c) 2. the analysis, 2026-10-15 13:19:32 HST
+ae26c822c3aa3a3e10645442c622e2932989e6a76e1710567e07c1655216990a  experiments_gen3_d56_261015/scripts/d56_c_analysis.py
+  python3 -B experiments_gen3_d56_261015/scripts/d56_c_analysis.py > experiments_gen3_d56_261015/c_analysis_stdout.txt   (it runs reduce_B.py and reduce_s1_koa.py once per folder; done in a trial run into the scratchpad, so here: already reduced)
+  exit 0, 4 s
+  14d520efb18d82e0e88b91a5047103fdc7c684c4f71c96d14b4aa5930d55e3d0  c_cells.csv
+  ebd6142930393dc508ce8c6f0a296e9039bfb96f9ad54ad102774382f4cde73d  c_runs.csv
+  db3d0b83713dc426f758465c6daed6fe1756c8ccc2e17d1c9bd9ef30a356a1ac  c_snapshots.csv
+  0ae4165f832dc51746f456cf01be46704a08e694fee39e3e803ed04bc416a919  c_summary.txt
+  e5b7853267e040e9a9efa5ee448cfadfee0056d7cf451fdacd14928c936104eb  fig_c1_N0900_eta0.69_traces_fits_spectra_psi6.png
+  37d8388f22978cf13b4c8890648d6f44e91f09b9d3cb288fb7a81c400d5279af  fig_c2_N0900_eta0.76_traces_fits_spectra_psi6.png
+  0d6ef27fd623207c4c756435c8c3e2abbbbd28dd958dd5e040cf4a18536177f1  fig_c3_snapshots_local_psi6.png
+
+## (b) the lattice starts, 2026-10-15 13:24:01 HST
+b891edbbc3ea5e19054e5cc101a2edbaf8a7cf6db9298269d728052a44606d7e  experiments_gen3_d56_261015/scripts/d56_b_lattice.py
+eb882292d6b1e8e3d6f039d7a3ceb1f1aac82a38227c38cce12aab99be1f35b6  cluster/gen3_partA_261014/pa_orient.py
+  python3 -B experiments_gen3_d56_261015/scripts/d56_b_lattice.py > experiments_gen3_d56_261015/b_lattice_stdout.txt
+  exit 0, 1 s
+  25a631906cde2b31c45c3523302b104baad5d94be3e948c79803a26e039f1299  REPORT.md
+  5d2bae759b9ce39b77442347958f09f9c6e2a483492fadff1b55e7b69dacf954  b_starts.csv
+
+## (a) the timing, 2026-10-15 13:28:15 HST
+88d805ca91176fddbf4f5633d48dcab7d62c28b2635bc141ea197391ab7d5ec9  experiments_gen3_d56_261015/scripts/d56_a_timing.py
+  python3 -B experiments_gen3_d56_261015/scripts/d56_a_timing.py > experiments_gen3_d56_261015/a_timing_stdout.txt
+  exit 0, 3 s
+  4d33d42bf515e7587efd976218c044e446b65ec5d541062c9b8bea9d67e94f8f  a_fits.txt
+  e6c36a5b0a7bf1f3b72160647da2b0c83b8f633e02293bdfd5a083f328af2161  a_stage1_runs.csv
+  829dd50325e546443d12a0cee62acc1949388c4b74fc3d5434c9b835ed7ed746  a_stage2_table.csv
+  a292782b68ec00b4b7c8aaf960e3dbd4bc5232af92191e0a99a1a94100dc4823  a_stage2_table.md
+  163516c138ea34600b5310ec6b668f33fd8138b48e2caadd02a080dd69885197  fig_a1_rate_and_time_per_event.png
+
+## the raw traces (not in the repository: .gitignore keeps experiments_*/**/wall_x_positions_*.csv out), 2026-10-15 13:34:13 HST
+  48d96e39c8ad304d6459c7e64ff73b68c91ed1242611ab8a34c4123cb85d88ac  experiments_gen3_d56_261015/data/stage1/gen3/B_N0900_eta0.690000/m_4500/wall_x_positions_L0_170_wallmassfactor_4500_run0.csv
+  781d85e6d3b82671aaf0d2cc1ef5905f048e90172d66dd88f0d5164fe349738d  experiments_gen3_d56_261015/data/stage1/gen3/B_N0900_eta0.690000/m_4500/wall_x_positions_L0_170_wallmassfactor_4500_run1.csv
+  80bd0d6760499e102c2a12123598db61f89b8a4a20681621b3948716dfddac2c  experiments_gen3_d56_261015/data/stage1/gen3/B_N0900_eta0.690000/m_4500/wall_x_positions_L0_170_wallmassfactor_4500_run2.csv
+  2fa0c8a8ac75581c0f1bd0f503acc55a4b4feaf467c448df8a7542afabdeb385  experiments_gen3_d56_261015/data/pilot/P2_N0900_eta0.760000/m_4500/wall_x_positions_L0_155_wallmassfactor_4500_run0.csv
+  1f593fac6f6e8a40d1bb1f29aecdb82ebb05fb5fd37ed6d0b00dfc6ec6c0a50b  experiments_gen3_d56_261015/data/pilot/P2_N0900_eta0.760000/m_4500/wall_x_positions_L0_155_wallmassfactor_4500_run1.csv
+
+## (c) 2. the analysis again, 2026-10-15 13:35:06 HST, into c_analysis_b/: c_analysis/ above is kept but superseded (its orient_rec_0/1 were linear means of an angle that wraps at +-30 deg; now the circular mean mod 60)
+ec4d820ac944bd75a0dc9de579bb1fe9f4d1609638be30566756034b45878ada  experiments_gen3_d56_261015/scripts/d56_c_analysis.py
+  python3 -B experiments_gen3_d56_261015/scripts/d56_c_analysis.py --out experiments_gen3_d56_261015/c_analysis_b > experiments_gen3_d56_261015/c_analysis_b_stdout.txt
+  exit 0, 6 s
+  14d520efb18d82e0e88b91a5047103fdc7c684c4f71c96d14b4aa5930d55e3d0  c_cells.csv
+  8999b3132b84539ac5850a747ef7b73ddba85613bd17196bdf95c95b3691f41f  c_runs.csv
+  db3d0b83713dc426f758465c6daed6fe1756c8ccc2e17d1c9bd9ef30a356a1ac  c_snapshots.csv
+  a309774215842527a2767ad99f4c1572fa4c04142221793bdfcb8cac44fd7bb5  c_summary.txt
+  e5b7853267e040e9a9efa5ee448cfadfee0056d7cf451fdacd14928c936104eb  fig_c1_N0900_eta0.69_traces_fits_spectra_psi6.png
+  37d8388f22978cf13b4c8890648d6f44e91f09b9d3cb288fb7a81c400d5279af  fig_c2_N0900_eta0.76_traces_fits_spectra_psi6.png
+  0d6ef27fd623207c4c756435c8c3e2abbbbd28dd958dd5e040cf4a18536177f1  fig_c3_snapshots_local_psi6.png
+
+## (d) the D2 sizing and block D's fit record, 2026-10-15 13:40:13 HST (a trial run into the scratchpad came first; its tables are the same apart from the columns added since)
+60ab72861726a0c90f8f34ed4ce5172980a652480da804b5aa8e208eecd629e3  experiments_gen3_d56_261015/scripts/d56_d_d2.py
+  python3 -B experiments_gen3_d56_261015/scripts/d56_d_d2.py > experiments_gen3_d56_261015/d_d2_stdout.txt   (six processes for the refits)
+  exit 0, 318 s
+  ebc048b99d183c24d47ad43accb5d3824011b5dce7519e0bea3fd00e0582e125  d2_table.csv
+  b3b0a2e12401944e782236ed77bf1ef063d24080b73f699af3fa1323c1ace6a5  d2_table.md
+  f4baa5fe071ff58b8e30bc594a2f0ead787a0c97f6184f20cf779863555359cd  d_fit_record.csv
+  48a5b55aa660da76cb707596d5e1a7029fbe4ff848a8ed798f654115d444b235  d_runs_fit.csv
+  9c800ef4a5b590e881d64bf99ddd32c06f29a6bc6cd6648a9fdc257796c51487  d_summary.txt
+  c444f9e85a6d6ffe47d9b952c47d0d3ffd8afc075698ba84b6d34d531ecd0d05  fig_d1_block_D_acf_fits.png
+  dc4fbefa97749743823d854cb73fe22efbaacc4ff08de8f266df7e474fc01fbc  fig_d2_block_D_Q_and_deviation.png

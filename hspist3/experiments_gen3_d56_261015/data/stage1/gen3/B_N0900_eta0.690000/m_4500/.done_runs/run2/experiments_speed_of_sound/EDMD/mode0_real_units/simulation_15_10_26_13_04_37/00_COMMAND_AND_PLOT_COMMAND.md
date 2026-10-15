@@ -1,0 +1,64 @@
+# Command and Plot Commands
+
+## Trace columns under --engine=gen3
+
+- `Left_Count`, `Right_Count`: computed from a synchronised particle copy at the driver's validator steps (every --validator-every steps, default 60 = 1 sigma-time), at the first recorded row and at the last step; in the rows between they carry the last computed values. No disk can cross the divider, and the validator checks every disk's compartment against its initial one at each of its steps.
+- `psi6_t_L0_<L>_wallmassfactor_<M>_run<r>.csv`: psi6(t) every 2.10657 sigma-time (--psi6-every) through hold and record.
+- The run log holds each trajectory's run record `[EDMD3-HEALTH] ...: clean=...` (every health counter, the engine and the build line).
+
+## Simulation Command
+
+```sh
+/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_d50_261014/bin_0544b7e8-dirty/00ALLINONE --mode=edmd --experiment=speed_of_sound --headless --kbt1 --seed-drift-order=drift-first --edmd-acc=0 --particles=900 --particles-boxes=450,450 --height=30 --particle-radius=0.5 --wall-thickness=0.05 --wall-thickness-vis=0.05 --lengths=17.073873117335832 --wall-masses=4500 --repeats=1 --seed=20261311 --wall-hold-steps=300000 --fixed-dt=0.4 --target-oscillations=200 --oscillation-safety=1.0 --oscillation-min-steps=10000 --oscillation-max-steps=400000000 --speed-sound-log-stride=37 --speed-sound-run-dir=/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_d56_261015/data/stage1/gen3/B_N0900_eta0.690000/m_4500/.run2 --speed-sound-exact-seed=3149991795 --engine=gen3 --gen3-seeding=lattice --gen3-exact-box --gen3-psi6-compartments --psi6-every=2.1065666980569557 --gen3-virial-blocks=50
+```
+
+## Plot Command
+
+Run from the repo root:
+
+```sh
+python3 hspist3/analyze_speed_of_sound_by_eta.py \
+  --dir hspist3/experiments_speed_of_sound/EDMD/mode0_real_units/simulation_15_10_26_13_04_37 \
+  --write-final \
+  --roman-ref \
+  --theory-cs simple
+```
+
+## Combine Newest Two Eta Runs
+
+Use this after running separate dense/high-eta and low-eta simulation commands:
+
+```sh
+python3 hspist3/analyze_speed_of_sound_by_eta.py \
+  --separated-eta-simulations=true \
+  --latest-count 2 \
+  --write-final \
+  --roman-ref \
+  --theory-cs simple
+```
+
+Combined output:
+
+```text
+hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/combined_latest_2_analysis/final_plots/FINAL speed_of_sound_on_packing_fracture.pdf
+```
+
+## One-Command High/Mid/Low Workflow
+
+This runs three eta-specific simulation batches and then creates one combined plot:
+
+```sh
+python3 hspist3/run_speed_of_sound_eta_split_workflow.py
+```
+
+Output is written to a timestamped archive folder:
+
+```text
+hspist3/experiments_speed_of_sound/EDMD/mode1_normalized_units/simulation_eta_split_<timestamp>/final_plots/FINAL speed_of_sound_on_packing_fracture.pdf
+```
+
+## Main Output
+
+```text
+hspist3/experiments_speed_of_sound/EDMD/mode0_real_units/simulation_15_10_26_13_04_37/analysis_by_eta/final_plots/FINAL speed_of_sound_on_packing_fracture.pdf
+```
