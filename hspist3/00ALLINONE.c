@@ -11934,9 +11934,195 @@ static void g3_gui_guard_pistons(double dt){
     }
 }
 
+/* ##CHRIS 2026-10-14 (plan-author decision 52 item 2 and addendum 1; 261012 sec. 4.7.116, 4.7.120): THE COLLISION RETURN-MAP PANEL
+   (Rob's plot) in the window's gen3 scene. DISPLAY ONLY: a window run with the panel is a demonstration, never data.
+   What it shows: per disk, the angle theta_n in [0, 2 pi) of its n-th collision, and for each two consecutive collisions of the same
+   disk the point (theta_n, theta_n+1); a 90 x 90 histogram of the points of the last K disk collisions (a pair collision counts once
+   for each of its two disks), log colour scale, axes 0 .. 2 pi with ticks at multiples of pi/3, and the number of points shown.
+     angle (key 1): the line of centres from the disk to its partner at a pair collision (the default) and, at an outer wall, a
+       divider face or a piston face, the direction from the disk to it (0, pi/2, pi, 3 pi/2: the wall normal); or the direction of
+       the disk's velocity after the collision. Angles in the engine's x-y frame (y as the box's y coordinate).
+     walls (key 2): a point with a wall, divider or piston collision on either side is drawn in a second colour (cyan), or hidden.
+     side (key 3): both compartments, the left one or the right one (the disk's compartment at the load: left or right of the first
+       divider).
+     K (keys 4 and 5): halved or doubled, 625 .. 1,280,000 (default 20,000).
+   I opens and closes it (the help line). Switching the angle clears it; the other keys only change what is drawn.
+   How: gen3's collision gather hook (edmd3_set_coll_hook), set only while the panel is open and only on the window's gen3 state (every
+   frame, rm_frame), hands the panel a copy of each collision's result. The engine's state, its event order and every output are
+   unchanged (tested: equal event hashes with the panel closed, open, and toggled); no experiment loop and no KOA path sets it. */
+#define RM_BINS 90
+#define RM_KMIN 625L
+#define RM_KMAX 1280000L
+static struct {
+    int    open, mode, walls, side;                 /* mode 0: line of centres, 1: velocity after; walls 1: shown; side 0 both, 1 left, 2 right */
+    long   K, builds;                               /* the ring's length; g3_builds of the state the hook is on (-1: none) */
+    float* prev; unsigned char* prevk; int nprev;   /* per disk: the angle of its last collision (NAN: none yet); 1: it was a wall/body */
+    uint32_t* ring; long n, head;                   /* the last K points: bx | by << 7 | class << 14 | right << 15 */
+    int    hist[2][2][RM_BINS][RM_BINS];            /* [right][class][by][bx]; class 1: a wall, divider or piston on either side */
+    long   gathered;                                /* disk collisions since the last clear */
+    SDL_Texture* tex;
+} rm;
+static void rm_clear(void){
+    memset(rm.hist, 0, sizeof rm.hist);
+    rm.n = 0; rm.head = 0; rm.gathered = 0;
+    for (int i = 0; i < rm.nprev; ++i) { rm.prev[i] = NAN; rm.prevk[i] = 0; }
+}
+static int rm_bin(double th){ const int b = (int)(th * ((double)RM_BINS / (2.0 * M_PI))); return b < 0 ? 0 : (b >= RM_BINS ? RM_BINS - 1 : b); }
+static void rm_pop(void){   /* the oldest point leaves the ring */
+    const uint32_t v = rm.ring[(rm.head - rm.n + RM_KMAX) % RM_KMAX];
+    rm.hist[(v >> 15) & 1u][(v >> 14) & 1u][(v >> 7) & 127u][v & 127u]--;
+    rm.n--;
+}
+static void rm_point(int i, int wall, int comp, double th){   /* disk i's collision at angle th */
+    if (i < 0 || i >= rm.nprev) return;
+    if (th < 0.0) th += 2.0 * M_PI;
+    const float p = rm.prev[i]; const int pk = rm.prevk[i];
+    rm.prev[i] = (float)th; rm.prevk[i] = (unsigned char)(wall != 0);
+    rm.gathered++;
+    if (isnan(p)) return;
+    while (rm.n >= rm.K) rm_pop();
+    const int bx = rm_bin((double)p), by = rm_bin(th), cls = pk || wall, right = comp > 0;
+    rm.ring[rm.head] = (uint32_t)bx | ((uint32_t)by << 7) | ((uint32_t)cls << 14) | ((uint32_t)right << 15);
+    rm.head = (rm.head + 1) % RM_KMAX; rm.n++;
+    rm.hist[right][cls][by][bx]++;
+}
+static void rm_hook(void* ctx, const EDMD3_Coll* c){   /* called by gen3 at each collision while the panel is open: reads its copy only */
+    (void)ctx;
+    const int wall = c->kind != 0;
+    if (rm.mode == 0) {
+        rm_point(c->a, wall, c->comp_a, atan2(c->ny, c->nx));
+        if (c->b >= 0) rm_point(c->b, 0, c->comp_b, atan2(-c->ny, -c->nx));
+    } else {
+        rm_point(c->a, wall, c->comp_a, atan2(c->vay, c->vax));
+        if (c->b >= 0) rm_point(c->b, 0, c->comp_b, atan2(c->vby, c->vbx));
+    }
+}
+static void rm_frame(void){   /* the window, every frame: while the panel is open, the hook is on the current gen3 state */
+    if (!rm.open || cli_engine != 3) return;
+    if (!g_edmd3) { rm.builds = -1; return; }
+    if (rm.builds == g3_builds) return;
+    const int n = edmd3_count(g_edmd3);
+    if (n != rm.nprev) {
+        free(rm.prev); free(rm.prevk);
+        rm.prev = (float*)malloc((size_t)(n > 0 ? n : 1) * sizeof *rm.prev); rm.prevk = (unsigned char*)malloc((size_t)(n > 0 ? n : 1));
+        rm.nprev = (rm.prev && rm.prevk) ? n : 0;
+    }
+    rm_clear();
+    edmd3_set_coll_hook(g_edmd3, rm_hook, NULL);
+    rm.builds = g3_builds;
+}
+static void rm_note(void){
+    char b[200];
+    snprintf(b, sizeof b, "return map: angle %s, walls %s, side %s, K %ld", rm.mode ? "velocity after" : "line of centres",
+             rm.walls ? "shown" : "hidden", rm.side == 0 ? "both" : (rm.side == 1 ? "left" : "right"), rm.K);
+    g3_gui_note(b);
+}
+static int rm_key(SDL_Keycode k){   /* 1 if it is the panel's key */
+    if (k == SDLK_i) {
+        if (cli_engine != 3) { g3_gui_note("I (return map) needs gen3: the panel reads gen3's collisions"); return 1; }
+        if (!rm.ring) {
+            rm.ring = (uint32_t*)malloc((size_t)RM_KMAX * sizeof *rm.ring);
+            if (!rm.ring) { g3_gui_note("I (return map): out of memory"); return 1; }
+            rm.K = 20000L; rm.walls = 1; rm.builds = -1;
+        }
+        rm.open = !rm.open;
+        if (rm.open) { rm.builds = -1; rm_frame(); rm_note(); }
+        else { edmd3_set_coll_hook(NULL, NULL, NULL); rm.builds = -1; g3_gui_note("I: return map closed"); }
+        return 1;
+    }
+    if (!rm.open) return 0;
+    switch (k) {
+        case SDLK_1: rm.mode = !rm.mode; rm_clear(); rm_note(); return 1;
+        case SDLK_2: rm.walls = !rm.walls; rm_note(); return 1;
+        case SDLK_3: rm.side = (rm.side + 1) % 3; rm_note(); return 1;
+        case SDLK_4: if (rm.K > RM_KMIN) { rm.K /= 2; while (rm.n > rm.K) rm_pop(); } rm_note(); return 1;
+        case SDLK_5: if (rm.K < RM_KMAX) rm.K *= 2; rm_note(); return 1;
+        default: return 0;
+    }
+}
+static void rm_colour(double t, Uint8* r, Uint8* g, Uint8* b){   /* the pair points' scale: dark blue, purple, orange, pale yellow */
+    static const double S[4][3] = {{28, 30, 80}, {130, 40, 150}, {245, 120, 40}, {255, 245, 190}};
+    t = t < 0.0 ? 0.0 : (t > 1.0 ? 1.0 : t);
+    const double u = t * 3.0; int k = (int)u; if (k > 2) k = 2;
+    const double w = u - (double)k;
+    *r = (Uint8)(S[k][0] + w * (S[k + 1][0] - S[k][0])); *g = (Uint8)(S[k][1] + w * (S[k + 1][1] - S[k][1]));
+    *b = (Uint8)(S[k][2] + w * (S[k + 1][2] - S[k][2]));
+}
+static void rm_draw(SDL_Renderer* r, TTF_Font* f){   /* in the UI pass (window points); bottom right, left of the F2/F3 panels */
+    if (!rm.open || !r) return;
+    enum { PW = 270, ML = 52, MR = 14, MT = 66, MB = 30 };
+    const int W = ML + PW + MR, H = MT + PW + MB;
+    int x0 = gui_controls_column_left_ui() - 8 - W, y0 = MAX_Y - 8 - H;
+    if (x0 < 8) x0 = 8;
+    if (y0 < 8) y0 = 8;
+    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(r, 10, 12, 22, 238);
+    SDL_Rect bg = {x0, y0, W, H};
+    SDL_RenderFillRect(r, &bg);
+    SDL_SetRenderDrawColor(r, 120, 130, 170, 255);
+    SDL_RenderDrawRect(r, &bg);
+    static int c0[RM_BINS][RM_BINS], c1[RM_BINS][RM_BINS];
+    static uint32_t px[RM_BINS * RM_BINS];
+    int m0 = 0, m1 = 0; long shown = 0;
+    for (int by = 0; by < RM_BINS; ++by)
+        for (int bx = 0; bx < RM_BINS; ++bx) {
+            int a = 0, w = 0;
+            for (int s = 0; s < 2; ++s) {
+                if ((rm.side == 1 && s == 1) || (rm.side == 2 && s == 0)) continue;
+                a += rm.hist[s][0][by][bx]; w += rm.hist[s][1][by][bx];
+            }
+            if (!rm.walls) w = 0;
+            c0[by][bx] = a; c1[by][bx] = w; shown += a + w;
+            if (a > m0) m0 = a;
+            if (w > m1) m1 = w;
+        }
+    const double l0 = log1p((double)(m0 > 0 ? m0 : 1)), l1 = log1p((double)(m1 > 0 ? m1 : 1));
+    for (int by = 0; by < RM_BINS; ++by)
+        for (int bx = 0; bx < RM_BINS; ++bx) {
+            Uint8 R = 16, G = 18, B = 30;
+            if (c0[by][bx] > 0) rm_colour(log1p((double)c0[by][bx]) / l0, &R, &G, &B);
+            if (c1[by][bx] > 0) {   /* the second colour: cyan, by its own log scale */
+                const double al = 0.35 + 0.65 * log1p((double)c1[by][bx]) / l1;
+                R = (Uint8)((1.0 - al) * R + al * 70.0); G = (Uint8)((1.0 - al) * G + al * 235.0); B = (Uint8)((1.0 - al) * B + al * 235.0);
+            }
+            px[(RM_BINS - 1 - by) * RM_BINS + bx] = 0xFF000000u | ((uint32_t)R << 16) | ((uint32_t)G << 8) | (uint32_t)B;
+        }
+    if (!rm.tex) {
+        rm.tex = SDL_CreateTexture(r, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, RM_BINS, RM_BINS);
+#if SDL_VERSION_ATLEAST(2, 0, 12)
+        if (rm.tex) SDL_SetTextureScaleMode(rm.tex, SDL_ScaleModeNearest);
+#endif
+    }
+    const SDL_Rect plot = {x0 + ML, y0 + MT, PW, PW};
+    if (rm.tex && SDL_UpdateTexture(rm.tex, NULL, px, RM_BINS * (int)sizeof px[0]) == 0) SDL_RenderCopy(r, rm.tex, NULL, &plot);
+    SDL_SetRenderDrawColor(r, 170, 175, 200, 255);
+    SDL_RenderDrawRect(r, &plot);
+    const SDL_Color white = {235, 235, 245, 255}, muted = {170, 175, 200, 255}, cyan = {90, 230, 230, 255};
+    static const char* const TL[7] = {"0", "π/3", "2π/3", "π", "4π/3", "5π/3", "2π"};
+    for (int k = 0; k <= 6; ++k) {
+        const int tx = plot.x + k * PW / 6, ty = plot.y + PW - k * PW / 6;
+        SDL_Rect a = {tx, plot.y + PW, 1, 5}, b = {plot.x - 5, ty, 5, 1};
+        SDL_RenderFillRect(r, &a); SDL_RenderFillRect(r, &b);
+        if (f) {
+            draw_text(r, f, TL[k], tx - (k == 0 ? 3 : 12), plot.y + PW + 7, muted);
+            draw_text(r, f, TL[k], plot.x - 44, ty - 8, muted);
+        }
+    }
+    if (f) {
+        char l2t[200], l3t[200];
+        snprintf(l2t, sizeof l2t, "1 %s | 2 walls %s | 3 %s", rm.mode ? "velocity after the hit" : "line of centres",
+                 rm.walls ? "cyan" : "hidden", rm.side == 0 ? "both sides" : (rm.side == 1 ? "left side" : "right side"));
+        snprintf(l3t, sizeof l3t, "4/5 K %ld | points %ld | log colour", rm.K, shown);
+        draw_text(r, f, "Return map: x = θn, y = θn+1  (i close)", x0 + 10, y0 + 6, white);
+        draw_text_clipped(r, f, l2t, x0 + 10, y0 + 24, rm.walls ? cyan : muted, W - 20);
+        draw_text_clipped(r, f, l3t, x0 + 10, y0 + 42, muted, W - 20);
+    }
+}
+
 ////////// KEYBOARD INPUT HANDLING //////////
 // Keyboard input handling
 void keysSimulation(SDL_Event e) {
+    if (e.type == SDL_KEYDOWN && rm_key(e.key.keysym.sym)) return;   /* ##CHRIS 2026-10-14 (decision 52): the return-map panel's keys */
     if (cli_engine == 3 && e.type == SDL_KEYDOWN && g3_gui_key(e.key.keysym.sym)) return;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
     if (gui_div_limit_paused && e.type == SDL_KEYDOWN && (e.key.keysym.sym == SDLK_p || e.key.keysym.sym == SDLK_SPACE)) {
         /* ##CHRIS 2026-10-12 (decision 34, addition, item C): a divider at the end of its range is not resumed */
@@ -15844,6 +16030,7 @@ static int hud_build_experiment_key_lines(char lines[][256], int max_lines) {
         if (n < max_lines) snprintf(lines[n++], 256, "Pistons: a/d left | left/right right | s/up stop");
         if (n < max_lines) snprintf(lines[n++], 256, "View: v panels | x/y density | f vmax | z exact");
         if (n < max_lines) snprintf(lines[n++], 256, "Wall: r release | e print energy");
+        if (n < max_lines) snprintf(lines[n++], 256, "Return map: i open/close | 1 angle | 2 walls | 3 side | 4/5 K");   /* ##CHRIS (decision 52) */
         if (n < max_lines) snprintf(lines[n++], 256, "n/a (gen3): w wall | [ ] \\ T | b HB | k , . Andersen");
         return n;
     }
@@ -21111,7 +21298,9 @@ static void run_szilard_engine_experiment(void) {
    STEP-th executed step the key is put into SDL's event queue (pressed, then released) and is handled with the next frame's events,
    as a key press is. KEY: an SDL key name (R, T, B, W, K, P, Q, Space, Escape, Left, Right, Up, F2, F3, [, ], \, ...), "comma",
    "period", with a trailing "+" pressed and held (no release); or "apply-gen3" / "apply-gen2": the F3 panel synced to the running
-   scene, its engine row set to EDMD gen3 / EDMD and its APPLY (live_scene_prepare_rebuild), as the mouse would. */
+   scene, its engine row set to EDMD gen3 / EDMD and its APPLY (live_scene_prepare_rebuild), as the mouse would; or "hash" (##CHRIS
+   2026-10-14, decision 52 addendum 1: the return map's test): [GUI-HASH] with gen3's event hash, its time and its executed events at
+   exactly that step (printed inside the step loop; the reads change nothing), so that runs whose frames differ compare exactly. */
 #define G3_GUI_KEYS_MAX 64
 static long g3_gui_key_step[G3_GUI_KEYS_MAX];
 static char g3_gui_key_name[G3_GUI_KEYS_MAX][24];
@@ -21139,7 +21328,7 @@ static void g3_gui_keys_parse(void){
         int hold = 0;
         if (!colon || end != colon || st < 1 || !*nm || strlen(nm) >= sizeof g3_gui_key_name[0] || g3_gui_key_n >= G3_GUI_KEYS_MAX
             || (g3_gui_key_n > 0 && st < g3_gui_key_step[g3_gui_key_n - 1])
-            || (strcmp(nm, "apply-gen3") && strcmp(nm, "apply-gen2") && g3_gui_key_code(nm, &hold) == SDLK_UNKNOWN)) {
+            || (strcmp(nm, "apply-gen3") && strcmp(nm, "apply-gen2") && strcmp(nm, "hash") && g3_gui_key_code(nm, &hold) == SDLK_UNKNOWN)) {
             fprintf(stderr, "Invalid --gui-keys entry '%s' (STEP:KEY, steps ascending, at most %d)\n", tok, G3_GUI_KEYS_MAX);
             exit(EXIT_FAILURE);
         }
@@ -21152,6 +21341,13 @@ static void g3_gui_keys_pump(long steps_done){
     while (g3_gui_key_next < g3_gui_key_n && g3_gui_key_step[g3_gui_key_next] <= steps_done) {
         const char* nm = g3_gui_key_name[g3_gui_key_next++];
         printf("[GUI-KEYS] step %ld: %s\n", steps_done, nm);
+        if (!strcmp(nm, "hash")) {   /* ##CHRIS 2026-10-14 (decision 52 addendum 1): an exact cut for the return map's test */
+            if (g_edmd3) printf("[GUI-HASH] step %ld: hash=%016llx t=%.17g events=%ld\n", steps_done,
+                                (unsigned long long)edmd3_event_hash(g_edmd3), edmd3_time(g_edmd3), g3_gui_events());
+            else printf("[GUI-HASH] step %ld: no gen3 state\n", steps_done);
+            fflush(stdout);
+            continue;
+        }
         if (!strcmp(nm, "apply-gen3") || !strcmp(nm, "apply-gen2")) {
             live_scene_sync_from_runtime();
             live_scene_engine = nm[9] == '3' ? LIVE_SCENE_ENGINE_GEN3 : LIVE_SCENE_ENGINE_EDMD;
@@ -22709,6 +22905,7 @@ void simulation_loop() {
             // (Physics state remains at simulation_time; this only affects visualization.)
             gui_render_dt_rem = accumulator;
             if (cli_engine == 3) g3_gui_rate_update();   /* ##CHRIS 2026-10-10 (decision 19, item 2): the HUD's events/s */
+            rm_frame();   /* ##CHRIS 2026-10-14 (decision 52): while the return map is open, the hook is on the current gen3 state */
 
             if (cli_render_paper) {
                 /* ##CHRIS 2026-09-19: figure-grade scene, drawn instead of the debug view.
@@ -22741,6 +22938,7 @@ void simulation_loop() {
             render_energy_hud(_renderer, font);
             render_live_controls(_renderer, font_small ? font_small : font);
             gui_div_limit_banner();   /* item C */
+            rm_draw(_renderer, font_small ? font_small : font);   /* ##CHRIS 2026-10-14 (decision 52): the return-map panel, if open */
             gui_end_ui_view();
             float T_measured = compute_measured_temperature_from_ke();
             char temp_label[128];

@@ -173,6 +173,17 @@ void   edmd3_set_check_interval(EDMD3* S, double units); /* full validator caden
 /* ##CHRIS 2026-10-09 (M3): edmd.c's gated event log (t_sigma, kind, u_wall, v_before, v_after, dE, dp) per wall, divider-face and
    piston collision; f NULL = off (the default); time_scale converts internal time to sigma-time (the driver passes 24) */
 void   edmd3_set_event_log(EDMD3* S, FILE* f, double time_scale);
+/* ##CHRIS 2026-10-14 (plan-author decision 52 item 2 and addendum 1; 261012 sec. 4.7.116, 4.7.120): the collision gather hook of the
+   viewer's return-map panel. DISPLAY ONLY: off (NULL, the default) unless the window's panel is open. When it is set, each pair,
+   outer-wall, divider-face and piston collision of that state hands a copy of what the collision rule already computed to fn, which
+   reads it; nothing of the state changes (the hook is kept outside the state, so the state's size, its checkpoint format and every
+   event stay as they are). kind 0: a disk pair (a, b; n the unit line of centres from a to b at contact); 1: an outer wall
+   (n = (-1,0), (1,0), (0,-1), (0,1) for the left, right, y = 0 and y = H walls: the direction from the disk to the wall); 2: a divider
+   face (n = (1,0) at the left face, (-1,0) at the right face); 3: a piston face (n = (-1,0) left, (1,0) right). b = -1 unless kind 0.
+   comp_a, comp_b: the disks' compartments (the dividers left of the disk at the load). v*: the velocities after the collision. */
+typedef struct { int kind, a, b, comp_a, comp_b; double nx, ny, vax, vay, vbx, vby; } EDMD3_Coll;
+typedef void (*EDMD3_CollHook)(void* ctx, const EDMD3_Coll* c);
+void   edmd3_set_coll_hook(EDMD3* S, EDMD3_CollHook fn, void* ctx);   /* fn NULL: off; one state at a time */
 
 /* read-only audits: neither changes any stored number, so outputs are identical with and without them */
 void   edmd3_set_contact_audit(EDMD3* S, int on);

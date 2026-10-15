@@ -697,6 +697,16 @@ static void contact_audit(EDMD3* S, const Ev3* e){
     if (R_(fabs)(gap) > S->contact_max[k]) S->contact_max[k] = R_(fabs)(gap);
     S->contact_events++;
 }
+/* ##CHRIS 2026-10-14 (plan-author decision 52 item 2 and addendum 1; 261012 sec. 4.7.116, 4.7.120): THE COLLISION GATHER HOOK of the
+   viewer's return-map panel (edmd_gen3.h). Display only and off unless set: the hook and the state it belongs to are kept here, outside
+   struct EDMD3, so the state's size, its checkpoint format and every event are unchanged; the three collision rules below hand it a copy
+   of their own results after the velocities are set, and the driver's function only reads that copy. */
+static EDMD3*         coll_hook_S = NULL;
+static EDMD3_CollHook coll_hook_fn = NULL;
+static void*          coll_hook_ctx = NULL;
+void edmd3_set_coll_hook(EDMD3* S, EDMD3_CollHook fn, void* ctx){
+    coll_hook_S = fn ? S : NULL; coll_hook_fn = fn; coll_hook_ctx = fn ? ctx : NULL;
+}
 static void exec_pair(EDMD3* S, const Ev3* e){
     const int i = e->a, j = e->b;
     advance(S, i); advance(S, j);
@@ -717,6 +727,10 @@ static void exec_pair(EDMD3* S, const Ev3* e){
     S->ledSE += 4.0 * (A->vx * A->vx + A->vy * A->vy + B->vx * B->vx + B->vy * B->vy);
     A->cnt++; B->cnt++; A->last = j; B->last = i;
     S->H.ev_pair++;
+    if (coll_hook_fn && coll_hook_S == S) {   /* ##CHRIS 2026-10-14 (decision 52): display only, a copy */
+        const EDMD3_Coll c = {0, i, j, A->comp, B->comp, (double)nx, (double)ny, (double)A->vx, (double)A->vy, (double)B->vx, (double)B->vy};
+        coll_hook_fn(coll_hook_ctx, &c);
+    }
     predict_all(S, i); predict_all(S, j);
     local_check(S, i); local_check(S, j);    /* after the predictions: a repair bumps cnt and so retires them */
 }
@@ -732,6 +746,11 @@ static void exec_wall(EDMD3* S, const Ev3* e){
     S->wall_events[s]++;
     A->cnt++; A->last = -1;
     S->H.ev_wall++;
+    if (coll_hook_fn && coll_hook_S == S) {   /* ##CHRIS 2026-10-14 (decision 52): display only, a copy */
+        static const double WNX[4] = {-1.0, 1.0, 0.0, 0.0}, WNY[4] = {0.0, 0.0, -1.0, 1.0};
+        const EDMD3_Coll c = {1, i, -1, A->comp, -1, WNX[s], WNY[s], (double)A->vx, (double)A->vy, 0.0, 0.0};
+        coll_hook_fn(coll_hook_ctx, &c);
+    }
     predict_all(S, i);
     local_check(S, i);
 }
@@ -825,6 +844,11 @@ static void exec_obj(EDMD3* S, const Ev3* e){
     }
     A->vx = v1; A->cnt++; A->last = -2 - o; O->last = i;
     if (e->type == T_DIV) S->H.ev_div++; else S->H.ev_piston++;
+    if (coll_hook_fn && coll_hook_S == S) {   /* ##CHRIS 2026-10-14 (decision 52): display only, a copy */
+        const double dir = e->type == T_DIV ? (f == 0 ? 1.0 : -1.0) : (e->b == 0 ? -1.0 : 1.0);
+        const EDMD3_Coll c = {e->type == T_DIV ? 2 : 3, i, -1, A->comp, -1, dir, 0.0, (double)A->vx, (double)A->vy, 0.0, 0.0};
+        coll_hook_fn(coll_hook_ctx, &c);
+    }
     if (v2 != u2) { O->v = v2; obj_changed(S, o, i); }
     predict_all(S, i);
     local_check(S, i);
@@ -1153,6 +1177,7 @@ EDMD3* edmd3_create(const EDMD_Params* prm, double cell_px, char* err, size_t er
 
 void edmd3_destroy(EDMD3* S){
     if (!S) return;
+    if (coll_hook_S == S) edmd3_set_coll_hook(NULL, NULL, NULL);   /* ##CHRIS 2026-10-14 (decision 52): the hook goes with its state */
     free(S->cell); free(S->ccount); free(S->D); free(S->out); free(S->heap.d);
     free(S->alx); free(S->aly); free(S->acr); free(S->acd); free(S->awl); free(S->ahk); free(S->aht); free(S->ahm);
     free(S->aot); free(S->aob);

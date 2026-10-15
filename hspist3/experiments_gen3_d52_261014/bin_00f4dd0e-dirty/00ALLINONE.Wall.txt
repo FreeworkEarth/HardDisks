@@ -1,0 +1,76 @@
+00ALLINONE.c:6050:15: warning: unused variable 'vx' [-Wunused-variable]
+ 6050 |         float vx = v * sin(theta) * cos(phi);
+      |               ^~
+00ALLINONE.c:6051:15: warning: unused variable 'vy' [-Wunused-variable]
+ 6051 |         float vy = v * sin(theta) * sin(phi);
+      |               ^~
+00ALLINONE.c:6052:15: warning: unused variable 'vz' [-Wunused-variable]
+ 6052 |         float vz = v * cos(theta);
+      |               ^~
+00ALLINONE.c:6129:16: warning: variable 'accum' set but not used [-Wunused-but-set-variable]
+ 6129 |         double accum = 0.0;
+      |                ^
+00ALLINONE.c:6499:11: warning: unused variable 'small_gap' [-Wunused-variable]
+ 6499 |     float small_gap = PARTICLE_RADIUS * 0.01f;  // just a tiny gap
+      |           ^~~~~~~~~
+00ALLINONE.c:7056:34: warning: unused parameter 'dt' [-Wunused-parameter]
+ 7056 | void apply_piston_protocol(float dt) {
+      |                                  ^
+00ALLINONE.c:7954:16: warning: unused variable 'old_x' [-Wunused-variable]
+ 7954 |         double old_x = X[i];
+      |                ^~~~~
+00ALLINONE.c:7955:16: warning: unused variable 'old_y' [-Wunused-variable]
+ 7955 |         double old_y = Y[i];
+      |                ^~~~~
+00ALLINONE.c:8541:44: warning: unused parameter 'sub_dt' [-Wunused-parameter]
+ 8541 | void handle_piston_collisions(int i, float sub_dt) {
+      |                                            ^
+00ALLINONE.c:9203:47: warning: unused parameter 'current_sim_time' [-Wunused-parameter]
+ 9203 |                                        double current_sim_time, bool is_wall_released, double wall_released_at) {
+      |                                               ^
+00ALLINONE.c:10210:11: warning: unused variable 'S_p' [-Wunused-variable]
+ 10210 |     float S_p = position_entropy();
+       |           ^~~
+00ALLINONE.c:12737:11: warning: unused variable 'sigma' [-Wunused-variable]
+ 12737 |     float sigma = sqrt(kB_effective() * temperature / PARTICLE_MASS);
+       |           ^~~~~
+00ALLINONE.c:12855:13: warning: unused variable 'x2' [-Wunused-variable]
+ 12855 |         int x2 = center_x + (i - NUM_BINS / 2) * bin_width;
+       |             ^~
+00ALLINONE.c:12875:13: warning: unused variable 'x2' [-Wunused-variable]
+ 12875 |         int x2 = center_x + (i - NUM_BINS / 2) * bin_width;
+       |             ^~
+00ALLINONE.c:12768:11: warning: unused variable 'sigma' [-Wunused-variable]
+ 12768 |     float sigma = sqrtf(kB_effective() * measured_T / PARTICLE_MASS);
+       |           ^~~~~
+00ALLINONE.c:12866:11: warning: unused variable 'sigma0' [-Wunused-variable]
+ 12866 |     float sigma0 = sqrtf(kB_effective() * temperature_runtime / PARTICLE_MASS);
+       |           ^~~~~~
+00ALLINONE.c:16530:11: warning: unused variable 'packing_unitless' [-Wunused-variable]
+ 16530 |     float packing_unitless = particles_active * particle_area_unitless / box_area_unitless;
+       |           ^~~~~~~~~~~~~~~~
+00ALLINONE.c:16531:11: warning: unused variable 'packing_actual_bound' [-Wunused-variable]
+ 16531 |     float packing_actual_bound = particles_active * particle_area_actual / box_area_scaled;
+       |           ^~~~~~~~~~~~~~~~~~~~
+00ALLINONE.c:16532:11: warning: unused variable 'packing_actual_excl_wall' [-Wunused-variable]
+ 16532 |     float packing_actual_excl_wall = particles_active * particle_area_actual / (box_area_scaled - wall_buffer_area);
+       |           ^~~~~~~~~~~~~~~~~~~~~~~~
+00ALLINONE.c:16519:51: warning: unused parameter 'label' [-Wunused-parameter]
+ 16519 | void log_packing_fractions(FILE *log, const char *label) {
+       |                                                   ^
+00ALLINONE.c:18855:60: warning: variable 'edmd_prev_work_div' set but not used [-Wunused-but-set-variable]
+ 18855 |     double edmd_prev_work_L = 0.0, edmd_prev_work_R = 0.0, edmd_prev_work_div = 0.0;
+       |                                                            ^
+00ALLINONE.c:21692:12: warning: variable 'edmd_prev_work_div' set but not used [-Wunused-but-set-variable]
+ 21692 |     double edmd_prev_work_div = 0.0;
+       |            ^
+00ALLINONE.c:3738:13: warning: unused function 'reset_leftmost_metrics' [-Wunused-function]
+ 3738 | static void reset_leftmost_metrics(double release_time) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+00ALLINONE.c:8532:20: warning: unused function 'apply_andersen_if_enabled' [-Wunused-function]
+ 8532 | static inline void apply_andersen_if_enabled(double dt) {
+      |                    ^~~~~~~~~~~~~~~~~~~~~~~~~
+00ALLINONE.c:13650:13: warning: unused function 'render_density_histograms_by_segment' [-Wunused-function]
+ 13650 | static void render_density_histograms_by_segment(void) {
+       |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+25 warnings generated.

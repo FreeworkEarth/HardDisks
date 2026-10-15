@@ -1,0 +1,4 @@
+# s1_smoke_b: 2026-10-14 22:14:38 HST
+# binary: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d52_261014/bin_00f4dd0e-dirty-b/00ALLINONE (a6a4e2109642c49a)
+# flags: --show-simulation --mode=edmd --engine=gen3 --edmd-acc=0 --seed-drift-order=drift-first --kbt1 --particles=400 --particles-boxes=200\,200 --particle-radius=0.5 --l0=11.382582078223889 --height=20 --num-walls=1 --wall-positions=11.382582078223889 --wall-mass-factors=50 --wall-hold-steps=600 --fixed-dt=0.4 --seed=9300 --gui-time-scale=200 --auto-release --gui-window=2000x1200 --gui-keys=1:I\,1800:Q --gui-shot=1500:/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d52/runs/s1_smoke_b/shot_1500.bmp --gui-run-seconds=60
+# exit code 0 after 4 s

@@ -32,7 +32,7 @@ usage (from hspist3/): python3 tests_d50.py <label> <T1|T1AF|T2|C2|C2P|R0|R1|LAT
 import concurrent.futures as cf, hashlib, math, os, re, subprocess, sys, time, importlib.util
 
 HS = "/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3"
-OUTROOT = os.path.join(HS, "experiments_gen3_d50_261014", "tests")
+OUTROOT = os.environ.get("TESTS_OUTROOT") or os.path.join(HS, "experiments_gen3_d50_261014", "tests")   # TESTS_OUTROOT: another folder (decision 52)
 TASKS = os.path.join(HS, "cluster", "gen3_stage1_261012", "tasks_stage1_koa_261012.txt")
 ENV = dict(os.environ, SDL_VIDEODRIVER="dummy", HD_CONTACT_AUDIT="1")
 HEALTH = re.compile(r"EDMD-HEALTH|forced_advance|clamp_repair|overlap_repair|wall_overdue")
