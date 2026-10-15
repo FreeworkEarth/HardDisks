@@ -31432,3 +31432,67 @@ End with "Written for: the plan author".
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.130 Report D55a1 — decision 55 addendum 1 item 1: runsheet step (b) with the worktree kept. (b)1 to (b)3 are unchanged, except that (b)3's printed hint "next: git worktree remove" no longer applies. (b)4 becomes git worktree lock, which prints nothing; (b)5's git worktree list then shows two lines, the second ending in "[engine-gen3] locked" (tested on git 2.50.1 in a scratch repository). One consequence to decide: README_FROZEN.md committed in step (b) would reach main through the merge. Proposed: CC commits it after (g), as step (h), and Chris pushes engine-gen3. These two records moved the heads after step (a); step (a)'s lines run once more before (b)2 (2026-10-15 10:21 HST, machine date) [RUNSHEET, TESTED IN SCRATCH]
+
+**Plain summary.**
+- **Recorded:** decision 55, addendum 1 (sec. 4.7.129).
+- **Step (a) ran at 10:18:** the three heads equal origin (main 567ac2bd, engine-gen3 ea33f953, engine-divider-resched 46c4232e). The addendum's record and this report then put each head two commits ahead. So step (a)'s four lines run once more before (b)2.
+  - Good, as written: three ".." lines, one per branch, then three lines ending in `0	0`.
+- **Step (b) with the addendum** (Report D51 sec. 4; the lines unchanged except 4 and 5):
+  1. As written: quit the viewer; close or `cd` out of the terminals whose folder is HardDisks_gen3; remove HardDisks_gen3 from the VS Code workspace. At 10:18 the viewer (PID 70559) and one terminal (PID 95056) were still in the folder.
+  2. As written: `python3 0000_PLAN_OVERALL/consolidation_d51_261014/d51_move_untracked.py`.
+     - Good: processes "- none", problems "- none", last line `VERDICT: READY`.
+     - The counts are Report D55's: 41,890 files, 1,549.2 MB, 26 entries to the hold folder. They move if Finder or a run writes into the folder before this line.
+  3. As written: `python3 0000_PLAN_OVERALL/consolidation_d51_261014/d51_move_untracked.py --go`.
+     - Good: its last line starts `GOOD: the worktree is clean`.
+     - The line ends "...; next: git worktree remove ../HardDisks_gen3". That hint no longer applies: do not run it.
+     - The emptied ignored folders now stay in the kept folder, empty.
+  4. Instead of `git worktree remove ../HardDisks_gen3`:
+
+     ```
+     git worktree lock --reason "frozen after decision 51/55; work on main in Repo/HardDisks" ../HardDisks_gen3
+     ```
+
+     Good: no output.
+  5. `git worktree list`
+     - Good: two lines, `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks  (hash) [main]` and `/Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3  (hash) [engine-gen3] locked`.
+  - **Tested in a scratch repository with this Mac's git 2.50.1:**
+    - the lock prints nothing and exits 0;
+    - the list then shows "[engine-gen3] locked", and `--porcelain` shows the reason;
+    - a commit inside the locked folder works;
+    - `git worktree remove` refuses the folder ("cannot remove a locked working tree").
+- **README_FROZEN.md, one consequence to decide:**
+  - Committed on engine-gen3 in step (b), before the merge (c), the file would reach main through the merge and stand at the top of Repo/HardDisks, the tree that is not frozen.
+  - Committed after (c) but before (g), check (g)3 would read 1 instead of 0: the file exists on engine-gen3 only.
+  - **Proposed:** CC commits it after (g), as step (h), in the locked folder. Chris then runs `git push origin engine-gen3`. Good: one ".." line ending `engine-gen3 -> engine-gen3`.
+  - The merge, the push of (d) and every check of (g) then run as written, and main never carries the file. Its text is in sec. 1.
+  - From the lock on, CC records on main only (step (f)'s "propagation reduced to main only", moved forward to (b)4). The README then stays the one tracked change on engine-gen3, and (g)3 reads 0 as long as CC records nothing between (c) and (g)3; CC will not.
+- **Nothing else changed.** No code was touched; nothing ran on KOA; the scratch test folder (d55/locktest) stays.
+
+## 1. README_FROZEN.md, the proposed text (top level of Repo/HardDisks_gen3, committed on engine-gen3 in step h)
+
+```
+# FROZEN: the engine-gen3 worktree, kept read-only
+
+<!-- ##CHRIS 2026-10-15 (plan-author decisions 51 and 55, addendum 1) -->
+This folder, Repo/HardDisks_gen3, is the git worktree of the branch engine-gen3. It was frozen on 2026-10-15
+after plan-author decisions 51 and 55 (addendum 1): engine-gen3 was merged into main, every untracked and
+ignored file was moved to Repo/HardDisks (what could not go there went to Repo/HardDisks_d51_hold), and the
+worktree was locked:
+
+    git worktree lock --reason "frozen after decision 51/55; work on main in Repo/HardDisks" ../HardDisks_gen3
+
+Work on main in Repo/HardDisks: all fetches, builds and reports go there. Nothing in this folder is changed
+or deleted; this file is the one tracked change made after the freeze.
+
+The record: Repo/HardDisks/0000_PLAN_OVERALL/ALL_MARKDOWNS/261012_paper1_confinement.md, sec. 4.7.114
+(decision 51), 4.7.115 (Report D51, the runsheet), 4.7.127 (decision 55), 4.7.129 (its addendum 1) and
+4.7.130 (step b with the folder kept).
+```
+
+## Commits
+
+- **main:** decision 55 addendum 1 (sec. 4.7.129) and this report (4.7.130); their copies on engine-gen3 and engine-divider-resched.
+
+Written for: the plan author
