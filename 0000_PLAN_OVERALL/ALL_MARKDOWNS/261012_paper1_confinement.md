@@ -31845,3 +31845,144 @@ uncommitted entries in the folder after the commit:        0
 - Nothing is pushed.
 
 Written for: the plan author
+
+### 4.7.133 Plan-author decision 55, addendum 3, and decision 56. The consolidation is closed: both pushes done, (g)7 and (g)8 good, the folder locked until 2026-10-22. A parallel project may appear in its own top-level folder of Repo/HardDisks: CC ignores it, and stops and reports any change under hspist3/ that it did not make. The tasks now, Mac only, in one report D56-1: figure 1 with block D (figures_261015c/); the Stage 2 sizing (η 0.69–0.80 at N 900 and 1600: run times, the lattice start, whether the damped cosine survives in the solid, with one Mac pilot cell, N 900 at η 0.76); the D2 sizing. Before it, the plan author's note to Chris on how the research continues (2026-10-15 13:02 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 55, addendum 3 and decision 56** (relayed by Chris at about 12:58 HST, machine date; the plan author's time "~12:45 HST").
+- **Before them, the plan author's note to Chris:** how the research continues, in order.
+  - Figure 1 with the dilute block (today, CC).
+  - The Stage 2 sizing (today or tomorrow, CC, Mac only, no KOA). Numbers, not guesses, before the Stage 2 registration (η 0.69–0.80 at N 900 and 1600):
+    - how long a run takes at η 0.80;
+    - whether the lattice start fits;
+    - whether the damped-cosine fit survives in the solid. The honest possibility: in the solid the divider does not ring cleanly, and Stage 2 needs another estimator (the divider's spectrum, or Part A's held-divider k_T).
+  - The D2 sizing in the same report.
+  - Then: the Stage 2 registration (the plan author) and a KOA pilot; amendment A5 (the plan author) and the Part A pilot at N 100/400; the Paper 2 constant-speed piston after Part A.
+  - The next step from the plan author comes when Report D56-1 is in. The Stage 2 KOA command follows the registration, not before.
+- **Decision 55, addendum 3: the consolidation is closed.**
+  - Chris's pushes: 3bf5320e..c37bad5e main, 07a4c5e5..a75e4cd4 engine-gen3.
+  - (g)7, the fetch from the one tree: GOOD ("fetched into .../Repo/HardDisks/hspist3/experiments_gen3_stage1_koa_261012/B1600: 119M; merge record 2026-10-15 07:45:27 UTC"; nothing transferred).
+  - (g)8: the viewer from the new path opens and its keys work (the return-map header reads the key-1 mode; no issue).
+  - The runsheet is complete. HardDisks_gen3 stays locked until 2026-10-22; HardDisks_d51_hold and the scratch clones stay.
+- **Decision 56: a parallel project may appear in this repository.**
+  - Chris starts a separate network-growth engine (working name morpho) in its own top-level folder of Repo/HardDisks, with its own Claude Code session, its own notes file, and commits prefixed "morpho:".
+  - Its rules: no writes anywhere under hspist3/ (it may read and link edmd_core), no KOA.
+  - For CC:
+    - ignore that folder;
+    - never commit or move anything in it;
+    - never record its work in 261012;
+    - on any change under hspist3/ that CC did not make, STOP and report before building anything.
+- **The tasks now** (Mac only, no KOA, no engine change; one report, D56-1):
+  1. **Figure 1 with the dilute block** (addendum 1 item 2), from the registered full_261015 data:
+     - c_s(η) for N 100, 400, 900 and 1600, blocks B and D (η 0.02–0.69);
+     - the 2D ideal-gas limit c_s = √2 as a dashed line;
+     - KR as the reference curve from η → 0 to 0.69, with SPT and Henderson alongside (thin);
+     - the phase regions shaded (fluid < 0.700, hexatic 0.700–0.716, solid > 0.716; Bernard–Krauth 2011);
+     - the F2 extrapolated N → ∞ points as before;
+     - a linear η axis; figure 3 stays as the dilute zoom.
+     - PNG, PDF and CSV into full_261015/figures_261015c/, with its one script in cluster/gen3_stage1_261012/ (named like the 261015b one) and a RUN_RECORD.txt. figures_261015b/ is not touched.
+  2. **The Stage 2 sizing** (η 0.69, 0.70, 0.72, 0.74, 0.76, 0.78 and 0.80 at N 900 and 1600):
+     - (a) the wall time per run against η: fit stage 1's per-run times (B900, B1600, all masses) against the Enskog collision rate (∝ η χ(η)) and extrapolate to 0.80. One table, η × N: events per run, minutes per run, core-hours for 9 masses × 25 seeds and for 4 masses × 25 seeds, and the merge time scaled from B1600 (4:44:19).
+     - (b) the lattice start's feasibility for those 14 cells with the pinned orientation (pa_orient.py style: 0 or turned, both compartments, no overlap, the divider at L0), and the equilibrium divider position against the box aspect.
+     - (c) does the damped-cosine estimator survive in the solid?
+       - For (900, 0.69): the divider traces of 3 seeds, the fitted curve, Q, and the position's power spectrum.
+       - Then ONE Mac pilot cell: N 900, η 0.76, one mass (stage 1's middle mass), 2 seeds, stage 1's run length. The same plots (trace, fit, Q, spectrum), and ψ6 per compartment over time.
+       - State plainly whether E1 applies, and if not, what the divider does instead (locked, creeping, ringing at another frequency).
+     - (d) the D2 sizing (η 0.02, 0.035 and 0.075 at N 900 and 1600):
+       - the box sizes, the expected period from c_s = √2 and L0, and the run length for 200 oscillations;
+       - events and minutes per run, extrapolated from block D (N 100 and 400);
+       - block D's own fit record (Q per cell, the flags, the deviation of the damped cosine from the traces), so the plan author can write the fit amendment.
+     - No KOA scripts, no registration text, no new experiment folders beyond one for the pilot cell (hspist3/experiments_gen3_d56_261015/).
+  3. **Report D56-1:** item 1's figure (the PNG attached), the four sizing tables, the pilot cell's plots, CC's assessment of (c) in five lines, the commits. Then stop.
+
+**The message, verbatim** (relayed by Chris on 2026-10-15 at about 12:58 HST, machine date):
+
+```
+Consolidation closed: (g)7 and (g)8 both good, nothing left on the runsheet. Here is how the research continues from here, in order:
+
+Figure 1 with the dilute block (today, CC on the Mac, minutes): c_s(η) over the full range 0.02–0.69, blocks B and D, the ideal-gas limit c_s = √2 (2D, γ = 2, kT = 1, m = 1) as a dashed line, KR as the reference curve drawn down to η → 0, SPT and Henderson alongside, the phase regions shaded (fluid < 0.700, hexatic 0.700–0.716, solid > 0.716). Into a new figures_261015c/ folder next to the registered figures.
+Stage 2 sizing (today/tomorrow, CC, Mac only, no KOA): before I can write the Stage 2 registration (η 0.69–0.80 at N 900 and 1600) I need numbers, not guesses: how long a run takes at η 0.80 (the collision rate roughly triples between 0.69 and 0.80), whether the lattice start fits those cells, and whether the damped-cosine fit survives in the solid — the (900, 0.69) low-Q flag says it is already struggling. The honest possibility: in the solid the divider does not ring cleanly and Stage 2 needs a different estimator (the divider’s spectrum, or the held-divider k_T of Part A). The sizing report decides that.
+D2 sizing in the same report (η 0.02–0.075 at N 900/1600): the boxes are huge (N 1600 at η 0.02 is ~250σ × 250σ), the oscillation period scales with L, and the D block already told us the fit needs an amendment in the Knudsen-like regime.
+Then: Stage 2 registration (me) → KOA pilot; Part A amendment A5 (me) → pilot N 100/400; the Paper 2 constant-speed piston comes after Part A.
+Separately, decision 56 tells CC that a sealed morpho/ folder may appear in the repo and is not its business.
+
+Step now: paste this block to CC. The next step from me comes when CC’s report (D56-1) is in; the Stage 2 KOA command follows the registration, not before.
+
+From the plan author (Cowork), relayed by Chris. Record as decision 55
+addendum 3 and decision 56.
+
+DECISION 55, ADDENDUM 3 (2026-10-15 ~12:45 HST): CONSOLIDATION CLOSED
+ Chris: both pushes done (3bf5320e..c37bad5e main, 07a4c5e5..a75e4cd4
+ engine-gen3); (g)7 fetch from the one tree GOOD ("fetched into
+ /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/
+ hspist3/experiments_gen3_stage1_koa_261012/B1600: 119M; merge record
+ 2026-10-15 07:45:27 UTC", nothing transferred); (g)8 viewer from the
+ new path opens, keys work (the return-map header reads the key-1 mode;
+ no issue). The runsheet is complete. HardDisks_gen3 stays locked until
+ 2026-10-22; HardDisks_d51_hold and the scratch clones stay.
+
+DECISION 56: A PARALLEL PROJECT MAY APPEAR IN THIS REPOSITORY
+ Chris starts a separate network-growth engine (working name morpho)
+ in its own top-level folder of Repo/HardDisks, with its own Claude
+ Code session, its own notes file, commits prefixed "morpho:". Rules
+ the plan author gave it: no writes anywhere under hspist3/ (it may
+ read and link edmd_core), no KOA. For you: ignore that folder, never
+ commit or move anything in it, never record its work in 261012; if
+ you ever see a change under hspist3/ you did not make, STOP and
+ report before building anything.
+
+TASKS NOW (Mac only, no KOA, no engine change; one report D56-1):
+ 1. Figure 1 with the dilute block (addendum 1 item 2). From the
+    registered full_261015 data: c_s(eta) for N 100/400/900/1600,
+    blocks B and D (eta 0.02-0.69), the 2D ideal-gas limit
+    c_s = sqrt(2) as a dashed line, KR drawn as the reference curve
+    from eta -> 0 to 0.69, SPT and Henderson alongside (thin), the
+    phase regions shaded (fluid < 0.700, hexatic 0.700-0.716, solid
+    > 0.716; Bernard-Krauth 2011), the F2 extrapolated N -> infinity
+    points as before. Linear eta axis; keep fig3 as the dilute zoom.
+    Output: png+pdf+csv into
+    /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/
+    hspist3/experiments_gen3_s1_261012/full_261015/figures_261015c/
+    with its script in hspist3/cluster/gen3_stage1_261012/ (one script,
+    named like the 261015b one) and a RUN_RECORD.txt. Do not touch
+    figures_261015b/.
+ 2. Stage 2 sizing (eta 0.69, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80 at
+    N 900 and 1600; the plan author writes the registration from this):
+    (a) wall time per run vs eta: fit the stage 1 per-run times (B900,
+        B1600, all masses) against the Enskog collision rate
+        ~ eta*chi(eta) and extrapolate to 0.80; give a table eta x N:
+        events per run, minutes per run, core-hours for 9 masses x
+        25 seeds, and for 4 masses x 25 seeds; the merge time scaled
+        from B1600 (4:44:19).
+    (b) lattice-start feasibility for those 14 cells with the pinned
+        orientation (pa_orient.py style: 0 or turned, both
+        compartments, no overlap, divider at L0), and the equilibrium
+        divider position vs box aspect.
+    (c) does the damped-cosine estimator survive in the solid? Show
+        for (900, 0.69) the divider traces of 3 seeds, the fitted
+        curve, Q, and the position power spectrum; then run ONE Mac
+        pilot cell: N 900, eta 0.76, one mass (the stage 1 middle
+        mass), 2 seeds, the stage 1 run length, and show the same
+        (trace, fit, Q, spectrum, psi6 per compartment over time).
+        State plainly whether E1 applies, and if not, what the
+        divider does instead (locked, creeping, ringing at another
+        frequency).
+    (d) D2 sizing (eta 0.02, 0.035, 0.075 at N 900 and 1600): box
+        sizes, the expected period from c_s = sqrt(2) and L0, the run
+        length for 200 oscillations, events per run and minutes per
+        run extrapolated from block D (N 100/400), and the D block's
+        own fit record (Q per cell, flags, the deviation of the
+        damped cosine from the traces) so the plan author can write
+        the fit amendment.
+    No KOA scripts yet, no registration text, no new experiment
+    folders beyond one for the pilot cell
+    (hspist3/experiments_gen3_d56_261015/).
+ 3. Report D56-1: item 1's figure (attach png), the four sizing
+    tables, the pilot-cell plots, your assessment of (c) in five
+    lines, the commits. Then stop.
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main only: this record.
