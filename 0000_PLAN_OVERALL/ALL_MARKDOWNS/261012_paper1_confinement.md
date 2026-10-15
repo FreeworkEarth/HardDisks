@@ -29408,3 +29408,485 @@ End with "Written for: the plan author".
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.121 Report D52-2 — decision 52 item 2 and addendum 1: the collision return-map panel is in the viewer behind the key I. Display only, from gen3's events through a gather hook that is off unless the panel is open. The event hashes are equal with the panel closed, open from the start, toggled, and with all its keys pressed (N 400, η 0.30 and 0.69); Part B's six task lines are unchanged; PNG frames are committed. Two local commits on engine-gen3 (a71f394d, 4668d579); the clean build bin_a71f394; Chris's command line and the key list (2026-10-14 22:21 HST, machine date) [CODE, MAC TESTS]
+
+**Plain summary.**
+- **Recorded:** decision 52, addendum 1 (sec. 4.7.120). The pin of Report D53-2 was committed (a102d011) once Chris's push had landed.
+- **The panel** (decision 52 item 2 and addendum 1 item 2, as specified).
+  - **What it plots:** per disk, θ_n in [0, 2π) of its n-th collision. Every pair (θ_n, θ_n+1) of consecutive collisions of the same disk goes into a 90 × 90 histogram.
+  - **The histogram:**
+    - over the last K disk collisions (a pair collision counts once for each of its two disks; K default 20,000, halved and doubled by keys, 625 to 1,280,000);
+    - a log colour scale (dark blue → purple → orange → pale yellow), and axes 0 to 2π with ticks at multiples of π/3;
+    - the number of points shown.
+  - **The angles:**
+    - The default is the line of centres from the disk to its partner.
+    - At an outer wall, a divider face or a piston face, the direction from the disk to it is the wall normal (0, π/2, π, 3π/2). These points are drawn in a second colour (cyan) or hidden by a key.
+    - A key switches to the direction of the disk's velocity after the hit.
+    - Angles are taken in the engine's x–y frame.
+  - **Sides:** both by default, or left or right only.
+  - **Placement:** it is drawn live at the window's rate, bottom right, left of the F2/F3 panels, and listed in the gen3 help line.
+- **How, and why it changes nothing:**
+  - gen3's collision gather hook (edmd3_set_coll_hook) is set only while the panel is open and only on the window's gen3 state, and again after each rebuild.
+  - It hands the panel a copy of each pair, wall, divider and piston collision's result.
+  - The hook lives outside the engine's state, so the state's size, the checkpoint format and every event are unchanged. No experiment loop and no KOA path sets it.
+  - One window-only test action was added: --gui-keys "hash" prints gen3's event hash at exactly a step. A record taken at a frame boundary falls on a wall-time-dependent step (1204 for 1200 in a probe), so it cannot be compared across runs.
+- **The tests:**
+  1. **Equal event hashes** at exactly steps 600, 1200 and 1800, for the panel closed, open from the start, toggled during the run (7 notes) and open with all its keys pressed (12 notes). EQUAL at η 0.30 and at η 0.69 (N 400, Chris's usual flags).
+  2. **Part B's six registered stage 1 task lines** are EQUAL against bin_d2dc177: event hash, t_end, every output file.
+  3. **The frames** (PNG, the window and the panel cropped):
+     - η 0.30, line of centres: points over the whole square, with a dark band along θ_n+1 = θ_n;
+     - η 0.69, line of centres: bright spots spaced π/3 apart in both angles, and a bright diagonal;
+     - η 0.69, velocity after the hit.
+     - The cyan lines are the wall normals.
+  4. **The clean build** of the commit (bin_a71f394) gives hashes identical to the test build's and passes the same tests.
+- **Delivered:**
+  - the commits a71f394d (the code and its tests) and 4668d579 (the clean build's tests), both local on engine-gen3;
+  - the clean build hspist3/experiments_gen3_d52_261014/bin_a71f394/00ALLINONE;
+  - Chris's command line and the key list (sec. 1).
+- **Data this message:** about 340 MB of new data:
+  - the pin's evidence, 15 MB;
+  - the panel's evidence, 41 MB;
+  - the scratchpad's runs and frames, 87 MB;
+  - the clean build's source copy, 195 MB.
+  - 67 GB free.
+- **Next:** the Stage 2 / D2 sizing (decision 53 item 4).
+
+## 1. Chris's command line and the keys
+
+From hspist3/ of the engine-gen3 worktree: his usual flags (sec. 4.7.107), the new binary.
+
+```
+cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3 && experiments_gen3_d52_261014/bin_a71f394/00ALLINONE --show-simulation --mode=edmd --engine=gen3 --edmd-acc=0 --seed-drift-order=drift-first --kbt1 --particles=5000 --particles-boxes=2500,2500 --particle-radius=0.5 --l0=89.5904 --height=70.7107 --num-walls=1 --wall-positions=89.5904 --wall-mass-factors=50 --wall-hold-steps=600 --fixed-dt=0.4 --seed=9300 --gui-time-scale=200
+```
+
+The keys (in the gen3 help line: "Return map: i open/close | 1 angle | 2 walls | 3 side | 4/5 K"):
+
+| key | what |
+|---|---|
+| I | opens and closes the return map |
+| 1 | the angle: line of centres (default) ↔ velocity after the hit (switching clears the map) |
+| 2 | wall, divider and piston points: cyan (default) ↔ hidden |
+| 3 | side: both (default) → left → right |
+| 4 / 5 | K halved / doubled (625 .. 1,280,000; default 20,000) |
+
+The digits act only while the map is open. Under gen2, I is refused with a note.
+
+## 2. The tests (experiments_gen3_d52_261014; the clean build bin_a71f394)
+
+**The hash test and the frames** (tests/k_RESULTS.md, verbatim):
+
+```
+# The return-map panel's tests (k), the binary in tests/k_H_e030_closed.cmd
+
+## H, eta 0.30 (N 400): gen3's event hash at exactly steps 600, 1200 and 1800
+
+| run | step 600: hash, t, events | step 1200 | step 1800 | panel notes | run record clean |
+|---|---|---|---|---|---|
+| closed | 0962febcf90cda92, 240.00000357627869, 10163 | 8d360cfc76abd82b, 480.00000715255737, 20538 | f92dfdfd34f0504f, 720.00001072883606, 30918 | 0:  | 1 |
+| open | 0962febcf90cda92, 240.00000357627869, 10163 | 8d360cfc76abd82b, 480.00000715255737, 20538 | f92dfdfd34f0504f, 720.00001072883606, 30918 | 1: return map: angle line of centres, walls shown, side both, K 20000 | 1 |
+| toggled | 0962febcf90cda92, 240.00000357627869, 10163 | 8d360cfc76abd82b, 480.00000715255737, 20538 | f92dfdfd34f0504f, 720.00001072883606, 30918 | 7: return map: angle line of centres, walls shown, side both, K 20000; I: return map closed; return map: angle line of centres, walls shown, side both, K | 1 |
+| keys | 0962febcf90cda92, 240.00000357627869, 10163 | 8d360cfc76abd82b, 480.00000715255737, 20538 | f92dfdfd34f0504f, 720.00001072883606, 30918 | 12: return map: angle line of centres, walls shown, side both, K 20000; return map: angle velocity after, walls shown, side both, K 20000; return map: ang | 1 |
+
+verdict: EQUAL (the four runs at the three steps)
+
+## H, eta 0.69 (N 400): gen3's event hash at exactly steps 600, 1200 and 1800
+
+| run | step 600: hash, t, events | step 1200 | step 1800 | panel notes | run record clean |
+|---|---|---|---|---|---|
+| closed | 0047e2d2bca75315, 240.00000357627869, 62490 | dcedee2ec1966e1e, 480.00000715255737, 123507 | 05d74569dce5416e, 720.00001072883606, 185391 | 0:  | 1 |
+| open | 0047e2d2bca75315, 240.00000357627869, 62490 | dcedee2ec1966e1e, 480.00000715255737, 123507 | 05d74569dce5416e, 720.00001072883606, 185391 | 1: return map: angle line of centres, walls shown, side both, K 20000 | 1 |
+| toggled | 0047e2d2bca75315, 240.00000357627869, 62490 | dcedee2ec1966e1e, 480.00000715255737, 123507 | 05d74569dce5416e, 720.00001072883606, 185391 | 7: return map: angle line of centres, walls shown, side both, K 20000; I: return map closed; return map: angle line of centres, walls shown, side both, K | 1 |
+| keys | 0047e2d2bca75315, 240.00000357627869, 62490 | dcedee2ec1966e1e, 480.00000715255737, 123507 | 05d74569dce5416e, 720.00001072883606, 185391 | 12: return map: angle line of centres, walls shown, side both, K 20000; return map: angle velocity after, walls shown, side both, K 20000; return map: ang | 1 |
+
+verdict: EQUAL (the four runs at the three steps)
+
+## F, the frames (PNG in tests/)
+
+- k_F_e030_centres: 2000 x 1200 px window -> tests/k_F_e030_centres.png and tests/k_F_e030_centres_panel.png (the panel)
+- k_F_e069_centres: 2000 x 1200 px window -> tests/k_F_e069_centres.png and tests/k_F_e069_centres_panel.png (the panel)
+- k_F_e069_velocity: 2000 x 1200 px window -> tests/k_F_e069_velocity.png and tests/k_F_e069_velocity_panel.png (the panel)
+```
+
+**Part B's six registered task lines** (tests/k_T1/RESULTS.md, verbatim):
+
+```
+# T1 (k_T1), 2026-10-14 22:19:54 HST
+
+NEW experiments_gen3_d52_261014/bin_a71f394/00ALLINONE SHA-256 5f9f898ee47cbd317290bc2fc6b2b4044c19214c9224075c244a8e4005a174ea
+OLD experiments_gen3_d48_261013/bin_d2dc177/00ALLINONE SHA-256 cf1a4d1640603c4eaa1d471594880e29f0212283b3522cc95078b98fd5eecbbd
+
+| run (cell, mass, replicate) | exit old / new | clean old / new | event hash old / new | t_end old / new | output files, SHA-256 | seconds old / new | verdict |
+|---|---|---|---|---|---|---|---|
+| B_N0100_eta0.050000_m_50_r0 | 0 / 0 | 1 / 1 | c0f9d2f44e79b50e / c0f9d2f44e79b50e | 1410967.2210250497 / 1410967.2210250497 | 6 / 6, all equal | 2 / 2 | EQUAL |
+| B_N0100_eta0.050000_m_500_r0 | 0 / 0 | 1 / 1 | 6e080a8610263d56 / 6e080a8610263d56 | 3474666.4517765641 / 3474666.4517765641 | 7 / 7, all equal | 4 / 4 | EQUAL |
+| S_N0100_eta0.600000_start0_m_100_r0 | 0 / 0 | 1 / 1 | 8eec382384445253 / 8eec382384445253 | 50606.400754094124 / 50606.400754094124 | 7 / 7, all equal | 2 / 2 | EQUAL |
+| S_N0100_eta0.690000_turned_m_1000_r1 | 0 / 0 | 1 / 1 | c982a87bb55e5762 / c982a87bb55e5762 | 161066.00240007043 / 161066.00240007043 | 6 / 6, all equal | 11 / 10 | EQUAL |
+| D_N0100_eta0.020000_m_50_r0 | 0 / 0 | 1 / 1 | 0773df71d42a6cf7 / 0773df71d42a6cf7 | 3739874.0557284653 / 3739874.0557284653 | 6 / 6, all equal | 3 / 3 | EQUAL |
+| B_N0400_eta0.392699_m_200_r0 | 0 / 0 | 1 / 1 | d6c7ed35b4926076 / d6c7ed35b4926076 | 172243.20256662369 / 172243.20256662369 | 6 / 6, all equal | 7 / 7 | EQUAL |
+```
+
+The frames:
+- tests/k_F_e030_centres.png and k_F_e030_centres_panel.png;
+- tests/k_F_e069_centres.png and k_F_e069_centres_panel.png;
+- tests/k_F_e069_velocity.png and k_F_e069_velocity_panel.png.
+- The same tests on the test build, before the commit: tests/c_RESULTS.md, c_T1, c_F_*.
+
+## 3. The diff (git diff 00f4dd0e a71f394d -- hspist3/00ALLINONE.c hspist3/edmd_core; 236 lines in, 2 out)
+
+```
+diff --git a/hspist3/00ALLINONE.c b/hspist3/00ALLINONE.c
+index c571732a..173d04aa 100644
+--- a/hspist3/00ALLINONE.c
++++ b/hspist3/00ALLINONE.c
+@@ -11934,9 +11934,195 @@ static void g3_gui_guard_pistons(double dt){
+     }
+ }
+ 
++/* ##CHRIS 2026-10-14 (plan-author decision 52 item 2 and addendum 1; 261012 sec. 4.7.116, 4.7.120): THE COLLISION RETURN-MAP PANEL
++   (Rob's plot) in the window's gen3 scene. DISPLAY ONLY: a window run with the panel is a demonstration, never data.
++   What it shows: per disk, the angle theta_n in [0, 2 pi) of its n-th collision, and for each two consecutive collisions of the same
++   disk the point (theta_n, theta_n+1); a 90 x 90 histogram of the points of the last K disk collisions (a pair collision counts once
++   for each of its two disks), log colour scale, axes 0 .. 2 pi with ticks at multiples of pi/3, and the number of points shown.
++     angle (key 1): the line of centres from the disk to its partner at a pair collision (the default) and, at an outer wall, a
++       divider face or a piston face, the direction from the disk to it (0, pi/2, pi, 3 pi/2: the wall normal); or the direction of
++       the disk's velocity after the collision. Angles in the engine's x-y frame (y as the box's y coordinate).
++     walls (key 2): a point with a wall, divider or piston collision on either side is drawn in a second colour (cyan), or hidden.
++     side (key 3): both compartments, the left one or the right one (the disk's compartment at the load: left or right of the first
++       divider).
++     K (keys 4 and 5): halved or doubled, 625 .. 1,280,000 (default 20,000).
++   I opens and closes it (the help line). Switching the angle clears it; the other keys only change what is drawn.
++   How: gen3's collision gather hook (edmd3_set_coll_hook), set only while the panel is open and only on the window's gen3 state (every
++   frame, rm_frame), hands the panel a copy of each collision's result. The engine's state, its event order and every output are
++   unchanged (tested: equal event hashes with the panel closed, open, and toggled); no experiment loop and no KOA path sets it. */
++#define RM_BINS 90
++#define RM_KMIN 625L
++#define RM_KMAX 1280000L
++static struct {
++    int    open, mode, walls, side;                 /* mode 0: line of centres, 1: velocity after; walls 1: shown; side 0 both, 1 left, 2 right */
++    long   K, builds;                               /* the ring's length; g3_builds of the state the hook is on (-1: none) */
++    float* prev; unsigned char* prevk; int nprev;   /* per disk: the angle of its last collision (NAN: none yet); 1: it was a wall/body */
++    uint32_t* ring; long n, head;                   /* the last K points: bx | by << 7 | class << 14 | right << 15 */
++    int    hist[2][2][RM_BINS][RM_BINS];            /* [right][class][by][bx]; class 1: a wall, divider or piston on either side */
++    long   gathered;                                /* disk collisions since the last clear */
++    SDL_Texture* tex;
++} rm;
++static void rm_clear(void){
++    memset(rm.hist, 0, sizeof rm.hist);
++    rm.n = 0; rm.head = 0; rm.gathered = 0;
++    for (int i = 0; i < rm.nprev; ++i) { rm.prev[i] = NAN; rm.prevk[i] = 0; }
++}
++static int rm_bin(double th){ const int b = (int)(th * ((double)RM_BINS / (2.0 * M_PI))); return b < 0 ? 0 : (b >= RM_BINS ? RM_BINS - 1 : b); }
++static void rm_pop(void){   /* the oldest point leaves the ring */
++    const uint32_t v = rm.ring[(rm.head - rm.n + RM_KMAX) % RM_KMAX];
++    rm.hist[(v >> 15) & 1u][(v >> 14) & 1u][(v >> 7) & 127u][v & 127u]--;
++    rm.n--;
++}
++static void rm_point(int i, int wall, int comp, double th){   /* disk i's collision at angle th */
++    if (i < 0 || i >= rm.nprev) return;
++    if (th < 0.0) th += 2.0 * M_PI;
++    const float p = rm.prev[i]; const int pk = rm.prevk[i];
++    rm.prev[i] = (float)th; rm.prevk[i] = (unsigned char)(wall != 0);
++    rm.gathered++;
++    if (isnan(p)) return;
++    while (rm.n >= rm.K) rm_pop();
++    const int bx = rm_bin((double)p), by = rm_bin(th), cls = pk || wall, right = comp > 0;
++    rm.ring[rm.head] = (uint32_t)bx | ((uint32_t)by << 7) | ((uint32_t)cls << 14) | ((uint32_t)right << 15);
++    rm.head = (rm.head + 1) % RM_KMAX; rm.n++;
++    rm.hist[right][cls][by][bx]++;
++}
++static void rm_hook(void* ctx, const EDMD3_Coll* c){   /* called by gen3 at each collision while the panel is open: reads its copy only */
++    (void)ctx;
++    const int wall = c->kind != 0;
++    if (rm.mode == 0) {
++        rm_point(c->a, wall, c->comp_a, atan2(c->ny, c->nx));
++        if (c->b >= 0) rm_point(c->b, 0, c->comp_b, atan2(-c->ny, -c->nx));
++    } else {
++        rm_point(c->a, wall, c->comp_a, atan2(c->vay, c->vax));
++        if (c->b >= 0) rm_point(c->b, 0, c->comp_b, atan2(c->vby, c->vbx));
++    }
++}
++static void rm_frame(void){   /* the window, every frame: while the panel is open, the hook is on the current gen3 state */
++    if (!rm.open || cli_engine != 3) return;
++    if (!g_edmd3) { rm.builds = -1; return; }
++    if (rm.builds == g3_builds) return;
++    const int n = edmd3_count(g_edmd3);
++    if (n != rm.nprev) {
++        free(rm.prev); free(rm.prevk);
++        rm.prev = (float*)malloc((size_t)(n > 0 ? n : 1) * sizeof *rm.prev); rm.prevk = (unsigned char*)malloc((size_t)(n > 0 ? n : 1));
++        rm.nprev = (rm.prev && rm.prevk) ? n : 0;
++    }
++    rm_clear();
++    edmd3_set_coll_hook(g_edmd3, rm_hook, NULL);
++    rm.builds = g3_builds;
++}
++static void rm_note(void){
++    char b[200];
++    snprintf(b, sizeof b, "return map: angle %s, walls %s, side %s, K %ld", rm.mode ? "velocity after" : "line of centres",
++             rm.walls ? "shown" : "hidden", rm.side == 0 ? "both" : (rm.side == 1 ? "left" : "right"), rm.K);
++    g3_gui_note(b);
++}
++static int rm_key(SDL_Keycode k){   /* 1 if it is the panel's key */
++    if (k == SDLK_i) {
++        if (cli_engine != 3) { g3_gui_note("I (return map) needs gen3: the panel reads gen3's collisions"); return 1; }
++        if (!rm.ring) {
++            rm.ring = (uint32_t*)malloc((size_t)RM_KMAX * sizeof *rm.ring);
++            if (!rm.ring) { g3_gui_note("I (return map): out of memory"); return 1; }
++            rm.K = 20000L; rm.walls = 1; rm.builds = -1;
++        }
++        rm.open = !rm.open;
++        if (rm.open) { rm.builds = -1; rm_frame(); rm_note(); }
++        else { edmd3_set_coll_hook(NULL, NULL, NULL); rm.builds = -1; g3_gui_note("I: return map closed"); }
++        return 1;
++    }
++    if (!rm.open) return 0;
++    switch (k) {
++        case SDLK_1: rm.mode = !rm.mode; rm_clear(); rm_note(); return 1;
++        case SDLK_2: rm.walls = !rm.walls; rm_note(); return 1;
++        case SDLK_3: rm.side = (rm.side + 1) % 3; rm_note(); return 1;
++        case SDLK_4: if (rm.K > RM_KMIN) { rm.K /= 2; while (rm.n > rm.K) rm_pop(); } rm_note(); return 1;
++        case SDLK_5: if (rm.K < RM_KMAX) rm.K *= 2; rm_note(); return 1;
++        default: return 0;
++    }
++}
++static void rm_colour(double t, Uint8* r, Uint8* g, Uint8* b){   /* the pair points' scale: dark blue, purple, orange, pale yellow */
++    static const double S[4][3] = {{28, 30, 80}, {130, 40, 150}, {245, 120, 40}, {255, 245, 190}};
++    t = t < 0.0 ? 0.0 : (t > 1.0 ? 1.0 : t);
++    const double u = t * 3.0; int k = (int)u; if (k > 2) k = 2;
++    const double w = u - (double)k;
++    *r = (Uint8)(S[k][0] + w * (S[k + 1][0] - S[k][0])); *g = (Uint8)(S[k][1] + w * (S[k + 1][1] - S[k][1]));
++    *b = (Uint8)(S[k][2] + w * (S[k + 1][2] - S[k][2]));
++}
++static void rm_draw(SDL_Renderer* r, TTF_Font* f){   /* in the UI pass (window points); bottom right, left of the F2/F3 panels */
++    if (!rm.open || !r) return;
++    enum { PW = 270, ML = 52, MR = 14, MT = 66, MB = 30 };
++    const int W = ML + PW + MR, H = MT + PW + MB;
++    int x0 = gui_controls_column_left_ui() - 8 - W, y0 = MAX_Y - 8 - H;
++    if (x0 < 8) x0 = 8;
++    if (y0 < 8) y0 = 8;
++    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
++    SDL_SetRenderDrawColor(r, 10, 12, 22, 238);
++    SDL_Rect bg = {x0, y0, W, H};
++    SDL_RenderFillRect(r, &bg);
++    SDL_SetRenderDrawColor(r, 120, 130, 170, 255);
++    SDL_RenderDrawRect(r, &bg);
++    static int c0[RM_BINS][RM_BINS], c1[RM_BINS][RM_BINS];
++    static uint32_t px[RM_BINS * RM_BINS];
++    int m0 = 0, m1 = 0; long shown = 0;
++    for (int by = 0; by < RM_BINS; ++by)
++        for (int bx = 0; bx < RM_BINS; ++bx) {
++            int a = 0, w = 0;
++            for (int s = 0; s < 2; ++s) {
++                if ((rm.side == 1 && s == 1) || (rm.side == 2 && s == 0)) continue;
++                a += rm.hist[s][0][by][bx]; w += rm.hist[s][1][by][bx];
++            }
++            if (!rm.walls) w = 0;
++            c0[by][bx] = a; c1[by][bx] = w; shown += a + w;
++            if (a > m0) m0 = a;
++            if (w > m1) m1 = w;
++        }
++    const double l0 = log1p((double)(m0 > 0 ? m0 : 1)), l1 = log1p((double)(m1 > 0 ? m1 : 1));
++    for (int by = 0; by < RM_BINS; ++by)
++        for (int bx = 0; bx < RM_BINS; ++bx) {
++            Uint8 R = 16, G = 18, B = 30;
++            if (c0[by][bx] > 0) rm_colour(log1p((double)c0[by][bx]) / l0, &R, &G, &B);
++            if (c1[by][bx] > 0) {   /* the second colour: cyan, by its own log scale */
++                const double al = 0.35 + 0.65 * log1p((double)c1[by][bx]) / l1;
++                R = (Uint8)((1.0 - al) * R + al * 70.0); G = (Uint8)((1.0 - al) * G + al * 235.0); B = (Uint8)((1.0 - al) * B + al * 235.0);
++            }
++            px[(RM_BINS - 1 - by) * RM_BINS + bx] = 0xFF000000u | ((uint32_t)R << 16) | ((uint32_t)G << 8) | (uint32_t)B;
++        }
++    if (!rm.tex) {
++        rm.tex = SDL_CreateTexture(r, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, RM_BINS, RM_BINS);
++#if SDL_VERSION_ATLEAST(2, 0, 12)
++        if (rm.tex) SDL_SetTextureScaleMode(rm.tex, SDL_ScaleModeNearest);
++#endif
++    }
++    const SDL_Rect plot = {x0 + ML, y0 + MT, PW, PW};
++    if (rm.tex && SDL_UpdateTexture(rm.tex, NULL, px, RM_BINS * (int)sizeof px[0]) == 0) SDL_RenderCopy(r, rm.tex, NULL, &plot);
++    SDL_SetRenderDrawColor(r, 170, 175, 200, 255);
++    SDL_RenderDrawRect(r, &plot);
++    const SDL_Color white = {235, 235, 245, 255}, muted = {170, 175, 200, 255}, cyan = {90, 230, 230, 255};
++    static const char* const TL[7] = {"0", "π/3", "2π/3", "π", "4π/3", "5π/3", "2π"};
++    for (int k = 0; k <= 6; ++k) {
++        const int tx = plot.x + k * PW / 6, ty = plot.y + PW - k * PW / 6;
++        SDL_Rect a = {tx, plot.y + PW, 1, 5}, b = {plot.x - 5, ty, 5, 1};
++        SDL_RenderFillRect(r, &a); SDL_RenderFillRect(r, &b);
++        if (f) {
++            draw_text(r, f, TL[k], tx - (k == 0 ? 3 : 12), plot.y + PW + 7, muted);
++            draw_text(r, f, TL[k], plot.x - 44, ty - 8, muted);
++        }
++    }
++    if (f) {
++        char l2t[200], l3t[200];
++        snprintf(l2t, sizeof l2t, "1 %s | 2 walls %s | 3 %s", rm.mode ? "velocity after the hit" : "line of centres",
++                 rm.walls ? "cyan" : "hidden", rm.side == 0 ? "both sides" : (rm.side == 1 ? "left side" : "right side"));
++        snprintf(l3t, sizeof l3t, "4/5 K %ld | points %ld | log colour", rm.K, shown);
++        draw_text(r, f, "Return map: x = θn, y = θn+1  (i close)", x0 + 10, y0 + 6, white);
++        draw_text_clipped(r, f, l2t, x0 + 10, y0 + 24, rm.walls ? cyan : muted, W - 20);
++        draw_text_clipped(r, f, l3t, x0 + 10, y0 + 42, muted, W - 20);
++    }
++}
++
+ ////////// KEYBOARD INPUT HANDLING //////////
+ // Keyboard input handling
+ void keysSimulation(SDL_Event e) {
++    if (e.type == SDL_KEYDOWN && rm_key(e.key.keysym.sym)) return;   /* ##CHRIS 2026-10-14 (decision 52): the return-map panel's keys */
+     if (cli_engine == 3 && e.type == SDL_KEYDOWN && g3_gui_key(e.key.keysym.sym)) return;   /* ##CHRIS 2026-10-10 (decision 19, item 2) */
+     if (gui_div_limit_paused && e.type == SDL_KEYDOWN && (e.key.keysym.sym == SDLK_p || e.key.keysym.sym == SDLK_SPACE)) {
+         /* ##CHRIS 2026-10-12 (decision 34, addition, item C): a divider at the end of its range is not resumed */
+@@ -15844,6 +16030,7 @@ static int hud_build_experiment_key_lines(char lines[][256], int max_lines) {
+         if (n < max_lines) snprintf(lines[n++], 256, "Pistons: a/d left | left/right right | s/up stop");
+         if (n < max_lines) snprintf(lines[n++], 256, "View: v panels | x/y density | f vmax | z exact");
+         if (n < max_lines) snprintf(lines[n++], 256, "Wall: r release | e print energy");
++        if (n < max_lines) snprintf(lines[n++], 256, "Return map: i open/close | 1 angle | 2 walls | 3 side | 4/5 K");   /* ##CHRIS (decision 52) */
+         if (n < max_lines) snprintf(lines[n++], 256, "n/a (gen3): w wall | [ ] \\ T | b HB | k , . Andersen");
+         return n;
+     }
+@@ -21111,7 +21298,9 @@ static void run_szilard_engine_experiment(void) {
+    STEP-th executed step the key is put into SDL's event queue (pressed, then released) and is handled with the next frame's events,
+    as a key press is. KEY: an SDL key name (R, T, B, W, K, P, Q, Space, Escape, Left, Right, Up, F2, F3, [, ], \, ...), "comma",
+    "period", with a trailing "+" pressed and held (no release); or "apply-gen3" / "apply-gen2": the F3 panel synced to the running
+-   scene, its engine row set to EDMD gen3 / EDMD and its APPLY (live_scene_prepare_rebuild), as the mouse would. */
++   scene, its engine row set to EDMD gen3 / EDMD and its APPLY (live_scene_prepare_rebuild), as the mouse would; or "hash" (##CHRIS
++   2026-10-14, decision 52 addendum 1: the return map's test): [GUI-HASH] with gen3's event hash, its time and its executed events at
++   exactly that step (printed inside the step loop; the reads change nothing), so that runs whose frames differ compare exactly. */
+ #define G3_GUI_KEYS_MAX 64
+ static long g3_gui_key_step[G3_GUI_KEYS_MAX];
+ static char g3_gui_key_name[G3_GUI_KEYS_MAX][24];
+@@ -21139,7 +21328,7 @@ static void g3_gui_keys_parse(void){
+         int hold = 0;
+         if (!colon || end != colon || st < 1 || !*nm || strlen(nm) >= sizeof g3_gui_key_name[0] || g3_gui_key_n >= G3_GUI_KEYS_MAX
+             || (g3_gui_key_n > 0 && st < g3_gui_key_step[g3_gui_key_n - 1])
+-            || (strcmp(nm, "apply-gen3") && strcmp(nm, "apply-gen2") && g3_gui_key_code(nm, &hold) == SDLK_UNKNOWN)) {
++            || (strcmp(nm, "apply-gen3") && strcmp(nm, "apply-gen2") && strcmp(nm, "hash") && g3_gui_key_code(nm, &hold) == SDLK_UNKNOWN)) {
+             fprintf(stderr, "Invalid --gui-keys entry '%s' (STEP:KEY, steps ascending, at most %d)\n", tok, G3_GUI_KEYS_MAX);
+             exit(EXIT_FAILURE);
+         }
+@@ -21152,6 +21341,13 @@ static void g3_gui_keys_pump(long steps_done){
+     while (g3_gui_key_next < g3_gui_key_n && g3_gui_key_step[g3_gui_key_next] <= steps_done) {
+         const char* nm = g3_gui_key_name[g3_gui_key_next++];
+         printf("[GUI-KEYS] step %ld: %s\n", steps_done, nm);
++        if (!strcmp(nm, "hash")) {   /* ##CHRIS 2026-10-14 (decision 52 addendum 1): an exact cut for the return map's test */
++            if (g_edmd3) printf("[GUI-HASH] step %ld: hash=%016llx t=%.17g events=%ld\n", steps_done,
++                                (unsigned long long)edmd3_event_hash(g_edmd3), edmd3_time(g_edmd3), g3_gui_events());
++            else printf("[GUI-HASH] step %ld: no gen3 state\n", steps_done);
++            fflush(stdout);
++            continue;
++        }
+         if (!strcmp(nm, "apply-gen3") || !strcmp(nm, "apply-gen2")) {
+             live_scene_sync_from_runtime();
+             live_scene_engine = nm[9] == '3' ? LIVE_SCENE_ENGINE_GEN3 : LIVE_SCENE_ENGINE_EDMD;
+@@ -22709,6 +22905,7 @@ void simulation_loop() {
+             // (Physics state remains at simulation_time; this only affects visualization.)
+             gui_render_dt_rem = accumulator;
+             if (cli_engine == 3) g3_gui_rate_update();   /* ##CHRIS 2026-10-10 (decision 19, item 2): the HUD's events/s */
++            rm_frame();   /* ##CHRIS 2026-10-14 (decision 52): while the return map is open, the hook is on the current gen3 state */
+ 
+             if (cli_render_paper) {
+                 /* ##CHRIS 2026-09-19: figure-grade scene, drawn instead of the debug view.
+@@ -22741,6 +22938,7 @@ void simulation_loop() {
+             render_energy_hud(_renderer, font);
+             render_live_controls(_renderer, font_small ? font_small : font);
+             gui_div_limit_banner();   /* item C */
++            rm_draw(_renderer, font_small ? font_small : font);   /* ##CHRIS 2026-10-14 (decision 52): the return-map panel, if open */
+             gui_end_ui_view();
+             float T_measured = compute_measured_temperature_from_ke();
+             char temp_label[128];
+diff --git a/hspist3/edmd_core/edmd_gen3.c b/hspist3/edmd_core/edmd_gen3.c
+index 1119d0be..e7d9ce3e 100644
+--- a/hspist3/edmd_core/edmd_gen3.c
++++ b/hspist3/edmd_core/edmd_gen3.c
+@@ -697,6 +697,16 @@ static void contact_audit(EDMD3* S, const Ev3* e){
+     if (R_(fabs)(gap) > S->contact_max[k]) S->contact_max[k] = R_(fabs)(gap);
+     S->contact_events++;
+ }
++/* ##CHRIS 2026-10-14 (plan-author decision 52 item 2 and addendum 1; 261012 sec. 4.7.116, 4.7.120): THE COLLISION GATHER HOOK of the
++   viewer's return-map panel (edmd_gen3.h). Display only and off unless set: the hook and the state it belongs to are kept here, outside
++   struct EDMD3, so the state's size, its checkpoint format and every event are unchanged; the three collision rules below hand it a copy
++   of their own results after the velocities are set, and the driver's function only reads that copy. */
++static EDMD3*         coll_hook_S = NULL;
++static EDMD3_CollHook coll_hook_fn = NULL;
++static void*          coll_hook_ctx = NULL;
++void edmd3_set_coll_hook(EDMD3* S, EDMD3_CollHook fn, void* ctx){
++    coll_hook_S = fn ? S : NULL; coll_hook_fn = fn; coll_hook_ctx = fn ? ctx : NULL;
++}
+ static void exec_pair(EDMD3* S, const Ev3* e){
+     const int i = e->a, j = e->b;
+     advance(S, i); advance(S, j);
+@@ -717,6 +727,10 @@ static void exec_pair(EDMD3* S, const Ev3* e){
+     S->ledSE += 4.0 * (A->vx * A->vx + A->vy * A->vy + B->vx * B->vx + B->vy * B->vy);
+     A->cnt++; B->cnt++; A->last = j; B->last = i;
+     S->H.ev_pair++;
++    if (coll_hook_fn && coll_hook_S == S) {   /* ##CHRIS 2026-10-14 (decision 52): display only, a copy */
++        const EDMD3_Coll c = {0, i, j, A->comp, B->comp, (double)nx, (double)ny, (double)A->vx, (double)A->vy, (double)B->vx, (double)B->vy};
++        coll_hook_fn(coll_hook_ctx, &c);
++    }
+     predict_all(S, i); predict_all(S, j);
+     local_check(S, i); local_check(S, j);    /* after the predictions: a repair bumps cnt and so retires them */
+ }
+@@ -732,6 +746,11 @@ static void exec_wall(EDMD3* S, const Ev3* e){
+     S->wall_events[s]++;
+     A->cnt++; A->last = -1;
+     S->H.ev_wall++;
++    if (coll_hook_fn && coll_hook_S == S) {   /* ##CHRIS 2026-10-14 (decision 52): display only, a copy */
++        static const double WNX[4] = {-1.0, 1.0, 0.0, 0.0}, WNY[4] = {0.0, 0.0, -1.0, 1.0};
++        const EDMD3_Coll c = {1, i, -1, A->comp, -1, WNX[s], WNY[s], (double)A->vx, (double)A->vy, 0.0, 0.0};
++        coll_hook_fn(coll_hook_ctx, &c);
++    }
+     predict_all(S, i);
+     local_check(S, i);
+ }
+@@ -825,6 +844,11 @@ static void exec_obj(EDMD3* S, const Ev3* e){
+     }
+     A->vx = v1; A->cnt++; A->last = -2 - o; O->last = i;
+     if (e->type == T_DIV) S->H.ev_div++; else S->H.ev_piston++;
++    if (coll_hook_fn && coll_hook_S == S) {   /* ##CHRIS 2026-10-14 (decision 52): display only, a copy */
++        const double dir = e->type == T_DIV ? (f == 0 ? 1.0 : -1.0) : (e->b == 0 ? -1.0 : 1.0);
++        const EDMD3_Coll c = {e->type == T_DIV ? 2 : 3, i, -1, A->comp, -1, dir, 0.0, (double)A->vx, (double)A->vy, 0.0, 0.0};
++        coll_hook_fn(coll_hook_ctx, &c);
++    }
+     if (v2 != u2) { O->v = v2; obj_changed(S, o, i); }
+     predict_all(S, i);
+     local_check(S, i);
+@@ -1153,6 +1177,7 @@ EDMD3* edmd3_create(const EDMD_Params* prm, double cell_px, char* err, size_t er
+ 
+ void edmd3_destroy(EDMD3* S){
+     if (!S) return;
++    if (coll_hook_S == S) edmd3_set_coll_hook(NULL, NULL, NULL);   /* ##CHRIS 2026-10-14 (decision 52): the hook goes with its state */
+     free(S->cell); free(S->ccount); free(S->D); free(S->out); free(S->heap.d);
+     free(S->alx); free(S->aly); free(S->acr); free(S->acd); free(S->awl); free(S->ahk); free(S->aht); free(S->ahm);
+     free(S->aot); free(S->aob);
+diff --git a/hspist3/edmd_core/edmd_gen3.h b/hspist3/edmd_core/edmd_gen3.h
+index f8d63559..6616f999 100644
+--- a/hspist3/edmd_core/edmd_gen3.h
++++ b/hspist3/edmd_core/edmd_gen3.h
+@@ -173,6 +173,17 @@ void   edmd3_set_check_interval(EDMD3* S, double units); /* full validator caden
+ /* ##CHRIS 2026-10-09 (M3): edmd.c's gated event log (t_sigma, kind, u_wall, v_before, v_after, dE, dp) per wall, divider-face and
+    piston collision; f NULL = off (the default); time_scale converts internal time to sigma-time (the driver passes 24) */
+ void   edmd3_set_event_log(EDMD3* S, FILE* f, double time_scale);
++/* ##CHRIS 2026-10-14 (plan-author decision 52 item 2 and addendum 1; 261012 sec. 4.7.116, 4.7.120): the collision gather hook of the
++   viewer's return-map panel. DISPLAY ONLY: off (NULL, the default) unless the window's panel is open. When it is set, each pair,
++   outer-wall, divider-face and piston collision of that state hands a copy of what the collision rule already computed to fn, which
++   reads it; nothing of the state changes (the hook is kept outside the state, so the state's size, its checkpoint format and every
++   event stay as they are). kind 0: a disk pair (a, b; n the unit line of centres from a to b at contact); 1: an outer wall
++   (n = (-1,0), (1,0), (0,-1), (0,1) for the left, right, y = 0 and y = H walls: the direction from the disk to the wall); 2: a divider
++   face (n = (1,0) at the left face, (-1,0) at the right face); 3: a piston face (n = (-1,0) left, (1,0) right). b = -1 unless kind 0.
++   comp_a, comp_b: the disks' compartments (the dividers left of the disk at the load). v*: the velocities after the collision. */
++typedef struct { int kind, a, b, comp_a, comp_b; double nx, ny, vax, vay, vbx, vby; } EDMD3_Coll;
++typedef void (*EDMD3_CollHook)(void* ctx, const EDMD3_Coll* c);
++void   edmd3_set_coll_hook(EDMD3* S, EDMD3_CollHook fn, void* ctx);   /* fn NULL: off; one state at a time */
+ 
+ /* read-only audits: neither changes any stored number, so outputs are identical with and without them */
+ void   edmd3_set_contact_audit(EDMD3* S, int on);
+```
+
+## Commits
+
+- **engine-gen3, local:**
+  - a71f394d (the panel: the code, the scripts, the test build's tests and frames);
+  - 4668d579 (the clean build's records and tests).
+  - The binary is not committed; its records are.
+- **main:** this report (4.7.121); its copies on engine-gen3 and engine-divider-resched.
+
+Written for: the plan author
