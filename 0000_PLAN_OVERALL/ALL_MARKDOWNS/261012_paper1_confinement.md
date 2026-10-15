@@ -31126,3 +31126,87 @@ VERDICT: NOT READY
 - The dry-run outputs and the two lists are in the scratchpad (d54/) and here.
 
 Written for: the plan author
+
+### 4.7.127 Plan-author decision 55: the full report accepted (Reports D54-1 to D54-4, read from the Mac); the verdicts of record, as the registered script prints them, unchanged (Verdict K on Φ KR-INCONSISTENT at η 0.60; Verdict S START-INDEPENDENT 20 of 20; |a_Z| < 0.3 % at 12 of 12; Verdict I waits for Part A; no rerun, no tuning, no rule changed); POST-HOC information, dated and labelled POST HOC, never in place of the verdicts, one short record (Report D55): Verdict K's statistics without η 0.60 and without 0.60 and 0.50, η 0.60 side by side, each density's share of X², the numbers behind "form not adequate" at 0.50, the table for the paper; THE GO for the consolidation: the runsheet of Report D51 sec. 4 now, one step per message, step (a) printed now; after it A5, the Part A pilot runsheet and the KOA build from the one tree, the Stage 2 / D2 sizing queued (2026-10-15 10:01 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 55** (relayed by Chris at about 10:00 HST, machine date; the plan author's time "~10:00 HST").
+- **1. Reports D54-1 to D54-4 accepted,** read from the Mac: a_verdict_full.txt, b_verdict_noflag.txt, RUN_RECORD.txt and figures_261015b.
+- **2. The verdicts of record,** as the registered script prints them, unchanged:
+  - Verdict K on Φ: KR-INCONSISTENT (X² 32.69 / 12, p 0.0011, max |z| 3.58, at η 0.60); the weighted mean a over Φ +0.026 ± 0.022 % (F2);
+  - pressure: |a_Z| < 0.3 % at 12 of 12;
+  - Verdict S: START-INDEPENDENT 20 of 20;
+  - continuity |z| ≤ 0.74; no stationarity flag; the low-Q flag at (900, 0.69); "form not adequate" at 0.50, 0.68 and 0.69;
+  - Verdict I waits for Part A.
+  - No rerun, no tuning, no change to any rule.
+- **3. POST-HOC information,** dated 2026-10-15. It is labelled POST HOC in the notes and in the paper and never stands in place of item 2. Read-only from the fetched data, in one short record, Report D55:
+  - (a) Verdict K's statistics on Φ without η 0.60 (11 densities): X², p, max |z| (expected about 19.9 / 11, p about 0.05, 2.58); and without both 0.60 and 0.50 (the form-inadequate density).
+  - (b) At η 0.60:
+    - ψ6 and the E1 χ²/dof of the four sizes side by side;
+    - the N 100 cell's per-seed ψ6 scatter (multi-state or not);
+    - the F1 fit without N 100 (+0.076 ± 0.077, as printed);
+    - the F2 fit on the three sizes 400, 900 and 1600 (3 points, 3 parameters): its a, with the note that it has no degree of freedom.
+  - (c) Each density's contribution to Verdict K's X² of 32.69.
+  - (d) For η 0.50: the four Δ_N with errors and the F2 residuals, so that "form not adequate" has numbers.
+  - (e) The table for the paper, one CSV: per density a (F2) ± σ_a, z, a_Z, and the per-size Δ_N.
+- **4. THE GO for the consolidation** (decision 51). The runsheet of Report D51 sec. 4 runs now, with today's step-0 facts (Report D54-4). The order:
+  - Chris pushes (step a);
+  - Chris quits the viewer, closes the terminals in the worktree and removes HardDisks_gen3 from the VS Code workspace;
+  - the mover's list must read READY;
+  - then (b)2, (b)3, (c), (d), (e), (f) and (g), exactly as written, one step per message between Chris and the plan author.
+  - CC prints step (a) now, verbatim, with its good lines.
+  - The hold folder and the scratch clones stay until Chris's word.
+- **5. After the consolidation:** A5 (the plan author writes it today), the Part A pilot runsheet and the KOA build from the one tree. The Stage 2 / D2 sizing (decision 53 item 4) stays queued.
+
+**The message, verbatim** (relayed by Chris on 2026-10-15 at about 10:00 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record as decision 55.
+
+DECISION 55 (2026-10-15 ~10:00 HST): THE FULL REPORT ACCEPTED; THE
+VERDICTS OF RECORD; POST-HOC INFORMATION; THE GO FOR THE CONSOLIDATION
+ 1. Reports D54-1 to D54-4 ACCEPTED, read from the Mac (a_verdict_full
+    .txt, b_verdict_noflag.txt, RUN_RECORD.txt, figures_261015b).
+ 2. THE VERDICTS OF RECORD, as the registered script prints them,
+    unchanged: Verdict K on Phi: KR-INCONSISTENT (X^2 32.69 / 12,
+    p 0.0011, max |z| 3.58, at eta 0.60); weighted mean a over Phi
+    +0.026 +- 0.022 % (F2); pressure: |a_Z| < 0.3 % at 12 of 12;
+    Verdict S: START-INDEPENDENT 20 of 20; continuity |z| <= 0.74; no
+    stationarity flag; low-Q flag at (900, 0.69); form not adequate
+    at 0.50, 0.68, 0.69; Verdict I waits for Part A. No rerun, no
+    tuning, no change to any rule.
+ 3. POST-HOC INFORMATION, dated 2026-10-15, labelled POST HOC in the
+    notes and in the paper, never in place of item 2 (read-only from
+    the fetched data; one short record, Report D55):
+    (a) Verdict K's statistics on Phi without eta 0.60 (11 densities):
+    X^2, p, max |z| (expected: ~19.9 / 11, p ~0.05, 2.58); and
+    without 0.60 and 0.50 (the form-inadequate density).
+    (b) At eta 0.60: psi6 and the E1 chi2/dof of the four sizes side
+    by side, and the N 100 cell's per-seed psi6 scatter (multi-state
+    or not); the F1 fit without N 100 (+0.076 +- 0.077 as printed) and
+    the F2 fit on the three sizes 400, 900, 1600 (3 points, 3
+    parameters: report its a with the note that it has no dof).
+    (c) The X^2 contribution of each density to Verdict K's 32.69.
+    (d) For eta 0.50: the four Delta_N with errors and the F2
+    residuals, so the "form not adequate" has numbers.
+    (e) The table for the paper: per density, a (F2) +- sigma_a, z,
+    a_Z, and the per-size Delta_N -- one CSV.
+ 4. THE GO FOR THE CONSOLIDATION (decision 51): execute the runsheet
+    of Report D51 sec. 4 now, with today's step-0 facts (Report
+    D54-4). Order: Chris pushes (step a); Chris quits the viewer and
+    closes the terminals in the worktree, removes HardDisks_gen3 from
+    the VS Code workspace; the mover's list must read READY; then
+    (b)2, (b)3, (c), (d), (e), (f), (g) exactly as written, one step
+    per message between Chris and the plan author. Print step (a)
+    now, verbatim, with its good lines. The hold folder and the
+    scratch clones stay until Chris's word.
+ 5. After the consolidation: A5 (the plan author writes it today),
+    the Part A pilot runsheet and the KOA build from the one tree;
+    the Stage 2 / D2 sizing (decision 53 item 4) stays queued.
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
