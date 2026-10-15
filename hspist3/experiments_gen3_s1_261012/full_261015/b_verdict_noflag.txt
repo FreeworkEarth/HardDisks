@@ -1,0 +1,58 @@
+# What the verdict script's report() leaves out, from its own analyse() and functions (s1_verdict_noflag_261015.py)
+
+groups present: B100, B400, D, B900, S, B1600; stopped by the stop rule: none
+
+## (1) Verdict K's z per density (z = a / sigma_a of F2, sec. 4.8.7.2)
+
+| eta | set | F2 a [%] | sigma_a [%] | z | F2 p |
+|---|---|---|---|---|---|
+| 0.05 | Phi | +0.049 | 0.080 | +0.62 | 0.580 |
+| 0.1 | Phi | -0.026 | 0.068 | -0.38 | 0.092 |
+| 0.15 | Phi | -0.090 | 0.065 | -1.38 | 0.049 |
+| 0.2 | Phi | -0.014 | 0.067 | -0.21 | 0.645 |
+| 0.25 | Phi | +0.084 | 0.059 | +1.42 | 0.437 |
+| 0.3 | Phi | +0.004 | 0.058 | +0.06 | 0.563 |
+| 0.35 | Phi | +0.023 | 0.078 | +0.29 | 0.209 |
+| 0.3927 | Phi | +0.222 | 0.086 | +2.58 | 0.126 |
+| 0.45 | Phi | +0.151 | 0.099 | +1.52 | 0.699 |
+| 0.5 | Phi | +0.244 | 0.097 | +2.50 | 0.004 |
+| 0.55 | Phi | -0.003 | 0.099 | -0.03 | 0.024 |
+| 0.6 | Phi | -0.537 | 0.150 | -3.58 (>= 3.5) | 0.012 |
+| 0.63 | approach (information) | -0.423 | 0.241 | -1.76 | 0.107 |
+| 0.66 | approach (information) | -5.011 | 0.816 | -6.14 | 0.107 |
+| 0.68 | approach (information) | -17.164 | 1.741 | -9.86 | 0.006 |
+| 0.69 | approach (information) | -21.355 | 1.234 | -17.31 | 0.000 |
+
+On Phi: X^2 = 32.69 (12 dof), p = 0.0011, max |z| = 3.58; |z| < 2 at 9 of 12; |z| >= 3.5 at: 0.6
+
+## (2) The flags
+
+- stationarity (sec. 4.8.7.6, |t| >= 3 or |z| >= 3), over all 110 cells of B, D and S: none; the largest |hold t| +2.42 (B_N0900_eta0.680000), the largest |record z| +2.74 (D_N0400_eta0.020000); tests: 110 hold, 110 record
+- low-Q (sec. 4.8.6.2, a used mass with Q_k < 5): B_N0900_eta0.690000: M 13500 Q_k 4.95, M 18000 Q_k 4.73
+- form not adequate (sec. 4.8.7.1, F2 p < 0.01): 0.5 (p 0.0045, Phi), 0.68 (p 0.0061, approach), 0.69 (p 0.0000, approach)
+- START-DEPENDENT (sec. 4.8.7.5): none (of 20 cells)
+- the group rule (sec. 4.8.5; left out of their cells' fits by the script itself): 15 (cell, mass) folders: B_N0100_eta0.050000 M 1500 (3 lost: 3 fit failures, 0 excluded); B_N0100_eta0.050000 M 2000 (3 lost: 3 fit failures, 0 excluded); B_N0400_eta0.050000 M 3000 (3 lost: 3 fit failures, 0 excluded); B_N0900_eta0.050000 M 2700 (3 lost: 3 fit failures, 0 excluded); B_N0900_eta0.100000 M 4500 (3 lost: 3 fit failures, 0 excluded); B_N0900_eta0.100000 M 9000 (4 lost: 4 fit failures, 0 excluded); B_N0900_eta0.150000 M 18000 (6 lost: 6 fit failures, 0 excluded); B_N1600_eta0.050000 M 3200 (3 lost: 3 fit failures, 0 excluded); B_N1600_eta0.100000 M 4800 (5 lost: 5 fit failures, 0 excluded); B_N1600_eta0.100000 M 8000 (3 lost: 3 fit failures, 0 excluded); B_N1600_eta0.150000 M 16000 (3 lost: 3 fit failures, 0 excluded); B_N1600_eta0.150000 M 32000 (4 lost: 4 fit failures, 0 excluded); D_N0100_eta0.035000 M 2000 (5 lost: 5 fit failures, 0 excluded); D_N0400_eta0.075000 M 3000 (3 lost: 3 fit failures, 0 excluded); D_N0400_eta0.075000 M 4000 (5 lost: 5 fit failures, 0 excluded)
+
+## (3) Every pooled result also without the flagged cells and densities (information; the registered verdict is the script's)
+
+flagged cells left out: B_N0900_eta0.690000; flagged densities left out of the pooled statements: 0.5, 0.68, 0.69
+
+the finite-size fits per eta without the flagged cells, the rows that change (E1, Delta [%]):
+
+| eta | sizes | F2 a | F2 p | F1 a | F1 p | F1 without N 100: a |
+|---|---|---|---|---|---|---|
+| 0.69 | 3 (100, 400, 1600) | no F2 (fewer than four usable sizes) | - | -12.668 +- 0.414 | 0.000 | - |
+
+15 of 16 rows are unchanged (no flagged cell at those densities)
+
+the pressure fits without the flagged cells, the rows that change (Delta^Z [%]):
+
+| eta | sizes | a_Z | b_Z | F2 chi2 |
+|---|---|---|---|---|
+| 0.69 | 3 (100, 400, 1600) | no F2 (fewer than four usable sizes) | | |
+
+15 of 16 rows are unchanged
+
+Verdict K's statistics on Phi without the flagged densities and cells (11 densities: 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.3927, 0.45, 0.55, 0.6): X^2 = 26.42 (11 dof), p = 0.0056, max |z| = 3.58; |z| >= 3.5 at: 0.6 (information; the rule's thresholds would read KR-INCONSISTENT)
+weighted mean a over Phi, all cells and densities (as the script prints it): F2 +0.026 +- 0.022 % (12); F1 +0.174 +- 0.008 % (12)
+weighted mean a over Phi without the flagged densities and cells: F2 +0.014 +- 0.023 % (11); F1 +0.165 +- 0.008 % (11)
