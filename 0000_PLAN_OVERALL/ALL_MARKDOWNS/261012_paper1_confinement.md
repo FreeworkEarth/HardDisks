@@ -29890,3 +29890,98 @@ index f8d63559..6616f999 100644
 - **main:** this report (4.7.121); its copies on engine-gen3 and engine-divider-resched.
 
 Written for: the plan author
+
+### 4.7.122 Plan-author decision 54: stage 1 Part B is complete — the full report. The facts: FG-B1600 clean (1462 of 1462 chunks), the merge H-B1600 clean (04:44:19; 26 fit failures of 3600), the B1600 fetch done (119 MB), so all six groups are fetched. Asked for: the full report by the registered rules only (s1_verdict_261012.py on all six groups, no --interim, verbatim, nothing tuned, no rerun, no extra estimator); B1600's own INTERIM details as for B900; the registered figures by script, PNG and PDF, from the fetched data only; in parts if long, the verdict output first; then the consolidation's step 0, and wait for the go (2026-10-15 08:34 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Decision 54** (relayed by Chris at about 08:30 HST, machine date; the plan author's time "~08:30 HST").
+- **1. The facts:**
+  - **FG-B1600 clean:**
+    - 1462 / 1462 / 0; 1298 chunks on E5-2670 v3 and 164 on E5-4640 v2;
+    - timing min 0.11 (chunk 1363), median 0.25, max 1.11 (chunk 2516).
+    - The FG block's last line failed to parse in the first paste (bash "unexpected EOF" on the long if-line). Typed alone afterwards, it printed CHECKS GOOD, merge job 15070701.
+  - **H-B1600 clean** (the merge):
+    - sacct 2026-10-15T07:31:42 to 12:16:01 UTC, 04:44:19, cn-03-38-09, COMPLETED;
+    - the plan: 0 problems, APPEND 2924 / EQUAL 1462 / MOVE 10832 / PER CHUNK 3600;
+    - destinations 144, reduce_B 16, reduce_s1 144, compressed 144;
+    - fit failures 131 × 0, 6 × 1, 2 × 2, 3 × 3, 1 × 4, 1 × 5 (26 of 3600);
+    - .merge_complete 07:45:27 UTC; 1463 logs.
+  - **The B1600 fetch is done** (119 MB, record 07:45:27 UTC). All six groups are fetched: Part B is complete.
+- **2. THE FULL REPORT of stage 1 Part B,** by the registered rules only (sec. 4.8.7–4.8.9): s1_verdict_261012.py on all six groups, no --interim. Verbatim, as the script prints it; nothing tuned, no rerun, no extra estimator. It holds:
+  - the health table and every per-cell table;
+  - the fits over N per density (F1, F2), and VERDICT K on the fluid set with its p-values and z's;
+  - the approach cells' fits, with no verdict;
+  - the pressure fits (a_Z, b_Z, χ²) and the stated expectation |a_Z| < 0.3 %;
+  - VERDICT S per cell;
+  - the stationarity flags, and every pooled result also without the flagged cells;
+  - δ_0.5, the low-Q flags, η_int, and k_S^dyn per cell (Verdict I waits for Part A).
+  - A cell without E1 is reported as such.
+- **3. B1600's own INTERIM details, as for B900:**
+  - the flagged folders (cell, mass, seeds, criterion);
+  - --per-mass at η 0.05, 0.10, 0.15 and 0.20 with the masses left for E1; the first line says whether any cell is below 5 masses;
+  - the timing table, and the merge time from sacct's start 07:31:42 UTC;
+  - the first look with all four sizes side by side;
+  - B1600's a_interim_tables file in interim_261013/B1600/.
+- **4. The registered figures by script** (the decision cites sec. 4.8.9's list), PNG and PDF, from the fetched data only:
+  - c_s against η per N, with KR, SPT, Henderson and the shaded regions;
+  - Δ against 1/N_s per density, with the fit lines;
+  - Z and Δ^Z;
+  - ψ6 against η per N (flagged cells as open symbols);
+  - δ_0.5; Γ and Q per mass; Verdict S's four z per cell.
+  - Each figure's caption names its data file and its script.
+- **5. In parts if long, the verdict output first.** Then the consolidation's step 0 (decision 51: the dry run on the day's heads), and wait for the plan author's go.
+
+**The message, verbatim** (relayed by Chris on 2026-10-15 at about 08:30 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record as decision 54.
+
+DECISION 54 (2026-10-15 ~08:30 HST): STAGE 1 PART B COMPLETE -- THE
+FULL REPORT
+ 1. Facts: FG-B1600 clean (1462/1462/0; 1298 on E5-2670 v3, 164 on
+    E5-4640 v2; timing min 0.11 (chunk 1363), median 0.25, max 1.11
+    (chunk 2516); the FG block's last line failed to parse in the
+    first paste -- bash "unexpected EOF" on the long if-line -- and
+    was typed alone afterwards: CHECKS GOOD, merge job 15070701).
+    H-B1600 clean: sacct 2026-10-15T07:31:42 to 12:16:01 UTC, 04:44:19,
+    cn-03-38-09, COMPLETED; plan 0 problems, APPEND 2924 / EQUAL 1462 /
+    MOVE 10832 / PER CHUNK 3600; destinations 144, reduce_B 16,
+    reduce_s1 144, compressed 144; fit failures 131 x 0, 6 x 1, 2 x 2,
+    3 x 3, 1 x 4, 1 x 5 (26 of 3600); .merge_complete 07:45:27 UTC;
+    1463 logs. THE B1600 FETCH IS DONE (119M, record 07:45:27 UTC).
+    All six groups are fetched: Part B is complete.
+ 2. Print THE FULL REPORT of stage 1 Part B, by the registered rules
+    only (sec. 4.8.7-4.8.9; s1_verdict_261012.py on all six groups,
+    no --interim): the health table; every per-cell table; the fits
+    over N per density (F1, F2) and VERDICT K on the fluid set with
+    its p-values and z's, the approach cells' fits with no verdict;
+    the pressure fits (a_Z, b_Z, chi2) and the stated expectation
+    |a_Z| < 0.3 %; VERDICT S per cell; the stationarity flags and
+    every pooled result also without flagged cells; delta_0.5; the
+    low-Q flags; eta_int; k_S^dyn per cell (Verdict I waits for
+    Part A). Verbatim, as the script prints it; nothing tuned, no
+    rerun, no extra estimator. A cell without E1 is reported as such.
+ 3. B1600's own INTERIM details as for B900: the flagged folders
+    (cell, mass, seeds, criterion), --per-mass at eta 0.05, 0.10, 0.15,
+    0.20 with the masses left for E1 (say in the first line whether
+    any cell is below 5 masses), the timing table, the merge time
+    from sacct's start 07:31:42 UTC, the first look with all four
+    sizes side by side, and B1600's a_interim_tables file in
+    interim_261013/B1600/.
+ 4. The REGISTERED FIGURES by script (sec. 4.8.9's list), PNG + PDF,
+    from the fetched data only: c_s vs eta per N with KR, SPT,
+    Henderson and the shaded regions; Delta vs 1/N_s per density with
+    the fit lines; Z and Delta^Z; psi6 vs eta per N (flagged cells
+    open symbols); delta_0.5; Gamma and Q per mass; Verdict S's four
+    z per cell. Each figure's data file and script named in its
+    caption.
+ 5. Report in parts if long (the verdict output first). Then the
+    consolidation's step 0 (decision 51: the dry run on the day's
+    heads) and wait for the plan author's go.
+
+End with "Written for: the plan author".
+```
+
+**Commits.**
+- main: this record.
+- engine-gen3 and engine-divider-resched: its copies.
