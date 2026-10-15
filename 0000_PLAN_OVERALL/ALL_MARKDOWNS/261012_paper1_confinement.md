@@ -28466,3 +28466,584 @@ End with "Written for: the plan author".
 **Commits.**
 - main: this record.
 - engine-gen3 and engine-divider-resched: its copies.
+
+### 4.7.117 Report D50 — decision 50 item 3: option (ii) built and tested on the Mac, steps (a)–(d), one local commit each on engine-gen3 (bcb0e3b1, dda7f4a6, 8f538a21, 6e2ee550). The held path now has the exact box and divider position, the gen3 lattice start, and F_L and F_R from the engine's per-face impulse counters; Part A has a worker and a reducer. Every test passes on the clean build of the final code, and Part B's event hashes are unchanged. For A5: the lattice start changes across the stencil in 21 of 64 cells, two of them dense (2026-10-14 15:39 HST, machine date) [CODE, MAC TESTS]
+
+**Plain summary.**
+- **Recorded:** decision 52 (sec. 4.7.116). Option (ii)'s step (a) was committed once the push had landed, as decision 52 item 1 asks.
+- **What option (ii) is now** (00ALLINONE.c: 154 lines in, 10 out; no engine source changed; sec. 1):
+  - **(a) The exact box.** With --engine=gen3 --gen3-exact-box, the held path (the energy-transfer experiment, the worker's AF command) has the box 2 L0 with L0 read as a double, and the divider exactly at the requested position.
+    - Both are checked at 1e-9 σ at initialization.
+    - The geometry is printed as [EDMD3-HELD-GEOMETRY] for gate C2.
+  - **(b) The lattice start.** With --gen3-seeding=lattice, the gen3 lattice start (g3_m4_seed) is placed in the held geometry, with srand(seed) right before it as the speed-of-sound loop does.
+    - The guard pairs the exact box with the lattice start in the held path, and requires --seed.
+  - **(c) The forces.** --gen3-held-readout=K reads the divider's per-face impulse and hit counters at step K (T_eq) and at the last step of the hold, before the release. It prints [EDMD3-HELD] t0, t1 and window lines: F_L, F_R, n_L, n_R, and the held divider's v_div, dx_div and dW_div. The reads are pure.
+  - **(d) The package** cluster/gen3_partA_261014/:
+    - pa_worker_koa.sh: one held trajectory per call, with the stage 1 worker's health rule, guard, locks and skip;
+    - pa_reduce.py: the record lines to one row, failing closed;
+    - pa_tasks.py: a draft task generator for A5.
+- **The tests** (sec. 2; the clean build bin_8f538a2 of the final code; the per-step builds gave the same values):
+  1. **Part B unchanged.** 6 of 6 registered stage 1 task lines give the same event hash, t_end and output files as the reference build bin_d2dc177. The legacy held path (no exact box) is unchanged too.
+  2. **The geometry.** All 16 N 400 cells × 5 positions, and π/8 for N 100, 900 and 1600, start clean (83 of 83 runs):
+     - the box and the divider are within 7.1e-15 σ of the request;
+     - N_L = N_R = N_s.
+  3. **Gate C2: 6 of 6.** The held start at L0 is byte-identical to the free (Part B) start with the same seed: the box, the divider, and every disk's x, y, vx and vy in %a. Checked at π/8 for N 100, 400, 900 and 1600, and at η 0.05 and 0.69 for N 400.
+  4. **The readout.**
+     - It changes no event (5 of 5).
+     - It equals the event log: F_L and F_R to at most 2.6e-13 relative (the log prints 12 digits), the counts exactly, and u_wall = W_div = 0 (5 of 5).
+  5. **The worker on the Mac** (rehearsal):
+     - 40 short tasks ran clean;
+     - the "done before" skip, the build guard and a refused task all behaved;
+     - two tasks at the registered lengths took 1 s (N 100, η 0.05) and 63 s (N 400, η 0.69).
+- **For A5** (sec. 3):
+  - **(i) The lattice start across the stencil.** The default lattice is chosen per compartment width, so in 21 of 64 cells the arrangement differs between the five positions; in 19 of them a compartment's crystal orientation turns too.
+    - 19 of these cells are fluid (η ≤ 0.55), where T_eq ≥ 1000 σ-time forgets the start.
+    - Two are dense: N 400 at η 0.66 and 0.68, where j = ±2 start one compartment turned.
+    - Options: keep the registered default per position, or pin each cell's crystal orientation to j = 0's with the existing --gen3-lattice-orientation (a small worker change). The plan author decides.
+  - **(ii) Data.** The event log becomes a check on a subset: a task is about 15 KB without it, against 9–329 MB with it at N 400.
+  - **(iii) The window** is 5000.0000745 σ-time: a step is (double)0.4f internal units. The readout divides by the engine's own t1 − t0.
+  - **(iv) The divider's thickness** is the float 1.2 px = 0.0500000020 σ, the same in both paths (Part B included). L_eff is therefore 1e-9 σ below the nominal value; C2 compares it equal.
+  - **(v) On KOA**, Part A needs a new clean build at 6e2ee550 or later (its C sources are 8f538a21's; Chris types it). Part B's f72d764 binary stays for Part B.
+  - **(vi) The draft task generator** fixes the cells, the stencil, T_eq, the window and the tail as registered. BASE_A, the sizes, the seed counts, the event-log subset and the orientation question are A5's.
+- **Next:** the collision return-map panel (decision 52 items 2–3).
+- **Data this message:** about 295 MB of new data:
+  - the tests, 88 MB;
+  - three builds, 2 MB;
+  - the clean build's source copy in the scratchpad, 195 MB;
+  - other scratch, 10 MB.
+  - 67 GB free.
+
+## 1. The code (engine-gen3; the full diff of 00ALLINONE.c in sec. 4)
+
+- **(a) bcb0e3b1.**
+  - cli_l0_d and cli_wall_positions_d: --l0 and --wall-positions read again as doubles.
+  - g3_held_exact(): gen3, --gen3-exact-box, the energy-transfer experiment.
+  - In the held path's setup, prm.boxW = 2 L0 × 24 and prm.divider_x[0] = x_div × 24.
+  - The validator's right face is the exact box's in that path (otherwise the grid box's). The engine's box and divider are checked against the request at 1e-9 σ (initial_box_mismatch, initial_wall_position_mismatch), and the [EDMD3-HELD-GEOMETRY] line is printed.
+  - The guard admits --gen3-exact-box in the energy-transfer experiment with one wall, --l0 and a position inside (0, 2 L0).
+- **(b) dda7f4a6.**
+  - The M4 start's body is g3_m4_init_core(boxW, c, seed). g3_m4_init_driver passes the speed-of-sound loop's geometry exactly as it computed it before; T1 shows the identical events.
+  - The held path with the lattice calls srand(seed) and g3_m4_init_core(2 L0 × 24, x_div × 24, seed) instead of initialize_simulation(). It replaces the loaded positions with the lattice's doubles, and writes --gen3-dump-initial and the run header [EDMD3-RUN] as the speed-of-sound loop does.
+  - The guard: in the held path, --gen3-exact-box and --gen3-seeding=lattice go together, --gen3-dump-initial needs both, and --seed is required. The driver's seeder fills the 1/48-grid box and places the divider as a fraction of it, up to 0.47 px from the exact divider: step (a)'s tests saw the 75 off-grid starts stop at the validator.
+- **(c) 8f538a21.**
+  - --gen3-held-readout=K, accepted on the held path on the exact box only, with K below --wall-hold-steps.
+  - g3_held_readout() reads edmd3_time, edmd3_divider_impulse and edmd3_divider_events for both faces, edmd3_divider_state and edmd3_work_divider. It does so right after the step's advance at step K and at the last step of the hold; the release comes later in the same iteration.
+  - The forces over (t0, t1]: F_L = (J_L(t1) − J_L(t0))/T_w and F_R = −(J_R(t1) − J_R(t0))/T_w, with T_w = (t1 − t0)/24.
+    - The engine adds −(v1 − u1) to the hit face's counter (edmd_gen3.c exec_obj), so F_L = −Σ_{dp<0} dp/T_w and F_R = Σ_{dp>0} dp/T_w, as reduce_AF.py forms them from the log.
+- **(d) 6e2ee550.** cluster/gen3_partA_261014/ (no C source):
+  - pa_worker_koa.sh (84 lines, SHA-256 a571f99c4fddf45e…);
+  - pa_reduce.py (139 lines, 02be1037466e5b74…);
+  - pa_tasks.py (78 lines, 2680534549dc6a22…);
+  - README.md.
+  - The worker's command is the AF command of conf_worker.sh with --engine=gen3 --gen3-exact-box --gen3-seeding=lattice --gen3-held-readout=(T_eq steps), --wall-hold-steps=(T_eq + window) and --steps=(tail). HD_PISTON_EVENTS is set only where a task asks for the log.
+  - The evidence and the Mac scripts are in experiments_gen3_d50_261014/ (README).
+
+## 2. The tests (experiments_gen3_d50_261014/scripts/tests_d50.py, run_final_tests.sh, rehearse_pa_mac.sh; the tables verbatim)
+
+**T1, Part B unchanged** (tests/f1_T1/RESULTS.md):
+
+```
+# T1 (f1_T1), 2026-10-14 15:31:10 HST
+
+NEW experiments_gen3_d50_261014/bin_8f538a2/00ALLINONE SHA-256 ae9f450765705334e81c0f62af878edc359bddd1a02ea80afc27cf1589a8ceac
+OLD experiments_gen3_d48_261013/bin_d2dc177/00ALLINONE SHA-256 cf1a4d1640603c4eaa1d471594880e29f0212283b3522cc95078b98fd5eecbbd
+
+| run (cell, mass, replicate) | exit old / new | clean old / new | event hash old / new | t_end old / new | output files, SHA-256 | seconds old / new | verdict |
+|---|---|---|---|---|---|---|---|
+| B_N0100_eta0.050000_m_50_r0 | 0 / 0 | 1 / 1 | c0f9d2f44e79b50e / c0f9d2f44e79b50e | 1410967.2210250497 / 1410967.2210250497 | 6 / 6, all equal | 2 / 2 | EQUAL |
+| B_N0100_eta0.050000_m_500_r0 | 0 / 0 | 1 / 1 | 6e080a8610263d56 / 6e080a8610263d56 | 3474666.4517765641 / 3474666.4517765641 | 7 / 7, all equal | 4 / 4 | EQUAL |
+| S_N0100_eta0.600000_start0_m_100_r0 | 0 / 0 | 1 / 1 | 8eec382384445253 / 8eec382384445253 | 50606.400754094124 / 50606.400754094124 | 7 / 7, all equal | 2 / 2 | EQUAL |
+| S_N0100_eta0.690000_turned_m_1000_r1 | 0 / 0 | 1 / 1 | c982a87bb55e5762 / c982a87bb55e5762 | 161066.00240007043 / 161066.00240007043 | 6 / 6, all equal | 11 / 11 | EQUAL |
+| D_N0100_eta0.020000_m_50_r0 | 0 / 0 | 1 / 1 | 0773df71d42a6cf7 / 0773df71d42a6cf7 | 3739874.0557284653 / 3739874.0557284653 | 6 / 6, all equal | 4 / 3 | EQUAL |
+| B_N0400_eta0.392699_m_200_r0 | 0 / 0 | 1 / 1 | d6c7ed35b4926076 / d6c7ed35b4926076 | 172243.20256662369 / 172243.20256662369 | 6 / 6, all equal | 7 / 7 | EQUAL |
+```
+
+**T1AF, the legacy held path unchanged** (tests/f2_T1AF/RESULTS.md):
+
+```
+# T1AF (f2_T1AF), 2026-10-14 15:31:32 HST
+
+NEW experiments_gen3_d50_261014/bin_8f538a2/00ALLINONE SHA-256 ae9f450765705334e81c0f62af878edc359bddd1a02ea80afc27cf1589a8ceac
+OLD experiments_gen3_d48_261013/bin_d2dc177/00ALLINONE SHA-256 cf1a4d1640603c4eaa1d471594880e29f0212283b3522cc95078b98fd5eecbbd
+
+| run | exit old / new | clean old / new | event hash old / new | t_end old / new | output files (trace, event log), SHA-256 | seconds old / new | verdict |
+|---|---|---|---|---|---|---|---|
+| AF_N400_pi8_L0_20_xw_L0+dL | 0 / 0 | 1 / 1 | 6de5bfc9e5bbb809 / 6de5bfc9e5bbb809 | 263.60000392794609 / 263.60000392794609 | 3 / 3, all equal | 0 / 0 | EQUAL |
+```
+
+**T2, the geometry with the lattice start** (tests/f3_T2: 83 runs, 60 held steps each; condensed to one row per cell, every run's row in RESULTS.md):
+
+```
+| N | eta | L0 [sigma] | positions | x_div at j = -2 .. +2 [sigma] | max abs(box - 2 L0) | max abs(x_div - requested) | N_L / N_R | exit, clean | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| 400 | 0.050000 | 157.079632679490 | 5 | 152.099011020, 154.589321850, 157.079632679, 159.569943509, 162.060254339 | 0.0e+00 | 0.0e+00 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.100000 | 78.539816339745 | 5 | 76.317669199, 77.428742769, 78.539816340, 79.650889910, 80.761963481 | 0.0e+00 | 0.0e+00 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.150000 | 52.359877559830 | 5 | 51.045309104, 51.702593332, 52.359877560, 53.017161788, 53.674446016 | 0.0e+00 | 7.1e-15 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.200000 | 39.269908169872 | 5 | 38.400436531, 38.835172350, 39.269908170, 39.704643989, 40.139379809 | 0.0e+00 | 0.0e+00 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.250000 | 31.415926535898 | 5 | 30.806760784, 31.111343660, 31.415926536, 31.720509412, 32.025092288 | 7.1e-15 | 3.6e-15 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.300000 | 26.179938779915 | 5 | 25.738856324, 25.959397552, 26.179938780, 26.400480008, 26.621021236 | 0.0e+00 | 3.6e-15 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.350000 | 22.439947525641 | 5 | 22.114400000, 22.277173763, 22.439947526, 22.602721289, 22.765495051 | 7.1e-15 | 3.6e-15 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.392699 | 20.000000000000 | 5 | 19.746735303, 19.873367652, 20.000000000, 20.126632348, 20.253264697 | 0.0e+00 | 0.0e+00 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.450000 | 17.453292519943 | 5 | 17.271699844, 17.362496182, 17.453292520, 17.544088858, 17.634885196 | 0.0e+00 | 0.0e+00 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.500000 | 15.707963267949 | 5 | 15.572417025, 15.640190147, 15.707963268, 15.775736389, 15.843509510 | 3.6e-15 | 1.8e-15 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.550000 | 14.279966607226 | 5 | 14.179578700, 14.229772653, 14.279966607, 14.330160561, 14.380354515 | 0.0e+00 | 1.8e-15 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.600000 | 13.089969389957 | 5 | 13.016604823, 13.053287106, 13.089969390, 13.126651674, 13.163333957 | 0.0e+00 | 1.8e-15 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.630000 | 12.466637514245 | 5 | 12.406295558, 12.436466536, 12.466637514, 12.496808492, 12.526979471 | 0.0e+00 | 1.8e-15 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.660000 | 11.899972172689 | 5 | 11.850210756, 11.875091464, 11.899972173, 11.924852881, 11.949733589 | 3.6e-15 | 1.8e-15 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.680000 | 11.549972991139 | 5 | 11.504883514, 11.527428253, 11.549972991, 11.572517730, 11.595062468 | 0.0e+00 | 0.0e+00 | 200 / 200 | 0, 1 | PASS |
+| 400 | 0.690000 | 11.382582078224 | 5 | 11.337747844, 11.360164961, 11.382582078, 11.404999195, 11.427416312 | 0.0e+00 | 1.8e-15 | 200 / 200 | 0, 1 | PASS |
+| 100 | 0.392699 | 10.000000000000 | 1 | 10.000000000 | 0.0e+00 | 0.0e+00 | 50 / 50 | 0, 1 | PASS |
+| 900 | 0.392699 | 30.000000000000 | 1 | 30.000000000 | 0.0e+00 | 0.0e+00 | 450 / 450 | 0, 1 | PASS |
+| 1600 | 0.392699 | 40.000000000000 | 1 | 40.000000000 | 0.0e+00 | 0.0e+00 | 800 / 800 | 0, 1 | PASS |
+
+83 runs, 83 PASS
+```
+
+**C2, the held start against the free start** (tests/f4_C2/RESULTS.md; the dumps are committed):
+
+```
+# C2 (f4_C2), 2026-10-14 15:31:33 HST
+
+NEW experiments_gen3_d50_261014/bin_8f538a2/00ALLINONE SHA-256 ae9f450765705334e81c0f62af878edc359bddd1a02ea80afc27cf1589a8ceac
+
+| cell | exact seed | L0 [sigma] | N | exit free / held | clean free / held | disks in the dump | dump SHA-256 free / held | run header's lattice | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| B_N0100_eta0.392699 | 4150605455 | 10 | 100 | 0 / 0 | 1 / 1 | 100 | 3db63f44beff359f / 3db63f44beff359f | equal | EQUAL |
+| B_N0400_eta0.392699 | 1774095278 | 20 | 400 | 0 / 0 | 1 / 1 | 400 | 14cb82950799671f / 14cb82950799671f | equal | EQUAL |
+| B_N0900_eta0.392699 | 1395037345 | 30.000000000000004 | 900 | 0 / 0 | 1 / 1 | 900 | c5d68147d056932e / c5d68147d056932e | equal | EQUAL |
+| B_N1600_eta0.392699 | 2708099220 | 40 | 1600 | 0 / 0 | 1 / 1 | 1600 | a5e187ff0d638ea1 / a5e187ff0d638ea1 | equal | EQUAL |
+| B_N0400_eta0.050000 | 1095518927 | 157.07963267948966 | 400 | 0 / 0 | 1 / 1 | 400 | d4cc1eb055c07aab / d4cc1eb055c07aab | equal | EQUAL |
+| B_N0400_eta0.690000 | 181999126 | 11.382582078223889 | 400 | 0 / 0 | 1 / 1 | 400 | e7f3bffd004c0b24 / e7f3bffd004c0b24 | equal | EQUAL |
+
+6 of 6 EQUAL
+```
+
+**R0, the readout changes nothing** (tests/f5_R0/RESULTS.md; 3000 held steps, the readout at 600):
+
+```
+# R0 (f5_R0), 2026-10-14 15:31:34 HST
+
+NEW experiments_gen3_d50_261014/bin_8f538a2/00ALLINONE SHA-256 ae9f450765705334e81c0f62af878edc359bddd1a02ea80afc27cf1589a8ceac
+
+| N | eta | j | exit off / on | clean off / on | event hash off / on | t_end off / on | output files, SHA-256 | window line off / on | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| 400 | 0.050000 | +1 | 0 / 0 | 1 / 1 | fdcb8b657d509679 / fdcb8b657d509679 | 1223.6000182330608 / 1223.6000182330608 | 2 / 2, all equal | none / present | EQUAL |
+| 400 | 0.392699 | +1 | 0 / 0 | 1 / 1 | 1e88a8afc9869fed / 1e88a8afc9869fed | 1223.6000182330608 / 1223.6000182330608 | 2 / 2, all equal | none / present | EQUAL |
+| 400 | 0.690000 | +1 | 0 / 0 | 1 / 1 | 5ba25ad29190a5de / 5ba25ad29190a5de | 1223.6000182330608 / 1223.6000182330608 | 2 / 2, all equal | none / present | EQUAL |
+| 100 | 0.392699 | -2 | 0 / 0 | 1 / 1 | ae512420ca16900b / ae512420ca16900b | 1223.6000182330608 / 1223.6000182330608 | 2 / 2, all equal | none / present | EQUAL |
+| 1600 | 0.600000 | +2 | 0 / 0 | 1 / 1 | 853744a25c1bb1c7 / 853744a25c1bb1c7 | 1223.6000182330608 / 1223.6000182330608 | 2 / 2, all equal | none / present | EQUAL |
+
+5 of 5 EQUAL
+```
+
+**R1, the readout against the event log** (tests/f6_R1/RESULTS.md):
+
+```
+# R1 (f6_R1), 2026-10-14 15:31:37 HST
+
+NEW experiments_gen3_d50_261014/bin_8f538a2/00ALLINONE SHA-256 ae9f450765705334e81c0f62af878edc359bddd1a02ea80afc27cf1589a8ceac
+
+| N | eta | j | window (t0, t1) [sigma-time] | F_L readout / log | rel. diff | F_R readout / log | rel. diff | n_L readout / log | n_R readout / log | log: u_wall_max, W_div | readout: v_div t0, t1, dx_div, dW_div | exit | clean | verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 400 | 0.050000 | +1 | 10.000000, 50.000001 | 1.264463355466 / 1.264463355466 | 8.7e-14 | 1.176831748784 / 1.176831748784 | 2.6e-13 | 23 / 23 | 21 / 21 | 0, 0 | 0, 0, 0, 0 | 0 | 1 | PASS |
+| 400 | 0.392699 | +1 | 10.000000, 50.000001 | 28.964735223452 / 28.964735223454 | 9.4e-14 | 30.268404716444 / 30.268404716446 | 7.7e-14 | 462 / 462 | 502 / 502 | 0, 0 | 0, 0, 0, 0 | 0 | 1 | PASS |
+| 400 | 0.690000 | +1 | 10.000000, 50.000001 | 201.165281394036 / 201.165281394035 | 6.0e-15 | 205.094008992094 / 205.094008992094 | 4.4e-16 | 3189 / 3189 | 3279 / 3279 | 0, 0 | 0, 0, 0, 0 | 0 | 1 | PASS |
+| 100 | 0.392699 | -2 | 10.000000, 50.000001 | 16.850448514279 / 16.850448514279 | 8.4e-15 | 14.840850462799 / 14.840850462798 | 3.7e-14 | 272 / 272 | 250 / 250 | 0, 0 | 0, 0, 0, 0 | 0 | 1 | PASS |
+| 1600 | 0.600000 | +2 | 10.000000, 50.000001 | 205.663489647191 / 205.663489647185 | 2.8e-14 | 211.768164303637 / 211.768164303635 | 1.0e-14 | 3374 / 3374 | 3374 / 3374 | 0, 0 | 0, 0, 0, 0 | 0 | 1 | PASS |
+
+5 of 5 PASS
+```
+
+**The worker on the Mac** (tests/d3_rehearsal; the script's output, then the two rows at the registered lengths):
+
+```
+== R1: 40 short tasks, 6 at a time
+   40 ok, 0 FAILED, 4 s; red files: 40, event logs: 8
+== R2: the same lines again (done before)
+   lines printed: 0; files before 288, after 288
+== R3: a different binary into a folder written by this build
+   exit 3: A partA/gen3/B_N0100_eta0.050000/x_0 seed=1915874849 FAILED build guard
+== R4: a divider outside the box
+   exit 1: A partA/gen3/R4_outside/x_m2 j=-2 s=0 seed=999 FAILED rc=2 engine=gen3; kept: 1 failed folder(s), its log: STOP (--engine=gen3): the held path on the exact box (the energy-transfer experiment) needs --num-walls=1, --l0, a --wall-positions value inside (0, 2
+== R5: two tasks at the registered lengths
+   exit 0, 1 s: A partA/gen3/B_N0100_eta0.050000/x_m2 j=-2 s=0 seed=3936421655 ok (1 s)
+   exit 0, 63 s: A partA/gen3/B_N0400_eta0.690000/x_p1 j=1 s=0 seed=989499522 ok (63 s)
+== the rows: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks_gen3/hspist3/experiments_gen3_d50_261014/tests/d3_rehearsal/summary.txt (# 42 red rows (R1: T_w = 40 sigma-time; R5: T_w = 5000 sigma-time))
+
+the two rows of R5 (summary.txt):
+               cell  j       seed      x_div         T_w        F_L        F_R    n_L    n_R      T_L      T_R  v_div_t0  dx_div  dW_div  dF_L_rel_log  dF_R_rel_log                                    
+B_N0100_eta0.050000 -2 3936421655  73.591908 5000.000075   0.768012   0.670473   1540   1371 1.000000 1.000000         0       0       0           NaN           NaN   left=[orient parallel rows altern
+B_N0400_eta0.690000  1  989499522  11.404999 5000.000075 202.767533 207.178994 404277 413771 1.000001 0.999999         0       0       0           NaN           NaN left=[orient parallel rows alternat
+```
+
+Before d3, two attempts are kept as they ran:
+- **d1:** the data root was given as a relative path; the worker refused it ("HD_DATA must be an absolute path").
+- **d2:** R5 ran into R1's root. Its tasks have R1's seeds, because a seed depends on the cell, the position and s, not on the lengths, so they were skipped as "done before". R5 now has its own root.
+
+## 3. For amendment A5
+
+**(i) The lattice start across the stencil** (tests/f7_LAT: every block B cell at the five positions, the start only; the cells whose arrangement changes):
+
+```
+# LAT (f7_LAT), 2026-10-14 15:35:13 HST
+
+NEW experiments_gen3_d50_261014/bin_8f538a2/00ALLINONE SHA-256 ae9f450765705334e81c0f62af878edc359bddd1a02ea80afc27cf1589a8ceac
+
+| cell | j = -2: left / right | j = -1 | j = 0 | j = +1 | j = +2 | arrangement across j | crystal orientation across j |
+| cell | j = -2: left / right | j = -1 | j = 0 | j = +1 | j = +2 | arrangement across j | crystal orientation across j |
+|---|---|---|---|---|---|---|---|
+| B_N0100_eta0.392699 | para alt 8x7 turned / para alt 8x7 turned | para equ 13x4 x / para alt 8x7 turned | para equ 13x4 x / para equ 13x4 x | para alt 8x7 turned / para equ 13x4 x | para alt 8x7 turned / para alt 8x7 turned | CHANGES | CHANGES |
+| B_N0100_eta0.550000 | para equ 10x5 x / para alt 11x5 x | para equ 10x5 x / para alt 11x5 x | para alt 11x5 x / para alt 11x5 x | para alt 11x5 x / para equ 10x5 x | para alt 11x5 x / para equ 10x5 x | CHANGES | same |
+| B_N0400_eta0.050000 | para equ 67x3 x / para alt 80x3 x | para alt 45x5 turned / para alt 45x5 turned | para alt 45x5 turned / para alt 45x5 turned | para alt 45x5 turned / para alt 45x5 turned | para alt 80x3 x / para equ 67x3 x | CHANGES | CHANGES |
+| B_N0400_eta0.150000 | para equ 25x8 turned / para equ 40x5 x | para equ 25x8 turned / para equ 25x8 turned | para equ 25x8 turned / para equ 25x8 turned | para equ 25x8 turned / para equ 25x8 turned | para equ 40x5 x / para equ 25x8 turned | CHANGES | CHANGES |
+| B_N0400_eta0.250000 | para alt 19x11 turned / para equ 20x10 turned | para alt 19x11 turned / para equ 20x10 turned | para equ 20x10 turned / para equ 20x10 turned | para equ 20x10 turned / para alt 19x11 turned | para equ 20x10 turned / para alt 19x11 turned | CHANGES | same |
+| B_N0400_eta0.300000 | para equ 29x7 x / para equ 29x7 x | para equ 29x7 x / para alt 18x12 turned | para alt 18x12 turned / para alt 18x12 turned | para alt 18x12 turned / para equ 29x7 x | para equ 29x7 x / para equ 29x7 x | CHANGES | CHANGES |
+| B_N0400_eta0.350000 | para alt 16x13 turned / para alt 27x8 x | para alt 27x8 x / para alt 27x8 x | para alt 27x8 x / para alt 27x8 x | para alt 27x8 x / para alt 27x8 x | para alt 27x8 x / para alt 16x13 turned | CHANGES | CHANGES |
+| B_N0400_eta0.392699 | para equ 25x8 x / para alt 16x13 turned | para equ 25x8 x / para alt 16x13 turned | para equ 25x8 x / para equ 25x8 x | para alt 16x13 turned / para equ 25x8 x | para alt 16x13 turned / para equ 25x8 x | CHANGES | CHANGES |
+| B_N0400_eta0.450000 | para alt 24x9 x / para alt 15x14 turned | para alt 24x9 x / para alt 24x9 x | para alt 24x9 x / para alt 24x9 x | para alt 24x9 x / para alt 24x9 x | para alt 15x14 turned / para alt 24x9 x | CHANGES | CHANGES |
+| B_N0400_eta0.660000 | para equ 12x17 turned / para equ 20x10 x | para equ 12x17 turned / para equ 12x17 turned | para equ 12x17 turned / para equ 12x17 turned | para equ 12x17 turned / para equ 12x17 turned | para equ 20x10 x / para equ 12x17 turned | CHANGES | CHANGES |
+| B_N0400_eta0.680000 | para alt 19x11 x / para equ 12x17 turned | para alt 19x11 x / para alt 19x11 x | para alt 19x11 x / para alt 19x11 x | para alt 19x11 x / para alt 19x11 x | para equ 12x17 turned / para alt 19x11 x | CHANGES | CHANGES |
+| B_N0900_eta0.150000 | para equ 38x12 turned / para equ 65x7 x | para equ 38x12 turned / para equ 65x7 x | para equ 38x12 turned / para equ 38x12 turned | para equ 65x7 x / para equ 38x12 turned | para equ 65x7 x / para equ 38x12 turned | CHANGES | CHANGES |
+| B_N0900_eta0.200000 | para alt 53x9 x / para equ 33x14 turned | para alt 53x9 x / para equ 33x14 turned | para alt 53x9 x / para alt 53x9 x | para equ 33x14 turned / para alt 53x9 x | para equ 33x14 turned / para alt 53x9 x | CHANGES | CHANGES |
+| B_N0900_eta0.392699 | para equ 23x20 turned / para alt 40x12 x | para equ 23x20 turned / para alt 40x12 x | para equ 23x20 turned / para equ 23x20 turned | para alt 40x12 x / para equ 23x20 turned | para alt 40x12 x / para equ 23x20 turned | CHANGES | CHANGES |
+| B_N0900_eta0.500000 | para alt 20x23 turned / para equ 35x13 x | para alt 20x23 turned / para equ 35x13 x | para equ 35x13 x / para equ 35x13 x | para equ 35x13 x / para alt 20x23 turned | para equ 35x13 x / para alt 20x23 turned | CHANGES | CHANGES |
+| B_N1600_eta0.100000 | para equ 100x8 x / para equ 62x13 turned | para equ 100x8 x / para equ 62x13 turned | para equ 62x13 turned / para equ 62x13 turned | para equ 62x13 turned / para equ 100x8 x | para equ 62x13 turned / para equ 100x8 x | CHANGES | CHANGES |
+| B_N1600_eta0.150000 | para alt 85x10 x / para alt 85x10 x | para alt 85x10 x / para equ 50x16 turned | para alt 85x10 x / para alt 85x10 x | para equ 50x16 turned / para alt 85x10 x | para alt 85x10 x / para alt 85x10 x | CHANGES | CHANGES |
+| B_N1600_eta0.250000 | para alt 64x13 x / para alt 39x21 turned | para alt 39x21 turned / para alt 39x21 turned | para alt 39x21 turned / para alt 39x21 turned | para alt 39x21 turned / para alt 39x21 turned | para alt 39x21 turned / para alt 64x13 x | CHANGES | CHANGES |
+| B_N1600_eta0.300000 | para equ 35x23 turned / para alt 60x14 x | para alt 60x14 x / para alt 60x14 x | para alt 60x14 x / para alt 60x14 x | para alt 60x14 x / para alt 60x14 x | para alt 60x14 x / para equ 35x23 turned | CHANGES | CHANGES |
+| B_N1600_eta0.350000 | para equ 32x25 turned / para alt 56x15 x | para equ 32x25 turned / para alt 56x15 x | para alt 56x15 x / para alt 56x15 x | para alt 56x15 x / para equ 32x25 turned | para alt 56x15 x / para equ 32x25 turned | CHANGES | CHANGES |
+| B_N1600_eta0.392699 | para alt 52x16 x / para equ 31x26 turned | para alt 52x16 x / para equ 31x26 turned | para alt 52x16 x / para alt 52x16 x | para equ 31x26 turned / para alt 52x16 x | para equ 31x26 turned / para alt 52x16 x | CHANGES | CHANGES |
+
+21 of 64 cells change the arrangement across the stencil; entries: rows' orientation (para/perp), rows (equal/alt), n_s x n_r, crystal orientation (x: close-packed lines along x; turned: along y)
+```
+
+- **Why it changes:** g3_lattice_fit takes the arrangement with the largest gap for the compartment's width. A compartment that is wider or narrower by 2 δL can tip it to another arrangement, with the other crystal orientation.
+- **The fluid:** in 19 of the 21 cells (η ≤ 0.55) the start is forgotten within T_eq = 1000 σ-time. The ψ6 autocorrelation times of sec. 4.8.3.1 are ≤ 0.9 σ-time at η 0.60.
+- **The dense cells:** N 400 at η 0.66 and 0.68. At j = ±2 one compartment starts turned. If an orientation lingers past T_eq = 5000 σ-time, it enters F(±2) and through them k_T.
+  - Block S found Part B's observables start-independent between the two orientations (80 of 80 |z| < 2.6), and Z of the two starts agreed within 0.17 %.
+  - For scale: across ±2 δL a compartment's force changes by about kT/σ_x, roughly 20 kT/σ or 10 % of F at η 0.66–0.69 (δL 0.023–0.025 σ).
+  - The five-point stencil weighs F(±2) with 1/(12 δL). An offset at the outer points that survived T_eq would therefore go into k_T directly.
+  - I have not estimated its size. Whether to pin is a judgment for A5.
+- **The two options:**
+  - (a) Keep the registered default per position.
+  - (b) Pin each cell's crystal orientation to that of j = 0, with the existing --gen3-lattice-orientation (M4c). This needs a 15th task field and one line in the worker, and a feasibility check that every pinned position has an arrangement (not run).
+
+**(ii) Data and cost.**
+- A task writes about 15 KB without the log: the run log, the row, the tail's trace and the summary.
+- The pilot at N 100 and N 400 (640 tasks) writes about 10 MB, against the 32.7 GB of the event log (Report D49-1).
+- The time at N 400, η 0.69 (T_eq 5000 + 5000 + 20 σ-time) is 63 s on the Mac. That is in line with D49-1's 0.042 E5 core-hours per (seed, position); the pilot's cost stays about 5 E5 core-hours.
+
+**(iii) Small facts.**
+- **The window:** 300,000 steps are 5000.0000745 σ-time, because a step is (double)0.4f internal units. The readout divides by the engine's own window.
+- **The thickness:** the divider is 1.2 px as a float, 0.0500000020 σ, in both paths (Part B included). L_eff is therefore 1e-9 σ shorter than with 0.05 exactly; the held and the free geometry agree.
+- **The temperatures:** held, each compartment keeps T = 1 exactly. The tail's trace reads 1.000001 / 0.999999 at η 0.69, so f = 1 within the registered 0.002.
+
+**(iv) What A5 fixes** (pa_tasks.py is a draft):
+- BASE_A (the draft uses 20261014; no seed of stage 1 is reused);
+- the pilot's sizes and seeds (the draft: 4 seeds × 5 positions × 16 η for N 100 and N 400, 640 tasks);
+- the event-log subset (the draft's option: s = 0 at j = 0 per cell);
+- the full run's seed counts after ε₀⁺;
+- the orientation question (i).
+- On KOA: a new clean build at 6e2ee550 or later, typed by Chris, a worker sbatch and a runsheet. None of it is written before A5.
+
+## 4. The diff (git diff 109b0057 6e2ee550 -- hspist3/00ALLINONE.c; 109b0057 is engine-gen3 before step a; between them only notes copies and steps a–d)
+
+```
+diff --git a/hspist3/00ALLINONE.c b/hspist3/00ALLINONE.c
+index ba47b01e..c571732a 100644
+--- a/hspist3/00ALLINONE.c
++++ b/hspist3/00ALLINONE.c
+@@ -1462,6 +1462,14 @@ static double cli_gen3_jitter = 0.25;          /* --gen3-jitter=f: jitter radius
+ static int    cli_gen3_exact_box = 0;          /* --gen3-exact-box: box width 2 L0 with L0 exactly as written in --lengths */
+ static double* cli_lengths_d = NULL;           /* --lengths read as doubles (the exact box) */
+ static size_t cli_lengths_d_count = 0;
++/* ##CHRIS 2026-10-14 (plan-author decision 50 item 3 a; 261012 sec. 4.7.113): PART A'S HELD PATH ON THE EXACT BOX. The held path is the
++   energy-transfer experiment (the worker's AF command). With --gen3-exact-box there, the engine's box is 2 L0 with L0 exactly as written
++   in --l0, and the divider sits exactly at the first --wall-positions value; both are read again as doubles here. The display keeps its
++   float grid (SIM_WIDTH, all_wall_positions), as in the speed-of-sound loop. The box and the position are checked at 1e-9 sigma. */
++static double cli_l0_d = 0.0;                                         /* --l0 as a double */
++static double cli_wall_positions_d[5] = {0.0, 0.0, 0.0, 0.0, 0.0};    /* --wall-positions as doubles */
++static int    cli_gen3_held_readout = 0;   /* ##CHRIS 2026-10-14 (decision 50, c): --gen3-held-readout=K: the held divider's per-face
++                                              counters read at step K (T_eq) and at the last step of the hold ([EDMD3-HELD] lines) */
+ static const char* cli_gen3_dump_initial = NULL;   /* --gen3-dump-initial=PATH: the initial state after the seeding, %a */
+ /* ##CHRIS 2026-10-09 (stage H; 261012 sec. 4.7.12 stage H, sec. 4.7 item 6): checkpoint and restart of one gen3 speed-of-sound
+    trajectory at a step boundary of the driver, which is an event boundary of the engine (g3_ckpt_write, g3_restart_apply) */
+@@ -4593,6 +4601,7 @@ static void parse_cli_options(int argc, char **argv) {
+                 // Skip whitespace
+                 while (*token == ' ') token++;
+                 cli_wall_positions[pos_count] = atof(token);
++                cli_wall_positions_d[pos_count] = atof(token);   /* ##CHRIS 2026-10-14 (decision 50, a): the exact divider position */
+                 token = strtok(NULL, ",");
+                 pos_count++;
+             }
+@@ -5033,6 +5042,7 @@ static void parse_cli_options(int argc, char **argv) {
+                 exit(EXIT_FAILURE);
+             }
+             cli_override_L0_units = v;
++            cli_l0_d = strtod(value, NULL);   /* ##CHRIS 2026-10-14 (decision 50, a): the exact L0 of the held path */
+         } else if (strncmp(arg, "--height", 8) == 0) {
+             const char *value = cli_option_value(arg, argc, argv, &i);
+             errno = 0;
+@@ -5146,6 +5156,14 @@ static void parse_cli_options(int argc, char **argv) {
+             cli_gen3_exact_box = 1;
+         } else if (strncmp(arg, "--gen3-dump-initial=", strlen("--gen3-dump-initial=")) == 0) {
+             cli_gen3_dump_initial = arg + strlen("--gen3-dump-initial=");
++        } else if (strncmp(arg, "--gen3-held-readout=", strlen("--gen3-held-readout=")) == 0) {   /* ##CHRIS 2026-10-14 (decision 50, c) */
++            char* end = NULL; errno = 0;
++            const long v = strtol(arg + strlen("--gen3-held-readout="), &end, 10);
++            if (errno != 0 || !end || *end != '\0' || v < 1 || v > INT_MAX / 2) {
++                fprintf(stderr, "Invalid --gen3-held-readout '%s' (the step of T_eq, >= 1).\n", arg + strlen("--gen3-held-readout="));
++                exit(EXIT_FAILURE);
++            }
++            cli_gen3_held_readout = (int)v;
+         } else if (strncmp(arg, "--gen3-checkpoint=", strlen("--gen3-checkpoint=")) == 0) {   /* ##CHRIS 2026-10-09 (stage H) */
+             const char* v = arg + strlen("--gen3-checkpoint=");
+             char ph[16] = ""; long k = -1; int used = 0;
+@@ -17002,14 +17020,15 @@ static void g3_m4_seed(EDMD_Particle* P, int N, int NL, double boxW, double boxH
+    cannot place N_s disks where only a hexagonal packing fits (it stops at eta 0.85 with N = 100), so M4 does not depend on it. */
+ static EDMD_Particle* g3_m4_P = NULL;
+ static int g3_m4_N = 0, g3_m4_NL = 0;
+-static void g3_m4_init_driver(double L0d, unsigned run_seed){
++/* ##CHRIS 2026-10-14 (plan-author decision 50 item 3 b; 261012 sec. 4.7.113): the body of the M4 start takes its geometry -- boxW, the
++   box width, and c, the divider's centre (px, box coordinates) -- so that the held path (the energy-transfer experiment) seeds the same
++   lattice in its own geometry. g3_m4_init_driver below passes the speed-of-sound loop's geometry, computed exactly as before. */
++static void g3_m4_init_core(double boxW, double c, unsigned run_seed){
+     const int two = cli_particles_box_counts && cli_particles_box_counts_count == 2;
+     const int N = two ? cli_particles_box_counts[0] + cli_particles_box_counts[1] : (cli_override_particles > 0 ? cli_override_particles : particles_active);
+     const int NL = two ? cli_particles_box_counts[0] : N / 2;
+     if (N < 1 || N > NUM_PARTICLES) g3_stop("M4 seeding: particle count");
+-    const double boxW = cli_gen3_exact_box ? 2.0 * L0d * (double)PIXELS_PER_SIGMA : (double)(XW2 - XW1);
+     const double boxH = (double)(YW2 - YW1);
+-    const double c = cli_gen3_exact_box ? L0d * (double)PIXELS_PER_SIGMA : (double)(wall_x - (double)XW1);
+     free(g3_m4_P); g3_m4_P = (EDMD_Particle*)calloc((size_t)N, sizeof *g3_m4_P);
+     if (!g3_m4_P) g3_stop("out of memory (M4 seeding)");
+     g3_m4_N = N; g3_m4_NL = NL;
+@@ -17038,6 +17057,10 @@ static void g3_m4_init_driver(double L0d, unsigned run_seed){
+     if (cli_temperature_segments && cli_temperature_segments_count > 0) apply_segment_temperatures(cli_temperature_segments, cli_temperature_segments_count);
+     write_run_params_json();
+ }
++static void g3_m4_init_driver(double L0d, unsigned run_seed){   /* ##CHRIS 2026-10-14 (decision 50, b): the speed-of-sound loop's geometry */
++    g3_m4_init_core(cli_gen3_exact_box ? 2.0 * L0d * (double)PIXELS_PER_SIGMA : (double)(XW2 - XW1),
++                    cli_gen3_exact_box ? L0d * (double)PIXELS_PER_SIGMA : (double)(wall_x - (double)XW1), run_seed);
++}
+ /* ##CHRIS 2026-10-09 (plan-author decision 13, item 4; 261012 sec. 4.7.30): M4b, THE COMPRESSED-FLUID START (gen3 only,
+    --gen3-seeding=compressed with --gen3-exact-box): a second, disordered route to the same state, for two-start equilibration checks.
+    PROTOCOL.
+@@ -18424,6 +18447,45 @@ static void write_energy_transfer_failure(const char *summary_path,
+     fprintf(stderr, "Failure record appended to: %s\n", failure_path);
+ }
+ 
++/* ##CHRIS 2026-10-14 (decision 50, a): the held path on the exact box (gen3, --gen3-exact-box, the energy-transfer experiment) */
++static inline int g3_held_exact(void){
++    return cli_engine == 3 && cli_gen3_exact_box && !cli_force_no_experiments && cli_experiment_preset == EXPERIMENT_PRESET_ENERGY_TRANSFER;
++}
++static inline int g3_held_lattice(void){ return g3_held_exact() && cli_gen3_seeding == 1; }   /* ##CHRIS 2026-10-14 (decision 50, b) */
++/* ##CHRIS 2026-10-14 (plan-author decision 50 item 3 c; 261012 sec. 4.7.113): THE HELD DIVIDER'S FORCES FROM THE ENGINE'S OWN COUNTERS.
++   gen3 keeps, per divider face, the x impulse the disks gave the divider and the number of hits (edmd_gen3.c exec_obj:
++   O->Jf[f] -= v1 - u1, O->nf[f]++; face 0 = left, 1 = right). --gen3-held-readout=K reads them at step K (T_eq) and at the last step of
++   the hold, before the release. Over the window (t0, t1]:
++     F_L = (J_L(t1) - J_L(t0)) / T_w,   F_R = -(J_R(t1) - J_R(t0)) / T_w,   T_w = (t1 - t0) / PIXELS_PER_SIGMA,
++   the impulse being numerically sigma per sigma-time at unit disk mass, as the event log's dp; so F_L = -sum(dp < 0) / T_w and
++   F_R = sum(dp > 0) / T_w as reduce_AF.py forms them from the log. The reads are pure (edmd3_time, edmd3_divider_impulse, _events,
++   _state and edmd3_work_divider compute without storing): no event changes. Printed in the run's log, next to the run record:
++     [EDMD3-HELD] t0|t1 step=n t_sigma J_L J_R n_L n_R x_div v_div W_div, then the exact t, J_L, J_R, x_div in %a;
++     [EDMD3-HELD] window T_w F_L F_R n_L n_R dx_div v_div_t0 v_div_t1 dW_div (after t1).
++   Held, the divider has mass 0: v_div = 0, dx_div = 0 and dW_div = 0 exactly (a disk leaves with -u1, so dE = 0). */
++static double g3h_t[2], g3h_J[2][2], g3h_x[2], g3h_v[2], g3h_W[2];
++static long   g3h_n[2][2];
++static int    g3h_have[2];
++static void g3_held_readout(int k, int step){
++    if (!g_edmd3) g3_stop("--gen3-held-readout: no gen3 state");
++    const double pps = (double)PIXELS_PER_SIGMA;
++    g3h_t[k] = edmd3_time(g_edmd3);
++    for (int f = 0; f < 2; ++f) { g3h_J[k][f] = edmd3_divider_impulse(g_edmd3, 0, f); g3h_n[k][f] = edmd3_divider_events(g_edmd3, 0, f); }
++    if (!edmd3_divider_state(g_edmd3, 0, &g3h_x[k], &g3h_v[k])) g3_stop("--gen3-held-readout: no divider 0");
++    g3h_W[k] = edmd3_work_divider(g_edmd3, 0);
++    g3h_have[k] = 1;
++    printf("[EDMD3-HELD] %s step=%d t_sigma=%.17g J_L=%.17g J_R=%.17g n_L=%ld n_R=%ld x_div=%.17g v_div=%.17g W_div=%.17g exact t=%a J_L=%a J_R=%a x_div=%a\n",
++           k ? "t1" : "t0", step, g3h_t[k] / pps, g3h_J[k][0], g3h_J[k][1], g3h_n[k][0], g3h_n[k][1], g3h_x[k] / pps, g3h_v[k], g3h_W[k],
++           g3h_t[k], g3h_J[k][0], g3h_J[k][1], g3h_x[k]);
++    if (k == 1) {
++        if (!g3h_have[0]) g3_stop("--gen3-held-readout: the end of the hold came before T_eq");
++        const double Tw = (g3h_t[1] - g3h_t[0]) / pps;
++        printf("[EDMD3-HELD] window T_w=%.17g F_L=%.17g F_R=%.17g n_L=%ld n_R=%ld dx_div=%.17g v_div_t0=%.17g v_div_t1=%.17g dW_div=%.17g\n",
++               Tw, (g3h_J[1][0] - g3h_J[0][0]) / Tw, -(g3h_J[1][1] - g3h_J[0][1]) / Tw, g3h_n[1][0] - g3h_n[0][0], g3h_n[1][1] - g3h_n[0][1],
++               (g3h_x[1] - g3h_x[0]) / pps, g3h_v[0], g3h_v[1], g3h_W[1] - g3h_W[0]);
++    }
++    fflush(stdout);
++}
+ static void build_energy_transfer_validation_state(ExperimentValidationState *state,
+                                                    double *wall_positions,
+                                                    double *wall_velocities) {
+@@ -18463,7 +18525,7 @@ static void build_energy_transfer_validation_state(ExperimentValidationState *st
+         ? fmax((double)XW1, (double)XW1 + ep->pistonL_x)
+         : fmax((double)XW1, (double)piston_left_x + 5.0);
+     state->x_max_face = ep
+-        ? fmin((double)XW2, (double)XW1 + ep->pistonR_x)
++        ? fmin(g3_held_exact() ? (double)XW1 + ep->boxW : (double)XW2, (double)XW1 + ep->pistonR_x)   /* ##CHRIS 2026-10-14 (decision 50, a): the exact box */
+         : fmin((double)XW2, (double)piston_right_x);
+     state->y_min = (double)YW1;
+     state->y_max = (double)YW2;
+@@ -18567,7 +18629,12 @@ static void run_energy_transfer_experiment(void) {
+     // Reset sim
+     initialize_simulation_dimensions();
+     initialize_simulation_parameters();
+-    initialize_simulation();
++    if (g3_held_lattice()) {   /* ##CHRIS 2026-10-14 (decision 50, b): the gen3 lattice start (M4) in the held geometry: the box 2 L0 and the
++                                  divider at the requested position, both exact; srand right before it, as the speed-of-sound loop seeds each
++                                  trajectory right before its start, so that the held start at L0 equals the free start for the same seed */
++        srand(cli_seed);
++        g3_m4_init_core(2.0 * cli_l0_d * (double)PIXELS_PER_SIGMA, cli_wall_positions_d[0] * (double)PIXELS_PER_SIGMA, cli_seed);
++    } else initialize_simulation();
+     steps_elapsed = 0;
+     wall_is_released = false;
+     simulation_time = 0.0f;
+@@ -18608,7 +18675,7 @@ static void run_energy_transfer_experiment(void) {
+         }
+         if (g_edmd) { edmd_destroy(g_edmd); g_edmd = NULL; }
+         EDMD_Params prm = {0};
+-        prm.boxW = (double)(XW2 - XW1);
++        prm.boxW = g3_held_exact() ? 2.0 * cli_l0_d * (double)PIXELS_PER_SIGMA : (double)(XW2 - XW1);   /* ##CHRIS 2026-10-14 (decision 50, a) */
+         prm.boxH = (double)(YW2 - YW1);
+         prm.radius = (double)PARTICLE_RADIUS;
+         prm.N = particles_active;
+@@ -18622,7 +18689,8 @@ static void run_energy_transfer_experiment(void) {
+             int extra_idx = 0;
+             for (int w = 0; w < dcount; ++w) {
+                 double pos_px = (all_wall_positions ? (double)all_wall_positions[w] : (double)wall_x);
+-                prm.divider_x[w] = pos_px - (double)XW1;
++                prm.divider_x[w] = (g3_held_exact() && w == 0) ? cli_wall_positions_d[0] * (double)PIXELS_PER_SIGMA   /* ##CHRIS (decision 50, a) */
++                                                               : pos_px - (double)XW1;
+                 prm.divider_thickness[w] = (double)WALL_THICKNESS;
+                 double mf = (double)(WALL_MASS / PARTICLE_MASS);
+                 if (cli_wall_masses_set && w < (int)(sizeof(cli_wall_masses) / sizeof(cli_wall_masses[0])) && cli_wall_masses[w] > 0.0f) {
+@@ -18692,6 +18760,20 @@ static void run_energy_transfer_experiment(void) {
+             P[i].vy = (double)Vy[i];
+             P[i].coll_count = 0;
+         }
++        if (g3_held_lattice()) {   /* ##CHRIS 2026-10-14 (decision 50, b): the lattice's doubles replace the loaded positions, as in the
++                                      speed-of-sound loop; the initial state (--gen3-dump-initial) and the run header as there */
++            const int NL = (cli_particles_box_counts && cli_particles_box_counts_count == 2) ? cli_particles_box_counts[0] : particles_active / 2;
++            if (!g3_m4_P || g3_m4_N != particles_active || g3_m4_NL != NL) g3_stop("M4 seeding (held path): state");
++            for (int i = 0; i < particles_active; ++i) { P[i].x = g3_m4_P[i].x; P[i].y = g3_m4_P[i].y; }   /* the doubles */
++            if (cli_gen3_dump_initial)
++                g3_dump_initial(cli_gen3_dump_initial, P, particles_active, NL, prm.boxW, prm.boxH, (double)PARTICLE_RADIUS,
++                                prm.divider_x[0], prm.divider_thickness[0]);
++            char rid[200];
++            snprintf(rid, sizeof rid, "held L0=%.17g x_div=%.17g seed=%u", cli_l0_d, cli_wall_positions_d[0], cli_seed);
++            const double dt_sigma = (double)fixed_dt_runtime / (double)PIXELS_PER_SIGMA;
++            g3_run_header(rid, prm.boxW, prm.boxH, particles_active, NL, (double)wall_hold_steps * dt_sigma, wall_hold_steps,
++                          (double)target_steps * dt_sigma);
++        }
+         /* Do not repair initialization in scientific runs. The validator below
+            must observe and reject any overlap produced by seeding. */
+         if (sim_mode == MODE_EDMD) {
+@@ -18765,7 +18847,53 @@ static void run_energy_transfer_experiment(void) {
+         }
+     }
+ 
+-    if (!validator.failure.failed && cli_num_walls == num_internal_walls &&
++    if (g3_held_exact()) {
++        /* ##CHRIS 2026-10-14 (plan-author decision 50 item 3 a; 261012 sec. 4.7.113): THE HELD PATH ON THE EXACT BOX. The engine's
++           box and divider are checked against --l0 and --wall-positions read as doubles, at 1e-9 sigma (the float check below is
++           the grid path's), and the held geometry is printed once for gate C2 (the held and the free geometry equal to 1e-9):
++           the box, the divider's centre and thickness, the radius, N_L and N_R from the engine's positions, the compartment
++           widths w = x_div - t/2 and 2 L0 - x_div - t/2, and L_eff = w - 2 R, all in sigma. */
++        const EDMD_Params *gp = (g_edmd && sim_mode == MODE_EDMD) ? edmd_params(g_edmd) : NULL;
++        const double pps = (double)PIXELS_PER_SIGMA, tol_sigma = 1e-9;
++        if (!validator.failure.failed && (!gp || gp->divider_count != 1)) {
++            experiment_validator_record_failure(
++                &validator, "initialization", "held_exact_state",
++                "The held path on the exact box needs the event-driven state with one divider.",
++                0, 0.0, -1, -1, -1, -1, gp ? (double)gp->divider_count : NAN, 1.0);
++        }
++        if (!validator.failure.failed) {
++            const double box_sigma = gp->boxW / pps, x_sigma = gp->divider_x[0] / pps;
++            char detail[256];
++            if (fabs(box_sigma - 2.0 * cli_l0_d) > tol_sigma) {
++                snprintf(detail, sizeof(detail), "Box initialized at %.17g sigma; 2 L0 requested %.17g sigma (tolerance 1e-9).",
++                         box_sigma, 2.0 * cli_l0_d);
++                experiment_validator_record_failure(
++                    &validator, "initialization", "initial_box_mismatch",
++                    detail, 0, 0.0, -1, -1, -1, -1, box_sigma, 2.0 * cli_l0_d);
++            } else if (fabs(x_sigma - cli_wall_positions_d[0]) > tol_sigma) {
++                snprintf(detail, sizeof(detail), "Wall 0 initialized at %.17g sigma; command requested %.17g sigma (tolerance 1e-9).",
++                         x_sigma, cli_wall_positions_d[0]);
++                experiment_validator_record_failure(
++                    &validator, "initialization", "initial_wall_position_mismatch",
++                    detail, 0, 0.0, -1, -1, 0, -1, x_sigma, cli_wall_positions_d[0]);
++            }
++        }
++        if (!validator.failure.failed) {
++            const EDMD_Particle *gq = edmd_particles(g_edmd);
++            int nl = 0;
++            for (int i = 0; i < particles_active; ++i) if (gq[i].x < gp->divider_x[0]) nl++;
++            const double box_sigma = gp->boxW / pps, h_sigma = gp->boxH / pps, x_sigma = gp->divider_x[0] / pps;
++            const double t_sigma = gp->divider_thickness[0] / pps, r_sigma = gp->radius / pps;
++            const double wl = x_sigma - 0.5 * t_sigma, wr = box_sigma - x_sigma - 0.5 * t_sigma;
++            printf("[EDMD3-HELD-GEOMETRY] box=%.17g x %.17g sigma (2 L0 %.17g, |dW| %.3g) x_div=%.17g sigma (requested %.17g, |dx| %.3g) "
++                   "t=%.17g R=%.17g N=%d N_L=%d N_R=%d w_L=%.17g w_R=%.17g L_eff_L=%.17g L_eff_R=%.17g eta=%.17g\n",
++                   box_sigma, h_sigma, 2.0 * cli_l0_d, fabs(box_sigma - 2.0 * cli_l0_d), x_sigma, cli_wall_positions_d[0],
++                   fabs(x_sigma - cli_wall_positions_d[0]), t_sigma, r_sigma, particles_active, nl, particles_active - nl,
++                   wl, wr, wl - 2.0 * r_sigma, wr - 2.0 * r_sigma,
++                   (double)particles_active * M_PI * r_sigma * r_sigma / (box_sigma * h_sigma));
++            fflush(stdout);
++        }
++    } else if (!validator.failure.failed && cli_num_walls == num_internal_walls &&
+         all_wall_positions) {
+         /* CLI wall positions and the simulation arrays are float-valued. */
+         const double position_tolerance_sigma = 1e-5;
+@@ -18935,6 +19063,9 @@ static void run_energy_transfer_experiment(void) {
+ 
+                 double t0 = edmd_time(g_edmd);
+                 edmd_advance_to(g_edmd, t0 + (double)fixed_dt_runtime);
++                if (cli_gen3_held_readout > 0 && !wall_is_released &&
++                    (steps_elapsed == cli_gen3_held_readout || steps_elapsed == wall_hold_steps))   /* ##CHRIS 2026-10-14 (decision 50, c) */
++                    g3_held_readout(steps_elapsed == wall_hold_steps, steps_elapsed);
+                 /* ##CHRIS 2026-10-09 (M3b, 261012 sec. 4.7.14, stage A3): under gen3 the particle copy, the segment statistics and
+                    the validator run only on the steps that read them (et_particles_due); under gen2 on every step, as before. */
+                 et_need = et_particles_due(steps_elapsed, recorded_steps, target_steps, wall_hold_steps, wall_is_released);
+@@ -23280,8 +23411,17 @@ int main(int argc, char* argv[]) {
+         else if (run_scene && (heatbath_enabled || andersen_enabled))
+             why = "gen3 has no heat bath and no Andersen thermostat (--hb-temp)";
+         else if (cli_legacy_resched || cli_resched_audit) why = "--legacy-resched and --resched-audit are gen2 schedule options";
+-        else if ((cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial) && !sos)
+-            why = "--gen3-seeding, --gen3-exact-box and --gen3-dump-initial are wired to the speed-of-sound experiment only";
++        else if (et && (cli_gen3_exact_box || cli_gen3_seeding || cli_gen3_dump_initial) && !(cli_gen3_exact_box && cli_gen3_seeding == 1))   /* ##CHRIS 2026-10-14 (decision 50, b) */
++            why = "in the energy-transfer experiment (the held path) --gen3-exact-box and --gen3-seeding=lattice go together (the driver's seeder fills the 1/48-grid box), and --gen3-dump-initial needs both";
++        else if (et && cli_gen3_exact_box && (cli_num_walls != 1 || !(cli_l0_d > 0.0) || !cli_seed_set
++                                              || !(cli_wall_positions_d[0] > 0.0 && cli_wall_positions_d[0] < 2.0 * cli_l0_d)))   /* ##CHRIS 2026-10-14 (decision 50, a, b) */
++            why = "the held path on the exact box (the energy-transfer experiment) needs --num-walls=1, --l0, a --wall-positions value inside (0, 2 L0) and --seed";
++        else if ((cli_gen3_seeding || cli_gen3_exact_box || cli_gen3_dump_initial) && !sos && !et)   /* ##CHRIS (decision 50, a, b): and the held path */
++            why = "--gen3-seeding, --gen3-exact-box and --gen3-dump-initial are wired to the speed-of-sound experiment and to the held path (the energy-transfer experiment) only";
++        else if (cli_gen3_held_readout && !(et && cli_gen3_exact_box))   /* ##CHRIS 2026-10-14 (decision 50, c) */
++            why = "--gen3-held-readout is wired to the held path on the exact box (the energy-transfer experiment with --gen3-exact-box) only";
++        else if (cli_gen3_held_readout && cli_gen3_held_readout >= wall_hold_steps)
++            why = "--gen3-held-readout=K needs K below --wall-hold-steps (T_eq inside the hold)";
+         else if ((cli_gen3_ckpt_phase >= 0 || cli_gen3_restart) && !sos)   /* ##CHRIS 2026-10-09 (stage H) */
+             why = "--gen3-checkpoint and --gen3-restart are wired to the speed-of-sound experiment only";
+         else if (cli_gen3_ckpt_stop && cli_gen3_ckpt_phase < 0) why = "--gen3-checkpoint-stop needs --gen3-checkpoint";
+@@ -23319,6 +23459,10 @@ int main(int argc, char* argv[]) {
+         fprintf(stderr, "STOP: --gen3-virial-blocks and --gen3-snapshots need --engine=gen3\n");
+         exit(2);
+     }
++    if (cli_engine != 3 && cli_gen3_held_readout) {   /* ##CHRIS 2026-10-14 (decision 50, c) */
++        fprintf(stderr, "STOP: --gen3-held-readout needs --engine=gen3\n");
++        exit(2);
++    }
+     if (cli_engine != 3 && cli_gen3_psi6_comp) {   /* ##CHRIS 2026-10-10 (decision 17): provisional */
+         fprintf(stderr, "STOP: --gen3-psi6-compartments needs --engine=gen3\n");
+         exit(2);
+```
+
+## Commits
+
+- **engine-gen3, local, not pushed** (decision 50: one local commit per step):
+  - bcb0e3b1 (a);
+  - dda7f4a6 (b);
+  - 8f538a21 (c);
+  - 6e2ee550 (d).
+- **main:** decision 52 (sec. 4.7.116) and this report (4.7.117); their copies on engine-gen3 and engine-divider-resched.
+- **The push line for now:** main and engine-divider-resched only. engine-gen3 carries the four local commits and waits for the plan author's word.
+
+Written for: the plan author
