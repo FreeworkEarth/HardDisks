@@ -35,3 +35,12 @@ Display only. A window run with the panel is a demonstration, never data.
   - `tests/s0_smoke` (the first frame, eta 0.30);
   - `tests/s1_smoke_b` (eta 0.69, after the text fixes);
   - `tests/s2_apply_probe` (the record at a scripted APPLY lands on a frame boundary, 1204 steps for 1200, hence the `hash` action).
+
+## The clean build of the commit (a71f394d)
+
+- `bin_a71f394`: build_clean.sh of a71f394d (a git archive export, kissfft's six files with their recorded local change). The binary's build line reads git a71f394, target mac-O3-e0pre; 25 -Wall warnings, as before. This is the binary for Chris's viewer.
+- `tests/k_RESULTS.md`: the same tests on it.
+  - H EQUAL at both densities, with hashes identical to bin_00f4dd0e-dirty-c's.
+  - The frames k_F_*.png.
+- `tests/k_T1`: Part B's six task lines EQUAL against bin_d2dc177.
+

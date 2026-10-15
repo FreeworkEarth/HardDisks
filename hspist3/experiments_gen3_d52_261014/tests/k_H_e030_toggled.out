@@ -1,0 +1,82 @@
+
+========== Simulation Info ==========
+Mode: MOLECULAR (Normalized units)
+Experiment Mode: OFF (default dt)
+Fixed Time Step (dt): 4.00e-02
+Runtime Time Step (dt_runtime): 4.00e-01
+Fixed dt override: 4.00e-01
+Collision substeps: 1
+EDMD backend: default
+TAU scaling factor: 1.0000
+Tau (dimensionless, for f* = f·tau): 1.000000
+Temperature (runtime): 100.000
+k_B (effective): 0.010000
+k_B*T (effective): 1.000000
+k_B*T=1 mode: ON
+Time scale (interactive): 1.00×
+L0 (half-length): 26.180 σ,  L_eff = L0 − 1 = 25.180 σ
+Particle radius: 0.500 σ (diameter: 1.000 σ)
+Wall hold mode: Enabled
+Wall hold steps: 600
+Internal walls: 1
+Wall Mass Factor:50.000000
+Target total simulation time: 1200.000
+Calculated steps to reach target: 3000
+======================================
+
+[GUI] no accelerated renderer (Couldn't find matching render driver); using the software renderer
+✅ Particles placed with buffer. Wall_x = 828.000
+✅ Scaling factor for velocities: 1.0111
+[SEED] MAX(buffer)=120000 requested=400 active=400 phi_max=0.780
+[SEED] caps: L=475 R=475  targets: L=200 R=200
+[EDMD-RESCHED] divider events: minimal (default)
+[EDMD-ENGINE] gen3 (edmd_core/edmd_gen3.c; the gen2 core only holds the setup): the line above does not apply
+[EDMD] initialized: N=400  box=(52.3σ,20.0σ) -> (1256.0px,480.0px)  R=0.5000σ -> 12.000px  scale=24.0 px/σ
+▶ Simulation auto-started (headless=0, auto-release=1)
+[EDMD3] built #1 at t = 0 (internal units): N = 400, box 1256 x 480 px, cell 32 px, dividers 1, pistons 1/1; c_tol 1.39698e-08 px^2, tol_face 2.92857e-10 px, band margin 1.2e-05 px, v_ref 40 px/unit
+[GUI-KEYS] step 1: I
+✅ Wall released at t = 0.017
+[GEN3-GUI] return map: angle line of centres, walls shown, side both, K 20000
+[GUI-KEYS] step 300: I
+[GEN3-GUI] I: return map closed
+[GUI-KEYS] step 500: I
+[ENERGY] step=500  KE_p=3.998775e+02  KE_w=1.224711e-01  KE_tot=4.000000e+02  vx_wall=0.0699918  E_spring=0.000000e+00  E_tot=4.000000e+02
+[GEN3-GUI] return map: angle line of centres, walls shown, side both, K 20000
+[GUI-KEYS] step 600: hash
+[GUI-HASH] step 600: hash=0962febcf90cda92 t=240.00000357627869 events=10163
+[GUI-KEYS] step 700: I
+[GEN3-GUI] I: return map closed
+[GUI-KEYS] step 900: I
+[GEN3-GUI] return map: angle line of centres, walls shown, side both, K 20000
+[E] step=1000  KEp=3.999614e+02  KEw=3.859805e-02  KE=4.000000e+02  Pwork=0.000000e+00  (KE-Pwork)=4.000000e+02  hits(L,R)=(0,0)
+[SEG] step=1000  S0=200 KE=1.952e+02 T=97.599  S1=200 KE=2.048e+02 T=102.381
+[ENERGY] step=1000  KE_p=3.999614e+02  KE_w=3.859805e-02  KE_tot=4.000000e+02  vx_wall=0.0392928  E_spring=0.000000e+00  E_tot=4.000000e+02
+KE=399.961401942  vx_wall=0.0392928  J_accum=0
+[GUI-KEYS] step 1200: hash
+[GUI-HASH] step 1200: hash=8d360cfc76abd82b t=480.00000715255737 events=20538
+[GUI-KEYS] step 1300: I
+[GEN3-GUI] I: return map closed
+[GUI-KEYS] step 1500: I
+[ENERGY] step=1500  KE_p=3.998137e+02  KE_w=1.862998e-01  KE_tot=4.000000e+02  vx_wall=0.0863249  E_spring=0.000000e+00  E_tot=4.000000e+02
+[GEN3-GUI] return map: angle line of centres, walls shown, side both, K 20000
+[GUI-KEYS] step 1800: hash
+[GUI-HASH] step 1800: hash=f92dfdfd34f0504f t=720.00001072883606 events=30918
+[GUI-KEYS] step 2000: Q
+[E] step=2000  KEp=3.998703e+02  KEw=1.297072e-01  KE=4.000000e+02  Pwork=0.000000e+00  (KE-Pwork)=4.000000e+02  hits(L,R)=(0,0)
+[SEG] step=2000  S0=200 KE=2.054e+02 T=102.676  S1=200 KE=1.945e+02 T=97.259
+[ENERGY] step=2000  KE_p=3.998703e+02  KE_w=1.297072e-01  KE_tot=4.000000e+02  vx_wall=-0.0720298  E_spring=0.000000e+00  E_tot=4.000000e+02
+KE=399.870292815  vx_wall=-0.0720298  J_accum=0
+[GEN3-GUI] Q: the scene ends; the run record follows
+[GUI-STATS] engine=gen3 window=1 N=400 frames=312 steps=2005 wall_s=4.015 fps=77.703 sigma_time=33.4167 sigma_per_wall_s=8.32233 events=34390 events_per_wall_s=8564.73 engine_s=0.029 time_scale=200
+[EDMD3-LEDGER] momentum x: residual -1.87e-14, scale 6.89e-12, ratio 0.00271; y: residual 3.55e-15, scale 6.28e-12, ratio 0.000566; energy: residual -2.27e-13, scale 5.69e-11, ratio 0.004 (E0 400, E 400, W 0)
+[EDMD3-HEALTH] scene: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=51381 full_checks=2039 local_worst=-2.31e-13 full_worst=-2.17e-13 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=1.97e-13 ev_pair=16991 ev_wall=1688 ev_cross=15231 ev_div=480 ev_piston=0 ev_band=0 ev_stale=75811 origin_shifts=0 syncs=0 heap_compactions=0 heap_max=3435 validator_every=60 hash=14adba34cd361c84 t_end=802.00001195073128 engine=gen3 build="a71f394" target=mac-O3-e0pre run_s=4.015 engine_s=0.029 driver_share=0.9927
+Particle 0: Vx = -0.411445, Vy = 0.169807
+Particle 1: Vx = 1.231393, Vy = -0.206223
+Particle 2: Vx = -0.392612, Vy = 0.254720
+Particle 3: Vx = 2.039867, Vy = 0.413421
+Particle 4: Vx = -1.828953, Vy = -0.117962
+Particle 5: Vx = -0.191703, Vy = -0.395835
+Particle 6: Vx = 0.173187, Vy = 0.600446
+Particle 7: Vx = 1.814339, Vy = 0.393477
+Particle 8: Vx = -0.107759, Vy = -0.326248
+Particle 9: Vx = 1.583042, Vy = 0.224258
