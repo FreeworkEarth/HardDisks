@@ -38,3 +38,5 @@ e625315e8dba86cf5368994ac94b0bf77a200b833adcc6ca563140566bf5640a  cluster/gen3_s
 326830738386c44567c0d346e5694b682aefad3e3bdee95cf6731e565e91a929  cluster/gen3_stage1_261012/s1_figures_261015.py
   (fig b) python3 cluster/gen3_stage1_261012/s1_figures_261015.py --data experiments_gen3_stage1_koa_261012 --out experiments_gen3_s1_261012/full_261015/figures_261015b --date 261015 > experiments_gen3_s1_261012/full_261015/c_figures_b.txt
 (fig b) exit 0, 314 s
+(b) exit 0, 2523 s
+all done in 2523 s; 2026-10-15 09:19:22 HST
