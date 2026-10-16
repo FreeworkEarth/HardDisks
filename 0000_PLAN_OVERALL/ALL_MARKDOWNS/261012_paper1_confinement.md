@@ -32931,3 +32931,62 @@ DECISION 57, ADDENDUM 1 (2026-10-15 ~21:30 HST)
 
 **Commits.**
 - main only: this record.
+
+### 4.7.138 Plan-author decision 57, addendum 2: P2 complete. On KOA blocks C, D, D2 and E are good: 400 of 400 runs on six CPU models, the merge job 15084913, p2_reduce 40 folders, 400 trajectories, 0 errors, 0 stalls; 156 MB fetched (merge record 2026-10-16 08:23:30 UTC). Tasks: Report D57-2 as addendum 1 item 2 specifies, with the vacancy table, the measured minutes per run per CPU model and the executed events against the package's prediction per cell. Recorded for the registration's runsheet: the merge submitted with the array, held by Slurm (--dependency=afterok), so that KOA needs two pastes and the Mac one. Nothing else; no push (2026-10-16 00:19 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Relayed by Chris** at about 00:18 HST on 2026-10-16 (machine date), with the plan author's note to Chris on top.
+- **On KOA, P2 is complete and KOA is idle:**
+  - Block C good: 400 logs, 400 done, 0 FAILED/REFUSED/STOP. Six CPU models: 32 EPYC 7543P, 59 EPYC 9654, 125 E5-2670 v3, 10 E5-4640 v2, 133 Gold 6248, 41 Gold 6342.
+  - Block D: the merge job 15084913.
+  - Block D2 good: p2_reduce 40 folders, 400 trajectories, 0 errors, 0 stalls, 2542 s.
+  - Block E good: 156 MB fetched into hspist3/experiments_gen3_stage2_koa_261016/P2; the merge record 2026-10-16 08:23:30 UTC. Chris ran the fetch twice; the second run skipped the existing files (--ignore-existing).
+- **Tasks:**
+  1. **Report D57-2:** run p2_report_mac.py on the fetched folder and write the report as addendum 1 item 2 specifies, with the vacancy table. Added:
+     - the measured minutes per run per CPU model, from the logs (four of the six models were outside the D56-1 timing model);
+     - the ratio of executed events to the package's prediction, per cell.
+  2. **Recorded for the registration's runsheet (no action now):**
+     - the merge is submitted together with the array and held by Slurm (sbatch --dependency=afterok:<array job>);
+     - so KOA needs two pastes (the build and checks; the array and merge) and the Mac one (the fetch);
+     - block C stays as a read-only check after the fact; the merge's own completeness checks remain the guard.
+  3. **Nothing else;** no push needed.
+- **Afterwards (the plan author's note):** the plan author reads D57-2 against the prediction (0.72: the pins agree; 0.78: they differ). Then the plan author writes the Stage 2 registration (the geometry from the vacancy table, both N, the run-length rule from ν_d/ν_pred), and the three-paste runsheet goes to CC.
+
+**The message, verbatim** (relayed by Chris on 2026-10-16 at about 00:18 HST, machine date):
+
+```
+etched: 156 MB in /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_stage2_koa_261016/P2, merge record 08:23:30 UTC, 400 trajectories, 0 errors. (The “Skip existing” lines mean the files were already on your disk — the script was run twice; --ignore-existing makes that harmless.) KOA is idle; the pilot is complete.
+
+Step now: paste this to CC — then stop for tonight if you like; D57-2 is CC’s work, and I read it whenever it arrives.
+
+From the plan author (Cowork), relayed by Chris. Record as decision 57
+addendum 2.
+
+DECISION 57, ADDENDUM 2 (2026-10-16 00:20 HST): P2 COMPLETE
+ KOA: block C GOOD (400 logs, 400 done, 0 FAILED/REFUSED/STOP, six CPU
+ models: 32 EPYC 7543P, 59 EPYC 9654, 125 E5-2670 v3, 10 E5-4640 v2,
+ 133 Gold 6248, 41 Gold 6342); block D merge job 15084913; block D2
+ GOOD (p2_reduce 40 folders, 400 trajectories, 0 errors, 0 stalls,
+ 2542 s); block E GOOD: 156 MB fetched into Repo/HardDisks/hspist3/
+ experiments_gen3_stage2_koa_261016/P2, merge record 2026-10-16
+ 08:23:30 UTC.
+ 1. Run p2_report_mac.py on the fetched folder and write Report D57-2
+    as specified in addendum 1 item 2, the vacancy table included.
+    Add to the report: the measured minutes per run per CPU model
+    (from the logs), since four of the six models were outside the
+    D56-1 timing model, and the ratio of executed events to the
+    package's prediction per cell.
+ 2. Record for the registration's runsheet (no action now): the
+    merge is to be submitted together with the array, held by Slurm
+    (sbatch --dependency=afterok:<array job>) so that KOA needs two
+    pastes (build+checks; array+merge) and the Mac one (fetch); block
+    C stays as a read-only check after the fact; the merge's own
+    completeness checks remain the guard.
+ 3. Nothing else; no push needed for this.
+End with "Written for: the plan author".
+
+When D57-2 is in: I read it against the prediction (0.72: pins agree; 0.78: they differ), and then write the Stage 2 registration — geometry from the vacancy table, both N, the run-length rule from ν_d/ν_pred — and the three-paste runsheet goes to CC
+```
+
+**Commits.**
+- main only: this record.
