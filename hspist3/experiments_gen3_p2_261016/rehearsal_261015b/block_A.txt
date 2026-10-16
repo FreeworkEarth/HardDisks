@@ -1,0 +1,104 @@
+### block A (the sandbox shell)
+### exit 0, 9 s
+git version 2.50.1 (Apple Git-155)
+ls: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57/rehearsal_2/home/harddisks_gen3_p2: No such file or directory
+8aaf5fe Report D56-1 recorded (261012 sec. 4.7.134): figure 1 with block D; Stag
+gcc -Wl,-rpath,/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57/rehearsal_2/home/envs/hd/lib  -L/opt/homebrew/lib -L/opt/homebrew/opt/mesa/lib -o 00ALLINONE 00ALLINONE.c kissfft/kiss_fft.c kissfft/kiss_fftr.c edmd_core/edmd.c edmd_core/edmd_accelerated.c edmd_core/edmd_gen3.c experiment_validation.c -O2 -ffp-contract=off -I/opt/homebrew/include/SDL2 -I/opt/homebrew/include -D_THREAD_SAFE -I/opt/homebrew/Cellar/harfbuzz/12.2.0_1/include/harfbuzz -I/opt/homebrew/Cellar/glib/2.86.3/include/glib-2.0 -I/opt/homebrew/Cellar/glib/2.86.3/lib/glib-2.0/include -I/opt/homebrew/opt/gettext/include -I/opt/homebrew/Cellar/pcre2/10.47_1/include -I/opt/homebrew/Cellar/graphite2/1.3.14/include -I/opt/homebrew/opt/freetype/include/freetype2 -I/opt/homebrew/opt/libpng/include/libpng16 -DBUILD_GIT='"8aaf5fe"' -DBUILD_TARGET='"koa"' -DBUILD_CFLAGS='"-O2 -ffp-contract=off [mac rehearsal]"' -L/opt/homebrew/Cellar/sdl2_ttf/2.24.0/lib -lSDL2_ttf -L/opt/homebrew/lib -lSDL2 -lGLEW -framework OpenGL -framework CoreGraphics 
+== checks
+00ALLINONE  git 8aaf5fe  target koa
+  CFLAGS: -O2 -ffp-contract=off [mac rehearsal]
+== provenance
+built_utc      2026-10-16T00:29:38Z
+host           Christophs-MacBook-Pro-875.local   job 930001
+cpu            Apple M3 Max (Mac rehearsal)
+compiler       gcc (GCC) 14.3.0   (gcc on PATH)
+make compiler  gcc -> /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57/rehearsal_2/build_shims/gcc -> gcc (GCC) 14.3.0   (CC=gcc; Makefile:15 'CC ?= cc')
+version        00ALLINONE  git 8aaf5fe  target koa
+git_commit     8aaf5fef27c92391fc4fadd5133324740c29ef06
+sha256         4eef0f9643a5e44b6bb763209529e28c7ee576296f0137b8d32f38d0215ff093
+libs           sdl2 2.30.12 SDL2_ttf 2.24.0 glew 2.2.0 (~/envs/hd)
+recorded       logs/BUILD_KOA_LAST.hash: 4eef0f9643a5e44b6bb763209529e28c7ee576296f0137b8d32f38d0215ff093  00ALLINONE
+BUILD OK
+47fc478 P2 rehearsal stand-in: the mini chunk table, local Lustre and fetch, the
+env: gcc (GCC) 14.3.0 | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+# the build-time record of the P2 build (decision 57): written once by record_p2_build.sh after cluster/build_koa.sh at 8aaf5fef
+commit_build 8aaf5fef27c92391fc4fadd5133324740c29ef06
+commit_scripts 47fc478edb4fae24f3143017d9688b26236080fb
+version 00ALLINONE  git 8aaf5fe  target koa
+sha256 4eef0f9643a5e44b6bb763209529e28c7ee576296f0137b8d32f38d0215ff093 00ALLINONE
+build_inputs 50 of 50 equal to 8aaf5fef's (cluster/gen3_stage2_261016/p2_build_sources.sha256)
+build_koa built_utc      2026-10-16T00:29:38Z
+build_koa host           Christophs-MacBook-Pro-875.local   job 930001
+build_koa cpu            Apple M3 Max (Mac rehearsal)
+build_koa compiler       gcc (GCC) 14.3.0   (gcc on PATH)
+build_koa make compiler  gcc -> /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57/rehearsal_2/build_shims/gcc -> gcc (GCC) 14.3.0   (CC=gcc; Makefile:15 'CC ?= cc')
+build_koa libs           sdl2 2.30.12 SDL2_ttf 2.24.0 glew 2.2.0 (~/envs/hd)
+BUILD RECORD OK: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57/rehearsal_2/home/harddisks_gen3_p2/hspist3/logs/BUILD_RECORD_P2.txt
+a90e29c0e73c7471abdbdd86c7f0238dad6cddfe3a469d1847649dabee7536fc  cluster/gen3_stage2_261016/p2_koa.sbatch
+aeba02417b6ea80b203631c3cb6dad8cd5a0b22c971e6ffbf76fbe3fd5d447b6  cluster/gen3_stage2_261016/p2_merge.sbatch
+07fe0c405da7d198152323cfea05a0f85d465d758a493380a8428d000a576aff  cluster/gen3_stage2_261016/p2_inputs.sha256
+10ea088e5547ce2162a9735aecc8046b5fcc0c7ca84057221a10bbe8c680228e  cluster/gen3_stage2_261016/p2_build_sources.sha256
+ca81cf0b7e0f5e83ec8f9e0daef5d9146d06b2596de0296a33254ecd1e559a4f  cluster/gen3_stage2_261016/record_p2_build.sh
+24
+656d5a68ca79b77db1e5100ecb56853ebfb6f89cf7e6bde7964e65c249c173ed
+env: gcc (GCC) 14.3.0 | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+the merge and reducer imports: OK
+ls: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57/rehearsal_2/lustre/harddisks_gen3/stage2/P2: No such file or directory
+git --version
+ls -d ~/harddisks_gen3_p2 2>&1 | head -1
+cd ~ && git clone -q --no-checkout --shared /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks harddisks_gen3_p2 && git -C harddisks_gen3_p2 config core.abbrev 7 && git -C harddisks_gen3_p2 sparse-checkout init --no-cone
+cd ~/harddisks_gen3_p2
+git -c advice.detachedHead=false checkout 8aaf5fef27c92391fc4fadd5133324740c29ef06
+HEAD is now at 8aaf5fe Report D56-1 recorded (261012 sec. 4.7.134): figure 1 with block D; Stage 2 sizing -- E1 survives at eta 0.76 (Q 19), pinned lattice starts feasible, 478-578 core-hours; D2 sizing and block D's fit record
+git sparse-checkout set --no-cone "/hspist3/*.c" "/hspist3/*.h" "/hspist3/*.py" "/hspist3/Makefile" "/hspist3/edmd_core/" "/hspist3/cluster/" "/hspist3/validation/" "/hspist3/kissfft"
+git clone -q /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/kissfft hspist3/kissfft
+git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec
+HEAD is now at febd4ca Merge pull request #99 from lanurmi/newline
+git log -1 --format='%h %s' | cut -c1-80
+bash hspist3/cluster/build_koa.sh 2>&1 | tail -16
+git fetch -q /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57/rehearsal_2/standin standin
+git -c advice.detachedHead=false checkout 47fc478edb4fae24f3143017d9688b26236080fb
+Previous HEAD position was 8aaf5fe Report D56-1 recorded (261012 sec. 4.7.134): figure 1 with block D; Stage 2 sizing -- E1 survives at eta 0.76 (Q 19), pinned lattice starts feasible, 478-578 core-hours; D2 sizing and block D's fit record
+HEAD is now at 47fc478 P2 rehearsal stand-in: the mini chunk table, local Lustre and fetch, the input manifest again
+git log -1 --format='%h %s' | cut -c1-80
+bash hspist3/cluster/gen3_stage2_261016/record_p2_build.sh
+cd hspist3 && sha256sum cluster/gen3_stage2_261016/p2_koa.sbatch cluster/gen3_stage2_261016/p2_merge.sbatch cluster/gen3_stage2_261016/p2_inputs.sha256 cluster/gen3_stage2_261016/p2_build_sources.sha256 cluster/gen3_stage2_261016/record_p2_build.sh
+sha256sum -c cluster/gen3_stage2_261016/p2_inputs.sha256 | grep -c ': OK$'
+cat cluster/gen3_stage2_261016/tasks_p2_koa_261016.sha256
+source cluster/koa_env.sh
+# ##CHRIS 2026-10-02: the ONE place that sets up the KOA build and run environment (Task K1). It is SOURCED (not run) by
+# build_koa.sh, koa_smoketest.sh, koa_crossnode_det.sh and the confinement sbatch files, always INSIDE a Slurm job:
+# /home is mounted noexec on the login node, so nothing built in home runs there (KOA facts, 2026-10-03 UTC).
+#
+# Compiler: the compiler/GCC/14.3.0 module, not the system gcc 11.5 -- a pinned version that does not change when the
+# OS is patched (it is the GCC of KOA's 2025b toolchain), so a rebuild months from now uses the same compiler.
+# `--version` of the binary does not record the compiler, so every job log prints `gcc --version` (see below).
+#
+# Libraries: SDL2, SDL2_ttf, GLEW and GL come from the user conda env ~/envs/hd (conda-forge only; exact package list in
+# ~/envs/hd_explicit_261003.txt). They are needed to LINK only; headless runs never open a window. The binary is linked
+# with an rpath to ~/envs/hd/lib, so it also runs from scripts that do not source this file.
+if ! type module >/dev/null 2>&1; then
+  for f in /etc/profile.d/lmod.sh /etc/profile.d/z00_lmod.sh /etc/profile.d/modules.sh; do [ -f "$f" ] && . "$f"; done
+fi
+[ -n "${SLURM_JOB_ID:-}" ] || echo "WARNING: koa_env.sh sourced outside a Slurm job -- build and run only inside srun/sbatch"
+module purge
+module load compiler/GCC/14.3.0 || { echo "STOP: module load compiler/GCC/14.3.0 failed"; return 1; }
+export PKG_CONFIG_PATH=$HOME/envs/hd/lib/pkgconfig:${PKG_CONFIG_PATH:-}
+export LD_LIBRARY_PATH=$HOME/envs/hd/lib:${LD_LIBRARY_PATH:-}
+export PATH=$HOME/envs/hd/bin:$PATH
+export LDFLAGS="-Wl,-rpath,$HOME/envs/hd/lib ${LDFLAGS:-}"     # Makefile:41 uses LDFLAGS +=, so this survives
+# ##CHRIS 2026-10-02 (Task O): the Makefile says `CC              ?= cc` (Makefile:15), so without this make compiles with
+# `cc` -- on KOA most likely /usr/bin/cc, the system gcc 11.5, even with the 14.3 module loaded. Export the compiler
+# explicitly; build_koa.sh records the compiler make actually invokes (from `make -n`).
+export CC=gcc
+gcc --version | head -1 | grep -q "14.3" || { echo "STOP: gcc is not 14.3: $(gcc --version | head -1)"; return 1; }
+# ##CHRIS 2026-10-11 (plan-author decisions 26 and 28, Report S1-0 point 6; 261012 sec. 4.7.57): no job may depend on a tool a node can
+# lack. Node cn-05-08-07 has no git ("cluster/koa_env.sh: line 27: git: command not found", decision 25): git is only REPORTED here, never
+# required; the jobs that used it at run time read the commit from a file instead (cluster/gen3_testR_261011/testR_koa.sbatch).
+echo "env: $(gcc --version | head -1) | $(python3 --version 2>&1) at $(command -v python3) | $(if command -v git >/dev/null 2>&1; then git --version; else echo 'git: none on this node (not needed at run time)'; fi)"
+gcc --version | head -1
+python3 --version 2>&1
+command -v python3
+if command -v git >/dev/null 2>&1; then git --version; else echo 'git: none on this node (not needed at run time)'; fi
+python3 -c "import sys; sys.argv = ['x']; sys.path[:0] = ['cluster/gen3_stage2_261016', 'cluster/gen3_stage1_261012', 'cluster/gen3_testR_261011', 'validation', '.']; import merge_s1_koa, reduce_s1_koa, p2_lattice, p2_reduce; print('the merge and reducer imports: OK')"
+ls /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57/rehearsal_2/lustre/harddisks_gen3/stage2/P2 2>&1 | head -1

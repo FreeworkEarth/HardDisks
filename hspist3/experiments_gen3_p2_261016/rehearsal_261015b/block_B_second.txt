@@ -1,0 +1,7 @@
+### block B pasted again
+### exit 0, 0 s
+REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57/rehearsal_2/lustre/harddisks_gen3/stage2/P2 exists: the array ran before
+P2: THIS PASTE DID NOT SUBMIT THE ARRAY
+squeue -u charing
+cd ~/harddisks_gen3_p2/hspist3 && { Q=$(squeue -h -u charing -n gen3-p2 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-p2 job: $Q"; false; }; } && { [ ! -e /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57/rehearsal_2/lustre/harddisks_gen3/stage2/P2 ] || { echo "REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57/rehearsal_2/lustre/harddisks_gen3/stage2/P2 exists: the array ran before"; false; }; } && { grep -qx 'commit_scripts 47fc478edb4fae24f3143017d9688b26236080fb' logs/BUILD_RECORD_P2.txt || { echo "REFUSED: logs/BUILD_RECORD_P2.txt does not name the package commit 47fc478e"; false; }; } && echo "CHECKS GOOD" && sbatch --array=221,271,321,371 cluster/gen3_stage2_261016/p2_koa.sbatch && echo "P2: THE ARRAY IS SUBMITTED" || echo "P2: THIS PASTE DID NOT SUBMIT THE ARRAY"
+squeue -h -u charing -n gen3-p2 -o %i 2>&1

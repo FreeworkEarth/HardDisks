@@ -1,0 +1,5 @@
+### block D (the merge, then its log)
+### exit 0, 13 s
+Submitted batch job 920002
+squeue -u charing
+cd ~/harddisks_gen3_p2/hspist3 && sbatch cluster/gen3_stage2_261016/p2_merge.sbatch

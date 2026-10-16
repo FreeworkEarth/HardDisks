@@ -9,7 +9,8 @@ runsheet goes into the commit after the package). The blocks, in order (decision
                    p2_build_sources.sha256); the package's SHA-256; the import check; the fresh scratch root
   B  (login node)  the guarded one-line submit of the array (decision 42's form: a second paste refuses)
   C  (login node)  squeue and the chunk checks (read only)
-  D  (login node)  the merge job (it checks everything itself; never repeated), then its log
+  D  (login node)  the merge job (it checks everything itself; never repeated)
+  D2 (login node)  the merge's log
   E  (Mac)         the fetch
 usage (from hspist3/): python3 cluster/gen3_stage2_261016/make_p2_runsheet.py <package commit, 40 hex> [--out <file>]
 """
@@ -34,13 +35,16 @@ def main():
     nbs = sum(1 for l in open(os.path.join(HS, P, "p2_build_sources.sha256")) if l.strip())
     tsha = open(os.path.join(HS, P, "tasks_p2_koa_261016.sha256")).read().strip()
     design = [l.rstrip("\n") for l in open(os.path.join(HS, P, "p2_design_261016.txt")) if l.startswith("- predicted") or l.startswith("- wall")]
+    cls = sorted({int(l.split("\t")[9]) for l in list(open(os.path.join(HS, P, "chunks_p2_koa_261016.tsv")))[1:]})
+    if len(cls) != 1: sys.exit(f"STOP: the chunk table has {len(cls)} time classes")
+    tlim = cls[0]; subj80 = subj if len(subj) <= 80 else subj[:subj.rfind(" ", 0, 80)] + " ..."
     T = []
     T += [f"##CHRIS 2026-10-15 (plan-author decision 57; notes 261012 sec. 4.7.135) -- THE P2 RUNSHEET (KOA): the Stage 2 pilot, N 900, 400 runs.",
           "Written by cluster/gen3_stage2_261016/make_p2_runsheet.py. PREPARED: typed only after the plan author has read Report D57-1 and Chris",
           "has pushed main. Chris types every command.", "",
           "WHAT IT DOES. Block A makes ONE fresh clone ~/harddisks_gen3_p2: at 8aaf5fef it builds the campaign binary with 8aaf5fef's own",
           "cluster/build_koa.sh (make -B koa with cluster/koa_env.sh: stage 1's target, flags and environment); then it fetches the package commit",
-          f"{PKG[:8]} ({subj[:90]}) and checks it out -- the package adds files only, the build inputs stay 8aaf5fef's, and",
+          f"{PKG[:8]} (\"{subj80}\") and checks it out -- the package adds files only, the build inputs stay 8aaf5fef's, and",
           "record_p2_build.sh checks every one of them against p2_build_sources.sha256 before it writes the build-time record. Block B submits",
           "ONE array of 400 one-core tasks, at most 64 at once; each task runs one task line with p2_worker_koa.sh (the stage 1 worker plus the",
           "initial dump) after its start-up checks (inputs, task list, binary against the build-time record; no git). Block D submits the merge",
@@ -52,8 +56,10 @@ def main():
           "NO GIT AT RUN TIME; every sbatch file carries --exclude=cn-05-08-07. THE SANDBOX LINE is the established one.",
           "",
           "CORE-HOURS AND TIME (Report D56-1 (a), the upper Z):"] + [f"  {d[2:]}" for d in design] + [
-          "  requested: 400 tasks x 0:20 h = 133 core-hours at most (Slurm charges use); the merge 1 core, --time=24:00:00, expected well under 1 h.",
-          "SCRATCH: about 0.9 GB on Lustre (snapshots 1.3 MB per run); the fetch about 0.15 GB (no traces, no snapshots).", "",
+          f"  requested: 400 tasks x 0:{tlim:02d} h = {400 * tlim / 60:.0f} core-hours at most (Slurm charges use); the merge 1 core, --time=24:00:00,",
+          "  expected well under 1 h.",
+          "SCRATCH: about 0.9 GB on Lustre at most (per run, measured in the Mac rehearsal: the trace 0.5 MB until the merge gzips it to 0.07 MB,",
+          "the snapshots 1.4 MB, psi6(t) 0.2 MB, the run folder with the initial state 0.12 MB); the fetch about 0.16 GB (0.4 MB per run).", "",
           "P2 BLOCK A0 (KOA login node; opens the sandbox shell; then wait for the cn-... prompt):",
           "squeue -u charing",
           "srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash", "",
@@ -107,7 +113,7 @@ def main():
           f"&& {{ grep -qx 'commit_scripts {PKG}' logs/BUILD_RECORD_P2.txt || {{ echo \"REFUSED: logs/BUILD_RECORD_P2.txt does not name the package commit {PKG[:8]}\"; false; }}; }} "
           "&& echo \"CHECKS GOOD\" && sbatch --array=1-400%64 cluster/gen3_stage2_261016/p2_koa.sbatch && echo \"P2: THE ARRAY IS SUBMITTED\" || echo \"P2: THIS PASTE DID NOT SUBMIT THE ARRAY\"", "",
           "  Expected: squeue lists no gen3 job; then \"CHECKS GOOD\", \"Submitted batch job <its number>\" and \"P2: THE ARRAY IS SUBMITTED\". 400 tasks, at most 64 at once,",
-          "  0:20 h each at most; predicted about 46 min of wall time. A second paste prints \"REFUSED: ...\" and \"P2: THIS PASTE DID NOT SUBMIT THE ARRAY\".", "",
+          f"  0:{tlim:02d} h each at most; predicted about 50 min of wall time. A second paste prints \"REFUSED: ...\" and \"P2: THIS PASTE DID NOT SUBMIT THE ARRAY\".", "",
           "P2 BLOCK C (KOA login node, when squeue -u charing lists no gen3-p2 job; every line only reads; paste everything):",
           "squeue -u charing",
           "cd ~/harddisks_gen3_p2/hspist3",
@@ -124,16 +130,21 @@ def main():
           "    one line per CPU model, the counts adding up to 400",
           "    \"chunk logs: 400; chunks done: 400 of 400 (group P2; ...); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished\"",
           "  STOP RULE: anything else: paste it, change nothing, wait (a resubmission line follows from CC and the plan author).", "",
-          "P2 BLOCK D (KOA login node, after block C was good; the merge, then -- when squeue lists no gen3-p2-merge job -- its log):",
+          "P2 BLOCK D (KOA login node, after block C was good; the merge job):",
           "squeue -u charing",
-          "cd ~/harddisks_gen3_p2/hspist3 && sbatch cluster/gen3_stage2_261016/p2_merge.sbatch",
-          "  ... later, when squeue -u charing lists no gen3-p2-merge job:",
-          "cd ~/harddisks_gen3_p2/hspist3 && L=$(ls -t logs/gen3-p2-merge_*.out | head -1) && echo \"$L\" && grep -v '^  m_\\|^reduce_' \"$L\" | tail -25", "",
-          "  Expected: \"Submitted batch job <its number>\". The log ends with \"merged 400 chunks: ...\", the lines of p2_reduce.py (40 folders, one line",
-          "  each), \"p2_reduce: 40 folders (0 without the stage 1 tables), 400 trajectories, 0 with an error; <s> s\" and \"P2 merge and reduction done;",
-          "  next: the fetch from the Mac (fetch_p2_koa.sh)\". The merge checks everything itself and refuses a second run (exit 3).",
-          "  STOP RULE: a STOP line: paste it, change nothing, wait.", "",
-          "P2 BLOCK E (Mac, after block D's log is good; one password and Duo push; about 0.15 GB):",
+          "cd ~/harddisks_gen3_p2/hspist3 && sbatch cluster/gen3_stage2_261016/p2_merge.sbatch", "",
+          "  Expected: squeue lists no gen3-p2 job; \"Submitted batch job <its number>\". Submit it ONCE: the merge checks everything itself before it",
+          "  moves anything and refuses a second run (exit 3). It takes well under an hour.", "",
+          "P2 BLOCK D2 (KOA login node, when squeue -u charing lists no gen3-p2-merge job; reads only; paste everything):",
+          "squeue -u charing",
+          "cd ~/harddisks_gen3_p2/hspist3 && L=$(ls -t logs/gen3-p2-merge_*.out | head -1) && echo \"$L\" && grep -Ev '^  m_|^reduce_' \"$L\" | tail -25", "",
+          "  THE LINES THAT SHOW IT IS GOOD: squeue's header only; the log's path; \"merged 400 chunks: 1600 files moved, 800 files appended, 400 kept",
+          "  per chunk (0 failed-run folders), 0 incomplete run folders, 0 locks or temp files left in place, 400 build files equal; build '00ALLINONE  git",
+          "  8aaf5fe  target koa'\",",
+          "  the lines of p2_reduce.py (40 folders, one line each: e start, e end, Q, stalls, psi6), \"p2_reduce: 40 folders (0 without the stage 1",
+          "  tables), 400 trajectories, 0 with an error; <s> s\", \"P2 merge and reduction done; next: the fetch from the Mac (fetch_p2_koa.sh)\" and",
+          "  \"this job's log is copied to ...\". STOP RULE: a STOP line: paste it, change nothing, wait.", "",
+          "P2 BLOCK E (Mac, after block D2's log is good; one password and Duo push; about 0.16 GB):",
           "cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks && bash hspist3/cluster/gen3_stage2_261016/fetch_p2_koa.sh", "",
           "  Expected, last line: \"fetched into .../hspist3/experiments_gen3_stage2_koa_261016/P2: <size>; merge record: <time>; p2_reduce: p2_reduce: 40 folders",
           "  (0 without the stage 1 tables), 400 trajectories, 0 with an error; <s> s\". Then tell CC: CC runs p2_tables_mac.py and writes the P2 report."]

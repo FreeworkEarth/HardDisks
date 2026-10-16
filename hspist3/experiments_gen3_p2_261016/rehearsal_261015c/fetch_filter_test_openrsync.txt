@@ -1,0 +1,38 @@
+# the fetch filter of fetch_p2_koa.sh (commit after c69804b0), run by the script itself with the Mac's /usr/bin/rsync (openrsync, protocol 29)
+# on the rehearsal's merged root (rehearsal_261015c), the DTN source made local; 2026-10-15 17:56:37 HST
+# file names under the destination (run numbers and chunk numbers generalised), counts:
+   4 stdout.log
+   4 speed_of_sound_psi6.csv
+   4 speed_of_sound_batch_status.json
+   4 snap_runs.csv
+   4 s1_runs.csv
+   4 runs_health.csv
+   4 run_params.json
+   4 run.log
+   4 red_nu.csv
+   4 p2_runs.csv
+   4 p2_frames.csv
+   4 nud_runs.csv
+   4 initial_state.txt
+   4 failed_runs.csv
+   4 acf_runs.npz
+   4 acf_mean_fit.csv
+   4 01_PLOT_COMMANDS.md
+   4 00_COMMAND_AND_PLOT_COMMAND.md
+   4 00_COMMAND.md
+   4 .sha256_uncompressed
+   4 .build_git
+   3 virial_blocks_L0_151_wallmassfactor_4500_runN.csv.gz
+   3 psi6_t_L0_151_wallmassfactor_4500_runN.csv.gz
+   1 virial_blocks_L0_158_wallmassfactor_4500_runN.csv.gz
+   1 psi6_t_L0_158_wallmassfactor_4500_runN.csv.gz
+   1 p2_reduce_summary.txt
+   1 merge_plan_20261015_175438.tsv
+   1 gen3-p2_920001_371.out
+   1 gen3-p2_920001_321.out
+   1 gen3-p2_920001_271.out
+   1 gen3-p2_920001_221.out
+   1 gen3-p2-merge_920002.out
+   1 .merge_complete
+# traces, snapshots or experiments_speed_of_sound folders fetched: 0
+# size: 1.6M for 4 runs
