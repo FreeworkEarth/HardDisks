@@ -37,7 +37,27 @@
      budget or after its placement attempts.
    - "redraw theta' up to n_try times": 1 + n_try placement attempts per tip and tick; each attempt calls the policy again.
    - The tips present when a tick starts act in it; a tip created by a branch acts from the next tick.
-   - A disk's kind is "tip" from its birth until it gets its first child, then "body"; the seed stays "seed". */
+   - A disk's kind is "tip" from its birth until it gets its first child, then "body"; the seed stays "seed".
+
+   Demo 0b (brief sec. 3 "0b additions" as amended by the decisions relayed on 2026-10-15 as sec. 8; that section was not on
+   disk when this was written, so the readings below are the reference until it is):
+   - Patches {id, x, y, r, s, active}, absolute sigma, from --patch=x,y,r,s (repeatable) or a preset. A patch whose disk
+     contains the seed centre is the home patch (A): it neither emits cue nor feeds a tip, because the network starts on
+     it (otherwise every start disk would be "fed" at tick 0 and the cue would pull every tip back to the seed).
+   - Cue c(x) = sum over active non-home patches of s exp(-|x - x_p| / lambda), closed form, and its gradient.
+   - Guided rule: theta' = theta + kappa xi + beta wrap(phi - theta), phi the direction of grad c at the tip's disk (no bias
+     where the gradient is zero). Same draws in the same order as the unbiased rule, so beta = 0 reproduces it exactly.
+   - Fed: a disk that intersects a non-home active patch (|c - x_p| < r + r_p). The fed paths are those disks and all their
+     ancestors; a tip whose new disk is fed stops (and makes no branch tip). Fed status is derived from the disks, never
+     stored.
+   - Adaptation every Tadapt ticks (0 = off, the 0a/0a.1 behaviour): fed disks r <- min(rmax, r (1 + gamma)), charged to
+     the pool with the change of the lens areas with parent and children, refused if the pool cannot pay, if the larger
+     disk leaves the box, or if it would overlap a non-adjacent disk; then every non-fed body disk r <- r (1 - deltathin),
+     material returned; then every disk below rmin / 2 is removed with its subtree and their tips. Parent-child pairs may
+     overlap after thickening; their lens is subtracted in M_used (pid_lens_area). Order: ids ascending.
+   - Executor (sec. 8): with budget_wait = 1 a tip the pool cannot afford waits (stays alive, nothing placed); a tip blocked
+     by geometry still dies after 1 + ntry attempts. With tip_order = random the live tips act in a fresh Fisher-Yates
+     permutation each tick drawn from the one generator. Both are off by default (0a/0a.1 behaviour, regression intact). */
 #ifndef PID_H
 #define PID_H
 
@@ -62,6 +82,9 @@ enum { KIND_SEED = 0, KIND_BODY = 1, KIND_TIP = 2 };
 typedef struct { int id; double x, y, r; int parent; int kind; long born; int alive; } Disk;
 typedef struct { int disk; double heading; int alive; } Tip;
 
+#define PID_MAX_PATCHES 16
+typedef struct { double x, y, r, s; int active; } Patch;
+
 typedef struct {
     double W, H, budget;               /* box and material budget M_total */
     double kappa, tau, rmin, pbranch, delta;
@@ -69,6 +92,11 @@ typedef struct {
     double R0;
     int    rings;                      /* 0a.1: hex rings at the start (0: the 0a start with K tips) */
     double pbranch_exp;                /* 0a.1: p_branch(r) = pbranch (r / R0)^pbranch_exp */
+    double beta, lambda;               /* 0b: guided bias and cue length */
+    int    tadapt;                     /* 0b: adaptation every tadapt ticks, 0 = off */
+    double gamma, deltathin, rmax;     /* 0b: thickening, thinning, largest radius */
+    int    budget_wait, tip_order;     /* 0b (sec. 8): 1 = budget-blocked tips wait; 0 = id order, 1 = random order */
+    int    npatch; Patch patch[PID_MAX_PATCHES];
 } Params;
 
 typedef struct World {
@@ -98,6 +126,12 @@ int    world_add_disk(World* w, Disk d);           /* returns the new id */
 int    world_add_tip(World* w, Tip t);
 Policy policy_by_name(const char* name);
 Action policy_unbiased(const World* w, const Tip* t, Rng* g, const Params* p);
+Action policy_guided(const World* w, const Tip* t, Rng* g, const Params* p);
+int    pid_patch_home(const World* w, int k);      /* 1 if patch k contains the seed centre */
+int    pid_disk_in_patch(const Disk* d, const Patch* q);
+void   pid_cue(const World* w, double x, double y, double* c, double* gx, double* gy);
+int    world_fed(const World* w, unsigned char* fed);   /* fed[i] = 1 on a fed path; returns how many */
+int    world_alive_disks(const World* w);
 int    executor_apply(World* w, int tip, Policy pol); /* 1 if a disk was placed */
 void   step(World* w, Policy pol);                 /* one growth tick; the only function that changes a World */
 double pid_wrap(double a);

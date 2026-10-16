@@ -2,7 +2,9 @@
    path's files.
      pid_check verify FILE...      invariants and ledger on every file (items 2-3); with several files, given in tick order,
                                    also that disks never change and dead tips stay frozen from one state to the next
-     pid_check roundtrip IN OUT    read IN, write OUT (item 4; the test then compares the two with cmp) */
+     pid_check roundtrip IN OUT    read IN, write OUT (item 4; the test then compares the two with cmp)
+     pid_check info FILE...        0b: one line per state: tick, alive disks, live tips, M_pool, fed disks, fed path ends, and for every
+                                   non-home patch the number of alive disks touching it */
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,9 +15,10 @@ const char* pid_build_id(void){ return "pid_check"; }   /* world_init() is not u
 static int sequence_check(const World* a, const World* b, const char* fa, const char* fb){
     if (b->tick < a->tick) { printf("FAIL %s -> %s: tick goes back (%ld -> %ld)\n", fa, fb, a->tick, b->tick); return 1; }
     if (b->nd < a->nd || b->nt < a->nt) { printf("FAIL %s -> %s: disks or tips were removed\n", fa, fb); return 1; }
+    const int adapt = a->p.tadapt > 0;                 /* 0b: radii change and disks are removed, nothing else */
     for (int i = 0; i < a->nd; ++i) {
         const Disk* x = &a->d[i]; const Disk* y = &b->d[i];
-        if (x->x != y->x || x->y != y->y || x->r != y->r || x->parent != y->parent || x->born != y->born || x->alive != y->alive) {
+        if (x->x != y->x || x->y != y->y || x->parent != y->parent || x->born != y->born || (!adapt && (x->r != y->r || x->alive != y->alive)) || (!x->alive && y->alive)) {
             printf("FAIL %s -> %s: disk %d changed\n", fa, fb, i); return 1;
         }
     }
@@ -36,7 +39,7 @@ int main(int argc, char** argv){
         for (int i = 2; i < argc; ++i) {
             World w; double pool; char err[512];
             if (state_read(&w, argv[i], &pool, err, sizeof err)) { printf("FAIL %s: %s\n", argv[i], err); ++fails; continue; }
-            const int f = world_check(&w, 1, pool, err, sizeof err);
+            const int f = world_check(&w, w.p.tadapt == 0, pool, err, sizeof err);
             if (f) { printf("FAIL %s: %d invariant/ledger failures, first: %s\n", argv[i], f, err); ++fails; }
             if (have_prev) { fails += sequence_check(&prev, &w, prev_name, argv[i]); world_free(&prev); }
             if (w.nd > disks_max) disks_max = w.nd;
@@ -46,6 +49,30 @@ int main(int argc, char** argv){
         printf("verify: %d files, up to %ld disks, %d failures\n", files, disks_max, fails);
         return fails ? 1 : 0;
     }
+    if (argc >= 3 && !strcmp(argv[1], "info")) {
+        for (int i = 2; i < argc; ++i) {
+            World w; double pool; char err[512];
+            if (state_read(&w, argv[i], &pool, err, sizeof err)) { printf("FAIL %s: %s\n", argv[i], err); return 1; }
+            unsigned char* fed = (unsigned char*)malloc((size_t)(w.nd > 0 ? w.nd : 1));
+            if (!fed) return 3;
+            const int nf = w.p.npatch > 0 ? world_fed(&w, fed) : 0;
+            int ends = 0;                              /* fed disks without a fed child: 1 = one chain from A to B */
+            for (int j = 0; j < w.nd; ++j) {
+                if (!fed[j] || !w.d[j].alive) continue;
+                int fc = 0; for (int c = j + 1; c < w.nd && !fc; ++c) fc = w.d[c].alive && w.d[c].parent == j && fed[c];
+                ends += !fc;
+            }
+            printf("tick %ld alive %d live_tips %d m_pool %.6f fed %d fed_ends %d", w.tick, world_alive_disks(&w), world_live_tips(&w), pool, nf, ends);
+            for (int k = 0; k < w.p.npatch; ++k) {
+                if (pid_patch_home(&w, k)) continue;
+                int t = 0; for (int j = 0; j < w.nd; ++j) t += w.d[j].alive && pid_disk_in_patch(&w.d[j], &w.p.patch[k]);
+                printf(" touch%d %d", k, t);
+            }
+            printf("\n");
+            free(fed); world_free(&w);
+        }
+        return 0;
+    }
     if (argc == 4 && !strcmp(argv[1], "roundtrip")) {
         World w; double pool; char err[512];
         if (state_read(&w, argv[2], &pool, err, sizeof err)) { printf("FAIL %s: %s\n", argv[2], err); return 1; }
@@ -53,6 +80,6 @@ int main(int argc, char** argv){
         world_free(&w);
         return 0;
     }
-    fprintf(stderr, "usage: pid_check verify FILE... | pid_check roundtrip IN OUT\n");
+    fprintf(stderr, "usage: pid_check verify FILE... | pid_check roundtrip IN OUT | pid_check info FILE...\n");
     return 2;
 }

@@ -1,5 +1,5 @@
-/* pid_grow.c -- the growth model of brief sec. 3 for Demo 0a: seed, tips, tangent placement, branching, the material
-   ledger and the invariant checks. step() is the only function that changes a World after world_init(); the window and
+/* pid_grow.c -- the growth model of brief sec. 3: seed, tips, tangent placement, branching, the material ledger and the
+   invariant checks (0a, 0a.1); patches, cue field, guided rule, fed paths and adaptation (0b). step() is the only function that changes a World after world_init(); the window and
    the headless loop both call it (pid_main.c run_tick). */
 #include <math.h>
 #include <stdlib.h>
@@ -24,6 +24,10 @@ void params_default(Params* p){
     p->kappa = 0.35; p->tau = 0.03; p->rmin = 1.0; p->pbranch = 0.8; p->delta = 0.6;
     p->ntry = 24; p->K = 6; p->R0 = 3.0;
     p->rings = 1; p->pbranch_exp = 6.0;
+    /* 0b: the brief's values (sec. 3); adaptation, waiting and random order are off by default and switched on by the
+       preset mat45, so the 0a/0a.1 defaults and their regression stay as they were. rmax = 2 R0 at the default R0. */
+    p->beta = 0.3; p->lambda = 40.0; p->tadapt = 0; p->gamma = 0.02; p->deltathin = 0.01; p->rmax = 6.0;
+    p->budget_wait = 0; p->tip_order = 0; p->npatch = 0;
 }
 
 int params_check(const Params* p, char* err, size_t n){
@@ -41,6 +45,11 @@ int params_check(const Params* p, char* err, size_t n){
                                                  { snprintf(err, n, "the seed and its %d start rings do not fit in the box", p->rings); return -1; }
     if (!(PID_PI * p->R0 * p->R0 * (1.0 + 3.0 * p->rings * (p->rings + 1)) <= p->budget))
                                                  { snprintf(err, n, "--budget must hold the seed and its start rings"); return -1; }
+    if (!(p->lambda > 0) || !isfinite(p->beta))  { snprintf(err, n, "--lambda must be > 0 and --beta finite"); return -1; }
+    if (p->tadapt < 0 || !(p->gamma >= 0) || !(p->deltathin >= 0 && p->deltathin < 1) || !(p->rmax >= p->rmin))
+                                                 { snprintf(err, n, "need --tadapt >= 0, --gamma >= 0, --deltathin in [0, 1), --rmax >= --rmin"); return -1; }
+    for (int k = 0; k < p->npatch; ++k)
+        if (!(p->patch[k].r > 0 && p->patch[k].s >= 0)) { snprintf(err, n, "patch %d: r must be > 0 and s >= 0", k); return -1; }
     return 0;
 }
 
@@ -169,10 +178,67 @@ Action policy_unbiased(const World* w, const Tip* t, Rng* g, const Params* p){
     }
     return a;
 }
+/* ---------------------------------------------------------------- 0b: patches, cue, the guided rule, fed paths */
+int pid_disk_in_patch(const Disk* d, const Patch* q){ return hypot(d->x - q->x, d->y - q->y) < d->r + q->r; }
+int pid_patch_home(const World* w, int k){
+    const Patch* q = &w->p.patch[k];
+    return w->nd > 0 && hypot(w->d[0].x - q->x, w->d[0].y - q->y) < q->r;
+}
+/* c(x) = sum over active non-home patches of s exp(-|x - x_p| / lambda); its gradient points toward the patches */
+void pid_cue(const World* w, double x, double y, double* c, double* gx, double* gy){
+    *c = 0.0; *gx = 0.0; *gy = 0.0;
+    for (int k = 0; k < w->p.npatch; ++k) {
+        const Patch* q = &w->p.patch[k];
+        if (!q->active || pid_patch_home(w, k)) continue;
+        const double dx = x - q->x, dy = y - q->y, d = hypot(dx, dy);
+        const double e = q->s * exp(-d / w->p.lambda);
+        *c += e;
+        if (d > 0.0) { *gx -= e * dx / (d * w->p.lambda); *gy -= e * dy / (d * w->p.lambda); }
+    }
+}
+/* The guided rule: the unbiased rule's draws in the same order, plus beta wrap(phi - theta). beta = 0 adds nothing. */
+Action policy_guided(const World* w, const Tip* t, Rng* g, const Params* p){
+    Action a = {ACT_EXTEND, 0.0, 0.0, 0.0};
+    const Disk* d = &w->d[t->disk];
+    const double rt = d->r;
+    double r = rt * (1.0 - p->tau);
+    if (r < p->rmin) r = p->rmin;
+    const double xi = rng_normal(g);
+    double th = t->heading + p->kappa * xi;
+    if (p->beta != 0.0) {
+        double c, gx, gy; pid_cue(w, d->x, d->y, &c, &gx, &gy);
+        if (gx != 0.0 || gy != 0.0) th += p->beta * pid_wrap(atan2(gy, gx) - t->heading);
+    }
+    a.theta = pid_wrap(th);
+    a.r = r;
+    if (rng_uniform(g) < p->pbranch * pow(rt / p->R0, p->pbranch_exp)) {
+        const double s = rng_uniform(g) < 0.5 ? 1.0 : -1.0;
+        a.type = ACT_BRANCH;
+        a.theta2 = pid_wrap(a.theta + s * p->delta);
+    }
+    return a;
+}
 Policy policy_by_name(const char* name){
     if (!strcmp(name, "unbiased")) return policy_unbiased;
-    return NULL;                                       /* "guided" arrives with Demo 0b */
+    if (!strcmp(name, "guided"))   return policy_guided;
+    return NULL;
 }
+static int disk_fed_here(const World* w, const Disk* d){
+    for (int k = 0; k < w->p.npatch; ++k)
+        if (w->p.patch[k].active && !pid_patch_home(w, k) && pid_disk_in_patch(d, &w->p.patch[k])) return 1;
+    return 0;
+}
+/* fed[i] = 1 for every alive disk that touches a non-home active patch and for all its ancestors */
+int world_fed(const World* w, unsigned char* fed){
+    memset(fed, 0, (size_t)w->nd);
+    int n = 0;
+    for (int i = w->nd - 1; i >= 0; --i) {
+        if (!w->d[i].alive || !disk_fed_here(w, &w->d[i])) continue;
+        for (int j = i; j >= 0 && !fed[j]; j = w->d[j].parent) { fed[j] = 1; ++n; }
+    }
+    return n;
+}
+int world_alive_disks(const World* w){ int k = 0; for (int i = 0; i < w->nd; ++i) k += w->d[i].alive != 0; return k; }
 
 /* ---------------------------------------------------------------- executor: legality, material, placement */
 static int placement_legal(const World* w, const Disk* nd, int parent){
@@ -189,7 +255,10 @@ int executor_apply(World* w, int ti, Policy pol){
         const Action a = pol(w, &w->t[ti], &w->rng, &w->p);
         if (a.type == ACT_STOP) { w->t[ti].alive = 0; return 0; }
         const double area = PID_PI * a.r * a.r;
-        if (world_pool(w) < area) { w->t[ti].alive = 0; return 0; }          /* budget exhausted */
+        if (world_pool(w) < area) {                                            /* budget exhausted */
+            if (!w->p.budget_wait) w->t[ti].alive = 0;                         /* 0b sec. 8: or the tip waits */
+            return 0;
+        }
         const int pid = w->t[ti].disk;
         const Disk* par = &w->d[pid];
         Disk nd = {0, par->x + (par->r + a.r) * cos(a.theta), par->y + (par->r + a.r) * sin(a.theta), a.r, pid, KIND_TIP, w->tick, 1};
@@ -198,6 +267,7 @@ int executor_apply(World* w, int ti, Policy pol){
         if (w->d[pid].kind == KIND_TIP) w->d[pid].kind = KIND_BODY;
         w->m_used += area;
         w->t[ti].disk = id; w->t[ti].heading = a.theta;
+        if (w->p.npatch > 0 && disk_fed_here(w, &w->d[id])) { w->t[ti].alive = 0; return 1; }   /* 0b: fed, the tip stops */
         if (a.type == ACT_BRANCH) { const Tip b = {id, a.theta2, 1}; world_add_tip(w, b); }
         return 1;
     }
@@ -205,10 +275,83 @@ int executor_apply(World* w, int ti, Policy pol){
     return 0;
 }
 
+/* ---------------------------------------------------------------- 0b adaptation: thicken fed paths, thin the rest */
+static double adj_lens(const World* w, int i, double ri, const int* kid_start, const int* kids){
+    const Disk* d = &w->d[i]; double s = 0.0;
+    if (d->parent >= 0 && w->d[d->parent].alive) { const Disk* q = &w->d[d->parent]; s += pid_lens_area(hypot(d->x - q->x, d->y - q->y), ri, q->r); }
+    for (int c = kid_start[i]; c < kid_start[i + 1]; ++c) {
+        const Disk* q = &w->d[kids[c]]; if (!q->alive) continue;
+        s += pid_lens_area(hypot(d->x - q->x, d->y - q->y), ri, q->r);
+    }
+    return s;
+}
+/* material change when disk i goes from its radius to rn: pi (rn^2 - r^2) minus the change of its lenses */
+static double radius_charge(const World* w, int i, double rn, const int* ks, const int* kids){
+    const double r = w->d[i].r;
+    return PID_PI * rn * rn - PID_PI * r * r - (adj_lens(w, i, rn, ks, kids) - adj_lens(w, i, r, ks, kids));
+}
+static void adapt(World* w){
+    const int n = w->nd;
+    unsigned char* fed = (unsigned char*)malloc((size_t)n);
+    int* ks = (int*)calloc((size_t)n + 1, sizeof(int)); int* kids = (int*)malloc((size_t)(n > 0 ? n : 1) * sizeof(int));
+    if (!fed || !ks || !kids) { fprintf(stderr, "pid: out of memory (adapt)\n"); exit(3); }
+    for (int i = 1; i < n; ++i) ks[w->d[i].parent + 1]++;                 /* children lists, ids ascending */
+    for (int i = 0; i < n; ++i) ks[i + 1] += ks[i];
+    { int* fill = (int*)calloc((size_t)n, sizeof(int)); if (!fill) exit(3);
+      for (int i = 1; i < n; ++i) { const int p = w->d[i].parent; kids[ks[p] + fill[p]++] = i; } free(fill); }
+    world_fed(w, fed);
+    for (int i = 0; i < n; ++i) {                                          /* thicken the fed paths */
+        Disk* d = &w->d[i]; if (!d->alive || !fed[i]) continue;
+        double rn = d->r * (1.0 + w->p.gamma); if (rn > w->p.rmax) rn = w->p.rmax;
+        if (!(rn > d->r)) continue;
+        Disk big = *d; big.r = rn;
+        if (!pid_disk_in_box(&big, &w->p)) continue;
+        int ok = 1;
+        for (int j = 0; j < n && ok; ++j) {
+            const Disk* q = &w->d[j];
+            if (j == i || !q->alive || q->parent == i || d->parent == j) continue;
+            if (pid_disks_overlap(&big, q)) ok = 0;
+        }
+        if (!ok) continue;
+        const double dm = radius_charge(w, i, rn, ks, kids);
+        if (dm > world_pool(w)) continue;                                  /* the pool cannot pay */
+        d->r = rn; w->m_used += dm;
+    }
+    for (int i = 0; i < n; ++i) {                                          /* thin every other body disk */
+        Disk* d = &w->d[i]; if (!d->alive || fed[i] || d->kind != KIND_BODY) continue;
+        const double rn = d->r * (1.0 - w->p.deltathin);
+        const double dm = radius_charge(w, i, rn, ks, kids);
+        d->r = rn; w->m_used += dm;
+    }
+    unsigned char* gone = fed; memset(gone, 0, (size_t)n);                 /* remove disks below rmin / 2 with their subtrees */
+    for (int i = 0; i < n; ++i) {
+        const Disk* d = &w->d[i]; if (!d->alive) continue;
+        if (d->r < 0.5 * w->p.rmin || (d->parent >= 0 && gone[d->parent])) gone[i] = 1;
+    }
+    for (int i = 0; i < n; ++i) {
+        if (!gone[i]) continue;
+        Disk* d = &w->d[i];
+        w->m_used += -PID_PI * d->r * d->r + adj_lens(w, i, d->r, ks, kids);   /* its area and its lenses leave M_used */
+        d->alive = 0;
+    }
+    for (int k = 0; k < w->nt; ++k) if (w->t[k].alive && gone[w->t[k].disk]) w->t[k].alive = 0;
+    free(fed); free(ks); free(kids);
+}
+
 void step(World* w, Policy pol){
     w->tick += 1;                                      /* the tick being processed; disks placed now are born at it */
     const int n = w->nt;                               /* tips created in this tick act from the next one */
-    for (int i = 0; i < n; ++i) if (w->t[i].alive) executor_apply(w, i, pol);
+    if (w->p.tip_order == 0) {
+        for (int i = 0; i < n; ++i) if (w->t[i].alive) executor_apply(w, i, pol);
+    } else {                                           /* 0b sec. 8: a fresh permutation of the live tips, from the one generator */
+        int* order = (int*)malloc((size_t)(n > 0 ? n : 1) * sizeof(int)); int m = 0;
+        if (!order) { fprintf(stderr, "pid: out of memory (order)\n"); exit(3); }
+        for (int i = 0; i < n; ++i) if (w->t[i].alive) order[m++] = i;
+        for (int i = m - 1; i > 0; --i) { const int j = (int)(rng_uniform(&w->rng) * (double)(i + 1)); const int t = order[i]; order[i] = order[j]; order[j] = t; }
+        for (int k = 0; k < m; ++k) if (w->t[order[k]].alive) executor_apply(w, order[k], pol);
+        free(order);
+    }
+    if (w->p.tadapt > 0 && w->tick % w->p.tadapt == 0) adapt(w);
 }
 
 /* ---------------------------------------------------------------- ledger and checks */
@@ -244,15 +387,17 @@ int world_check(const World* w, int tangency, double m_pool_file, char* err, siz
         const Disk* d = &w->d[i];
         CHECK(d->id == i, "disk %d has id %d", i, d->id);
         CHECK(pid_disk_in_box(d, &w->p), "disk %d is not inside the box", i);
-        if (i == 0) continue;
+        CHECK(d->r > 0 && (w->p.tadapt == 0 || d->r <= w->p.rmax * (1 + 1e-12) || d->born == 0), "disk %d: radius %.17g outside (0, rmax]", i, d->r);
+        if (i == 0) { CHECK(d->alive, "the seed was removed"); continue; }
         CHECK(d->kind != KIND_SEED, "disk %d is a second seed", i);
         CHECK(d->parent >= 0 && d->parent < i, "disk %d: parent %d is not an earlier disk (tree rooted at the seed)", i, d->parent);
         if (d->parent < 0 || d->parent >= i) continue;
         const Disk* q = &w->d[d->parent];
         children[d->parent]++;
+        CHECK(!d->alive || q->alive, "disk %d is alive but its parent %d was removed", i, d->parent);
         CHECK(d->born > q->born || d->born == 0, "disk %d born at %ld, not after its parent %d (%ld)", i, d->born, d->parent, q->born);
         if (d->born > 0) grown[d->parent]++;
-        if (tangency) {
+        if (tangency && d->alive) {
             const double dist = hypot(d->x - q->x, d->y - q->y), rs = d->r + q->r;
             CHECK(fabs(dist - rs) <= 1e-12 * rs, "disk %d is not tangent to its parent: |dist - (ri + rj)| = %.3g", i, fabs(dist - rs));
         }
@@ -265,7 +410,10 @@ int world_check(const World* w, int tangency, double m_pool_file, char* err, siz
         }
     for (int k = 0; k < w->nt; ++k) {
         CHECK(w->t[k].disk >= 0 && w->t[k].disk < w->nd, "tip %d sits on no disk", k);
-        if (w->t[k].disk >= 0 && w->t[k].disk < w->nd) tips_on[w->t[k].disk]++;
+        if (w->t[k].disk >= 0 && w->t[k].disk < w->nd) {
+            tips_on[w->t[k].disk]++;
+            CHECK(!w->t[k].alive || w->d[w->t[k].disk].alive, "tip %d is alive on removed disk %d", k, w->t[k].disk);
+        }
     }
     for (int i = 0; i < w->nd; ++i) {                  /* tip slots: dead tips have no further children */
         const int slots = grown[i] + tips_on[i];

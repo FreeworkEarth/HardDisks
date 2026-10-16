@@ -52,6 +52,33 @@ $BIN --seed=9300 --steps=60 --write-every=1 --headless --preset=mat --out=$T/inv
 out=$($CHK verify $T/inv_mat/state_*.txt $T/inv_mat/final.txt); rc=$?
 if [ "$rc" -eq 0 ]; then ok "2+3 invariants and ledger, --preset=mat, seed 9300, every tick: $out"; else bad "2+3 --preset=mat: $out"; fi
 
+# ---- 0b (brief sec. 3 as amended by sec. 8): --preset=mat45, patches A under the seed and B, adaptation, waiting tips,
+# random tip order. 5: guided with beta=0 equals unbiased in every line except rule and params; a fed path by tick 400.
+G="--preset=mat45 --steps=400 --write-every=50 --headless"
+$BIN --seed=9300 $G --rule=unbiased --out=$T/b_unb >/dev/null
+$BIN --seed=9300 $G --rule=guided --beta=0 --out=$T/b_g0 >/dev/null
+n=0; d=0
+for f in $T/b_unb/state_*.txt $T/b_unb/final.txt; do
+  n=$((n + 1)); grep -v -e '^rule ' -e '^params ' "$f" > $T/b1.txt; grep -v -e '^rule ' -e '^params ' "$T/b_g0/$(basename "$f")" > $T/b2.txt; cmp -s $T/b1.txt $T/b2.txt || d=$((d + 1))
+done
+if [ "$d" -eq 0 ] && ! cmp -s $T/b_unb/final.txt $T/b_g0/final.txt; then ok "5 guided --beta=0 = unbiased (mat45, seed 9300): $n state files identical except rule and params"; else bad "5 guided beta=0: $d of $n files differ"; fi
+$BIN --seed=9300 $G --rule=guided --out=$T/b_g >/dev/null
+info=$($CHK info $T/b_g/state_000400.txt)
+if echo "$info" | awk '{for (i=1;i<=NF;i++) if ($i ~ /^touch/) t += $(i+1)} END {exit !(t > 0)}'; then ok "5 guided (default beta): patch B reached by tick 400 on seed 9300 ($info)"; else bad "5 guided: no fed path by tick 400 ($info)"; fi
+SDL_VIDEODRIVER=dummy $BIN --seed=9300 --preset=mat45 --rule=guided --steps=120 --write-every=10 --tpf=9 --tick-ms=0 --exit-at-end --out=$T/b_gui >$T/b_gui.log 2>&1
+$BIN --seed=9300 --preset=mat45 --rule=guided --steps=120 --write-every=10 --headless --out=$T/b_hl >/dev/null
+n=0; d=0; for f in $T/b_hl/state_*.txt $T/b_hl/final.txt; do n=$((n + 1)); cmp -s "$f" "$T/b_gui/$(basename "$f")" || d=$((d + 1)); done
+if [ "$d" -eq 0 ]; then ok "1 GUI = headless under 0b (mat45, guided, random tip order): $n state files identical"; else bad "1 GUI = headless 0b: $d of $n differ"; fi
+for v in "b400:--preset=mat45 --rule=guided --steps=400" "bfast:--preset=mat45 --rule=guided --steps=300 --deltathin=0.2 --gamma=0.1"; do
+  n=${v%%:*}; a=${v#*:}
+  $BIN --seed=9301 --write-every=1 --headless --out=$T/inv_$n $a >/dev/null
+  out=$($CHK verify $T/inv_$n/state_*.txt $T/inv_$n/final.txt); rc=$?
+  last=$($CHK info $T/inv_$n/final.txt)
+  if [ "$rc" -eq 0 ]; then ok "2+3 0b invariants and ledger every tick, seed 9301, $a: $out; end: $last"; else bad "2+3 0b $a: $out"; fi
+done
+d=0; for f in $T/b_g/state_000050.txt $T/b_g/final.txt $T/inv_bfast/final.txt; do $CHK roundtrip "$f" $T/rt_b.txt && cmp -s "$f" $T/rt_b.txt || d=$((d + 1)); done
+if [ "$d" -eq 0 ]; then ok "4 round trip with [patches] and removed disks: 3 files byte-identical"; else bad "4 round trip 0b: $d files differ"; fi
+
 # ---- 2 and 3. invariants and ledger on every written state (every tick), and the tick-to-tick sequence
 $BIN --seed=9300 --steps=200 --write-every=1 --headless --out=$T/inv >/dev/null
 out=$($CHK verify $T/inv/state_*.txt $T/inv/final.txt); rc=$?
@@ -88,9 +115,9 @@ if [ -z "$(ls -A $T/cwd)" ]; then ok "rule 4: a run writes nothing into its cwd"
 before=$(shasum -a 256 $T/rep_a/final.txt)
 $BIN --seed=1 --steps=5 --headless --out=$T/rep_a >/dev/null 2>&1; rc=$?
 if [ "$rc" -eq 2 ] && [ "$before" = "$(shasum -a 256 $T/rep_a/final.txt)" ]; then ok "rule 4: a non-empty --out is refused and left unchanged"; else bad "rule 4: non-empty --out not refused (rc $rc)"; fi
-r1=0; for a in "--see=1" "--seed" "--steps=5x" "--sed=1" "--seed=-1" "--R0=0" "--rule=guided" "--start-rings=-1" "--start-rings=30" "--pbranch-exp=-1"; do
+r1=0; for a in "--see=1" "--seed" "--steps=5x" "--sed=1" "--seed=-1" "--R0=0" "--rule=fancy" "--start-rings=-1" "--start-rings=30" "--pbranch-exp=-1" "--patch=1,2,3" "--tip-order=up"; do
   $BIN --seed=1 --steps=5 --headless --out=$T/cli_bad $a >/dev/null 2>&1 && r1=1; done
-if [ "$r1" -eq 0 ] && [ ! -e $T/cli_bad ]; then ok "command line: 10 bad or unknown flags refused before any folder is made"; else bad "command line: a bad flag was accepted"; fi
+if [ "$r1" -eq 0 ] && [ ! -e $T/cli_bad ]; then ok "command line: 12 bad or unknown flags refused before any folder is made"; else bad "command line: a bad flag was accepted"; fi
 
 echo "tests: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

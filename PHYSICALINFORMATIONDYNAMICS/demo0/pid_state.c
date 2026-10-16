@@ -9,12 +9,14 @@
 static const char* KIND_NAME[3] = {"seed", "body", "tip"};
 
 void params_line(const Params* p, char* buf, size_t n){
-    snprintf(buf, n, "kappa=%.17g tau=%.17g rmin=%.17g pbranch=%.17g delta=%.17g ntry=%d K=%d R0=%.17g rings=%d pbranch_exp=%.17g",
-             p->kappa, p->tau, p->rmin, p->pbranch, p->delta, p->ntry, p->K, p->R0, p->rings, p->pbranch_exp);
+    snprintf(buf, n, "kappa=%.17g tau=%.17g rmin=%.17g pbranch=%.17g delta=%.17g ntry=%d K=%d R0=%.17g rings=%d pbranch_exp=%.17g"
+             " beta=%.17g lambda=%.17g Tadapt=%d gamma=%.17g deltathin=%.17g rmax=%.17g budget_wait=%d tip_order=%s",
+             p->kappa, p->tau, p->rmin, p->pbranch, p->delta, p->ntry, p->K, p->R0, p->rings, p->pbranch_exp,
+             p->beta, p->lambda, p->tadapt, p->gamma, p->deltathin, p->rmax, p->budget_wait, p->tip_order ? "random" : "id");
 }
 
 int state_write_fp(const World* w, FILE* f){
-    char pl[512]; params_line(&w->p, pl, sizeof pl);
+    char pl[1024]; params_line(&w->p, pl, sizeof pl);
     fprintf(f, "[header]\n");
     fprintf(f, "format %d\n", PID_FORMAT);
     fprintf(f, "unit sigma\n");
@@ -35,6 +37,13 @@ int state_write_fp(const World* w, FILE* f){
     }
     fprintf(f, "[tips]\n# disk heading alive\n");
     for (int i = 0; i < w->nt; ++i) fprintf(f, "%d %.17g %d\n", w->t[i].disk, w->t[i].heading, w->t[i].alive);
+    if (w->p.npatch > 0) {                             /* 0b; absent when there are no patches (0a, 0a.1) */
+        fprintf(f, "[patches]\n# id x y r s active\n");
+        for (int k = 0; k < w->p.npatch; ++k) {
+            const Patch* q = &w->p.patch[k];
+            fprintf(f, "%d %.17g %.17g %.17g %.17g %d\n", k, q->x, q->y, q->r, q->s, q->active);
+        }
+    }
     return ferror(f) ? -1 : 0;
 }
 
@@ -48,7 +57,7 @@ int state_write(const World* w, const char* path){
 #define FAIL(...) do { snprintf(err, n, __VA_ARGS__); fclose(f); world_free(w); return -1; } while (0)
 
 static int parse_params(Params* p, const char* s){
-    char buf[512]; snprintf(buf, sizeof buf, "%s", s);
+    char buf[1024]; snprintf(buf, sizeof buf, "%s", s);
     int seen = 0;
     for (char* tok = strtok(buf, " "); tok; tok = strtok(NULL, " ")) {
         char* eq = strchr(tok, '='); if (!eq) return -1;
@@ -63,6 +72,14 @@ static int parse_params(Params* p, const char* s){
         else if (!strcmp(k, "K"))       { p->K       = (int)strtol(v, &end, 10); }
         else if (!strcmp(k, "rings"))       { p->rings = (int)strtol(v, &end, 10); --seen; }        /* 0a.1 keys; absent in 0a files */
         else if (!strcmp(k, "pbranch_exp")) { p->pbranch_exp = strtod(v, &end); --seen; }
+        else if (!strcmp(k, "beta"))        { p->beta = strtod(v, &end); --seen; }             /* 0b keys; absent before 0b */
+        else if (!strcmp(k, "lambda"))      { p->lambda = strtod(v, &end); --seen; }
+        else if (!strcmp(k, "Tadapt"))      { p->tadapt = (int)strtol(v, &end, 10); --seen; }
+        else if (!strcmp(k, "gamma"))       { p->gamma = strtod(v, &end); --seen; }
+        else if (!strcmp(k, "deltathin"))   { p->deltathin = strtod(v, &end); --seen; }
+        else if (!strcmp(k, "rmax"))        { p->rmax = strtod(v, &end); --seen; }
+        else if (!strcmp(k, "budget_wait")) { p->budget_wait = (int)strtol(v, &end, 10); --seen; }
+        else if (!strcmp(k, "tip_order"))   { if (!strcmp(v, "id")) p->tip_order = 0; else if (!strcmp(v, "random")) p->tip_order = 1; else return -1; end = (char*)v + strlen(v); --seen; }
         else return -1;
         if (*end != '\0' || end == v) return -1;
         ++seen;
@@ -85,6 +102,7 @@ int state_read(World* w, const char* path, double* m_pool_file, char* err, size_
             if      (!strcmp(line, "[header]")) sec = 1;
             else if (!strcmp(line, "[disks]"))  sec = 2;
             else if (!strcmp(line, "[tips]"))   sec = 3;
+            else if (!strcmp(line, "[patches]")) sec = 4;
             else FAIL("%s:%ld: unknown section %s", path, lineno, line);
             continue;
         }
@@ -120,6 +138,11 @@ int state_read(World* w, const char* path, double* m_pool_file, char* err, size_
             Tip t;
             if (sscanf(line, "%d %lf %d", &t.disk, &t.heading, &t.alive) != 3) FAIL("%s:%ld: bad tip line", path, lineno);
             world_add_tip(w, t);
+        } else if (sec == 4) {
+            int id; Patch q;
+            if (w->p.npatch >= PID_MAX_PATCHES || sscanf(line, "%d %lf %lf %lf %lf %d", &id, &q.x, &q.y, &q.r, &q.s, &q.active) != 6 || id != w->p.npatch)
+                FAIL("%s:%ld: bad patch line", path, lineno);
+            w->p.patch[w->p.npatch++] = q;
         } else FAIL("%s:%ld: record outside a section", path, lineno);
     }
     if (ferror(f)) FAIL("%s: read error", path);

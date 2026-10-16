@@ -27,7 +27,7 @@ const char* pid_build_id(void){ return PID_BUILD_ID " " PID_CFLAGS; }
 static void usage(FILE* f){
     fprintf(f,
         "usage: pid_demo0 --seed=S --steps=N --out=DIR [options] [parameters]\n"
-        "  --rule=unbiased        growth rule (Demo 0a has only this one)\n"
+        "  --rule=unbiased|guided growth rule; guided bends each step toward the cue of the food patches (0b)\n"
         "  --headless             no window; same files, then exit\n"
         "  --write-every=k        state_<tick>.txt every k ticks (0: only final.txt); default 50\n"
         "  --font=PATH            status line on screen (SDL2_ttf build); otherwise in the terminal\n"
@@ -41,12 +41,16 @@ static void usage(FILE* f){
         "                                --ntry=48 --budget=9000, the rest as the defaults\n"
         "                           0a1  the defaults (Demo 0a.1)\n"
         "                           0a   Demo 0a: --start-rings=0 --pbranch-exp=0 --pbranch=0.08 --ntry=8 --budget=3000\n"
+        "                           mat45 Demo 0b (sec. 8): mat at --budget=4500, patch A under the seed, patch B at (0.8W, 0.5H),\n"
+        "                                --tadapt=10 --budget-wait=1 --tip-order=random; run it with --rule=guided\n"
         "  --version, --help\n"
         "parameters (defaults in brackets): --W [200] --H [120] --budget [4500] --kappa [0.35] --tau [0.03] --rmin [1]\n"
         "  --pbranch [0.8] --delta [0.6] --ntry [24] --K [6] --R0 [3]\n"
         "  --start-rings [1]      hex rings of R0 disks around the seed; their outer ring carries the tips (0: K tips on the seed)\n"
         "  --pbranch-exp [6]      p_branch(r) = pbranch (r / R0)^pbranch-exp for a tip on a disk of radius r (0: constant)\n"
         "  the 0a defaults: --start-rings=0 --pbranch-exp=0 --pbranch=0.08 --ntry=8 --budget=3000\n"
+        "  0b: --patch=x,y,r,s (repeatable, sigma; replaces the preset's patches) --beta [0.3] --lambda [40] --tadapt [0, off]\n"
+        "  --gamma [0.02] --deltathin [0.01] --rmax [6] --budget-wait=0|1 [0] --tip-order=id|random [id]\n"
         "window keys: D disks, G graph, H hull (0c), C cue (0b), P patches (0b), [ ] disk transparency, Space pause/run,\n"
         "  N one tick, R reset to the same seed, S BMP into DIR, Esc quit\n");
 }
@@ -57,6 +61,14 @@ static int apply_preset(const char* name, Params* p){
     if (!strcmp(name, "0a1")) return 0;
     if (!strcmp(name, "0a"))  { p->rings = 0; p->pbranch_exp = 0.0; p->pbranch = 0.08; p->ntry = 8; p->budget = 3000.0; return 0; }
     if (!strcmp(name, "mat")) { p->pbranch = 1.0; p->pbranch_exp = 0.0; p->delta = 1.57; p->ntry = 48; p->budget = 9000.0; return 0; }
+    if (!strcmp(name, "mat45")) {   /* Demo 0b (sec. 8 as relayed 2026-10-15) */
+        apply_preset("mat", p); p->budget = 4500.0;
+        p->tadapt = 10; p->budget_wait = 1; p->tip_order = 1;
+        p->npatch = 2;
+        p->patch[0] = (Patch){0.5 * p->W, 0.5 * p->H, 5.0, 1.0, 1};      /* A, under the seed */
+        p->patch[1] = (Patch){0.8 * p->W, 0.5 * p->H, 5.0, 1.0, 1};      /* B */
+        return 0;
+    }
     return -1;
 }
 
@@ -98,7 +110,7 @@ static void write_state(Run* r, const char* name){
     snprintf(path, sizeof path, "%s/%s", r->out, name);
     if (state_write(&r->w, path)) { fprintf(stderr, "pid: cannot write %s\n", path); exit(2); }
     note_file(r, name);
-    const int fails = world_check(&r->w, 1, world_pool(&r->w), err, sizeof err);
+    const int fails = world_check(&r->w, r->w.p.tadapt == 0, world_pool(&r->w), err, sizeof err);   /* tangency until adaptation runs */
     if (fails) { fprintf(stderr, "pid: INVARIANT FAILED at tick %ld (%d failures): %s\n", r->w.tick, fails, err); exit(4); }
 }
 
@@ -121,7 +133,7 @@ void run_reset(Run* r){ world_free(&r->w); run_start(r); }
 
 void run_status(const Run* r, FILE* f){
     fprintf(f, "tick %ld | live tips %d | disks %d | M_used %.3f | M_pool %.3f\n",
-            r->w.tick, world_live_tips(&r->w), r->w.nd, r->w.m_used, world_pool(&r->w));
+            r->w.tick, world_live_tips(&r->w), world_alive_disks(&r->w), r->w.m_used, world_pool(&r->w));
 }
 
 static void fprint_arg(FILE* f, const char* a){
@@ -136,7 +148,7 @@ static void fprint_arg(FILE* f, const char* a){
 int run_finish(Run* r, int completed){
     char path[1200]; snprintf(path, sizeof path, "%s/manifest.txt", r->out);
     FILE* f = fopen(path, "w"); if (!f) { fprintf(stderr, "pid: cannot write %s\n", path); return -1; }
-    char pl[512]; params_line(&r->p, pl, sizeof pl);
+    char pl[1024]; params_line(&r->p, pl, sizeof pl);
     fprintf(f, "# pid_demo0 run manifest (brief sec. 4)\n");
     fprintf(f, "argv"); for (int i = 0; i < r->argc; ++i) { fputc(' ', f); fprint_arg(f, r->argv[i]); } fputc('\n', f);
     fprintf(f, "seed %" PRIu64 "\n", r->seed);
@@ -168,12 +180,12 @@ int main(int argc, char** argv){
     params_default(&r.p);
     snprintf(r.rule, sizeof r.rule, "unbiased");
     r.write_every = 50; r.tpf = 1; r.tick_ms = 50; r.steps = -1; r.argc = argc; r.argv = argv;
-    int have_seed = 0, overwrite = 0;
+    int have_seed = 0, overwrite = 0, patches_given = 0;
     for (int i = 1; i < argc; ++i)                      /* the preset first, so that explicit flags override it */
         if (!strncmp(argv[i], "--preset=", 9)) {
             if (r.preset) { fprintf(stderr, "pid: --preset given twice\n"); return 2; }
             r.preset = argv[i] + 9;
-            if (apply_preset(r.preset, &r.p)) { fprintf(stderr, "pid: unknown preset '%s' (mat, 0a1, 0a)\n", r.preset); return 2; }
+            if (apply_preset(r.preset, &r.p)) { fprintf(stderr, "pid: unknown preset '%s' (mat45, mat, 0a1, 0a)\n", r.preset); return 2; }
         }
     for (int i = 1; i < argc; ++i) {
         const char* a = argv[i];
@@ -212,13 +224,25 @@ int main(int argc, char** argv){
         else if (!strcmp(key, "--ntry"))        { NEEDV(); bad = num_l(v, &lv) || lv < 0 || lv > 1000000; r.p.ntry = (int)lv; }
         else if (!strcmp(key, "--K"))           { NEEDV(); bad = num_l(v, &lv) || lv < 1 || lv > 1000000; r.p.K = (int)lv; }
         else if (!strcmp(key, "--start-rings")) { NEEDV(); bad = num_l(v, &lv) || lv < 0 || lv > 50; r.p.rings = (int)lv; }
+        else if (!strcmp(key, "--beta"))        { NEEDV(); bad = num_d(v, &r.p.beta); }
+        else if (!strcmp(key, "--lambda"))      { NEEDV(); bad = num_d(v, &r.p.lambda); }
+        else if (!strcmp(key, "--tadapt"))      { NEEDV(); bad = num_l(v, &lv) || lv < 0 || lv > 1000000; r.p.tadapt = (int)lv; }
+        else if (!strcmp(key, "--gamma"))       { NEEDV(); bad = num_d(v, &r.p.gamma); }
+        else if (!strcmp(key, "--deltathin"))   { NEEDV(); bad = num_d(v, &r.p.deltathin); }
+        else if (!strcmp(key, "--rmax"))        { NEEDV(); bad = num_d(v, &r.p.rmax); }
+        else if (!strcmp(key, "--budget-wait")) { NEEDV(); bad = num_l(v, &lv) || (lv != 0 && lv != 1); r.p.budget_wait = (int)lv; }
+        else if (!strcmp(key, "--tip-order"))   { NEEDV(); if (!strcmp(v, "id")) r.p.tip_order = 0; else if (!strcmp(v, "random")) r.p.tip_order = 1; else bad = 1; }
+        else if (!strcmp(key, "--patch"))       { NEEDV(); Patch q = {0, 0, 0, 0, 1}; char tail;
+                                                  if (!patches_given) { r.p.npatch = 0; patches_given = 1; }
+                                                  bad = r.p.npatch >= PID_MAX_PATCHES || sscanf(v, "%lf,%lf,%lf,%lf%c", &q.x, &q.y, &q.r, &q.s, &tail) != 4;
+                                                  if (!bad) r.p.patch[r.p.npatch++] = q; }
         else if (!strcmp(key, "--pbranch-exp")) { NEEDV(); bad = num_d(v, &r.p.pbranch_exp); }
         else { fprintf(stderr, "pid: unknown option '%s'\n", key); usage(stderr); return 2; }
         if (bad) { fprintf(stderr, "pid: bad value in '%s'\n", a); return 2; }
     }
     if (!have_seed || r.steps < 0 || !r.out[0]) { fprintf(stderr, "pid: --seed, --steps and --out are required\n"); usage(stderr); return 2; }
     r.policy = policy_by_name(r.rule);
-    if (!r.policy) { fprintf(stderr, "pid: --rule=%s is not in Demo 0a (only unbiased)\n", r.rule); return 2; }
+    if (!r.policy) { fprintf(stderr, "pid: --rule=%s is not a rule (unbiased, guided)\n", r.rule); return 2; }
     char err[256];
     if (params_check(&r.p, err, sizeof err)) { fprintf(stderr, "pid: %s\n", err); return 2; }
     if (mkdir_p(r.out)) { fprintf(stderr, "pid: cannot create %s\n", r.out); return 2; }
