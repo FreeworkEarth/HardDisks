@@ -33,7 +33,7 @@ if [ "$rc" -eq 0 ] && [ "$d" -eq 0 ] && grep -q '^mode window' $T/gui/manifest.t
 # ---- 0a.1 regression: the 0a parameters reproduce the committed 0a result (tests/ref; sha256 84a6a12f..., the final.txt of
 # the 0a screenshot run, demo0/shots/demo0a_seed9300_tick200_manifest.txt) in every line except params and build
 REF=tests/ref/demo0a_seed9300_tick200_final.txt
-$BIN --seed=9300 --steps=200 --headless --start-rings=0 --pbranch-exp=0 --pbranch=0.08 --ntry=8 --budget=3000 --out=$T/reg0a >/dev/null
+$BIN --seed=9300 --steps=200 --headless --start-rings=0 --pbranch-exp=0 --pbranch=0.08 --ntry=8 --budget=3000 --hull=off --out=$T/reg0a >/dev/null
 if [ "$(shasum -a 256 $REF | cut -c1-64)" = 84a6a12fa3f500fb88ec44e2f3b532b1e482fdfd730fa4246300fd2ab4f9d851 ] && \
    grep -v -e '^params ' -e '^build ' $REF > $T/reg_ref.txt && grep -v -e '^params ' -e '^build ' $T/reg0a/final.txt > $T/reg_new.txt && \
    cmp -s $T/reg_ref.txt $T/reg_new.txt; then
@@ -79,6 +79,31 @@ done
 d=0; for f in $T/b_g/state_000050.txt $T/b_g/final.txt $T/inv_bfast/final.txt; do $CHK roundtrip "$f" $T/rt_b.txt && cmp -s "$f" $T/rt_b.txt || d=$((d + 1)); done
 if [ "$d" -eq 0 ]; then ok "4 round trip with [patches] and removed disks: 3 files byte-identical"; else bad "4 round trip 0b: $d files differ"; fi
 
+# ---- 0c (brief sec. 3 "0c", sec. 6 test 6, sec. 9): the hull in final.txt, checked by pid_check hull: (a) every loop
+# closed to 1e-9, (b) every disk centre inside, (c) raster area at 2/4/8/16 px per sigma (finest within 0.1 %, falling
+# log-log trend), (e) reversed edge order gives the same primitives and area, and the stored hull equals a recomputation
+H6=""
+for v in "0a:--preset=0a --seed=9300 --steps=200" "mat:--preset=mat --seed=9300 --steps=60" "mat45_400:--preset=mat45 --rule=guided --seed=9300 --steps=400" \
+         "mat45_1000:--preset=mat45 --rule=guided --seed=9300 --steps=1000" "thin05:--preset=mat45 --rule=guided --seed=9301 --steps=400 --deltathin=0.05" \
+         "rings3:--start-rings=3 --budget=6000 --seed=9302 --steps=200" "k1:--preset=0a --seed=7 --steps=1 --K=1"; do
+  n=${v%%:*}; a=${v#*:}
+  $BIN --headless --write-every=0 --out=$T/h_$n $a >/dev/null
+  out=$($CHK hull $T/h_$n/final.txt); rc=$?
+  short=$(echo "$out" | sed 's#^[^:]*: ##')
+  if [ "$rc" -eq 0 ]; then ok "6 hull ($a): $short"; else bad "6 hull ($a): $out"; fi
+  H6="$H6 $T/h_$n/final.txt"
+done
+$BIN --headless --preset=0a --seed=9300 --steps=40 --write-every=10 --hull=all --out=$T/h_all >/dev/null
+out=$($CHK hull $T/h_all/state_*.txt $T/h_all/final.txt); rc=$?
+if [ "$rc" -eq 0 ] && [ "$(grep -l '^\[hull\]' $T/h_all/state_*.txt | wc -l | tr -d ' ')" -eq 5 ]; then ok "6 hull --hull=all: a hull in every state file, all 6 pass"; else bad "6 hull --hull=all: $out"; fi
+d=0; for f in $H6; do $CHK roundtrip "$f" $T/rt_h.txt && cmp -s "$f" $T/rt_h.txt || d=$((d + 1)); done
+if [ "$d" -eq 0 ]; then ok "4 round trip with [hull] and [areas]: 7 files byte-identical"; else bad "4 round trip with hull: $d files differ"; fi
+out=$(python3 tests/hull_reference.py $T/h_mat45_400/final.txt 2>&1); rc=$?
+case "$out" in SKIP*) echo "$out";; *) if [ "$rc" -eq 0 ]; then ok "$out"; else bad "$out"; fi;; esac
+SDL_VIDEODRIVER=dummy $BIN --preset=mat45 --rule=guided --seed=9300 --steps=100 --write-every=0 --tpf=9 --tick-ms=0 --view=network --exit-at-end --out=$T/h_gui >$T/h_gui.log 2>&1
+$BIN --preset=mat45 --rule=guided --seed=9300 --steps=100 --write-every=0 --headless --out=$T/h_hl >/dev/null
+if cmp -s $T/h_gui/final.txt $T/h_hl/final.txt; then ok "1 GUI = headless with --view=network (hull drawn every frame): final.txt with its hull identical"; else bad "1 GUI = headless, view network"; fi
+
 # ---- 2 and 3. invariants and ledger on every written state (every tick), and the tick-to-tick sequence
 $BIN --seed=9300 --steps=200 --write-every=1 --headless --out=$T/inv >/dev/null
 out=$($CHK verify $T/inv/state_*.txt $T/inv/final.txt); rc=$?
@@ -115,9 +140,9 @@ if [ -z "$(ls -A $T/cwd)" ]; then ok "rule 4: a run writes nothing into its cwd"
 before=$(shasum -a 256 $T/rep_a/final.txt)
 $BIN --seed=1 --steps=5 --headless --out=$T/rep_a >/dev/null 2>&1; rc=$?
 if [ "$rc" -eq 2 ] && [ "$before" = "$(shasum -a 256 $T/rep_a/final.txt)" ]; then ok "rule 4: a non-empty --out is refused and left unchanged"; else bad "rule 4: non-empty --out not refused (rc $rc)"; fi
-r1=0; for a in "--see=1" "--seed" "--steps=5x" "--sed=1" "--seed=-1" "--R0=0" "--rule=fancy" "--start-rings=-1" "--start-rings=30" "--pbranch-exp=-1" "--patch=1,2,3" "--tip-order=up"; do
+r1=0; for a in "--see=1" "--seed" "--steps=5x" "--sed=1" "--seed=-1" "--R0=0" "--rule=fancy" "--start-rings=-1" "--start-rings=30" "--pbranch-exp=-1" "--patch=1,2,3" "--tip-order=up" "--hull=some" "--alpha=2" "--view=tree"; do
   $BIN --seed=1 --steps=5 --headless --out=$T/cli_bad $a >/dev/null 2>&1 && r1=1; done
-if [ "$r1" -eq 0 ] && [ ! -e $T/cli_bad ]; then ok "command line: 12 bad or unknown flags refused before any folder is made"; else bad "command line: a bad flag was accepted"; fi
+if [ "$r1" -eq 0 ] && [ ! -e $T/cli_bad ]; then ok "command line: 15 bad or unknown flags refused before any folder is made"; else bad "command line: a bad flag was accepted"; fi
 
 echo "tests: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

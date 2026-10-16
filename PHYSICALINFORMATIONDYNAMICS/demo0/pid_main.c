@@ -36,6 +36,10 @@ static void usage(FILE* f){
         "  --exit-at-end          window: close when --steps is reached (tests)\n"
         "  --shot-at-end          window: write shot_<tick>.bmp into DIR when --steps is reached\n"
         "  --overwrite            allow a non-empty DIR\n"
+        "  --hull=final|all|off   0c: write the hull and the lumen area into final.txt (default), every state file, or none\n"
+        "  --alpha=a              0c, window: opacity 0..1 of every disk and patch fill (default 0.78; [ ] change it live)\n"
+        "  --view=network|both|disks  0c, window: network = --alpha=0 with the hull (H) and the graph (G) on; both = disks\n"
+        "                         with the hull on; disks = the default (hull off)\n"
         "  --preset=NAME          a saved parameter set, applied first; explicit flags override it:\n"
         "                           mat  the dense branching mat (Chris, 2026-10-15): --pbranch=1 --pbranch-exp=0 --delta=1.57\n"
         "                                --ntry=48 --budget=9000, the rest as the defaults\n"
@@ -108,7 +112,11 @@ static void note_file(Run* r, const char* name){
 static void write_state(Run* r, const char* name){
     char path[1200], err[512];
     snprintf(path, sizeof path, "%s/%s", r->out, name);
-    if (state_write(&r->w, path)) { fprintf(stderr, "pid: cannot write %s\n", path); exit(2); }
+    const int with_hull = r->hull_mode == 2 || (r->hull_mode == 1 && !strcmp(name, "final.txt"));   /* 0c */
+    if (with_hull) hull_compute_world(&r->w, &r->w.hull);
+    const int wrc = state_write(&r->w, path);
+    if (with_hull) hull_free(&r->w.hull);
+    if (wrc) { fprintf(stderr, "pid: cannot write %s\n", path); exit(2); }
     note_file(r, name);
     const int fails = world_check(&r->w, r->w.p.tadapt == 0, world_pool(&r->w), err, sizeof err);   /* tangency until adaptation runs */
     if (fails) { fprintf(stderr, "pid: INVARIANT FAILED at tick %ld (%d failures): %s\n", r->w.tick, fails, err); exit(4); }
@@ -162,6 +170,7 @@ int run_finish(Run* r, int completed){
     fprintf(f, "folder_commit %s   # last commit of PHYSICALINFORMATIONDYNAMICS/ when the binary was built\n", PID_FOLDER_COMMIT);
     fprintf(f, "src_sha256 %s   # sha256 of the concatenated sources in the Makefile's SRC_LIST order\n", PID_SRC_SHA256);
     fprintf(f, "preset %s\n", r->preset ? r->preset : "none");
+    fprintf(f, "hull %s\n", r->hull_mode == 0 ? "off" : r->hull_mode == 1 ? "final" : "all");
     fprintf(f, "mode %s\n", r->headless ? "headless" : "window");
     fprintf(f, "completed %d   # 1: final.txt written at tick = steps\n", completed);
     fprintf(f, "tick %ld\n", r->w.tick);
@@ -180,6 +189,7 @@ int main(int argc, char** argv){
     params_default(&r.p);
     snprintf(r.rule, sizeof r.rule, "unbiased");
     r.write_every = 50; r.tpf = 1; r.tick_ms = 50; r.steps = -1; r.argc = argc; r.argv = argv;
+    r.hull_mode = 1; r.alpha = 200.0 / 255.0;
     int have_seed = 0, overwrite = 0, patches_given = 0;
     for (int i = 1; i < argc; ++i)                      /* the preset first, so that explicit flags override it */
         if (!strncmp(argv[i], "--preset=", 9)) {
@@ -212,6 +222,9 @@ int main(int argc, char** argv){
         else if (!strcmp(key, "--exit-at-end")) { NOV(); r.exit_at_end = 1; }
         else if (!strcmp(key, "--shot-at-end")) { NOV(); r.shot_at_end = 1; }
         else if (!strcmp(key, "--overwrite"))   { NOV(); overwrite = 1; }
+        else if (!strcmp(key, "--hull"))        { NEEDV(); if (!strcmp(v, "off")) r.hull_mode = 0; else if (!strcmp(v, "final")) r.hull_mode = 1; else if (!strcmp(v, "all")) r.hull_mode = 2; else bad = 1; }
+        else if (!strcmp(key, "--alpha"))       { NEEDV(); bad = num_d(v, &r.alpha) || r.alpha < 0 || r.alpha > 1; }
+        else if (!strcmp(key, "--view"))        { NEEDV(); if (!strcmp(v, "network")) r.view_network = 1; else if (!strcmp(v, "both")) r.view_network = 2; else if (!strcmp(v, "disks")) r.view_network = 0; else bad = 1; }
         else if (!strcmp(key, "--W"))           { NEEDV(); bad = num_d(v, &r.p.W); }
         else if (!strcmp(key, "--H"))           { NEEDV(); bad = num_d(v, &r.p.H); }
         else if (!strcmp(key, "--budget"))      { NEEDV(); bad = num_d(v, &r.p.budget); }

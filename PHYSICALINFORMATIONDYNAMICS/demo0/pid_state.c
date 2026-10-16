@@ -44,6 +44,19 @@ int state_write_fp(const World* w, FILE* f){
             fprintf(f, "%d %.17g %.17g %.17g %.17g %d\n", k, q->x, q->y, q->r, q->s, q->active);
         }
     }
+    if (w->hull.valid) {                               /* 0c: closed loops, lumen on the left; then the areas */
+        const Hull* H = &w->hull; int k = 0;
+        fprintf(f, "[hull]\n# loop <n>, then n primitives: seg x1 y1 x2 y2 | arc cx cy R a0 a1 (ccw from a0 to a1)\n");
+        for (int l = 0; l < H->nloop; ++l) {
+            fprintf(f, "loop %d\n", H->loop[l]);
+            for (int j = 0; j < H->loop[l]; ++j, ++k) {
+                const HPrim* q = &H->p[k];
+                if (q->type == 0) fprintf(f, "seg %.17g %.17g %.17g %.17g\n", q->v[0], q->v[1], q->v[2], q->v[3]);
+                else              fprintf(f, "arc %.17g %.17g %.17g %.17g %.17g\n", q->v[0], q->v[1], q->v[2], q->v[3], q->v[4]);
+            }
+        }
+        fprintf(f, "[areas]\nlumen_area %.17g\nhull_perimeter %.17g\n", H->area, H->perim);
+    }
     return ferror(f) ? -1 : 0;
 }
 
@@ -103,6 +116,8 @@ int state_read(World* w, const char* path, double* m_pool_file, char* err, size_
             else if (!strcmp(line, "[disks]"))  sec = 2;
             else if (!strcmp(line, "[tips]"))   sec = 3;
             else if (!strcmp(line, "[patches]")) sec = 4;
+            else if (!strcmp(line, "[hull]"))    { sec = 5; w->hull.valid = 1; }
+            else if (!strcmp(line, "[areas]"))   sec = 6;
             else FAIL("%s:%ld: unknown section %s", path, lineno, line);
             continue;
         }
@@ -143,6 +158,20 @@ int state_read(World* w, const char* path, double* m_pool_file, char* err, size_
             if (w->p.npatch >= PID_MAX_PATCHES || sscanf(line, "%d %lf %lf %lf %lf %d", &id, &q.x, &q.y, &q.r, &q.s, &q.active) != 6 || id != w->p.npatch)
                 FAIL("%s:%ld: bad patch line", path, lineno);
             w->p.patch[w->p.npatch++] = q;
+        } else if (sec == 5) {
+            double v[5]; int nl;
+            if      (sscanf(line, "loop %d", &nl) == 1 && !strncmp(line, "loop ", 5)) hull_add_loop(&w->hull, nl);
+            else if (!strncmp(line, "seg ", 4) && sscanf(line + 4, "%lf %lf %lf %lf", &v[0], &v[1], &v[2], &v[3]) == 4) hull_add(&w->hull, 0, v[0], v[1], v[2], v[3], 0.0);
+            else if (!strncmp(line, "arc ", 4) && sscanf(line + 4, "%lf %lf %lf %lf %lf", &v[0], &v[1], &v[2], &v[3], &v[4]) == 5) hull_add(&w->hull, 1, v[0], v[1], v[2], v[3], v[4]);
+            else FAIL("%s:%ld: bad hull line", path, lineno);
+        } else if (sec == 6) {
+            char key[32]; double v; char* end;
+            if (sscanf(line, "%31s", key) != 1) FAIL("%s:%ld: bad areas line", path, lineno);
+            v = strtod(line + strlen(key), &end);
+            if (*end) FAIL("%s:%ld: bad areas value", path, lineno);
+            if      (!strcmp(key, "lumen_area"))     w->hull.area = v;
+            else if (!strcmp(key, "hull_perimeter")) w->hull.perim = v;
+            else FAIL("%s:%ld: unknown areas key %s", path, lineno, key);
         } else FAIL("%s:%ld: record outside a section", path, lineno);
     }
     if (ferror(f)) FAIL("%s: read error", path);

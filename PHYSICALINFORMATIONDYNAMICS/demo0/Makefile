@@ -19,7 +19,7 @@ endif
 # from any commit with: cat $(SRC_LIST) | shasum -a 256
 MK_DIR    := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 PID_DIR   := $(abspath $(MK_DIR)..)
-SRC_LIST  := Makefile pid.h pid_rng.c pid_sha256.c pid_state.c pid_grow.c pid_main.c pid_view.c pid_check.c
+SRC_LIST  := Makefile pid.h pid_rng.c pid_sha256.c pid_state.c pid_grow.c pid_main.c pid_view.c pid_check.c pid_hull.c
 GIT_SHORT := $(shell git -C $(PID_DIR) log -1 --format=%h -- . 2>/dev/null)
 GIT_FULL  := $(shell git -C $(PID_DIR) log -1 --format=%H -- . 2>/dev/null)
 GIT_DIRTY := $(shell git -C $(PID_DIR) status --porcelain -- . 2>/dev/null | head -1)
@@ -31,7 +31,7 @@ DEFS      := -DPID_BUILD_ID='"$(BUILD_ID)"' -DPID_CFLAGS='"$(CSTD)"' -DPID_FOLDE
 STAMP := bin/.build_id
 $(shell mkdir -p $(MK_DIR)bin; echo '$(BUILD_ID) $(SRC_SHA)' | cmp -s - $(MK_DIR)$(STAMP) || echo '$(BUILD_ID) $(SRC_SHA)' > $(MK_DIR)$(STAMP))
 
-CORE := pid_grow.c pid_state.c pid_rng.c pid_sha256.c
+CORE := pid_grow.c pid_state.c pid_rng.c pid_sha256.c pid_hull.c
 HDRS := pid.h
 
 .PHONY: all test clean
@@ -47,7 +47,7 @@ bin/pid_check: pid_check.c $(CORE) $(HDRS) Makefile $(STAMP)
 test: all
 	@for f in pid_main.c pid_view.c pid_check.c $(CORE); do \
 	  $(CC) $(CSTD) -Werror $(SDL_CF) $(TTF_CF) $(DEFS) -c -o /dev/null $$f || exit 1; done; \
-	  echo "PASS build: 7 sources, 0 warnings under $(CSTD) -Werror"
+	  echo "PASS build: 8 sources, 0 warnings under $(CSTD) -Werror"
 	@sh tests/run_tests.sh
 
 clean:

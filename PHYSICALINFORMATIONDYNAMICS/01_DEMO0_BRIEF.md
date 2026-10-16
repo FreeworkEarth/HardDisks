@@ -143,3 +143,32 @@ Suggested order inside 0a: `pid.h` and `pid_state.c` first (the contract), then 
 Not in Demo 0: moving structural disks, 3D, particles, any information-theoretic rule, a name for the project.
 
 If a delivery cannot be finished in one session, commit what passes, mark what does not in the commit message, and stop.
+
+## 8. Decisions after 0a (Chris and the planning chat, 2026-10-15 evening)
+
+Recorded here so the brief stays the one reference. Where this section and §3 differ, this section wins.
+
+- **Explore mode is the mat.** `--preset=mat` (0a.2, commit 95700242: `--pbranch=1 --pbranch-exp=0 --delta=1.57 --ntry=48 --budget=9000`) is the growth Chris wants as the exploratory phase. Still a tree, no loops; loops are a later question.
+- **0b configuration:** `--preset=mat --budget=4500`, saved as preset `mat45`. At 9000 the mat already covers the food, so reaching it means nothing; at 4500 the mat stops short and reaching it is the test. Defaults stay 0a.1.
+- **Patches:** the seed sits on food. Patch A is at the seed's position (the seed is fed from tick 0, so every fed path ends at the seed, as §3 says); patch B at (0.8 W, 0.5 H), r_p = 5. Patches are given as a repeatable flag `--patch=x,y,r,s` so a third one is a command-line change, not a code change; the two above are the `mat45` preset's patches.
+- **Tips the budget cannot afford wait; they do not die.** The tip stays alive and skips the tick. Only geometry-blocked tips die, after `ntry`. Reason: thinning returns material to the pool, and live tips are the only thing that can turn it into new growth; with waiting tips the mat thins behind and grows in front. Live tips are processed in a random permutation each tick, drawn from the one generator (replay holds), so the oldest tips do not always take the trickle.
+- **Cue field stays on** in the guided rule; the control is `--beta=0`, which must reproduce `unbiased` (test 5, defined as: `final.txt` identical in every line except `rule` and `params`). Both runs are reported.
+- **Growth from B is 0b.1, not 0b.** A reached patch becoming a second growth centre (tips on its rim, headings away from the arrival direction, paid from the returned material) is built only after 0b has been seen alone, so that it is clear which rule made the tube.
+- **Known limit, stated by CC and accepted:** the A–B tube is whatever path the mat grew to B; it wiggles. A straight shortcut needs loops or regrowth, which is later.
+- **0b report, per seed 9300–9305:** whether B is reached and at which tick, for `guided` and for `beta=0`; disks, live tips and `M_pool` at ticks 400 and 1000; whether a single A–B tube is what remains at 1000, or the mat hollowed out, or the rim died first. The picture at the clearest tick.
+
+## 9. After 0b (2026-10-15, late): 0b is the frozen baseline; 0c next, then 0b.1
+
+0b is commit f848239e. Its readings (A under the seed neither emits cue nor feeds; fed status derived, never stored; a fed tip stops) are accepted. Its findings stand as the baseline and are not tuned further: guided touches B at tick 10–11 on every seed, the β = 0 control at 185–775; at the briefed rates nothing is removed by tick 1000 and 5–7 fed strands reach B; with `--deltathin=0.05` the mat retracts to a bundle of 6–9 parallel strands, not one tube. One tube needs competition between strands, which this rule has no way to express; that is a later experiment (M4), not a 0b fix.
+
+**Order:** 0c (the hull and the view, below) before 0b.1 (growth from B). The hull is Demo 1's input; 0b.1 is a growth-rule exploration.
+
+**0c view, added to §5 (Chris, after watching 0b):**
+- The transparency keys `[` `]` and a flag `--alpha=0..1` apply to **every** disk fill — body, tips, fed path, dead ends, seed, patches — not only the plain disks. At `--alpha=0` only outlines remain.
+- `H` draws the hull as closed outlines (segments and arcs) in one colour; `G` the centreline graph. The "network only" view is `--alpha=0` with `H` and `G` on, and `--view=network` sets exactly that from the command line.
+- Still no sliders for model parameters in the window: a parameter changed mid-run breaks replay, and every parameter is already a flag (`--help` lists them; every state file and manifest records them). View-only settings (alpha, toggles) may be live controls, because they change nothing in the state.
+- One picture per delivery as before; for 0c two: the mat45 network at tick 400 with disks, and the same tick as network only.
+
+**0c hull:** as §3 "0c" and §6 test 6. One addition for the mat: capsules of *sibling* edges that share a parent overlap heavily near the parent; the union must handle three or more capsules meeting at one disk (the hex start has six at the seed). Report the lumen area, hull perimeter and `M_used` side by side for the three presets (`0a`, `mat`, `mat45`) at their final tick.
+
+**For 0b.1, not 0c:** thinning applies to every non-fed disk except the seed, dead-end tips included — the §3 wording "every other body disk" left dead ends thick, which is a wording error of the brief, not a reading error. 0b.1 adds growth from a reached patch (tips on its rim, headings away from the arrival direction, paid from the pool) and reports the same per-seed table as 0b plus the material split between the A–B strands, the new front at B and the old mat.

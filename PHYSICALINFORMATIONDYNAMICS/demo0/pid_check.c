@@ -4,13 +4,21 @@
                                    also that disks never change and dead tips stay frozen from one state to the next
      pid_check roundtrip IN OUT    read IN, write OUT (item 4; the test then compares the two with cmp)
      pid_check info FILE...        0b: one line per state: tick, alive disks, live tips, M_pool, fed disks, fed path ends, and for every
-                                   non-home patch the number of alive disks touching it */
+                                   non-home patch the number of alive disks touching it
+     pid_check hull FILE...        0c, test 6 (a)-(c) and (e) on the hull recomputed from the disks; and, when the file
+                                   carries a hull, that it equals the recomputed one */
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include "pid.h"
 
-const char* pid_build_id(void){ return "pid_check"; }   /* world_init() is not used here; state files carry their own build line */
+const char* pid_build_id(void){ return "pid_check"; }
+
+static int prim_eq(const HPrim* a, const HPrim* b){            /* field by field: the struct has padding bytes */
+    if (a->type != b->type) return 0;
+    for (int k = 0; k < 5; ++k) if (a->v[k] != b->v[k]) return 0;
+    return 1;
+}   /* world_init() is not used here; state files carry their own build line */
 
 static int sequence_check(const World* a, const World* b, const char* fa, const char* fb){
     if (b->tick < a->tick) { printf("FAIL %s -> %s: tick goes back (%ld -> %ld)\n", fa, fb, a->tick, b->tick); return 1; }
@@ -73,6 +81,68 @@ int main(int argc, char** argv){
         }
         return 0;
     }
+    if (argc >= 3 && !strcmp(argv[1], "hull")) {
+        int fails = 0;
+        for (int f = 2; f < argc; ++f) {
+            World w; double pool; char err[512];
+            if (state_read(&w, argv[f], &pool, err, sizeof err)) { printf("FAIL %s: %s\n", argv[f], err); return 1; }
+            Hull H; hull_compute_world(&w, &H);
+            int bad = 0;
+            {   int e0 = 0; for (int i = 1; i < w.nd; ++i) e0 += w.d[i].alive && w.d[w.d[i].parent].alive;
+                if (e0 == 0) {                                                         /* the seed alone: no capsule */
+                    const int st = !w.hull.valid || (w.hull.np == 0 && w.hull.area == 0.0);
+                    printf("%s %s: no live edge, empty lumen%s\n", st ? "ok" : "FAIL", argv[f], st ? "" : " but the stored hull is not empty");
+                    fails += !st; hull_free(&H); world_free(&w); continue;
+                } }
+            const double gap = hull_max_gap(&H);                                       /* (a) */
+            if (!(gap <= 1e-9)) { printf("FAIL %s: (a) a loop is not closed: largest gap %.3g, open chains %d\n", argv[f], gap, H.open); bad++; }
+            int outside = 0, inspected = 0;                                            /* (b) */
+            int* e = (int*)malloc((size_t)(w.nd > 0 ? w.nd : 1) * sizeof(int)); if (!e) return 3;
+            const int ne = hull_edges(&w, e);
+            unsigned char* inedge = (unsigned char*)calloc((size_t)(w.nd > 0 ? w.nd : 1), 1); if (!inedge) return 3;
+            for (int k = 0; k < ne; ++k) { inedge[e[k]] = 1; inedge[w.d[e[k]].parent] = 1; }
+            for (int i = 0; i < w.nd; ++i) if (inedge[i]) { inspected++; if (!hull_contains(&H, w.d[i].x, w.d[i].y)) outside++; }
+            if (outside) { printf("FAIL %s: (b) %d of %d disk centres outside the lumen\n", argv[f], outside, inspected); bad++; }
+            double ra[4], er[4]; const double res[4] = {2, 4, 8, 16};                  /* (c) */
+            for (int k = 0; k < 4; ++k) { ra[k] = hull_raster_area(&w, res[k]); er[k] = fabs(ra[k] - H.area) / H.area; }
+            double exact = -1.0;                                                       /* one capsule: the closed form */
+            if (ne == 1) {
+                const Disk* A = &w.d[e[0]]; const Disk* B = &w.d[A->parent];
+                const double d = hypot(B->x - A->x, B->y - A->y), r1 = A->r, r2 = B->r;
+                if (d > fabs(r1 - r2)) {
+                    const double al = acos((r1 - r2) / d);
+                    exact = r1 * r1 * (PID_PI - al) + r2 * r2 * al + (r1 + r2) * d * sin(al);
+                    if (!(fabs(exact - H.area) <= 1e-12 * exact)) { printf("FAIL %s: one capsule, area %.17g != closed form %.17g\n", argv[f], H.area, exact); bad++; }
+                }
+            }
+            /* "decreasing": pixel-centre sampling adds noise of a few pixels at every resolution, so the test asks for a
+               falling log-log trend (least-squares slope < 0) and 16 px better than 2 px, plus the finest within 0.1 % */
+            double sx = 0, sy = 0, sxx = 0, sxy = 0;
+            for (int k = 0; k < 4; ++k) { const double lx = log(res[k]), ly = log(er[k] > 1e-300 ? er[k] : 1e-300); sx += lx; sy += ly; sxx += lx * lx; sxy += lx * ly; }
+            const double slope = (4 * sxy - sx * sy) / (4 * sxx - sx * sx);
+            const int falling = slope < 0 && er[3] < er[0];
+            /* below 1000 sigma^2 the raster's pixel noise at 16 px per sigma is comparable with 0.1 %; there the hull is
+               held to the closed form when it is one capsule, and the raster numbers are reported only */
+            if (H.area >= 1000.0 && (!(er[3] <= 1e-3) || !falling)) { printf("FAIL %s: (c) raster errors %.2e %.2e %.2e %.2e (log-log slope %.2f, finest <= 1e-3 %d)\n", argv[f], er[0], er[1], er[2], er[3], slope, er[3] <= 1e-3); bad++; }
+            for (int k = 0; k < ne / 2; ++k) { const int t = e[k]; e[k] = e[ne - 1 - k]; e[ne - 1 - k] = t; }   /* (e) */
+            Hull R; hull_compute(&w, e, ne, &R);
+            int same = R.np == H.np && fabs(R.area - H.area) <= 1e-12 * H.area;
+            for (int k = 0; same && k < H.np; ++k) same = prim_eq(&R.p[k], &H.p[k]);
+            if (!same) { printf("FAIL %s: (e) reversed edge order gives a different hull\n", argv[f]); bad++; }
+            if (w.hull.valid) {                                                        /* the stored hull */
+                int st = w.hull.np == H.np && w.hull.nloop == H.nloop && w.hull.area == H.area && w.hull.perim == H.perim;
+                for (int k = 0; st && k < H.np; ++k) st = prim_eq(&w.hull.p[k], &H.p[k]);
+                for (int l = 0; st && l < H.nloop; ++l) st = w.hull.loop[l] == H.loop[l];
+                if (!st) { printf("FAIL %s: the stored hull differs from the recomputed one\n", argv[f]); bad++; }
+            }
+            printf("%s %s: edges %d, loops %d, primitives %d, lumen_area %.6f, hull_perimeter %.6f, m_used %.6f, gap %.1e, centres inside %d/%d, raster err 2/4/8/16 px: %.1e %.1e %.1e %.1e (slope %.2f)%s\n",
+                   bad ? "FAIL" : "ok", argv[f], ne, H.nloop, H.np, H.area, H.perim, w.m_used, gap, inspected - outside, inspected, er[0], er[1], er[2], er[3], slope,
+                   exact >= 0 ? ", one capsule: equals the closed form to 1e-12" : (H.area < 1000.0 ? ", under 1000 sigma^2: raster reported only" : ""));
+            fails += bad;
+            hull_free(&H); hull_free(&R); free(e); free(inedge); world_free(&w);
+        }
+        return fails ? 1 : 0;
+    }
     if (argc == 4 && !strcmp(argv[1], "roundtrip")) {
         World w; double pool; char err[512];
         if (state_read(&w, argv[2], &pool, err, sizeof err)) { printf("FAIL %s: %s\n", argv[2], err); return 1; }
@@ -80,6 +150,6 @@ int main(int argc, char** argv){
         world_free(&w);
         return 0;
     }
-    fprintf(stderr, "usage: pid_check verify FILE... | pid_check roundtrip IN OUT | pid_check info FILE...\n");
+    fprintf(stderr, "usage: pid_check verify FILE... | pid_check roundtrip IN OUT | pid_check info FILE... | pid_check hull FILE...\n");
     return 2;
 }

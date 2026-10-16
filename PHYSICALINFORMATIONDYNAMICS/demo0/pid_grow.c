@@ -135,7 +135,7 @@ void world_init(World* w, const Params* p, uint64_t seed, const char* rule){
 }
 
 int pid_start_ring(int id){ int k = 0; while (3 * k * (k + 1) < id) ++k; return k; }
-void world_free(World* w){ free(w->d); free(w->t); w->d = NULL; w->t = NULL; w->nd = w->nt = w->cap_d = w->cap_t = 0; }
+void world_free(World* w){ free(w->d); free(w->t); w->d = NULL; w->t = NULL; w->nd = w->nt = w->cap_d = w->cap_t = 0; hull_free(&w->hull); }
 
 /* ---------------------------------------------------------------- geometry */
 int pid_disks_overlap(const Disk* a, const Disk* b){

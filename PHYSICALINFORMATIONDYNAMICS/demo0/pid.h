@@ -57,7 +57,23 @@
      overlap after thickening; their lens is subtracted in M_used (pid_lens_area). Order: ids ascending.
    - Executor (sec. 8): with budget_wait = 1 a tip the pool cannot afford waits (stays alive, nothing placed); a tip blocked
      by geometry still dies after 1 + ntry attempts. With tip_order = random the live tips act in a fresh Fisher-Yates
-     permutation each tick drawn from the one generator. Both are off by default (0a/0a.1 behaviour, regression intact). */
+     permutation each tick drawn from the one generator. Both are off by default (0a/0a.1 behaviour, regression intact).
+
+   Demo 0c (brief sec. 3 "0c", sec. 6 test 6, sec. 9; pid_hull.c):
+   - Lumen = union of the capsules of the live edges (child and parent both alive); a capsule is the convex hull of its two
+     disks, or the larger disk when one contains the other. The seed alone has no edge: empty lumen, area 0.
+   - Hull = closed loops of primitives with the lumen on the left: "seg x1 y1 x2 y2", "arc cx cy R a0 a1" (counter-clockwise,
+     a0 in (-pi, pi], a1 > a0). Outer boundaries run counter-clockwise, holes clockwise. Written as [hull] ("loop n" and n
+     primitives per loop) and [areas] (lumen_area, hull_perimeter) into final.txt by default (--hull=final), into every
+     state file (--hull=all) or nowhere (--hull=off). Area and perimeter are sums over the primitives (Green's theorem), so
+     they do not depend on the chaining. Edges are processed in ascending child id, so any input order gives the same bits.
+   - Test 6 readings: (c) "error decreasing with resolution" is checked as a falling log-log trend of the raster error over
+     2, 4, 8, 16 px per sigma, 16 px better than 2 px, and the finest within 0.1 %, for lumens of at least 1000 sigma^2
+     (pixel-centre sampling noise is a few pixels at every resolution, comparable with 0.1 % of a small lumen); a single
+     capsule is held to the closed form r1^2 (pi - a) + r2^2 a + (r1 + r2) d sin a, cos a = (r1 - r2)/d, to 1e-12.
+     (d) needs shapely and skips when it is missing (the case on this Mac). (e) gives identical primitives and area.
+   - View (sec. 9): --alpha and [ ] apply to every fill (disks of every kind and patches); at alpha 0 only outlines remain.
+     H draws the hull; --view=network is alpha 0 with the hull and the graph; --view=both keeps the disks and adds the hull. */
 #ifndef PID_H
 #define PID_H
 
@@ -99,6 +115,10 @@ typedef struct {
     int    npatch; Patch patch[PID_MAX_PATCHES];
 } Params;
 
+/* 0c: the hull, a list of closed loops of primitives with the lumen on the left (pid_hull.c) */
+typedef struct { int type; double v[5]; } HPrim;   /* type 0 seg: x1 y1 x2 y2; type 1 arc: cx cy R a0 a1 (ccw, a1 > a0) */
+typedef struct { int valid; HPrim* p; int np, cap; int* loop; int nloop, cap_loop; int open; double area, perim; } Hull;
+
 typedef struct World {
     uint64_t seed;
     char     rule[16];
@@ -109,6 +129,7 @@ typedef struct World {
     Tip*     t; int nt, cap_t;
     Rng      rng;
     char     build[256];               /* "<folder short hash>[-dirty] <cflags>" of the build that wrote the state */
+    Hull     hull;                     /* 0c: written as [hull] and [areas] when valid; derived from the disks */
 } World;
 
 typedef enum { ACT_STOP = 0, ACT_EXTEND = 1, ACT_BRANCH = 2 } ActType;
@@ -145,6 +166,18 @@ int    pid_start_ring(int id);                     /* ring of a start disk by id
 /* Invariants of brief sec. 6 items 2-3 on one state. tangency: 1 in 0a. Returns the number of failures; the first is in err. */
 int    world_check(const World* w, int tangency, double m_pool_file, char* err, size_t n);
 
+/* ---------------------------------------------------------------- hull (pid_hull.c) */
+int    hull_edges(const World* w, int* edge_child);            /* live edges as child ids, ascending; returns the count */
+int    hull_compute(const World* w, const int* edge_child, int ne, Hull* H);   /* any edge order; processed ascending */
+int    hull_compute_world(const World* w, Hull* H);
+void   hull_free(Hull* H);
+void   hull_add(Hull* H, int type, double v0, double v1, double v2, double v3, double v4);
+void   hull_add_loop(Hull* H, int n);
+void   hull_prim_ends(const HPrim* q, double* xs, double* ys, double* xe, double* ye);
+double hull_max_gap(const Hull* H);                            /* test 6 (a) */
+int    hull_contains(const Hull* H, double x, double y);       /* test 6 (b) */
+double hull_raster_area(const World* w, double px_per_sigma);  /* test 6 (c) */
+
 /* ---------------------------------------------------------------- state file (pid_state.c) */
 int  state_write(const World* w, const char* path);
 int  state_write_fp(const World* w, FILE* f);
@@ -167,6 +200,9 @@ typedef struct {
     int    argc; char** argv;
     char (*files)[64]; int nfiles, cap_files;    /* state files written, in first-write order */
     int    final_written;
+    int    hull_mode;                  /* 0c: 0 off, 1 in final.txt (default), 2 in every state file */
+    double alpha;                      /* 0c: initial disk fill opacity 0..1 (window) */
+    int    view_network;               /* 0c: --view: 0 disks (default), 1 network (alpha 0, hull and graph), 2 both */
 } Run;
 
 int  run_tick(Run* r);           /* one step() plus the writes it is due; 0 when --steps is reached */

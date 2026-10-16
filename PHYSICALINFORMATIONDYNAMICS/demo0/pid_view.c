@@ -69,7 +69,28 @@ static void draw_cue(SDL_Renderer* R, const View* v, const World* w, SDL_Texture
     SDL_RenderCopyF(R, *tex, NULL, &dst);
 }
 
-static void draw(SDL_Renderer* R, const View* v, const Run* run, unsigned char* live_tip, unsigned char* fed, SDL_Texture** cue, int* cw, int* ch){
+/* 0c: the hull as closed outlines, one colour; arcs as polylines of at most 0.05 rad per step */
+static void draw_hull(SDL_Renderer* R, const View* v, const Params* p, const Hull* H){
+    SDL_SetRenderDrawColor(R, 120, 230, 255, 255);
+    for (int k = 0; k < H->np; ++k) {
+        const HPrim* q = &H->p[k];
+        if (q->type == 0) {
+            float ax, ay, bx, by; to_screen(v, p, q->v[0], q->v[1], &ax, &ay); to_screen(v, p, q->v[2], q->v[3], &bx, &by);
+            SDL_RenderDrawLineF(R, ax, ay, bx, by);
+        } else {
+            const int n = 1 + (int)((q->v[4] - q->v[3]) / 0.05);
+            float px = 0, py = 0;
+            for (int j = 0; j <= n; ++j) {
+                const double a = q->v[3] + (q->v[4] - q->v[3]) * j / n;
+                float sx, sy; to_screen(v, p, q->v[0] + q->v[2] * cos(a), q->v[1] + q->v[2] * sin(a), &sx, &sy);
+                if (j) SDL_RenderDrawLineF(R, px, py, sx, sy);
+                px = sx; py = sy;
+            }
+        }
+    }
+}
+
+static void draw(SDL_Renderer* R, const View* v, const Run* run, unsigned char* live_tip, unsigned char* fed, SDL_Texture** cue, int* cw, int* ch, const Hull* hull){
     const World* w = &run->w; const Params* p = &w->p;
     SDL_SetRenderDrawColor(R, 14, 16, 22, 255);
     SDL_RenderClear(R);
@@ -82,14 +103,16 @@ static void draw(SDL_Renderer* R, const View* v, const Run* run, unsigned char* 
     if (v->show_patches)
         for (int k = 0; k < p->npatch; ++k) {
             const Patch* q = &p->patch[k]; float sx, sy; to_screen(v, p, q->x, q->y, &sx, &sy);
-            if (pid_patch_home(w, k)) SDL_SetRenderDrawColor(R, 90, 210, 130, q->active ? 110 : 40);   /* A, home: green */
-            else                      SDL_SetRenderDrawColor(R, 235, 90, 210, q->active ? 130 : 40);   /* food: magenta */
+            const int pa = (q->active ? 150 : 50) * v->alpha / 255;                 /* 0c: the alpha keys apply here too */
+            if (pa == 0) continue;
+            if (pid_patch_home(w, k)) SDL_SetRenderDrawColor(R, 90, 210, 130, (Uint8)pa);   /* A, home: green */
+            else                      SDL_SetRenderDrawColor(R, 235, 90, 210, (Uint8)pa);   /* food: magenta */
             fill_disk(R, sx, sy, (float)(q->r * v->scale));
         }
     if (p->npatch > 0) world_fed(w, fed); else memset(fed, 0, (size_t)w->nd);
     memset(live_tip, 0, (size_t)w->nd);
     for (int k = 0; k < w->nt; ++k) if (w->t[k].alive) live_tip[w->t[k].disk] = 1;
-    if (v->show_disks) {
+    if (v->show_disks && v->alpha > 0) {                 /* 0c: at alpha 0 only outlines remain */
         for (int i = 0; i < w->nd; ++i) {
             const Disk* d = &w->d[i]; if (!d->alive) continue;
             if (d->kind == KIND_SEED)      SDL_SetRenderDrawColor(R, 225, 95, 80, (Uint8)v->alpha);
@@ -116,7 +139,7 @@ static void draw(SDL_Renderer* R, const View* v, const Run* run, unsigned char* 
             if (pid_patch_home(w, k)) SDL_SetRenderDrawColor(R, 120, 240, 160, 255); else SDL_SetRenderDrawColor(R, 255, 120, 230, 255);
             ring(R, sx, sy, (float)(q->r * v->scale));
         }
-    /* the hull (0c) has nothing to draw yet */
+    if (v->show_hull && hull && hull->valid) draw_hull(R, v, p, hull);
 }
 
 static void save_shot(SDL_Renderer* R, const Run* run){
@@ -136,6 +159,10 @@ int view_run(Run* run){
     SDL_SetMainReady();
     if (SDL_Init(SDL_INIT_VIDEO) != 0) { fprintf(stderr, "pid: SDL_Init: %s\n", SDL_GetError()); return 2; }
     View v = {1, 1, 0, 0, 1, 200, 1, 0.0, 24, 0, 0, 0};
+    v.alpha = (int)lround(run->alpha * 255.0);
+    if (run->view_network == 1) { v.alpha = 0; v.show_hull = 1; v.show_graph = 1; }   /* 0c: --view=network */
+    if (run->view_network == 2) v.show_hull = 1;                                         /* 0c: --view=both */
+    Hull hull; memset(&hull, 0, sizeof hull); long hull_tick = -1;                  /* recomputed only when the tick changes */
     const Params* p = &run->p;
     v.scale = fmin((1400.0 - 2.0 * v.margin) / p->W, (860.0 - 2.0 * v.margin) / p->H);
 #ifdef PID_HAVE_TTF
@@ -150,7 +177,7 @@ int view_run(Run* run){
 #endif
     v.win_w = (int)ceil(p->W * v.scale) + 2 * v.margin;
     v.win_h = (int)ceil(p->H * v.scale) + 2 * v.margin + v.bar;
-    SDL_Window* win = SDL_CreateWindow("PID Demo 0b -- growth toward food", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, v.win_w, v.win_h, SDL_WINDOW_SHOWN);
+    SDL_Window* win = SDL_CreateWindow("PID Demo 0c -- network and hull", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, v.win_w, v.win_h, SDL_WINDOW_SHOWN);
     if (!win) { fprintf(stderr, "pid: SDL_CreateWindow: %s\n", SDL_GetError()); SDL_Quit(); return 2; }
     int vsync = 1;
     SDL_Renderer* R = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -171,11 +198,11 @@ int view_run(Run* run){
                 case SDLK_ESCAPE: quit = 1; break;
                 case SDLK_d: v.show_disks = !v.show_disks; break;
                 case SDLK_g: v.show_graph = !v.show_graph; break;
-                case SDLK_h: v.show_hull = !v.show_hull; printf("hull: arrives with Demo 0c\n"); break;
+                case SDLK_h: v.show_hull = !v.show_hull; break;
                 case SDLK_c: v.show_cue = !v.show_cue; if (!run->p.npatch) printf("cue field: no patches in this run\n"); break;
                 case SDLK_p: v.show_patches = !v.show_patches; if (!run->p.npatch) printf("patches: none in this run\n"); break;
-                case SDLK_LEFTBRACKET:  v.alpha = v.alpha > 31 ? v.alpha - 16 : 15; printf("disk alpha %d\n", v.alpha); break;
-                case SDLK_RIGHTBRACKET: v.alpha = v.alpha < 239 ? v.alpha + 16 : 255; printf("disk alpha %d\n", v.alpha); break;
+                case SDLK_LEFTBRACKET:  v.alpha = v.alpha > 16 ? v.alpha - 16 : 0; printf("fill alpha %.2f\n", v.alpha / 255.0); break;
+                case SDLK_RIGHTBRACKET: v.alpha = v.alpha < 239 ? v.alpha + 16 : 255; printf("fill alpha %.2f\n", v.alpha / 255.0); break;
                 case SDLK_SPACE: v.running = !v.running; printf(v.running ? "run\n" : "pause\n"); run_status(run, stdout); break;
                 case SDLK_n: v.running = 0; if (!run_tick(run)) printf("at --steps=%ld\n", run->steps); run_status(run, stdout); break;
                 case SDLK_r: run_reset(run); announced_end = 0; printf("reset to tick 0, seed %llu\n", (unsigned long long)run->seed); run_status(run, stdout); break;
@@ -197,7 +224,8 @@ int view_run(Run* run){
             live_tip = (unsigned char*)realloc(live_tip, (size_t)cap_live); fed = (unsigned char*)realloc(fed, (size_t)cap_live);
             if (!live_tip || !fed) { fprintf(stderr, "pid: out of memory\n"); return 3; }
         }
-        draw(R, &v, run, live_tip, fed, &cue, &cue_w, &cue_h);
+        if (v.show_hull && hull_tick != run->w.tick) { hull_free(&hull); hull_compute_world(&run->w, &hull); hull_tick = run->w.tick; }
+        draw(R, &v, run, live_tip, fed, &cue, &cue_w, &cue_h, &hull);
 #ifdef PID_HAVE_TTF
         if (font) {
             char s[256]; snprintf(s, sizeof s, "tick %ld   live tips %d   disks %d   M_used %.2f   M_pool %.2f%s", run->w.tick, world_live_tips(&run->w),
@@ -212,7 +240,7 @@ int view_run(Run* run){
         if (at_end && run->exit_at_end) quit = 1;
         if (!vsync) SDL_Delay(run->exit_at_end ? 0 : 15);
     }
-    free(live_tip); free(fed); if (cue) SDL_DestroyTexture(cue);
+    free(live_tip); free(fed); if (cue) SDL_DestroyTexture(cue); hull_free(&hull);
 #ifdef PID_HAVE_TTF
     if (font) TTF_CloseFont(font);
     if (run->font) TTF_Quit();
