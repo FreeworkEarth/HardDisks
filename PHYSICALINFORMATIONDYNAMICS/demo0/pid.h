@@ -9,13 +9,24 @@
    - Headings in radians, counter-clockwise from +x, kept in (-pi, pi].
    - Structural disks touch, they do not overlap. A child is placed tangent to its parent:
        c_child = c_parent + (r_parent + r_child) (cos theta, sin theta).
-     Non-adjacent disks (every pair that is not parent-child) never overlap: |c_i - c_j| >= r_i + r_j, tested as written in
-     pid_disks_overlap(). Parent ids are smaller than child ids; the seed is disk 0 with parent -1.
+     Non-adjacent disks (every pair that is not parent-child) never overlap. Touching is legal: the test is
+     |c_i - c_j| < (r_i + r_j) - 1e-9 (r_i + r_j) for an overlap (pid_disks_overlap), so hex-packed neighbours whose rounded
+     distance falls an ulp short of r_i + r_j are not counted. Parent ids are smaller than child ids; the seed is disk 0 with
+     parent -1.
+   - Start (0a.1): --start-rings=n puts n hex rings of tangent disks of radius R0 around the seed (ring k: 6k disks on the
+     triangular lattice of spacing 2 R0, rotated as a whole by one random angle; ids ring by ring, inside a ring by angle).
+     A ring-1 disk's parent is the seed; a ring-k disk's parent is the lowest-id ring-(k-1) disk it touches. Every disk of
+     the outer ring gets one tip pointing radially outward. All start disks are born at tick 0. n = 0 is the 0a start:
+     K tips on the seed at evenly spaced headings, rotated by the same one random angle.
    - Material: M_used = sum of pi r^2 over live disks minus the lens area of every live parent-child pair (zero at placement);
      M_pool = M_total - M_used. A placement is charged pi r'^2 and refused when M_pool < pi r'^2.
    - Tips: {disk, heading, alive}. A tip moves to the disk it places; a dead tip stays on its last disk for good.
-     Slots: every disk holds as many tip slots as tips ever sat on it (K for the seed; 1, or 2 after a branch, otherwise),
-     and children(d) + tips_on(d) equals that number. This is how "dead tips have no further children" is checked.
+     Slots: every disk holds as many tip slots as tips ever sat on it, and grown children (born > 0) + tips_on(d) equals
+     that number: for a disk born after tick 0, 1, or 2 after a branch; for the start disks, the tips they started with
+     (K for the seed when n = 0; 1 for an outer-ring disk; 0 otherwise). This is how "dead tips have no further children"
+     is checked.
+   - Branching (0a.1): a tip on a disk of radius r branches with probability pbranch (r / R0)^pbranch_exp; exponent 0 is
+     the 0a rule (pow(x, 0) is exactly 1, so the draws and decisions are the same).
    - Randomness: one generator, xoshiro256** seeded through splitmix64 from --seed (pid_rng.c). No libc rand()/srand().
      Normals by Box-Muller, two uniforms per normal, no cached second value.
    - State files print every double with %.17g, so a file reads back to the same bits (pid_state.c).
@@ -56,6 +67,8 @@ typedef struct {
     double kappa, tau, rmin, pbranch, delta;
     int    ntry, K;
     double R0;
+    int    rings;                      /* 0a.1: hex rings at the start (0: the 0a start with K tips) */
+    double pbranch_exp;                /* 0a.1: p_branch(r) = pbranch (r / R0)^pbranch_exp */
 } Params;
 
 typedef struct World {
@@ -94,6 +107,7 @@ double pid_lens_area(double dist, double r1, double r2);
 double ledger_recompute(const World* w);
 double world_pool(const World* w);
 int    world_live_tips(const World* w);
+int    pid_start_ring(int id);                     /* ring of a start disk by id: 0 for the seed, k for ring k */
 /* Invariants of brief sec. 6 items 2-3 on one state. tangency: 1 in 0a. Returns the number of failures; the first is in err. */
 int    world_check(const World* w, int tangency, double m_pool_file, char* err, size_t n);
 

@@ -98,7 +98,7 @@ int view_run(Run* run){
 #endif
     v.win_w = (int)ceil(p->W * v.scale) + 2 * v.margin;
     v.win_h = (int)ceil(p->H * v.scale) + 2 * v.margin + v.bar;
-    SDL_Window* win = SDL_CreateWindow("PID Demo 0a -- unbiased growth", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, v.win_w, v.win_h, SDL_WINDOW_SHOWN);
+    SDL_Window* win = SDL_CreateWindow("PID Demo 0a.1 -- unbiased growth", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, v.win_w, v.win_h, SDL_WINDOW_SHOWN);
     if (!win) { fprintf(stderr, "pid: SDL_CreateWindow: %s\n", SDL_GetError()); SDL_Quit(); return 2; }
     int vsync = 1;
     SDL_Renderer* R = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);

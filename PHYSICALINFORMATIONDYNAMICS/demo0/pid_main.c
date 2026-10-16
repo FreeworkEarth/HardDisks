@@ -37,8 +37,11 @@ static void usage(FILE* f){
         "  --shot-at-end          window: write shot_<tick>.bmp into DIR when --steps is reached\n"
         "  --overwrite            allow a non-empty DIR\n"
         "  --version, --help\n"
-        "parameters (defaults in brackets): --W [200] --H [120] --budget [3000] --kappa [0.35] --tau [0.03] --rmin [1]\n"
-        "  --pbranch [0.08] --delta [0.6] --ntry [8] --K [6] --R0 [3]\n"
+        "parameters (defaults in brackets): --W [200] --H [120] --budget [4500] --kappa [0.35] --tau [0.03] --rmin [1]\n"
+        "  --pbranch [0.8] --delta [0.6] --ntry [24] --K [6] --R0 [3]\n"
+        "  --start-rings [1]      hex rings of R0 disks around the seed; their outer ring carries the tips (0: K tips on the seed)\n"
+        "  --pbranch-exp [6]      p_branch(r) = pbranch (r / R0)^pbranch-exp for a tip on a disk of radius r (0: constant)\n"
+        "  the 0a defaults: --start-rings=0 --pbranch-exp=0 --pbranch=0.08 --ntry=8 --budget=3000\n"
         "window keys: D disks, G graph, H hull (0c), C cue (0b), P patches (0b), [ ] disk transparency, Space pause/run,\n"
         "  N one tick, R reset to the same seed, S BMP into DIR, Esc quit\n");
 }
@@ -186,6 +189,8 @@ int main(int argc, char** argv){
         else if (!strcmp(key, "--R0"))          { NEEDV(); bad = num_d(v, &r.p.R0); }
         else if (!strcmp(key, "--ntry"))        { NEEDV(); bad = num_l(v, &lv) || lv < 0 || lv > 1000000; r.p.ntry = (int)lv; }
         else if (!strcmp(key, "--K"))           { NEEDV(); bad = num_l(v, &lv) || lv < 1 || lv > 1000000; r.p.K = (int)lv; }
+        else if (!strcmp(key, "--start-rings")) { NEEDV(); bad = num_l(v, &lv) || lv < 0 || lv > 50; r.p.rings = (int)lv; }
+        else if (!strcmp(key, "--pbranch-exp")) { NEEDV(); bad = num_d(v, &r.p.pbranch_exp); }
         else { fprintf(stderr, "pid: unknown option '%s'\n", key); usage(stderr); return 2; }
         if (bad) { fprintf(stderr, "pid: bad value in '%s'\n", a); return 2; }
     }

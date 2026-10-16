@@ -9,8 +9,8 @@
 static const char* KIND_NAME[3] = {"seed", "body", "tip"};
 
 void params_line(const Params* p, char* buf, size_t n){
-    snprintf(buf, n, "kappa=%.17g tau=%.17g rmin=%.17g pbranch=%.17g delta=%.17g ntry=%d K=%d R0=%.17g",
-             p->kappa, p->tau, p->rmin, p->pbranch, p->delta, p->ntry, p->K, p->R0);
+    snprintf(buf, n, "kappa=%.17g tau=%.17g rmin=%.17g pbranch=%.17g delta=%.17g ntry=%d K=%d R0=%.17g rings=%d pbranch_exp=%.17g",
+             p->kappa, p->tau, p->rmin, p->pbranch, p->delta, p->ntry, p->K, p->R0, p->rings, p->pbranch_exp);
 }
 
 int state_write_fp(const World* w, FILE* f){
@@ -61,6 +61,8 @@ static int parse_params(Params* p, const char* s){
         else if (!strcmp(k, "R0"))      { p->R0      = strtod(v, &end); }
         else if (!strcmp(k, "ntry"))    { p->ntry    = (int)strtol(v, &end, 10); }
         else if (!strcmp(k, "K"))       { p->K       = (int)strtol(v, &end, 10); }
+        else if (!strcmp(k, "rings"))       { p->rings = (int)strtol(v, &end, 10); --seen; }        /* 0a.1 keys; absent in 0a files */
+        else if (!strcmp(k, "pbranch_exp")) { p->pbranch_exp = strtod(v, &end); --seen; }
         else return -1;
         if (*end != '\0' || end == v) return -1;
         ++seen;
