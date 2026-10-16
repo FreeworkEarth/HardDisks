@@ -32855,3 +32855,79 @@ cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks && bash hspist3/cluster/
 - **Push:** `git push origin main` (Chris) before block A; it also carries the three commits above.
 
 Written for: the plan author
+
+### 4.7.137 Plan-author decision 57, addendum 1. Report D57-1 accepted, departures (a)–(g) approved; main pushed (8aaf5fef..726bc498). On KOA blocks A and B are good: the build at 8aaf5fef, the package c69804b0, the array job 15083717 with 400 tasks (submitted at about 20:35 HST). The plan author's reading of the four rehearsal runs, on record before the data: the start strain relaxes, so G1 vs G2 tests whether the relaxed state is reproducible; a 2D hexagonal crystal is elastically isotropic, so the likely cause of the 25 % pin difference at 0.78 is pin 0's 12 vacancies, not the orientation. Prediction: at 0.72 the pins agree within errors, at 0.78 they differ. Tasks, Mac only: (1) a vacancy table for the registration (14 Stage 2 cells × 2 pins, at most 1 vacancy per compartment); (2) the P2 report, prepared now and run after the fetch; (3) nothing else. Report D57-2 after the fetch, with the table (2026-10-15 21:37 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Relayed by Chris** at about 21:35 HST (machine date).
+- **Report D57-1 accepted;** departures (a)–(g) approved.
+- **Push:** Chris pushed main, 8aaf5fef..726bc498.
+- **On KOA:**
+  - Block A good: the clone ~/harddisks_gen3_p2, the build at 8aaf5fef (00ALLINONE sha256 66e8d4bf…), the package c69804b0, build_inputs 50 of 50, BUILD RECORD OK.
+  - Block B good: the array job 15083717, 400 tasks, submitted at about 20:35 HST; the last tasks were running at 21:29.
+  - Blocks C–E follow tonight or tomorrow morning.
+- **The plan author's reading of the four rehearsal runs, on record before the data:**
+  1. The start strain relaxes in the hold, so G1 vs G2 tests whether the relaxed state is reproducible.
+  2. In linear elasticity a 2D hexagonal crystal is elastically isotropic, so the pin should not change the longitudinal modulus. At 0.78 the pin-0 arrangement (28 × 17) carries 12 vacancies per compartment against 1 for turned. That, not the orientation, is the likely cause of the 25 % difference.
+  - **Prediction:** at 0.72 (0–1 vacancies for both pins) pin 0 and turned agree within errors; at 0.78 they differ.
+- **Tasks now, Mac only:**
+  1. **A vacancy table for the registration.**
+     - For the 14 Stage 2 cells (N 900 and 1600; η 0.69, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80) and both pins: the arrangements the binary's lattice fit would choose with at most 1 vacancy per compartment.
+     - H on the 1/24 σ grid, within 25–36 σ (N 900) and 34–48 σ (N 1600); with L0, aspect, start strain e and gap.
+     - Where no such H exists for a cell and pin, the table says so.
+     - One table, one script under hspist3/cluster/gen3_stage2_261016/, no runs.
+  2. **The P2 report, prepared now and run after Chris's fetch (block E):**
+     - E1 with its error per (cell, G, pin, mass), and per cell over the masses;
+     - the tests: (i) at 0.72, c(pin 0) vs c(turned) per G, with z; (ii) the same at 0.78; (iii) G1 vs G2 per pin; (iv) the spread of the end strain over the 10 seeds per cell (reproducible or not); (v) Q, the stall count and the spectrum share per cell; (vi) ν_d/ν_pred per cell, for the run-length rule; (vii) sd/sd_E1 and the drift;
+     - figures: the traces and fits of one seed per cell; c vs α per cell; the end strain per seed;
+     - no interpretation beyond the tests: the plan author reads it.
+  3. **Nothing else:** no registration text, no KOA scripts.
+- **Report D57-2 after the fetch,** with item 1's table. It ends with "Written for: the plan author".
+
+**The message, verbatim** (relayed by Chris on 2026-10-15 at about 21:35 HST, machine date):
+
+```
+From the plan author (Cowork), relayed by Chris. Record as decision 57
+addendum 1.
+
+DECISION 57, ADDENDUM 1 (2026-10-15 ~21:30 HST)
+ Report D57-1 accepted; departures (a)-(g) approved. Main pushed
+ (8aaf5fef..726bc498). KOA: block A GOOD (clone ~/harddisks_gen3_p2,
+ build 8aaf5fef, 00ALLINONE sha256 66e8d4bf..., package c69804b0,
+ build_inputs 50 of 50, BUILD RECORD OK); block B GOOD: array job
+ 15083717, 400 tasks, submitted ~20:35 HST, the last tasks running at
+ 21:29. Blocks C-E follow tonight or tomorrow morning.
+ Plan-author reading of the four rehearsal runs, on record before the
+ data: (1) the start strain relaxes in the hold, so G1 vs G2 tests the
+ reproducibility of the relaxed state; (2) a 2D hexagonal crystal is
+ elastically isotropic in linear elasticity, so the pin should NOT
+ change the longitudinal modulus; at 0.78 the pin-0 arrangement
+ (28 x 17) carries 12 vacancies per compartment against 1 for turned,
+ and that, not the orientation, is the likely cause of the 25 %
+ difference. Prediction: at 0.72 (0-1 vacancies for both pins) pin 0
+ and turned agree within errors; at 0.78 they differ.
+ Tasks now, Mac only:
+ 1. Vacancy table for the registration: for the 14 Stage 2 cells
+    (N 900 and 1600; eta 0.69, 0.70, 0.72, 0.74, 0.76, 0.78, 0.80) and
+    both pins, list the arrangements the binary's lattice fit would
+    choose with at most 1 vacancy per compartment, with H on the
+    1/24-sigma grid within 25-36 sigma (N 900) and 34-48 sigma
+    (N 1600), the resulting L0, aspect, start strain e, and gap. If no
+    such H exists for a cell and pin, say so. One table, one script
+    under hspist3/cluster/gen3_stage2_261016/, no runs.
+ 2. Prepare the P2 report (after Chris's fetch, block E): per (cell,
+    G, pin, mass) E1 with error, per cell over masses; the explicit
+    tests: (i) at 0.72, c(pin 0) vs c(turned) per G with z; (ii) the
+    same at 0.78; (iii) G1 vs G2 per pin; (iv) the end-strain spread
+    over the 10 seeds per cell (reproducible or not); (v) Q, stall
+    count and spectrum share per cell; (vi) nu_d/nu_pred per cell for
+    the run-length rule; (vii) sd/sd_E1 and drift. Figures: traces and
+    fits for one seed per cell; c vs alpha per cell; end strain per
+    seed. No interpretation beyond the tests; the plan author reads it.
+ 3. Nothing else: no registration text, no KOA scripts.
+ Report D57-2 after the fetch with item 1's table included. End with
+ "Written for: the plan author".
+```
+
+**Commits.**
+- main only: this record.
