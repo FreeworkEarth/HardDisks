@@ -40,6 +40,18 @@ if [ "$(shasum -a 256 $REF | cut -c1-64)" = 84a6a12fa3f500fb88ec44e2f3b532b1e482
   ok "0a.1 regression: --start-rings=0 --pbranch-exp=0 with the 0a values reproduces the 0a final.txt (84a6a12f) except params and build"
 else bad "0a.1 regression: the 0a result is not reproduced (diff $T/reg_ref.txt $T/reg_new.txt)"; fi
 
+# ---- 0a.2 presets: --preset=mat is exactly its flags; an explicit flag overrides the preset in either order
+$BIN --seed=9300 --steps=60 --headless --preset=mat --out=$T/pre_mat >/dev/null
+$BIN --seed=9300 --steps=60 --headless --pbranch=1 --pbranch-exp=0 --delta=1.57 --ntry=48 --budget=9000 --out=$T/pre_flags >/dev/null
+$BIN --seed=9300 --steps=60 --headless --budget=4500 --preset=mat --out=$T/pre_over >/dev/null
+if cmp -s $T/pre_mat/final.txt $T/pre_flags/final.txt && grep -q '^budget 4500$' $T/pre_over/final.txt && grep -q '^preset mat$' $T/pre_mat/manifest.txt && \
+   ! $BIN --seed=1 --steps=1 --headless --preset=sheet --out=$T/pre_bad >/dev/null 2>&1 && [ ! -e $T/pre_bad ]; then
+  ok "0a.2 presets: --preset=mat equals its flags, an explicit --budget overrides it, an unknown preset is refused"
+else bad "0a.2 presets"; fi
+$BIN --seed=9300 --steps=60 --write-every=1 --headless --preset=mat --out=$T/inv_mat >/dev/null
+out=$($CHK verify $T/inv_mat/state_*.txt $T/inv_mat/final.txt); rc=$?
+if [ "$rc" -eq 0 ]; then ok "2+3 invariants and ledger, --preset=mat, seed 9300, every tick: $out"; else bad "2+3 --preset=mat: $out"; fi
+
 # ---- 2 and 3. invariants and ledger on every written state (every tick), and the tick-to-tick sequence
 $BIN --seed=9300 --steps=200 --write-every=1 --headless --out=$T/inv >/dev/null
 out=$($CHK verify $T/inv/state_*.txt $T/inv/final.txt); rc=$?

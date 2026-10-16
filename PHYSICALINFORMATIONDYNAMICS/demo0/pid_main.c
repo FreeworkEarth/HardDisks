@@ -36,6 +36,11 @@ static void usage(FILE* f){
         "  --exit-at-end          window: close when --steps is reached (tests)\n"
         "  --shot-at-end          window: write shot_<tick>.bmp into DIR when --steps is reached\n"
         "  --overwrite            allow a non-empty DIR\n"
+        "  --preset=NAME          a saved parameter set, applied first; explicit flags override it:\n"
+        "                           mat  the dense branching mat (Chris, 2026-10-15): --pbranch=1 --pbranch-exp=0 --delta=1.57\n"
+        "                                --ntry=48 --budget=9000, the rest as the defaults\n"
+        "                           0a1  the defaults (Demo 0a.1)\n"
+        "                           0a   Demo 0a: --start-rings=0 --pbranch-exp=0 --pbranch=0.08 --ntry=8 --budget=3000\n"
         "  --version, --help\n"
         "parameters (defaults in brackets): --W [200] --H [120] --budget [4500] --kappa [0.35] --tau [0.03] --rmin [1]\n"
         "  --pbranch [0.8] --delta [0.6] --ntry [24] --K [6] --R0 [3]\n"
@@ -44,6 +49,15 @@ static void usage(FILE* f){
         "  the 0a defaults: --start-rings=0 --pbranch-exp=0 --pbranch=0.08 --ntry=8 --budget=3000\n"
         "window keys: D disks, G graph, H hull (0c), C cue (0b), P patches (0b), [ ] disk transparency, Space pause/run,\n"
         "  N one tick, R reset to the same seed, S BMP into DIR, Esc quit\n");
+}
+
+/* ---------------------------------------------------------------- presets (0a.2): saved parameter sets */
+static int apply_preset(const char* name, Params* p){
+    params_default(p);
+    if (!strcmp(name, "0a1")) return 0;
+    if (!strcmp(name, "0a"))  { p->rings = 0; p->pbranch_exp = 0.0; p->pbranch = 0.08; p->ntry = 8; p->budget = 3000.0; return 0; }
+    if (!strcmp(name, "mat")) { p->pbranch = 1.0; p->pbranch_exp = 0.0; p->delta = 1.57; p->ntry = 48; p->budget = 9000.0; return 0; }
+    return -1;
 }
 
 /* ---------------------------------------------------------------- strict number parsing */
@@ -135,6 +149,7 @@ int run_finish(Run* r, int completed){
     fprintf(f, "build %s\n", pid_build_id());
     fprintf(f, "folder_commit %s   # last commit of PHYSICALINFORMATIONDYNAMICS/ when the binary was built\n", PID_FOLDER_COMMIT);
     fprintf(f, "src_sha256 %s   # sha256 of the concatenated sources in the Makefile's SRC_LIST order\n", PID_SRC_SHA256);
+    fprintf(f, "preset %s\n", r->preset ? r->preset : "none");
     fprintf(f, "mode %s\n", r->headless ? "headless" : "window");
     fprintf(f, "completed %d   # 1: final.txt written at tick = steps\n", completed);
     fprintf(f, "tick %ld\n", r->w.tick);
@@ -154,6 +169,12 @@ int main(int argc, char** argv){
     snprintf(r.rule, sizeof r.rule, "unbiased");
     r.write_every = 50; r.tpf = 1; r.tick_ms = 50; r.steps = -1; r.argc = argc; r.argv = argv;
     int have_seed = 0, overwrite = 0;
+    for (int i = 1; i < argc; ++i)                      /* the preset first, so that explicit flags override it */
+        if (!strncmp(argv[i], "--preset=", 9)) {
+            if (r.preset) { fprintf(stderr, "pid: --preset given twice\n"); return 2; }
+            r.preset = argv[i] + 9;
+            if (apply_preset(r.preset, &r.p)) { fprintf(stderr, "pid: unknown preset '%s' (mat, 0a1, 0a)\n", r.preset); return 2; }
+        }
     for (int i = 1; i < argc; ++i) {
         const char* a = argv[i];
         const char* eq = strchr(a, '=');
@@ -170,6 +191,7 @@ int main(int argc, char** argv){
         else if (!strcmp(key, "--rule"))        { NEEDV(); snprintf(r.rule, sizeof r.rule, "%s", v); }
         else if (!strcmp(key, "--steps"))       { NEEDV(); bad = num_l(v, &r.steps) || r.steps < 0; }
         else if (!strcmp(key, "--out"))         { NEEDV(); snprintf(r.out, sizeof r.out, "%s", v); bad = v[0] == '\0'; }
+        else if (!strcmp(key, "--preset"))      { NEEDV(); }  /* applied above */
         else if (!strcmp(key, "--headless"))    { NOV(); r.headless = 1; }
         else if (!strcmp(key, "--write-every")) { NEEDV(); bad = num_l(v, &r.write_every) || r.write_every < 0; }
         else if (!strcmp(key, "--font"))        { NEEDV(); r.font = v; }

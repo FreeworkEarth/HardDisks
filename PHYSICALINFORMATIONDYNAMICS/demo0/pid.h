@@ -129,6 +129,7 @@ typedef struct {
     long   steps, write_every;
     int    headless, exit_at_end, shot_at_end, tpf, tick_ms;
     const char* font;
+    const char* preset;          /* 0a.2: --preset=NAME, applied before the explicit flags */
     int    argc; char** argv;
     char (*files)[64]; int nfiles, cap_files;    /* state files written, in first-write order */
     int    final_written;

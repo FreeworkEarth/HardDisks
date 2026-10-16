@@ -1,0 +1,20 @@
+# pid_demo0 run manifest (brief sec. 4)
+argv ./bin/pid_demo0 --preset=mat --seed=9300 --steps=60 --tick-ms=0 --exit-at-end --shot-at-end --out=runs/demo0a2_mat_shot
+seed 9300
+rule unbiased
+steps 60
+write_every 50
+box 200 120
+budget 9000
+params kappa=0.34999999999999998 tau=0.029999999999999999 rmin=1 pbranch=1 delta=1.5700000000000001 ntry=48 K=6 R0=3 rings=1 pbranch_exp=0
+build 5a2f51e4-dirty -std=c11 -O2 -Wall -Wextra -ffp-contract=off
+folder_commit 5a2f51e4bc2850632b7b663686cbdc3cae3bf1b1   # last commit of PHYSICALINFORMATIONDYNAMICS/ when the binary was built
+src_sha256 2368ed374cd9a7a8d0c3d036c57c94b51d159f48bd5a5f28484df3e5ebf0db9e   # sha256 of the concatenated sources in the Makefile's SRC_LIST order
+preset mat
+mode window
+completed 1   # 1: final.txt written at tick = steps
+tick 60
+# sha256 of every state file (check inside the run folder: shasum -a 256 -c, after removing these comment lines)
+4d98c199bdf717acf2cef8e113209bdd5045931d6733247ddac8132344c91fad  state_000000.txt
+21485600f49eec78a31c27eb157ea2fa46c14ffc288f284d07fd7c95f5b9d891  state_000050.txt
+2f62b5062f53f810d696d1202eef1f3615ccdfbad19446968dd4c5578494859c  final.txt
