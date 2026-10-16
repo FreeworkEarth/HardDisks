@@ -32990,3 +32990,534 @@ When D57-2 is in: I read it against the prediction (0.72: pins agree; 0.78: they
 
 **Commits.**
 - main only: this record.
+
+### 4.7.139 Report D57-2 — decision 57 addenda 1 and 2: the P2 report from KOA's 400 runs, and the vacancy table; Mac only. The data are complete: 400 of 400 runs clean, 0 errors, 0 fit failures, 0 stalls. E1 per cell: η 0.72 G1 14.184 ± 0.011 (pin 0) and 14.189 ± 0.013 (turned), G2 13.512 ± 0.014 and 13.752 ± 0.013; η 0.78 G1 24.287 ± 0.038 and 19.698 ± 0.027, G2 23.889 ± 0.056 and 22.176 ± 0.011. Tests: (i) z −0.30 (G1), −12.81 (G2); (ii) z 97.81, 30.21; (iii) G1 against G2 z 38.17 and 23.91 at 0.72, 5.90 and −85.28 at 0.78; (iv) R ≤ 2 in 79 of 80. At η 0.72 the pin-0 starts have their lines along y at the hold's end in 100 of 100 compartments per cell. Time: 2.1–3.9 µs per event over six CPU models, 36.9 core-hours; executed events 0.73–0.85 of the prediction at 0.72, 0.93–1.01 at 0.78. The vacancy table: all 28 (cell, pin) cases have arrangements with at most 1 vacancy (2026-10-16 00:30 HST, machine date) [KOA DATA, MAC ANALYSIS]
+
+**Plain summary.**
+- **Recorded:** decision 57 addendum 2 (sec. 4.7.138), on main only.
+- **The data:** 400 of 400 runs from KOA, all clean; 0 reduction errors, 0 fit failures, 0 stalls.
+  - Every run's node and seed match its task log and task line (400 of 400).
+  - The Mac's refits of the shown runs equal KOA's fits to 1e-9.
+- **E1 per cell (c ± SE):**
+  - η 0.72: G1 14.184 ± 0.011 (pin 0) and 14.189 ± 0.013 (turned); G2 13.512 ± 0.014 and 13.752 ± 0.013.
+  - η 0.78: G1 24.287 ± 0.038 and 19.698 ± 0.027; G2 23.889 ± 0.056 and 22.176 ± 0.011.
+- **The tests:**
+  - (i) η 0.72, pin 0 against turned: z −0.30 (G1), −12.81 (G2); G2's two pins have different boxes.
+  - (ii) η 0.78: z 97.81 (G1), 30.21 (G2).
+  - (iii) G1 against G2: z 38.17 (pin 0) and 23.91 (turned) at 0.72; 5.90 and −85.28 at 0.78.
+  - (iv) The end strain's spread over the seeds against its thermal sd: R ≤ 2 in 79 of 80 entries. The one above, 4.32, is one compartment whose record averages e +2.06 %; the other 9 seeds of its mass end at −2.86 to −2.05 %.
+  - (v) 0 stalls; Q per mass 14.9–159.2.
+  - (vi) ν_d / ν_pred 1.033–1.274 per cell (medians).
+  - (vii) sd / sd_E1 0.95–1.02 (medians).
+- **The orientation:** at η 0.72 the pin-0 starts (lines along x) have their lines along y at the hold's end in 100 of 100 compartments, in both geometries; the first snapshot with lines along y comes 67–437 σ-time after the start. At η 0.78 every compartment keeps its start's direction.
+- **Time:**
+  - six CPU models, 2.1–3.9 µs per event (E5-2670 v3: 3.555, the model 3.533);
+  - 36.9 core-hours against the predicted 52.9; the longest run 9.9 min;
+  - executed events 0.73–0.85 (η 0.72) and 0.93–1.01 (η 0.78) of the package's prediction.
+- **The vacancy table:**
+  - 102 arrangements with at most 1 vacancy; all 28 (cell, pin) cases covered;
+  - 13 of 28 have at most 1 vacancy at the stage 1 heights;
+  - every cell has heights good for both pins.
+- **Choices, each with its reason (section 8):**
+  - the fetch brought the traces;
+  - stage 1's flag on E1 (no mass flagged);
+  - CC's R ≤ 2 rule;
+  - s 0 at α 5 for the trace figure.
+- **Next:** the plan author reads D57-2 against the prediction and writes the Stage 2 registration. No push is needed.
+
+## 1. Where it stands
+
+- **On KOA, P2 is complete (addendum 2):**
+  - the array 15083717: 400 tasks on six CPU models;
+  - the merge 15084913: p2_reduce 40 folders, 400 trajectories, 0 errors, 2542 s;
+  - the fetch: 156 MB in hspist3/experiments_gen3_stage2_koa_261016/P2 (merge record 2026-10-16 08:23:30 UTC). It is not tracked in git, as stage 1's fetch is not.
+- **On the Mac:**
+  - p2_report_mac.py (commit abf4788b, prepared under addendum 1) ran on the fetched tree; its outputs are in hspist3/experiments_gen3_p2_261016/report_261016/;
+  - p2_report_extra_mac.py made the addendum 2 tables, in report_261016_extra/;
+  - both folders and the second script are commit ba00033a. No run was made; nothing was typed on KOA or pushed.
+- **The data are complete:**
+  - 400 of 400 runs, all gen3 clean; 0 reduction errors, 0 fit failures, 0 stalls;
+  - every run's node equals its task log's, and every seed its task line's (400 of 400);
+  - the M4C line names the pin in 400 of 400;
+  - no mass loses a trajectory: all 40 (cell, mass) folders use 10 of 10.
+- **The refit check:** the trace figure refits 8 runs' ACFs on the Mac (Python 3.13.2) as p2_reduce.py fitted them on KOA (Python 3.12.14). ν_d and τ_r agree to 1e-9 relative.
+- **The label "pin 0" at η 0.72 names the start (section 2c):**
+  - both pin-0 cells at 0.72 start with the close-packed lines along x in 100 of 100 compartments;
+  - at the hold's end and at the end, their lines are along y in 100 of 100;
+  - the first snapshot with lines along y comes 67–437 σ-time after the start, in the hold;
+  - the record's ψ6 orientation is within 7.5° of 30° in all 400 compartments at 0.72;
+  - at η 0.78 every compartment keeps its start's direction.
+- **The tests at a glance (section 4):**
+  - (i) η 0.72: z −0.30 (G1), −12.81 (G2);
+  - (ii) η 0.78: z 97.81 (G1), 30.21 (G2);
+  - (iii) G1 against G2: z 38.17 (pin 0) and 23.91 (turned) at 0.72; 5.90 and −85.28 at 0.78;
+  - (iv) R ≤ 2 in 79 of the 80 (cell, mass, compartment) entries; the one above is 4.32 (one compartment; table D);
+  - (v) 0 stalls; Q per mass 14.9–159.2;
+  - (vi) ν_d / ν_pred 1.033–1.274 (cell medians);
+  - (vii) sd / sd_E1 0.95–1.02 (cell medians).
+- **The vacancy table (section 7):** all 28 (cell, pin) cases have at least one arrangement with at most 1 vacancy in the height range; 102 rows.
+
+## 2. Completeness, health and the state per cell
+
+### 2a. Completeness and health (report_261016/p2_report.md, section 0)
+
+| eta | G | pin | runs | gen3 clean | reduction errors | fit failures | stalls | the arrangement as run (vacancies) | M4C as pinned | largest abs(orientation - pin) [deg] | seconds per run: median (max) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.72 | G1 | 0 | 50 | 50 | 0 | 0 | 0 | para alt 29x16 (0) | 50 of 50 | 30.00 | 291 (447) |
+| 0.72 | G1 | turned | 50 | 50 | 0 | 0 | 0 | para alt 17x27 (1) | 50 of 50 | 0.08 | 287 (450) |
+| 0.72 | G2 | 0 | 50 | 50 | 0 | 0 | 0 | para alt 29x16 (0) | 50 of 50 | 30.00 | 288 (489) |
+| 0.72 | G2 | turned | 50 | 50 | 0 | 0 | 0 | para alt 17x27 (1) | 50 of 50 | 0.08 | 290 (444) |
+| 0.78 | G1 | 0 | 50 | 50 | 0 | 0 | 0 | para alt 28x17 (12) | 50 of 50 | 0.92 | 459 (595) |
+| 0.78 | G1 | turned | 50 | 50 | 0 | 0 | 0 | para alt 17x27 (1) | 50 of 50 | 0.33 | 320 (534) |
+| 0.78 | G2 | 0 | 50 | 50 | 0 | 0 | 0 | para alt 28x17 (12) | 50 of 50 | 0.41 | 389 (595) |
+| 0.78 | G2 | turned | 50 | 50 | 0 | 0 | 0 | para alt 17x27 (1) | 50 of 50 | 0.02 | 353 (519) |
+
+- The arrangement is the start's, from the run header.
+- The largest |orientation − pin| is over the record's ψ6 orientation (psi6_t). Its 30.00 at η 0.72, pin 0 is the change in 2c.
+
+### 2b. The state per cell (p2_report.md, section 0)
+
+Means over the runs and both compartments. Strain e in %: the start from the initial state, the hold's end and the end from the snapshots. ψ6 and the orientation over the record (psi6_t); Z over the hold's last quarter.
+
+| eta | G | pin | e of the start's lattice | e start | e at the hold's end | e at the end | psi6 (record) | orientation - pin [deg]: median | Z |
+|---|---|---|---|---|---|---|---|---|---|
+| 0.72 | G1 | 0 | 2.168 | 2.168 | -0.981 | -0.871 | 0.627 | 29.94 | 10.92 |
+| 0.72 | G1 | turned | -1.075 | -1.079 | -0.940 | -0.953 | 0.647 | -0.00 | 10.84 |
+| 0.72 | G2 | 0 | 0.115 | 0.115 | 0.659 | 0.580 | 0.638 | -29.88 | 10.90 |
+| 0.72 | G2 | turned | 0.088 | 0.085 | -0.056 | -0.081 | 0.656 | 0.00 | 10.79 |
+| 0.78 | G1 | 0 | 0.489 | 0.491 | -1.855 | -1.913 | 0.722 | 0.03 | 20.34 |
+| 0.78 | G1 | turned | -9.037 | -9.035 | 2.421 | 2.502 | 0.810 | -0.01 | 18.07 |
+| 0.78 | G2 | 0 | -0.091 | -0.092 | -2.230 | -2.254 | 0.702 | -0.02 | 20.51 |
+| 0.78 | G2 | turned | 0.053 | 0.052 | -0.296 | -0.343 | 0.894 | -0.00 | 16.69 |
+
+### 2c. The orientation per cell (report_261016_extra/p2_extra.md, table C)
+
+The close-packed line direction per compartment (x or y; p2_lattice.config_strain) in the initial state, the hold's last snapshot and the last snapshot, counted over the cell's 100 compartments (50 runs × 2). The record's ψ6 orientation (psi6_t, the circular mean mod 60) is counted within 7.5° of 0 (lines along x) or of 30 (along y). For a compartment whose direction changes: the first snapshot with the other direction (y when θ0 mod 60 lies within 15° of 30, as config_strain decides), its time from the start [σ-time], and its phase (the hold lasts 5000; the snapshots come every 61–117 σ-time, by η and mass).
+
+| eta | G | pin | start: x / y | the hold's end: x / y | the end: x / y | record orientation: near 0 / near 30 | compartments that change | the first snapshot with the other direction: t, median (range) | in the hold / in the record |
+|---|---|---|---|---|---|---|---|---|---|
+| 0.72 | G1 | 0 | 100 / 0 | 0 / 100 | 0 / 100 | 0 / 100 | 100 of 100 | 117 (67 to 337) | 100 / 0 |
+| 0.72 | G1 | turned | 0 / 100 | 0 / 100 | 0 / 100 | 0 / 100 | 0 of 100 | - | 0 / 0 |
+| 0.72 | G2 | 0 | 100 / 0 | 0 / 100 | 0 / 100 | 0 / 100 | 100 of 100 | 135 (67 to 437) | 100 / 0 |
+| 0.72 | G2 | turned | 0 / 100 | 0 / 100 | 0 / 100 | 0 / 100 | 0 of 100 | - | 0 / 0 |
+| 0.78 | G1 | 0 | 100 / 0 | 100 / 0 | 100 / 0 | 100 / 0 | 0 of 100 | - | 0 / 0 |
+| 0.78 | G1 | turned | 0 / 100 | 0 / 100 | 0 / 100 | 0 / 100 | 0 of 100 | - | 0 / 0 |
+| 0.78 | G2 | 0 | 100 / 0 | 100 / 0 | 100 / 0 | 100 / 0 | 0 of 100 | - | 0 / 0 |
+| 0.78 | G2 | turned | 0 / 100 | 0 / 100 | 0 / 100 | 0 / 100 | 0 of 100 | - | 0 / 0 |
+
+## 3. E1
+
+### 3a. Per (cell, G, pin, mass) (p2_report.md, section 1)
+
+Exactly as s1_verdict_261012.per_mass:
+- the used trajectories are gen3 clean and fit_ok; ν̄_d is their mean;
+- τ_r comes from the item-4a fit of their seed-averaged ACF;
+- ν_0 = sqrt(ν̄_d² + (1 / (2π τ_r))²), Q = π ν̄_d τ_r, c = ν_0 / x with x = K(α) / (2π (L0 − 1.025));
+- the SE is the delete-one jackknife's.
+- The flag (stage 1's rule): more than 2 of the 10 trajectories lost, and the mass leaves the cell's E1. No mass is flagged.
+
+| eta | G | pin | alpha | used / present | flag | nu_d-bar | tau_r | Q | c ± SE |
+|---|---|---|---|---|---|---|---|---|---|
+| 0.72 | G1 | 0 | 1 | 10 / 10 | - | 0.12697 | 45.8 | 18.3 | 14.227 ± 0.043 |
+| 0.72 | G1 | 0 | 2 | 10 / 10 | - | 0.09627 | 96.7 | 29.3 | 14.204 ± 0.037 |
+| 0.72 | G1 | 0 | 5 | 10 / 10 | - | 0.06379 | 197.0 | 39.5 | 14.203 ± 0.028 |
+| 0.72 | G1 | 0 | 10 | 10 / 10 | - | 0.04579 | 327.3 | 47.1 | 14.188 ± 0.034 |
+| 0.72 | G1 | 0 | 20 | 10 / 10 | - | 0.03261 | 462.7 | 47.4 | 14.171 ± 0.014 |
+| 0.72 | G1 | turned | 1 | 10 / 10 | - | 0.12629 | 67.6 | 26.8 | 14.149 ± 0.030 |
+| 0.72 | G1 | turned | 2 | 10 / 10 | - | 0.09645 | 112.9 | 34.2 | 14.229 ± 0.019 |
+| 0.72 | G1 | turned | 5 | 10 / 10 | - | 0.06377 | 231.3 | 46.3 | 14.199 ± 0.016 |
+| 0.72 | G1 | turned | 10 | 10 / 10 | - | 0.04576 | 437.7 | 62.9 | 14.178 ± 0.016 |
+| 0.72 | G1 | turned | 20 | 10 / 10 | - | 0.03257 | 485.0 | 49.6 | 14.154 ± 0.024 |
+| 0.72 | G2 | 0 | 1 | 10 / 10 | - | 0.11986 | 62.1 | 23.4 | 13.569 ± 0.053 |
+| 0.72 | G2 | 0 | 2 | 10 / 10 | - | 0.09109 | 95.6 | 27.3 | 13.580 ± 0.043 |
+| 0.72 | G2 | 0 | 5 | 10 / 10 | - | 0.06008 | 212.3 | 40.1 | 13.517 ± 0.018 |
+| 0.72 | G2 | 0 | 10 | 10 / 10 | - | 0.04310 | 393.2 | 53.2 | 13.492 ± 0.023 |
+| 0.72 | G2 | 0 | 20 | 10 / 10 | - | 0.03071 | 430.6 | 41.5 | 13.484 ± 0.029 |
+| 0.72 | G2 | turned | 1 | 10 / 10 | - | 0.12263 | 70.4 | 27.1 | 13.820 ± 0.034 |
+| 0.72 | G2 | turned | 2 | 10 / 10 | - | 0.09288 | 108.4 | 31.6 | 13.784 ± 0.024 |
+| 0.72 | G2 | turned | 5 | 10 / 10 | - | 0.06143 | 152.9 | 29.5 | 13.759 ± 0.037 |
+| 0.72 | G2 | turned | 10 | 10 / 10 | - | 0.04409 | 429.6 | 59.5 | 13.740 ± 0.016 |
+| 0.72 | G2 | turned | 20 | 10 / 10 | - | 0.03142 | 580.4 | 57.3 | 13.736 ± 0.014 |
+| 0.78 | G1 | 0 | 1 | 10 / 10 | - | 0.23676 | 22.8 | 17.0 | 24.354 ± 0.161 |
+| 0.78 | G1 | 0 | 2 | 10 / 10 | - | 0.17931 | 47.3 | 26.7 | 24.284 ± 0.063 |
+| 0.78 | G1 | 0 | 5 | 10 / 10 | - | 0.11958 | 58.0 | 21.8 | 24.446 ± 0.131 |
+| 0.78 | G1 | 0 | 10 | 10 / 10 | - | 0.08513 | 120.6 | 32.3 | 24.213 ± 0.065 |
+| 0.78 | G1 | 0 | 20 | 10 / 10 | - | 0.06107 | 169.7 | 32.6 | 24.362 ± 0.104 |
+| 0.78 | G1 | turned | 1 | 10 / 10 | - | 0.19089 | 42.4 | 25.4 | 19.631 ± 0.041 |
+| 0.78 | G1 | turned | 2 | 10 / 10 | - | 0.14596 | 83.5 | 38.3 | 19.767 ± 0.051 |
+| 0.78 | G1 | turned | 5 | 10 / 10 | - | 0.09659 | 104.3 | 31.6 | 19.743 ± 0.088 |
+| 0.78 | G1 | turned | 10 | 10 / 10 | - | 0.06938 | 186.0 | 40.5 | 19.733 ± 0.055 |
+| 0.78 | G1 | turned | 20 | 10 / 10 | - | 0.04935 | 453.2 | 70.3 | 19.688 ± 0.054 |
+| 0.78 | G2 | 0 | 1 | 10 / 10 | - | 0.23159 | 21.3 | 15.5 | 23.895 ± 0.107 |
+| 0.78 | G2 | 0 | 2 | 10 / 10 | - | 0.17889 | 26.5 | 14.9 | 24.309 ± 0.310 |
+| 0.78 | G2 | 0 | 5 | 10 / 10 | - | 0.11759 | 56.0 | 20.7 | 24.111 ± 0.120 |
+| 0.78 | G2 | 0 | 10 | 10 / 10 | - | 0.08322 | 88.8 | 23.2 | 23.743 ± 0.112 |
+| 0.78 | G2 | 0 | 20 | 10 / 10 | - | 0.05963 | 165.7 | 31.0 | 23.862 ± 0.055 |
+| 0.78 | G2 | turned | 1 | 10 / 10 | - | 0.20540 | 56.5 | 36.5 | 22.175 ± 0.036 |
+| 0.78 | G2 | turned | 2 | 10 / 10 | - | 0.15590 | 99.4 | 48.7 | 22.166 ± 0.048 |
+| 0.78 | G2 | turned | 5 | 10 / 10 | - | 0.10328 | 255.1 | 82.8 | 22.161 ± 0.024 |
+| 0.78 | G2 | turned | 10 | 10 / 10 | - | 0.07423 | 656.9 | 153.2 | 22.164 ± 0.024 |
+| 0.78 | G2 | turned | 20 | 10 / 10 | - | 0.05298 | 956.2 | 159.2 | 22.190 ± 0.016 |
+
+### 3b. Per cell over the masses (p2_report.md, section 2)
+
+s1_verdict_261012.e1: the inverse-variance mean of the 5 unflagged masses with an SE. The SE is scaled by sqrt(χ²/dof) when that exceeds 1. Low Q: a mass with Q < 5.
+
+| eta | G | pin | H [sigma] | L0 [sigma] | masses in E1 | E1: c ± SE | chi2 / dof | low Q |
+|---|---|---|---|---|---|---|---|---|
+| 0.72 | G1 | 0 | 30.0000 | 16.3625 | 5 | 14.184 ± 0.011 | 2.64 / 4 | no |
+| 0.72 | G1 | turned | 30.0000 | 16.3625 | 5 | 14.189 ± 0.013 | 9.40 / 4 | no |
+| 0.72 | G2 | 0 | 29.7083 | 16.5231 | 5 | 13.512 ± 0.014 | 5.38 / 4 | no |
+| 0.72 | G2 | turned | 29.8333 | 16.4539 | 5 | 13.752 ± 0.013 | 7.66 / 4 | no |
+| 0.78 | G1 | 0 | 30.0000 | 15.1038 | 5 | 24.287 ± 0.038 | 3.49 / 4 | no |
+| 0.78 | G1 | turned | 30.0000 | 15.1038 | 5 | 19.698 ± 0.027 | 5.21 / 4 | no |
+| 0.78 | G2 | 0 | 29.9167 | 15.1459 | 5 | 23.889 ± 0.056 | 7.21 / 4 | no |
+| 0.78 | G2 | turned | 28.6667 | 15.8063 | 5 | 22.176 ± 0.011 | 1.50 / 4 | no |
+
+- p2_tables_mac.py's own cell table, which has no flag, agrees to 1e-6 (the CSV's 8 digits).
+
+## 4. The tests (p2_report.md, section 3)
+
+z = the difference / sqrt(SE_a² + SE_b²), for the cells' E1 (3b) and per mass (3a).
+
+### (i) eta 0.72: pin 0 against turned, per G
+
+| eta | G | c(pin 0) | c(turned) | difference ± SE | z | z per mass (alpha 1, 2, 5, 10, 20) |
+|---|---|---|---|---|---|---|
+| 0.72 | G1 | 14.184 ± 0.011 | 14.189 ± 0.013 | -0.005 ± 0.017 | -0.30 | 1.52, -0.62, 0.11, 0.25, 0.60 |
+| 0.72 | G2 | 13.512 ± 0.014 | 13.752 ± 0.013 | -0.240 ± 0.019 | -12.81 | -3.98, -4.19, -5.89, -8.90, -7.69 |
+
+- G2's two pins have different boxes at η 0.72: H 29.7083, L0 16.5231 for pin 0; H 29.8333, L0 16.4539 for turned. G1's two pins share H 30, L0 16.3625.
+- At η 0.72 the record's line direction is y in all four cells (2c).
+
+### (ii) eta 0.78: pin 0 against turned, per G
+
+| eta | G | c(pin 0) | c(turned) | difference ± SE | z | z per mass (alpha 1, 2, 5, 10, 20) |
+|---|---|---|---|---|---|---|
+| 0.78 | G1 | 24.287 ± 0.038 | 19.698 ± 0.027 | 4.590 ± 0.047 | 97.81 | 28.46, 55.61, 29.80, 52.70, 39.93 |
+| 0.78 | G2 | 23.889 ± 0.056 | 22.176 ± 0.011 | 1.712 ± 0.057 | 30.21 | 15.27, 6.83, 15.95, 13.78, 29.41 |
+
+### (iii) G1 against G2, per eta and pin
+
+| eta | pin | c(G1) | c(G2) | difference ± SE | z | z per mass (alpha 1, 2, 5, 10, 20) |
+|---|---|---|---|---|---|---|
+| 0.72 | pin 0 | 14.184 ± 0.011 | 13.512 ± 0.014 | 0.672 ± 0.018 | 38.17 | 9.66, 11.08, 20.41, 17.03, 21.09 |
+| 0.72 | pin turned | 14.189 ± 0.013 | 13.752 ± 0.013 | 0.437 ± 0.018 | 23.91 | 7.34, 14.77, 10.88, 19.40, 15.03 |
+| 0.78 | pin 0 | 24.287 ± 0.038 | 23.889 ± 0.056 | 0.399 ± 0.068 | 5.90 | 2.38, -0.08, 1.88, 3.63, 4.25 |
+| 0.78 | pin turned | 19.698 ± 0.027 | 22.176 ± 0.011 | -2.479 ± 0.029 | -85.28 | -46.49, -34.35, -26.47, -40.31, -44.54 |
+
+### (iv) the end strain over the seeds
+
+The end strain is the last snapshot's, per compartment (p2_lattice.config_strain).
+- sd: over the 10 seeds of one mass, or over the cell's 50 runs.
+- The thermal sd: the median, over the same runs, of each run's own sd of e over its record's snapshots.
+- R = sd / the thermal sd. The rule (CC's, section 8 c): R ≤ 2, the seeds end in one state within its thermal fluctuation (reproducible); R > 2, not.
+- Strains in %.
+
+| eta | G | pin | compartment | end e: mean over the cell's runs (range) | sd over the 10 seeds at alpha 1, 2, 5, 10, 20 | thermal sd (median) | R at alpha 1, 2, 5, 10, 20 | R over the cell's runs | R <= 2 |
+|---|---|---|---|---|---|---|---|---|---|
+| 0.72 | G1 | 0 | left | -0.851 (-1.70 to 0.29) | 0.627, 0.458, 0.468, 0.662, 0.399 | 0.588 | 1.13, 0.71, 0.77, 1.14, 0.65 | 0.91 | 5 of 5 masses |
+| 0.72 | G1 | 0 | right | -0.892 (-1.93 to 0.35) | 0.651, 0.417, 0.690, 0.312, 0.581 | 0.603 | 1.05, 0.66, 1.16, 0.58, 1.01 | 0.89 | 5 of 5 masses |
+| 0.72 | G1 | turned | left | -1.023 (-2.59 to 0.52) | 0.537, 0.632, 0.482, 0.799, 0.445 | 0.584 | 0.93, 1.02, 0.80, 1.48, 0.74 | 1.01 | 5 of 5 masses |
+| 0.72 | G1 | turned | right | -0.883 (-1.94 to 0.71) | 0.602, 0.523, 0.485, 0.435, 0.558 | 0.575 | 1.01, 0.87, 0.85, 0.81, 0.96 | 0.89 | 5 of 5 masses |
+| 0.72 | G2 | 0 | left | 0.664 (-0.81 to 1.96) | 0.843, 0.655, 0.295, 0.739, 0.425 | 0.565 | 1.53, 1.10, 0.56, 1.29, 0.73 | 1.12 | 5 of 5 masses |
+| 0.72 | G2 | 0 | right | 0.497 (-0.74 to 2.14) | 0.742, 0.523, 0.357, 0.685, 0.441 | 0.561 | 1.33, 1.00, 0.64, 1.17, 0.77 | 1.12 | 5 of 5 masses |
+| 0.72 | G2 | turned | left | -0.156 (-1.54 to 0.93) | 0.571, 0.623, 0.439, 0.509, 0.635 | 0.562 | 0.96, 1.07, 0.84, 0.98, 1.17 | 0.98 | 5 of 5 masses |
+| 0.72 | G2 | turned | right | -0.006 (-1.12 to 1.40) | 0.573, 0.414, 0.593, 0.570, 0.524 | 0.554 | 1.08, 0.78, 1.04, 1.06, 0.91 | 1.00 | 5 of 5 masses |
+| 0.78 | G1 | 0 | left | -1.916 (-2.44 to -1.40) | 0.244, 0.342, 0.224, 0.188, 0.253 | 0.305 | 0.86, 1.12, 0.79, 0.61, 0.81 | 0.82 | 5 of 5 masses |
+| 0.78 | G1 | 0 | right | -1.911 (-2.62 to -0.93) | 0.360, 0.333, 0.394, 0.227, 0.213 | 0.299 | 1.31, 1.15, 1.31, 0.72, 0.70 | 1.12 | 5 of 5 masses |
+| 0.78 | G1 | turned | left | 2.533 (1.60 to 3.15) | 0.147, 0.357, 0.384, 0.338, 0.224 | 0.297 | 0.50, 1.19, 1.27, 1.11, 0.77 | 1.10 | 5 of 5 masses |
+| 0.78 | G1 | turned | right | 2.472 (1.51 to 3.56) | 0.324, 0.311, 0.563, 0.500, 0.341 | 0.307 | 1.06, 1.08, 1.75, 1.50, 1.18 | 1.43 | 5 of 5 masses |
+| 0.78 | G2 | 0 | left | -2.254 (-2.86 to 1.94) | 0.329, 1.419, 0.309, 0.272, 0.242 | 0.328 | 1.08, 4.32, 0.94, 0.79, 0.74 | 2.05 | 4 of 5 masses |
+| 0.78 | G2 | 0 | right | -2.253 (-3.08 to -1.37) | 0.131, 0.447, 0.421, 0.391, 0.387 | 0.328 | 0.43, 1.28, 1.42, 1.10, 1.19 | 1.12 | 5 of 5 masses |
+| 0.78 | G2 | turned | left | -0.319 (-0.79 to 0.21) | 0.282, 0.199, 0.192, 0.266, 0.287 | 0.236 | 1.22, 0.88, 0.84, 1.09, 1.18 | 1.06 | 5 of 5 masses |
+| 0.78 | G2 | turned | right | -0.367 (-0.85 to 0.28) | 0.101, 0.260, 0.271, 0.244, 0.203 | 0.238 | 0.41, 1.10, 1.11, 1.03, 0.84 | 0.91 | 5 of 5 masses |
+
+- record snapshots per run (median over each cell's 50): eta0.720000_G1_pin0 41, eta0.720000_G1_pinturned 41, eta0.720000_G2_pin0 41, eta0.720000_G2_pinturned 41, eta0.780000_G1_pin0 30, eta0.780000_G1_pinturned 30, eta0.780000_G2_pin0 31, eta0.780000_G2_pinturned 32
+
+**The entry with R > 2** (p2_extra.md, table D): the run farthest from the median end strain of its 10, its end strain, its mean over the record's snapshots, its strain at the hold's end, and the end strains of the other 9 (in %).
+
+| cell | alpha | compartment | R | run (seed) | end e | record mean e | e at the hold's end | the other 9: end e |
+|---|---|---|---|---|---|---|---|---|
+| eta0.780000_G2_pin0 | 2 | left | 4.32 | 9 (3661301716) | 1.936 | 2.056 | 2.301 | -2.864 to -2.049 |
+
+### (v) Q, the stalls and the spectrum share per cell
+
+Q per mass is the seed-averaged fit's (E1's); Q per trajectory is its own fit's (p2_reduce.py). A stall is a fit that ends at its initial guess (A and B within 1e-3 of 0.3 and 0.7). The spectrum share is the periodogram's power within 0.8–1.2 ν_d.
+
+| eta | G | pin | Q per mass, the seed-averaged fit (alpha 1, 2, 5, 10, 20) | Q per trajectory, its own fit: median (range) | stalls / runs | fit failures | spectrum share: median (smallest) |
+|---|---|---|---|---|---|---|---|
+| 0.72 | G1 | 0 | 18.3, 29.3, 39.5, 47.1, 47.4 | 37.4 (12.0 to 145.7) | 0 / 50 | 0 | 92.6 % (75.0 %) |
+| 0.72 | G1 | turned | 26.8, 34.2, 46.3, 62.9, 49.6 | 43.3 (15.9 to 144.4) | 0 / 50 | 0 | 92.8 % (59.4 %) |
+| 0.72 | G2 | 0 | 23.4, 27.3, 40.1, 53.2, 41.5 | 39.6 (17.8 to 101.5) | 0 / 50 | 0 | 91.2 % (66.0 %) |
+| 0.72 | G2 | turned | 27.1, 31.6, 29.5, 59.5, 57.3 | 39.9 (14.3 to 137.7) | 0 / 50 | 0 | 92.1 % (47.1 %) |
+| 0.78 | G1 | 0 | 17.0, 26.7, 21.8, 32.3, 32.6 | 34.4 (12.0 to 87.0) | 0 / 50 | 0 | 85.8 % (55.1 %) |
+| 0.78 | G1 | turned | 25.4, 38.3, 31.6, 40.5, 70.3 | 49.0 (17.3 to 214.5) | 0 / 50 | 0 | 94.1 % (72.4 %) |
+| 0.78 | G2 | 0 | 15.5, 14.9, 20.7, 23.2, 31.0 | 33.6 (12.1 to 132.1) | 0 / 50 | 0 | 83.6 % (50.1 %) |
+| 0.78 | G2 | turned | 36.5, 48.7, 82.8, 153.2, 159.2 | 77.7 (22.7 to 423.0) | 0 / 50 | 0 | 96.2 % (76.6 %) |
+
+### (vi) ν_d / ν_pred per cell (the run-length rule)
+
+ν_d is the registered item-4a estimator (nud_runs.csv); ν_pred is the binary's own (Henderson). 200 ν_d / ν_pred is the number of damped periods in a record of 200 predicted periods.
+
+| eta | G | pin | nu_d / nu_pred: median (range) over the runs | median per mass (alpha 1, 2, 5, 10, 20) | damped periods in the record, 200 nu_d / nu_pred: median (range) |
+|---|---|---|---|---|---|
+| 0.72 | G1 | 0 | 1.089 (1.070 to 1.112) | 1.087, 1.090, 1.088, 1.090, 1.089 | 218 (214 to 222) |
+| 0.72 | G1 | turned | 1.089 (1.074 to 1.101) | 1.086, 1.093, 1.091, 1.088, 1.087 | 218 (215 to 220) |
+| 0.72 | G2 | 0 | 1.038 (1.015 to 1.062) | 1.045, 1.042, 1.038, 1.036, 1.032 | 208 (203 to 212) |
+| 0.72 | G2 | turned | 1.057 (1.044 to 1.073) | 1.059, 1.058, 1.057, 1.056, 1.055 | 211 (209 to 215) |
+| 0.78 | G1 | 0 | 1.274 (1.238 to 1.312) | 1.268, 1.270, 1.281, 1.266, 1.278 | 255 (248 to 262) |
+| 0.78 | G1 | turned | 1.033 (1.011 to 1.062) | 1.026, 1.037, 1.031, 1.035, 1.033 | 207 (202 to 212) |
+| 0.78 | G2 | 0 | 1.251 (1.212 to 1.398) | 1.246, 1.269, 1.260, 1.241, 1.245 | 250 (242 to 280) |
+| 0.78 | G2 | turned | 1.160 (1.143 to 1.172) | 1.160, 1.162, 1.159, 1.161, 1.161 | 232 (229 to 234) |
+
+### (vii) sd / sd_E1 and the drift per cell
+
+sd is the trace's sd over the record; sd_E1 = sqrt(L_eff / (2 H ρ c²)), with c the (cell, mass) E1. The drift is the least-squares slope of the trace, per 1000 σ-time [σ].
+
+| eta | G | pin | sd / sd_E1: median (range) | drift per 1000: median (range) |
+|---|---|---|---|---|
+| 0.72 | G1 | 0 | 0.97 (0.69 to 1.16) | 0.0004 (-0.0267 to 0.0196) |
+| 0.72 | G1 | turned | 0.97 (0.66 to 1.33) | 0.0003 (-0.0430 to 0.0233) |
+| 0.72 | G2 | 0 | 0.99 (0.67 to 1.24) | -0.0004 (-0.0360 to 0.0289) |
+| 0.72 | G2 | turned | 0.99 (0.72 to 1.33) | -0.0005 (-0.0284 to 0.0675) |
+| 0.78 | G1 | 0 | 0.98 (0.79 to 1.28) | 0.0009 (-0.0407 to 0.0264) |
+| 0.78 | G1 | turned | 0.97 (0.61 to 1.28) | 0.0003 (-0.0212 to 0.0296) |
+| 0.78 | G2 | 0 | 1.02 (0.74 to 1.27) | -0.0005 (-0.0344 to 0.0321) |
+| 0.78 | G2 | turned | 0.95 (0.70 to 1.42) | -0.0005 (-0.0231 to 0.0175) |
+
+## 5. The time per CPU model and the executed events against the prediction (addendum 2; p2_extra.md, tables A and B)
+
+- runs: 400; task logs with a CPU line: 400 of 400; runs whose node in run.log equals their task log's: 400; runs whose seed equals their task line's: 400
+
+### 5a. The time per CPU model
+
+The CPU model of each run comes from its task log ("chunk j on <node> (<CPU model>)"; chunk j = task line j).
+- Minutes per run: the worker's clock from the binary's start to the run's record (the binary and its file moves), from the cell's run.log.
+- Microseconds per executed event: those seconds over the run's executed events.
+- The D56-1 timing model: 3.533 on E5-2670 v3, 4.242 on E5-4640 v2. The other four models were outside it.
+
+| CPU model | runs | minutes per run: median (range) | minutes at alpha 20: median (largest) | microseconds per event: median (range) | median against E5-2670 v3's |
+|---|---|---|---|---|---|
+| EPYC 9654 | 59 | 4.35 (2.90 to 6.38) | 5.69 (6.38) | 2.139 (1.916 to 2.600) | 0.602 |
+| Gold 6342 | 41 | 5.10 (3.03 to 6.92) | 5.18 (6.92) | 2.209 (2.054 to 2.535) | 0.621 |
+| EPYC 7543P | 32 | 5.04 (3.23 to 6.15) | 5.33 (5.40) | 2.284 (2.119 to 2.718) | 0.642 |
+| Gold 6248 | 133 | 5.28 (3.23 to 8.00) | 7.05 (8.00) | 2.764 (2.157 to 3.113) | 0.777 |
+| E5-2670 v3 | 125 | 6.25 (4.43 to 9.92) | 8.63 (9.92) | 3.555 (2.979 to 3.833) | 1.000 |
+| E5-4640 v2 | 10 | 8.12 (5.17 to 8.93) | - (-) | 3.935 (3.493 to 4.607) | 1.107 |
+
+- core-hours used (the runs' seconds): 36.85; the package's prediction 52.9 on E5-2670 v3, 63.5 on E5-4640 v2; the longest run 9.92 min (E5-2670 v3, eta0.780000_G1_pin0, alpha 20) against the array's limit of 25 min
+
+### 5b. The executed events against the package's prediction, per cell
+
+The prediction is gen_p2_koa_261016.plan()'s: r = 1.2004 (Z_upper − 1) + 0.0112 events per disk and σ-time, with Z_upper = Liu's solid branch × 1.268; times N (T_eq + T_rec); times the rehearsal's factor per pin (1.171 for pin 0, 1.002 for turned). Z measured: the hold's last quarter, the mean over the runs.
+
+| eta | G | pin | Z_upper (model) | Z measured | executed / predicted: median (range) | median per mass (alpha 1, 2, 5, 10, 20) |
+|---|---|---|---|---|---|---|
+| 0.72 | G1 | 0 | 12.72 | 10.92 | 0.734 (0.725 to 0.738) | 0.734, 0.735, 0.732, 0.731, 0.734 |
+| 0.72 | G1 | turned | 12.72 | 10.84 | 0.848 (0.846 to 0.853) | 0.848, 0.847, 0.848, 0.848, 0.848 |
+| 0.72 | G2 | 0 | 12.72 | 10.90 | 0.731 (0.721 to 0.737) | 0.732, 0.733, 0.733, 0.732, 0.728 |
+| 0.72 | G2 | turned | 12.72 | 10.79 | 0.844 (0.842 to 0.848) | 0.844, 0.844, 0.843, 0.843, 0.844 |
+| 0.78 | G1 | 0 | 18.13 | 20.34 | 0.981 (0.956 to 0.999) | 0.982, 0.983, 0.983, 0.976, 0.984 |
+| 0.78 | G1 | turned | 18.13 | 18.07 | 1.006 (0.986 to 1.018) | 1.011, 1.004, 1.006, 1.004, 1.003 |
+| 0.78 | G2 | 0 | 18.13 | 20.51 | 0.988 (0.970 to 0.998) | 0.986, 0.991, 0.990, 0.987, 0.988 |
+| 0.78 | G2 | turned | 18.13 | 16.69 | 0.927 (0.924 to 0.933) | 0.928, 0.927, 0.925, 0.927, 0.927 |
+
+## 6. The figures (report_261016/; Chris attaches them)
+
+- **fig_p2_traces_fits_eta0.72.png, fig_p2_traces_fits_eta0.78.png:** one row per cell, s = 0 at α 5. In each row:
+  - the whole record (200 predicted periods) with its running mean over one predicted period;
+  - the first 10 predicted periods;
+  - the ACF with its item-4a fit, refitted as on KOA. The panel titles give ν_d, τ_r, Q, A, τ_T, B, the spectrum share and the refit's difference from KOA's fit.
+- **fig_p2_c_vs_alpha.png:** c per mass with its SE against α, one panel per η. Colour: the pin; filled circles and solid lines: G1; open squares and dashed lines: G2. The cells' E1 are the horizontal lines, with their SE bands.
+- **fig_p2_end_strain.png:** the end strain per seed, one panel per cell. Filled: the left compartment, open: the right; colour: α. Grey: the cell's mean end strain ± the thermal sd. Dashed: the start's lattice strain (given in the title where it is off the scale).
+
+## 7. The vacancy table for the registration (addendum 1 item 1; cluster/gen3_stage2_261016/s2_vacancy_table.py, commit a1f9bf18; no runs)
+
+- **The rule:** per cell and pin, every height H = k/24 σ within 25–36 σ (N 900) and 34–48 σ (N 1600), with N and η kept and L0 = Nπ / (8Hη).
+  - The arrangement is the one the binary's lattice fit chooses (the replica, checked against the binary in 42 of 42 starts, Report D56-1 (b)).
+  - It is listed when it has at most 1 vacancy per compartment.
+- **The columns:** from "H [sigma] (k)" on, each row is at the height with the smallest |e| among the heights listed (then the one nearest the stage 1 height).
+  - Aspect: W/H with W = L0 − 0.025 σ, the compartment's width.
+  - e = h / ((√3/2) d) − 1.
+  - Gap: the smallest surface gap of the lattice.
+- **Coverage:** every (cell, pin) has at least one such arrangement; there is no "none" row.
+
+| N | eta | pin | arrangement (left = right) | vacancies | the heights at which the fit chooses it: H [sigma] (k px) | e over these heights | H [sigma] (k) | L0 | aspect W/H | e | gap [sigma] |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 900 | 0.69 | 0 | para alt 31x15 0 | 0 | 27.292–28.708 (655–689) | -8.161 to +2.193 % | 28.416666666666668 (682) | 18.025203 | 0.6334 | +0.042 % | 0.1250 |
+| 900 | 0.69 | 0 | para equ 30x15 0 | 0 | 28.750–29.625 (690–711) | -4.329 to +1.918 % | 29.375 (705) | 17.437147 | 0.5928 | +0.137 % | 0.1234 |
+| 900 | 0.69 | 0 | para alt 29x16 0 | 0 | 29.667–31.083 (712–746) | -4.598 to +5.220 % | 30.333333333333332 (728) | 16.886248 | 0.5559 | +0.016 % | 0.1241 |
+| 900 | 0.69 | 0 | para equ 25x18 0 | 0 | 34.208–35.750 (821–858) | -5.320 to +3.903 % | 35.083333333333336 (842) | 14.599987 | 0.4154 | -0.064 % | 0.1207 |
+| 900 | 0.69 | turned | para alt 20x23 turned | 0 | 25.542–27.083 (613–650) | -8.481 to +3.534 % | 25.958333333333332 (623) | 19.732245 | 0.7592 | +0.042 % | 0.1286 |
+| 900 | 0.69 | turned | para equ 18x25 turned | 0 | 28.250–29.917 (678–718) | -7.646 to +4.222 % | 28.791666666666668 (691) | 17.790432 | 0.6170 | +0.081 % | 0.1291 |
+| 900 | 0.69 | turned | para alt 17x27 turned | 1 | 29.958–32.000 (719–768) | -9.642 to +3.827 % | 30.5 (732) | 16.793974 | 0.5498 | -0.083 % | 0.1290 |
+| 900 | 0.69 | turned | para equ 15x30 turned | 0 | 33.708–36.000 (809–864) | -8.678 to +4.967 % | 34.458333333333336 (827) | 14.864799 | 0.4307 | +0.089 % | 0.1298 |
+| 900 | 0.70 | 0 | para alt 31x15 0 | 0 | 27.083–28.500 (650–684) | -8.251 to +2.175 % | 28.208333333333332 (677) | 17.898924 | 0.6336 | +0.009 % | 0.1171 |
+| 900 | 0.70 | 0 | para equ 30x15 0 | 0 | 28.542–29.417 (685–706) | -4.344 to +1.948 % | 29.125 (699) | 17.335582 | 0.5944 | -0.146 % | 0.1157 |
+| 900 | 0.70 | 0 | para alt 29x16 0 | 0 | 29.458–30.833 (707–740) | -4.567 to +5.029 % | 30.125 (723) | 16.760127 | 0.5555 | +0.080 % | 0.1157 |
+| 900 | 0.70 | 0 | para equ 25x18 0 | 0 | 33.958–35.500 (815–852) | -5.347 to +3.942 % | 34.833333333333336 (836) | 14.494703 | 0.4154 | -0.053 % | 0.1126 |
+| 900 | 0.70 | turned | para alt 20x23 turned | 0 | 25.375–26.875 (609–645) | -8.381 to +3.391 % | 25.791666666666668 (619) | 19.576045 | 0.7580 | -0.118 % | 0.1204 |
+| 900 | 0.70 | turned | para equ 18x25 turned | 0 | 28.042–29.708 (673–713) | -7.687 to +4.267 % | 28.583333333333332 (686) | 17.664099 | 0.6171 | +0.094 % | 0.1209 |
+| 900 | 0.70 | turned | para alt 17x27 turned | 1 | 29.750–31.750 (714–762) | -9.520 to +3.778 % | 30.25 (726) | 16.690870 | 0.5509 | +0.137 % | 0.1204 |
+| 900 | 0.70 | turned | para equ 15x30 turned | 0 | 33.458–36.000 (803–864) | -10.045 to +5.023 % | 34.208333333333336 (821) | 14.759527 | 0.4307 | +0.106 % | 0.1216 |
+| 900 | 0.72 | 0 | para alt 31x15 0 | 0 | 26.708–28.083 (641–674) | -8.222 to +2.041 % | 27.791666666666668 (667) | 17.662627 | 0.6346 | -0.157 % | 0.1011 |
+| 900 | 0.72 | 0 | para equ 30x15 0 | 0 | 28.125–29.000 (675–696) | -4.467 to +1.912 % | 28.75 (690) | 17.073873 | 0.5930 | +0.093 % | 0.0999 |
+| 900 | 0.72 | 0 | para alt 29x16 0 | 0 | 29.042–30.417 (697–730) | -4.597 to +5.136 % | 29.708333333333332 (713) | 16.523103 | 0.5553 | +0.115 % | 0.0999 |
+| 900 | 0.72 | 0 | para equ 25x18 0 | 0 | 33.500–35.000 (804–840) | -5.244 to +3.923 % | 34.375 (825) | 14.279967 | 0.4147 | +0.125 % | 0.0965 |
+| 900 | 0.72 | turned | para alt 20x23 turned | 0 | 25.042–26.500 (601–636) | -8.389 to +3.201 % | 25.416666666666668 (610) | 19.313070 | 0.7589 | -0.002 % | 0.1051 |
+| 900 | 0.72 | turned | para equ 18x25 turned | 0 | 27.667–29.292 (664–703) | -7.681 to +4.126 % | 28.208333333333332 (677) | 17.401732 | 0.6160 | -0.094 % | 0.1055 |
+| 900 | 0.72 | turned | para alt 17x27 turned | 1 | 29.333–31.292 (704–751) | -9.436 to +3.780 % | 29.833333333333332 (716) | 16.453872 | 0.5507 | +0.088 % | 0.1049 |
+| 900 | 0.72 | turned | para equ 15x30 turned | 0 | 33.000–35.583 (792–854) | -10.506 to +4.954 % | 33.75 (810) | 14.544410 | 0.4302 | -0.025 % | 0.1064 |
+| 900 | 0.74 | 0 | para alt 31x15 0 | 0 | 26.333–27.708 (632–665) | -8.306 to +2.097 % | 27.416666666666668 (658) | 17.420316 | 0.6345 | -0.131 % | 0.0862 |
+| 900 | 0.74 | 0 | para equ 30x15 0 | 0 | 27.750–28.625 (666–687) | -4.409 to +2.059 % | 28.333333333333332 (680) | 16.856717 | 0.5941 | -0.094 % | 0.0852 |
+| 900 | 0.74 | 0 | para alt 29x16 0 | 0 | 28.667–30.000 (688–720) | -4.452 to +5.118 % | 29.291666666666668 (703) | 16.305217 | 0.5558 | +0.029 % | 0.0853 |
+| 900 | 0.74 | 0 | para equ 25x18 0 | 0 | 33.042–34.542 (793–829) | -5.257 to +4.037 % | 33.875 (813) | 14.099099 | 0.4155 | -0.072 % | 0.0821 |
+| 900 | 0.74 | turned | para alt 20x23 turned | 0 | 25.000–26.167 (600–628) | -8.591 to +0.598 % | 25.083333333333332 (602) | 19.040810 | 0.7581 | -0.109 % | 0.0897 |
+| 900 | 0.74 | turned | para equ 18x25 turned | 0 | 27.292–28.875 (655–693) | -7.562 to +4.112 % | 27.791666666666668 (667) | 17.185259 | 0.6175 | +0.155 % | 0.0899 |
+| 900 | 0.74 | turned | para alt 17x27 turned | 1 | 28.917–30.875 (694–741) | -9.494 to +3.913 % | 29.458333333333332 (707) | 16.212967 | 0.5495 | -0.136 % | 0.0900 |
+| 900 | 0.74 | turned | para equ 15x30 turned | 0 | 32.542–35.083 (781–842) | -10.424 to +5.016 % | 33.291666666666664 (799) | 14.346142 | 0.4302 | -0.033 % | 0.0913 |
+| 900 | 0.76 | 0 | para alt 31x15 0 | 0 | 26.000–27.333 (624–656) | -8.188 to +2.037 % | 27.083333333333332 (650) | 17.170648 | 0.6331 | +0.103 % | 0.0716 |
+| 900 | 0.76 | 0 | para equ 30x15 0 | 0 | 27.375–28.250 (657–678) | -4.462 to +2.093 % | 27.958333333333332 (671) | 16.633266 | 0.5940 | -0.090 % | 0.0708 |
+| 900 | 0.76 | 0 | para alt 29x16 0 | 0 | 28.292–29.625 (679–711) | -4.417 to +5.285 % | 28.916666666666668 (694) | 16.082019 | 0.5553 | +0.125 % | 0.0705 |
+| 900 | 0.76 | 0 | para equ 25x18 0 | 0 | 32.625–34.083 (783–818) | -5.124 to +4.035 % | 33.458333333333336 (803) | 13.899030 | 0.4147 | +0.131 % | 0.0672 |
+| 900 | 0.76 | turned | para alt 20x23 turned | 0 | 25.000–25.792 (600–619) | -8.381 to -2.187 % | 25 (600) | 18.601535 | 0.7431 | -2.187 % | 0.0699 |
+| 900 | 0.76 | turned | para equ 18x25 turned | 0 | 26.917–28.500 (646–684) | -7.615 to +4.222 % | 27.458333333333332 (659) | 16.936148 | 0.6159 | -0.116 % | 0.0759 |
+| 900 | 0.76 | turned | para alt 17x27 turned | 1 | 28.542–30.458 (685–731) | -9.448 to +3.848 % | 29.041666666666668 (697) | 16.012800 | 0.5505 | +0.054 % | 0.0756 |
+| 900 | 0.76 | turned | para equ 15x30 turned | 0 | 32.125–34.625 (771–831) | -10.461 to +4.912 % | 32.833333333333336 (788) | 14.163606 | 0.4306 | +0.078 % | 0.0765 |
+| 900 | 0.78 | 0 | para alt 31x15 0 | 0 | 25.667–27.000 (616–648) | -8.170 to +2.192 % | 26.708333333333332 (641) | 16.965279 | 0.6343 | -0.096 % | 0.0581 |
+| 900 | 0.78 | 0 | para equ 30x15 0 | 0 | 27.042–27.875 (649–669) | -4.311 to +2.015 % | 27.625 (663) | 16.402329 | 0.5928 | +0.121 % | 0.0566 |
+| 900 | 0.78 | 0 | para alt 29x16 0 | 0 | 27.917–29.208 (670–701) | -4.487 to +5.030 % | 28.541666666666668 (685) | 15.875538 | 0.5553 | +0.113 % | 0.0567 |
+| 900 | 0.78 | 0 | para equ 25x18 0 | 0 | 32.167–33.625 (772–807) | -5.357 to +3.919 % | 33 (792) | 13.730737 | 0.4153 | -0.035 % | 0.0540 |
+| 900 | 0.78 | turned | para alt 20x23 turned | 0 | 25.000–25.458 (600–611) | -8.379 to -4.819 % | 25 (600) | 18.124573 | 0.7240 | -4.819 % | 0.0496 |
+| 900 | 0.78 | turned | para equ 18x25 turned | 0 | 26.583–28.125 (638–675) | -7.567 to +4.103 % | 27.083333333333332 (650) | 16.730375 | 0.6168 | +0.043 % | 0.0621 |
+| 900 | 0.78 | turned | para alt 17x27 turned | 1 | 28.167–30.083 (676–722) | -9.564 to +3.899 % | 28.666666666666668 (688) | 15.806314 | 0.5505 | +0.053 % | 0.0617 |
+| 900 | 0.78 | turned | para equ 15x30 turned | 0 | 31.708–34.167 (761–820) | -10.400 to +4.925 % | 32.416666666666664 (778) | 13.977820 | 0.4304 | +0.029 % | 0.0628 |
+| 900 | 0.80 | 0 | para alt 31x15 0 | 0 | 25.333–26.667 (608–640) | -8.249 to +2.244 % | 26.375 (633) | 16.750198 | 0.6341 | -0.073 % | 0.0448 |
+| 900 | 0.80 | 0 | para equ 30x15 0 | 0 | 26.708–27.542 (641–661) | -4.257 to +2.151 % | 27.25 (654) | 16.212347 | 0.5940 | -0.089 % | 0.0437 |
+| 900 | 0.80 | 0 | para alt 29x16 0 | 0 | 27.583–28.875 (662–693) | -4.353 to +5.290 % | 28.166666666666668 (676) | 15.684727 | 0.5560 | -0.003 % | 0.0440 |
+| 900 | 0.80 | 0 | para equ 25x18 0 | 0 | 31.792–33.208 (763–797) | -5.166 to +3.962 % | 32.583333333333336 (782) | 13.558664 | 0.4154 | -0.042 % | 0.0407 |
+| 900 | 0.80 | 0 | para alt 22x21 0 | 1 | 35.917–36.000 (862–864) | -6.001 to -5.532 % | 36 (864) | 12.271846 | 0.3402 | -5.532 % | 0.0247 |
+| 900 | 0.80 | turned | para alt 20x23 turned | 0 | 25.000–25.167 (600–604) | -8.599 to -7.316 % | 25 (600) | 17.671459 | 0.7059 | -7.316 % | 0.0303 |
+| 900 | 0.80 | turned | para equ 18x25 turned | 0 | 26.250–27.792 (630–667) | -7.711 to +4.092 % | 26.75 (642) | 16.515382 | 0.6165 | -0.018 % | 0.0489 |
+| 900 | 0.80 | turned | para alt 17x27 turned | 1 | 27.833–29.708 (668–713) | -9.588 to +3.729 % | 28.333333333333332 (680) | 15.592464 | 0.5494 | -0.152 % | 0.0482 |
+| 900 | 0.80 | turned | para equ 15x30 turned | 0 | 31.292–33.750 (751–810) | -10.475 to +5.051 % | 32 (768) | 13.805827 | 0.4307 | +0.087 % | 0.0492 |
+| 1600 | 0.69 | 0 | para alt 41x20 0 | 0 | 37.167–38.625 (892–927) | -6.211 to +1.619 % | 38.333333333333336 (920) | 23.754954 | 0.6190 | +0.044 % | 0.1300 |
+| 1600 | 0.69 | 0 | para equ 40x20 0 | 0 | 38.667–39.583 (928–950) | -3.246 to +1.589 % | 39.291666666666664 (943) | 23.175565 | 0.5892 | +0.054 % | 0.1293 |
+| 1600 | 0.69 | 0 | para alt 39x21 0 | 0 | 39.625–41.042 (951–985) | -3.278 to +4.031 % | 40.25 (966) | 22.623766 | 0.5615 | -0.058 % | 0.1295 |
+| 1600 | 0.69 | 0 | para equ 32x25 0 | 0 | 47.958–48.000 (1151–1152) | -4.128 to -3.953 % | 48 (1152) | 18.970970 | 0.3947 | -3.953 % | 0.1164 |
+| 1600 | 0.69 | turned | para equ 25x32 turned | 0 | 36.333–37.958 (872–911) | -6.012 to +2.941 % | 36.833333333333336 (884) | 24.722350 | 0.6705 | +0.034 % | 0.1333 |
+| 1600 | 0.69 | turned | para equ 20x40 turned | 0 | 45.167–47.792 (1084–1147) | -7.864 to +3.653 % | 45.958333333333336 (1103) | 19.813742 | 0.4306 | -0.095 % | 0.1340 |
+| 1600 | 0.70 | 0 | para alt 41x20 0 | 0 | 36.875–38.333 (885–920) | -6.344 to +1.539 % | 38.041666666666664 (913) | 23.595126 | 0.6196 | -0.048 % | 0.1220 |
+| 1600 | 0.70 | 0 | para equ 40x20 0 | 0 | 38.375–39.292 (921–943) | -3.321 to +1.548 % | 39 (936) | 23.015331 | 0.5895 | +0.001 % | 0.1215 |
+| 1600 | 0.70 | 0 | para alt 39x21 0 | 0 | 39.333–40.708 (944–977) | -3.317 to +3.826 % | 39.958333333333336 (959) | 22.463347 | 0.5615 | -0.073 % | 0.1213 |
+| 1600 | 0.70 | 0 | para equ 32x25 0 | 0 | 47.625–48.000 (1143–1152) | -4.083 to -2.485 % | 48 (1152) | 18.699956 | 0.3891 | -2.485 % | 0.1120 |
+| 1600 | 0.70 | turned | para equ 25x32 turned | 0 | 36.083–37.667 (866–904) | -5.911 to +2.878 % | 36.583333333333336 (878) | 24.535706 | 0.6700 | -0.046 % | 0.1253 |
+| 1600 | 0.70 | turned | para equ 20x40 turned | 0 | 44.833–47.458 (1076–1139) | -7.902 to +3.699 % | 45.625 (1095) | 19.673379 | 0.4306 | -0.078 % | 0.1259 |
+| 1600 | 0.72 | 0 | para alt 41x20 0 | 0 | 36.375–37.792 (873–907) | -6.258 to +1.510 % | 37.5 (900) | 23.271057 | 0.6199 | -0.099 % | 0.1062 |
+| 1600 | 0.72 | 0 | para equ 40x20 0 | 0 | 37.833–38.750 (908–930) | -3.346 to +1.592 % | 38.458333333333336 (923) | 22.691171 | 0.5894 | +0.024 % | 0.1057 |
+| 1600 | 0.72 | 0 | para alt 39x21 0 | 0 | 38.792–40.167 (931–964) | -3.271 to +3.975 % | 39.416666666666664 (946) | 22.139483 | 0.5610 | +0.020 % | 0.1057 |
+| 1600 | 0.72 | 0 | para equ 32x25 0 | 0 | 46.958–48.000 (1127–1152) | -4.083 to +0.443 % | 47.916666666666664 (1150) | 18.212131 | 0.3796 | +0.086 % | 0.1023 |
+| 1600 | 0.72 | turned | para equ 25x32 turned | 0 | 35.583–37.167 (854–892) | -6.054 to +2.848 % | 36.083333333333336 (866) | 24.184701 | 0.6696 | -0.115 % | 0.1093 |
+| 1600 | 0.72 | turned | para equ 20x40 turned | 0 | 44.208–46.792 (1061–1123) | -7.892 to +3.687 % | 44.958333333333336 (1079) | 19.410520 | 0.4312 | +0.053 % | 0.1101 |
+| 1600 | 0.74 | 0 | para alt 41x20 0 | 0 | 35.875–37.292 (861–895) | -6.284 to +1.592 % | 37 (888) | 22.948084 | 0.6195 | -0.040 % | 0.0913 |
+| 1600 | 0.74 | 0 | para equ 40x20 0 | 0 | 37.333–38.208 (896–917) | -3.264 to +1.515 % | 37.916666666666664 (910) | 22.393295 | 0.5899 | -0.076 % | 0.0905 |
+| 1600 | 0.74 | 0 | para alt 39x21 0 | 0 | 38.250–39.625 (918–951) | -3.343 to +4.003 % | 38.875 (933) | 21.841263 | 0.5612 | -0.007 % | 0.0908 |
+| 1600 | 0.74 | 0 | para equ 32x25 0 | 0 | 46.333–47.875 (1112–1149) | -4.021 to +2.752 % | 47.25 (1134) | 17.969928 | 0.3798 | +0.024 % | 0.0876 |
+| 1600 | 0.74 | turned | para equ 25x32 turned | 0 | 35.083–36.667 (842–880) | -6.085 to +2.944 % | 35.583333333333336 (854) | 23.861708 | 0.6699 | -0.064 % | 0.0944 |
+| 1600 | 0.74 | turned | para equ 20x40 turned | 0 | 43.583–46.167 (1046–1108) | -7.942 to +3.803 % | 44.375 (1065) | 19.134177 | 0.4306 | -0.083 % | 0.0950 |
+| 1600 | 0.76 | 0 | para alt 41x20 0 | 0 | 35.417–36.792 (850–883) | -6.190 to +1.559 % | 36.5 (876) | 22.650271 | 0.6199 | -0.095 % | 0.0767 |
+| 1600 | 0.76 | 0 | para equ 40x20 0 | 0 | 36.833–37.708 (884–905) | -3.293 to +1.550 % | 37.416666666666664 (898) | 22.095365 | 0.5899 | -0.062 % | 0.0761 |
+| 1600 | 0.76 | 0 | para alt 39x21 0 | 0 | 37.750–39.083 (906–938) | -3.306 to +3.913 % | 38.375 (921) | 21.543581 | 0.5607 | +0.075 % | 0.0759 |
+| 1600 | 0.76 | 0 | para equ 32x25 0 | 0 | 45.708–47.250 (1097–1134) | -4.069 to +2.795 % | 46.625 (1119) | 17.731580 | 0.3798 | +0.030 % | 0.0731 |
+| 1600 | 0.76 | turned | para equ 25x32 turned | 0 | 34.625–36.167 (831–868) | -6.010 to +2.903 % | 35.083333333333336 (842) | 23.564891 | 0.6710 | +0.106 % | 0.0795 |
+| 1600 | 0.76 | turned | para equ 20x40 turned | 0 | 43.000–45.542 (1032–1093) | -7.887 to +3.832 % | 43.75 (1050) | 18.896798 | 0.4314 | +0.094 % | 0.0802 |
+| 1600 | 0.76 | turned | para alt 18x45 turned | 1 | 47.708–48.000 (1145–1152) | +2.726 to +4.070 % | 48 (1152) | 17.223644 | 0.3583 | +2.726 % | 0.0667 |
+| 1600 | 0.78 | 0 | para alt 41x20 0 | 0 | 34.958–36.333 (839–872) | -6.196 to +1.655 % | 36.041666666666664 (865) | 22.350148 | 0.6194 | -0.020 % | 0.0629 |
+| 1600 | 0.78 | 0 | para equ 40x20 0 | 0 | 36.375–37.208 (873–893) | -3.197 to +1.477 % | 36.958333333333336 (887) | 21.795804 | 0.5891 | +0.077 % | 0.0620 |
+| 1600 | 0.78 | 0 | para alt 39x21 0 | 0 | 37.250–38.583 (894–926) | -3.374 to +3.939 % | 37.875 (909) | 21.268292 | 0.5609 | +0.050 % | 0.0622 |
+| 1600 | 0.78 | 0 | para equ 32x25 0 | 0 | 45.125–46.625 (1083–1119) | -4.038 to +2.728 % | 46 (1104) | 17.511665 | 0.3801 | -0.075 % | 0.0592 |
+| 1600 | 0.78 | turned | para equ 25x32 turned | 0 | 34.167–35.708 (820–857) | -6.057 to +2.974 % | 34.666666666666664 (832) | 23.236632 | 0.6696 | -0.113 % | 0.0658 |
+| 1600 | 0.78 | turned | para equ 20x40 turned | 0 | 42.458–44.958 (1019–1079) | -7.907 to +3.762 % | 43.208333333333336 (1037) | 18.643084 | 0.4309 | -0.020 % | 0.0667 |
+| 1600 | 0.78 | turned | para alt 18x45 turned | 1 | 47.083–48.000 (1130–1152) | -0.084 to +4.112 % | 48 (1152) | 16.782012 | 0.3491 | -0.084 % | 0.0660 |
+| 1600 | 0.80 | 0 | para alt 41x20 0 | 0 | 34.500–35.875 (828–861) | -6.300 to +1.649 % | 35.583333333333336 (854) | 22.072080 | 0.6196 | -0.048 % | 0.0495 |
+| 1600 | 0.80 | 0 | para equ 40x20 0 | 0 | 35.917–36.750 (862–882) | -3.200 to +1.533 % | 36.5 (876) | 21.517758 | 0.5888 | +0.116 % | 0.0484 |
+| 1600 | 0.80 | 0 | para alt 39x21 0 | 0 | 36.792–38.083 (883–914) | -3.316 to +3.858 % | 37.375 (897) | 21.013998 | 0.5616 | -0.080 % | 0.0489 |
+| 1600 | 0.80 | 0 | para equ 32x25 0 | 0 | 44.542–46.042 (1069–1105) | -4.107 to +2.744 % | 45.416666666666664 (1090) | 17.293171 | 0.3802 | -0.094 % | 0.0459 |
+| 1600 | 0.80 | turned | para equ 25x32 turned | 0 | 34.000–35.250 (816–846) | -6.007 to +1.310 % | 34.208333333333336 (821) | 22.959264 | 0.6704 | +0.021 % | 0.0526 |
+| 1600 | 0.80 | turned | para equ 20x40 turned | 0 | 41.917–44.417 (1006–1066) | -8.011 to +3.800 % | 42.666666666666664 (1024) | 18.407769 | 0.4308 | -0.031 % | 0.0533 |
+| 1600 | 0.80 | turned | para alt 18x45 turned | 1 | 46.500–48.000 (1116–1152) | -2.669 to +4.067 % | 47.375 (1137) | 16.578325 | 0.3494 | +0.007 % | 0.0528 |
+
+**At the stage 1 heights** (30 σ for N 900, 40 σ for N 1600) the fit chooses at most 1 vacancy in 13 of the 28 cases:
+
+| N | eta | H [sigma] | pin 0: the fit's arrangement (vacancies) | turned: the fit's arrangement (vacancies) |
+|---|---|---|---|---|
+| 900 | 0.69 | 30 | para alt 29x16 (0) | para alt 17x27 (1) |
+| 900 | 0.70 | 30 | para alt 29x16 (0) | para alt 17x27 (1) |
+| 900 | 0.72 | 30 | para alt 29x16 (0) | para alt 17x27 (1) |
+| 900 | 0.74 | 30 | para alt 29x16 (0) | para alt 17x27 (1) |
+| 900 | 0.76 | 30 | para alt 28x17 (12) | para alt 17x27 (1) |
+| 900 | 0.78 | 30 | para alt 28x17 (12) | para alt 17x27 (1) |
+| 900 | 0.80 | 30 | para equ 27x17 (9) | para alt 16x29 (6) |
+| 1600 | 0.69 | 40 | para alt 39x21 (0) | para equ 23x35 (5) |
+| 1600 | 0.70 | 40 | para alt 39x21 (0) | para equ 23x35 (5) |
+| 1600 | 0.72 | 40 | para alt 39x21 (0) | para equ 23x35 (5) |
+| 1600 | 0.74 | 40 | para alt 38x22 (17) | para alt 22x37 (3) |
+| 1600 | 0.76 | 40 | para alt 38x22 (17) | para alt 22x37 (3) |
+| 1600 | 0.78 | 40 | para equ 37x22 (14) | para alt 22x37 (3) |
+| 1600 | 0.80 | 40 | para alt 36x23 (10) | para alt 22x37 (3) |
+
+**The heights at which both pins have at most 1 vacancy** (one box for both pins):
+
+| N | eta | heights with at most 1 vacancy for both pins | H [sigma] (k px) |
+|---|---|---|---|
+| 900 | 0.69 | 107 of 265 | 28.250–31.083 (678–746); 34.208–35.750 (821–858) |
+| 900 | 0.70 | 106 of 265 | 28.042–30.833 (673–740); 33.958–35.500 (815–852) |
+| 900 | 0.72 | 104 of 265 | 27.667–30.417 (664–730); 33.500–35.000 (804–840) |
+| 900 | 0.74 | 103 of 265 | 27.292–30.000 (655–720); 33.042–34.542 (793–829) |
+| 900 | 0.76 | 102 of 265 | 26.917–29.625 (646–711); 32.625–34.083 (783–818) |
+| 900 | 0.78 | 100 of 265 | 26.583–29.208 (638–701); 32.167–33.625 (772–807) |
+| 900 | 0.80 | 99 of 265 | 26.250–28.875 (630–693); 31.792–33.208 (763–797) |
+| 1600 | 0.69 | 20 of 337 | 37.167–37.958 (892–911) |
+| 1600 | 0.70 | 20 of 337 | 36.875–37.667 (885–904) |
+| 1600 | 0.72 | 20 of 337 | 36.375–37.167 (873–892) |
+| 1600 | 0.74 | 20 of 337 | 35.875–36.667 (861–880) |
+| 1600 | 0.76 | 19 of 337 | 35.417–36.167 (850–868) |
+| 1600 | 0.78 | 19 of 337 | 34.958–35.708 (839–857) |
+| 1600 | 0.80 | 19 of 337 | 34.500–35.250 (828–846) |
+
+- Heights checked: 8428 (cell, pin, k) of 14 cells x 2 pins. Heights whose --height text does not give k px through strtof: 0. Heights whose arrangement changes when L0 is rounded to float32: 0.
+- The long form, every height of the range with its arrangement, vacancies, e and gap, is s2_vacancy_table_261015_heights.csv.
+- P2's own G2 heights are rows of this table: η 0.72 pin 0, 29.708 σ (713); η 0.72 turned, 29.833 σ (716); η 0.78 turned, 28.667 σ (688). η 0.78 pin 0 (28 × 17, 12 vacancies) is not in it.
+
+## 8. Choices made, each with its reason
+
+- **(a) The fetch also brought the 400 gzipped traces** (30.4 MB of the 156 MB; a0059d61, before block E): the trace figure needs them. Block E's line was unchanged.
+- **(b) E1 per cell applies stage 1's flag** (more than 2 of 10 trajectories lost: the mass leaves the cell's E1), as s1_verdict_261012.e1 does; p2_tables_mac.py's cell table has no flag. No mass is flagged here, and the two agree (3b).
+- **(c) Test (iv)'s rule is CC's;** addendum 1 names none. R is defined in section 4 (iv); R ≤ 2 counts as reproducible. Both the per-mass R and the R pooled over the cell's 50 runs are given.
+- **(d) The trace figure shows s = 0 at α 5 in every cell,** fixed in p2_report_mac.py before the data came.
+- **(e) Tables added beyond addendum 1's list:**
+  - 2b and 2c, since decision 57 lists the strain, ψ6 and orientation per compartment among P2's outputs;
+  - (iv)'s table D, which names the one entry with R > 2.
+- **(f) ν_d in (vi) is the registered estimator** (nud_runs.csv), not the run's own refit.
+
+## 9. Recorded for the registration's runsheet (addendum 2 item 2)
+
+- Sec. 4.7.138 records it:
+  - the merge is submitted with the array and held by Slurm (sbatch --dependency=afterok:<array job>): two KOA pastes and one Mac paste;
+  - block C is a read-only check after the fact; the merge's completeness checks are the guard.
+- Nothing was done about it now.
+
+## 10. Commits (main; nothing pushed)
+
+- **b75b48c4:** decision 57 addendum 2 (sec. 4.7.138).
+- **ba00033a:** the report outputs (report_261016, report_261016_extra) and p2_report_extra_mac.py.
+- **Under addendum 1:**
+  - 53981f5f: addendum 1 (sec. 4.7.137);
+  - a1f9bf18: the vacancy table;
+  - a0059d61: the fetch with the traces;
+  - abf4788b: p2_report_mac.py.
+- **This report:** sec. 4.7.139.
+- **No push** is needed (addendum 2 item 3).
+
+Written for: the plan author
