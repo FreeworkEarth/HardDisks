@@ -1,0 +1,5 @@
+# PID (brief 01_DEMO0_BRIEF.md sec. 2 rule 4): run outputs and build products stay out of git.
+runs/
+bin/
+*.o
+.DS_Store
