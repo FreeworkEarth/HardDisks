@@ -32322,3 +32322,536 @@ When you are back: paste CC’s D57-1 and attach figure 1c; I check the package,
 
 **Commits.**
 - main only: this record.
+
+### 4.7.136 Report D57-1 — decision 57: the P2 package and its runsheet, rehearsed on the Mac. The package (c69804b0) holds 400 task lines (N 900; η 0.72 and 0.78; G1 the stage 1 geometry and G2 the same pinned arrangement at a strain-free height, |e| ≤ 0.12 %; pins 0 and turned; α 1–20; 10 seeds, BASE 20261016, none used before), the stage 1 worker plus the initial dump, the array (one line per task, 25 min, at most 64), the merge (stage 1's merge and reducers unchanged, then p2_reduce.py), the build record and manifests; about 53 core-hours. The runsheet (c4a8f48f) builds at 8aaf5fef and checks out the package. The Mac rehearsal of the runsheet's blocks: 12 of 12 PASS; the fetch filter was fixed for the Mac's openrsync. Nothing pushed; nothing typed on KOA (2026-10-15 17:58 HST, machine date) [CODE, MAC REHEARSAL, RUNSHEET]
+
+**Plain summary.**
+- **Recorded:** decision 57 and the correction to decision 56 (sec. 4.7.135), on main only.
+- **The package, c69804b0:**
+  - 400 task lines: N 900; η 0.72 and 0.78; G1 (H 30) and G2 (H 29.708, 29.833, 29.917 and 28.667 σ, the same pinned arrangement made strain free on the binary's 1/24 σ grid); pins 0 and turned; α 1, 2, 5, 10, 20; 10 seeds per cell and mass by the stage 1 rule with BASE 20261016 (none used before);
+  - p2_worker_koa.sh: the stage 1 worker plus `--gen3-dump-initial`;
+  - the array p2_koa.sbatch: one line per task, 25 min, at most 64;
+  - the merge p2_merge.sbatch: stage 1's merge and reducers unchanged, then p2_reduce.py, which adds the strain and orientation per compartment and the own fits;
+  - the build record and the manifests; the fetch; the Mac tables.
+  - About 53 core-hours on v3; about 50 min at 64 cores.
+- **The readouts:** the initial dump exists and is added. A final dump does not exist in the binary and is left out; the periodic snapshots (every run, the last at the record's end) give the end state.
+- **The runsheet, c4a8f48f:** block A builds at 8aaf5fef with its own build_koa.sh, then checks out the package and records the build after checking all 50 build inputs; B is the guarded submit; C the checks; D and D2 the merge and its log; E the fetch.
+- **The Mac rehearsal: 12 of 12 PASS.** It ran the runsheet's blocks as typed, with stage 1's shims, on the four η 0.78, α 5 lines at full length.
+  - Start strains as designed (G2 |e| ≤ 0.1 %); the orientation right in both compartments; the divider at L0; all clean.
+  - Found and fixed: the Mac's rsync is openrsync, which ignored a `**` exclude; the fetch now uses four plain excludes, tested.
+- **Departures, each with its reason:**
+  - the rehearsal runs the full 200 periods, not 10, since the stage 1 reducers need them;
+  - the time limit is 25 min, not 20: the pin-0 crystals run 17 % more events than the table;
+  - the stride is from ν_pred.
+- **What the four rehearsal runs show (information only):**
+  - the start strain does not survive the hold;
+  - the pin is a state variable (pin 0: 12 vacancies, Z 20.7, c 24.4; turned: Z 16.7–18.0, c 19.5–22.1);
+  - the strain-free turned crystal rings with Q 104.
+- **Next:** nothing is typed on KOA before the plan author has read D57-1. Then Chris pushes main, and runs blocks A0–E.
+
+## 1. Where it stands
+
+- **The package** is commit **c69804b0** on main: hspist3/cluster/gen3_stage2_261016/, 17 files (section 6).
+- **The runsheet and the rehearsal** are commit **c4a8f48f**: runsheet_p2_261016.txt, rehearse_p2_mac.py and the rehearsal's outputs in hspist3/experiments_gen3_p2_261016/. This report is the record commit after it.
+- **Nothing is pushed, and nothing is typed on KOA.**
+- **The order once you have read this:**
+  1. Chris pushes main (`git push origin main`). Block A fetches the package commit from GitHub by its hash.
+  2. Blocks A0, A, B (clone and build, submit).
+  3. Block C after the array.
+  4. Blocks D and D2 (the merge and its log).
+  5. Block E on the Mac (the fetch).
+  6. CC runs p2_tables_mac.py and reports.
+- **The Mac rehearsal: 12 of 12 steps PASS.** It ran the runsheet's blocks A–E with stage 1's shims, on the four task lines of η 0.78, α 5, s 0 (one per G and pin), at full length (section 4).
+
+## 2. The design (gen_p2_koa_261016.py; p2_design_261016.txt)
+
+| cell | H [sigma] (k px) | L0 | aspect W/H | the pinned arrangement (left = right) | vacancies | gap [sigma] | start strain e | W* at this H (eta*) |
+|---|---|---|---|---|---|---|---|---|
+| P2_N0900_eta0.720000_G1_pin0 | 30 (720) | 16.362462 | 0.5446 | para alt 29x16 0 | 0 | 0.0892 | +2.168 % | 16.6786 (0.7053) |
+| P2_N0900_eta0.720000_G1_pinturned | 30 (720) | 16.362462 | 0.5446 | para alt 17x27 turned | 1 | 0.1025 | -1.075 % | 16.5071 (0.7126) |
+| P2_N0900_eta0.720000_G2_pin0 | 29.708333333333332 (713) | 16.523103 | 0.5553 | para alt 29x16 0 | 0 | 0.0999 | +0.115 % | 16.5164 (0.7192) |
+| P2_N0900_eta0.720000_G2_pinturned | 29.833333333333332 (716) | 16.453872 | 0.5507 | para alt 17x27 turned | 1 | 0.1049 | +0.088 % | 16.4154 (0.7206) |
+| P2_N0900_eta0.780000_G1_pin0 | 30 (720) | 15.103811 | 0.5026 | para alt 28x17 0 | 12 | 0.0399 | +0.489 % | 15.1500 (0.7763) |
+| P2_N0900_eta0.780000_G1_pinturned | 30 (720) | 15.103811 | 0.5026 | para alt 17x27 turned | 1 | 0.0393 | -9.037 % | 16.5071 (0.7126) |
+| P2_N0900_eta0.780000_G2_pin0 | 29.916666666666668 (718) | 15.145883 | 0.5054 | para alt 28x17 0 | 12 | 0.0422 | -0.091 % | 15.1079 (0.7807) |
+| P2_N0900_eta0.780000_G2_pinturned | 28.666666666666668 (688) | 15.806314 | 0.5505 | para alt 17x27 turned | 1 | 0.0617 | +0.053 % | 15.7735 (0.7804) |
+
+- **G2, the rule used.** The same pinned arrangement as G1 (rows, n_s × n_r, vacancies; the binary's own choice by the lattice replica, checked in 42 of 42 starts in D56-1). Its height is the H that makes its strain e closest to 0. N and η are kept, and L0 = Nπ / (8Hη) follows.
+  - The height must be a multiple of 1/24 σ: the binary truncates the box to whole pixels (00ALLINONE.c:326). Each H was checked through libc's strtof and the float product, as the binary computes it.
+  - The residual |e| is 0.05–0.12 %. G2 changes H by −0.08 to −1.33 σ.
+  - I kept the arrangement rather than any strain-free one, so that G1 and G2 differ in the strain only. A height nearer 30 does exist for η 0.78 turned, but with another arrangement (16 × 29, 6 vacancies, H 30.625).
+- **Masses** α 1, 2, 5, 10, 20 (M = αN).
+- **Seeds:** 10 per (cell, G, pin, mass), by the stage 1 rule run_seed(BASE, stream, mass index, s) with BASE 20261016. There is one stream per cell in the task order, and the mass index is the α's place in the nine-mass ladder.
+  - 400 distinct seeds. None was used before: checked against 40,195 seeds in 66 task lists, the stage 1 list, the D56-1 pilot and lattice starts, and 7,386 command files.
+- **Protocol:** stage 1's, through the stage 1 worker:
+  - T_eq 5000 (300,000 held steps);
+  - 200 predicted periods of the binary's ν_pred;
+  - Δψ = max(1, T_rec / 2000);
+  - virial blocks of 50;
+  - the lattice start with the pin (the worker's start field 0 | turned → --gen3-lattice-orientation).
+- **Readouts added, no engine change:**
+  - **The initial state:** `--gen3-dump-initial` exists; p2_worker_koa.sh adds it, its one change against s1_worker_koa.sh.
+  - **A final dump does not exist in the binary;** it is left out.
+  - **Periodic snapshots** exist (`--gen3-snapshots`). They are now on every run, every (T_eq + T_rec) / 100 as in stage 1's subset; the last frame is the record's end. So the end state comes from the snapshots.
+- **Outputs on KOA, in the merge job:**
+  - first the stage 1 merge and reducers, unchanged (merge_s1_koa.py, reduce_B.py, reduce_s1_koa.py);
+  - then p2_reduce.py, per run:
+    - its own item-4a fit (ν_d, τ_r, Q, and a stall flag for a fit that ends at its initial guess, block D's failure mode);
+    - the spectrum share within ±20 % of ν_d, the drift, sd, Z;
+    - ψ6 and orientation per compartment;
+    - the strain e per compartment of the lattice, of the initial state, of the hold's last snapshot and of the last snapshot. Every snapshot's strain series goes to p2_frames.csv.
+  - The strain estimator equals the replica's e to 8 × 10⁻¹⁶ on the binary's own lattices (p2_lattice.py --selftest).
+- **Outputs on the Mac, after the fetch** (p2_tables_mac.py):
+  - E1 per (cell, G, pin, mass), as s1_verdict_261012.per_mass;
+  - E1 per cell over the five masses;
+  - per seed: c, Q, τ_r, the stall flag, the spectrum share, sd/sd_E1, drift, Z, ψ6, and the orientation's deviation from the pin;
+  - the strains at the start, at the hold's end and at the end.
+- **Time:** the D56-1 model (the upper Z) times the rehearsal's measured ratio per pin (section 3 b).
+  - 52.9 core-hours on E5-2670 v3, 63.5 on E5-4640 v2.
+  - The longest line is 14.1 min on v2, so the array's limit is 25 min.
+  - About 50 min of wall time at 64 cores.
+  - The merge: --time=24:00:00, expected well under an hour.
+  - Lustre: about 0.9 GB. The fetch: about 0.16 GB.
+
+## 3. Choices and departures from decision 57, each with its reason
+
+- **(a) The rehearsal's record is the full 200 periods, not 10.** The stage 1 reducers, unchanged as decision 57 asks, need the 200-period prefix for the argmax (TD) and a 20-period ACF window: 10 periods cannot pass through them. The full length cost minutes: 175–204 s per run, four at once on the Mac.
+- **(b) The time limit is 25 min, not the table's 20.** The rehearsal executed 1.171 × the table's events for G1 pin 0 and 1.158 × for G2 pin 0, 1.002 × for G1 turned and 0.929 × for G2 turned. The pin-0 crystals hold 12 vacancies per compartment and run at Z 20.7 against the table's 18.1. The generator applies 1.171 to pin 0 and 1.002 to turned; + 50 % on the longest line then gives 25 min.
+- **(c) The trace stride** is d_stride of the binary's ν_pred. Stage 1 took ν from KR, which is not defined at 0.72 or 0.78.
+- **(d) Snapshots on every run**, at stage 1's cadence.
+- **(e) Block A: one fresh clone, built at 8aaf5fef, then the package checked out.**
+  - The build uses 8aaf5fef's own cluster/build_koa.sh: `make -B koa` with cluster/koa_env.sh, stage 1's target, flags and environment. Stage 1's build_s1_koa.sh is hard-wired to its own clone and commit.
+  - Then the package commit is fetched by hash and checked out; it only adds files.
+  - record_p2_build.sh then checks every build input on disk (50 files: 8aaf5fef's tracked sources, headers, Makefile and build scripts, and kissfft at febd4ca) against p2_build_sources.sha256, made from git on the Mac. Only then does it write the build-time record that every job checks without git.
+  - The binary's version line names 8aaf5fe.
+- **(f) The submit line is guarded** (decision 42's form). It submits only if no gen3-p2 job is queued, the scratch root does not exist, and the build record names the package commit. A second paste refuses.
+- **(g) The merge's chunk check and merge script are stage 1's, unchanged.** The run folder carries the initial state, so merge_s1_koa.py moves it with the folder and needs no new rule.
+
+## 4. The rehearsal (cluster/gen3_stage2_261016/rehearse_p2_mac.py; outputs in hspist3/experiments_gen3_p2_261016/rehearsal_261015c/)
+
+The runsheet's own lines were run as typed, with these substitutions, each listed by the script:
+- **A stand-in of c69804b0** (local commit c7d787a): the chunk table cut to the four chunks 221, 271, 321 and 371; the Lustre root and the fetch's source made local; p2_inputs.sha256 made again. The 400-line task list is unchanged.
+- **Block A:**
+  - the GitHub clone became a shared clone of the repository (core.abbrev 7), and the fetch of 8aaf5fef is not needed (local objects);
+  - kissfft was cloned from the main checkout's clone (febd4ca);
+  - the fetch of the package fetched the stand-in;
+  - the build shims: SLURM_JOB_ID, module, a gcc that drops the x86 flags, make with the Mac CFLAGS, ldd → otool.
+- **Block B:** `--array=221,271,321,371` in place of `1-400%64`, and the guard's commit is the stand-in's. The sbatch shim runs the tasks one after another; squeue is empty.
+- **Block E:** the fetch runs from the stand-in clone.
+- **The transcripts:** every line appears as `$ <line>` with its output. `$R` stands for the scratch root …/scratchpad/d57/rehearsal_3 (a substitution in this report only; the files in the folder hold the full path).
+
+| step | result | detail |
+|---|---|---|
+| the runsheet's blocks | PASS | A0: 2 lines, A: 21 lines, B: 2 lines, C: 7 lines, D: 2 lines, D2: 2 lines, E: 1 lines |
+| the stand-in commit | PASS | c7d787a42dfa on c69804b0e0a1: chunk table 4 chunks (221, 271, 321, 371); Lustre/fetch made local in hspist3/cluster/check_cells.sh, hspist3/cluster/confinement_20261013/conf_A_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_A_0.39.sbatch, hspist3/cluster/confinement_20261013/conf_A_pilot.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_0.39.sbatch, hspist3/cluster/confinement_20261013/conf_Afix_pilot.sbatch, hspist3/cluster/confinement_20261013/conf_B_0.10.sbatch, hspist3/cluster/confinement_20261013/conf_B_0.39.sbatch, hspist3/cluster/confinement_20261013/fetch_afix.sh, hspist3/cluster/confinement_20261013/fetch_confinement.sh, hspist3/cluster/gen3_koa_261009/fetch_gen3_koa.sh, hspist3/cluster/gen3_koa_261009/g3_det_xnode.sbatch, hspist3/cluster/gen3_koa_261009/g3_gate_koa.sbatch, hspist3/cluster/gen3_koa_261009/g3_rate_ld_k2.sbatch, hspist3/cluster/gen3_koa_261009/g3_xnode_compare.sbatch, hspist3/cluster/gen3_koa_261009/merge_testG_k2.sbatch, hspist3/cluster/gen3_koa_261009/merge_testG_koa.sbatch, hspist3/cluster/gen3_koa_261009/rehearse_k2_mac.py, hspist3/cluster/gen3_koa_261009/testG_koa.sbatch, hspist3/cluster/gen3_m5_solid_261012/fetch_m5_solid_koa.sh, hspist3/cluster/gen3_m5_solid_261012/m5_solid_koa.sbatch, hspist3/cluster/gen3_m5_solid_261012/rehearse_m5_solid_mac.py, hspist3/cluster/gen3_preview_261011/fetch_preview_koa.sh, hspist3/cluster/gen3_preview_261011/preview_koa.sbatch, hspist3/cluster/gen3_preview_261011/preview_merge.sbatch, hspist3/cluster/gen3_s1_complete_261013/s1_complete.sbatch, hspist3/cluster/gen3_s1_gate_261012/fetch_s1_gate_koa.sh, hspist3/cluster/gen3_s1_gate_261012/rehearse_s1_gate_mac.py, hspist3/cluster/gen3_s1_gate_261012/s1_gate_koa.sbatch, hspist3/cluster/gen3_s1_gate_261012/s1_xnode.sbatch, hspist3/cluster/gen3_s1_gate_261012/s1_xnode_compare.sbatch, hspist3/cluster/gen3_stage1_261012/fetch_s1_koa.sh, hspist3/cluster/gen3_stage1_261012/make_s1_runsheet.py, hspist3/cluster/gen3_stage1_261012/rehearse_s1_mac.py, hspist3/cluster/gen3_stage1_261012/s1_koa.sbatch, hspist3/cluster/gen3_stage1_261012/s1_merge.sbatch, hspist3/cluster/gen3_stage2_261016/fetch_p2_koa.sh, hspist3/cluster/gen3_stage2_261016/make_p2_runsheet.py, hspist3/cluster/gen3_stage2_261016/p2_koa.sbatch, hspist3/cluster/gen3_stage2_261016/p2_merge.sbatch, hspist3/cluster/gen3_testR_261011/fetch_testR_koa.sh, hspist3/cluster/gen3_testR_261011/rehearse_testR_mac.py, hspist3/cluster/gen3_testR_261011/testR_koa.sbatch, hspist3/cluster/gen3_testR_261011/testR_merge.sbatch, hspist3/cluster/gen_afix_sbatch_261004.py, hspist3/cluster/gen_confinement_sbatch.py, hspist3/cluster/koa_crossnode_det.sh, hspist3/cluster/koa_smoketest.sh, hspist3/cluster/profile_edmd_koa.sh, hspist3/cluster/resched_gate_261005/asan.sbatch, hspist3/cluster/resched_gate_261005/e0e2.sbatch, hspist3/cluster/resched_gate_261005/fetch_resched.sh, hspist3/cluster/resched_gate_261005/fetch_resched2.sh, hspist3/cluster/resched_gate_261005/ge2.sbatch, hspist3/cluster/resched_gate_261005/reduce_tprime.sbatch, hspist3/cluster/resched_gate_261005/replay.sbatch, hspist3/cluster/resched_gate_261005/testT.sbatch, hspist3/cluster/resched_gate_261005/testTprime.sbatch, hspist3/cluster/resched_gate_261005/testTprime_chunks.sbatch, hspist3/cluster/round_plan_261002.py; manifests: p2_inputs.sha256: 24 files, of them 16 Python files of the merge's import closure: |
+| block A: clone, build at 8aaf5fef, package checkout, record, checks | PASS | 5 lines substituted; exit 0; version        00ALLINONE  git 8aaf5fe  target koa; commit_build 8aaf5fef27c92391fc4fadd5133324740c29ef06; version 00ALLINONE  git 8aaf5fe  target koa; build_inputs 50 of 50 equal to 8aaf5fef's (cluster/gen3_stage2_261016/p2_build_sources.sha256); 24 |
+| block B: the guarded submit | PASS | CHECKS GOOD; Submitted batch job 920001; P2: THE ARRAY IS SUBMITTED; task exits: ['0', '0', '0', '0'] |
+| block B a second time: refused | PASS | REFUSED: $R/lustre/harddisks_gen3/stage2/P2 exists: the array ran before; P2: THIS PASTE DID NOT SUBMIT THE ARRAY |
+| block C: 4 logs, 4 done, 0 FAILED/REFUSED/STOP, the chunk check | PASS | $ squeue -u charing | $ cd ~/harddisks_gen3_p2/hspist3 | $ ls logs/gen3-p2_*.out | wc -l | 4 | $ grep -lx 'chunk [0-9]* done' logs/gen3-p2_*.out | wc -l | 4 | $ cat logs/gen3-p2_*.out | grep -c -e FAILED -e REFUSED -e STOP | 0 | $ grep -h '^chunk [0-9]* on ' logs/gen3-p2_*.out | sed 's/: group.*//; s/^chunk [0-9]* on [^ ]* //' | sort | uniq -c | 4 (Apple M3 Max (Mac rehearsal)) | $ bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-p2 $R/lustre/harddisks_gen3/stage2/P2/chunks cluster/gen3_stage2_261016/chunks_p2_koa_261016.tsv P2 | chunk logs: 4; chunks done: 4 of 4 (group P2; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished |
+| block D: the merge submitted | PASS | Submitted batch job 920002 |
+| block D2: the merge and p2_reduce | PASS | merged 4 chunks: 16 files moved, 8 files appended, 4 kept per chunk (0 failed-run folders), 0 incomplete run folders, 0 ; p2_reduce: 4 folders (0 without the stage 1 tables), 4 trajectories, 0 with an error; 7 s; P2 merge and reduction done; next: the fetch from the Mac (fetch_p2_koa.sh) |
+| the merge a second time: refused (exit 3) | PASS | STOP: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57/rehearsa |
+| block E: the fetch | PASS | fetched into $R/standin/hspist3/experiments_gen3_stage2_koa_26101 |
+| the fetch's filter: no trace, no snapshot; the 4 initial states | PASS | traces/snapshots fetched: 0; initial states: 4 |
+| p2_tables_mac.py on the fetched folder | PASS | exit 0; 27 lines |
+
+P2 REHEARSAL: PASS (12 of 12)
+
+**Block A** (block_A.txt, verbatim):
+```
+### block A (the sandbox shell)
+### exit 0, 9 s
+$ git --version
+git version 2.50.1 (Apple Git-155)
+$ ls -d ~/harddisks_gen3_p2 2>&1 | head -1
+ls: $R/home/harddisks_gen3_p2: No such file or directory
+$ cd ~ && git clone -q --no-checkout --shared /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks harddisks_gen3_p2 && git -C harddisks_gen3_p2 config core.abbrev 7 && git -C harddisks_gen3_p2 sparse-checkout init --no-cone
+$ cd ~/harddisks_gen3_p2
+$ git -c advice.detachedHead=false checkout 8aaf5fef27c92391fc4fadd5133324740c29ef06
+HEAD is now at 8aaf5fe Report D56-1 recorded (261012 sec. 4.7.134): figure 1 with block D; Stage 2 sizing -- E1 survives at eta 0.76 (Q 19), pinned lattice starts feasible, 478-578 core-hours; D2 sizing and block D's fit record
+$ git sparse-checkout set --no-cone "/hspist3/*.c" "/hspist3/*.h" "/hspist3/*.py" "/hspist3/Makefile" "/hspist3/edmd_core/" "/hspist3/cluster/" "/hspist3/validation/" "/hspist3/kissfft"
+$ git clone -q /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/kissfft hspist3/kissfft
+$ git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec
+HEAD is now at febd4ca Merge pull request #99 from lanurmi/newline
+$ git log -1 --format='%h %s' | cut -c1-80
+8aaf5fe Report D56-1 recorded (261012 sec. 4.7.134): figure 1 with block D; Stag
+$ bash hspist3/cluster/build_koa.sh 2>&1 | tail -16
+gcc -Wl,-rpath,$R/home/envs/hd/lib  -L/opt/homebrew/lib -L/opt/homebrew/opt/mesa/lib -o 00ALLINONE 00ALLINONE.c kissfft/kiss_fft.c kissfft/kiss_fftr.c edmd_core/edmd.c edmd_core/edmd_accelerated.c edmd_core/edmd_gen3.c experiment_validation.c -O2 -ffp-contract=off -I/opt/homebrew/include/SDL2 -I/opt/homebrew/include -D_THREAD_SAFE -I/opt/homebrew/Cellar/harfbuzz/12.2.0_1/include/harfbuzz -I/opt/homebrew/Cellar/glib/2.86.3/include/glib-2.0 -I/opt/homebrew/Cellar/glib/2.86.3/lib/glib-2.0/include -I/opt/homebrew/opt/gettext/include -I/opt/homebrew/Cellar/pcre2/10.47_1/include -I/opt/homebrew/Cellar/graphite2/1.3.14/include -I/opt/homebrew/opt/freetype/include/freetype2 -I/opt/homebrew/opt/libpng/include/libpng16 -DBUILD_GIT='"8aaf5fe"' -DBUILD_TARGET='"koa"' -DBUILD_CFLAGS='"-O2 -ffp-contract=off [mac rehearsal]"' -L/opt/homebrew/Cellar/sdl2_ttf/2.24.0/lib -lSDL2_ttf -L/opt/homebrew/lib -lSDL2 -lGLEW -framework OpenGL -framework CoreGraphics 
+== checks
+00ALLINONE  git 8aaf5fe  target koa
+  CFLAGS: -O2 -ffp-contract=off [mac rehearsal]
+== provenance
+built_utc      2026-10-16T03:41:42Z
+host           Christophs-MacBook-Pro-875.local   job 930001
+cpu            Apple M3 Max (Mac rehearsal)
+compiler       gcc (GCC) 14.3.0   (gcc on PATH)
+make compiler  gcc -> $R/build_shims/gcc -> gcc (GCC) 14.3.0   (CC=gcc; Makefile:15 'CC ?= cc')
+version        00ALLINONE  git 8aaf5fe  target koa
+git_commit     8aaf5fef27c92391fc4fadd5133324740c29ef06
+sha256         407204fb629b56cd82cb32331fe9e37dbac7f3e521647f61a4110692127e166e
+libs           sdl2 2.30.12 SDL2_ttf 2.24.0 glew 2.2.0 (~/envs/hd)
+recorded       logs/BUILD_KOA_LAST.hash: 407204fb629b56cd82cb32331fe9e37dbac7f3e521647f61a4110692127e166e  00ALLINONE
+BUILD OK
+$ git fetch -q $R/standin standin
+$ git -c advice.detachedHead=false checkout c7d787a42dfa790cb9ae7778070c2210f9a11467
+Previous HEAD position was 8aaf5fe Report D56-1 recorded (261012 sec. 4.7.134): figure 1 with block D; Stage 2 sizing -- E1 survives at eta 0.76 (Q 19), pinned lattice starts feasible, 478-578 core-hours; D2 sizing and block D's fit record
+HEAD is now at c7d787a P2 rehearsal stand-in: the mini chunk table, local Lustre and fetch, the input manifest again
+$ git log -1 --format='%h %s' | cut -c1-80
+c7d787a P2 rehearsal stand-in: the mini chunk table, local Lustre and fetch, the
+$ bash hspist3/cluster/gen3_stage2_261016/record_p2_build.sh
+env: gcc (GCC) 14.3.0 | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+# the build-time record of the P2 build (decision 57): written once by record_p2_build.sh after cluster/build_koa.sh at 8aaf5fef
+commit_build 8aaf5fef27c92391fc4fadd5133324740c29ef06
+commit_scripts c7d787a42dfa790cb9ae7778070c2210f9a11467
+version 00ALLINONE  git 8aaf5fe  target koa
+sha256 407204fb629b56cd82cb32331fe9e37dbac7f3e521647f61a4110692127e166e 00ALLINONE
+build_inputs 50 of 50 equal to 8aaf5fef's (cluster/gen3_stage2_261016/p2_build_sources.sha256)
+build_koa built_utc      2026-10-16T03:41:42Z
+build_koa host           Christophs-MacBook-Pro-875.local   job 930001
+build_koa cpu            Apple M3 Max (Mac rehearsal)
+build_koa compiler       gcc (GCC) 14.3.0   (gcc on PATH)
+build_koa make compiler  gcc -> $R/build_shims/gcc -> gcc (GCC) 14.3.0   (CC=gcc; Makefile:15 'CC ?= cc')
+build_koa libs           sdl2 2.30.12 SDL2_ttf 2.24.0 glew 2.2.0 (~/envs/hd)
+BUILD RECORD OK: $R/home/harddisks_gen3_p2/hspist3/logs/BUILD_RECORD_P2.txt
+$ cd hspist3 && sha256sum cluster/gen3_stage2_261016/p2_koa.sbatch cluster/gen3_stage2_261016/p2_merge.sbatch cluster/gen3_stage2_261016/p2_inputs.sha256 cluster/gen3_stage2_261016/p2_build_sources.sha256 cluster/gen3_stage2_261016/record_p2_build.sh
+93bfacbc27428946b14a4c40b60b5b9066f84fd17b1869ced81fad54f824b187  cluster/gen3_stage2_261016/p2_koa.sbatch
+878a7a49d99a7f2d0431059db9b83fc1514e23a3ef6200db2d5cee9902c36f0b  cluster/gen3_stage2_261016/p2_merge.sbatch
+07fe0c405da7d198152323cfea05a0f85d465d758a493380a8428d000a576aff  cluster/gen3_stage2_261016/p2_inputs.sha256
+10ea088e5547ce2162a9735aecc8046b5fcc0c7ca84057221a10bbe8c680228e  cluster/gen3_stage2_261016/p2_build_sources.sha256
+ca81cf0b7e0f5e83ec8f9e0daef5d9146d06b2596de0296a33254ecd1e559a4f  cluster/gen3_stage2_261016/record_p2_build.sh
+$ sha256sum -c cluster/gen3_stage2_261016/p2_inputs.sha256 | grep -c ': OK$'
+24
+$ cat cluster/gen3_stage2_261016/tasks_p2_koa_261016.sha256
+656d5a68ca79b77db1e5100ecb56853ebfb6f89cf7e6bde7964e65c249c173ed
+$ source cluster/koa_env.sh
+env: gcc (GCC) 14.3.0 | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+$ python3 -c "import sys; sys.argv = ['x']; sys.path[:0] = ['cluster/gen3_stage2_261016', 'cluster/gen3_stage1_261012', 'cluster/gen3_testR_261011', 'validation', '.']; import merge_s1_koa, reduce_s1_koa, p2_lattice, p2_reduce; print('the merge and reducer imports: OK')"
+the merge and reducer imports: OK
+$ ls $R/lustre/harddisks_gen3/stage2/P2 2>&1 | head -1
+ls: $R/lustre/harddisks_gen3/stage2/P2: No such file or directory
+```
+
+- **The two SHA-256 lines without a substitution equal the package's:** p2_build_sources.sha256 (10ea088e…) and record_p2_build.sh (ca81cf0b…).
+- **The other three differ by the substitutions:** p2_koa.sbatch and p2_merge.sbatch (the Lustre root) and p2_inputs.sha256 (the chunk table).
+
+**Block B, first and second paste** (block_B_first.txt, block_B_second.txt):
+```
+### block B (the array; the shim runs the 4 tasks one after the other)
+### exit 0, 774 s
+$ squeue -u charing
+$ cd ~/harddisks_gen3_p2/hspist3 && { Q=$(squeue -h -u charing -n gen3-p2 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-p2 job: $Q"; false; }; } && { [ ! -e $R/lustre/harddisks_gen3/stage2/P2 ] || { echo "REFUSED: $R/lustre/harddisks_gen3/stage2/P2 exists: the array ran before"; false; }; } && { grep -qx 'commit_scripts c7d787a42dfa790cb9ae7778070c2210f9a11467' logs/BUILD_RECORD_P2.txt || { echo "REFUSED: logs/BUILD_RECORD_P2.txt does not name the package commit c7d787a4"; false; }; } && echo "CHECKS GOOD" && sbatch --array=221,271,321,371 cluster/gen3_stage2_261016/p2_koa.sbatch && echo "P2: THE ARRAY IS SUBMITTED" || echo "P2: THIS PASTE DID NOT SUBMIT THE ARRAY"
+CHECKS GOOD
+Submitted batch job 920001
+P2: THE ARRAY IS SUBMITTED
+### block B pasted again
+### exit 0, 0 s
+$ squeue -u charing
+$ cd ~/harddisks_gen3_p2/hspist3 && { Q=$(squeue -h -u charing -n gen3-p2 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-p2 job: $Q"; false; }; } && { [ ! -e $R/lustre/harddisks_gen3/stage2/P2 ] || { echo "REFUSED: $R/lustre/harddisks_gen3/stage2/P2 exists: the array ran before"; false; }; } && { grep -qx 'commit_scripts c7d787a42dfa790cb9ae7778070c2210f9a11467' logs/BUILD_RECORD_P2.txt || { echo "REFUSED: logs/BUILD_RECORD_P2.txt does not name the package commit c7d787a4"; false; }; } && echo "CHECKS GOOD" && sbatch --array=221,271,321,371 cluster/gen3_stage2_261016/p2_koa.sbatch && echo "P2: THE ARRAY IS SUBMITTED" || echo "P2: THIS PASTE DID NOT SUBMIT THE ARRAY"
+REFUSED: $R/lustre/harddisks_gen3/stage2/P2 exists: the array ran before
+P2: THIS PASTE DID NOT SUBMIT THE ARRAY
+```
+
+**Block C** (block_C.txt):
+```
+### block C (the checks)
+### exit 0, 0 s
+$ squeue -u charing
+$ cd ~/harddisks_gen3_p2/hspist3
+$ ls logs/gen3-p2_*.out | wc -l
+       4
+$ grep -lx 'chunk [0-9]* done' logs/gen3-p2_*.out | wc -l
+       4
+$ cat logs/gen3-p2_*.out | grep -c -e FAILED -e REFUSED -e STOP
+0
+$ grep -h '^chunk [0-9]* on ' logs/gen3-p2_*.out | sed 's/: group.*//; s/^chunk [0-9]* on [^ ]* //' | sort | uniq -c
+   4 (Apple M3 Max (Mac rehearsal))
+$ bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-p2 $R/lustre/harddisks_gen3/stage2/P2/chunks cluster/gen3_stage2_261016/chunks_p2_koa_261016.tsv P2
+chunk logs: 4; chunks done: 4 of 4 (group P2; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished
+```
+
+**Blocks D and D2, and the merge submitted again** (block_D.txt, block_D2.txt, block_D_merge_again.txt):
+```
+### block D (the merge job; the shim runs it at once)
+### exit 0, 13 s
+$ squeue -u charing
+$ cd ~/harddisks_gen3_p2/hspist3 && sbatch cluster/gen3_stage2_261016/p2_merge.sbatch
+Submitted batch job 920002
+### block D2 (the merge's log)
+### exit 0, 0 s
+$ squeue -u charing
+$ cd ~/harddisks_gen3_p2/hspist3 && L=$(ls -t logs/gen3-p2-merge_*.out | head -1) && echo "$L" && grep -Ev '^  m_|^reduce_' "$L" | tail -25
+logs/gen3-p2-merge_920002.out
+## the merge plan: every destination folder, the chunks that deliver into it, and the names found in more than one chunk for that destination
+
+| destination (under merged/) | chunks | names in more than one chunk: treatment |
+|---|---|---|
+| stage2/gen3/P2_N0900_eta0.780000_G1_pin0/m_4500 | 221 | - |
+| stage2/gen3/P2_N0900_eta0.780000_G1_pinturned/m_4500 | 271 | - |
+| stage2/gen3/P2_N0900_eta0.780000_G2_pin0/m_4500 | 321 | - |
+| stage2/gen3/P2_N0900_eta0.780000_G2_pinturned/m_4500 | 371 | - |
+
+plan entries by treatment: APPEND 8, EQUAL 4, MOVE 16, PER CHUNK 4
+names inside the moved run folders .done_runs/run<r> (each run's own folder; they never meet at the cell level): 00_COMMAND.md x4, 00_COMMAND_AND_PLOT_COMMAND.md x4, 01_PLOT_COMMANDS.md x4, experiments_speed_of_sound/ x4, initial_state.txt x4, run_params.json x4, speed_of_sound_batch_status.json x4, speed_of_sound_psi6.csv x4, stdout.log x4
+
+merged 4 chunks: 16 files moved, 8 files appended, 4 kept per chunk (0 failed-run folders), 0 incomplete run folders, 0 locks or temp files left in place, 4 build files equal; build '00ALLINONE  git 8aaf5fe  target koa'
+  stage2/gen3/P2_N0900_eta0.780000_G1_pin0/m_4500: 1 traces compressed
+  stage2/gen3/P2_N0900_eta0.780000_G1_pinturned/m_4500: 1 traces compressed
+  stage2/gen3/P2_N0900_eta0.780000_G2_pin0/m_4500: 1 traces compressed
+  stage2/gen3/P2_N0900_eta0.780000_G2_pinturned/m_4500: 1 traces compressed
+merge done; next: p2_reduce.py
+stage2/gen3/P2_N0900_eta0.780000_G1_pin0/m_4500: 1 runs, errors 0; e start +0.48 / +0.53 %, end -1.72 / -1.62 %; Q (own fits, median) 19.4; stalls 0; psi6 rec 0.733 / 0.737
+stage2/gen3/P2_N0900_eta0.780000_G1_pinturned/m_4500: 1 runs, errors 0; e start -9.03 / -9.04 %, end +2.00 / +2.41 %; Q (own fits, median) 32.3; stalls 0; psi6 rec 0.765 / 0.808
+stage2/gen3/P2_N0900_eta0.780000_G2_pin0/m_4500: 1 runs, errors 0; e start -0.09 / -0.09 %, end -2.37 / -1.95 %; Q (own fits, median) 32.1; stalls 0; psi6 rec 0.691 / 0.695
+stage2/gen3/P2_N0900_eta0.780000_G2_pinturned/m_4500: 1 runs, errors 0; e start +0.05 / +0.06 %, end +0.46 / -0.42 %; Q (own fits, median) 104.3; stalls 0; psi6 rec 0.891 / 0.890
+p2_reduce: 4 folders (0 without the stage 1 tables), 4 trajectories, 0 with an error; 7 s
+P2 merge and reduction done; next: the fetch from the Mac (fetch_p2_koa.sh)
+this job's log is copied to $R/lustre/harddisks_gen3/stage2/P2/job_logs/ as the last command
+### the merge submitted again (no guard)
+### exit 0, 0 s
+$ cd $R/home/harddisks_gen3_p2/hspist3 && sbatch cluster/gen3_stage2_261016/p2_merge.sbatch
+Submitted batch job 920003
+$ tail -2 "$(ls -t $R/home/harddisks_gen3_p2/hspist3/logs/gen3-p2-merge_*.out | head -1)"
+env: gcc (GCC) 14.3.0 [rehearsal shim; here: Apple clang version 17.0.0 (clang-1700.4.4.1)] | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+STOP: $R/lustre/harddisks_gen3/stage2/P2/merged exists -- a merge ran before; not merging twice
+```
+
+**Block E** (block_E.txt; the rsync -v file names are left out here):
+```
+### block E (the fetch, local)
+### exit 0, 0 s
+$ cd $R/standin && bash hspist3/cluster/gen3_stage2_261016/fetch_p2_koa.sh
+[rehearsal rsync shim] /usr/bin/rsync --exclude=e0_*/ -av --ignore-existing --exclude=/chunks/ --exclude=wall_x_positions_* --exclude=snapshots_* --include=.done_runs/ --include=.done_runs/run*/ --include=.done_runs/run*/initial_state.txt --exclude=.done_runs/run*/** $R/lustre/harddisks_gen3/stage2/P2/ $R/standin/hspist3/experiments_gen3_stage2_koa_261016/P2/
+[rehearsal rsync shim] /usr/bin/rsync --exclude=e0_*/ --server -g -l -o -p -D -r -t -v -W --ignore-existing --dirs . $R/standin/hspist3/experiments_gen3_stage2_koa_261016/P2/
+Transfer starting: 149 files
+[149 file names of rsync -v left out here; block_E.txt holds them]
+
+sent 1412196 bytes  received 2706 bytes  47006710 bytes/sec
+total size is 1389625  speedup is 0.98
+fetched into $R/standin/hspist3/experiments_gen3_stage2_koa_261016/P2: 1.6M; merge record: 2026-10-15 17:54:38 HST; p2_reduce: p2_reduce: 4 folders (0 without the stage 1 tables), 4 trajectories, 0 with an error; 7 s
+```
+
+- **The fetch filter: found and fixed.**
+  - The Mac's only rsync is /usr/bin/rsync, which is openrsync (protocol 29). It did not apply the first filter's `.done_runs/run*/**` exclude, so the run folders came whole: 0.4 MB per run, the nested experiments_speed_of_sound folders included.
+  - The traces and the snapshots were excluded, as designed.
+  - fetch_p2_koa.sh now has four plain excludes (in c4a8f48f; KOA never runs it). Tested with openrsync by the script itself on this root: no trace, no snapshot, no nested folder, the 4 initial states, 1.6 MB for 4 runs (fetch_filter_test_openrsync.txt).
+
+**The four runs** (p2_tables_mac.py on the fetch; p2_tables/p2_seeds.csv):
+
+| | G1 pin 0 | G1 turned | G2 pin 0 | G2 turned |
+|---|---|---|---|---|
+| H [σ] | 30.0000 | 30.0000 | 29.9167 | 28.6667 |
+| the arrangement (header) | para alt 28x17, 12 vac | para alt 17x27, 1 vac | para alt 28x17, 12 vac | para alt 17x27, 1 vac |
+| [EDMD3-M4C] | x / x | y / y | x / x | y / y |
+| start strain: lattice (replica) | +0.489 % | -9.037 % | -0.091 % | +0.053 % |
+| start strain: initial state, left / right | +0.476 / +0.528 % | -9.029 / -9.041 % | -0.089 / -0.094 % | +0.047 / +0.058 % |
+| divider − L0 at the start [σ] | 0 | 0 | 0 | 0 |
+| gen3 health clean | 1 | 1 | 1 | 1 |
+| executed events | 154,793,383 | 132,538,142 | 153,193,344 | 124,675,044 |
+| Mac seconds (one run at a time) | 210 | 182 | 206 | 174 |
+| strain at the hold's end, left / right | -1.66 / -1.81 % | +2.86 / +2.58 % | -2.70 / -2.40 % | +0.04 / -0.38 % |
+| strain at the end, left / right | -1.72 / -1.62 % | +2.00 / +2.41 % | -2.37 / -1.95 % | +0.46 / -0.42 % |
+| ordered at the end, left / right | 97 / 95 % | 97 / 98 % | 99 / 96 % | 100 / 100 % |
+| ν_d / ν_pred | 1.283 | 1.021 | 1.267 | 1.157 |
+| Q (own fit), stall | 19.4, 0 | 32.3, 0 | 32.1, 0 | 104.3, 0 |
+| spectrum share | 82 % | 94 % | 88 % | 96 % |
+| c (this run) | 24.52 | 19.51 | 24.20 | 22.11 |
+| sd / sd_E1 | 0.77 | 0.90 | 0.97 | 1.11 |
+| drift per 1000 σ-time [σ] | +0.0037 | -0.0002 | -0.0015 | -0.0060 |
+| Z | 20.66 | 17.98 | 20.63 | 16.71 |
+| ψ6 per compartment | 0.733 / 0.737 | 0.765 / 0.808 | 0.691 / 0.695 | 0.891 / 0.890 |
+| orientation − pin [deg] | -0.27 / -0.24 | +0.13 / +0.10 | +0.21 / -0.21 | -0.01 / +0.00 |
+| divider − L0 at the end [σ] | -0.014 | -0.019 | -0.025 | +0.016 |
+
+- **What block A, the start and the health show:**
+  - The start strains are as designed. The initial states agree with the replica's lattice within the jitter (within 0.04 points), and G2 starts at |e| ≤ 0.1 %.
+  - [EDMD3-M4C] reports the requested orientation in both compartments in all 4 runs.
+  - The divider starts at L0 (0.0).
+  - Every run is clean.
+- **The full-length time on KOA:**
+  - These lines executed 124.7–154.8 M events. At the dense cells' medians (Report D56-1) that is 7.3–9.1 min on E5-2670 v3 and 8.8–10.9 min on E5-4640 v2.
+  - The package's time model, calibrated on these runs, puts the longest P2 line (α 20, pin 0, η 0.78) at 14.1 min on v2, so the limit is 25 min.
+  - Total: 52.9 core-hours on v3 (63.5 on v2), about 50 min at 64 cores.
+- **The earlier attempts are kept:**
+  - rehearsal_261015 is empty (the kissfft source had moved);
+  - rehearsal_261015b scored 9 of 11, both failures in the rehearsal script (README.md there);
+  - the runsheet's block D was then split into D and D2.
+
+## 5. What the four rehearsal runs show (one run per cell at α 5: information, not a result)
+
+- **The start strain does not survive the hold.**
+  - G1 turned starts at −9.0 % and ends the hold at +2.9 / +2.6 %.
+  - G2 pin 0 starts at −0.1 % and ends it at −2.7 / −2.4 %.
+  - G1 pin 0 goes from +0.5 % to −1.7 %. Only G2 turned stays near zero (+0.5 / −0.4 % at the end).
+  - Each crystal relaxes to a strain set by the box and its defects, not by the start. P2's 10 seeds per cell will show whether that state is reproducible.
+- **The pin is a state variable.**
+  - At 0.78 the pin-0 crystals (28 × 17, 12 vacancies per compartment) carry Z 20.6–20.7 and ring at 1.27–1.28 ν_pred (c 24.2–24.5).
+  - The turned ones (17 × 27, 1 vacancy) carry Z 16.7–18.0 and ring at 1.02–1.16 ν_pred (c 19.5–22.1).
+  - The orientation stays within 0.3° of the pin.
+- **The strain-free turned crystal rings with Q 104.** The others ring with Q 19–32. At Q ~ 100 the ACF window (20 predicted periods) is shorter than τ_r: block D's stall regime (D56-1 (d)). The package flags stalls per run.
+- **The divider is not locked.** sd / sd_E1 is 0.77–1.11, and the drift is under 0.01 σ per 1000 σ-time.
+
+## 6. The package at c69804b0 (17 files; SHA-256 of each file as committed)
+
+```
+f6d0065df6151a8340de61fddc2b13265768e1b74d8f34927dd82b85df133a04  cluster/gen3_stage2_261016/chunks_p2_koa_261016.tsv
+bd26ac5a2ba96d796d2ad615d33058a4caecdbda515ffba64d108e697620d3e0  cluster/gen3_stage2_261016/fetch_p2_koa.sh
+200cf94d435d407abe1cf5033ff233e2e9ebeb942e6e2ea70b35906d521ae936  cluster/gen3_stage2_261016/gen_p2_koa_261016.py
+fcbdbd3bc35aa407196955fd64df75eb7e45da9256df7d413c7fdf98c22658d8  cluster/gen3_stage2_261016/make_p2_manifests.py
+d437a89549c71498eade82f52a9218e6dcfe26323e9019390e69508c45a77a6c  cluster/gen3_stage2_261016/make_p2_runsheet.py
+10ea088e5547ce2162a9735aecc8046b5fcc0c7ca84057221a10bbe8c680228e  cluster/gen3_stage2_261016/p2_build_sources.sha256
+ad99d64b4171b8b59f45ec92935ca120b02336ecad9a09d87b3b64ef288784a7  cluster/gen3_stage2_261016/p2_design_261016.txt
+4317de7934c546a922348f44c8daec42d9d99f290860553476998f38fa6efaef  cluster/gen3_stage2_261016/p2_inputs.sha256
+645c71ea1d4914daa103b89a596dc4caad5df646e3af4b61ea0b029f08ce2aef  cluster/gen3_stage2_261016/p2_koa.sbatch
+60d46f626cf38dc9b4f5fba7362f59fe4f8ad3b284b2105fe77ba1e49539d714  cluster/gen3_stage2_261016/p2_lattice.py
+9281f63483b58de8a8ae337503980e4e75e861687e734070d6cd4f509b82941f  cluster/gen3_stage2_261016/p2_merge.sbatch
+e06a317f69b3c728ca1299fe552b7692d5d62be58f6d2eea0fef94692a0d0689  cluster/gen3_stage2_261016/p2_reduce.py
+580aeda23b8d9ff0a0b98875552168a4fb11945a3aca9d84b91ce605c03c069a  cluster/gen3_stage2_261016/p2_tables_mac.py
+c52c49e4b627f0edcdfb09447c7d2088acd2d7220d9caea381782f30b3cc99e2  cluster/gen3_stage2_261016/p2_worker_koa.sh
+ca81cf0b7e0f5e83ec8f9e0daef5d9146d06b2596de0296a33254ecd1e559a4f  cluster/gen3_stage2_261016/record_p2_build.sh
+0ec426f36bf486f0693d1e119e7d8b2bbf54da6265d7bd0cae79c27dcba9f515  cluster/gen3_stage2_261016/tasks_p2_koa_261016.sha256
+656d5a68ca79b77db1e5100ecb56853ebfb6f89cf7e6bde7964e65c249c173ed  cluster/gen3_stage2_261016/tasks_p2_koa_261016.txt
+```
+
+After c69804b0, in c4a8f48f: fetch_p2_koa.sh (the openrsync filter: section 4), make_p2_runsheet.py and the new runsheet_p2_261016.txt and rehearse_p2_mac.py. KOA uses none of them.
+
+## 7. The KOA lines (cluster/gen3_stage2_261016/runsheet_p2_261016.txt, verbatim)
+
+```
+##CHRIS 2026-10-15 (plan-author decision 57; notes 261012 sec. 4.7.135) -- THE P2 RUNSHEET (KOA): the Stage 2 pilot, N 900, 400 runs.
+Written by cluster/gen3_stage2_261016/make_p2_runsheet.py. PREPARED: typed only after the plan author has read Report D57-1 and Chris
+has pushed main. Chris types every command.
+
+WHAT IT DOES. Block A makes ONE fresh clone ~/harddisks_gen3_p2: at 8aaf5fef it builds the campaign binary with 8aaf5fef's own
+cluster/build_koa.sh (make -B koa with cluster/koa_env.sh: stage 1's target, flags and environment); then it fetches the package commit
+c69804b0 ("decision 57: the P2 package (Stage 2 pilot on KOA, N 900, eta 0.72/0.78, G1/G2, ...") and checks it out -- the package adds files only, the build inputs stay 8aaf5fef's, and
+record_p2_build.sh checks every one of them against p2_build_sources.sha256 before it writes the build-time record. Block B submits
+ONE array of 400 one-core tasks, at most 64 at once; each task runs one task line with p2_worker_koa.sh (the stage 1 worker plus the
+initial dump) after its start-up checks (inputs, task list, binary against the build-time record; no git). Block D submits the merge
+(the stage 1 merge and reducers, unchanged, then p2_reduce.py). Block E fetches the tables, logs, psi6 and virial files and the
+initial states to the Mac (no traces, no snapshots).
+KOA RULES, as before: the login node only for light commands; squeue before every sbatch; never submit a job twice; nothing in
+~/harddisks, ~/harddisks_resched, ~/harddisks_resched2, ~/harddisks_gen3, ~/harddisks_gen3_s1 or ~/harddisks_gen3_k2 changes; every job
+stops with "STOP: [<node>] ..." on a failed start-up check before it runs anything: paste the STOP line, change nothing, wait.
+NO GIT AT RUN TIME; every sbatch file carries --exclude=cn-05-08-07. THE SANDBOX LINE is the established one.
+
+CORE-HOURS AND TIME (Report D56-1 (a), the upper Z):
+  predicted core-hours (upper Z x the rehearsal's ratio per pin): 52.9 on E5-2670 v3, 63.5 on E5-4640 v2; the longest line 14.1 min on v2 -> the array's time limit 1.5 x that, rounded up to 5 min: 25 min
+  wall time at 64 cores (v3): about 50 min
+  requested: 400 tasks x 0:25 h = 167 core-hours at most (Slurm charges use); the merge 1 core, --time=24:00:00,
+  expected well under 1 h.
+SCRATCH: about 0.9 GB on Lustre at most (per run, measured in the Mac rehearsal: the trace 0.5 MB until the merge gzips it to 0.07 MB,
+the snapshots 1.4 MB, psi6(t) 0.2 MB, the run folder with the initial state 0.12 MB); the fetch about 0.16 GB (0.4 MB per run).
+
+P2 BLOCK A0 (KOA login node; opens the sandbox shell; then wait for the cn-... prompt):
+squeue -u charing
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G --pty /bin/bash
+
+  Expected: squeue lists no gen3 job (its header only). Paste block A only at the cn-... prompt.
+
+P2 BLOCK A (in the sandbox shell: the fresh clone, the build at 8aaf5fef, the package checkout, the build-time record, the checks):
+git --version
+ls -d ~/harddisks_gen3_p2 2>&1 | head -1
+cd ~ && git clone --depth 1 --branch main --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_gen3_p2
+cd ~/harddisks_gen3_p2 && git fetch --depth 1 origin 8aaf5fef27c92391fc4fadd5133324740c29ef06
+git -c advice.detachedHead=false checkout 8aaf5fef27c92391fc4fadd5133324740c29ef06
+git sparse-checkout set --no-cone "/hspist3/*.c" "/hspist3/*.h" "/hspist3/*.py" "/hspist3/Makefile" "/hspist3/edmd_core/" "/hspist3/cluster/" "/hspist3/validation/" "/hspist3/kissfft"
+git clone https://github.com/mborgerding/kissfft.git hspist3/kissfft
+git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec
+git log -1 --format='%h %s' | cut -c1-80
+bash hspist3/cluster/build_koa.sh 2>&1 | tail -16
+git fetch --depth 1 origin c69804b0e0a19262578aa89a4defcccb607f64b9
+git -c advice.detachedHead=false checkout c69804b0e0a19262578aa89a4defcccb607f64b9
+git log -1 --format='%h %s' | cut -c1-80
+bash hspist3/cluster/gen3_stage2_261016/record_p2_build.sh
+cd hspist3 && sha256sum cluster/gen3_stage2_261016/p2_koa.sbatch cluster/gen3_stage2_261016/p2_merge.sbatch cluster/gen3_stage2_261016/p2_inputs.sha256 cluster/gen3_stage2_261016/p2_build_sources.sha256 cluster/gen3_stage2_261016/record_p2_build.sh
+sha256sum -c cluster/gen3_stage2_261016/p2_inputs.sha256 | grep -c ': OK$'
+cat cluster/gen3_stage2_261016/tasks_p2_koa_261016.sha256
+source cluster/koa_env.sh
+python3 -c "import sys; sys.argv = ['x']; sys.path[:0] = ['cluster/gen3_stage2_261016', 'cluster/gen3_stage1_261012', 'cluster/gen3_testR_261011', 'validation', '.']; import merge_s1_koa, reduce_s1_koa, p2_lattice, p2_reduce; print('the merge and reducer imports: OK')"
+ls /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage2/P2 2>&1 | head -1
+exit
+
+  THE LINES THAT SHOW IT IS GOOD (paste everything):
+    "git version 2.35.0" or newer
+    "ls: cannot access '/home/charing/harddisks_gen3_p2': No such file or directory" (the clone does not exist yet)
+    the clone; the fetch of 8aaf5fef...; "HEAD is now at 8aaf5fe ..."; the kissfft clone and "HEAD is now at febd4ca ..."
+    "8aaf5fe Report D56-1 recorded (261012 sec. 4.7.134): figure 1 with block D; St" (the log line)
+    the build's last lines: "== checks", the version lines with "00ALLINONE  git 8aaf5fe  target koa", "== provenance" with
+    "compiler       gcc (GCC) 14.3.0" and "git_commit     8aaf5fef27c92391fc4fadd5133324740c29ef06", the recorded hash line, "BUILD OK"
+    the fetch of c69804b0...; "HEAD is now at c69804b ..." (git may first print "Warning: you are leaving 1 commit behind": harmless)
+    "c69804b decision 57: the P2 package (Stage 2 pilot on KOA, N 900, eta 0.72/0.7" (the log line)
+    the record: "env: gcc (GCC) 14.3.0 | ...", its lines ("commit_build 8aaf5fef27c92391fc4fadd5133324740c29ef06",
+    "commit_scripts c69804b0e0a19262578aa89a4defcccb607f64b9", "version 00ALLINONE  git 8aaf5fe  target koa", "sha256 <SHA-256> 00ALLINONE",
+    "build_inputs 50 of 50 equal to 8aaf5fef's (...)", the build_koa lines) and "BUILD RECORD OK: /home/charing/harddisks_gen3_p2/hspist3/logs/BUILD_RECORD_P2.txt"
+    exactly these five lines:
+      645c71ea1d4914daa103b89a596dc4caad5df646e3af4b61ea0b029f08ce2aef  cluster/gen3_stage2_261016/p2_koa.sbatch
+      9281f63483b58de8a8ae337503980e4e75e861687e734070d6cd4f509b82941f  cluster/gen3_stage2_261016/p2_merge.sbatch
+      4317de7934c546a922348f44c8daec42d9d99f290860553476998f38fa6efaef  cluster/gen3_stage2_261016/p2_inputs.sha256
+      10ea088e5547ce2162a9735aecc8046b5fcc0c7ca84057221a10bbe8c680228e  cluster/gen3_stage2_261016/p2_build_sources.sha256
+      ca81cf0b7e0f5e83ec8f9e0daef5d9146d06b2596de0296a33254ecd1e559a4f  cluster/gen3_stage2_261016/record_p2_build.sh
+    24         (the input manifest, each file ": OK")
+    656d5a68ca79b77db1e5100ecb56853ebfb6f89cf7e6bde7964e65c249c173ed   (the task list's SHA-256)
+    "env: gcc (GCC) 14.3.0 | Python ... at /home/charing/envs/hd/bin/python3 | ..."
+    "the merge and reducer imports: OK"
+    "ls: cannot access '/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage2/P2': No such file or directory" (a fresh root)
+  STOP RULE: a STOP line or anything else: type exit if the shell is still open, paste it, submit nothing, wait.
+
+P2 BLOCK B (KOA login node, after block A's exit; ONE guarded line: it submits the array once, a second paste refuses):
+squeue -u charing
+cd ~/harddisks_gen3_p2/hspist3 && { Q=$(squeue -h -u charing -n gen3-p2 -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-p2 job: $Q"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage2/P2 ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage2/P2 exists: the array ran before"; false; }; } && { grep -qx 'commit_scripts c69804b0e0a19262578aa89a4defcccb607f64b9' logs/BUILD_RECORD_P2.txt || { echo "REFUSED: logs/BUILD_RECORD_P2.txt does not name the package commit c69804b0"; false; }; } && echo "CHECKS GOOD" && sbatch --array=1-400%64 cluster/gen3_stage2_261016/p2_koa.sbatch && echo "P2: THE ARRAY IS SUBMITTED" || echo "P2: THIS PASTE DID NOT SUBMIT THE ARRAY"
+
+  Expected: squeue lists no gen3 job; then "CHECKS GOOD", "Submitted batch job <its number>" and "P2: THE ARRAY IS SUBMITTED". 400 tasks, at most 64 at once,
+  0:25 h each at most; predicted about 50 min of wall time. A second paste prints "REFUSED: ..." and "P2: THIS PASTE DID NOT SUBMIT THE ARRAY".
+
+P2 BLOCK C (KOA login node, when squeue -u charing lists no gen3-p2 job; every line only reads; paste everything):
+squeue -u charing
+cd ~/harddisks_gen3_p2/hspist3
+ls logs/gen3-p2_*.out | wc -l
+grep -lx 'chunk [0-9]* done' logs/gen3-p2_*.out | wc -l
+cat logs/gen3-p2_*.out | grep -c -e FAILED -e REFUSED -e STOP
+grep -h '^chunk [0-9]* on ' logs/gen3-p2_*.out | sed 's/: group.*//; s/^chunk [0-9]* on [^ ]* //' | sort | uniq -c
+bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-p2 /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage2/P2/chunks cluster/gen3_stage2_261016/chunks_p2_koa_261016.tsv P2
+
+  THE LINES THAT SHOW IT IS GOOD:
+    squeue: its header line only
+    400        (one log per chunk)
+    400        (each chunk once with its line "chunk <j> done")
+    0          (no FAILED, REFUSED or STOP line; a run the worker refused prints FAILED: paste it, it does not stop the merge)
+    one line per CPU model, the counts adding up to 400
+    "chunk logs: 400; chunks done: 400 of 400 (group P2; ...); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished"
+  STOP RULE: anything else: paste it, change nothing, wait (a resubmission line follows from CC and the plan author).
+
+P2 BLOCK D (KOA login node, after block C was good; the merge job):
+squeue -u charing
+cd ~/harddisks_gen3_p2/hspist3 && sbatch cluster/gen3_stage2_261016/p2_merge.sbatch
+
+  Expected: squeue lists no gen3-p2 job; "Submitted batch job <its number>". Submit it ONCE: the merge checks everything itself before it
+  moves anything and refuses a second run (exit 3). It takes well under an hour.
+
+P2 BLOCK D2 (KOA login node, when squeue -u charing lists no gen3-p2-merge job; reads only; paste everything):
+squeue -u charing
+cd ~/harddisks_gen3_p2/hspist3 && L=$(ls -t logs/gen3-p2-merge_*.out | head -1) && echo "$L" && grep -Ev '^  m_|^reduce_' "$L" | tail -25
+
+  THE LINES THAT SHOW IT IS GOOD: squeue's header only; the log's path; "merged 400 chunks: 1600 files moved, 800 files appended, 400 kept
+  per chunk (0 failed-run folders), 0 incomplete run folders, 0 locks or temp files left in place, 400 build files equal; build '00ALLINONE  git
+  8aaf5fe  target koa'",
+  the lines of p2_reduce.py (40 folders, one line each: e start, e end, Q, stalls, psi6), "p2_reduce: 40 folders (0 without the stage 1
+  tables), 400 trajectories, 0 with an error; <s> s", "P2 merge and reduction done; next: the fetch from the Mac (fetch_p2_koa.sh)" and
+  "this job's log is copied to ...". STOP RULE: a STOP line: paste it, change nothing, wait.
+
+P2 BLOCK E (Mac, after block D2's log is good; one password and Duo push; about 0.16 GB):
+cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks && bash hspist3/cluster/gen3_stage2_261016/fetch_p2_koa.sh
+
+  Expected, last line: "fetched into .../hspist3/experiments_gen3_stage2_koa_261016/P2: <size>; merge record: <time>; p2_reduce: p2_reduce: 40 folders
+  (0 without the stage 1 tables), 400 trajectories, 0 with an error; <s> s". Then tell CC: CC runs p2_tables_mac.py and writes the P2 report.
+```
+
+## 8. Commits (main; nothing pushed)
+
+- **a643c02c:** decision 57 and the correction to decision 56 (sec. 4.7.135).
+- **c69804b0:** the P2 package. KOA's block A fetches it by hash.
+- **c4a8f48f:** the runsheet, the rehearsal and its outputs, and the openrsync fix of the fetch.
+- **This report:** sec. 4.7.136.
+- **Push:** `git push origin main` (Chris) before block A; it also carries the three commits above.
+
+Written for: the plan author
