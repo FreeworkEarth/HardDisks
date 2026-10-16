@@ -10,9 +10,11 @@ static const char* KIND_NAME[3] = {"seed", "body", "tip"};
 
 void params_line(const Params* p, char* buf, size_t n){
     snprintf(buf, n, "kappa=%.17g tau=%.17g rmin=%.17g pbranch=%.17g delta=%.17g ntry=%d K=%d R0=%.17g rings=%d pbranch_exp=%.17g"
-             " beta=%.17g lambda=%.17g Tadapt=%d gamma=%.17g deltathin=%.17g rmax=%.17g budget_wait=%d tip_order=%s",
+             " beta=%.17g lambda=%.17g Tadapt=%d gamma=%.17g deltathin=%.17g rmax=%.17g budget_wait=%d tip_order=%s"
+             " thin_all=%d regrow_tips=%d regrow_fan=%.17g cue_off_reached=%d",
              p->kappa, p->tau, p->rmin, p->pbranch, p->delta, p->ntry, p->K, p->R0, p->rings, p->pbranch_exp,
-             p->beta, p->lambda, p->tadapt, p->gamma, p->deltathin, p->rmax, p->budget_wait, p->tip_order ? "random" : "id");
+             p->beta, p->lambda, p->tadapt, p->gamma, p->deltathin, p->rmax, p->budget_wait, p->tip_order ? "random" : "id",
+             p->thin_all, p->regrow_tips, p->regrow_fan, p->cue_off_reached);
 }
 
 int state_write_fp(const World* w, FILE* f){
@@ -92,6 +94,10 @@ static int parse_params(Params* p, const char* s){
         else if (!strcmp(k, "deltathin"))   { p->deltathin = strtod(v, &end); --seen; }
         else if (!strcmp(k, "rmax"))        { p->rmax = strtod(v, &end); --seen; }
         else if (!strcmp(k, "budget_wait")) { p->budget_wait = (int)strtol(v, &end, 10); --seen; }
+        else if (!strcmp(k, "thin_all"))        { p->thin_all = (int)strtol(v, &end, 10); --seen; }         /* 0b.1 keys */
+        else if (!strcmp(k, "regrow_tips"))     { p->regrow_tips = (int)strtol(v, &end, 10); --seen; }
+        else if (!strcmp(k, "regrow_fan"))      { p->regrow_fan = strtod(v, &end); --seen; }
+        else if (!strcmp(k, "cue_off_reached")) { p->cue_off_reached = (int)strtol(v, &end, 10); --seen; }
         else if (!strcmp(k, "tip_order"))   { if (!strcmp(v, "id")) p->tip_order = 0; else if (!strcmp(v, "random")) p->tip_order = 1; else return -1; end = (char*)v + strlen(v); --seen; }
         else return -1;
         if (*end != '\0' || end == v) return -1;
@@ -177,5 +183,6 @@ int state_read(World* w, const char* path, double* m_pool_file, char* err, size_
     if (ferror(f)) FAIL("%s: read error", path);
     fclose(f);
     if (!have) { snprintf(err, n, "%s: no header", path); world_free(w); return -1; }
+    world_refresh_reached(w);                          /* 0b.1: derived, as at the start of a tick */
     return 0;
 }

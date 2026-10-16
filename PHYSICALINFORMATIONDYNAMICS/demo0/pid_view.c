@@ -90,6 +90,8 @@ static void draw_hull(SDL_Renderer* R, const View* v, const Params* p, const Hul
     }
 }
 
+static unsigned char* g_front = NULL; static int g_front_cap = 0;   /* 0b.1: the new front, recomputed per frame */
+
 static void draw(SDL_Renderer* R, const View* v, const Run* run, unsigned char* live_tip, unsigned char* fed, SDL_Texture** cue, int* cw, int* ch, const Hull* hull){
     const World* w = &run->w; const Params* p = &w->p;
     SDL_SetRenderDrawColor(R, 14, 16, 22, 255);
@@ -110,6 +112,8 @@ static void draw(SDL_Renderer* R, const View* v, const Run* run, unsigned char* 
             fill_disk(R, sx, sy, (float)(q->r * v->scale));
         }
     if (p->npatch > 0) world_fed(w, fed); else memset(fed, 0, (size_t)w->nd);
+    if (w->nd > g_front_cap) { g_front_cap = 2 * w->nd; g_front = (unsigned char*)realloc(g_front, (size_t)g_front_cap); if (!g_front) return; }
+    world_front(w, g_front);
     memset(live_tip, 0, (size_t)w->nd);
     for (int k = 0; k < w->nt; ++k) if (w->t[k].alive) live_tip[w->t[k].disk] = 1;
     if (v->show_disks && v->alpha > 0) {                 /* 0c: at alpha 0 only outlines remain */
@@ -117,6 +121,7 @@ static void draw(SDL_Renderer* R, const View* v, const Run* run, unsigned char* 
             const Disk* d = &w->d[i]; if (!d->alive) continue;
             if (d->kind == KIND_SEED)      SDL_SetRenderDrawColor(R, 225, 95, 80, (Uint8)v->alpha);
             else if (fed[i])               SDL_SetRenderDrawColor(R, 250, 235, 90, (Uint8)v->alpha);    /* 0b: fed path */
+            else if (g_front[i] && !live_tip[i]) SDL_SetRenderDrawColor(R, 70, 210, 170, (Uint8)v->alpha);  /* 0b.1: new front */
             else if (live_tip[i])          SDL_SetRenderDrawColor(R, 250, 150, 60, (Uint8)v->alpha);
             else if (d->kind == KIND_TIP)  SDL_SetRenderDrawColor(R, 150, 152, 165, (Uint8)v->alpha);   /* dead end */
             else                           SDL_SetRenderDrawColor(R, 80, 150, 235, (Uint8)v->alpha);
@@ -177,7 +182,7 @@ int view_run(Run* run){
 #endif
     v.win_w = (int)ceil(p->W * v.scale) + 2 * v.margin;
     v.win_h = (int)ceil(p->H * v.scale) + 2 * v.margin + v.bar;
-    SDL_Window* win = SDL_CreateWindow("PID Demo 0c -- network and hull", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, v.win_w, v.win_h, SDL_WINDOW_SHOWN);
+    SDL_Window* win = SDL_CreateWindow("PID Demo 0b.1 -- growth from the food", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, v.win_w, v.win_h, SDL_WINDOW_SHOWN);
     if (!win) { fprintf(stderr, "pid: SDL_CreateWindow: %s\n", SDL_GetError()); SDL_Quit(); return 2; }
     int vsync = 1;
     SDL_Renderer* R = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -214,7 +219,11 @@ int view_run(Run* run){
         const Uint32 now_ms = SDL_GetTicks();   /* pacing only: how often ticks run, never what they do */
         if (v.running && (run->tick_ms == 0 || now_ms - last_tick_ms >= (Uint32)run->tick_ms)) {
             last_tick_ms = now_ms;
-            for (int k = 0; k < run->tpf; ++k) if (!run_tick(run)) break;
+            for (int k = 0; k < run->tpf; ++k) {
+                if (!run_tick(run)) break;
+                int due = 0; for (int q = 0; q < run->nshot_ticks; ++q) due |= run->shot_ticks[q] == run->w.tick;
+                if (due) { shot = 1; break; }   /* stop the batch here, so the frame shows exactly this tick */
+            }
         }
         if (run->w.tick != last_print && (run->w.tick % 10 == 0 || run->w.tick == run->steps)) { run_status(run, stdout); last_print = run->w.tick; }
         const int at_end = run->w.tick >= run->steps;
@@ -240,7 +249,7 @@ int view_run(Run* run){
         if (at_end && run->exit_at_end) quit = 1;
         if (!vsync) SDL_Delay(run->exit_at_end ? 0 : 15);
     }
-    free(live_tip); free(fed); if (cue) SDL_DestroyTexture(cue); hull_free(&hull);
+    free(live_tip); free(fed); if (cue) SDL_DestroyTexture(cue); hull_free(&hull); free(g_front); g_front = NULL; g_front_cap = 0;
 #ifdef PID_HAVE_TTF
     if (font) TTF_CloseFont(font);
     if (run->font) TTF_Quit();

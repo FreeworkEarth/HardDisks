@@ -73,7 +73,24 @@
      capsule is held to the closed form r1^2 (pi - a) + r2^2 a + (r1 + r2) d sin a, cos a = (r1 - r2)/d, to 1e-12.
      (d) needs shapely and skips when it is missing (the case on this Mac). (e) gives identical primitives and area.
    - View (sec. 9): --alpha and [ ] apply to every fill (disks of every kind and patches); at alpha 0 only outlines remain.
-     H draws the hull; --view=network is alpha 0 with the hull and the graph; --view=both keeps the disks and adds the hull. */
+     H draws the hull; --view=network is alpha 0 with the hull and the graph; --view=both keeps the disks and adds the hull.
+
+   Demo 0b.1 (brief sec. 9, last paragraph; preset mat45r). Every new behaviour is a flag that is off by default, so 0b
+   (preset mat45) stays the frozen baseline bit for bit:
+   - --thin-all=1: thinning applies to every non-fed disk except the seed, dead ends and rim disks included (sec. 9 corrects
+     the sec. 3 wording "every other body disk").
+   - --regrow-tips=n: when a placed disk is the first to touch an active non-home patch, that disk gets n new tips with
+     headings spread evenly over a fan of --regrow-fan radians centred on the arrival heading (the direction from its parent
+     to it), i.e. away from where the network came from. They act from the next tick through the normal executor, paid from
+     the pool, waiting when it is empty. The first disk to touch a patch is its lowest-id alive touching disk (fed disks
+     are never thinned, so it stays); it holds 1 + n tip slots.
+   - With regrow on, a disk feeds (and its tip stops) only when its lineage enters the patch for the first time: it touches
+     the patch and none of its ancestors does. The regrown front starts inside the food and must grow out of it, and a front
+     branch that curls back into the food is still front; strands of the old mat that arrive from outside feed as in 0b.
+   - --cue-off-reached=1: a reached patch (some alive disk touches it) keeps feeding but stops emitting cue, so the new
+     front is not pulled back into the food it has engulfed. The reached flags are refreshed at the start of every tick
+     (and when a state is read), so every tip in a tick sees the same field.
+   - The new front = the disks descending from a regrow disk that are not on a fed path. */
 #ifndef PID_H
 #define PID_H
 
@@ -112,6 +129,8 @@ typedef struct {
     int    tadapt;                     /* 0b: adaptation every tadapt ticks, 0 = off */
     double gamma, deltathin, rmax;     /* 0b: thickening, thinning, largest radius */
     int    budget_wait, tip_order;     /* 0b (sec. 8): 1 = budget-blocked tips wait; 0 = id order, 1 = random order */
+    int    thin_all, regrow_tips, cue_off_reached;   /* 0b.1: off (0) by default */
+    double regrow_fan;                 /* 0b.1: radians */
     int    npatch; Patch patch[PID_MAX_PATCHES];
 } Params;
 
@@ -130,6 +149,7 @@ typedef struct World {
     Rng      rng;
     char     build[256];               /* "<folder short hash>[-dirty] <cflags>" of the build that wrote the state */
     Hull     hull;                     /* 0c: written as [hull] and [areas] when valid; derived from the disks */
+    unsigned char reached[PID_MAX_PATCHES];   /* 0b.1: derived at the start of each tick (world_refresh_reached) */
 } World;
 
 typedef enum { ACT_STOP = 0, ACT_EXTEND = 1, ACT_BRANCH = 2 } ActType;
@@ -153,6 +173,9 @@ int    pid_disk_in_patch(const Disk* d, const Patch* q);
 void   pid_cue(const World* w, double x, double y, double* c, double* gx, double* gy);
 int    world_fed(const World* w, unsigned char* fed);   /* fed[i] = 1 on a fed path; returns how many */
 int    world_alive_disks(const World* w);
+void   world_refresh_reached(World* w);                 /* 0b.1 */
+int    world_regrow_disk(const World* w, int k);        /* 0b.1: the first disk to touch patch k, or -1 */
+int    world_front(const World* w, unsigned char* front);   /* 0b.1: front[i] = 1 on the new front; returns how many */
 int    executor_apply(World* w, int tip, Policy pol); /* 1 if a disk was placed */
 void   step(World* w, Policy pol);                 /* one growth tick; the only function that changes a World */
 double pid_wrap(double a);
@@ -203,6 +226,7 @@ typedef struct {
     int    hull_mode;                  /* 0c: 0 off, 1 in final.txt (default), 2 in every state file */
     double alpha;                      /* 0c: initial disk fill opacity 0..1 (window) */
     int    view_network;               /* 0c: --view: 0 disks (default), 1 network (alpha 0, hull and graph), 2 both */
+    long   shot_ticks[16]; int nshot_ticks;   /* 0b.1: --shot-ticks=a,b,...: a BMP at each of these ticks (window) */
 } Run;
 
 int  run_tick(Run* r);           /* one step() plus the writes it is due; 0 when --steps is reached */

@@ -28,6 +28,7 @@ void params_default(Params* p){
        preset mat45, so the 0a/0a.1 defaults and their regression stay as they were. rmax = 2 R0 at the default R0. */
     p->beta = 0.3; p->lambda = 40.0; p->tadapt = 0; p->gamma = 0.02; p->deltathin = 0.01; p->rmax = 6.0;
     p->budget_wait = 0; p->tip_order = 0; p->npatch = 0;
+    p->thin_all = 0; p->regrow_tips = 0; p->cue_off_reached = 0; p->regrow_fan = PID_PI;   /* 0b.1: off */
 }
 
 int params_check(const Params* p, char* err, size_t n){
@@ -50,6 +51,8 @@ int params_check(const Params* p, char* err, size_t n){
                                                  { snprintf(err, n, "need --tadapt >= 0, --gamma >= 0, --deltathin in [0, 1), --rmax >= --rmin"); return -1; }
     for (int k = 0; k < p->npatch; ++k)
         if (!(p->patch[k].r > 0 && p->patch[k].s >= 0)) { snprintf(err, n, "patch %d: r must be > 0 and s >= 0", k); return -1; }
+    if (p->regrow_tips < 0 || p->regrow_tips > 64 || !(p->regrow_fan >= 0 && p->regrow_fan <= 2 * PID_PI))
+                                                 { snprintf(err, n, "need --regrow-tips in 0..64 and --regrow-fan in [0, 2 pi]"); return -1; }
     return 0;
 }
 
@@ -91,6 +94,8 @@ void world_init(World* w, const Params* p, uint64_t seed, const char* rule){
     snprintf(w->build, sizeof w->build, "%s", pid_build_id());
     rng_seed(&w->rng, seed);
     const Disk s = {0, 0.5 * p->W, 0.5 * p->H, p->R0, -1, KIND_SEED, 0, 1};
+    /* (0b.1: no disk can touch a non-home patch at tick 0 before the start rings exist; reached[] stays 0 here and is
+       refreshed at the start of every tick) */
     world_add_disk(w, s);
     w->m_used = PID_PI * p->R0 * p->R0;
     const double rot = 2.0 * PID_PI * rng_uniform(&w->rng);   /* one draw: rotates the K headings, or the hex lattice */
@@ -190,6 +195,7 @@ void pid_cue(const World* w, double x, double y, double* c, double* gx, double* 
     for (int k = 0; k < w->p.npatch; ++k) {
         const Patch* q = &w->p.patch[k];
         if (!q->active || pid_patch_home(w, k)) continue;
+        if (w->p.cue_off_reached && w->reached[k]) continue;          /* 0b.1: engulfed food no longer attracts */
         const double dx = x - q->x, dy = y - q->y, d = hypot(dx, dy);
         const double e = q->s * exp(-d / w->p.lambda);
         *c += e;
@@ -224,8 +230,19 @@ Policy policy_by_name(const char* name){
     return NULL;
 }
 static int disk_fed_here(const World* w, const Disk* d){
-    for (int k = 0; k < w->p.npatch; ++k)
-        if (w->p.patch[k].active && !pid_patch_home(w, k) && pid_disk_in_patch(d, &w->p.patch[k])) return 1;
+    for (int k = 0; k < w->p.npatch; ++k) {
+        const Patch* q = &w->p.patch[k];
+        if (!q->active || pid_patch_home(w, k) || !pid_disk_in_patch(d, q)) continue;
+        /* 0b.1 (regrow on): a disk feeds at a patch only if no ancestor touches that patch, i.e. its lineage enters the
+           patch here for the first time. The front regrown from the food can then grow out of it, and a front branch that
+           curls back into it does not turn the front into an A-B strand. 0b: any touching disk feeds. */
+        if (w->p.regrow_tips > 0) {
+            int anc = 0;
+            for (int j = d->parent; j >= 0 && !anc; j = w->d[j].parent) anc = pid_disk_in_patch(&w->d[j], q);
+            if (anc) continue;
+        }
+        return 1;
+    }
     return 0;
 }
 /* fed[i] = 1 for every alive disk that touches a non-home active patch and for all its ancestors */
@@ -239,6 +256,47 @@ int world_fed(const World* w, unsigned char* fed){
     return n;
 }
 int world_alive_disks(const World* w){ int k = 0; for (int i = 0; i < w->nd; ++i) k += w->d[i].alive != 0; return k; }
+
+/* ---------------------------------------------------------------- 0b.1: reached patches, regrow disks, the new front */
+void world_refresh_reached(World* w){
+    for (int k = 0; k < w->p.npatch; ++k) {
+        int r = 0;
+        for (int i = 0; i < w->nd && !r; ++i) r = w->d[i].alive && pid_disk_in_patch(&w->d[i], &w->p.patch[k]);
+        w->reached[k] = (unsigned char)r;
+    }
+}
+static int* slot_counts(const World* w){                  /* grown children + tips on, per disk */
+    int* s = (int*)calloc((size_t)(w->nd > 0 ? w->nd : 1), sizeof(int));
+    if (!s) { fprintf(stderr, "pid: out of memory (slots)\n"); exit(3); }
+    for (int i = 1; i < w->nd; ++i) if (w->d[i].born > 0 && w->d[i].parent >= 0) s[w->d[i].parent]++;
+    for (int k = 0; k < w->nt; ++k) if (w->t[k].disk >= 0 && w->t[k].disk < w->nd) s[w->t[k].disk]++;
+    return s;
+}
+/* the disk that regrew at patch k: the alive disk touching it that holds 1 + regrow_tips slots (-1: none) */
+static int regrow_disk_slots(const World* w, int k, const int* slots){
+    if (w->p.regrow_tips < 2 || !w->p.patch[k].active || pid_patch_home(w, k)) return -1;
+    for (int i = 1; i < w->nd; ++i)
+        if (w->d[i].alive && w->d[i].born > 0 && slots[i] == 1 + w->p.regrow_tips && pid_disk_in_patch(&w->d[i], &w->p.patch[k])) return i;
+    return -1;
+}
+int world_regrow_disk(const World* w, int k){ int* s = slot_counts(w); const int r = regrow_disk_slots(w, k, s); free(s); return r; }
+int world_front(const World* w, unsigned char* front){
+    memset(front, 0, (size_t)w->nd);
+    if (w->p.regrow_tips < 2 || w->p.npatch == 0) return 0;
+    unsigned char* fed = (unsigned char*)malloc((size_t)w->nd); int* s = slot_counts(w);
+    if (!fed) { fprintf(stderr, "pid: out of memory (front)\n"); exit(3); }
+    world_fed(w, fed);
+    unsigned char* root = (unsigned char*)calloc((size_t)w->nd, 1); if (!root) exit(3);
+    for (int k = 0; k < w->p.npatch; ++k) { const int r = regrow_disk_slots(w, k, s); if (r >= 0) root[r] = 1; }
+    int n = 0;
+    for (int i = 1; i < w->nd; ++i) {                     /* children have larger ids than their parents */
+        const int p = w->d[i].parent;
+        if (!w->d[i].alive || fed[i] || p < 0) continue;
+        if (root[p] || front[p]) { front[i] = 1; ++n; }
+    }
+    free(fed); free(s); free(root);
+    return n;
+}
 
 /* ---------------------------------------------------------------- executor: legality, material, placement */
 static int placement_legal(const World* w, const Disk* nd, int parent){
@@ -267,7 +325,23 @@ int executor_apply(World* w, int ti, Policy pol){
         if (w->d[pid].kind == KIND_TIP) w->d[pid].kind = KIND_BODY;
         w->m_used += area;
         w->t[ti].disk = id; w->t[ti].heading = a.theta;
-        if (w->p.npatch > 0 && disk_fed_here(w, &w->d[id])) { w->t[ti].alive = 0; return 1; }   /* 0b: fed, the tip stops */
+        if (w->p.npatch > 0 && disk_fed_here(w, &w->d[id])) {                  /* 0b: fed, the tip stops */
+            w->t[ti].alive = 0;
+            if (w->p.regrow_tips > 0)                                            /* 0b.1: the first touch regrows */
+                for (int k = 0; k < w->p.npatch; ++k) {
+                    const Patch* q = &w->p.patch[k];
+                    if (!q->active || pid_patch_home(w, k) || !pid_disk_in_patch(&w->d[id], q)) continue;
+                    int before = 0;
+                    for (int j = 0; j < id && !before; ++j) before = w->d[j].alive && pid_disk_in_patch(&w->d[j], q);
+                    if (before) continue;
+                    const int n = w->p.regrow_tips;
+                    for (int m = 0; m < n; ++m) {
+                        const Tip t = {id, pid_wrap(a.theta + w->p.regrow_fan * (((double)m + 0.5) / (double)n - 0.5)), 1};
+                        world_add_tip(w, t);
+                    }
+                }
+            return 1;
+        }
         if (a.type == ACT_BRANCH) { const Tip b = {id, a.theta2, 1}; world_add_tip(w, b); }
         return 1;
     }
@@ -318,7 +392,8 @@ static void adapt(World* w){
         d->r = rn; w->m_used += dm;
     }
     for (int i = 0; i < n; ++i) {                                          /* thin every other body disk */
-        Disk* d = &w->d[i]; if (!d->alive || fed[i] || d->kind != KIND_BODY) continue;
+        Disk* d = &w->d[i]; if (!d->alive || fed[i]) continue;
+        if (w->p.thin_all ? i == 0 : d->kind != KIND_BODY) continue;      /* 0b.1: every non-fed disk except the seed */
         const double rn = d->r * (1.0 - w->p.deltathin);
         const double dm = radius_charge(w, i, rn, ks, kids);
         d->r = rn; w->m_used += dm;
@@ -340,6 +415,7 @@ static void adapt(World* w){
 
 void step(World* w, Policy pol){
     w->tick += 1;                                      /* the tick being processed; disks placed now are born at it */
+    if (w->p.cue_off_reached) world_refresh_reached(w);   /* 0b.1: one field per tick */
     const int n = w->nt;                               /* tips created in this tick act from the next one */
     if (w->p.tip_order == 0) {
         for (int i = 0; i < n; ++i) if (w->t[i].alive) executor_apply(w, i, pol);
@@ -420,9 +496,22 @@ int world_check(const World* w, int tangency, double m_pool_file, char* err, siz
         if (w->d[i].born == 0) {
             const int start_tips = w->p.rings == 0 ? (i == 0 ? w->p.K : 0) : (pid_start_ring(i) == w->p.rings ? 1 : 0);
             CHECK(slots == start_tips, "start disk %d: grown children %d + tips %d != the %d tips it started with", i, grown[i], tips_on[i], start_tips);
+        } else if (w->p.regrow_tips >= 2 && slots == 1 + w->p.regrow_tips && disk_fed_here(w, &w->d[i])) {
+            /* 0b.1: a regrow disk (its arriving tip plus the regrown tips); uniqueness per patch is checked below */
         } else CHECK(slots == 1 || slots == 2, "disk %d: children %d + tips %d is not 1 or 2", i, grown[i], tips_on[i]);
         if (i > 0) CHECK((w->d[i].kind == KIND_BODY) == (children[i] > 0), "disk %d: kind does not match its children", i);
     }
+    if (w->p.regrow_tips >= 2)                         /* 0b.1: exactly one regrow disk per reached patch, none elsewhere */
+        for (int k = 0; k < w->p.npatch; ++k) {
+            const Patch* q = &w->p.patch[k];
+            if (!q->active || pid_patch_home(w, k)) continue;
+            int touched = 0, rg = 0;
+            for (int i = 1; i < w->nd; ++i) {
+                if (!w->d[i].alive || !pid_disk_in_patch(&w->d[i], q)) continue;
+                touched = 1; rg += w->d[i].born > 0 && grown[i] + tips_on[i] == 1 + w->p.regrow_tips;
+            }
+            CHECK(rg == touched, "patch %d: %d regrow disks, expected %d", k, rg, touched);
+        }
     const double led = ledger_recompute(w);
     CHECK(fabs(led - w->m_used) <= 1e-9 * fabs(led), "ledger: recomputed M_used %.17g != running %.17g", led, w->m_used);
     CHECK(fabs(w->m_used + m_pool_file - w->p.budget) <= 1e-9 * w->p.budget, "ledger: M_used + M_pool != M_total");

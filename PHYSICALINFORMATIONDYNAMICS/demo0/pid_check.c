@@ -71,6 +71,18 @@ int main(int argc, char** argv){
                 ends += !fc;
             }
             printf("tick %ld alive %d live_tips %d m_pool %.6f fed %d fed_ends %d", w.tick, world_alive_disks(&w), world_live_tips(&w), pool, nf, ends);
+            if (w.p.regrow_tips >= 2) {                /* 0b.1: material (sum of pi r^2) of the A-B strands, the new front, the old mat */
+                unsigned char* fr = (unsigned char*)malloc((size_t)(w.nd > 0 ? w.nd : 1)); if (!fr) return 3;
+                const int nfr = world_front(&w, fr);
+                double mf = 0, mn = 0, mo = 0;
+                for (int j = 0; j < w.nd; ++j) {
+                    if (!w.d[j].alive) continue;
+                    const double m = PID_PI * w.d[j].r * w.d[j].r;
+                    if (fed[j]) mf += m; else if (fr[j]) mn += m; else mo += m;
+                }
+                printf(" front %d m_strands %.1f m_front %.1f m_oldmat %.1f", nfr, mf, mn, mo);
+                free(fr);
+            }
             for (int k = 0; k < w.p.npatch; ++k) {
                 if (pid_patch_home(&w, k)) continue;
                 int t = 0; for (int j = 0; j < w.nd; ++j) t += w.d[j].alive && pid_disk_in_patch(&w.d[j], &w.p.patch[k]);

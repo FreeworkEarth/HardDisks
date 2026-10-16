@@ -35,6 +35,7 @@ static void usage(FILE* f){
         "  --tick-ms=m            window: at most one batch of --tpf ticks every m ms, default 50 (0: every frame)\n"
         "  --exit-at-end          window: close when --steps is reached (tests)\n"
         "  --shot-at-end          window: write shot_<tick>.bmp into DIR when --steps is reached\n"
+        "  --shot-ticks=a,b,...   window: also write shot_<tick>.bmp when each of these ticks is reached (up to 16)\n"
         "  --overwrite            allow a non-empty DIR\n"
         "  --hull=final|all|off   0c: write the hull and the lumen area into final.txt (default), every state file, or none\n"
         "  --alpha=a              0c, window: opacity 0..1 of every disk and patch fill (default 0.78; [ ] change it live)\n"
@@ -47,6 +48,8 @@ static void usage(FILE* f){
         "                           0a   Demo 0a: --start-rings=0 --pbranch-exp=0 --pbranch=0.08 --ntry=8 --budget=3000\n"
         "                           mat45 Demo 0b (sec. 8): mat at --budget=4500, patch A under the seed, patch B at (0.8W, 0.5H),\n"
         "                                --tadapt=10 --budget-wait=1 --tip-order=random; run it with --rule=guided\n"
+        "                           mat45r Demo 0b.1 (sec. 9): mat45 with --thin-all=1 --regrow-tips=6 --regrow-fan=pi\n"
+        "                                --cue-off-reached=1 (growth from B); run it with --rule=guided\n"
         "  --version, --help\n"
         "parameters (defaults in brackets): --W [200] --H [120] --budget [4500] --kappa [0.35] --tau [0.03] --rmin [1]\n"
         "  --pbranch [0.8] --delta [0.6] --ntry [24] --K [6] --R0 [3]\n"
@@ -55,6 +58,7 @@ static void usage(FILE* f){
         "  the 0a defaults: --start-rings=0 --pbranch-exp=0 --pbranch=0.08 --ntry=8 --budget=3000\n"
         "  0b: --patch=x,y,r,s (repeatable, sigma; replaces the preset's patches) --beta [0.3] --lambda [40] --tadapt [0, off]\n"
         "  --gamma [0.02] --deltathin [0.01] --rmax [6] --budget-wait=0|1 [0] --tip-order=id|random [id]\n"
+        "  0b.1: --thin-all=0|1 [0] --regrow-tips=n [0, off] --regrow-fan=rad [pi] --cue-off-reached=0|1 [0]\n"
         "window keys: D disks, G graph, H hull (0c), C cue (0b), P patches (0b), [ ] disk transparency, Space pause/run,\n"
         "  N one tick, R reset to the same seed, S BMP into DIR, Esc quit\n");
 }
@@ -71,6 +75,11 @@ static int apply_preset(const char* name, Params* p){
         p->npatch = 2;
         p->patch[0] = (Patch){0.5 * p->W, 0.5 * p->H, 5.0, 1.0, 1};      /* A, under the seed */
         p->patch[1] = (Patch){0.8 * p->W, 0.5 * p->H, 5.0, 1.0, 1};      /* B */
+        return 0;
+    }
+    if (!strcmp(name, "mat45r")) {  /* Demo 0b.1 (brief sec. 9): growth from a reached patch, everything non-fed thins */
+        apply_preset("mat45", p);
+        p->thin_all = 1; p->regrow_tips = 6; p->regrow_fan = PID_PI; p->cue_off_reached = 1;
         return 0;
     }
     return -1;
@@ -195,7 +204,7 @@ int main(int argc, char** argv){
         if (!strncmp(argv[i], "--preset=", 9)) {
             if (r.preset) { fprintf(stderr, "pid: --preset given twice\n"); return 2; }
             r.preset = argv[i] + 9;
-            if (apply_preset(r.preset, &r.p)) { fprintf(stderr, "pid: unknown preset '%s' (mat45, mat, 0a1, 0a)\n", r.preset); return 2; }
+            if (apply_preset(r.preset, &r.p)) { fprintf(stderr, "pid: unknown preset '%s' (mat45r, mat45, mat, 0a1, 0a)\n", r.preset); return 2; }
         }
     for (int i = 1; i < argc; ++i) {
         const char* a = argv[i];
@@ -221,6 +230,10 @@ int main(int argc, char** argv){
         else if (!strcmp(key, "--tick-ms"))     { NEEDV(); bad = num_l(v, &lv) || lv < 0 || lv > 60000; r.tick_ms = (int)lv; }
         else if (!strcmp(key, "--exit-at-end")) { NOV(); r.exit_at_end = 1; }
         else if (!strcmp(key, "--shot-at-end")) { NOV(); r.shot_at_end = 1; }
+        else if (!strcmp(key, "--shot-ticks"))  { NEEDV(); char buf[256]; snprintf(buf, sizeof buf, "%s", v); r.nshot_ticks = 0;
+                                                  for (char* tk = strtok(buf, ","); tk && !bad; tk = strtok(NULL, ",")) {
+                                                      bad = r.nshot_ticks >= 16 || num_l(tk, &lv) || lv < 0;
+                                                      if (!bad) r.shot_ticks[r.nshot_ticks++] = lv; } }
         else if (!strcmp(key, "--overwrite"))   { NOV(); overwrite = 1; }
         else if (!strcmp(key, "--hull"))        { NEEDV(); if (!strcmp(v, "off")) r.hull_mode = 0; else if (!strcmp(v, "final")) r.hull_mode = 1; else if (!strcmp(v, "all")) r.hull_mode = 2; else bad = 1; }
         else if (!strcmp(key, "--alpha"))       { NEEDV(); bad = num_d(v, &r.alpha) || r.alpha < 0 || r.alpha > 1; }
@@ -244,6 +257,10 @@ int main(int argc, char** argv){
         else if (!strcmp(key, "--deltathin"))   { NEEDV(); bad = num_d(v, &r.p.deltathin); }
         else if (!strcmp(key, "--rmax"))        { NEEDV(); bad = num_d(v, &r.p.rmax); }
         else if (!strcmp(key, "--budget-wait")) { NEEDV(); bad = num_l(v, &lv) || (lv != 0 && lv != 1); r.p.budget_wait = (int)lv; }
+        else if (!strcmp(key, "--thin-all"))    { NEEDV(); bad = num_l(v, &lv) || (lv != 0 && lv != 1); r.p.thin_all = (int)lv; }
+        else if (!strcmp(key, "--regrow-tips")) { NEEDV(); bad = num_l(v, &lv) || lv < 0 || lv > 64; r.p.regrow_tips = (int)lv; }
+        else if (!strcmp(key, "--regrow-fan"))  { NEEDV(); bad = num_d(v, &r.p.regrow_fan); }
+        else if (!strcmp(key, "--cue-off-reached")) { NEEDV(); bad = num_l(v, &lv) || (lv != 0 && lv != 1); r.p.cue_off_reached = (int)lv; }
         else if (!strcmp(key, "--tip-order"))   { NEEDV(); if (!strcmp(v, "id")) r.p.tip_order = 0; else if (!strcmp(v, "random")) r.p.tip_order = 1; else bad = 1; }
         else if (!strcmp(key, "--patch"))       { NEEDV(); Patch q = {0, 0, 0, 0, 1}; char tail;
                                                   if (!patches_given) { r.p.npatch = 0; patches_given = 1; }

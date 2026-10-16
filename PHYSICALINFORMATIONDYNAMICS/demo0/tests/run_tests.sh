@@ -79,6 +79,31 @@ done
 d=0; for f in $T/b_g/state_000050.txt $T/b_g/final.txt $T/inv_bfast/final.txt; do $CHK roundtrip "$f" $T/rt_b.txt && cmp -s "$f" $T/rt_b.txt || d=$((d + 1)); done
 if [ "$d" -eq 0 ]; then ok "4 round trip with [patches] and removed disks: 3 files byte-identical"; else bad "4 round trip 0b: $d files differ"; fi
 
+# ---- 0b.1 (brief sec. 9, last paragraph; preset mat45r): 0b stays the frozen baseline. (1) mat45 reproduces the committed
+# 0b result (tests/ref; sha256 27091765..., the final.txt of the 0b screenshot run, demo0/shots/demo0b_seed9300_tick400_
+# manifest.txt) except params and build; (2) mat45r with its three new flags off equals mat45 except params.
+REFB=tests/ref/demo0b_seed9300_tick400_final.txt
+$BIN --seed=9300 --preset=mat45 --rule=guided --steps=400 --headless --hull=off --out=$T/r_b0 >/dev/null
+if [ "$(shasum -a 256 $REFB | cut -c1-64)" = 27091765a7a2b2ce95c60c1729537d30fb16d54a121913a7577431f42960d4b2 ] && \
+   grep -v -e '^params ' -e '^build ' $REFB > $T/rb1.txt && grep -v -e '^params ' -e '^build ' $T/r_b0/final.txt > $T/rb2.txt && cmp -s $T/rb1.txt $T/rb2.txt; then
+  ok "0b.1 regression: mat45 reproduces the committed 0b final.txt (27091765) except params and build"
+else bad "0b.1 regression: 0b not reproduced (diff $T/rb1.txt $T/rb2.txt)"; fi
+$BIN --seed=9301 --preset=mat45 --rule=guided --steps=300 --headless --write-every=50 --out=$T/r_m45 >/dev/null
+$BIN --seed=9301 --preset=mat45r --thin-all=0 --regrow-tips=0 --cue-off-reached=0 --rule=guided --steps=300 --headless --write-every=50 --out=$T/r_m45r0 >/dev/null
+n=0; d=0; for f in $T/r_m45/state_*.txt $T/r_m45/final.txt; do n=$((n + 1)); grep -v '^params ' "$f" > $T/rr1.txt; grep -v '^params ' "$T/r_m45r0/$(basename "$f")" > $T/rr2.txt; cmp -s $T/rr1.txt $T/rr2.txt || d=$((d + 1)); done
+if [ "$d" -eq 0 ]; then ok "0b.1 old rule selectable: mat45r with --thin-all=0 --regrow-tips=0 --cue-off-reached=0 = mat45 ($n files, except params)"; else bad "0b.1 old rule: $d of $n files differ"; fi
+$BIN --seed=9301 --preset=mat45r --rule=guided --steps=400 --write-every=1 --headless --out=$T/r_inv >/dev/null
+out=$($CHK verify $T/r_inv/state_*.txt $T/r_inv/final.txt); rc=$?
+last=$($CHK info $T/r_inv/final.txt)
+if [ "$rc" -eq 0 ] && echo "$last" | awk '{for (i=1;i<=NF;i++) if ($i == "front") exit !($(i+1) > 0)}'; then
+  ok "0b.1 invariants, ledger and regrow slots every tick, mat45r seed 9301: $out; a front formed: $last"
+else bad "0b.1 mat45r: $out; $last"; fi
+SDL_VIDEODRIVER=dummy $BIN --seed=9300 --preset=mat45r --rule=guided --steps=150 --write-every=10 --tpf=9 --tick-ms=0 --exit-at-end --out=$T/r_gui >$T/r_gui.log 2>&1
+$BIN --seed=9300 --preset=mat45r --rule=guided --steps=150 --write-every=10 --headless --out=$T/r_hl >/dev/null
+n=0; d=0; for f in $T/r_hl/state_*.txt $T/r_hl/final.txt; do n=$((n + 1)); cmp -s "$f" "$T/r_gui/$(basename "$f")" || d=$((d + 1)); done
+if [ "$d" -eq 0 ]; then ok "1 GUI = headless under 0b.1 (mat45r): $n state files identical"; else bad "1 GUI = headless 0b.1: $d of $n differ"; fi
+$CHK roundtrip $T/r_inv/final.txt $T/rt_r.txt && cmp -s $T/r_inv/final.txt $T/rt_r.txt && ok "4 round trip with the 0b.1 keys: byte-identical" || bad "4 round trip 0b.1"
+
 # ---- 0c (brief sec. 3 "0c", sec. 6 test 6, sec. 9): the hull in final.txt, checked by pid_check hull: (a) every loop
 # closed to 1e-9, (b) every disk centre inside, (c) raster area at 2/4/8/16 px per sigma (finest within 0.1 %, falling
 # log-log trend), (e) reversed edge order gives the same primitives and area, and the stored hull equals a recomputation
@@ -140,9 +165,9 @@ if [ -z "$(ls -A $T/cwd)" ]; then ok "rule 4: a run writes nothing into its cwd"
 before=$(shasum -a 256 $T/rep_a/final.txt)
 $BIN --seed=1 --steps=5 --headless --out=$T/rep_a >/dev/null 2>&1; rc=$?
 if [ "$rc" -eq 2 ] && [ "$before" = "$(shasum -a 256 $T/rep_a/final.txt)" ]; then ok "rule 4: a non-empty --out is refused and left unchanged"; else bad "rule 4: non-empty --out not refused (rc $rc)"; fi
-r1=0; for a in "--see=1" "--seed" "--steps=5x" "--sed=1" "--seed=-1" "--R0=0" "--rule=fancy" "--start-rings=-1" "--start-rings=30" "--pbranch-exp=-1" "--patch=1,2,3" "--tip-order=up" "--hull=some" "--alpha=2" "--view=tree"; do
+r1=0; for a in "--see=1" "--seed" "--steps=5x" "--sed=1" "--seed=-1" "--R0=0" "--rule=fancy" "--start-rings=-1" "--start-rings=30" "--pbranch-exp=-1" "--patch=1,2,3" "--tip-order=up" "--hull=some" "--alpha=2" "--view=tree" "--regrow-tips=99" "--thin-all=2"; do
   $BIN --seed=1 --steps=5 --headless --out=$T/cli_bad $a >/dev/null 2>&1 && r1=1; done
-if [ "$r1" -eq 0 ] && [ ! -e $T/cli_bad ]; then ok "command line: 15 bad or unknown flags refused before any folder is made"; else bad "command line: a bad flag was accepted"; fi
+if [ "$r1" -eq 0 ] && [ ! -e $T/cli_bad ]; then ok "command line: 17 bad or unknown flags refused before any folder is made"; else bad "command line: a bad flag was accepted"; fi
 
 echo "tests: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
