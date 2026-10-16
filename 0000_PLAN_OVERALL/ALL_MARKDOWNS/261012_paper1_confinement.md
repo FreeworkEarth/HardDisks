@@ -32204,3 +32204,121 @@ All 54 (cell, mass) are in `d_d2/d_fit_record.csv`; the per-run refits are in `d
 - **A side effect:** the lattice starts' energy-transfer runs made an empty folder, experiments_energy_transfer/, inside experiments_gen3_d50_261014/bin_0544b7e8-dirty/ (the binary's default output folder, beside itself). It is left in place and untracked.
 
 Written for: the plan author
+
+### 4.7.135 Plan-author decision 57, and a correction to decision 56. Report D56-1 accepted, with two plan-author errors recorded: the phase bands (CC's constants stand) and the D2 box shape (1571 × 40, not ~250 × 250). Decision 57: the Stage 2 pilot "P2" on KOA, N 900 only — η 0.72 and 0.78, two geometries (G1 the stage 1 rule, G2 a strain-free height), two pins (0, turned), α 1, 2, 5, 10, 20, 10 seeds: 400 runs. CC builds and rehearses the package on the Mac and writes the KOA lines; Chris types nothing on KOA before the plan author has read Report D57-1. Correction: the parallel project is PHYSICALINFORMATIONDYNAMICS/, prefix "pid:" (2026-10-15 14:02 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Relayed by Chris** at about 14:00 HST (machine date), with the plan author's note to Chris on top.
+- **Push:** Chris pushed main, c37bad5e..8aaf5fef. The pilot is built from 8aaf5fef. Figure 1c is still to be attached by Chris.
+- **Correction to decision 56:** the parallel project's folder is PHYSICALINFORMATIONDYNAMICS/, and its commit prefix is "pid:", not "morpho". Its first commit, 000f190e, went to GitHub with today's push. The rest of decision 56 stands.
+- **Report D56-1 accepted.** Two plan-author errors are recorded:
+  - the phase bands: CC's constants stand (coexistence 0.700–0.716, hexatic 0.716–0.720, solid above 0.720);
+  - the D2 box shape: 1571 × 40, not ~250 × 250.
+  - Figure 1c stands as drawn.
+- **Findings taken from D56-1:**
+  - E1 works in the solid, but it measures the longitudinal uniaxial modulus (K + μ). So Liu's bulk c_s is not the comparator above 0.72.
+  - The start strain (−9 % to +5 %) and the orientation persist in the solid; they are hidden variables of an η scan. The pilot tests exactly that.
+- **Decision 57: the Stage 2 pilot P2 on KOA, N 900 only** (not registered; the registration follows its result):
+  - cells η 0.72 and 0.78, N 900;
+  - two geometries per cell:
+    - G1, the stage 1 rule (H = 10 √(N/100), L0 = Nπ / (8Hη));
+    - G2, strain free: H chosen so that the pinned arrangement has e = 0 at that η (from b_lattice's W* and η*); N and η kept, L0 follows; both compartments equal; the divider at L0;
+  - two pins per geometry: --gen3-lattice-orientation 0 and turned;
+  - masses α 1, 2, 5, 10, 20 (M = αN);
+  - 10 seeds per (cell, G, pin, mass) by the stage 1 seeding rule with BASE 20261016: 400 runs;
+  - protocol as stage 1 (T_eq 5000, 200 predicted periods of the binary's ν_pred, the same readouts). Added: what the binary already offers without an engine change — the initial dump and, if they exist, a final dump or periodic snapshots — so that the end strain, ψ6 and orientation per compartment can be computed. A readout that does not exist is named and left out.
+- **On KOA:**
+  - a fresh clone ~/harddisks_gen3_p2 at 8aaf5fef, built as stage 1's build was, with the sources' SHA-256 recorded;
+  - scratch /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage2/P2/;
+  - one array, at most 64 cores, --exclude=cn-05-08-07, the wall time per task from the D56-1 table + 50 %;
+  - the merge with --time=24:00:00;
+  - the stage 1 reducers unchanged. The outputs: E1 per (cell, G, pin, mass) and per seed, plus Q, τ_r, the spectrum share, sd/sd_E1, drift, Z, ψ6 and orientation per compartment, and the start and end strain.
+- **The package, rehearsed on the Mac before anything is typed on KOA:**
+  1. the 400 task lines and their SHA-256; the array, merge and fetch scripts (rsync --ignore-existing into hspist3/experiments_gen3_stage2_koa_261016/P2/);
+  2. a Mac rehearsal: one task line per (G, pin) at η 0.78, α 5, with the record shortened to 10 periods, through the worker; then the reducer on those 4 runs. It shows the start strains (0 expected for G2), the orientation reported by [EDMD3-M4C], the divider at L0, clean health, and the full-length timing estimate from D56-1;
+  3. the KOA lines for Chris, ready to paste with no placeholders, each with its Good line: (a) clone + build + source hash check, (b) sbatch the array, (c) the squeue check, (d) sbatch the merge, (e) the fetch from the Mac;
+  4. commits on main under hspist3/cluster/gen3_stage2_261016/ and the rehearsal under hspist3/experiments_gen3_p2_261016/; nothing pushed.
+  - Then Report D57-1: the rehearsal outputs verbatim, the package's file list with SHA-256, and the KOA lines. Then stop.
+- **Afterwards (the plan author's note to Chris):** Chris pastes D57-1 and attaches figure 1c; the plan author checks the package; Chris pushes the package commit (the KOA clone pulls it); then the KOA lines.
+
+**The message, verbatim** (relayed by Chris on 2026-10-15 at about 14:00 HST, machine date):
+
+```
+Specifying cell counts, seeds, and readouts for the pilot run.
+Nothing is ready to paste this minute — a KOA run needs the package (task lines, array script, build at a pushed commit) rehearsed on the Mac first, and that is CC’s work for the next hour or two. So: give CC the block below before you leave. When you are back, the package is ready, I will have checked it, and you type three lines (clone + build, submit, later the fetch). The pilot is small — 400 runs, about 45 core-hours, under an hour on 64 cores — so it is finished by the time you fetch it, tonight or tomorrow morning.
+
+The push is good (c37bad5e..8aaf5fef main -> main, the build commit for the pilot). You did not attach figure 1c — when you are back, please.
+
+Step now: paste this to CC, then go.
+
+From the plan author (Cowork), relayed by Chris. Record as decision 57
+(and a one-line correction to decision 56).
+
+CORRECTION TO DECISION 56: the parallel project's folder is
+ PHYSICALINFORMATIONDYNAMICS/ and its commit prefix is "pid:", not
+ "morpho". Its first commit 000f190e went to GitHub with today's push
+ of main (c37bad5e..8aaf5fef). Everything else in decision 56 stands.
+
+REPORT D56-1 ACCEPTED, with two plan-author errors recorded: the phase
+ bands (your constants stand: coexistence 0.700-0.716, hexatic
+ 0.716-0.720, solid > 0.720) and the D2 box shape (1571 x 40, not
+ ~250 x 250). Figure 1c stands as drawn. Main findings taken: E1 works
+ in the solid but measures the longitudinal uniaxial modulus (K + mu),
+ so Liu's bulk c_s is not the comparator above 0.72; the start strain
+ (-9 % to +5 %) and the orientation persist in the solid and are
+ hidden variables of an eta scan. The pilot below tests exactly that.
+
+DECISION 57: STAGE 2 PILOT "P2" ON KOA, N 900 ONLY
+ Design (not registered; the registration follows its result):
+ - cells: eta 0.72 and 0.78, N 900;
+ - two geometries per cell: G1 = the Stage 1 rule (H = 10 sqrt(N/100),
+   L0 = N pi / (8 H eta)); G2 = strain-free: H chosen so that the
+   pinned arrangement has e = 0 at that eta (your W*/eta* from
+   b_lattice/b_starts.csv; keep N and eta, let L0 follow; both
+   compartments equal; divider at L0);
+ - two pins per geometry: --gen3-lattice-orientation 0 and turned;
+ - masses alpha 1, 2, 5, 10, 20 (M = alpha N, as in stage 1);
+ - 10 seeds per (cell, G, pin, mass): the stage 1 seeding rule with
+   BASE 20261016; 400 runs in all;
+ - protocol unchanged from stage 1 (T_eq 5000, 200 predicted periods
+   of the binary's nu_pred, the same readouts), plus whatever the
+   binary already offers without an engine change: the initial dump
+   (--gen3-dump-initial) and, if a final dump or periodic snapshots
+   exist, those too, so the end strain, psi6 and orientation per
+   compartment can be computed by your Python replica. No engine
+   change; if a readout does not exist, say so and leave it out.
+ - KOA: a fresh clone ~/harddisks_gen3_p2 at commit 8aaf5fef, built
+   as stage 1's build was (same flags, same target), sources' SHA-256
+   recorded; scratch /mnt/lustre/koa/scratch/charing/harddisks_gen3/
+   stage2/P2/; one array, at most 64 cores, --exclude=cn-05-08-07,
+   wall-time per task from your table +50 %; the merge with
+   --time=24:00:00 as before; the stage 1 reducers unchanged, E1 per
+   (cell, G, pin, mass) and per seed, plus Q, tau_r, the spectrum
+   share, sd/sd_E1, drift, Z, psi6 and orientation per compartment,
+   start and end strain.
+ Package, rehearsed on the Mac before anything is typed on KOA:
+ 1. the task-line file (400 lines) and its SHA-256; the array script;
+    the merge script; the fetch script (rsync --ignore-existing into
+    /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/
+    HardDisks/hspist3/experiments_gen3_stage2_koa_261016/P2/);
+ 2. a Mac rehearsal: one task line per (G, pin) at eta 0.78, alpha 5,
+    shortened record (T_rec 10 periods) through the worker, then the
+    reducer on those 4 runs; show the start strains (expect 0 for G2),
+    the orientation reported by [EDMD3-M4C], the divider at L0, clean
+    health; and the full-length timing estimate from D56-1;
+ 3. the KOA lines for Chris, ready to paste, no placeholders, in order:
+    (a) clone + build + source hash check, (b) sbatch the array,
+    (c) squeue check, (d) sbatch the merge, (e) the fetch from the
+    Mac; each with its Good line;
+ 4. commit everything on main under hspist3/cluster/gen3_stage2_261016/
+    and the rehearsal under hspist3/experiments_gen3_p2_261016/;
+    nothing pushed; Report D57-1 with the rehearsal outputs verbatim,
+    the package's file list with SHA-256, and the KOA lines. Then stop:
+    Chris types nothing on KOA before the plan author has read D57-1.
+
+End with "Written for: the plan author".
+When you are back: paste CC’s D57-1 and attach figure 1c; I check the package, you push the package commit (the KOA clone pulls it), then the three KOA lines.
+```
+
+**Commits.**
+- main only: this record.
