@@ -1,0 +1,42 @@
+# the fetch filter of fetch_p2_koa.sh with the gzipped traces (decision 57 addendum 1, task 2), run by the script itself with the Mac's
+# /usr/bin/rsync (openrsync, protocol 29) on a copy of the rehearsal's merged root (rehearsal_261015c), the DTN source made local, with two decoys
+# added to the copy: an uncompressed trace in a cell folder (.../G1_pin0/m_4500/wall_x_positions_..._run9.csv) and a gzipped one in chunks/chunk_221/;
+# 2026-10-15 21:47:01 HST
+# the fetch's last line: fetched into hspist3/experiments_gen3_stage2_koa_261016/P2: 1.8M; merge record: 2026-10-15 17:54:38 HST; p2_reduce: p2_reduce: 4 folders (0 without the stage 1 tables), 4 trajectories, 0 with an error; 7 s
+# checks: gzipped traces fetched 4 (each byte-equal to its source); uncompressed or decoy traces 0; the chunk decoy 0; snapshots 0; nested experiments_speed_of_sound/ 0; initial states 4; size 1884 KB for 4 runs
+# file names under the destination (run numbers and chunk numbers generalised), counts:
+   4 stdout.log
+   4 speed_of_sound_psi6.csv
+   4 speed_of_sound_batch_status.json
+   4 snap_runs.csv
+   4 s1_runs.csv
+   4 runs_health.csv
+   4 run_params.json
+   4 run.log
+   4 red_nu.csv
+   4 p2_runs.csv
+   4 p2_frames.csv
+   4 nud_runs.csv
+   4 initial_state.txt
+   4 failed_runs.csv
+   4 acf_runs.npz
+   4 acf_mean_fit.csv
+   4 01_PLOT_COMMANDS.md
+   4 00_COMMAND_AND_PLOT_COMMAND.md
+   4 00_COMMAND.md
+   4 .sha256_uncompressed
+   4 .build_git
+   3 wall_x_positions_L0_151_wallmassfactor_4500_runN.csv.gz
+   3 virial_blocks_L0_151_wallmassfactor_4500_runN.csv.gz
+   3 psi6_t_L0_151_wallmassfactor_4500_runN.csv.gz
+   1 wall_x_positions_L0_158_wallmassfactor_4500_runN.csv.gz
+   1 virial_blocks_L0_158_wallmassfactor_4500_runN.csv.gz
+   1 psi6_t_L0_158_wallmassfactor_4500_runN.csv.gz
+   1 p2_reduce_summary.txt
+   1 merge_plan_20261015_175438.tsv
+   1 gen3-p2_920001_371.out
+   1 gen3-p2_920001_321.out
+   1 gen3-p2_920001_271.out
+   1 gen3-p2_920001_221.out
+   1 gen3-p2-merge_920002.out
+   1 .merge_complete
