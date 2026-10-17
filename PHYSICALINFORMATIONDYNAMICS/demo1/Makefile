@@ -2,9 +2,11 @@
 # Run make in this folder. It writes only into bin/ and runs/ here (both git-ignored); hspist3/edmd_core/ and ../demo0/ are
 # only read (no make there).
 #   make                 the box-reference binaries for both sides (fork and unmodified original), the final-state driver,
-#                        the wall tests and controls, bin/pid_demo1 (the driver, sec. 5) and Demo 0 built headless
-#   make test            deliveries 1a-1b, tests 2-10 (tests/run_tests.sh): a full rebuild, then about 9 min on 4 cores;
+#                        the wall tests and controls, bin/pid_demo1 (the driver, sec. 5), Demo 0 built headless, and where
+#                        SDL2 is installed bin/pid_view1 (the window, sec. 9)
+#   make test            deliveries 1a-1c, tests 2-11 (tests/run_tests.sh): a full rebuild, then about 9 min on 4 cores;
 #                        outputs in runs/box_reference_<cc>_<UTC time>/. One make test at a time per checkout: bin/ is shared.
+#   make shots           1c: the two PNGs of sec. 9 into shots/ (tests/make_shots.sh; SDL's dummy driver, no display needed)
 #   make test CC=clang   the same with another compiler (one run always compares the two sides under ONE compiler and flag set)
 CC       ?= cc
 CSTD     := -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror
@@ -35,6 +37,13 @@ BINS     := $(addprefix bin/orig/,$(HARN) box_final_state) $(addprefix bin/fork/
 BINS     += bin/fork/prim_tests bin/fork/prim_controls
 # 1b: the driver and Demo 0 built headless (test 7)
 BINS     += bin/pid_demo1 bin/demo0/pid_demo0_headless
+# 1c: the window (brief sec. 9), only where SDL2 is installed (pkg-config sdl2); everything else builds without it
+SDL_OK   := $(shell pkg-config --exists sdl2 2>/dev/null && echo 1)
+ifeq ($(SDL_OK),1)
+SDL_CF   := $(shell pkg-config --cflags sdl2)
+SDL_LB   := $(shell pkg-config --libs sdl2)
+BINS     += bin/pid_view1
+endif
 # Rebuild when the compiler, the flags or this Makefile change (make test CC=clang after make test): every object and
 # program depends on the stamp (rewritten only when its content changes) and on the Makefile. Quotes are dropped from the
 # compiler's version line so that the shell line below cannot break.
@@ -43,7 +52,7 @@ CC_LINE  := $(subst ',,$(CC) | $(shell $(CC) --version 2>/dev/null | head -1) | 
 $(shell mkdir -p bin; echo '$(CC_LINE)' | cmp -s - $(STAMP) || echo '$(CC_LINE)' > $(STAMP))
 DEPS     := $(STAMP) Makefile
 
-.PHONY: all test
+.PHONY: all test shots
 all: $(BINS)
 
 bin/gen2.o: $(HSP)/edmd.c $(HSP)/edmd.h $(DEPS)
@@ -129,17 +138,24 @@ bin/demo0/pid_demo0_headless: $(D0)/pid_main.c $(D0_CORE) $(D0)/pid.h tests/demo
 D1_SHORT := $(shell git log -1 --format=%h -- . 2>/dev/null)
 D1_DIRTY := $(shell git status --porcelain -- . 2>/dev/null | head -1)
 D1_ID    := $(if $(D1_SHORT),$(D1_SHORT),unknown)$(if $(D1_DIRTY),-dirty,)
-D1_SHA   := $(shell cat engine/edmd_gen3.c engine/edmd_gen3.h engine/edmd.h pid_demo1.c | $(SHA256) | cut -c1-64)
+D1_SHA   := $(shell cat engine/edmd_gen3.c engine/edmd_gen3.h engine/edmd.h pid_demo1.h pid_demo1.c pid_view1.c | $(SHA256) | cut -c1-64)
 FORK_CP  := $(shell sed -n 's/^   copied at origin\/main \([0-9a-f]*\);.*/\1/p' engine/edmd_gen3.c)
 FORK_BL  := $(foreach f,edmd_gen3.c edmd_gen3.h edmd.h,$(f) $(shell sed -n 's/^   source blob \([0-9a-f]*\)\..*/\1/p' engine/$(f)))
 D1_DEFS  := -DPID1_BUILD_ID='"$(D1_ID)"' -DPID1_CFLAGS='"$(CC) $(CSTD)"' -DPID1_SRC_SHA256='"$(D1_SHA)"' \
             -DPID1_FORK='"hspist3/edmd_core at origin/main $(FORK_CP); source blobs $(FORK_BL)"'
-bin/pid_demo1: pid_demo1.c $(FORK_H) $(D0)/pid.h bin/fork/edmd_gen3.o $(D0_CORE) $(DEPS)
+bin/pid_demo1: pid_demo1.c pid_demo1.h $(FORK_H) $(D0)/pid.h bin/fork/edmd_gen3.o $(D0_CORE) $(DEPS)
 	@mkdir -p $(@D)
 	$(CC) $(CSTD) -Iengine -I$(D0) -MM $< > $@.deps
 	@if grep -q hspist3 $@.deps || ! grep -q 'engine/edmd_gen3\.h' $@.deps; then \
 	  echo "include check: $@ is not built against the fork's headers (see $@.deps)"; exit 1; fi
 	$(CC) $(CSTD) $(D1_DEFS) -Iengine -I$(D0) -o $@ $< bin/fork/edmd_gen3.o $(D0_CORE) -lm
+# 1c: the window, the same driver with -DPID1_VIEW and pid_view1.c (SDL2); the same include check on both sources
+bin/pid_view1: pid_demo1.c pid_view1.c pid_demo1.h $(FORK_H) $(D0)/pid.h bin/fork/edmd_gen3.o $(D0_CORE) $(DEPS)
+	@mkdir -p $(@D)
+	$(CC) $(CSTD) -DPID1_VIEW $(SDL_CF) -Iengine -I$(D0) -MM pid_demo1.c pid_view1.c > $@.deps
+	@if grep -q hspist3 $@.deps || [ "$$(grep -c 'engine/edmd_gen3\.h' $@.deps)" -lt 2 ]; then \
+	  echo "include check: $@ is not built against the fork's headers (see $@.deps)"; exit 1; fi
+	$(CC) $(CSTD) $(D1_DEFS) -DPID1_VIEW $(SDL_CF) -Iengine -I$(D0) -o $@ pid_demo1.c pid_view1.c bin/fork/edmd_gen3.o $(D0_CORE) $(SDL_LB) -lm
 
 # make test rebuilds everything first (a few seconds), so the tested programs are always built from the files as they are;
 # every command of that build, as make runs it, goes into the run's manifest (pre-check A10).
@@ -147,3 +163,5 @@ test:
 	@$(MAKE) -s --no-print-directory -B all CC="$(CC)"
 	@$(MAKE) -s --no-print-directory -n -B all CC="$(CC)" > bin/build_lines.txt
 	@CC="$(CC)" IS_CLANG="$(IS_CLANG)" CSTD="$(CSTD)" sh tests/run_tests.sh
+shots: bin/pid_view1 bin/demo0/pid_demo0_headless
+	@CC="$(CC)" IS_CLANG="$(IS_CLANG)" sh tests/make_shots.sh
