@@ -28,8 +28,13 @@
 #           pid_demo1 refuses a Demo 0 file without [hull].
 #   Test 8  B = C and A = B byte for byte in every pstate_*.txt, density_*.txt and measure.csv; D differs from B.
 #   Test 9  every density file of B: the particle counts sum to N, the material column to the sum of pi r^2 over the alive
-#           disks of final.txt to 1e-9 relative (B14; M_used and the lens total printed beside it).
-# Three batches of processes run in parallel (8, 8 and 5), each process capped at 900 s (perl alarm: macOS has no `timeout`); Ctrl-C
+#           disks of final.txt to 1e-9 relative (B14; M_used and the lens total printed beside it), the kinetic-energy column
+#           (1c, brief sec. 9) to the KE of measure.csv at the same t to 1e-12 relative.
+#   Test 11 (1c) the window, bin/pid_view1, runs test 7's B under SDL's dummy video driver, advancing 0.37 sigma-time per frame
+#           (frames between the stops) with a screenshot at t = 100: rc 0, its checks OK, and every pstate_*.txt, density_*.txt
+#           and measure.csv byte-identical to the headless B. Without SDL2 (pkg-config sdl2) pid_view1 is not built and the
+#           test is reported as not run.
+# Three batches of processes run in parallel (8, 8 and 6), each process capped at 900 s (perl alarm: macOS has no `timeout`); Ctrl-C
 # stops them all. Outputs: a new folder runs/box_reference_<cc>_<UTC time>/ (git-ignored) with manifest.txt. Nothing else is
 # written and nothing is deleted. One `make test` at a time per checkout: bin/ is shared.
 set -u
@@ -56,8 +61,9 @@ echo "test outputs: $OUT"
   echo "compiler CC=$CC is_clang=$IS_CLANG: $($CC --version 2>/dev/null | head -1)"
   echo "flags $CSTD"
   echo "## sources (sha256)"
-  for f in Makefile tests/run_tests.sh tests/box_final_state.c tests/prim_tests.c tests/prim_controls.c tests/demo0_view_stub.c pid_demo1.c \
-           engine/README_FORK.md engine/edmd_gen3.c engine/edmd_gen3.h engine/edmd.h; do echo "$(sha "$f")  demo1/$f"; done
+  for f in Makefile tests/run_tests.sh tests/box_final_state.c tests/prim_tests.c tests/prim_controls.c tests/demo0_view_stub.c pid_demo1.h \
+           pid_demo1.c pid_view1.c tests/bmp2png.py tests/make_shots.sh engine/README_FORK.md engine/edmd_gen3.c engine/edmd_gen3.h \
+           engine/edmd.h; do echo "$(sha "$f")  demo1/$f"; done
   echo "## Demo 0 sources compiled unchanged from ../demo0 (git blob)"
   for f in pid.h pid_main.c pid_grow.c pid_state.c pid_rng.c pid_sha256.c pid_hull.c; do echo "$(git hash-object "../demo0/$f")  demo0/$f"; done
   echo "## originals (git blob)"
@@ -65,8 +71,9 @@ echo "test outputs: $OUT"
   echo "## the tested objects and programs (sha256)"
   for f in bin/gen2.o bin/orig/edmd_gen3.o bin/fork/edmd_gen3.o bin/orig/gen3_m1_harness bin/fork/gen3_m1_harness bin/orig/gen3_m2_harness \
            bin/fork/gen3_m2_harness bin/orig/box_final_state bin/fork/box_final_state bin/demo0/pid_rng.o bin/fork/prim_tests bin/fork/prim_controls \
-           bin/pid_demo1 bin/demo0/pid_demo0_headless; do
-    echo "$(sha "$f")  demo1/$f"; done
+           bin/pid_demo1 bin/demo0/pid_demo0_headless bin/pid_view1; do
+    if [ -f "$f" ]; then echo "$(sha "$f")  demo1/$f"; else echo "(not built)  demo1/$f"; fi; done
+  echo "sdl2 $(pkg-config --modversion sdl2 2>/dev/null || echo 'not found by pkg-config')"
   echo "## build: every command make runs for 'all' (make -n -B), in order"
   cat bin/build_lines.txt 2>/dev/null || echo "(bin/build_lines.txt missing: run through make test)"
 } > "$OUT/snapshot.txt"
@@ -181,7 +188,11 @@ launch t7b "$P1" --state="$F7" --N=2000 --T=200 --seed=0x5EED70 --write-every=10
 launch t7c "$P1" --state="$F7" --N=2000 --T=200 --seed=0x5EED70 --write-every=10 --out="$D/$OUT/t7c"
 launch t7d "$P1" --state="$F7" --N=2000 --T=200 --seed=0x5EED71 --write-every=10 --out="$D/$OUT/t7d"
 launch t7n "$P1" --state="$H7/state_000350.txt" --N=10 --T=1 --seed=1 --out="$D/$OUT/t7n"
-echo "batch 3: Demo 0 headless (rc $d0rc), then five pid_demo1 processes started (tests 7-9; under a minute)"
+if [ -x "$D/bin/pid_view1" ]; then
+  launch t11 env SDL_VIDEODRIVER=dummy "$D/bin/pid_view1" --state="$F7" --N=2000 --T=200 --seed=0x5EED70 --write-every=10 --exit-at-end \
+    --speed=0.37 --shot-at=100 --out="$D/$OUT/t11"
+fi
+echo "batch 3: Demo 0 headless (rc $d0rc), then the pid_demo1 processes (and the window) started (tests 7-9, 11; under a minute)"
 wait
 trap - INT TERM HUP
 note "batch 3 (tests 7-9) took $(awk -v a="$T2" -v b="$(now)" 'BEGIN{printf "%.0f", b - a}') s"
@@ -319,15 +330,30 @@ t9=$(awk 'BEGIN { pi = atan2(0, -1) }
   fi == 1 && /^\[/ { sec = $0; next } fi == 1 && /^#/ { next }
   fi == 1 && sec == "[header]" && $1 == "m_used" { mu = $2 }
   fi == 1 && sec == "[disks]" && $8 == 1 { s += pi * $4 * $4 }
-  fi > 1 && /^#/ { next }
-  fi > 1 { if (NF != 4) badl++; cnt[FILENAME] += $3; mat[FILENAME] += $4; files[FILENAME] = 1 }
-  END { nf = 0; worst = 0; badc = 0
-        for (f in files) { nf++; if (cnt[f] != 2000) badc++; r = (mat[f] - s) / s; if (r < 0) r = -r; if (r > worst) worst = r }
-        printf "%d %d %d %.3e %.9f %.9f %.9f", nf, badc, badl + 0, worst, s, mu, s - mu }' "$F7" "$OUT"/t7b/density_*.txt 2>/dev/null)
-set -- $t9 x x x x x x x
-if [ "$1" = 21 ] && [ "$2" = 0 ] && [ "$3" = 0 ] && awk -v w="$4" 'BEGIN { exit !(w + 0 <= 1e-9) }'; then
-  ok "9 density: $1 files, particles sum to N = 2000 in each; material sums to sum pi r^2 = $5 sigma^2 over the alive disks (worst relative difference $4); M_used $6, lens total $7 sigma^2"
-else bad "9 density: '$t9' (files, count mismatches, bad lines, worst relative material difference, sum pi r^2, M_used, lens)"; fi
+  fi == 2 { if (FNR > 1) { split($0, q, ","); ke[q[1]] = q[2] + 0 }; next }
+  fi > 2 && /^#/ { next }
+  fi > 2 { if (NF != 5) badl++; cnt[FILENAME] += $3; mat[FILENAME] += $4; kc[FILENAME] += $5; files[FILENAME] = 1 }
+  END { nf = 0; worst = 0; badc = 0; wk = 0; nk = 0
+        for (f in files) { nf++; if (cnt[f] != 2000) badc++; r = (mat[f] - s) / s; if (r < 0) r = -r; if (r > worst) worst = r
+          t = f; sub(/.*density_/, "", t); sub(/[.]txt$/, "", t)
+          if (!(t in ke) || !(ke[t] > 0)) nk++; else { rk = (kc[f] - ke[t]) / ke[t]; if (rk < 0) rk = -rk; if (rk > wk) wk = rk } }
+        printf "%d %d %d %.3e %.9f %.9f %.9f %.3e %d", nf, badc, badl + 0, worst, s, mu, s - mu, wk, nk }' "$F7" "$OUT/t7b/measure.csv" "$OUT"/t7b/density_*.txt 2>/dev/null)
+set -- $t9 x x x x x x x x x
+if [ "$1" = 21 ] && [ "$2" = 0 ] && [ "$3" = 0 ] && [ "$9" = 0 ] && awk -v w="$4" -v k="$8" 'BEGIN { exit !(w + 0 <= 1e-9 && k + 0 <= 1e-12) }'; then
+  ok "9 density: $1 files, particles sum to N = 2000 in each; material sums to sum pi r^2 = $5 sigma^2 over the alive disks (worst relative difference $4); M_used $6, lens total $7 sigma^2; the ke column sums to the KE of measure.csv (worst relative difference $8)"
+else bad "9 density: '$t9' (files, count mismatches, bad lines, worst relative material difference, sum pi r^2, M_used, lens, worst relative KE difference, stops without a KE)"; fi
+# test 11 (1c): the window writes what the headless run writes
+if [ ! -x bin/pid_view1 ]; then note "11 window = headless: not run (bin/pid_view1 is not built: SDL2 not found by pkg-config)"
+else
+  f="$OUT/t11.out.txt"; set -- $(cat "$OUT/t11.rc.txt" 2>/dev/null) x x; rc=$1; tw=$2
+  nok=$(grep -c '^check .* OK$' "$f"); nfl=$(grep -c '^check .* FAIL$' "$f"); last=$(tail -n 1 "$f")
+  nd=0; nsame=0
+  for g in $(ls "$OUT/t7b" 2>/dev/null | grep -v -x manifest.txt); do nd=$((nd + 1)); cmp -s "$OUT/t7b/$g" "$OUT/t11/$g" && nsame=$((nsame + 1)); done
+  if [ "$rc" = 0 ] && [ ! -s "$OUT/t11.err.txt" ] && [ "$nfl" -eq 0 ] && [ "$nok" -eq 3 ] && [ "$last" = "failed checks: 0" ] && [ "$nd" -eq 43 ] \
+     && [ "$nsame" -eq 43 ] && [ -s "$OUT/t11/shot_000100.bmp" ]; then
+    ok "11 window = headless: bin/pid_view1 under SDL_VIDEODRIVER=dummy, 0.37 sigma-time per frame, writes all 43 data files of B byte for byte (3 of 3 checks OK, a screenshot at t = 100); ${tw} s"
+  else bad "11 window = headless: rc $rc, $nok OK of 3, $nfl FAIL, last line '$last', $nsame of $nd data files equal to B's, shot $(ls "$OUT/t11" 2>/dev/null | grep -c '^shot_') ($f, $OUT/t11.err.txt)"; fi
+fi
 
 # ------------------------------------------------------------------ the manifest (pre-check A10)
 M=$OUT/manifest.txt
@@ -348,9 +374,11 @@ M=$OUT/manifest.txt
     set -- $(cat "$OUT/$c.rc.txt" 2>/dev/null) x x
     echo "$c | bin/fork/$([ $c = t10 ] && echo prim_controls || echo prim_tests) | $1 | $2 | $(nlines "$OUT/$c.out.txt") | $(sha "$OUT/$c.out.txt") | $(wc -c < "$OUT/$c.err.txt" | tr -d ' ')"
   done
-  for c in t7a t7b t7c t7d t7n; do
+  for c in t7a t7b t7c t7d t7n $([ -x bin/pid_view1 ] && echo t11); do
     set -- $(cat "$OUT/$c.rc.txt" 2>/dev/null) x x
-    echo "$c | bin/pid_demo1 (see the argv of $c/manifest.txt) | $1 | $2 | $(nlines "$OUT/$c.out.txt") | $(sha "$OUT/$c.out.txt") | $(wc -c < "$OUT/$c.err.txt" | tr -d ' ')"
+    case $c in t11) prog="bin/pid_view1, SDL_VIDEODRIVER=dummy (argv in t11/manifest.txt)";; t7n) prog="bin/pid_demo1 --state=t7_demo0/state_000350.txt --N=10 --T=1 --seed=1 (refused: no manifest)";;
+               *) prog="bin/pid_demo1 (argv in $c/manifest.txt)";; esac
+    echo "$c | $prog | $1 | $2 | $(nlines "$OUT/$c.out.txt") | $(sha "$OUT/$c.out.txt") | $(wc -c < "$OUT/$c.err.txt" | tr -d ' ')"
   done
   echo "t7_demo0 | bin/demo0/pid_demo0_headless --preset=mat45 --rule=guided --seed=9300 --steps=400 --headless | $d0rc | - | - | final.txt $(sha "$F7" 2>/dev/null) | $(wc -c < "$OUT/t7_demo0.err.txt" | tr -d ' ')"
   echo "## tests 4-6 and 10: the measured values (the full outputs are in this run folder)"
