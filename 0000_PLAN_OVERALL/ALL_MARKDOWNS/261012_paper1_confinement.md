@@ -33623,3 +33623,332 @@ When D57-3 is in, I write the Stage 2 registration (§ 4.9) and the three-paste 
 
 **Commits.**
 - main only: this record.
+
+### 4.7.141 Report D57-3 — decision 57 addendum 3, Mac only, one Mac run. c against the relaxed strain e: at η 0.72 d ln c / d e = −3.45 ± 0.45 over three boxes (not on one line: χ² 27.5 / 1; segments −4.15 ± 0.16 and −2.44 ± 0.20), at 0.78 turned −4.24 ± 0.06; c at e = 0 about 13.7 (0.72) and 21.9 (0.78). The bistable run's own c is 26.69 against 23.15–24.73; it is the only one of 800 compartments off its cell's state; the cell's E1 is unchanged without it. The registration's geometry: 17 × 27 turned at N 900, 25 × 32 / 20 × 40 at N 1600, 29 × 16 for pin 0, three heights per cell within 0.16 % of the start-strain targets; 2100 runs, 255–318 core-hours, 4–5 h at 64 cores. The reorientation at 0.72: domains of the turned orientation grow from the walls and the divider within 40–70 σ-time (Mac frames every 10 σ-time). An independent verification by four sub-agents: 89 checks, 89 agree (2026-10-16 14:41 HST, machine date) [KOA DATA, MAC RUN, MAC ANALYSIS, VERIFIED]
+
+**Plain summary.**
+- **Recorded:** decision 57 addendum 3 (sec. 4.7.140), on main only.
+- **Mac only;** nothing typed on KOA, nothing pushed. One Mac run, as allowed: P2's line 21 with snapshots every 10 σ-time (181 s, clean), on D56-1's Mac binary (11 of 12 sources equal to P2's build inputs; the twelfth differs by a macro guard).
+- **Task 1, c against e:**
+  - η 0.72: −3.45 ± 0.45 over the three boxes; χ² 27.5 / 1, so the points are not on one line. The segments give −4.15 ± 0.16 and −2.44 ± 0.20; with the two G1 cells' e spread as point 1's error, −3.08 ± 0.61. c at e = 0 is 13.68–13.75 by line.
+  - η 0.78 turned: −4.24 ± 0.06, c at e = 0 21.86.
+  - D56-1's 0.76 pilot: e +4.56 %, c 15.96 (2 runs, α 5).
+- **Task 2, the bistable run:**
+  - its own c is 26.69 against 24.16 (23.15–24.73);
+  - its left compartment sat at +2 % from t = 128 σ-time; its right compartment is within its siblings' range over the record and at the hold's end;
+  - without it the (cell, α 2) E1 is 24.04 ± 0.18 against 24.31 ± 0.31, and the cell's E1 23.890 against 23.889;
+  - it is the only compartment of 800 more than 1 % from its cell's median (13.3 thermal sd; the next 1.3).
+- **Task 3, the geometry and the cost:**
+  - turned: 17 × 27 (1 vacancy) at N 900; 25 × 32 at N 1600 for 0.70–0.74, 20 × 40 for 0.76–0.80. Pin 0: 29 × 16 (0 vacancies) for 0.76 and 0.78.
+  - three heights per cell with start strains within 0.16 % of −0.6, 0 and +0.6 %;
+  - 2100 runs; 255–318 core-hours (324 at P2's largest executed-to-model ratio); 4–5 h at 64 cores; the longest run 26.4 min; the merge about 4 h.
+- **Task 4, the reorientation:**
+  - in P2 all 200 compartments of the two 0.72 pin-0 cells changed to lines along y within 437 σ-time; the 67–117 σ-time snapshots are too coarse to show how;
+  - the Mac run's 10 σ-time frames show domains of the y orientation growing from the walls and the divider, complete by t = 40 (right) and 70 (left), and never returning.
+- **The verification:** four sub-agents, one per task, each with its own code: 89 checks, 89 agree. Two findings were acted on: a sensitivity row in task 1, and two text slips in task 4. The rest is stated in the report.
+- **Also:** the scratchpad was wiped at this session's start; the notes recorder was restored from its full text and is now kept in a memory note.
+- **Next:** the plan author writes the Stage 2 registration (§ 4.9) and the three-paste runsheet spec.
+
+## 1. Where it stands
+
+- **Recorded:** decision 57 addendum 3 (sec. 4.7.140).
+- **Mac only.** Nothing was typed on KOA and nothing is pushed. One Mac run was made, as item 4 allows: P2's line 21 with snapshots every 10 σ-time (181 s, health clean).
+- **The outputs:** hspist3/experiments_gen3_d57_261016/, four scripts (scripts/d57_*.py) and their folders c_vs_e_c/, bistable/, geometry_cost/ and reorientation_c/ (of record; README.md lists the earlier runs kept); the Mac run in data/ (RUN_RECORD.txt).
+- **Independent verification:** with Chris's "make multi agent if needed", four sub-agents recomputed every key number of tasks 1–4 from the raw data with their own code, read-only on the repo: 89 checks, 89 agree; two findings were acted on (section 7).
+- **At a glance (the numbers; sections 2–5):**
+  - **c against e:**
+    - η 0.72: d ln c / d e = −3.45 ± 0.45 over the three boxes (χ² 27.5 for 1 dof, so the points are not on one line within their SE); the two segments −4.15 ± 0.16 and −2.44 ± 0.20; with the two G1 cells' e spread as point 1's error, −3.08 ± 0.61 (χ² 17.9 / 1); c at e = 0 13.68–13.75 by line;
+    - η 0.78 turned: −4.24 ± 0.06, c at e = 0 21.86.
+  - **The bistable run:**
+    - its own c is 26.69 against its siblings' 24.16 (23.15–24.73);
+    - its left compartment sat at e ≈ +2 % from t = 128 σ-time on; its right compartment is inside its siblings' range over the record and at the hold's end;
+    - without it the (cell, α 2) E1 is 24.04 ± 0.18 (24.31 ± 0.31 with it), and the cell's E1 is unchanged (23.890 against 23.889);
+    - it is the only one of the 800 compartments more than 1 % from its cell's median.
+  - **The geometry:**
+    - turned: 17 × 27 (1 vacancy) at N 900 for every η; at N 1600, 25 × 32 (0 vacancies) at 0.70–0.74 and 20 × 40 (0 vacancies) at 0.76–0.80;
+    - pin 0: 29 × 16 (0 vacancies) at H 28.83–29.00 (0.76) and 28.46–28.63 (0.78);
+    - the start strains are within 0.16 % of the targets (the 1/24 σ grid moves e by about 0.2–0.3 % per pixel).
+  - **The cost:** 2100 runs, 255–318 core-hours at P2's KOA mix (324 at P2's largest executed-to-model ratio), 4.0–5.0 h at 64 cores; the longest run 26.4 min (E5-4640 v2); the merge about 4 h.
+  - **The reorientation:**
+    - in P2, 100 of 100 compartments per pin-0 cell changed from lines along x to y within 437 σ-time (ψ6_t: within 413);
+    - the snapshots every 67–117 σ-time are too coarse to show it;
+    - the Mac run shows it frame by frame: domains of the y orientation appear at the walls and the divider by t = 10 and fill the right compartment by t = 40 and the left by t = 70; neither returns to x up to 600.
+
+## 2. Task 1: c against the relaxed strain e (c_vs_e_c/)
+
+- **e:** the mean over the record's snapshots of both compartments' strain, then over the runs (SE = sd / √n), in %.
+- **c:** E1 over the 5 masses with its SE (Report D57-2).
+- **The pilot:** α 5 only, 2 runs; its error bar is half the difference of its two runs' c (indicative).
+
+| eta | G | pin (start) | H [sigma] | runs | e (record) ± SE | sd over runs | e left / right | e at the hold's end | e at the end | lines along y at the end | psi6 (record) | Z | c ± SE |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.72 | G1 | turned | 30.0000 | 50 | -0.943 ± 0.010 | 0.070 | -0.953 / -0.932 | -0.940 | -0.953 | 100 of 100 | 0.647 | 10.84 | 14.189 ± 0.013 |
+| 0.72 | G1 | 0 | 30.0000 | 50 | -0.822 ± 0.012 | 0.085 | -0.816 / -0.828 | -0.981 | -0.871 | 100 of 100 | 0.627 | 10.92 | 14.184 ± 0.011 |
+| 0.72 | G2 | turned | 29.8333 | 50 | -0.133 ± 0.010 | 0.074 | -0.144 / -0.123 | -0.056 | -0.081 | 100 of 100 | 0.656 | 10.79 | 13.752 ± 0.013 |
+| 0.72 | G2 | 0 | 29.7083 | 50 | +0.589 ± 0.016 | 0.112 | +0.587 / +0.590 | +0.659 | +0.580 | 100 of 100 | 0.638 | 10.90 | 13.512 ± 0.014 |
+| 0.76 | pilot | turned | 30.0000 | 2 | +4.556 ± 0.007 | 0.010 | +4.469 / +4.642 | - | - | 4 of 4 | 0.707 | 15.73 | 15.958 ± 0.046 (indicative) |
+| 0.78 | G2 | 0 | 29.9167 | 50 | -2.267 ± 0.047 | 0.330 | -2.228 / -2.307 | -2.230 | -2.254 | 0 of 100 | 0.702 | 20.51 | 23.889 ± 0.056 |
+| 0.78 | G1 | 0 | 30.0000 | 50 | -1.867 ± 0.012 | 0.082 | -1.862 / -1.871 | -1.855 | -1.913 | 0 of 100 | 0.722 | 20.34 | 24.287 ± 0.038 |
+| 0.78 | G2 | turned | 28.6667 | 50 | -0.336 ± 0.007 | 0.048 | -0.329 / -0.343 | -0.296 | -0.343 | 100 of 100 | 0.894 | 16.69 | 22.176 ± 0.011 |
+| 0.78 | G1 | turned | 30.0000 | 50 | +2.459 ± 0.012 | 0.088 | +2.463 / +2.456 | +2.421 | +2.502 | 100 of 100 | 0.810 | 18.07 | 19.698 ± 0.027 |
+
+**The slopes d ln c / d e** (the % change of c per % of e; a weighted straight line in ln c with the effective variance (SE_c / c)² + b² SE_e²; the scaled SE multiplies by √(χ²/dof) when that exceeds 1):
+
+| the points | n | e range [%] | d ln c / d e ± SE | SE scaled | chi2 / dof | c at e = 0 (the line) |
+|---|---|---|---|---|---|---|
+| eta 0.72, the three boxes (H 30 combined, 29.833, 29.708) | 3 | -0.882 to +0.589 | -3.454 ± 0.086 | 0.453 | 27.53 / 1 | 13.748 |
+| eta 0.72, the four cells (check) | 4 | -0.943 to +0.589 | -3.454 ± 0.087 | 0.374 | 37.15 / 2 | 13.750 |
+| eta 0.72, the segment H 30 combined -> 29.833 | 2 | -0.882 to -0.133 | -4.146 ± 0.163 | 0.163 | 0.00 / 0 | 13.677 |
+| eta 0.72, the segment 29.833 -> 29.708 | 2 | -0.133 to +0.589 | -2.442 ± 0.201 | 0.201 | 0.00 / 0 | 13.708 |
+| eta 0.72, the three boxes, point 1's SE_e = half the two G1 cells' e difference (sensitivity) | 3 | -0.882 to +0.589 | -3.076 ± 0.143 | 0.605 | 17.87 / 1 | 13.733 |
+| eta 0.78, the two turned cells (H 30, 28.667) | 2 | -0.336 to +2.459 | -4.240 ± 0.056 | 0.056 | 0.00 / 0 | 21.863 |
+
+- the two G1 cells at 0.72 (the same box, H 30): e differs by +0.121 ± 0.016 % (+7.7 SE) while c differs by -0.005 ± 0.017; the sensitivity row of the slopes takes half that e difference as point 1's error
+- the pilot: its two runs' own c 16.006 and 15.913; record snapshots per run 34, 34; lines along y at its last record snapshot in 4 of 4 compartments
+- **The three 0.72 points:**
+  - H 30 is the two G1 cells combined: the same box, both turned at the end, c agreeing (z −0.30 in D57-2); the four-cell fit is the check;
+  - the three do not lie on one straight line within their SE (χ² 27.5 / 1), so the two segments are given alongside, each a straight line through two points.
+- **η 0.78:** the two turned cells only, as asked. The two pin-0 cells (12 vacancies) are in the table and figure but in no fit.
+- **The start and the relaxed strain of P2's four turned cells** (the lattice's start e → the record's mean e):
+  - 0.72, H 30: −1.075 → −0.943 %;
+  - 0.72, H 29.833: +0.088 → −0.133 %;
+  - 0.78, H 30: −9.037 → +2.459 %;
+  - 0.78, H 28.667: +0.053 → −0.336 %.
+
+## 3. Task 2: the bistable run (bistable/): 0.78 G2 pin 0, α 2, run 9 (seed 3661301716)
+
+| quantity | run 9 | its nine siblings: median (range) |
+|---|---|---|
+| c (this run's own) | 26.692 | 24.160 (23.148 to 24.733) |
+| nu_d | 0.19652 | 0.17786 (0.17043 to 0.18209) |
+| tau_r (own fit) | 73.6 | 49.9 (41.1 to 98.8) |
+| Q (own fit) | 45.4 | 28.1 (22.4 to 52.9) |
+| spectrum share [%] | 86.4 | 82.3 (77.1 to 91.7) |
+| sd / sd_E1 | 0.86 | 1.01 (0.86 to 1.11) |
+| divider's mean displacement [sigma] | 0.0436 | 0.0015 (-0.0100 to 0.0150) |
+| drift per 1000 [sigma] | -0.0013 | 0.0050 (-0.0161 to 0.0163) |
+| Z | 20.52 | 20.54 (20.20 to 20.71) |
+| psi6, record: left | 0.746 | 0.716 (0.653 to 0.765) |
+| psi6, record: right | 0.750 | 0.689 (0.629 to 0.772) |
+| orientation - pin [deg], record: left | 0.40 | -0.02 (-0.27 to 0.28) |
+| orientation - pin [deg], record: right | -0.34 | -0.02 (-0.27 to 0.20) |
+| e at the start [%]: left | -0.088 | -0.098 (-0.115 to -0.083) |
+| e at the start [%]: right | -0.098 | -0.081 (-0.091 to -0.058) |
+| e at the hold's end [%]: left | 2.301 | -2.374 (-2.928 to -1.857) |
+| e at the hold's end [%]: right | -2.643 | -2.328 (-2.900 to -1.995) |
+| e, the record's mean [%]: left | 2.056 | -2.335 (-2.528 to -2.052) |
+| e, the record's mean [%]: right | -2.136 | -2.393 (-2.557 to -2.127) |
+| e's sd over the record [%]: left | 0.436 | 0.326 (0.248 to 0.430) |
+| e's sd over the record [%]: right | 0.359 | 0.343 (0.253 to 0.412) |
+| e at the end [%]: left | 1.936 | -2.561 (-2.864 to -2.049) |
+| e at the end [%]: right | -1.544 | -2.513 (-3.079 to -1.967) |
+| ordered fraction at the end: left | 0.930 | 0.964 (0.934 to 0.997) |
+| ordered fraction at the end: right | 0.990 | 0.957 (0.910 to 0.984) |
+| line direction at the end (0 = x): left / right | 0 / 0 | 9 of 9 x / 9 of 9 x |
+| divider - L0 at the end [sigma] | 0.0483 | 0.0095 (-0.0173 to 0.0312) |
+
+- Run 9's left compartment: the first snapshot with e > +1 % at t = 128 sigma-time (snapshots every 64); e > 0 in 100 of its 101 snapshots (the hold and the record); its nine siblings' left compartments: e > 0 in 0 of their 900 snapshots after the first.
+
+**The (cell, mass) E1 with and without run 9** (s1_verdict_261012.per_mass's steps; the cell's E1 over the 5 masses by s1_verdict_261012.e1, the other four masses unchanged):
+
+| the runs | used | nu_d-bar | tau_r | Q | c (alpha 2) ± SE | the cell's E1 over the 5 masses ± SE (chi2 / dof) |
+|---|---|---|---|---|---|---|
+| all 10 | 10 | 0.17889 | 26.5 | 14.9 | 24.309 ± 0.310 | 23.889 ± 0.056 (7.21 / 4) |
+| without run 9 | 9 | 0.17693 | 28.1 | 15.6 | 24.042 ± 0.176 | 23.890 ± 0.050 (6.13 / 4) |
+
+**The scan of all 800 compartments** (the record-mean strain against the median of its cell and compartment over the cell's 50 runs): 1 lie more than 1 % away; the largest |deviation| in thermal sd: 13.3 (the next 1.3).
+
+| cell | M | run | compartment | e, the record's mean [%] | the median of its cell and compartment [%] | deviation [thermal sd] |
+|---|---|---|---|---|---|---|
+| eta0.780000_G2_pin0 | 1800 | 9 | left | +2.056 | -2.306 | +13.3 |
+
+- **Its right compartment relaxed within its siblings' range over the record and at the hold's end:**
+  - e −2.136 % over the record against −2.557 to −2.127 %;
+  - −2.643 % at the hold's end against −2.900 to −1.995 %;
+  - its ψ6 0.750 against 0.629–0.772;
+  - its last snapshot, −1.544 %, lies just above the siblings' −3.079 to −1.967 %.
+- **Its left compartment** has lines along x, and its orientation is 0.40° from the pin (the siblings within 0.28°); ψ6 0.746 against 0.653–0.765.
+- **The divider's mean displacement** is +0.044 σ against −0.010 to +0.015 σ.
+
+## 4. Task 3: the registration's geometry table and the cost (geometry_cost/)
+
+- **The rule:** per cell, the arrangement with at most 1 vacancy (pin 0: 0 vacancies) whose heights lie nearest the stage 1 height (k 720 for N 900, 960 for N 1600); in it, the heights whose START strain is nearest −0.6 %, 0 and +0.6 %. The source is s2_vacancy_table_261015_heights.csv, where every height passes the strtof check.
+- **"Its heights (k)"** is the arrangement's range on the grid, with its distance to the stage 1 height in brackets.
+
+| N | eta | pin | arrangement | vacancies | its heights (k) and their distance to the stage 1 height | target e | H [sigma] (k) | L0 | aspect W/H | e (start) | |e - target| | gap [sigma] |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 900 | 0.70 | turned | para alt 17x27 turned | 1 | 714-762 (0) | -0.6 % | 30.375 (729) | 16.622183 | 0.5464 | -0.728 % | 0.128 % | 0.1191 |
+| 900 | 0.70 | turned | para alt 17x27 turned | 1 | 714-762 (0) | +0.0 % | 30.25 (726) | 16.690870 | 0.5509 | +0.136 % | 0.136 % | 0.1204 |
+| 900 | 0.70 | turned | para alt 17x27 turned | 1 | 714-762 (0) | +0.6 % | 30.166666666666668 (724) | 16.736977 | 0.5540 | +0.731 % | 0.131 % | 0.1173 |
+| 900 | 0.72 | turned | para alt 17x27 turned | 1 | 704-751 (0) | -0.6 % | 29.916666666666668 (718) | 16.408040 | 0.5476 | -0.497 % | 0.103 % | 0.1040 |
+| 900 | 0.72 | turned | para alt 17x27 turned | 1 | 704-751 (0) | +0.0 % | 29.833333333333332 (716) | 16.453872 | 0.5507 | +0.088 % | 0.088 % | 0.1049 |
+| 900 | 0.72 | turned | para alt 17x27 turned | 1 | 704-751 (0) | +0.6 % | 29.75 (714) | 16.499961 | 0.5538 | +0.690 % | 0.090 % | 0.1019 |
+| 900 | 0.74 | turned | para alt 17x27 turned | 1 | 694-741 (0) | -0.6 % | 29.541666666666668 (709) | 16.167232 | 0.5464 | -0.726 % | 0.126 % | 0.0884 |
+| 900 | 0.74 | turned | para alt 17x27 turned | 1 | 694-741 (0) | +0.0 % | 29.458333333333332 (707) | 16.212967 | 0.5495 | -0.136 % | 0.136 % | 0.0900 |
+| 900 | 0.74 | turned | para alt 17x27 turned | 1 | 694-741 (0) | +0.6 % | 29.375 (705) | 16.258961 | 0.5526 | +0.469 % | 0.131 % | 0.0880 |
+| 900 | 0.76 | turned | para alt 17x27 turned | 1 | 685-731 (0) | -0.6 % | 29.125 (699) | 15.966983 | 0.5474 | -0.546 % | 0.053 % | 0.0744 |
+| 900 | 0.76 | turned | para alt 17x27 turned | 1 | 685-731 (0) | +0.0 % | 29.041666666666668 (697) | 16.012800 | 0.5505 | +0.054 % | 0.054 % | 0.0756 |
+| 900 | 0.76 | turned | para alt 17x27 turned | 1 | 685-731 (0) | +0.6 % | 28.958333333333332 (695) | 16.058880 | 0.5537 | +0.672 % | 0.072 % | 0.0725 |
+| 900 | 0.78 | turned | para alt 17x27 turned | 1 | 676-722 (0) | -0.6 % | 28.75 (690) | 15.760498 | 0.5473 | -0.554 % | 0.046 % | 0.0606 |
+| 900 | 0.78 | turned | para alt 17x27 turned | 1 | 676-722 (0) | +0.0 % | 28.666666666666668 (688) | 15.806314 | 0.5505 | +0.053 % | 0.053 % | 0.0617 |
+| 900 | 0.78 | turned | para alt 17x27 turned | 1 | 676-722 (0) | +0.6 % | 28.583333333333332 (686) | 15.852396 | 0.5537 | +0.680 % | 0.080 % | 0.0586 |
+| 900 | 0.80 | turned | para alt 17x27 turned | 1 | 668-713 (7) | -0.6 % | 28.375 (681) | 15.569567 | 0.5478 | -0.459 % | 0.141 % | 0.0474 |
+| 900 | 0.80 | turned | para alt 17x27 turned | 1 | 668-713 (7) | +0.0 % | 28.333333333333332 (680) | 15.592464 | 0.5494 | -0.152 % | 0.152 % | 0.0482 |
+| 900 | 0.80 | turned | para alt 17x27 turned | 1 | 668-713 (7) | +0.6 % | 28.25 (678) | 15.638459 | 0.5527 | +0.478 % | 0.122 % | 0.0463 |
+| 1600 | 0.70 | turned | para equ 25x32 turned | 0 | 866-904 (56) | -0.6 % | 36.666666666666664 (880) | 24.479943 | 0.6670 | -0.517 % | 0.083 % | 0.1240 |
+| 1600 | 0.70 | turned | para equ 25x32 turned | 0 | 866-904 (56) | +0.0 % | 36.583333333333336 (878) | 24.535706 | 0.6700 | -0.046 % | 0.046 % | 0.1253 |
+| 1600 | 0.70 | turned | para equ 25x32 turned | 0 | 866-904 (56) | +0.6 % | 36.458333333333336 (875) | 24.619828 | 0.6746 | +0.673 % | 0.073 % | 0.1218 |
+| 1600 | 0.72 | turned | para equ 25x32 turned | 0 | 854-892 (68) | -0.6 % | 36.166666666666664 (868) | 24.128976 | 0.6665 | -0.591 % | 0.009 % | 0.1080 |
+| 1600 | 0.72 | turned | para equ 25x32 turned | 0 | 854-892 (68) | +0.0 % | 36.083333333333336 (866) | 24.184701 | 0.6696 | -0.115 % | 0.115 % | 0.1093 |
+| 1600 | 0.72 | turned | para equ 25x32 turned | 0 | 854-892 (68) | +0.6 % | 35.958333333333336 (863) | 24.268773 | 0.6742 | +0.613 % | 0.013 % | 0.1064 |
+| 1600 | 0.74 | turned | para equ 25x32 turned | 0 | 842-880 (80) | -0.6 % | 35.666666666666664 (856) | 23.805956 | 0.6668 | -0.547 % | 0.053 % | 0.0931 |
+| 1600 | 0.74 | turned | para equ 25x32 turned | 0 | 842-880 (80) | +0.0 % | 35.583333333333336 (854) | 23.861708 | 0.6699 | -0.064 % | 0.064 % | 0.0944 |
+| 1600 | 0.74 | turned | para equ 25x32 turned | 0 | 842-880 (80) | +0.6 % | 35.458333333333336 (851) | 23.945826 | 0.6746 | +0.676 % | 0.076 % | 0.0910 |
+| 1600 | 0.76 | turned | para equ 20x40 turned | 0 | 1032-1093 (72) | -0.6 % | 43.916666666666664 (1054) | 18.825083 | 0.4281 | -0.693 % | 0.093 % | 0.0789 |
+| 1600 | 0.76 | turned | para equ 20x40 turned | 0 | 1032-1093 (72) | +0.0 % | 43.75 (1050) | 18.896798 | 0.4314 | +0.094 % | 0.094 % | 0.0802 |
+| 1600 | 0.76 | turned | para equ 20x40 turned | 0 | 1032-1093 (72) | +0.6 % | 43.666666666666664 (1048) | 18.932861 | 0.4330 | +0.500 % | 0.100 % | 0.0782 |
+| 1600 | 0.78 | turned | para equ 20x40 turned | 0 | 1019-1079 (59) | -0.6 % | 43.333333333333336 (1040) | 18.589306 | 0.4284 | -0.616 % | 0.016 % | 0.0651 |
+| 1600 | 0.78 | turned | para equ 20x40 turned | 0 | 1019-1079 (59) | +0.0 % | 43.208333333333336 (1037) | 18.643084 | 0.4309 | -0.020 % | 0.020 % | 0.0667 |
+| 1600 | 0.78 | turned | para equ 20x40 turned | 0 | 1019-1079 (59) | +0.6 % | 43.083333333333336 (1034) | 18.697174 | 0.4334 | +0.596 % | 0.004 % | 0.0638 |
+| 1600 | 0.80 | turned | para equ 20x40 turned | 0 | 1006-1066 (46) | -0.6 % | 42.791666666666664 (1027) | 18.353998 | 0.4283 | -0.634 % | 0.034 % | 0.0517 |
+| 1600 | 0.80 | turned | para equ 20x40 turned | 0 | 1006-1066 (46) | +0.0 % | 42.666666666666664 (1024) | 18.407769 | 0.4308 | -0.031 % | 0.031 % | 0.0533 |
+| 1600 | 0.80 | turned | para equ 20x40 turned | 0 | 1006-1066 (46) | +0.6 % | 42.541666666666664 (1021) | 18.461857 | 0.4334 | +0.593 % | 0.007 % | 0.0504 |
+| 900 | 0.76 | 0 | para alt 29x16 0 | 0 | 679-711 (9) | -0.6 % | 28.833333333333332 (692) | 16.128499 | 0.5585 | -0.485 % | 0.115 % | 0.0699 |
+| 900 | 0.76 | 0 | para alt 29x16 0 | 0 | 679-711 (9) | +0.0 % | 28.916666666666668 (694) | 16.082019 | 0.5553 | +0.124 % | 0.124 % | 0.0705 |
+| 900 | 0.76 | 0 | para alt 29x16 0 | 0 | 679-711 (9) | +0.6 % | 29 (696) | 16.035806 | 0.5521 | +0.725 % | 0.125 % | 0.0674 |
+| 900 | 0.78 | 0 | para alt 29x16 0 | 0 | 670-701 (19) | -0.6 % | 28.458333333333332 (683) | 15.922026 | 0.5586 | -0.505 % | 0.095 % | 0.0561 |
+| 900 | 0.78 | 0 | para alt 29x16 0 | 0 | 670-701 (19) | +0.0 % | 28.541666666666668 (685) | 15.875538 | 0.5553 | +0.113 % | 0.113 % | 0.0567 |
+| 900 | 0.78 | 0 | para alt 29x16 0 | 0 | 670-701 (19) | +0.6 % | 28.625 (687) | 15.829321 | 0.5521 | +0.722 % | 0.121 % | 0.0536 |
+
+- **N 1600's nearest turned arrangement changes** between η 0.74 (25 × 32, aspect 0.67) and 0.76 (20 × 40, aspect 0.43). At 0.74, 20 × 40 is the runner-up, only 6 pixels further. Every N 1600 height lies 46–80 pixels (1.9–3.3 σ) from the stage 1 height, against 0–7 at N 900.
+- **N 900 uses the 1-vacancy 17 × 27 at every η:** its 0-vacancy alternatives (18 × 25, 15 × 30) lie 7–41 pixels further from k 720.
+- **Two of the middle heights are P2's own G2 turned cells:** η 0.72 at k 716 (relaxed e −0.133 %, c 13.752) and 0.78 at k 688 (−0.336 %, 22.176).
+- **The pin-0 heights:** the start strain rises with H (the lines lie along x); for turned it falls with H.
+
+**The cost.** 3 heights × 5 masses × 10 seeds per cell; 12 cells turned and 2 pin 0: 2100 runs.
+- **Events per run:** P2's package model.
+  - The lower value uses D56-1's planning Z (Liu's global branch at 0.70, the solid branch from 0.72); the upper uses that Z × 1.268 from 0.72 on.
+  - P2's turned cells executed 0.84–1.02 of the upper per run (cell medians 0.84–1.01).
+  - The per-pin factor is P2's: 1.002 for turned, 1.171 for pin 0 (measured on the 12-vacancy crystals).
+- **Microseconds per event:** P2's measured medians per CPU model; N 1600 is scaled by D56-1's measured N 1600 / N 900 ratio (E5-2670 v3's for the four models D56-1 did not see).
+- **The CPU mix:** P2's runs per model.
+
+| N | eta | pin | Z lower / upper | runs | events per run [M], alpha 1 .. 20 (upper) | minutes per run, the mix (upper): median (largest) | the longest run (upper): E5-2670 v3 / E5-4640 v2 [min] | core-hours lower / upper |
+|---|---|---|---|---|---|---|---|---|
+| 900 | 0.70 | turned | 10.32 / 10.32 | 150 | 70 .. 128 | 4.28 (6.07) | 7.56 / 8.37 | 11.2 / 11.2 |
+| 900 | 0.72 | turned | 10.03 / 12.72 | 150 | 85 .. 149 | 5.10 (7.09) | 8.83 / 9.77 | 10.2 / 13.3 |
+| 900 | 0.74 | turned | 11.02 / 13.98 | 150 | 92 .. 153 | 5.35 (7.28) | 9.07 / 10.04 | 10.7 / 13.9 |
+| 900 | 0.76 | 0 | 12.41 / 15.73 | 150 | 118 .. 189 | 6.76 (8.99) | 11.21 / 12.40 | 13.6 / 17.5 |
+| 900 | 0.76 | turned | 12.41 / 15.73 | 150 | 101 .. 161 | 5.78 (7.68) | 9.57 / 10.59 | 11.6 / 14.9 |
+| 900 | 0.78 | 0 | 14.30 / 18.13 | 150 | 133 .. 204 | 7.48 (9.71) | 12.10 / 13.40 | 15.0 / 19.3 |
+| 900 | 0.78 | turned | 14.30 / 18.13 | 150 | 114 .. 174 | 6.39 (8.29) | 10.33 / 11.44 | 12.8 / 16.5 |
+| 900 | 0.80 | turned | 16.94 / 21.49 | 150 | 132 .. 194 | 7.29 (9.21) | 11.48 / 12.71 | 14.6 / 18.7 |
+| 1600 | 0.70 | turned | 10.32 / 10.32 | 150 | 143 .. 296 | 10.06 (15.26) | 19.02 / 20.93 | 26.5 / 26.5 |
+| 1600 | 0.72 | turned | 10.03 / 12.72 | 150 | 171 .. 341 | 11.84 (17.61) | 21.94 / 24.15 | 24.0 / 31.1 |
+| 1600 | 0.74 | turned | 11.02 / 13.98 | 150 | 182 .. 346 | 12.28 (17.88) | 22.28 / 24.52 | 24.9 / 32.2 |
+| 1600 | 0.76 | turned | 12.41 / 15.73 | 150 | 186 .. 315 | 11.88 (16.24) | 20.25 / 22.28 | 23.9 / 30.9 |
+| 1600 | 0.78 | turned | 14.30 / 18.13 | 150 | 209 .. 338 | 13.07 (17.44) | 21.73 / 23.92 | 26.3 / 33.8 |
+| 1600 | 0.80 | turned | 16.94 / 21.49 | 150 | 242 .. 373 | 14.81 (19.24) | 23.98 / 26.40 | 29.7 / 38.2 |
+
+**The minutes per run per CPU model** (upper events):
+
+| CPU model | P2 runs on it (of 400) | us per event N 900 / N 1600 | N 900: minutes per run, median (largest) | N 1600: minutes per run, median (largest) |
+|---|---|---|---|---|
+| EPYC 9654 | 59 | 2.139 / 2.322 | 4.66 (7.28) | 9.30 (14.43) |
+| Gold 6342 | 41 | 2.209 / 2.398 | 4.81 (7.52) | 9.61 (14.90) |
+| EPYC 7543P | 32 | 2.284 / 2.480 | 4.98 (7.78) | 9.93 (15.41) |
+| Gold 6248 | 133 | 2.764 / 3.001 | 6.02 (9.41) | 12.02 (18.65) |
+| E5-2670 v3 | 125 | 3.555 / 3.860 | 7.75 (12.10) | 15.46 (23.98) |
+| E5-4640 v2 | 10 | 3.935 / 4.249 | 8.58 (13.40) | 17.01 (26.40) |
+
+- total: 2100 runs; 255 core-hours (lower) to 318 (upper) at P2's KOA mix; at 64 cores 4.0 to 5.0 h of wall time (the array's packing, no queue);
+- the longest single run (upper): 24.0 min on E5-2670 v3, 26.4 min on E5-4640 v2 (P2's rule, 1.5 x the longest on the slower model rounded up to 5 min: 40 min);
+- for comparison, P2: 400 runs, 36.9 core-hours used against its package's 52.9 (upper);
+- the merge: P2's took 47 min for 400 runs (p2_reduce 2542 s of it); scaled by the run count to 2100 runs: about 4.1 h (N 1600's trajectories are longer; the merge's 24 h limit).
+
+## 5. Task 4: the reorientation at η 0.72 (reorientation_c/)
+
+**P2 (KOA), the two pin-0 cells, 50 runs × 2 compartments each:**
+
+| cell | compartments | start x / y | end x / y | snapshots every [sigma] | psi6_t every [sigma] | first snapshot with y: median (range) | first y snapshot before 200 | first y snapshot before 300 | first y snapshot before 500 | first psi6_t within 7.5 deg of 30: median (range) | before 200 | before 300 | before 500 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| G1, H 30 | 100 | 100 / 0 | 0 / 100 | 67-117 | 1.0-3.3 | 117 (67 to 337) | 90 of 100 | 99 of 100 | 100 of 100 | 78 (24 to 291) | 97 of 100 | 100 of 100 | 100 of 100 |
+| G2, H 29.708 | 100 | 100 / 0 | 0 / 100 | 67-117 | 1.0-3.4 | 135 (67 to 437) | 75 of 100 | 94 of 100 | 100 of 100 | 100 (24 to 413) | 87 of 100 | 97 of 100 | 100 of 100 |
+
+- The first snapshot with y is the first snapshot after the start (t = one snapshot interval) in G1, H 30: 55 of 100, G2, H 29.708: 44 of 100 compartments: the snapshots every 67-117 sigma-time do not show the rotation itself, only that it is over; psi6_t (every 1.0-3.4 sigma-time) shows the orientation's path but not the configurations.
+
+**The Mac run** (P2's line 21: 0.72, G1 H 30, pin 0, α 5, s 0; snapshots every 10 σ-time; per frame each compartment's θ0, line direction, ordered fraction of the bulk and e):
+
+| t [sigma] | left: theta0 [deg], lines, ordered fraction, e [%] | right: theta0 [deg], lines, ordered fraction, e [%] |
+|---|---|---|
+| 0 | 0.0, x, 1.00, +2.14 | 60.0, x, 1.00, +2.15 |
+| 10 | 0.3, x, 0.84, +1.77 | 0.2, x, 0.90, +1.33 |
+| 20 | 0.8, x, 0.82, +0.62 | 0.0, x, 0.83, +0.79 |
+| 30 | 0.1, x, 0.73, +1.06 | 3.3, x, 0.79, -0.45 |
+| 40 | 59.1, x, 0.67, +0.97 | 28.0, y, 0.76, -0.87 |
+| 50 | 59.7, x, 0.71, +0.42 | 29.5, y, 0.72, -0.04 |
+| 60 | 59.6, x, 0.75, -0.86 | 29.2, y, 0.82, -0.58 |
+| 70 | 31.0, y, 0.77, +0.17 | 29.5, y, 0.86, -0.02 |
+| 80 | 30.3, y, 0.75, +1.11 | 30.3, y, 0.86, -1.04 |
+| 90 | 30.2, y, 0.76, -0.98 | 30.4, y, 0.83, -0.43 |
+| 100 | 30.0, y, 0.83, -0.66 | 30.4, y, 0.86, -1.03 |
+| 110 | 30.1, y, 0.88, -1.38 | 30.0, y, 0.80, -2.12 |
+| 120 | 29.8, y, 0.85, -1.62 | 30.6, y, 0.81, -0.93 |
+| 130 | 30.2, y, 0.89, -0.33 | 29.9, y, 0.86, -0.63 |
+| 140 | 29.9, y, 0.89, -0.49 | 29.9, y, 0.84, +0.05 |
+| 150 | 29.9, y, 0.80, -0.17 | 30.5, y, 0.90, -0.57 |
+
+- the left compartment: the first 10-sigma snapshot with lines along y at t = 70; the first psi6_t sample within 7.5 deg of 30 at t = 66.7; snapshots with lines along x after that, up to 600: 0
+
+- the right compartment: the first 10-sigma snapshot with lines along y at t = 40; the first psi6_t sample within 7.5 deg of 30 at t = 34.2; snapshots with lines along x after that, up to 600: 0
+- **The frames** (fig_d57_reorientation_frames.png) colour every disk by its local ψ6 orientation.
+  - Domains with lines along y appear at the outer walls and at the divider by t = 10.
+  - They grow through the compartment: the right one is y by t = 40, the left by t = 70.
+  - Meanwhile the ordered fraction of the bulk drops from 1.00 to 0.67 (left, t = 40) and 0.72 (right, t = 50), and lies at 0.75–0.92 from t = 100 to 600.
+- **Its trajectory is not KOA's line 21.** The Mac binary differs from KOA's build (section 6 g), so this is one more sample of the same task line.
+
+## 6. Choices made, each with its reason
+
+- **(a) "The relaxed e"** is the record's mean over the snapshots, both compartments averaged: the state while c is measured. The hold's end and the last snapshot are given alongside.
+- **(b) At 0.72 the two G1 cells are one point** (the same box and the same final state). The four-cell fit is the check; the segments were added because the three points are not on one line.
+- **(c) The pilot's error bar** is half its two runs' difference: it has 2 runs at one mass, so no jackknife.
+- **(d) The bistable run's c is its own per-trajectory c,** since the (cell, mass) E1 pools 10 runs. The E1 without it is computed by stage 1's rule.
+- **(e) The geometry's "nearest the stage 1 height":** the arrangement's nearest grid height to k 720 / 960. Within an arrangement a tie in |e − target| goes to the k nearer the stage 1 height; there were none.
+- **(f) The cost's events come from P2's package model** with the lower and upper Z. The upper is a planning value, not a strict bound: P2's turned cells executed 0.84–1.02 of it per run (cell medians 0.84–1.01), and 0.80 lies beyond P2's range. For the pin-0 cells P2's factor 1.171 is kept: it was measured on 12-vacancy crystals and is conservative for the 0-vacancy ones.
+- **(g) The Mac run's binary** is experiments_gen3_d50_261014/bin_0544b7e8-dirty/00ALLINONE, D56-1's Mac build, rather than a new build at 8aaf5fef.
+  - The scratchpad, where the rehearsal's 8aaf5fef build lived, was wiped at this session's start.
+  - 11 of that binary's 12 sources equal P2's 8aaf5fef build inputs. The twelfth, kissfft/kiss_fft_log.h, differs by an `#ifndef DEBUG` guard around `#define DEBUG 4`, and the build defines no DEBUG.
+  - The snapshots run over the whole run, 842 frames and 11.5 MB, since the binary has no time window for them.
+- **(h) The scratchpad wipe** also removed the notes recorder. It was restored from its full text (the conversation) and is now also kept in a memory note. Nothing in the repo was affected.
+
+## 7. The independent verification (workflow d57-3-verify: 4 sub-agents, read-only, their own code)
+
+- **The check:** four sub-agents (workflow d57-3-verify), one per task. Each recomputed its task from the raw data with its own code, read-only on the repo and with no simulation.
+  - 89 checks, 89 agree, to the 8-digit rounding of the CSVs (≤ 5e-8 relative): every e, slope, χ², c at e = 0, the pilot, the bistable run's numbers and its E1 with and without it, the 800-compartment scan, all 42 geometry rows (no ties, no target missed by more than 0.2 %), the 420 cost rows and the totals, P2's per-model microseconds, and every reorientation count and time.
+- **Their findings:**
+  - **Task 1:** the two G1 cells at 0.72 share a box but differ in e by 0.121 ± 0.016 % (7.7 SE) while their c agree.
+    - With half that difference as point 1's e error, the three-box slope is −3.076 ± 0.143 (scaled 0.605; χ² 17.9 / 1). This is now the sensitivity row of section 2.
+    - The effective-variance iteration (−3.454) differs from the exact minimum of the same χ² (ODR: −3.463) by 0.1 of the unscaled SE.
+  - **Task 2:** run 9's orientation (+0.40 / −0.34°) and its right compartment's last-snapshot strain (−1.544 %) lie just outside the siblings' ranges; section 3 says so.
+  - **Task 3:** the upper cost is a planning value, not a strict bound.
+    - P2's 0.78 G1 turned cell executed up to 1.018 of it, so 1.018 × the upper gives 324 core-hours.
+    - At 0.70 the upper equals the lower, while P2's 0.72 turned cells executed 1.10 of the lower: that adds about 4 core-hours.
+    - Nothing at N 1600 is measured by P2.
+    - Per-pin medians of the microseconds per event would change the total by −0.4 %.
+  - **Task 4:** two text slips in the first reorientation.md, the snapshot interval written as 61–117 (0.72's is 67–117) and the Mac table's t = 150 row dropped by a tolerance. Both are fixed in reorientation_c; no number changed.
+- **The evidence:** experiments_gen3_d57_261016/verification/ holds the workflow's script and result and each agent's code and outputs.
+
+## 8. The figures (Chris attaches them)
+
+- c_vs_e_c/fig_d57_c_vs_e.png: c against e per η (0.72, the 0.76 pilot, 0.78), with the fitted lines.
+- bistable/fig_d57_bistable.png: e(t) and ψ6(t) per compartment for the ten runs of (0.78, G2, pin 0, α 2), run 9 in red.
+- reorientation_c/fig_d57_reorientation_p2.png: the ψ6 orientation per compartment of the two 0.72 pin-0 cells, the whole run and the first 600 σ-time.
+- reorientation_c/fig_d57_reorientation_frames.png: the Mac run frame by frame, t = 0–150, 300 and 600, with its orientation against time.
+
+## 9. Commits (main; nothing pushed)
+
+- **0748b691:** decision 57 addendum 3 (sec. 4.7.140).
+- **180c1ce6:** experiments_gen3_d57_261016 (the Mac run, the four scripts and their outputs).
+- **This report:** sec. 4.7.141.
+
+Written for: the plan author
