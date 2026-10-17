@@ -33521,3 +33521,105 @@ The prediction is gen_p2_koa_261016.plan()'s: r = 1.2004 (Z_upper − 1) + 0.011
 - **No push** is needed (addendum 2 item 3).
 
 Written for: the plan author
+
+### 4.7.140 Plan-author decision 57, addendum 3: the reading of Report D57-2. On record: the isotropy test did not take place (at 0.72 every pin-0 crystal reoriented to turned in the hold, 100 of 100; at 0.78 pin 0 carries 12 vacancies), so addendum 1's prediction was met at 0.72 for the wrong reason. The result that matters: c follows the crystal's relaxed strain e monotonically, about 3–4 % in c per 1 % of strain, and the relaxed e is set by the box height through the integer rows; the Stage 2 target is c at e = 0, interpolated over three box heights per cell. The relaxed state is reproducible (79 of 80), the estimator sound, the run-length rule stays. Tasks, Mac only (one Mac run allowed): c against e with the slopes d ln c / d e; the bistable run; the registration's geometry table (12 cells turned, 2 cells pin 0) and its cost; the reorientation at 0.72; Report D57-3 (2026-10-16 14:16 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Relayed by Chris** at about 14:14 HST on 2026-10-16 (machine date), with the plan author's reading of D57-2 to Chris on top.
+- **The plan author's reading, on record:**
+  1. The isotropy test did not take place. At 0.72 every pin-0 crystal reoriented to turned in the hold (100 of 100 compartments, both geometries), so the agreement at 0.72 G1 compares two identical states. At 0.78 pin 0 carries 12 vacancies, so the difference there is not clean either. Isotropy is still open.
+  2. The result that matters: c follows the crystal's relaxed strain e monotonically.
+     - 0.72: e −0.9 / −0.1 / +0.6 % gives c 14.19 / 13.75 / 13.51;
+     - 0.78 turned: e +2.5 / −0.3 % gives 19.70 / 22.18;
+     - about 3–4 % in c per 1 % of strain; the relaxed e is set by the box height through the integer rows.
+     - So the Stage 2 target is c at e = 0 (the strain-free relaxed crystal), interpolated over three box heights per cell. The stage 1 geometry would have biased c at 0.72 by about 3.5 %.
+  3. The relaxed state is reproducible (79 of 80); the estimator is sound (no stalls, sd/sd_E1 0.95–1.02, an equipartition check); the run-length rule stays.
+  4. The Stage 2 design as it now looks (the registration is the plan author's): turned only as the main scan; three heights per cell with start strains near −0.6, 0, +0.6 %; 5 masses × 10 seeds; η 0.70–0.80 at N 900 and 1600; plus an isotropy check at 0.76 and 0.78, N 900, pin 0 with a zero-vacancy arrangement. Nothing on KOA until it is registered.
+- **Tasks, Mac only; no runs on KOA; one Mac run allowed in item 4:**
+  1. c against e: one figure and table over the 8 P2 cells (E1 per cell against the mean relaxed e, both compartments averaged, with error bars; D56-1's 0.76 pilot added if its relaxed e can be read from its snapshots), and the slopes d ln c / d e from the three 0.72 points and the two 0.78 turned points, with their uncertainty; a straight line only.
+  2. The bistable run (0.78 G2 pin 0, α 2, seed 3661301716, left compartment +1.9 %): its c, Q, ψ6 and orientation against its nine siblings, and whether its right compartment relaxed normally.
+  3. The registration's geometry table from s2_vacancy_table's long CSV:
+     - 12 cells (η 0.70, 0.72, 0.74, 0.76, 0.78, 0.80 × N 900, 1600), pin turned, the arrangement with at most 1 vacancy whose heights lie nearest the stage 1 height;
+     - within it, the three heights on the 1/24 grid whose start strain is nearest −0.6 %, 0 and +0.6 % (H, k, L0, aspect, e, gap, vacancies);
+     - the same for pin 0 with 0 vacancies at (900, 0.76) and (900, 0.78);
+     - the design's cost (3 H × 5 masses × 10 seeds per cell; 12 cells turned and 2 pin 0) with the P2-measured minutes per run per CPU model and P2's KOA mix, in core-hours and wall time at 64 cores.
+  4. The reorientation at 0.72: one figure of the ψ6 orientation per compartment against time for the two pin-0 cells (all 50 runs, thin lines, the hold's end marked), and the number of compartments whose first "y" snapshot lies before 200, 300 and 500 σ-time. If the snapshots are too coarse to show the rotation itself, say so; ONE Mac run of the (0.72, G1, pin 0, α 5, s 0) task line with snapshots every 10 σ-time for the first 600 σ-time is allowed, under experiments_gen3_d57_261016/.
+  5. Report D57-3 with the figures (Chris attaches them), the tables and the commits. No registration text; no KOA scripts yet. It ends with "Written for: the plan author".
+- **Afterwards (the plan author's note):** the plan author writes the Stage 2 registration (§ 4.9) and the three-paste runsheet spec; then Chris pushes, CC packages it, and Chris types three times.
+- **Chris's instruction with it:** "make multi agent if needed" (sub-agents allowed for this task).
+
+**The message, verbatim** (relayed by Chris on 2026-10-16 at about 14:14 HST, machine date):
+
+```
+D57-2 read in full. The data are clean (400/400, 0 fit failures, 0 stalls, every run matched to its task line), so the numbers can be trusted. What they say is not what I predicted, and it is more useful.
+
+1. The isotropy test did not happen. At η 0.72 every “pin 0” crystal rotated by 30° into the turned orientation within the first 70–440 σ-time of the hold — 100 of 100 compartments, in both geometries. So the agreement at 0.72 G1 (z −0.30) compares two identical states, not two orientations; my prediction was confirmed for the wrong reason. At 0.78 the pins stay put but pin 0 carries the 12 vacancies, so the difference there (z 98 and 30) is not clean either. Isotropy is still open. (The rotation itself is a nice finding: at 0.72 in a 30 σ box the crystal collectively picks the orientation that fits the box; keep the figure for the appendix.)
+
+2. The real result: c is set by the crystal’s relaxed strain, and the relaxed strain is set by the box height. Put the eight cells in order of their end strain e and the sound speed follows it monotonically:
+
+η 0.72, all four cells end turned: e −0.9 % (H 30) → c 14.19; e −0.1 % (H 29.83) → 13.75; e +0.6 % (H 29.71) → 13.51. A 1 % change in H moved c by 4.7 %.
+η 0.78, turned: e +2.5 % (H 30) → 19.70; e −0.3 % (H 28.67) → 22.18. The 12-vacancy pin-0 crystals at e ≈ −2 % → 23.9–24.3.
+
+Roughly 3–4 % in c per 1 % of strain across the close-packed lines (compressed across the lines = stiffer along the divider). That is nonlinear elasticity of a hard-disk crystal, expected in kind, large in size. Consequence: “c_s of the solid at η” is only defined at a stated strain, and the natural choice is the strain-free relaxed crystal, e = 0. The Stage 1 geometry (H = 30) would have given 14.19 at 0.72 where the e = 0 value is about 13.7 — a 3.5 % bias that would have looked like physics. Good that P2 ran before the registration.
+
+3. What else P2 settles. The relaxed state is reproducible across seeds (R ≤ 2 in 79 of 80; the one exception is a single compartment that relaxed to +1.9 % while its nine siblings sit at −2 to −3 %: a bistable cell, and I want that run’s c — see the block). The estimator is sound in the solid: Q 15–160 with no stalls, one spectral line, and sd/sd_E1 = 0.95–1.02 everywhere, which is an equipartition check — the divider’s static fluctuation agrees with the dynamic stiffness within 5 %, independent of the fit. The run-length rule can stay (200 predicted periods gave 207–255 real ones). Cost: 37 core-hours against 53 predicted; the AMD and Gold nodes are 1.6× faster than the model’s.
+
+4. Stage 2 design, as it now looks (the registration is mine, after one more Mac task): turned orientation only as the main scan (it is stable at every η, and pin 0 does not survive at 0.72 anyway); per cell three box heights from the vacancy table with start strains near −0.6, 0, +0.6 %, so that the relaxed e brackets zero and c is interpolated to e = 0 with a second-order error; 5 masses × 10 seeds; η 0.70–0.80 at N 900 and 1600 ≈ 2100 runs, roughly 300 core-hours. Plus a dedicated isotropy check at 0.76 and 0.78, N 900, pin 0 with a zero-vacancy arrangement at its own heights (the vacancy table has them: 29 × 16 at H 28.5–28.9), interpolated to e = 0 the same way — a few hundred runs more. Nothing on KOA until that is registered.
+
+Nothing to type now. Step: paste this to CC (Mac only; D57-3 is what I need to write the registration):
+
+From the plan author (Cowork), relayed by Chris. Record as decision 57
+addendum 3.
+
+DECISION 57, ADDENDUM 3 (2026-10-16 ~14:30 HST): READING OF D57-2
+ Plan-author reading, on record: (1) the isotropy test did not take
+ place: at 0.72 every pin-0 crystal reoriented to turned in the hold
+ (100/100), at 0.78 pin 0 carries 12 vacancies; the prediction of
+ addendum 1 was met at 0.72 for the wrong reason. (2) The result that
+ matters: c follows the crystal's relaxed strain e monotonically
+ (0.72: e -0.9/-0.1/+0.6 % -> c 14.19/13.75/13.51; 0.78 turned: e
+ +2.5/-0.3 % -> 19.70/22.18), about 3-4 % in c per 1 % of strain;
+ the relaxed e is set by the box height through the integer rows. The
+ Stage 2 target quantity is therefore c at e = 0 (strain-free relaxed
+ crystal), obtained by interpolation over three box heights per cell.
+ (3) The relaxed state is reproducible (79/80), the estimator sound
+ (no stalls, sd/sd_E1 0.95-1.02), the run-length rule stays.
+ Tasks, Mac only, no runs on KOA, one Mac run allowed in item 4:
+ 1. c against e: one figure and table over the 8 P2 cells (E1 per cell
+    vs the mean relaxed e, left and right compartments averaged; error
+    bars; D56-1's 0.76 pilot added if its relaxed e can be read from
+    its snapshots), and per cell the slope d ln c / d e from the three
+    0.72 points and the two 0.78 turned points. State the slopes with
+    their uncertainty; no model beyond a straight line.
+ 2. The bistable run (0.78 G2 pin 0, alpha 2, seed 3661301716, left
+    compartment +1.9 %): its c, Q, psi6 and orientation against its
+    nine siblings; and whether its right compartment relaxed normally.
+ 3. The registration's geometry table, from s2_vacancy_table's long
+    csv: for each of the 12 cells (eta 0.70, 0.72, 0.74, 0.76, 0.78,
+    0.80 x N 900, 1600), pin turned, arrangement with <= 1 vacancy
+    and H nearest the stage 1 height: the three heights on the 1/24
+    grid whose START strain is nearest -0.6 %, 0 and +0.6 % within
+    the same arrangement (give H, k, L0, aspect, e, gap, vacancies);
+    the same for pin 0 with 0 vacancies at (900, 0.76) and (900,
+    0.78) for the isotropy check. Then the cost of this design (3 H x
+    5 masses x 10 seeds per cell, 12 cells turned + 2 cells pin 0)
+    with the P2-measured minutes per run per CPU model and the KOA
+    mix seen in P2, in core-hours and wall time at 64 cores.
+ 4. The reorientation at 0.72: one figure, the psi6 orientation per
+    compartment against time for the two pin-0 cells (all 50 runs,
+    thin lines) with the hold's end marked; and the number of
+    compartments whose first "y" snapshot lies before 200, 300, 500
+    sigma-time. If the stage 1 snapshots cadence is too coarse to show
+    the rotation itself, say so; ONE Mac run of a single (0.72, G1,
+    pin 0, alpha 5, s 0) task line with snapshots every 10 sigma-time
+    for the first 600 sigma-time is allowed, under
+    experiments_gen3_d57_261016/, to show the rotation frame by frame.
+ 5. Report D57-3 with the figures attached (Chris attaches), the
+    tables, the commits. No registration text; no KOA scripts yet.
+End with "Written for: the plan author".
+
+When D57-3 is in, I write the Stage 2 registration (§ 4.9) and the three-paste runsheet spec; then push, CC packages it, you type three times. If you want to look at anything yourself in the meantime: fig_p2_c_vs_alpha.png and fig_p2_end_strain.png in /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_p2_261016/report_261016/ show points 2 and 3 above at a glance.
+```
+
+**Commits.**
+- main only: this record.
