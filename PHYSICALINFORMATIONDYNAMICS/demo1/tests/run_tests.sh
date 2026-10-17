@@ -34,6 +34,11 @@
 #           (frames between the stops) with a screenshot at t = 100: rc 0, its checks OK, and every pstate_*.txt, density_*.txt
 #           and measure.csv byte-identical to the headless B. Without SDL2 (pkg-config sdl2) pid_view1 is not built and the
 #           test is reported as not run.
+#   Test 12 (studio) bin/pid_studio, the window with panels, under the dummy driver: (a) every Demo 0 preset (0a, 0a1, mat, mat45,
+#           mat45r; rule guided, seed 9300, 150 ticks) grown in the studio (--auto --grow-only) writes the state file Demo 0
+#           headless writes, byte for byte except its build line (the presets are copied from demo0/pid_main.c); (b) test 7's
+#           configuration grown, applied and run in the studio (--auto) gives test 7's final.txt (except the build line) and
+#           all 43 data files of B byte for byte. Without SDL2_ttf pid_studio is not built and the test is reported as not run.
 # Three batches of processes run in parallel (8, 8 and 6), each process capped at 900 s (perl alarm: macOS has no `timeout`); Ctrl-C
 # stops them all. Outputs: a new folder runs/box_reference_<cc>_<UTC time>/ (git-ignored) with manifest.txt. Nothing else is
 # written and nothing is deleted. One `make test` at a time per checkout: bin/ is shared.
@@ -62,8 +67,8 @@ echo "test outputs: $OUT"
   echo "flags $CSTD"
   echo "## sources (sha256)"
   for f in Makefile tests/run_tests.sh tests/box_final_state.c tests/prim_tests.c tests/prim_controls.c tests/demo0_view_stub.c pid_demo1.h \
-           pid_demo1.c pid_view1.c tests/bmp2png.py tests/make_shots.sh engine/README_FORK.md engine/edmd_gen3.c engine/edmd_gen3.h \
-           engine/edmd.h; do echo "$(sha "$f")  demo1/$f"; done
+           pid_demo1.c pid_draw1.h pid_draw1.c pid_view1.c pid_studio.c tests/bmp2png.py tests/make_shots.sh engine/README_FORK.md \
+           engine/edmd_gen3.c engine/edmd_gen3.h engine/edmd.h; do echo "$(sha "$f")  demo1/$f"; done
   echo "## Demo 0 sources compiled unchanged from ../demo0 (git blob)"
   for f in pid.h pid_main.c pid_grow.c pid_state.c pid_rng.c pid_sha256.c pid_hull.c; do echo "$(git hash-object "../demo0/$f")  demo0/$f"; done
   echo "## originals (git blob)"
@@ -71,9 +76,9 @@ echo "test outputs: $OUT"
   echo "## the tested objects and programs (sha256)"
   for f in bin/gen2.o bin/orig/edmd_gen3.o bin/fork/edmd_gen3.o bin/orig/gen3_m1_harness bin/fork/gen3_m1_harness bin/orig/gen3_m2_harness \
            bin/fork/gen3_m2_harness bin/orig/box_final_state bin/fork/box_final_state bin/demo0/pid_rng.o bin/fork/prim_tests bin/fork/prim_controls \
-           bin/pid_demo1 bin/demo0/pid_demo0_headless bin/pid_view1; do
+           bin/pid_demo1 bin/demo0/pid_demo0_headless bin/pid_view1 bin/pid_studio; do
     if [ -f "$f" ]; then echo "$(sha "$f")  demo1/$f"; else echo "(not built)  demo1/$f"; fi; done
-  echo "sdl2 $(pkg-config --modversion sdl2 2>/dev/null || echo 'not found by pkg-config')"
+  echo "sdl2 $(pkg-config --modversion sdl2 2>/dev/null || echo 'not found by pkg-config'); SDL2_ttf $(pkg-config --modversion SDL2_ttf 2>/dev/null || echo 'not found by pkg-config')"
   echo "## build: every command make runs for 'all' (make -n -B), in order"
   cat bin/build_lines.txt 2>/dev/null || echo "(bin/build_lines.txt missing: run through make test)"
 } > "$OUT/snapshot.txt"
@@ -191,6 +196,10 @@ launch t7n "$P1" --state="$H7/state_000350.txt" --N=10 --T=1 --seed=1 --out="$D/
 if [ -x "$D/bin/pid_view1" ]; then
   launch t11 env SDL_VIDEODRIVER=dummy "$D/bin/pid_view1" --state="$F7" --N=2000 --T=200 --seed=0x5EED70 --write-every=10 --exit-at-end \
     --speed=0.37 --shot-at=100 --out="$D/$OUT/t11"
+fi
+if [ -x "$D/bin/pid_studio" ]; then
+  launch t12r env SDL_VIDEODRIVER=dummy "$D/bin/pid_studio" --preset=mat45 --rule=guided --grow-seed=9300 --steps=400 --tpf=4 --tick=400 \
+    --N=2000 --seed=0x5EED70 --T=200 --write-every=10 --speed=0.37 --auto --exit-at-end --shot-tick=200 --shot-at=100 --out="$D/$OUT/t12r"
 fi
 echo "batch 3: Demo 0 headless (rc $d0rc), then the pid_demo1 processes (and the window) started (tests 7-9, 11; under a minute)"
 wait
@@ -355,6 +364,32 @@ else
   else bad "11 window = headless: rc $rc, $nok OK of 3, $nfl FAIL, last line '$last', $nsame of $nd data files equal to B's, shot $(ls "$OUT/t11" 2>/dev/null | grep -c '^shot_') ($f, $OUT/t11.err.txt)"; fi
 fi
 
+# test 12 (studio): growth = Demo 0 for every preset; grow, apply, run = test 7
+if [ ! -x bin/pid_studio ]; then note "12 studio: not run (bin/pid_studio is not built: SDL2_ttf not found by pkg-config)"
+else
+  n12=0; e12=0; l12=""
+  for p in 0a 0a1 mat mat45 mat45r; do
+    n12=$((n12 + 1))
+    bin/demo0/pid_demo0_headless --preset=$p --rule=guided --seed=9300 --steps=150 --headless --out="$OUT/t12_d0_$p" > "$OUT/t12_d0_$p.out.txt" 2>&1
+    SDL_VIDEODRIVER=dummy perl -e 'alarm 900; exec { $ARGV[0] } @ARGV' -- bin/pid_studio --preset=$p --rule=guided --grow-seed=9300 --steps=150 --tpf=7 \
+      --auto --grow-only --exit-at-end --out="$OUT/t12_st_$p" > "$OUT/t12_st_$p.out.txt" 2>&1
+    a="$OUT/t12_st_$p/net_1_000150/final.txt"; b="$OUT/t12_d0_$p/final.txt"
+    if [ -s "$a" ] && [ -s "$b" ] && grep -v '^build ' "$a" > "$OUT/t12_a.txt" && grep -v '^build ' "$b" > "$OUT/t12_b.txt" && cmp -s "$OUT/t12_a.txt" "$OUT/t12_b.txt"; then
+      e12=$((e12 + 1)); l12="$l12 $p $(grep -c '^seg ' "$a") seg"
+    else l12="$l12 $p DIFFERENT"; fi
+  done
+  f="$OUT/t12r.out.txt"; set -- $(cat "$OUT/t12r.rc.txt" 2>/dev/null) x x; rc=$1; tw=$2
+  nok=$(grep -c '^check .* OK$' "$f"); nfl=$(grep -c '^check .* FAIL$' "$f")
+  nd=0; nsame=0
+  for g in $(ls "$OUT/t7b" 2>/dev/null | grep -v -x manifest.txt); do nd=$((nd + 1)); cmp -s "$OUT/t7b/$g" "$OUT/t12r/run_1/$g" && nsame=$((nsame + 1)); done
+  grep -v '^build ' "$OUT/t12r/net_1_000400/final.txt" > "$OUT/t12_a.txt" 2>/dev/null; grep -v '^build ' "$F7" > "$OUT/t12_b.txt"
+  if cmp -s "$OUT/t12_a.txt" "$OUT/t12_b.txt"; then neq=1; else neq=0; fi
+  if [ "$e12" -eq 5 ] && [ "$rc" = 0 ] && [ ! -s "$OUT/t12r.err.txt" ] && [ "$nfl" -eq 0 ] && [ "$nok" -eq 3 ] && [ "$neq" = 1 ] && [ "$nd" -eq 43 ] \
+     && [ "$nsame" -eq 43 ] && [ -s "$OUT/t12r/shot_grow_tick000200.bmp" ] && [ -s "$OUT/t12r/shot_run1_t000100.bmp" ]; then
+    ok "12 studio: growth = Demo 0 headless for all 5 presets (except the build line:$l12); test 7 grown, applied and run in the studio gives its final.txt and all 43 data files of B; ${tw} s"
+  else bad "12 studio: presets equal $e12 of 5 ($l12); run: rc $rc, $nok OK of 3, $nfl FAIL, network equal $neq, $nsame of $nd data files equal to B's ($f, $OUT/t12r.err.txt)"; fi
+fi
+
 # ------------------------------------------------------------------ the manifest (pre-check A10)
 M=$OUT/manifest.txt
 {
@@ -374,9 +409,9 @@ M=$OUT/manifest.txt
     set -- $(cat "$OUT/$c.rc.txt" 2>/dev/null) x x
     echo "$c | bin/fork/$([ $c = t10 ] && echo prim_controls || echo prim_tests) | $1 | $2 | $(nlines "$OUT/$c.out.txt") | $(sha "$OUT/$c.out.txt") | $(wc -c < "$OUT/$c.err.txt" | tr -d ' ')"
   done
-  for c in t7a t7b t7c t7d t7n $([ -x bin/pid_view1 ] && echo t11); do
+  for c in t7a t7b t7c t7d t7n $([ -x bin/pid_view1 ] && echo t11) $([ -x bin/pid_studio ] && echo t12r); do
     set -- $(cat "$OUT/$c.rc.txt" 2>/dev/null) x x
-    case $c in t11) prog="bin/pid_view1, SDL_VIDEODRIVER=dummy (argv in t11/manifest.txt)";; t7n) prog="bin/pid_demo1 --state=t7_demo0/state_000350.txt --N=10 --T=1 --seed=1 (refused: no manifest)";;
+    case $c in t11) prog="bin/pid_view1, SDL_VIDEODRIVER=dummy (argv in t11/manifest.txt)";; t12r) prog="bin/pid_studio --auto, SDL_VIDEODRIVER=dummy (run argv in t12r/run_1/manifest.txt)";; t7n) prog="bin/pid_demo1 --state=t7_demo0/state_000350.txt --N=10 --T=1 --seed=1 (refused: no manifest)";;
                *) prog="bin/pid_demo1 (argv in $c/manifest.txt)";; esac
     echo "$c | $prog | $1 | $2 | $(nlines "$OUT/$c.out.txt") | $(sha "$OUT/$c.out.txt") | $(wc -c < "$OUT/$c.err.txt" | tr -d ' ')"
   done

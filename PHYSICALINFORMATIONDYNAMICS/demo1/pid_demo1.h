@@ -43,7 +43,9 @@ int  run1_advance(Run1* r, double t_sigma);   /* advance to min(t_sigma, T), wri
 double run1_time(const Run1* r);              /* sigma-time of the state */
 void run1_bin(Run1* r, const EDMD_Particle* P);   /* cnt and kec of the density grid from the particles P */
 void run1_note_file(const char* name);        /* a file written into --out (listed with its sha256 in manifest.txt) */
-int  run1_finish(Run1* r);                    /* summary, checks, manifest.txt; the exit code */
+int  run1_report(Run1* r);                    /* summary, checks, manifest.txt; the exit code (the state stays readable) */
+void run1_free(Run1* r);                      /* frees what run1_setup made, also after a failed setup */
+int  run1_finish(Run1* r);                    /* run1_report, then run1_free */
 int  view1_run(Run1* r);                      /* pid_view1.c: the window */
 
 #endif

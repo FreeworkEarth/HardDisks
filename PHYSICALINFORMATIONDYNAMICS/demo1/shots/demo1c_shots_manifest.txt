@@ -1,12 +1,12 @@
 # PID Demo 1c: the two screenshots of 02_DEMO1_BRIEF.md sec. 9 (make shots; tests/make_shots.sh)
-date_utc 2026-10-17T03:19:39Z
+date_utc 2026-10-17T05:45:32Z
 host Linux 6.18.44-fc-v139 x86_64; compiler CC=cc: cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0; sdl2 2.30.0
-repo_head 64864247a2280c9775093a418f3cce7d478c392c; demo1/ entries not committed: 11
-demo0: bin/demo0/pid_demo0_headless --preset=mat45 --rule=guided --seed=9300 --steps=400 --headless; final.txt sha256 7ea9bb7584c30c5ccd92fb876925e26d1009d8acacbdebe55b99c7decf590568
+repo_head 36b0b2d1ba7323ac837a7a7d243aa470424a29cb; demo1/ entries not committed: 12
+demo0: bin/demo0/pid_demo0_headless --preset=mat45 --rule=guided --seed=9300 --steps=400 --headless; final.txt sha256 12f74eaa910421fe33dcb50dd17dc472c0ddfce32794a3e6d32ff9757679a5b3
      (833 segments, 330 arcs, 10 loops; lumen_area 6659.16936918992)
 window: SDL_VIDEODRIVER=dummy bin/pid_view1 --state=<final.txt> --N=2000 --T=200 --seed=0x5EED70 --write-every=10 --exit-at-end --speed=1 --shot-at=100
         plus --view=network (network_particles) or --overlay=ke --show=hull,food (ke_overlay); BMP -> PNG by tests/bmp2png.py
-bin/pid_view1 sha256 1b562cb73d7debdb81d03dd85cfaeab44990e476d5f3bfc65d025a246b937e45
+bin/pid_view1 sha256 81919b77f1ba8eb3d06148ddf1dddda14f877dfedb4126fac92d2ba35ee3f563
 ## network_particles
 shot network_particles/shot_000100.bmp at t 100.000 sigma-time (1400x860)
 check clean = 1 OK
@@ -23,6 +23,10 @@ check no escape at any stop OK
 failed checks: 0
 pstate_000100.txt sha256 16fa0b06e5b03681d5e344b01d07ebd4900d8d3db359369839276bb85095cfd0; shot_000100.bmp sha256 9f20608607fa506d63b8e023e71414d0c5cdc14e3a5a2d27b2ceaf54ffeabf1f
 e1d8723e68dd69f04c567767fff2962d2f73b3f2c9bd78a6920462bdf844ead4  demo1c_mat45_seed9300_t100_ke_overlay.png (59117 bytes)
+## studio: SDL_VIDEODRIVER=dummy bin/pid_studio --preset=mat45r --rule=guided --grow-seed=9300 --steps=1000 --tpf=20
+   --show=disks,hull,food,particles --alpha=0.35 --shot-tick=600 --auto --grow-only --exit-at-end (font: see its terminal output)
+bin/pid_studio sha256 727553161352f612265d33ff5eb70e2bfb9db495b2bff50798b7052eab9dcecd
+28aece27c99d8751f1ec9db0bb147d5dba6404f660f180d6b36e928a3fd27202  demo1c_studio_mat45r_tick600.png (117678 bytes)
 both shots show the same state (pstate_000100.txt equal)
 Rendering (SDL's software renderer, the dummy driver) is the cloud's; a window on the Mac draws the same picture by another
 renderer, so the PNG bytes are not compared across machines; the state files are (make test, test 11).

@@ -214,6 +214,7 @@ static void write_stop(Run1* r, double t_sig, const char* ttag){
 
 int run1_setup(Run1* r, int argc, char** argv, int window){
     memset(r, 0, sizeof *r);
+    nfail = 0; free(files); files = NULL; nfiles = 0;   /* a process may set up several runs one after the other (the studio) */
     r->R = 12.0; r->cell = 32.0; r->write_every = 10.0; r->kbt = 1.0; r->N = -1; r->T = -1.0;
     r->window = window; r->argc = argc; r->argv = argv;
     r->v.alpha = 200.0 / 255.0; r->v.speed = 0.5;
@@ -403,7 +404,7 @@ int run1_advance(Run1* r, double t_sigma){
     return !r->done;
 }
 
-int run1_finish(Run1* r){
+int run1_report(Run1* r){
     EDMD3* S = r->S;
     const double cpu = (double)clock() / CLOCKS_PER_SEC - r->cpu0;
     const double Tr = r->done ? r->T : run1_time(r);
@@ -458,13 +459,19 @@ int run1_finish(Run1* r){
         fprintf(f, "%s  %s\n", hex, files[i]);
     }
     close_out(f, "manifest.txt");
-    edmd3_destroy(S); world_free(&r->w);
-    free(r->cap); free(r->seg); free(r->arc); free(r->mat); free(r->cnt); free(r->kec); free(r->Jprev); free(files);
     printf("failed checks: %d\n", nfail);
     if (fflush(stdout) != 0 || ferror(stdout)) return 1;
     return nfail ? 1 : 0;
 }
+void run1_free(Run1* r){
+    edmd3_destroy(r->S); r->S = NULL; world_free(&r->w);
+    free(r->cap); free(r->seg); free(r->arc); free(r->mat); free(r->cnt); free(r->kec); free(r->Jprev);
+    r->cap = NULL; r->seg = NULL; r->arc = NULL; r->mat = NULL; r->cnt = NULL; r->kec = NULL; r->Jprev = NULL;
+    free(files); files = NULL; nfiles = 0;
+}
+int run1_finish(Run1* r){ const int rc = run1_report(r); run1_free(r); return rc; }
 
+#ifndef PID1_NO_MAIN   /* the studio (pid_studio.c) has its own main and uses the functions above */
 int main(int argc, char** argv){
 #ifdef PID1_VIEW
     const int window = 1;
@@ -482,3 +489,4 @@ int main(int argc, char** argv){
 #endif
     return run1_finish(&r);
 }
+#endif
