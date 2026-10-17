@@ -121,3 +121,19 @@ If a delivery cannot be finished in one session: commit what passes, mark the re
 - One session, no reviewer panels or sub-agent fan-out. Mutation and positive-control tests are the review.
 - 1b starts from `origin/main` after Chris pushes it (it then holds `41d2ea07`, this amendment and the pre-check). The old branch is not merged.
 - If 1b does not finish in one session, commit the primitives with tests 3, 4, 5, 10 green, push, stop; the driver and tests 6–9 follow.
+
+## 9. After 1b (2026-10-16): 1b accepted; 1c may run in the cloud
+
+1b is commit `6ff16f79` (branch `claude/jolly-ride-ojbscq`, based on `dde1fce1`). Accepted: 22/22 under gcc 13.3 and clang 18.1.3; test 3 byte-identical with walls unused; positive controls all caught; real hull (test 7) clean with no escapes over 1.02 M events; contact gaps ≤ 2.2e-12 px, at least 100× below `tol_face`; KE drift ≤ 5.9e-14.
+
+**Pressure convention, adopted.** Z is referenced to the **centre-accessible area** (the corridor minus R on each wall): that is the free area of the ideal-gas term, and it gives Z = 1.1111 ± 0.0015 at η = 0.05, −0.15 % from Kolafa–Rottner. The full-area value (+2.35 %) stays in the report as information. At η = 0.30 the −2.66 % from KR is expected from wall layering — the contact density exceeds the mid-corridor density, so N/A_acc is not the bulk density. A later check compares Z with KR at the measured mid-corridor density; not a Demo 1 gate. Straight vs tilted agree to 0.17 and 0.04 block SE: the general-normal reflection is right.
+
+**1c in the cloud.** Exception to §2 rule 3 for 1c only: `apt install libsdl2-dev` (and `libsdl2-ttf-dev` if wanted) to compile the viewer and take screenshots under `SDL_VIDEODRIVER=dummy`, exactly as the Mac session did for Demo 0. Chris runs it on the Mac only to watch.
+
+1c content:
+- `pid_demo1 --window` (or `pid_view1`), new code in `demo1/`; `demo0/` is not edited. It may copy drawing ideas from `demo0/pid_view.c`, not link it.
+- Draws the Demo 0 structural disks (with the `[` `]` alpha and `--alpha`), the hull (`H`), the graph (`G`), the particles (`P`, small filled disks coloured by speed), and a coarse-grid overlay (`C`, cycling particle density / particle kinetic energy / structural material).
+- The window draws and never owns state: it calls the same advance function as the headless path. Test: a window run under the dummy driver writes `pstate_*.txt` and `measure.csv` byte-identical to a headless run.
+- `density_<t>.txt` gains one column: particle kinetic energy per cell (Σ ½ m v², internal units). Needed for Demo 2; harmless here. Test 9 is extended: the KE column sums to the total KE in `measure.csv` to 1e-12 relative.
+- Two PNGs of the test-7 configuration at t = 100 σ-time: `--view=network` plus particles, and the KE overlay.
+- One commit `pid: demo1c viewer and KE field`, push, stop.
