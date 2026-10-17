@@ -219,9 +219,10 @@ static void abc(const char* tag, const Geo* G, const EDMD_Particle* P0, int N, d
     printf("%s every stop (every sigma-time, %ld stops x 3 runs): smallest signed centre-to-wall gap %.3e px; centres outside the lumen %ld\n", tag,
            B->stops, mg, A.outside + B->outside + C.outside);
     snprintf(w, sizeof w, "%s no centre closer than R - 1e-9 px to a wall, none outside", tag); check(mg >= -1e-9 && A.outside + B->outside + C.outside == 0, w);
-    printf("%s schedule audit (A): %ld audits; walls compared %ld, missing %ld, extra %ld, |dt| > 1e-9 %ld, of them > 1e-10 x horizon %ld, deferred %ld, "
+    printf("%s schedule audit (A): %ld audits; walls compared %ld, missing %ld, extra %ld, |dt| > 1e-9 %ld, of them > 1e-10 x horizon %ld "
+           "(and %ld more grazing, v_n |dt| <= tol_face: the same contact to rounding), deferred %ld, "
            "deferred early %ld, boundary %ld, max |dt| %.3e; all classes: pair missing %ld extra %ld, wall missing %ld extra %ld, cross missing %ld extra %ld dup %ld; "
-           "duplicate disagreements %ld\n", tag, a->audits, a->prim_cmp, a->prim_missing, a->prim_extra, a->prim_dt, a->prim_dt_rel, a->prim_deferred,
+           "duplicate disagreements %ld\n", tag, a->audits, a->prim_cmp, a->prim_missing, a->prim_extra, a->prim_dt, a->prim_dt_rel, a->prim_dt_cond, a->prim_deferred,
            a->prim_deferred_early, a->prim_boundary, a->prim_max_dt, a->pair_missing, a->pair_extra, a->wall_missing, a->wall_extra, a->cross_missing,
            a->cross_extra, a->cross_dup, a->dup_disagree);
     snprintf(w, sizeof w, "%s schedule audit: 0 missing, 0 extra, 0 early, 0 off by > 1e-10 x horizon (walls and every class)", tag);

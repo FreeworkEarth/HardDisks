@@ -17,7 +17,8 @@
 #   Tests 4-5 prim_tests pair 0.05 (4000 sigma-time) and pair 0.30 (400): a closed 100 x 40 sigma corridor, straight and
 #           turned by 30 degrees; test 6: prim_tests y 0.05, y 0.30, yaim 0, yaim 1 (a Y of segments and arcs; disks aimed at its
 #           reflex vertices and at an arc-segment joint, with and without a 1.7e-12 px vertex split); test 10: prim_controls
-#           (three planted errors, each reported by its own detector). Each of these prints "check ... OK|FAIL" lines; all must
+#           (four planted errors, each reported by its own detector; the fourth, a wall event moved in time, has a grazing
+#           disk as its baseline: the same contact to rounding, which the audit must not count as an error). Each of these prints "check ... OK|FAIL" lines; all must
 #           be OK, their number complete, the last line "failed checks: 0".
 #   Test 7  Demo 0 built headless (pre-check B12) grows --preset=mat45 --rule=guided --seed=9300 --steps=400; its final.txt is
 #           identified by structure (sec. 8: 416 alive disks, 415 edges, 10 loops, 833 segments + 330 arcs, lumen_area
@@ -28,7 +29,7 @@
 #   Test 8  B = C and A = B byte for byte in every pstate_*.txt, density_*.txt and measure.csv; D differs from B.
 #   Test 9  every density file of B: the particle counts sum to N, the material column to the sum of pi r^2 over the alive
 #           disks of final.txt to 1e-9 relative (B14; M_used and the lens total printed beside it).
-# Three batches of processes run in parallel (8, 8 and 4), each process capped at 900 s (perl alarm: macOS has no `timeout`); Ctrl-C
+# Three batches of processes run in parallel (8, 8 and 5), each process capped at 900 s (perl alarm: macOS has no `timeout`); Ctrl-C
 # stops them all. Outputs: a new folder runs/box_reference_<cc>_<UTC time>/ (git-ignored) with manifest.txt. Nothing else is
 # written and nothing is deleted. One `make test` at a time per checkout: bin/ is shared.
 set -u
@@ -270,7 +271,7 @@ for c in t3e t45a t45b t6a t6b t6c t6d t10; do
   case $c in t3e) what="3 empty wall list"; want=1;; t45a) what="4-5 corridor, straight and turned 30 degrees, eta 0.05"; want=19;;
              t45b) what="4-5 corridor, straight and turned 30 degrees, eta 0.30"; want=15;; t6a) what="6 Y, eta 0.05"; want=7;;
              t6b) what="6 Y, eta 0.30"; want=7;; t6c) what="6(d) Y, aimed disks"; want=8;; t6d) what="6(d) Y, aimed disks, vertex split 1.7e-12 px"; want=8;;
-             t10) what="10 positive controls"; want=6;; esac
+             t10) what="10 positive controls"; want=8;; esac
   f="$OUT/$c.out.txt"; set -- $(cat "$OUT/$c.rc.txt" 2>/dev/null) x x; rc=$1; tw=$2
   nok=$(grep -c '^check .* OK$' "$f"); nfl=$(grep -c '^check .* FAIL$' "$f"); last=$(tail -n 1 "$f")
   if [ "$rc" = 0 ] && [ ! -s "$OUT/$c.err.txt" ] && [ "$nfl" -eq 0 ] && [ "$nok" -eq "$want" ] && [ "$last" = "failed checks: 0" ]; then

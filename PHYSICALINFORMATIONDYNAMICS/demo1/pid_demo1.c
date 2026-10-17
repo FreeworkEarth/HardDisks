@@ -380,9 +380,10 @@ int main(int argc, char** argv){
         const EDMD3_Audit* A = edmd3_schedule_audit_stats(S);
         double cm[2], cb[2]; const long cev = edmd3_contact_audit_prims(S, cm); edmd3_contact_audit_stats(S, cb);
         EDMD3_Tol tol; edmd3_tolerances(S, &tol);
-        printf("schedule audit: %ld audits; walls compared %ld, missing %ld, extra %ld, early %ld, off by > 1e-10 x horizon %ld, boundary %ld; "
-               "pairs missing %ld extra %ld; box walls missing %ld extra %ld; crossings missing %ld extra %ld\n", A->audits, A->prim_cmp, A->prim_missing,
-               A->prim_extra, A->prim_deferred_early, A->prim_dt_rel, A->prim_boundary, A->pair_missing, A->pair_extra, A->wall_missing, A->wall_extra,
+        printf("schedule audit: %ld audits; walls compared %ld, missing %ld, extra %ld, early %ld, off by > 1e-10 x horizon %ld (grazing, the same contact "
+               "to rounding: %ld), boundary %ld; pairs missing %ld extra %ld; box walls missing %ld extra %ld; crossings missing %ld extra %ld\n", A->audits,
+               A->prim_cmp, A->prim_missing, A->prim_extra, A->prim_deferred_early, A->prim_dt_rel, A->prim_dt_cond, A->prim_boundary, A->pair_missing,
+               A->pair_extra, A->wall_missing, A->wall_extra,
                A->cross_missing, A->cross_extra);
         printf("contact audit: %ld wall events; max |gap| segments %.3e px, arcs %.3e px, pairs %.3e px; tol_face %.3e px\n", cev, cm[0], cm[1], cb[0], tol.tol_face);
         check(A->audits > 0 && !A->prim_missing && !A->prim_extra && !A->prim_deferred_early && !A->prim_dt_rel && !A->pair_missing && !A->pair_extra

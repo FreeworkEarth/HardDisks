@@ -113,6 +113,8 @@ typedef struct {
        brute force disagree only because the contact lies on the end of a line or arc within 1e-8 px (counted, not an error). */
     long prim_cmp, prim_missing, prim_extra, prim_dt, prim_dt_rel, prim_deferred, prim_deferred_early, prim_boundary;
     double prim_max_dt, prim_max_rel;
+    /* PID: |dt| > 1e-10 x horizon but v_n |dt| <= tol_face: a grazing approach that agrees to rounding (not an error) */
+    long prim_dt_cond;
 } EDMD3_Audit;
 
 /* amendment d: the momentum and energy ledgers. P = total momentum of every body of finite mass (the disks, free and

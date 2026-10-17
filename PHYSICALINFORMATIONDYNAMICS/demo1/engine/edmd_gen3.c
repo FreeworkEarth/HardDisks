@@ -1256,14 +1256,18 @@ static void schedule_audit_bodies(EDMD3* S){
 }
 /* PID: the live T_SEG and T_ARC events per (disk, primitive) against prim_rule from the absolute state, every disk against
    every primitive (an independent computation). A disagreement that vanishes when the ends of the line or arc move by 1e-8 px
-   is a boundary case (the heap's prediction and this one fall on either side of an end by rounding) and is counted apart. */
+   is a boundary case (the heap's prediction and this one fall on either side of an end by rounding) and is counted apart.
+   A time disagreement beyond 1e-10 x horizon is an error only if it moves the contact by more than tol_face along the normal
+   (v_n |dt| > tol_face): the time to contact is gap / v_n, so for a grazing approach (small v_n) a gap that differs by
+   rounding (~1e-13 px) gives a time that differs by far more than 1e-10 of a short horizon; such a pair agrees to rounding
+   and is counted apart (prim_dt_cond; found on the Mac in the 30-degree corridor, v_n ~ 7e-4 px per unit). */
 static int apev_cmp(const void* x, const void* y){
     const APEv *u = (const APEv*)x, *v = (const APEv*)y;
     if (u->a != v->a) return u->a < v->a ? -1 : 1;
     if (u->p != v->p) return u->p < v->p ? -1 : 1;
     return (u->t > v->t) - (u->t < v->t);
 }
-static void audit_cmp_prim(EDMD3* S, real tbf, real th, int a, int p){
+static void audit_cmp_prim(EDMD3* S, real tbf, real th, int a, int p, real vn){
     EDMD3_Audit* A = &S->A;
     A->prim_cmp++;
     const real d = R_(fabs)(tbf - th);
@@ -1274,7 +1278,10 @@ static void audit_cmp_prim(EDMD3* S, real tbf, real th, int a, int p){
         A->prim_dt++;
         if (rel > A->max_rel) A->max_rel = rel;
         if (rel > A->prim_max_rel) A->prim_max_rel = rel;
-        if (rel > 1e-10) { A->prim_dt_rel++; audit_print(S, "dt_rel", "PRIM", a, p, tbf, th); }
+        if (rel > 1e-10) {
+            if (vn * d <= S->tol_face) A->prim_dt_cond++;   /* PID: grazing, the same contact to rounding (see above) */
+            else { A->prim_dt_rel++; audit_print(S, "dt_rel", "PRIM", a, p, tbf, th); }
+        }
     }
 }
 static void schedule_audit_prims(EDMD3* S){
@@ -1318,7 +1325,11 @@ static void schedule_audit_prims(EDMD3* S){
             const int rc = prim_rule(S, p, x, y, D->vx, D->vy, ml, 0.0, &dt, &g, &f);
             if (rc) {
                 const real tbf = S->now + dt;
-                if (he) { he->m = 1; audit_cmp_prim(S, tbf, he->t, i, p); }
+                if (he) {
+                    real nx, ny, gc;   /* PID: the normal speed at the brute-force contact */
+                    prim_contact(S, p, f, x + D->vx * dt, y + D->vy * dt, &nx, &ny, &gc);
+                    he->m = 1; audit_cmp_prim(S, tbf, he->t, i, p, R_(fabs)(D->vx * nx + D->vy * ny));
+                }
                 else if (cand) {
                     if (prim_rule(S, p, x, y, D->vx, D->vy, ml, -sl, &dt2, &g2, &f2)) { A->prim_missing++; audit_print(S, "missing", "PRIM", i, p, tbf, NAN); }
                     else A->prim_boundary++;
