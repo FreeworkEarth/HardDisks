@@ -3,7 +3,9 @@
 # the corrections of 02_DEMO1_BRIEF_PRECHECK.md. Run through `make test` from demo1/; the Makefile rebuilds bin/ first.
 #   Test 2 (the 1b form, pre-check B21) each engine file starts with the exact 4-line header (its copy commit and blob confirmed
 #           by git; the "last change" commit only reported, sec. 8); edmd.h is its original byte for byte below the header; every
-#           hunk in which edmd_gen3.c or edmd_gen3.h differs from its original adds a line carrying "/* PID: ".
+#           hunk in which edmd_gen3.c or edmd_gen3.h differs from its original adds a line carrying "/* PID: ". The hunks are
+#           git's (git diff --no-index, Myers): the system diff cuts them differently (GNU diff on Linux, BSD diff on macOS
+#           13 and later), so a hunk that is marked on one machine can be split into an unmarked piece on another.
 #   Test 3 (= test 1, with the 1b fork: its walls unused) the fork and the unmodified original gen3, each linked into its own
 #           build of the unchanged M1/M2 harness sources (gen2 linked into both as one object) and of tests/box_final_state.c,
 #           give byte-identical stdout for M1 audit, M1 audit --quick, M2 audit --quick and the final-state driver (whose
@@ -98,7 +100,8 @@ for f in edmd_gen3.c edmd_gen3.h edmd.h; do
     cmp -s "$OUT/body_$f" "$or" || { bad "2 source: engine/edmd.h below its header differs from $or (it must stay byte-identical)"; t2=1; }
     continue
   fi
-  diff -U0 "$or" "$OUT/body_$f" > "$OUT/diff_$f.txt"
+  git diff --no-index --no-color --no-ext-diff --no-textconv -U0 --diff-algorithm=myers --indent-heuristic -- "$or" "$OUT/body_$f" \
+    > "$OUT/diff_$f.txt"
   hk=$(awk '/^@@/{ if (n) { if (!m) bad++; } n++; m = 0; next } /^\+\+\+|^---/ { next } /^\+/ { if (index($0, "/* PID: ")) m = 1 }
            END { if (n) { if (!m) bad++ }; print n + 0, bad + 0 }' "$OUT/diff_$f.txt")
   set -- $hk
