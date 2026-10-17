@@ -5,6 +5,8 @@
 #   shots/demo1c_mat45_seed9300_t100_network_particles.png   --view=network: the hull, the graph, the food patches, the particles
 #   shots/demo1c_mat45_seed9300_t100_ke_overlay.png          --overlay=ke --show=hull,food: the particles' kinetic energy per 2 sigma
 #                                                             cell (top colour 3 x the mean over the non-empty cells)
+#   shots/demo1c_studio_mat45r_tick600.png                   bin/pid_studio (where SDL2_ttf is installed): the panels and a mat45r
+#                                                             network growing, at tick 600 (hull and disks)
 #   shots/demo1c_shots_manifest.txt                          the commands, the hashes, the run checks
 # Run through `make shots` from demo1/. The runs go to runs/shots_<cc>_<UTC time>/ (git-ignored); only shots/ is written besides.
 set -u
@@ -29,6 +31,11 @@ for v in network_particles ke_overlay; do
     echo "pid_view1 $v: rc $rc ($OUT/$v.out.txt)"; fail=1; continue; fi
   python3 -I tests/bmp2png.py "$OUT/$v/shot_000100.bmp" "shots/demo1c_mat45_seed9300_t100_$v.png" || fail=1
 done
+if [ -x bin/pid_studio ]; then
+  SDL_VIDEODRIVER=dummy bin/pid_studio --preset=mat45r --rule=guided --grow-seed=9300 --steps=1000 --tpf=20 --show=disks,hull,food,particles \
+    --alpha=0.35 --shot-tick=600 --auto --grow-only --exit-at-end --out="$OUT/studio" > "$OUT/studio.out.txt" 2>&1 \
+    && python3 -I tests/bmp2png.py "$OUT/studio/shot_grow_tick000600.bmp" shots/demo1c_studio_mat45r_tick600.png || fail=1
+fi
 [ "$fail" = 0 ] || exit 1
 M=shots/demo1c_shots_manifest.txt
 {
@@ -47,6 +54,12 @@ M=shots/demo1c_shots_manifest.txt
     echo "pstate_000100.txt sha256 $(sha "$OUT/$v/pstate_000100.txt"); shot_000100.bmp sha256 $(sha "$OUT/$v/shot_000100.bmp")"
     echo "$(sha "shots/demo1c_mat45_seed9300_t100_$v.png")  demo1c_mat45_seed9300_t100_$v.png ($(wc -c < "shots/demo1c_mat45_seed9300_t100_$v.png" | tr -d ' ') bytes)"
   done
+  if [ -x bin/pid_studio ]; then
+    echo "## studio: SDL_VIDEODRIVER=dummy bin/pid_studio --preset=mat45r --rule=guided --grow-seed=9300 --steps=1000 --tpf=20"
+    echo "   --show=disks,hull,food,particles --alpha=0.35 --shot-tick=600 --auto --grow-only --exit-at-end (font: see its terminal output)"
+    echo "bin/pid_studio sha256 $(sha bin/pid_studio)"
+    echo "$(sha shots/demo1c_studio_mat45r_tick600.png)  demo1c_studio_mat45r_tick600.png ($(wc -c < shots/demo1c_studio_mat45r_tick600.png | tr -d ' ') bytes)"
+  fi
   if cmp -s "$OUT/network_particles/pstate_000100.txt" "$OUT/ke_overlay/pstate_000100.txt"; then echo "both shots show the same state (pstate_000100.txt equal)"
   else echo "the two runs' pstate_000100.txt differ"; fi
   echo "Rendering (SDL's software renderer, the dummy driver) is the cloud's; a window on the Mac draws the same picture by another"
