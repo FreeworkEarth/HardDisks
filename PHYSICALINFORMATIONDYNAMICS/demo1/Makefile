@@ -1,8 +1,10 @@
-# PID Demo 1 -- the one Makefile (brief 02_DEMO1_BRIEF.md sec. 2 and 6; pre-check 02_DEMO1_BRIEF_PRECHECK.md part A).
-# Run make in this folder. It writes only into bin/ and runs/ here (both git-ignored); hspist3/edmd_core/ is only read.
-#   make                 the box-reference binaries for both sides (fork and unmodified original) and the final-state driver
-#   make test            delivery 1a, tests 1-2 (tests/run_tests.sh): a full rebuild, then about 5 min on 4 cores; outputs in
-#                        runs/box_reference_<cc>_<UTC time>/. One make test at a time per checkout: bin/ is shared.
+# PID Demo 1 -- the one Makefile (brief 02_DEMO1_BRIEF.md sec. 2, 6 and 8; pre-check 02_DEMO1_BRIEF_PRECHECK.md parts A, B).
+# Run make in this folder. It writes only into bin/ and runs/ here (both git-ignored); hspist3/edmd_core/ and ../demo0/ are
+# only read (no make there).
+#   make                 the box-reference binaries for both sides (fork and unmodified original), the final-state driver,
+#                        the wall tests and controls, bin/pid_demo1 (the driver, sec. 5) and Demo 0 built headless
+#   make test            deliveries 1a-1b, tests 2-10 (tests/run_tests.sh): a full rebuild, then about 9 min on 4 cores;
+#                        outputs in runs/box_reference_<cc>_<UTC time>/. One make test at a time per checkout: bin/ is shared.
 #   make test CC=clang   the same with another compiler (one run always compares the two sides under ONE compiler and flag set)
 CC       ?= cc
 CSTD     := -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror
@@ -29,6 +31,10 @@ HARN     := gen3_m1_harness gen3_m2_harness
 FORK_H   := engine/edmd_gen3.h engine/edmd.h
 ORIG_H   := $(HSP)/edmd_gen3.h $(HSP)/edmd.h
 BINS     := $(addprefix bin/orig/,$(HARN) box_final_state) $(addprefix bin/fork/,$(HARN) box_final_state)
+# 1b, fork only: the wall tests on hand-built geometry (tests 4-6) and the positive controls (test 10, white-box)
+BINS     += bin/fork/prim_tests bin/fork/prim_controls
+# 1b: the driver and Demo 0 built headless (test 7)
+BINS     += bin/pid_demo1 bin/demo0/pid_demo0_headless
 # Rebuild when the compiler, the flags or this Makefile change (make test CC=clang after make test): every object and
 # program depends on the stamp (rewritten only when its content changes) and on the Makefile. Quotes are dropped from the
 # compiler's version line so that the shell line below cannot break.
@@ -84,6 +90,56 @@ bin/fork/box_final_state: tests/box_final_state.c $(FORK_H) bin/fork/edmd_gen3.o
 	@if grep -q hspist3 $@.deps || ! grep -q 'engine/edmd_gen3\.h' $@.deps; then \
 	  echo "include check: $@ is not built against the fork's headers (see $@.deps)"; exit 1; fi
 	$(CC) $(CSTD) -Iengine -o $@ $< bin/fork/edmd_gen3.o -lm
+
+# 1b: Demo 0's generator, the one generator for seeding (brief sec. 2 rule 5), compiled unchanged from ../demo0 (read only)
+D0       := ../demo0
+bin/demo0/pid_rng.o: $(D0)/pid_rng.c $(D0)/pid.h $(DEPS)
+	@mkdir -p $(@D)
+	$(CC) $(CSTD) -c -o $@ $<
+
+# 1b: tests/prim_tests.c against the fork (the original has no walls); tests/prim_controls.c includes engine/edmd_gen3.c with
+# -DPID_WHITEBOX (the planted-error switch exists only in that build), as hspist3's gen3_band_edge_ties.c includes the original
+bin/fork/prim_tests: tests/prim_tests.c $(FORK_H) $(D0)/pid.h bin/fork/edmd_gen3.o bin/demo0/pid_rng.o $(DEPS)
+	@mkdir -p $(@D)
+	$(CC) $(CSTD) -Iengine -I$(D0) -MM $< > $@.deps
+	@if grep -q hspist3 $@.deps || ! grep -q 'engine/edmd_gen3\.h' $@.deps; then \
+	  echo "include check: $@ is not built against the fork's headers (see $@.deps)"; exit 1; fi
+	$(CC) $(CSTD) -Iengine -I$(D0) -o $@ $< bin/fork/edmd_gen3.o bin/demo0/pid_rng.o -lm
+bin/fork/prim_controls: tests/prim_controls.c engine/edmd_gen3.c $(FORK_H) $(D0)/pid.h bin/demo0/pid_rng.o $(DEPS)
+	@mkdir -p $(@D)
+	$(CC) $(CSTD) $(GEN3_X) -I$(D0) -DPID_WHITEBOX -o $@ $< bin/demo0/pid_rng.o -lm
+
+# 1b: the driver (pid_demo1.c, brief sec. 5) and Demo 0 built headless for test 7 (pre-check B12): Demo 0's unchanged sources,
+# compiled here from ../demo0 (read only; no make there, no SDL2), with tests/demo0_view_stub.c in place of the window and the
+# provenance macros demo0/Makefile passes (its build id, flags, folder commit and source hash, computed the same way).
+D0_CORE  := $(addprefix $(D0)/,pid_grow.c pid_state.c pid_rng.c pid_sha256.c pid_hull.c)
+D0_LIST  := Makefile pid.h pid_rng.c pid_sha256.c pid_state.c pid_grow.c pid_main.c pid_view.c pid_check.c pid_hull.c
+SHA256   := $(if $(shell command -v shasum),shasum -a 256,sha256sum)
+D0_SHORT := $(shell git -C .. log -1 --format=%h -- . 2>/dev/null)
+D0_FULL  := $(shell git -C .. log -1 --format=%H -- . 2>/dev/null)
+D0_DIRTY := $(shell git -C .. status --porcelain -- . 2>/dev/null | head -1)
+D0_ID    := $(if $(D0_SHORT),$(D0_SHORT),unknown)$(if $(D0_DIRTY),-dirty,)
+D0_SHA   := $(shell cd $(D0) && cat $(D0_LIST) | $(SHA256) | cut -c1-64)
+D0_DEFS  := -DPID_BUILD_ID='"$(D0_ID)"' -DPID_CFLAGS='"$(CSTD)"' -DPID_FOLDER_COMMIT='"$(D0_FULL)"' -DPID_SRC_SHA256='"$(D0_SHA)"'
+bin/demo0/pid_demo0_headless: $(D0)/pid_main.c $(D0_CORE) $(D0)/pid.h tests/demo0_view_stub.c $(DEPS)
+	@mkdir -p $(@D)
+	$(CC) $(CSTD) $(D0_DEFS) -I$(D0) -o $@ $(D0)/pid_main.c $(D0_CORE) tests/demo0_view_stub.c -lm
+# pid_demo1: the fork object, Demo 0's reader, hull, generator and sha256 (unchanged), and the provenance of the manifest:
+# demo1's build id, the flags, the fork's copy commit and source blobs (from the engine headers) and the sources' sha256.
+D1_SHORT := $(shell git log -1 --format=%h -- . 2>/dev/null)
+D1_DIRTY := $(shell git status --porcelain -- . 2>/dev/null | head -1)
+D1_ID    := $(if $(D1_SHORT),$(D1_SHORT),unknown)$(if $(D1_DIRTY),-dirty,)
+D1_SHA   := $(shell cat engine/edmd_gen3.c engine/edmd_gen3.h engine/edmd.h pid_demo1.c | $(SHA256) | cut -c1-64)
+FORK_CP  := $(shell sed -n 's/^   copied at origin\/main \([0-9a-f]*\);.*/\1/p' engine/edmd_gen3.c)
+FORK_BL  := $(foreach f,edmd_gen3.c edmd_gen3.h edmd.h,$(f) $(shell sed -n 's/^   source blob \([0-9a-f]*\)\..*/\1/p' engine/$(f)))
+D1_DEFS  := -DPID1_BUILD_ID='"$(D1_ID)"' -DPID1_CFLAGS='"$(CC) $(CSTD)"' -DPID1_SRC_SHA256='"$(D1_SHA)"' \
+            -DPID1_FORK='"hspist3/edmd_core at origin/main $(FORK_CP); source blobs $(FORK_BL)"'
+bin/pid_demo1: pid_demo1.c $(FORK_H) $(D0)/pid.h bin/fork/edmd_gen3.o $(D0_CORE) $(DEPS)
+	@mkdir -p $(@D)
+	$(CC) $(CSTD) -Iengine -I$(D0) -MM $< > $@.deps
+	@if grep -q hspist3 $@.deps || ! grep -q 'engine/edmd_gen3\.h' $@.deps; then \
+	  echo "include check: $@ is not built against the fork's headers (see $@.deps)"; exit 1; fi
+	$(CC) $(CSTD) $(D1_DEFS) -Iengine -I$(D0) -o $@ $< bin/fork/edmd_gen3.o $(D0_CORE) -lm
 
 # make test rebuilds everything first (a few seconds), so the tested programs are always built from the files as they are;
 # every command of that build, as make runs it, goes into the run's manifest (pre-check A10).

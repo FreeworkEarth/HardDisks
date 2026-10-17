@@ -1,0 +1,500 @@
+# PID Demo 1, delivery 1b: the committed manifest (brief 02_DEMO1_BRIEF.md sec. 2 rule 6), two runs of make test
+# The runs were made on the files of the 1b commit just before it was made: HEAD was dde1fce1 (origin/main) and demo1/'s
+# 1b changes were not yet committed (hence "demo1/ entries not committed: 9"). Every source's sha256 below equals the
+# committed file's. Run 1: make test (gcc 13.3), runs/box_reference_gcc_20261017T012651Z/. Run 2: make test CC=clang (clang 18.1.3), runs/box_reference_clang_20261017T013519Z/.
+# gcc and clang give the same stdout for every run of tests 4-10 except the run-folder path and the cpu time in test 7
+# (the M1 and M2 outputs of test 3 differ between the compilers, as in 1a; within each compiler fork = original).
+# The row t7n is the refusal (rc 2), which writes no manifest of its own: its arguments are --state=<run>/t7_demo0/
+# state_000350.txt --N=10 --T=1 --seed=1 --out=<run>/t7n (tests/run_tests.sh, batch 3).
+
+######## run 1: gcc
+# PID Demo 1, deliveries 1a-1b: the box reference and the static walls (brief 02_DEMO1_BRIEF.md sec. 6 and 8; pre-check)
+date_utc 2026-10-17T01:26:51Z
+host Linux 6.18.44-fc-v139 x86_64, 4 cpus
+repo_head dde1fce1ed2994dc532d5960e723a25c5e703816; demo1/ entries not committed: 9
+compiler CC=cc is_clang=0: cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+flags -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror
+## sources (sha256)
+afb13b034d346202de013e7dc896e9a43fa1c12438ba7a6ae44781cd2c1886cd  demo1/Makefile
+7bf7990b109a430aa308cefe95c8387e5ff82a9148154c7de93dcab3065a520c  demo1/tests/run_tests.sh
+b73927a74b4854c09c91a0f99cbfd9985b3467f24767bed2489ce8d94c1e1ac1  demo1/tests/box_final_state.c
+444344a3917c3231bac2c465834c6c9dc3dfef34ae0974cffd6a0a405dd00627  demo1/tests/prim_tests.c
+0fd32e71a94c8eb68b106cb0dd7877df61748da0f8f869a2e0d6d9998b459f9e  demo1/tests/prim_controls.c
+65a825b59360a006dd5a13f6fbb696ac6b677f5df7d6e00dfade3f88971233ae  demo1/tests/demo0_view_stub.c
+81ba0e27a4b0a68fa35b473d3639a6f6193508a7a6696e1f2e4be571d0dc8a02  demo1/pid_demo1.c
+922a5749b1c5812b87b996cb7bf7f3b6bc9c2e075e14470cc9f88a5da8ddbea1  demo1/engine/README_FORK.md
+8030e6300016fef4643adf6233054a82a028d8c5fba3caec0d9243952b5efb6c  demo1/engine/edmd_gen3.c
+e645b887810e8bf8fe9b771e5d779108998a64243b50ac18975538d7cd162827  demo1/engine/edmd_gen3.h
+a7154eeb8004f9bd9699d2c406d2f34469023dc5fbbebabcfc64fed2bb8b985d  demo1/engine/edmd.h
+## Demo 0 sources compiled unchanged from ../demo0 (git blob)
+0b2d3665af7ac9669f06b382e48de5b1f07fb954  demo0/pid.h
+8426fc15d9c8cc695d57c0d1b751d8d75311e0db  demo0/pid_main.c
+1680b74f9ce369766583d376f570958c81f7a00f  demo0/pid_grow.c
+0058e757c5a4e3e9674fea0157b9da28d02a0523  demo0/pid_state.c
+92b4e6b2eebe49055f87c28458ed75349292d770  demo0/pid_rng.c
+9a54c4f536217225d4ba5eecc94de297a01462a5  demo0/pid_sha256.c
+301bc74b6d775797f59330237c3a2a5698ac93ef  demo0/pid_hull.c
+## originals (git blob)
+e7d9ce3eae3a67e5513bb912678b7b0573461c58  hspist3/edmd_core/edmd_gen3.c
+6616f999537f5bc4358e89235c4c43a50cbe165a  hspist3/edmd_core/edmd_gen3.h
+4ccd5da0287701f150209677422ab55c01de30ae  hspist3/edmd_core/edmd.h
+b9921b0f1e48e3d1b13c9902d513a1f49061261c  hspist3/edmd_core/edmd.c
+96a02cea13992dc42b29e7f9b07958d451bae655  hspist3/edmd_core/tests/gen3_m1_harness.c
+3d3ebc352e0885764d4bb574d7d8e1f7e16210f0  hspist3/edmd_core/tests/gen3_m2_harness.c
+17ea666aa1526e2a124e70f1f3810da7cb8b853c  hspist3/edmd_core/tests/gen3_state_io.h
+## the tested objects and programs (sha256)
+0cd0e5ffe55ffa02a071adf25a538085a1794a2a63ad1fba6ec0e344bcdf13f6  demo1/bin/gen2.o
+92d7210a639bd9def4a0d6fea3629a8a0f6d0f845cc95b566df374d07556cbad  demo1/bin/orig/edmd_gen3.o
+72867a87ccb710dcca09a26e5c8bf9a5bf6128a3d7a998121db52a06e7527f30  demo1/bin/fork/edmd_gen3.o
+46061278902255477feec591fc6368af98e49cecb34c43332f7d2d8d7847425d  demo1/bin/orig/gen3_m1_harness
+361b918f307c17413a9dc9e9afb9c4598d0372c58cf6d79e93d1132c0c14707c  demo1/bin/fork/gen3_m1_harness
+93558604693b5fb004bdc244cdd2d30ba0e4601adbaed9d80af8f05cef00dfc8  demo1/bin/orig/gen3_m2_harness
+b8d8d7d8e0add6b2eb1102095f9e3a0c37ed9728f698bf316d1bb4a3db87d859  demo1/bin/fork/gen3_m2_harness
+3eedd5eac2412ef64f10a65598fea3d84b592246b2f38242e3831ff159b9dc60  demo1/bin/orig/box_final_state
+29eab30d669d43ec2452fafc80067c7bb10fb1523cf8be849dbbbd1d267b6cf1  demo1/bin/fork/box_final_state
+7e700744b08c12d71c226f63762b70f42948b00a8cc4e644d0e6bfa7572a2309  demo1/bin/demo0/pid_rng.o
+d6eea4bcc7f42746feb8def1395b75ab3403c50e84459d81dd7aecf8660f1851  demo1/bin/fork/prim_tests
+3f8bce69ed1768aef8c5b8d4297d5daf1706d058a6946929cc8b001b36a0a412  demo1/bin/fork/prim_controls
+5bde112fec871362a3d44f0b9757cfea3ff5eaa1b64413aa5bd62e24695b49b4  demo1/bin/pid_demo1
+04da10d1cbd343df4ff54f858a1214e554db41b50f16bfe5012c8d3a00df46ea  demo1/bin/demo0/pid_demo0_headless
+## build: every command make runs for 'all' (make -n -B), in order
+mkdir -p bin/orig
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -Wno-format-truncation -c -o bin/orig/edmd_gen3.o ../../hspist3/edmd_core/edmd_gen3.c
+mkdir -p bin
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -D_DEFAULT_SOURCE -Wno-misleading-indentation -c -o bin/gen2.o ../../hspist3/edmd_core/edmd.c
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -MM ../../hspist3/edmd_core/tests/gen3_m1_harness.c > bin/orig/gen3_m1_harness.deps
+if grep -q -e engine/ -e hfork bin/orig/gen3_m1_harness.deps || ! grep -q 'edmd_core/tests/\.\./edmd_gen3\.h' bin/orig/gen3_m1_harness.deps; then \
+  echo "include check: bin/orig/gen3_m1_harness is not built against hspist3's headers (see bin/orig/gen3_m1_harness.deps)"; exit 1; fi
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -o bin/orig/gen3_m1_harness ../../hspist3/edmd_core/tests/gen3_m1_harness.c bin/orig/edmd_gen3.o bin/gen2.o -lm
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -MM ../../hspist3/edmd_core/tests/gen3_m2_harness.c > bin/orig/gen3_m2_harness.deps
+if grep -q -e engine/ -e hfork bin/orig/gen3_m2_harness.deps || ! grep -q 'edmd_core/tests/\.\./edmd_gen3\.h' bin/orig/gen3_m2_harness.deps; then \
+  echo "include check: bin/orig/gen3_m2_harness is not built against hspist3's headers (see bin/orig/gen3_m2_harness.deps)"; exit 1; fi
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -o bin/orig/gen3_m2_harness ../../hspist3/edmd_core/tests/gen3_m2_harness.c bin/orig/edmd_gen3.o bin/gen2.o -lm
+mkdir -p bin/orig
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -I../../hspist3/edmd_core -MM tests/box_final_state.c > bin/orig/box_final_state.deps
+if grep -q -e engine/ -e hfork bin/orig/box_final_state.deps || ! grep -q 'edmd_core/edmd_gen3\.h' bin/orig/box_final_state.deps; then \
+  echo "include check: bin/orig/box_final_state is not built against hspist3's headers (see bin/orig/box_final_state.deps)"; exit 1; fi
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -I../../hspist3/edmd_core -o bin/orig/box_final_state tests/box_final_state.c bin/orig/edmd_gen3.o -lm
+mkdir -p bin/hfork/tests && cp ../../hspist3/edmd_core/tests/gen3_m1_harness.c bin/hfork/tests/gen3_m1_harness.c
+mkdir -p bin/hfork/tests && cp ../../hspist3/edmd_core/tests/gen3_state_io.h bin/hfork/tests/gen3_state_io.h
+mkdir -p bin/hfork && cp engine/edmd_gen3.h bin/hfork/edmd_gen3.h
+mkdir -p bin/hfork && cp engine/edmd.h bin/hfork/edmd.h
+mkdir -p bin/fork
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -Wno-format-truncation -c -o bin/fork/edmd_gen3.o engine/edmd_gen3.c
+for f in edmd_gen3.h edmd.h; do cmp -s engine/$f bin/hfork/$f || { echo "stale copy: bin/hfork/$f differs from engine/$f"; exit 1; }; done; \
+ for f in gen3_m1_harness.c gen3_state_io.h; do cmp -s ../../hspist3/edmd_core/tests/$f bin/hfork/tests/$f || { echo "stale copy: bin/hfork/tests/$f differs from its source"; exit 1; }; done
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -MM bin/hfork/tests/gen3_m1_harness.c > bin/fork/gen3_m1_harness.deps
+if grep -q hspist3 bin/fork/gen3_m1_harness.deps || ! grep -q 'hfork/tests/\.\./edmd_gen3\.h' bin/fork/gen3_m1_harness.deps; then \
+  echo "include check: bin/fork/gen3_m1_harness is not built against the fork's headers (see bin/fork/gen3_m1_harness.deps)"; exit 1; fi
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -o bin/fork/gen3_m1_harness bin/hfork/tests/gen3_m1_harness.c bin/fork/edmd_gen3.o bin/gen2.o -lm
+mkdir -p bin/hfork/tests && cp ../../hspist3/edmd_core/tests/gen3_m2_harness.c bin/hfork/tests/gen3_m2_harness.c
+for f in edmd_gen3.h edmd.h; do cmp -s engine/$f bin/hfork/$f || { echo "stale copy: bin/hfork/$f differs from engine/$f"; exit 1; }; done; \
+ for f in gen3_m2_harness.c gen3_state_io.h; do cmp -s ../../hspist3/edmd_core/tests/$f bin/hfork/tests/$f || { echo "stale copy: bin/hfork/tests/$f differs from its source"; exit 1; }; done
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -MM bin/hfork/tests/gen3_m2_harness.c > bin/fork/gen3_m2_harness.deps
+if grep -q hspist3 bin/fork/gen3_m2_harness.deps || ! grep -q 'hfork/tests/\.\./edmd_gen3\.h' bin/fork/gen3_m2_harness.deps; then \
+  echo "include check: bin/fork/gen3_m2_harness is not built against the fork's headers (see bin/fork/gen3_m2_harness.deps)"; exit 1; fi
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -o bin/fork/gen3_m2_harness bin/hfork/tests/gen3_m2_harness.c bin/fork/edmd_gen3.o bin/gen2.o -lm
+mkdir -p bin/fork
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -Iengine -MM tests/box_final_state.c > bin/fork/box_final_state.deps
+if grep -q hspist3 bin/fork/box_final_state.deps || ! grep -q 'engine/edmd_gen3\.h' bin/fork/box_final_state.deps; then \
+  echo "include check: bin/fork/box_final_state is not built against the fork's headers (see bin/fork/box_final_state.deps)"; exit 1; fi
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -Iengine -o bin/fork/box_final_state tests/box_final_state.c bin/fork/edmd_gen3.o -lm
+mkdir -p bin/demo0
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -c -o bin/demo0/pid_rng.o ../demo0/pid_rng.c
+mkdir -p bin/fork
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -Iengine -I../demo0 -MM tests/prim_tests.c > bin/fork/prim_tests.deps
+if grep -q hspist3 bin/fork/prim_tests.deps || ! grep -q 'engine/edmd_gen3\.h' bin/fork/prim_tests.deps; then \
+  echo "include check: bin/fork/prim_tests is not built against the fork's headers (see bin/fork/prim_tests.deps)"; exit 1; fi
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -Iengine -I../demo0 -o bin/fork/prim_tests tests/prim_tests.c bin/fork/edmd_gen3.o bin/demo0/pid_rng.o -lm
+mkdir -p bin/fork
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -Wno-format-truncation -I../demo0 -DPID_WHITEBOX -o bin/fork/prim_controls tests/prim_controls.c bin/demo0/pid_rng.o -lm
+mkdir -p bin
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -Iengine -I../demo0 -MM pid_demo1.c > bin/pid_demo1.deps
+if grep -q hspist3 bin/pid_demo1.deps || ! grep -q 'engine/edmd_gen3\.h' bin/pid_demo1.deps; then \
+  echo "include check: bin/pid_demo1 is not built against the fork's headers (see bin/pid_demo1.deps)"; exit 1; fi
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -DPID1_BUILD_ID='"41d2ea07-dirty"' -DPID1_CFLAGS='"cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror"' -DPID1_SRC_SHA256='"52656a864a6bebbda835794bd591baa5430f673d06791f646b6b30bf6c1e9f04"' -DPID1_FORK='"hspist3/edmd_core at origin/main 6b29aa5bf805855e291800db02f6dcf0ea876da4; source blobs edmd_gen3.c e7d9ce3eae3a67e5513bb912678b7b0573461c58 edmd_gen3.h 6616f999537f5bc4358e89235c4c43a50cbe165a edmd.h 4ccd5da0287701f150209677422ab55c01de30ae"' -Iengine -I../demo0 -o bin/pid_demo1 pid_demo1.c bin/fork/edmd_gen3.o ../demo0/pid_grow.c ../demo0/pid_state.c ../demo0/pid_rng.c ../demo0/pid_sha256.c ../demo0/pid_hull.c -lm
+mkdir -p bin/demo0
+cc -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -DPID_BUILD_ID='"dde1fce1-dirty"' -DPID_CFLAGS='"-std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror"' -DPID_FOLDER_COMMIT='"dde1fce1ed2994dc532d5960e723a25c5e703816"' -DPID_SRC_SHA256='"fe0b052b8a3a03116e4f7171e29bff4d216c2c437d0e891068192d244cbecebd"' -I../demo0 -o bin/demo0/pid_demo0_headless ../demo0/pid_main.c ../demo0/pid_grow.c ../demo0/pid_state.c ../demo0/pid_rng.c ../demo0/pid_sha256.c ../demo0/pid_hull.c tests/demo0_view_stub.c -lm
+## the fork alone
+objects bin/fork/edmd_gen3.o vs bin/orig/edmd_gen3.o: byte-different
+nm -u of the fork object (25 symbols; equal to the original object's: yes): __fprintf_chk __printf_chk __snprintf_chk __stack_chk_fail acos atan2 calloc exit fmax fmin fmod fread free fwrite hypot malloc memcpy memset nextafter qsort realloc sincos snprintf sqrt stderr 
+stub link with -lm only: rc 0
+## runs: tag | binary and arguments | rc | wall s | stdout lines | stdout sha256 | stderr bytes
+m1f_orig | bin/orig/gen3_m1_harness audit | 0 | 350.3 | 224 | 3b0dfa558d72beababaab0d5fb5ddfe9063f49dc52a311dcf9c6f8660de74cb2 | 0
+m1f_fork | bin/fork/gen3_m1_harness audit | 0 | 334.0 | 224 | 3b0dfa558d72beababaab0d5fb5ddfe9063f49dc52a311dcf9c6f8660de74cb2 | 0
+m1q_orig | bin/orig/gen3_m1_harness audit --quick | 0 | 140.3 | 224 | e4ff4cc099a5219aa723587773f35186f17f5f4c08059c8603cb0beedbed04f4 | 0
+m1q_fork | bin/fork/gen3_m1_harness audit --quick | 0 | 135.0 | 224 | e4ff4cc099a5219aa723587773f35186f17f5f4c08059c8603cb0beedbed04f4 | 0
+m2q_orig | bin/orig/gen3_m2_harness audit --quick | 0 | 97.4 | 749 | b834f053e533f77f4a272a8a1253efa35c054bdbddb93b5ef11208b6c90e1480 | 0
+m2q_fork | bin/fork/gen3_m2_harness audit --quick | 0 | 93.4 | 749 | b834f053e533f77f4a272a8a1253efa35c054bdbddb93b5ef11208b6c90e1480 | 0
+fs_orig | bin/orig/box_final_state | 0 | 9.6 | 833 | 115ca29fa91050a431a54a547f240d75f0df42794b6f5b89ec839c97064d6140 | 0
+fs_fork | bin/fork/box_final_state | 0 | 8.9 | 839 | c8b8059038f271735db1eb635d58f17a401508cd3ba81dcd9e9dadde4f541736 | 0
+t3e | bin/fork/prim_tests | 0 | 0.1 | 3 | d1f51296f2088ccc10d46289744ae11eacd59875926823db46b89e1dead749dc | 0
+t45a | bin/fork/prim_tests | 0 | 22.2 | 37 | 6ad297bc394e60383fd058b1b071f8c37dc3ad753ae4adcb24c1ef997197302e | 0
+t45b | bin/fork/prim_tests | 0 | 133.4 | 34 | 0ced5e9904deaf5f5080e99b440cb4b5cbeae4a07059f3a6814638552b5e75e0 | 0
+t6a | bin/fork/prim_tests | 0 | 0.6 | 15 | 3128d57b2b3718b07b2acdc36bf6d9c1a8e9a89443da260f489cb14bb97a15b3 | 0
+t6b | bin/fork/prim_tests | 0 | 6.8 | 15 | c1de3d7854666937fb161991f69887c7d26d28a7c03fa1f33127637cb5a0e66d | 0
+t6c | bin/fork/prim_tests | 0 | 0.0 | 16 | 4fd5fbe14f1cba64ce70021dbb2e6b20f15fee2d2ce19e735d9dcdeeb9a6c452 | 0
+t6d | bin/fork/prim_tests | 0 | 0.0 | 16 | c320a30adb46b4aaf47cd851bfa6b6092cb468224960c5214cf94c574429a095 | 0
+t10 | bin/fork/prim_controls | 0 | 0.0 | 12 | e77781b472a1fb7fc9d37347d8af1587761ad69b4092fdb30ed76e701b72585d | 0
+t7a | bin/pid_demo1 (see the argv of t7a/manifest.txt) | 0 | 8.8 | 34 | 849f0e140a4730df2c1578f0b7061c54025bec0e66e542e545594344f29f9a6d | 0
+t7b | bin/pid_demo1 (see the argv of t7b/manifest.txt) | 0 | 4.7 | 30 | d638f6d5d2e1ff2d13cb8deeeb1eab1e1fdf830fe3d1e58e8cb5c901a1ca6871 | 0
+t7c | bin/pid_demo1 (see the argv of t7c/manifest.txt) | 0 | 4.6 | 30 | 36f856b3b5fe7adbfa74107e2bf69227615711ff342a134846862a8228b13640 | 0
+t7d | bin/pid_demo1 (see the argv of t7d/manifest.txt) | 0 | 4.7 | 30 | 726eedd63954b040ca30e0eb8ae34a1c918893b876f9eec16c2e498e72fd1623 | 0
+t7n | bin/pid_demo1 (see the argv of t7n/manifest.txt) | 2 | 0.0 | 0 | e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 | 219
+t7_demo0 | bin/demo0/pid_demo0_headless --preset=mat45 --rule=guided --seed=9300 --steps=400 --headless | 0 | - | - | final.txt efa589369945397afc91cba048e5acbd1783a0b1d489e93347b699931a35735c | 0
+## tests 4-6 and 10: the measured values (the full outputs are in this run folder)
+corridor eta 0.05 tilt 0: relative KE drift 1.115e-16 (B)
+check corridor eta 0.05 tilt 0: |KE drift| <= 1e-12 OK
+corridor eta 0.05 tilt 0: every stop (every sigma-time, 4000 stops x 3 runs): smallest signed centre-to-wall gap 2.456e-04 px; centres outside the lumen 0
+corridor eta 0.05 tilt 0: schedule audit (A): 20646 audits; walls compared 112569, missing 0, extra 0, |dt| > 1e-9 0, of them > 1e-10 x horizon 0, deferred 5225995, deferred early 0, boundary 0, max |dt| 2.751e-11; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+corridor eta 0.05 tilt 0: contact audit (A, 158040 events): max |gap| segments 1.933e-12 px, arcs 0.000e+00 px; tol_face 2.397e-10 px (pre-check B1: gaps against it, not 1e-12)
+corridor eta 0.05 tilt 0: pressure on the walls (B, 10 blocks after T/10): Z = P A_acc / (N kT) = 1.11109 +- 0.00146 (block SE); KR(eta_acc = 0.05187) = 1.11280, deviation -0.15 %; with the full area and wall length (brief sec. 8 as written): 1.13465 vs KR(0.05007) = 1.10855, +2.35 %; endpoint impulse 0
+corridor eta 0.05 tilt 30: relative KE drift 5.930e-14 (B)
+check corridor eta 0.05 tilt 30: |KE drift| <= 1e-12 OK
+corridor eta 0.05 tilt 30: every stop (every sigma-time, 4000 stops x 3 runs): smallest signed centre-to-wall gap 2.548e-04 px; centres outside the lumen 0
+corridor eta 0.05 tilt 30: schedule audit (A): 20419 audits; walls compared 2716312, missing 0, extra 0, |dt| > 1e-9 3, of them > 1e-10 x horizon 0, deferred 2586287, deferred early 0, boundary 0, max |dt| 3.427e-09; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+corridor eta 0.05 tilt 30: contact audit (A, 158273 events): max |gap| segments 2.046e-12 px, arcs 0.000e+00 px; tol_face 2.397e-10 px (pre-check B1: gaps against it, not 1e-12)
+corridor eta 0.05 tilt 30: pressure on the walls (B, 10 blocks after T/10): Z = P A_acc / (N kT) = 1.11150 +- 0.00186 (block SE); KR(eta_acc = 0.05187) = 1.11280, deviation -0.12 %; with the full area and wall length (brief sec. 8 as written): 1.13506 vs KR(0.05007) = 1.10855, +2.39 %; endpoint impulse 0
+pair eta 0.05: Z straight 1.11109 +- 0.00146, tilted 1.11150 +- 0.00186, difference +0.00041 = 0.17 combined SE
+corridor eta 0.30 tilt 0: relative KE drift 7.440e-16 (B)
+check corridor eta 0.30 tilt 0: |KE drift| <= 1e-12 OK
+corridor eta 0.30 tilt 0: every stop (every sigma-time, 400 stops x 3 runs): smallest signed centre-to-wall gap 1.317e-04 px; centres outside the lumen 0
+corridor eta 0.30 tilt 0: schedule audit (A): 4551 audits; walls compared 197537, missing 0, extra 0, |dt| > 1e-9 0, of them > 1e-10 x horizon 0, deferred 6839158, deferred early 0, boundary 0, max |dt| 2.929e-10; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+corridor eta 0.30 tilt 0: contact audit (A, 777255 events): max |gap| segments 1.819e-12 px, arcs 0.000e+00 px; tol_face 5.761e-10 px (pre-check B1: gaps against it, not 1e-12)
+corridor eta 0.30 tilt 0: pressure on the walls (B, 10 blocks after T/10): Z = P A_acc / (N kT) = 2.07341 +- 0.00392 (block SE); KR(eta_acc = 0.31082) = 2.13017, deviation -2.66 %; with the full area and wall length (brief sec. 8 as written): 2.11737 vs KR(0.30002) = 2.06339, +2.62 %; endpoint impulse 0
+corridor eta 0.30 tilt 30: relative KE drift 7.589e-15 (B)
+check corridor eta 0.30 tilt 30: |KE drift| <= 1e-12 OK
+corridor eta 0.30 tilt 30: every stop (every sigma-time, 400 stops x 3 runs): smallest signed centre-to-wall gap 1.438e-04 px; centres outside the lumen 0
+corridor eta 0.30 tilt 30: schedule audit (A): 4470 audits; walls compared 3740614, missing 0, extra 0, |dt| > 1e-9 2, of them > 1e-10 x horizon 0, deferred 3196724, deferred early 0, boundary 0, max |dt| 2.417e-09; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+corridor eta 0.30 tilt 30: contact audit (A, 778947 events): max |gap| segments 2.217e-12 px, arcs 0.000e+00 px; tol_face 5.761e-10 px (pre-check B1: gaps against it, not 1e-12)
+corridor eta 0.30 tilt 30: pressure on the walls (B, 10 blocks after T/10): Z = P A_acc / (N kT) = 2.07320 +- 0.00367 (block SE); KR(eta_acc = 0.31082) = 2.13017, deviation -2.67 %; with the full area and wall length (brief sec. 8 as written): 2.11715 vs KR(0.30002) = 2.06339, +2.61 %; endpoint impulse 0
+pair eta 0.30: Z straight 2.07341 +- 0.00392, tilted 2.07320 +- 0.00367, difference -0.00021 = 0.04 combined SE
+pair eta 0.30: the KR deviations are reported, not gated (02_DEMO1_BRIEF.md sec. 8)
+y eta 0.05: relative KE drift 1.719e-15 (B)
+check y eta 0.05: |KE drift| <= 1e-12 OK
+y eta 0.05: every stop (every sigma-time, 400 stops x 3 runs): smallest signed centre-to-wall gap 1.479e-03 px; centres outside the lumen 0
+y eta 0.05: schedule audit (A): 12199 audits; walls compared 338294, missing 0, extra 0, |dt| > 1e-9 0, of them > 1e-10 x horizon 0, deferred 559595, deferred early 0, boundary 0, max |dt| 3.956e-11; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+y eta 0.05: contact audit (A, 5844 events): max |gap| segments 1.819e-12 px, arcs 1.180e-12 px; tol_face 1.219e-10 px (pre-check B1: gaps against it, not 1e-12)
+y eta 0.30: relative KE drift 3.056e-15 (B)
+check y eta 0.30: |KE drift| <= 1e-12 OK
+y eta 0.30: every stop (every sigma-time, 400 stops x 3 runs): smallest signed centre-to-wall gap 5.231e-04 px; centres outside the lumen 0
+y eta 0.30: schedule audit (A): 4736 audits; walls compared 777689, missing 0, extra 0, |dt| > 1e-9 0, of them > 1e-10 x horizon 0, deferred 1311460, deferred early 0, boundary 0, max |dt| 1.908e-10; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+y eta 0.30: contact audit (A, 213543 events): max |gap| segments 1.677e-12 px, arcs 1.577e-12 px; tol_face 2.879e-10 px (pre-check B1: gaps against it, not 1e-12)
+yaim split 0: relative KE drift 1.857e-16 (B)
+check yaim split 0: |KE drift| <= 1e-12 OK
+yaim split 0: every stop (every sigma-time, 50 stops x 3 runs): smallest signed centre-to-wall gap 1.776e-01 px; centres outside the lumen 0
+yaim split 0: schedule audit (A): 894 audits; walls compared 6230, missing 0, extra 0, |dt| > 1e-9 0, of them > 1e-10 x horizon 0, deferred 9275, deferred early 0, boundary 231, max |dt| 2.501e-12; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+yaim split 0: contact audit (A, 92 events): max |gap| segments 2.274e-13 px, arcs 2.132e-13 px; tol_face 5.228e-11 px (pre-check B1: gaps against it, not 1e-12)
+yaim split 1: relative KE drift 3.715e-16 (B)
+check yaim split 1: |KE drift| <= 1e-12 OK
+yaim split 1: every stop (every sigma-time, 50 stops x 3 runs): smallest signed centre-to-wall gap 1.776e-01 px; centres outside the lumen 0
+yaim split 1: schedule audit (A): 904 audits; walls compared 6903, missing 0, extra 0, |dt| > 1e-9 0, of them > 1e-10 x horizon 0, deferred 9723, deferred early 0, boundary 71, max |dt| 1.933e-12; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+yaim split 1: contact audit (A, 94 events): max |gap| segments 2.842e-13 px, arcs 2.984e-13 px; tol_face 5.228e-11 px (pre-check B1: gaps against it, not 1e-12)
+control (i): the live T_SEG event of disk 264 and segment 2 at t = 121.515 deleted; schedule audit missing 0 -> 1 (extra 0 -> 0)
+control (ii): disk 0 put 0.1 R beyond segment 0 (centre at 2400.000, 958.800 px); validator findings 0 -> 1, run flag 1 -> 0
+control (iii) baseline: KE drift 7.874e-16, run flag 1, fatal 0, wall events 177, wall overlap repairs 0, findings 0, contact-audit max gap 1.137e-13 px
+control (iii) planted: KE drift 2.404e+27, run flag 0, fatal 1, wall events 117, wall overlap repairs 1, findings 81, contact-audit max gap 1.137e-13 px
+check control (iii) the flipped reflection is reported: KE drift and run flag 0 OK
+## test 7: the measured values of A and B
+demo0 /home/user/HardDisks/PHYSICALINFORMATIONDYNAMICS/demo1/runs/box_reference_gcc_20261017T012651Z/t7_demo0/final.txt: sha256 efa589369945397afc91cba048e5acbd1783a0b1d489e93347b699931a35735c; tick 400; 416 disks, 416 alive, 415 capsules; [hull] 10 loops (1 outer, 9 holes), 833 segments, 330 arcs (0 with r <= R, never hit); lumen_area 6659.169369190 sigma^2; m_used 4451.865832459 sigma^2
+seeding: 2000 centres after 13956 trials (Demo 0's generator, seed 6221168); eta = N pi (R/sigma)^2 / lumen_area = 0.23588
+events: 1019794 (pair 347171, segment 152457, arc 42855, box wall 0, cell crossing 477311; stale dropped 1745229) in 200 sigma-time: 5099.0 per sigma-time, 2.55 per sigma-time and particle (collisions only: 2.224); cpu 8.15 s (stops and checks included)
+health: clean 1; wall overlap repairs 0, findings 0, wall repairs 0, receding 0, contact-now 0; pair overlap repairs 0
+relative KE drift 4.320e-15; escape test (inside the lumen and >= R - 1e-09 px from every primitive, 21 stops x 2000 centres): 0 escaped; smallest centre-to-primitive distance - R 2.834625e-04 px
+schedule audit: 51 audits; walls compared 54142, missing 0, extra 0, early 0, off by > 1e-10 x horizon 0, boundary 0; pairs missing 0 extra 0; box walls missing 0 extra 0; crossings missing 0 extra 0
+contact audit: 542483 wall events; max |gap| segments 1.839e-12 px, arcs 1.485e-12 px, pairs 2.675e-12 px; tol_face 6.581e-10 px
+demo0 /home/user/HardDisks/PHYSICALINFORMATIONDYNAMICS/demo1/runs/box_reference_gcc_20261017T012651Z/t7_demo0/final.txt: sha256 efa589369945397afc91cba048e5acbd1783a0b1d489e93347b699931a35735c; tick 400; 416 disks, 416 alive, 415 capsules; [hull] 10 loops (1 outer, 9 holes), 833 segments, 330 arcs (0 with r <= R, never hit); lumen_area 6659.169369190 sigma^2; m_used 4451.865832459 sigma^2
+seeding: 2000 centres after 13956 trials (Demo 0's generator, seed 6221168); eta = N pi (R/sigma)^2 / lumen_area = 0.23588
+events: 1019794 (pair 347171, segment 152457, arc 42855, box wall 0, cell crossing 477311; stale dropped 1745229) in 200 sigma-time: 5099.0 per sigma-time, 2.55 per sigma-time and particle (collisions only: 2.224); cpu 4.14 s (stops and checks included)
+health: clean 1; wall overlap repairs 0, findings 0, wall repairs 0, receding 0, contact-now 0; pair overlap repairs 0
+relative KE drift 4.320e-15; escape test (inside the lumen and >= R - 1e-09 px from every primitive, 21 stops x 2000 centres): 0 escaped; smallest centre-to-primitive distance - R 2.834625e-04 px
+## what is compared
+Per pair of runs: stdout byte for byte (cmp), with no line excluded (both sides use one compiler and one flag set, so
+even the build line is equal), and stderr must be empty. The harnesses print event hashes, event counts, health and
+audit counters, contact-audit maxima, KE drift and Z, but no final positions. box_final_state prints every disk's final
+position, velocity and collision count, the bodies, the impulse, virial and tie accessors, the collision-hook digest,
+the event-log digest, a checkpoint-restart verdict, and the health, audit, ledger and tolerance records (in %a or raw
+bytes). Each output also passes its own verdicts (exact cell, row and line counts; every verdict line; the gen3 health
+counters 0; the last line) so that a failure shared by both sides is not read as agreement.
+Tests 4-6 and 10 (prim_tests, prim_controls) and 7 (pid_demo1) judge their own runs and print one "check" line per criterion;
+the outputs are kept here in full. Test 8 compares the data files of runs A-D of test 7 byte for byte; test 9 sums the
+density files of B against final.txt independently (awk).
+Cloud (Linux) and Mac hashes differ for the same sources (pre-check A7): compare only within one machine and compiler.
+## results
+INFO 2 source: engine/edmd_gen3.c differs from its original in 27 hunks, each adding a "/* PID: " line
+INFO 2 source: engine/edmd_gen3.h differs from its original in 6 hunks, each adding a "/* PID: " line
+PASS 2 source: the exact 4-line headers (copy commits and blobs confirmed by git), edmd.h unchanged below it, every changed hunk of edmd_gen3.c and .h marked /* PID: */
+PASS 3 fork alone: the fork's object links into a stub program with libc and -lm only (25 undefined symbols)
+INFO 3 the fork's undefined symbols equal the original object's: yes (information: 1b may call more of libm)
+INFO 3 objects: bin/fork/edmd_gen3.o and bin/orig/edmd_gen3.o are byte-different (information; 1b changes the fork)
+INFO batch 1 (test 3) took 350 s
+INFO batch 2 (tests 4-6, 10) took 134 s
+INFO batch 3 (tests 7-9) took 9 s
+PASS 3 M1 audit: fork = original, stdout byte-identical (224 lines, sha256 3b0dfa558d72beab), stderr empty, verdicts good on both sides; 350.3 s and 334.0 s
+PASS 3 M1 audit --quick: fork = original, stdout byte-identical (224 lines, sha256 e4ff4cc099a5219a), stderr empty, verdicts good on both sides; 140.3 s and 135.0 s
+PASS 3 M2 audit --quick: fork = original, stdout byte-identical (749 lines, sha256 b834f053e533f77f), stderr empty, verdicts good on both sides; 97.4 s and 93.4 s
+PASS 3 final-state driver: fork = original, stdout byte-identical (833 lines, sha256 115ca29fa91050a4), the fork's 6 tail lines zero, stderr empty, verdicts good on both sides; 9.6 s and 8.9 s
+INFO verdict checks ran on 8 of 8 outputs (each must print exactly VERDICTS OK)
+PASS 3 empty wall list: 1 of 1 checks OK; 0.1 s
+PASS 4-5 corridor, straight and turned 30 degrees, eta 0.05: 19 of 19 checks OK; 22.2 s
+PASS 4-5 corridor, straight and turned 30 degrees, eta 0.30: 15 of 15 checks OK; 133.4 s
+PASS 6 Y, eta 0.05: 7 of 7 checks OK; 0.6 s
+PASS 6 Y, eta 0.30: 7 of 7 checks OK; 6.8 s
+PASS 6(d) Y, aimed disks: 8 of 8 checks OK; 0.0 s
+PASS 6(d) Y, aimed disks, vertex split 1.7e-12 px: 8 of 8 checks OK; 0.0 s
+PASS 10 positive controls: 6 of 6 checks OK; 0.0 s
+PASS 7 hull: Demo 0 headless (mat45, guided, seed 9300, 400 ticks) gives the sec. 8 hull: 416 alive disks, 415 edges, 10 loops, 833 segments + 330 arcs, lumen_area 6659.169369190
+PASS 7 real hull, N 2000, 200 sigma-time, A, gen3's audits on: 5 of 5 checks OK (clean 1, KE drift, no escape at 21 stops, audits); 8.8 s
+PASS 7 real hull, N 2000, 200 sigma-time, B: 3 of 3 checks OK (clean 1, KE drift, no escape at 21 stops); 4.7 s
+PASS 7 real hull, N 2000, 200 sigma-time, C (= B): 3 of 3 checks OK (clean 1, KE drift, no escape at 21 stops); 4.6 s
+PASS 7 real hull, N 2000, 200 sigma-time, D, another seed: 3 of 3 checks OK (clean 1, KE drift, no escape at 21 stops); 4.7 s
+PASS 7 refusal: pid_demo1 refuses a Demo 0 file without [hull] (state_000350.txt; rc 2)
+PASS 8 determinism: B = C and A = B in all 43 data files (21 pstate, 21 density, measure.csv; sha256 of B's measure.csv 6448b61b3b7ef141); D (another seed) differs
+PASS 9 density: 21 files, particles sum to N = 2000 in each; material sums to sum pi r^2 = 4555.719082944 sigma^2 over the alive disks (worst relative difference 1.996e-15); M_used 4451.865832459, lens total 103.853250485 sigma^2
+summary: 22 passed, 0 failed
+
+######## run 2: clang
+# PID Demo 1, deliveries 1a-1b: the box reference and the static walls (brief 02_DEMO1_BRIEF.md sec. 6 and 8; pre-check)
+date_utc 2026-10-17T01:35:19Z
+host Linux 6.18.44-fc-v139 x86_64, 4 cpus
+repo_head dde1fce1ed2994dc532d5960e723a25c5e703816; demo1/ entries not committed: 9
+compiler CC=clang is_clang=1: Ubuntu clang version 18.1.3 (1ubuntu1)
+flags -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror
+## sources (sha256)
+afb13b034d346202de013e7dc896e9a43fa1c12438ba7a6ae44781cd2c1886cd  demo1/Makefile
+7bf7990b109a430aa308cefe95c8387e5ff82a9148154c7de93dcab3065a520c  demo1/tests/run_tests.sh
+b73927a74b4854c09c91a0f99cbfd9985b3467f24767bed2489ce8d94c1e1ac1  demo1/tests/box_final_state.c
+444344a3917c3231bac2c465834c6c9dc3dfef34ae0974cffd6a0a405dd00627  demo1/tests/prim_tests.c
+0fd32e71a94c8eb68b106cb0dd7877df61748da0f8f869a2e0d6d9998b459f9e  demo1/tests/prim_controls.c
+65a825b59360a006dd5a13f6fbb696ac6b677f5df7d6e00dfade3f88971233ae  demo1/tests/demo0_view_stub.c
+81ba0e27a4b0a68fa35b473d3639a6f6193508a7a6696e1f2e4be571d0dc8a02  demo1/pid_demo1.c
+922a5749b1c5812b87b996cb7bf7f3b6bc9c2e075e14470cc9f88a5da8ddbea1  demo1/engine/README_FORK.md
+8030e6300016fef4643adf6233054a82a028d8c5fba3caec0d9243952b5efb6c  demo1/engine/edmd_gen3.c
+e645b887810e8bf8fe9b771e5d779108998a64243b50ac18975538d7cd162827  demo1/engine/edmd_gen3.h
+a7154eeb8004f9bd9699d2c406d2f34469023dc5fbbebabcfc64fed2bb8b985d  demo1/engine/edmd.h
+## Demo 0 sources compiled unchanged from ../demo0 (git blob)
+0b2d3665af7ac9669f06b382e48de5b1f07fb954  demo0/pid.h
+8426fc15d9c8cc695d57c0d1b751d8d75311e0db  demo0/pid_main.c
+1680b74f9ce369766583d376f570958c81f7a00f  demo0/pid_grow.c
+0058e757c5a4e3e9674fea0157b9da28d02a0523  demo0/pid_state.c
+92b4e6b2eebe49055f87c28458ed75349292d770  demo0/pid_rng.c
+9a54c4f536217225d4ba5eecc94de297a01462a5  demo0/pid_sha256.c
+301bc74b6d775797f59330237c3a2a5698ac93ef  demo0/pid_hull.c
+## originals (git blob)
+e7d9ce3eae3a67e5513bb912678b7b0573461c58  hspist3/edmd_core/edmd_gen3.c
+6616f999537f5bc4358e89235c4c43a50cbe165a  hspist3/edmd_core/edmd_gen3.h
+4ccd5da0287701f150209677422ab55c01de30ae  hspist3/edmd_core/edmd.h
+b9921b0f1e48e3d1b13c9902d513a1f49061261c  hspist3/edmd_core/edmd.c
+96a02cea13992dc42b29e7f9b07958d451bae655  hspist3/edmd_core/tests/gen3_m1_harness.c
+3d3ebc352e0885764d4bb574d7d8e1f7e16210f0  hspist3/edmd_core/tests/gen3_m2_harness.c
+17ea666aa1526e2a124e70f1f3810da7cb8b853c  hspist3/edmd_core/tests/gen3_state_io.h
+## the tested objects and programs (sha256)
+41598409fc392068fdfee669443857ffd9ddde7f58d26270142f7cadc4311063  demo1/bin/gen2.o
+55b4017f4a425eef8fac25ecb2624ec80668850b7706805d6b78ef6d79a5efa5  demo1/bin/orig/edmd_gen3.o
+fc97ddda2fa15243b9821d311bc8539bf2ea47746c1e0012308f0df23ff49ea0  demo1/bin/fork/edmd_gen3.o
+bb29496375127c8a34a5be04627eebbe152385feb6f1769fcd4b3ac065f67d84  demo1/bin/orig/gen3_m1_harness
+17448cbf2f914c0c2b42702229cc3b88abd38fb89845d58ba1f9b4a04a3c1fe9  demo1/bin/fork/gen3_m1_harness
+6c7d580a8b9e4b63fd6d2f303195aaac000f5cd1c9fb92d2509e424abddb43de  demo1/bin/orig/gen3_m2_harness
+625c6b6b454309174329d9edf631f3bb180847eb05274ba29d02e5ff6b2c2403  demo1/bin/fork/gen3_m2_harness
+41826248e6c12090f55c15857a14d2bc1060df1204be4f1f4203da32b55675bd  demo1/bin/orig/box_final_state
+aa97e6ef1dc87493c9bd1202803f0cb736ec37f8d0020c6e9619b90097883f41  demo1/bin/fork/box_final_state
+2864124d5867cbb078c0ec4c2d6c5037f50d8d94057457ec1caa757498713187  demo1/bin/demo0/pid_rng.o
+4e5026ded29676d95bdda026e5a34ed01cf050270704f966404616879ba696ad  demo1/bin/fork/prim_tests
+60415fe6eab89508886ee0a04b7de677a3e1a986130ae0aa54d88b22b2cca54a  demo1/bin/fork/prim_controls
+d86e7c53b395a75ab63bede290fffd6f1562cbbc8eeeb5f5f7a468357d6825c0  demo1/bin/pid_demo1
+9bff30b63ac736d6a46d61d7b1a828f534a39e270bd2ab20a3837997cf293490  demo1/bin/demo0/pid_demo0_headless
+## build: every command make runs for 'all' (make -n -B), in order
+mkdir -p bin/orig
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror  -c -o bin/orig/edmd_gen3.o ../../hspist3/edmd_core/edmd_gen3.c
+mkdir -p bin
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -D_DEFAULT_SOURCE  -c -o bin/gen2.o ../../hspist3/edmd_core/edmd.c
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -MM ../../hspist3/edmd_core/tests/gen3_m1_harness.c > bin/orig/gen3_m1_harness.deps
+if grep -q -e engine/ -e hfork bin/orig/gen3_m1_harness.deps || ! grep -q 'edmd_core/tests/\.\./edmd_gen3\.h' bin/orig/gen3_m1_harness.deps; then \
+  echo "include check: bin/orig/gen3_m1_harness is not built against hspist3's headers (see bin/orig/gen3_m1_harness.deps)"; exit 1; fi
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -o bin/orig/gen3_m1_harness ../../hspist3/edmd_core/tests/gen3_m1_harness.c bin/orig/edmd_gen3.o bin/gen2.o -lm
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -MM ../../hspist3/edmd_core/tests/gen3_m2_harness.c > bin/orig/gen3_m2_harness.deps
+if grep -q -e engine/ -e hfork bin/orig/gen3_m2_harness.deps || ! grep -q 'edmd_core/tests/\.\./edmd_gen3\.h' bin/orig/gen3_m2_harness.deps; then \
+  echo "include check: bin/orig/gen3_m2_harness is not built against hspist3's headers (see bin/orig/gen3_m2_harness.deps)"; exit 1; fi
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -o bin/orig/gen3_m2_harness ../../hspist3/edmd_core/tests/gen3_m2_harness.c bin/orig/edmd_gen3.o bin/gen2.o -lm
+mkdir -p bin/orig
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -I../../hspist3/edmd_core -MM tests/box_final_state.c > bin/orig/box_final_state.deps
+if grep -q -e engine/ -e hfork bin/orig/box_final_state.deps || ! grep -q 'edmd_core/edmd_gen3\.h' bin/orig/box_final_state.deps; then \
+  echo "include check: bin/orig/box_final_state is not built against hspist3's headers (see bin/orig/box_final_state.deps)"; exit 1; fi
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -I../../hspist3/edmd_core -o bin/orig/box_final_state tests/box_final_state.c bin/orig/edmd_gen3.o -lm
+mkdir -p bin/hfork/tests && cp ../../hspist3/edmd_core/tests/gen3_m1_harness.c bin/hfork/tests/gen3_m1_harness.c
+mkdir -p bin/hfork/tests && cp ../../hspist3/edmd_core/tests/gen3_state_io.h bin/hfork/tests/gen3_state_io.h
+mkdir -p bin/hfork && cp engine/edmd_gen3.h bin/hfork/edmd_gen3.h
+mkdir -p bin/hfork && cp engine/edmd.h bin/hfork/edmd.h
+mkdir -p bin/fork
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror  -c -o bin/fork/edmd_gen3.o engine/edmd_gen3.c
+for f in edmd_gen3.h edmd.h; do cmp -s engine/$f bin/hfork/$f || { echo "stale copy: bin/hfork/$f differs from engine/$f"; exit 1; }; done; \
+ for f in gen3_m1_harness.c gen3_state_io.h; do cmp -s ../../hspist3/edmd_core/tests/$f bin/hfork/tests/$f || { echo "stale copy: bin/hfork/tests/$f differs from its source"; exit 1; }; done
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -MM bin/hfork/tests/gen3_m1_harness.c > bin/fork/gen3_m1_harness.deps
+if grep -q hspist3 bin/fork/gen3_m1_harness.deps || ! grep -q 'hfork/tests/\.\./edmd_gen3\.h' bin/fork/gen3_m1_harness.deps; then \
+  echo "include check: bin/fork/gen3_m1_harness is not built against the fork's headers (see bin/fork/gen3_m1_harness.deps)"; exit 1; fi
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -o bin/fork/gen3_m1_harness bin/hfork/tests/gen3_m1_harness.c bin/fork/edmd_gen3.o bin/gen2.o -lm
+mkdir -p bin/hfork/tests && cp ../../hspist3/edmd_core/tests/gen3_m2_harness.c bin/hfork/tests/gen3_m2_harness.c
+for f in edmd_gen3.h edmd.h; do cmp -s engine/$f bin/hfork/$f || { echo "stale copy: bin/hfork/$f differs from engine/$f"; exit 1; }; done; \
+ for f in gen3_m2_harness.c gen3_state_io.h; do cmp -s ../../hspist3/edmd_core/tests/$f bin/hfork/tests/$f || { echo "stale copy: bin/hfork/tests/$f differs from its source"; exit 1; }; done
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -MM bin/hfork/tests/gen3_m2_harness.c > bin/fork/gen3_m2_harness.deps
+if grep -q hspist3 bin/fork/gen3_m2_harness.deps || ! grep -q 'hfork/tests/\.\./edmd_gen3\.h' bin/fork/gen3_m2_harness.deps; then \
+  echo "include check: bin/fork/gen3_m2_harness is not built against the fork's headers (see bin/fork/gen3_m2_harness.deps)"; exit 1; fi
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -o bin/fork/gen3_m2_harness bin/hfork/tests/gen3_m2_harness.c bin/fork/edmd_gen3.o bin/gen2.o -lm
+mkdir -p bin/fork
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -Iengine -MM tests/box_final_state.c > bin/fork/box_final_state.deps
+if grep -q hspist3 bin/fork/box_final_state.deps || ! grep -q 'engine/edmd_gen3\.h' bin/fork/box_final_state.deps; then \
+  echo "include check: bin/fork/box_final_state is not built against the fork's headers (see bin/fork/box_final_state.deps)"; exit 1; fi
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -Iengine -o bin/fork/box_final_state tests/box_final_state.c bin/fork/edmd_gen3.o -lm
+mkdir -p bin/demo0
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -c -o bin/demo0/pid_rng.o ../demo0/pid_rng.c
+mkdir -p bin/fork
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -Iengine -I../demo0 -MM tests/prim_tests.c > bin/fork/prim_tests.deps
+if grep -q hspist3 bin/fork/prim_tests.deps || ! grep -q 'engine/edmd_gen3\.h' bin/fork/prim_tests.deps; then \
+  echo "include check: bin/fork/prim_tests is not built against the fork's headers (see bin/fork/prim_tests.deps)"; exit 1; fi
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -Iengine -I../demo0 -o bin/fork/prim_tests tests/prim_tests.c bin/fork/edmd_gen3.o bin/demo0/pid_rng.o -lm
+mkdir -p bin/fork
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror  -I../demo0 -DPID_WHITEBOX -o bin/fork/prim_controls tests/prim_controls.c bin/demo0/pid_rng.o -lm
+mkdir -p bin
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -Iengine -I../demo0 -MM pid_demo1.c > bin/pid_demo1.deps
+if grep -q hspist3 bin/pid_demo1.deps || ! grep -q 'engine/edmd_gen3\.h' bin/pid_demo1.deps; then \
+  echo "include check: bin/pid_demo1 is not built against the fork's headers (see bin/pid_demo1.deps)"; exit 1; fi
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -DPID1_BUILD_ID='"41d2ea07-dirty"' -DPID1_CFLAGS='"clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror"' -DPID1_SRC_SHA256='"52656a864a6bebbda835794bd591baa5430f673d06791f646b6b30bf6c1e9f04"' -DPID1_FORK='"hspist3/edmd_core at origin/main 6b29aa5bf805855e291800db02f6dcf0ea876da4; source blobs edmd_gen3.c e7d9ce3eae3a67e5513bb912678b7b0573461c58 edmd_gen3.h 6616f999537f5bc4358e89235c4c43a50cbe165a edmd.h 4ccd5da0287701f150209677422ab55c01de30ae"' -Iengine -I../demo0 -o bin/pid_demo1 pid_demo1.c bin/fork/edmd_gen3.o ../demo0/pid_grow.c ../demo0/pid_state.c ../demo0/pid_rng.c ../demo0/pid_sha256.c ../demo0/pid_hull.c -lm
+mkdir -p bin/demo0
+clang -std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror -DPID_BUILD_ID='"dde1fce1-dirty"' -DPID_CFLAGS='"-std=c11 -O2 -Wall -Wextra -ffp-contract=off -Werror"' -DPID_FOLDER_COMMIT='"dde1fce1ed2994dc532d5960e723a25c5e703816"' -DPID_SRC_SHA256='"fe0b052b8a3a03116e4f7171e29bff4d216c2c437d0e891068192d244cbecebd"' -I../demo0 -o bin/demo0/pid_demo0_headless ../demo0/pid_main.c ../demo0/pid_grow.c ../demo0/pid_state.c ../demo0/pid_rng.c ../demo0/pid_sha256.c ../demo0/pid_hull.c tests/demo0_view_stub.c -lm
+## the fork alone
+objects bin/fork/edmd_gen3.o vs bin/orig/edmd_gen3.o: byte-different
+nm -u of the fork object (25 symbols; equal to the original object's: yes): acos atan2 calloc ceil cos exit floor fmod fprintf fread free fwrite hypot ldexp malloc memcpy memset nextafter printf qsort realloc sin snprintf sqrt stderr 
+stub link with -lm only: rc 0
+## runs: tag | binary and arguments | rc | wall s | stdout lines | stdout sha256 | stderr bytes
+m1f_orig | bin/orig/gen3_m1_harness audit | 0 | 326.7 | 224 | 4d20a1420750b0ff1ea71dc86fa9afada7e8a5fe0258b638795eb112dd4553f7 | 0
+m1f_fork | bin/fork/gen3_m1_harness audit | 0 | 326.6 | 224 | 4d20a1420750b0ff1ea71dc86fa9afada7e8a5fe0258b638795eb112dd4553f7 | 0
+m1q_orig | bin/orig/gen3_m1_harness audit --quick | 0 | 133.0 | 224 | 1ccec742a3a462ec19147ed1bba6cecdcca40596597223e7926e827753179ec6 | 0
+m1q_fork | bin/fork/gen3_m1_harness audit --quick | 0 | 135.8 | 224 | 1ccec742a3a462ec19147ed1bba6cecdcca40596597223e7926e827753179ec6 | 0
+m2q_orig | bin/orig/gen3_m2_harness audit --quick | 0 | 92.2 | 749 | ae5d7738e0bfc3e63405a142e5be9687d4abb6757b6dacd5fb2c82c6e93b1c67 | 0
+m2q_fork | bin/fork/gen3_m2_harness audit --quick | 0 | 93.8 | 749 | ae5d7738e0bfc3e63405a142e5be9687d4abb6757b6dacd5fb2c82c6e93b1c67 | 0
+fs_orig | bin/orig/box_final_state | 0 | 8.5 | 833 | 115ca29fa91050a431a54a547f240d75f0df42794b6f5b89ec839c97064d6140 | 0
+fs_fork | bin/fork/box_final_state | 0 | 8.7 | 839 | c8b8059038f271735db1eb635d58f17a401508cd3ba81dcd9e9dadde4f541736 | 0
+t3e | bin/fork/prim_tests | 0 | 0.1 | 3 | d1f51296f2088ccc10d46289744ae11eacd59875926823db46b89e1dead749dc | 0
+t45a | bin/fork/prim_tests | 0 | 21.2 | 37 | 6ad297bc394e60383fd058b1b071f8c37dc3ad753ae4adcb24c1ef997197302e | 0
+t45b | bin/fork/prim_tests | 0 | 135.9 | 34 | 0ced5e9904deaf5f5080e99b440cb4b5cbeae4a07059f3a6814638552b5e75e0 | 0
+t6a | bin/fork/prim_tests | 0 | 0.6 | 15 | 3128d57b2b3718b07b2acdc36bf6d9c1a8e9a89443da260f489cb14bb97a15b3 | 0
+t6b | bin/fork/prim_tests | 0 | 6.7 | 15 | c1de3d7854666937fb161991f69887c7d26d28a7c03fa1f33127637cb5a0e66d | 0
+t6c | bin/fork/prim_tests | 0 | 0.0 | 16 | 4fd5fbe14f1cba64ce70021dbb2e6b20f15fee2d2ce19e735d9dcdeeb9a6c452 | 0
+t6d | bin/fork/prim_tests | 0 | 0.0 | 16 | c320a30adb46b4aaf47cd851bfa6b6092cb468224960c5214cf94c574429a095 | 0
+t10 | bin/fork/prim_controls | 0 | 0.0 | 12 | e77781b472a1fb7fc9d37347d8af1587761ad69b4092fdb30ed76e701b72585d | 0
+t7a | bin/pid_demo1 (see the argv of t7a/manifest.txt) | 0 | 7.5 | 34 | 7b9bc85b5356cb3d8b687db8083a6ba2e4a2df760e9d13aa5fc826cf1fac0a4b | 0
+t7b | bin/pid_demo1 (see the argv of t7b/manifest.txt) | 0 | 4.3 | 30 | 09b186be18dbea01c73b4b8c210258e3e562fa1b35241fa9fdc0e040d88aed69 | 0
+t7c | bin/pid_demo1 (see the argv of t7c/manifest.txt) | 0 | 4.3 | 30 | c5303305df1ca19df4f3cf9dff924a1c230cc01fba28802ff4310ecb3ed32f54 | 0
+t7d | bin/pid_demo1 (see the argv of t7d/manifest.txt) | 0 | 4.4 | 30 | ba5581928b2918aa2e2044359c545fa27d9e8ea7b6259ccc0161c68687c66390 | 0
+t7n | bin/pid_demo1 (see the argv of t7n/manifest.txt) | 2 | 0.0 | 0 | e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 | 221
+t7_demo0 | bin/demo0/pid_demo0_headless --preset=mat45 --rule=guided --seed=9300 --steps=400 --headless | 0 | - | - | final.txt efa589369945397afc91cba048e5acbd1783a0b1d489e93347b699931a35735c | 0
+## tests 4-6 and 10: the measured values (the full outputs are in this run folder)
+corridor eta 0.05 tilt 0: relative KE drift 1.115e-16 (B)
+check corridor eta 0.05 tilt 0: |KE drift| <= 1e-12 OK
+corridor eta 0.05 tilt 0: every stop (every sigma-time, 4000 stops x 3 runs): smallest signed centre-to-wall gap 2.456e-04 px; centres outside the lumen 0
+corridor eta 0.05 tilt 0: schedule audit (A): 20646 audits; walls compared 112569, missing 0, extra 0, |dt| > 1e-9 0, of them > 1e-10 x horizon 0, deferred 5225995, deferred early 0, boundary 0, max |dt| 2.751e-11; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+corridor eta 0.05 tilt 0: contact audit (A, 158040 events): max |gap| segments 1.933e-12 px, arcs 0.000e+00 px; tol_face 2.397e-10 px (pre-check B1: gaps against it, not 1e-12)
+corridor eta 0.05 tilt 0: pressure on the walls (B, 10 blocks after T/10): Z = P A_acc / (N kT) = 1.11109 +- 0.00146 (block SE); KR(eta_acc = 0.05187) = 1.11280, deviation -0.15 %; with the full area and wall length (brief sec. 8 as written): 1.13465 vs KR(0.05007) = 1.10855, +2.35 %; endpoint impulse 0
+corridor eta 0.05 tilt 30: relative KE drift 5.930e-14 (B)
+check corridor eta 0.05 tilt 30: |KE drift| <= 1e-12 OK
+corridor eta 0.05 tilt 30: every stop (every sigma-time, 4000 stops x 3 runs): smallest signed centre-to-wall gap 2.548e-04 px; centres outside the lumen 0
+corridor eta 0.05 tilt 30: schedule audit (A): 20419 audits; walls compared 2716312, missing 0, extra 0, |dt| > 1e-9 3, of them > 1e-10 x horizon 0, deferred 2586287, deferred early 0, boundary 0, max |dt| 3.427e-09; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+corridor eta 0.05 tilt 30: contact audit (A, 158273 events): max |gap| segments 2.046e-12 px, arcs 0.000e+00 px; tol_face 2.397e-10 px (pre-check B1: gaps against it, not 1e-12)
+corridor eta 0.05 tilt 30: pressure on the walls (B, 10 blocks after T/10): Z = P A_acc / (N kT) = 1.11150 +- 0.00186 (block SE); KR(eta_acc = 0.05187) = 1.11280, deviation -0.12 %; with the full area and wall length (brief sec. 8 as written): 1.13506 vs KR(0.05007) = 1.10855, +2.39 %; endpoint impulse 0
+pair eta 0.05: Z straight 1.11109 +- 0.00146, tilted 1.11150 +- 0.00186, difference +0.00041 = 0.17 combined SE
+corridor eta 0.30 tilt 0: relative KE drift 7.440e-16 (B)
+check corridor eta 0.30 tilt 0: |KE drift| <= 1e-12 OK
+corridor eta 0.30 tilt 0: every stop (every sigma-time, 400 stops x 3 runs): smallest signed centre-to-wall gap 1.317e-04 px; centres outside the lumen 0
+corridor eta 0.30 tilt 0: schedule audit (A): 4551 audits; walls compared 197537, missing 0, extra 0, |dt| > 1e-9 0, of them > 1e-10 x horizon 0, deferred 6839158, deferred early 0, boundary 0, max |dt| 2.929e-10; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+corridor eta 0.30 tilt 0: contact audit (A, 777255 events): max |gap| segments 1.819e-12 px, arcs 0.000e+00 px; tol_face 5.761e-10 px (pre-check B1: gaps against it, not 1e-12)
+corridor eta 0.30 tilt 0: pressure on the walls (B, 10 blocks after T/10): Z = P A_acc / (N kT) = 2.07341 +- 0.00392 (block SE); KR(eta_acc = 0.31082) = 2.13017, deviation -2.66 %; with the full area and wall length (brief sec. 8 as written): 2.11737 vs KR(0.30002) = 2.06339, +2.62 %; endpoint impulse 0
+corridor eta 0.30 tilt 30: relative KE drift 7.589e-15 (B)
+check corridor eta 0.30 tilt 30: |KE drift| <= 1e-12 OK
+corridor eta 0.30 tilt 30: every stop (every sigma-time, 400 stops x 3 runs): smallest signed centre-to-wall gap 1.438e-04 px; centres outside the lumen 0
+corridor eta 0.30 tilt 30: schedule audit (A): 4470 audits; walls compared 3740614, missing 0, extra 0, |dt| > 1e-9 2, of them > 1e-10 x horizon 0, deferred 3196724, deferred early 0, boundary 0, max |dt| 2.417e-09; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+corridor eta 0.30 tilt 30: contact audit (A, 778947 events): max |gap| segments 2.217e-12 px, arcs 0.000e+00 px; tol_face 5.761e-10 px (pre-check B1: gaps against it, not 1e-12)
+corridor eta 0.30 tilt 30: pressure on the walls (B, 10 blocks after T/10): Z = P A_acc / (N kT) = 2.07320 +- 0.00367 (block SE); KR(eta_acc = 0.31082) = 2.13017, deviation -2.67 %; with the full area and wall length (brief sec. 8 as written): 2.11715 vs KR(0.30002) = 2.06339, +2.61 %; endpoint impulse 0
+pair eta 0.30: Z straight 2.07341 +- 0.00392, tilted 2.07320 +- 0.00367, difference -0.00021 = 0.04 combined SE
+pair eta 0.30: the KR deviations are reported, not gated (02_DEMO1_BRIEF.md sec. 8)
+y eta 0.05: relative KE drift 1.719e-15 (B)
+check y eta 0.05: |KE drift| <= 1e-12 OK
+y eta 0.05: every stop (every sigma-time, 400 stops x 3 runs): smallest signed centre-to-wall gap 1.479e-03 px; centres outside the lumen 0
+y eta 0.05: schedule audit (A): 12199 audits; walls compared 338294, missing 0, extra 0, |dt| > 1e-9 0, of them > 1e-10 x horizon 0, deferred 559595, deferred early 0, boundary 0, max |dt| 3.956e-11; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+y eta 0.05: contact audit (A, 5844 events): max |gap| segments 1.819e-12 px, arcs 1.180e-12 px; tol_face 1.219e-10 px (pre-check B1: gaps against it, not 1e-12)
+y eta 0.30: relative KE drift 3.056e-15 (B)
+check y eta 0.30: |KE drift| <= 1e-12 OK
+y eta 0.30: every stop (every sigma-time, 400 stops x 3 runs): smallest signed centre-to-wall gap 5.231e-04 px; centres outside the lumen 0
+y eta 0.30: schedule audit (A): 4736 audits; walls compared 777689, missing 0, extra 0, |dt| > 1e-9 0, of them > 1e-10 x horizon 0, deferred 1311460, deferred early 0, boundary 0, max |dt| 1.908e-10; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+y eta 0.30: contact audit (A, 213543 events): max |gap| segments 1.677e-12 px, arcs 1.577e-12 px; tol_face 2.879e-10 px (pre-check B1: gaps against it, not 1e-12)
+yaim split 0: relative KE drift 1.857e-16 (B)
+check yaim split 0: |KE drift| <= 1e-12 OK
+yaim split 0: every stop (every sigma-time, 50 stops x 3 runs): smallest signed centre-to-wall gap 1.776e-01 px; centres outside the lumen 0
+yaim split 0: schedule audit (A): 894 audits; walls compared 6230, missing 0, extra 0, |dt| > 1e-9 0, of them > 1e-10 x horizon 0, deferred 9275, deferred early 0, boundary 231, max |dt| 2.501e-12; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+yaim split 0: contact audit (A, 92 events): max |gap| segments 2.274e-13 px, arcs 2.132e-13 px; tol_face 5.228e-11 px (pre-check B1: gaps against it, not 1e-12)
+yaim split 1: relative KE drift 3.715e-16 (B)
+check yaim split 1: |KE drift| <= 1e-12 OK
+yaim split 1: every stop (every sigma-time, 50 stops x 3 runs): smallest signed centre-to-wall gap 1.776e-01 px; centres outside the lumen 0
+yaim split 1: schedule audit (A): 904 audits; walls compared 6903, missing 0, extra 0, |dt| > 1e-9 0, of them > 1e-10 x horizon 0, deferred 9723, deferred early 0, boundary 71, max |dt| 1.933e-12; all classes: pair missing 0 extra 0, wall missing 0 extra 0, cross missing 0 extra 0 dup 0; duplicate disagreements 0
+yaim split 1: contact audit (A, 94 events): max |gap| segments 2.842e-13 px, arcs 2.984e-13 px; tol_face 5.228e-11 px (pre-check B1: gaps against it, not 1e-12)
+control (i): the live T_SEG event of disk 264 and segment 2 at t = 121.515 deleted; schedule audit missing 0 -> 1 (extra 0 -> 0)
+control (ii): disk 0 put 0.1 R beyond segment 0 (centre at 2400.000, 958.800 px); validator findings 0 -> 1, run flag 1 -> 0
+control (iii) baseline: KE drift 7.874e-16, run flag 1, fatal 0, wall events 177, wall overlap repairs 0, findings 0, contact-audit max gap 1.137e-13 px
+control (iii) planted: KE drift 2.404e+27, run flag 0, fatal 1, wall events 117, wall overlap repairs 1, findings 81, contact-audit max gap 1.137e-13 px
+check control (iii) the flipped reflection is reported: KE drift and run flag 0 OK
+## test 7: the measured values of A and B
+demo0 /home/user/HardDisks/PHYSICALINFORMATIONDYNAMICS/demo1/runs/box_reference_clang_20261017T013519Z/t7_demo0/final.txt: sha256 efa589369945397afc91cba048e5acbd1783a0b1d489e93347b699931a35735c; tick 400; 416 disks, 416 alive, 415 capsules; [hull] 10 loops (1 outer, 9 holes), 833 segments, 330 arcs (0 with r <= R, never hit); lumen_area 6659.169369190 sigma^2; m_used 4451.865832459 sigma^2
+seeding: 2000 centres after 13956 trials (Demo 0's generator, seed 6221168); eta = N pi (R/sigma)^2 / lumen_area = 0.23588
+events: 1019794 (pair 347171, segment 152457, arc 42855, box wall 0, cell crossing 477311; stale dropped 1745229) in 200 sigma-time: 5099.0 per sigma-time, 2.55 per sigma-time and particle (collisions only: 2.224); cpu 6.96 s (stops and checks included)
+health: clean 1; wall overlap repairs 0, findings 0, wall repairs 0, receding 0, contact-now 0; pair overlap repairs 0
+relative KE drift 4.320e-15; escape test (inside the lumen and >= R - 1e-09 px from every primitive, 21 stops x 2000 centres): 0 escaped; smallest centre-to-primitive distance - R 2.834625e-04 px
+schedule audit: 51 audits; walls compared 54142, missing 0, extra 0, early 0, off by > 1e-10 x horizon 0, boundary 0; pairs missing 0 extra 0; box walls missing 0 extra 0; crossings missing 0 extra 0
+contact audit: 542483 wall events; max |gap| segments 1.839e-12 px, arcs 1.485e-12 px, pairs 2.675e-12 px; tol_face 6.581e-10 px
+demo0 /home/user/HardDisks/PHYSICALINFORMATIONDYNAMICS/demo1/runs/box_reference_clang_20261017T013519Z/t7_demo0/final.txt: sha256 efa589369945397afc91cba048e5acbd1783a0b1d489e93347b699931a35735c; tick 400; 416 disks, 416 alive, 415 capsules; [hull] 10 loops (1 outer, 9 holes), 833 segments, 330 arcs (0 with r <= R, never hit); lumen_area 6659.169369190 sigma^2; m_used 4451.865832459 sigma^2
+seeding: 2000 centres after 13956 trials (Demo 0's generator, seed 6221168); eta = N pi (R/sigma)^2 / lumen_area = 0.23588
+events: 1019794 (pair 347171, segment 152457, arc 42855, box wall 0, cell crossing 477311; stale dropped 1745229) in 200 sigma-time: 5099.0 per sigma-time, 2.55 per sigma-time and particle (collisions only: 2.224); cpu 3.86 s (stops and checks included)
+health: clean 1; wall overlap repairs 0, findings 0, wall repairs 0, receding 0, contact-now 0; pair overlap repairs 0
+relative KE drift 4.320e-15; escape test (inside the lumen and >= R - 1e-09 px from every primitive, 21 stops x 2000 centres): 0 escaped; smallest centre-to-primitive distance - R 2.834625e-04 px
+## what is compared
+Per pair of runs: stdout byte for byte (cmp), with no line excluded (both sides use one compiler and one flag set, so
+even the build line is equal), and stderr must be empty. The harnesses print event hashes, event counts, health and
+audit counters, contact-audit maxima, KE drift and Z, but no final positions. box_final_state prints every disk's final
+position, velocity and collision count, the bodies, the impulse, virial and tie accessors, the collision-hook digest,
+the event-log digest, a checkpoint-restart verdict, and the health, audit, ledger and tolerance records (in %a or raw
+bytes). Each output also passes its own verdicts (exact cell, row and line counts; every verdict line; the gen3 health
+counters 0; the last line) so that a failure shared by both sides is not read as agreement.
+Tests 4-6 and 10 (prim_tests, prim_controls) and 7 (pid_demo1) judge their own runs and print one "check" line per criterion;
+the outputs are kept here in full. Test 8 compares the data files of runs A-D of test 7 byte for byte; test 9 sums the
+density files of B against final.txt independently (awk).
+Cloud (Linux) and Mac hashes differ for the same sources (pre-check A7): compare only within one machine and compiler.
+## results
+INFO 2 source: engine/edmd_gen3.c differs from its original in 27 hunks, each adding a "/* PID: " line
+INFO 2 source: engine/edmd_gen3.h differs from its original in 6 hunks, each adding a "/* PID: " line
+PASS 2 source: the exact 4-line headers (copy commits and blobs confirmed by git), edmd.h unchanged below it, every changed hunk of edmd_gen3.c and .h marked /* PID: */
+PASS 3 fork alone: the fork's object links into a stub program with libc and -lm only (25 undefined symbols)
+INFO 3 the fork's undefined symbols equal the original object's: yes (information: 1b may call more of libm)
+INFO 3 objects: bin/fork/edmd_gen3.o and bin/orig/edmd_gen3.o are byte-different (information; 1b changes the fork)
+INFO batch 1 (test 3) took 327 s
+INFO batch 2 (tests 4-6, 10) took 136 s
+INFO batch 3 (tests 7-9) took 8 s
+PASS 3 M1 audit: fork = original, stdout byte-identical (224 lines, sha256 4d20a1420750b0ff), stderr empty, verdicts good on both sides; 326.7 s and 326.6 s
+PASS 3 M1 audit --quick: fork = original, stdout byte-identical (224 lines, sha256 1ccec742a3a462ec), stderr empty, verdicts good on both sides; 133.0 s and 135.8 s
+PASS 3 M2 audit --quick: fork = original, stdout byte-identical (749 lines, sha256 ae5d7738e0bfc3e6), stderr empty, verdicts good on both sides; 92.2 s and 93.8 s
+PASS 3 final-state driver: fork = original, stdout byte-identical (833 lines, sha256 115ca29fa91050a4), the fork's 6 tail lines zero, stderr empty, verdicts good on both sides; 8.5 s and 8.7 s
+INFO verdict checks ran on 8 of 8 outputs (each must print exactly VERDICTS OK)
+PASS 3 empty wall list: 1 of 1 checks OK; 0.1 s
+PASS 4-5 corridor, straight and turned 30 degrees, eta 0.05: 19 of 19 checks OK; 21.2 s
+PASS 4-5 corridor, straight and turned 30 degrees, eta 0.30: 15 of 15 checks OK; 135.9 s
+PASS 6 Y, eta 0.05: 7 of 7 checks OK; 0.6 s
+PASS 6 Y, eta 0.30: 7 of 7 checks OK; 6.7 s
+PASS 6(d) Y, aimed disks: 8 of 8 checks OK; 0.0 s
+PASS 6(d) Y, aimed disks, vertex split 1.7e-12 px: 8 of 8 checks OK; 0.0 s
+PASS 10 positive controls: 6 of 6 checks OK; 0.0 s
+PASS 7 hull: Demo 0 headless (mat45, guided, seed 9300, 400 ticks) gives the sec. 8 hull: 416 alive disks, 415 edges, 10 loops, 833 segments + 330 arcs, lumen_area 6659.169369190
+PASS 7 real hull, N 2000, 200 sigma-time, A, gen3's audits on: 5 of 5 checks OK (clean 1, KE drift, no escape at 21 stops, audits); 7.5 s
+PASS 7 real hull, N 2000, 200 sigma-time, B: 3 of 3 checks OK (clean 1, KE drift, no escape at 21 stops); 4.3 s
+PASS 7 real hull, N 2000, 200 sigma-time, C (= B): 3 of 3 checks OK (clean 1, KE drift, no escape at 21 stops); 4.3 s
+PASS 7 real hull, N 2000, 200 sigma-time, D, another seed: 3 of 3 checks OK (clean 1, KE drift, no escape at 21 stops); 4.4 s
+PASS 7 refusal: pid_demo1 refuses a Demo 0 file without [hull] (state_000350.txt; rc 2)
+PASS 8 determinism: B = C and A = B in all 43 data files (21 pstate, 21 density, measure.csv; sha256 of B's measure.csv 6448b61b3b7ef141); D (another seed) differs
+PASS 9 density: 21 files, particles sum to N = 2000 in each; material sums to sum pi r^2 = 4555.719082944 sigma^2 over the alive disks (worst relative difference 1.996e-15); M_used 4451.865832459, lens total 103.853250485 sigma^2
+summary: 22 passed, 0 failed

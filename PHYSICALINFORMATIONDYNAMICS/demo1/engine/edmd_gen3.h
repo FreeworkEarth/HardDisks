@@ -42,6 +42,13 @@ extern "C" {
 
 typedef struct EDMD3 EDMD3;
 
+/* PID: Demo 1 static walls (02_DEMO1_BRIEF.md sec. 4 and sec. 8; edmd3_set_walls). Absolute px. A segment runs from (x1, y1)
+   to (x2, y2) with the lumen on its LEFT; an arc is the part of the circle (cx, cy, r) from angle a0 counter-clockwise to a1
+   (a1 > a0, a1 - a0 <= 2 pi) with the lumen INSIDE the circle. Every endpoint of every primitive coincides with the endpoint of
+   exactly one other primitive (closed loops), and every arc endpoint is a segment endpoint. */
+typedef struct { double x1, y1, x2, y2; } EDMD3_Seg;
+typedef struct { double cx, cy, r, a0, a1; } EDMD3_Arc;
+
 typedef struct {
     long ev_pair, ev_wall, ev_cross;     /* executed events by kind */
     long ev_stale;                       /* invalidated events dropped at pop */
@@ -68,6 +75,13 @@ typedef struct {
     long body_findings;                  /* a divider or piston outside the box or out of order (validator; must be 0) */
     double contact_c_min;                /* most negative c = |r|^2 - d^2 among contact_now pairs [px^2] (0 if none) */
     double obj_contact_gap_min;          /* most negative face gap among obj_contact_now events [px] (0 if none) */
+    /* PID: Demo 1 static walls, appended so that every field above keeps its offset */
+    long ev_seg, ev_arc;                 /* executed segment and arc events */
+    long prim_overlap_repair;            /* a primitive predicted with gap < -tol_face while approaching: at once (safety net) */
+    long prim_contact_now;               /* the same within rounding (-tol_face <= gap <= 0): at once (not a repair) */
+    long prim_findings;                  /* validator: a disk centre closer than R - tol_wall to a primitive, or on its far side */
+    long prim_repair;                    /* such a disk put back on the lumen side of its nearest primitive (safety net) */
+    long prim_receding;                  /* a primitive event whose disk no longer approaches the contact normal: not reflected */
 } EDMD3_Health;
 
 /* schedule-audit classes (amendment e: per-class maxima over ALL matched events, no floor) */
@@ -94,6 +108,11 @@ typedef struct {
     double cls_max_dt[EDMD3_NCLS], cls_max_rel[EDMD3_NCLS];
     double cls_rel_hz[EDMD3_NCLS];   /* the horizon of the event that gave cls_max_rel */
     double cls_dt_hz[EDMD3_NCLS];    /* the horizon of the event that gave cls_max_dt */
+    /* PID: the static walls (segments and arcs, one class), appended (EDMD3_NCLS stays 5). Deferred: the primitive is not a
+       candidate of the disk's cell; such an event must come after the disk's next crossing. Boundary: a heap event and the
+       brute force disagree only because the contact lies on the end of a line or arc within 1e-8 px (counted, not an error). */
+    long prim_cmp, prim_missing, prim_extra, prim_dt, prim_dt_rel, prim_deferred, prim_deferred_early, prim_boundary;
+    double prim_max_dt, prim_max_rel;
 } EDMD3_Audit;
 
 /* amendment d: the momentum and energy ledgers. P = total momentum of every body of finite mass (the disks, free and
@@ -110,6 +129,7 @@ typedef struct {
     double J_spring[EDMD_MAX_DIVIDERS];  /* signed x impulse of each spring anchor on its divider */
     double J_piston[2];                  /* signed x impulse of each piston of mass 0 on the disks (L, R) */
     double J_api;                        /* x momentum given to bodies of finite mass by API velocity or mass changes */
+    double J_prims[2];                   /* PID: impulse of all segments and arcs on the disks (x, y), part of J */
 } EDMD3_Ledger;
 
 /* the tolerances in force (amendment b, M2 acceptance 5): derived, not tuned */
@@ -187,6 +207,7 @@ void   edmd3_set_event_log(EDMD3* S, FILE* f, double time_scale);
    comp_a, comp_b: the disks' compartments (the dividers left of the disk at the load). v*: the velocities after the collision. */
 typedef struct { int kind, a, b, comp_a, comp_b; double nx, ny, vax, vay, vbx, vby; } EDMD3_Coll;
 typedef void (*EDMD3_CollHook)(void* ctx, const EDMD3_Coll* c);
+/* PID: kind 4 is a segment and 5 an arc (b = the segment's or the arc's index, n = the unit normal into the lumen at contact) */
 void   edmd3_set_coll_hook(EDMD3* S, EDMD3_CollHook fn, void* ctx);   /* fn NULL: off; one state at a time */
 
 /* read-only audits: neither changes any stored number, so outputs are identical with and without them */
@@ -205,6 +226,20 @@ void   edmd3_set_schedule_audit(EDMD3* S, long every);                   /* afte
 void   edmd3_set_schedule_audit_bodies(EDMD3* S, int on);              /* M2: also after every BAND event and API body change */
 void   edmd3_schedule_audit_now(EDMD3* S);
 const EDMD3_Audit* edmd3_schedule_audit_stats(const EDMD3* S);
+
+/* PID: Demo 1 static walls. edmd3_set_walls once, after edmd3_create and before edmd3_load; 0 on error with the reason in err
+   (an open loop, an arc endpoint that is no segment endpoint, a degenerate primitive). An empty list changes nothing: the
+   engine then runs exactly as without the call. Primitive p is segment p for p < nseg, else arc p - nseg. A state with walls
+   cannot be checkpointed (edmd3_checkpoint_write and _read return 0). */
+int    edmd3_set_walls(EDMD3* S, const EDMD3_Seg* seg, int nseg, const EDMD3_Arc* arc, int narc, char* err, size_t errlen);
+int    edmd3_wall_primitives(const EDMD3* S, int* nseg, int* narc);              /* the total; nseg, narc if not NULL */
+/* the normal impulse 2|v.n| summed over the contacts of primitive p with its line or arc (endpoint 0) or with its endpoints
+   (endpoint 1, segments only), and their number */
+double edmd3_prim_impulse(const EDMD3* S, int p, int endpoint, long* events);
+long   edmd3_contact_audit_prims(const EDMD3* S, double max_gap_px[2]);      /* [0] segments, [1] arcs; contact-audit events */
+/* the signed surface gap of a disk centred at (x, y) to the walls, from the nearest feature over ALL primitives: distance
+   minus R, negative if closer than R or on the far side (outside the lumen); INFINITY without walls. Reads only. */
+double edmd3_prim_gap(const EDMD3* S, double x, double y);
 
 #ifdef __cplusplus
 }

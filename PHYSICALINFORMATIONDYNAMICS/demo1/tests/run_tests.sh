@@ -1,17 +1,34 @@
 #!/bin/sh
-# tests/run_tests.sh -- Demo 1 delivery 1a: tests 1-2 of brief 02_DEMO1_BRIEF.md sec. 6, with the corrections of
-# 02_DEMO1_BRIEF_PRECHECK.md part A. Run through `make test` from demo1/; the Makefile builds bin/ first.
-#   Test 2  each engine file is its original plus the exact 4-line header (whose commits and blob git confirms), byte for byte;
-#           engine/ holds exactly the three files and README_FORK.md.
-#   Test 1  the fork and the unmodified original gen3, each linked into its own build of the unchanged M1/M2 harness sources
-#           (gen2 linked into both as one object) and of tests/box_final_state.c, give byte-identical stdout for M1 audit,
-#           M1 audit --quick, M2 audit --quick and the final-state driver, each a separate process, with empty stderr; each
-#           output also passes its own verdict checks (cell counts, verdict lines, health counters, exact line count, end),
-#           because two equally broken outputs would compare equal (pre-check A5). The fork's object links into a program
-#           with nothing but libc and libm.
-# The eight processes run in parallel, each capped at 900 s (perl alarm: macOS has no `timeout`); Ctrl-C stops them all.
-# Outputs: a new folder runs/box_reference_<cc>_<UTC time>/ (git-ignored) with manifest.txt. Nothing else is written and
-# nothing is deleted. One `make test` at a time per checkout: bin/ is shared.
+# tests/run_tests.sh -- Demo 1, deliveries 1a and 1b: the tests of brief 02_DEMO1_BRIEF.md sec. 6 as amended by sec. 8, with
+# the corrections of 02_DEMO1_BRIEF_PRECHECK.md. Run through `make test` from demo1/; the Makefile rebuilds bin/ first.
+#   Test 2 (the 1b form, pre-check B21) each engine file starts with the exact 4-line header (its copy commit and blob confirmed
+#           by git; the "last change" commit only reported, sec. 8); edmd.h is its original byte for byte below the header; every
+#           hunk in which edmd_gen3.c or edmd_gen3.h differs from its original adds a line carrying "/* PID: ".
+#   Test 3 (= test 1, with the 1b fork: its walls unused) the fork and the unmodified original gen3, each linked into its own
+#           build of the unchanged M1/M2 harness sources (gen2 linked into both as one object) and of tests/box_final_state.c,
+#           give byte-identical stdout for M1 audit, M1 audit --quick, M2 audit --quick and the final-state driver (whose
+#           fork side prints the bytes 1b appended to the public records on "tail" lines: stripped before the comparison and
+#           required to be zero), each a separate process, with empty stderr; each output also passes its own verdict checks
+#           (cell counts, verdict lines, health counters, exact line count, end), because two equally broken outputs would
+#           compare equal (pre-check A5). The fork's object links into a program with nothing but libc and libm, and an empty
+#           wall list changes nothing (prim_tests empty).
+#   Tests 4-5 prim_tests pair 0.05 (4000 sigma-time) and pair 0.30 (400): a closed 100 x 40 sigma corridor, straight and
+#           turned by 30 degrees; test 6: prim_tests y 0.05, y 0.30, yaim 0, yaim 1 (a Y of segments and arcs; disks aimed at its
+#           reflex vertices and at an arc-segment joint, with and without a 1.7e-12 px vertex split); test 10: prim_controls
+#           (three planted errors, each reported by its own detector). Each of these prints "check ... OK|FAIL" lines; all must
+#           be OK, their number complete, the last line "failed checks: 0".
+#   Test 7  Demo 0 built headless (pre-check B12) grows --preset=mat45 --rule=guided --seed=9300 --steps=400; its final.txt is
+#           identified by structure (sec. 8: 416 alive disks, 415 edges, 10 loops, 833 segments + 330 arcs, lumen_area
+#           6659.169369 to 1e-6 relative); pid_demo1 runs N = 2000 for 200 sigma-time in its lumen four times: A with gen3's
+#           audits, B and C without (the same seed), D with another seed. Each: rc 0, empty stderr, its checks OK (clean = 1,
+#           |KE drift| <= 1e-12, no escape at any of 21 stops; in A also nothing missing or extra and the wall gaps <= tol_face).
+#           pid_demo1 refuses a Demo 0 file without [hull].
+#   Test 8  B = C and A = B byte for byte in every pstate_*.txt, density_*.txt and measure.csv; D differs from B.
+#   Test 9  every density file of B: the particle counts sum to N, the material column to the sum of pi r^2 over the alive
+#           disks of final.txt to 1e-9 relative (B14; M_used and the lens total printed beside it).
+# Three batches of processes run in parallel (8, 8 and 4), each process capped at 900 s (perl alarm: macOS has no `timeout`); Ctrl-C
+# stops them all. Outputs: a new folder runs/box_reference_<cc>_<UTC time>/ (git-ignored) with manifest.txt. Nothing else is
+# written and nothing is deleted. One `make test` at a time per checkout: bin/ is shared.
 set -u
 : "${CC:?run through make test}" "${IS_CLANG:?run through make test}" "${CSTD:?run through make test}"
 HSP=../../hspist3/edmd_core
@@ -36,46 +53,62 @@ echo "test outputs: $OUT"
   echo "compiler CC=$CC is_clang=$IS_CLANG: $($CC --version 2>/dev/null | head -1)"
   echo "flags $CSTD"
   echo "## sources (sha256)"
-  for f in Makefile tests/run_tests.sh tests/box_final_state.c engine/README_FORK.md engine/edmd_gen3.c engine/edmd_gen3.h engine/edmd.h; do echo "$(sha "$f")  demo1/$f"; done
+  for f in Makefile tests/run_tests.sh tests/box_final_state.c tests/prim_tests.c tests/prim_controls.c tests/demo0_view_stub.c pid_demo1.c \
+           engine/README_FORK.md engine/edmd_gen3.c engine/edmd_gen3.h engine/edmd.h; do echo "$(sha "$f")  demo1/$f"; done
+  echo "## Demo 0 sources compiled unchanged from ../demo0 (git blob)"
+  for f in pid.h pid_main.c pid_grow.c pid_state.c pid_rng.c pid_sha256.c pid_hull.c; do echo "$(git hash-object "../demo0/$f")  demo0/$f"; done
   echo "## originals (git blob)"
   for f in edmd_gen3.c edmd_gen3.h edmd.h edmd.c tests/gen3_m1_harness.c tests/gen3_m2_harness.c tests/gen3_state_io.h; do echo "$(git hash-object "$HSP/$f")  hspist3/edmd_core/$f"; done
   echo "## the tested objects and programs (sha256)"
   for f in bin/gen2.o bin/orig/edmd_gen3.o bin/fork/edmd_gen3.o bin/orig/gen3_m1_harness bin/fork/gen3_m1_harness bin/orig/gen3_m2_harness \
-           bin/fork/gen3_m2_harness bin/orig/box_final_state bin/fork/box_final_state; do echo "$(sha "$f")  demo1/$f"; done
+           bin/fork/gen3_m2_harness bin/orig/box_final_state bin/fork/box_final_state bin/demo0/pid_rng.o bin/fork/prim_tests bin/fork/prim_controls \
+           bin/pid_demo1 bin/demo0/pid_demo0_headless; do
+    echo "$(sha "$f")  demo1/$f"; done
   echo "## build: every command make runs for 'all' (make -n -B), in order"
   cat bin/build_lines.txt 2>/dev/null || echo "(bin/build_lines.txt missing: run through make test)"
 } > "$OUT/snapshot.txt"
 
-# ------------------------------------------------------------------ test 2: the fork's sources
+# ------------------------------------------------------------------ test 2 (1b form): the fork's sources
 t2=0
 for f in edmd_gen3.c edmd_gen3.h edmd.h; do
   fk=engine/$f; or=$HSP/$f
-  cur=$(git hash-object "$or")
-  l2=$(sed -n 2p "$fk")
+  l2=$(sed -n 2p "$fk"); l3=$(sed -n 3p "$fk")
   cpy=$(echo "$l2" | sed -n 's/^   copied at origin\/main \([0-9a-f]\{40\}\); last change to it \([0-9a-f]\{40\}\);$/\1/p')
   lst=$(echo "$l2" | sed -n 's/^   copied at origin\/main \([0-9a-f]\{40\}\); last change to it \([0-9a-f]\{40\}\);$/\2/p')
+  blob=$(echo "$l3" | sed -n 's/^   source blob \([0-9a-f]\{40\}\)\. Lines 5 on are that file unchanged: its line n is line n + 4 here\.$/\1/p')
   {
     echo "/* PID fork, PHYSICALINFORMATIONDYNAMICS/demo1/engine (Demo 1, delivery 1a, 2026-10-16): hspist3/edmd_core/$f"
     echo "   copied at origin/main $cpy; last change to it $lst;"
-    echo "   source blob $cur. Lines 5 on are that file unchanged: its line n is line n + 4 here."
+    echo "   source blob $blob. Lines 5 on are that file unchanged: its line n is line n + 4 here."
     echo '   Changes from delivery 1b on are marked at their site by a comment starting "PID:" (README_FORK.md). */'
   } > "$OUT/header_$f.txt"
-  if [ -z "$cpy" ]; then
-    bad "2 source: $fk line 2 is not '   copied at origin/main <commit>; last change to it <commit>;'"; t2=1
+  if [ -z "$cpy" ] || [ -z "$blob" ]; then
+    bad "2 source: $fk lines 2-3 do not record the copy commit, the last change and the source blob"; t2=1; continue
   elif ! head -n 4 "$fk" | cmp -s - "$OUT/header_$f.txt"; then
-    bad "2 source: $fk lines 1-4 are not the header template with the original's current blob $cur (diff $OUT/header_$f.txt)"; t2=1
-  elif ! tail -n +5 "$fk" | cmp -s - "$or"; then
-    bad "2 source: $fk from line 5 differs from $or"; t2=1
-  elif [ "$(git rev-parse "$cpy:hspist3/edmd_core/$f" 2>/dev/null)" != "$cur" ]; then
-    bad "2 source: at the recorded copy commit $cpy, hspist3/edmd_core/$f is not blob $cur"; t2=1
-  elif [ "$(git log -1 --format=%H "$cpy" -- "$or" 2>/dev/null)" != "$lst" ]; then
-    bad "2 source: the last change to hspist3/edmd_core/$f before $cpy is not the recorded $lst"; t2=1
+    bad "2 source: $fk lines 1-4 are not the header template (diff $OUT/header_$f.txt)"; t2=1; continue
+  elif [ "$(git rev-parse "$cpy:hspist3/edmd_core/$f" 2>/dev/null)" != "$blob" ]; then
+    bad "2 source: at the recorded copy commit $cpy, hspist3/edmd_core/$f is not the recorded blob $blob"; t2=1; continue
+  elif [ "$(git hash-object "$or")" != "$blob" ]; then
+    bad "2 source: $or is now blob $(git hash-object "$or"), the fork records $blob (the original changed after the fork)"; t2=1; continue
   fi
+  lgit=$(git log -1 --format=%H "$cpy" -- "$or" 2>/dev/null)
+  [ "$lgit" = "$lst" ] || note "2 source: git names $lgit as the last change to hspist3/edmd_core/$f before the copy, the header $lst (clone depth and merge history decide it: provenance, not identity; sec. 8)"
+  tail -n +5 "$fk" > "$OUT/body_$f"
+  if [ "$f" = edmd.h ]; then
+    cmp -s "$OUT/body_$f" "$or" || { bad "2 source: engine/edmd.h below its header differs from $or (it must stay byte-identical)"; t2=1; }
+    continue
+  fi
+  diff -U0 "$or" "$OUT/body_$f" > "$OUT/diff_$f.txt"
+  hk=$(awk '/^@@/{ if (n) { if (!m) bad++; } n++; m = 0; next } /^\+\+\+|^---/ { next } /^\+/ { if (index($0, "/* PID: ")) m = 1 }
+           END { if (n) { if (!m) bad++ }; print n + 0, bad + 0 }' "$OUT/diff_$f.txt")
+  set -- $hk
+  if [ "$2" -ne 0 ]; then bad "2 source: $2 of the $1 changed hunks of engine/$f add no line with \"/* PID: \" ($OUT/diff_$f.txt)"; t2=1
+  else note "2 source: engine/$f differs from its original in $1 hunks, each adding a \"/* PID: \" line"; fi
 done
 extra=$(ls -A engine | grep -v -x -e edmd_gen3.c -e edmd_gen3.h -e edmd.h -e README_FORK.md)
 if [ -n "$extra" ]; then bad "2 source: engine/ holds other entries: $(echo $extra)"; t2=1; fi
 if [ ! -f engine/README_FORK.md ]; then bad "2 source: engine/README_FORK.md is missing"; t2=1; fi
-if [ "$t2" -eq 0 ]; then ok "2 source: edmd_gen3.c, edmd_gen3.h, edmd.h = the exact 4-line header (commits and blobs confirmed by git) plus their originals, byte for byte"; fi
+if [ "$t2" -eq 0 ]; then ok "2 source: the exact 4-line headers (copy commits and blobs confirmed by git), edmd.h unchanged below it, every changed hunk of edmd_gen3.c and .h marked /* PID: */"; fi
 
 # ------------------------------------------------------------------ test 1a: the fork alone
 nmok=1
@@ -85,11 +118,13 @@ awk '{print $NF}' "$OUT/nm_raw_fork.txt" | sort > "$OUT/nm_u_fork.txt"
 awk '{print $NF}' "$OUT/nm_raw_orig.txt" | sort > "$OUT/nm_u_orig.txt"
 printf 'int main(void){ return 0; }\n' > "$OUT/stub_main.c"
 $CC $CSTD -o "$OUT/stub_link" "$OUT/stub_main.c" bin/fork/edmd_gen3.o -lm > "$OUT/stub_link.txt" 2>&1; lrc=$?
-if [ "$lrc" -eq 0 ] && "$OUT/stub_link" && [ "$nmok" -eq 1 ] && [ -s "$OUT/nm_u_fork.txt" ] && cmp -s "$OUT/nm_u_fork.txt" "$OUT/nm_u_orig.txt"; then
-  ok "1 fork alone: the fork's object links into a stub program with libc and -lm only; its $(nlines "$OUT/nm_u_fork.txt") undefined symbols equal the original object's"
-else bad "1 fork alone: stub link rc $lrc ($OUT/stub_link.txt), nm ok $nmok, or nm -u empty or different from the original object's"; fi
+if [ "$lrc" -eq 0 ] && "$OUT/stub_link" && [ "$nmok" -eq 1 ] && [ -s "$OUT/nm_u_fork.txt" ]; then
+  ok "3 fork alone: the fork's object links into a stub program with libc and -lm only ($(nlines "$OUT/nm_u_fork.txt") undefined symbols)"
+else bad "3 fork alone: stub link rc $lrc ($OUT/stub_link.txt), nm ok $nmok, or nm -u empty"; fi
+cmp -s "$OUT/nm_u_fork.txt" "$OUT/nm_u_orig.txt" && nmeq=yes || nmeq="no ($(comm -3 "$OUT/nm_u_orig.txt" "$OUT/nm_u_fork.txt" | tr -d '\t' | tr '\n' ' '))"
+note "3 the fork's undefined symbols equal the original object's: $nmeq (information: 1b may call more of libm)"
 if cmp -s bin/fork/edmd_gen3.o bin/orig/edmd_gen3.o; then objcmp="identical"; else objcmp="different"; fi
-note "1 objects: bin/fork/edmd_gen3.o and bin/orig/edmd_gen3.o are byte-$objcmp (information; a compiler may embed the source path)"
+note "3 objects: bin/fork/edmd_gen3.o and bin/orig/edmd_gen3.o are byte-$objcmp (information; 1b changes the fork)"
 
 # ------------------------------------------------------------------ test 1b: the eight processes, in parallel
 trap 'trap - INT TERM HUP; echo "interrupted: stopping the test processes"; kill 0' INT TERM HUP
@@ -111,10 +146,41 @@ for side in orig fork; do
   launch m2q_$side "$D/bin/$side/gen3_m2_harness" audit --quick
   launch fs_$side  "$D/bin/$side/box_final_state"
 done
-echo "eight processes started (the longest, M1 audit, takes about 5 min on 4 cores)"
+echo "batch 1: eight processes started (the longest, M1 audit, takes about 5 min on 4 cores)"
+wait
+note "batch 1 (test 3) took $(awk -v a="$T0" -v b="$(now)" 'BEGIN{printf "%.0f", b - a}') s"
+T1=$(now)
+P="$D/bin/fork/prim_tests"
+launch t45a "$P" pair 0.05 4000 0x5EED30
+launch t45b "$P" pair 0.30 400 0x5EED31
+launch t6a  "$P" y 0.05 400 0x5EED32
+launch t6b  "$P" y 0.30 400 0x5EED33
+launch t6c  "$P" yaim 0 50 0x5EED34
+launch t6d  "$P" yaim 1 50 0x5EED34
+launch t3e  "$P" empty 100 0x5EED20
+launch t10  "$D/bin/fork/prim_controls"
+echo "batch 2: eight processes started (tests 4-6, 10 and the empty wall list; about 2 min)"
 wait
 trap - INT TERM HUP
-note "the eight processes took $(awk -v a="$T0" -v b="$(now)" 'BEGIN{printf "%.0f", b - a}') s together"
+note "batch 2 (tests 4-6, 10) took $(awk -v a="$T1" -v b="$(now)" 'BEGIN{printf "%.0f", b - a}') s"
+
+# ------------------------------------------------------------------ tests 7-9: a real hull
+T2=$(now)
+H7="$D/$OUT/t7_demo0"
+"$D/bin/demo0/pid_demo0_headless" --preset=mat45 --rule=guided --seed=9300 --steps=400 --headless --out="$H7" > "$OUT/t7_demo0.out.txt" 2> "$OUT/t7_demo0.err.txt"
+d0rc=$?
+F7="$H7/final.txt"
+trap 'trap - INT TERM HUP; echo "interrupted: stopping the test processes"; kill 0' INT TERM HUP
+P1="$D/bin/pid_demo1"
+launch t7a "$P1" --state="$F7" --N=2000 --T=200 --seed=0x5EED70 --write-every=10 --audit-every=20000 --out="$D/$OUT/t7a"
+launch t7b "$P1" --state="$F7" --N=2000 --T=200 --seed=0x5EED70 --write-every=10 --out="$D/$OUT/t7b"
+launch t7c "$P1" --state="$F7" --N=2000 --T=200 --seed=0x5EED70 --write-every=10 --out="$D/$OUT/t7c"
+launch t7d "$P1" --state="$F7" --N=2000 --T=200 --seed=0x5EED71 --write-every=10 --out="$D/$OUT/t7d"
+launch t7n "$P1" --state="$H7/state_000350.txt" --N=10 --T=1 --seed=1 --out="$D/$OUT/t7n"
+echo "batch 3: Demo 0 headless (rc $d0rc), then five pid_demo1 processes started (tests 7-9; under a minute)"
+wait
+trap - INT TERM HUP
+note "batch 3 (tests 7-9) took $(awk -v a="$T2" -v b="$(now)" 'BEGIN{printf "%.0f", b - a}') s"
 
 # The verdicts of one output: prints "VERDICTS OK", or the problems found. A harness exits 0 even after RUN FAILED or FATAL,
 # so these checks are what catches a failure that both sides share. The expected counts are those of the harness sources
@@ -151,7 +217,7 @@ verdicts() {   # verdicts <m1|m2|fs> <file>
     kind == "fs" && /^run_flag / { if ($2 == "1") ++flag; else bad($0) }
     kind == "fs" && /^schedule_audit / { ++sa; for (k = 4; k <= NF; ++k) if ($k ~ /^[0-9]+$/ && $k != "0") bad("schedule audit: " $0) }
     kind == "fs" && /^restart_from_checkpoint / { if ($0 ~ /equal hash 1 health 1 ledger 1 disks 1$/) ++rs; else bad($0) }
-    kind == "fs" && /^tail / { bad("a record longer than the original: " $0) }
+    kind == "fs" && /^tail / { if ($NF ~ /[1-9a-f]/) bad("bytes appended to a record are not zero: " $0) }
     kind == "fs" && /^disk / { if (NF != 7 || $2 != idx "") bad("disk line " idx ": " $0); ++idx; ++disks }
     END {
       if (kind == "m1") { wc = 6; wr = 3 } else if (kind == "m2") { wc = 13; wr = 5 } else wc = 2
@@ -175,27 +241,94 @@ for c in m1f m1q m2q fs; do
   set -- $(cat "$OUT/${c}_orig.rc.txt" 2>/dev/null) x x; rco=$1; so=$2
   set -- $(cat "$OUT/${c}_fork.rc.txt" 2>/dev/null) x x; rcf=$1; sf=$2
   if [ "$rco" != 0 ] || [ "$rcf" != 0 ]; then
-    bad "1 $what: return codes original $rco, fork $rcf (142 = stopped at 900 s; see $OUT/${c}_orig.err.txt, $OUT/${c}_fork.err.txt)"; continue; fi
+    bad "3 $what: return codes original $rco, fork $rcf (142 = stopped at 900 s; see $OUT/${c}_orig.err.txt, $OUT/${c}_fork.err.txt)"; continue; fi
   probs=""
-  cmp -s "$OUT/${c}_orig.out.txt" "$OUT/${c}_fork.out.txt" || probs="$probs stdout differs (diff $OUT/${c}_orig.out.txt $OUT/${c}_fork.out.txt);"
+  for side in orig fork; do grep -v '^tail ' "$OUT/${c}_$side.out.txt" > "$OUT/${c}_$side.cmp.txt"; done   # 1b appends to the records
+  cmp -s "$OUT/${c}_orig.cmp.txt" "$OUT/${c}_fork.cmp.txt" || probs="$probs stdout differs (diff $OUT/${c}_orig.cmp.txt $OUT/${c}_fork.cmp.txt);"
+  [ "$c" = fs ] && [ "$(grep -c '^tail ' "$OUT/${c}_orig.out.txt")" -ne 0 ] && probs="$probs the original prints tail lines;"
   for side in orig fork; do
     [ -s "$OUT/${c}_$side.err.txt" ] && probs="$probs $side stderr not empty ($OUT/${c}_$side.err.txt);"
-    n=$(nlines "$OUT/${c}_$side.out.txt"); w=$(want_lines $c)
+    n=$(nlines "$OUT/${c}_$side.cmp.txt"); w=$(want_lines $c)
     [ "$n" = "$w" ] || probs="$probs $side has $n lines, want $w;"
     v=$(verdicts $kind "$OUT/${c}_$side.out.txt" 2>&1)
     nchecked=$((nchecked + 1))
     [ "$v" = "VERDICTS OK" ] || probs="$probs $side verdicts: $(echo "$v" | head -4 | tr '\n' ';')"
   done
   if [ -z "$probs" ]; then
-    ok "1 $what: fork = original, stdout byte-identical ($(nlines "$OUT/${c}_fork.out.txt") lines, sha256 $(sha "$OUT/${c}_fork.out.txt" | cut -c1-16)), stderr empty, verdicts good on both sides; ${so} s and ${sf} s"
-  else bad "1 $what:$probs"; fi
+    tl=$(grep -c '^tail ' "$OUT/${c}_fork.out.txt")
+    ok "3 $what: fork = original, stdout byte-identical ($(nlines "$OUT/${c}_fork.cmp.txt") lines, sha256 $(sha "$OUT/${c}_fork.cmp.txt" | cut -c1-16))$([ "$tl" -gt 0 ] && echo ", the fork's $tl tail lines zero"), stderr empty, verdicts good on both sides; ${so} s and ${sf} s"
+  else bad "3 $what:$probs"; fi
+  set -- $(cat "$OUT/${c}_orig.rc.txt" 2>/dev/null) x x
 done
 note "verdict checks ran on $nchecked of 8 outputs (each must print exactly VERDICTS OK)"
+
+# tests 3 (empty wall list), 4-6 and 10: rc 0, empty stderr, every check OK and their number complete, the last line
+for c in t3e t45a t45b t6a t6b t6c t6d t10; do
+  case $c in t3e) what="3 empty wall list"; want=1;; t45a) what="4-5 corridor, straight and turned 30 degrees, eta 0.05"; want=19;;
+             t45b) what="4-5 corridor, straight and turned 30 degrees, eta 0.30"; want=15;; t6a) what="6 Y, eta 0.05"; want=7;;
+             t6b) what="6 Y, eta 0.30"; want=7;; t6c) what="6(d) Y, aimed disks"; want=8;; t6d) what="6(d) Y, aimed disks, vertex split 1.7e-12 px"; want=8;;
+             t10) what="10 positive controls"; want=6;; esac
+  f="$OUT/$c.out.txt"; set -- $(cat "$OUT/$c.rc.txt" 2>/dev/null) x x; rc=$1; tw=$2
+  nok=$(grep -c '^check .* OK$' "$f"); nfl=$(grep -c '^check .* FAIL$' "$f"); last=$(tail -n 1 "$f")
+  if [ "$rc" = 0 ] && [ ! -s "$OUT/$c.err.txt" ] && [ "$nfl" -eq 0 ] && [ "$nok" -eq "$want" ] && [ "$last" = "failed checks: 0" ]; then
+    ok "$what: $nok of $nok checks OK; ${tw} s"
+  else bad "$what: rc $rc, $nok OK of $want, $nfl FAIL, last line '$last' ($f, $OUT/$c.err.txt)"; fi
+done
+
+# test 7: the hull, by structure (sec. 8, B13), from final.txt itself
+st=$(awk '/^\[/ { sec = $0; next } /^#/ { next }
+  sec == "[disks]" { alive[$1] = $8; par[$1] = $5; n++ }
+  sec == "[hull]" && /^loop / { nl++ } sec == "[hull]" && /^seg / { ns++ } sec == "[hull]" && /^arc / { na++ }
+  sec == "[areas]" && $1 == "lumen_area" { la = $2 }
+  END { for (i in alive) if (alive[i] == 1) { a++; if (par[i] >= 0 && alive[par[i]] == 1) e++ }
+        printf "%d %d %d %d %d %.9f %d", a, e, nl, ns, na, la, (la > 0 && (la - 6659.169369 < 0 ? 6659.169369 - la : la - 6659.169369) <= 1e-6 * 6659.169369) }' "$F7" 2>/dev/null)
+set -- $st x x x x x x x
+if [ "$d0rc" = 0 ] && [ ! -s "$OUT/t7_demo0.err.txt" ] && [ "$1 $2 $3 $4 $5 $7" = "416 415 10 833 330 1" ]; then
+  ok "7 hull: Demo 0 headless (mat45, guided, seed 9300, 400 ticks) gives the sec. 8 hull: $1 alive disks, $2 edges, $3 loops, $4 segments + $5 arcs, lumen_area $6"
+else bad "7 hull: Demo 0 rc $d0rc ($OUT/t7_demo0.err.txt); structure '$st', want 416 415 10 833 330 6659.169369 1"; fi
+for c in t7a t7b t7c t7d; do
+  case $c in t7a) want=5; what="A, gen3's audits on";; t7b) want=3; what="B";; t7c) want=3; what="C (= B)";; t7d) want=3; what="D, another seed";; esac
+  f="$OUT/$c.out.txt"; set -- $(cat "$OUT/$c.rc.txt" 2>/dev/null) x x; rc=$1; tw=$2
+  nok=$(grep -c '^check .* OK$' "$f"); nfl=$(grep -c '^check .* FAIL$' "$f"); last=$(tail -n 1 "$f")
+  if [ "$rc" = 0 ] && [ ! -s "$OUT/$c.err.txt" ] && [ "$nfl" -eq 0 ] && [ "$nok" -eq "$want" ] && [ "$last" = "failed checks: 0" ] \
+     && [ "$(ls "$OUT/$c" | grep -c '^pstate_')" -eq 21 ]; then
+    ok "7 real hull, N 2000, 200 sigma-time, $what: $nok of $nok checks OK (clean 1, KE drift, no escape at 21 stops$([ $c = t7a ] && echo ', audits')); ${tw} s"
+  else bad "7 real hull $what: rc $rc, $nok OK of $want, $nfl FAIL, last line '$last', $(ls "$OUT/$c" 2>/dev/null | grep -c '^pstate_') pstate files ($f)"; fi
+done
+set -- $(cat "$OUT/t7n.rc.txt" 2>/dev/null) x x
+if [ "$1" = 2 ] && grep -q 'has no \[hull\]' "$OUT/t7n.err.txt"; then ok "7 refusal: pid_demo1 refuses a Demo 0 file without [hull] (state_000350.txt; rc 2)"
+else bad "7 refusal: pid_demo1 on a file without [hull]: rc $1 ($OUT/t7n.err.txt)"; fi
+# test 8: determinism, and the audits do not steer
+same_run() {   # same_run <dir1> <dir2>: the same data files, byte for byte (manifest.txt aside: it records argv)
+  [ "$(ls "$1" | grep -v -x manifest.txt)" = "$(ls "$2" | grep -v -x manifest.txt)" ] || return 1
+  for g in $(ls "$1" | grep -v -x manifest.txt); do cmp -s "$1/$g" "$2/$g" || return 1; done
+  return 0
+}
+nd=$(ls "$OUT/t7b" 2>/dev/null | grep -v -x manifest.txt | wc -l | tr -d ' ')
+if same_run "$OUT/t7b" "$OUT/t7c" && same_run "$OUT/t7a" "$OUT/t7b" && [ "$nd" -eq 43 ] \
+   && ! cmp -s "$OUT/t7b/pstate_000200.txt" "$OUT/t7d/pstate_000200.txt" && ! cmp -s "$OUT/t7b/measure.csv" "$OUT/t7d/measure.csv"; then
+  ok "8 determinism: B = C and A = B in all $nd data files (21 pstate, 21 density, measure.csv; sha256 of B's measure.csv $(sha "$OUT/t7b/measure.csv" | cut -c1-16)); D (another seed) differs"
+else bad "8 determinism: B = C, A = B or D != B fails ($OUT/t7a, t7b, t7c, t7d; $nd data files in B, want 43)"; fi
+# test 9: the density files of B
+t9=$(awk 'BEGIN { pi = atan2(0, -1) }
+  FNR == 1 { fi++ }
+  fi == 1 && /^\[/ { sec = $0; next } fi == 1 && /^#/ { next }
+  fi == 1 && sec == "[header]" && $1 == "m_used" { mu = $2 }
+  fi == 1 && sec == "[disks]" && $8 == 1 { s += pi * $4 * $4 }
+  fi > 1 && /^#/ { next }
+  fi > 1 { if (NF != 4) badl++; cnt[FILENAME] += $3; mat[FILENAME] += $4; files[FILENAME] = 1 }
+  END { nf = 0; worst = 0; badc = 0
+        for (f in files) { nf++; if (cnt[f] != 2000) badc++; r = (mat[f] - s) / s; if (r < 0) r = -r; if (r > worst) worst = r }
+        printf "%d %d %d %.3e %.9f %.9f %.9f", nf, badc, badl + 0, worst, s, mu, s - mu }' "$F7" "$OUT"/t7b/density_*.txt 2>/dev/null)
+set -- $t9 x x x x x x x
+if [ "$1" = 21 ] && [ "$2" = 0 ] && [ "$3" = 0 ] && awk -v w="$4" 'BEGIN { exit !(w + 0 <= 1e-9) }'; then
+  ok "9 density: $1 files, particles sum to N = 2000 in each; material sums to sum pi r^2 = $5 sigma^2 over the alive disks (worst relative difference $4); M_used $6, lens total $7 sigma^2"
+else bad "9 density: '$t9' (files, count mismatches, bad lines, worst relative material difference, sum pi r^2, M_used, lens)"; fi
 
 # ------------------------------------------------------------------ the manifest (pre-check A10)
 M=$OUT/manifest.txt
 {
-  echo "# PID Demo 1, delivery 1a: the box reference (brief 02_DEMO1_BRIEF.md sec. 6 tests 1-2; pre-check part A)"
+  echo "# PID Demo 1, deliveries 1a-1b: the box reference and the static walls (brief 02_DEMO1_BRIEF.md sec. 6 and 8; pre-check)"
   cat "$OUT/snapshot.txt"
   echo "## the fork alone"
   echo "objects bin/fork/edmd_gen3.o vs bin/orig/edmd_gen3.o: byte-$objcmp"
@@ -207,6 +340,20 @@ M=$OUT/manifest.txt
     set -- $(cat "$OUT/${c}_$side.rc.txt" 2>/dev/null) x x
     echo "${c}_$side | bin/$side/$a | $1 | $2 | $(nlines "$OUT/${c}_$side.out.txt") | $(sha "$OUT/${c}_$side.out.txt") | $(wc -c < "$OUT/${c}_$side.err.txt" | tr -d ' ')"
   done; done
+  for c in t3e t45a t45b t6a t6b t6c t6d t10; do
+    set -- $(cat "$OUT/$c.rc.txt" 2>/dev/null) x x
+    echo "$c | bin/fork/$([ $c = t10 ] && echo prim_controls || echo prim_tests) | $1 | $2 | $(nlines "$OUT/$c.out.txt") | $(sha "$OUT/$c.out.txt") | $(wc -c < "$OUT/$c.err.txt" | tr -d ' ')"
+  done
+  for c in t7a t7b t7c t7d t7n; do
+    set -- $(cat "$OUT/$c.rc.txt" 2>/dev/null) x x
+    echo "$c | bin/pid_demo1 (see the argv of $c/manifest.txt) | $1 | $2 | $(nlines "$OUT/$c.out.txt") | $(sha "$OUT/$c.out.txt") | $(wc -c < "$OUT/$c.err.txt" | tr -d ' ')"
+  done
+  echo "t7_demo0 | bin/demo0/pid_demo0_headless --preset=mat45 --rule=guided --seed=9300 --steps=400 --headless | $d0rc | - | - | final.txt $(sha "$F7" 2>/dev/null) | $(wc -c < "$OUT/t7_demo0.err.txt" | tr -d ' ')"
+  echo "## tests 4-6 and 10: the measured values (the full outputs are in this run folder)"
+  grep -h -e 'pressure on the walls' -e '^pair eta' -e 'contact audit' -e 'KE drift' -e 'schedule audit (A)' -e 'smallest signed' -e '^control' "$OUT"/t45a.out.txt \
+    "$OUT"/t45b.out.txt "$OUT"/t6?.out.txt "$OUT"/t10.out.txt 2>/dev/null
+  echo "## test 7: the measured values of A and B"
+  grep -h -e '^demo0 ' -e '^seeding' -e '^events' -e '^health' -e '^relative KE' -e '^schedule audit' -e '^contact audit' "$OUT"/t7a.out.txt "$OUT"/t7b.out.txt 2>/dev/null
   echo "## what is compared"
   echo "Per pair of runs: stdout byte for byte (cmp), with no line excluded (both sides use one compiler and one flag set, so"
   echo "even the build line is equal), and stderr must be empty. The harnesses print event hashes, event counts, health and"
@@ -215,6 +362,9 @@ M=$OUT/manifest.txt
   echo "the event-log digest, a checkpoint-restart verdict, and the health, audit, ledger and tolerance records (in %a or raw"
   echo "bytes). Each output also passes its own verdicts (exact cell, row and line counts; every verdict line; the gen3 health"
   echo "counters 0; the last line) so that a failure shared by both sides is not read as agreement."
+  echo "Tests 4-6 and 10 (prim_tests, prim_controls) and 7 (pid_demo1) judge their own runs and print one \"check\" line per criterion;"
+  echo "the outputs are kept here in full. Test 8 compares the data files of runs A-D of test 7 byte for byte; test 9 sums the"
+  echo "density files of B against final.txt independently (awk)."
   echo "Cloud (Linux) and Mac hashes differ for the same sources (pre-check A7): compare only within one machine and compiler."
   echo "## results"
   cat "$LOG"

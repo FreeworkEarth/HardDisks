@@ -90,7 +90,8 @@ typedef double real;
 #define R_MANT_DIG DBL_MANT_DIG
 #endif
 
-enum { T_CROSS = 0, T_BAND = 1, T_WALL = 2, T_DIV = 3, T_PISTON = 4, T_PAIR = 5 };
+enum { T_CROSS = 0, T_BAND = 1, T_WALL = 2, T_DIV = 3, T_PISTON = 4, T_PAIR = 5,
+       T_SEG = 6, T_ARC = 7 };   /* PID: Demo 1 static walls, after PAIR: the order of every box event is unchanged */
 
 typedef struct {
     real t;              /* origin-relative event time */
@@ -110,6 +111,7 @@ typedef struct {
     int    slot;           /* index in the cell's list */
     int    last;           /* partner of the last velocity change if that was a pair collision, -2 - body if a body
                               collision (M2), else -1 */
+    /* PID: last = -2 - NOBJ - p after a collision with static-wall primitive p (PRIM_LAST) */
     int    comp;           /* ##CHRIS 2026-10-09 (decision 12, part 3a): the compartment, the number of dividers left of the disk
                               at the load (no disk crosses a divider; was the padding int, so the layout is unchanged) */
 } Disk3;
@@ -134,6 +136,8 @@ typedef struct {
     real J_inf;              /* ledger: x impulse given to the disks while of mass 0 */
     real J_spring;           /* ledger: x impulse of the spring anchor on the body */
 } Obj3;
+
+typedef struct { int a, p; double t; int m; } APEv;   /* PID: schedule-audit scratch: a live wall event (disk, primitive, time) */
 
 struct EDMD3 {
     EDMD_Params prm;
@@ -176,6 +180,15 @@ struct EDMD3 {
        one row per outer-wall, divider-face and piston collision. PRINT ONLY: written from the values the collision rule
        already computed; NULL (off) unless the driver sets it. */
     FILE*  evlog; real evlog_tscale;
+    /* PID: Demo 1 static walls (edmd3_set_walls): segments, then arcs, absolute px; set once before the load, never moved */
+    int    nseg, narc, nprim, walls_set, loaded;
+    real  *pseg, *parc;            /* PS_N reals per segment, PA_N per arc (the PID block before predict_all) */
+    int   *pcs, *pcl;              /* the candidates of cell c: pcl[pcs[c] .. pcs[c + 1]), ascending */
+    real   prim_reach;             /* R + tol_wall: a nearest candidate within it is the nearest wall of all */
+    real  *pimp; long *pev;        /* per primitive p: [2p] contacts with its line or arc, [2p + 1] with its endpoints: 2|v.n|, count */
+    real   contact_max_prim[2];    /* contact audit: [0] segments, [1] arcs */
+    real   ledJp[2];               /* ledger: the impulse of the walls on the disks (part of ledJ) */
+    APEv  *ape; long apcap;        /* schedule audit scratch: the live wall events */
 };
 
 /* M3: one row of edmd.c's edmd_log_event (t_sigma, kind, u_wall, v_before, v_after, dE, dp), the same format */
@@ -495,6 +508,166 @@ static void predict_obj(EDMD3* S, int i, int o, real xl){
     if (o < EDMD_MAX_DIVIDERS) heap_push(S, S->now + dt, T_DIV, i, 2 * o + (body_side(o, c, xp) > 0 ? 0 : 1), A->cnt, O->epoch);
     else heap_push(S, S->now + dt, T_PISTON, i, o - OBJ_PL, A->cnt, O->epoch);
 }
+/* ------------------------------------------------------------------ PID: Demo 1 static walls (segments and arcs) */
+
+/* PID: 02_DEMO1_BRIEF.md sec. 4 as amended by sec. 8 and the pre-check's part B. The walls are set once before the load
+   (edmd3_set_walls) and never move. One event per (disk, primitive): T_SEG (b = segment) for the first contact with the
+   segment's line (the foot of the perpendicular on the segment) or with one of its endpoints (points of radius 0, met at
+   distance R; cb = 0 the line, 1 or 2 an endpoint); T_ARC (b = arc) for the contact with an arc from inside its circle at
+   radius r - R, the larger root, if the contact angle lies on the arc (cb = 0). Arcs with r <= R are never met; only their
+   endpoints can be, and those are segment endpoints. A contact at once (gap <= 0 while approaching) is a contact within
+   rounding if the gap is >= -tol_face, else a repair (counted), and is not scheduled for the primitive of the disk's last
+   collision (mlast, as for bodies; an arc's far side stays). The reflection uses the normal of the feature the prediction
+   found. The validator takes the nearest feature among the cell's candidates (every primitive within R + 2 tol_wall of the
+   cell, so the nearest of all whenever it is within prim_reach): the gap, and the side from the feature's normal (at a vertex
+   the mean of its two primitives' normals). */
+enum { PS_X1, PS_Y1, PS_X2, PS_Y2, PS_UX, PS_UY, PS_L, PS_NX, PS_NY, PS_M1X, PS_M1Y, PS_M2X, PS_M2Y, PS_N };
+enum { PA_CX, PA_CY, PA_R, PA_A0, PA_SPAN, PA_N };
+#define PRIM_LAST(p) (-2 - NOBJ - (p))
+#define G3_TWO_PI (2.0 * G3_PI)
+#ifdef PID_WHITEBOX
+static int pid_plant_reflect_sign = 0;   /* PID: test 10 (iii) only: the reflection adds 2 (v.n) n instead of subtracting it */
+#endif
+
+/* PID: is the direction (qx, qy) from an arc's centre on the arc? slack in px: > 0 widens, < 0 narrows (0 in the engine) */
+static inline int arc_on(const real* A, real qx, real qy, real slack){
+    real dl = R_(atan2)(qy, qx) - A[PA_A0];
+    while (dl < 0.0) dl += G3_TWO_PI;
+    while (dl >= G3_TWO_PI) dl -= G3_TWO_PI;
+    const real sa = slack / A[PA_R];
+    if (sa >= 0.0) return dl <= A[PA_SPAN] + sa || dl >= G3_TWO_PI - sa;
+    return dl >= -sa && dl <= A[PA_SPAN] + sa;
+}
+/* PID: segment k against a disk centre (x, y) moving with (vx, vy): 0 none, 1 contact after *dt, 2 at once; *g = the gap now of
+   the feature met, *f = the feature (0 the line, 1 or 2 an endpoint); slack in px widens or narrows the line's span */
+static int seg_rule(const EDMD3* S, int k, real x, real y, real vx, real vy, int mlast, real slack, real* dt, real* g, int* f){
+    const real* P = &S->pseg[(long)k * PS_N];
+    const real rx = x - P[PS_X1], ry = y - P[PS_Y1];
+    const real d = rx * P[PS_NX] + ry * P[PS_NY], vn = vx * P[PS_NX] + vy * P[PS_NY], gl = d - S->R;
+    int rc = 0;
+    if (vn < 0.0 && d > -S->R) {                  /* approaching the line from the lumen side */
+        if (gl > 0.0) {
+            const real t = gl / (-vn), s = (rx + vx * t) * P[PS_UX] + (ry + vy * t) * P[PS_UY];
+            if (s >= -slack && s <= P[PS_L] + slack) { *dt = t; *g = gl; *f = 0; rc = 1; }
+        } else if (!mlast) {
+            const real s = rx * P[PS_UX] + ry * P[PS_UY];
+            if (s >= -slack && s <= P[PS_L] + slack) { *dt = 0.0; *g = gl; *f = 0; return 2; }
+        }
+    }
+    for (int e = 0; e < 2; ++e) {                 /* the endpoints: pair_rule with a partner at rest, contact distance R */
+        real t = 0.0, c = 0.0;
+        const int r = pair_rule(P[e ? PS_X2 : PS_X1] - x, P[e ? PS_Y2 : PS_Y1] - y, -vx, -vy, S->R * S->R, &t, &c);
+        if (!r) continue;
+        const real ge = R_(sqrt)(R_(fmax)(c + S->R * S->R, 0.0)) - S->R;
+        if (r == 2) { if (mlast) continue; *dt = 0.0; *g = ge; *f = 1 + e; return 2; }
+        if (!rc || t < *dt) { *dt = t; *g = ge; *f = 1 + e; rc = 1; }
+    }
+    return rc;
+}
+/* PID: arc k against a disk centre (x, y) moving with (vx, vy), met from inside its circle at radius r - R (the larger root):
+   0 none, 1 contact after *dt, 2 at once (on or past radius r - R and within R of the arc, moving outward, on the arc) */
+static int arc_rule(const EDMD3* S, int k, real x, real y, real vx, real vy, int mlast, real slack, real* dt, real* g){
+    const real* A = &S->parc[(long)k * PA_N];
+    const real re = A[PA_R] - S->R;
+    if (!(re > 0.0)) return 0;
+    const real qx = x - A[PA_CX], qy = y - A[PA_CY];
+    const real b = qx * vx + qy * vy, vv = vx * vx + vy * vy, qq = qx * qx + qy * qy, cq = qq - re * re;
+    if (!(vv > 0.0)) return 0;
+    real t;
+    if (cq >= 0.0) {
+        if (b > 0.0) {                            /* moving outward on or past r - R: at once if it overlaps the arc itself */
+            if (mlast || !(R_(sqrt)(qq) < A[PA_R] + S->R) || !arc_on(A, qx, qy, slack)) return 0;
+            *dt = 0.0; *g = re - R_(sqrt)(qq); return 2;
+        }
+        const real disc = b * b - vv * cq;
+        if (!(disc > 0.0)) return 0;
+        t = (-b + R_(sqrt)(disc)) / vv;           /* b <= 0: both roots >= 0, the larger is the way out */
+    } else {
+        const real sq = R_(sqrt)(b * b - vv * cq);
+        t = b > 0.0 ? -cq / (b + sq) : (-b + sq) / vv;   /* inside: the positive root, without cancellation */
+    }
+    if (!arc_on(A, qx + vx * t, qy + vy * t, slack)) return 0;
+    *dt = t; *g = re - R_(sqrt)(qq); return 1;
+}
+/* PID: primitive p (segment p < nseg, else arc p - nseg) */
+static int prim_rule(const EDMD3* S, int p, real x, real y, real vx, real vy, int mlast, real slack, real* dt, real* g, int* f){
+    if (p < S->nseg) return seg_rule(S, p, x, y, vx, vy, mlast, slack, dt, g, f);
+    *f = 0;
+    return arc_rule(S, p - S->nseg, x, y, vx, vy, mlast, slack, dt, g);
+}
+/* PID: disk i (synchronised) against primitive p */
+static void predict_prim(EDMD3* S, int i, int p){
+    const Disk3* A = &S->D[i];
+    real dt = 0.0, g = 0.0; int f = 0;
+    const int rc = prim_rule(S, p, (real)A->cx * S->w + A->xi, (real)A->cy * S->w + A->zeta, A->vx, A->vy, A->last == PRIM_LAST(p), 0.0, &dt, &g, &f);
+    if (!rc) return;
+    if (rc == 2) { if (g < -S->tol_face) S->H.prim_overlap_repair++; else S->H.prim_contact_now++; }
+    if (p < S->nseg) heap_push(S, S->now + dt, T_SEG, i, p, A->cnt, f);
+    else heap_push(S, S->now + dt, T_ARC, i, p - S->nseg, A->cnt, 0);
+}
+/* PID: disk i (synchronised) against every candidate of its cell */
+static void predict_prims(EDMD3* S, int i){
+    const Disk3* A = &S->D[i]; const int c = cell_of(S, A->cx, A->cy);
+    for (int k = S->pcs[c]; k < S->pcs[c + 1]; ++k) predict_prim(S, i, S->pcl[k]);
+}
+/* PID: the contact of a disk centre (x, y) with feature f of primitive p: the unit normal into the lumen and the surface gap */
+static void prim_contact(const EDMD3* S, int p, int f, real x, real y, real* nx, real* ny, real* gap){
+    if (p < S->nseg) {
+        const real* P = &S->pseg[(long)p * PS_N];
+        if (f == 0) { *nx = P[PS_NX]; *ny = P[PS_NY]; *gap = (x - P[PS_X1]) * P[PS_NX] + (y - P[PS_Y1]) * P[PS_NY] - S->R; return; }
+        const real ex = x - P[f == 1 ? PS_X1 : PS_X2], ey = y - P[f == 1 ? PS_Y1 : PS_Y2], r = R_(sqrt)(ex * ex + ey * ey);
+        if (r > 0.0) { *nx = ex / r; *ny = ey / r; } else { *nx = P[f == 1 ? PS_M1X : PS_M2X]; *ny = P[f == 1 ? PS_M1Y : PS_M2Y]; }
+        *gap = r - S->R;
+        return;
+    }
+    const real* A = &S->parc[(long)(p - S->nseg) * PA_N];
+    const real qx = x - A[PA_CX], qy = y - A[PA_CY], r = R_(sqrt)(qx * qx + qy * qy);
+    if (r > 0.0) { *nx = -qx / r; *ny = -qy / r; } else { *nx = 1.0; *ny = 0.0; }
+    *gap = (A[PA_R] - S->R) - r;
+}
+/* PID: the nearest feature to the point (x, y) among n primitives (the list L, or primitives 0 .. n-1 if L is NULL): its
+   unsigned distance, the side (+1 lumen, -1 far side), the foot point and the unit normal into the lumen there; 0 if none */
+static int prim_nearest(const EDMD3* S, const int* L, int n, real x, real y, real* dist, int* side, real* fx, real* fy, real* mx, real* my){
+    int found = 0; real best = INFINITY;
+    for (int k = 0; k < n; ++k) {
+        const int p = L ? L[k] : k;
+        real dd, ux, uy, ax, ay; int sd;
+        if (p < S->nseg) {
+            const real* P = &S->pseg[(long)p * PS_N];
+            const real rx = x - P[PS_X1], ry = y - P[PS_Y1], s = rx * P[PS_UX] + ry * P[PS_UY];
+            if (s >= 0.0 && s <= P[PS_L]) {
+                const real d = rx * P[PS_NX] + ry * P[PS_NY];
+                dd = R_(fabs)(d); sd = d >= 0.0 ? 1 : -1; ux = P[PS_NX]; uy = P[PS_NY]; ax = x - d * ux; ay = y - d * uy;
+            } else {
+                const int e = s > P[PS_L];
+                ax = P[e ? PS_X2 : PS_X1]; ay = P[e ? PS_Y2 : PS_Y1];
+                const real mxp = P[e ? PS_M2X : PS_M1X], myp = P[e ? PS_M2Y : PS_M1Y], ex = x - ax, ey = y - ay;
+                dd = R_(sqrt)(ex * ex + ey * ey); sd = ex * mxp + ey * myp >= 0.0 ? 1 : -1;
+                if (sd > 0 && dd > 0.0) { ux = ex / dd; uy = ey / dd; } else { ux = mxp; uy = myp; }
+            }
+        } else {
+            const real* A = &S->parc[(long)(p - S->nseg) * PA_N];
+            const real qx = x - A[PA_CX], qy = y - A[PA_CY];
+            if (!arc_on(A, qx, qy, 0.0)) continue;   /* off the arc: its ends are segment endpoints */
+            const real rho = R_(sqrt)(qx * qx + qy * qy);
+            if (!(rho > 0.0)) continue;
+            dd = R_(fabs)(A[PA_R] - rho); sd = rho <= A[PA_R] ? 1 : -1;
+            ux = -qx / rho; uy = -qy / rho; ax = A[PA_CX] + A[PA_R] * qx / rho; ay = A[PA_CY] + A[PA_R] * qy / rho;
+        }
+        if (dd < best) { best = dd; found = 1; *dist = dd; *side = sd; *fx = ax; *fy = ay; *mx = ux; *my = uy; }
+    }
+    return found;
+}
+/* PID: the validator's look at a disk centre (x, y) filed in cell c: 1 and the signed gap (distance - R, negative on the far
+   side) if the nearest candidate is within prim_reach (then it is the nearest wall of all), else 0 */
+static int prim_gap_cell(const EDMD3* S, int c, real x, real y, real* gap, real* fx, real* fy, real* mx, real* my){
+    real dd; int sd;
+    if (!prim_nearest(S, &S->pcl[S->pcs[c]], S->pcs[c + 1] - S->pcs[c], x, y, &dd, &sd, fx, fy, mx, my)) return 0;
+    if (dd > S->prim_reach) return 0;
+    *gap = (real)sd * dd - S->R;
+    return 1;
+}
+
 /* after a velocity change of i (or at load): its crossing, its walls, all nine cells; M2: the bodies whose band holds it */
 static void predict_all(EDMD3* S, int i){
     const Disk3* A = &S->D[i];
@@ -502,6 +675,7 @@ static void predict_all(EDMD3* S, int i){
     for (int s = 0; s < 4; ++s) if (wall_candidate(S, A->cx, A->cy, s)) predict_wall(S, i, s);
     for (int dy = -1; dy <= 1; ++dy) for (int dx = -1; dx <= 1; ++dx) predict_cell(S, i, A->cx + dx, A->cy + dy);
     for (int q = 0; q < S->nobj; ++q) if (in_band(&S->obj[S->objs[q]], A->cx)) predict_obj(S, i, S->objs[q], A->xi);
+    if (S->nprim) predict_prims(S, i);   /* PID: the static walls */
 }
 
 /* M2: the band of body o from its state at now: the position bound [lo, hi] until the expiry, the contact positions of a
@@ -567,6 +741,24 @@ static void obj_changed(EDMD3* S, int o, int skip){
 /* ------------------------------------------------------------------ validator (sec. 4.7.1, h); read-only except the box repair */
 
 static void reflect_into_box(EDMD3* S, int i);
+/* PID: a disk found closer than R - tol_wall to a static wall, or on its far side, goes back to distance R + tol_wall on the
+   lumen side of the nearest feature and a velocity into the wall is reflected (counted: a safety net, 0 in a correct run) */
+static void reflect_off_prim(EDMD3* S, int i){
+    Disk3* A = &S->D[i];
+    const real x = (real)A->cx * S->w + A->xi, y = (real)A->cy * S->w + A->zeta;
+    real gap, fx, fy, mx, my;
+    if (!prim_gap_cell(S, cell_of(S, A->cx, A->cy), x, y, &gap, &fx, &fy, &mx, &my)) return;
+    const real nxp = fx + (S->R + S->tol_wall) * mx, nyp = fy + (S->R + S->tol_wall) * my, vm = A->vx * mx + A->vy * my;
+    if (vm < 0.0) { A->vx -= 2.0 * vm * mx; A->vy -= 2.0 * vm * my; }
+    cell_remove(S, i);
+    int ncx = (int)R_(floor)(nxp / S->w), ncy = (int)R_(floor)(nyp / S->w);
+    ncx = ncx < 0 ? 0 : (ncx >= S->gw ? S->gw - 1 : ncx);
+    ncy = ncy < 0 ? 0 : (ncy >= S->gh ? S->gh - 1 : ncy);
+    A->cx = ncx; A->cy = ncy; A->xi = nxp - (real)ncx * S->w; A->zeta = nyp - (real)ncy * S->w;
+    if (!cell_insert(S, i)) { S->fatal = 1; snprintf(S->fatal_msg, sizeof S->fatal_msg, "cell overflow at a wall repair of disk %d", i); }
+    S->H.prim_repair++; A->cnt++; A->last = -1;
+    predict_all(S, i);
+}
 /* the event's disk i (synchronised) against every disk of its nine cells and the four walls */
 static void local_check(EDMD3* S, int i){
     Disk3* A = &S->D[i]; real worst = 0.0; int found = 0;
@@ -593,6 +785,14 @@ static void local_check(EDMD3* S, int i){
         if (gb < worst) worst = gb;
         if (gb < -S->tol_wall) found = 1;
     }
+    int pout = 0;   /* PID: the static walls, signed: closer than R - tol_wall to the nearest wall or on its far side */
+    if (S->nprim) {
+        real gp, fx, fy, mx, my;
+        if (prim_gap_cell(S, cell_of(S, A->cx, A->cy), x, y, &gp, &fx, &fy, &mx, &my)) {
+            if (gp < worst) worst = gp;
+            if (gp < -S->tol_wall) { pout = 1; S->H.prim_findings++; }
+        }
+    }
     if (A->xi < -S->tol_cell || A->xi > S->w + S->tol_cell || A->zeta < -S->tol_cell || A->zeta > S->w + S->tol_cell) {
         /* outside its own cell: a bookkeeping failure; re-file it from its absolute position */
         S->H.cell_repair++;
@@ -606,9 +806,10 @@ static void local_check(EDMD3* S, int i){
         predict_all(S, i);
     }
     S->H.local_checks++;
-    if (found || out) S->H.local_findings++;
+    if (found || out || pout) S->H.local_findings++;   /* PID: pout */
     if (worst < S->H.local_worst) S->H.local_worst = worst;
     if (out) reflect_into_box(S, i);
+    if (pout) reflect_off_prim(S, i);   /* PID: a disk beyond a wall is reflected back into the lumen */
 }
 static void reflect_into_box(EDMD3* S, int i){
     Disk3* A = &S->D[i];
@@ -647,6 +848,13 @@ static void full_check(EDMD3* S){
             const real gb = body_gap(&S->obj[o], o, c, x);
             if (gb < worst) worst = gb;
             if (gb < -S->tol_wall) found++;
+        }
+        if (S->nprim) {   /* PID: the static walls, signed */
+            real gp, fx, fy, mx, my;
+            if (prim_gap_cell(S, cell_of(S, A->cx, A->cy), x, y, &gp, &fx, &fy, &mx, &my)) {
+                if (gp < worst) worst = gp;
+                if (gp < -S->tol_wall) { found++; S->H.prim_findings++; }
+            }
         }
     }
     /* M2: every body inside the box, no two slabs overlapping, every slab between the pistons, the pistons in order */
@@ -690,6 +898,13 @@ static void contact_audit(EDMD3* S, const Ev3* e){
         gap = sg * (c - xp) - O->h;
         k = e->type == T_DIV ? 0 : 1;
         if (R_(fabs)(gap) > S->contact_max_obj[k]) S->contact_max_obj[k] = R_(fabs)(gap);
+        S->contact_events++;
+        return;
+    } else if (e->type == T_SEG || e->type == T_ARC) {   /* PID: the gap of the feature the prediction found */
+        real nx, ny;
+        prim_contact(S, e->type == T_SEG ? e->b : S->nseg + e->b, e->cb, (real)A->cx * S->w + A->xi, (real)A->cy * S->w + A->zeta, &nx, &ny, &gap);
+        k = e->type == T_SEG ? 0 : 1;
+        if (R_(fabs)(gap) > S->contact_max_prim[k]) S->contact_max_prim[k] = R_(fabs)(gap);
         S->contact_events++;
         return;
     } else {
@@ -758,6 +973,39 @@ static void exec_wall(EDMD3* S, const Ev3* e){
     predict_all(S, i);
     local_check(S, i);
 }
+/* PID: a disk meets a static wall: reflection about the unit normal n of the feature the prediction found, v' = v - 2 (v.n) n.
+   The impulse (unit mass) is an external impulse in the ledger (both axes, with rounding scales as exec_pair's); 2|v.n| goes
+   into the primitive's record. A disk that no longer approaches n (rounding at a grazing contact) is not reflected. */
+static void exec_prim(EDMD3* S, const Ev3* e){
+    const int i = e->a, p = e->type == T_SEG ? e->b : S->nseg + e->b;
+    advance(S, i);
+    if (S->contact_audit) contact_audit(S, e);
+    Disk3* A = &S->D[i];
+    real nx, ny, gap;
+    prim_contact(S, p, e->cb, (real)A->cx * S->w + A->xi, (real)A->cy * S->w + A->zeta, &nx, &ny, &gap);
+    if (e->type == T_SEG) S->H.ev_seg++; else S->H.ev_arc++;
+    const real vn = A->vx * nx + A->vy * ny;
+    if (!(vn < 0.0)) { S->H.prim_receding++; local_check(S, i); return; }
+    real s2 = -2.0;
+#ifdef PID_WHITEBOX
+    if (pid_plant_reflect_sign) s2 = 2.0;
+#endif
+    const real vx0 = A->vx, vy0 = A->vy;
+    A->vx += s2 * vn * nx; A->vy += s2 * vn * ny;
+    const real jx = A->vx - vx0, jy = A->vy - vy0;
+    S->ledJ[0] += jx; S->ledJ[1] += jy; S->ledJp[0] += jx; S->ledJp[1] += jy;
+    S->ledSP[0] += R_(fabs)(A->vx) + R_(fabs)(jx) + R_(fabs)(S->ledJ[0]);
+    S->ledSP[1] += R_(fabs)(A->vy) + R_(fabs)(jy) + R_(fabs)(S->ledJ[1]);
+    S->ledSE += 4.0 * (vx0 * vx0 + vy0 * vy0);
+    S->pimp[2L * p + (e->cb ? 1 : 0)] += -2.0 * vn; S->pev[2L * p + (e->cb ? 1 : 0)]++;
+    A->cnt++; A->last = PRIM_LAST(p);
+    if (coll_hook_fn && coll_hook_S == S) {
+        const EDMD3_Coll c = {e->type == T_SEG ? 4 : 5, i, e->b, A->comp, -1, (double)nx, (double)ny, (double)A->vx, (double)A->vy, 0.0, 0.0};
+        coll_hook_fn(coll_hook_ctx, &c);
+    }
+    predict_all(S, i);
+    local_check(S, i);
+}
 static void exec_cross(EDMD3* S, const Ev3* e){
     const int i = e->a; Disk3* A = &S->D[i];
     advance(S, i);
@@ -789,6 +1037,16 @@ static void exec_cross(EDMD3* S, const Ev3* e){
     }
     for (int s = 0; s < 4; ++s)
         if (wall_candidate(S, A->cx, A->cy, s) && !wall_candidate(S, ocx, ocy, s)) predict_wall(S, i, s);
+    if (S->nprim) {   /* PID: the static walls that are candidates of the new cell and were not of the old one */
+        const int c1 = cell_of(S, A->cx, A->cy), c0 = cell_of(S, ocx, ocy);
+        int k0 = S->pcs[c0];
+        for (int k = S->pcs[c1]; k < S->pcs[c1 + 1]; ++k) {
+            const int p = S->pcl[k];
+            while (k0 < S->pcs[c0 + 1] && S->pcl[k0] < p) ++k0;
+            if (k0 < S->pcs[c0 + 1] && S->pcl[k0] == p) continue;
+            predict_prim(S, i, p);
+        }
+    }
     if (A->cx != ocx)                         /* M2: entering a body's band */
         for (int q = 0; q < S->nobj; ++q) {
             const Obj3* O = &S->obj[S->objs[q]];
@@ -996,6 +1254,88 @@ static void schedule_audit_bodies(EDMD3* S){
         }
     }
 }
+/* PID: the live T_SEG and T_ARC events per (disk, primitive) against prim_rule from the absolute state, every disk against
+   every primitive (an independent computation). A disagreement that vanishes when the ends of the line or arc move by 1e-8 px
+   is a boundary case (the heap's prediction and this one fall on either side of an end by rounding) and is counted apart. */
+static int apev_cmp(const void* x, const void* y){
+    const APEv *u = (const APEv*)x, *v = (const APEv*)y;
+    if (u->a != v->a) return u->a < v->a ? -1 : 1;
+    if (u->p != v->p) return u->p < v->p ? -1 : 1;
+    return (u->t > v->t) - (u->t < v->t);
+}
+static void audit_cmp_prim(EDMD3* S, real tbf, real th, int a, int p){
+    EDMD3_Audit* A = &S->A;
+    A->prim_cmp++;
+    const real d = R_(fabs)(tbf - th);
+    if (d > A->max_dt) A->max_dt = d;
+    if (d > A->prim_max_dt) A->prim_max_dt = d;
+    if (d > 1e-9) {
+        const real hz = tbf - S->now, rel = hz > 0.0 ? d / hz : INFINITY;
+        A->prim_dt++;
+        if (rel > A->max_rel) A->max_rel = rel;
+        if (rel > A->prim_max_rel) A->prim_max_rel = rel;
+        if (rel > 1e-10) { A->prim_dt_rel++; audit_print(S, "dt_rel", "PRIM", a, p, tbf, th); }
+    }
+}
+static void schedule_audit_prims(EDMD3* S){
+    if (!S->nprim) return;
+    EDMD3_Audit* A = &S->A; const int N = S->N; const real sl = 1e-8;
+    long n = 0;
+    for (long q = 0; q < S->heap.n; ++q) { const Ev3* e = &S->heap.d[q]; if ((e->type == T_SEG || e->type == T_ARC) && ev_live(S, e)) n++; }
+    if (n > S->apcap) {
+        free(S->ape); S->apcap = n + 1024; S->ape = (APEv*)malloc((size_t)S->apcap * sizeof(APEv));
+        if (!S->ape) { S->apcap = 0; return; }
+    }
+    long m = 0;
+    for (long q = 0; q < S->heap.n; ++q) {
+        const Ev3* e = &S->heap.d[q];
+        if ((e->type != T_SEG && e->type != T_ARC) || !ev_live(S, e)) continue;
+        S->ape[m].a = e->a; S->ape[m].p = e->type == T_SEG ? e->b : S->nseg + e->b; S->ape[m].t = (double)e->t; S->ape[m].m = 0; ++m;
+    }
+    qsort(S->ape, (size_t)m, sizeof(APEv), apev_cmp);
+    long u = 0;                         /* one per (disk, primitive), the earliest; a duplicate that disagrees is counted */
+    for (long k = 0; k < m; ++k) {
+        if (u > 0 && S->ape[u - 1].a == S->ape[k].a && S->ape[u - 1].p == S->ape[k].p) {
+            if (fabs(S->ape[k].t - S->ape[u - 1].t) > 1e-9) A->dup_disagree++;
+            continue;
+        }
+        S->ape[u++] = S->ape[k];
+    }
+    long k = 0;
+    for (int i = 0; i < N; ++i) {
+        const Disk3* D = &S->D[i];
+        const real x = (real)D->cx * S->w + S->alx[i], y = (real)D->cy * S->w + S->aly[i];
+        while (k < u && S->ape[k].a < i) ++k;
+        long kk = k;
+        const int c = cell_of(S, D->cx, D->cy);
+        int kc = S->pcs[c];
+        for (int p = 0; p < S->nprim; ++p) {
+            while (kk < u && S->ape[kk].a == i && S->ape[kk].p < p) ++kk;
+            APEv* he = (kk < u && S->ape[kk].a == i && S->ape[kk].p == p) ? &S->ape[kk] : NULL;
+            while (kc < S->pcs[c + 1] && S->pcl[kc] < p) ++kc;
+            const int cand = kc < S->pcs[c + 1] && S->pcl[kc] == p, ml = D->last == PRIM_LAST(p);
+            real dt = 0.0, g = 0.0, dt2 = 0.0, g2 = 0.0; int f = 0, f2 = 0;
+            const int rc = prim_rule(S, p, x, y, D->vx, D->vy, ml, 0.0, &dt, &g, &f);
+            if (rc) {
+                const real tbf = S->now + dt;
+                if (he) { he->m = 1; audit_cmp_prim(S, tbf, he->t, i, p); }
+                else if (cand) {
+                    if (prim_rule(S, p, x, y, D->vx, D->vy, ml, -sl, &dt2, &g2, &f2)) { A->prim_missing++; audit_print(S, "missing", "PRIM", i, p, tbf, NAN); }
+                    else A->prim_boundary++;
+                } else {
+                    A->prim_deferred++;
+                    const real tc = isnan(S->acr[i]) ? INFINITY : S->acr[i];
+                    if (tbf < tc - 1e-9 * R_(fmax)(1.0, tc - S->now)) { A->prim_deferred_early++; audit_print(S, "deferred-early", "PRIM", i, p, tbf, tc); }
+                }
+            } else if (he) {
+                if (prim_rule(S, p, x, y, D->vx, D->vy, ml, sl, &dt2, &g2, &f2) && R_(fabs)(S->now + dt2 - he->t) <= 1e-9 * R_(fmax)(1.0, he->t - S->now)) {
+                    A->prim_boundary++; he->m = 1;
+                }
+            }
+        }
+    }
+    for (long q = 0; q < u; ++q) if (!S->ape[q].m) { A->prim_extra++; audit_print(S, "extra", "PRIM", S->ape[q].a, S->ape[q].p, NAN, S->ape[q].t); }
+}
 static void schedule_audit(EDMD3* S){
     const int N = S->N; EDMD3_Audit* A = &S->A;
     if (!S->alx) {
@@ -1106,6 +1446,7 @@ static void schedule_audit(EDMD3* S){
             A->pair_extra++;
             audit_print(S, "extra", "PAIR", (int)(S->ahk[p] >> 32), (int)(S->ahk[p] & 0xffffffffu), NAN, S->aht[p]);
         }
+    schedule_audit_prims(S);      /* PID: the static walls */
     schedule_audit_bodies(S);     /* M2 */
     A->audits++;
 }
@@ -1185,6 +1526,7 @@ void edmd3_destroy(EDMD3* S){
     free(S->cell); free(S->ccount); free(S->D); free(S->out); free(S->heap.d);
     free(S->alx); free(S->aly); free(S->acr); free(S->acd); free(S->awl); free(S->ahk); free(S->aht); free(S->ahm);
     free(S->aot); free(S->aob);
+    free(S->pseg); free(S->parc); free(S->pcs); free(S->pcl); free(S->pimp); free(S->pev); free(S->ape);   /* PID: the wall arrays */
     free(S);
 }
 
@@ -1246,10 +1588,20 @@ int edmd3_load(EDMD3* S, const EDMD_Particle* P, double t_abs, char* err, size_t
                                     S->H.full_worst, S->H.body_findings - b0);
         return 0;
     }
+    if (S->nprim)   /* PID: every disk on the lumen side of the walls and at least R - tol_wall from them (all primitives) */
+        for (int i = 0; i < S->N; ++i) {
+            real dd, fx, fy, mx, my; int sd;
+            if (prim_nearest(S, NULL, S->nprim, (real)P[i].x, (real)P[i].y, &dd, &sd, &fx, &fy, &mx, &my) && (real)sd * dd - S->R < -S->tol_wall) {
+                if (err && errlen) snprintf(err, errlen, "edmd_gen3: disk %d is %s a wall (signed gap %.3g px)", i, sd < 0 ? "outside" : "too close to", (double)((real)sd * dd - S->R));
+                return 0;
+            }
+        }
+    S->loaded = 1;   /* PID: edmd3_set_walls is refused from now on */
     for (int i = 0; i < S->N; ++i) {
         const Disk3* A = &S->D[i];
         predict_cross(S, i);
         for (int s = 0; s < 4; ++s) if (wall_candidate(S, A->cx, A->cy, s)) predict_wall(S, i, s);
+        if (S->nprim) predict_prims(S, i);   /* PID: each disk's wall events */
         for (int dy = -1; dy <= 1; ++dy) for (int dx = -1; dx <= 1; ++dx) {
             const int cx = A->cx + dx, cy = A->cy + dy;
             if (cx < 0 || cy < 0 || cx >= S->gw || cy >= S->gh) continue;
@@ -1289,6 +1641,7 @@ double edmd3_advance_to(EDMD3* S, double t_abs){
         else if (e.type == T_WALL) exec_wall(S, &e);
         else if (e.type == T_CROSS) exec_cross(S, &e);
         else if (e.type == T_BAND) { exec_band(S, &e); if (S->audit_bodies) schedule_audit(S); }   /* M2 */
+        else if (e.type == T_SEG || e.type == T_ARC) exec_prim(S, &e);   /* PID: the static walls */
         else exec_obj(S, &e);                                /* M2: T_DIV, T_PISTON */
         if (S->fatal) break;
         if (S->heap.n > S->compact_at) heap_compact(S);
@@ -1413,6 +1766,7 @@ typedef struct {
 
 int edmd3_checkpoint_write(const EDMD3* S, FILE* f){
     if (!S || !f) return 0;
+    if (S->nprim) return 0;   /* PID: a state with walls is not checkpointed (02_DEMO1_BRIEF.md sec. 8, B7) */
     Ckpt3Head h; memset(&h, 0, sizeof h);
     memcpy(h.magic, CKPT3_MAGIC, sizeof CKPT3_MAGIC);
     h.s_state = (long)sizeof(EDMD3); h.s_disk = (long)sizeof(Disk3); h.s_ev = (long)sizeof(Ev3); h.s_real = (long)sizeof(real);
@@ -1431,6 +1785,7 @@ int edmd3_checkpoint_write(const EDMD3* S, FILE* f){
     W->alx = NULL; W->aly = NULL; W->acr = NULL; W->awl = NULL; W->acd = NULL;
     W->ahcap = 0; W->ahk = NULL; W->aht = NULL; W->ahm = NULL; W->aot = NULL; W->aob = NULL;
     W->evlog = NULL; W->evlog_tscale = 0;
+    W->pseg = NULL; W->parc = NULL; W->pcs = NULL; W->pcl = NULL; W->pimp = NULL; W->pev = NULL; W->ape = NULL; W->apcap = 0;   /* PID: never written (a state with walls refuses above) */
     const int ok = fwrite(&h, sizeof h, 1, f) == 1 && fwrite(W, sizeof *W, 1, f) == 1
         && fwrite(S->D, sizeof(Disk3), (size_t)S->N, f) == (size_t)S->N
         && fwrite(S->ccount, sizeof(int), (size_t)S->ncell, f) == (size_t)S->ncell
@@ -1443,6 +1798,7 @@ int edmd3_checkpoint_write(const EDMD3* S, FILE* f){
 int edmd3_checkpoint_read(EDMD3* S, FILE* f, char* err, size_t errlen){
 #define FAIL(...) do { if (err && errlen) snprintf(err, errlen, __VA_ARGS__); return 0; } while (0)
     if (!S || !f) FAIL("edmd_gen3: checkpoint: no state or no file");
+    if (S->nprim) FAIL("edmd_gen3: checkpoint: a state with walls cannot read a checkpoint");   /* PID: refused (sec. 8, B7) */
     Ckpt3Head h;
     if (fread(&h, sizeof h, 1, f) != 1 || memcmp(h.magic, CKPT3_MAGIC, sizeof CKPT3_MAGIC) != 0) FAIL("edmd_gen3: not a gen3 checkpoint (v1)");
     if (h.s_state != (long)sizeof(EDMD3) || h.s_disk != (long)sizeof(Disk3) || h.s_ev != (long)sizeof(Ev3) || h.s_real != (long)sizeof(real))
@@ -1461,6 +1817,9 @@ int edmd3_checkpoint_read(EDMD3* S, FILE* f, char* err, size_t errlen){
     T->alx = S->alx; T->aly = S->aly; T->acr = S->acr; T->awl = S->awl; T->acd = S->acd;
     T->ahcap = S->ahcap; T->ahk = S->ahk; T->aht = S->aht; T->ahm = S->ahm; T->aot = S->aot; T->aob = S->aob;
     T->evlog = S->evlog; T->evlog_tscale = S->evlog_tscale;
+    T->pseg = S->pseg; T->parc = S->parc; T->pcs = S->pcs; T->pcl = S->pcl; T->pimp = S->pimp; T->pev = S->pev;   /* PID: keep S's wall arrays; a walled checkpoint is refused */
+    T->ape = S->ape; T->apcap = S->apcap;
+    if (T->nprim) { free(T); FAIL("edmd_gen3: checkpoint of a state with walls"); }
     if (T->heap.cap < T->heap.n) {
         Ev3* nd = (Ev3*)realloc(T->heap.d, (size_t)(T->heap.n + 1024) * sizeof(Ev3));
         if (!nd) { free(T); FAIL("edmd_gen3: out of memory (checkpoint heap)"); }
@@ -1538,15 +1897,147 @@ void edmd3_ledger(EDMD3* S, EDMD3_Ledger* L){
     for (int d = 0; d < EDMD_MAX_DIVIDERS; ++d) { L->J_div[d] = S->obj[d].J_inf; L->J_spring[d] = S->obj[d].active ? Jspr[d] : 0.0; }
     L->J_piston[0] = S->obj[OBJ_PL].J_inf; L->J_piston[1] = S->obj[OBJ_PR].J_inf;
     L->J_api = S->J_api;
+    L->J_prims[0] = S->ledJp[0]; L->J_prims[1] = S->ledJp[1];   /* PID: the wall impulse, part of J */
 }
 int edmd3_health_clean(const EDMD3* S){
     const EDMD3_Health* h = &S->H;
     return !S->fatal && h->overlap_repair == 0 && h->wall_overdue == 0 && h->past_event == 0 && h->clamp_repair == 0 &&
            h->cell_repair == 0 && h->grid_escape == 0 && h->stagnation == 0 && h->local_findings == 0 && h->full_findings == 0 &&
-           h->obj_overlap_repair == 0 && h->body_findings == 0;
+           h->obj_overlap_repair == 0 && h->body_findings == 0 &&
+           h->prim_overlap_repair == 0 && h->prim_findings == 0 && h->prim_repair == 0;   /* PID: the static walls */
 }
 void edmd3_tolerances(const EDMD3* S, EDMD3_Tol* T){
     T->u_time = S->u_time; T->E_bound = S->E_bound; T->m_min = S->m_min; T->v_ref = S->v_ref; T->K = EDMD3_TOL_K;
     T->c_tol = S->c_tol; T->tol_face = S->tol_face; T->band_margin = S->band_margin;
     T->tol_pair = S->tol_pair; T->tol_wall = S->tol_wall; T->tol_cell = S->tol_cell;
+}
+
+/* ------------------------------------------------------------------ PID: Demo 1 static walls (public) */
+
+/* PID: edmd3_set_walls. Checks: finite numbers, segments of length > 1e-9 px, arcs with r > 0 and 0 < a1 - a0 <= 2 pi; every
+   endpoint meets exactly one other endpoint within 1e-6 px (closed loops), and every arc endpoint meets a segment endpoint
+   (pre-check B19: at a segment-arc joint the vertex is the segment's endpoint, so no arc needs endpoint rules). At each
+   segment endpoint the mean of the two primitives' normals into the lumen is kept (the validator's side at a vertex). The
+   candidates of each cell: the primitives whose bounding box, widened by R + 2 tol_wall, meets the closed cell. */
+static void walls_free(EDMD3* S){
+    free(S->pseg); free(S->parc); free(S->pcs); free(S->pcl); free(S->pimp); free(S->pev);
+    S->pseg = S->parc = NULL; S->pcs = S->pcl = NULL; S->pimp = NULL; S->pev = NULL;
+    S->nseg = S->narc = S->nprim = 0;
+}
+/* the endpoint e (0 start, 1 end) of primitive p and its unit normal into the lumen there */
+static void prim_end(const EDMD3* S, int p, int e, real* x, real* y, real* nx, real* ny){
+    if (p < S->nseg) {
+        const real* P = &S->pseg[(long)p * PS_N];
+        *x = P[e ? PS_X2 : PS_X1]; *y = P[e ? PS_Y2 : PS_Y1]; *nx = P[PS_NX]; *ny = P[PS_NY];
+        return;
+    }
+    const real* A = &S->parc[(long)(p - S->nseg) * PA_N];
+    const real a = A[PA_A0] + (e ? A[PA_SPAN] : 0.0), c = R_(cos)(a), s = R_(sin)(a);
+    *x = A[PA_CX] + A[PA_R] * c; *y = A[PA_CY] + A[PA_R] * s; *nx = -c; *ny = -s;
+}
+int edmd3_set_walls(EDMD3* S, const EDMD3_Seg* seg, int nseg, const EDMD3_Arc* arc, int narc, char* err, size_t errlen){
+#define FAIL(...) do { if (err && errlen) snprintf(err, errlen, __VA_ARGS__); walls_free(S); return 0; } while (0)
+    if (!S) { if (err && errlen) snprintf(err, errlen, "edmd_gen3: no state"); return 0; }
+    if (S->walls_set || S->loaded) { if (err && errlen) snprintf(err, errlen, "edmd_gen3: walls are set once, before edmd3_load"); return 0; }
+    if (nseg < 0 || narc < 0 || (nseg > 0 && !seg) || (narc > 0 && !arc)) { if (err && errlen) snprintf(err, errlen, "edmd_gen3: bad wall lists"); return 0; }
+    S->walls_set = 1;
+    if (nseg + narc == 0) return 1;            /* nothing: the engine runs as without the call */
+    S->nseg = nseg; S->narc = narc; S->nprim = nseg + narc;
+    S->pseg = (real*)calloc((size_t)(nseg > 0 ? nseg : 1) * PS_N, sizeof(real));
+    S->parc = (real*)calloc((size_t)(narc > 0 ? narc : 1) * PA_N, sizeof(real));
+    S->pimp = (real*)calloc((size_t)2 * S->nprim, sizeof(real));
+    S->pev = (long*)calloc((size_t)2 * S->nprim, sizeof(long));
+    S->pcs = (int*)calloc((size_t)S->ncell + 1, sizeof(int));
+    if (!S->pseg || !S->parc || !S->pimp || !S->pev || !S->pcs) FAIL("edmd_gen3: out of memory (walls)");
+    for (int k = 0; k < nseg; ++k) {
+        const EDMD3_Seg* G = &seg[k]; real* P = &S->pseg[(long)k * PS_N];
+        if (!isfinite(G->x1) || !isfinite(G->y1) || !isfinite(G->x2) || !isfinite(G->y2)) FAIL("edmd_gen3: segment %d is not finite", k);
+        const real dx = (real)G->x2 - (real)G->x1, dy = (real)G->y2 - (real)G->y1, L = R_(hypot)(dx, dy);
+        if (!(L > 1e-9)) FAIL("edmd_gen3: segment %d has length %.3g px", k, (double)L);
+        P[PS_X1] = G->x1; P[PS_Y1] = G->y1; P[PS_X2] = G->x2; P[PS_Y2] = G->y2;
+        P[PS_UX] = dx / L; P[PS_UY] = dy / L; P[PS_L] = L; P[PS_NX] = -P[PS_UY]; P[PS_NY] = P[PS_UX];
+    }
+    for (int k = 0; k < narc; ++k) {
+        const EDMD3_Arc* G = &arc[k]; real* A = &S->parc[(long)k * PA_N];
+        if (!isfinite(G->cx) || !isfinite(G->cy) || !isfinite(G->r) || !isfinite(G->a0) || !isfinite(G->a1)) FAIL("edmd_gen3: arc %d is not finite", k);
+        if (!(G->r > 0.0) || !(G->a1 > G->a0) || G->a1 - G->a0 > G3_TWO_PI + 1e-12) FAIL("edmd_gen3: arc %d: need r > 0 and 0 < a1 - a0 <= 2 pi", k);
+        A[PA_CX] = G->cx; A[PA_CY] = G->cy; A[PA_R] = G->r; A[PA_A0] = G->a0; A[PA_SPAN] = (real)G->a1 - (real)G->a0;
+    }
+    /* closed loops: every endpoint meets exactly one other; each segment endpoint keeps the mean normal of its two primitives */
+    const real tm = 1e-6;
+    for (int p = 0; p < S->nprim; ++p)
+        for (int e = 0; e < 2; ++e) {
+            real x, y, nx, ny; prim_end(S, p, e, &x, &y, &nx, &ny);
+            int nm = 0, nseg_m = 0; real mx = 0.0, my = 0.0;
+            for (int q = 0; q < S->nprim; ++q)
+                for (int f = 0; f < 2; ++f) {
+                    if (q == p && f == e) continue;
+                    real x2, y2, nx2, ny2; prim_end(S, q, f, &x2, &y2, &nx2, &ny2);
+                    if (R_(fabs)(x2 - x) <= tm && R_(fabs)(y2 - y) <= tm) { nm++; if (q < S->nseg) nseg_m++; mx = nx2; my = ny2; }
+                }
+            if (nm != 1) FAIL("edmd_gen3: %s %d, end %d meets %d other endpoints within %g px (need exactly 1: closed loops)", p < S->nseg ? "segment" : "arc", p < S->nseg ? p : p - S->nseg, e, nm, (double)tm);
+            if (p >= S->nseg) { if (nseg_m != 1) FAIL("edmd_gen3: arc %d, end %d is not a segment endpoint (pre-check B19)", p - S->nseg, e); continue; }
+            real ux = nx + mx, uy = ny + my; const real un = R_(hypot)(ux, uy);
+            if (!(un > 1e-9)) FAIL("edmd_gen3: segment %d, end %d: the walls fold back onto each other", p, e);
+            S->pseg[(long)p * PS_N + (e ? PS_M2X : PS_M1X)] = ux / un; S->pseg[(long)p * PS_N + (e ? PS_M2Y : PS_M1Y)] = uy / un;
+        }
+    /* the candidates of each cell, two passes (count, fill); ascending primitive order in every list */
+    const real Rl = S->R + 2.0 * S->tol_wall;
+    for (int pass = 0; pass < 2; ++pass) {
+        if (pass == 1) {
+            for (int c = 0; c < S->ncell; ++c) S->pcs[c + 1] += S->pcs[c];
+            S->pcl = (int*)malloc((size_t)(S->pcs[S->ncell] > 0 ? S->pcs[S->ncell] : 1) * sizeof(int));
+            if (!S->pcl) FAIL("edmd_gen3: out of memory (wall lists)");
+        }
+        int* fill = pass == 1 ? (int*)malloc((size_t)S->ncell * sizeof(int)) : NULL;
+        if (pass == 1) { if (!fill) FAIL("edmd_gen3: out of memory (wall lists)"); memcpy(fill, S->pcs, (size_t)S->ncell * sizeof(int)); }
+        for (int p = 0; p < S->nprim; ++p) {
+            real x0, y0, x1, y1, nx, ny, xa, ya;
+            prim_end(S, p, 0, &x0, &y0, &nx, &ny); prim_end(S, p, 1, &xa, &ya, &nx, &ny);
+            x1 = R_(fmax)(x0, xa); y1 = R_(fmax)(y0, ya); x0 = R_(fmin)(x0, xa); y0 = R_(fmin)(y0, ya);
+            if (p >= S->nseg) {                      /* an arc: its extreme points in the four axis directions, if on the arc */
+                const real* A = &S->parc[(long)(p - S->nseg) * PA_N];
+                static const real DX[4] = {1.0, 0.0, -1.0, 0.0}, DY[4] = {0.0, 1.0, 0.0, -1.0};
+                for (int q = 0; q < 4; ++q) if (arc_on(A, DX[q], DY[q], 0.0)) {
+                    const real ex = A[PA_CX] + A[PA_R] * DX[q], ey = A[PA_CY] + A[PA_R] * DY[q];
+                    x0 = R_(fmin)(x0, ex); x1 = R_(fmax)(x1, ex); y0 = R_(fmin)(y0, ey); y1 = R_(fmax)(y1, ey);
+                }
+            }
+            /* cell (cx, cy) meets [x0 - Rl, x1 + Rl] x [y0 - Rl, y1 + Rl] (closed) iff (cx+1) w >= x0 - Rl and cx w <= x1 + Rl */
+            real a = R_(ceil)((x0 - Rl) / S->w - 1.0), b = R_(floor)((x1 + Rl) / S->w);
+            real c = R_(ceil)((y0 - Rl) / S->w - 1.0), d = R_(floor)((y1 + Rl) / S->w);
+            if (a < 0.0) a = 0.0;
+            if (c < 0.0) c = 0.0;
+            if (b > (real)(S->gw - 1)) b = (real)(S->gw - 1);
+            if (d > (real)(S->gh - 1)) d = (real)(S->gh - 1);
+            for (int cy = (int)c; cy <= (int)d; ++cy)
+                for (int cx = (int)a; cx <= (int)b; ++cx) {
+                    const int cc = cell_of(S, cx, cy);
+                    if (pass == 0) S->pcs[cc + 1]++; else S->pcl[fill[cc]++] = p;
+                }
+        }
+        free(fill);
+    }
+    S->prim_reach = S->R + S->tol_wall;
+    return 1;
+#undef FAIL
+}
+int edmd3_wall_primitives(const EDMD3* S, int* nseg, int* narc){
+    if (nseg) *nseg = S->nseg;
+    if (narc) *narc = S->narc;
+    return S->nprim;
+}
+double edmd3_prim_impulse(const EDMD3* S, int p, int endpoint, long* events){
+    if (p < 0 || p >= S->nprim || (endpoint != 0 && endpoint != 1)) { if (events) *events = 0; return NAN; }
+    if (events) *events = S->pev[2L * p + endpoint];
+    return (double)S->pimp[2L * p + endpoint];
+}
+long edmd3_contact_audit_prims(const EDMD3* S, double max_gap_px[2]){
+    max_gap_px[0] = S->contact_max_prim[0]; max_gap_px[1] = S->contact_max_prim[1];
+    return S->contact_events;
+}
+double edmd3_prim_gap(const EDMD3* S, double x, double y){
+    real dd, fx, fy, mx, my; int sd;
+    if (!S->nprim || !prim_nearest(S, NULL, S->nprim, (real)x, (real)y, &dd, &sd, &fx, &fy, &mx, &my)) return INFINITY;
+    return (double)((real)sd * dd - S->R);
 }
