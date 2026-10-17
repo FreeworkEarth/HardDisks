@@ -33952,3 +33952,158 @@ When D57-3 is in, I write the Stage 2 registration (§ 4.9) and the three-paste 
 - **This report:** sec. 4.7.141.
 
 Written for: the plan author
+
+### 4.7.142 Plan-author decision 58: Report D57-3 accepted; the Stage 2 registration "S2" (recorded verbatim as sec. 4.9, next); the S2 package for KOA. S2 measures c0(η, N), the longitudinal sound speed of the confined hard-disk crystal at zero relaxed strain, by E1 at three box heights per cell (η 0.70–0.80 × N 900, 1600, turned; the isotropy check at 0.76 and 0.78, N 900, pin 0), 5 masses × 10 seeds, BASE 20261017: 2100 runs. CC builds the package as P2's (s2_ prefix), with a runsheet of three pastes (A0+A, B = the array and the dependent merge in one guarded line, E), rehearses it on the Mac (four task lines, full length) and writes Report D58-1. Then stop (2026-10-16 14:52 HST, machine date) [SOURCE]
+
+**Plain summary.**
+- **Relayed by Chris** at about 14:49 HST on 2026-10-16 (machine date), with the plan author's note to Chris on top.
+- **Report D57-3 accepted** (the slopes, the bistable run, the geometry, the cost, the reorientation; the verification noted). The bistable compartment is reported, not excluded; the registration carries the rule.
+- **The registration, sec. 4.9 (verbatim below):**
+  - target: c0(η, N), the longitudinal (along the divider) sound speed of the confined crystal at zero relaxed strain, by the free-divider method, estimator E1;
+  - cells: η 0.70, 0.72, 0.74, 0.76, 0.78, 0.80 × N 900, 1600, turned, the three box heights per cell of D57-3 task 3; the isotropy check at (900, 0.76) and (900, 0.78), pin 0, 29 × 16;
+  - masses α 1, 2, 5, 10, 20; 10 seeds per (cell, H, mass) by the stage 1 rule, BASE 20261017; 2100 runs; stage 1's protocol with the pin, the initial dump and the snapshots;
+  - the estimators, pre-specified: E1 per (cell, H, mass) and per (cell, H) with stage 1's group rule and low-Q flag; the relaxed e per (cell, H); c0 per cell from a weighted straight line of ln c on e through the three heights, with the slope; a (cell, H) whose end orientation differs from the pin is reported and kept; a compartment more than 1 % from its (cell, H) median is flagged, E1 given with and without it;
+  - the outcomes: c0(η) for both N with the slopes; c0(1600) − c0(900) per η with z; Verdict I (isotropy) at 0.76 and 0.78, both |z| < 3.5 → ISOTROPY-CONSISTENT, else INCONSISTENT; the literature elastic constants descriptive only; ψ6, Z, sd/sd_E1, ν_d/ν_pred as diagnostics.
+- **Decision 58, the S2 package:**
+  1. As P2's, under hspist3/cluster/gen3_stage2_261016/ with an s2_ prefix: the generator, the 2100-line task list, the worker, the array (1-2100%64, 40 min, --exclude=cn-05-08-07), the merge (the stage 1 reducers and p2_reduce, --time=24:00:00, submitted in the same paste as the array with --dependency=afterok), the fetch into experiments_gen3_stage2_koa_261016/S2/, the tables script with the ln c vs e fit and Verdict I; scratch .../stage2/S2/; P2's guard on both.
+  2. A runsheet of three pastes: A0+A (sandbox: a fresh clone ~/harddisks_gen3_s2 at the pushed commit, the build, the package checkout, the record, the checks), B (the array and the dependent merge, one guarded line, the job id captured in it), E (the Mac fetch); C and D2 are read-only checks after B; no placeholders.
+  3. The Mac rehearsal as P2's: four task lines (N 900 turned, N 900 pin 0, N 1600 at 0.72 and 0.80), full length, blocks A–E with shims, the dependency line included.
+  4. Report D58-1: the files with SHA-256, the design table (42 + 6 heights), the rehearsal outputs verbatim, the three pastes. Then stop: Chris pushes and types after the plan author's read.
+- **Also in the message:** D2 (the dilute block) may follow as a second package later; the plan author keeps a state-of-play note in the project for a model switch.
+
+**The message, verbatim** (relayed by Chris on 2026-10-16 at about 14:49 HST, machine date):
+
+```
+No issue — the pilot had to tell us the geometry rule before we burned 300 core-hours on a scan that would have carried a hidden 3–4 % strain bias; D57-3 now gives every number the registration needs (the 42 heights, the costs, the slopes, the one bistable compartment). So: the dense scan runs tonight. Both N, η 0.70–0.80, 2100 runs, 255–320 core-hours, 4–5 h on 64 cores, merge ~4 h; fetch tomorrow morning, then it goes into figure 1.
+
+D2 (the dilute 0.02–0.075 at N 900/1600) is the same size and could follow on Saturday as a second package; its fit amendment is only post-processing, the traces are kept — your call once S2 is in the queue and depending on credits.
+
+On models: switching is fine. CC’s block below is self-contained, and I am writing a fresh state-of-play note into the project now so a cheaper model picks up here with the full context.
+
+Step now: paste this to CC (then it rehearses; you push and type blocks A and B tonight).
+
+From the plan author (Cowork), relayed by Chris. Record as decision 58
+and as registration sec. 4.9 (text below, verbatim).
+
+REPORT D57-3 ACCEPTED (slopes, bistable run, geometry, cost,
+ reorientation; the verification noted). The bistable compartment is
+ reported, not excluded; the registration below carries the rule.
+
+REGISTRATION 4.9: STAGE 2 "S2", THE HARD-DISK SOLID, c AT ZERO STRAIN
+ Target quantity: the longitudinal (uniaxial, along the divider) sound
+ speed of the confined hard-disk crystal at zero relaxed strain,
+ c0(eta, N), by the free-divider method, estimator E1.
+ Cells: eta 0.70, 0.72, 0.74, 0.76, 0.78, 0.80 x N 900, 1600; the
+ turned orientation (pinned); per cell the THREE box heights of
+ Report D57-3 task 3 (start strain nearest -0.6, 0, +0.6 % within
+ the one arrangement: 17x27 at N 900; 25x32 at N 1600 for 0.70-0.74,
+ 20x40 for 0.76-0.80); exact box, L0 = N pi/(8 H eta), divider at L0.
+ Isotropy check: (900, 0.76) and (900, 0.78), pin 0, 29x16 (0
+ vacancies), the three heights of the same table.
+ Masses alpha 1, 2, 5, 10, 20 (M = alpha N); 10 seeds per (cell, H,
+ mass) by the stage 1 rule, BASE 20261017; 2100 runs. Protocol: stage
+ 1's (T_eq 5000, 200 predicted periods of the binary's nu_pred, the
+ pin, --gen3-dump-initial, snapshots every (T_eq+T_rec)/100); build
+ at the pushed commit of this package's parent, sources recorded.
+ Estimators (all pre-specified): E1 per (cell, H, mass) and per
+ (cell, H) over the masses as in stage 1 (group rule: > 2 of 10 lost
+ -> mass out; low-Q flag Q < 5); the relaxed strain e per (cell, H) =
+ the record-mean strain over snapshots and both compartments; c0 per
+ cell from a weighted straight line of ln c against e through the
+ three heights, error from the fit with the scaled SE when chi2/dof
+ > 1, the slope d ln c/d e reported; a (cell, H) whose end
+ orientation differs from the pin in any compartment is reported and
+ kept; a compartment whose record-mean e lies > 1 % from its (cell,
+ H) median is flagged, E1 given with and without it.
+ Outcomes: table and figure c0(eta) for N 900 and 1600 with slopes;
+ the difference c0(1600) - c0(900) per eta with z; Verdict I
+ (isotropy): at 0.76 and 0.78, z = (c0 pin 0 - c0 turned)/SE, both
+ |z| < 3.5 -> ISOTROPY-CONSISTENT, else INCONSISTENT; the comparison
+ with the literature elastic constants of the hard-disk crystal is
+ descriptive, no verdict; psi6, Z, sd/sd_E1, nu_d/nu_pred per cell
+ as diagnostics. No other quantity is a result of S2.
+
+DECISION 58: THE S2 PACKAGE
+ 1. Build the package as P2's (gen, task list 2100 lines, worker,
+    sbatch array, merge with the stage 1 reducers + p2_reduce, fetch
+    into /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/
+    HardDisks/hspist3/experiments_gen3_stage2_koa_261016/S2/, tables
+    script extended by the ln c vs e fit and Verdict I), under
+    hspist3/cluster/gen3_stage2_261016/ with an s2_ prefix; scratch
+    /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage2/S2/; array
+    1-2100%64, limit 40 min; --exclude=cn-05-08-07; the merge
+    submitted in the same paste as the array with
+    --dependency=afterok:<array job id> and --time=24:00:00; the
+    guard of P2 on both.
+ 2. Runsheet of THREE pastes: A0+A (sandbox, fresh clone
+    ~/harddisks_gen3_s2 at the pushed commit, build, package
+    checkout, record, checks), B (array + dependent merge, one guarded
+    line), E (Mac fetch); C and D2 become read-only checks listed
+    after B. No placeholders: the array job id is captured in the
+    same line (J=$(sbatch --parsable ...)).
+ 3. Rehearse on the Mac as P2: four task lines (N 900 turned, N 900
+    pin 0, N 1600 at 0.72 and 0.80), full length, blocks A-E with
+    shims; the dependency line rehearsed with the shim.
+ 4. Report D58-1: the package's file list with SHA-256, the design
+    table (42+6 heights), the rehearsal outputs verbatim, the three
+    pastes. Then stop; Chris pushes and types after the plan author's
+    read.
+End with "Written for: the plan author".
+
+Then: paste D58-1 here, I check it (quick, the pattern is P2’s), you push, type A0+A and B, and KOA runs the night.
+
+The state-of-play note is in the project (claude/261016_state_of_play.md) — everything a different model needs to take over here, including the S2 registration, the findings, and the list of my own errors. KOA goes hot as soon as D58-1 is in and you have pushed: paste D58-1 when CC is done.
+
+261016 state of play
+Document·MD
+```
+
+**Commits.**
+- main only: this record and sec. 4.9, in one commit.
+
+### 4.9 The Stage 2 registration "S2", verbatim: REGISTRATION 4.9 of plan-author decision 58 (recorded 2026-10-16 14:52 HST, machine date) [SOURCE]
+
+**How this section was made** (plan-author decision 58; sec. 4.7.142).
+- The text is the block "REGISTRATION 4.9: ..." of the plan author's message relayed by Chris on 2026-10-16 (recorded in full in sec. 4.7.142), from its title line through "No other quantity is a result of S2.": 33 lines, 2156 bytes, SHA-256 `df07bca890ae857b894553fe83ef49a927f23013e616ee8fc5a1dbc2fdb1a5fa`.
+- It stands below unchanged, between the fence line after the comment line BEGIN VERBATIM and the fence line before the comment line END VERBATIM; the fence is 3 backticks.
+- In this text "Report D57-3 task 3" is the geometry table of sec. 4.7.141 (hspist3/experiments_gen3_d57_261016/geometry_cost/geometry.csv), and "the stage 1 rule" is stage 1's seed rule (sec. 4.8): run_seed(BASE, stream, mass index, s).
+
+<!-- BEGIN VERBATIM: REGISTRATION 4.9 (decision 58) -->
+
+```
+REGISTRATION 4.9: STAGE 2 "S2", THE HARD-DISK SOLID, c AT ZERO STRAIN
+ Target quantity: the longitudinal (uniaxial, along the divider) sound
+ speed of the confined hard-disk crystal at zero relaxed strain,
+ c0(eta, N), by the free-divider method, estimator E1.
+ Cells: eta 0.70, 0.72, 0.74, 0.76, 0.78, 0.80 x N 900, 1600; the
+ turned orientation (pinned); per cell the THREE box heights of
+ Report D57-3 task 3 (start strain nearest -0.6, 0, +0.6 % within
+ the one arrangement: 17x27 at N 900; 25x32 at N 1600 for 0.70-0.74,
+ 20x40 for 0.76-0.80); exact box, L0 = N pi/(8 H eta), divider at L0.
+ Isotropy check: (900, 0.76) and (900, 0.78), pin 0, 29x16 (0
+ vacancies), the three heights of the same table.
+ Masses alpha 1, 2, 5, 10, 20 (M = alpha N); 10 seeds per (cell, H,
+ mass) by the stage 1 rule, BASE 20261017; 2100 runs. Protocol: stage
+ 1's (T_eq 5000, 200 predicted periods of the binary's nu_pred, the
+ pin, --gen3-dump-initial, snapshots every (T_eq+T_rec)/100); build
+ at the pushed commit of this package's parent, sources recorded.
+ Estimators (all pre-specified): E1 per (cell, H, mass) and per
+ (cell, H) over the masses as in stage 1 (group rule: > 2 of 10 lost
+ -> mass out; low-Q flag Q < 5); the relaxed strain e per (cell, H) =
+ the record-mean strain over snapshots and both compartments; c0 per
+ cell from a weighted straight line of ln c against e through the
+ three heights, error from the fit with the scaled SE when chi2/dof
+ > 1, the slope d ln c/d e reported; a (cell, H) whose end
+ orientation differs from the pin in any compartment is reported and
+ kept; a compartment whose record-mean e lies > 1 % from its (cell,
+ H) median is flagged, E1 given with and without it.
+ Outcomes: table and figure c0(eta) for N 900 and 1600 with slopes;
+ the difference c0(1600) - c0(900) per eta with z; Verdict I
+ (isotropy): at 0.76 and 0.78, z = (c0 pin 0 - c0 turned)/SE, both
+ |z| < 3.5 -> ISOTROPY-CONSISTENT, else INCONSISTENT; the comparison
+ with the literature elastic constants of the hard-disk crystal is
+ descriptive, no verdict; psi6, Z, sd/sd_E1, nu_d/nu_pred per cell
+ as diagnostics. No other quantity is a result of S2.
+```
+
+<!-- END VERBATIM: REGISTRATION 4.9 (decision 58) -->
