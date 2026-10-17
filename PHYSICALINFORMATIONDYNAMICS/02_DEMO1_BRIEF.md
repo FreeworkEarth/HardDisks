@@ -96,3 +96,28 @@ Also: the three file-scope hook statics (`coll_hook_S/fn/ctx`, 704-706) move int
 - **1c (Mac session, after merge):** viewer; one PNG of test 7's configuration at t = 100 σ-time with `--view=network` plus particles. Commit, stop.
 
 If a delivery cannot be finished in one session: commit what passes, mark the rest, push, stop. The box reference (test 1) must never be red at a push; if it is, the delivery is not pushed.
+
+## 8. Amendment after 1a and the cloud pre-check (2026-10-16)
+
+1a is merged on the Mac as `41d2ea07` (cherry-pick of `a79ca2aa`). The pre-check the cloud session wrote is committed beside this brief as `02_DEMO1_BRIEF_PRECHECK.md`. **Its part B is adopted in full**, items B1–B21, and replaces the parts of §3–§6 it corrects. Where it leaves a choice, this section decides. Where this section and §3–§6 differ, this section wins.
+
+**Decisions on the pre-check's open choices**
+
+- **B2/B3 arcs.** Every hull arc is hit from inside its circle; there is no outside case. §4.3's "same quadratic as `pair_rule`, approaching root" is withdrawn: a separate inside rule with the larger root, the unwrapped angle test, arcs with R_arc ≤ R skipped, and the last-primitive guard in `Disk3.last` with its own encoding.
+- **B7 hook and checkpoints.** The hook statics stay as they are (§4 "Also" is withdrawn): moving them breaks the box reference that 1a now tests. Checkpoints: `edmd3_checkpoint_write` refuses when primitives are set; with an empty primitive list it is unchanged, so test 3 stays byte-identical.
+- **B12 Demo 0 headless.** Adopted as written (stub `view_run`, compile the Demo 0 sources from `demo1/Makefile`, never `make` in `demo0/`).
+- **B13/B15/B16 the test-7 hull** is identified by structure (416 disks, 415 edges, 10 loops, 833 segments + 330 arcs, lumen_area 6659.169369 to 1e-6 relative), escape is "inside the lumen and distance to every primitive ≥ R − tol", dead disks are filtered.
+
+**Test changes**
+
+- **Test 2** stays 1a-only, and its "last change to … before the copy commit" line becomes INFO, not PASS/FAIL. On the Mac it failed for `edmd.h` while the content checks (the blob at the copy commit, the byte-identical body) passed: which commit `git log -1 -- path` names depends on clone depth and merge simplification, so it is provenance, not identity. The blob is the identity. In 1b test 2 is replaced by B21 (every changed hunk carries `/* PID: */`).
+- **Test 3** = test 1's full comparison (all eight outputs byte-identical, verdict checks, object `cmp`) with an empty primitive list — not only hashes.
+- **Test 4 pressure.** Corridor at least 40 σ wide. Z = P·A/(N kT) with A the area between the walls. At η = 0.05 within 3 % of Kolafa–Rottner (1.108). At η = 0.30 the KR deviation is reported, not gated (wall layering shifts the mid-corridor density); gated is straight vs tilted within 2 block standard errors. Gap bounds per B1, relative to the run's tolerance, measured maxima reported.
+- **Test 9** compares the binned structural field with Σπr² over alive disks to 1e-9, and prints `M_used` and the lens total beside it (B14).
+- **New test 10 — positive controls.** A white-box build (as `gen3_band_edge_ties.c` includes the `.c`) plants three errors and each must be reported: a primitive event deleted from the heap (schedule audit: missing ≥ 1), a disk moved 0.1 R through a segment (validator: count ≥ 1, `clean=0`), a reflection with the normal sign flipped (contact audit or KE drift fails). A detector that cannot fail proves nothing.
+
+**Process**
+
+- One session, no reviewer panels or sub-agent fan-out. Mutation and positive-control tests are the review.
+- 1b starts from `origin/main` after Chris pushes it (it then holds `41d2ea07`, this amendment and the pre-check). The old branch is not merged.
+- If 1b does not finish in one session, commit the primitives with tests 3, 4, 5, 10 green, push, stop; the driver and tests 6–9 follow.
