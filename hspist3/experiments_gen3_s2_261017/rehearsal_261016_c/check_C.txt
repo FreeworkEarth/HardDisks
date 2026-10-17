@@ -1,0 +1,14 @@
+### check C (read only)
+### exit 0, 0 s
+$ squeue -u charing
+$ cd ~/harddisks_gen3_s2/hspist3
+$ ls logs/gen3-s2_*.out | wc -l
+       4
+$ grep -lx 'chunk [0-9]* done' logs/gen3-s2_*.out | wc -l
+       4
+$ cat logs/gen3-s2_*.out | grep -c -e FAILED -e REFUSED -e STOP
+0
+$ grep -h '^chunk [0-9]* on ' logs/gen3-s2_*.out | sed 's/: group.*//; s/^chunk [0-9]* on [^ ]* //' | sort | uniq -c
+   4 (Apple M3 Max (Mac rehearsal))
+$ bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s2 /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_3/lustre/harddisks_gen3/stage2/S2/chunks cluster/gen3_stage2_261016/chunks_s2_koa_261017.tsv S2
+chunk logs: 4; chunks done: 4 of 4 (group S2; each with its folder and exactly one log with 'chunk <j> done'); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished

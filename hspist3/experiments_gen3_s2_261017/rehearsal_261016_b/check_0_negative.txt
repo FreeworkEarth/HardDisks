@@ -1,0 +1,4 @@
+### check 0 for the stand-in commit (not in origin/main)
+### exit 0, 0 s
+$ cd /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_2/standin && git fetch -q origin && git merge-base --is-ancestor 7bc7f02ab933a186166da0342a4ef1e8168326f1 origin/main && echo "S2: 7bc7f02a IS ON GITHUB (in origin/main)" || echo "S2: 7bc7f02a IS NOT ON GITHUB YET: push main, then CHECK 0 again; type nothing on KOA"
+S2: 7bc7f02a IS NOT ON GITHUB YET: push main, then CHECK 0 again; type nothing on KOA

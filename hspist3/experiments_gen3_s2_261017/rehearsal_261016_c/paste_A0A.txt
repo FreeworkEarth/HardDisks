@@ -1,0 +1,98 @@
+### paste A0+A (the sandbox job through the srun shim)
+### exit 0, 11 s
+$ squeue -u charing
+$ srun -p sandbox -t 1:00:00 -c 2 --mem=4G bash -s <<'S2A'
+$ exec 2>&1; export GIT_TERMINAL_PROMPT=0; set -o pipefail; set -v
+$ git --version
+$ ls -d ~/harddisks_gen3_s2 2>&1 | head -1
+$ cd ~ && git clone -q --no-checkout --shared /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks harddisks_gen3_s2 && git -C harddisks_gen3_s2 config core.abbrev 7 && git -C harddisks_gen3_s2 sparse-checkout init --no-cone || { echo 'STOP: the clone failed'; exit 1; }
+$ cd ~/harddisks_gen3_s2 && true || { echo 'STOP: the fetch of the build commit failed'; exit 1; }
+$ git -c advice.detachedHead=false checkout 8308fb004fdcb7e9c82197451cc04ab49ecd2f13 || { echo 'STOP: the checkout of the build commit failed'; exit 1; }
+$ git sparse-checkout set --no-cone "/hspist3/*.c" "/hspist3/*.h" "/hspist3/*.py" "/hspist3/Makefile" "/hspist3/edmd_core/" "/hspist3/cluster/" "/hspist3/validation/" "/hspist3/kissfft" || { echo 'STOP: the sparse checkout failed'; exit 1; }
+$ git clone -q /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/kissfft hspist3/kissfft || { echo 'STOP: the kissfft clone failed'; exit 1; }
+$ git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec || { echo 'STOP: the kissfft checkout failed'; exit 1; }
+$ git log -1 --format='%h %s' | cut -c1-80
+$ bash hspist3/cluster/build_koa.sh 2>&1 | tail -16 || { echo 'STOP: the build failed'; exit 1; }
+$ git fetch -q /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_3/standin standin || { echo 'STOP: the fetch of the package commit failed'; exit 1; }
+$ git -c advice.detachedHead=false checkout b4f33fe31420881460db240e3aa764dad62444fc || { echo 'STOP: the checkout of the package commit failed'; exit 1; }
+$ git log -1 --format='%h %s' | cut -c1-80
+$ bash hspist3/cluster/gen3_stage2_261016/record_s2_build.sh || { echo 'STOP: the build record was not written'; exit 1; }
+$ cd hspist3 && sha256sum cluster/gen3_stage2_261016/s2_koa.sbatch cluster/gen3_stage2_261016/s2_merge.sbatch cluster/gen3_stage2_261016/s2_inputs.sha256 cluster/gen3_stage2_261016/s2_build_sources.sha256 cluster/gen3_stage2_261016/record_s2_build.sh
+$ sha256sum -c cluster/gen3_stage2_261016/s2_inputs.sha256 | grep -c ': OK$'
+$ cat cluster/gen3_stage2_261016/tasks_s2_koa_261017.sha256
+$ set +v; source cluster/koa_env.sh || { echo 'STOP: cluster/koa_env.sh failed'; exit 1; }; set -v
+$ python3 -c "import sys; sys.argv = ['x']; sys.path[:0] = ['cluster/gen3_stage2_261016', 'cluster/gen3_stage1_261012', 'cluster/gen3_testR_261011', 'validation', '.']; import merge_s1_koa, reduce_s1_koa, p2_lattice, p2_reduce; print('the merge and reducer imports: OK')"
+$ ls /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_3/lustre/harddisks_gen3/stage2/S2 2>&1 | head -1
+$ echo 'S2 PASTE A0+A: END OF THE SANDBOX JOB'
+$ S2A
+[rehearsal srun shim] the sandbox job runs here: bash -s
+git --version
+git version 2.50.1 (Apple Git-155)
+ls -d ~/harddisks_gen3_s2 2>&1 | head -1
+ls: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_3/home/harddisks_gen3_s2: No such file or directory
+cd ~ && git clone -q --no-checkout --shared /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks harddisks_gen3_s2 && git -C harddisks_gen3_s2 config core.abbrev 7 && git -C harddisks_gen3_s2 sparse-checkout init --no-cone || { echo 'STOP: the clone failed'; exit 1; }
+cd ~/harddisks_gen3_s2 && true || { echo 'STOP: the fetch of the build commit failed'; exit 1; }
+git -c advice.detachedHead=false checkout 8308fb004fdcb7e9c82197451cc04ab49ecd2f13 || { echo 'STOP: the checkout of the build commit failed'; exit 1; }
+HEAD is now at 8308fb0 plan-author decision 58 recorded (261012 sec. 4.7.142) and the Stage 2 registration S2 verbatim (sec. 4.9): D57-3 accepted; the S2 package, three-paste runsheet, rehearsal, Report D58-1
+git sparse-checkout set --no-cone "/hspist3/*.c" "/hspist3/*.h" "/hspist3/*.py" "/hspist3/Makefile" "/hspist3/edmd_core/" "/hspist3/cluster/" "/hspist3/validation/" "/hspist3/kissfft" || { echo 'STOP: the sparse checkout failed'; exit 1; }
+git clone -q /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/kissfft hspist3/kissfft || { echo 'STOP: the kissfft clone failed'; exit 1; }
+git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec || { echo 'STOP: the kissfft checkout failed'; exit 1; }
+HEAD is now at febd4ca Merge pull request #99 from lanurmi/newline
+git log -1 --format='%h %s' | cut -c1-80
+8308fb0 plan-author decision 58 recorded (261012 sec. 4.7.142) and the Stage 2 r
+bash hspist3/cluster/build_koa.sh 2>&1 | tail -16 || { echo 'STOP: the build failed'; exit 1; }
+gcc -Wl,-rpath,/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_3/home/envs/hd/lib  -L/opt/homebrew/lib -L/opt/homebrew/opt/mesa/lib -o 00ALLINONE 00ALLINONE.c kissfft/kiss_fft.c kissfft/kiss_fftr.c edmd_core/edmd.c edmd_core/edmd_accelerated.c edmd_core/edmd_gen3.c experiment_validation.c -O2 -ffp-contract=off -I/opt/homebrew/include/SDL2 -I/opt/homebrew/include -D_THREAD_SAFE -I/opt/homebrew/Cellar/harfbuzz/12.2.0_1/include/harfbuzz -I/opt/homebrew/Cellar/glib/2.86.3/include/glib-2.0 -I/opt/homebrew/Cellar/glib/2.86.3/lib/glib-2.0/include -I/opt/homebrew/opt/gettext/include -I/opt/homebrew/Cellar/pcre2/10.47_1/include -I/opt/homebrew/Cellar/graphite2/1.3.14/include -I/opt/homebrew/opt/freetype/include/freetype2 -I/opt/homebrew/opt/libpng/include/libpng16 -DBUILD_GIT='"8308fb0"' -DBUILD_TARGET='"koa"' -DBUILD_CFLAGS='"-O2 -ffp-contract=off [mac rehearsal]"' -L/opt/homebrew/Cellar/sdl2_ttf/2.24.0/lib -lSDL2_ttf -L/opt/homebrew/lib -lSDL2 -lGLEW -framework OpenGL -framework CoreGraphics 
+== checks
+00ALLINONE  git 8308fb0  target koa
+  CFLAGS: -O2 -ffp-contract=off [mac rehearsal]
+== provenance
+built_utc      2026-10-17T02:13:55Z
+host           Christophs-MacBook-Pro-875.local   job 930001
+cpu            Apple M3 Max (Mac rehearsal)
+compiler       gcc (GCC) 14.3.0   (gcc on PATH)
+make compiler  gcc -> /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_3/build_shims/gcc -> gcc (GCC) 14.3.0   (CC=gcc; Makefile:15 'CC ?= cc')
+version        00ALLINONE  git 8308fb0  target koa
+git_commit     8308fb004fdcb7e9c82197451cc04ab49ecd2f13
+sha256         c7fe4f6511417f65ac0fc21cd51932b6587c8eab0da5e936d49568607dc83247
+libs           sdl2 2.30.12 SDL2_ttf 2.24.0 glew 2.2.0 (~/envs/hd)
+recorded       logs/BUILD_KOA_LAST.hash: c7fe4f6511417f65ac0fc21cd51932b6587c8eab0da5e936d49568607dc83247  00ALLINONE
+BUILD OK
+git fetch -q /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_3/standin standin || { echo 'STOP: the fetch of the package commit failed'; exit 1; }
+git -c advice.detachedHead=false checkout b4f33fe31420881460db240e3aa764dad62444fc || { echo 'STOP: the checkout of the package commit failed'; exit 1; }
+Previous HEAD position was 8308fb0 plan-author decision 58 recorded (261012 sec. 4.7.142) and the Stage 2 registration S2 verbatim (sec. 4.9): D57-3 accepted; the S2 package, three-paste runsheet, rehearsal, Report D58-1
+HEAD is now at b4f33fe S2 rehearsal stand-in: the mini chunk table, local Lustre and fetch, the input manifest again
+git log -1 --format='%h %s' | cut -c1-80
+b4f33fe S2 rehearsal stand-in: the mini chunk table, local Lustre and fetch, the
+bash hspist3/cluster/gen3_stage2_261016/record_s2_build.sh || { echo 'STOP: the build record was not written'; exit 1; }
+env: gcc (GCC) 14.3.0 | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+# the build-time record of the S2 build (decision 58): written once by record_s2_build.sh after cluster/build_koa.sh at 8308fb00
+commit_build 8308fb004fdcb7e9c82197451cc04ab49ecd2f13
+commit_scripts b4f33fe31420881460db240e3aa764dad62444fc
+version 00ALLINONE  git 8308fb0  target koa
+sha256 c7fe4f6511417f65ac0fc21cd51932b6587c8eab0da5e936d49568607dc83247 00ALLINONE
+build_inputs 50 of 50 equal to 8308fb00's (cluster/gen3_stage2_261016/s2_build_sources.sha256)
+build_koa built_utc      2026-10-17T02:13:55Z
+build_koa host           Christophs-MacBook-Pro-875.local   job 930001
+build_koa cpu            Apple M3 Max (Mac rehearsal)
+build_koa compiler       gcc (GCC) 14.3.0   (gcc on PATH)
+build_koa make compiler  gcc -> /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_3/build_shims/gcc -> gcc (GCC) 14.3.0   (CC=gcc; Makefile:15 'CC ?= cc')
+build_koa libs           sdl2 2.30.12 SDL2_ttf 2.24.0 glew 2.2.0 (~/envs/hd)
+BUILD RECORD OK: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_3/home/harddisks_gen3_s2/hspist3/logs/BUILD_RECORD_S2.txt
+cd hspist3 && sha256sum cluster/gen3_stage2_261016/s2_koa.sbatch cluster/gen3_stage2_261016/s2_merge.sbatch cluster/gen3_stage2_261016/s2_inputs.sha256 cluster/gen3_stage2_261016/s2_build_sources.sha256 cluster/gen3_stage2_261016/record_s2_build.sh
+8f7ce078522d6b46828f11c56d9d4f908cfbaf914ec757c1a780553b19913002  cluster/gen3_stage2_261016/s2_koa.sbatch
+10596a25cd06d8f3a3e1f572c07020dbd3c2771e41b281048d593b08e3615219  cluster/gen3_stage2_261016/s2_merge.sbatch
+ec4726f8691a05b4c672d9c7df2dff1eb70ab63e4fedb67bc9c8176648e71b3d  cluster/gen3_stage2_261016/s2_inputs.sha256
+10ea088e5547ce2162a9735aecc8046b5fcc0c7ca84057221a10bbe8c680228e  cluster/gen3_stage2_261016/s2_build_sources.sha256
+210e179f28b885727d00ac36585865871d4713994a4be04a9a7b6d418e173e84  cluster/gen3_stage2_261016/record_s2_build.sh
+sha256sum -c cluster/gen3_stage2_261016/s2_inputs.sha256 | grep -c ': OK$'
+24
+cat cluster/gen3_stage2_261016/tasks_s2_koa_261017.sha256
+3daa00594ad7a3246d68ecb8514df72dd7758c66aebb249950583d0a613dd965
+set +v; source cluster/koa_env.sh || { echo 'STOP: cluster/koa_env.sh failed'; exit 1; }; set -v
+env: gcc (GCC) 14.3.0 | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+python3 -c "import sys; sys.argv = ['x']; sys.path[:0] = ['cluster/gen3_stage2_261016', 'cluster/gen3_stage1_261012', 'cluster/gen3_testR_261011', 'validation', '.']; import merge_s1_koa, reduce_s1_koa, p2_lattice, p2_reduce; print('the merge and reducer imports: OK')"
+the merge and reducer imports: OK
+ls /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_3/lustre/harddisks_gen3/stage2/S2 2>&1 | head -1
+ls: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_3/lustre/harddisks_gen3/stage2/S2: No such file or directory
+echo 'S2 PASTE A0+A: END OF THE SANDBOX JOB'
+S2 PASTE A0+A: END OF THE SANDBOX JOB

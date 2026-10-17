@@ -1,0 +1,5 @@
+cid,N,eta,k,pin,M,alpha,L0,version,excluded,present,used,fit_failures,lost,flagged,x,c,sig_c,lowQ
+S2_N0900_eta0.760000_k0697_pinturned,900,0.76,697,turned,4500,5,16.0128,all,0,1,1,0,9,True,0.0045963212,,,0
+S2_N0900_eta0.780000_k0685_pin0,900,0.78,685,0,4500,5,15.875538,all,0,1,1,0,9,True,0.0046388042,,,0
+S2_N1600_eta0.720000_k0866_pinturned,1600,0.72,866,turned,8000,5,24.184701,all,0,1,1,0,9,True,0.0029745091,,,0
+S2_N1600_eta0.800000_k1024_pinturned,1600,0.8,1024,turned,8000,5,18.407769,all,0,1,1,0,9,True,0.0039630475,,,0

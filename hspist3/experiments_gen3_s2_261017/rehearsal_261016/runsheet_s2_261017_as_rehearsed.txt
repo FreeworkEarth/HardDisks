@@ -1,0 +1,123 @@
+##CHRIS 2026-10-16 (plan-author decision 58; registration S2, notes 261012 sec. 4.9 and sec. 4.7.142) -- THE S2 RUNSHEET (KOA): Stage 2,
+the hard-disk solid, c at zero strain; N 900 and 1600, 2100 runs. Written by cluster/gen3_stage2_261016/make_s2_runsheet.py. PREPARED: typed
+only after the plan author has read Report D58-1 and Chris has pushed main. Chris types every command.
+
+WHAT IT DOES. Paste A0+A runs ONE sandbox job (srun, no interactive shell): it makes ONE fresh clone ~/harddisks_gen3_s2, builds the campaign
+binary at 8308fb00 ("plan-author decision 58 recorded (261012 sec. 4.7.142) and the Stage 2 ...", the package commit's parent) with that commit's own cluster/build_koa.sh (make -B koa with
+cluster/koa_env.sh: stage 1's and P2's target, flags and environment; its 50 build inputs equal P2's 8aaf5fef's), then fetches the package
+commit 914db066 ("decision 58: the S2 package (Stage 2 on KOA: N 900, 1600; eta 0.70-0.80; three ...") and checks it out -- the package adds files only -- and record_s2_build.sh checks every build input
+against s2_build_sources.sha256 before it writes the build-time record. Paste B submits, in ONE guarded line, the array of 2100 one-core
+tasks (at most 64 at once; each runs one task line with P2's worker p2_worker_koa.sh after its start-up checks; no git at run time) AND the
+merge, which Slurm holds until every task of the array has ended with exit 0 (--dependency=afterok); the merge is P2's (the stage 1 merge and
+reducers, unchanged, then p2_reduce.py) and checks everything itself before it moves anything. Paste E fetches the tables, logs, psi6 and
+virial files, the gzipped traces and the initial states to the Mac (no snapshots). CHECK C and CHECK D2 only read.
+KOA RULES, as before: the login node only for light commands; squeue before every sbatch; never submit a job twice; nothing in
+~/harddisks, ~/harddisks_resched, ~/harddisks_resched2, ~/harddisks_gen3, ~/harddisks_gen3_s1, ~/harddisks_gen3_k2 or ~/harddisks_gen3_p2
+changes; every job stops with "STOP: ..." on a failed check before it runs anything: paste the STOP line, change nothing, wait. NO GIT AT
+RUN TIME; every sbatch file carries --exclude=cn-05-08-07. The sandbox job is srun -p sandbox -t 1:00:00 -c 2 --mem=4G (the established line).
+
+CORE-HOURS AND TIME (Report D57-3 task 3, the upper Z):
+  predicted core-hours (the upper Z): 396.4 on E5-2670 v3, 437.3 on E5-4640 v2; the longest line 26.4 min on v2 -> 1.5 x, rounded up to 5 min: 40 min (the array's limit 40 min, decision 58)
+  wall time at 64 cores (v3): about 372 min; at P2's KOA mix (Report D57-3: 2.853 us per event at N 900, 3.097 at N 1600): 318 core-hours, about 5.0 h at 64 cores
+  requested: 2100 tasks x 0:40 h = 1400 core-hours at most (Slurm charges use); the merge 1 core, --time=24:00:00,
+  expected about 4 h (P2's 47 min for 400 runs, scaled).
+SCRATCH: about 5 GB on Lustre at most (per run, P2's measured sizes: the trace 0.5 MB until the merge gzips it, the snapshots 1.4 MB at
+N 900 and about 2.5 MB at N 1600, psi6(t) 0.2 MB, the run folder 0.12 MB); the fetch about 1 GB (P2: 0.39 MB per run at N 900).
+
+S2 PASTE A0+A (KOA login node; ONE paste: the queue, then the sandbox job runs the whole block and ends by itself; paste everything it prints):
+squeue -u charing
+srun -p sandbox -t 1:00:00 -c 2 --mem=4G bash -s <<'S2A'
+exec 2>&1; export GIT_TERMINAL_PROMPT=0; set -v
+git --version
+ls -d ~/harddisks_gen3_s2 2>&1 | head -1
+cd ~ && git clone --depth 1 --branch main --filter=blob:none --sparse https://github.com/FreeworkEarth/HardDisks.git harddisks_gen3_s2 || { echo 'STOP: the clone failed'; exit 1; }
+cd ~/harddisks_gen3_s2 && git fetch --depth 1 origin 8308fb004fdcb7e9c82197451cc04ab49ecd2f13 || { echo 'STOP: the fetch of the build commit failed'; exit 1; }
+git -c advice.detachedHead=false checkout 8308fb004fdcb7e9c82197451cc04ab49ecd2f13 || { echo 'STOP: the checkout of the build commit failed'; exit 1; }
+git sparse-checkout set --no-cone "/hspist3/*.c" "/hspist3/*.h" "/hspist3/*.py" "/hspist3/Makefile" "/hspist3/edmd_core/" "/hspist3/cluster/" "/hspist3/validation/" "/hspist3/kissfft" || { echo 'STOP: the sparse checkout failed'; exit 1; }
+git clone https://github.com/mborgerding/kissfft.git hspist3/kissfft || { echo 'STOP: the kissfft clone failed'; exit 1; }
+git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec || { echo 'STOP: the kissfft checkout failed'; exit 1; }
+git log -1 --format='%h %s' | cut -c1-80
+bash hspist3/cluster/build_koa.sh 2>&1 | tail -16
+git fetch --depth 1 origin 914db066e95205b1cb4f253d32827600a1a719b5 || { echo 'STOP: the fetch of the package commit failed'; exit 1; }
+git -c advice.detachedHead=false checkout 914db066e95205b1cb4f253d32827600a1a719b5 || { echo 'STOP: the checkout of the package commit failed'; exit 1; }
+git log -1 --format='%h %s' | cut -c1-80
+bash hspist3/cluster/gen3_stage2_261016/record_s2_build.sh || { echo 'STOP: the build record was not written'; exit 1; }
+cd hspist3 && sha256sum cluster/gen3_stage2_261016/s2_koa.sbatch cluster/gen3_stage2_261016/s2_merge.sbatch cluster/gen3_stage2_261016/s2_inputs.sha256 cluster/gen3_stage2_261016/s2_build_sources.sha256 cluster/gen3_stage2_261016/record_s2_build.sh
+sha256sum -c cluster/gen3_stage2_261016/s2_inputs.sha256 | grep -c ': OK$'
+cat cluster/gen3_stage2_261016/tasks_s2_koa_261017.sha256
+source cluster/koa_env.sh
+python3 -c "import sys; sys.argv = ['x']; sys.path[:0] = ['cluster/gen3_stage2_261016', 'cluster/gen3_stage1_261012', 'cluster/gen3_testR_261011', 'validation', '.']; import merge_s1_koa, reduce_s1_koa, p2_lattice, p2_reduce; print('the merge and reducer imports: OK')"
+ls /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage2/S2 2>&1 | head -1
+echo 'S2 PASTE A0+A: END OF THE SANDBOX JOB'
+S2A
+
+  THE LINES THAT SHOW IT IS GOOD (every command appears once, as it runs, before its output):
+    squeue: its header only (no gen3 job); srun may print "srun: job <n> queued and waiting for resources" and "... has been allocated resources"
+    "git version 2.35.0" or newer
+    "ls: cannot access '/home/charing/harddisks_gen3_s2': No such file or directory" (the clone does not exist yet)
+    the clone; the fetch of 8308fb00...; "HEAD is now at 8308fb0 ..."; the kissfft clone and "HEAD is now at febd4ca ..."
+    "8308fb0 plan-author decision 58 recorded (261012 sec. 4.7.142) and the Stage 2" (the log line)
+    the build's last lines: "== checks", the version lines with "00ALLINONE  git 8308fb0  target koa", "== provenance" with
+    "compiler       gcc (GCC) 14.3.0" and "git_commit     8308fb004fdcb7e9c82197451cc04ab49ecd2f13", the recorded hash line, "BUILD OK"
+    the fetch of 914db066...; "HEAD is now at 914db06 ..." (git may first print "Warning: you are leaving 1 commit behind": harmless)
+    "914db06 decision 58: the S2 package (Stage 2 on KOA: N 900, 1600; eta 0.70-0.8" (the log line)
+    the record: "env: gcc (GCC) 14.3.0 | ...", its lines ("commit_build 8308fb004fdcb7e9c82197451cc04ab49ecd2f13",
+    "commit_scripts 914db066e95205b1cb4f253d32827600a1a719b5", "version 00ALLINONE  git 8308fb0  target koa", "sha256 <SHA-256> 00ALLINONE",
+    "build_inputs 50 of 50 equal to 8308fb00's (...)", the build_koa lines) and "BUILD RECORD OK: /home/charing/harddisks_gen3_s2/hspist3/logs/BUILD_RECORD_S2.txt"
+    exactly these five lines:
+      bc5091e746676d7a79a5a20b7b33c17401c2a6d5300c494ef28051f5cb865670  cluster/gen3_stage2_261016/s2_koa.sbatch
+      cfb8bd25fe5b6a8b6600527978e43e693c9f86c8eaeb62c21e5a8461838a0e59  cluster/gen3_stage2_261016/s2_merge.sbatch
+      de578a10ed648dc35301217272cfeb1b76e625efd070e4bbe1c63234fee5ca3e  cluster/gen3_stage2_261016/s2_inputs.sha256
+      10ea088e5547ce2162a9735aecc8046b5fcc0c7ca84057221a10bbe8c680228e  cluster/gen3_stage2_261016/s2_build_sources.sha256
+      210e179f28b885727d00ac36585865871d4713994a4be04a9a7b6d418e173e84  cluster/gen3_stage2_261016/record_s2_build.sh
+    24         (the input manifest, each file ": OK")
+    3daa00594ad7a3246d68ecb8514df72dd7758c66aebb249950583d0a613dd965   (the task list's SHA-256)
+    "env: gcc (GCC) 14.3.0 | Python ... at /home/charing/envs/hd/bin/python3 | ..."
+    "the merge and reducer imports: OK"
+    "ls: cannot access '/mnt/lustre/koa/scratch/charing/harddisks_gen3/stage2/S2': No such file or directory" (a fresh root)
+    "S2 PASTE A0+A: END OF THE SANDBOX JOB"
+  STOP RULE: a STOP line or anything else: paste it, submit nothing, wait.
+
+S2 PASTE B (KOA login node, after paste A0+A was good; ONE guarded line submits the array AND the dependent merge; a second paste refuses):
+squeue -u charing
+cd ~/harddisks_gen3_s2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s2,gen3-s2-merge -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s2 job: $Q"; false; }; } && { [ ! -e /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage2/S2 ] || { echo "REFUSED: /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage2/S2 exists: the array ran before"; false; }; } && { grep -qx 'commit_scripts 914db066e95205b1cb4f253d32827600a1a719b5' logs/BUILD_RECORD_S2.txt || { echo "REFUSED: logs/BUILD_RECORD_S2.txt does not name the package commit 914db066"; false; }; } && echo "CHECKS GOOD" && J=$(sbatch --parsable --array=1-2100%64 cluster/gen3_stage2_261016/s2_koa.sbatch) && J=${J%%;*} && echo "S2: THE ARRAY IS SUBMITTED: job $J" && { sbatch --dependency=afterok:$J cluster/gen3_stage2_261016/s2_merge.sbatch && echo "S2: THE MERGE IS SUBMITTED, held by Slurm until every task of job $J has ended with exit 0" || echo "S2: THE ARRAY $J IS SUBMITTED, THE MERGE IS NOT: paste this, submit nothing, wait"; } || echo "S2: THIS PASTE DID NOT SUBMIT THE ARRAY"
+
+  Expected: squeue lists no gen3 job; then "CHECKS GOOD", "S2: THE ARRAY IS SUBMITTED: job <J>", "Submitted batch job <its number>" and "S2: THE MERGE
+  IS SUBMITTED, held by Slurm until every task of job <J> has ended with exit 0". 2100 tasks, at most 64 at once, 0:40 h each at most;
+  predicted about 5 h of wall time, then the merge (about 4 h). A second paste prints "REFUSED: ..." and "S2: THIS PASTE DID NOT SUBMIT THE ARRAY".
+  While the array runs, squeue lists its tasks and the merge as PENDING with reason (Dependency). If the merge shows
+  (DependencyNeverSatisfied), a task ended with a non-zero exit: run CHECK C, paste it, change nothing, wait.
+
+S2 CHECK C (KOA login node, read only, when squeue -u charing lists no gen3-s2 task; the merge may be running or done; paste everything):
+squeue -u charing
+cd ~/harddisks_gen3_s2/hspist3
+ls logs/gen3-s2_*.out | wc -l
+grep -lx 'chunk [0-9]* done' logs/gen3-s2_*.out | wc -l
+cat logs/gen3-s2_*.out | grep -c -e FAILED -e REFUSED -e STOP
+grep -h '^chunk [0-9]* on ' logs/gen3-s2_*.out | sed 's/: group.*//; s/^chunk [0-9]* on [^ ]* //' | sort | uniq -c
+bash cluster/gen3_stage1_261012/s1_chunk_logs_koa.sh logs gen3-s2 /mnt/lustre/koa/scratch/charing/harddisks_gen3/stage2/S2/chunks cluster/gen3_stage2_261016/chunks_s2_koa_261017.tsv S2
+
+  THE LINES THAT SHOW IT IS GOOD:
+    squeue: the merge gen3-s2-merge RUNNING (or nothing, when it has ended); no gen3-s2 task
+    2100       (one log per chunk)
+    2100       (each chunk once with its line "chunk <j> done")
+    0          (no FAILED, REFUSED or STOP line; a run the worker refused prints FAILED: paste it, it does not stop the merge)
+    one line per CPU model, the counts adding up to 2100
+    "chunk logs: 2100; chunks done: 2100 of 2100 (group S2; ...); earlier attempts: 0 stopped in the start-up checks, 0 started and not finished"
+  STOP RULE: anything else: paste it, change nothing, wait (a resubmission line follows from CC and the plan author).
+
+S2 CHECK D2 (KOA login node, read only, when squeue -u charing lists no gen3-s2-merge job; paste everything):
+squeue -u charing
+cd ~/harddisks_gen3_s2/hspist3 && L=$(ls -t logs/gen3-s2-merge_*.out | head -1) && echo "$L" && grep -c '^stage2/gen3/.* errors 0;' "$L" && grep -Ev '^  m_|^reduce_|^stage2/gen3/' "$L" | tail -25
+
+  THE LINES THAT SHOW IT IS GOOD: squeue's header only; the log's path; 210 (the (cell, H, mass) folders reduced without an error); "merged 2100
+  chunks: 8400 files moved, 4200 files appended, 2100 kept per chunk (0 failed-run folders), 0 incomplete run folders, 0 locks or temp
+  files left in place, 2100 build files equal; build '00ALLINONE  git 8308fb0  target koa'"; "p2_reduce: 210 folders (0 without the stage 1
+  tables), 2100 trajectories, 0 with an error; <s> s"; "S2 merge and reduction done; next: the fetch from the Mac (fetch_s2_koa.sh)" and "this
+  job's log is copied to ...". STOP RULE: a STOP line: paste it, change nothing, wait.
+
+S2 PASTE E (Mac, after CHECK D2 was good; one password and Duo push; about 1 GB):
+cd ~/Desktop/CCS_complex_coupled_systems/Repo/HardDisks && bash hspist3/cluster/gen3_stage2_261016/fetch_s2_koa.sh
+
+  Expected, last line: "fetched into .../hspist3/experiments_gen3_stage2_koa_261016/S2: <size>; merge record: <time>; p2_reduce: p2_reduce: 210 folders
+  (0 without the stage 1 tables), 2100 trajectories, 0 with an error; <s> s". Then tell CC: CC runs s2_tables_mac.py and writes the S2 report.

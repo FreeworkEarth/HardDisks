@@ -1,0 +1,31 @@
+### check D2 (the merge's log; read only)
+### exit 0, 0 s
+$ squeue -u charing
+$ cd ~/harddisks_gen3_s2/hspist3 && L=$(ls -t logs/gen3-s2-merge_*.out | head -1) && echo "$L" && grep -c '^stage2/gen3/.* errors 0;' "$L" && grep -Ev '^  m_|^reduce_|^stage2/gen3/' "$L" | tail -25
+logs/gen3-s2-merge_920002.out
+4
+FAILED lines in the chunk logs (logs/): 0
+the task list: 2100 lines; group S2: 4 chunks of the chunk table (521-2021); top-level folder stage2
+scan: 4 chunks, 32 plan entries, 0 problem(s); plan written to /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_1/lustre/harddisks_gen3/stage2/S2/merge_plan_20261016_152952.tsv
+
+## the merge plan: every destination folder, the chunks that deliver into it, and the names found in more than one chunk for that destination
+
+| destination (under merged/) | chunks | names in more than one chunk: treatment |
+|---|---|---|
+| stage2/gen3/S2_N0900_eta0.760000_k0697_pinturned/m_4500 | 521 | - |
+| stage2/gen3/S2_N0900_eta0.780000_k0685_pin0/m_4500 | 1121 | - |
+| stage2/gen3/S2_N1600_eta0.720000_k0866_pinturned/m_8000 | 1421 | - |
+| stage2/gen3/S2_N1600_eta0.800000_k1024_pinturned/m_8000 | 2021 | - |
+
+plan entries by treatment: APPEND 8, EQUAL 4, MOVE 16, PER CHUNK 4
+names inside the moved run folders .done_runs/run<r> (each run's own folder; they never meet at the cell level): 00_COMMAND.md x4, 00_COMMAND_AND_PLOT_COMMAND.md x4, 01_PLOT_COMMANDS.md x4, experiments_speed_of_sound/ x4, initial_state.txt x4, run_params.json x4, speed_of_sound_batch_status.json x4, speed_of_sound_psi6.csv x4, stdout.log x4
+
+merged 4 chunks: 16 files moved, 8 files appended, 4 kept per chunk (0 failed-run folders), 0 incomplete run folders, 0 locks or temp files left in place, 4 build files equal; build '00ALLINONE  git 8308fb0  target koa'
+  stage2/gen3/S2_N0900_eta0.760000_k0697_pinturned/m_4500: 1 traces compressed
+  stage2/gen3/S2_N0900_eta0.780000_k0685_pin0/m_4500: 1 traces compressed
+  stage2/gen3/S2_N1600_eta0.720000_k0866_pinturned/m_8000: 1 traces compressed
+  stage2/gen3/S2_N1600_eta0.800000_k1024_pinturned/m_8000: 1 traces compressed
+merge done; next: p2_reduce.py
+p2_reduce: 4 folders (0 without the stage 1 tables), 4 trajectories, 0 with an error; 19 s
+S2 merge and reduction done; next: the fetch from the Mac (fetch_s2_koa.sh)
+this job's log is copied to /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_1/lustre/harddisks_gen3/stage2/S2/job_logs/ as the last command

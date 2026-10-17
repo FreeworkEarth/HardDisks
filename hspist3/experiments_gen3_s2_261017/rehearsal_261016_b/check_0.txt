@@ -1,0 +1,4 @@
+### check 0 (the package commit in origin/main)
+### exit 0, 0 s
+$ cd /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_2/standin && git fetch -q origin && git merge-base --is-ancestor 914db066e95205b1cb4f253d32827600a1a719b5 origin/main && echo "S2: 914db066 IS ON GITHUB (in origin/main)" || echo "S2: 914db066 IS NOT ON GITHUB YET: push main, then CHECK 0 again; type nothing on KOA"
+S2: 914db066 IS ON GITHUB (in origin/main)

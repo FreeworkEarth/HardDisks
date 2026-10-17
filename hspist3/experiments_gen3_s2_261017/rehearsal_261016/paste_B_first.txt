@@ -1,0 +1,9 @@
+### paste B (the array: 4 tasks one after the other; then the dependent merge)
+### exit 0, 1361 s
+$ squeue -u charing
+$ cd ~/harddisks_gen3_s2/hspist3 && { Q=$(squeue -h -u charing -n gen3-s2,gen3-s2-merge -o %i 2>&1) && [ -z "$Q" ] || { echo "REFUSED: squeue failed or lists a gen3-s2 job: $Q"; false; }; } && { [ ! -e /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_1/lustre/harddisks_gen3/stage2/S2 ] || { echo "REFUSED: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_1/lustre/harddisks_gen3/stage2/S2 exists: the array ran before"; false; }; } && { grep -qx 'commit_scripts 47d5353f58808e6a1e15c049ed8618f506336135' logs/BUILD_RECORD_S2.txt || { echo "REFUSED: logs/BUILD_RECORD_S2.txt does not name the package commit 47d5353f"; false; }; } && echo "CHECKS GOOD" && J=$(sbatch --parsable --array=521,1121,1421,2021 cluster/gen3_stage2_261016/s2_koa.sbatch) && J=${J%%;*} && echo "S2: THE ARRAY IS SUBMITTED: job $J" && { sbatch --dependency=afterok:$J cluster/gen3_stage2_261016/s2_merge.sbatch && echo "S2: THE MERGE IS SUBMITTED, held by Slurm until every task of job $J has ended with exit 0" || echo "S2: THE ARRAY $J IS SUBMITTED, THE MERGE IS NOT: paste this, submit nothing, wait"; } || echo "S2: THIS PASTE DID NOT SUBMIT THE ARRAY"
+CHECKS GOOD
+S2: THE ARRAY IS SUBMITTED: job 920001
+Submitted batch job 920002
+[rehearsal sbatch shim] job 920002: afterok:920001 satisfied (4 tasks, all exit 0): it runs now
+S2: THE MERGE IS SUBMITTED, held by Slurm until every task of job 920001 has ended with exit 0

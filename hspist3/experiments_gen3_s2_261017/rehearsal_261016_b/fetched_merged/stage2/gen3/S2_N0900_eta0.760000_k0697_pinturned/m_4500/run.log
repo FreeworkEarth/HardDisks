@@ -1,0 +1,67 @@
+
+##RUN 2026-10-16 15:44:03 run 0 seed 3088026498 node Christophs-MacBook-Pro-875 (212 s)
+gen3 exact box: the physics uses 2 L0 exactly; SIM_WIDTH (the 1/48 grid) is for the display only
+
+========== Simulation Info ==========
+Mode: MOLECULAR (Normalized units)
+Experiment Mode: OFF (default dt)
+Fixed Time Step (dt): 4.00e-02
+Runtime Time Step (dt_runtime): 4.00e-01
+Fixed dt override: 4.00e-01
+Collision substeps: 1
+EDMD backend: default
+TAU scaling factor: 1.0000
+Tau (dimensionless, for f* = f·tau): 1.000000
+Temperature (runtime): 100.000
+k_B (effective): 0.010000
+k_B*T (effective): 1.000000
+k_B*T=1 mode: ON
+Time scale (interactive): 1.00×
+L0 (half-length): 20.000 σ,  L_eff = L0 − 1 = 19.000 σ
+Particle radius: 0.500 σ (diameter: 1.000 σ)
+Wall hold mode: Enabled
+Wall hold steps: 300000
+Internal walls: 1
+Wall Mass Factor:200.000000
+Target total simulation time: 1200.000
+Calculated steps to reach target: 3000
+======================================
+
+Running in headless mode (no GUI, CSV output enabled)
+📁 Output folder: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_2/lustre/harddisks_gen3/stage2/S2/chunks/chunk_521/stage2/gen3/S2_N0900_eta0.760000_k0697_pinturned/m_4500/.run0
+Planning each experiment for 200 fundamental oscillations (safety 1.000, clamp 10000..400000000 samples)
+[EDMD3-M4C] lattice orientation requested: turned (close-packed lines along y; psi6 orientation +-30 deg); left lines along y, right lines along y
+[KE-AUDIT] 1 after velocity draw        N=900  KE_tot=880.135751  KE_left=442.535212  KE_right=437.60054  Px=32.840207  kT_mean=0.977928612
+[KE-AUDIT] 2a after global kT rescale   N=900  KE_tot=900  KE_left=452.523023  KE_right=447.476977  Px=33.2087333  kT_mean=1
+[KE-AUDIT] 2b after per-segment equalize N=900  KE_tot=900  KE_left=450  KE_right=450  Px=2.67563749e-14  kT_mean=1
+🔬 Running: L0 = 16.0, M = 4500*m, run = 0, seed = 3088026498
+🔍 Initial wall_x = 584.307, vx_wall = 0.000000
+🕒 target=200 cycles  f_pred=0.07651219  samples=156838  T=2613.97 sigma-time
+[EDMD-RESCHED] divider events: minimal (default)
+[EDMD-ENGINE] gen3 (edmd_core/edmd_gen3.c; the gen2 core only holds the setup): the line above does not apply
+[EDMD3-RUN] L0=16.0 M=4500 run=0 seed=3088026498: engine=gen3 build="8308fb0" target=koa cell_px=32 origin_shift=8192 u_t=0x1p-39 K=4 box=768.61437722803953 x 697 px exact_box=1 eta=0.76000000000000023 N=900 N_L=450 N_R=450 seeding=lattice left=[orient parallel rows alternate n_s 17 n_r 27 a_s 22.3682734 a_r 25.8148148 g 0.907407407 s 1.81481481 n_vac 1 jitter 0.453703704 px] right=[orient parallel rows alternate n_s 17 n_r 27 a_s 22.3682734 a_r 25.8148148 g 0.907407407 s 1.81481481 n_vac 1 jitter 0.453703704 px] jitter_f=0.25 T_eq=5000.00007 sigma-time (held divider, 300000 steps) record=2613.96671 sigma-time psi6_every=1.30698 validator_every=60
+[EDMD-ENERGY] 0 state loaded (hold)      t=0 E_gas=900.00000000000045 E_div=0 E_tot=900.00000000000045 resched=gen3
+[EDMD3-TIES] at the load: live events 2566, sharing their time exactly with another live event 0, due at once 0
+[EDMD3] built #1 at t = 0 (internal units): N = 900, box 768.61437722803953 x 697 px, cell 32 px, dividers 1, pistons 0/0; c_tol 2.09548e-08 px^2, tol_face 4.37467e-10 px, band margin 1.2e-05 px, v_ref 60 px/unit
+[EDMD-ENERGY] 1 release                  t=120000.00178813934 E_gas=900.0000000000025 E_div=0 E_tot=900.0000000000025 resched=gen3
+🔔 Wall released (EDMD) at t = 5000.000
+[EDMD-ENERGY] 2 end of record            t=182735.20272296667 E_gas=897.16148902057694 E_div=2.83851097942647 E_tot=900.00000000000341 resched=gen3
+[EDMD-CONTACT] executed events 107923566; max abs(contact distance) [px]: disk-disk 4.810e-12, outer walls 2.288e-12, divider 1.933e-12, pistons 0.000e+00
+   psi6: hold=0.8241  end=0.8452  run_mean=0.8537+-0.0158 (n=65, nb=5.66)
+[EDMD3-LEDGER] momentum x: residual -3.64e-12, scale 8.8e-08, ratio 4.13e-05; y: residual 4.97e-14, scale 2.72e-08, ratio 1.83e-06; energy: residual 2.96e-12, scale 2.26e-07, ratio 1.31e-05 (E0 900, E 900, W 0)
+[EDMD3-GAP] contact audit over 107923566 events: max gap [px] pair 4.81e-12, wall 2.29e-12, divider 1.93e-12, piston 0; time quantum u_t 1.81899e-12 units; max gap / u_t [px/unit] pair 2.64, wall 1.26, divider 1.06, piston 0; v_ref 60 px/unit
+[EDMD3-HEALTH] L0=16.0 M=4500 run=0 seed=3088026498: clean=1 overlap_repair=0 wall_overdue=0 past_event=0 clamp_repair=0 cell_repair=0 grid_escape=0 stagnation=0 obj_overlap_repair=0 body_findings=0 local_findings=0 full_findings=0 contact_now=0 obj_contact_now=0 wall_contact_now=0 local_checks=214757434 full_checks=21139 local_worst=-4.19e-12 full_worst=-2.25e-12 contact_c_min=0 obj_contact_gap_min=0 cross_residual_max=2.88e-12 ev_pair=100117080 ev_wall=5263075 ev_cross=6716788 ev_div=2543411 ev_piston=0 ev_band=0 ev_stale=729925421 origin_shifts=22 syncs=22 heap_compactions=2358 heap_max=61757 validator_every=60 hash=8af1ff5fd6e9668f t_end=182735.20272296667 engine=gen3 build="8308fb0" target=koa run_s=212.196 engine_s=203.056 driver_share=0.0431
+[EDMD3-OBS] virial blocks 152 (/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_2/lustre/harddisks_gen3/stage2/S2/chunks/chunk_521/stage2/gen3/S2_N0900_eta0.760000_k0697_pinturned/m_4500/.run0/virial_blocks_L0_160_wallmassfactor_4500_run0.csv), snapshots 101 (/private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_2/lustre/harddisks_gen3/stage2/S2/chunks/chunk_521/stage2/gen3/S2_N0900_eta0.760000_k0697_pinturned/m_4500/.run0/snapshots_L0_160_wallmassfactor_4500_run0.bin)
+✅ Finished valid run 0
+
+Speed-of-sound batch complete: 1 valid, 0 invalid, 1 requested.
+Particle 0: Vx = -0.428675, Vy = 2.572865
+Particle 1: Vx = -0.124171, Vy = -0.240370
+Particle 2: Vx = -0.918101, Vy = 1.048956
+Particle 3: Vx = -0.004206, Vy = 1.258157
+Particle 4: Vx = 0.932164, Vy = 1.467609
+Particle 5: Vx = -1.436547, Vy = 0.546633
+Particle 6: Vx = -0.701387, Vy = 0.482378
+Particle 7: Vx = 0.911558, Vy = 0.086263
+Particle 8: Vx = 1.942980, Vy = 0.080364
+Particle 9: Vx = -1.035071, Vy = -1.261475

@@ -1,0 +1,5 @@
+stage2/gen3/S2_N0900_eta0.760000_k0697_pinturned/m_4500: 1 runs, errors 0; e start +0.03 / +0.02 %, end -0.41 / -0.33 %; Q (own fits, median) 223.6; stalls 0; psi6 rec 0.852 / 0.854
+stage2/gen3/S2_N0900_eta0.780000_k0685_pin0/m_4500: 1 runs, errors 0; e start +0.13 / +0.08 %, end -0.48 / +0.34 %; Q (own fits, median) 157.9; stalls 0; psi6 rec 0.936 / 0.937
+stage2/gen3/S2_N1600_eta0.720000_k0866_pinturned/m_8000: 1 runs, errors 0; e start -0.13 / -0.11 %, end -0.44 / -0.67 %; Q (own fits, median) 42.3; stalls 0; psi6 rec 0.567 / 0.561
+stage2/gen3/S2_N1600_eta0.800000_k1024_pinturned/m_8000: 1 runs, errors 0; e start -0.03 / -0.03 %, end -0.29 / -0.13 %; Q (own fits, median) 183.7; stalls 0; psi6 rec 0.950 / 0.950
+p2_reduce: 4 folders (0 without the stage 1 tables), 4 trajectories, 0 with an error; 15 s

@@ -1,0 +1,45 @@
+### paste A0+A with a pretended failed build (a second home)
+### exit 1, 1 s
+$ squeue -u charing
+$ srun -p sandbox -t 1:00:00 -c 2 --mem=4G bash -s <<'S2A'
+$ exec 2>&1; export GIT_TERMINAL_PROMPT=0; set -o pipefail; set -v
+$ git --version
+$ ls -d ~/harddisks_gen3_s2 2>&1 | head -1
+$ cd ~ && git clone -q --no-checkout --shared /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks harddisks_gen3_s2 && git -C harddisks_gen3_s2 config core.abbrev 7 && git -C harddisks_gen3_s2 sparse-checkout init --no-cone || { echo 'STOP: the clone failed'; exit 1; }
+$ cd ~/harddisks_gen3_s2 && true || { echo 'STOP: the fetch of the build commit failed'; exit 1; }
+$ git -c advice.detachedHead=false checkout 8308fb004fdcb7e9c82197451cc04ab49ecd2f13 || { echo 'STOP: the checkout of the build commit failed'; exit 1; }
+$ git sparse-checkout set --no-cone "/hspist3/*.c" "/hspist3/*.h" "/hspist3/*.py" "/hspist3/Makefile" "/hspist3/edmd_core/" "/hspist3/cluster/" "/hspist3/validation/" "/hspist3/kissfft" || { echo 'STOP: the sparse checkout failed'; exit 1; }
+$ git clone -q /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/kissfft hspist3/kissfft || { echo 'STOP: the kissfft clone failed'; exit 1; }
+$ git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec || { echo 'STOP: the kissfft checkout failed'; exit 1; }
+$ git log -1 --format='%h %s' | cut -c1-80
+$ bash -c "echo 'STOP: make koa failed (the rehearsal pretends a failed build)'; exit 4" 2>&1 | tail -16 || { echo 'STOP: the build failed'; exit 1; }
+$ git fetch -q /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_2/standin standin || { echo 'STOP: the fetch of the package commit failed'; exit 1; }
+$ git -c advice.detachedHead=false checkout 7bc7f02ab933a186166da0342a4ef1e8168326f1 || { echo 'STOP: the checkout of the package commit failed'; exit 1; }
+$ git log -1 --format='%h %s' | cut -c1-80
+$ bash hspist3/cluster/gen3_stage2_261016/record_s2_build.sh || { echo 'STOP: the build record was not written'; exit 1; }
+$ cd hspist3 && sha256sum cluster/gen3_stage2_261016/s2_koa.sbatch cluster/gen3_stage2_261016/s2_merge.sbatch cluster/gen3_stage2_261016/s2_inputs.sha256 cluster/gen3_stage2_261016/s2_build_sources.sha256 cluster/gen3_stage2_261016/record_s2_build.sh
+$ sha256sum -c cluster/gen3_stage2_261016/s2_inputs.sha256 | grep -c ': OK$'
+$ cat cluster/gen3_stage2_261016/tasks_s2_koa_261017.sha256
+$ set +v; source cluster/koa_env.sh || { echo 'STOP: cluster/koa_env.sh failed'; exit 1; }; set -v
+$ python3 -c "import sys; sys.argv = ['x']; sys.path[:0] = ['cluster/gen3_stage2_261016', 'cluster/gen3_stage1_261012', 'cluster/gen3_testR_261011', 'validation', '.']; import merge_s1_koa, reduce_s1_koa, p2_lattice, p2_reduce; print('the merge and reducer imports: OK')"
+$ ls /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_2/lustre/harddisks_gen3/stage2/S2 2>&1 | head -1
+$ echo 'S2 PASTE A0+A: END OF THE SANDBOX JOB'
+$ S2A
+[rehearsal srun shim] the sandbox job runs here: bash -s
+git --version
+git version 2.50.1 (Apple Git-155)
+ls -d ~/harddisks_gen3_s2 2>&1 | head -1
+ls: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_2/home_failed_build/harddisks_gen3_s2: No such file or directory
+cd ~ && git clone -q --no-checkout --shared /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks harddisks_gen3_s2 && git -C harddisks_gen3_s2 config core.abbrev 7 && git -C harddisks_gen3_s2 sparse-checkout init --no-cone || { echo 'STOP: the clone failed'; exit 1; }
+cd ~/harddisks_gen3_s2 && true || { echo 'STOP: the fetch of the build commit failed'; exit 1; }
+git -c advice.detachedHead=false checkout 8308fb004fdcb7e9c82197451cc04ab49ecd2f13 || { echo 'STOP: the checkout of the build commit failed'; exit 1; }
+HEAD is now at 8308fb0 plan-author decision 58 recorded (261012 sec. 4.7.142) and the Stage 2 registration S2 verbatim (sec. 4.9): D57-3 accepted; the S2 package, three-paste runsheet, rehearsal, Report D58-1
+git sparse-checkout set --no-cone "/hspist3/*.c" "/hspist3/*.h" "/hspist3/*.py" "/hspist3/Makefile" "/hspist3/edmd_core/" "/hspist3/cluster/" "/hspist3/validation/" "/hspist3/kissfft" || { echo 'STOP: the sparse checkout failed'; exit 1; }
+git clone -q /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/kissfft hspist3/kissfft || { echo 'STOP: the kissfft clone failed'; exit 1; }
+git -C hspist3/kissfft -c advice.detachedHead=false checkout febd4caeed32e33ad8b2e0bb5ea77542c40f18ec || { echo 'STOP: the kissfft checkout failed'; exit 1; }
+HEAD is now at febd4ca Merge pull request #99 from lanurmi/newline
+git log -1 --format='%h %s' | cut -c1-80
+8308fb0 plan-author decision 58 recorded (261012 sec. 4.7.142) and the Stage 2 r
+bash -c "echo 'STOP: make koa failed (the rehearsal pretends a failed build)'; exit 4" 2>&1 | tail -16 || { echo 'STOP: the build failed'; exit 1; }
+STOP: make koa failed (the rehearsal pretends a failed build)
+STOP: the build failed

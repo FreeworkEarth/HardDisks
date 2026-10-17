@@ -1,0 +1,2 @@
+N,box_w,box_h,radius,every,snaps_hold,snaps_record,eta_int_hold_0,used_hold_0,eta_int_hold_1,used_hold_1,eta_int_record_0,used_record_0,eta_int_record_1,used_record_1,run,file
+1600,36.815538909255388,42.666666666666664,0.5,72.73850033883005,69,32,0.83494492363412476,69,0.83476071751771785,69,0.83503583680941484,32,0.83494843949122055,32,0,snapshots_L0_184_wallmassfactor_8000_run0.bin.gz

@@ -1,0 +1,8 @@
+### check D2 on the newest merge log (the refused one)
+### exit 0, 0 s
+$ squeue -u charing
+$ cd ~/harddisks_gen3_s2/hspist3 && L=$(ls -t logs/gen3-s2-merge_*.out | head -1) && echo "$L" && { grep -c '^stage2/gen3/.* errors 0;' "$L"; grep -Ev '^  m_|^reduce_|^stage2/gen3/|^/mnt/|^  stage2/|^\| ' "$L" | tail -25; }
+logs/gen3-s2-merge_920003.out
+0
+env: gcc (GCC) 14.3.0 [rehearsal shim; here: Apple clang version 17.0.0 (clang-1700.4.4.1)] | Python 3.13.2 at /opt/homebrew/bin/python3 | git version 2.50.1 (Apple Git-155)
+STOP: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d58/rehearsal_2/lustre/harddisks_gen3/stage2/S2/merged exists -- a merge ran before; not merging twice
