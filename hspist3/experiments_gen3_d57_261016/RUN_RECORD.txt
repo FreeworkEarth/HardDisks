@@ -1,0 +1,34 @@
+# experiments_gen3_d57_261016: plan-author decision 57 addendum 3 task 4 (notes 261012 sec. 4.7.140): the ONE Mac run, P2's task line 21 (0.72, G1, pin 0, alpha 5, s 0) with snapshots every 10 sigma-time (T_snap 84.190667 -> 10; no time-window option exists: --gen3-snapshots=T is every T from the hold's start).
+the P2 line:  B stage2/gen3/P2_N0900_eta0.720000_G1_pin0/m_4500 4500 0 495578109 16.362461737446839 30 450 32 20261016 300000 1.7095333588073649 84.190667176147286 0 P2
+this run:     B stage2/gen3/P2_N0900_eta0.720000_G1_pin0/m_4500 4500 0 495578109 16.362461737446839 30 450 32 20261016 300000 1.7095333588073649 10 0 P2
+the binary: experiments_gen3_d50_261014/bin_0544b7e8-dirty/00ALLINONE (D56-1's Mac build; 11 of its 12 sources equal P2's 8aaf5fef build inputs; kissfft/kiss_fft_log.h differs by an #ifndef DEBUG guard around '#define DEBUG 4')
+3fce4a4628639c598309b1062230a704b621a82cc7f9d982c5787b0acb72df53  /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_d50_261014/bin_0544b7e8-dirty/00ALLINONE
+c52c49e4b627f0edcdfb09447c7d2088acd2d7220d9caea381782f30b3cc99e2  cluster/gen3_stage2_261016/p2_worker_koa.sh
+74aff80f4841f2dc7b4fc2e9f0761a8505f5ef573567451d4d14169cabd80cb7  experiments_gen3_d57_261016/tasks_d57.txt
+  started 2026-10-16 14:18:08 HST: HD_BIN=<the binary> HD_DATA=experiments_gen3_d57_261016/data bash cluster/gen3_stage2_261016/p2_worker_koa.sh <the line>  (cwd experiments_gen3_d57_261016; one process)
+
+## the run (recorded after it, from worker_0.out and run.log)
+  ##RUN 2026-10-16 14:21:09 run 0 seed 495578109 node Christophs-MacBook-Pro-875 (181 s)
+  executed events 92219672; health: clean=1; worker exit: exit 0
+  the run's files (SHA-256):
+    0ea2f8a361a3f219c576244768b01e94d54871d3317346c14e36b2a12f28b406  run.log
+    71798b2d7aef71fdc6c53358305f8b2544ad712883419451535d943dca56e1c4  snapshots_L0_163_wallmassfactor_4500_run0.bin.gz
+    8d12729d746a003816ef3007818755b6259b8ac3cf61190e23f35881cd090758  psi6_t_L0_163_wallmassfactor_4500_run0.csv.gz
+    33b0194cb200e8b1394a12d78fd97c1354e9a4931aaca35790a0c42469043209  wall_x_positions_L0_163_wallmassfactor_4500_run0.csv
+    e4bfc4456ab22c1491e6728be0c61811f006ff24b7445312e87731ebb0c6fe6d  virial_blocks_L0_163_wallmassfactor_4500_run0.csv.gz
+    17333b332bbb67ceee2504301a890d18a2ae008d0096a6861af3dd9c7a35c293  .done_runs/run0/initial_state.txt
+
+## the analysis scripts (scripts/), run 2026-10-16 14:30 HST from hspist3/, each into its own new folder
+  232c8cf01a608ad287297d672e4205485ac879be9a95d6d9ff50b6cc1ac38e88  experiments_gen3_d57_261016/scripts/d57_bistable.py
+  68076ae49b287482bb184b438bcde654c5b3ff1fb0a7e34ddf609afb321eac53  experiments_gen3_d57_261016/scripts/d57_c_vs_e.py
+  b50db9ec59681378a58290939011d98f865ce4508a2c1a4b2f0de5c0b8ac85c5  experiments_gen3_d57_261016/scripts/d57_geometry_cost.py
+  c501b220f1d5e55d460fc2a8c20e65b31a4add7cf96e967ff021d6925adfa3d8  experiments_gen3_d57_261016/scripts/d57_reorientation.py
+
+## after the independent verification (workflow d57-3-verify, 2026-10-16 14:39 HST; verification/)
+  89 checks, 89 agree; findings acted on: d57_c_vs_e.py (+ the sensitivity row and the G1 note), d57_reorientation.py (the interval text from the data; the t = 150 row)
+  c_vs_e_b/, reorientation_b/: the unchanged scripts rerun after an edit that failed to compile (identical to the first outputs, diff -r)
+  c_vs_e_c/, reorientation_c/: the outputs of record; the final scripts:
+    232c8cf01a608ad287297d672e4205485ac879be9a95d6d9ff50b6cc1ac38e88  experiments_gen3_d57_261016/scripts/d57_bistable.py
+    5fbf92b832de2e32f0b0c67a1929720d2151af85815e436be5714c581683c648  experiments_gen3_d57_261016/scripts/d57_c_vs_e.py
+    b50db9ec59681378a58290939011d98f865ce4508a2c1a4b2f0de5c0b8ac85c5  experiments_gen3_d57_261016/scripts/d57_geometry_cost.py
+    5dbc9e9ff948cd0f8413429658545b1f7b6bd97b2946edbf2bc6d376cdec4df2  experiments_gen3_d57_261016/scripts/d57_reorientation.py

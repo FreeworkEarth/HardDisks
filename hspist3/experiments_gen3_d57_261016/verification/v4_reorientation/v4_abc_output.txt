@@ -1,0 +1,31 @@
+compartments per cell: {'P2_N0900_eta0.720000_G1_pin0': 100, 'P2_N0900_eta0.720000_G2_pin0': 100}
+NaN theta0 frames total: 0
+
+== P2_N0900_eta0.720000_G1_pin0
+(a) first y snapshot: missing 0; median 116.7500, range 67.2167 to 336.7667; <200 90, <300 99, <500 100; at the first snapshot after 0: 55
+    strict (<15) variant identical: True
+    snapshot interval median per (M): {900: 67.2, 1800: 72.65, 4500: 84.1834, 9000: 97.5833, 18000: 116.7333}
+    CC's '<= 1.5 interval' rule: 55
+(b) first psi6_t within 7.5 of 30: missing 0; median 78.4167, range 23.8000 to 290.6333; <200 97, <300 100, <500 100
+    strict (<7.5) variant identical: True
+    psi6_t interval range: 1.0000 to 3.3333
+(c) start_line counts {0: 100}, hold_line {90: 100}, end_line {90: 100}
+
+== P2_N0900_eta0.720000_G2_pin0
+(a) first y snapshot: missing 0; median 134.7667, range 67.3833 to 437.3500; <200 75, <300 94, <500 100; at the first snapshot after 0: 44
+    strict (<15) variant identical: True
+    snapshot interval median per (M): {900: 67.3833, 1800: 72.8834, 4500: 84.55, 9000: 98.0667, 18000: 117.4333}
+    CC's '<= 1.5 interval' rule: 44
+(b) first psi6_t within 7.5 of 30: missing 0; median 99.6000, range 24.0500 to 413.1833; <200 87, <300 97, <500 100
+    strict (<7.5) variant identical: True
+    psi6_t interval range: 1.0000 to 3.3667
+(c) start_line counts {0: 100}, hold_line {90: 100}, end_line {90: 100}
+
+(c) all 200: start 0: True, end 90: True, hold 90: 200 of 200
+
+merge with CC's reorientation_p2.csv: {'both': 200, 'left_only': 0, 'right_only': 0}
+  first_y vs CC first_y_snapshot: NaN mismatch 0, max rel diff 2.895e-06
+  first_p vs CC first_psi6t_near30: NaN mismatch 0, max rel diff 3.326e-06
+  snap_dt_median vs CC snapshot_every: NaN mismatch 0, max rel diff 2.570e-06
+  psi_dt_median vs CC psi6t_every: NaN mismatch 0, max rel diff 2.647e-06
+  start_line equal: True  end_line equal: True

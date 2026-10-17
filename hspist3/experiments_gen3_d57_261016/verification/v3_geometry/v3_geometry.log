@@ -1,0 +1,44 @@
+pin column vs arrangement suffix mismatches: 0 of 8428
+max |float(H_text) - k/24|: 0.0
+max |L0_table - N pi/(8 H eta)|: 4.998235567654774e-07
+max |aspect_table - (L0-0.025)/H|: 4.9998217342972495e-05
+
+selected rows: 42
+cells with a tie in the arrangement distance: []
+
+per cell: winner, dist, runner-up, dist
+  N 900 eta 0.70 pin turned: ['para alt 17x27 turned'] d=0 | 2nd para equ 18x25 turned d=7 | n_arr=4
+  N 900 eta 0.72 pin turned: ['para alt 17x27 turned'] d=0 | 2nd para equ 18x25 turned d=17 | n_arr=4
+  N 900 eta 0.74 pin turned: ['para alt 17x27 turned'] d=0 | 2nd para equ 18x25 turned d=27 | n_arr=4
+  N 900 eta 0.76 pin turned: ['para alt 17x27 turned'] d=0 | 2nd para equ 18x25 turned d=36 | n_arr=4
+  N 900 eta 0.78 pin turned: ['para alt 17x27 turned'] d=0 | 2nd para equ 15x30 turned d=41 | n_arr=4
+  N 900 eta 0.80 pin turned: ['para alt 17x27 turned'] d=7 | 2nd para equ 15x30 turned d=31 | n_arr=4
+  N 1600 eta 0.70 pin turned: ['para equ 25x32 turned'] d=56 | 2nd para equ 20x40 turned d=116 | n_arr=2
+  N 1600 eta 0.72 pin turned: ['para equ 25x32 turned'] d=68 | 2nd para equ 20x40 turned d=101 | n_arr=2
+  N 1600 eta 0.74 pin turned: ['para equ 25x32 turned'] d=80 | 2nd para equ 20x40 turned d=86 | n_arr=2
+  N 1600 eta 0.76 pin turned: ['para equ 20x40 turned'] d=72 | 2nd para equ 25x32 turned d=92 | n_arr=3
+  N 1600 eta 0.78 pin turned: ['para equ 20x40 turned'] d=59 | 2nd para equ 25x32 turned d=103 | n_arr=3
+  N 1600 eta 0.80 pin turned: ['para equ 20x40 turned'] d=46 | 2nd para equ 25x32 turned d=114 | n_arr=3
+  N 900 eta 0.76 pin 0: ['para alt 29x16 0'] d=9 | 2nd para equ 30x15 0 d=42 | n_arr=4
+  N 900 eta 0.78 pin 0: ['para alt 29x16 0'] d=19 | 2nd para equ 30x15 0 d=51 | n_arr=4
+rows with an e tie: 0
+duplicate k within a cell: 0
+
+poorly met targets (|e - target| > 0.002):
+  none
+max miss: 0.001517  at {'N': 900, 'eta': 0.8, 'pin': 'turned', 'target_e': 0.0, 'k': 680}
+
+merge: {'both': 42, 'left_only': 0, 'right_only': 0}
+arrangement equal: True
+k equal: True
+vacancies equal: True
+H_text equal: True
+arr range equal: True
+arr dist equal: True
+max |e diff|: 0.0  max rel: 0.0
+max |gap diff|: 0.0  max rel: 0.0
+max rel L0 diff: 2.8675708565726654e-10  max |L0 diff|: 4.754856064437263e-09
+max rel H diff: 1.1764706857153154e-10
+max |aspect diff| (table value): 0.0
+max |aspect_recalc - CC aspect|: 4.7330643733412e-05
+max |miss diff|: 5.421010862427522e-19

@@ -1,0 +1,782 @@
+{
+  "summary": "Independently recompute the key numbers of D57-3 tasks 1-4 from the raw P2 data and compare with CC outputs",
+  "agentCount": 4,
+  "logs": [],
+  "result": [
+    {
+      "task": "c_vs_e",
+      "result": {
+        "checks": [
+          {
+            "item": "(a) e_rec 0.72 G1_pin0 (record mean, %) +- SE",
+            "cc_value": "-0.82183851 +- 0.012090917",
+            "your_value": "-0.821839 +- 0.012091 (sd 0.085496)",
+            "agree": true,
+            "note": "rel diff <= 4.2e-8, which is the rounding of CC's 8-significant-digit csv"
+          },
+          {
+            "item": "(a) e_rec 0.72 G1_pinturned +- SE",
+            "cc_value": "-0.94263881 +- 0.0099033",
+            "your_value": "-0.942639 +- 0.009903 (sd 0.070027)",
+            "agree": true,
+            "note": "rel <= 4e-8"
+          },
+          {
+            "item": "(a) e_rec 0.72 G2_pin0 +- SE",
+            "cc_value": "+0.58883534 +- 0.0158619",
+            "your_value": "+0.588835 +- 0.015862 (sd 0.112161)",
+            "agree": true,
+            "note": "rel <= 4e-8"
+          },
+          {
+            "item": "(a) e_rec 0.72 G2_pinturned +- SE",
+            "cc_value": "-0.13327498 +- 0.010461161",
+            "your_value": "-0.133275 +- 0.010461 (sd 0.073972)",
+            "agree": true,
+            "note": "rel <= 4e-8"
+          },
+          {
+            "item": "(a) e_rec 0.78 G1_pin0 +- SE",
+            "cc_value": "-1.8667437 +- 0.011652749",
+            "your_value": "-1.866744 +- 0.011653 (sd 0.082397)",
+            "agree": true,
+            "note": "rel <= 4e-8"
+          },
+          {
+            "item": "(a) e_rec 0.78 G1_pinturned +- SE",
+            "cc_value": "+2.4594484 +- 0.012422589",
+            "your_value": "+2.459448 +- 0.012423 (sd 0.087841)",
+            "agree": true,
+            "note": "rel <= 4e-8"
+          },
+          {
+            "item": "(a) e_rec 0.78 G2_pin0 +- SE",
+            "cc_value": "-2.2673987 +- 0.046697612",
+            "your_value": "-2.267399 +- 0.046698 (sd 0.330202)",
+            "agree": true,
+            "note": "rel <= 4e-8"
+          },
+          {
+            "item": "(a) e_rec 0.78 G2_pinturned +- SE",
+            "cc_value": "-0.33566893 +- 0.0067658431",
+            "your_value": "-0.335669 +- 0.006766 (sd 0.047842)",
+            "agree": true,
+            "note": "rel <= 4e-8"
+          },
+          {
+            "item": "(a) data integrity and other cell columns",
+            "cc_value": "50 runs per cell; sd, left/right, e_end, e_hold, lines_y_end, psi6, Z, c, sig_c in c_vs_e_cells.csv",
+            "your_value": "40 (cell, M) folders, 10 runs each, 0 failed, 400 runs clean=1, no duplicate (run,frame) rows, no NaN strains in any record, phase never goes 1 -> 0, record frames per run 18-58, hold+record = snapshots column; all listed columns agree",
+            "agree": true,
+            "note": "max rel diff over all cell columns 4.2e-8; per-run e_rec vs c_vs_e_runs.csv 400 of 400, max rel 4.8e-8, record frame counts equal. c and sig_c copied from p2_cells_e1.csv (taken as given, not recomputed here)."
+          },
+          {
+            "item": "(b) point 1 (G1 combined) e, SE_e, c, SE_c",
+            "cc_value": "e -0.0088223866 (range start in slopes csv); c and SE not written out separately",
+            "your_value": "e -0.008822387, SE_e 7.8145e-5, c 14.186062, SE_c 0.0083694",
+            "agree": true,
+            "note": "e matches CC's e_min of the 3-box fit to 1e-8; c and SE_c are consistent with the fit results matching"
+          },
+          {
+            "item": "(b) eta 0.72 three-box slope d ln c/d e +- SE (fit)",
+            "cc_value": "-3.4538706 +- 0.086335272",
+            "your_value": "-3.4538706 +- 0.0863353",
+            "agree": true,
+            "note": "rel 1.3e-8 / 2.9e-9; my fit is an independent matrix-form WLS fixed-point iteration from b=0, 8 iterations"
+          },
+          {
+            "item": "(b) three-box chi2 / dof and scaled SE",
+            "cc_value": "27.525498 / 1; scaled 0.45295583",
+            "your_value": "27.525498 / 1; scaled 0.4529558",
+            "agree": true,
+            "note": "rel <= 1.6e-8"
+          },
+          {
+            "item": "(c) eta 0.72 four-cell slope +- SE, chi2, scaled SE",
+            "cc_value": "-3.4539533 +- 0.086840337, chi2 37.147557 / 2, scaled 0.37425846",
+            "your_value": "-3.4539533 +- 0.0868403, chi2 37.147557 / 2, scaled 0.3742585",
+            "agree": true,
+            "note": "rel <= 1.2e-8. The fixed-point iteration ends in a 1.7e-13 oscillation, so it has converged to machine precision. Per-point chi2: G1 pin0 9.6, G1 turned 1.3, G2 pin0 6.1, G2 turned 20.2"
+          },
+          {
+            "item": "(d) segment slope H30 combined -> 29.833 (G2 turned)",
+            "cc_value": "-4.145667 +- 0.16259962",
+            "your_value": "-4.1456670 +- 0.1625996",
+            "agree": true,
+            "note": "rel <= 9e-9; two-point formula as specified"
+          },
+          {
+            "item": "(d) segment slope 29.833 -> 29.708 (G2 pin0)",
+            "cc_value": "-2.4418307 +- 0.20132714",
+            "your_value": "-2.4418307 +- 0.2013271",
+            "agree": true,
+            "note": "rel <= 7e-9"
+          },
+          {
+            "item": "(e) eta 0.78 slope through the two turned cells",
+            "cc_value": "-4.2402475 +- 0.056284238",
+            "your_value": "-4.2402475 +- 0.0562842",
+            "agree": true,
+            "note": "rel <= 5e-9; same result with the point order swapped"
+          },
+          {
+            "item": "(f) c at e = 0 (exp a) per line",
+            "cc_value": "3 boxes 13.747825; 4 cells 13.749933; seg1 13.676585; seg2 13.707677; 0.78 21.863036",
+            "your_value": "13.747825; 13.749933; 13.676585; 13.707677; 21.863036",
+            "agree": true,
+            "note": "rel <= 2.7e-8; ln c at e=0 also agrees (2.6208806, 2.6210339, 2.6156852, 2.617956, 3.0847974)"
+          },
+          {
+            "item": "(g) D56-1 pilot record-mean e +- SE (eta 0.76)",
+            "cc_value": "0.045558101 +- 6.8292076e-05 (sd 9.657958e-05); left/right 0.044693662/0.046422541",
+            "your_value": "0.0455581015 +- 6.829208e-05 (sd 9.657958e-05); left/right 0.0446936622/0.0464225408; runs 0.045490 and 0.045626",
+            "agree": true,
+            "note": "rel <= 1e-8. Both runs: 101 frames, 34 record frames, 0 NaN; lines along y (90) in both compartments of both runs at the last record frame (4 of 4), as CC states"
+          },
+          {
+            "item": "(g) pilot c",
+            "cc_value": "15.958363 (indicative +- 0.046); its runs' own c 16.006, 15.913",
+            "your_value": "15.95836283 (the single cell-76 row in c_cells.csv); runs' own c 16.0057, 15.9129",
+            "agree": true,
+            "note": "exact match. The +-0.046 is half the difference of the two runs' c, as CC labels it (indicative only, not a jackknife SE)"
+          },
+          {
+            "item": "Claim: the three 0.72 points do not lie on one line within SE (chi2 about 27.5 for 1 dof)",
+            "cc_value": "chi2 27.53 / 1",
+            "your_value": "chi2 27.5255 / 1, p = 1.6e-7. Per point: G1 combined 2.0, G2 turned 18.8, G2 pin0 6.8. The middle point sits -0.0063 in ln c (6.4 of its own sigma) below the line through the two outer points",
+            "agree": true,
+            "note": "The claim holds and survives every variant I tried: true minimum of the effective-variance chi2 (scipy ODR) gives b -3.4634, chi2 27.51; c errors only gives chi2 32.7; SE_e of point 1 from the pooled 100 G1 runs gives chi2 27.35; SE_e of point 1 set to half the G1 difference (0.060%) gives chi2 17.9 (p about 2e-5)"
+          }
+        ],
+        "problems_found": [
+          "None in CC's computations. Every number in c_vs_e_cells.csv, c_vs_e_slopes.csv and c_vs_e.md that I recomputed agrees to <= 5e-8 relative, which is the rounding of the 8-significant-digit csv.",
+          "Observation, not an error: the two G1 cells at eta 0.72 are the same box (H 30), but their e_rec differ by 0.121% +- 0.016% (7.7 SE), while their c agree (-0.005 +- 0.017). The specified SE_e of the combined point, 0.0078%, does not include that spread. If SE_e of point 1 is set to half the G1 difference (0.060%), the three-box slope moves from -3.454 +- 0.086 to -3.076 +- 0.143 (chi2 17.9). The non-collinearity conclusion survives, but the slope's central value is sensitive at about 0.8 of the scaled SE.",
+          "Observation, minor: the fixed-point effective-variance iteration (CC's and mine) converges to b = -3.4539. The true minimum of the effective-variance chi2 (scipy ODR) is b = -3.4634, a difference of 0.0096 (about 0.1 unscaled SE, 0.02 scaled SE). This is negligible but is a property of the method."
+        ],
+        "summary": "I recomputed Report D57-3 task 1 independently from p2_frames.csv, p2_cells_e1.csv, the pilot snapshot files and c_cells.csv, without running CC's d57 scripts or any simulation, and wrote nothing in the repo (the only __pycache__ there dates from Oct 15). Every check agrees with CC to <= 5e-8 relative, which is the rounding of CC's 8-digit csv:\n(a) All 8 cells' e_rec, SE and sd agree, plus left/right, e_end, e_hold, lines_y_end, psi6, Z and c. The per-run e_rec agrees for 400 of 400 runs.\n(b) The three-box slope at eta 0.72 is -3.4538706 +- 0.0863353, chi2 27.5255/1, scaled SE 0.4529558.\n(c) The four-cell slope is -3.4539533 +- 0.0868403, chi2 37.1476/2, scaled SE 0.3742585.\n(d) The two segment slopes are -4.145667 +- 0.162600 and -2.441831 +- 0.201327.\n(e) The eta 0.78 slope through the two turned cells is -4.240248 +- 0.056284.\n(f) c at e = 0 is 13.747825, 13.749933, 13.676585, 13.707677 and 21.863036 for the five lines in that order.\n(g) The pilot's e is 4.55581% +- 0.00683% (34 record frames per run, no NaN, lines along y in 4 of 4 compartments), and its c is 15.958363.\nThe claim that the three 0.72 points are not on one line holds: chi2 is 27.53 for 1 dof (p 1.6e-7), driven mostly by the G2_pinturned point (18.8 of it). It survives the true-minimum (ODR) fit, a fit with c errors only, and a larger SE_e for point 1. One caveat: the two G1 cells at H 30 differ in e by 7.7 SE while their c agree, so the slope's central value depends on how the combined point's SE_e is set. Scripts and outputs are in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57a3/verify/v1_c_vs_e/: verify_c_vs_e.py, extra_checks.py, cmp_cells.csv, cmp_slopes.csv, my_runs.csv, run_stdout_v2.txt and extra_stdout.txt. verify_c_vs_e_v1.py and run_stdout.txt are the first run, which had a bool-sum bug in my own lines_y count; it is fixed in v2."
+      }
+    },
+    {
+      "task": "bistable",
+      "result": {
+        "checks": [
+          {
+            "item": "(a) x = k_root(2)/(2 pi (L0-1.025)), L0 from p2_runs.csv",
+            "cc_value": "(used internally)",
+            "your_value": "K(2) = 0.6532711871 (own brentq; tests_20260913.k_root identical to 1.7e-16); L0 = 15.14588273 (one value for all 10 runs); x = 0.00736294895",
+            "agree": true,
+            "note": "Exact."
+          },
+          {
+            "item": "(a) run 9 per-trajectory c = sqrt(nu_d^2 + (1/(2 pi tau_r))^2)/x",
+            "cc_value": "26.692",
+            "your_value": "26.692247 (nu_d 0.196522 from nud_runs.csv, tau_r 73.588 from fit_tau_r)",
+            "agree": true,
+            "note": "Relative difference vs bistable_runs.csv is 1.5e-8, the 8-significant-figure rounding of CC's CSV. nu_d in nud_runs.csv and p2_runs.csv agree to 2.6e-10 relative. Leaving out the damping term gives c = 26.691, so the excess comes from nu_d alone."
+          },
+          {
+            "item": "(a) siblings' (runs 0-8) per-trajectory c: median (range)",
+            "cc_value": "24.160 (23.148 to 24.733)",
+            "your_value": "24.160484 (23.148171 to 24.733437)",
+            "agree": true,
+            "note": "All 10 runs agree with CC's c_run to 2e-8 relative or better. Context: run 9 is +10.5 % over the siblings' median and +4.96 sibling sd above their mean. Its nu_d is +4.97 sd above (siblings' nu_d 0.17693 +- 0.00395)."
+          },
+          {
+            "item": "(a) nu_d and tau_r: run 9 vs siblings",
+            "cc_value": "nu_d 0.19652 vs 0.17786 (0.17043 to 0.18209); tau_r 73.6 vs 49.9 (41.1 to 98.8)",
+            "your_value": "nu_d 0.196522 vs 0.177862 (0.170431 to 0.182091); tau_r 73.588 vs 49.918 (41.128 to 98.763)",
+            "agree": true,
+            "note": "None of the 10 per-run fits is a stall: fit_A and fit_B are never within 1e-3 of 0.3/0.7, the stall column is 0 for all, and the largest fit_rms is 0.090 (below 0.15)."
+          },
+          {
+            "item": "(b) run 9 record-mean strain, left / right (p2_frames phase 1, 23 snapshots)",
+            "cc_value": "+2.056 % / -2.136 %",
+            "your_value": "+2.0560756 % / -2.1364480 %",
+            "agree": true,
+            "note": "Agrees with CC's e_rec_0/1 to 4.8e-10 absolute, across all 10 runs."
+          },
+          {
+            "item": "(b) siblings' record-mean strain, left and right: median (range)",
+            "cc_value": "left -2.335 (-2.528 to -2.052); right -2.393 (-2.557 to -2.127)",
+            "your_value": "left -2.3352 (-2.5278 to -2.0522); right -2.3926 (-2.5573 to -2.1265)",
+            "agree": true,
+            "note": "Exact."
+          },
+          {
+            "item": "(b) run 9 record sd(ddof=1) of e, left / right",
+            "cc_value": "0.436 % / 0.359 %",
+            "your_value": "0.43606 % / 0.35854 %",
+            "agree": true,
+            "note": "Agrees to 4e-11 absolute. Siblings: left 0.326 (0.248 to 0.430), right 0.343 (0.253 to 0.412), as CC has them."
+          },
+          {
+            "item": "(b) run 9 strain at the hold's end, left / right (p2_runs hold_e_k)",
+            "cc_value": "+2.301 % / -2.643 %",
+            "your_value": "+2.3009498 % / -2.6428426 %",
+            "agree": true,
+            "note": "p2_runs hold_e_k equals the last phase-0 snapshot in p2_frames to 5e-10. Siblings: left -2.374 (-2.928 to -1.857), right -2.328 (-2.900 to -1.995), which match."
+          },
+          {
+            "item": "(b) run 9 strain at the end, left / right (p2_runs end_e_k)",
+            "cc_value": "+1.936 % / -1.544 %",
+            "your_value": "+1.9363641 % / -1.5437179 %",
+            "agree": true,
+            "note": "Equals the last phase-1 snapshot in p2_frames to 5e-10. Siblings: left -2.561 (-2.864 to -2.049), right -2.513 (-3.079 to -1.967), which match. Run 9's right end strain lies just outside the siblings' range."
+          },
+          {
+            "item": "(b) run 9 psi6_rec_0 / psi6_rec_1",
+            "cc_value": "0.746 / 0.750",
+            "your_value": "0.74555188 / 0.75033599 (p2_runs); my own record mean over the psi6_t file is the same to 5e-11",
+            "agree": true,
+            "note": "Recomputed independently from psi6_t_L0_151_wallmassfactor_1800_run9.csv.gz (phase == record). Siblings: left 0.716 (0.653 to 0.765), right 0.689 (0.629 to 0.772), which match."
+          },
+          {
+            "item": "(b) run 9 record orientation minus pin, left / right",
+            "cc_value": "+0.40 deg / -0.34 deg",
+            "your_value": "+0.40046 deg / -0.34382 deg (p2_runs orient_rec 0.4005 and 59.6562 mod 60; my own circular mean of exp(6i theta) over the psi6_t record is the same)",
+            "agree": true,
+            "note": "Agrees to 4e-9 deg. Siblings: left -0.025 (-0.275 to 0.277), right -0.020 (-0.272 to 0.198), which match. Both of run 9's deviations lie just outside the siblings' ranges. End line direction for run 9 is 0/0 (along x)."
+          },
+          {
+            "item": "(b) run 9 left trajectory: first e > +1 %; count of e > 0; siblings' count",
+            "cc_value": "t = 128; 100 of 101; siblings 0 of 900",
+            "your_value": "t = 128.45 (frame 2; frame 1 at t = 64.2 already at +0.75 %); 100 of 101 (only frame 0 at -0.088 % is negative); siblings 0 of 900",
+            "agree": true,
+            "note": "Exact."
+          },
+          {
+            "item": "(c) E1 at (cell, M 1800), all 10 runs: used, nu_d-bar, tau_r, Q, c +- SE",
+            "cc_value": "10, 0.17889, 26.5, 14.9, 24.309 +- 0.310",
+            "your_value": "10, 0.1788859, 26.53834, 14.914, 24.309062 +- 0.310137",
+            "agree": true,
+            "note": "nu_ref = 0.17844964 (equals nud_runs nu_ref); ACFs cut to nl = 657. The fit matches KOA's acf_mean_fit.csv (tau_r 26.538341, A 0.10356, B 0.95724) and CC's p2_masses.csv (24.309062 +- 0.31013718). My own transcription of fit_acf gives parameters identical to FU.fit_acf (0 difference). Not a stall: A 0.104, B 0.957, tau_r moved from its start of 28.02; none of the 10 jackknife fits stalled. Most of the SE comes from leaving out run 9 (its leave-one-out nu0 is 0.17702; the others are 0.17862 to 0.17992)."
+          },
+          {
+            "item": "(c) E1 at (cell, M 1800) without run 9",
+            "cc_value": "9, 0.17693, 28.1, 15.6, 24.042 +- 0.176",
+            "your_value": "9, 0.1769263, 28.14344, 15.643, 24.041549 +- 0.175946 (nu_ref = mean over runs 0-8 = 0.17671530)",
+            "agree": true,
+            "note": "The other reading of nu_ref (mean over all 10 folder runs, 0.17844964) gives c = 24.041549 +- 0.175946, differing by 2e-9 relative, so the choice does not matter. tau_r 28.143 sits 0.5 % from the start value 5/nu_ref = 28.294, but this is not a stall: A = 0.106, B = 0.987, and the two different starts (28.29 and 28.02) converge to the same tau_r of 28.1435. All 9 jackknife fits are non-stalled."
+          },
+          {
+            "item": "(c, extra) the cell's E1 over the 5 masses, with and without run 9 at M 1800",
+            "cc_value": "23.889 +- 0.056 (chi2 7.21 / 4); 23.890 +- 0.050 (6.13 / 4)",
+            "your_value": "23.888746 +- 0.055664 (7.2102 / 4); 23.889684 +- 0.050374 (6.1272 / 4)",
+            "agree": true,
+            "note": "I recomputed the other four masses with my own per-mass code; they match p2_masses.csv to its 8 significant figures (M 900: 23.895301 +- 0.106615; 4500: 24.111303 +- 0.119907; 9000: 23.742961 +- 0.112077; 18000: 23.862356 +- 0.054700). The result is the inverse-variance mean with Birge scaling max(1, sqrt(chi2/dof)). Removing run 9 moves the cell's E1 by +0.0009, far inside its SE."
+          },
+          {
+            "item": "(d) scan: number of compartments and runs per cell-side",
+            "cc_value": "800",
+            "your_value": "800 (8 cells x 5 masses x 10 runs x 2 sides); 50 runs in every (cell, side)",
+            "agree": true,
+            "note": "The number of record snapshots per folder varies from 18 to 58; this folder has 23."
+          },
+          {
+            "item": "(d) compartments more than 1 % (0.01 strain) from the cell-side median",
+            "cc_value": "1: eta0.78 G2 pin0, M 1800, run 9, left; e_rec +2.056 %, median -2.306 %",
+            "your_value": "1: the same compartment; e_rec +2.0561 %, median -2.30646 %, deviation +4.3625 %",
+            "agree": true,
+            "note": "All 800 rows agree with bistable_scan.csv: e_rec to 5e-10, sd_t to 5e-11, median to 4.6e-10, thermal sd to 5e-11. A per-(cell, M, side) median variant also flags only this one compartment."
+          },
+          {
+            "item": "(d) the outlier's deviation in thermal sd; the next largest",
+            "cc_value": "+13.3; next 1.3",
+            "your_value": "+13.2877 (thermal sd 0.32831 %); next |dev| = 1.3200 (eta0.78 G1 pin0, M 900, run 4, right: -1.320), then 1.310 and 1.109",
+            "agree": true,
+            "note": "dev_sd agrees with CC's CSV to 4.9e-7 absolute (3.7e-8 relative, CSV rounding). The per-(cell, M, side) variant gives 13.37 and then 1.42. The largest deviation in % after the outlier is 0.467 % (eta0.72 G1 pinturned, M 900, run 6, right)."
+          }
+        ],
+        "problems_found": [
+          "None in CC's task-2 numbers: every value checked reproduces, and the differences (at most 2e-8 relative) are the 8-significant-figure rounding of CC's CSVs.",
+          "Not a defect, an ambiguity: for 'without run 9', nu_ref can be the mean over runs 0-8 (CC's per_mass) or over all 10 folder runs (stage 1's per_mass applied to the whole folder). The two give c values differing by 2e-9 relative, so it does not matter.",
+          "Not a stall, but close to the start value: the seed-averaged tau_r without run 9 (28.143) lies 0.5 % from its start 5/nu_ref (28.294). A = 0.106 and B = 0.987 are far from 0.3/0.7, and a second start (28.02) lands on the same 28.1435, so the fit is real.",
+          "Two side notes on CC's table: run 9's record orientation (+0.40 / -0.34 deg) and its right end strain (-1.544 %) each lie just outside the siblings' ranges. The 'thermal sd' is each run's sd over 18 to 58 record snapshots, so it also contains any slow drift within the record; this is a definitional point only."
+        ],
+        "summary": "I recomputed task 2 of Report D57-3 (the bistable run: eta 0.78, G2, pin 0, M 1800, run 9) from the merged P2 tables with my own code, without running CC's d57 scripts or any simulation. Every number checked agrees with CC's bistable.md, bistable_runs.csv and bistable_scan.csv, to within the 8-significant-figure rounding of the CSVs (at most 2e-8 relative).\n\n(a) Run 9's per-trajectory c is 26.692247; the siblings' median is 24.160484 (23.148171 to 24.733437). The +10.5 % excess comes almost entirely from nu_d (+4.97 sibling sd), not from tau_r. None of the 10 per-run fits is a stall.\n\n(b) Run 9's record-mean strain is +2.0561 % left and -2.1364 % right; the siblings' right range is -2.557 to -2.127 %. Its strain at the hold's end is +2.301 / -2.643 % and at the end +1.936 / -1.544 %. Its record psi6 is 0.7456 / 0.7503 and its orientation minus pin +0.400 / -0.344 deg. I recomputed psi6 and orientation independently from the psi6_t file (circular mean over the record); all match.\n\n(c) The (cell, M) E1 with all 10 runs is 24.309062 +- 0.310137 (tau_r 26.538, equal to KOA's acf_mean_fit.csv); without run 9 it is 24.041549 +- 0.175946. The without-run-9 value does not depend on which nu_ref is used (2e-9). No seed-averaged or jackknife fit stalled. As an extra check, the cell's E1 over the 5 masses is 23.8887 +- 0.0557 (chi2 7.21 / 4) with run 9 and 23.8897 +- 0.0504 (6.13 / 4) without.\n\n(d) In the scan of all 800 compartments, only this one (run 9, left) lies more than 1 % from its cell-side median, at +13.29 thermal sd (thermal sd 0.328 %); the next largest is 1.32. The repository was not modified: helpers were imported with -B, and the __pycache__ mtimes are unchanged.\n\nEverything is in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57a3/verify/v2_bistable/:\n- verify_bistable.py\n- verify_results.json\n- a_per_run_c.csv\n- b_strain_psi6.csv\n- d_scan.csv"
+      }
+    },
+    {
+      "task": "geometry_cost",
+      "result": {
+        "checks": [
+          {
+            "item": "Geometry: the 42 selected rows (12 turned cells x 3 targets + 2 pin 0 cells x 3), matched one to one with geometry.csv on (N, eta, pin, target)",
+            "cc_value": "42 rows",
+            "your_value": "42 rows, 42 matched, 0 only in mine, 0 only in CC's",
+            "agree": true,
+            "note": "My own selection code: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57a3/verify/v3_geometry/v3_geometry.py. Output: my_geometry.csv in the same folder."
+          },
+          {
+            "item": "Geometry: arrangement, k, H_text and vacancies in all 42 rows",
+            "cc_value": "N 900 turned: para alt 17x27 turned (1 vacancy) at every eta; N 1600 turned: para equ 25x32 turned (0) at 0.70-0.74 and para equ 20x40 turned (0) at 0.76-0.80; pin 0: para alt 29x16 0 (0)",
+            "your_value": "the same arrangements, the same k in every row (e.g. N 900 0.70: 729/726/724; N 1600 0.80: 1027/1024/1021; pin 0 0.76: 692/694/696; 0.78: 683/685/687), the same H_text and vacancies",
+            "agree": true,
+            "note": "Exact. H_text equals k/24 exactly for every input row."
+          },
+          {
+            "item": "Geometry: the arrangement's k range and its distance to the stage 1 height",
+            "cc_value": "e.g. 714-762 (0) at 900/0.70; 668-713 (7) at 900/0.80; 866-904 (56), 854-892 (68), 842-880 (80), 1032-1093 (72), 1019-1079 (59), 1006-1066 (46) at N 1600; 679-711 (9) and 670-701 (19) for pin 0",
+            "your_value": "the same in all 14 cells",
+            "agree": true,
+            "note": "Exact."
+          },
+          {
+            "item": "Geometry: start strain e and gap_sigma in the 42 rows",
+            "cc_value": "geometry.csv values",
+            "your_value": "max |diff| e = 0.0, gap = 0.0",
+            "agree": true,
+            "note": "Both values are copied from the input table, so they agree exactly."
+          },
+          {
+            "item": "Geometry: L0 = N pi / (8 H eta) with H = k/24",
+            "cc_value": "e.g. 16.62218335 (900/0.70/k729), 18.46185693 (1600/0.80/k1021)",
+            "your_value": "max relative diff 2.9e-10 (max abs 4.8e-9)",
+            "agree": true,
+            "note": "The residual comes from CC writing the CSV with float_format %.10g. The input table's own L0 column (6 decimals) matches the formula to 5e-7."
+          },
+          {
+            "item": "Geometry: aspect W/H",
+            "cc_value": "the table's 4-decimal aspect_W_over_H",
+            "your_value": "identical to the table value; recomputed (L0 - 0.025)/H differs by at most 4.7e-5",
+            "agree": true,
+            "note": "The 4.7e-5 difference is the input table's rounding to 4 decimals, not a defect."
+          },
+          {
+            "item": "Geometry: |e - target| (miss)",
+            "cc_value": "e.g. 0.128 %, 0.152 % (900/0.80/target 0), 0.004 % (1600/0.78/+0.6 %)",
+            "your_value": "max |diff| 5e-19",
+            "agree": true,
+            "note": "Exact."
+          },
+          {
+            "item": "Geometry: ties for the nearest arrangement (another arrangement as near the stage 1 height)",
+            "cc_value": "not reported (CC's code takes the first strict minimum)",
+            "your_value": "no ties in any of the 14 cells. Runner-up distances: N 900 turned 7/17/27/36/41/31 (winner 0,0,0,0,0,7); N 1600 0.70 116 vs 56, 0.72 101 vs 68, 0.74 86 vs 80 (narrowest margin), 0.76 92 vs 72, 0.78 103 vs 59, 0.80 114 vs 46; pin 0 0.76 42 vs 9, 0.78 51 vs 19",
+            "agree": true,
+            "note": "The selection never depends on tie-breaking. The narrowest margin is N 1600 eta 0.74: 25x32 at distance 80 against 20x40 at 86."
+          },
+          {
+            "item": "Geometry: ties in |e - target| and duplicate heights within a cell",
+            "cc_value": "CC asserts 3 distinct k per cell",
+            "your_value": "0 e-ties, so the k-nearer-k_ref rule was never invoked; 3 distinct k in every cell",
+            "agree": true,
+            "note": "Within each arrangement e is monotone in k (about 0.3 % per k at N 900, 0.25 % at N 1600)."
+          },
+          {
+            "item": "Geometry: poorly met targets (|e - target| > 0.2 %)",
+            "cc_value": "largest miss shown: 0.152 %",
+            "your_value": "none above 0.2 %; max 0.1517 % at N 900 eta 0.80 target 0 (k 680, e -0.1517 %)",
+            "agree": true,
+            "note": "All 42 are within 0.2 %. Misses above 0.1 % occur only in N 900 cells (pin turned and pin 0), where one k step moves e by about 0.3 %."
+          },
+          {
+            "item": "Cost: per-run rows of cost_runs.csv (420 = 42 heights x 5 alphas x lower/upper): M, nu_pred, T_rec, Z, events, min_mix, min_v2, min_v3, runs",
+            "cc_value": "cost_runs.csv",
+            "your_value": "420 of 420 matched; max relative diff M 0, nu_pred 4.8e-8, T_rec 4.8e-8, Z 3.7e-8, events 4.8e-8, min_mix 4.8e-8, min_v2 4.5e-8, min_v3 4.6e-8; runs = 10 everywhere",
+            "agree": true,
+            "note": "The ~5e-8 differences come from CC writing the CSV with %.8g (8 significant digits). The computations themselves agree. My code: v3_cost.py in the scratch folder. I computed the mix as a weighted sum over the six models directly, not through CC's mix-mean shortcut; the two are algebraically the same."
+          },
+          {
+            "item": "Cost: Z lower / upper per eta",
+            "cc_value": "10.32/10.32, 10.03/12.72, 11.02/13.98, 12.41/15.73, 14.30/18.13, 16.94/21.49",
+            "your_value": "10.322496/10.322496, 10.033655/12.722675, 11.024854/13.979515, 12.406004/15.730813, 14.298433/18.130414, 16.944578/21.485725",
+            "agree": true,
+            "note": "Liu global at 0.70 (lh branch; the solid branch there would be 9.381581); Liu solid from 0.72 on."
+          },
+          {
+            "item": "Cost: KOA-mix mean microseconds per event",
+            "cc_value": "2.853 (N 900), 3.097 (N 1600)",
+            "your_value": "2.852988, 3.097069",
+            "agree": true,
+            "note": "Agree to CC's rounding."
+          },
+          {
+            "item": "Cost: microseconds per event at N 1600 per model",
+            "cc_value": "2.322, 2.398, 2.480, 3.001, 3.860, 4.249",
+            "your_value": "2.322447 (EPYC 9654), 2.398450 (Gold 6342), 2.479882 (EPYC 7543P), 3.001048 (Gold 6248), 3.859887 (E5-2670 v3), 4.248538 (E5-4640 v2)",
+            "agree": true,
+            "note": "Agree to CC's rounding."
+          },
+          {
+            "item": "Cost: total runs",
+            "cc_value": "2100",
+            "your_value": "2100",
+            "agree": true,
+            "note": "42 heights x 5 masses x 10 seeds."
+          },
+          {
+            "item": "Cost: total core-hours lower / upper",
+            "cc_value": "255 / 318",
+            "your_value": "254.9435 / 318.0687",
+            "agree": true,
+            "note": "Agree to CC's rounding."
+          },
+          {
+            "item": "Cost: wall time at 64 cores",
+            "cc_value": "4.0 to 5.0 h",
+            "your_value": "3.9835 to 4.9698 h",
+            "agree": true,
+            "note": "Core-hours / 64 assumes perfect packing and no queue. The longest run (26 min) is short next to 4 h, so the assumption is reasonable."
+          },
+          {
+            "item": "Cost: longest single run, upper Z",
+            "cc_value": "24.0 min on E5-2670 v3, 26.4 min on E5-4640 v2",
+            "your_value": "23.9833 min and 26.3982 min, both at N 1600 eta 0.80 k 1021 alpha 20 (3.728e8 events, T_rec 4451.98)",
+            "agree": true,
+            "note": "P2's time-limit rule ceil(1.5 x 26.398 / 5) x 5 also gives 40 min, as CC states."
+          },
+          {
+            "item": "Cost: per-cell core-hours lower / upper (all 14 cells checked, not only four)",
+            "cc_value": "900/0.70 t 11.2/11.2; 900/0.72 t 10.2/13.3; 900/0.74 t 10.7/13.9; 900/0.76 pin0 13.6/17.5; 900/0.76 t 11.6/14.9; 900/0.78 pin0 15.0/19.3; 900/0.78 t 12.8/16.5; 900/0.80 t 14.6/18.7; 1600/0.70 26.5/26.5; 1600/0.72 24.0/31.1; 1600/0.74 24.9/32.2; 1600/0.76 23.9/30.9; 1600/0.78 26.3/33.8; 1600/0.80 29.7/38.2",
+            "your_value": "11.1634/11.1634; 10.2283/13.2698; 10.7357/13.8969; 13.5509/17.4977; 11.5757/14.9472; 14.9842/19.2989; 12.8019/16.4882; 14.5790/18.7288; 26.5349/26.5349; 24.0020/31.1392; 24.8758/32.2008; 23.9015/30.8631; 26.2735/33.8389; 29.7367/38.2010",
+            "agree": true,
+            "note": "All 14 agree to CC's 1-decimal rounding. Comparison script: v3_md_compare.py in the scratch folder."
+          },
+          {
+            "item": "Cost: the other per-cell columns (events range in M, mix minutes median and largest, longest run on v3/v2)",
+            "cc_value": "e.g. 1600/0.80: 242..373 M, 14.81 (19.24) min, 23.98/26.40; 900/0.76 pin0: 118..189, 6.76 (8.99), 11.21/12.40",
+            "your_value": "1600/0.80: 242.194..372.808, 14.8090 (19.2436), 23.9833/26.3982; 900/0.76 pin0: 117.801..189.114, 6.7620 (8.9923), 11.2050/12.4027; the other 12 cells also agree",
+            "agree": true,
+            "note": "All 14 cells x 11 numbers agree at the printed rounding."
+          },
+          {
+            "item": "Cost: the per-CPU-model minutes table (upper; median and largest at N 900 and N 1600)",
+            "cc_value": "EPYC 9654 4.66 (7.28) / 9.30 (14.43); Gold 6342 4.81 (7.52) / 9.61 (14.90); EPYC 7543P 4.98 (7.78) / 9.93 (15.41); Gold 6248 6.02 (9.41) / 12.02 (18.65); E5-2670 v3 7.75 (12.10) / 15.46 (23.98); E5-4640 v2 8.58 (13.40) / 17.01 (26.40)",
+            "your_value": "4.6614 (7.2815) / 9.3011 (14.4305); 4.8140 (7.5198) / 9.6055 (14.9027); 4.9774 (7.7751) / 9.9317 (15.4087); 6.0234 (9.4092) / 12.0189 (18.6469); 7.7472 (12.1019) / 15.4584 (23.9833); 8.5753 (13.3954) / 17.0149 (26.3982)",
+            "agree": true,
+            "note": "Agree to CC's rounding."
+          },
+          {
+            "item": "P2 problem statement: per-model medians of microseconds per executed event (seconds / events from p2_runs.csv, CPU model from the chunk line of each task log, chunk j = task line j)",
+            "cc_value": "EPYC 9654 2.139, Gold 6342 2.209, EPYC 7543P 2.284, Gold 6248 2.764, E5-2670 v3 3.555, E5-4640 v2 3.935",
+            "your_value": "2.139172 (n 59), 2.209437 (n 41), 2.283756 (n 32), 2.764137 (n 133), 3.555381 (n 125), 3.934748 (n 10)",
+            "agree": true,
+            "note": "All six agree to 3 decimals (|diff| 1.4e-4 to 4.4e-4, the 3-decimal rounding). Join integrity: 400 logs, each with one 'chunk j on <node> (<CPU>)' line, lines j-j, and 'chunk j done'; 400 of 400 joined on (cell, M, run); node and seed agree with p2_runs.csv; no run has an error. Script: v3_p2_us.py in the scratch folder."
+          },
+          {
+            "item": "P2: KOA mix weights (runs per CPU model of 400)",
+            "cc_value": "EPYC 7543P 32, EPYC 9654 59, E5-2670 v3 125, E5-4640 v2 10, Gold 6248 133, Gold 6342 41",
+            "your_value": "the same counts from the 400 chunk log lines",
+            "agree": true,
+            "note": "Exact."
+          },
+          {
+            "item": "P2: core-hours used (context line in the md)",
+            "cc_value": "36.9",
+            "your_value": "36.8503 (sum of seconds / 3600 over 400 runs)",
+            "agree": true,
+            "note": "The 52.9 package value was not recomputed."
+          },
+          {
+            "item": "P2: executed events / package model with upper Z, turned cells (context line in the md)",
+            "cc_value": "0.84-1.01",
+            "your_value": "per-cell medians 0.844 (0.72 G2), 0.848 (0.72 G1), 0.927 (0.78 G2), 1.006 (0.78 G1); per-run range 0.842-1.018. Pin 0: medians 0.731-0.734 at 0.72 and 0.981-0.988 at 0.78 (max 0.999)",
+            "agree": true,
+            "note": "CC's range matches the per-cell medians. The per-run maximum is 1.018, so the 'upper' is exceeded slightly at 0.78 G1. My nu_pred_binary on p2_runs' (H, L0, M) reproduces the CSV nu_pred to 1.8e-9. Script: v3_p2_events_ratio.py."
+          },
+          {
+            "item": "P2 merge context: p2_reduce time and 47 min total",
+            "cc_value": "2542 s; 47 min (about 4.1 h scaled to 2100 runs)",
+            "your_value": "2542 s confirmed at merge log line 226; 47.2 min x 2100/400 = 4.13 h arithmetic confirmed; the 47 min itself not confirmed",
+            "agree": true,
+            "note": "The merge log has no end timestamp, so I could not confirm the 22:22:45 to 23:09:59 window. The 4.1 h depends on that window. This item was outside the requested checks."
+          }
+        ],
+        "problems_found": [
+          "No discrepancy in any number CC reports. Every deterministic recomputation agrees: geometry exactly, or to 3e-10 from CSV formatting; cost rows to about 5e-8 from CC's %.8g CSV format; all printed tables at their rounding.",
+          "Caveat on the 'upper' bound: it is a planning value, not a strict bound. In P2's 0.78 G1 turned cell, executed events reached a median of 1.006 and a maximum of 1.018 of the upper model. eta 0.80 lies beyond P2's range, and the executed-to-model ratio rose with eta (turned medians 0.85 at 0.72 to 0.93-1.01 at 0.78). At 0.70 the upper equals the lower, although P2's turned cells at 0.72 executed 1.10 of the lower model. Impact is small: 1.018 x upper everywhere gives 323.8 core-hours, and 1.10 x lower in the two 0.70 cells adds about 3.8.",
+          "Caveat: nothing at N 1600 is measured by P2 (P2 ran N 900 only). The per-event cost ratio N 1600 / N 900 comes from D56-1 for two models; the E5-2670 v3 ratio is applied to the other four models. The 1.268 Z factor is also taken from N 900.",
+          "Design caveat, not an error under the rule: in the N 1600 turned series the arrangement switches between eta 0.74 (para equ 25x32: H 35.5-36.7 sigma, aspect about 0.67) and eta 0.76 (para equ 20x40: H 42.5-43.9 sigma, aspect about 0.43). So the eta dependence at N 1600 mixes two box geometries. At eta 0.74 the 20x40 runner-up is only 6 k further than the winner (86 vs 80). All N 1600 heights lie 46-80 k (1.9-3.3 sigma) from the stage 1 height of 40 sigma, against 0-7 k at N 900.",
+          "Design note: all six N 900 turned cells use the 1-vacancy arrangement para alt 17x27 turned, because the 0-vacancy alternatives (18x25, 15x30) are 7-41 k further from k 720. This is per the rule (vacancies <= 1).",
+          "Minor sensitivity: the per-model medians pool pin 0 and turned runs, and the per-pin medians differ (E5-2670 v3: 3.096 pin 0 vs 3.573 turned; E5-4640 v2: 4.257 vs 3.588, n 5 each). Using per-pin medians gives 253.9 / 316.7 core-hours instead of 254.9 / 318.1 (-0.4 %). Negligible."
+        ],
+        "summary": "CC's task 3 outputs check out completely.\n\nGeometry: I re-selected all 42 rows from s2_vacancy_table_261015_heights.csv with my own code. They match geometry.csv in every field: arrangement, k, H_text, vacancies, k range and distance, e, gap and miss exactly; L0 and H to 3e-10, which is CSV formatting; aspect equals the table value. No cell has a tie for the nearest arrangement; the narrowest margin is N 1600 eta 0.74 (80 vs 86). No row needed the e tie-break. No target misses by more than 0.2 %; the worst is 0.152 % at N 900 eta 0.80 target 0.\n\nCost: computed with the given helpers and rules, all 420 rows of cost_runs.csv agree to about 5e-8, which is CC's %.8g output format. Totals:\n- core-hours: 254.94 lower and 318.07 upper (CC: 255 and 318);\n- wall time at 64 cores: 3.98 to 4.97 h (CC: 4.0 to 5.0 h);\n- longest run, upper Z: 23.98 min on E5-2670 v3 and 26.40 min on E5-4640 v2, both at N 1600 eta 0.80 k 1021 alpha 20 (CC: 24.0 and 26.4);\n- all 14 per-cell rows and the per-model minutes table agree at the printed rounding.\n\nP2: rebuilding the six per-model median microseconds per executed event from p2_runs.csv joined to the chunk logs (400 of 400 joined, nodes and seeds consistent) gives 2.139, 2.209, 2.284, 2.764, 3.555 and 3.935. The mix weights, the 36.85 core-hours used and the executed-to-upper range 0.84-1.01 (per-cell medians) also agree.\n\nCaveats, none of them errors:\n- The upper Z is not a strict bound: P2's runs reached 1.018 of it at 0.78 G1, and 0.80 is an extrapolation beyond P2.\n- At 0.70 the upper equals the lower.\n- Nothing at N 1600 was measured by P2.\n- The N 1600 series switches box geometry between eta 0.74 and 0.76 (25x32 to 20x40, aspect 0.67 to 0.43).\n- The pooled-pin medians move the totals by only 0.4 %.\n\nThe repository was not modified: the only files I wrote are in the scratch folder, and the bytecode caches in the repo predate this session. My scripts, logs and CSVs are in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57a3/verify/v3_geometry/ (v3_geometry.py, v3_cost.py, v3_p2_us.py, v3_p2_events_ratio.py, v3_sensitivity.py, v3_md_compare.py, the matching .log files, my_geometry.csv, my_cost_runs.csv, my_cost_percell.csv, my_p2_join.csv, my_p2_us_per_model.csv)."
+      }
+    },
+    {
+      "task": "reorientation",
+      "result": {
+        "checks": [
+          {
+            "item": "(a) G1 pin0: compartments (5 M x 10 runs x 2)",
+            "cc_value": "100",
+            "your_value": "100 (10 runs per M, no failed runs, no NaN theta0 in any frame)",
+            "agree": true,
+            "note": "exact"
+          },
+          {
+            "item": "(a) G1: first snapshot with y < 200 / < 300 / < 500",
+            "cc_value": "90, 99, 100",
+            "your_value": "90, 99, 100",
+            "agree": true,
+            "note": "exact counts; y defined as |theta0 mod 60 - 30| <= 15; using the strict < 15 gives the same result"
+          },
+          {
+            "item": "(a) G1: first-y-snapshot median (range)",
+            "cc_value": "117 (67 to 337)",
+            "your_value": "116.750 (67.2167 to 336.7667)",
+            "agree": true,
+            "note": "CC rounds to integers; row by row against reorientation_p2.csv first_y_snapshot the largest relative difference is 2.9e-6 (CC's %.6g output)"
+          },
+          {
+            "item": "(a) G1: y already at the first snapshot after t = 0",
+            "cc_value": "55",
+            "your_value": "55",
+            "agree": true,
+            "note": "I compared each compartment's first-y time with the run's smallest t > 0 frame; CC's rule (first_y <= 1.5 x median interval) also gives 55"
+          },
+          {
+            "item": "(a) G2 pin0: compartments",
+            "cc_value": "100",
+            "your_value": "100",
+            "agree": true,
+            "note": "exact"
+          },
+          {
+            "item": "(a) G2: first snapshot with y < 200 / < 300 / < 500",
+            "cc_value": "75, 94, 100",
+            "your_value": "75, 94, 100",
+            "agree": true,
+            "note": "exact"
+          },
+          {
+            "item": "(a) G2: first-y-snapshot median (range)",
+            "cc_value": "135 (67 to 437)",
+            "your_value": "134.767 (67.3833 to 437.35)",
+            "agree": true,
+            "note": "agrees after CC's integer rounding"
+          },
+          {
+            "item": "(a) G2: y already at the first snapshot after t = 0",
+            "cc_value": "44",
+            "your_value": "44",
+            "agree": true,
+            "note": "exact"
+          },
+          {
+            "item": "(a) snapshot interval at eta 0.72 (table column)",
+            "cc_value": "67-117",
+            "your_value": "G1 67.20 to 116.73; G2 67.38 to 117.43 (median per M)",
+            "agree": true,
+            "note": "per-run medians match CC's snapshot_every to 2.6e-6 relative"
+          },
+          {
+            "item": "(b) G1: first psi6_t sample within 7.5 deg of 30, median (range)",
+            "cc_value": "78 (24 to 291)",
+            "your_value": "78.417 (23.80 to 290.633)",
+            "agree": true,
+            "note": "orientation mapped by ((o+15) mod 60) - 15 and tested with <= 7.5 (strict < 7.5 gives the same result); per compartment it matches CC's first_psi6t_near30 to 3.3e-6 relative (rounding)"
+          },
+          {
+            "item": "(b) G1: counts < 200 / < 300 / < 500",
+            "cc_value": "97, 100, 100",
+            "your_value": "97, 100, 100",
+            "agree": true,
+            "note": "exact"
+          },
+          {
+            "item": "(b) G2: first psi6_t within 7.5 deg of 30, median (range)",
+            "cc_value": "100 (24 to 413)",
+            "your_value": "99.600 (24.05 to 413.183)",
+            "agree": true,
+            "note": "agrees after rounding"
+          },
+          {
+            "item": "(b) G2: counts < 200 / < 300 / < 500",
+            "cc_value": "87, 97, 100",
+            "your_value": "87, 97, 100",
+            "agree": true,
+            "note": "exact"
+          },
+          {
+            "item": "(b) psi6_t sampling interval",
+            "cc_value": "G1 1.0-3.3, G2 1.0-3.4",
+            "your_value": "G1 1.000 to 3.333, G2 1.000 to 3.367",
+            "agree": true,
+            "note": "matches CC's psi6t_every to 2.6e-6 relative"
+          },
+          {
+            "item": "(c) start_line_k of all 200 compartments",
+            "cc_value": "200 x 0 (100 / 0 in each cell)",
+            "your_value": "200 x 0",
+            "agree": true,
+            "note": "read from p2_runs.csv; also equal row by row with CC's start_line column"
+          },
+          {
+            "item": "(c) end_line_k of all 200 compartments",
+            "cc_value": "200 x 90 (0 / 100 in each cell)",
+            "your_value": "200 x 90",
+            "agree": true,
+            "note": "also, hold_line_k = 90 in all 200 compartments, so every compartment had already turned to y by the end of the hold"
+          },
+          {
+            "item": "(d) Mac run integrity",
+            "cc_value": "(not stated)",
+            "your_value": "sha256 of all 3 decompressed files matches .sha256_uncompressed; 842 snapshots every 10.0 sigma; 61 frames up to t = 600, all in hold (phase 0)",
+            "agree": true,
+            "note": "extra check"
+          },
+          {
+            "item": "(d) left: first 10-sigma snapshot with lines along y (config_strain)",
+            "cc_value": "t = 70",
+            "your_value": "t = 70.000001",
+            "agree": true,
+            "note": "config_strain 'line' and the theta0-mod-60 rule agree on 61 of 61 frames"
+          },
+          {
+            "item": "(d) right: first 10-sigma snapshot with lines along y",
+            "cc_value": "t = 40",
+            "your_value": "t = 40.0000006",
+            "agree": true,
+            "note": "exact"
+          },
+          {
+            "item": "(d) later snapshots back to x, up to t = 600 (left / right)",
+            "cc_value": "0 / 0",
+            "your_value": "0 / 0",
+            "agree": true,
+            "note": "no NaN line in any frame"
+          },
+          {
+            "item": "(d) per-frame theta0, line, ordered_bulk, e vs reorientation_mac_frames.csv",
+            "cc_value": "61 rows",
+            "your_value": "61 rows; line and phase identical; theta0 max relative difference 2.1e-6, ordered_bulk 6.8e-7, e 4.8e-6",
+            "agree": true,
+            "note": "all differences are within CC's %.6g output rounding (at most 5e-6 relative)"
+          },
+          {
+            "item": "(d) left: first psi6_t sample within 7.5 deg of 30",
+            "cc_value": "66.7",
+            "your_value": "66.683334 (orientation 36.91; the sample before, at 64.97, is at 1.55 deg)",
+            "agree": true,
+            "note": "agrees to CC's 1 decimal; the orientation jumps about 35 deg within one 1.72-sigma sample"
+          },
+          {
+            "item": "(d) right: first psi6_t sample within 7.5 deg of 30",
+            "cc_value": "34.2",
+            "your_value": "34.200001 (orientation 29.47)",
+            "agree": true,
+            "note": "agrees"
+          },
+          {
+            "item": "(d) run.log [EDMD3-M4C] pin",
+            "cc_value": "pin 0",
+            "your_value": "'lattice orientation requested: 0 (close-packed lines along x; psi6 orientation 0 deg); left lines along x, right lines along x'",
+            "agree": true,
+            "note": "confirmed"
+          },
+          {
+            "item": "(d) run.log seed",
+            "cc_value": "495578109",
+            "your_value": "495578109 (the only seed in the log)",
+            "agree": true,
+            "note": "also equal to the KOA P2 seed for (0.72, G1, pin0, M 4500, run 0) in p2_runs.csv, which supports 'P2's line 21'"
+          }
+        ],
+        "problems_found": [
+          "reorientation.md, the bullet under the P2 table (and the d57_reorientation.py docstring) says the snapshots come every '61-117 sigma-time'. At eta 0.72 the intervals are 67.2-117.4 (G1 67.20-116.75, G2 67.37-117.43), which is what the table's own column says (67-117). The value 61 belongs to eta 0.78 (60.77 at M 900). This is a text slip; no computed number is affected.",
+          "reorientation.md, the Mac-run table is meant to list frames up to t = 150 (code: MF['t'] <= 150 + 1e-6), but it stops at t = 140. The snapshot times drift slightly above multiples of 10 (frame 15 is at t = 150.000002), so the t = 150 row fails the 1e-6 tolerance and is left out. The row is still in reorientation_mac_frames.csv. Display only."
+        ],
+        "summary": "I recomputed all four parts of task 4 with my own code, and every number CC reported agrees with mine. (a) G1 has 90/99/100 compartments with a first-y snapshot before 200/300/500, median 116.75 (range 67.22 to 336.77), and 55 are already y at the first snapshot after t = 0. G2 has 75/94/100, median 134.77 (range 67.38 to 437.35), and 44. (b) G1 psi6_t median 78.42 (23.80 to 290.63), counts 97/100/100; G2 median 99.60 (24.05 to 413.18), counts 87/97/100. (c) All 200 compartments start along x (0) and end along y (90); all 200 are also along y at the end of the hold. (d) On the Mac run the left compartment reaches y at t = 70 and the right at t = 40, and neither returns to x up to t = 600. The first psi6_t samples within 7.5 deg of 30 are at 66.683 and 34.200. run.log shows pin 0 and seed 495578109, the same seed as KOA P2 run 0 at M 4500, and the checksums of the three data files match. Row by row against CC's CSVs, the relative differences are at most 4.8e-6. That is the rounding of CC's 6-significant-digit output, not a disagreement. Medians and ranges match CC's after its integer rounding, and all counts are exact. The two problems are cosmetic: the md text says '61-117' where the eta 0.72 snapshot interval is 67-117, and the Mac table leaves out the t = 150 row. I ran no simulations and wrote nothing in the repository. Everything I wrote (v4_abc.py, v4_intervals.py, v4_d_mac.py, v4_abc_per_compartment.csv, v4_d_mac_frames.csv, v4_abc_output.txt, v4_d_output.txt) is in /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratchpad/d57a3/verify/v4_reorientation/. This was a single check, so I didn't split it across agents."
+      }
+    }
+  ],
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Verify"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "verify:c_vs_e",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "ab42fad9cba8078a5",
+      "model": "claude-opus-5-5",
+      "state": "done",
+      "startedAt": 1792197016515,
+      "queuedAt": 1792197016500,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "I recomputed Report D57-3 task 1 independently from p2_fram…",
+      "promptPreview": "Verify task 1 of Report D57-3: c against the relaxed strain e. CC's outputs: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_d57_261016/c_vs_e/ (c_vs_e.md, c_vs_e_cells.csv, c_vs_e_slopes.csv). Your scratch folder: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6af-d5a7ca834255/scratch…",
+      "promptFramed": true,
+      "lastProgressAt": 1792197225108,
+      "tokens": 79704,
+      "toolCalls": 13,
+      "durationMs": 208592,
+      "resultPreview": "{\"checks\":[{\"item\":\"(a) e_rec 0.72 G1_pin0 (record mean, %) +- SE\",\"cc_value\":\"-0.82183851 +- 0.012090917\",\"your_value\":\"-0.821839 +- 0.012091 (sd 0.085496)\",\"agree\":true,\"note\":\"rel diff <= 4.2e-8, which is the rounding of CC's 8-significant-digit csv\"},{\"item\":\"(a) e_rec 0.72 G1_pinturned +- SE\",\"cc_value\":\"-0.94263881 +- 0.0099033\",\"your_value\":\"-0.942639 +- 0.009903 (sd 0.070027)\",\"agree\":true…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "verify:bistable",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "ac4fcc578c0335df9",
+      "model": "claude-opus-5-5",
+      "state": "done",
+      "startedAt": 1792197016515,
+      "queuedAt": 1792197016500,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "I recomputed task 2 of Report D57-3 (the bistable run: eta …",
+      "promptPreview": "Verify task 2 of Report D57-3: the bistable run. Cell P2_N0900_eta0.780000_G2_pin0, M = 1800 (alpha 2), run 9 (seed 3661301716) against runs 0-8 of the same folder. CC's outputs: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_d57_261016/bistable/ (bistable.md, bistable_runs.csv, bistable_scan.csv). Your scratch folder: /private/tmp/claude-501/-Users-…",
+      "promptFramed": true,
+      "lastProgressAt": 1792197279287,
+      "tokens": 98224,
+      "toolCalls": 16,
+      "durationMs": 260242,
+      "resultPreview": "{\"checks\":[{\"item\":\"(a) x = k_root(2)/(2 pi (L0-1.025)), L0 from p2_runs.csv\",\"cc_value\":\"(used internally)\",\"your_value\":\"K(2) = 0.6532711871 (own brentq; tests_20260913.k_root identical to 1.7e-16); L0 = 15.14588273 (one value for all 10 runs); x = 0.00736294895\",\"agree\":true,\"note\":\"Exact.\"},{\"item\":\"(a) run 9 per-trajectory c = sqrt(nu_d^2 + (1/(2 pi tau_r))^2)/x\",\"cc_value\":\"26.692\",\"your_val…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "verify:geometry_cost",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "acc68b7e6d564f3f6",
+      "model": "claude-opus-5-5",
+      "state": "done",
+      "startedAt": 1792197016516,
+      "queuedAt": 1792197016500,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "CC's task 3 outputs check out completely. Geometry: I re-se…",
+      "promptPreview": "Verify task 3 of Report D57-3: the registration's geometry table and its cost. CC's outputs: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_d57_261016/geometry_cost/ (geometry_cost.md, geometry.csv, cost_runs.csv). Your scratch folder: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4faa-a6a…",
+      "promptFramed": true,
+      "lastProgressAt": 1792197384571,
+      "tokens": 113183,
+      "toolCalls": 29,
+      "durationMs": 365525,
+      "resultPreview": "{\"checks\":[{\"item\":\"Geometry: the 42 selected rows (12 turned cells x 3 targets + 2 pin 0 cells x 3), matched one to one with geometry.csv on (N, eta, pin, target)\",\"cc_value\":\"42 rows\",\"your_value\":\"42 rows, 42 matched, 0 only in mine, 0 only in CC's\",\"agree\":true,\"note\":\"My own selection code: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "verify:reorientation",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "ac5c5e36665d84bde",
+      "model": "claude-opus-5-5",
+      "state": "done",
+      "startedAt": 1792197016516,
+      "queuedAt": 1792197016500,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "I recomputed all four parts of task 4 with my own code, and…",
+      "promptPreview": "Verify task 4 of Report D57-3: the reorientation at eta 0.72. CC's outputs: /Users/chrisharing/Desktop/CCS_complex_coupled_systems/Repo/HardDisks/hspist3/experiments_gen3_d57_261016/reorientation/ (reorientation.md, reorientation_p2.csv, reorientation_mac_frames.csv). Your scratch folder: /private/tmp/claude-501/-Users-chrisharing-Desktop-CCS-complex-coupled-systems-Repo-HardDisks/91cb08ec-0599-4f…",
+      "promptFramed": true,
+      "lastProgressAt": 1792197185954,
+      "tokens": 77471,
+      "toolCalls": 15,
+      "durationMs": 166908,
+      "resultPreview": "{\"checks\":[{\"item\":\"(a) G1 pin0: compartments (5 M x 10 runs x 2)\",\"cc_value\":\"100\",\"your_value\":\"100 (10 runs per M, no failed runs, no NaN theta0 in any frame)\",\"agree\":true,\"note\":\"exact\"},{\"item\":\"(a) G1: first snapshot with y < 200 / < 300 / < 500\",\"cc_value\":\"90, 99, 100\",\"your_value\":\"90, 99, 100\",\"agree\":true,\"note\":\"exact counts; y defined as |theta0 mod 60 - 30| <= 15; using the strict <…"
+    }
+  ],
+  "totalTokens": 368582,
+  "totalToolCalls": 73
+}

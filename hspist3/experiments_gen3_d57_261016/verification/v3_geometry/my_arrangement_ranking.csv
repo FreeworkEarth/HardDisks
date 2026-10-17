@@ -1,0 +1,15 @@
+N,eta,pin,winner,dist,second,second_dist,n_arr,all
+900,0.7,turned,para alt 17x27 turned,0,para equ 18x25 turned,7,4,para alt 17x27 turned:0;para equ 18x25 turned:7;para alt 20x23 turned:75;para equ 15x30 turned:83
+900,0.72,turned,para alt 17x27 turned,0,para equ 18x25 turned,17,4,para alt 17x27 turned:0;para equ 18x25 turned:17;para equ 15x30 turned:72;para alt 20x23 turned:84
+900,0.74,turned,para alt 17x27 turned,0,para equ 18x25 turned,27,4,para alt 17x27 turned:0;para equ 18x25 turned:27;para equ 15x30 turned:61;para alt 20x23 turned:92
+900,0.76,turned,para alt 17x27 turned,0,para equ 18x25 turned,36,4,para alt 17x27 turned:0;para equ 18x25 turned:36;para equ 15x30 turned:51;para alt 20x23 turned:101
+900,0.78,turned,para alt 17x27 turned,0,para equ 15x30 turned,41,4,para alt 17x27 turned:0;para equ 15x30 turned:41;para equ 18x25 turned:45;para alt 20x23 turned:109
+900,0.8,turned,para alt 17x27 turned,7,para equ 15x30 turned,31,4,para alt 17x27 turned:7;para equ 15x30 turned:31;para equ 18x25 turned:53;para alt 20x23 turned:116
+1600,0.7,turned,para equ 25x32 turned,56,para equ 20x40 turned,116,2,para equ 25x32 turned:56;para equ 20x40 turned:116
+1600,0.72,turned,para equ 25x32 turned,68,para equ 20x40 turned,101,2,para equ 25x32 turned:68;para equ 20x40 turned:101
+1600,0.74,turned,para equ 25x32 turned,80,para equ 20x40 turned,86,2,para equ 25x32 turned:80;para equ 20x40 turned:86
+1600,0.76,turned,para equ 20x40 turned,72,para equ 25x32 turned,92,3,para equ 20x40 turned:72;para equ 25x32 turned:92;para alt 18x45 turned:185
+1600,0.78,turned,para equ 20x40 turned,59,para equ 25x32 turned,103,3,para equ 20x40 turned:59;para equ 25x32 turned:103;para alt 18x45 turned:170
+1600,0.8,turned,para equ 20x40 turned,46,para equ 25x32 turned,114,3,para equ 20x40 turned:46;para equ 25x32 turned:114;para alt 18x45 turned:156
+900,0.76,0,para alt 29x16 0,9,para equ 30x15 0,42,4,para alt 29x16 0:9;para equ 30x15 0:42;para equ 25x18 0:63;para alt 31x15 0:64
+900,0.78,0,para alt 29x16 0,19,para equ 30x15 0,51,4,para alt 29x16 0:19;para equ 30x15 0:51;para equ 25x18 0:52;para alt 31x15 0:72

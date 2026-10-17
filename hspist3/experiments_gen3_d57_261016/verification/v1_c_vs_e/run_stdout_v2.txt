@@ -1,0 +1,45 @@
+anomalies: none
+record frames per run: min 18 max 58 ; hold frames min 43 max 83 ; frames total == snapshots column: True ; clean all 1: True
+cells: max relative difference over all compared columns = 4.19517840285225e-08 (note: CC's csv has 8 significant digits)
+  P2_N0900_eta0.720000_G1_pin0: e_rec -0.821839% (CC -0.821839%), SE 0.012091% (CC 0.012091%), sd 0.085496%, c 14.184010 +- 0.010821
+  P2_N0900_eta0.720000_G1_pinturned: e_rec -0.942639% (CC -0.942639%), SE 0.009903% (CC 0.009903%), sd 0.070027%, c 14.189117 +- 0.013204
+  P2_N0900_eta0.720000_G2_pin0: e_rec +0.588835% (CC +0.588835%), SE 0.015862% (CC 0.015862%), sd 0.112161%, c 13.511993 +- 0.013887
+  P2_N0900_eta0.720000_G2_pinturned: e_rec -0.133275% (CC -0.133275%), SE 0.010461% (CC 0.010461%), sd 0.073972%, c 13.752359 +- 0.012619
+  P2_N0900_eta0.780000_G1_pin0: e_rec -1.866744% (CC -1.866744%), SE 0.011653% (CC 0.011653%), sd 0.082397%, c 24.287375 +- 0.038353
+  P2_N0900_eta0.780000_G1_pinturned: e_rec +2.459448% (CC +2.459448%), SE 0.012423% (CC 0.012423%), sd 0.087841%, c 19.697873 +- 0.027034
+  P2_N0900_eta0.780000_G2_pin0: e_rec -2.267399% (CC -2.267399%), SE 0.046698% (CC 0.046698%), sd 0.330202%, c 23.888746 +- 0.055664
+  P2_N0900_eta0.780000_G2_pinturned: e_rec -0.335669% (CC -0.335669%), SE 0.006766% (CC 0.006766%), sd 0.047842%, c 22.176442 +- 0.010673
+runs merged: 400 of 400 ; max rel diff e_rec 4.7809548699162115e-08 ; frames equal: True
+point 1 (G1 combined): e -0.008822386598 se 7.814502169e-05 c 14.18606171 sc 0.008369359321
+point 2 (G2 turned):   e -0.001332749822 se 0.0001046116144 c 13.752359 sc 0.012618988
+point 3 (G2 pin0):     e 0.005888353395 se 0.0001586189961 c 13.511993 sc 0.013887221
+order by e: ['G1 combined', 'P2_N0900_eta0.720000_G2_pinturned', 'P2_N0900_eta0.720000_G2_pin0']
+   iteration 996: b np.float64(-3.4539532976243095) change -1.705e-13
+   iteration 997: b np.float64(-3.453953297624139) change 1.705e-13
+   iteration 998: b np.float64(-3.4539532976243095) change -1.705e-13
+   iteration 999: b np.float64(-3.453953297624139) change 1.705e-13
+   iteration 1000: b np.float64(-3.4539532976243095) change -1.705e-13
+two-point order check (0.78): b -4.240247522853847 sb 0.05628423780877134
+FIT eta 0.72, the three boxes (H 30 combined, 29.833, 29.708): a=2.620880629, b=-3.453870645, sb=0.08633527225, chi2=27.52549755, dof=1, sb_scaled=0.4529558279, sb_scaled_max1=0.4529558279, iters=8, c0=13.74782499, sa=0.0006181626922
+FIT eta 0.72, the four cells (check): a=2.621033925, b=-3.453953298, sb=0.08684033713, chi2=37.14755696, dof=2, sb_scaled=0.3742584646, sb_scaled_max1=0.3742584646, iters=1000, c0=13.74993263, sa=0.0006167921667
+FIT eta 0.72, the segment H 30 combined -> 29.833: a=2.615685236, a_check=2.615685236, b=-4.145666961, sb=0.1625996192, c0=13.67658486
+FIT eta 0.72, the segment 29.833 -> 29.708: a=2.617956024, a_check=2.617956024, b=-2.441830709, sb=0.2013271415, c0=13.70767676
+FIT eta 0.78, the two turned cells (H 30, 28.667): a=3.084797361, a_check=3.084797361, b=-4.240247523, sb=0.05628423781, c0=21.86303608
+slopes: max relative difference = 2.681084836060757e-08
+3-point: true min of effective-variance chi2: b -3.463442, chi2 27.5134
+3-point: scipy ODR (unilinear y = b0 x + b1): b -3.463440 +- 0.454843 (sd_beta is chi2-scaled), unscaled 0.086714, a 2.620839, chi2 27.5134
+middle point vs the line through the outer two: ln c dev -0.006264, in units of sqrt(sy^2 + b^2 se^2) of the middle point alone: -6.387
+3-point, c errors only: b -3.439547 +- 0.077272, chi2 32.7087
+p-value of chi2 27.5255 for 1 dof: 1.55e-07
+pilot runs:
+   run  nframes  nrec  nnan     e_rec        e0        e1     line_last          W     H    N
+0    0      101    34     0  0.045490  0.044598  0.046382  (90.0, 90.0)  31.002559  30.0  900
+1    1      101    34     0  0.045626  0.044789  0.046463  (90.0, 90.0)  31.002559  30.0  900
+pilot e_rec: CC 0.045558101 mine 0.04555810147 rel 1.03e-08
+pilot e_rec_se: CC 6.8292076e-05 mine 6.829207608e-05 rel 1.14e-09
+pilot e_rec_sd: CC 9.657958e-05 mine 9.657958019e-05 rel 1.98e-09
+pilot e_rec_left: CC 0.044693662 mine 0.04469366218 rel 3.98e-09
+pilot e_rec_right: CC 0.046422541 mine 0.04642254076 rel 5.11e-09
+pilot c: CC 15.958363 mine 15.95836283 rel 1.07e-08
+pilot runs: CC 2 mine 2 rel 0
+pilot c rows for cell 76 in c_cells.csv: 1 (values [15.95836283])

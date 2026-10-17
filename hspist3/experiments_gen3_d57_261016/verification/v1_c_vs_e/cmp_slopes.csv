@@ -1,0 +1,25 @@
+fit,qty,cc,mine,rel
+"eta 0.72, the three boxes (H 30 combined, 29.833, 29.708)",slope,-3.4538706,-3.453870645,1.301635135e-08
+"eta 0.72, the three boxes (H 30 combined, 29.833, 29.708)",slope_se,0.086335272,0.08633527225,2.86679793e-09
+"eta 0.72, the three boxes (H 30 combined, 29.833, 29.708)",chi2,27.525498,27.52549755,1.637587179e-08
+"eta 0.72, the three boxes (H 30 combined, 29.833, 29.708)",slope_se_scaled,0.45295583,0.4529558279,4.609612771e-09
+"eta 0.72, the three boxes (H 30 combined, 29.833, 29.708)",ln_c_at_e0,2.6208806,2.620880629,1.113705722e-08
+"eta 0.72, the three boxes (H 30 combined, 29.833, 29.708)",c_at_e0,13.747825,13.74782499,5.934377501e-10
+"eta 0.72, the four cells (check)",slope,-3.4539533,-3.453953298,6.878671004e-10
+"eta 0.72, the four cells (check)",slope_se,0.086840337,0.08684033713,1.524884094e-09
+"eta 0.72, the four cells (check)",chi2,37.147557,37.14755696,1.183990286e-09
+"eta 0.72, the four cells (check)",slope_se_scaled,0.37425846,0.3742584646,1.238633574e-08
+"eta 0.72, the four cells (check)",ln_c_at_e0,2.6210339,2.621033925,9.371335047e-09
+"eta 0.72, the four cells (check)",c_at_e0,13.749933,13.74993263,2.681084836e-08
+"eta 0.72, the segment H 30 combined -> 29.833",slope,-4.145667,-4.145666961,9.396091522e-09
+"eta 0.72, the segment H 30 combined -> 29.833",slope_se,0.16259962,0.1625996192,5.206001387e-09
+"eta 0.72, the segment H 30 combined -> 29.833",ln_c_at_e0,2.6156852,2.615685236,1.381266545e-08
+"eta 0.72, the segment H 30 combined -> 29.833",c_at_e0,13.676585,13.67658486,1.039801603e-08
+"eta 0.72, the segment 29.833 -> 29.708",slope,-2.4418307,-2.441830709,3.525714262e-09
+"eta 0.72, the segment 29.833 -> 29.708",slope_se,0.20132714,0.2013271415,7.314983176e-09
+"eta 0.72, the segment 29.833 -> 29.708",ln_c_at_e0,2.617956,2.617956024,9.011447113e-09
+"eta 0.72, the segment 29.833 -> 29.708",c_at_e0,13.707677,13.70767676,1.726019301e-08
+"eta 0.78, the two turned cells (H 30, 28.667)",slope,-4.2402475,-4.240247523,5.389743778e-09
+"eta 0.78, the two turned cells (H 30, 28.667)",slope_se,0.056284238,0.05628423781,3.397552578e-09
+"eta 0.78, the two turned cells (H 30, 28.667)",ln_c_at_e0,3.0847974,3.084797361,1.271679705e-08
+"eta 0.78, the two turned cells (H 30, 28.667)",c_at_e0,21.863036,21.86303608,3.860289308e-09

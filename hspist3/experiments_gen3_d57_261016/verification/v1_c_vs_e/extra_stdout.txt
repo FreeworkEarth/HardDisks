@@ -1,0 +1,6 @@
+G1 pair: e pin0 -0.8218%, turned -0.9426%, diff 0.1208% +- 0.0156% = 7.73 SE; c diff -0.0051 +- 0.0171
+3-point, SE_e(P1) as specified = 0.0078%: b -3.4539 +- 0.0863, chi2 27.53 (per point [1.96, 18.78, 6.79])
+3-point, SE_e(P1) = half the G1 difference = 0.0604%: b -3.0755 +- 0.1431, chi2 17.87 (per point [7.45, 7.69, 2.73])
+3-point, SE_e(P1) = sd of the 100 G1 runs / sqrt(100) = 0.0099%: b -3.4465 +- 0.0878, chi2 27.35 (per point [2.13, 18.52, 6.69])
+4-cell fit: b -3.453953 chi2 37.1476, per point (G1 pin0, G1 turned, G2 pin0, G2 turned) [9.61, 1.27, 6.12, 20.15]
+pilot runs own c: [16.0057, 15.9129] Z mean 15.72622015 psi6 0.707058589125

@@ -1,0 +1,26 @@
+task lines: 400
+logs: 400  all done: True  unique (cell,M,run): 400
+{'Gold 6248': 133, 'E5-2670 v3': 125, 'EPYC 9654': 59, 'Gold 6342': 41, 'EPYC 7543P': 32, 'E5-4640 v2': 10}
+p2_runs rows: 400  errors non-empty: 0
+join: {'both': 400, 'left_only': 0, 'right_only': 0}
+node column agrees with log node: True  seed agrees: True
+
+model        n   median us/event (mine)   CC value   |diff|   (min, max)
+  E5-2670 v3   125   3.555381   3.555   3.81e-04   (2.979, 3.833)
+  E5-4640 v2    10   3.934748   3.935   2.52e-04   (3.493, 4.607)
+  EPYC 7543P    32   2.283756   2.284   2.44e-04   (2.119, 2.718)
+  EPYC 9654     59   2.139172   2.139   1.72e-04   (1.916, 2.600)
+  Gold 6248    133   2.764137   2.764   1.37e-04   (2.157, 3.113)
+  Gold 6342     41   2.209437   2.209   4.37e-04   (2.054, 2.535)
+
+per model and pin: median us/event
+pin              0  turned
+model                     
+E5-2670 v3  3.0957  3.5726
+E5-4640 v2  4.2569  3.5878
+EPYC 7543P  2.1841  2.3068
+EPYC 9654   2.2525  2.1349
+Gold 6248   2.8259  2.7628
+Gold 6342   2.1859  2.2350
+
+P2 total core-hours used (sum of seconds / 3600): 36.8503

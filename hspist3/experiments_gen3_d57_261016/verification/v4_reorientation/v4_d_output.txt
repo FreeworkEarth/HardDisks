@@ -1,0 +1,26 @@
+sha256 psi6_t_L0_163_wallmassfactor_4500_run0.csv: OK
+sha256 virial_blocks_L0_163_wallmassfactor_4500_run0.csv: OK
+sha256 snapshots_L0_163_wallmassfactor_4500_run0.bin: OK
+snapshots: N 900, W 32.724923, H 30.000000, R 0.5, every 10.0, frames 842, t first 0.0000 last 8410.0001
+frames to 600: 61, dt min 10.00000 max 10.00000; phases [0]
+left: first config_strain line-y snapshot t = 70.00000; later x snapshots up to 600: 0; NaN lines 0; config_strain line vs theta0-mod-60 rule agree on 61 of 61 frames
+right: first config_strain line-y snapshot t = 40.00000; later x snapshots up to 600: 0; NaN lines 0; config_strain line vs theta0-mod-60 rule agree on 61 of 61 frames
+psi6_t: 4925 samples, dt median 1.71667
+left: first psi6_t sample within 7.5 deg of 30: t = 66.683334 (orientation 36.914); previous sample t 64.9667 o 1.549
+right: first psi6_t sample within 7.5 deg of 30: t = 34.200001 (orientation 29.469); previous sample t 32.4833 o 15.865
+
+CC frames rows 61, mine 61; t max |diff| 8.941e-06
+  phase: equal True
+  theta0_left: max abs diff 4.971e-05, max rel diff 1.682e-06
+  line_left: equal True
+  ordered_bulk_left: max abs diff 4.983e-07, max rel diff 6.774e-07
+  e_left: max abs diff 4.095e-08, max rel diff 3.868e-06
+  theta0_right: max abs diff 4.808e-05, max rel diff 2.087e-06
+  line_right: equal True
+  ordered_bulk_right: max abs diff 4.917e-07, max rel diff 5.960e-07
+  e_right: max abs diff 4.986e-08, max rel diff 4.790e-06
+
+run.log [EDMD3-M4C]: ['[EDMD3-M4C] lattice orientation requested: 0 (close-packed lines along x; psi6 orientation 0 deg); left lines along x, right lines along x']
+run.log seeds: ['495578109']
+KOA P2 (0.72, G1, pin0, M 4500, run 0): seed 495578109, m4c '0 (close-packed lines along x; psi6 orientation 0 deg); left lines along x, right lines along x', arrangement para alt 29x16, snapshots 101
+KOA run.log seeds (run 0 lines): ['126417981', '1291353430', '2120740971', '2861330778', '2949189961', '3509795605', '3874036340', '495578109', '692117226', '942839518']
